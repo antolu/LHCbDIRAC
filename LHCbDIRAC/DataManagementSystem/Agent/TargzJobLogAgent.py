@@ -37,10 +37,16 @@ class TargzJobLogAgent( AgentModule ):
   storageElement = None
   destDirectory = "/lhcb/backup/log"
 
+  def __init__( self, *args, **kwargs ):
+    ''' c'tor
+    '''
+    AgentModule.__init__( self, *args, **kwargs )
+
+    self.storageElement = StorageElement( "CERN-tape" )
+
   def initialize( self ):
     """ agent initialisation """
 
-    self.pollingTime = self.am_getOption( 'PollingTime', self.pollingTime )
     self.log.info( "PollingTime %d hours" % ( int( self.pollingTime )/3600 ) )
 
     self.logPath = self.am_getOption( 'LogPath', self.logPath )
@@ -51,8 +57,6 @@ class TargzJobLogAgent( AgentModule ):
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'SAMManager' )
     
-    self.storageElement = StorageElement( "CERN-tape" )
-
     return S_OK()
 
   def execute( self ):

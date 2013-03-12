@@ -34,24 +34,29 @@ class UserStorageQuotaAgent( AgentModule ):
   notificationClient = None
   storageUsageDB = None
 
+  def __init__( self, *args, **kwargs ):
+    ''' c'tor
+    '''
+    AgentModule.__init__( self, *args, **kwargs )
+
+    self.notificationClient = NotificationClient()
+    try:
+      self.storageUsageDB = StorageUsageDB()
+    except SystemExit:
+      self.storageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
+
+    self.defaultQuota = gConfig.getValue( '/Registry/DefaultStorageQuota', self.defaultQuota )  # Default is 1TB
 
   def initialize( self ):
     """ agent initialisation
 
     :param self: self reference
     """
-    self.notificationClient = NotificationClient() 
-    try:
-      self.storageUsageDB = StorageUsageDB()
-    except SystemExit:
-      self.storageUsageDB = RPCClient( 'DataManagement/StorageUsage' )
-
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )
 
-    self.defaultQuota = gConfig.getValue( '/Registry/DefaultStorageQuota', self.defaultQuota ) # Default is 1TB
     self.log.info( "initialize: Default quota found to be %d GB" % self.defaultQuota )
     return S_OK()
 

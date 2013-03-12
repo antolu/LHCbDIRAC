@@ -1,19 +1,19 @@
 #####################################################################
 # File: StorageUsageAgent.py
 ########################################################################
-""" :mod: StorageUsageAgent
+''' :mod: StorageUsageAgent
     =======================
- 
+
     .. module: StorageUsageAgent
-    :synopsis: StorageUsageAgent takes the LFC as the primary source of information to 
+    :synopsis: StorageUsageAgent takes the LFC as the primary source of information to
     determine storage usage.
-"""
-## imports
+'''
+# # imports
 import time
 import os
 import re
 import threading
-## from DIRAC
+# # from DIRAC
 from DIRAC import gMonitor, S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
@@ -24,7 +24,7 @@ from DIRAC.Core.Utilities import List
 from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 from DIRAC.Core.Utilities.DictCache import DictCache
 from DIRAC.Core.DISET.RPCClient import RPCClient
-## from LHCbDIRAC
+# # from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
 
@@ -33,7 +33,7 @@ __RCSID__ = "$Id$"
 AGENT_NAME = "DataManagement/StorageUsageAgent"
 
 class StorageUsageAgent( AgentModule ):
-  """ .. class:: StorageUsageAgent
+  ''' .. class:: StorageUsageAgent
 
 
   :param CatalogDirectory catalog: CatalogDIrectory instance
@@ -43,22 +43,33 @@ class StorageUsageAgent( AgentModule ):
   :param threading.Lock dataLock: data lock
   :param threading.Lock replicaListLock: replica list lock
   :param DictCache proxyCache: creds cache
-  """
+  '''
   catalog = None
   storageUsage = None
   pollingTime = 43200
   activePeriod = 0
-  dataLock = None # threading.Lock()
-  replicaListLock = None # threading.Lock()
-  proxyCache = None # DictCache()
+  dataLock = None  # threading.Lock()
+  replicaListLock = None  # threading.Lock()
+  proxyCache = None  # DictCache()
 
-  def initialize( self ):
-    """ agent initialisation """
+  def __init__( self, *args, **kwargs ):
+    ''' c'tor
+    '''
+    AgentModule.__init__( self, *args, **kwargs )
+
     self.catalog = CatalogDirectory()
     if self.am_getOption( 'DirectDB', False ):
       self.storageUsage = StorageUsageDB()
     else:
       self.storageUsage = RPCClient( 'DataManagement/StorageUsage' )
+
+    self.activePeriod = self.am_getOption( 'ActivePeriod', self.activePeriod )
+    self.dataLock = threading.Lock()
+    self.replicaListLock = threading.Lock()
+    self.proxyCache = DictCache()
+
+  def initialize( self ):
+    ''' agent initialisation '''
 
     self.am_setOption( "PollingTime", self.pollingTime )
 
@@ -67,14 +78,10 @@ class StorageUsageAgent( AgentModule ):
     # the shifterProxy option in the Configsorteduration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )
 
-    self.activePeriod = self.am_getOption( 'ActivePeriod', self.activePeriod )
-    self.dataLock = threading.Lock()
-    self.replicaListLock = threading.Lock()
-    self.proxyCache = DictCache()
     return S_OK()
 
   def __writeReplicasListFiles( self, dirPathList ):
-    """ dump replicas list to files """
+    ''' dump replicas list to files '''
     self.replicaListLock.acquire()
     try:
       self.log.info( "Dumping replicas for %s dirs" % len( dirPathList ) )
@@ -111,7 +118,7 @@ class StorageUsageAgent( AgentModule ):
       self.replicaListLock.release()
 
   def __resetReplicaListFiles( self ):
-    """ prepare directories for replica list files """
+    ''' prepare directories for replica list files '''
     self.__replicaFilesUsed = set()
     self.__replicaListFilesDir = os.path.join( self.am_getOption( "WorkDirectory" ), "replicaLists" )
     if not os.path.isdir( self.__replicaListFilesDir ):
@@ -119,7 +126,7 @@ class StorageUsageAgent( AgentModule ):
     self.log.info( "Replica Lists directory is %s" % self.__replicaListFilesDir )
 
   def __replicaListFilesDone( self ):
-    """ rotate replicas list files """
+    ''' rotate replicas list files '''
     self.replicaListLock.acquire()
     try:
       old = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s\.old$" % self.__baseDirLabel )
@@ -154,7 +161,7 @@ class StorageUsageAgent( AgentModule ):
       self.replicaListLock.release()
 
   def __printSummary( self ):
-    """ pretty print summary """
+    ''' pretty print summary '''
     res = self.storageUsage.getStorageSummary()
     if res['OK']:
       self.log.notice( "Storage Usage Summary" )
@@ -165,15 +172,15 @@ class StorageUsageAgent( AgentModule ):
         files = res['Value'][se]['Files']
         site = se.split( '_' )[0].split( '-' )[0]
         self.log.notice( "%-40s %20s %20s" % ( se, str( files ), str( usage ) ) )
-        gMonitor.registerActivity( "%s-used" % se, "%s usage" % se, "StorageUsage/%s usage" % site, 
+        gMonitor.registerActivity( "%s-used" % se, "%s usage" % se, "StorageUsage/%s usage" % site,
                                    "", gMonitor.OP_MEAN, bucketLength = 600 )
         gMonitor.addMark( "%s-used" % se, usage )
-        gMonitor.registerActivity( "%s-files" % se, "%s files" % se, "StorageUsage/%s files" % site, 
+        gMonitor.registerActivity( "%s-files" % se, "%s files" % se, "StorageUsage/%s files" % site,
                                    "Files", gMonitor.OP_MEAN, bucketLength = 600 )
         gMonitor.addMark( "%s-files" % se, files )
 
   def execute( self ):
-    """ execution in one cycle """
+    ''' execution in one cycle '''
     self.__publishDirQueue = {}
     self.__dirsToPublish = {}
     self.__baseDir = self.am_getOption( 'BaseDirectory', '/lhcb' )
@@ -228,7 +235,7 @@ class StorageUsageAgent( AgentModule ):
     return S_OK()
 
   def __exploreDirList( self, dirList ):
-    """ collect directory size for directory in :dirList: """
+    ''' collect directory size for directory in :dirList: '''
     self.log.notice( "Retrieving info for %s dirs" % len( dirList ) )
     res = self.catalog.getCatalogDirectorySize( dirList )
     if not res['OK']:
@@ -241,7 +248,7 @@ class StorageUsageAgent( AgentModule ):
       self.__processDir( dirPath, res['Value']['Successful'][dirPath] )
 
   def __processDir( self, dirPath, directoryMetadata ):
-    """ calculate nb of files and size of :dirPath:, remove it if it's empty """
+    ''' calculate nb of files and size of :dirPath:, remove it if it's empty '''
     self.log.notice( "Processing %s" % dirPath )
     subDirs = directoryMetadata['SubDirs']
     closedDirs = directoryMetadata['ClosedDirs']
@@ -281,12 +288,12 @@ class StorageUsageAgent( AgentModule ):
         chosenDirs.append( subDir )
 
     self.__dirExplorer.addDirList( chosenDirs )
-    notCommited = len(self.__publishDirQueue) + len(self.__dirsToPublish)
+    notCommited = len( self.__publishDirQueue ) + len( self.__dirsToPublish )
     self.log.notice( "%d dirs to be explored. %d not yet commited." % ( self.__dirExplorer.getNumRemainingDirs(),
                                                                         notCommited ) )
 
   def __getOwnerProxy( self, dirPath ):
-    """ get owner creds for :dirPath: """
+    ''' get owner creds for :dirPath: '''
     self.log.verbose( "Retrieving dir metadata..." )
     result = self.catalog.getCatalogDirectoryMetadata( dirPath, singleFile = True )
     if not result[ 'OK' ]:
@@ -316,7 +323,7 @@ class StorageUsageAgent( AgentModule ):
     return S_ERROR( "Could not download user proxy:\n%s " % "\n ".join( downErrors ) )
 
   def removeEmptyDir( self, dirPath ):
-    """ unlink empty folder :dirPath: """
+    ''' unlink empty folder :dirPath: '''
     if len( List.fromChar( dirPath, "/" ) ) <= self.__keepDirLevels:
       return S_OK()
 
@@ -352,20 +359,20 @@ class StorageUsageAgent( AgentModule ):
       os.unlink( upFile )
 
   def __addDirToPublishQueue( self, dirName, dirData ):
-    """ enqueue :dirName: and :dirData: for publishing """
+    ''' enqueue :dirName: and :dirData: for publishing '''
     self.__publishDirQueue[ dirName ] = dirData
     numDirsToPublish = len( self.__publishDirQueue )
     if numDirsToPublish and numDirsToPublish % self.am_getOption( "PublishClusterSize", 100 ) == 0:
       self.__publishData( background = True )
 
   def __publishData( self, background = True ):
-    """ publish data in a separate deamon thread """
+    ''' publish data in a separate deamon thread '''
     self.dataLock.acquire()
     try:
       # Dump to file
       if self.am_getOption( "DumpReplicasToFile", False ):
         pass
-        #repThread = threading.Thread( target = self.__writeReplicasListFiles,
+        # repThread = threading.Thread( target = self.__writeReplicasListFiles,
         #                              args = ( list( self.__publishDirQueue ), ) )
       self.__dirsToPublish.update( self.__publishDirQueue )
       self.__publishDirQueue = {}
@@ -379,7 +386,7 @@ class StorageUsageAgent( AgentModule ):
       self.__executePublishData()
 
   def __executePublishData( self ):
-    """ publication thread target """
+    ''' publication thread target '''
     self.dataLock.acquire()
     try:
       if not self.__dirsToPublish:
@@ -394,6 +401,3 @@ class StorageUsageAgent( AgentModule ):
       return res
     finally:
       self.dataLock.release()
-
-
-

@@ -1,20 +1,17 @@
-########################################################################
-# File: SEUsageAgent.py
-########################################################################
-""" :mod: SEUsageAgent 
+''' :mod: SEUsageAgent
     ==================
- 
+
     .. module: SEUsageAgent
     :synopsis: SEUsageAgent browses the SEs to determine their content and store it into a DB.
-"""
-## imports 
+'''
+# # imports
 import os
 import time
 import urllib2
 import tarfile
 import signal
 from datetime import datetime
-## from DIRAC
+# # from DIRAC
 from DIRAC import S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -23,63 +20,77 @@ from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.Interfaces.API.Dirac import Dirac
-## from LHCbDIRAC
+# # from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
 __RCSID__ = "$Id$"
 
 AGENT_NAME = 'DataManagement/SEUsageAgent'
 
+
+
 def alarmTimeoutHandler( *args ):
-  """ handler for signal.SIGALRM """
+  ''' handler for signal.SIGALRM '''
   raise Exception( 'Timeout' )
 
 class SEUsageAgent( AgentModule ):
-  """ ..class:: SEUsageAgent
-  
-  :param mixed storageUsage: StorageUsageDB or StorageUsage client  
+  ''' ..class:: SEUsageAgent
+
+  :param mixed storageUsage: StorageUsageDB or StorageUsage client
   :param ReplicaManager replicaManager: ReplicaManager instance
   :param Operations opHelper: operations helper
   :param int maximumDelaySinceSD: max delay after SE dump creation
   :param list activeSites: active sites
-  """
-  storageUsage = None
-  replicaManager = None
-  opHelper = None
-  maximumDelaySinceSD = 43200
-  activeSites = None
-  specialTokens = None
-  specialReplicas = None
-  siteConfig = None
-  dirDict = None
-  spaceTokens = None
-  spaceTokToIgnore = None
-  inputFilesLocation = None
-  workDirectory = None
-  specialReplicas = None
-  pathToUploadResults = '/lhcb/test/dataNotRegistered'
+  '''
+#  storageUsage = None
+#  replicaManager = None
+#  opHelper = None
+#  maximumDelaySinceSD = 43200
+#  activeSites = None
+#  specialTokens = None
+#  specialReplicas = None
+#  siteConfig = None
+#  dirDict = None
+#  spaceTokens = None
+#  spaceTokToIgnore = None
+#  inputFilesLocation = None
+#  workDirectory = None
+#  specialReplicas = None
+#  pathToUploadResults = '/lhcb/test/dataNotRegistered'
 
-  def initialize( self ):
-    """ agent initialisation """
+  def __init__( self, *args, **kwargs ):
+    ''' c'tor
+    '''
+    AgentModule.__init__( self, *args, **kwargs )
     if self.am_getOption( 'DirectDB', False ):
       self.storageUsage = StorageUsageDB()
     else:
       self.storageUsage = RPCClient( 'DataManagement/StorageUsage' )
-    ## replica mgr
+    # # replica mgr
     self.replicaManager = ReplicaManager()
-    ## operations helper
+    # # operations helper
     self.opHelper = Operations()
-    ## Dirac API
+    # # Dirac API
     self.diracApi = Dirac()
+    self.activeSites = self.am_getOption( 'ActiveSites' )
+
+    self.specialReplicas = self.am_getOption( 'SpecialReplicas', [] )
+    self.workDirectory = self.am_getOption( "WorkDirectory" )
+    # maximum delay after storage dump creation
+    self.maximumDelaySinceSD = self.am_getOption( 'MaximumDelaySinceStorageDump', self.maximumDelaySinceSD )
+    self.spaceTokToIgnore = self.am_getOption( 'SpaceTokenToIgnore' )  # STs to skip during checks
+    self.pathToUploadResults = self.am_getOption( 'PathToUploadResults', self.pathToUploadResults )
+
+    self.spaceTokens = {}
+    self.siteConfig = {}
+
+  def initialize( self ):
+    ''' agent initialisation '''
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
     # the shifterProxy option in the Configsorteduration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'DataManager' )
     self.am_setModuleParam( "shifterProxyLocation", "%s/runit/%s/proxy" % ( rootPath, AGENT_NAME ) )
-    self.activeSites = self.am_getOption( 'ActiveSites' )
-    # maximum delay after storage dump creation
-    self.maximumDelaySinceSD = self.am_getOption( 'MaximumDelaySinceStorageDump', self.maximumDelaySinceSD )
-    self.workDirectory = self.am_getOption( "WorkDirectory" )
     if not os.path.isdir( self.workDirectory ):
       os.makedirs( self.workDirectory )
     self.log.info( "Working directory is %s" % self.workDirectory )
@@ -91,29 +102,23 @@ class SEUsageAgent( AgentModule ):
     else:
       self.log.info( "ERROR! could not create directory %s" % self.inputFilesLocation )
       return S_ERROR()
-    self.spaceTokToIgnore = self.am_getOption( 'SpaceTokenToIgnore' )# STs to skip during checks
-    self.specialReplicas = self.am_getOption( 'SpecialReplicas' )
+    # FIXME: totally useless
     if self.specialReplicas:
-      specialReplicasList = self.specialReplicas.split( ',' )
-      self.specialReplicas = []
-      for sr in specialReplicasList:
-        self.specialReplicas.append( sr.lstrip() )
       self.log.info( "Special replica types: %s" % self.specialReplicas )
     else:
       self.log.info( "No special replica configured." )
-    self.pathToUploadResults = self.am_getOption( 'PathToUploadResults', self.pathToUploadResults )
     self.log.info( "Path to upload results: %s " % self.pathToUploadResults )
     return S_OK()
 
   def execute( self ):
-    """ execution in one cycle
+    ''' execution in one cycle
 
-    Loops on the input files to read the content of Storage Elements, process them, and store 
-    the result into the DB. It reads directory by directory (every row of the input file being 
-    a directory). If the directory exists in the StorageUsage su_Directory table, and if a replica 
-    also exists for the given SE in the su_SEUsage table, then the directory and its usage are 
-    stored in the replica table (the se_Usage table) together with the insertion time, otherwise 
-    it is added to the problematic data table (problematicDirs) """
+    Loops on the input files to read the content of Storage Elements, process them, and store
+    the result into the DB. It reads directory by directory (every row of the input file being
+    a directory). If the directory exists in the StorageUsage su_Directory table, and if a replica
+    also exists for the given SE in the su_SEUsage table, then the directory and its usage are
+    stored in the replica table (the se_Usage table) together with the insertion time, otherwise
+    it is added to the problematic data table (problematicDirs) '''
 
     self.log.info( "Starting the execute method" )
     self.log.info( "Sites active for checks: %s " % self.activeSites )
@@ -142,11 +147,11 @@ class SEUsageAgent( AgentModule ):
 
       # ONLY FOR DEBUGGING
       debug = False
-      if debug: # get the problematic summary at the beginning (to debug this part without waiting until the end)
+      if debug:  # get the problematic summary at the beginning (to debug this part without waiting until the end)
         res = self.getProblematicDirsSummary( site )
         if not res[ 'OK' ]:
           return S_ERROR( res['Message'] )
-      else: # follow the usual work flow
+      else:  # follow the usual work flow
         # Flush the problematicDirs table
         self.log.info( "Flushing the problematic directories table for site %s..." % site )
         res = self.storageUsage.removeAllFromProblematicDirs( site )
@@ -178,7 +183,7 @@ class SEUsageAgent( AgentModule ):
             continue
           oneDirDict = {}
           dirPath = storageDirPath
-          #specialRep = False
+          # specialRep = False
           replicaType = 'normal'
           for sr in self.specialReplicas:
             prefix = '/lhcb/' + sr
@@ -192,14 +197,14 @@ class SEUsageAgent( AgentModule ):
           oneDirDict[ dirPath ] = { 'SpaceToken': spaceToken, 'Files': files, 'Size': size ,
                                     'Updated': 'na', 'Site': site, 'ReplicaType': replicaType }
           # the format of the entry to be processed must be a dictionary with LFN path as key
-          # use this format for consistency with already existing methods of StorageUsageDB 
+          # use this format for consistency with already existing methods of StorageUsageDB
           # which take in input a dictionary like this
           self.log.info( "Processing directory: %s" % ( oneDirDict ) )
           # initialize the isRegistered flag. Change it according to the checks SE vs LFC
           # possible values of isRegistered flag are:
           # NotRegisteredInFC: data not registered in FC
           # RegisteredInFC: data correctly registered in FC
-          # MissingDataFromSE: the directory exists in the LFC for that SE, but there is 
+          # MissingDataFromSE: the directory exists in the LFC for that SE, but there is
           # less data on the SE than what reported in the FC
           isRegistered = False
           lfcFiles = -1
@@ -230,7 +235,7 @@ class SEUsageAgent( AgentModule ):
                                "problematicDirs table " % dirPath )
               # TODO: we should decide what to do in this case. This might happen, but it is a problem at FC level...
               isRegistered = 'NotRegisteredInFC'
-            else: # got some replicas! let's see if there is one for this SE
+            else:  # got some replicas! let's see if there is one for this SE
               associatedDiracSEs = self.spaceTokens[ site ][spaceToken]['DiracSEs']
               self.log.verbose( "SpaceToken: %s list of its DiracSEs: %s" % ( spaceToken, associatedDiracSEs ) )
               lfcFiles = 0
@@ -276,7 +281,7 @@ class SEUsageAgent( AgentModule ):
                 isRegistered = 'InconsistentFilesSize'
 
           self.log.info( "isRegistered flag is %s" % isRegistered )
-          # now insert the entry into the problematicDirs table, 
+          # now insert the entry into the problematicDirs table,
           # or the replicas table according the isRegistered flag.
           if not isRegistered:
             self.log.error( "the isRegistered flag could not be updated for this directory: %s " % oneDirDict )
@@ -294,7 +299,7 @@ class SEUsageAgent( AgentModule ):
                 self.log.verbose( "entry %s correctly removed from se_Usage table" % oneDirDict )
               else:
                 self.log.verbose( "entry %s was NOT in se_Usage table" % oneDirDict )
-              #update the oneDirDict and insert into problematicDirs
+              # update the oneDirDict and insert into problematicDirs
               oneDirDict[ dirPath ][ 'Problem' ] = isRegistered
               oneDirDict[ dirPath ][ 'LFCFiles'] = lfcFiles
               oneDirDict[ dirPath ][ 'LFCSize' ] = lfcSize
@@ -303,7 +308,7 @@ class SEUsageAgent( AgentModule ):
                 self.log.error( "failed to publish entry %s to problematicDirs table" % dirPath )
               else:
                 self.log.info( "entry %s correctly published to problematicDirs table" % oneDirDict )
-          elif isRegistered == 'RegisteredInFC': # publish to se_Usage table!
+          elif isRegistered == 'RegisteredInFC':  # publish to se_Usage table!
             self.log.verbose( "replica %s is registered! remove from problematicDirs (if necessary) and " \
                                 " publish to se_Usage table" % dirPath )
             res = self.storageUsage.removeDirFromProblematicDirs( oneDirDict )
@@ -344,8 +349,8 @@ class SEUsageAgent( AgentModule ):
 
 
   def setupSiteConfig( self, lcgSite ):
-    """ Setup the configuration for the site
-    """
+    ''' Setup the configuration for the site
+    '''
     site = lcgSite.split( '.' )[1]
     self.spaceTokens[ site ] = { 'LHCb-Tape' : { 'year': '2011', 'DiracSEs': [ site + '-RAW',
                                                                                site + '-RDST',
@@ -376,7 +381,7 @@ class SEUsageAgent( AgentModule ):
 
     rootConfigPath = 'DataConsistency'
     res = self.opHelper.getOptionsDict( "%s/%s" % ( rootConfigPath, site ) )
-    #res = gConfig.getOptionsDict( "%s/%s" % ( rootConfigPath, site ) )
+    # res = gConfig.getOptionsDict( "%s/%s" % ( rootConfigPath, site ) )
     if not res[ 'OK' ]:
       self.log.error( "could not get configuration for site %s : %s " % ( site, res['Message'] ) )
       return S_ERROR( res['Message'] )
@@ -384,7 +389,7 @@ class SEUsageAgent( AgentModule ):
     storageDumpURL = res[ 'Value' ]['StorageDumpURL']
     fileType = res[ 'Value' ]['FileType']
     pathInsideTar = res[ 'Value' ]['PathInsideTar']
-    #res = getSEsForSite( site )
+    # res = getSEsForSite( site )
     res = getSEsForSite( lcgSite )
     if not res[ 'OK' ]:
       self.log.error( 'could not get SEs for site %s ' % site )
@@ -411,16 +416,16 @@ class SEUsageAgent( AgentModule ):
     return S_OK()
 
   def readInputFile( self, site ):
-    """ Download, read and parse input files with SEs content.
+    ''' Download, read and parse input files with SEs content.
         Write down the results to the ASCII files.
         There are 3 phases in the manipulation of input files:
-        1. it is directly the format of the DB query output, right after uncompressing the 
+        1. it is directly the format of the DB query output, right after uncompressing the
         tar file provided by the site:
         PFN | size | update (ms)
         2. one row per file, with format:  LFN size update
         3. directory summary files: one row per directory, with format:
         SE DirectoryLFN NumOfFiles TotalSize Update(actually, not used)
-    """
+    '''
 
     retCode = 0
     originFileName = self.siteConfig[ site ][ 'originFileName' ]
@@ -459,14 +464,14 @@ class SEUsageAgent( AgentModule ):
         self.log.info( "removing %s" % fullPath )
         os.remove( fullPath )
 
-    # Download input data made available by the sites. Reuse the code of dirac-install: 
+    # Download input data made available by the sites. Reuse the code of dirac-install:
     # urlretrieveTimeout, downloadAndExtractTarball
     res = self.downloadAndExtractTarball( originFileName, originURL, targetPath )
     if not res['OK']:
       return S_ERROR( res['Message'] )
 
     defaultDate = 'na'
-    #defaultSize = 0
+    # defaultSize = 0
 
     self.log.info( "Check storage dump creation time.." )
     self.StorageDumpCreationTime = None
@@ -498,8 +503,8 @@ class SEUsageAgent( AgentModule ):
         self.log.info( "removing %s" % fullPath )
         os.remove( fullPath )
 
-    # If necessary, call the special Castor pre-parser which analyse the name server dump and creates 
-    # one file per space token. The space token attribution is totally fake! it's based on the namespace. 
+    # If necessary, call the special Castor pre-parser which analyse the name server dump and creates
+    # one file per space token. The space token attribution is totally fake! it's based on the namespace.
     # For Castor, no other way to do it.
     if site in ['RAL']:
       self.log.info( "Calling special parser for Castor" )
@@ -578,8 +583,8 @@ class SEUsageAgent( AgentModule ):
       fP2 = outputFileMerged[ st ]['pointerToMergedFile' ]
       fileP2 = outputFileMerged[ st ]['MergedFileName']
       self.log.info( "Reading from file %s\n and writing to: %s" % ( fullPathFileP1, fileP2 ) )
-      totalLines = 0 # counts all lines in input
-      processedLines = 0 # counts all processed lines
+      totalLines = 0  # counts all lines in input
+      processedLines = 0  # counts all processed lines
       dirac_dir_lines = 0
       totalSize = 0
       totalFiles = 0
@@ -666,8 +671,8 @@ class SEUsageAgent( AgentModule ):
         self.log.info( "Skip this space token: %s" % st )
         continue
       self.log.info( "Space token: %s" % st )
-      totalLines = 0 # counts all lines in input
-      processedLines = 0 # counts all processed lines
+      totalLines = 0  # counts all lines in input
+      processedLines = 0  # counts all processed lines
       self.dirDict = {}
       for line in open( fileP2, "r" ).readlines():
         self.log.debug( "..processing line: %s" % line )
@@ -676,12 +681,12 @@ class SEUsageAgent( AgentModule ):
         filePath = splitLine[ 0 ]
         updated = defaultDate
         size = int( splitLine[ 1 ] )
-        ## currently the creation data is NOT stored in the DB. 
-        ## The time stamp stored for every entry is the insertion time
-        #updatedMS = int( splitLine[3] )*1./1000
-        ## convert to tuple format in UTC. Still to be checked which format the DB requires
-        #updatedTuple = time.gmtime( updatedMS ) 
-        #updated = time.asctime( updatedTuple )
+        # # currently the creation data is NOT stored in the DB.
+        # # The time stamp stored for every entry is the insertion time
+        # updatedMS = int( splitLine[3] )*1./1000
+        # # convert to tuple format in UTC. Still to be checked which format the DB requires
+        # updatedTuple = time.gmtime( updatedMS )
+        # updated = time.asctime( updatedTuple )
         directories = filePath.split( '/' )
         fileName = directories[len( directories ) - 1 ]
         basePath = ''
@@ -718,19 +723,19 @@ class SEUsageAgent( AgentModule ):
     return S_OK( retCode )
 
   def getLFNPath( self, site, pfnFilePath ):
-    """ Given a PFN returns the LFN, stripping the suffix relative to the particular site.
-        Important: usually the transformation is done simply removing the SApath of the site. 
+    ''' Given a PFN returns the LFN, stripping the suffix relative to the particular site.
+        Important: usually the transformation is done simply removing the SApath of the site.
         So for ARCHIVE and FREEZER and FAILOVER data:
         the LFN will be: /lhcb/archive/<LFN> etc...
-        even if LHCb register those replicas in the LFC with the LFN: <LFN>, stripping the 
+        even if LHCb register those replicas in the LFC with the LFN: <LFN>, stripping the
         initial '/lhcb/archive'
         this is taken into account by the main method of the agent when it queries for replicas in the LFC
-    """
+    '''
 
     outputFile = os.path.join( self.workDirectory, site + ".UnresolvedPFNs.txt" )
     # this should be done with the replicaManager, but it does not work for archive files . tbu why
-    #seName = site + '-RAW'
-    #res = self.replicaManager.getLfnForPfn( pfnFilePath, seName )
+    # seName = site + '-RAW'
+    # res = self.replicaManager.getLfnForPfn( pfnFilePath, seName )
     sePath = self.siteConfig[ site ][ 'SAPath']
     lfn = 'None'
     try:
@@ -760,9 +765,9 @@ class SEUsageAgent( AgentModule ):
 
 
   def urlretrieveTimeout( self, url, fileName, timeout = 0 ):
-    """ Borrowed from dirac-install (and slightly modified to fit in this agent).
+    ''' Borrowed from dirac-install (and slightly modified to fit in this agent).
     Retrieve remote url to local file (fileName), with timeout wrapper
-    """
+    '''
     # NOTE: Not thread-safe, since all threads will catch same alarm.
     #       This is OK for dirac-install, since there are no threads.
     self.log.info( 'Retrieving remote file "%s"' % url )
@@ -804,9 +809,9 @@ class SEUsageAgent( AgentModule ):
 
 
   def downloadAndExtractTarball( self, originFileName, originURL, targetPath ):
-    """ Borrowed from dirac-install ( slightly modified to fit in this agent).
-    It download a tar archive and extract the content, using the method urlretrieveTimeout 
-    """
+    ''' Borrowed from dirac-install ( slightly modified to fit in this agent).
+    It download a tar archive and extract the content, using the method urlretrieveTimeout
+    '''
     tarName = "%s" % ( originFileName )
     # destination file:
     tarPath = os.path.join( targetPath, tarName )
@@ -822,19 +827,19 @@ class SEUsageAgent( AgentModule ):
     if tarPath[-3:] not in ['bz2', 'tgz', 'tar']:
       self.log.info( "File ready to be read (no need to uncompress) " )
       return S_OK()
-    #Extract
+    # Extract
     cwd = os.getcwd()
     os.chdir( targetPath )
     tf = tarfile.open( tarPath, "r" )
     for member in tf.getmembers():
       tf.extract( member )
     os.chdir( cwd )
-    #Delete tar
+    # Delete tar
     os.unlink( tarPath )
     return S_OK()
 
   def downloadFiles( self, originFileNames, originURL, targetPath ):
-    """ Downloads a list of files from originURL locally to targetPath """
+    ''' Downloads a list of files from originURL locally to targetPath '''
     if type( originFileNames ) != list:
       self.log.error( "first argument for downloadFiles method should be a list! " )
       return False
@@ -851,9 +856,9 @@ class SEUsageAgent( AgentModule ):
 
 
   def pathInLFC( self, dirName ):
-    """ Get the path as registered in the LFC. Different from the path that is used to build 
+    ''' Get the path as registered in the LFC. Different from the path that is used to build
     the pfn only for the special replicas (failover, archive, freezer)
-    """
+    '''
     lfcDirName = dirName
     for specialReplica in self.specialReplicas:
       prefix = '/lhcb/' + specialReplica
@@ -864,23 +869,23 @@ class SEUsageAgent( AgentModule ):
     return lfcDirName
 
   def pathWithSuffix( self, dirName, replicaType ):
-    """ Takes in input the path as registered in LFC and
+    ''' Takes in input the path as registered in LFC and
         returns the path with the initial suffix for the special replicas
-    """
+    '''
     pathWithSuffix = dirName
     if replicaType in self.specialReplicas:
       pathWithSuffix = '/lhcb/' + replicaType + dirName
     return pathWithSuffix
 
   def getProblematicDirsSummary( self, site ):
-    """ Produce a list of files that are not registered in the File Catalog and writes it down to a text file:
-        1. queries the problematicDirs table to get all directories for a given site that have 
+    ''' Produce a list of files that are not registered in the File Catalog and writes it down to a text file:
+        1. queries the problematicDirs table to get all directories for a given site that have
            more data on SE than in LFCfor each replica type: (normal, archive, failover, freezer )
-        2. scan the input files (from the sites storage dumps) to get all the files belonging 
+        2. scan the input files (from the sites storage dumps) to get all the files belonging
            to the problematic directories
         3. lookup in in FC file by file to check if they have a replica registered at the site
         4. the files that are found not to have a replica registered for the site, are written down to a file
-    """
+    '''
     self.log.info( "*** Execute getProblematicDirsSummary method for site: %s " % site )
     fileNameMissingReplicas = os.path.join( self.workDirectory, site + ".replicasMissingFromSite.txt" )
     self.log.info( "Opening file for replicas not registered: %s " % fileNameMissingReplicas )
@@ -894,10 +899,10 @@ class SEUsageAgent( AgentModule ):
       self.log.error( "ERROR! %s" % res )
       return S_ERROR( res )
     val = res[ 'Value' ]
-    problematicDirectories = {} # store a list of directories for each replica type
+    problematicDirectories = {}  # store a list of directories for each replica type
     self.log.verbose( "List of problematic directories: " )
     for row in val:
-      #('SARA', 'LHCb-Disk', 0L, 43L, '/lhcb/MC/2010/DST/00007332/0000/', 'NotRegisteredInFC','failover')
+      # ('SARA', 'LHCb-Disk', 0L, 43L, '/lhcb/MC/2010/DST/00007332/0000/', 'NotRegisteredInFC','failover')
       site = row[0]
       lfcPath = row[4]
       problem = row[5]
@@ -907,7 +912,7 @@ class SEUsageAgent( AgentModule ):
       if replicaType not in problematicDirectories.keys():
         problematicDirectories[ replicaType ] = []
       if pathWithSuffix not in problematicDirectories[ replicaType ]:
-        problematicDirectories[ replicaType ].append( pathWithSuffix ) #fix 13.03.2012
+        problematicDirectories[ replicaType ].append( pathWithSuffix )  # fix 13.03.2012
       else:
         self.log.error( "the directory should be listed only once for a given site and type of replica! " \
                           " site=%s, path= %s, type of replica =%s  " % ( site, lfcPath, replicaType ) )
@@ -927,16 +932,16 @@ class SEUsageAgent( AgentModule ):
       fullFilePath = os.path.join( pathToMergedFiles, mergedFile )
       self.log.info( "Scanning file: %s ... " % fullFilePath )
       for line in open( fullFilePath, "r" ).readlines():
-        lfn = line.split()[0] # this LFN includes the initial suffix (e.g./lhcb/archive/)
+        lfn = line.split()[0]  # this LFN includes the initial suffix (e.g./lhcb/archive/)
         directories = lfn.split( '/' )
         basePath = ''
         for segment in directories[0:-1]:
-          basePath = basePath + segment + '/' # basepath is the directory including the initial suffix
+          basePath = basePath + segment + '/'  # basepath is the directory including the initial suffix
         for replicaType in problematicDirectories.keys():
-          if basePath in problematicDirectories[ replicaType ]: # these paths do include initial suffix
+          if basePath in problematicDirectories[ replicaType ]:  # these paths do include initial suffix
             if replicaType not in filesInProblematicDirs.keys():
               filesInProblematicDirs[ replicaType ] = []
-            if lfn not in filesInProblematicDirs[ replicaType ]: # lfn including suffix
+            if lfn not in filesInProblematicDirs[ replicaType ]:  # lfn including suffix
               filesInProblematicDirs[ replicaType ].append( lfn )
 
     self.log.info( "Files in problematic directories:" )
@@ -972,15 +977,15 @@ class SEUsageAgent( AgentModule ):
         self.log.error( "Failed to upload to the grid the file %s : %s " % ( fileNameMissingFiles, res['Message'] ) )
     return S_OK()
 
-#...............................................................................................................
+# ...............................................................................................................
   def checkReplicasInFC( self, replicaType, filesToBeChecked, site, fileNameMissingReplicas, fileNameMissingFiles ):
-    """ Check the existance of the replicas for the given site and replica type in the FC
-    """
+    ''' Check the existance of the replicas for the given site and replica type in the FC
+    '''
     self.log.info( "*** Execute checkReplicasInFC for replicaType=%s, site=%s " % ( replicaType, site ) )
     filesMissingFromFC = []
     replicasMissingFromSite = []
-    #totalSizeMissingFromFC = 0
-    #totalSizeReplicasMissingFromSite = 0
+    # totalSizeMissingFromFC = 0
+    # totalSizeReplicasMissingFromSite = 0
     # for files in problematic directories look up in the FC:
     specialReplicasSEs = []
     for sr in self.specialReplicas:
@@ -995,7 +1000,7 @@ class SEUsageAgent( AgentModule ):
     else:
       filesInProblematicDirs = filesToBeChecked
 
-    active = False # then this should be moved to a config parameter
+    active = False  # then this should be moved to a config parameter
     start = time.time()
     if not filesInProblematicDirs:
       self.log.info( "No file to be checked in the FC for site %s " % site )
@@ -1027,7 +1032,7 @@ class SEUsageAgent( AgentModule ):
       else:
         self.log.info( "Unknown message from Fc: %s - %s " % ( lfn, badFiles[ lfn ] ) )
     for lfn in goodFiles.keys():
-      #check if the replica exists at the given site:
+      # check if the replica exists at the given site:
       replicaAtSite = False
       if replicaType in self.specialReplicas:
         specialReplicaSE = site + '-' + replicaType.upper()
@@ -1080,8 +1085,8 @@ class SEUsageAgent( AgentModule ):
     line = "Site: " + site + "  Date: " + date
     fp = open( fileName , "w" )
     fp.write( "%s\n" % line )
-    totSizeMissingFromFC = 0 # to be implemented!!!
-    totSizeReplicasMissingFromSite = 0 # to be implemented!!!
+    totSizeMissingFromFC = 0  # to be implemented!!!
+    totSizeReplicasMissingFromSite = 0  # to be implemented!!!
     fp.write( "Total number of LFN at site not registered in the FC: %d , " \
                 "total size: %.2f GB \n" % ( len( filesMissingFromFC ), totSizeMissingFromFC / 1.0e9 ) )
     fp.write( "Total number of replicas  at site not registered in the FC: %d , " \
@@ -1091,13 +1096,13 @@ class SEUsageAgent( AgentModule ):
     return S_OK()
 
   def storageFileExists( self, lfn, replicaType, site ):
-    """ Check if the replica exists on storage. This is to filter many temporary files (e.g. un-merged..) 
+    ''' Check if the replica exists on storage. This is to filter many temporary files (e.g. un-merged..)
         that are removed in the while between storage dump and consistency check.
         Return values:
          -1 : request failed
           0 : storage file does not exist
           1 : storage file exists
-    """
+    '''
     storageFileExist = -1
     # get the PFN
     seList = []
@@ -1147,9 +1152,9 @@ class SEUsageAgent( AgentModule ):
     return storageFileExist
 
   def castorPreParser( self, site, inputFilesDir ):
-    """ Preliminary parsing for Castor nameserver dump
+    ''' Preliminary parsing for Castor nameserver dump
         Separates the files in 3 space tokens relying on the namespace
-    """
+    '''
 
     if inputFilesDir[-1:] != '/':
       inputFilesDir = inputFilesDir + '/'
@@ -1173,7 +1178,7 @@ class SEUsageAgent( AgentModule ):
         continue
       size = splitLine[ 4 ]
       pfn = splitLine[ 10 ]
-      #updated = should be reconstructed on the basis of the ascii date
+      # updated = should be reconstructed on the basis of the ascii date
       update = 'na'
       res = self.getLFNPath( site, pfn )
       if not res[ 'OK' ]:
@@ -1197,15 +1202,15 @@ class SEUsageAgent( AgentModule ):
     return S_OK()
 
   def checkCreationDate( self, directory ):
-    """ Check the storage dump creation date. 
-    Returns 0 if the creation date is more recent than a given time interval 
-    (set as configuration parameter), otherwise returns -1 
-    """
+    ''' Check the storage dump creation date.
+    Returns 0 if the creation date is more recent than a given time interval
+    (set as configuration parameter), otherwise returns -1
+    '''
     retCode = 0
 
     for fileName in os.listdir( directory ):
       fullPath = os.path.join( directory, fileName )
-      ## ( mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime ) = os.stat( fullPath )
+      # # ( mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime ) = os.stat( fullPath )
       mtime = os.path.getmtime( fullPath )
       self.StorageDumpCreationTime = datetime.utcfromtimestamp( mtime )
       self.log.info( "in checkCreationDate StorageDumpCreationTime %s " % self.StorageDumpCreationTime )

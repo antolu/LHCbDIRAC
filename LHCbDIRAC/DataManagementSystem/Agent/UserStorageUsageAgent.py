@@ -1,16 +1,12 @@
-########################################################################
-# File: UserStorageUsageAgent.py
-########################################################################
-
 """ :mod: UserStorageUsageAgent
     ===========================
- 
+
     .. module: UserStorageUsageAgent
-    :synopsis: UserStorageUsageAgent simply inherits the StorageUsage agent 
-    and loops over the /lhcb/user directory, removing empty ones.    
+    :synopsis: UserStorageUsageAgent simply inherits the StorageUsage agent
+    and loops over the /lhcb/user directory, removing empty ones.
 """
 
-## imports
+# # imports
 from DIRAC import S_OK
 from LHCbDIRAC.DataManagementSystem.Agent.StorageUsageAgent import StorageUsageAgent
 from DIRAC.Core.Utilities import List
@@ -23,8 +19,8 @@ class UserStorageUsageAgent( StorageUsageAgent ):
 
   """
   def removeEmptyDir( self, dirPath ):
-    """ remove empty directories, but skip home 
-    
+    """ remove empty directories, but skip home
+
     :param self: self reference
     :param str dirPath: directory to remove
     """
