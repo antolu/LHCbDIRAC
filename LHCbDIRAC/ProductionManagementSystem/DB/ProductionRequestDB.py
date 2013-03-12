@@ -1,8 +1,6 @@
-# $Id$
-"""
-    DIRAC ProductionRequestDB class is a front-end to the repository
+''' DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
-"""
+'''
 __RCSID__ = "$Id$"
 
 # Defined states:
@@ -30,8 +28,8 @@ from LHCbDIRAC.ProductionManagementSystem.Utilities.Utils import informPeople
 
 class ProductionRequestDB( DB ):
   def __init__( self, maxQueueSize = 10 ):
-    """ Constructor
-    """
+    ''' Constructor
+    '''
     DB.__init__( self, 'ProductionRequestDB',
                 'ProductionManagement/ProductionRequestDB', maxQueueSize )
     self.lock = threading.Lock()
@@ -66,8 +64,9 @@ class ProductionRequestDB( DB ):
         outValues[i] = 'NULL'
     return S_OK( outValues )
 
+  @staticmethod
   def __prefixComments( self, update, old, user ):
-    """ Add Log style prefix to the record like change """
+    ''' Add Log style prefix to the record like change '''
     if not update:
       return update
     if not old:
@@ -82,11 +81,11 @@ class ProductionRequestDB( DB ):
     return prefix + update.lstrip()
 
   def __getRequestInfo( self, iD, connection ):
-    """ Retrive info fields from specified ID
+    ''' Retrive info fields from specified ID
         Used to get ParentID information.
         id must be checked before
         NOTE: it does self.lock.release() in case of errors
-    """
+    '''
     inFields = [ 'RequestState', 'ParentID', 'MasterID', 'RequestAuthor', 'Inform' ]
     result = self._query( "SELECT %s " % ','.join( inFields ) +
                          "FROM ProductionRequests " +
@@ -100,10 +99,10 @@ class ProductionRequestDB( DB ):
     return S_OK( dict( zip( inFields, result['Value'][0] ) ) )
 
   def __getStateAndAuthor( self, iD, connection ):
-    """ Return state, Author and inform list of Master for id (or id's own if no parents)
+    ''' Return state, Author and inform list of Master for id (or id's own if no parents)
         id must be checked before
         NOTE: it does self.lock.release() in case of errors
-    """
+    '''
     result = self.__getRequestInfo( iD, connection )
     if not result['OK']:
       return result
@@ -117,11 +116,11 @@ class ProductionRequestDB( DB ):
     return S_OK( [pinfo['RequestState'], pinfo['RequestAuthor'], pinfo['Inform']] )
 
   def __checkMaster( self, master, iD, connection ):
-    """ Return State of Master for id (or id's own if no parents)
+    ''' Return State of Master for id (or id's own if no parents)
         id and master must be checked before. It check that master can
         be reached with ParentID links.
         NOTE: it does self.lock.release() in case of errors
-    """
+    '''
     while True:
       result = self.__getRequestInfo( iD, connection )
       if not result['OK']:
@@ -138,9 +137,9 @@ class ProductionRequestDB( DB ):
       iD = pinfo['ParentID']
 
   def createProductionRequest( self, requestDict, creds ):
-    """ Create new Production Request
+    ''' Create new Production Request
         TODO: Complete check of content
-    """
+    '''
     if creds['Group'] == 'hosts':
       return S_ERROR( 'Authorization required' )
 
@@ -255,10 +254,11 @@ class ProductionRequestDB( DB ):
       informPeople( rec, '', rec['RequestState'], creds['User'], rec['Inform'] )
     return S_OK( requestID )
 
+  @staticmethod
   def __addMonitoring( self, req, order ):
-    """ Append monitoring columns. Somehow tricky SQL.
+    ''' Append monitoring columns. Somehow tricky SQL.
         Most probable need optimizations, but ok for now.
-    """
+    '''
     rQuery = "SELECT t.*,MIN(rh.TimeStamp) AS crTime,"
     rQuery += "           MAX(rh.TimeStamp) AS upTime "
     rQuery += "FROM "
@@ -287,14 +287,14 @@ class ProductionRequestDB( DB ):
 
   def getProductionRequest( self, requestIDList, subrequestsFor = 0,
                            sortBy = '', sortOrder = 'ASC',
-                           offset = 0, limit = 0, filter = {} ):
-    """ Get the Production Request(s) details.
+                           offset = 0, limit = 0, filterIn = {} ):
+    ''' Get the Production Request(s) details.
         If requestIDList is not empty, only productions
         from the list are retured. Otherwise
         master requests are returned (without subrequests) or
         all subrequests of 'subrequestsFor' (when specified).
         Parameters with explicit types are assumed checked by service.
-    """
+    '''
     try: # test parameters
       for x in requestIDList:
         y = long( x )
@@ -302,10 +302,10 @@ class ProductionRequestDB( DB ):
       return S_ERROR( "Bad parameters (all request IDs must be numbers)" )
     try: # test filters
       sfilter = []
-      for x in filter:
+      for x in filterIn:
         if not x in self.requestFields[:-9]:
-          return S_ERROR( "bad field in filter" )
-        val = str( filter[x] )
+          return S_ERROR( "bad field in filterIn" )
+        val = str( filterIn[x] )
         if val:
           val = "( " + ','.join( ['"' + y + '"' for y in val.split( ',' )] ) + ") "
           if x == "RequestID":
@@ -375,11 +375,11 @@ class ProductionRequestDB( DB ):
     return S_OK( {'Rows':rows, 'Total':total} )
 
   def __checkUpdate( self, update, old, creds, connection ):
-    """ Check that update is possible.
+    ''' Check that update is possible.
         Return dict with values for _inform_people (with
         state=='' in  case notification is not required)
         NOTE: unlock in case of errors
-    """
+    '''
     requestID = old['RequestID']
     result = self.__getStateAndAuthor( requestID, connection )
     if not result['OK']:
@@ -610,13 +610,13 @@ class ProductionRequestDB( DB ):
     return S_OK( inform )
 
   def updateProductionRequest( self, requestID, requestDict, creds ):
-    """ Update existing production request
+    ''' Update existing production request
         In states other than New only state and comments
         are changable.
 
         TODO: RequestPDG change in ??? state
               Protect fields in subrequests
-    """
+    '''
     fdict = dict.fromkeys( self.requestFields[4:-9], None )
     rec = {}
     for x in requestDict:
@@ -716,9 +716,9 @@ class ProductionRequestDB( DB ):
     return S_OK( requestID )
 
   def __getSubrequestsList( self, iD, master, connection ):
-    """ Return list of all subrequests for this request
+    ''' Return list of all subrequests for this request
         NOTE: it does self.lock.release() in case of errors
-    """
+    '''
     result = self._query( "SELECT RequestID " +
                          "FROM ProductionRequests " +
                          "WHERE ParentID=%s and MasterID=%s" % ( iD, master ),
@@ -737,11 +737,11 @@ class ProductionRequestDB( DB ):
     return S_OK( sr )
 
   def deleteProductionRequest( self, requestID, creds ):
-    """ Delete existing production.
+    ''' Delete existing production.
         Subrequests are deleted.
         Substructure is moved up in the tree.
         Available is New and Rejected states only
-    """
+    '''
     try:
       requestID = long( requestID )
     except ValueError:
@@ -836,9 +836,9 @@ class ProductionRequestDB( DB ):
     return S_OK( requestID )
 
   def __getRequest( self, requestID, connection ):
-    """ retrive complete request record.
+    ''' retrive complete request record.
         NOTE: unlock in case of errors
-    """
+    '''
     fields = ','.join( ['t.' + x for x in self.requestFields[:-9]] )
     req = "SELECT %s " % fields
     req += "FROM ProductionRequests as t "
@@ -853,18 +853,19 @@ class ProductionRequestDB( DB ):
     rec = dict( zip( self.requestFields[:-9], result['Value'][0] ) )
     return S_OK( rec )
 
+  @staticmethod
   def __clearProcessingPass( self, rec ):
-    """ clear processing pass section.
-    """
+    ''' clear processing pass section.
+    '''
     rec['ProID'] = None
-    detail = cPickle.loads( rec['ProDetail'] )
+    _detail = cPickle.loads( rec['ProDetail'] )
     nd = {}
     rec['ProDetail'] = cPickle.dumps( nd )
 
   def __duplicateDeep( self, requestID, masterID, parentID, creds, connection, clearpp ):
-    """ recurcive duplication function.
+    ''' recurcive duplication function.
         NOTE: unlock in case of errors
-    """
+    '''
 
     result = self.__getRequest( requestID, connection )
     if not result['OK']:
@@ -951,13 +952,13 @@ class ProductionRequestDB( DB ):
 
 
   def duplicateProductionRequest( self, requestID, creds, clearpp ):
-    """
+    '''
     Duplicate production request with all it's subrequests
     (but without substructure). If that is subrequest,
     master must be in New state and user must be the
     author. If clearpp is set, all details in the Processing
     pass (of the master) are cleaned.
-    """
+    '''
     if creds['Group'] == 'hosts':
       return S_ERROR( 'Authorization required' )
 
@@ -995,10 +996,11 @@ class ProductionRequestDB( DB ):
       self.lock.release()
     return result
 
+  @staticmethod
   def __checkAuthorizeSplit( self, requestState, creds ):
-    """
+    '''
     Check that current user is allowed to split in specified state
-    """
+    '''
     if creds['Group'] == 'diracAdmin':
       return S_OK()
     if ( requestState in [ 'Submitted', 'PPG OK', 'On-hold' ] ) \
@@ -1009,10 +1011,10 @@ class ProductionRequestDB( DB ):
     return S_ERROR( 'You are not allowed to split the request' )
 
   def __moveChildDeep( self, requestID, masterID, setParent, connection ):
-    """
+    '''
     Update parent for this request if setParent is True
     and update master for this and all subrequests
-    """
+    '''
     if setParent:
       updates = "ParentID=%s,MasterID=%s" % ( str( masterID ), str( masterID ) )
     req = "UPDATE ProductionRequests "
@@ -1037,13 +1039,13 @@ class ProductionRequestDB( DB ):
     return S_OK()
 
   def splitProductionRequest( self, requestID, splitlist, creds ):
-    """
+    '''
     Fully duplicate master production request with its history
     and reassociate first level subrequests from splitlist
     (with there subrequest structure).
     Substructures can not be moved.
     Only experts in appropriate request state can request the split.
-    """
+    '''
     try:
       requestID = long( requestID )
     except ValueError:
@@ -1137,7 +1139,8 @@ class ProductionRequestDB( DB ):
     req += "ORDER BY TimeStamp"
     result = self._query( req, connection )
     if not result['OK']:
-      gLogger.error( "SplitProductionRequest: can not get history for %s: %s" % ( str( requestID ), result['Message'] ) )
+      gLogger.error( "SplitProductionRequest: can not get history for %s: %s" % ( str( requestID ),
+                                                                                  result['Message'] ) )
     else:
       for x in result['Value']:
         x = list( x )
@@ -1154,9 +1157,9 @@ class ProductionRequestDB( DB ):
   progressFields = [ 'ProductionID', 'RequestID', 'Used', 'BkEvents' ]
 
   def getProductionProgress( self, requestID ):
-    """ return the list of associated productions
+    ''' return the list of associated productions
         requestID must be Long and already checked
-    """
+    '''
     req = "SELECT * FROM ProductionProgress WHERE RequestID=%s" % requestID
     result = self._query( req )
     if not result['OK']:
@@ -1167,10 +1170,10 @@ class ProductionRequestDB( DB ):
     return S_OK( {'Rows':rows, 'Total':total} )
 
   def addProductionToRequest( self, pdict ):
-    """ Associate production to request.
+    ''' Associate production to request.
         Existence of request is checked first.
         TODO: check requestState
-    """
+    '''
     try:
       for x in self.progressFields:
         pdict[x] = long( pdict[x] )
@@ -1202,8 +1205,8 @@ class ProductionRequestDB( DB ):
     return S_OK( pdict['ProductionID'] )
 
   def removeProductionFromRequest( self, productionID ):
-    """ Deassociate production.
-    """
+    ''' Deassociate production.
+    '''
     req = "DELETE FROM ProductionProgress "
     req += "WHERE ProductionID=%s" % str( productionID )
     result = self._update( req )
@@ -1212,8 +1215,8 @@ class ProductionRequestDB( DB ):
     return S_OK( productionID )
 
   def useProductionForRequest( self, productionID, used ):
-    """ Deassociate production.
-    """
+    ''' Deassociate production.
+    '''
     used = int( used )
     req = "UPDATE ProductionProgress "
     req += "SET Used=%s " % str( used )
@@ -1224,9 +1227,9 @@ class ProductionRequestDB( DB ):
     return S_OK( productionID )
 
   def getRequestHistory( self, requestID ):
-    """ return the list of state changes for the requests
+    ''' return the list of state changes for the requests
         requestID must be Long and already checked
-    """
+    '''
     req = "SELECT * FROM RequestHistory WHERE RequestID=%s " % requestID
     req += "ORDER BY TimeStamp"
     result = self._query( req )
@@ -1238,9 +1241,9 @@ class ProductionRequestDB( DB ):
     return S_OK( {'Rows':rows, 'Total':total} )
 
   def getTrackedProductions( self ):
-    """ return a list of all productions associated
+    ''' return a list of all productions associated
         with requests in 'Active' state
-    """
+    '''
     req1 = "SELECT RequestID FROM ProductionRequests WHERE RequestState='Active'"
     req2 = "SELECT RequestID FROM ProductionRequests WHERE RequestState='Active'"
     req2 += " OR MasterID in (%s)" % req1
@@ -1254,7 +1257,7 @@ class ProductionRequestDB( DB ):
     return S_OK( values )
 
   def updateTrackedProductions( self, update ):
-    """ update tracked productions """
+    ''' update tracked productions '''
     # check parameters
     try:
       for x in update:
@@ -1282,9 +1285,9 @@ class ProductionRequestDB( DB ):
     return self._query( req )
 
   def getTrackedInput( self ):
-    """ return a list of all requests with dynamic input
+    ''' return a list of all requests with dynamic input
         in 'Active' state
-    """
+    '''
 
     fields = ','.join( ['t.' + x for x in self.requestFields[:-9]] )
     result = self.__trackedInputSQL( fields )
@@ -1310,7 +1313,7 @@ class ProductionRequestDB( DB ):
     return S_OK( rec )
 
   def updateTrackedInput( self, update ):
-    """ update real number of input events """
+    ''' update real number of input events '''
     # check parameters
     try:
       for x in update:
@@ -1341,9 +1344,9 @@ class ProductionRequestDB( DB ):
     return S_OK( '' )
 
   def getProductionList( self, requestID ):
-    """ return a list of all productions associated
+    ''' return a list of all productions associated
         with the request or any its subrequest
-    """
+    '''
     req1 = "SELECT RequestID FROM ProductionRequests WHERE MasterID=%s" % requestID
     req = "SELECT ProductionID FROM ProductionProgress WHERE RequestID "
     req += "in (%s) OR RequestID=%s" % ( req1, requestID )
@@ -1357,34 +1360,34 @@ class ProductionRequestDB( DB ):
     values = [row[0] for row in result['Value']]
     return S_OK( values )
 
-  def getAllSubRequestSummary( self, status = '', type = '' ):
-    """ return a dictionary containing a summary for each subrequest
-    """
+  def getAllSubRequestSummary( self, status = '', rType = '' ):
+    ''' return a dictionary containing a summary for each subrequest
+    '''
     req = "SELECT RequestID,ParentID,RequestType,RequestState,NumberOfEvents FROM ProductionRequests"
-    if status and type:
-      req = "%s WHERE RequestState = '%s' AND RequestType = '%s'" % ( req, status, type )
+    if status and rType:
+      req = "%s WHERE RequestState = '%s' AND RequestType = '%s'" % ( req, status, rType )
     elif status:
       req = "%s WHERE RequestState = '%s'" % ( req, status )
-    elif type:
-      req = "%s WHERE RequestType = '%s'" % ( req, type )
+    elif rType:
+      req = "%s WHERE RequestType = '%s'" % ( req, rType )
     res = self._query( req )
     if not res['OK']:
       return res
     sRequestInfo = {}
-    for sRequestID, parentID, type, status, reqEvents in res['Value']:
+    for sRequestID, parentID, tReq, status, reqEvents in res['Value']:
       if not parentID:
         parent = 0
       sRequestInfo[sRequestID] = {
                                    'Master'      : parent,
-                                   'RequestType' : type,
+                                   'RequestType' : tReq,
                                    'Status'      : status,
                                    'ReqEvents'   : reqEvents
                                    }
     return S_OK( sRequestInfo )
 
   def getAllProductionProgress( self ):
-    """ return a dictionary containing for each requestID the active productions and the number of events
-    """
+    ''' return a dictionary containing for each requestID the active productions and the number of events
+    '''
     req = "SELECT RequestID, ProductionID, Used, BkEvents FROM ProductionProgress;"
     res = self._query( req )
     if not res['OK']:
@@ -1397,8 +1400,8 @@ class ProductionRequestDB( DB ):
     return S_OK( sRequestInfo )
 
   def getFilterOptions( self ):
-    """ Return the dictionary with possible values for filter
-    """
+    ''' Return the dictionary with possible values for filter
+    '''
     opts = {}
     for key, value in [ ( 'State', 'RequestState' ),
                         ( 'Type', 'RequestType' ),
@@ -1425,8 +1428,8 @@ class ProductionRequestDB( DB ):
     return S_OK( allid )
 
   def getTestList( self, iD ):
-    """ Return list of all tests for this request and its subrequests
-    """
+    ''' Return list of all tests for this request and its subrequests
+    '''
     self.lock.acquire() # transaction begin ?? may be after connection ??
     result = self._getConnection()
     if not result['OK']:
@@ -1453,7 +1456,7 @@ class ProductionRequestDB( DB ):
     return S_OK( rows )
 
   def __invalidateTests( self, requestID, connection ):
-    """ Invalidate tests for this request """
+    ''' Invalidate tests for this request '''
     result = self.__getTestIDs( requestID, connection )
     if not result['OK']:
       return result
@@ -1469,8 +1472,8 @@ class ProductionRequestDB( DB ):
     return S_OK()
 
   def getTests( self, state ):
-    """ Return the list of tests in specified state
-    """
+    ''' Return the list of tests in specified state
+    '''
     self.lock.acquire() # transaction begin ?? may be after connection ??
     result = self._getConnection()
     if not result['OK']:
@@ -1491,9 +1494,9 @@ class ProductionRequestDB( DB ):
     return S_OK( rows )
 
   def __checkTest( self, iD, creds, connection ):
-    """ Check that test submission is authorized.
+    ''' Check that test submission is authorized.
         NOTE: unlock in case of errors
-    """
+    '''
     if creds['Group'] == 'hosts':
       self.lock.release()
       return S_ERROR( 'Authorization required' )
@@ -1548,11 +1551,11 @@ class ProductionRequestDB( DB ):
     return S_OK()
 
 
-  def submitTest( self, creds, input, params, script, tpl ):
-    """ Save new test request into DB
-    """
+  def submitTest( self, creds, tInput, params, script, tpl ):
+    ''' Save new test request into DB
+    '''
     try:
-      iD = long( input['ID'] )
+      iD = long( tInput['ID'] )
     except ValueError, e:
       return S_ERROR( str( e ) )
 
@@ -1572,7 +1575,7 @@ class ProductionRequestDB( DB ):
       'State' : 'Waiting',
       'Actual' : 1,
       'Link' : '',
-      'Input' : cPickle.dumps( input ),
+      'Input' : cPickle.dumps( tInput ),
       'Params' : cPickle.dumps( params ),
       'Script' : cPickle.dumps( script ),
       'Template' : cPickle.dumps( tpl )
@@ -1612,8 +1615,8 @@ class ProductionRequestDB( DB ):
     return S_OK()
 
   def setTestResult( self, requestID, state, link ):
-    """ Set test result. NOTE: no security check!
-    """
+    ''' Set test result. NOTE: no security check!
+    '''
     self.lock.acquire() # transaction begin ?? may be after connection ??
     result = self._getConnection()
     if not result['OK']:

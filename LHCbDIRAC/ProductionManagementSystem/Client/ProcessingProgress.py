@@ -13,6 +13,7 @@ import sys
 import time
 
 from DIRAC import gLogger
+from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery                 import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
@@ -27,7 +28,8 @@ class HTMLProgressTable:
     self.HTMLColumns = 0
     self.__titleRow( '' )
     self.table.rows.append( [TableCell( processingPass, attribs = {"colspan":self.htmlColumns}, header = True )] )
-    self.table.rows.append( [TableCell( time.ctime( time.time() ), attribs = {"colspan":self.htmlColumns}, align = 'center' )] )
+    self.table.rows.append( [TableCell( time.ctime( time.time() ), attribs = {"colspan":self.htmlColumns},
+                                        align = 'center' )] )
 
   def getTable( self ):
     return self.table
@@ -46,6 +48,7 @@ class HTMLProgressTable:
     self.htmlColumns = len( row2 ) + 1
     return [TableRow( row1, header = True ), TableRow( row2, header = True )]
 
+  @staticmethod
   def __tableRow( self, info ):
     row = [ info.getName() ]
     infoStrings = info.getItemsAsString()
@@ -86,6 +89,7 @@ class HTMLProgressTable:
     else:
       self.table.rows.append( ["None"] )
 
+  @staticmethod
   def __sumProdStats( self, summaryProdStats ):
     sumStats = []
     for ind in range( 4 ):
@@ -114,10 +118,10 @@ class HTMLProgressTable:
       diffStats[ind] = prodStats[ind] - prevProdStats[ind]
       row = self.__tableRow( diffStats[ind] )
       self.table.rows.append( row )
-    #row = self.__tableRow( diffStats[1] )
-    #self.table.rows.append(row)
-    #row = self.__tableRow( diffStats[-1] )
-    #self.table.rows.append(row)
+    # row = self.__tableRow( diffStats[1] )
+    # self.table.rows.append(row)
+    # row = self.__tableRow( diffStats[-1] )
+    # self.table.rows.append(row)
 
 class StatInfo:
   def __init__( self, name = '', info = {} ):
@@ -283,7 +287,7 @@ class ProcessingProgress:
       gLogger.error( "Processing pass should be /Real Data/<Reco>/<Stripping>" )
       return []
 
-    #Get production numbers for the Reco
+    # Get production numbers for the Reco
     recoBKQuery = BKQuery( bkQuery )
     recoBKQuery.setProcessingPass( '/'.join( processingPass[0:3] ) )
     recoList = recoBKQuery.getBKProductions( visible = False )
@@ -423,6 +427,7 @@ class ProcessingProgress:
     self.saveCache()
     return prodStats
 
+  @staticmethod
   def __sumProdInfo( self, info, totInfo ):
     for inf in info:
       for flag in info[inf]:
@@ -478,6 +483,7 @@ class ProcessingProgress:
       totInfo['Runs'][flag] = len( totInfo['Runs'][flag] )
     return totInfo
 
+  @staticmethod
   def outputResults( self, conditions, processingPass, prodStats ):
     outputString = ""
     _msgTuple = ( conditions, ",", processingPass, "on", time.ctime( time.time() ) )
@@ -599,7 +605,6 @@ class ProcessingProgress:
     return info, runInfo
 
   def __getLfnsMetadata( self, lfns ):
-    from DIRAC.Core.Utilities.List import breakListIntoChunks
     lfnDict = {}
     if len( lfns ):
       gLogger.verbose( "Getting metadata for %d files" % len( lfns ) )
@@ -618,7 +623,6 @@ class ProcessingProgress:
     return lfnDict
 
   def _getStatsFromBK( self, prod, fileType, runList, allReplicas ):
-    from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
     bkQueryDict = { "ProductionID": prod, "FileType": fileType }
     bkStr = str( bkQueryDict )
     bkQuery = BKQuery( bkQueryDict, visible = False )
@@ -699,7 +703,7 @@ class ProcessingProgress:
       runInfo['Untagged'].sort()
     else:
       runInfo['Untagged'] = []
-    #for f in info['Runs']:
+    # for f in info['Runs']:
     #  info['Runs'][f] = len( info['Runs'][f] )
     for flag in info['Lumi']:
       info['Lumi'][flag] /= 1000000.
@@ -709,7 +713,7 @@ class ProcessingProgress:
     prevStats = self.cachedInfo.get( 'ProdStats', {} ).get( processingPass )
     if prevStats:
       try:
-        name = prevStats['ProdStats'][0][0].getName()
+        _name = prevStats['ProdStats'][0][0].getName()
       except:
         prevStats = None
     return prevStats
@@ -836,7 +840,7 @@ class FileLock( object ):
     return self
 
 
-  def __exit__( self, type, value, traceback ):
+  def __exit__( self, typE, value, traceback ):
     """ Activated at the end of the with statement.
         It automatically releases the lock if it isn't locked.
     """

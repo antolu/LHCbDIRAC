@@ -1,12 +1,8 @@
-########################################################################
-# File: UserStorageQuotaAgent.py
-########################################################################
-
 """ :mod: UserStorageQuotaAgent
     ===========================
- 
+
     .. module: UserStorageQuotaAgent
-    :synopsis: UserStorageQuotaAgent obtains the usage by each user from the StorageUsageDB 
+    :synopsis: UserStorageQuotaAgent obtains the usage by each user from the StorageUsageDB
     and compares with a quota present in the CS.
 """
 
@@ -95,18 +91,18 @@ class UserStorageQuotaAgent( AgentModule ):
       # Different behaviour for 90% exceeded, 110% exceeded and 150% exceeded
       msg = None
       if ( 1.5 * userQuota ) < usageGB:
-        msg = "%s is at %d%s of quota %d GB (%.1f GB)." % ( userName, ( usageGB * 100 ) / userQuota, 
+        msg = "%s is at %d%s of quota %d GB (%.1f GB)." % ( userName, ( usageGB * 100 ) / userQuota,
                                                             '%', userQuota, usageGB )
         self.log.info( msg )
         self.sendBlockedMail( userName, userMail, userQuota, usageGB )
         self.log.info( "!!!!!!!!!!!!!!!!!!!!!!!!REMEMBER TO MODIFY THE ACLs and STATUS HERE!!!!!!!!!!!!!!!!!" )
       elif ( 1.0 * userQuota ) < usageGB:
-        msg = "%s is at %d%s of quota %d GB (%.1f GB)." % ( userName, ( usageGB * 100 ) / userQuota, 
+        msg = "%s is at %d%s of quota %d GB (%.1f GB)." % ( userName, ( usageGB * 100 ) / userQuota,
                                                             '%', userQuota, usageGB )
         self.log.info( msg )
         self.sendSecondWarningMail( userName, userMail, userQuota, usageGB )
       elif ( 0.9 * userQuota ) < usageGB:
-        msg = "%s is at %d%s of quota %d GB (%.1f GB)." % ( userName, ( usageGB * 100 ) / userQuota, 
+        msg = "%s is at %d%s of quota %d GB (%.1f GB)." % ( userName, ( usageGB * 100 ) / userQuota,
                                                             '%', userQuota, usageGB )
         self.log.info( msg )
         self.sendFirstWarningMail( userName, userMail, userQuota, usageGB )
@@ -141,7 +137,7 @@ You are currently using %.1f GB.
 Please reduce you usage by removing some files. If you have reduced your usage in the last 24 hours please ignore this message.
 
 Explanations can be found at https://twiki.cern.ch/twiki/bin/view/LHCb/GridStorageQuota
-""" % ( int(quota), usage )
+""" % ( int( quota ), usage )
     fromAddress = 'LHCb Data Manager <lhcb-datamanagement@cern.ch>'
     subject = 'Grid storage use near quota (%s)' % userName
     toAddress = userMail
@@ -165,7 +161,7 @@ You are currently using %.1f GB.
 
 Please reduce you usage by removing some files. If you have reduced your usage in the last 24 hours please ignore this message.
 Explanations can be found at https://twiki.cern.ch/twiki/bin/view/LHCb/GridStorageQuota
-""" % ( int(quota), usage )
+""" % ( int( quota ), usage )
     fromAddress = 'LHCb Data Manager <lhcb-datamanagement@cern.ch>'
     subject = 'Grid storage use over quota (%s)' % userName
     toAddress = userMail
@@ -180,18 +176,18 @@ Explanations can be found at https://twiki.cern.ch/twiki/bin/view/LHCb/GridStora
     :param int quota: default quota
     :param float usage: space used
     """
-    msgbody = """ 
+    msgbody = """
 This mail has been generated automatically.
 
 You have received this mail because your Grid storage usage has exceeded your quota of %s GB.
 
 You are currently using %.1f GB.
 
-Your account could soon been given a lower priority and your jobs will run at a lower pace if you don't create space. 
+Your account could soon been given a lower priority and your jobs will run at a lower pace if you don't create space.
 If you have reduced your usage in the last 24 hours please ignore this message.
 Explanations can be found at https://twiki.cern.ch/twiki/bin/view/LHCb/GridStorageQuota
-""" % ( int(quota), usage )
- 
+""" % ( int( quota ), usage )
+
     fromAddress = 'LHCb Data Manager <lhcb-datamanagement@cern.ch>'
     subject = 'Grid storage use blocked (%s)' % userName
     toAddress = userMail
