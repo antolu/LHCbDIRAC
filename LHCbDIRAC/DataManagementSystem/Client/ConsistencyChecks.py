@@ -6,7 +6,7 @@
     Should be extended to include the Storage (in DIRAC)
 """
 
-import os, copy, ast, time
+import os, copy, ast, time, sys
 
 from DIRAC import gLogger, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -22,12 +22,12 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction' )
 
 def getFileDescendants( transID, lfns, transClient = None, rm = None, bkClient = None ):
-    cc = ConsistencyChecks( interactive = False, transClient = transClient, rm = rm, bkClient = bkClient )
-    cc.prod = transID
-    cc.fileType = []
-    cc.fileTypesExcluded = Operations().getValue( 'DataConsistency/IgnoreDescendantsOfType', [] )
+  cc = ConsistencyChecks( interactive = False, transClient = transClient, rm = rm, bkClient = bkClient )
+  cc.prod = transID
+  cc.fileType = []
+  cc.fileTypesExcluded = Operations().getValue( 'DataConsistency/IgnoreDescendantsOfType', [] )
 
-    return cc.getDescendants( lfns )[0]
+  return cc.getDescendants( lfns )[0]
 
 class ConsistencyChecks( object ):
   """ A class for handling some consistency check
@@ -78,6 +78,7 @@ class ConsistencyChecks( object ):
     self.existingLFNsNotInBKK = []
     self.nonExistingLFNsThatAreNotInBK = []
     self.nonexistingLFNsWithBKKReplicaYES = []
+    self.filesInBKKNotInTS = []
 
     self.processedLFNsWithDescendants = []
     self.processedLFNsWithoutDescendants = []
@@ -133,14 +134,14 @@ class ConsistencyChecks( object ):
 
     if checkAll and self.existingLFNsWithBKKReplicaNO:
       msg = "%d files have ReplicaFlag = No, but %d are in the FC" % ( len( lfnsReplicaNo ),
-                                                                    len( self.existingLFNsWithBKKReplicaNO ) )
+                                                                       len( self.existingLFNsWithBKKReplicaNO ) )
       if self.transType:
         msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
       gLogger.info( msg )
 
     if self.nonExistingLFNsWithBKKReplicaYES:
       msg = "%d files have ReplicaFlag = Yes, but %d are not in the FC" % ( len( lfnsReplicaYes ),
-                                                                                    len( self.nonExistingLFNsWithBKKReplicaYES ) )
+                                                                         len( self.nonExistingLFNsWithBKKReplicaYES ) )
       if self.transType:
         msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
       gLogger.info( msg )
@@ -233,7 +234,7 @@ class ConsistencyChecks( object ):
       startTime = time.time()
       lfnsFound = self._getFilesFromDirectoryScan( dirN )
       gLogger.verbose( "Obtained %d files in %.1f seconds" % ( len( lfnsFound ), time.time() - startTime ) )
-      pr, notPr = self._compareLFNLists( dirs[dirN], lfnsFound )
+      pr, notPr = self.__compareLFNLists( dirs[dirN], lfnsFound )
       notPresent += notPr
       present += pr
 
@@ -242,7 +243,8 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
-  def _compareLFNLists( self, lfns, lfnsFound ):
+  @staticmethod
+  def __compareLFNLists( self, lfns, lfnsFound ):
     ''' return files in both lists and files in lfns and not in lfnsFound
     '''
     present = []
@@ -286,7 +288,8 @@ class ConsistencyChecks( object ):
       return S_ERROR( "You need a transformationID" )
 
     processedLFNs, nonProcessedLFNs = self._getTSFiles()
-    gLogger.always( 'Found %d processed files and %d non processed files' % ( len( processedLFNs ), len( nonProcessedLFNs ) ) )
+    gLogger.always( 'Found %d processed files and %d non processed files' % ( len( processedLFNs ),
+                                                                              len( nonProcessedLFNs ) ) )
 
     gLogger.verbose( 'Checking BKK for those files that are processed' )
     res = self.getDescendants( processedLFNs )
@@ -358,7 +361,6 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def __write( self, text ):
-    import sys
     if self.interactive:
       sys.stdout.write( text )
       sys.stdout.flush()
@@ -415,7 +417,8 @@ class ConsistencyChecks( object ):
       # Now check whether the files without replica have a descendant
       if notPresent:
         descWithDescendants = {}
-        self.__write( "Now checking descendants from %d daughters without replicas (chunks of %d) " % ( len( notPresent ), chunkSize ) )
+        self.__write( "Now checking descendants from %d daughters without replicas (chunks of %d) " % ( len( notPresent ), 
+                                                                                                        chunkSize ) )
         startTime = time.time()
         for lfnChunk in breakListIntoChunks( notPresent, chunkSize ):
           self.__write( '.' )
@@ -440,8 +443,8 @@ class ConsistencyChecks( object ):
           if not [pr for pr in desc if pr in notPresent]:
             continue
           realDescendants = [pr for pr in desc if pr in present]
-          descToCheck = self._selectByFileType( dict( [( pr, descWithDescendants[pr] ) for pr in set( desc ).intersection( setDescWithDescendants )] ),
-                                                 fileTypesExcluded = fileTypesExcluded )
+          lfnDict = dict( [( pr, descWithDescendants[pr] ) for pr in set( desc ).intersection( setDescWithDescendants )] )
+          descToCheck = self._selectByFileType( lfnDict, fileTypesExcluded = fileTypesExcluded )
           for lfn1 in descToCheck :
             # This daughter had descendants, therefore consider it
             realDescendants.append( lfn1 )
@@ -497,6 +500,7 @@ class ConsistencyChecks( object ):
 
     return ancDict
 
+  @staticmethod
   def _getFileTypesCount( self, lfnDict ):
     ''' return file types count
     '''
@@ -536,7 +540,8 @@ class ConsistencyChecks( object ):
     if self.transType:
       msg = "For prod %s of type %s, " % ( self.prod, self.transType )
     if self.existingLFNsWithBKKReplicaNO:
-      gLogger.warn( "%s %d files%s have replica = NO in BKK" % ( msg, len( self.existingLFNsWithBKKReplicaNO ), prStr ) )
+      gLogger.warn( "%s %d files%s have replica = NO in BKK" % ( msg, len( self.existingLFNsWithBKKReplicaNO ),
+                                                                 prStr ) )
     if self.existingLFNsNotInBKK:
       gLogger.warn( "%s %d files%s not in BKK" % ( msg, len( self.existingLFNsNotInBKK ), prStr ) )
 
@@ -573,7 +578,6 @@ class ConsistencyChecks( object ):
       okLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'Yes']
 
     return missingLFNs, noFlagLFNs, okLFNs
-
 
   ################################################################################
 

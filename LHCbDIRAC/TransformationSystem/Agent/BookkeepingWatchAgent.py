@@ -27,11 +27,6 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
   def __init__( self, *args, **kwargs ):
     """ c'tor
-
-    :param self: self reference
-    :param str agentName: name of agent
-    :param bool baseAgentName: whatever
-    :param dict properties: whatever else
     """
     AgentModule.__init__( self, *args, **kwargs )
 
@@ -52,7 +47,6 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     """ Make the necessary initializations.
         The ThreadPool is created here, the _execute() method is what each thread will execute.
     """
-
 
     try:
       pf = open( self.pickleFile, 'r' )
