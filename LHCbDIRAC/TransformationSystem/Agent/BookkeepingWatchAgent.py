@@ -29,6 +29,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     """ c'tor
     """
     AgentModule.__init__( self, *args, **kwargs )
+    TransformationAgentsUtilities.__init__( self )
 
     self.bkQueriesToBeChecked = Queue.Queue()
     self.bkQueriesInCheck = []
@@ -42,6 +43,10 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
     self.pickleFile = os.path.join( self.am_getWorkDirectory(), "BookkeepingWatchAgent.pkl" )
     self.chunkSize = self.am_getOption( 'maxFilesPerChunk', 1000 )
+
+    self.timeLog = {}
+    self.fullTimeLog = {}
+    self.bkQueries = {}
 
   def initialize( self ):
     """ Make the necessary initializations.
