@@ -1,11 +1,10 @@
-""" Client module to deal with transformations, but mostly dedicated to DataManipulation (e.g.: replications)
-"""
+''' Client module to deal with transformations, but mostly dedicated to DataManipulation (e.g.: replications)
+'''
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                      import gLogger, S_OK, S_ERROR
+from DIRAC                                                      import gLogger, S_OK
 from DIRAC.TransformationSystem.Client.Transformation           import Transformation as DIRACTransformation
-from DIRAC.Core.Utilities.PromptUser                            import promptUser
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
@@ -13,15 +12,15 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import Bookkeepi
 COMPONENT_NAME = 'Transformation'
 
 class Transformation( DIRACTransformation ):
-  """ class - mostly for DM prods
-  """
+  ''' class - mostly for DM prods
+  '''
 
   #############################################################################
 
   def __init__( self, transID = 0, transClientIn = None ):
-    """ Just params setting.
+    ''' Just params setting.
         transClient is passed here as LHCbDIRAC TransformationClient, it will be self.transClient
-    """
+    '''
 
     if not transClientIn:
       self.transClient = TransformationClient()
@@ -45,31 +44,9 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
-  def generateBkQuery( self, test = False, printOutput = False ):
-    """ Returns a BK query, users are supposed to fill in values
-    """
-    parameters = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType',
-                  'EventType', 'ConfigName', 'ConfigVersion', 'Production', 'DataQualityFlag']
-    queryDict = {'FileType':'DST'}
-    parameterDefaults = queryDict.copy()
-    for parameter in parameters:
-      default = parameterDefaults.get( parameter, 'All' )
-      res = raw_input( "Please enter %s value: " % parameter )
-      if res != default:
-        queryDict[parameter] = res
-    if not queryDict:
-      return S_ERROR( "At least one of the parameters must be set" )
-    if ( queryDict.has_key( 'SimulationConditions' ) ) and ( queryDict.has_key( 'DataTakingConditions' ) ):
-      return S_ERROR( "SimulationConditions and DataTakingConditions can not be defined simultaneously" )
-    if test:
-      self.testBkQuery( queryDict, printOutput = printOutput )
-    return S_OK( queryDict )
-
-  #############################################################################
-
   def testBkQuery( self, bkQuery, printOutput = False, bkClient = None ):
-    """ just pretty print of the result of a BK Query
-    """
+    ''' just pretty print of the result of a BK Query
+    '''
 
     if bkClient is None:
       bkClient = BookkeepingClient()
@@ -85,8 +62,8 @@ class Transformation( DIRACTransformation ):
   #############################################################################
 
   def setBkQuery( self, queryDict, test = False ):
-    """ set a BKK Query
-    """
+    ''' set a BKK Query
+    '''
     if test:
       res = self.testBkQuery( queryDict )
       if not res['OK']:
@@ -105,8 +82,8 @@ class Transformation( DIRACTransformation ):
   #############################################################################
 
   def getBkQuery( self, printOutput = False ):
-    """ get a BKK Query
-    """
+    ''' get a BKK Query
+    '''
     if self.paramValues['BkQuery']:
       return S_OK( self.paramValues['BkQuery'] )
     res = self.__executeOperation( 'getBookkeepingQueryForTransformation', printOutput = printOutput )
@@ -119,8 +96,8 @@ class Transformation( DIRACTransformation ):
   #############################################################################
 
   def deleteTransformationBkQuery( self ):
-    """ delete a BKK Query
-    """
+    ''' delete a BKK Query
+    '''
     if not self.paramValues['BkQueryID']:
       gLogger.info( "The BK Query is not defined" )
       return S_OK()
@@ -138,8 +115,8 @@ class Transformation( DIRACTransformation ):
   #############################################################################
 
   def addTransformation( self, addFiles = True, printOutput = False ):
-    """ Add a transformation, using TransformationClient()
-    """
+    ''' Add a transformation, using TransformationClient()
+    '''
     res = self._checkCreation()
     if not res['OK']:
       return self._errorReport( res, 'Failed transformation sanity check' )
@@ -186,7 +163,7 @@ class Transformation( DIRACTransformation ):
     for paramName, paramValue in self.paramValues.items():
       if not self.paramTypes.has_key( paramName ):
         if not paramName in ['BkQueryID', 'BkQuery']:
-          #print paramName, type( paramValue ), paramValue
+          # print paramName, type( paramValue ), paramValue
           # Use str(paramValue) as a temporary fix???
           res = self.transClient.setTransformationParameter( transID, paramName, str( paramValue ) )
           if not res['OK']:
