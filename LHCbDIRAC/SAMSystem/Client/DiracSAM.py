@@ -167,9 +167,9 @@ class DiracSAM( Dirac ):
     if not res[ 'OK' ]:
       # finalizeAndPublish
       res = job.finalizeAndPublish( logUpload = logUpload, enableFlag = enable )
-    if not res[ 'OK' ]:
-      if softwareEnable:
-        res = job.setSAMGroup( "SAMsw" )
+
+    if softwareEnable:
+      res = job.setSAMGroup( "SAMsw" )
     
     if not res[ 'OK' ]:
       self.log.warn( res[ 'Message' ] )
