@@ -177,7 +177,9 @@ if __name__ == "__main__":
       Script.showHelp()
       DIRAC.exit( 0 )
 
-  if transBKQuery:
+  if force:
+    lfns = []
+  elif transBKQuery:
     print "Executing the BK query:", bkQuery
     startTime = time.time()
     lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ) )
@@ -186,7 +188,7 @@ if __name__ == "__main__":
     print "Found %d files in %.3f seconds" % ( nfiles, bkTime )
   else:
     lfns = requestedLFNs
-    nfiles = len( lfns )
+  nfiles = len( lfns )
 
   if test:
     print "Plugin:", plugin
