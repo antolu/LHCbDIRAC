@@ -44,19 +44,17 @@ if __name__ == "__main__":
   targetSEs = dmScript.getOption( 'SEs', [] )
   if not targetSEs:
     sites = dmScript.getOption( 'Sites', '' )
-    if type( sites ) != type( [] ):
-      sites = [sites]
-    if not sites:
-      print "Site or SE switch is mandatory"
-      Script.showHelp()
-    from DIRAC.Core.Utilities.SiteSEMapping                                import getSEsForSite
-    targetSEs = []
-    for site in sites:
-      res = getSEsForSite( site )
-      if not res['OK']:
-        print "Can't get SEs associated to %s:" % site, res['Message']
-        Script.showHelp()
-      targetSEs += res['Value']
+    if sites:
+      if type( sites ) != type( [] ):
+        sites = [sites]
+      from DIRAC.Core.Utilities.SiteSEMapping                                import getSEsForSite
+      targetSEs = []
+      for site in sites:
+        res = getSEsForSite( site )
+        if not res['OK']:
+          print "Can't get SEs associated to %s:" % site, res['Message']
+          Script.showHelp()
+        targetSEs += res['Value']
   for lfn in Script.getPositionalArgs():
     dmScript.setLFNsFromFile( lfn )
   lfnList = dmScript.getOption( 'LFNs', [] )
@@ -112,7 +110,7 @@ if __name__ == "__main__":
       notFound.append( lfn )
     elif lfn in replicas['Successful']:
       reps = replicas['Successful'][lfn]
-      overlapSEs = [se for se in reps if se in targetSEs]
+      overlapSEs = [se for se in reps if not targetSEs or se in targetSEs]
       if not overlapSEs:
         notFoundAtSE.append( lfn )
         continue
@@ -122,7 +120,7 @@ if __name__ == "__main__":
       else:
         repsMultDict[lfn] = [{'SE': se, 'Status':'-' if reset else 'P', 'PFN': reps[se] } for se in overlapSEs]
       # Now see if the file is present in a transformation
-      otherSEs = [se for se in reps if se not in targetSEs]
+      otherSEs = [se for se in reps if se not in overlapSEs]
       if not otherSEs or reset:
         bkToggle.append( lfn )
 
