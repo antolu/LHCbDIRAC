@@ -96,9 +96,11 @@ class UploadSAMLogs( ModuleBase ):
       self.log.error( result )
       return result
     
+    jobReport = self._getJobReporter()
+    
     logReference = '<a href="%s%s">Log file directory</a>' % ( self.logURL, lfnPath )
     self.log.verbose( 'Adding Log URL job parameter: %s' % logReference )
-    res = self.setJobParameter( 'Log URL', logReference, jr = self.jobReport )
+    res = self.setJobParameter( 'Log URL', logReference, jr = jobReport )
     self.log.info( res )
     
     self.finalize( self.__class__.__name__ )
