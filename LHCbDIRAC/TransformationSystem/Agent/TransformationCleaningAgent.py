@@ -37,27 +37,12 @@ class TransformationCleaningAgent( DiracTCAgent ):
                                                                                    'StorageUsage' ] ) )
     self.archiveAfter = self.am_getOption( 'ArchiveAfter', 7 )  # days
 
-  #############################################################################
-
-  def initialize( self ):
-    """ initialize
-
-    :param self: self reference
-    """
-    # # shifter proxy
-    self.am_setOption( 'shifterProxy', 'DataManager' )
-    self.log.info( "Will consider the following transformation types: %s" % str( self.transformationTypes ) )
-
-    self.log.info( "Will search for directories in the following locations: %s" % str( self.directoryLocations ) )
-    self.log.info( "Will archive Completed transformations after %d days" % self.archiveAfter )
     storageElements = gConfig.getValue( '/Resources/StorageElementGroups/Tier1_MC_M-DST', [] )
     storageElements += ['CNAF_MC-DST', 'CNAF-RAW']
     # # what about RSS???
     self.activeStorages = sortList( self.am_getOption( 'ActiveSEs', storageElements ) )
-    self.log.info( "Will check the following storage elements: %s" % str( self.activeStorages ) )
-    self.logSE = self.am_getOption( 'TransformationLogSE', 'LogSE' )
-    self.log.info( "Will remove logs found on storage element: %s" % self.logSE )
-    return S_OK()
+
+  #############################################################################
 
   def cleanMetadataCatalogFiles( self, transID ):
     ''' clean the metadata using BKK and Replica Manager. Replace the one from base class
