@@ -38,6 +38,10 @@ class UploadSAMLogs( ModuleBase ):
     self.logSE  = 'LogSE'
     self.logURL = 'http://lhcb-logs.cern.ch/storage/'
 
+    self.jobID = None
+    if os.environ.has_key( 'JOBID' ):
+      self.jobID = os.environ[ 'JOBID' ]
+
   def _resolveInputVariables( self ):
     """ Resolve all input variables for the module here.
     """
