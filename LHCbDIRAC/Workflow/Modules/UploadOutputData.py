@@ -333,7 +333,7 @@ class UploadOutputData( ModuleBase ):
 
   #############################################################################
 
-  def setBKRegistrationRequest( self, lfn, error = '', targetSE = '' ):
+  def setBKRegistrationRequest( self, lfn, error = '', targetSE = 'CERN-HIST' ):
     """ Set a BK registration request for changing the replica flag.  Uses the
         global request object.
     """
