@@ -494,6 +494,12 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     meta = { 'onlyUniqueKeys' : True } 
     return self._query( 'addOrModify', 'EnvironmentCache', locals() )
 
+  def getSLSStorage( self, site = None, token = None,
+                     availability = None, refreshPeriod = None,
+                     validityDuration = None, totalSpace = None,
+                     guaranteedSpace = None, freeSpace = None, meta = None ):
+    return self._query( 'select', 'SLSStorage', locals() )
+
   ##############################################################################
   # HAMMERCLOUD TEST METHODS
 
