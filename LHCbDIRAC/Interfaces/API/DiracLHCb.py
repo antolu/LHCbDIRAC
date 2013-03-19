@@ -959,8 +959,8 @@ class DiracLHCb( Dirac ):
 
     result = {}
     for k, v in res[ 'Value' ].items():
-      readState = v.get( 'Read' , 'Active' )
-      writeState = v.get( 'Write', 'Active' )
+      readState  = v.get( 'ReadAccess' , 'Active' )
+      writeState = v.get( 'WriteAccess', 'Active' )
 
       result[ k ] = { 'ReadStatus' : readState, 'WriteStatus' : writeState }
       if printOutput:
