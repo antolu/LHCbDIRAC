@@ -708,9 +708,13 @@ class BKQuery():
     """
     fileTypes = self.getFileTypeList()
     #print "Call getBKFileTypes:", self, fileTypes
-    if not bkDict:
-      bkDict = self.__bkQueryDict.copy()
     if not fileTypes:
+      if not bkDict:
+        bkDict = self.__bkQueryDict.copy()
+      else:
+        bkDict = bkDict.copy()
+      bkDict.setdefault( 'Visible', 'All' )
+      bkDict.pop( 'RunNumber', None )
       fileTypes = []
       eventTypes = bkDict.get( 'EventType' )
       if type( eventTypes ) == type( [] ):
@@ -718,9 +722,7 @@ class BKQuery():
           bkDict['EventType'] = et
           fileTypes += self.getBKFileTypes( bkDict )
       else:
-        bkDict.setdefault( 'Visible', 'All' )
         res = self.__bkClient.getFileTypes( bkDict )
-        #print res
         if res['OK']:
           res = res['Value']
           ind = res['ParameterNames'].index( 'FileTypes' )
