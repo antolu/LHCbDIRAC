@@ -9,6 +9,7 @@ from DIRAC.TransformationSystem.Client.TransformationClient     import Transform
 
 import re, time, types, string, signal, sys, os, cmd
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 if __name__ == "__main__":
 
@@ -68,10 +69,12 @@ if __name__ == "__main__":
     if not lfns:
       print "No files to be reset in transformation", transID
     else:
-      res = transClient.setFileStatusForTransformation( transID, 'Unused', lfns, force = ( status == 'MaxReset' ) or lfnsExplicit )
-      if res['OK']:
-        print "%d files were reset Unused in transformation %s" % ( len( lfns ), transID )
-      else:
-        print "Failed to reset %d files to Unused in transformation %s" % ( len( lfns ), transID )
-        DIRAC.exit( 2 )
+      resetFiles = 0
+      for lfnChunk in breakListIntoChunks( lfns, 10000 ):
+        res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnChunk, force = ( status == 'MaxReset' or status == 'Processed' ) or lfnsExplicit )
+        if res['OK']:
+          resetFiles += len( lfnChunk )
+        else:
+          print "Failed to reset %d files to Unused in transformation %s: %s" % ( len( lfns ), transID, res['Message'] )
+      print "%d files were reset Unused in transformation %s" % ( resetFiles, transID )
   DIRAC.exit( 0 )

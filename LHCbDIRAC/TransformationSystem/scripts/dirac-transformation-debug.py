@@ -149,7 +149,7 @@ def __getTransformationInfo( transID ):
     else:
       taskType = "Job"
     transGroup = res['Value']['TransformationGroup']
-  print "\n==============================\nTransformation", \
+  print "==============================\nTransformation", \
         transID, "(%s) :" % transStatus, transName, "of type", transType, "(plugin %s)" % strPlugin, "in", transGroup
   if transType == 'Removal':
     print "Transformation body:", transBody
@@ -473,7 +473,7 @@ if __name__ == "__main__":
   from DIRAC.Core.Base import Script
 
   infoList = ( "files", "runs", "tasks", 'jobs', 'alltasks' )
-  statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset", "Processed" )
+  statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset", "Processed", "NotProcessed", "Removed" )
   dmScript = DMScript()
   dmScript.registerFileSwitches()
   Script.registerSwitch( '', 'Info=', "Specify what to print out from %s" % str( infoList ) )
@@ -620,7 +620,9 @@ if __name__ == "__main__":
 
       prString = "%d files found" % len( transFilesList )
       if status:
-          prString += " with status %s" % status
+        prString += " with status %s" % status
+      if runID:
+        prString += ' in run %d' % runID
       print prString + '\n'
 
       # Extract task list
@@ -656,7 +658,8 @@ if __name__ == "__main__":
         __checkReplicasForProblematic( problematicFiles, __getReplicas( transType, problematicFiles ) )
 
       # Check files with missing LFC
-      __checkFilesMissingInFC( transFilesList, status, fixIt )
+      if status:
+        __checkFilesMissingInFC( transFilesList, status, fixIt )
 
       ####################
       # Now loop on all tasks
@@ -735,7 +738,7 @@ if __name__ == "__main__":
         found = True
       if not found:
         print "... None ..."
-    elif transType == "Removal" and not ( 'MissingLFC' in status or 'MissingInFC' in status ):
+    elif transType == "Removal" and ( not status or not ( 'MissingLFC' in status or 'MissingInFC' in status ) ):
       print "All files have been successfully removed!"
 
     # All files?
