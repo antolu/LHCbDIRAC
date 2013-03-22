@@ -24,7 +24,7 @@ def seSvcClass( se ):
   return seSvcClassDict[se]
 
 def orderSEs( listSEs ):
-  listSEs = sortList( listSEs )
+  listSEs.sort()
   orderedSEs = ['LFN'] if 'LFN' in listSEs else []
   orderedSEs += sorted( [se for se in listSEs if se not in orderedSEs and se.endswith( '-HIST' )] )
   orderedSEs += sorted( [se for se in listSEs if se not in orderedSEs and ( seSvcClass( se ) == 'Tape' )] )
@@ -66,16 +66,16 @@ def printBigTable( siteList, bigTable ):
   just = [20, 30, 15]
   for cond in bigTable:
     just[0] = max( just[0], len( cond ) + 1 )
-    for processingPass in sortList( bigTable[cond].keys() ):
+    for processingPass in sorted( bigTable[cond] ):
       just[1] = max( just[1], len( processingPass ) + 1 )
   prStr = 'Conditions'.ljust( just[0] ) + 'ProcessingPass'.ljust( just[1] )
   for site in siteList:
     prStr += site.ljust( just[2] )
   print prStr
   grandTotal = {}
-  for cond in sortList( bigTable.keys() ):
+  for cond in sorted( bigTable ):
     print cond.ljust( just[0] )
-    for processingPass in sortList( bigTable[cond].keys() ):
+    for processingPass in sorted( bigTable[cond] ):
       prStr = ''.ljust( just[0] ) + processingPass.ljust( just[1] )
       bigTableUsage = bigTable[cond][processingPass][1]
       for site in siteList:
@@ -182,7 +182,7 @@ def browseBK( bkQuery, ses, scaleFactor ):
           elif se == 'LFN':
             site = 'LFN'
           else:
-            res = getSitesForSE( se, gridName='LCG' )
+            res = getSitesForSE( se, gridName = 'LCG' )
             if res['OK'] and len( res['Value'] ) > 0:
               site = res['Value'][0]
             else: continue
@@ -234,11 +234,10 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
 
 
-  Script.parseCommandLine( ignoreErrors=False )
+  Script.parseCommandLine( ignoreErrors = False )
 
   from DIRAC import gConfig
   from DIRAC.Core.DISET.RPCClient import RPCClient
-  from DIRAC.Core.Utilities.List import sortList
 
   lcg = False
   full = False
@@ -272,7 +271,7 @@ if __name__ == "__main__":
 
   # Create a bkQuery looking at all files
   if bkBrowse:
-    bkQuery = dmScript.getBKQuery( visible=False )
+    bkQuery = dmScript.getBKQuery( visible = False )
     browseBK( bkQuery, ses, scaleFactor )
     DIRAC.exit( 0 )
 
@@ -283,7 +282,7 @@ if __name__ == "__main__":
     fileTypes = [fileTypes]
   if not dirs:
     dirs = ['']
-    bkQuery = dmScript.getBKQuery( visible=False )
+    bkQuery = dmScript.getBKQuery( visible = False )
     bkFileTypes = bkQuery.getFileTypeList()
     if bkFileTypes:
       fileTypes = bkFileTypes
@@ -327,7 +326,7 @@ if __name__ == "__main__":
   print prString
   if full:
     dirData = {}
-    for prodID in sortList( prods ):
+    for prodID in sorted( prods ):
       for fileType in fileTypes:
         for dir in dirs:
           res = rpc.getStorageDirectoryData( dir, fileType, prodID, ses )
@@ -351,7 +350,7 @@ if __name__ == "__main__":
     diskTotalFiles = 0
     tapeTotalSize = 0
     diskTotalSize = 0
-    for se in sortList( totalUsage.keys() ):
+    for se in sorted( totalUsage ):
       storageElement = StorageElement( se )
       files = totalUsage[se]['Files']
       size = totalUsage[se]['Size']
