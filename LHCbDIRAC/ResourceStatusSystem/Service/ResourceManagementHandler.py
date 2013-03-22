@@ -6,12 +6,13 @@
 """
 
 # DIRAC
-from DIRAC                                                        import S_OK
+from DIRAC                                                        import gConfig, S_OK
 from DIRAC.ResourceStatusSystem.Service.ResourceManagementHandler import ResourceManagementHandler \
-     as DIRACResourceManagementHandler
+     as DIRACResourceManagementHandler    
 
 # LHCbDIRAC     
 from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB
+from LHCbDIRAC.ResourceStatusSystem.Utilities               import Synchronizer
 
 __RCSID__ = '$Id: $'
 db        = False
@@ -23,6 +24,9 @@ def initializeResourceManagementHandler( _serviceInfo ):
   
   global db
   db = ResourceManagementDB()
+
+  syncObject = Synchronizer.Synchronizer()
+  gConfig.addListenerToNewVersionEvent( syncObject.sync )
 
   return S_OK()
 
