@@ -80,7 +80,7 @@ class RequestTrackingAgent( AgentModule ):
         'EventType' : str( request['EventType'] ),
         'ConfigName' : str( request['configName'] ),
         'ConfigVersion' : str( request['configVersion'] ),
-        'DataQualityFlag' : str( request['inDataQualityFlag'] )
+        'DataQualityFlag' : str( request['inDataQualityFlag'] ).split(',')
         }
       if request['condType'] == 'Run':
         v['DataTakingConditions'] = str( request['SimCondition'] )
