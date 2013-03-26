@@ -35,25 +35,33 @@ class TableModel(QAbstractTableModel):
   #############################################################################
   def data(self, index, role):
     """retuns an element of the table"""
+
+    result = None
+    data = None
     if not index.isValid():
-      return QVariant()
+      result =  QVariant()
     elif role != Qt.DisplayRole:
-      return QVariant()
+      result =  QVariant()
+    else:
+      data = self.arraydata[index.row()][index.column()]
+      if type(data) == datetime.datetime:
+        result =  QVariant(str(data))
+      else:
+        result = QVariant(data)
 
-    data = self.arraydata[index.row()][index.column()]
-    if type(data) == datetime.datetime:
-      return QVariant(str(data))
-
-    return QVariant(data)
+    return result
 
   #############################################################################
 
   def headerData(self, col, orientation, role):
     """returns the header data"""
-    if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-      return QVariant(self.headerdata[col])
-    elif orientation == Qt.Vertical and role == Qt.DisplayRole:
-      return QVariant(col + 1)
+    try:
+      if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+        return QVariant(self.headerdata[col])
+      elif orientation == Qt.Vertical and role == Qt.DisplayRole:
+        return QVariant(col + 1)
+    except Exception, ex:
+      print 'ERRRHHHH', ex
     return QVariant()
 
   #############################################################################

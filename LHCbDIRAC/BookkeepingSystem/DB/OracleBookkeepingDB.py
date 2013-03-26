@@ -2077,6 +2077,8 @@ class OracleBookkeepingDB:
         if not retVal['OK']:
           result = retVal
         else:
+          failed['Failed'] = failed.keys()
+          failed['Successful'] = fileNames
           result = S_OK(failed)
     return result
 
@@ -2341,6 +2343,8 @@ class OracleBookkeepingDB:
         if not retVal['OK']:
           result = retVal
         else:
+          failed['Failed'] = failed.keys()
+          failed['Successful'] = fileNames
           result = S_OK(failed)
     return result
 
