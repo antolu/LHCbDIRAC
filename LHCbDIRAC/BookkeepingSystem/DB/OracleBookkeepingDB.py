@@ -2063,6 +2063,7 @@ class OracleBookkeepingDB:
                                                 output = True,
                                                 array= fileNames )
     failed = {}
+
     if not retVal['OK']:
       result = retVal
     else:
@@ -2080,6 +2081,9 @@ class OracleBookkeepingDB:
           failed['Failed'] = failed.keys()
           failed['Successful'] = fileNames
           result = S_OK(failed)
+      else: # when no files are exists
+        files = {'Failed':[ i[0] for i in retVal['Value']], 'Successful':[]}
+        result = S_OK(files)
     return result
 
   #############################################################################
@@ -2346,6 +2350,10 @@ class OracleBookkeepingDB:
           failed['Failed'] = failed.keys()
           failed['Successful'] = fileNames
           result = S_OK(failed)
+      else: # when no files are exists
+        files = {'Failed':[ i[0] for i in retVal['Value']], 'Successful':[]}
+        result = S_OK(files)
+
     return result
 
 
