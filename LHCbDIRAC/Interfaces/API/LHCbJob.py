@@ -99,7 +99,7 @@ __RCSID__ = "$Id$"
 
 import os, types, re
 
-from DIRAC import S_OK, S_ERROR
+from DIRAC import S_OK, S_ERROR, gConfig
 
 from DIRAC.Interfaces.API.Job import Job
 from DIRAC.Core.Utilities.File import makeGuid
@@ -595,8 +595,8 @@ class LHCbJob( Job ):
     self.addToInputSandbox.append( rootScript )
 
     # Must check if ROOT version in available versions and define appName appVersion...
-    # rootVersions = gConfig.getOptions( self.rootSection, [] )
-    rootVersions = self.opsHelper.getOptions( self.rootSection, [] )
+    rootVersions = gConfig.getOptionsDict( 'Operations/' + self.rootSection )
+    # rootVersions = self.opsHelper.getOptions( self.rootSection, [] )
     if not rootVersions['OK']:
       return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list', __name__, **kwargs )
 
@@ -654,7 +654,8 @@ class LHCbJob( Job ):
     # now we have to tell DIRAC to install the necessary software
     appRoot = '%s/%s' % ( self.rootSection, rootVersion )
     # currentApp = gConfig.getValue( appRoot, '' )
-    currentApp = self.opsHelper.getValue( appRoot, '' )
+    currentApp = gConfig.getValue( 'Operations/' + appRoot )
+#     currentApp = self.opsHelper.getValue( appRoot, '' )
     if not currentApp:
       return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot, __name__, **kwargs )
 
@@ -992,8 +993,8 @@ class LHCbJob( Job ):
     protocols = ';'.join( protocols )
 
     # Must check if ROOT version in available versions and define appName appVersion...
-    # rootVersions = gConfig.getOptions( self.rootSection, [] )
-    rootVersions = self.opsHelper.getOptions( self.rootSection, [] )
+    rootVersions = gConfig.getOptionsDict( 'Operations/' + self.rootSection )
+    # rootVersions = self.opsHelper.getOptions( self.rootSection, [] )
     if not rootVersions['OK']:
       return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list', __name__, **kwargs )
 
