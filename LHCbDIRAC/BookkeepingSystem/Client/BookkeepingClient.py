@@ -1340,7 +1340,7 @@ class BookkeepingClient:
     else:
       value = cPickle.load(open(file_name.name))
       file_name.close()
-      result = S_OK(value)
+      result = value
     return result
 
   #############################################################################

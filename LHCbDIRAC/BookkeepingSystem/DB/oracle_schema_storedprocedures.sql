@@ -172,6 +172,7 @@ procedure updateDataQualityFlag(v_qualityid number, lfns varchararray);
 procedure bulkcheckfiles(lfns varchararray,  a_Cursor out udt_RefCursor); 
 procedure bulkupdateReplicaRow(v_replica varchar2, lfns varchararray);
 procedure bulkgetTypeVesrsion(lfns varchararray, a_Cursor out udt_RefCursor);
+procedure setObsolete;
 end;
 /
 
@@ -1407,6 +1408,7 @@ commit;
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
    dbms_output.put_line(v_prod || 'already in the steps container table');
+raise_application_error(-20005, 'The production already exists in the steps container table!');
 end;
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number) is
@@ -1416,6 +1418,7 @@ commit;
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
    dbms_output.put_line(v_prod || 'already in the steps container table');
+   raise_application_error(-20005, 'The production already exists in the productionscontainer table!');
 end;
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  procedure getEventTypes(
@@ -1643,7 +1646,7 @@ procName varchar2(256);
 simdesc varchar2(256);
 daqdesc varchar2(256);
 begin
-for c in (select distinct j.production, c.configname, c.configversion, ft.name, f.eventtypeid from files f, jobs j, filetypes ft, configurations c where
+for c in (select /*+ INDEX(f FILES_FILENAME_UNIQUE) */ distinct j.production, c.configname, c.configversion, ft.name, f.eventtypeid from files f, jobs j, filetypes ft, configurations c where
 c.configurationid=j.configurationid and ft.filetypeid = f.filetypeid and j.jobid=f.jobid and f.gotreplica='Yes' and f.filename like f_name)
 LOOP
 select getProductionPorcPassName(prod.processingid), sim.simdescription, daq.description into procName, simdesc, daqdesc from productionscontainer prod, simulationconditions sim, data_taking_conditions daq where
@@ -1725,6 +1728,12 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
 END LOOP;
 open a_Cursor for select * from table(lfnmeta);
 end;
-
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure setObsolete 
+is
+BEGIN
+update steps set usable='Obsolete' where stepid in (select stepid from steps where trunc(INSERTTIMESTAMPS)<=add_months(sysdate+1,-12) and usable!='Obsolete');
+commit;
+END;
 END;
 /

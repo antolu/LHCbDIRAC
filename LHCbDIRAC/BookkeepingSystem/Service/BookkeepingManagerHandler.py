@@ -436,11 +436,12 @@ class BookkeepingManagerHandler(RequestHandler):
                                 replicaFlag, visible,
                                 filesize, tck)
     if not retVal['OK']:
-      return retVal['Message']
+      result =  retVal
     else:
       values = retVal['Value']
       for i in values:
         result += [i[0]]
+      result = S_OK(result)
 
     return result
 
