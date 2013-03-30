@@ -358,7 +358,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
     lfns += [lfn for lfn in problematicReplicas[se] if lfn not in lfns]
     if se:
       lfnsInFC += [lfn for lfn in problematicReplicas[se] if lfn not in lfnsInFC]
-      res = rm.getReplicaAccessUrl( problematicReplicas[se], se )
+      res = rm.getReplicaMetadata( problematicReplicas[se], se )
       if res['OK']:
         for lfn in res['Value']['Successful']:
           existingReplicas.setdefault( lfn, [] ).append( se )
