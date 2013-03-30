@@ -88,6 +88,8 @@ if __name__ == "__main__":
     # Remove the replica flag in BK just in case
     gLogger.verbose( 'Removing replica flag in BK' )
     notInFC = []
+    notInBK = {}
+    bkOK = 0
     chunkSize = 500
     showProgress = len( lfnList ) > 3 * chunkSize
     if showProgress:
@@ -99,14 +101,25 @@ if __name__ == "__main__":
         sys.stdout.flush()
       res = rm.getReplicas( lfnChunk )
       if res['OK'] and res['Value']['Failed']:
-        notInFC += res['Value']['Failed'].keys()
-        res = bk.removeFiles( res['Value']['Failed'].keys() )
+        bkToRemove = res['Value']['Failed'].keys()
+        notInFC += bkToRemove
+        res = bk.removeFiles( bkToRemove )
         if not res['OK']:
-          gLogger.error( "Error removing replica flag in BK for %d files", res['Message'] )
+          if res['Message']:
+            gLogger.error( "Error removing replica flag in BK for %d files" % len( bkToRemove ), res['Message'] )
+          else:
+            notInBK.setdefault( 'File is not in BK', [] ).extend( bkToRemove )
+        else:
+          bkFailed = res['Value'].get( 'Failed', res['Value'] )
+          for lfn, reason in bkFailed.items():
+            notInBK.setdefault( str( reason ), [] ).append( lfn )
+          bkOK += len( bkToRemove ) - len( bkFailed )
     if showProgress:
       gLogger.always( '' )
-    if notInFC:
-      gLogger.always( "Replica flag was removed in BK for %d files" % len( notInFC ) )
+    for reason, lfns in notInBK.items():
+      gLogger.always( "Failed to remove replica flag in BK for %d files with error: %s" % ( len( lfns ), reason ) )
+    if bkOK:
+      gLogger.always( "Replica flag was removed in BK for %d files" % bkOK )
     notInFC = set( notInFC )
     for seName in seList:
       se = StorageElement( seName )
