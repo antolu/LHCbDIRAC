@@ -68,6 +68,7 @@ if __name__ == "__main__":
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+  from DIRAC.Core.Utilities.List import breakListIntoChunks
 
   transType = None
   if plugin in getRemovalPlugins():
@@ -204,7 +205,6 @@ if __name__ == "__main__":
   # If the transformation is a removal transformation, check all files are in the LFC. If not, remove their replica flag
   if lfcCheck and transType == 'Removal':
     from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-    from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
     rm = ReplicaManager()
     success = 0
     missingLFNs = []
@@ -269,25 +269,26 @@ if __name__ == "__main__":
     if requestedLFNs:
       from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
       transClient = TransformationClient()
-      runDict = {}
-      res = bk.getFileMetadata( requestedLFNs )
-      if res['OK']:
-        for lfn, metadata in res['Value'].items():
-          runID = metadata.get( 'RunNumber' )
-          if runID:
-            runDict.setdefault( int( runID ), [] ).append( lfn )
-        res = transformation.addFilesToTransformation( requestedLFNs, printOutput = False )
+      print "Adding %d files to the transformation" % len( requestedLFNs )
+      for lfnChunk in breakListIntoChunks( requestedLFNs, 10000 ):
+        runDict = {}
+        res = bk.getFileMetadata( lfnChunk )
         if res['OK']:
-          for runID, lfns in runDict.items():
-            if lfns:
-              res = transClient.addTransformationRunFiles( transID, runID, lfns )
-              if not res['OK']:
-                break
-      if not res['OK']:
-        print "Could not add %d files to transformation" % len( requestedLFNs ), res['Message']
-        DIRAC.exit( 2 )
-      else:
-        print "%d files successfully added to transformation" % len( requestedLFNs )
+          for lfn, metadata in res['Value'].items():
+            runID = metadata.get( 'RunNumber' )
+            if runID:
+              runDict.setdefault( int( runID ), [] ).append( lfn )
+          res = transformation.addFilesToTransformation( lfnChunk, printOutput = False )
+          if res['OK']:
+            for runID, lfns in runDict.items():
+              if lfns:
+                res = transClient.addTransformationRunFiles( transID, runID, lfns )
+                if not res['OK']:
+                  break
+        if not res['OK']:
+          print "Could not add %d files to transformation" % len( lfnChunk ), res['Message']
+          DIRAC.exit( 2 )
+      print "%d files successfully added to transformation" % len( requestedLFNs )
     if requestID:
       transformation.setTransformationFamily( requestID )
     if start:
