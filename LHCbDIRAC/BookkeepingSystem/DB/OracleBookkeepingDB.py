@@ -1081,7 +1081,7 @@ class OracleBookkeepingDB:
         condition += values[:-1] + ')'
       else:
         condition += " and ftypes.name='%s' " % (str(filetype))
-    elif filetype != default and visible.upper().startswith('N'):
+    else:
       if type(filetype) == types.ListType:
         values = ' and ftypes.name in ('
         for i in filetype:
@@ -1089,6 +1089,7 @@ class OracleBookkeepingDB:
         condition += values[:-1] + ')'
       elif filetype != default:
         condition += " and ftypes.name='%s' " % (str(filetype))
+
 
     if replicaflag != default:
       condition += " and f.gotreplica='%s'" % (replicaflag)
