@@ -74,26 +74,29 @@ class RequestTrackingAgent( AgentModule ):
     '''
 
     try:
-      v = {
-        'ProcessingPass' : str( request['inProPass'] ),
-        'FileType' : str( request['inFileType'] ),
-        'EventType' : str( request['EventType'] ),
-        'ConfigName' : str( request['configName'] ),
-        'ConfigVersion' : str( request['configVersion'] ),
-        'DataQualityFlag' : str( request['inDataQualityFlag'] ).split(',')
-        }
+      condition = {
+                   'ProcessingPass'  : str( request['inProPass'] ),
+                   'FileType'        : str( request['inFileType'] ),
+                   'EventType'       : str( request['EventType'] ),
+                   'ConfigName'      : str( request['configName'] ),
+                   'ConfigVersion'   : str( request['configVersion'] ),
+                   'DataQualityFlag' : str( request['inDataQualityFlag'] ).split(',')
+                   }
       if request['condType'] == 'Run':
-        v['DataTakingConditions'] = str( request['SimCondition'] )
+        condition['DataTakingConditions'] = str( request['SimCondition'] )
       else:
-        v['SimulationConditions'] = str( request['SimCondition'] )
+        condition['SimulationConditions'] = str( request['SimCondition'] )
       if str( request['inProductionID'] ) != '0':
-        v['Production'] = [int( x ) for x in str( request['inProductionID'] ).split( ',' )]
+        condition['Production'] = [int( x ) for x in str( request['inProductionID'] ).split( ',' )]
       if 'inTCKs' in request and str( request['inTCKs'] ) != '':
-        v['TCK'] = [str( x ) for x in str( request['inTCKs'] ).split( ',' )]
+        condition['TCK'] = [str( x ) for x in str( request['inTCKs'] ).split( ',' )]
+        
+    # FIXME: Exception because the posibility of KeyError, or an AttributeError doing str() ?    
     except Exception, e:
       return S_ERROR( "Can not parse the request: %s" % str( e ) )
-    v['NbOfEvents'] = True
-    result = self.bkClient.getFiles( v )
+    
+    condition['NbOfEvents'] = True
+    result = self.bkClient.getFiles( condition )
     if not result['OK']:
       return result
     if not result['Value'][0]:
