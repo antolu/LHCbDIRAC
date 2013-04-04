@@ -33,11 +33,11 @@ class PrTpl(object):
   """
   __par_re  = "\{\{(\W)?([^\}#]+)#?([^\}#]*)#?([^\}#]*)\}\}"
   __par_sub = "\{\{(\W|)?%s[^\}]*\}\}"
-  def __init__(self,tpl_xml):
+  def __init__( self, tpl_xml ):
     self.tpl = tpl_xml
     self.pdict = {}
     self.ddict = {}
-    for x in re.findall(self.__par_re,self.tpl):
+    for x in re.findall(self.__par_re, self.tpl):
       if not x[1] in self.ddict or x[3]:
         dvalue = x[3]
         if not dvalue:
