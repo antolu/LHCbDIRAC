@@ -65,7 +65,7 @@ class ProductionRequestDB( DB ):
     return S_OK( outValues )
 
   @staticmethod
-  def __prefixComments( self, update, old, user ):
+  def __prefixComments( update, old, user ):
     ''' Add Log style prefix to the record like change '''
     if not update:
       return update
@@ -255,7 +255,7 @@ class ProductionRequestDB( DB ):
     return S_OK( requestID )
 
   @staticmethod
-  def __addMonitoring( self, req, order ):
+  def __addMonitoring( req, order ):
     ''' Append monitoring columns. Somehow tricky SQL.
         Most probable need optimizations, but ok for now.
     '''
@@ -854,7 +854,7 @@ class ProductionRequestDB( DB ):
     return S_OK( rec )
 
   @staticmethod
-  def __clearProcessingPass( self, rec ):
+  def __clearProcessingPass( rec ):
     ''' clear processing pass section.
     '''
     rec['ProID'] = None
@@ -997,7 +997,7 @@ class ProductionRequestDB( DB ):
     return result
 
   @staticmethod
-  def __checkAuthorizeSplit( self, requestState, creds ):
+  def __checkAuthorizeSplit( requestState, creds ):
     '''
     Check that current user is allowed to split in specified state
     '''
