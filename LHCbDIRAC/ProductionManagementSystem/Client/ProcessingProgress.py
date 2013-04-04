@@ -484,7 +484,7 @@ class ProcessingProgress:
     return totInfo
 
   @staticmethod
-  def outputResults( self, conditions, processingPass, prodStats ):
+  def outputResults( conditions, processingPass, prodStats ):
     outputString = ""
     _msgTuple = ( conditions, ",", processingPass, "on", time.ctime( time.time() ) )
     outputString += "\nProduction progress for %s %s %s %s %s\n" % _msgTuple
