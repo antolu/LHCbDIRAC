@@ -40,9 +40,9 @@ class DataProcessingProgressAgent( AgentModule ):
     # Get back the loop number
     self.cacheFile = os.path.join( self.workDirectory, "cacheFile" )
     try:
-      f = open( self.cacheFile, 'r' )
-      self.iterationNumber = int( f.read() )
-      f.close()
+      cfile = open( self.cacheFile, 'r' )
+      self.iterationNumber = int( cfile.read() )
+      cfile.close()
     except:
       self.iterationNumber = 0
 
