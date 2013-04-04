@@ -49,7 +49,7 @@ class HTMLProgressTable:
     return [TableRow( row1, header = True ), TableRow( row2, header = True )]
 
   @staticmethod
-  def __tableRow( self, info ):
+  def __tableRow( info ):
     row = [ info.getName() ]
     infoStrings = info.getItemsAsString()
     for infoString in infoStrings:
@@ -90,7 +90,7 @@ class HTMLProgressTable:
       self.table.rows.append( ["None"] )
 
   @staticmethod
-  def __sumProdStats( self, summaryProdStats ):
+  def __sumProdStats( summaryProdStats ):
     sumStats = []
     for ind in range( 4 ):
       info = None
@@ -428,7 +428,7 @@ class ProcessingProgress:
     return prodStats
 
   @staticmethod
-  def __sumProdInfo( self, info, totInfo ):
+  def __sumProdInfo( info, totInfo ):
     for inf in info:
       for flag in info[inf]:
         if inf == 'Runs':
