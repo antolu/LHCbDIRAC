@@ -351,10 +351,10 @@ class PluginUtilities:
     activeSE = []
 
     try:
-      res = self.resourceStatus.getStorageElementStatus( selist, statusType = 'Write', default = 'Unknown' )
+      res = self.resourceStatus.getStorageElementStatus( selist, statusType = 'WriteAccess' )
       if res[ 'OK' ]:
         for k, v in res[ 'Value' ].items():
-          if v.get( 'Write' ) in [ 'Active', 'Bad' ]:
+          if v.get( 'WriteAccess' ) in [ 'Active', 'Degraded', 'Bad' ]:
             activeSE.append( k )
       else:
         self.logError( "Error getting active SEs from RSS for %s" % str( selist ), res['Message'] )
