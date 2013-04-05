@@ -342,7 +342,7 @@ class UploadOutputData( ModuleBase ):
     else:
       self.log.info( 'Setting BK registration request for %s' % ( lfn ) )
 
-    lastOperationOnFile = self.request._getLastOrder( lfn )
+    lastOperationOnFile = self.request._getLastOrder()
     result = self.request.addSubRequest( {'Attributes':{'Operation':'registerFile',
                                                         'ExecutionOrder':lastOperationOnFile + 1,
                                                         'Catalogue':'BookkeepingDB',
