@@ -649,6 +649,11 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getDirectoryMetadata(lfn)
 
   #############################################################################
+  def getDirectoryMetadata_new(self, lfn):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().getDirectoryMetadata_new(lfn)
+
+  #############################################################################
   def getFilesForGUID(self, guid):
     "more info in the BookkeepingClient.py"
     return self.getManager().getFilesForGUID(guid)

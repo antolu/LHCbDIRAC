@@ -173,6 +173,7 @@ procedure bulkcheckfiles(lfns varchararray,  a_Cursor out udt_RefCursor);
 procedure bulkupdateReplicaRow(v_replica varchar2, lfns varchararray);
 procedure bulkgetTypeVesrsion(lfns varchararray, a_Cursor out udt_RefCursor);
 procedure setObsolete;
+procedure getDirectoryMetadata_new(lfns varchararray, a_Cursor out udt_RefCursor);
 end;
 /
 
@@ -1662,7 +1663,53 @@ else
 END if;
 END LOOP;
 open a_Cursor for select * from table(lfnmeta);
+EXCEPTION
+   WHEN NO_DATA_FOUND THEN
+    raise_application_error(-20088, 'The file '||f_name||' does not exists in the bookkeeping database!');
 end;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure getDirectoryMetadata_new(lfns varchararray, a_Cursor out udt_RefCursor)
+is
+/*create or replace  type
+directoryMetadata_new is object
+(lfn varchar2(256),
+production number,
+configname varchar2(256),
+configversion  varchar2(256),
+eventtypeid number,
+filetype varchar2(256),
+processingpass varchar2(256),
+ConditionDescription varchar2(256));
+create or replace
+type bulk_collect_directoryMet_new is table of directoryMetadata_new;
+*/
+lfnmeta bulk_collect_directoryMet_new := bulk_collect_directoryMet_new();
+n integer := 0;
+procName varchar2(256);
+simdesc varchar2(256);
+daqdesc varchar2(256);
+BEGIN
+FOR i in lfns.FIRST .. lfns.LAST LOOP
+  for c in (select /*+ INDEX(f FILES_FILENAME_UNIQUE) */ distinct j.production, c.configname, c.configversion, ft.name, f.eventtypeid from files f, jobs j, filetypes ft, configurations c where
+   c.configurationid=j.configurationid and ft.filetypeid = f.filetypeid and j.jobid=f.jobid and f.gotreplica='Yes' and f.filename like lfns(i)) LOOP
+   select getProductionPorcPassName(prod.processingid), sim.simdescription, daq.description into procName, simdesc, daqdesc from productionscontainer prod, simulationconditions sim, data_taking_conditions daq where
+     production=c.production and
+     prod.simid=sim.simid(+) and
+     prod.daqperiodid=daq.daqperiodid(+);
+     lfnmeta.extend;
+  n:=n+1;
+  if simdesc is NULL or simdesc='' then
+    lfnmeta (n):= directoryMetadata_new(lfns(i),c.production,c.configname, c.configversion, c.eventtypeid, c.name, procname,daqdesc);
+  else
+    lfnmeta (n):= directoryMetadata_new(lfns(i),c.production,c.configname, c.configversion, c.eventtypeid, c.name, procname,simdesc);
+  END if;
+  END LOOP;
+END LOOP;
+open a_Cursor for select * from table(lfnmeta);
+EXCEPTION
+   WHEN NO_DATA_FOUND THEN
+    raise_application_error(-20088, 'The file does not exists in the bookkeeping database!');
+END;
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function getFilesForGUID(v_guid varchar2) return varchar2 is
 result varchar2(256);

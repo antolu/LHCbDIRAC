@@ -4298,6 +4298,45 @@ and files.qualityid= dataquality.qualityid'
     return result
 
   #############################################################################
+  def getDirectoryMetadata_new(self, lfn):
+    """returns a directory meradata"""
+    result = S_ERROR()
+    lfns = [ i+'%' for i in lfn]
+    retVal = self.dbR_.executeStoredProcedure(packageName = 'BOOKKEEPINGORACLEDB.getDirectoryMetadata_new',
+                                                parameters = [],
+                                                output = True,
+                                                array= lfns )
+
+    records = {}
+    failed = []
+    if retVal['OK']:
+      for i in retVal['Value']:
+        fileName = i[0][:-1]
+        if fileName in records:
+          records[fileName] += [dict(zip(('Production',
+                              'ConfigName',
+                              'ConfigVersion',
+                              'EventType',
+                              'FileType',
+                              'ProcessingPass',
+                              'ConditionDescription'), i[1:]))]
+        else:
+          records[fileName] =  [dict(zip(('Production',
+                              'ConfigName',
+                              'ConfigVersion',
+                              'EventType',
+                              'FileType',
+                              'ProcessingPass',
+                              'ConditionDescription'), i[1:]))]
+      for i in lfns:
+        if i[:-1] not in records:
+          failed += [i[:-1]]
+      result = S_OK({'Successful':records, 'Failed':failed})
+    else:
+      result = retVal
+    return result
+
+  #############################################################################
   def getFilesForGUID(self, guid):
     """returns the file for a given GUID"""
     result = S_ERROR()

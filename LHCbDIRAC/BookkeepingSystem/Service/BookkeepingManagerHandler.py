@@ -1826,6 +1826,13 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getStepsMetadata(configName, configVersion, cond, procpass, evt, production, filetype, runnb)
 
   #############################################################################
+  types_getDirectoryMetadata_new = [ListType]
+  @staticmethod
+  def export_getDirectoryMetadata_new(lfn):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.getDirectoryMetadata_new(lfn)
+
+    #############################################################################
   types_getDirectoryMetadata = [StringType]
   @staticmethod
   def export_getDirectoryMetadata(lfn):

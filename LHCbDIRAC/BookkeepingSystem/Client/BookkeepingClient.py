@@ -14,7 +14,6 @@ in_dict = {'EventTypeId': 93000000,
 from DIRAC                           import S_OK, S_ERROR, gLogger
 from DIRAC.Core.DISET.RPCClient      import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
-
 import types, cPickle, tempfile
 
 
@@ -914,8 +913,10 @@ class BookkeepingClient:
     """
     It returns metadata informatiom for a given directory.
     """
+    if type(lfn) == types.StringType:
+      lfn = [lfn]
     server = self.__getServer()
-    return server.getDirectoryMetadata(lfn)
+    return server.getDirectoryMetadata_new(lfn)
 
   #############################################################################
   def getFilesForGUID(self, guid):
