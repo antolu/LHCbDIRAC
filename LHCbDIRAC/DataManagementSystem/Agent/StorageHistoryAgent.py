@@ -44,6 +44,7 @@ class StorageHistoryAgent( AgentModule ):
     self.bkkCacheTimeout = self.am_getOption( 'BookkeepingCacheTimeout', 259200 )  # by default 3 days
     self.__ignoreDirsList = self.am_getOption( 'Ignore', [] )
 
+    self.totalRecords = 0
     self.recordsToCommit = 0
     self.getSummaryCalls = 0
     self.getDirectorySummaryPerSECalls = 0
@@ -202,7 +203,6 @@ class StorageHistoryAgent( AgentModule ):
 
 
     # counter for DataStorage records, commit to the accounting in bunches of limitForCommit records
-    totalRecords = 0
     self.recordsToCommit = 0
     limitForCommit = 200
     self.log.notice( " Call the function to create the StorageUsageDB dump.." )
@@ -344,7 +344,7 @@ class StorageHistoryAgent( AgentModule ):
     gLogger.notice( "Total calls to Bookkeeping: %d (getDirectoryMetadata: %d, getEventType: %d)" % ( totalCallsToBkk,
                                                                                          callsToBkkgetDirectoryMetadata,
                                                                                          self.callsToBkkGetEvtType ) )
-    gLogger.notice( "Total records sent to accounting for DataStorage:  %d " % totalRecords )
+    gLogger.notice( "Total records sent to accounting for DataStorage:  %d " % self.totalRecords )
     gLogger.notice( "Directories not found in Bookkeeping: %d " % ( len( directoriesNotInBkk ) ) )
     fileName = os.path.join( self.__workDirectory, "directoriesNotInBkk.txt" )
     gLogger.notice( "written to file: %s " % fileName )

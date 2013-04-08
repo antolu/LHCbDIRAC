@@ -244,7 +244,7 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   @staticmethod
-  def __compareLFNLists( self, lfns, lfnsFound ):
+  def __compareLFNLists( lfns, lfnsFound ):
     ''' return files in both lists and files in lfns and not in lfnsFound
     '''
     present = []
@@ -501,7 +501,7 @@ class ConsistencyChecks( object ):
     return ancDict
 
   @staticmethod
-  def _getFileTypesCount( self, lfnDict ):
+  def _getFileTypesCount( lfnDict ):
     ''' return file types count
     '''
     ft_dict = {}
