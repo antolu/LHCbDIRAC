@@ -221,8 +221,8 @@ class FileDialog(QDialog, Ui_FileDialog):
   def filltable(self, header, tabledata):
     """ fill the table widget"""
     # set the table model
-    tm = TableModel(tabledata, header, self)
 
+    tm = TableModel(tabledata, header, self)
 
     self.__proxy.setSourceModel(tm)
 
@@ -368,30 +368,27 @@ class FileDialog(QDialog, Ui_FileDialog):
   def applyFilter(self, data):
     """performs filter over the files"""
     if data == 'All':
+      gLogger.debug('applyFilter-ALL')
       self.__proxy.clear()
       self.__proxy.invalidateFilter()
-      if self.tckcombo.count() > 1:
-        filterCondition = '\\b'
-        cond = '('
-        for i in range(self.tckcombo.count()):
-          cond += self.tckcombo.itemText(i)
-          cond += '|'
-        cond = cond[:-1]
-        filterCondition += cond + ')\\b'
-        self.__proxy.setFilterKeyColumn(15)
-        self.__proxy.setFilterRegExp(filterCondition)
-        for row in xrange(self.__proxy.rowCount()):
-          self.tableView.setRowHeight(row, 18)
-
+      filterCondition = "^\\S+$"
+      gLogger.debug('Filter condition:'+filterCondition)
+      self.__proxy.setFilterKeyColumn(15)
+      self.__proxy.setFilterRegExp(filterCondition)
+      for row in xrange(self.__proxy.rowCount()):
+        self.tableView.setRowHeight(row, 18)
     else:
+      gLogger.debug('applyFilter-Selected')
       self.__proxy.setFilterKeyColumn(15)
       filterCondition = '%s' % (data)
+      gLogger.debug('Filter condition:'+filterCondition)
       self.__proxy.setFilterRegExp(filterCondition)
       for row in xrange(self.__proxy.rowCount()):
         self.tableView.setRowHeight(row, 18)
 
   def applyListFilter(self, data):
     """specific filter"""
+    gLogger.debug('applyListFilter')
     filterCondition = '\\b'
     cond = '('
     for i in data:
@@ -399,6 +396,7 @@ class FileDialog(QDialog, Ui_FileDialog):
       cond += '|'
     cond = cond[:-1]
     filterCondition += cond + ')\\b'
+    gLogger.debug('Filter condition:'+filterCondition)
     self.__proxy.setFilterKeyColumn(15)
     self.__proxy.setFilterRegExp(filterCondition)
     for row in xrange(self.__proxy.rowCount()):
