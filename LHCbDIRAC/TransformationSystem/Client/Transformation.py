@@ -29,14 +29,6 @@ class Transformation( DIRACTransformation ):
 
     DIRACTransformation.__init__( self, transID = transID, transClient = self.transClient )
 
-    self.supportedPlugins += ['RAWShares', 'AtomicRun']
-    self.supportedPlugins += ['LHCbMCDSTBroadcast', 'LHCbMCDSTBroadcastRandom', 'LHCbDSTBroadcast', 'FakeReplication']
-    self.supportedPlugins += ['ArchiveDataset', 'ReplicateDataset', 'DeleteDataset', 'DeleteReplicas', 'DestroyDataset']
-    self.supportedPlugins += ['ByRun', 'ByRunWithFlush', 'ByRunBySize', 'ByRunBySizeWithFlush',
-                              'ByRunSize', 'ByRunSizeWithFlush', 'ByRunFileType', 'ByRunFileTypeWithFlush']
-    self.supportedPlugins += ['ByRunFileTypeSize', 'ByRunFileTypeSizeWithFlush', 'ByRunEventType',
-                              'ByRunEventTypeWithFlush', 'ByRunEventTypeSize', 'ByRunEventTypeSizeWithFlush']
-    self.supportedPlugins += ['ReplicateToLocalSE', 'DeleteReplicasWhenProcessed', 'Healing']
     if not  self.paramValues.has_key( 'BkQuery' ):
       self.paramValues['BkQuery'] = {}
     if not self.paramValues.has_key( 'BkQueryID' ):
@@ -179,87 +171,3 @@ class Transformation( DIRACTransformation ):
   def setAdditionalParam( self, key, val ):
     self.item_called = key
     return self.__setParam( val )
-
-  def _checkRAWSharesPlugin( self ):
-    return S_OK()
-
-  def _checkAtomicRunPlugin( self ):
-    return S_OK()
-
-  def _checkLHCbMCDSTBroadcastPlugin( self ):
-    return S_OK()
-
-  def _checkLHCbDSTBroadcastPlugin( self ):
-    return S_OK()
-
-  def _checkLHCbMCDSTBroadcastRandomPlugin( self ):
-    return S_OK()
-
-  def _checkArchiveDatasetPlugin( self ):
-    return S_OK()
-
-  def _checkReplicateDatasetPlugin( self ):
-    return S_OK()
-
-  def _checkDeleteDatasetPlugin( self ):
-    return S_OK()
-
-  def _checkDeleteReplicasPlugin( self ):
-    return S_OK()
-
-  def _checkDestroyDatasetPlugin( self ):
-    return S_OK()
-
-  def _checkFakeReplicationPlugin( self ):
-    return S_OK()
-
-  def _checkByRunPlugin( self ):
-    return S_OK()
-
-  def _checkByRunWithFlushPlugin( self ):
-    return S_OK()
-
-  def _checkByRunBySizePlugin( self ):
-    return S_OK()
-
-  def _checkByRunBySizeWithFlushPlugin( self ):
-    return S_OK()
-
-  def _checkByRunSizePlugin( self ):
-    return S_OK()
-
-  def _checkByRunSizeWithFlushPlugin( self ):
-    return S_OK()
-
-  def _checkByRunFileTypePlugin( self ):
-    return S_OK()
-
-  def _checkByRunFileTypeWithFlushPlugin( self ):
-    return S_OK()
-
-  def _checkByRunFileTypeSizePlugin( self ):
-    return S_OK()
-
-  def _checkByRunFileTypeSizeWithFlushPlugin( self ):
-    return S_OK()
-
-  def _checkByRunEventTypePlugin( self ):
-    return S_OK()
-
-  def _checkByRunEventTypeWithFlushPlugin( self ):
-    return S_OK()
-
-  def _checkByRunEventTypeSizePlugin( self ):
-    return S_OK()
-
-  def _checkByRunEventTypeSizeWithFlushPlugin( self ):
-    return S_OK()
-
-  def _checkReplicateToLocalSEPlugin( self ):
-    return S_OK()
-
-  def _checkDeleteReplicasWhenProcessedPlugin( self ):
-    return S_OK()
-
-  def _checkHealingPlugin( self ):
-    return S_OK()
