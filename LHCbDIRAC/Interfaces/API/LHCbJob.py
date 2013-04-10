@@ -95,20 +95,16 @@
 
 """
 
-__RCSID__ = "$Id$"
-
 import os, types, re
 
-from DIRAC import S_OK, S_ERROR, gConfig
+from DIRAC                                                import S_OK, S_ERROR, gConfig
+from DIRAC.Interfaces.API.Job                             import Job
+from DIRAC.Core.Utilities.File                            import makeGuid
+from DIRAC.Core.Utilities.List                            import uniqueElements
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations  import Operations
 
-from DIRAC.Interfaces.API.Job import Job
-from DIRAC.Core.Utilities.File import makeGuid
-from DIRAC.Core.Utilities.List import uniqueElements
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-
-from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition, addStepToWorkflow
+from LHCbDIRAC.Workflow.Utilities.Utils                   import getStepDefinition, addStepToWorkflow
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
 class LHCbJob( Job ):
   """ LHCbJob class as extension of DIRAC Job class
@@ -120,8 +116,7 @@ class LHCbJob( Job ):
     """Instantiates the Workflow object and some default parameters.
     """
     super( LHCbJob, self ).__init__( script, stdout, stderr )
-    self.gaudiStepCount = 0
-    self.currentStepPrefix = ''
+    self.stepCount = 0
     self.inputDataType = 'DATA'  # Default, other options are MDF, ETC
     self.rootSection = 'SoftwareDistribution/LHCbRoot'
     self.importLocation = 'LHCbDIRAC.Workflow.Modules'
@@ -131,7 +126,21 @@ class LHCbJob( Job ):
 
   def setApplication( self, appName, appVersion, optionsFiles, inputData = '',
                       optionsLine = '', inputDataType = '', logFile = '', events = -1,
-                      extraPackages = '' ):
+                      extraPackages = '',
+                      modulesNameList = ['CreateDataFile',
+                                         'GaudiApplication',
+                                         'FileUsage',
+                                         'UserJobFinalization'],
+                      parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
+                                        ( 'applicationVersion', 'string', '', 'Application Version' ),
+                                        ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
+                                        ( 'optionsFile', 'string', '', 'Options File' ),
+                                        ( 'extraOptionsLine', 'string', '', 'This is appended to standard options' ),
+                                        ( 'inputDataType', 'string', '', 'Input Data Type' ),
+                                        ( 'inputData', 'string', '', 'Input Data' ),
+                                        ( 'numberOfEvents', 'string', '', 'Events treated' ),
+                                        ( 'extraPackages', 'string', '', 'ExtraPackages' )]
+                     ):
     """Helper function.
 
        Specify application for DIRAC workflows.
@@ -169,7 +178,13 @@ class LHCbJob( Job ):
        @param logFile: Optional log file name
        @type logFile: string
        @param events: Optional number of events
-       @type logFile: integer
+       @type events: integer
+       @param extraPackages: Optional extra packages
+       @type extraPackages: integer
+       @param modulesNameList: list of module names. The default is given.
+       @type modulesNameList: list
+       @param parametersList: list of parameters. The default is given.
+       @type parametersList: list
     """
     kwargs = {'appName':appName, 'appVersion':appVersion, 'optionsFiles':optionsFiles,
               'inputData':inputData, 'optionsLine':optionsLine, 'inputDataType':inputDataType, 'logFile':logFile}
@@ -226,40 +241,16 @@ class LHCbJob( Job ):
       inputDataStr = ';'.join( inputData )
       self.addToInputData.append( inputDataStr )
 
-    self.gaudiStepCount += 1
-    stepNumber = self.gaudiStepCount
-    stepName = '%sStep%s' % ( appName, stepNumber )
-
-    modulesNameList = [
-                       'CreateDataFile',
-                       'GaudiApplication',
-                       'FileUsage',
-                       'UserJobFinalization'
-                       ]
-    parametersList = [
-                      ( 'applicationName', 'string', '', 'Application Name' ),
-                      ( 'applicationVersion', 'string', '', 'Application Version' ),
-                      ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
-                      ( 'optionsFile', 'string', '', 'Options File' ),
-                      ( 'extraOptionsLine', 'string', '', 'This is appended to standard options' ),
-                      ( 'inputDataType', 'string', '', 'Input Data Type' ),
-                      ( 'inputData', 'string', '', 'Input Data' ),
-                      ( 'numberOfEvents', 'string', '', 'Events treated' ),
-                      ( 'extraPackages', 'string', '', 'ExtraPackages' )
-                      ]
+    self.stepCount += 1
+    stepName = '%sStep%s' % ( appName, self.stepCount )
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
-    self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
+    self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
 
-    stepName = 'Run%sStep%s' % ( appName, stepNumber )
-
-    logPrefix = 'Step%s_' % ( stepNumber )
+    logPrefix = 'Step%s_' % ( self.stepCount )
     logName = '%s%s' % ( logPrefix, logName )
     self.addToOutputSandbox.append( logName )
-
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
 
     stepInstance = addStepToWorkflow( self.workflow, step, stepName )
 
@@ -287,7 +278,21 @@ class LHCbJob( Job ):
 
   def setApplicationScript( self, appName, appVersion, script, arguments = '', inputData = '',
                             inputDataType = '', poolXMLCatalog = 'pool_xml_catalog.xml', logFile = '',
-                            extraPackages = '' ):
+                            extraPackages = '',
+                            modulesNameList = ['CreateDataFile',
+                                               'GaudiApplicationScript',
+                                               'FileUsage',
+                                               'UserJobFinalization'],
+                            parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
+                                              ( 'applicationVersion', 'string', '', 'Application Version' ),
+                                              ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
+                                              ( 'executable', 'string', '', 'Script Name' ),
+                                              ( 'arguments', 'string', '', 'Arguments for executable' ),
+                                              ( 'poolXMLCatName', 'string', '', 'POOL XML Catalog file name' ),
+                                              ( 'inputDataType', 'string', '', 'Input Data Type' ),
+                                              ( 'inputData', 'string', '', 'Input Data' ),
+                                              ( 'extraPackages', 'string', '', 'extraPackages' ), ]
+                           ):
     """Helper function.
 
        Specify application environment and script to be executed.
@@ -324,6 +329,10 @@ class LHCbJob( Job ):
        @type arguments: string
        @param logFile: Optional log file name
        @type logFile: string
+       @param modulesNameList: list of module names. The default is given.
+       @type modulesNameList: list
+       @param parametersList: list of parameters. The default is given.
+       @type parametersList: list
     """
     kwargs = {'appName':appName, 'appVersion':appVersion, 'script':script, 'arguments':arguments,
               'inputData':inputData, 'inputDataType':inputDataType, 'poolXMLCatalog':poolXMLCatalog, 'logFile':logFile}
@@ -365,44 +374,18 @@ class LHCbJob( Job ):
       inputDataStr = ';'.join( inputData )
       self.addToInputData.append( inputDataStr )
 
-    self.gaudiStepCount += 1
-    stepNumber = self.gaudiStepCount
-#    step = self.__getGaudiApplicationScriptStep( stepDefn )
-
+    self.stepCount += 1
+    stepNumber = self.stepCount
 
     stepName = '%sStep%s' % ( appName, stepNumber )
 
-    modulesNameList = [
-                       'CreateDataFile',
-                       'GaudiApplicationScript',
-                       'FileUsage',
-                       'UserJobFinalization'
-                       ]
-
-    parametersList = [
-                      ( 'applicationName', 'string', '', 'Application Name' ),
-                      ( 'applicationVersion', 'string', '', 'Application Version' ),
-                      ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
-                      ( 'script', 'string', '', 'Script Name' ),
-                      ( 'arguments', 'string', '', 'Arguments for script' ),
-                      ( 'poolXMLCatName', 'string', '', 'POOL XML Catalog file name' ),
-                      ( 'inputDataType', 'string', '', 'Input Data Type' ),
-                      ( 'inputData', 'string', '', 'Input Data' ),
-                      ( 'extraPackages', 'string', '', 'extraPackages' )
-                      ]
-
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
-    self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
-
-    stepName = 'Run%sStep%s' % ( appName, stepNumber )
+    self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
 
     logPrefix = 'Step%s_' % ( stepNumber )
     logName = '%s%s' % ( logPrefix, logName )
     self.addToOutputSandbox.append( logName )
-
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
 
     stepInstance = addStepToWorkflow( self.workflow, step, stepName )
 
@@ -575,7 +558,17 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def __configureRootModule( self, rootVersion, rootScript, rootType, arguments, logFile ):
+  def __configureRootModule( self, rootVersion, rootScript, rootType, arguments, logFile,
+                             modulesNameList = ['CreateDataFile',
+                                                'RootApplication',
+                                                'FileUsage',
+                                                'UserJobFinalization'],
+                             parametersList = [( 'rootVersion', 'string', '', 'Root version' ),
+                                              ( 'rootScript', 'string', '', 'Root script' ),
+                                              ( 'rootType', 'string', '', 'Root type' ),
+                                              ( 'arguments', 'list', [], 'Optional arguments for payload' ),
+                                              ( 'applicationLog', 'string', '', 'Log file name' ), ]
+                            ):
     """ Internal function.
 
         Supports the root macro, python and executable wrapper functions.
@@ -611,35 +604,17 @@ class LHCbJob( Job ):
     else:
       logName = '%s_%s.log' % ( rootName, rootVersion.replace( '.', '' ) )
 
-    self.gaudiStepCount += 1
-    stepNumber = self.gaudiStepCount
+    self.stepCount += 1
+    stepNumber = self.stepCount
     stepName = '%sStep%s' % ( rootName, stepNumber )
-
-
-    modulesNameList = [
-                       'CreateDataFile',
-                       'RootApplication',
-                       'FileUsage',
-                       'UserJobFinalization'
-                       ]
-    parametersList = [
-                      ( 'rootVersion', 'string', '', 'Root version' ),
-                      ( 'rootScript', 'string', '', 'Root script' ),
-                      ( 'rootType', 'string', '', 'Root type' ),
-                      ( 'arguments', 'list', [], 'Optional arguments for payload' ),
-                      ( 'applicationLog', 'string', '', 'Log file name' )
-                      ]
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
-    self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
+    self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
 
     logPrefix = 'Step%s_' % ( stepNumber )
     logName = '%s%s' % ( logPrefix, logName )
     self.addToOutputSandbox.append( logName )
-
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
 
     stepInstance = addStepToWorkflow( self.workflow, step, stepName )
 
@@ -938,7 +913,14 @@ class LHCbJob( Job ):
   #############################################################################
 
 
-  def setProtocolAccessTest( self, protocols, rootVersion, inputData = '', logFile = '' ):
+  def setProtocolAccessTest( self, protocols, rootVersion, inputData = '', logFile = '',
+                             modulesNameList = ['ProtocolAccessTest'],
+                             parametersList = [( 'protocols', 'string', '', 'List of Protocols' ),
+                                               ( 'applicationLog', 'string', '', 'Log file name' ),
+                                               ( 'applicationVersion', 'string', '', 'DaVinci version' ),
+                                               ( 'rootVersion', 'string', '', 'ROOT version' ),
+                                               ( 'inputData', 'string', '', 'Input Data' ), ]
+                            ):
     """Helper function.
 
        Perform a protocol access test at an optional site with the input data specified.
@@ -956,10 +938,14 @@ class LHCbJob( Job ):
        @type inputData: single LFN string or list of LFNs
        @param logFile: log file name
        @type logFile: string
+       @param modulesList: Optional list of modules (to be used mostly when extending this method
+       @type modulesList: list
+       @param parameters: Optional list of parameters (to be used mostly when extending this method
+       @type parameters: list
     """
     kwargs = {'protocols':protocols, 'inputData':inputData, 'logFile':logFile, 'rootVersion':rootVersion}
-    self.gaudiStepCount += 1
-    stepNumber = self.gaudiStepCount
+    self.stepCount += 1
+    stepNumber = self.stepCount
 
     if not protocols:
       return self._reportError( 'A list of protocols is required for this test', __name__, **kwargs )
@@ -1005,25 +991,11 @@ class LHCbJob( Job ):
 
     stepName = 'ProtocolTestStep%s' % ( stepNumber )
 
-    modulesNameList = [
-                       'ProtocolAccessTest'
-                       ]
-    parametersList = [
-                      ( 'protocols', 'string', '', 'List of Protocols' ),
-                      ( 'applicationLog', 'string', '', 'Log file name' ),
-                      ( 'applicationVersion', 'string', '', 'DaVinci version' ),
-                      ( 'rootVersion', 'string', '', 'ROOT version' ),
-                      ( 'inputData', 'string', '', 'Input Data' ),
-                      ]
-
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
-    self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
+    self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
 
     stepName = 'RunProtocolTestStep%s' % ( stepNumber )
-
-    stepPrefix = '%s_' % stepName
-    self.currentStepPrefix = stepPrefix
 
     stepInstance = addStepToWorkflow( self.workflow, step, stepName )
 
