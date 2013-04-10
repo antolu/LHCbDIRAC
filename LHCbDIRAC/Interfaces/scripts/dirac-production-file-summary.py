@@ -62,7 +62,9 @@ except Exception,x:
   print 'Production ID must be an integer, not %s:\n%s' %(productionID,x)
   DIRAC.exit(2)
 
-result = diracProd.productionFileSummary(productionID,selectStatus=status,outputFile=outFile,printSummary=summary,printOutput=printVerbose)
+result = diracProd.productionFileSummary( productionID, selectStatus = status,
+                                          outputFile = outFile, printSummary = summary,
+                                          printOutput = printVerbose )
 if not result['OK']:
   print 'ERROR %s' %result['Message']
   exitCode = 2
