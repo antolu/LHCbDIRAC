@@ -16,57 +16,78 @@ from DIRAC.Core.Utilities                                   import Time
 
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.AccountingSystem.Client.DataStoreClient          import gDataStoreClient
-from DIRAC.Core.DISET.RPCClient                             import RPCClient
 
 from LHCbDIRAC.AccountingSystem.Client.Types.UserStorage    import UserStorage
 from LHCbDIRAC.AccountingSystem.Client.Types.Storage        import Storage
 from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage    import DataStorage
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient  import DataUsageClient
-from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB       import StorageUsageDB
 
 byteToGB = 1.0e9
 
+def _standardDirectory( dirPath ):
+  return dirPath if dirPath[-1] == '/' else dirPath + '/'
+
+def _standardDirList( dirList ):
+  return [_standardDirectory( dirPath ) for dirPath in dirList]
+
+def __fillMetadata( dictToFill, metadataValue ):
+  ''' Fill the dictionary to send to the accounting.
+      If metadataValue is a string then set all the values of dictToFill, to this value
+      if metadataValue is a dictionary then set each value of dictToFill to the corresponding value of metadataValue
+  '''
+  # ds = DataStorage()
+  # keyList = ds.keyFieldsList
+  # this is the list of attributes returned by the Bookkeeping for a given directory
+  keyList = ( 'ConfigName', 'ConfigVersion', 'FileType', 'Production',
+             'ProcessingPass', 'ConditionDescription', 'EventType' )
+  if type( metadataValue ) == type( '' ):
+    for k in keyList:
+      dictToFill[ k ] = metadataValue
+  elif type( metadataValue ) == type( {} ):
+    for k in keyList:
+      dictToFill[k] = metadataValue.get( k, 'na' )
+
 class StorageHistoryAgent( AgentModule ):
-
-  def __init__( self, *args, **kwargs ):
-    """ c'tor
-    """
-    AgentModule.__init__( self, *args, **kwargs )
-
-    if self.am_getOption( 'DirectDB', False ):
-      self.__stDB = StorageUsageDB()
-    else:
-      self.__stDB = RPCClient( 'DataManagement/StorageUsage' )
-    self.bkClient = BookkeepingClient()
-    self.__dataUsageClient = DataUsageClient()
-    self.__workDirectory = self.am_getOption( "WorkDirectory" )
-    self.bkkCacheTimeout = self.am_getOption( 'BookkeepingCacheTimeout', 259200 )  # by default 3 days
-    self.__ignoreDirsList = self.am_getOption( 'Ignore', [] )
-
-    self.totalRecords = 0
-    self.recordsToCommit = 0
-    self.getSummaryCalls = 0
-    self.getDirectorySummaryPerSECalls = 0
-
   def initialize( self ):
     '''Sets defaults
     '''
     self.am_setOption( 'PollingTime', 43200 )
+    if self.am_getOption( 'DirectDB', False ):
+      from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
+      self.__stDB = StorageUsageDB()
+    else:
+      from DIRAC.Core.DISET.RPCClient import RPCClient
+      self.__stDB = RPCClient( 'DataManagement/StorageUsage' )
+    self.__workDirectory = self.am_getOption( "WorkDirectory" )
     if not os.path.isdir( self.__workDirectory ):
       os.makedirs( self.__workDirectory )
     self.log.info( "Working directory is %s" % self.__workDirectory )
+
+    self.__ignoreDirsList = self.am_getOption( 'Ignore', [] )
     self.log.info( "List of directories to ignore for the DataStorage accounting: %s " % self.__ignoreDirsList )
+
+    self.__bkClient = BookkeepingClient()
+    self.__dataUsageClient = DataUsageClient()
+    self.__workDirectory = None
+    self.cachedMetadata = {}
+    # build a dictionary with Event Type descriptions (to be send to accounting, instead of number Event Type ID)
+    self.eventTypeDescription = { 'na':'na', 'notInBkk':'notInBkk', 'FailedBkkQuery':'FailedBkkQuery', 'None':'None'}
+    self.limitForCommit = self.am_getOption( "LimitForCommit", 1000 )
+    self.callsToGetSummary = 0
+    self.callsToDirectorySummary = 0
+    self.callsToDudbForMetadata = 0
+    # keep count of calls to Bkk
+    self.callsToBkkgetDirectoryMetadata = 0
+    self.callsToBkkGetEvtType = 0
 
     return S_OK()
 
-  def execute( self ):
-    if self.am_getOption( "CleanBefore", False ):
-      self.log.notice( "Cleaning the DB" )
-      result = self.__stDB.purgeOutdatedEntries( "/lhcb/user", self.am_getOption( "OutdatedSeconds", 86400 * 10 ) )
-      if not result[ 'OK' ]:
-        return result
-      self.log.notice( "Purged %s outdated records" % result[ 'Value' ] )
+  def userStorageAccounting( self ):
+    self.log.notice( "-------------------------------------------------------------------------------------\n" )
+    self.log.notice( "Generate accounting records for user directories " )
+    self.log.notice( "-------------------------------------------------------------------------------------\n" )
+
     result = self.__stDB.getUserSummary()
     if not result[ 'OK' ]:
       return result
@@ -112,9 +133,11 @@ class StorageHistoryAgent( AgentModule ):
     else:
       self.log.notice( "%s records for UserStorage type successfully committed" % numRows )
 
-    # ##
-    # Accounting records relative to the general Storage type:
-    # ##
+  def topDirectoryAccounting( self ):
+    self.log.notice( "-------------------------------------------------------------------------------------\n" )
+    self.log.notice( "Generate accounting records for top directories " )
+    self.log.notice( "-------------------------------------------------------------------------------------\n" )
+
     ftb = 1.0e12
 
     # get info from the DB about the LOGICAL STORAGE USAGE (from the su_Directory table):
@@ -123,62 +146,54 @@ class StorageHistoryAgent( AgentModule ):
       return result
     logicalUsage = result['Value']
     topDirLogicalUsage = {}  # build the list of first level directories
-    for row in logicalUsage.keys():
+    for row in logicalUsage:
       # d, size, files = row
-      d = row
-      files = logicalUsage[ d ][ 'Files' ]
-      size = logicalUsage[ d ][ 'Size' ]
-      splitDir = d.split( "/" )
+      splitDir = row.split( "/" )
       if len( splitDir ) > 3:  # skip the root directory "/lhcb/"
         firstLevelDir = '/' + splitDir[1] + '/' + splitDir[2] + '/'
-        if firstLevelDir not in topDirLogicalUsage.keys():
-          topDirLogicalUsage[ firstLevelDir ] = {}
-          topDirLogicalUsage[ firstLevelDir ][ 'Files' ] = 0
-          topDirLogicalUsage[ firstLevelDir ][ 'Size' ] = 0
-        topDirLogicalUsage[ firstLevelDir ][ 'Files' ] += files
-        topDirLogicalUsage[ firstLevelDir ][ 'Size' ] += size
+        topDirLogicalUsage.setdefault( firstLevelDir, {'Files':0, 'Size':0} )
+        topDirLogicalUsage[ firstLevelDir ][ 'Files' ] += logicalUsage[ row ][ 'Files' ]
+        topDirLogicalUsage[ firstLevelDir ][ 'Size' ] += logicalUsage[ row ][ 'Size' ]
     self.log.notice( "Summary on logical usage of top directories: " )
-    for directory in topDirLogicalUsage.keys():
-      self.log.notice( "dir: %s size: %.4f TB  files: %d" % ( directory,
-                                                              topDirLogicalUsage[directory]['Size'] / ftb,
-                                                              topDirLogicalUsage[directory]['Files'] ) )
+    for row in topDirLogicalUsage:
+      self.log.notice( "dir: %s size: %.4f TB  files: %d" % ( row, topDirLogicalUsage[row]['Size'] / ftb,
+                                                              topDirLogicalUsage[row]['Files'] ) )
 
     # loop on top level directories (/lhcb/data, /lhcb/user/, /lhcb/MC/, etc..)
     # to get the summary in terms of PHYSICAL usage grouped by SE:
-    SEData = {}
-    for directory in topDirLogicalUsage.keys():
+    seData = {}
+    for directory in topDirLogicalUsage:
       result = self.__stDB.getDirectorySummaryPerSE( directory )  # retrieve the PHYSICAL usage
       if not result[ 'OK' ]:
         return result
-      SEData[ directory ] = result[ 'Value' ]
-      self.log.notice( "Got SE summary for %s directories " % ( len( SEData ) ) )
-      self.log.debug( "SEData: %s" % SEData )
+      seData[ directory ] = result[ 'Value' ]
+      self.log.notice( "Got SE summary for %s directories " % ( len( seData ) ) )
+      self.log.debug( "SEData: %s" % seData )
     # loop on top level directories to send the accounting records
     numRows = 0
-    for directory in SEData.keys():
-      self.log.debug( "dir: %s SEData: %s " % ( directory, SEData[ directory ] ) )
-      if directory not in topDirLogicalUsage.keys():
+    now = Time.dateTime()
+    for directory in seData:
+      self.log.debug( "dir: %s SEData: %s " % ( directory, seData[ directory ] ) )
+      if directory not in topDirLogicalUsage:
         self.log.error( "Dir %s is in the summary per SE, but it is not in the logical files summary!" % directory )
         continue
-      for se in sorted( SEData[ directory ].keys() ):
+      for se in sorted( seData[ directory ] ):
         storageRecord = Storage()
         storageRecord.setStartTime( now )
         storageRecord.setEndTime( now )
         storageRecord.setValueByKey( "Directory", directory )
         storageRecord.setValueByKey( "StorageElement", se )
-        logicalFiles = topDirLogicalUsage[ directory ][ 'Files' ]
-        logicalSize = topDirLogicalUsage[ directory ][ 'Size' ]
-        storageRecord.setValueByKey( "LogicalFiles", logicalFiles )
-        storageRecord.setValueByKey( "LogicalSize", logicalSize )
+        storageRecord.setValueByKey( "LogicalFiles", topDirLogicalUsage[ directory ][ 'Files' ] )
+        storageRecord.setValueByKey( "LogicalSize", topDirLogicalUsage[ directory ][ 'Size' ] )
         try:
-          physicalFiles = SEData[ directory ][ se ][ 'Files' ]
+          physicalFiles = seData[ directory ][ se ][ 'Files' ]
         except:
-          self.log.warn( "No files replicas for directory %s on SE %s" % ( directory, se ) )
+          self.log.error( "WARNING! no files replicas for directory %s on SE %s" % ( directory, se ) )
           physicalFiles = 0
         try:
-          physicalSize = SEData[ directory ][ se ][ 'Size' ]
+          physicalSize = seData[ directory ][ se ][ 'Size' ]
         except:
-          self.log.warn( "No size for replicas for directory %s on SE %s" % ( directory, se ) )
+          self.log.error( "WARNING! no size for replicas for directory %s on SE %s" % ( directory, se ) )
           physicalSize = 0
         storageRecord.setValueByKey( "PhysicalFiles", physicalFiles )
         storageRecord.setValueByKey( "PhysicalSize", physicalSize )
@@ -192,227 +207,231 @@ class StorageHistoryAgent( AgentModule ):
     self.log.notice( "Sending %s records to accounting for top level directories storage" % numRows )
     res = gDataStoreClient.commit()
     if not res[ 'OK' ]:
-      self.log.error( "Committing Storage records: %s " % res )
+      self.log.notice( "ERROR: committing Storage records: %s " % res )
       return S_ERROR( res )
     else:
       self.log.notice( "%s records for Storage type successfully committed" % numRows )
 
+  def bkPathAccounting( self ):
     self.log.notice( "-------------------------------------------------------------------------------------\n" )
     self.log.notice( "Generate accounting records for DataStorage type " )
     self.log.notice( "-------------------------------------------------------------------------------------\n" )
 
 
-    # counter for DataStorage records, commit to the accounting in bunches of limitForCommit records
+    # counter for DataStorage records, commit to the accounting in bunches of self.limitForCommit records
+    self.totalRecords = 0
     self.recordsToCommit = 0
-    limitForCommit = 200
     self.log.notice( " Call the function to create the StorageUsageDB dump.." )
-    res = self.generateStorageUsageDictionaryPerDirectory()
+    res = self.generateStorageUsagePerDir()
     if not res[ 'OK' ]:
       self.log.error( "ERROR generating the StorageUsageDB dump per directory" )
       return S_ERROR()
 
-    # keep count of calls to Bkk
-    callsToBkkgetDirectoryMetadata = 0
-    self.callsToBkkGetEvtType = 0
     # Keep a list of all directories in LFC that are not found in the Bkk
-    directoriesNotInBkk = []
-    # build a dictionary with Event Type descriptions (to be send to accounting, instead of number Event Type ID)
-    self.eventTypeDescription = {}
-    self.eventTypeDescription[ 'na' ] = 'na'
-    self.eventTypeDescription[ 'notInBkk' ] = 'notInBkk'
-    self.eventTypeDescription[ 'FailedBkkQuery' ] = 'FailedBkkQuery'
-    self.eventTypeDescription[ 'None' ] = 'None'
+    self.directoriesNotInBkk = []
     # for debugging purposes build dictionaries with storage usage to compare with the accounting plots
-    debug_seUsage = {}
-    debug_seUsage_acc = {}
+    self.debug_seUsage = {}
+    self.debug_seUsage_acc = {}
 
     # set the time for the accounting records (same time for all records)
-    self.now = Time.dateTime()
+    now = Time.dateTime()
+    #Get the directory metadata in a bulk query
+    metaForList = self.__getMetadataForAcc( self.dirDict.values() )
+
     # loop on all directories  to get the bkk metadata
-    # for dirLfn in self.dirList:
-    for dirLfn in self.dirDict.keys():
-      gLogger.info( "Processing directory %s " % dirLfn )
+    for dirLfn, fullDirectory in self.dirDict.items():
+      if dirLfn not in fullDirectory:
+        self.log.error( "ERROR: fullDirectory should include the dirname: %s %s " % ( fullDirectory, dirLfn ) )
+        continue
+      self.log.info( "Processing directory %s " % dirLfn )
+      if dirLfn not in self.pfnUsage:
+        self.log.error( "ERROR: directory does not have PFN usage %s " % dirLfn )
+        continue
+      self.log.verbose( "PFN usage: %s " % self.pfnUsage[ dirLfn ] )
+      if dirLfn not in self.lfnUsage:
+        self.log.error( "ERROR: directory does not have LFN usage %s " % dirLfn )
+        continue
+      self.log.verbose( "LFN usage: %s " % self.lfnUsage[ dirLfn ] )
+
       # for DEBUGGING:
-      for se in self.PFNUsage[ dirLfn ]:
-        if se not in debug_seUsage.keys():
-          debug_seUsage[ se ] = {'Files': 0 , 'Size' : 0 }
-        physicalSize = self.PFNUsage[ dirLfn ][ se ][ 'Size' ]
-        physicalFiles = self.PFNUsage[ dirLfn ][ se ][ 'Files' ]
-        debug_seUsage[ se ][ 'Files' ] += physicalFiles
-        debug_seUsage[ se ][ 'Size' ] += physicalSize
+      for se in self.pfnUsage[ dirLfn ]:
+        self.debug_seUsage.setdefault( se, {'Files': 0 , 'Size' : 0 } )
+        self.debug_seUsage[ se ][ 'Files' ] += self.pfnUsage[ dirLfn ][ se ][ 'Files' ]
+        self.debug_seUsage[ se ][ 'Size' ] += self.pfnUsage[ dirLfn ][ se ][ 'Size' ]
       # end of DEBUGGING
 
-      self.metadataForAcc = {}
-      # initialize the values to fill the accounting record
-      self.fillMetadata( self.metadataForAcc, 'na' )
-      gLogger.info( "self.metadataForAcc initialized as: %s " % self.metadataForAcc )
-      if dirLfn not in self.PFNUsage.keys():
-        gLogger.error( "Directory does not have PFN usage %s " % dirLfn )
-        continue
-      gLogger.verbose( "PFN usage: %s " % self.PFNUsage[ dirLfn ] )
-      if dirLfn not in self.LFNUsage.keys():
-        gLogger.error( "Directory does not have LFN usage %s " % dirLfn )
-        continue
-      gLogger.verbose( "LFN usage: %s " % self.LFNUsage[ dirLfn ] )
-
-      # try to query the cached table:
-      fullDirectory = self.dirDict[ dirLfn ]
-      if dirLfn not in fullDirectory:
-        gLogger.error( "fullDirectory should include the dirname: %s %s " % ( fullDirectory, dirLfn ) )
+      # get metadata for this directory
+      metaForDir = metaForList.get( fullDirectory, {} )
+      if not metaForDir:
+        self.log.warn( "Metadata not available for directory %s" % fullDirectory )
         continue
 
-      dirList = [ fullDirectory ]  # convert to list format
-      gLogger.info( "call getDirMetadata for: %s " % dirList )
-      res = self.__dataUsageClient.getDirMetadata( dirList )  # this could be a bulk query for a list of directories
-      gLogger.info( "getDirMetadata returned: %s " % res )
-      if not res[ 'OK' ]:
-        gLogger.error( "Error retrieving directory meta-data %s " % res['Message'] )
-        # self.fillMetadata( self.metadataForAcc, 'na' )
-        # this usually happens when directories are removed from LFC between the StorageUsageDB dump and this call,
-        # if the Db is refreshed exactly in this time interval. Not really a problem.
-        #######################3 just a try ##############################################3
-        continue
-      if res['Value']:
-        for row in res['Value']:
-          _dirID, configName, configVersion, conditions, processingPass, eventType, fileType, production = row
-          self.metadataForAcc[ 'ConfigName' ] = configName
-          self.metadataForAcc[ 'ConfigVersion' ] = configVersion
-          self.metadataForAcc[ 'ConditionDescription' ] = conditions
-          self.metadataForAcc[ 'ProcessingPass' ] = processingPass
-          self.metadataForAcc[ 'EventType' ] = eventType
-          self.metadataForAcc[ 'FileType' ] = fileType
-          self.metadataForAcc[ 'Production' ] = production
-
-      else:
-        gLogger.info( "No result returned from getDirMetadata => \
-        Query Bookkeeping to retrieve meta-data for %s directory and then cache it" % dirLfn )
-        res = self.bkClient.getDirectoryMetadata( dirLfn )
-        callsToBkkgetDirectoryMetadata += 1
-        if not res[ 'OK' ]:
-          gLogger.error( "Totally failed to query Bookkeeping %s" % res[ 'Message' ] )
-          self.fillMetadata( self.metadataForAcc, 'FailedBkkQuery' )
-        else:
-          gLogger.info( "Successfully queried Bookkeeping, result: %s " % res )
-          if not res['Value']:
-            gLogger.warn( "Directory is not registered in Bookkeeping! %s " % dirLfn )
-            self.fillMetadata( self.metadataForAcc, 'notInBkk' )
-            directoriesNotInBkk.append( dirLfn )
-          else:
-            metadata = res['Value'][ 0 ]
-            self.fillMetadata( self.metadataForAcc, metadata )
-            gLogger.info( "Cache this entry in DirMetadata table.." )
-            dirMetadataDict = {}
-            # dirMetadataDict[ dirLfn ] = metadata
-            dirMetadataDict[ fullDirectory ] = metadata
-            resInsert = self.__dataUsageClient.insertToDirMetadata( dirMetadataDict )
-            if not resInsert[ 'OK' ]:
-              gLogger.error( "Failed to insert metadata in DirMetadata table! %s " % resInsert[ 'Message' ] )
-            else:
-              gLogger.info( "Successfully inserted metadata for directory %s in DirMetadata table " % dirMetadataDict )
-              gLogger.verbose( "result: %s " % resInsert )
-
-      gLogger.info( "Fill the record for Dir: %s and metadata: %s " % ( dirLfn, self.metadataForAcc ) )
-      for se in self.PFNUsage[ dirLfn ]:
-        gLogger.verbose( "Filling accounting record for se %s" % se )
-        res = self.fillAndSendAccountingRecord( dirLfn, se, self.metadataForAcc )
+      # Fill in the accounting record
+      self.log.info( "Fill the record for %s and metadata: %s " % ( dirLfn, metaForDir ) )
+      for se in self.pfnUsage[ dirLfn ]:
+        self.log.verbose( "Filling accounting record for se %s" % se )
+        res = self.fillAndSendAccountingRecord( dirLfn, se, metaForDir, now )
         if not res['OK']:
           return res
-        if se not in debug_seUsage_acc.keys():
-          debug_seUsage_acc[ se ] = { 'Files': 0 , 'Size': 0 }
-        physicalSize = self.PFNUsage[ dirLfn ][ se ][ 'Size' ]
-        physicalFiles = self.PFNUsage[ dirLfn ][ se ][ 'Files' ]
-        debug_seUsage_acc[ se ][ 'Files' ] += physicalFiles
-        debug_seUsage_acc[ se ][ 'Size' ] += physicalSize
+        self.debug_seUsage_acc.setdefault( se, { 'Files': 0 , 'Size': 0 } )
+        self.debug_seUsage_acc[ se ][ 'Files' ] += self.pfnUsage[ dirLfn ][ se ][ 'Files' ]
+        self.debug_seUsage_acc[ se ][ 'Size' ] += self.pfnUsage[ dirLfn ][ se ][ 'Size' ]
 
-      if self.recordsToCommit > limitForCommit:
-        res = gDataStoreClient.commit()
-        if not res[ 'OK' ]:
-          self.log.error( "Accounting ERROR: commit returned %s" % res )
-        else:
-          self.log.notice( "%d records committed " % self.recordsToCommit )
-          self.recordsToCommit = 0
-          self.log.notice( "commit for DataStorage returned: %s" % res )
+    # Don't forget to commit the remaining records!
+    self.__commitRecords()
 
 
+  def execute( self ):
+    if self.am_getOption( "CleanBefore", False ):
+      self.log.notice( "Cleaning the DB" )
+      result = self.__stDB.purgeOutdatedEntries( "/lhcb/user", self.am_getOption( "OutdatedSeconds", 86400 * 10 ) )
+      if not result[ 'OK' ]:
+        return result
+      self.log.notice( "Purged %s outdated records" % result[ 'Value' ] )
 
-    gLogger.notice( "-------------------------------------------------------------------------------------\n" )
-    gLogger.notice( "------ End of cycle report for DataStorage accounting--------------------------------\n" )
-    gLogger.notice( "Total directories found in LFC:  %d " % len( self.dirDict.keys() ) )
-    totalCallsToStorageUsage = self.getSummaryCalls + self.getDirectorySummaryPerSECalls
-    gLogger.notice( "Total calls to StorageUsage: %d , took: %d s " % ( totalCallsToStorageUsage, self.SUDBtotalTime ) )
-    totalCallsToBkk = callsToBkkgetDirectoryMetadata + self.callsToBkkGetEvtType
-    gLogger.notice( "Total calls to Bookkeeping: %d (getDirectoryMetadata: %d, getEventType: %d)" % ( totalCallsToBkk,
-                                                                                         callsToBkkgetDirectoryMetadata,
+    # User accounting (per user and SE)
+    self.userStorageAccounting()
+    # Accounting per top directory
+    self.topDirectoryAccounting()
+    # full production data accounting
+    self.bkPathAccounting()
+
+
+    self.log.notice( "-------------------------------------------------------------------------------------\n" )
+    self.log.notice( "------ End of cycle report for DataStorage accounting--------------------------------\n" )
+    self.log.notice( "Total directories found in LFC:  %d " % len( self.dirDict ) )
+    totalCallsToStorageUsage = self.callsToGetSummary + self.callsToDirectorySummary
+    self.log.notice( "Total calls to StorageUsage: %d , took: %d s " % ( totalCallsToStorageUsage, self.genTotalTime ) )
+    totalCallsToBkk = self.callsToBkkgetDirectoryMetadata + self.callsToBkkGetEvtType
+    self.log.notice( "Total calls to DataUsage for cache: %d" % self.callsToDudbForMetadata )
+    self.log.notice( "Total calls to Bookkeeping: %d (getDirectoryMetadata: %d, getEventType: %d)" % ( totalCallsToBkk,
+                                                                                         self.callsToBkkgetDirectoryMetadata,
                                                                                          self.callsToBkkGetEvtType ) )
-    gLogger.notice( "Total records sent to accounting for DataStorage:  %d " % self.totalRecords )
-    gLogger.notice( "Directories not found in Bookkeeping: %d " % ( len( directoriesNotInBkk ) ) )
-    fileName = os.path.join( self.__workDirectory, "directoriesNotInBkk.txt" )
-    gLogger.notice( "written to file: %s " % fileName )
+    self.log.notice( "Total records sent to accounting for DataStorage:  %d " % self.totalRecords )
+    self.log.notice( "Directories not found in Bookkeeping: %d " % ( len( self.directoriesNotInBkk ) ) )
+    fileName = os.path.join( self.__workDirectory, "self.directoriesNotInBkk.txt" )
+    self.log.notice( "written to file: %s " % fileName )
     f = open( fileName, "w" )
-    for d in directoriesNotInBkk:
-      f.write( "%s\n" % d )
-    f.close()
-    f = open( fileName, "w" )
-    for d in directoriesNotInBkk:
+    for d in self.directoriesNotInBkk:
       f.write( "%s\n" % d )
     f.close()
     # for DEBUG only
-    gLogger.info( "Summary of StorageUsage: files size " )
-    seList = debug_seUsage.keys()
-    seList.sort()
-    for se in seList:
-      gLogger.info( "all: %s  %d %d Bytes ( %.2f TB ) " % ( se, debug_seUsage[ se ]['Files'],
-                                                            debug_seUsage[ se ]['Size'],
-                                                            debug_seUsage[ se ]['Size'] / 1.0e12 ) )
-      if se in debug_seUsage_acc.keys():
-        gLogger.info( "acc: %s  %d %d Bytes ( %.2f TB ) " % ( se, debug_seUsage_acc[ se ]['Files'],
-                                                              debug_seUsage_acc[ se ]['Size'],
-                                                              debug_seUsage_acc[ se ]['Size'] / 1.0e12 ) )
+    self.log.info( "Summary of StorageUsage: files size " )
+    for se in sorted( self.debug_seUsage ):
+      self.log.info( "all: %s  %d %d Bytes ( %.2f TB ) " % ( se, self.debug_seUsage[ se ]['Files'],
+                                                            self.debug_seUsage[ se ]['Size'],
+                                                            self.debug_seUsage[ se ]['Size'] / 1.0e12 ) )
+      if se in self.debug_seUsage_acc:
+        self.log.info( "acc: %s  %d %d Bytes ( %.2f TB ) " % ( se, self.debug_seUsage_acc[ se ]['Files'],
+                                                              self.debug_seUsage_acc[ se ]['Size'],
+                                                              self.debug_seUsage_acc[ se ]['Size'] / 1.0e12 ) )
       else:
-        gLogger.info( "SE not in debug_seUsage_acc keys" )
+        self.log.info( "SE not in self.debug_seUsage_acc keys" )
     return S_OK()
 
+  def __getMetadataForAcc( self, dirList ):
+    """ Get metadata for a directory either from memory, from the storageDB or from BK """
+    # Try and get the metadata from memory cache
+    notFound = []
+    metaForList = {}
+    for dirName in dirList:
+      metaForList[dirName] = self.cachedMetadata.get( dirName, {} )
+      if not metaForList[dirName]:
+        notFound.append( dirName )
+    if notFound:
+      self.log.info( "Memory metadata cache missed for %d directories" % len( notFound ) )
+      self.log.verbose( "call getDirMetadata for: %s " % notFound )
+      self.callsToDudbForMetadata += 1
+      res = self.__dataUsageClient.getDirMetadata( notFound )  # this could be a bulk query for a list of directories
+      if not res[ 'OK' ]:
+        self.log.error( "Error retrieving directory meta-data %s " % res['Message'] )
+        # this usually happens when directories are removed from LFC between the StorageUsageDB dump and this call,
+        # if the Db is refreshed exactly in this time interval. Not really a problem.
+        #######################3 just a try ##############################################3
+        return {}
+      self.log.verbose( "getDirMetadata returned: %s " % str( res['Value'] ) )
+      notInCache = []
+      for dirName in notFound:
+        # Compatibility with old (list for single file) and new (dictionary) service
+        if type( res['Value'] ) == type( {} ):
+          metaTuple = res['Value'].get( dirName, () )
+        elif len( dirList ) == 1 and res['Value']:
+          metaTuple = res['Value'][0]
+        else:
+          metaTuple = ()
+        if metaTuple:
+          metaForDir = metaForList[dirName]
+          _dirID, metaForDir[ 'DataType' ], metaForDir[ 'Activity' ], metaForDir[ 'Conditions' ], metaForDir[ 'ProcessingPass' ], \
+            metaForDir[ 'EventType' ], metaForDir[ 'FileType' ], metaForDir[ 'Production' ] = metaTuple
+        else:
+          notInCache.append( dirName )
 
-  def fillMetadata( self, dictToFill, metadataValue ):
-    ''' Fill the dictionary to send to the accounting.
-        If metadataValue is a string then set all the values of dictToFill, to this value
-        if metadataValue is a dictionary then set each value of dictToFill to the corresponding value of metadataValue
-    '''
-    # ds = DataStorage()
-    # keyList = ds.keyFieldsList
-    # this is the list of attributes returned by the Bookkeeping for a given directory
-    keyList = ['ConfigName', 'ConfigVersion', 'FileType', 'Production',
-               'ProcessingPass', 'ConditionDescription', 'EventType']
-    gLogger.verbose( "In fillMetadata dictToFill(start): %s  - metadataValue: %s " % ( dictToFill, metadataValue ) )
-    if type( metadataValue ) == type( '' ):
-      for k in keyList:
-        dictToFill[ k ] = metadataValue
-    elif type( metadataValue ) == type( {} ):
-      for k in keyList:
-        try:
-          dictToFill = metadataValue[ k ]
-        except KeyError:
-          gLogger.error( "In fillMetadata Key not available: %s " % k )
+      if notInCache:
+        self.log.info( "Directory metadata cache missed for %d directories => query BK and cache" % len( notInCache ) )
+        self.callsToBkkgetDirectoryMetadata += 1
+        res = self.__bkClient.getDirectoryMetadata( notInCache )
+        if not res[ 'OK' ]:
+          self.log.error( "Totally failed to query Bookkeeping %s" % res[ 'Message' ] )
+          for dirName in notInCache:
+            metaForDir = metaForList[dirName]
+            __fillMetadata( metaForDir, 'FailedBkkQuery' )
+        else:
+          bkMetadata = res['Value']
+          self.log.verbose( "Successfully queried Bookkeeping, result: %s " % bkMetadata )
+          for dirName in notInCache:
+            metaForDir = metaForList[dirName]
+            metadata = bkMetadata['Successful'].get( dirName )
+            if metadata:
+              # All is OK, directory found
+              __fillMetadata( metaForDir, metadata )
+              self.log.verbose( "Cache this entry in DirMetadata table.." )
+              resInsert = self.__dataUsageClient.insertToDirMetadata( { dirName: metadata} )
+              if not resInsert[ 'OK' ]:
+                self.log.error( "Failed to cache metadata in DirMetadata table! %s " % resInsert[ 'Message' ] )
+              else:
+                self.log.info( "Successfully cached metadata for %s : %s" % ( dirName, str( metadata ) ) )
+                self.log.verbose( "result: %s " % resInsert )
+            else:
+              # Directory not found
+              self.log.warn( "Directory %s not registered in Bookkeeping!" % dirName )
+              __fillMetadata( metaForDir, 'notInBkk' )
+              self.directoriesNotInBkk.append( dirName )
+            # Translate a few keys for accounting
+            for bkName, accName in ( ( 'ConfigName', 'DataType' ), ( 'ConfigVersion', 'Activity' ), ( 'ConditionDescription', 'Conditions' ) ):
+              metaForDir[accName] = metaForDir.pop( bkName, 'na' )
+
+      # cache locally the metadata
+      for dirName in notFound:
+        metaForDir = metaForList[dirName]
+        # Translate the numerical event type to a description string
+        metaForDir['EventType'] = self.__getEventTypeDescription( metaForDir.pop( 'EventType', 'na' ) )
+        self.cachedMetadata[ dirName] = metaForDir.copy()
     else:
-      gLogger.error( "In fillMetadata: the argument metadataValue must be either string or dictionary" )
+      self.log.info( "Memory metadata cache hit for %d directories" % len( dirList ) )
+    return metaForList
 
-    gLogger.verbose( "In fillMetadata dictToFill(end): %s  - metadataValue: %s " % ( dictToFill, metadataValue ) )
+  def __commitRecords( self ):
+    if self.recordsToCommit:
+      res = gDataStoreClient.commit()
+      if not res[ 'OK' ]:
+        self.log.error( "Accounting ERROR: commit returned %s" % res )
+      else:
+        self.log.notice( "%d records committed " % self.recordsToCommit )
+        self.recordsToCommit = 0
+        self.log.notice( "commit for DataStorage returned: %s" % res )
 
-
-  def generateStorageUsageDictionaryPerDirectory( self ):
+  def generateStorageUsagePerDir( self ):
     '''Generate a dump of the StorageUsageDB and keep it in memory in a dictionary
        (new version of Apr 2012)
     '''
 
-    self.getSummaryCalls = 0
-    self.getDirectorySummaryPerSECalls = 0
     start = time.time()
-    gLogger.notice( 'Starting from path: /lhcb/' )
+    self.log.notice( 'Starting from path: /lhcb/' )
     res = self.__stDB.getStorageDirectories( '/lhcb/' )
     if not res['OK']:
       return S_ERROR()
-    self.totalDirList = res['Value']
-    gLogger.info( "Total directories retrieved from StorageUsageDB: %d " % len( self.totalDirList ) )
+    totalDirList = res['Value']
+    self.log.info( "Total directories retrieved from StorageUsageDB: %d " % len( totalDirList ) )
     # select only terminal directories (directories without sub-directories)
     # mc directory structure: /lhcb/MC/[year]/[file type]/[prod]/0000/ => len = 7
     # raw data:               /lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/99983
@@ -420,24 +439,20 @@ class StorageHistoryAgent( AgentModule ):
     # processed data: under both /lhcb/data and /lhcb/LHCb/
     #                         /lhcb/data/2010/DST/00009300/0000
     # data:                   /lhcb/LHCb/Collision12/ICHEP.DST/00017399/0000/
-    self.dirList = []  # list of directories containing files
     self.dirDict = {}
-    directoriesNotInBookkeeping = {}
-    for idir in self.__ignoreDirsList:
-      directoriesNotInBookkeeping[ idir ] = 0
-    gLogger.info( "Directories will be ignored: content not in the BKK: %s " % directoriesNotInBookkeeping )
-    for dirItem in self.totalDirList:
+    ignoredDirectories = dict.fromkeys( self.__ignoreDirsList, 0 )
+    self.log.info( "Directories to be ignored: %s " % str( sorted( ignoredDirectories ) ) )
+    for dirItem in totalDirList:
       # make sure that last character is a '/'
-      if dirItem[-1] != "/":
-        dirItem = "%s/" % dirItem
+      dirItem = _standardDirectory( dirItem )
       splitDir = dirItem.split( '/' )
       if len( splitDir ) < 4:  # avoid picking up intermediate directories which don't contain files, like /lhcb/
-        gLogger.warn( "Directory %s does not contain files" % dirItem )
+        self.log.warn( "Directory %s skipped, as top directory" % dirItem )
         continue
       secDir = splitDir[ 2 ]
-      if secDir in directoriesNotInBookkeeping.keys():
-        gLogger.verbose( "Not a production directory. Skip it. %s " % dirItem )
-        directoriesNotInBookkeeping[ secDir ] += 1
+      if secDir in ignoredDirectories:
+        self.log.verbose( "Directory to be ignored, skipped: %s " % dirItem )
+        ignoredDirectories[ secDir ] += 1
         continue
       # for each type of directory (MC, reconstructed data and runs) check the format, in order not to count more than
       # once the productions with more than one sub-directory
@@ -451,154 +466,118 @@ class StorageHistoryAgent( AgentModule ):
       try:
         dataType = splitDir[ -6 ]
         if dataType == "RAW":
-          gLogger.verbose( "RAW DATA directory: %s" % splitDir )
+          self.log.verbose( "RAW DATA directory: %s" % splitDir )
           directory = '/'.join( splitDir[:-1] )
           fullDirectory = directory
         else:
           suffix = splitDir[ -2 ]  # is the sub-directory suffix 0000, 0001, etc...
-          gLogger.verbose( "MC or reconstructed data directory: %s" % splitDir )
+          self.log.verbose( "MC or reconstructed data directory: %s" % splitDir )
           if splitDir[-3] == 'HIST':
             directory = '/'.join( splitDir[:-1] )
             fullDirectory = directory
-            gLogger.verbose( "histo dir: %s " % directory )
+            self.log.verbose( "histo dir: %s " % directory )
           else:
             directory = '/'.join( splitDir[:-2] )
-            if directory[-1] != '/':
-              directory = "%s/" % directory
-            fullDirectory = directory + suffix
-        if directory[-1] != '/':
-          directory = "%s/" % directory
-        if fullDirectory[-1] != '/':
-          fullDirectory = "%s/" % fullDirectory
-        if directory not in self.dirDict.keys():
+            fullDirectory = os.path.join( directory, suffix )
+        directory = _standardDirectory( directory )
+        fullDirectory = _standardDirectory( fullDirectory )
+        if directory not in self.dirDict:
           self.dirDict[ directory ] = fullDirectory
-        gLogger.verbose( "Directory contains production files: %s " % directory )
+        self.log.verbose( "Directory contains production files: %s " % directory )
       except:
-        gLogger.info( "The directory has unexpected format: %s " % splitDir )
+        self.log.warn( "The directory has unexpected format: %s " % splitDir )
 
-    self.LFNUsage = {}
-    self.PFNUsage = {}
+    self.lfnUsage = {}
+    self.pfnUsage = {}
     totalDiscardedDirs = 0
-    gLogger.info( "Directories that have been discarded:" )
-    for dd in directoriesNotInBookkeeping.keys():
-      gLogger.info( "/lhcb/%s - %d " % ( dd, directoriesNotInBookkeeping[ dd ] ) )
-      totalDiscardedDirs += directoriesNotInBookkeeping[ dd ]
-    gLogger.info( "total discarded directories: %d " % totalDiscardedDirs )
-    gLogger.info( "Retrieved %d dirs from StorageUsageDB containing prod files" % len( self.dirDict.keys() ) )
-    gLogger.info( "Getting the number of files and size from StorageUsage service" )
-    for d in self.dirDict.keys():
-      gLogger.verbose( "Get storage usage for directory %s " % d )
+    self.log.info( "Directories that have been discarded:" )
+    for dd in ignoredDirectories:
+      self.log.info( "/lhcb/%s - %d " % ( dd, ignoredDirectories[ dd ] ) )
+      totalDiscardedDirs += ignoredDirectories[ dd ]
+    self.log.info( "Total discarded directories: %d " % totalDiscardedDirs )
+    self.log.info( "Retrieved %d dirs from StorageUsageDB containing prod files" % len( self.dirDict ) )
+    self.log.info( "Getting the number of files and size from StorageUsage service" )
+    for d in self.dirDict:
+      self.log.verbose( "Get storage usage for directory %s " % d )
       res = self.__stDB.getDirectorySummaryPerSE( d )
-      self.getDirectorySummaryPerSECalls += 1
+      self.callsToDirectorySummary += 1
       if not res[ 'OK' ]:
-        gLogger.error( "Cannot retrieve PFN usage %s" % res['Message'] )
+        self.log.error( "Cannot retrieve PFN usage %s" % res['Message'] )
         continue
-      if d not in self.PFNUsage:
-        self.PFNUsage[ d ] = res['Value']
-      gLogger.verbose( "Get logical usage for directory %s " % d )
+      if d not in self.pfnUsage:
+        self.pfnUsage[ d ] = res['Value']
+      self.log.verbose( "Get logical usage for directory %s " % d )
       res = self.__stDB.getSummary( d )
-      self.getSummaryCalls += 1
+      self.callsToGetSummary += 1
       if not res[ 'OK' ]:
-        gLogger.error( "Cannot retrieve LFN usage %s" % res['Message'] )
+        self.log.error( "Cannot retrieve LFN usage %s" % res['Message'] )
         continue
       if not res['Value']:
-        gLogger.error( "For dir %s getSummary returned an empty value: %s " % ( d, str( res ) ) )
+        self.log.error( "For dir %s getSummary returned an empty value: %s " % ( d, str( res ) ) )
         continue
-      for retDir in res['Value'].keys():
-        if retDir[-1] != '/':
-          retDir = retDir + '/'
-        if d not in self.LFNUsage.keys():
-          self.LFNUsage[ d ] = {}
+      self.lfnUsage.setdefault( d, {} )
+      for retDir, dirInfo in res['Value'].items():
         if d in retDir:
-          self.LFNUsage[ d ][ 'LfnSize' ] = res['Value'][ retDir ]['Size']
-          self.LFNUsage[ d ][ 'LfnFiles'] = res['Value'][ retDir ]['Files']
-      gLogger.verbose( "PFN usage: %s" % self.PFNUsage[ d ] )
-      gLogger.verbose( "LFN usage: %s" % self.LFNUsage[ d ] )
+          self.lfnUsage[ d ][ 'LfnSize' ] = dirInfo['Size']
+          self.lfnUsage[ d ][ 'LfnFiles'] = dirInfo['Files']
+      self.log.verbose( "PFN usage: %s" % self.pfnUsage[ d ] )
+      self.log.verbose( "LFN usage: %s" % self.lfnUsage[ d ] )
 
 
     end = time.time()
-    self.SUDBtotalTime = end - start
-    gLogger.info( "StorageUsageDB dump completed in %d s" % self.SUDBtotalTime )
+    self.genTotalTime = end - start
+    self.log.info( "StorageUsageDB dump completed in %d s" % self.genTotalTime )
 
     return S_OK()
 
-  def fillAndSendAccountingRecord( self, lfnDir, se, metadataDict ):
+  def __getEventTypeDescription( self, eventType ):
+    # convert eventType to string:
+    try:
+      eventType = int( eventType )
+    except:
+      self.log.error( "Wrong format for eventType %s: %s" % ( eventType, type( eventType ) ) )
+      return 'na'
+    # check that the event type description is in the cached dictionary, and otherwise query the Bkk
+    if eventType not in self.eventTypeDescription:
+      self.log.notice( "Event type description not available for eventTypeID %s, getting from Bkk" % eventType )
+      res = self.__bkClient.getAvailableEventTypes()
+      self.callsToBkkGetEvtType += 1
+      if not res['OK']:
+        self.log.error( "Error querying the Bkk: %s" % res['Message'] )
+      else:
+        self.eventTypeDescription.update( dict( res['Value'] ) )
+      self.log.verbose( "Updated  self.eventTypeDescription dict: %s " % str( self.eventTypeDescription ) )
+      # If still not found, log it!
+      if eventType not in self.eventTypeDescription:
+        self.log.error( "EventType %s is not in cached dictionary" % str( eventType ) )
+
+    return self.eventTypeDescription.get( eventType, 'na' )
+
+  def fillAndSendAccountingRecord( self, lfnDir, se, metadataDict, now ):
     ''' Create, fill and send to accounting a record for the DataStorage type.
     '''
 
-    physicalSize = self.PFNUsage[ lfnDir ][ se ][ 'Size' ]
-    physicalFiles = self.PFNUsage[ lfnDir ][ se ][ 'Files' ]
-    logicalSize = self.LFNUsage[ lfnDir ][ 'LfnSize' ]
-    logicalFiles = self.LFNUsage[ lfnDir ][ 'LfnFiles' ]
-
-    try:
-      configName = metadataDict['ConfigName']
-      configVersion = metadataDict['ConfigVersion']
-      fileType = metadataDict['FileType']
-      production = metadataDict['Production']
-      processingPass = metadataDict['ProcessingPass']
-      conditions = metadataDict['ConditionDescription']
-      eventType = metadataDict['EventType']
-    except KeyError, e:
-      gLogger.error( "In fillAndSendAccountingRecord: Parameter not available in metadataDict %s " % e )
-      return S_ERROR( "Parameter not available in metadataDict" )
-    # convert eventType to string:
-    if type( eventType ) != StringType:
-      if type( eventType ) == IntType:
-        eventType = str( eventType )
-      else:
-        gLogger.error( "Wrong format for eventType %s %s" % ( eventType, type( eventType ) ) )
-
-    # check that the event type description is in the cached dictionary, and otherwise query the Bkk
-    if eventType not in self.eventTypeDescription.keys():
-      gLogger.notice( "Event type description not available for eventTypeID %s, getting from Bkk" % eventType )
-      res = self.bkClient.getAvailableEventTypes()
-      self.callsToBkkGetEvtType += 1
-      if not res['OK']:
-        gLogger.error( "Error querying the Bkk: %s" % res['Message'] )
-      else:
-        val = res['Value']
-        for v in val:
-          eventTypeID, eventTypeDescription = v
-          self.eventTypeDescription[ str( eventTypeID ) ] = eventTypeDescription
-      gLogger.info( "Updated  self.eventTypeDescription dict: %s " % self.eventTypeDescription )
-
-
-    try:
-      eventTypeDescription = self.eventTypeDescription[ eventType]
-    except KeyError, e:
-      gLogger.error( "The EventType is not in cached dictionary: %s " % e )
-      eventTypeDescription = 'na'
+    physicalSize = self.pfnUsage[ lfnDir ][ se ][ 'Size' ]
+    physicalFiles = self.pfnUsage[ lfnDir ][ se ][ 'Files' ]
+    logicalSize = self.lfnUsage[ lfnDir ][ 'LfnSize' ]
+    logicalFiles = self.lfnUsage[ lfnDir ][ 'LfnFiles' ]
 
     dataRecord = DataStorage()
-    dataRecord.setStartTime( self.now )
-    dataRecord.setEndTime( self.now )
-    dataRecord.setValueByKey( "DataType", configName )
-    dataRecord.setValueByKey( "Activity", configVersion )
-    dataRecord.setValueByKey( "FileType", fileType )
-    dataRecord.setValueByKey( "Production", production )
-    dataRecord.setValueByKey( "ProcessingPass", processingPass )
-    dataRecord.setValueByKey( "Conditions", conditions )
-    dataRecord.setValueByKey( "EventType", eventTypeDescription )
+    dataRecord.setStartTime( now )
+    dataRecord.setEndTime( now )
+    for key in ( 'DataType', 'Activity', 'FileType', 'Production', 'ProcessingPass', 'Conditions', 'EventType' ):
+      dataRecord.setValueByKey( key, metadataDict.get( key, 'na' ) )
     dataRecord.setValueByKey( "StorageElement", se )
     dataRecord.setValueByKey( "PhysicalSize", physicalSize )
     dataRecord.setValueByKey( "PhysicalFiles", physicalFiles )
     dataRecord.setValueByKey( "LogicalSize", logicalSize )
     dataRecord.setValueByKey( "LogicalFiles", logicalFiles )
-    gLogger.notice( ">>>>>>>>Send DataStorage record to accounting for fields: \
-    DataType: %s \
-    Activity: %s \
-    FileType: %s \
-    Production: %s \
-    ProcessingPass: %s \
-    Conditions: %s \
-    EventType: %s \
-    StorageElement: %s \
-    --> physFiles: %d  \
-    physSize: %d \
-    lfnFiles: %d \
-    lfnSize: %d " % ( configName, configVersion, fileType, production, processingPass, conditions,
-                      eventTypeDescription, se, physicalFiles, physicalSize, logicalFiles, logicalSize ) )
+    self.log.notice( ">>> Send DataStorage record to accounting: \
+StorageElement: %s \
+--> physFiles: %d  \
+physSize: %d \
+lfnFiles: %d \
+lfnSize: %d " % ( se, physicalFiles, physicalSize, logicalFiles, logicalSize ) )
 
     res = gDataStoreClient.addRegister( dataRecord )
     if not res[ 'OK']:
@@ -606,5 +585,9 @@ class StorageHistoryAgent( AgentModule ):
       return S_ERROR( "addRegister returned: %s" % res )
     self.totalRecords += 1
     self.recordsToCommit += 1
+
+    # Commit if necessary
+    if self.recordsToCommit > self.limitForCommit:
+      self.__commitRecords()
 
     return S_OK()
