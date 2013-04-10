@@ -11,17 +11,17 @@ __RCSID__ = "$Id$"
 
 import os, types
 
-from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.Utilities.Time import toString
-from DIRAC.Core.Base.API import API
-from DIRAC.Core.Utilities.PromptUser import promptUser
+from DIRAC                                                        import gLogger, S_OK, S_ERROR
+from DIRAC.Core.DISET.RPCClient                                   import RPCClient
+from DIRAC.Core.Utilities.Time                                    import toString
+from DIRAC.Core.Utilities.PromptUser                              import promptUser
 
-from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
+from LHCbDIRAC.Interfaces.API.DiracLHCb                           import DiracLHCb
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
 
 COMPONENT_NAME = 'DiracProduction'
 
-class DiracProduction( API ):
+class DiracProduction( DiracLHCb ):
   """ class for managing productions
   """
 
@@ -33,12 +33,10 @@ class DiracProduction( API ):
     super( DiracProduction, self ).__init__()
 
     if tsClientIn is None:
-      from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
       self.transformationClient = TransformationClient()
     else:
       self.transformationClient = tsClientIn
 
-    self.diracAPI = DiracLHCb()
     self.prodHeaders = {'AgentType':'SubmissionMode',
                         'Status':'Status',
                         'CreationDate':'Created',
@@ -107,7 +105,7 @@ class DiracProduction( API ):
     if not result['OK']:
       return result
 
-    #to fix TODO
+    # to fix TODO
     if printOutput:
       adj = self.prodAdj
       prodInfo = result['Value']
@@ -116,7 +114,7 @@ class DiracProduction( API ):
       for i in headers:
         top += i.ljust( adj )
       message = ['ProductionID'.ljust( adj ) + top + '\n']
-      #very painful to make this consistent, better improved first on the server side
+      # very painful to make this consistent, better improved first on the server side
       productionID = str( productionID )
       message.append( productionID.ljust( adj ) + prodInfo['Status'].ljust( adj ) + prodInfo['Type'].ljust( adj ) + \
                       prodInfo['AgentType'].ljust( adj ) + toString( prodInfo['CreationDate'] ).ljust( adj ) + \
@@ -237,7 +235,7 @@ class DiracProduction( API ):
       return S_ERROR( 'No JobIDs with matching conditions found' )
 
     self.log.verbose( 'Considering %s jobs with selected conditions' % ( len( jobIDs ) ) )
-    #now need to get the application status information
+    # now need to get the application status information
     monClient = RPCClient( 'WorkloadManagement/JobMonitoring', timeout = 120 )
     result = monClient.getJobsApplicationStatus( jobIDs )
     if not result['OK']:
@@ -247,7 +245,7 @@ class DiracProduction( API ):
     appStatus = result['Value']
 #    self._prettyPrint(appStatus)
 #    self._prettyPrint(statusDict['Value'])
-    #Now format the result.
+    # Now format the result.
     summary = {}
     submittedJobs = 0
     doneJobs = 0
@@ -292,7 +290,7 @@ class DiracProduction( API ):
       result['Value'] = summary
       return result
 
-    #If a printed summary is requested
+    # If a printed summary is requested
     statAdj = int( 0.5 * self.prodAdj )
     mStatAdj = int( 2.0 * self.prodAdj )
     totalAdj = int( 0.5 * self.prodAdj )
@@ -313,7 +311,7 @@ class DiracProduction( API ):
           str( jobInfo['Total'] ).ljust( totalAdj ) + str( jobInfo['JobList'][0] ).ljust( exAdj ) + '\n'
 
     print message
-    #self._prettyPrint(summary)
+    # self._prettyPrint(summary)
     if status or minorStatus:
       return S_OK( summary )
 
@@ -337,7 +335,7 @@ class DiracProduction( API ):
     result = S_OK()
     result['Totals'] = {'Submitted':int( submittedJobs ), 'Created':int( createdJobs ), 'Done':int( doneJobs )}
     result['Value'] = summary
-    #self.pPrint(result)
+    # self.pPrint(result)
     return result
 
   #############################################################################
@@ -358,7 +356,7 @@ class DiracProduction( API ):
       self.log.warn( 'Could not get production metadata information' )
       return statusDict
 
-    #Now format the result.
+    # Now format the result.
     summary = {}
     submittedJobs = 0
     doneJobs = 0
@@ -392,7 +390,7 @@ class DiracProduction( API ):
       result['Value'] = summary
       return result
 
-    #If a printed summary is requested
+    # If a printed summary is requested
     statAdj = int( 0.5 * self.prodAdj )
     mStatAdj = int( 2.0 * self.prodAdj )
     totalAdj = int( 0.5 * self.prodAdj )
@@ -415,7 +413,7 @@ class DiracProduction( API ):
         str( jobInfo['JobList'][0] ).ljust( exAdj ) + '\n'
 
     print message
-    #self._prettyPrint(summary)
+    # self._prettyPrint(summary)
     if status or minorStatus:
       return S_OK( summary )
 
@@ -498,7 +496,7 @@ class DiracProduction( API ):
       result['Value'] = summary
       return result
 
-    #If a printed summary is requested
+    # If a printed summary is requested
     siteAdj = int( 1.0 * self.prodAdj )
     statAdj = int( 0.5 * self.prodAdj )
     totalAdj = int( 0.5 * self.prodAdj )
@@ -518,7 +516,7 @@ class DiracProduction( API ):
         str( jobInfo['JobList'][0] ).ljust( exAdj ) + '\n'
 
     print message
-    #self._prettyPrint(summary)
+    # self._prettyPrint(summary)
     result = self.getProductionProgress( productionID )
 
     if not result['OK']:
@@ -565,7 +563,7 @@ class DiracProduction( API ):
     self.log.verbose( 'Will check progress for production(s):\n%s' % ( ', '.join( productionID ) ) )
     progress = {}
     for prod in productionID:
-      #self._prettyPrint(result)
+      # self._prettyPrint(result)
       result = self.transformationClient.getTransformationTaskStats( int( prod ) )
       if not result['Value']:
         self.log.error( result )
@@ -787,8 +785,8 @@ class DiracProduction( API ):
     jobs = jobs['Value']
     self.log.info( 'Selected %s jobs:\n%s' % ( len( jobs ), ', '.join( jobs ) ) )
     lfns = []
-    res = self.diracAPI.getJobInputData( jobs )
-    #print res
+    res = self.getJobInputData( jobs )
+    # print res
     if not res['OK']:
       self.log.error( 'Could not determine input data for all jobs' )
       return res
@@ -846,16 +844,10 @@ class DiracProduction( API ):
     return result
 
   #############################################################################
-  def getProdJobInputData( self, jobID ):
-    """ For a single jobID / list of jobIDs retrieve the output data LFN list.
-    """
-    return self.diracAPI.getJobInputData( jobID )
-
-  #############################################################################
   def getProdJobOutputData( self, jobID ):
     """ For a single jobID / list of jobIDs retrieve the output data LFN list.
     """
-    result = self.diracAPI.getJobJDL( jobID )
+    result = self.getJobJDL( jobID )
     if not result['OK']:
       return result
     if not result['Value'].has_key( 'ProductionOutputData' ):
@@ -869,7 +861,7 @@ class DiracProduction( API ):
   def getWMSProdJobID( self, jobID, printOutput = False ):
     """This method takes the DIRAC WMS JobID and returns the Production JobID information.
     """
-    result = self.diracAPI.attributes( jobID )
+    result = self.attributes( jobID )
     if not result['OK']:
       return result
     if not result['Value'].has_key( 'JobName' ):
@@ -884,39 +876,7 @@ class DiracProduction( API ):
     return S_OK( info )
 
   #############################################################################
-  def getProdJobOutputSandbox( self, jobID ):
-    """Wraps around DIRAC API getOutputSandbox(), takes single jobID or list of jobIDs.
-    """
-    #TODO: write with wrapper zfilled prod directory
-    return self.diracAPI.getOutputSandbox( jobID )
 
-  #############################################################################
-  def getProdJobInputSandbox( self, jobID ):
-    """Wraps around DIRAC API getInputSandbox(), takes single jobID or list of jobIDs.
-    """
-    #TODO: write with wrapper zfilled prod directory
-    return self.diracAPI.getInputSandbox( jobID )
-
-  #############################################################################
-  def getProdJobStatus( self, jobID ):
-    """Wraps around DIRAC API status(), takes single jobID or list of jobIDs.
-    """
-    return self.diracAPI.status( jobID )
-
-  #############################################################################
-  def rescheduleProdJobs( self, jobID ):
-    """Wraps around DIRAC API reschedule(), takes single jobID or list of jobIDs.
-    """
-    return self.diracAPI.reschedule( jobID )
-
-  #############################################################################
-  def deleteProdJobs( self, jobID ):
-    """Wraps around DIRAC API delete(), takes single jobID or list of jobIDs.
-    """
-    #Notification of the production management infrastructure to be added
-    return self.diracAPI.delete( jobID )
-
-  #############################################################################
   def getProdJobInfo( self, productionID, jobID, printOutput = False ):
     """Retrieve production job information from Production Manager service.
     """
@@ -932,25 +892,6 @@ class DiracProduction( API ):
     return S_OK( jobInfo )
 
   #############################################################################
-  def getProdJobSummary( self, jobID, outputFile = None, printOutput = False ):
-    """Wraps around DIRAC API getJobSummary to provide more detailed information.
-    """
-    return self.diracAPI.getJobSummary( jobID, outputFile, printOutput )
-
-  #############################################################################
-  def getProdJobLoggingInfo( self, jobID ):
-    """Wraps around DIRAC API getJobLoggingInfo to provide more detailed information.
-       Takes single WMS JobID.
-    """
-    return self.diracAPI.loggingInfo( jobID )
-
-  #############################################################################
-  def getProdJobParameters( self, jobID ):
-    """Wraps around DIRAC API parameters(), takes single jobID or list of jobIDs.
-    """
-    return self.diracAPI.parameters( jobID )
-
-  #############################################################################
   def selectProductionJobs( self, ProductionID, Status = None, MinorStatus = None, ApplicationStatus = None,
                             Site = None, Owner = None, Date = None ):
     """Wraps around DIRAC API selectJobs(). Arguments correspond to the web page
@@ -959,7 +900,7 @@ class DiracProduction( API ):
     if not Date:
       self.log.verbose( 'No Date supplied, setting old date for production %s' % ProductionID )
       Date = '2001-01-01'
-    return self.diracAPI.selectJobs( Status, MinorStatus, ApplicationStatus, Site, Owner,
+    return self.selectJobs( Status, MinorStatus, ApplicationStatus, Site, Owner,
                                      str( ProductionID ).zfill( 8 ), Date )
 
   #############################################################################
@@ -1007,7 +948,7 @@ class DiracProduction( API ):
       return result
 
     jobsList = result['Value']
-    return self.diracAPI.status( jobsList )
+    return self.status( jobsList )
 
   #############################################################################
 
@@ -1061,4 +1002,4 @@ class DiracProduction( API ):
 
     return S_OK( prodID )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

@@ -309,7 +309,7 @@ class ProductionStatusAgent( AgentModule ):
     waiting = self.dProd.selectProductionJobs( int( prodID ), Status = 'Waiting' )
     if waiting['OK']:
       self.log.info( 'Deleting %s waiting jobs for production %s' % ( len( waiting['Value'] ), prodID ) )
-      result = self.dProd.deleteProdJobs( waiting['Value'] )
+      result = self.dProd.delete( waiting['Value'] )
       if not result['OK']:
         self.log.error( result )
 
