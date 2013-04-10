@@ -4,9 +4,9 @@
 import itertools, copy
 from DIRAC import gLogger, S_OK
 
-from LHCbDIRAC.Interfaces.API.Production import Production
-from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.Interfaces.API.DiracProduction                 import DiracProduction
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
+from LHCbDIRAC.ProductionManagementSystem.Client.Production   import Production
 
 class ProductionRequest( object ):
   ''' Production request class - objects are usually created starting from a production request

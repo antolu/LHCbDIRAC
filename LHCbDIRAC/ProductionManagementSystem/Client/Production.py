@@ -85,17 +85,17 @@ class Production():
 
     self.setFileMask( '' )
 
-    #version control
+    # version control
     self.setParameter( 'productionVersion', 'string', __RCSID__, 'ProdAPIVersion' )
 
-    #General workflow parameters
+    # General workflow parameters
     self.setParameter( 'PRODUCTION_ID', 'string', '00012345', 'ProductionID' )
     self.setParameter( 'JOB_ID', 'string', '00006789', 'ProductionJobID' )
     self.setParameter( 'poolXMLCatName', 'string', 'pool_xml_catalog.xml', 'POOLXMLCatalogName' )
     self.setParameter( 'outputMode', 'string', 'Any', 'SEResolutionPolicy' )
     self.setParameter( 'outputDataFileMask', 'string', '', 'outputDataFileMask' )
 
-    #BK related parameters
+    # BK related parameters
     self.setParameter( 'configName', 'string', 'MC', 'ConfigName' )
     self.setParameter( 'configVersion', 'string', '2009', 'ConfigVersion' )
     self.setParameter( 'conditions', 'string', '', 'SimOrDataTakingCondsString' )
@@ -224,7 +224,7 @@ class Production():
       pass
 
 
-    #starting real stuff
+    # starting real stuff
     self.LHCbJob.gaudiStepCount += 1
 
     if 'Gaudi_App_Step' not in self.LHCbJob.workflow.step_definitions.keys():
@@ -234,7 +234,7 @@ class Production():
         modulesNameList = self.LHCbJob.opsHelper.getValue( gaudiPath, modules )
       else:
         modulesNameList = modules
-      #pName, pType, pValue, pDesc
+      # pName, pType, pValue, pDesc
       parametersList = [
                         ['inputData', 'string', '', 'StepInputData'],
                         ['inputDataType', 'string', '', 'InputDataType'],
@@ -265,7 +265,7 @@ class Production():
                                         parametersList = parametersList )
       self.LHCbJob.workflow.addStep( gaudiStepDef )
 
-    #create the step instance add it to the wf, and return it
+    # create the step instance add it to the wf, and return it
     name = '%s_%s' % ( appName, self.LHCbJob.gaudiStepCount )
     gaudiStepInstance = self.LHCbJob.workflow.createStepInstance( 'Gaudi_App_Step', name )
 
@@ -314,7 +314,7 @@ class Production():
       self.__addSoftwarePackages( '%s.%s' % ( appName, appVersion ) )
     self.__addSoftwarePackages( extraPackages )
 
-    #to construct the BK processing pass structure, starts from step '0'
+    # to construct the BK processing pass structure, starts from step '0'
     stepIDInternal = 'Step%s' % ( self.LHCbJob.gaudiStepCount - 1 )
     bkOptionsFile = optionsFile
 
@@ -406,7 +406,7 @@ class Production():
       jobFinalizationStepDef = getStepDefinition( 'Job_Finalization', modulesNameList = modulesNameList )
       self.LHCbJob.workflow.addStep( jobFinalizationStepDef )
 
-    #create the step instance add it to the wf
+    # create the step instance add it to the wf
     self.LHCbJob.workflow.createStepInstance( 'Job_Finalization', 'finalization' )
 
   #############################################################################
@@ -433,7 +433,7 @@ class Production():
     """
 
     name = self.createWorkflow()['Value']
-    # this "name" is the xml file 
+    # this "name" is the xml file
     j = LHCbJob( name )
     # it makes a job (a Worklow, with Parameters), out of the xml file
 
@@ -469,11 +469,11 @@ class Production():
 
     parameters['SizeGroup'] = self.jobFileGroupSize
 
-    if prodWorkflow.findParameter( 'InputData' ): #now only comes from BK query
+    if prodWorkflow.findParameter( 'InputData' ):  # now only comes from BK query
       prodWorkflow.findParameter( 'InputData' ).setValue( '' )
       self.LHCbJob.log.verbose( 'Resetting input data for production to null, this comes from a BK query...' )
       prodXMLFile = self.createWorkflow( prodXMLFile )['Value']
-      #prodWorkflow.toXMLFile(prodXMLFile)
+      # prodWorkflow.toXMLFile(prodXMLFile)
 
     if self.transformationFamily:
       parameters['TransformationFamily'] = self.transformationFamily
@@ -498,7 +498,7 @@ class Production():
     parameters['OutputLFNs'] = outputLFNs
 
     outputDirectories = []
-    del outputLFNs['BookkeepingLFNs'] #since ProductionOutputData uses the file mask
+    del outputLFNs['BookkeepingLFNs']  # since ProductionOutputData uses the file mask
     for i in outputLFNs.values():
       for j in i:
         outputDir = '%s%s' % ( j.split( str( prodID ) )[0], prodID )
@@ -507,7 +507,7 @@ class Production():
 
     parameters['OutputDirectories'] = outputDirectories
 
-    #Now for the steps of the workflow
+    # Now for the steps of the workflow
     stepKeys = bkPassInfo.keys()
     stepKeys.sort()
     for step in stepKeys:
@@ -526,7 +526,7 @@ class Production():
       for n, v in parameters['BKInputQuery'].items():
         info.append( '%s= %s' % ( n, v ) )
 
-    #BK output directories (very useful)
+    # BK output directories (very useful)
     bkPaths = []
     bkOutputPath = '%s/%s/%s/%s/%s' % ( parameters['configName'],
                                         parameters['configVersion'],
@@ -536,7 +536,7 @@ class Production():
     fileTypes = parameters['outputDataFileMask']
     fileTypes = [a.upper() for a in fileTypes.split( ';' )]
 
-    #Annoying that histograms are extension root
+    # Annoying that histograms are extension root
     if 'ROOT' in fileTypes:
       fileTypes.remove( 'ROOT' )
       fileTypes.append( 'HIST' )
@@ -575,7 +575,7 @@ class Production():
 
     bkDictStep = {}
 
-    #Add the BK conditions metadata / name
+    # Add the BK conditions metadata / name
     simConds = self.BKKClient.getSimConditions()
     if not simConds['OK']:
       self.LHCbJob.log.error( 'Could not retrieve conditions data from BK:\n%s' % simConds )
@@ -665,7 +665,7 @@ class Production():
 
     stepList = []
     stepKeys = bkSteps.keys()
-    #The BK needs an ordered list of steps
+    # The BK needs an ordered list of steps
     stepKeys.sort()
     for step in stepKeys:
       stepID = bkSteps[step]['BKStepID']
@@ -674,7 +674,7 @@ class Production():
         stepVisible = bkSteps[step]['StepVisible']
         stepList.append( {'StepId':int( stepID ), 'StepName':stepName, 'Visible':stepVisible} )
 
-    #This is the last component necessary for the BK publishing (post reorganisation)
+    # This is the last component necessary for the BK publishing (post reorganisation)
     bkDictStep['Steps'] = stepList
 
     if publish:
@@ -720,7 +720,7 @@ class Production():
   def getOutputLFNs( self, prodID = '12345', prodJobID = '6789', prodXMLFile = '' ):
     """ Will construct the output LFNs for the production for visual inspection.
     """
-    #TODO: fix this construction: really necessary?
+    # TODO: fix this construction: really necessary?
 
     if not prodXMLFile:
       self.LHCbJob.log.verbose( 'Using workflow object to generate XML file' )
@@ -797,19 +797,19 @@ class Production():
   def banTier1s( self ):
     """ Sets Tier1s as banned.
     """
-    
+
     tier1s = []
-    
+
     lcgSites = gConfig.getSections( '/Resources/Sites/LCG' )
     if not lcgSites[ 'OK' ]:
       return lcgSites
-    
+
     for lcgSite in lcgSites[ 'Value' ]:
-      
-      tier = gConfig.getValue( '/Resources/Sites/LCG/%s/MoUTierLevel' % lcgSite, 2 )      
+
+      tier = gConfig.getValue( '/Resources/Sites/LCG/%s/MoUTierLevel' % lcgSite, 2 )
       if tier in ( 0, 1 ):
         tier1s.append( lcgSite )
-    
+
 #    tier1s = []
 #    #from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
 #    sites = getSites()
