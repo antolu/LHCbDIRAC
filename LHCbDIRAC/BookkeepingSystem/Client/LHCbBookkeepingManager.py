@@ -35,7 +35,7 @@ class LHCbBookkeepingManager(BaseESManager):
                                    'ConfigVersion', #configversion
                                    'Simulation/DataTaking',
                                    'ProcessingPass',
-                                   'EventTypeid', # event type
+                                   'EventType', # event type
                                    'Production', #production
                                    'FileType', #file type
                                    ''
@@ -56,7 +56,7 @@ class LHCbBookkeepingManager(BaseESManager):
 
   __bookkeepingEventtypePrefixes = ['ConfigName',
                                   'ConfigVersion',
-                                  'EventTypeid',
+                                  'EventType',
                                   'Simulation/DataTaking',
                                   'ProcessingPass',
                                   'Production',
@@ -536,7 +536,7 @@ class LHCbBookkeepingManager(BaseESManager):
     in_dict = { 'ConfigName': processedPath[0],
                'ConfigVersion':processedPath[1],
                'ConditionDescription': processedPath[2],
-               'EventTypeId': processedPath[3]}
+               'EventType': processedPath[3]}
     in_dict['ProcessingPass'] = procpass
 
     gLogger.debug("-----------------------------------------------------------")
@@ -576,13 +576,13 @@ class LHCbBookkeepingManager(BaseESManager):
       in_dict = { 'ConfigName': processedPath[0],
                  'ConfigVersion':processedPath[1],
                  'ConditionDescription': processedPath[2],
-                 'EventTypeId': processedPath[3],
+                 'EventType': processedPath[3],
                  'Production':processedPath[4]}
     else:
       in_dict = { 'ConfigName': processedPath[0],
                  'ConfigVersion':processedPath[1],
                  'ConditionDescription': processedPath[2],
-                 'EventTypeId': processedPath[3]}
+                 'EventType': processedPath[3]}
     in_dict['ProcessingPass'] = procpass
 
     gLogger.debug("-----------------------------------------------------------")
@@ -623,14 +623,14 @@ class LHCbBookkeepingManager(BaseESManager):
       in_dict = { 'ConfigName': processedPath[0],
                  'ConfigVersion':processedPath[1],
                  'ConditionDescription': processedPath[2],
-                 'EventTypeId': processedPath[3],
+                 'EventType': processedPath[3],
                  'Production':processedPath[4],
                  'FileType':processedPath[5]}
     else:
       in_dict = { 'ConfigName': processedPath[0],
                  'ConfigVersion':processedPath[1],
                  'ConditionDescription': processedPath[2],
-                 'EventTypeId': processedPath[3],
+                 'EventType': processedPath[3],
                  'FileType':processedPath[4]}
     in_dict['ProcessingPass'] = procpass
 
@@ -655,7 +655,7 @@ class LHCbBookkeepingManager(BaseESManager):
                  'JobStart':record[4], 'JobEnd':record[5], 'WorkerNode':record[6],
                  'FileType':in_dict['FileType'], 'RunNumber':record[8],
                  'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[11],
-                 'EventTypeId':in_dict['EventTypeId'],
+                 'EventType':in_dict['EventType'],
                  'EventInputStat':record[12], 'TotalLuminosity':record[13], 'Luminosity':record[14],
                  'InstLuminosity':record[15], 'TCK':record[16]}
         self.files_ += [record[0]]
@@ -674,7 +674,7 @@ class LHCbBookkeepingManager(BaseESManager):
     for record in result['Records']:
       value = {'name':record[0], 'EventStat':record[1], 'FileSize':record[2], 'CreationDate':record[3],
                'JobStart':record[4], 'JobEnd':record[5], 'WorkerNode':record[6],
-               'FileType':in_dict['FileType'], 'EventTypeId':in_dict['EventTypeId'],
+               'FileType':in_dict['FileType'], 'EventType':in_dict['EventType'],
                'RunNumber':record[9], 'FillNumber':record[10], 'FullStat':record[11],
                'DataqualityFlag':record[12], 'EventInputStat':record[13],
                'TotalLuminosity':record[14], 'Luminosity':record[15], 'InstLuminosity':record[16], 'TCK':record[17]}
@@ -754,7 +754,7 @@ class LHCbBookkeepingManager(BaseESManager):
     """event type based tree node"""
     gLogger.debug("listing simulation conditions")
 
-    in_dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'EventTypeId': processedPath[2]}
+    in_dict = { 'ConfigName': processedPath[0], 'ConfigVersion':processedPath[1], 'EventType': processedPath[2]}
 
 
     gLogger.debug("-----------------------------------------------------------")
@@ -814,7 +814,7 @@ class LHCbBookkeepingManager(BaseESManager):
 
     in_dict = {'ConfigName': processedPath[0],
             'ConfigVersion':processedPath[1],
-            'EventTypeId':processedPath[2],
+            'EventType':processedPath[2],
             'ConditionDescription':processedPath[3]
              }
 
@@ -879,13 +879,13 @@ class LHCbBookkeepingManager(BaseESManager):
     if self.advancedQuery_:
       in_dict = { 'ConfigName': processedPath[0],
                  'ConfigVersion':processedPath[1],
-                 'EventTypeId': processedPath[2],
+                 'EventType': processedPath[2],
                  'ConditionDescription': processedPath[3],
                  'Production':processedPath[4]}
     else:
       in_dict = { 'ConfigName': processedPath[0],
                  'ConfigVersion':processedPath[1],
-                 'EventTypeId': processedPath[2],
+                 'EventType': processedPath[2],
                  'ConditionDescription': processedPath[3]}
     in_dict['ProcessingPass'] = procpass
 
@@ -908,14 +908,14 @@ class LHCbBookkeepingManager(BaseESManager):
     if self.advancedQuery_:
       in_dict = { 'ConfigName': processedPath[0],
                  'ConfigVersion':processedPath[1],
-                 'EventTypeId': processedPath[2],
+                 'EventType': processedPath[2],
                  'ConditionDescription': processedPath[3],
                  'Production':processedPath[4],
                  'FileType':processedPath[5]}
     else:
       in_dict = { 'ConfigName': processedPath[0],
                  'ConfigVersion':processedPath[1],
-                 'EventTypeId': processedPath[2],
+                 'EventType': processedPath[2],
                  'ConditionDescription': processedPath[3],
                  'FileType':processedPath[4]}
     in_dict['ProcessingPass'] = procpass
@@ -1051,7 +1051,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def plevelHeader_3(processedPath):
     """prepare tree node"""
     gLogger.debug("listing file types")
-    in_dict = {'Production':processedPath[0], 'EventTypeId': processedPath[1]}
+    in_dict = {'Production':processedPath[0], 'EventType': processedPath[1]}
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters:")
     gLogger.debug("-----------------------------------------------------------")
@@ -1080,7 +1080,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def plevelHeader_4(processedPath):
     """prepare the tree node"""
     gLogger.debug("listing file types")
-    in_dict = {'Production':processedPath[0], 'EventTypeId': processedPath[1], 'FileType':processedPath[2]}
+    in_dict = {'Production':processedPath[0], 'EventType': processedPath[1], 'FileType':processedPath[2]}
 
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters:")
@@ -1103,7 +1103,7 @@ class LHCbBookkeepingManager(BaseESManager):
                  'CreationDate':record[3], 'JobStart':record[4], 'JobEnd':record[5],
                  'WorkerNode':record[6],'FileType':in_dict['FileType'], 'RunNumber':record[8],
                  'FillNumber':record[9], 'FullStat':record[10], 'DataqualityFlag':record[11],
-                 'EventTypeId':in_dict['EventTypeId'], 'EventInputStat':record[12],
+                 'EventType':in_dict['EventType'], 'EventInputStat':record[12],
                  'TotalLuminosity':record[13], 'Luminosity':record[14],
                  'InstLuminosity':record[15], 'TCK':record[16]}
         self.files_ += [record[0]]
@@ -1194,7 +1194,7 @@ class LHCbBookkeepingManager(BaseESManager):
     for i in retVal:
       processedPath.remove(i)
 
-    in_dict = { 'RunNumber':processedPath[0], 'EventTypeId': processedPath[1]}
+    in_dict = { 'RunNumber':processedPath[0], 'EventType': processedPath[1]}
     in_dict['ProcessingPass'] = procpass
 
     gLogger.debug("-----------------------------------------------------------")
@@ -1230,7 +1230,7 @@ class LHCbBookkeepingManager(BaseESManager):
     for i in retVal:
       processedPath.remove(i)
 
-    in_dict = { 'RunNumber':processedPath[0], 'EventTypeId': processedPath[1], 'FileType':processedPath[2]}
+    in_dict = { 'RunNumber':processedPath[0], 'EventType': processedPath[1], 'FileType':processedPath[2]}
     in_dict['ProcessingPass'] = procpass
     gLogger.debug("-----------------------------------------------------------")
     gLogger.debug("Selected parameters:")
@@ -1461,14 +1461,14 @@ class LHCbBookkeepingManager(BaseESManager):
       in_dict = { 'ConfigName': processedPath[0],
                  'ConfigVersion':processedPath[1],
                  'ConditionDescription': processedPath[2],
-                 'EventTypeId': processedPath[3],
+                 'EventType': processedPath[3],
                  'Production':processedPath[4],
                  'FileType':processedPath[5]}
     else:
       in_dict = { 'ConfigName': processedPath[0],
                  'ConfigVersion':processedPath[1],
                  'ConditionDescription': processedPath[2],
-                 'EventTypeId': processedPath[3],
+                 'EventType': processedPath[3],
                  'FileType':processedPath[4]}
     in_dict['ProcessingPass'] = procpass
     in_dict['fullpath'] = path
@@ -1494,14 +1494,14 @@ class LHCbBookkeepingManager(BaseESManager):
     if self.advancedQuery_:
       in_dict = { 'ConfigName': processedPath[0],
                  'ConfigVersion':processedPath[1],
-                 'EventTypeId': processedPath[2],
+                 'EventType': processedPath[2],
                  'ConditionDescription': processedPath[3],
                  'Production':processedPath[4],
                  'FileType':processedPath[5]}
     else:
       in_dict = { 'ConfigName': processedPath[0],
                  'ConfigVersion':processedPath[1],
-                 'EventTypeId': processedPath[2],
+                 'EventType': processedPath[2],
                  'ConditionDescription': processedPath[3],
                  'FileType':processedPath[4]}
     in_dict['ProcessingPass'] = procpass
@@ -1522,7 +1522,7 @@ class LHCbBookkeepingManager(BaseESManager):
     gLogger.debug(str(levels))
     gLogger.debug(procpass)
 
-    in_dict = { 'Production': processedPath[0], 'EventTypeId': processedPath[1], 'FileType':processedPath[2]}
+    in_dict = { 'Production': processedPath[0], 'EventType': processedPath[1], 'FileType':processedPath[2]}
     in_dict['fullpath'] = path
     return in_dict
 
@@ -1543,7 +1543,7 @@ class LHCbBookkeepingManager(BaseESManager):
       processedPath.remove(i)
 
     in_dict = {'RunNumber':processedPath[0],
-               'EventTypeId': processedPath[1],
+               'EventType': processedPath[1],
                'FileType':processedPath[2],
                'ProcessingPass':procpass}
     in_dict['fullpath'] = path
@@ -1636,7 +1636,7 @@ class LHCbBookkeepingManager(BaseESManager):
                        'EventStat':i[params.index('EventStat')],
                        'FileSize':i[params.index('FileSize')],
                        'FileType':i[params.index('FileType')],
-                       'EventTypeId':i[params.index('EventTypeId')]}
+                       'EventType':i[params.index('EventType')]}
       return self.writeJobOptions(files, optionsFile='',
                                   savedType=savetype, catalog=None,
                                   savePfn=None, dataset=dataset)
@@ -1678,6 +1678,7 @@ class LHCbBookkeepingManager(BaseESManager):
     if optionsFile == '':
       fd = None
       if savedType == 'txt':
+        fd = ''
         for lfn in files:
           fd += str(lfn) + '\n'
         return fd
@@ -1903,7 +1904,7 @@ class LHCbBookkeepingManager(BaseESManager):
     evtTypes = {}
     for i in files:
       lfn = files[i]
-      filetype = int(lfn['EventTypeId'])
+      filetype = int(lfn['EventType'])
       stat = 0
       if lfn['EventStat'] != None:
         stat = int(lfn['EventStat'])
