@@ -25,5 +25,6 @@ class WorkflowTaskAgent( DIRACWorkflowTaskAgent ):
     outputDataModule = Operations().getValue( "Transformations/OutputDataModule",
                                               "LHCbDIRAC.Core.Utilities.OutputDataPolicy" )
     self.taskManager = LHCbWorkflowTasks( transClient = self.transClient,
+                                          submissionClient = self.submissionClient,
                                           outputDataModule = outputDataModule,
                                           jobClass = LHCbJob )
