@@ -1,5 +1,5 @@
-''' Module for creating, describing and managing production requests objects
-'''
+""" Module for creating, describing and managing production requests objects
+"""
 
 import itertools, copy
 from DIRAC import gLogger, S_OK
@@ -9,16 +9,16 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import Bookkeeping
 from LHCbDIRAC.ProductionManagementSystem.Client.Production   import Production
 
 class ProductionRequest( object ):
-  ''' Production request class - objects are usually created starting from a production request
-  '''
+  """ Production request class - objects are usually created starting from a production request
+  """
   #############################################################################
 
   def __init__( self, bkkClientIn = None, diracProdIn = None ):
-    ''' c'tor
+    """ c'tor
 
         Some variables are defined here. A production request is made of:
         stepsList, productionsTypes, and various parameters of those productions
-    '''
+    """
 
     if bkkClientIn is None:
       self.bkkClient = BookkeepingClient()
@@ -81,9 +81,9 @@ class ProductionRequest( object ):
   #############################################################################
 
   def resolveSteps( self ):
-    ''' Given a list of steps in strings, some of which might be missing,
+    """ Given a list of steps in strings, some of which might be missing,
         resolve it into a list of dictionary of steps
-    '''
+    """
     for stepID in self.stepsList:
       stepDict = self.bkkClient.getAvailableSteps( {'StepId':stepID} )
       if not stepDict['OK']:
@@ -123,9 +123,9 @@ class ProductionRequest( object ):
   #############################################################################
 
   def buildAndLaunchRequest( self ):
-    ''' uses _applyOptionalCorrections, _getProdsDescriptionDict,
+    """ uses _applyOptionalCorrections, _getProdsDescriptionDict,
         _buildProduction, and DiracProduction.launchProduction
-    '''
+    """
 
     if not self.stepsListDict:
       self.resolveSteps()
@@ -196,8 +196,8 @@ class ProductionRequest( object ):
   #############################################################################
 
   def _applyOptionalCorrections( self ):
-    ''' if needed, calls _splitIntoProductionSteps. It also applies other changes
-    '''
+    """ if needed, calls _splitIntoProductionSteps. It also applies other changes
+    """
     if len( self.bkQueries ) != len( self.prodsTypeList ):
       self.bkQueries += ['fromPreviousProd'] * ( len( self.prodsTypeList ) - len( self.bkQueries ) )
 
@@ -308,8 +308,8 @@ class ProductionRequest( object ):
   #############################################################################
 
   def _getProdsDescriptionDict( self ):
-    ''' Returns a dictionary representing the description of the request (of all the productions in it)
-    '''
+    """ Returns a dictionary representing the description of the request (of all the productions in it)
+    """
 
     prodsDict = {}
 
@@ -400,9 +400,9 @@ class ProductionRequest( object ):
                         transformationFamily = 0,
                         events = -1,
                         sysConfig = '' ):
-    ''' Wrapper around Production API to build a production, given the needed parameters
+    """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object
-    '''
+    """
     prod = Production()
 
     #non optional parameters
@@ -503,8 +503,8 @@ class ProductionRequest( object ):
   #############################################################################
 
   def _getBKKQuery( self, mode = 'full', fileType = [], previousProdID = 0 ):
-    ''' simply creates the bkk query dictionary
-    '''
+    """ simply creates the bkk query dictionary
+    """
 
     if mode.lower() == 'full':
       bkQuery = {
@@ -592,8 +592,8 @@ class ProductionRequest( object ):
 #############################################################################
 
 def _splitIntoProductionSteps( step ):
-  ''' Given a list of bookkeeping steps, produce production steps
-  '''
+  """ Given a list of bookkeeping steps, produce production steps
+  """
   prodSteps = []
 
   if len( step['fileTypesIn'] ) <= 1:

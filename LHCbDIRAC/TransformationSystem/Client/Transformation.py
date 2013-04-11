@@ -1,5 +1,5 @@
-''' Client module to deal with transformations, but mostly dedicated to DataManipulation (e.g.: replications)
-'''
+""" Client module to deal with transformations, but mostly dedicated to DataManipulation (e.g.: replications)
+"""
 
 __RCSID__ = "$Id$"
 
@@ -12,15 +12,15 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import Bookkeepi
 COMPONENT_NAME = 'Transformation'
 
 class Transformation( DIRACTransformation ):
-  ''' class - mostly for DM prods
-  '''
+  """ class - mostly for DM prods
+  """
 
   #############################################################################
 
   def __init__( self, transID = 0, transClientIn = None ):
-    ''' Just params setting.
+    """ Just params setting.
         transClient is passed here as LHCbDIRAC TransformationClient, it will be self.transClient
-    '''
+    """
 
     if not transClientIn:
       self.transClient = TransformationClient()
@@ -37,8 +37,8 @@ class Transformation( DIRACTransformation ):
   #############################################################################
 
   def testBkQuery( self, bkQuery, printOutput = False, bkClient = None ):
-    ''' just pretty print of the result of a BK Query
-    '''
+    """ just pretty print of the result of a BK Query
+    """
 
     if bkClient is None:
       bkClient = BookkeepingClient()
@@ -54,8 +54,8 @@ class Transformation( DIRACTransformation ):
   #############################################################################
 
   def setBkQuery( self, queryDict, test = False ):
-    ''' set a BKK Query
-    '''
+    """ set a BKK Query
+    """
     if test:
       res = self.testBkQuery( queryDict )
       if not res['OK']:
@@ -74,8 +74,8 @@ class Transformation( DIRACTransformation ):
   #############################################################################
 
   def getBkQuery( self, printOutput = False ):
-    ''' get a BKK Query
-    '''
+    """ get a BKK Query
+    """
     if self.paramValues['BkQuery']:
       return S_OK( self.paramValues['BkQuery'] )
     res = self.__executeOperation( 'getBookkeepingQueryForTransformation', printOutput = printOutput )
@@ -88,8 +88,8 @@ class Transformation( DIRACTransformation ):
   #############################################################################
 
   def deleteTransformationBkQuery( self ):
-    ''' delete a BKK Query
-    '''
+    """ delete a BKK Query
+    """
     if not self.paramValues['BkQueryID']:
       gLogger.info( "The BK Query is not defined" )
       return S_OK()
@@ -107,8 +107,8 @@ class Transformation( DIRACTransformation ):
   #############################################################################
 
   def addTransformation( self, addFiles = True, printOutput = False ):
-    ''' Add a transformation, using TransformationClient()
-    '''
+    """ Add a transformation, using TransformationClient()
+    """
     res = self._checkCreation()
     if not res['OK']:
       return self._errorReport( res, 'Failed transformation sanity check' )
