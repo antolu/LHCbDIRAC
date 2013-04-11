@@ -12,17 +12,16 @@
 
 import shutil, re, os, copy
 
-from DIRAC import gConfig, S_OK, S_ERROR
-from DIRAC.Core.Workflow.Workflow import Workflow, fromXMLString
-from DIRAC.Core.Utilities.List import removeEmptyElements, uniqueElements
+from DIRAC                                                        import gConfig, S_OK, S_ERROR
+from DIRAC.Core.Workflow.Workflow                                 import Workflow, fromXMLString
+from DIRAC.Core.Utilities.List                                    import removeEmptyElements, uniqueElements
 
-from LHCbDIRAC.Core.Utilities.ProductionData import preSubmissionLFNs
-from LHCbDIRAC.Workflow.Utilities.Utils import getStepDefinition
-from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-
-__RCSID__ = "$Id$"
+from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubmissionLFNs
+from LHCbDIRAC.Workflow.Utilities.Utils                           import getStepDefinition
+from LHCbDIRAC.Interfaces.API.LHCbJob                             import LHCbJob
+from LHCbDIRAC.Interfaces.API.DiracLHCb                           import DiracLHCb
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
 
 class Production():
   """ Production does not inherits from LHCbJob, but uses an LHCbJob object.
@@ -85,8 +84,6 @@ class Production():
 
     self.setFileMask( '' )
 
-    # version control
-    self.setParameter( 'productionVersion', 'string', __RCSID__, 'ProdAPIVersion' )
 
     # General workflow parameters
     self.setParameter( 'PRODUCTION_ID', 'string', '00012345', 'ProductionID' )
