@@ -375,15 +375,14 @@ class LHCbJob( Job ):
       self.addToInputData.append( inputDataStr )
 
     self.stepCount += 1
-    stepNumber = self.stepCount
 
-    stepName = '%sStep%s' % ( appName, stepNumber )
+    stepName = '%sStep%s' % ( appName, self.stepCount )
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
     self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
 
-    logPrefix = 'Step%s_' % ( stepNumber )
+    logPrefix = 'Step%s_' % ( self.stepCount )
     logName = '%s%s' % ( logPrefix, logName )
     self.addToOutputSandbox.append( logName )
 
@@ -605,14 +604,13 @@ class LHCbJob( Job ):
       logName = '%s_%s.log' % ( rootName, rootVersion.replace( '.', '' ) )
 
     self.stepCount += 1
-    stepNumber = self.stepCount
-    stepName = '%sStep%s' % ( rootName, stepNumber )
+    stepName = '%sStep%s' % ( rootName, self.stepCount )
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
     self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
 
-    logPrefix = 'Step%s_' % ( stepNumber )
+    logPrefix = 'Step%s_' % ( self.stepCount )
     logName = '%s%s' % ( logPrefix, logName )
     self.addToOutputSandbox.append( logName )
 
@@ -632,7 +630,8 @@ class LHCbJob( Job ):
     currentApp = gConfig.getValue( 'Operations/' + appRoot )
 #     currentApp = self.opsHelper.getValue( appRoot, '' )
     if not currentApp:
-      return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot, __name__, **kwargs )
+      return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot,
+                                __name__, **kwargs )
 
     res = self.addPackage( currentApp, rootVersion )
     if not res['OK']:
@@ -871,11 +870,10 @@ class LHCbJob( Job ):
       if type( logFile ) == type( ' ' ):
         logName = logFile
 
-    self.gaudiStepCount += 1
+    self.stepCount += 1
 
     moduleName = moduleName.replace( '.', '' )
-    stepNumber = self.gaudiStepCount
-    stepName = 'ScriptStep%s' % ( stepNumber )
+    stepName = 'ScriptStep%s' % ( self.stepCount )
 
     modulesNameList = [
                        'CreateDataFile',
@@ -892,10 +890,10 @@ class LHCbJob( Job ):
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
-    self._addParameter( self.workflow, 'TotalSteps', 'String', self.gaudiStepCount, 'Total number of steps' )
+    self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
 
-    stepName = 'RunScriptStep%s' % ( stepNumber )
-    logPrefix = 'Script%s_' % ( stepNumber )
+    stepName = 'RunScriptStep%s' % ( self.stepCount )
+    logPrefix = 'Script%s_' % ( self.stepCount )
     logName = '%s%s' % ( logPrefix, logName )
     self.addToOutputSandbox.append( logName )
 
@@ -945,7 +943,6 @@ class LHCbJob( Job ):
     """
     kwargs = {'protocols':protocols, 'inputData':inputData, 'logFile':logFile, 'rootVersion':rootVersion}
     self.stepCount += 1
-    stepNumber = self.stepCount
 
     if not protocols:
       return self._reportError( 'A list of protocols is required for this test', __name__, **kwargs )
@@ -956,7 +953,7 @@ class LHCbJob( Job ):
     if logFile:
       if not type( logFile ) in types.StringTypes:
         return self._reportError( 'Expected string for log file name', __name__, **kwargs )
-      logPrefix = 'Step%s_' % ( stepNumber )
+      logPrefix = 'Step%s_' % ( self.stepCount )
       logFile = '%s%s' % ( logPrefix, logFile )
     self.addToOutputSandbox.append( '*.log' )
     self.addToOutputSandbox.append( '*.output' )
@@ -989,13 +986,13 @@ class LHCbJob( Job ):
       return self._reportError( 'Requested ROOT version %s \
       is not in supported list: %s' % ( rootVersion, ', '.join( rootList ) ), __name__, **kwargs )
 
-    stepName = 'ProtocolTestStep%s' % ( stepNumber )
+    stepName = 'ProtocolTestStep%s' % ( self.stepCount )
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
     self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
 
-    stepName = 'RunProtocolTestStep%s' % ( stepNumber )
+    stepName = 'RunProtocolTestStep%s' % ( self.stepCount )
 
     stepInstance = addStepToWorkflow( self.workflow, step, stepName )
 

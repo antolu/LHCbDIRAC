@@ -61,7 +61,6 @@ class LHCbSAMJob( LHCbJob ):
     """
     LHCbJob.__init__( self, script, stdout, stderr )
 
-    self.gaudiStepCount = 0
     self.opsH = Operations()
     self.appTestPath = 'SAM/TestApplications'
     self.appTestList = 'SAM/ApplicationTestList'
@@ -177,9 +176,9 @@ class LHCbSAMJob( LHCbJob ):
     if forceDeletion:
       self._addJDLParameter( 'LockRemovalFlag', 'True' )
 
-    self.gaudiStepCount += 1
+    self.stepCount += 1
 
-    stepName = 'SAM_%s_Step%s' % ( 'LockSharedArea', self.gaudiStepCount )
+    stepName = 'SAM_%s_Step%s' % ( 'LockSharedArea', self.stepCount )
     modulesNameList = [ 'LockSharedArea' ]
     parametersList = [ ( 'enable', 'bool', '', 'enable flag' ),
                         ( 'forceLockRemoval', 'bool', '', 'lock deletion flag' ) ]
@@ -216,10 +215,10 @@ class LHCbSAMJob( LHCbJob ):
     self.addToOutputSandbox.append( '*.log' )
     self._addJDLParameter( 'SystemConfigurationTest', str( enableFlag ) )
 
-    self.gaudiStepCount += 1
+    self.stepCount += 1
 
-    # stepName        = '%sStep%s' % ( 'SAM', self.gaudiStepCount )
-    stepName = 'SAM_%s_Step%s' % ( 'SystemConfiguration', self.gaudiStepCount )
+    # stepName        = '%sStep%s' % ( 'SAM', self.stepCount )
+    stepName = 'SAM_%s_Step%s' % ( 'SystemConfiguration', self.stepCount )
     modulesNameList = [ 'SystemConfiguration' ]
     parametersList = [ ( 'enable', 'bool', '', 'enable flag' ) ]
 
@@ -260,11 +259,11 @@ class LHCbSAMJob( LHCbJob ):
     self._addJDLParameter( 'DeleteSharedArea', str( forceDeletion ) )
     self._addJDLParameter( 'installProjectURL', str( installProjectURL ) )
 
-    self.gaudiStepCount += 1
+    self.stepCount += 1
     self.addToOutputSandbox.append( '*.log' )
 
-    # stepName        = '%sStep%s' % ( 'SAM', self.gaudiStepCount )
-    stepName = 'SAM_%s_Step%s' % ( 'SoftwareInstallation', self.gaudiStepCount )
+    # stepName        = '%sStep%s' % ( 'SAM', self.stepCount )
+    stepName = 'SAM_%s_Step%s' % ( 'SoftwareInstallation', self.stepCount )
     modulesNameList = [ 'SoftwareInstallation' ]
     parametersList = [  # ( 'enable', 'bool', '', 'enable flag' ),
                         ( 'softwareFlag', 'bool', '', 'software flag' ),
@@ -303,10 +302,10 @@ class LHCbSAMJob( LHCbJob ):
       return S_OK( enableFlag )
 
     self.addToOutputSandbox.append( '*.log' )
-    self.gaudiStepCount += 1
+    self.stepCount += 1
 
-    # stepName        = '%sStep%s' % ( 'SAM', self.gaudiStepCount )
-    stepName = 'SAM_%s_Step%s' % ( 'SoftwareReport', self.gaudiStepCount )
+    # stepName        = '%sStep%s' % ( 'SAM', self.stepCount )
+    stepName = 'SAM_%s_Step%s' % ( 'SoftwareReport', self.stepCount )
     modulesNameList = [ 'SoftwareReport' ]
     importLine = 'LHCbDIRAC.SAMSystem.Modules'
     parametersList = [ ( 'reportFlag', 'bool', '', 'report flag' ) ]
@@ -344,10 +343,10 @@ class LHCbSAMJob( LHCbJob ):
     self.addToOutputSandbox.append( '*.log' )
     self._addJDLParameter( 'FinalizeAndPublishTest', str( enableFlag ) )
 
-    self.gaudiStepCount += 1
+    self.stepCount += 1
 
-    # stepName        = '%sStep%s' % ( 'SAM', self.gaudiStepCount )
-    stepName = 'SAM_%s_Step%s' % ( 'SAMFinalization', self.gaudiStepCount )
+    # stepName        = '%sStep%s' % ( 'SAM', self.stepCount )
+    stepName = 'SAM_%s_Step%s' % ( 'SAMFinalization', self.stepCount )
     modulesNameList = [ 'SAMFinalization' ]
     parametersList = [ ( 'enable', 'bool', '', 'enable flag' ),
                         ( 'uploadLogsFlag', 'bool', '', 'flag to trigger upload of SAM logs to LogSE' ) ]
@@ -389,10 +388,10 @@ class LHCbSAMJob( LHCbJob ):
     self.addToOutputSandbox.append( '*.log' )
     self._addJDLParameter( 'RunTestScriptTest', str( enableFlag ) )
 
-    self.gaudiStepCount += 1
+    self.stepCount += 1
 
-    # stepName        = '%sStep%s' % ( 'SAM', self.gaudiStepCount )
-    stepName = 'SAM_%s_Step%s' % ( 'RunTestScript', self.gaudiStepCount )
+    # stepName        = '%sStep%s' % ( 'SAM', self.stepCount )
+    stepName = 'SAM_%s_Step%s' % ( 'RunTestScript', self.stepCount )
     modulesNameList = [ 'RunTestScript' ]
     parametersList = [ ( 'enable', 'bool', '', 'enable flag' ),
                         ( 'scriptName', 'string', '', 'script name to execute' ) ]

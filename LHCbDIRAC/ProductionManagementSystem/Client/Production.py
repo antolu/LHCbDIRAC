@@ -72,7 +72,7 @@ class Production():
     """Sets some default parameters.
     """
 
-    self.LHCbJob.gaudiStepCount = 0
+    self.LHCbJob.stepCount = 0
     self.LHCbJob.setOutputSandbox( self.LHCbJob.opsHelper.getValue( 'Productions/inOutputSandbox',
                                                             ['std.out', 'std.err', '*.log'] ) )
     self.setJobParameters( {
@@ -225,7 +225,7 @@ class Production():
 
 
     # starting real stuff
-    self.LHCbJob.gaudiStepCount += 1
+    self.LHCbJob.stepCount += 1
 
     if 'Gaudi_App_Step' not in self.LHCbJob.workflow.step_definitions.keys():
 
@@ -266,7 +266,7 @@ class Production():
       self.LHCbJob.workflow.addStep( gaudiStepDef )
 
     # create the step instance add it to the wf, and return it
-    name = '%s_%s' % ( appName, self.LHCbJob.gaudiStepCount )
+    name = '%s_%s' % ( appName, self.LHCbJob.stepCount )
     gaudiStepInstance = self.LHCbJob.workflow.createStepInstance( 'Gaudi_App_Step', name )
 
     valuesToSet = [
@@ -315,7 +315,7 @@ class Production():
     self.__addSoftwarePackages( extraPackages )
 
     # to construct the BK processing pass structure, starts from step '0'
-    stepIDInternal = 'Step%s' % ( self.LHCbJob.gaudiStepCount - 1 )
+    stepIDInternal = 'Step%s' % ( self.LHCbJob.stepCount - 1 )
     bkOptionsFile = optionsFile
 
     stepBKInfo = {'ApplicationName':appName,
@@ -398,12 +398,10 @@ class Production():
     if 'Job_Finalization' not in self.LHCbJob.workflow.step_definitions.keys():
 
       if not modulesList:
-        modulesNameList = self.LHCbJob.opsHelper.getValue( 'Productions/FinalizationStep_Modules',
+        modulesList = self.LHCbJob.opsHelper.getValue( 'Productions/FinalizationStep_Modules',
                                                    [ 'UploadOutputData', 'UploadLogFile', 'FailoverRequest' ] )
-      else:
-        modulesNameList = modulesList
 
-      jobFinalizationStepDef = getStepDefinition( 'Job_Finalization', modulesNameList = modulesNameList )
+      jobFinalizationStepDef = getStepDefinition( 'Job_Finalization', modulesNameList = modulesList )
       self.LHCbJob.workflow.addStep( jobFinalizationStepDef )
 
     # create the step instance add it to the wf
@@ -427,9 +425,8 @@ class Production():
 
   #############################################################################
 
-  def runLocal( self, DiracLHCb = None ):
-    """
-        Create XML workflow for local testing then reformulate as a job and run locally.
+  def runLocal( self, diracLHCb = None ):
+    """ Create XML workflow for local testing then reformulate as a job and run locally.
     """
 
     name = self.createWorkflow()['Value']
@@ -437,10 +434,7 @@ class Production():
     j = LHCbJob( name )
     # it makes a job (a Worklow, with Parameters), out of the xml file
 
-    if DiracLHCb is not None:
-      diracLHCb = DiracLHCb
-    else:
-      from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
+    if diracLHCb is None:
       diracLHCb = DiracLHCb()
 
     return j.runLocal( diracLHCb, self.BKKClient )
@@ -727,7 +721,7 @@ class Production():
       prodXMLFile = self.createWorkflow()
 
     job = LHCbJob( prodXMLFile )
-    result = preSubmissionLFNs( job._getParameters(), job.createCode(),
+    result = preSubmissionLFNs( job._getParameters(), job.workflow.createCode(),
                                 productionID = prodID, jobID = prodJobID )
     if not result['OK']:
       return result
