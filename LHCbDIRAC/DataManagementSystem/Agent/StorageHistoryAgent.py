@@ -69,7 +69,6 @@ class StorageHistoryAgent( AgentModule ):
 
     self.__bkClient = BookkeepingClient()
     self.__dataUsageClient = DataUsageClient()
-    self.__workDirectory = None
     self.cachedMetadata = {}
     # build a dictionary with Event Type descriptions (to be send to accounting, instead of number Event Type ID)
     self.eventTypeDescription = { 'na':'na', 'notInBkk':'notInBkk', 'FailedBkkQuery':'FailedBkkQuery', 'None':'None'}
@@ -309,7 +308,7 @@ class StorageHistoryAgent( AgentModule ):
                                                                                          self.callsToBkkGetEvtType ) )
     self.log.notice( "Total records sent to accounting for DataStorage:  %d " % self.totalRecords )
     self.log.notice( "Directories not found in Bookkeeping: %d " % ( len( self.directoriesNotInBkk ) ) )
-    fileName = os.path.join( self.__workDirectory, "self.directoriesNotInBkk.txt" )
+    fileName = os.path.join( self.__workDirectory, "directoriesNotInBkk.txt" )
     self.log.notice( "written to file: %s " % fileName )
     f = open( fileName, "w" )
     for d in self.directoriesNotInBkk:
