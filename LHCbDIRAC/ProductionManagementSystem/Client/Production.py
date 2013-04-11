@@ -7,12 +7,12 @@
     - create() method that takes a workflow or Production object
       and publishes to the production management system, in addition this
       can automatically construct and publish the BK pass info and transformations
-    - Uses getOutputLFNs() function to add production output directory parameter
+    - Uses __getOutputLFNs() function to add production output directory parameter
 """
 
 import shutil, re, os, copy
 
-from DIRAC                                                        import gConfig, S_OK, S_ERROR
+from DIRAC                                                        import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.Workflow.Workflow                                 import Workflow, fromXMLString
 from DIRAC.Core.Utilities.List                                    import removeEmptyElements, uniqueElements
 
@@ -21,7 +21,7 @@ from LHCbDIRAC.Workflow.Utilities.Utils                           import getStep
 from LHCbDIRAC.Interfaces.API.LHCbJob                             import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb                           import DiracLHCb
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
+from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
 
 class Production():
   """ Production does not inherits from LHCbJob, but uses an LHCbJob object.
@@ -29,25 +29,13 @@ class Production():
 
   #############################################################################
 
-  def __init__( self, script = None, lhcbJobIn = None, BKKClientIn = None,
-                transClientIn = None ):
+  def __init__( self, script = None ):
     """Instantiates the Workflow object and some default parameters.
     """
 
-    if lhcbJobIn is not None:
-      self.LHCbJob = lhcbJobIn
-    else:
-      self.LHCbJob = LHCbJob( script )
-
-    if BKKClientIn is not None:
-      self.BKKClient = BKKClientIn
-    else:
-      self.BKKClient = BookkeepingClient()
-
-    if transClientIn is not None:
-      self.transClient = transClientIn
-    else:
-      self.transClient = TransformationClient()
+    self.LHCbJob = LHCbJob( script )
+    self.BKKClient = BookkeepingClient()
+    self.transformation = Transformation()
 
     self.histogramName = self.LHCbJob.opsHelper.getValue( 'Productions/HistogramName',
                                                           '@{applicationName}_@{STEP_ID}_Hist.root' )
@@ -116,10 +104,10 @@ class Production():
     """
     proposedParam = self.LHCbJob.opsHelper.getValue( 'Productions/%s' % name, '' )
     if proposedParam:
-      self.LHCbJob.log.debug( 'Setting %s from CS defaults = %s' % ( name, proposedParam ) )
+      gLogger.debug( 'Setting %s from CS defaults = %s' % ( name, proposedParam ) )
       self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, proposedParam, description )
     else:
-      self.LHCbJob.log.debug( 'Setting parameter %s = %s' % ( name, parameterValue ) )
+      gLogger.debug( 'Setting parameter %s = %s' % ( name, parameterValue ) )
       self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, parameterValue, description )
 
   #############################################################################
@@ -146,11 +134,11 @@ class Production():
         optionsFile = [optionsFile]
 
     for p in extraPackages:
-      self.LHCbJob.log.verbose( 'Checking extra package: %s' % ( p ) )
+      gLogger.verbose( 'Checking extra package: %s' % ( p ) )
       if not re.search( '.', p ):
         raise TypeError, 'Must have extra packages in the following format "Name.Version" not %s' % ( p )
 
-    self.LHCbJob.log.verbose( 'Extra packages and event type options are correctly specified' )
+    gLogger.verbose( 'Extra packages and event type options are correctly specified' )
     return S_OK()
 
   #############################################################################
@@ -203,19 +191,19 @@ class Production():
 
     try:
       if not dddbOpt.lower() == 'global':
-        self.LHCbJob.log.verbose( 'Specific DDDBTag setting found for %s step, setting to: %s' % ( appName, dddbOpt ) )
+        gLogger.verbose( 'Specific DDDBTag setting found for %s step, setting to: %s' % ( appName, dddbOpt ) )
         dddbOpt = dddbOpt.replace( ' ', '' )
     except AttributeError:
       pass
     try:
       if not conddbOpt.lower() == 'global':
-        self.LHCbJob.log.verbose( 'Specific CondDBTag setting found for %s step, setting to: %s' % ( appName, conddbOpt ) )
+        gLogger.verbose( 'Specific CondDBTag setting found for %s step, setting to: %s' % ( appName, conddbOpt ) )
         conddbOpt = conddbOpt.replace( ' ', '' )
     except AttributeError:
       pass
     try:
       if not DQOpt.lower() == 'global':
-        self.LHCbJob.log.verbose( 'Specific DQTag setting found for %s step, setting to: %s' % ( appName, DQOpt ) )
+        gLogger.verbose( 'Specific DQTag setting found for %s step, setting to: %s' % ( appName, DQOpt ) )
         DQOpt = DQOpt.replace( ' ', '' )
     except AttributeError:
       pass
@@ -289,13 +277,13 @@ class Production():
       valuesToSet.append( [ 'inputDataType', ';'.join( ftIn.upper() for ftIn in fileTypesIn ) ] )
 
     if not inputData:
-      self.LHCbJob.log.verbose( '%s step has no data requirement or is linked to the overall input data' % appName )
+      gLogger.verbose( '%s step has no data requirement or is linked to the overall input data' % appName )
       gaudiStepInstance.setLink( 'inputData', 'self', 'InputData' )
     elif inputData == 'previousStep':
-      self.LHCbJob.log.verbose( 'Taking input data as output from previous Gaudi step' )
+      gLogger.verbose( 'Taking input data as output from previous Gaudi step' )
       valuesToSet.append( [ 'inputData', inputData ] )
     else:
-      self.LHCbJob.log.verbose( 'Assume input data requirement should be added to job' )
+      gLogger.verbose( 'Assume input data requirement should be added to job' )
       self.LHCbJob.setInputData( inputData )
       gaudiStepInstance.setLink( 'inputData', 'self', 'InputData' )
 
@@ -438,7 +426,7 @@ class Production():
 
   #############################################################################
 
-  def _getProductionParameters( self, prodXMLFile, prodID, groupDescription = '',
+  def __getProductionParameters( self, prodXMLFile, prodID, groupDescription = '',
                                 bkPassInfo = {}, bkInputQuery = {},
                                 derivedProd = 0, reqID = 0 ):
     """ This method will publish production parameters.
@@ -462,7 +450,7 @@ class Production():
 
     if prodWorkflow.findParameter( 'InputData' ):  # now only comes from BK query
       prodWorkflow.findParameter( 'InputData' ).setValue( '' )
-      self.LHCbJob.log.verbose( 'Resetting input data for production to null, this comes from a BK query...' )
+      gLogger.verbose( 'Resetting input data for production to null, this comes from a BK query...' )
       prodXMLFile = self.createWorkflow( prodXMLFile )['Value']
       # prodWorkflow.toXMLFile(prodXMLFile)
 
@@ -481,9 +469,9 @@ class Production():
     parameters['RequestID'] = reqID
     parameters['DerivedProduction'] = derivedProd
 
-    result = self.getOutputLFNs( prodID, '99999999', prodXMLFile )
+    result = self.__getOutputLFNs( prodID, '99999999', prodXMLFile )
     if not result['OK']:
-      self.LHCbJob.log.error( 'Could not create production LFNs', result )
+      gLogger.error( 'Could not create production LFNs', result )
 
     outputLFNs = result['Value']
     parameters['OutputLFNs'] = outputLFNs
@@ -539,7 +527,7 @@ class Production():
     infoString = '\n'.join( info )
     parameters['DetailedInfo'] = infoString
 
-    self.LHCbJob.log.verbose( 'Parameters that will be added: %s' % parameters )
+    gLogger.verbose( 'Parameters that will be added: %s' % parameters )
 
     return parameters
 
@@ -569,17 +557,17 @@ class Production():
     # Add the BK conditions metadata / name
     simConds = self.BKKClient.getSimConditions()
     if not simConds['OK']:
-      self.LHCbJob.log.error( 'Could not retrieve conditions data from BK:\n%s' % simConds )
+      gLogger.error( 'Could not retrieve conditions data from BK:\n%s' % simConds )
       return simConds
     simulationDescriptions = []
     for record in simConds['Value']:
       simulationDescriptions.append( str( record[1] ) )
 
     if not bkConditions in simulationDescriptions:
-      self.LHCbJob.log.verbose( 'Assuming BK conditions %s are DataTakingConditions' % bkConditions )
+      gLogger.verbose( 'Assuming BK conditions %s are DataTakingConditions' % bkConditions )
       bkDictStep['DataTakingConditions'] = bkConditions
     else:
-      self.LHCbJob.log.verbose( 'Found simulation conditions for %s' % bkConditions )
+      gLogger.verbose( 'Found simulation conditions for %s' % bkConditions )
       bkDictStep['SimulationConditions'] = bkConditions
 
     descShort = self.LHCbJob.workflow.getDescrShort()
@@ -594,10 +582,10 @@ class Production():
       try:
         fileName = self.createWorkflow()['Value']
       except Exception, x:
-        self.LHCbJob.log.error( x )
+        gLogger.error( x )
         return S_ERROR( 'Could not create workflow' )
 
-      self.LHCbJob.log.verbose( 'Workflow XML file name is: %s' % fileName )
+      gLogger.verbose( 'Workflow XML file name is: %s' % fileName )
 
       workflowBody = ''
       if os.path.exists( fileName ):
@@ -607,23 +595,41 @@ class Production():
       else:
         return S_ERROR( 'Could not get workflow body' )
 
-      result = self.transClient.addTransformation( fileName, descShort, descLong,
-                                                   self.LHCbJob.type, self.plugin, 'Manual',
-                                                   fileMask = self.inputFileMask,
-                                                   transformationGroup = self.prodGroup,
-                                                   groupSize = int( self.jobFileGroupSize ),
-                                                   inheritedFrom = int( self.ancestorProduction ),
-                                                   body = workflowBody,
-                                                   bkQuery = self.inputBKSelection
-                                                  )
+      # Standard parameters
+      self.transformation.setTransformationName( fileName )
+      self.transformation.setTransformationGroup( self.prodGroup )
+      self.transformation.setDescription( descShort )
+      self.transformation.setLongDescription( descLong )
+      self.transformation.setType( self.LHCbJob.type )
+      self.transformation.setBody( workflowBody )
+      self.transformation.setPlugin( self.plugin )
+      self.transformation.setBkQuery( self.inputBKSelection )
+      self.transformation.setTransformationFamily( self.transformationFamily )
+      self.transformation.setFileMask( self.inputFileMask )
+      self.transformation.setGroupSize( int( self.jobFileGroupSize ) )
+      self.transformation.setInheritedFrom( int( self.ancestorProduction ) )
+
+      # All other parameters
+      groupDesc = self.LHCbJob.workflow.findParameter( 'groupDescription' ).getValue(),
+      paramsDict = self.__getProductionParameters( prodID = prodID,
+                                                  prodXMLFile = fileName,
+                                                  groupDescription = groupDesc,
+                                                  bkPassInfo = bkSteps,
+                                                  bkInputQuery = self.inputBKSelection,
+                                                  reqID = requestID,
+                                                  derivedProd = self.ancestorProduction )
+      for parName, parValue in paramsDict.items():
+        result = getattr( self.transformation, 'set' + parName )( parValue )
+
+      result = self.transformation.addTransformation()
 
       if not result['OK']:
-        self.LHCbJob.log.error( 'Problem creating production:\n%s' % result )
+        gLogger.error( 'Problem creating production:\n%s' % result )
         return result
       prodID = result['Value']
-      self.LHCbJob.log.info( 'Production %s successfully created' % prodID )
+      gLogger.info( 'Production %s successfully created' % prodID )
     else:
-      self.LHCbJob.log.verbose( 'Publish flag is disabled, using default production ID' )
+      gLogger.verbose( 'Publish flag is disabled, using default production ID' )
 
     bkDictStep['Production'] = int( prodID )
 
@@ -640,17 +646,17 @@ class Production():
       if queryProdID:
         inputPass = self.BKKClient.getProductionProcessingPass( queryProdID )
         if not inputPass['OK']:
-          self.LHCbJob.log.error( inputPass )
-          self.LHCbJob.log.error( 'Production %s was created but BK processsing pass for %s was not found' % ( prodID,
+          gLogger.error( inputPass )
+          gLogger.error( 'Production %s was created but BK processsing pass for %s was not found' % ( prodID,
                                                                                                          queryProdID ) )
           return inputPass
         inputPass = inputPass['Value']
-        self.LHCbJob.log.info( 'Setting %s as BK input production for %s with processing pass %s' % ( queryProdID,
+        gLogger.info( 'Setting %s as BK input production for %s with processing pass %s' % ( queryProdID,
                                                                                                       prodID,
                                                                                                       inputPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = inputPass
       elif queryProcPass:
-        self.LHCbJob.log.info( 'Adding input BK processing pass for production %s from input data query: %s' % ( prodID,
+        gLogger.info( 'Adding input BK processing pass for production %s from input data query: %s' % ( prodID,
                                                                                                        queryProcPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = queryProcPass
 
@@ -669,10 +675,10 @@ class Production():
     bkDictStep['Steps'] = stepList
 
     if publish:
-      self.LHCbJob.log.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
+      gLogger.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
       result = self.BKKClient.addProduction( bkDictStep )
       if not result['OK']:
-        self.LHCbJob.log.error( result )
+        gLogger.error( result )
         return result
 
     if requestID and publish:
@@ -681,40 +687,26 @@ class Production():
       reqDict = {'ProductionID':long( prodID ), 'RequestID':requestID, 'Used':reqUsed, 'BkEvents':0}
       result = reqClient.addProductionToRequest( reqDict )
       if not result['OK']:
-        self.LHCbJob.log.error( 'Attempt to add production %s to request %s failed: %s ' % ( prodID, requestID,
+        gLogger.error( 'Attempt to add production %s to request %s failed: %s ' % ( prodID, requestID,
                                                                                            result['Message'] ) )
-        self.LHCbJob.log.error( 'Dictionary below:\n%s' % reqDict )
+        gLogger.error( 'Dictionary below:\n%s' % reqDict )
       else:
-        self.LHCbJob.log.info( 'Successfully added production %s to request %s with flag set to %s' % ( prodID,
+        gLogger.info( 'Successfully added production %s to request %s with flag set to %s' % ( prodID,
                                                                                                         requestID,
                                                                                                         reqUsed ) )
-
-    if publish:
-      groupDesc = self.LHCbJob.workflow.findParameter( 'groupDescription' ).getValue(),
-      paramsDict = self._getProductionParameters( prodID = prodID,
-                                                  prodXMLFile = fileName,
-                                                  groupDescription = groupDesc,
-                                                  bkPassInfo = bkSteps,
-                                                  bkInputQuery = bkQuery,
-                                                  reqID = requestID,
-                                                  derivedProd = self.ancestorProduction )
-      for n, v in paramsDict.items():
-        result = self.setProdParameter( prodID, n, v )
-        if not result['OK']:
-          self.LHCbJob.log.error( result['Message'] )
 
     return S_OK( prodID )
 
   #############################################################################
 
 
-  def getOutputLFNs( self, prodID = '12345', prodJobID = '6789', prodXMLFile = '' ):
+  def __getOutputLFNs( self, prodID = '12345', prodJobID = '6789', prodXMLFile = '' ):
     """ Will construct the output LFNs for the production for visual inspection.
     """
     # TODO: fix this construction: really necessary?
 
     if not prodXMLFile:
-      self.LHCbJob.log.verbose( 'Using workflow object to generate XML file' )
+      gLogger.verbose( 'Using workflow object to generate XML file' )
       prodXMLFile = self.createWorkflow()
 
     job = LHCbJob( prodXMLFile )
@@ -723,56 +715,13 @@ class Production():
     if not result['OK']:
       return result
     lfns = result['Value']
-    self.LHCbJob.log.verbose( lfns )
-    return result
-
-  #############################################################################
-
-  def setProdParameter( self, prodID, pname, pvalue ):
-    """Set a production parameter.
-    """
-
-    if type( pvalue ) == type( [] ):
-      pvalue = '\n'.join( pvalue )
-
-    if type( pvalue ) == type( 2 ):
-      pvalue = str( pvalue )
-    result = self.transClient.setTransformationParameter( int( prodID ), str( pname ), str( pvalue ) )
-    if not result['OK']:
-      self.LHCbJob.log.error( 'Problem setting parameter %s for production %s and value: %s. Error = %s' % ( pname,
-                                                                                                             prodID,
-                                                                                                             pvalue,
-                                                                                                  result['Message'] ) )
-    return result
-
-  #############################################################################
-
-  def getParameters( self, prodID, pname = '' ):
-    """Get a production parameter or all of them if no parameter name specified.
-    """
-
-    result = self.transClient.getTransformation( int( prodID ), True )
-    if not result['OK']:
-      self.LHCbJob.log.error( result )
-      return S_ERROR( 'Could not retrieve parameters for production %s' % prodID )
-
-    if not result['Value']:
-      self.LHCbJob.log.info( result )
-      return S_ERROR( 'No additional parameters available for production %s' % prodID )
-
-    if pname:
-      if result['Value'].has_key( pname ):
-        return S_OK( result['Value'][pname] )
-      else:
-        self.LHCbJob.log.verbose( result )
-        return S_ERROR( 'Production %s does not have parameter %s' % ( prodID, pname ) )
-
+    gLogger.verbose( lfns )
     return result
 
   #############################################################################
 
   def setFileMask( self, fileMask, stepMask = '' ):
-    """Output data related parameters.
+    """ Output data related parameters.
     """
     if type( fileMask ) == type( [] ):
       fileMask = ';'.join( fileMask )
