@@ -2215,7 +2215,10 @@ class OracleBookkeepingDB:
 #                 'InstLuminosity':record[16]}
 #          result[lfn] = row
 
-    return S_OK(result)
+    retVal = result
+    retVal['Successful'] = dict(result)
+    retVal['Failed'] = [ i for i in lfns if i not in result]
+    return S_OK(retVal)
 
   #############################################################################
   def getFileMetaDataForWeb(self, lfns):
@@ -4328,9 +4331,7 @@ and files.qualityid= dataquality.qualityid'
                               'FileType',
                               'ProcessingPass',
                               'ConditionDescription'), i[1:]))]
-      for i in lfns:
-        if i[:-1] not in records:
-          failed += [i[:-1]]
+      failed = [ i[:-1] for i in lfns if i[:-1] not in records]
       result = S_OK({'Successful':records, 'Failed':failed})
     else:
       result = retVal
