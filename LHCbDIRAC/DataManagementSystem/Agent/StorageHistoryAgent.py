@@ -31,7 +31,7 @@ def _standardDirectory( dirPath ):
 def _standardDirList( dirList ):
   return [_standardDirectory( dirPath ) for dirPath in dirList]
 
-def __fillMetadata( dictToFill, metadataValue ):
+def _fillMetadata( dictToFill, metadataValue ):
   ''' Fill the dictionary to send to the accounting.
       If metadataValue is a string then set all the values of dictToFill, to this value
       if metadataValue is a dictionary then set each value of dictToFill to the corresponding value of metadataValue
@@ -373,7 +373,7 @@ class StorageHistoryAgent( AgentModule ):
           self.log.error( "Totally failed to query Bookkeeping %s" % res[ 'Message' ] )
           for dirName in notInCache:
             metaForDir = metaForList[dirName]
-            __fillMetadata( metaForDir, 'FailedBkkQuery' )
+            _fillMetadata( metaForDir, 'FailedBkkQuery' )
         else:
           bkMetadata = res['Value']
           self.log.verbose( "Successfully queried Bookkeeping, result: %s " % bkMetadata )
@@ -382,7 +382,7 @@ class StorageHistoryAgent( AgentModule ):
             metadata = bkMetadata['Successful'].get( dirName )
             if metadata:
               # All is OK, directory found
-              __fillMetadata( metaForDir, metadata )
+              _fillMetadata( metaForDir, metadata )
               self.log.verbose( "Cache this entry in DirMetadata table.." )
               resInsert = self.__dataUsageClient.insertToDirMetadata( { dirName: metadata} )
               if not resInsert[ 'OK' ]:
@@ -393,7 +393,7 @@ class StorageHistoryAgent( AgentModule ):
             else:
               # Directory not found
               self.log.warn( "Directory %s not registered in Bookkeeping!" % dirName )
-              __fillMetadata( metaForDir, 'notInBkk' )
+              _fillMetadata( metaForDir, 'notInBkk' )
               self.directoriesNotInBkk.append( dirName )
             # Translate a few keys for accounting
             for bkName, accName in ( ( 'ConfigName', 'DataType' ), ( 'ConfigVersion', 'Activity' ), ( 'ConditionDescription', 'Conditions' ) ):
