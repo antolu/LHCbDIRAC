@@ -380,7 +380,8 @@ class StorageHistoryAgent( AgentModule ):
           self.log.verbose( "Successfully queried Bookkeeping, result: %s " % bkMetadata )
           for dirName in notInCache:
             metaForDir = metaForList[dirName]
-            metadata = bkMetadata['Successful'].get( dirName )
+            # BK returns a list of metadata, chose the first one...
+            metadata = bkMetadata['Successful'].get( dirName, [{}] )[0]
             if metadata:
               # All is OK, directory found
               _fillMetadata( metaForDir, metadata )
