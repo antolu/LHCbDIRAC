@@ -480,6 +480,8 @@ class ProductionRequest( object ):
         ep = extraOptions[step['StepId']]
       except IndexError:
         ep = ''
+      except KeyError:
+        ep = ''
       stepName = prod.addApplicationStep( stepDict = step,
                                           outputSE = outputSE,
                                           optionsLine = ep,
