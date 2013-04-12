@@ -1676,12 +1676,11 @@ class LHCbBookkeepingManager(BaseESManager):
     """crate option"""
     fd = None
     if optionsFile == '':
-      fd = None
       if savedType == 'txt':
-        fd = ''
+        result = ''
         for lfn in files:
-          fd += str(lfn) + '\n'
-        return fd
+          result += str(lfn) + '\n'
+        return result
 
     # get lst of event types
     evtTypes = self.__createEventtypelist(files)
