@@ -612,7 +612,7 @@ procedure getJobInfo(
  begin
   open a_Cursor for
    select  jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER,jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS,
-                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production
+                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion
    from jobs,files
    where files.jobid=jobs.jobid and  files.filename=lfn;
  end;
