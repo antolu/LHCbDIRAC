@@ -267,11 +267,10 @@ class StorageHistoryAgent( AgentModule ):
 
       # Fill in the accounting record
       self.log.info( "Fill the record for %s and metadata: %s " % ( dirLfn, metaForDir ) )
+      res = self.fillAndSendAccountingRecord( dirLfn, metaForDir, now )
+      if not res['OK']:
+        return res
       for se in self.pfnUsage[ dirLfn ]:
-        self.log.verbose( "Filling accounting record for se %s" % se )
-        res = self.fillAndSendAccountingRecord( dirLfn, se, metaForDir, now )
-        if not res['OK']:
-          return res
         self.debug_seUsage_acc.setdefault( se, { 'Files': 0 , 'Size': 0 } )
         self.debug_seUsage_acc[ se ][ 'Files' ] += self.pfnUsage[ dirLfn ][ se ][ 'Files' ]
         self.debug_seUsage_acc[ se ][ 'Size' ] += self.pfnUsage[ dirLfn ][ se ][ 'Size' ]
@@ -365,12 +364,14 @@ class StorageHistoryAgent( AgentModule ):
         else:
           notInCache.append( dirName )
 
+      failedBK = []
       if notInCache:
         self.log.info( "Directory metadata cache missed for %d directories => query BK and cache" % len( notInCache ) )
         self.callsToBkkgetDirectoryMetadata += 1
         res = self.__bkClient.getDirectoryMetadata( notInCache )
         if not res[ 'OK' ]:
           self.log.error( "Totally failed to query Bookkeeping %s" % res[ 'Message' ] )
+          failedBK = notInCache
           for dirName in notInCache:
             metaForDir = metaForList[dirName]
             _fillMetadata( metaForDir, 'FailedBkkQuery' )
@@ -394,13 +395,14 @@ class StorageHistoryAgent( AgentModule ):
               # Directory not found
               self.log.warn( "Directory %s not registered in Bookkeeping!" % dirName )
               _fillMetadata( metaForDir, 'notInBkk' )
+              failedBK.append( dirName )
               self.directoriesNotInBkk.append( dirName )
             # Translate a few keys for accounting
             for bkName, accName in ( ( 'ConfigName', 'DataType' ), ( 'ConfigVersion', 'Activity' ), ( 'ConditionDescription', 'Conditions' ) ):
               metaForDir[accName] = metaForDir.pop( bkName, 'na' )
 
       # cache locally the metadata
-      for dirName in notFound:
+      for dirName in [dn for dn in notFound if dn not in failedBK]:
         metaForDir = metaForList[dirName]
         # Translate the numerical event type to a description string
         metaForDir['EventType'] = self.__getEventTypeDescription( metaForDir.pop( 'EventType', 'na' ) )
@@ -534,8 +536,7 @@ class StorageHistoryAgent( AgentModule ):
     try:
       eventType = int( eventType )
     except:
-      self.log.error( "Wrong format for eventType %s: %s" % ( eventType, type( eventType ) ) )
-      return 'na'
+      pass
     # check that the event type description is in the cached dictionary, and otherwise query the Bkk
     if eventType not in self.eventTypeDescription:
       self.log.notice( "Event type description not available for eventTypeID %s, getting from Bkk" % eventType )
@@ -552,38 +553,38 @@ class StorageHistoryAgent( AgentModule ):
 
     return self.eventTypeDescription.get( eventType, 'na' )
 
-  def fillAndSendAccountingRecord( self, lfnDir, se, metadataDict, now ):
+  def fillAndSendAccountingRecord( self, lfnDir, metadataDict, now ):
     ''' Create, fill and send to accounting a record for the DataStorage type.
     '''
-
-    physicalSize = self.pfnUsage[ lfnDir ][ se ][ 'Size' ]
-    physicalFiles = self.pfnUsage[ lfnDir ][ se ][ 'Files' ]
-    logicalSize = self.lfnUsage[ lfnDir ][ 'LfnSize' ]
-    logicalFiles = self.lfnUsage[ lfnDir ][ 'LfnFiles' ]
 
     dataRecord = DataStorage()
     dataRecord.setStartTime( now )
     dataRecord.setEndTime( now )
-    for key in ( 'DataType', 'Activity', 'FileType', 'Production', 'ProcessingPass', 'Conditions', 'EventType' ):
-      dataRecord.setValueByKey( key, metadataDict.get( key, 'na' ) )
-    dataRecord.setValueByKey( "StorageElement", se )
-    dataRecord.setValueByKey( "PhysicalSize", physicalSize )
-    dataRecord.setValueByKey( "PhysicalFiles", physicalFiles )
+    logicalSize = self.lfnUsage[ lfnDir ][ 'LfnSize' ]
+    logicalFiles = self.lfnUsage[ lfnDir ][ 'LfnFiles' ]
     dataRecord.setValueByKey( "LogicalSize", logicalSize )
     dataRecord.setValueByKey( "LogicalFiles", logicalFiles )
-    self.log.notice( ">>> Send DataStorage record to accounting: \
-StorageElement: %s \
---> physFiles: %d  \
-physSize: %d \
-lfnFiles: %d \
-lfnSize: %d " % ( se, physicalFiles, physicalSize, logicalFiles, logicalSize ) )
+    for key in ( 'DataType', 'Activity', 'FileType', 'Production', 'ProcessingPass', 'Conditions', 'EventType' ):
+      dataRecord.setValueByKey( key, metadataDict.get( key, 'na' ) )
+    self.log.verbose( ">>> Send DataStorage record to accounting:" )
+    self.log.verbose( "\tlfnFiles: %d lfnSize: %d " % ( logicalFiles, logicalSize ) )
 
-    res = gDataStoreClient.addRegister( dataRecord )
-    if not res[ 'OK']:
-      self.log.error( "addRegister returned: %s" % res )
-      return S_ERROR( "addRegister returned: %s" % res )
-    self.totalRecords += 1
-    self.recordsToCommit += 1
+    for se in self.pfnUsage[ lfnDir ]:
+      self.log.verbose( "Filling accounting record for se %s" % se )
+      physicalSize = self.pfnUsage[ lfnDir ][ se ][ 'Size' ]
+      physicalFiles = self.pfnUsage[ lfnDir ][ se ][ 'Files' ]
+
+      dataRecord.setValueByKey( "StorageElement", se )
+      dataRecord.setValueByKey( "PhysicalSize", physicalSize )
+      dataRecord.setValueByKey( "PhysicalFiles", physicalFiles )
+      self.log.verbose( "\t\tStorageElement: %s --> physFiles: %d  physSize: %d " % ( se, physicalFiles, physicalSize ) )
+
+      res = gDataStoreClient.addRegister( dataRecord )
+      if not res[ 'OK']:
+        self.log.error( "addRegister returned: %s" % res )
+        return S_ERROR( "addRegister returned: %s" % res )
+      self.totalRecords += 1
+      self.recordsToCommit += 1
 
     # Commit if necessary
     if self.recordsToCommit > self.limitForCommit:
