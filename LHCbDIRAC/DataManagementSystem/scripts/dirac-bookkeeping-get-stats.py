@@ -136,7 +136,7 @@ if __name__ == "__main__":
       else:
         res = bk.getFileMetadata( lfns )
         if res['OK']:
-          for lfn, metadata in res['Value'].items():
+          for lfn, metadata in res['Value']['Successful'].items():
             nbFiles += 1
             nbEvents += metadata['EventStat']
             fileSize += metadata['FileSize']

@@ -139,7 +139,7 @@ class fakeClient:
     res = self.bk.getFileMetadata( lfns )
     if res['OK']:
       files = []
-      for lfn, metadata in res['Value'].items():
+      for lfn, metadata in res['Value']['Successful'].items():
         runID = metadata.get( 'RunNumber', 0 )
         runDict = {"RunNumber":runID, "LFN":lfn}
         files.append( runDict )

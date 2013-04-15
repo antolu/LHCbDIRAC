@@ -185,7 +185,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
                                  res['Message'],
                                  transID = transID )
               else:
-                for lfn, metadata in res['Value'].items():
+                for lfn, metadata in res['Value']['Successful'].items():
                   runID = metadata.get( 'RunNumber', None )
                   if runID:
                     runDict.setdefault( int( runID ), [] ).append( lfn )

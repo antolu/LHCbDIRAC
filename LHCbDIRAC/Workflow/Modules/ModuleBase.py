@@ -359,7 +359,7 @@ class ModuleBase( object ):
         return res
 
       outputTypes = []
-      if len( res['Value'] ) != len( self.stepInputData ):
+      if len( res['Value']['Successful'] ) != len( self.stepInputData ):
         self.log.warn( "Some inputs are not in BKK, trying to parse the file names" )
         for sid in self.stepInputData:
           fType = '.'.join( os.path.basename( sid ).split( '.' )[1:] ).lower()

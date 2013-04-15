@@ -482,7 +482,7 @@ class ConsistencyChecks( object ):
       for lfnChunk in breakListIntoChunks( [lfn for desc in ancDict.values() for lfn in desc], 1000 ):
         res = self.bkClient.getFileMetadata( lfnChunk )
         if res['OK']:
-          metadata.update( res['Value'] )
+          metadata.update( res['Value']['Successful'] )
         else:
           gLogger.error( "Error getting %d files metadata" % len( lfnChunk ), res['Message'] )
     else:
@@ -572,7 +572,7 @@ class ConsistencyChecks( object ):
     if not res['OK']:
       gLogger.error( "Can't get the bkk metadata: ", res['Message'] )
     else:
-      metadata = res['Value']
+      metadata = res['Value']['Successful']
       missingLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == None]
       noFlagLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'No']
       okLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'Yes']

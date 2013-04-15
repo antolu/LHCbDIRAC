@@ -19,16 +19,18 @@ class UtilitiesTestCase( unittest.TestCase ):
                                                                    }
                                                          }
     self.bkClientMock.getFileMetadata.return_value = {'OK': True,
-                                                      'Value': {'aa.raw': {'FileType': 'RAW',
-                                                                           'RunNumber': 97019},
-                                                                'bb.raw': {'FileType': 'RAW',
-                                                                           'RunNumber': 97019},
-                                                                'dd.raw': {'FileType': 'RAW',
-                                                                           'RunNumber': 97019},
-                                                                'bb.log': {'FileType': 'LOG'},
-                                                                '/bb/pippo/aa.dst':{'FileType': 'DST'},
-                                                                '/lhcb/1_2_1.Semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'},
-                                                                '/lhcb/1_1.semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}
+                                                      'Value': {'Successful':{'aa.raw': {'FileType': 'RAW',
+                                                                                         'RunNumber': 97019},
+                                                                              'bb.raw': {'FileType': 'RAW',
+                                                                                         'RunNumber': 97019},
+                                                                              'dd.raw': {'FileType': 'RAW',
+                                                                                         'RunNumber': 97019},
+                                                                              'bb.log': {'FileType': 'LOG'},
+                                                                              '/bb/pippo/aa.dst':{'FileType': 'DST'},
+                                                                              '/lhcb/1_2_1.Semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'},
+                                                                              '/lhcb/1_1.semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}
+                                                                              },
+                                                                'Failed':{}
                                                                 }
                                                       }
 

@@ -314,7 +314,7 @@ class PluginUtilities:
     for chunk in breakListIntoChunks( lfns, 1000 ):
       res = self.bkClient.getFileMetadata( chunk )
       if res['OK']:
-        for lfn, metadata in res['Value'].items():
+        for lfn, metadata in res['Value']['Successful'].items():
           filesParam[lfn] = metadata.get( param )
           if lfn not in self.cachedLFNSize:
             self.cachedLFNSize[lfn] = metadata.get( 'FileSize' )
@@ -649,7 +649,7 @@ class PluginUtilities:
       recoProduction = None
       notProcessed = 0
       if res['OK']:
-        if res['Value'].get( lfnToCheck, {} ).get( 'FileType' ) != 'FULL.DST':
+        if res['Value']['Successful'].get( lfnToCheck, {} ).get( 'FileType' ) != 'FULL.DST':
           res = self.bkClient.getFileAncestors( [lfnToCheck], depth = 10, replica = False )
           if res['OK']:
             fullDst = [f['FileName'] for f in res['Value']['Successful'].get( lfnToCheck, [{}] ) if f.get( 'FileType' ) == 'FULL.DST']
@@ -945,7 +945,7 @@ class PluginUtilities:
     res = self.bkClient.getFileMetadata( lfns )
     runFiles = {}
     if res['OK']:
-      for lfn, metadata in res['Value'].items():
+      for lfn, metadata in res['Value']['Successful'].items():
         runFiles.setdefault( metadata['RunNumber'], [] ).append( lfn )
       for run in sorted( runFiles ):
         if not run:

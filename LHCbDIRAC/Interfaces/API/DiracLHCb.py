@@ -767,7 +767,7 @@ class DiracLHCb( Dirac ):
       self.log.error( 'Failed to get bookkeeping metadata with result "%s"' % ( result['Message'] ) )
       return result
 
-    for lfn, metadata in result['Value'].items():
+    for lfn, metadata in result['Value']['Successful'].items():
       if 'RunNumber' in metadata:
         runNumber = metadata['RunNumber']
         runDict.setdefault( runNumber, [] ).append( lfn )

@@ -171,7 +171,7 @@ def __fixRunZero( filesWithRunZero, fixRun ):
     res = bkClient.getFileMetadata( filesWithRunZero )
     if res['OK']:
       runFiles = {}
-      for lfn, metadata in res['Value'].items():
+      for lfn, metadata in res['Value']['Successful'].items():
         runFiles.setdefault( metadata['RunNumber'], [] ).append( lfn )
       for run in runFiles:
         if not run:
@@ -222,7 +222,7 @@ def __checkFilesMissingInFC( transFilesList, status, fixIt ):
         if not res['OK']:
           print "ERROR getting metadata from BK"
         else:
-          metadata = res['Value']
+          metadata = res['Value']['Successful']
           lfnsWithReplicaFlag = [lfn for lfn in metadata if metadata[lfn]['GotReplica'] == 'Yes']
           if lfnsWithReplicaFlag:
             print "All files are really missing in LFC"

@@ -153,7 +153,7 @@ fp.write("-------- Checks LFC -> Bkk -------------------------------------------
 res = bkClient.getFileMetadata( LFNsInLFC )
 if res['OK']:
   BkkChecks = True
-  metadata = res['Value']
+  metadata = res['Value']['Successful']
   missingLFNs = [lfn for lfn in LFNsInLFC if metadata.get(lfn,{}).get('GotReplica') == None]
   noFlagLFNs = [lfn for lfn in LFNsInLFC if metadata.get(lfn,{}).get('GotReplica') == 'No']
   okLFNs = [lfn for lfn in LFNsInLFC if metadata.get(lfn,{}).get('GotReplica') == 'Yes']

@@ -124,7 +124,7 @@ class UploadOutputData( ModuleBase ):
         self.setApplicationStatus( result['Message'] )
         return result
 
-      if not result['Value']:
+      if not result['Value']['Successful']:
         self.log.info( 'No output data files were determined to be uploaded for this workflow' )
         return S_OK()
 

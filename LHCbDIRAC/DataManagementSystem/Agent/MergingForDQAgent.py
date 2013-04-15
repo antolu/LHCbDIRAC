@@ -371,8 +371,8 @@ class MergingForDQAgent( AgentModule ):
 
                     res = self.bkClient.getFileMetadata( [lfns['DATA']] )
 
-                    if res['Value']:
-                      if res['Value'][lfns['DATA']]['GotReplica'] == 'Yes':
+                    if res['Value']['Successful']:
+                      if res['Value']['Successful'][lfns['DATA']]['GotReplica'] == 'Yes':
                         _msg = "%s already in the bookkeeping. Continue with the other runs."
                         metaDataDict = {}
                         metaDataDict['ProcessingPass'] = bkDict_brunel[ 'ProcessingPass' ]

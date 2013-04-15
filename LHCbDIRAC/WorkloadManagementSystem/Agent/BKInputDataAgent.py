@@ -83,7 +83,7 @@ class BKInputDataAgent( OptimizerModule ):
       return res
 
     # Fail the job if any of the files are not in the BK
-    bkFileMetadata = res['Value']
+    bkFileMetadata = res['Value']['Successful']
     badLFNs = []
     #bkGuidDict = {}
     for lfn in productionFiles:

@@ -615,7 +615,7 @@ class ProcessingProgress:
             gLogger.error( "Error getting files metadata, retrying...", res['Message'] )
           else:
             break
-        metadata = res['Value']
+        metadata = res['Value']['Successful']
         for lfn in lfnChunk:
           lfnDict[lfn] = {}
           for meta in ( 'EventStat', 'Luminosity', 'DQFlag', 'RunNumber' ):
@@ -648,7 +648,7 @@ class ProcessingProgress:
           if not res['OK']:
             gLogger.error( "Error getting files metadata for cached files, bkQuery %s: %s" % ( bkStr, res['Message'] ) )
           else:
-            metadata = res['Value']
+            metadata = res['Value']['Successful']
             for lfn in lfnChunk:
               cachedLfns[lfn]['DQFlag'] = metadata[lfn]['DQFlag']
             break

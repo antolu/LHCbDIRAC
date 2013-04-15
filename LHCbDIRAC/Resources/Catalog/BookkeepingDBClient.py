@@ -284,13 +284,13 @@ class BookkeepingDBClient( FileCatalogueBase ):
           failed[lfn] = res['Message']
       else:
         for lfn in lfnList:
-          if not lfn in res['Value'].keys():
+          if not lfn in res['Value']['Successful'].keys():
             failed[lfn] = 'File does not exist'
           #FIXME: Should not it be isinstance( res['Value'][lfn], str )
-          elif res['Value'][lfn] in types.StringTypes:
-            failed[lfn] = res['Value'][lfn]
+          elif res['Value']['Successful'][lfn] in types.StringTypes:
+            failed[lfn] = res['Value']['Successful'][lfn]
           else:
-            successful[lfn] = res['Value'][lfn]
+            successful[lfn] = res['Value']['Successful'][lfn]
     resDict = {'Successful':successful, 'Failed':failed}
     return S_OK( resDict )
 ################################################################################

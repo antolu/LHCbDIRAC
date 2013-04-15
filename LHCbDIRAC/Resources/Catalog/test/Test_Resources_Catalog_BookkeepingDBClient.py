@@ -26,8 +26,8 @@ class BookkeepingDBClientt_TestCase( unittest.TestCase ):
     mock_RPC.addFiles.return_value        = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
     mock_RPC.removeFiles.return_value     = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
     mock_RPC.exists.return_value          = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
-    mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : { 'A' : { 'FileSize' : 1} , 
-                                                                       'B' : { 'FileSize' : 2} } }
+    mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : { 'Successful':{'A' : { 'FileSize' : 1} ,
+                                                                                     'B' : { 'FileSize' : 2} } } }
 #    mock_RPC.removeMigratingFiles.return_value    = { 'OK' : True }
 #    mock_RPC.removeMigratingReplicas.return_value = { 'OK' : True }
     
@@ -364,7 +364,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( { 'Successful' : {}, 'Failed' : { 'C' : 'File does not exist'} }, res[ 'Value' ] )    
     
     mock_RPC = mock.Mock()
-    mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : { 'A' : '1' , 'B' : '2' } }
+    mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : {'Successful': { 'A' : '1' , 'B' : '2' } } }
     
     self.moduleTested.RPCClient.return_value = mock_RPC
     
@@ -396,7 +396,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     mock_RPC = mock.Mock()
     
     #side_effect does not work very well, cooked a workaround
-    _myValues = [ { 'OK' : False, 'Message' : 'Bo!' }, { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } } ]
+    _myValues = [ { 'OK' : False, 'Message' : 'Bo!' }, { 'OK' : True, 'Value' : { 'Successful':{ 'A' : 1 , 'B' : 2 } } }]
     def _side_effect( _pfn ):
       return _myValues.pop()    
     mock_RPC.getFileMetadata.side_effect = _side_effect
@@ -414,7 +414,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
                                                                  'B' : 'Bo!'} }, res[ 'Value' ] )
 
     mock_RPC = mock.Mock()
-    mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : { 'A' : str , 'B' : '2' } }
+    mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : {'Successful':{ 'A' : str , 'B' : '2' } } }
     
     self.moduleTested.RPCClient.return_value = mock_RPC
     
