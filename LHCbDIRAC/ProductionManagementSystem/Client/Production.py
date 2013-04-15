@@ -15,6 +15,7 @@ import shutil, re, os, copy
 from DIRAC                                                        import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Core.Workflow.Workflow                                 import Workflow, fromXMLString
 from DIRAC.Core.Utilities.List                                    import removeEmptyElements, uniqueElements
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations          import Operations
 
 from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubmissionLFNs
 from LHCbDIRAC.Workflow.Utilities.Utils                           import getStepDefinition
@@ -36,10 +37,11 @@ class Production():
     self.LHCbJob = LHCbJob( script )
     self.BKKClient = BookkeepingClient()
     self.transformation = Transformation()
+    self.opsHelper = Operations()
 
-    self.histogramName = self.LHCbJob.opsHelper.getValue( 'Productions/HistogramName',
+    self.histogramName = self.opsHelper.getValue( 'Productions/HistogramName',
                                                           '@{applicationName}_@{STEP_ID}_Hist.root' )
-    self.histogramSE = self.LHCbJob.opsHelper.getValue( 'Productions/HistogramSE', 'CERN-HIST' )
+    self.histogramSE = self.opsHelper.getValue( 'Productions/HistogramSE', 'CERN-HIST' )
     self.bkSteps = {}
     self.prodGroup = ''
     self.plugin = ''
@@ -60,7 +62,7 @@ class Production():
     """
 
     self.LHCbJob.stepCount = 0
-    self.LHCbJob.setOutputSandbox( self.LHCbJob.opsHelper.getValue( 'Productions/inOutputSandbox',
+    self.LHCbJob.setOutputSandbox( self.opsHelper.getValue( 'Productions/inOutputSandbox',
                                                             ['std.out', 'std.err', '*.log'] ) )
     self.setJobParameters( {
                            'Type'         : 'MCSimulation',
@@ -102,7 +104,7 @@ class Production():
   def setParameter( self, name, parameterType, parameterValue, description ):
     """Set parameters checking in CS in case some defaults need to be changed.
     """
-    proposedParam = self.LHCbJob.opsHelper.getValue( 'Productions/%s' % name, '' )
+    proposedParam = self.opsHelper.getValue( 'Productions/%s' % name, '' )
     if proposedParam:
       gLogger.debug( 'Setting %s from CS defaults = %s' % ( name, proposedParam ) )
       self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, proposedParam, description )
@@ -216,7 +218,7 @@ class Production():
 
       if 'GaudiApplication' in modules:
         gaudiPath = 'Productions/GaudiStep_Modules'
-        modulesNameList = self.LHCbJob.opsHelper.getValue( gaudiPath, modules )
+        modulesNameList = self.opsHelper.getValue( gaudiPath, modules )
       else:
         modulesNameList = modules
       # pName, pType, pValue, pDesc
@@ -383,8 +385,8 @@ class Production():
     if 'Job_Finalization' not in self.LHCbJob.workflow.step_definitions.keys():
 
       if not modulesList:
-        modulesList = self.LHCbJob.opsHelper.getValue( 'Productions/FinalizationStep_Modules',
-                                                   [ 'UploadOutputData', 'UploadLogFile', 'FailoverRequest' ] )
+        modulesList = self.opsHelper.getValue( 'Productions/FinalizationStep_Modules',
+                                               [ 'UploadOutputData', 'UploadLogFile', 'FailoverRequest' ] )
 
       jobFinalizationStepDef = getStepDefinition( 'Job_Finalization', modulesNameList = modulesList )
       self.LHCbJob.workflow.addStep( jobFinalizationStepDef )
