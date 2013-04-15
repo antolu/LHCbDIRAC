@@ -15,7 +15,7 @@ def tarFiles( outputFile, files = [], compression = '', deleteInput = False ):
       tar.add( fileIn )
     tar.close()
   except tarfile.CompressionError:
-    return S_ERROR( 'Compression %s not available' )
+    return S_ERROR( 'Compression not available' )
 
   if deleteInput:
     for fileIn in files:
