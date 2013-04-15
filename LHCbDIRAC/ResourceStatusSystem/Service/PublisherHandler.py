@@ -49,9 +49,13 @@ class PublisherHandler( RequestHandler ):
     gLogger.info( 'getSites' )
     return CSHelpers.getSites()
 
-  types_getSiteStatuses = []
-  def export_getSiteStatuses( self ):
-      return rsClient.selectStatusElement( 'Site', 'Status' ) 
+  types_getElementStatuses = [ str, ( str, list, NoneType ), ( str, list, NoneType ), 
+                            ( str, list, NoneType ), ( str, list, NoneType ),
+                            ( str, list, NoneType ) ]
+  def export_getElementStatuses( self, element, name, elementType, statusType, status, tokenOwner ):
+      return rsClient.selectStatusElement( element, 'Status', name = name, elementType = elementType,
+                                           statusType = statusType, status = status,
+                                           tokenOwner = tokenOwner ) 
 
   types_getNodeStatuses = []
   def export_getNodeStatuses( self ):
