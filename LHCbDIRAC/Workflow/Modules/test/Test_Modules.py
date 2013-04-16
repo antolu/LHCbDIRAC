@@ -79,16 +79,18 @@ class ModulesTestCase( unittest.TestCase ):
                                                                      ['BU2JPSIK.DST'], ['BUBDBSSELECTION.DST'],
                                                                      ['LAMBDA.DST'], ['BSMUMUBLIND.DST'], ['HADRONIC.DST']]}}
     self.bkc_mock.getFileMetadata.return_value = {'OK': True,
-                                                  'Value': {'foo': {'ADLER32': None,
-                                                                    'FileType': 'SDST',
-                                                                    'FullStat': None,
-                                                                    'GotReplica': 'Yes',
-                                                                    'RunNumber': 93718},
-                                                            'bar': {'ADLER32': None,
-                                                                    'FileType': 'SDST',
-                                                                    'FullStat': None,
-                                                                    'GotReplica': 'Yes',
-                                                                    'RunNumber': 93720}},
+                                                  'Value': {'Successful':{
+                                                                          'foo': {'ADLER32': None,
+                                                                                  'FileType': 'SDST',
+                                                                                  'FullStat': None,
+                                                                                  'GotReplica': 'Yes',
+                                                                                  'RunNumber': 93718},
+                                                                          'bar': {'ADLER32': None,
+                                                                                  'FileType': 'SDST',
+                                                                                  'FullStat': None,
+                                                                                  'GotReplica': 'Yes',
+                                                                                  'RunNumber': 93720}}
+                                                            },
                                                   'rpcStub': ( ( 'Bookkeeping/BookkeepingManager', ) )
                                                   }
 
@@ -957,11 +959,11 @@ class UploadOutputDataSuccess( ModulesTestCase ):
       for step_commons in copy.deepcopy( self.step_commons ):
         fileDescendants = {}
         self.assertTrue( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                         self.workflowStatus, self.stepStatus,
-                                         wf_commons, step_commons,
-                                         self.step_number, self.step_id,
-                                         self.ft_mock, SEs = ['SomeSE'],
-                                         fileDescendants = fileDescendants )['OK'] )
+                                           self.workflowStatus, self.stepStatus,
+                                           wf_commons, step_commons,
+                                           self.step_number, self.step_id,
+                                           self.ft_mock, SEs = ['SomeSE'],
+                                           fileDescendants = fileDescendants )['OK'] )
 
 
     #no errors, input data

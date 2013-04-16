@@ -366,7 +366,7 @@ class ModuleBase( object ):
           if fType not in outputTypes:
             outputTypes.append( fType )
       else:
-        for mdDict in res['Value'].values():
+        for mdDict in res['Value']['Successful'].values():
           if mdDict['FileType'] not in outputTypes:
             outputTypes.append( mdDict['FileType'] )
 
