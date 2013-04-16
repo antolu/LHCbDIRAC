@@ -173,6 +173,9 @@ class GaudiApplication( ModuleBase ):
 
         if self.stepInputData:
           optionsDict['InputFiles'] = ['LFN:' + sid for sid in self.stepInputData]
+        else:
+          if self.applicationName.lower() != "gauss":
+            return S_ERROR( 'No MC, but no input data' )
 
         if self.outputFilePrefix:
           optionsDict['OutputFilePrefix'] = self.outputFilePrefix
