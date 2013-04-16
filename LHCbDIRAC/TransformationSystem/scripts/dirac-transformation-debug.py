@@ -171,11 +171,11 @@ def __fixRunZero( filesWithRunZero, fixRun ):
     res = bkClient.getFileMetadata( filesWithRunZero )
     if res['OK']:
       runFiles = {}
-      for lfn, metadata in res['Value']['Successful'].items():
+      for lfn, metadata in res['Value'].items():
         runFiles.setdefault( metadata['RunNumber'], [] ).append( lfn )
       for run in runFiles:
         if not run:
-          print "%d files found for run '%s': %s" % ( len( runFiles[run] ), str( run ), str( runFiles[run] ) )
+          print "%d files found in BK with run '%s': %s" % ( len( runFiles[run] ), str( run ), str( runFiles[run] ) )
           continue
         res = transClient.addTransformationRunFiles( transID, run, runFiles[run] )
         # print run, runFiles[run], res
@@ -183,7 +183,10 @@ def __fixRunZero( filesWithRunZero, fixRun ):
           print "***ERROR*** setting %d files to run %d in transformation %d: %s" % ( len( runFiles[run] ), run, transID, res['Message'] )
         else:
           fixedFiles += len( runFiles[run] )
-      print "Successfully fixed run number for %d files" % fixedFiles
+      if fixedFiles:
+        print "Successfully fixed run number for %d files" % fixedFiles
+      else:
+        print "There were no files for which to fix the run number"
     else:
       print "***ERROR*** getting metadata for %d files: %s" % ( len( filesWithRunZero ), res['Message'] )
 
@@ -451,6 +454,77 @@ def __checkReplicasForProblematic( lfns, replicas ):
     for se in realSEs:
       problematicReplicas.setdefault( se, [] ).append( lfn )
 
+def __checkJobs( jobsForLfn ):
+  from DIRAC.Core.DISET.RPCClient                          import RPCClient
+  monitoring = RPCClient( 'WorkloadManagement/JobMonitoring' )
+  for lfn, jobs in jobsForLfn.items():
+    jobs.sort()
+    res = monitoring.getJobsStatus( jobs )
+    if res['OK']:
+      jobStatus = res['Value']
+      res = monitoring.getJobsMinorStatus( jobs )
+      if res['OK']:
+        jobMinorStatus = res['Value']
+        res = monitoring.getJobsApplicationStatus( jobs )
+        if res['OK']:
+          jobApplicationStatus = res['Value']
+    if not res['OK']:
+      print 'Error getting jobs statuses:', res['Message']
+      return
+    allStatus = {}
+    for job in [int( j ) for j in jobs]:
+      status = jobStatus.get( job, {} ).get( 'Status', 'Unknown' ) + '; ' + \
+               jobMinorStatus.get( job, {} ).get( 'MinorStatus', 'Unknown' ) + '; ' + \
+               jobApplicationStatus.get( job, {} ).get( 'ApplicationStatus', 'Unknown' )
+      allStatus[job] = status
+    print '\nLFN:', lfn, ': Status of corresponding %d jobs (ordered):' % len( jobs )
+
+    prevStatus = None
+    allStatus[sys.maxint] = ''
+    for job in sorted( allStatus ):
+      status = allStatus[job]
+      if status == prevStatus:
+        jobs.append( job )
+        continue
+      elif not prevStatus:
+        prevStatus = status
+        jobs = [job]
+        continue
+      prStr = '%3d jobs' % len( jobs )
+      if 'Failed' in prevStatus or 'Done' in prevStatus or 'Completed' in prevStatus:
+        prStr += ' terminated with status:'
+      else:
+        prStr += ' in status:'
+      print prStr, prevStatus
+      majorStatus, minorStatus, applicationStatus = prevStatus.split( '; ' )
+      if majorStatus == 'Failed' and minorStatus == 'Job stalled: pilot not running':
+        lastLine = ''
+        # Now get last lines
+        res = monitoring.getJobsSites( jobs )
+        if res['OK']:
+          jobSites = res['Value']
+        for job1 in sorted( jobs ) + [0]:
+          if job1:
+            res = monitoring.getJobParameter( int( job1 ), 'StandardOutput' )
+            if res['OK']:
+              line = '(%s) ' % jobSites.get( job1, {} ).get( 'Site', 'Unknown' ) + res['Value'].get( 'StandardOutput', 'stdout not available\n' ).splitlines()[-1].split( 'UTC ' )[-1]
+          else:
+            line = ''
+          if not lastLine:
+            lastLine = line
+            jobs = [job1]
+            continue
+          elif line == lastLine:
+            jobs.append( job )
+            continue
+          print '\t%3d jobs' % len( jobs ), 'stalled with last line:', lastLine
+          lastLine = line
+          jobs = [job1]
+      jobs = [job]
+      prevStatus = status
+  print ''
+
+
 #====================================
 if __name__ == "__main__":
 
@@ -551,6 +625,9 @@ if __name__ == "__main__":
     byFiles = True
   if allTasks:
     byTasks = True
+  if byJobs:
+    allTasks = True
+    byTasks = False
 
   transList = __getTransformations( Script.getPositionalArgs() )
 
@@ -644,7 +721,7 @@ if __name__ == "__main__":
               taskDict.setdefault( taskID, [] ).append( fileDict['LFN'] )
         if byFiles and not taskList:
             print fileDict['LFN'], "- Run:", fileDict['RunNumber'], "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
-        if fileDict['RunNumber'] == 0 and fileDict['LFN'].find( '/MC' ) < 0:
+        if not fileDict['RunNumber'] and fileDict['LFN'].find( '/MC' ) < 0:
           filesWithRunZero.append( fileDict['LFN'] )
 
       # Files with run# == 0
@@ -664,6 +741,7 @@ if __name__ == "__main__":
       ####################
       # Now loop on all tasks
       failedFiles = []
+      jobsForLfn = {}
       if verbose:
         print "Tasks:", ' '.join( sorted( taskDict ) )
       for taskID in sorted( taskList ) if taskList else sorted( taskDict ):
@@ -676,6 +754,7 @@ if __name__ == "__main__":
         if not task: continue
         if byJobs and taskType == 'Job':
           job = task['ExternalID']
+          jobsForLfn.setdefault( ','.join( taskDict.get( taskID, [''] ) ), [] ).append( job )
           if job not in jobList:
             jobList.append( job )
           if not byFiles and not byTasks:
@@ -712,7 +791,8 @@ if __name__ == "__main__":
             toBeKicked = __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRequests )
 
           print ""
-
+      if byJobs and jobsForLfn:
+        __checkJobs( jobsForLfn )
     if status == 'Problematic':
       __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas, failedFiles, fixIt )
     if toBeKicked:
@@ -752,11 +832,6 @@ if __name__ == "__main__":
           print 'Of %d files, %d set to %s' % ( len( allFiles ), len( res['Value']['Successful'] ), newStatus )
         else:
           print "Failed to set status %s" % newStatus
-
-    # All jobs?
-    if byJobs and jobList:
-      print "List of jobs found:"
-      print " ".join( jobList )
 
   if improperJobs:
     print "List of %d jobs in improper status:" % len( improperJobs )
