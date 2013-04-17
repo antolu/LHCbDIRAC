@@ -264,7 +264,7 @@ class DiracSAM( Dirac ):
                                   importLine = "LHCbDIRAC.SAMSystem.Modules" )
     addStepToWorkflow( samJob.workflow, step, stepName )
     
-    return samJob
+    return S_OK( samJob )
   
   def submitNewSAMJob( self, ce, runLocal = False ):
     '''
@@ -275,6 +275,8 @@ class DiracSAM( Dirac ):
     mode = ( runLocal and 'local' ) or 'wms'
     
     samJob = self.defineSAMJob( ce )
+    if not samJob[ 'OK' ]:
+      return samJob
     return self.submit( samJob, mode )
 
   #FIXME: this method already exists on DiracAdmin, it is a copy.
