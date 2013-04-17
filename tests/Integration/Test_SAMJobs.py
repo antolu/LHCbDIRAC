@@ -19,7 +19,7 @@ class SAMJobTestCase( unittest.TestCase ):
     self.diracSAM = DiracSAM()
     self.subLogger = gLogger.getSubLogger( __file__ )
 
-    self.ce = gConfig.getValue( 'LocalSite/GridCE' )
+    self.ce = gConfig.getValue( 'LocalSite/GridCE', 'ce201.cern.ch' )
     self.subLogger.debug( self.ce )
 
 class SAMSuccess( SAMJobTestCase ):
