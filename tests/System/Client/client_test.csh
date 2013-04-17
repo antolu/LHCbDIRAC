@@ -18,8 +18,8 @@ if $status != 0 then
    exit 0
 endif
 echo " "
-echo "======  dirac-lhcb-list-software"
-dirac-lhcb-list-software
+echo "======  dirac-lhcb-view-software"
+dirac-lhcb-view-software
 if $status != 0 then
    exit 0
 endif
