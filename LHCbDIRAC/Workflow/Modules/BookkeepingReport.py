@@ -44,6 +44,8 @@ class BookkeepingReport( ModuleBase ):
     self.jobType = ''
     self.stepOutputs = []
     self.histogram = False
+    self.eventsN = 0
+    self.xf_o = None
 
     self.ldate = None
     self.ltime = None
