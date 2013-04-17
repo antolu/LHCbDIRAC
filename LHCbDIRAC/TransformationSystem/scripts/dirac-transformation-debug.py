@@ -478,7 +478,7 @@ def __checkJobs( jobsForLfn ):
                jobApplicationStatus.get( job, {} ).get( 'ApplicationStatus', 'Unknown' )
       allStatus[job] = status
     print '\nLFN:', lfn, ': Status of corresponding %d jobs (ordered):' % len( jobs )
-
+    print ' '.join( jobs )
     prevStatus = None
     allStatus[sys.maxint] = ''
     for job in sorted( allStatus ):
