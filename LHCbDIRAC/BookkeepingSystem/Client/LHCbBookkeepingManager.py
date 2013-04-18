@@ -1566,6 +1566,7 @@ class LHCbBookkeepingManager(BaseESManager):
     selection = in_dict
     in_dict['Visible'] = 'Y'
     if len(sortDict) > 0:
+      in_dict['Quality'] = self.__getSelectedQualities()
       res = self.db_.getFilesSummary(in_dict)
       if not res['OK']:
         gLogger.error(res['Message'])
