@@ -321,6 +321,17 @@ class BookkeepingClient:
     return result
 
   #############################################################################
+  def bulkJobInfo(self, lfns):
+    """
+    It returns the job metadata information for a list of lfns produced by this job.
+    """
+    if type(lfns) == types.StringType:
+      lfns = [lfns]
+    server = self.__getServer()
+    result = server.bulkJobInfo(lfns)
+    return result
+
+  #############################################################################
   def getRunNumber(self, lfn):
     """
     It returns the run number for a given lfn!
@@ -455,14 +466,12 @@ class BookkeepingClient:
     return self.getFileDescendants(lfns, depth, production, checkreplica)
 
   #############################################################################
-  def insertSimConditions(self, simdesc, beamCond, beamEnergy, generator,
-                          magneticField, detectorCond, luminosity, g4settings):
+  def insertSimConditions(self, in_dict):
     """
     It inserts a simulation condition to the Bookkeeping Metadata catalogue.
     """
     server = self.__getServer()
-    result = server.insertSimConditions(simdesc, beamCond, beamEnergy, generator,
-                                         magneticField, detectorCond, luminosity, g4settings)
+    result = server.insertSimConditions(in_dict)
     return result
 
   #############################################################################
@@ -964,6 +973,30 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getListOfRuns(in_dict)
 
+  #############################################################################
+  def getSimulationConditions(self, in_dict):
+    """It returns a list of simulation conditions for a given conditions
+    """
+    server = self.__getServer()
+    return server.getSimulationConditions(in_dict)
+
+  #############################################################################
+  def updateSimulationConditions(self, in_dict):
+    """It updates a given simulation condition
+    """
+    server = self.__getServer()
+    return server.updateSimulationConditions(in_dict)
+
+  #############################################################################
+  def deleteSimulationConditions(self, simid):
+    """It deletes a given simulation condition
+    """
+    try:
+      simid = long(simid)
+    except ValueError, ex:
+      return S_ERROR(ex)
+    server = self.__getServer()
+    return server.deleteSimulationConditions(simid)
 
 
 

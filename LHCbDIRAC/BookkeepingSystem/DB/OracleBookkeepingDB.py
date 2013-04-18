@@ -1258,6 +1258,47 @@ class OracleBookkeepingDB:
     return self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getJobInfo', [lfn])
 
   #############################################################################
+  def bulkJobInfo(self, lfns):
+    """returns the job information for a list of files"""
+    retVal = self.dbR_.executeStoredProcedure(packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfo',
+                                                parameters = [],
+                                                output = True,
+                                                array= lfns )
+
+    records = {}
+    if retVal['OK']:
+      for i in retVal['Value']:
+
+        records[i[0]] = dict(zip(('DIRACJobId',
+                              'DIRACVersion',
+                              'EventInputStat',
+                              'ExecTime',
+                              'FirstEventNumber',
+                              'Location',
+                              'Name',
+                              'NumberOfEvents',
+                              'StatisticsRequested',
+                              'WNCPUPOWER',
+                              'CPUTIME',
+                              'WNCACHE',
+                              'WNMEMORY',
+                              'WNMODEL',
+                              'WORKERNODE',
+                              'WNCPUHS06',
+                              'JobId',
+                              'TotalLumonosity',
+                              'Production',
+                              'ApplicationName',
+                              'ApplicationVersion'), i[1:]))
+
+      failed = [ i for i in lfns if i not in records]
+      result = S_OK({'Successful':records, 'Failed':failed})
+    else:
+      result = retVal
+
+    return result
+
+  #############################################################################
   def getJobInformation(self, params):
     """it returns only  the job information which given  by params for a given lfn"""
     production = params.get('Production', default)
@@ -1992,15 +2033,22 @@ class OracleBookkeepingDB:
     return S_ERROR('Not Implemented !!' + lfns)
 
   #############################################################################
-  def insertSimConditions(self, simdesc, beamCond,
-                          beamEnergy, generator,
-                          magneticField, detectorCond,
-                          luminosity, g4settings):
+  def insertSimConditions(self, in_dict):
     """inserst a simulation conditions"""
+
+    simdesc = in_dict.get('SimDescription',None)
+    beamCond = in_dict.get('BeamCond', None)
+    beamEnergy = in_dict.get('BeamEnergy', None)
+    generator = in_dict.get('Generator',None)
+    magneticField = in_dict.get('MagneticField', None)
+    detectorCond = in_dict.get('DetectorCond', None)
+    luminosity = in_dict.get('Luminosity', None)
+    g4settings = in_dict.get('G4settings', None)
+    visible = in_dict.get('Visible', 'Y')
     return self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.insertSimConditions',
                                             LongType, [simdesc, beamCond, beamEnergy,
                                                        generator, magneticField,
-                                                       detectorCond, luminosity, g4settings])
+                                                       detectorCond, luminosity, g4settings, visible])
 
   #############################################################################
   def getSimConditions(self):
@@ -4537,4 +4585,108 @@ and files.qualityid= dataquality.qualityid'
         command = "select distinct j.runnumber from productionscontainer pcont %s where \
          pcont.production=j.production %s " % (condition)
     return self.dbR_.query(command)
+
+  #############################################################################
+  def getSimulationConditions(self, in_dict):
+    """it returns the simulation conditions for a given condition"""
+    condition = ''
+    tables = " simulationconditions sim"
+    paging = False
+    start = in_dict.get('StartItem', default)
+    maximum = in_dict.get('MaxItem', default)
+
+    simid = in_dict.get('SimId', default)
+    if simid != default:
+      condition += ' and sim.simid=%d ' % int(simid)
+
+    simdesc = in_dict.get('SimDescription', default)
+    if simdesc != default:
+      condition += " and sim.simdescription like '%"+simdesc+"%'"
+
+    visible = in_dict.get('Visible', default)
+    if visible != default:
+      condition += " and sim.visible='%s'" % visible
+
+    if start != default and maximum != default:
+      paging = True
+
+    sort = in_dict.get('Sort', default)
+    if sort != default:
+      condition += 'Order by '
+      order = sort.get('Order', 'Asc')
+      if order.upper() not in ['ASC', 'DESC']:
+        return S_ERROR("wrong sorting order!")
+      items = sort.get('Items', default)
+      if type(items) == types.ListType:
+        order = ''
+        for item in items:
+          order += 'sim.%s,' % (item)
+        condition += ' %s' % order[:-1]
+      elif type(items) == types.StringType:
+        condition += ' sim.%s %s' % (items, order)
+      else:
+        result = S_ERROR('SortItems is not properly defined!')
+    else:
+      condition += ' order by sim.inserttimestamps desc'
+
+    if paging:
+      command = " select sim_simid, sim_simdescription, sim_beamcond, sim_beamenergy, sim_generator, sim_magneticfield, sim_detectorcond, sim_luminosity, sim_g4settings, sim_visible from \
+    ( select ROWNUM r , sim_simid, sim_simdescription, sim_beamcond, sim_beamenergy, sim_generator, sim_magneticfield, sim_detectorcond, sim_luminosity, sim_g4settings, sim_visible from \
+      ( select ROWNUM r, sim.simid sim_simid, sim.simdescription sim_simdescription, sim.beamcond sim_beamcond, sim.beamenergy sim_beamenergy, sim.generator sim_generator, \
+      sim.magneticfield sim_magneticfield, sim.detectorcond sim_detectorcond, sim.luminosity sim_luminosity, sim.g4settings sim_g4settings, sim.visible sim_visible \
+      from %s where sim.simid=sim.simid %s ) where rownum <=%d ) where r >%d" % (tables, condition, maximum, start)
+      retVal = self.dbR_.query(command)
+    else:
+      command = "select sim.simid sim_simid, sim.simdescription sim_simdescription, sim.beamcond sim_beamcond, sim.beamenergy sim_beamenergy, sim.generator sim_generator, \
+      sim.magneticfield sim_magneticfield, sim.detectorcond sim_detectorcond, sim.luminosity sim_luminosity, sim.g4settings sim_g4settings, sim.visible sim_visible from %s where sim.simid=sim.simid %s" % (tables, condition)
+      retVal = self.dbR_.query(command)
+
+    if not retVal['OK']:
+      return retVal
+    else:
+      command = "select count(*) from simulationconditions"
+
+      parameterNames = ['SimId',
+                'SimDescription',
+                'BeamCond',
+                'BeamEnergy',
+                'Generator',
+                'MagneticField',
+                'DetectorCond',
+                'Luminosity',
+                'G4settings',
+                'Visible']
+      records = [ list(record) for record in retVal['Value']]
+      retVal = self.dbR_.query(command)
+      if not retVal['Value']:
+        return retVal
+      totalRecords = retVal['Value'][0][0]
+      result = S_OK({'ParameterNames':parameterNames, 'Records':records, 'TotalRecords':totalRecords})
+
+    return result
+
+  #############################################################################
+  def updateSimulationConditions(self, in_dict):
+    """it updates a given simulation condition"""
+    result = None
+    simid = in_dict.get('SimId', default)
+    if simid!=default:
+      condition = ''
+      for cond in in_dict:
+        if cond != 'SimId':
+          condition+="%s='%s'," % (cond,in_dict[cond])
+      condition = condition[:-1]
+      command = "update simulationconditions set %s where simid=%d" % (condition,int(simid))
+      result = self.dbW_.query(command)
+    else:
+      result = S_ERROR('SimId is missing!')
+
+    return result
+
+  #############################################################################
+  def deleteSimulationConditions(self, simid):
+    """it delete a given simulation condition"""
+    command = "delete simulationconditions where simid=%d" % simid
+    return self.dbW_.query(command)
+
 

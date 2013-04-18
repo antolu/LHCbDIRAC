@@ -66,8 +66,8 @@ if __name__ == "__main__":
                                   'DataQuality'.ljust( 12 ),
                                   'RunNumber'.ljust( 10 ),
                                   '#events'.ljust( 10 ) )
-  for lfn in res['Value']:
-    dict = res['Value'][lfn]
+  for lfn in res['Value']['Successful']:
+    dict = res['Value']['Successful'][lfn]
     if full:
       print '%s%s %s' % ( sep, 'FileName'.ljust( lenItem ), lfn )
       sep = '\n'
@@ -89,11 +89,10 @@ if __name__ == "__main__":
                                      dq.ljust( 12 ),
                                      str( run ).ljust( 10 ),
                                      str( evtStat ).ljust( 10 ) )
-    lfnList.remove( lfn )
 
-  if lfnList:
+  if res['Value']['Failed']:
     print '\n'
-  for lfn in lfnList:
+  for lfn in res['Value']['Failed']:
     if lfn:
       print '%s does not exist in the Bookkeeping.' % lfn
       exitCode = 2

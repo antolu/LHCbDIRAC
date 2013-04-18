@@ -681,6 +681,13 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getJobInfo(lfn)
 
   #############################################################################
+  types_bulkJobInfo = [ListType]
+  @staticmethod
+  def export_bulkJobInfo(lfns):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.bulkJobInfo(lfns)
+
+  #############################################################################
   types_getJobInformation = [DictType]
   @staticmethod
   def export_getJobInformation(in_dict):
@@ -936,17 +943,11 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.checkEventType(eventTypeId)
 
   #############################################################################
-  types_insertSimConditions = [StringType, StringType, StringType,
-                               StringType, StringType, StringType,
-                               StringType, StringType]
+  types_insertSimConditions = [DictType]
   @staticmethod
-  def export_insertSimConditions(simdesc, beamCond, beamEnergy,
-                                 generator, magneticField, detectorCond,
-                                 luminosity, g4settings):
+  def export_insertSimConditions(in_dict):
     """more info in the BookkeepingClient.py"""
-    return dataMGMT_.insertSimConditions(simdesc, beamCond, beamEnergy,
-                                         generator, magneticField, detectorCond,
-                                         luminosity, g4settings)
+    return dataMGMT_.insertSimConditions(in_dict)
 
   #############################################################################
   types_getSimConditions = []
@@ -1894,3 +1895,24 @@ class BookkeepingManagerHandler(RequestHandler):
     else:
       result = S_OK([i[0] for i in retVal['Value']])
     return result
+
+  #############################################################################
+  types_getSimulationConditions = [DictType]
+  @staticmethod
+  def export_getSimulationConditions(in_dict):
+    """It returns a list of simulation conditions"""
+    return dataMGMT_.getSimulationConditions(in_dict)
+
+  #############################################################################
+  types_updateSimulationConditions = [DictType]
+  @staticmethod
+  def export_updateSimulationConditions(in_dict):
+    """it updates a given simulation condition"""
+    return dataMGMT_.updateSimulationConditions(in_dict)
+
+  #############################################################################
+  types_deleteSimulationConditions = [LongType]
+  @staticmethod
+  def export_deleteSimulationConditions(simid):
+    """deletes a given simulation conditions"""
+    return dataMGMT_.deleteSimulationConditions(simid)

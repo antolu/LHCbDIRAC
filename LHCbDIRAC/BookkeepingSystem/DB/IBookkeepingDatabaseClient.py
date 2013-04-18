@@ -165,6 +165,11 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getJobInfo(lfn)
 
   #############################################################################
+  def bulkJobInfo(self, lfns):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().bulkJobInfo(lfns)
+
+  #############################################################################
   def getJobInformation(self, in_dict):
     "more info in the BookkeepingClient.py"
     return self.getManager().getJobInformation(in_dict)
@@ -280,13 +285,9 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().deleteFiles(lfns)
 
   #############################################################################
-  def insertSimConditions(self, simdesc, beamCond, beamEnergy,
-                          generator, magneticField, detectorCond,
-                          luminosity, g4settings):
+  def insertSimConditions(self, in_dict):
     "more info in the BookkeepingClient.py"
-    return self.getManager().insertSimConditions(simdesc, beamCond, beamEnergy,
-                                                 generator, magneticField,
-                                                 detectorCond, luminosity, g4settings)
+    return self.getManager().insertSimConditions(in_dict)
 
   #############################################################################
   def getSimConditions(self):
@@ -682,3 +683,18 @@ class IBookkeepingDatabaseClient(object):
   def getListOfRuns(self, configName, configVersion, conddescription, processing, evt, quality):
     "more info in the BookkeepingClient.py"
     return self.getManager().getListOfRuns(configName, configVersion, conddescription, processing, evt, quality)
+
+  #############################################################################
+  def getSimulationConditions(self, in_dict):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().getSimulationConditions(in_dict)
+
+  #############################################################################
+  def updateSimulationConditions(self, in_dict):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().updateSimulationConditions(in_dict)
+
+  #############################################################################
+  def deleteSimulationConditions(self, simid):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().deleteSimulationConditions(simid)

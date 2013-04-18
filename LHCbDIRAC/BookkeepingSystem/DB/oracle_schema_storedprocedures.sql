@@ -106,7 +106,8 @@ function insertSimConditions(
    v_MagneticField          varchar2,
    v_DetectorCond           varchar2,
    v_Luminosity             varchar2,
-   v_G4settings             varchar2
+   v_G4settings             varchar2,
+   v_visible                varchar2
  )return number;
 
 procedure getSimConditions(a_Cursor out udt_RefCursor);
@@ -174,6 +175,7 @@ procedure bulkupdateReplicaRow(v_replica varchar2, lfns varchararray);
 procedure bulkgetTypeVesrsion(lfns varchararray, a_Cursor out udt_RefCursor);
 procedure setObsolete;
 procedure getDirectoryMetadata_new(lfns varchararray, a_Cursor out udt_RefCursor);
+procedure bulkJobInfo(lfns varchararray, a_Cursor out udt_RefCursor);
 end;
 /
 
@@ -1092,7 +1094,8 @@ function insertSimConditions(
    v_MagneticField          varchar2,
    v_DetectorCond           varchar2,
    v_Luminosity             varchar2,
-   v_G4settings             varchar2
+   v_G4settings             varchar2,
+   v_visible                varchar2
  )return number
  is
   simulId number;
@@ -1107,7 +1110,8 @@ function insertSimConditions(
                MagneticField,
                DetectorCond,
                Luminosity,
-               G4settings)values(simulId,v_Simdesc,v_BeamCond,v_BeamEnergy,v_Generator,v_MagneticField,v_DetectorCond,v_Luminosity,v_G4settings);
+               G4settings,
+               visible)values(simulId,v_Simdesc,v_BeamCond,v_BeamEnergy,v_Generator,v_MagneticField,v_DetectorCond,v_Luminosity,v_G4settings, v_visible);
   COMMIT;
   return simulId;
  end;
@@ -1783,5 +1787,49 @@ BEGIN
 update steps set usable='Obsolete' where stepid in (select stepid from steps where trunc(INSERTTIMESTAMPS)<=add_months(sysdate+1,-12) and usable!='Obsolete');
 commit;
 END;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure bulkJobInfo(lfns varchararray, a_Cursor out udt_RefCursor)
+is
+/*create or replace  type jobMetadata is object(lfn varchar2(256),
+  DiracJobId                  NUMBER,
+  DiracVersion                VARCHAR2(256),
+  EventInputStat              NUMBER,
+  ExecTime                    FLOAT,
+  FirstEventNumber            NUMBER,
+  Location                    VARCHAR2(256),
+  Name                        VARCHAR2(256),
+  NumberOfEvents              NUMBER,
+  StatisticsRequested         NUMBER,
+  WNCPUPower                  VARCHAR2(256),
+  CPUTime                     FLOAT,
+  WNCache                     VARCHAR2(256),
+  WNMemory                    VARCHAR2(256),
+  WNModel                     VARCHAR2(256),
+  WORKERNODE                  varchar2(256),
+  WNCPUHS06                   FLOAT,
+  jobid                       number,   
+  totalLuminosity             NUMBER,
+  production                  NUMBER,
+  ProgramName                 VARCHAR2(256),
+  ProgramVersion              VARCHAR2(256));
+create or replace
+type bulk_collect_jobMetadata is table of jobMetadata;
+*/
+n integer := 0;
+jobmeta bulk_collect_jobMetadata := bulk_collect_jobMetadata();
+BEGIN
+FOR i in lfns.FIRST .. lfns.LAST LOOP
+  for c in (select  jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER,jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS,
+                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion
+   from jobs,files where files.jobid=jobs.jobid and  files.filename=lfns(i)) LOOP
+     jobmeta.extend;
+     n:=n+1;
+    jobmeta (n):= jobMetadata(lfns(i), c.DIRACJOBID, c.DIRACVERSION, c.EVENTINPUTSTAT, c.EXECTIME, c.FIRSTEVENTNUMBER,c.LOCATION,  c.NAME, c.NUMBEROFEVENTS,
+                 c.STATISTICSREQUESTED, c.WNCPUPOWER, c.CPUTIME, c.WNCACHE, c.WNMEMORY, c.WNMODEL, c.WORKERNODE, c.WNCPUHS06, c.jobid, c.totalluminosity, c.production, c.programName, c.programVersion);
+  END LOOP;
+END LOOP;
+open a_Cursor for select * from table(jobmeta);
+END;
+
 END;
 /
