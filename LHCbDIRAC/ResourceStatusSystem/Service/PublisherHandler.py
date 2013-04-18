@@ -64,6 +64,13 @@ class PublisherHandler( RequestHandler ):
                                            statusType = statusType,
                                            meta = { 'columns' : [ 'Status', 'DateEffective', 'Reason' ] } ) 
 
+  types_getElementPolicies = [ str, ( str, list, NoneType ), ( str, list, NoneType ) ]
+  def export_getElementPolicies( self, element, name, statusType ):
+    return rmClient.selectPolicyResult( element = element, name = name, 
+                                        statusType = statusType, 
+                                        meta = { 'columns' : [ 'Status', 'PolicyName', 'DateEffective',
+                                                               'LastCheckTime', 'Reason' ]} )
+
   types_getNodeStatuses = []
   def export_getNodeStatuses( self ):
       return rsClient.selectStatusElement( 'Node', 'Status' ) 
