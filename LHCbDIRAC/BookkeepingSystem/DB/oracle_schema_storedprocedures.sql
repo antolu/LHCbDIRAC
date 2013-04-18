@@ -1121,7 +1121,7 @@ procedure getSimConditions (
     )is
    begin
      open a_Cursor for
-       select * from simulationconditions ORDER by simid;
+       select * from simulationconditions where visible='Y' ORDER by simid desc;
    end;
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function insertDataTakingCond(
