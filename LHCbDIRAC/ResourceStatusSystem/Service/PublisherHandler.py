@@ -57,6 +57,13 @@ class PublisherHandler( RequestHandler ):
                                            statusType = statusType, status = status,
                                            tokenOwner = tokenOwner ) 
 
+  types_getElementHistory = [ str, ( str, list, NoneType ), ( str, list, NoneType ), 
+                            ( str, list, NoneType ) ]
+  def export_getElementHistory( self, element, name, elementType, statusType ):
+      return rsClient.selectStatusElement( element, 'History', name = name, elementType = elementType,
+                                           statusType = statusType,
+                                           meta = { 'columns' : [ 'Status', 'DateEffective', 'Reason' ] } ) 
+
   types_getNodeStatuses = []
   def export_getNodeStatuses( self ):
       return rsClient.selectStatusElement( 'Node', 'Status' ) 
