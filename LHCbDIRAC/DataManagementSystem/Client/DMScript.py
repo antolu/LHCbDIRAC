@@ -225,17 +225,29 @@ class DMScript():
   def setLFNsFromTerm( self, arg ):
     return self.setLFNsFromFile( None )
 
+  def getLFNsFromList( self, lfns ):
+    if type( lfns ) == type( {} ):
+      lfnList = lfns.keys()
+    elif type( lfns ) == type( '' ):
+      lfnList = [lfns]
+    elif type( lfns ) == type( [] ):
+      lfnList = lfns
+    else:
+      gLogger.error( 'getLFNsFromList: invalid type %s' % type( lfns ) )
+      return []
+    lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ) for l in lfnList]
+    lfnList = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] if '/lhcb' in lfn else '' for lfn in lfnList]
+    return [lfn for lfn in lfnList if lfn]
+
   def setLFNsFromFile( self, arg ):
     try:
       import sys
       f = open( arg, 'r' ) if arg else sys.stdin
-      lfns = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ) for l in f.read().splitlines()]
-      lfns = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] if '/lhcb' in lfn else '' for lfn in lfns]
-      lfns = [lfn for lfn in lfns if lfn]
+      lfns = self.getLFNsFromList( f.read().splitlines() )
       if arg:
         f.close()
     except:
-      lfns = [arg]
+      lfns = self.getLFNsFromList( arg )
     self.options.setdefault( 'LFNs', [] ).extend( lfns )
     return DIRAC.S_OK()
 
