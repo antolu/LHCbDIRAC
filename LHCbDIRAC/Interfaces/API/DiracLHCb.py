@@ -224,7 +224,7 @@ class DiracLHCb( Dirac ):
 
   #############################################################################
 
-  def getBKAncestors( self, lfns, depth=1, replica=True ):
+  def getBKAncestors( self, lfns, depth = 1, replica = True ):
     """ This function allows to retrieve ancestor files from the Bookkeeping.
 
         Example Usage:
@@ -239,7 +239,7 @@ class DiracLHCb( Dirac ):
        @type depth: integer
     """
 
-    result = self.bk.getFileAncestors( lfns, depth, replica=replica )
+    result = self.bk.getFileAncestors( lfns, depth, replica = replica )
     if not result['OK']:
       return S_ERROR( 'Could not get ancestors: ' + result['Message'] )
     ancestors = [x[0]['FileName'] for x in result['Value']['Successful'].values()]
@@ -549,7 +549,7 @@ class DiracLHCb( Dirac ):
       dqFlag = check['Value']
       query['DataQualityFlag'] = dqFlag
 
-    #The problem here is that we don't know if it's a sim or data taking condition, 
+    #The problem here is that we don't know if it's a sim or data taking condition,
     #assume that if configName=MC this is simulation
     if bkPath[0].lower() == 'mc':
       query['SimulationConditions'] = bkPath[2]
@@ -649,7 +649,7 @@ class DiracLHCb( Dirac ):
     else:
       if 'SimulationConditions' not in bkQueryDict and 'DataTakingConditions' not in bkQueryDict:
         return S_ERROR( 'A Simulation or DataTaking Condition must be specified for a BK query.' )
-      if 'EventType' not in bkQueryDict or not 'ConfigName' not in bkQueryDict or 'ConfigVersion' not in bkQueryDict:
+      if 'EventType' not in bkQueryDict and 'ConfigName' not in bkQueryDict and 'ConfigVersion' not in bkQueryDict:
         return S_ERROR( 'The minimal set of BK fields for a query is: EventType, ConfigName and ConfigVersion in addition to a Simulation or DataTaking Condition' )
 
     self.log.verbose( 'Final BK query dictionary is:' )
@@ -833,17 +833,17 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    
+
     lcgSites = gConfig.getSections( '/Resources/Sites/LCG' )
     if not lcgSites[ 'OK' ]:
       return lcgSites
-    
+
     for lcgSite in lcgSites[ 'Value' ]:
-      
-      tier = gConfig.getValue( '/Resources/Sites/LCG/%s/MoUTierLevel' % lcgSite, 2 )      
+
+      tier = gConfig.getValue( '/Resources/Sites/LCG/%s/MoUTierLevel' % lcgSite, 2 )
       if tier in ( 0, 1 ):
         self.tier1s.append( lcgSite )
-    
+
     siteInfo = self.checkSites()
     if not siteInfo['OK']:
       return siteInfo
@@ -959,7 +959,7 @@ class DiracLHCb( Dirac ):
 
     result = {}
     for k, v in res[ 'Value' ].items():
-      readState  = v.get( 'ReadAccess' , 'Active' )
+      readState = v.get( 'ReadAccess' , 'Active' )
       writeState = v.get( 'WriteAccess', 'Active' )
 
       result[ k ] = { 'ReadStatus' : readState, 'WriteStatus' : writeState }
