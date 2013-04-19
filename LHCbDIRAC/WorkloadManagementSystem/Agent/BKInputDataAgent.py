@@ -13,7 +13,7 @@ import time
 
 class BKInputDataAgent( OptimizerModule ):
 
-  def __init__( self, agentName, loadName, baseAgentName = False, properties = {} ):
+  def __init__( self, agentName, loadName, baseAgentName=False, properties={} ):
     """ c'tor
     """
     OptimizerModule.__init__( self, agentName, loadName, baseAgentName, properties )
@@ -86,58 +86,62 @@ class BKInputDataAgent( OptimizerModule ):
     bkFileMetadata = res['Value']['Successful']
     badLFNs = []
     #bkGuidDict = {}
-    for lfn in productionFiles:
-      if not bkFileMetadata.has_key( lfn ):
-        badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'File does not exist in the BK' ) )
-    if badLFNs:
-      self.log.info( 'Found %s problematic LFN(s) for job %s' % ( len( badLFNs ), job ) )
-      param = '\n'.join( badLFNs )
-      self.log.info( param )
-      result = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), param )
-      if not result['OK']:
-        self.log.warn( result['Message'] )
-      return S_ERROR( 'BK Input Data Not Available' )
+    try:
+      for lfn in productionFiles:
+        if lfn not in bkFileMetadata:
+          badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'File does not exist in the BK' ) )
+      if badLFNs:
+        self.log.info( 'Found %s problematic LFN(s) for job %s' % ( len( badLFNs ), job ) )
+        param = '\n'.join( badLFNs )
+        self.log.info( param )
+        result = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), param )
+        if not result['OK']:
+          self.log.warn( result['Message'] )
+        return S_ERROR( 'BK Input Data Not Available' )
 
-    # Get the LFC metadata from the InputData optimizer
-    res = self.getOptimizerJobInfo( job, self.dataAgentName )
-    if not res['OK']:
-      self.log.warn( res['Message'] )
-      return S_ERROR( 'Failed To Get LFC Metadata' )
-    lfcMetadataResult = res['Value']
-    if not lfcMetadataResult['Value']:
-      errStr = 'LFC Metadata Not Available'
-      self.log.warn( errStr )
-      return S_ERROR( errStr )
-    lfcMetadata = res['Value']
+      # Get the LFC metadata from the InputData optimizer
+      res = self.getOptimizerJobInfo( job, self.dataAgentName )
+      if not res['OK']:
+        self.log.warn( res['Message'] )
+        return S_ERROR( 'Failed To Get LFC Metadata' )
+      lfcMetadataResult = res['Value']
+      if not lfcMetadataResult['Value']:
+        errStr = 'LFC Metadata Not Available'
+        self.log.warn( errStr )
+        return S_ERROR( errStr )
+      lfcMetadata = res['Value']
 
-    # Verify the consistency of the LFC and BK metadata
-    badFileCount = 0
-    for lfn, lfcMeta in lfcMetadata['Value']['Value']['Successful'].items():
-      bkMeta = bkFileMetadata[lfn]
-      badFile = False
-      if lfcMeta.has_key( 'GUID' ) and lfcMeta['GUID'].upper() != bkMeta['GUID'].upper():
-        badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'LFC-BK GUID Mismatch' ) )
-        badFile = True
-      if not bkMeta['FileSize']:
-        bkMeta['FileSize'] = 0
-      if lfcMeta.has_key( 'Size' ) and int( lfcMeta['Size'] ) != int( bkMeta['FileSize'] ):
-        badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'LFC-BK File Size Mismatch' ) )
-        badFile = True
-      if lfcMeta.has_key( 'CheckSumType' ) and ( lfcMeta['CheckSumType'] == 'AD' ) and bkMeta['ADLER32']:
-        if lfcMeta['CheckSumValue'].upper() != bkMeta['ADLER32'].upper():
-          badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'LFC-BK Checksum Mismatch' ) )
+      # Verify the consistency of the LFC and BK metadata
+      badFileCount = 0
+      for lfn, lfcMeta in lfcMetadata['Value']['Value']['Successful'].items():
+        bkMeta = bkFileMetadata[lfn]
+        badFile = False
+        lfcGUID = lfcMeta.get( 'GUID', '' )
+        if lfcGUID and lfcGUID.upper() != bkMeta['GUID'].upper():
+          badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'LFC-BK GUID Mismatch' ) )
           badFile = True
-      if badFile:
-        badFileCount += 1
+        if int( lfcMeta.get( 'Size', 0 ) ) != int( bkMeta.get( 'FileSize', 0 ) ):
+          badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'LFC-BK File Size Mismatch' ) )
+          badFile = True
+        if ( lfcMeta.get( 'CheckSumType', '' ) == 'AD' ) and bkMeta['ADLER32']:
+          if lfcMeta['CheckSumValue'].upper() != bkMeta['ADLER32'].upper():
+            badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'LFC-BK Checksum Mismatch' ) )
+            badFile = True
+        if badFile:
+          badFileCount += 1
+      if badLFNs:
+        return S_ERROR( 'BK-LFC Integrity Check Failed' )
+    except:
+      pass
+    finally:
 
-    # Failed the job if there are any inconsistencies
-    if badLFNs:
-      self.log.info( 'Found %s problematic LFN(s) for job %s' % ( badFileCount, job ) )
-      param = '\n'.join( badLFNs )
-      self.log.info( param )
-      result = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), param )
-      if not result['OK']:
-        self.log.warn( result['Message'] )
-      return S_ERROR( 'BK-LFC Integrity Check Failed' )
+      # Failed the job if there are any inconsistencies
+      if badLFNs:
+        self.log.info( 'Found %s problematic LFN(s) for job %s' % ( badFileCount, job ) )
+        param = '\n'.join( badLFNs )
+        self.log.info( param )
+        result = self.setJobParam( job, self.am_getModuleParam( 'optimizerName' ), param )
+        if not result['OK']:
+          self.log.warn( result['Message'] )
 
     return S_OK()
