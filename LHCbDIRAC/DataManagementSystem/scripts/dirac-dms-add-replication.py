@@ -274,7 +274,10 @@ if __name__ == "__main__":
         runDict = {}
         res = bk.getFileMetadata( lfnChunk )
         if res['OK']:
-          for lfn, metadata in res['Value']['Successful'].items():
+          resMeta = res['Value']
+          if 'Successful' in resMeta:
+            resMeta = resMeta['Successful']
+          for lfn, metadata in resMeta.items():
             runID = metadata.get( 'RunNumber' )
             if runID:
               runDict.setdefault( int( runID ), [] ).append( lfn )
