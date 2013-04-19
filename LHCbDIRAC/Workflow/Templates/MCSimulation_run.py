@@ -57,7 +57,7 @@ localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True for validation prod#False}}'
 
 pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
-pr.configVersion = '{{mcConfigVersion#GENERAL: BK configuration version, e.g. MC10#MC11a}}'
+pr.configVersion = '{{mcConfigVersion#GENERAL: BK configuration version, e.g. MC10#2012}}'
 outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#ALLSTREAMS.DST}}'
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 
@@ -84,9 +84,9 @@ removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergeSysConfig = '{{mergeSystemConfig#PROD-3:Merging System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc43-opt}}'
 
 pr.eventType = '{{eventType}}'
-#Often MC requests are defined with many subrequests but we want to retain
-#the parent ID for viewing on the production monitoring page. If a parent
-#request is defined then this is used.
+# Often MC requests are defined with many subrequests but we want to retain
+# the parent ID for viewing on the production monitoring page. If a parent
+# request is defined then this is used.
 pr.parentRequestID = '{{_parent}}'
 pr.requestID = '{{ID}}'
 
@@ -120,14 +120,14 @@ if certificationFlag or localTestFlag:
 
 pr.outConfigName = pr.configName
 
-#In case we want just to test, we publish in the certification/test part of the BKK
+# In case we want just to test, we publish in the certification/test part of the BKK
 if pr.testFlag:
   pr.outConfigName = 'certification'
   pr.configVersion = 'test'
   pr.extend = '10'
   mergingGroupSize = '1'
   MCCpu = '50000'
-  pr.previousProdID = 0 #set this for, e.g., launching only merging
+  pr.previousProdID = 0  # set this for, e.g., launching only merging
 
 if validationFlag:
   pr.outConfigName = 'validation'
@@ -208,7 +208,7 @@ elif w4:
 
 pr.inputs = [[]] * len( pr.prodsTypeList )
 
-#In case of local test (these examples are for the merging)
+# In case of local test (these examples are for the merging)
 if localTestFlag:
   pr.inputs = [[],
                  ['/lhcb/certification/test/ALLSTREAMS.DST/00000127/0000/00000127_00000030_5.AllStreams.dst',
