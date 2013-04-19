@@ -34,6 +34,7 @@ if __name__ == "__main__":
   dmScript = DMScript()
 
   Script.registerSwitch( 'v', 'Verbose', '   Set verbose mode' )
+  Script.registerSwitch( '', 'Production=', '   Select a production from which jobs in IDR will be used' )
 
   Script.parseCommandLine( ignoreErrors = True )
   import DIRAC
@@ -41,21 +42,51 @@ if __name__ == "__main__":
   from DIRAC.Core.DISET.RPCClient import RPCClient
 
   verbose = False
+  production = None
   for opt, val in Script.getUnprocessedSwitches():
     if opt in ( 'v', 'Verbose' ):
       verbose = True
+    if opt == 'Production':
+      val = val.split( ',' )
+      production = ['%08d' % int( prod ) for prod in val if prod.isdigit()]
+      production += [prod for prod in val if not prod.isdigit()]
 
   args = Script.getPositionalArgs()
-  try:
-    jobs = [int( job ) for job in args[0].split( ',' )]
-  except:
-    gLogger.fatal( "Invalid list of jobIDs" )
-    DIRAC.exit( 2 )
+  if args:
+    try:
+      jobs = [int( job ) for job in args[0].split( ',' )]
+    except:
+      gLogger.fatal( "Invalid list of jobIDs" )
+      DIRAC.exit( 2 )
+  else:
+    jobs = []
 
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
   rm = ReplicaManager()
 
   monitoring = RPCClient( 'WorkloadManagement/JobMonitoring' )
+
+  if production:
+    if len( production ) == 1:
+      production = production[0]
+    conditions = {'Status':'Failed', 'MinorStatus':'Maximum of reschedulings reached',
+                  'ApplicationStatus':'Failed Input Data Resolution ', 'JobGroup': production}
+    print conditions
+    res = monitoring.getJobs( conditions )
+    if not res['OK']:
+      gLogger.always( 'Error selecting jobs for production %s' % str( production ), res['Message'] )
+      DIRAC.exit( 2 )
+    print res
+    if not res['Value']:
+      gLogger.always( "No jobs found with IDR for production %s" % str( production ) )
+    elif verbose:
+      gLogger.always( 'Selected %d jobs from production %s' % ( len( res['Value'] ), str( production ) ) )
+    jobs += [int( job ) for job in res['Value']]
+  if not jobs:
+    gLogger.always( 'No jobs to check, exiting...' )
+    DIRAC.exit( 0 )
+
   res = monitoring.getJobsSites( jobs )
   if not res['OK']:
     gLogger.fatal( 'Error getting job sites', res['Message'] )
@@ -63,6 +94,7 @@ if __name__ == "__main__":
   gLogger.setLevel( 'FATAL' )
   jobSites = res['Value']
   sep = ''
+  siteSEs = {}
   for jobID in jobs:
     try:
       pbFound = False
@@ -99,11 +131,14 @@ if __name__ == "__main__":
         gLogger.always( 'Input Data for job %d\n%s' % ( jobID, '\n'.join( inputData ) ) )
       site = jobSites.get( jobID, {} ).get( 'Site', 'Unknown' )
       if verbose:
-        gLogger.always( 'Site: %s........' % site )
-      res = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site )
-      seList = []
-      if res['OK'] and type( res['Value'] ) == type( {} ) and 'SE' in res['Value']:
-        seList = res['Value']['SE'].replace( ' ', '' ).split( ',' )
+        gLogger.always( 'Site: %s' % site )
+      seList = siteSEs.get( site )
+      if not seList:
+        res = getSEsForSite( site )
+        if not res['OK']:
+          gLogger.always( "Couldn't find SEs for site %s" % site )
+          continue
+        siteSEs[site] = seList = res['Value']
       if verbose:
         gLogger.always( 'SEs: %s' % str( seList ) )
 
@@ -119,10 +154,13 @@ if __name__ == "__main__":
       notFoundReplicas = replicas.keys()
       missingReplicas = []
       accessibleReplicas = []
+      seUsed = []
       for lfn in [l for l in inputData if l in replicas]:
         for se in replicas[lfn]:
           if se in seList:
             # Found a replica at the site
+            if se not in seUsed:
+              seUsed.append( se )
             if lfn in notFoundReplicas:
               notFoundReplicas.remove( lfn )
             inaccessible = inaccessibleReplicas( lfn, se )
@@ -149,4 +187,5 @@ if __name__ == "__main__":
       pass
     finally:
       if not pbFound:
-        gLogger.always( 'No particular problem was found with %d input files at %s' % ( len( inputData ), site ) )
+        gLogger.always( 'No particular problem was found with %d input file%s at %s (SEs: %s)' %
+                        ( len( inputData ), 's' if len( inputData ) > 1 else '', site, str( seUsed ) ) )
