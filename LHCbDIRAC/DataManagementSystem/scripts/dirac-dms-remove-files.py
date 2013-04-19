@@ -35,10 +35,11 @@ if __name__ == "__main__":
     print "Executing BKQuery:", bkQuery
     lfnList += bkQuery.getLFNs()
 
-  fixTrans = False
+  fixTrans = True
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
     if switch[0] == 'FixTransformations':
+      gLogger.always( "--FixTransformations is now by default, will be removed soon" )
       fixTrans = True
 
   from DIRAC.Core.Utilities.List import sortList, breakListIntoChunks
