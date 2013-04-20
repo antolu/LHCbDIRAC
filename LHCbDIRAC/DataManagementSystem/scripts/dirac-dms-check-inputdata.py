@@ -72,12 +72,10 @@ if __name__ == "__main__":
       production = production[0]
     conditions = {'Status':'Failed', 'MinorStatus':'Maximum of reschedulings reached',
                   'ApplicationStatus':'Failed Input Data Resolution ', 'JobGroup': production}
-    print conditions
     res = monitoring.getJobs( conditions )
     if not res['OK']:
       gLogger.always( 'Error selecting jobs for production %s' % str( production ), res['Message'] )
       DIRAC.exit( 2 )
-    print res
     if not res['Value']:
       gLogger.always( "No jobs found with IDR for production %s" % str( production ) )
     elif verbose:
