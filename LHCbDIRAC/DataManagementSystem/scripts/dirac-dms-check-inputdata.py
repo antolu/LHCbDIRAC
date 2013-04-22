@@ -157,8 +157,9 @@ if __name__ == "__main__":
       jobs = []
       for lfn in filesAtSite[site]:
         for jobID in filesAtSite[site][lfn]:
+          jobID = str( jobID )
           if jobID not in jobs:
-            jobs.append( str( jobID ) )
+            jobs.append( jobID )
       res = getSEsForSite( site )
       if not res['OK'] or not res['Value']:
         gLogger.always( "Couldn't find SEs for site %s" % site )
