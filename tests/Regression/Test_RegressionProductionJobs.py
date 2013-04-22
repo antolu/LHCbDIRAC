@@ -45,6 +45,8 @@ class RecoSuccess( RegressionTestCase ):
     for found, expected in getOutput( 'Reco' ):
       self.assertEqual( found, expected )
 
+class RecoOldSuccess( RegressionTestCase ):
+  def test_execute( self ):
     res = self.j_reco_20194_old.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
@@ -90,6 +92,7 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoOldSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
