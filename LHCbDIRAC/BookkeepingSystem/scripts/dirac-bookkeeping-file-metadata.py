@@ -66,8 +66,9 @@ if __name__ == "__main__":
                                   'DataQuality'.ljust( 12 ),
                                   'RunNumber'.ljust( 10 ),
                                   '#events'.ljust( 10 ) )
-  for lfn in res['Value']['Successful']:
-    dict = res['Value']['Successful'][lfn]
+  lfnMetadata = res['Value'].get( 'Successful', res['Value'] )
+  for lfn in lfnMetadata:
+    dict = lfnMetadata[lfn]
     if full:
       print '%s%s %s' % ( sep, 'FileName'.ljust( lenItem ), lfn )
       sep = '\n'
@@ -89,13 +90,13 @@ if __name__ == "__main__":
                                      dq.ljust( 12 ),
                                      str( run ).ljust( 10 ),
                                      str( evtStat ).ljust( 10 ) )
-
-  if res['Value']['Failed']:
+  failed = res['Value'].get( 'Failed', [] )
+  if failed:
     print '\n'
-  for lfn in res['Value']['Failed']:
-    if lfn:
-      print '%s does not exist in the Bookkeeping.' % lfn
-      exitCode = 2
+    for lfn in failed:
+      if lfn:
+        print '%s does not exist in the Bookkeeping.' % lfn
+        exitCode = 2
 
   DIRAC.exit( exitCode )
 
