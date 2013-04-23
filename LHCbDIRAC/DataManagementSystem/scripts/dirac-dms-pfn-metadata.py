@@ -27,6 +27,7 @@ if __name__ == "__main__":
   dmScript = DMScript()
   dmScript.registerFileSwitches()
   dmScript.registerSiteSwitches()
+  Script.registerSwitch( '', 'Check', '   Checks the PFN metadata vs LFN metadata' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] ... [URL[,URL2[,URL3...]]] SE[,SE2...]' % Script.scriptName,
@@ -34,6 +35,11 @@ if __name__ == "__main__":
                                        '  URL:      Logical/Physical File Name or file containing URLs',
                                        '  SE:       Valid DIRAC SE' ] ) )
   Script.parseCommandLine( ignoreErrors = True )
+  check = False
+  for opt, val in Script.getUnprocessedSwitches():
+    if opt == 'Check':
+      check = True
+
 
   seList = dmScript.getOption( 'SEs', [] )
 
@@ -75,6 +81,16 @@ if __name__ == "__main__":
       result['Value']['Successful'].update( res['Value']['Successful'] )
       result['Value']['Failed'].update( res['Value']['Failed'] )
       for url in res['Value']['Successful']:
+        if check:
+          pfnMetadata = res['Value']['Successful'][url]
+          res1 = rm.getCatalogFileMetadata( url )
+          if res1['OK']:
+            lfnMetadata = res1['Value']['Successful'][url]
+            ok = True
+            for field in ( 'Checksum', 'Size' ):
+              if lfnMetadata[field] != pfnMetadata[field]:
+                ok = False
+            result['Value']['Successful'][url][' MatchLFN'] = ok
         result['Value']['Failed'].pop( url, None )
       for url in res['Value']['Failed']:
         result['Value']['Failed'][url] += ' at %s' % ', '.join( seList )
