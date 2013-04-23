@@ -58,6 +58,9 @@ if __name__ == "__main__":
   for lfn in args:
     dmScript.setLFNsFromFile( lfn )
   lfnList = dmScript.getOption( 'LFNs', [] )
+  if not lfnList:
+    Script.showHelp()
+    DIRAC.exit( 0 )
 
   from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
   from DIRAC import gLogger
