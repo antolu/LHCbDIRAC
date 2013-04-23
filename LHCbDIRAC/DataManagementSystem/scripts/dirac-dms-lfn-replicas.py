@@ -52,17 +52,39 @@ if __name__ == "__main__":
   if res['OK']:
     if active:
       res = rm.checkActiveReplicas( res['Value'] )
+      value = res['Value']
+      for lfn in sorted( value['Successful'] ):
+        for se in sorted( value['Successful'][lfn] ):
+          res2 = rm.getPfnForLfn( [lfn], se )
+          if not res2['OK']:
+            value['Failed'][lfn] = res2['Message']
+            value['Successful'][lfn].pop( se )
+          else:
+            if lfn in res2['Value']['Successful']:
+              value['Successful'][lfn][se] = res2['Value']['Successful'][lfn]
+            else:
+              value['Failed'].update( res2['Value']['Failed'] )
+              value['Successful'][lfn].pop( se )
+        if not value['Successful'][lfn]:
+          value['Successful'].pop( lfn )
     else:
       lfns = []
-      replicas = res['Value']['Successful'].copy()
-      value = {'Failed': res['Value']['Failed'].copy(), 'Successful' : {}}
-      for lfn in replicas:
-        for se in replicas[lfn]:
+      replicas = res['Value']['Successful']
+      value = {'Failed': res['Value']['Failed'], 'Successful' : {}}
+      for lfn in sorted( replicas ):
+        for se in sorted( replicas[lfn] ):
           res1 = rm.getCatalogReplicaStatus( {lfn:se} )
           if not res1['OK']:
             value['Failed'][lfn] = "Can't get replica status"
           else:
-            value['Successful'].setdefault( lfn, {} )[se] = "(%s) %s" % ( res1['Value']['Successful'][lfn], replicas[lfn][se] )
+            res2 = rm.getPfnForLfn( [lfn], se )
+            if not res2['OK']:
+              value['Failed'][lfn] = res2['Message']
+            else:
+              if lfn in res2['Value']['Successful']:
+                value['Successful'].setdefault( lfn, {} )[se] = "(%s) %s" % ( res1['Value']['Successful'][lfn], res2['Value']['Successful'][lfn] )
+              else:
+                value['Failed'].update( res2['Value']['Failed'] )
       res = DIRAC.S_OK( value )
   #DIRAC.exit( printDMResult( dirac.getReplicas( lfnList, active=active, printOutput=False ),
   #                           empty="No allowed SE found", script="dirac-dms-lfn-replicas" ) )
