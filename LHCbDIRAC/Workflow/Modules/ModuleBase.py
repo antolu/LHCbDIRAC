@@ -454,7 +454,7 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def getCandidateFiles( self, outputList, outputLFNs, fileMask, stepMask = '' ):
+  def getCandidateFiles( self, outputList, outputLFNs, fileMask = '', stepMask = '' ):
     """ Returns list of candidate files to upload, check if some outputs are missing.
 
         outputList has the following structure:
@@ -524,8 +524,12 @@ class ModuleBase( object ):
     """
     candidateFiles = copy.deepcopy( candidateFilesIn )
 
-    if type( fileMask ) != type( [] ):
+    if fileMask and type( fileMask ) != type( [] ):
       fileMask = [fileMask]
+    if type( stepMask ) == type( 1 ):
+      stepMask = str( stepMask )
+    if stepMask and type( stepMask ) != type( [] ):
+      stepMask = [stepMask]
 
     if fileMask and fileMask != ['']:
       for fileName, metadata in candidateFiles.items():
@@ -536,12 +540,12 @@ class ModuleBase( object ):
     else:
       self.log.info( 'No outputDataFileMask provided, the files with all the extensions will be considered' )
 
-    if stepMask:
+    if stepMask and stepMask != ['']:
       for fileName, metadata in candidateFiles.items():
         if fileName.split( '_' )[-1].split( '.' )[0] not in stepMask:
           del( candidateFiles[fileName] )
           self.log.info( 'Output file %s was produced but will not be treated (stepMask is %s)' % ( fileName,
-                                                                                              ', '.join( stepMask ) ) )
+                                                                                               ', '.join( stepMask ) ) )
     else:
       self.log.info( 'No outputDataStep provided, the files output of all the steps will be considered' )
 

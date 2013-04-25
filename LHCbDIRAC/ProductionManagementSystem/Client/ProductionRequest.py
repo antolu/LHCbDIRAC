@@ -38,6 +38,8 @@ class ProductionRequest( object ):
     self.appendName = '1'
     self.outConfigName = ''
     self.prodsToLaunch = []  # productions to launch
+    self.stepsListDict = []  # list of dict of steps
+    self.stepsInProds = []  # a list of lists
     # parameters of the input data
     self.processingPass = ''
     self.dataTakingConditions = ''
@@ -68,22 +70,21 @@ class ProductionRequest( object ):
     self.events = []
     self.sysConfig = []
     self.stepsList = []
-    self.stepsListDict = []
     self.extraOptions = {}
     self.prodsTypeList = []
-    self.stepsInProds = [] #a list of lists
-    self.bkQueries = [] #list of bk queries
+    self.bkQueries = []  # list of bk queries
     self.removeInputsFlags = []
     self.outputSEs = []
     self.priorities = []
     self.cpus = []
-    self.inputs = [] # list of lists
+    self.inputs = []  # list of lists
     self.targets = []
     self.outputFileMasks = []
+    self.outputFileSteps = []
     self.groupSizes = []
     self.plugins = []
     self.inputDataPolicies = []
-    self.previousProds = [None] #list of productions from which to take the inputs (the first is always None)
+    self.previousProds = [None]  # list of productions from which to take the inputs (the first is always None)
 
   #############################################################################
 
@@ -100,7 +101,7 @@ class ProductionRequest( object ):
 
       stepsListDictItem = {}
       for parameter, value in itertools.izip( stepDict['ParameterNames'],
-                                                  stepDict['Records'][0] ):
+                                              stepDict['Records'][0] ):
         if parameter.lower() in ['conddb', 'dddb', 'dqtag'] and value:
           if value.lower() == 'frompreviousstep':
             value = self.stepsListDict[-1][parameter]
@@ -147,14 +148,14 @@ class ProductionRequest( object ):
     prodsLaunched = []
 
     self.logger.debug( prodsDict )
-    #now we build and launch each productions
+    # now we build and launch each productions
     for prodIndex, prodDict in prodsDict.items():
 
       if self.prodsToLaunch:
         if prodIndex not in self.prodsToLaunch:
           continue
 
-      #build the list of steps in a production
+      # build the list of steps in a production
       stepsInProd = []
       for stepID in prodDict['stepsInProd-ProdName']:
         for step in stepsListDict:
@@ -168,6 +169,7 @@ class ProductionRequest( object ):
       prod = self._buildProduction( prodDict['productionType'], stepsInProd, self.extraOptions, prodDict['outputSE'],
                                     prodDict['priority'], prodDict['cpu'], prodDict['input'],
                                     outputFileMask = prodDict['outputFileMask'],
+                                    outputFileStep = prodDict['outputFileStep'],
                                     target = prodDict['target'],
                                     removeInputData = prodDict['removeInputsFlag'],
                                     groupSize = prodDict['groupSize'],
@@ -188,7 +190,7 @@ class ProductionRequest( object ):
       if not res['OK']:
         raise RuntimeError, res['Message']
 
-      self.extend = 0 #only extending the first one (MC can only go as first...)
+      self.extend = 0  # only extending the first one (MC can only go as first...)
 
       prodID = res['Value']
       prodsLaunched.append( prodID )
@@ -215,7 +217,7 @@ class ProductionRequest( object ):
       self.events += ['-1'] * ( len( self.prodsTypeList ) - len( self.events ) )
 
 
-    #Checking if we need to split the merging step into many productions
+    # Checking if we need to split the merging step into many productions
     if 'merge' in [pt.lower() for pt in self.prodsTypeList]:
       i = 0
       indexes = []
@@ -225,7 +227,7 @@ class ProductionRequest( object ):
         i += 1
 
       for index in indexes:
-        #In this case and only in this case I have to split the merging in many productions
+        # In this case and only in this case I have to split the merging in many productions
         plugin = self.plugins[index]
         outputSE = self.outputSEs[index]
         priority = self.priorities[index]
@@ -234,6 +236,8 @@ class ProductionRequest( object ):
         groupSize = self.groupSizes[index]
         preProd = self.previousProds[index]
         removeInputsFlag = self.removeInputsFlags[index]
+        outputFileMask = self.outputFileMasks[index]
+        outputFileStep = self.outputFileSteps[index]
         inputs = self.inputs[index]
         idp = self.inputDataPolicies[index]
         stepID = self.stepsList[index]
@@ -252,6 +256,8 @@ class ProductionRequest( object ):
           self.previousProds.pop( index )
           self.groupSizes.pop( index )
           self.removeInputsFlags.pop( index )
+          self.outputFileMasks.pop( index )
+          self.outputFileSteps.pop( index )
           self.inputs.pop( index )
           self.inputDataPolicies.pop( index )
           self.stepsList.pop( index )
@@ -271,6 +277,8 @@ class ProductionRequest( object ):
             self.bkQueries.insert( index, bkQuery )
             self.groupSizes.insert( index, groupSize )
             self.removeInputsFlags.insert( index, removeInputsFlag )
+            self.outputFileMasks.insert( index, outputFileMask )
+            self.outputFileSteps.insert( index, outputFileStep )
             self.inputs.insert( index, inputs )
             self.inputDataPolicies.insert( index, idp )
             self.stepsList.insert( index, stepID )
@@ -303,6 +311,9 @@ class ProductionRequest( object ):
     if not self.outputFileMasks:
       self.outputFileMasks = [''] * len( self.prodsTypeList )
 
+    if not self.outputFileSteps:
+      self.outputFileSteps = [''] * len( self.prodsTypeList )
+
     if not self.inputs:
       self.inputs = [[]] * len( self.prodsTypeList )
 
@@ -323,7 +334,7 @@ class ProductionRequest( object ):
     prodNumber = 1
 
     for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
-    cpu, inputD, outFileMask, target, groupSize, plugin, idp, \
+    cpu, inputD, outFileMask, outFileStep, target, groupSize, plugin, idp, \
     previousProd, events, sysConfig in itertools.izip( self.prodsTypeList,
                                                        self.stepsInProds,
                                                        self.bkQueries,
@@ -333,6 +344,7 @@ class ProductionRequest( object ):
                                                        self.cpus,
                                                        self.inputs,
                                                        self.outputFileMasks,
+                                                       self.outputFileSteps,
                                                        self.targets,
                                                        self.groupSizes,
                                                        self.plugins,
@@ -358,6 +370,7 @@ class ProductionRequest( object ):
                                  'cpu': cpu,
                                  'input': inputD,
                                  'outputFileMask':outFileMask,
+                                 'outputFileStep':outFileStep,
                                  'target':target,
                                  'groupSize': groupSize,
                                  'plugin': plugin,
@@ -371,7 +384,7 @@ class ProductionRequest( object ):
                                  }
       prodNumber += 1
 
-    #tracking the last production(s)
+    # tracking the last production(s)
     prodsDict[prodNumber - 1]['tracking'] = 1
     typeOfLastProd = prodsDict[prodNumber - 1]['productionType']
     index = 2
@@ -382,7 +395,7 @@ class ProductionRequest( object ):
     except KeyError:
       pass
 
-    #production derivation, if necessary
+    # production derivation, if necessary
     if self.derivedProduction:
       prodsDict[1]['derivedProduction'] = self.derivedProduction
 
@@ -397,6 +410,7 @@ class ProductionRequest( object ):
                         outputMode = 'Any',
                         inputDataPolicy = 'download',
                         outputFileMask = '',
+                        outputFileStep = '',
                         target = '',
                         removeInputData = False,
                         groupSize = 1,
@@ -412,7 +426,7 @@ class ProductionRequest( object ):
     """
     prod = Production()
 
-    #non optional parameters
+    # non optional parameters
     prod.LHCbJob.setType( prodType )
     try:
       fTypeIn = [ft.upper() for ft in stepsInProd[0]['fileTypesIn']]
@@ -432,7 +446,7 @@ class ProductionRequest( object ):
     prod.setJobParameters( { 'CPUTime': cpu } )
     prod.plugin = plugin
 
-    #optional parameters
+    # optional parameters
     prod.jobFileGroupSize = groupSize
     if inputDataPolicy:
       prod.LHCbJob.setInputDataPolicy( inputDataPolicy )
@@ -440,9 +454,10 @@ class ProductionRequest( object ):
       prod.setJobParameters( { 'SystemConfig': sysConfig } )
     prod.setOutputMode( outputMode )
     if outputFileMask:
-      maskList = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ',' )]
-      outputFileMask = ';'.join( maskList )
-      prod.setFileMask( outputFileMask )
+      outputFileMask = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ',' )]
+    if outputFileStep:
+      outputFileStep = [m.lower() for m in outputFileStep.replace( ' ', '' ).split( ',' )]
+    prod.setFileMask( outputFileMask, outputFileStep )
     if target:
       if target == 'Tier2':
         prod.banTier1s()
@@ -459,7 +474,7 @@ class ProductionRequest( object ):
     if self.minFilesToProcess:
       prod.setParameter( 'MinFilesToProcess', 'string', str( self.minFilesToProcess ), 'Min N of Files to process' )
 
-    #Adding optional input BK query
+    # Adding optional input BK query
     if bkQuery:
       if bkQuery.lower() == 'full':
         prod.inputBKSelection = self._getBKKQuery()
@@ -468,7 +483,7 @@ class ProductionRequest( object ):
 
     self.logger.verbose( 'Launching with BK selection %s' % prod.inputBKSelection )
 
-    #Adding the application steps
+    # Adding the application steps
     firstStep = stepsInProd.pop( 0 )
     try:
       ep = extraOptions[firstStep['StepId']]
@@ -497,7 +512,7 @@ class ProductionRequest( object ):
                                           modules = self.modulesList )
       prod.gaudiSteps.append( stepName )
 
-    #Adding the finalization step
+    # Adding the finalization step
     if removeInputData:
       prod.addFinalizationStep( ['UploadOutputData',
                                  'RemoveInputData',

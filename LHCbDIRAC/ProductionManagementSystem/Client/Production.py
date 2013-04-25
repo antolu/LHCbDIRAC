@@ -701,7 +701,6 @@ class Production():
 
   #############################################################################
 
-
   def __getOutputLFNs( self, prodID = '12345', prodJobID = '6789', prodXMLFile = '' ):
     """ Will construct the output LFNs for the production for visual inspection.
     """
@@ -722,24 +721,25 @@ class Production():
 
   #############################################################################
 
-  def setFileMask( self, fileMask, stepMask = '' ):
+  def setFileMask( self, fileMask = '', stepMask = '' ):
     """ Output data related parameters.
     """
-    if type( fileMask ) == type( [] ):
-      fileMask = ';'.join( fileMask )
-    self.setParameter( 'outputDataFileMask', 'string', fileMask, 'outputDataFileMask' )
+    if fileMask:
+      if type( fileMask ) == type( [] ):
+        fileMask = ';'.join( fileMask )
+      self.setParameter( 'outputDataFileMask', 'string', fileMask, 'outputDataFileMask' )
 
     if stepMask:
       if type( stepMask ) == type( [] ):
         stepMask = ';'.join( stepMask )
-    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputDataStep', 'string', stepMask, 'outputDataStep Mask' )
+      self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputDataStep', 'string', stepMask, 'outputDataStep Mask' )
 
   #############################################################################
 
   def banTier1s( self ):
     """ Sets Tier1s as banned.
     """
-
+    # TODO: should change to RSS
     tier1s = []
 
     lcgSites = gConfig.getSections( '/Resources/Sites/LCG' )

@@ -193,6 +193,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.groupSizes = [1, 2]
     pr.bkFileType = 'TYPE'
     pr.removeInputsFlags = [False, True]
+    pr.outputFileMasks = ['', 'dst']
+    pr.outputFileSteps = ['', '2']
     pr.inputs = [['aa'], []]
     pr.inputDataPolicies = ['dl', 'pr']
     pr.events = [-1, -1]
@@ -211,6 +213,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     groupSizesExpected = [1, 2, 2, 2]
     previousProdsExpected = [None, 1, 1, 1]
     removeInputsFlagExpected = [False, True, True, True]
+    outputFileMasksExpected = ['', 'dst', 'dst', 'dst']
+    outputFileStepsExpected = ['', '2', '2', '2']
     inputsExpected = [['aa'], [], [], []]
     inputDataPoliciesExpected = ['dl', 'pr', 'pr', 'pr']
     eventsExpected = [-1, -1, -1, -1]
@@ -227,6 +231,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.outputFileMasks, outputFileMasksExpected )
+    self.assertEqual( pr.outputFileSteps, outputFileStepsExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
@@ -246,6 +252,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.bkFileType = 'TYPE'
     pr.inputs = [[], ['aa']]
     pr.removeInputsFlags = [False, True]
+    pr.outputFileMasks = ['', 'dst']
+    pr.outputFileSteps = ['', '2']
     pr.inputDataPolicies = ['pr', 'dl']
     pr.events = [-1, -1]
     pr.bkQueries = ['Full', 'fromPreviousProd']
@@ -263,6 +271,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     bkQueriesExpected = ['Full', 'fromPreviousProd']
     previousProdsExpected = [None, 1]
     removeInputsFlagExpected = [False, True]
+    outputFileMasksExpected = ['', 'dst']
+    outputFileStepsExpected = ['', '2']
     inputsExpected = [[], ['aa']]
     inputDataPoliciesExpected = ['pr', 'dl']
     eventsExpected = [-1, -1]
@@ -279,6 +289,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.outputFileMasks, outputFileMasksExpected )
+    self.assertEqual( pr.outputFileSteps, outputFileStepsExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
@@ -296,6 +308,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.cpus = [10, 100]
     pr.groupSizes = [1, 2]
     pr.removeInputsFlags = [True, True]
+    pr.outputFileMasks = ['', 'dst']
+    pr.outputFileSteps = ['', '2']
     pr.inputs = [[], ['aa']]
     pr.inputDataPolicies = ['dl', 'pr']
     pr.events = [-1, -1]
@@ -314,6 +328,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     bkQueriesExpected = ['fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd']
     previousProdsExpected = [None, None, None, 1]
     removeInputsFlagExpected = [True, True, True, True]
+    outputFileMasksExpected = ['', '', '', 'dst']
+    outputFileStepsExpected = ['', '', '', '2']
     inputsExpected = [[], [], [], ['aa']]
     inputDataPoliciesExpected = ['dl', 'dl', 'dl', 'pr']
     eventsExpected = [-1, -1, -1, -1]
@@ -330,6 +346,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.outputFileMasks, outputFileMasksExpected )
+    self.assertEqual( pr.outputFileSteps, outputFileStepsExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
@@ -348,6 +366,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.groupSizes = [1]
     pr.bkFileType = 'TYPE'
     pr.removeInputsFlags = [False]
+    pr.outputFileMasks = ['']
+    pr.outputFileSteps = ['2']
     pr.inputs = [[]]
     pr.inputDataPolicies = ['']
     pr.events = [-1]
@@ -366,6 +386,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     bkQueriesExpected = ['Full']
     previousProdsExpected = [None]
     removeInputsFlagExpected = [False]
+    outputFileMasksExpected = ['']
+    outputFileStepsExpected = ['2']
     inputsExpected = [[]]
     inputDataPoliciesExpected = ['']
     eventsExpected = [-1]
@@ -382,6 +404,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.outputFileMasks, outputFileMasksExpected )
+    self.assertEqual( pr.outputFileSteps, outputFileStepsExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
@@ -400,6 +424,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.groupSizes = [1, 2, 3]
     pr.bkFileType = 'TYPE'
     pr.removeInputsFlags = [False, True, True]
+    pr.outputFileMasks = ['', 'dst', '']
+    pr.outputFileSteps = ['', '2', '']
     pr.inputs = [[], ['aa'], ['bb']]
     pr.inputDataPolicies = ['', 'dl', 'pr']
     pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
@@ -418,6 +444,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     bkQueriesExpected = ['Full', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd']
     previousProdsExpected = [None, 1, 1, 1, 2]
     removeInputsFlagExpected = [False, True, True, True, True]
+    outputFileMasksExpected = ['', 'dst', 'dst', 'dst', '']
+    outputFileStepsExpected = ['', '2', '2', '2', '']
     inputsExpected = [[], ['aa'], ['aa'], ['aa'], ['bb']]
     inputDataPoliciesExpected = ['', 'dl', 'dl', 'dl', 'pr']
     eventsExpected = [-1, -1, -1, -1, -1]
@@ -434,6 +462,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.outputFileMasks, outputFileMasksExpected )
+    self.assertEqual( pr.outputFileSteps, outputFileStepsExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
@@ -452,6 +482,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.groupSizes = [1, 2]
     pr.bkFileType = 'TYPE'
     pr.removeInputsFlags = [False, True]
+    pr.outputFileMasks = ['', 'dst']
+    pr.outputFileSteps = ['', '2']
     pr.inputs = [[], []]
     pr.inputDataPolicies = ['', 'dl']
     pr.events = [-1, -1]
@@ -470,6 +502,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     bkQueriesExpected = ['Full', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd']
     previousProdsExpected = [None, 1, 1, 1]
     removeInputsFlagExpected = [False, True, True, True]
+    outputFileMasksExpected = ['', 'dst', 'dst', 'dst']
+    outputFileStepsExpected = ['', '2', '2', '2']
     inputsExpected = [[], [], [], []]
     inputDataPoliciesExpected = ['', 'dl', 'dl', 'dl']
     eventsExpected = [-1, -1, -1, -1]
@@ -486,6 +520,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.outputFileMasks, outputFileMasksExpected )
+    self.assertEqual( pr.outputFileSteps, outputFileStepsExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
@@ -503,6 +539,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.cpus = [10]
     pr.groupSizes = [1]
     pr.removeInputsFlags = [False]
+    pr.outputFileMasks = ['dst']
+    pr.outputFileSteps = ['2']
     pr.bkFileType = 'TYPE'
     pr.inputs = [[]]
     pr.inputDataPolicies = ['dl']
@@ -522,6 +560,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     bkQueriesExpected = ['Full']
     previousProdsExpected = [None]
     removeInputsFlagExpected = [False]
+    outputFileMasksExpected = ['dst']
+    outputFileStepsExpected = ['2']
     inputsExpected = [[]]
     inputDataPoliciesExpected = ['dl']
     eventsExpected = [-1]
@@ -538,6 +578,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.outputFileMasks, outputFileMasksExpected )
+    self.assertEqual( pr.outputFileSteps, outputFileStepsExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
@@ -555,6 +597,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.cpus = [10, 100]
     pr.groupSizes = [1, 2]
     pr.removeInputsFlags = [True, True]
+    pr.outputFileMasks = ['', 'dst']
+    pr.outputFileSteps = ['', '2']
     pr.inputs = [['aa'], ['bb']]
     pr.inputDataPolicies = ['dl', 'pr']
     pr.events = [-1, -1]
@@ -573,6 +617,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     bkQueriesExpected = ['Full', 'Full', 'Full', 'fromPreviousProd']
     previousProdsExpected = [None, None, None, 1]
     removeInputsFlagExpected = [True, True, True, True]
+    outputFileMasksExpected = ['', '', '', 'dst']
+    outputFileStepsExpected = ['', '', '', '2']
     inputsExpected = [['aa'], ['aa'], ['aa'], ['bb']]
     inputDataPoliciesExpected = ['dl', 'dl', 'dl', 'pr']
     eventsExpected = [-1, -1, -1, -1]
@@ -589,6 +635,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.outputFileMasks, outputFileMasksExpected )
+    self.assertEqual( pr.outputFileSteps, outputFileStepsExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
@@ -606,6 +654,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.cpus = [10, 100]
     pr.groupSizes = [1, 2]
     pr.removeInputsFlags = [False, True]
+    pr.outputFileMasks = ['', 'dst']
+    pr.outputFileSteps = ['', '2']
     pr.inputs = [[], []]
     pr.inputDataPolicies = ['', 'dl']
     pr.events = [100, -1]
@@ -624,6 +674,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     bkQueriesExpected = ['', 'fromPreviousProd']
     previousProdsExpected = [None, 1]
     removeInputsFlagExpected = [False, True]
+    outputFileMasksExpected = ['', 'dst']
+    outputFileStepsExpected = ['', '2']
     inputsExpected = [[], []]
     inputDataPoliciesExpected = ['', 'dl']
     eventsExpected = [100, -1]
@@ -640,6 +692,8 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.bkQueries, bkQueriesExpected )
     self.assertEqual( pr.previousProds, previousProdsExpected )
     self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.outputFileMasks, outputFileMasksExpected )
+    self.assertEqual( pr.outputFileSteps, outputFileStepsExpected )
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
@@ -656,6 +710,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.groupSizes = [1, 1, 2]
     pr.inputDataPolicies = ['download', 'download', 'download']
     pr.outputFileMasks = ['', '', '']
+    pr.outputFileSteps = ['', '', '']
     pr.stepsInProds = [[1, 2], [3], [4]]
     pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
     pr.outputSEs = ['Tier1-BUFFER', 'Tier1-DST', 'Tier1-DST']
@@ -707,6 +762,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'priority': 5,
                       'cpu': 1000000,
                       'outputFileMask':'',
+                      'outputFileStep':'',
                       'input': [],
                       'target':'',
                       'groupSize': 1,
@@ -730,6 +786,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'priority': 8,
                       'cpu': 300000,
                       'outputFileMask':'',
+                      'outputFileStep':'',
                       'input': [],
                       'target':'',
                       'groupSize': 1,
@@ -753,6 +810,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'priority': 9,
                       'cpu': 10000,
                       'outputFileMask':'',
+                      'outputFileStep':'',
                       'input': [],
                       'target':'',
                       'groupSize': 2,
@@ -921,6 +979,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     pr.priorities = [1, 6]
     pr.cpus = [1000, 100]
     pr.outputFileMasks = ['FOO', '']
+    pr.outputFileSteps = ['2', '']
     pr.targets = ['Tier2', '']
     pr.groupSizes = [1, 5]
     pr.plugins = ['', 'BySize']
@@ -929,7 +988,7 @@ class ProductionRequestFullChain( ClientTestCase ):
 
     res = pr.buildAndLaunchRequest()
 
-    self.assertEqual( res, {'OK':True, 'Value': [321, 321]} )
+    self.assertEqual( res, {'OK':True, 'Value': [321, 321, 321]} )
 
 #############################################################################
 # Test Suite run 
