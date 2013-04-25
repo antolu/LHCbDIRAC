@@ -32,13 +32,39 @@ class ProductionRequest( object ):
 
     self.logger = gLogger.getSubLogger( 'ProductionRequest' )
 
+    # parameters of the request
     self.requestID = 0
     self.parentRequestID = 0
     self.appendName = '1'
+    self.outConfigName = ''
+    self.prodsToLaunch = []  # productions to launch
+    # parameters of the input data
+    self.processingPass = ''
+    self.dataTakingConditions = ''
+    self.eventType = ''
+    self.bkFileType = ''
+    self.dqFlag = ''
+    self.startRun = 0
+    self.endRun = 0
+    self.runsList = ''
     self.configName = 'test'
     self.configVersion = 'certification'
-    self.outConfigName = ''
-    self.eventType = ''
+    # parameters of the first production
+    self.publishFlag = True
+    self.testFlag = False
+    self.extend = 0
+    self.derivedProduction = 0
+    self.previousProdID = 0  # optional prod from which to start
+
+    # parameters that are the same for each productions
+    self.prodGroup = ''
+    self.visibility = ''
+    self.fractionToProcess = 0
+    self.minFilesToProcess = 0
+    self.modulesList = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                        'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
+
+    # parameters of each production (the length of each list has to be the same as the number of productions
     self.events = []
     self.sysConfig = []
     self.stepsList = []
@@ -57,26 +83,7 @@ class ProductionRequest( object ):
     self.groupSizes = []
     self.plugins = []
     self.inputDataPolicies = []
-    self.prodGroup = ''
-    self.derivedProduction = 0
-    self.publishFlag = True
-    self.testFlag = False
-    self.extend = 0
-    self.dataTakingConditions = ''
-    self.processingPass = ''
-    self.bkFileType = ''
-    self.dqFlag = ''
-    self.startRun = 0
-    self.endRun = 0
-    self.runsList = ''
-    self.visibility = ''
-    self.modulesList = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
-                        'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
     self.previousProds = [None] #list of productions from which to take the inputs (the first is always None)
-    self.prodsToLaunch = [] #productions to launch
-    self.previousProdID = 0 #optional prod from which to start
-    self.fractionToProcess = 0
-    self.minFilesToProcess = 0
 
   #############################################################################
 
@@ -412,10 +419,11 @@ class ProductionRequest( object ):
     except IndexError:
       fTypeIn = []
     prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s_%s' % ( self.requestID, prodType,
-                                                                        self.prodGroup, self.eventType,
+                                                                             self.prodGroup, self.eventType,
                                                                         ''.join( [x.split( '.' )[0] for x in fTypeIn] ),
-                                                                        self.appendName ) )
-    prod.setBKParameters( self.outConfigName, self.configVersion, self.prodGroup, self.dataTakingConditions )
+                                                                             self.appendName ) )
+    prod.setBKParameters( configName = self.outConfigName, configVersion = self.configVersion,
+                          groupDescription = self.prodGroup, conditions = self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
     prod.prodGroup = self.prodGroup
