@@ -96,6 +96,42 @@ class RecoSuccess( ProductionJobTestCase ):
     for found, expected in getOutput( 'Reco' ):
       self.assertEqual( found, expected )
 
+class MCSuccess_new( ProductionJobTestCase ):
+  def test_execute( self ):
+
+    # From request 9149
+    stepsInProd = [{'StepId': 124001, 'StepName': 'Sim05d', 'ApplicationName': 'Gauss', 'ApplicationVersion': 'v41r4',
+                    'ExtraPackages': 'AppConfig.v3r151', 'ProcessingPass': 'Sim05d', 'Visible': 'Y', 'Usable': 'Yes',
+                    'DDDB': 'MC2011-20120727', 'CONDDB': 'MC2011-20120727-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
+                    'OptionFiles': '$APPCONFIGOPTS/Gauss/Beam3500GeV-mu100-MC11-nu2.py;$DECFILESROOT/options/13102414.py;$LBPYTHIAROOT/options/Pythia.py;$APPCONFIGOPTS/Gauss/G4PL_LHEP_EmNoCuts.py',
+                    'fileTypesIn':[],
+                    'fileTypesOut':['SIM']},
+                   {'StepId': 17895, 'StepName': 'Digi11', 'ApplicationName': 'Boole', 'ApplicationVersion': 'v23r1',
+                    'ExtraPackages': 'AppConfig.v3r140', 'ProcessingPass': 'Digi11', 'Visible': 'N', 'Usable': 'Yes',
+                    'DDDB': 'MC2011-20120727', 'CONDDB': 'MC2011-20120727-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
+                    'OptionFiles': '$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/L0/L0TCK-0x0037.py',
+                    'fileTypesIn':['SIM'],
+                    'fileTypesOut':['DIGI']},
+                   {'StepId': 17900, 'StepName': 'Trig0x40760037Flagged', 'ApplicationName': 'Moore', 'ApplicationVersion': 'v12r8g1',
+                    'ExtraPackages': 'AppConfig.v3r140', 'ProcessingPass': 'Trig0x40760037Flagged', 'Visible': 'N', 'Usable': 'Yes',
+                    'DDDB': 'MC2011-20120727', 'CONDDB': 'MC2011-20120727-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
+                    'OptionFiles': '$APPCONFIGOPTS/Moore/MooreSimProduction.py;$APPCONFIGOPTS/Conditions/TCK-0x40760037.py;$APPCONFIGOPTS/Moore/DataType-2011.py',
+                    'fileTypesIn':['DIGI'],
+                    'fileTypesOut':['DIGI']},
+                   ]
+
+    # First create the production object
+    prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, '', 'Tier1_MC-DST', 0, 100,
+                                     outputFileStep = '3', events = 2 )
+    # Then launch it
+    res = self.diracProduction.launchProduction( prod, False, True, 0 )
+
+    self.assertTrue( res['OK'] )
+
+    for found, expected in getOutput( 'MC' ):
+      self.assertEqual( found, expected )
+
+
 class StrippSuccess( ProductionJobTestCase ):
   def test_execute( self ):
     lfns = ['/lhcb/LHCb/Collision12/FULL.DST/00020330/0004/00020330_00047632_1.full.dst']

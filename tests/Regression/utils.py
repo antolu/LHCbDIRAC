@@ -19,23 +19,21 @@ def getOutput( typeOut = 'MC' ):
                     ( 'prodConf_Moore_00012345_00006789_3.py', 'pConfMooreExpected.txt' ),
                     ( 'prodConf_Brunel_00012345_00006789_4.py', 'pConfBrunelExpected.txt' ),
                     ( 'prodConf_DaVinci_00012345_00006789_5.py', 'pConfDaVinciExpected.txt' )]
+  if typeOut == 'MC_new':
+    filesCouples = [( 'prodConf_Boole_00012345_00006789_2.py', 'pConfBooleExpected.txt' ),
+                    ( 'prodConf_Moore_00012345_00006789_3.py', 'pConfMooreExpected.txt' )]
   elif typeOut == 'Reco':
     filesCouples = [( 'prodConf_Brunel_00012345_00006789_1.py', 'pConfBrunelRecoExpected.txt' ),
-                    ( 'prodConf_DaVinci_00012345_00006789_2.py', 'pConfDaVinciRecoExpected.txt' )
-                    ]
+                    ( 'prodConf_DaVinci_00012345_00006789_2.py', 'pConfDaVinciRecoExpected.txt' )]
   elif typeOut == 'Reco_old':
     filesCouples = [( 'prodConf_Brunel_00020194_00106359_1.py', 'pConfBrunelRecoOldExpected.txt' ),
-                    ( 'prodConf_DaVinci_00020194_00106359_2.py', 'pConfDaVinciRecoOldExpected.txt' )
-                    ]
+                    ( 'prodConf_DaVinci_00020194_00106359_2.py', 'pConfDaVinciRecoOldExpected.txt' )]
   elif typeOut == 'Stripp':
-    filesCouples = [( 'prodConf_DaVinci_00012345_00006789_1.py', 'pConfDaVinciStrippExpected.txt' )
-                    ]
+    filesCouples = [( 'prodConf_DaVinci_00012345_00006789_1.py', 'pConfDaVinciStrippExpected.txt' )]
   elif typeOut == 'Merge':
-    filesCouples = [( 'prodConf_LHCb_00012345_00006789_1.py', 'pConfLHCbExpected.txt' )
-                    ]
+    filesCouples = [( 'prodConf_LHCb_00012345_00006789_1.py', 'pConfLHCbExpected.txt' )]
   elif typeOut == 'MergeM':
-    filesCouples = [( 'prodConf_DaVinci_00012345_00006789_1.py', 'pConfDaVinciMergeExpected.txt' )
-                    ]
+    filesCouples = [( 'prodConf_DaVinci_00012345_00006789_1.py', 'pConfDaVinciMergeExpected.txt' )]
 
   retList = []
 
