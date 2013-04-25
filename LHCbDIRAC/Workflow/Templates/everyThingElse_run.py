@@ -78,6 +78,7 @@ p1DataSE = '{{p1DataSE#PROD-P1: Output Data Storage Element#Tier1-DST}}'
 p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
 p1RemoveInputs = eval( '{{p1RemoveInputs#PROD-P1: removeInputs flag#False}}' )
 p1sysConfig = '{{P1SystemConfig#PROD-P1: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
+p1StepMask = '{{P1StepMask#PROD-P1: step output to save (default is last of prod)#}}'
 
 #p2 params
 p2Plugin = '{{p2PluginType#PROD-P2: production plugin name#LHCbStandard}}'
@@ -88,6 +89,7 @@ p2DataSE = '{{p2DataSE#PROD-P2: Output Data Storage Element#Tier1-DST}}'
 p2Policy = '{{p2Policy#PROD-P2: data policy (download or protocol)#download}}'
 p2RemoveInputs = eval( '{{p2RemoveInputs#PROD-P2: removeInputs flag#False}}' )
 p2sysConfig = '{{P2SystemConfig#PROD-P2: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
+p2StepMask = '{{P2StepMask#PROD-P2: step output to save (default is last of prod)#}}'
 
 #p3 params
 p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
@@ -98,6 +100,7 @@ p3DataSE = '{{p3DataSE#PROD-P3: Output Data Storage Element#Tier1-DST}}'
 p3Policy = '{{p3Policy#PROD-P3: data policy (download or protocol)#download}}'
 p3RemoveInputs = eval( '{{p3RemoveInputs#PROD-P3: removeInputs flag#False}}' )
 p3sysConfig = '{{P3SystemConfig#PROD-P3: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
+p3StepMask = '{{P3StepMask#PROD-P3: step output to save (default is last of prod)#}}'
 
 parentReq = '{{_parent}}'
 if not parentReq:
@@ -171,6 +174,13 @@ if pr.testFlag:
   pr.eventType = '90000000'
   pr.dqFlag = 'ALL'
 
+if not p1StepMask:
+  p1StepMask = len( pr.stepsInProds[0] )
+if not p2StepMask:
+  p2StepMask = len( pr.stepsInProds[1] )
+if not p3StepMask:
+  p3StepMask = len( pr.stepsInProds[2] )
+
 pr.outputSEs = [x for x in [p1DataSE, p2DataSE, p3DataSE] if x != '']
 pr.removeInputsFlags = [p1RemoveInputs, p2RemoveInputs, p3RemoveInputs][0:len( pr.prodsTypeList )]
 pr.priorities = [p1Priority, p2Priority, p3Priority][0:len( pr.prodsTypeList )]
@@ -180,5 +190,6 @@ pr.plugins = [p1Plugin, p2Plugin, p3Plugin][0:len( pr.prodsTypeList )]
 pr.inputs = [inputDataList, [], []][0:len( pr.prodsTypeList )]
 pr.inputDataPolicies = [p1Policy, p2Policy, p3Policy][0:len( pr.prodsTypeList )]
 pr.sysConfig = [p1sysConfig, p2sysConfig, p3sysConfig][0:len( pr.prodsTypeList )]
+pr.outputFileSteps = [p1StepMask, p2StepMask, p3StepMask]
 
 pr.buildAndLaunchRequest()

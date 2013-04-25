@@ -48,8 +48,8 @@ pr.appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to prod
 
 w = '{{w#----->WORKFLOW: choose one below#}}'
 w1 = '{{w1#-WORKFLOW1: Simulation+Selection+Merge#False}}'
-w2 = '{{w2#-WORKFLOW2: Simulation+Selection#False}}'
-w3 = '{{w3#-WORKFLOW3: Simulation+MCMerge#False}}'
+w2 = '{{w2#-WORKFLOW2: Simulation(up to Moore)+Selection(-->avoid merge)#False}}'
+w3 = '{{w3#-WORKFLOW3: Simulation+Merge#False}}'
 w4 = '{{w4#-WORKFLOW4: Simulation#False}}'
 
 certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
@@ -58,7 +58,6 @@ validationFlag = '{{validationFlag#GENERAL: Set True for validation prod#False}}
 
 pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 pr.configVersion = '{{mcConfigVersion#GENERAL: BK configuration version, e.g. MC10#2012}}'
-outputFileMask = '{{WorkflowOutputDataFileMask#GENERAL: Workflow file extensions to save (comma separated) e.g. DST,DIGI#ALLSTREAMS.DST}}'
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 
 events = '{{MCNumberOfEvents#GENERAL: Number of events per job#100}}'
@@ -68,6 +67,7 @@ MCCpu = '{{MCMaxCPUTime#PROD-1:MC: Max CPU time in secs#1000000}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 pr.extend = '{{MCExtend#PROD-1:MC: extend production by this many jobs#100}}'
 MCSysConfig = '{{MCSystemConfig#PROD-1:MC System config e.g. x86_64-slc5-gcc43-opt, ANY#i686-slc5-gcc43-opt}}'
+# outputFileMaskMC = '{{WorkflowOutputDataFileMaskMC#PROD-1:MC: Workflow file extensions to save (comma separated) e.g. DST,DIGI#}}'
 
 selectionPlugin = '{{selectionPlugin#PROD-2:Selection: plugin e.g. Standard, BySize#BySize}}'
 selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total size (we\'ll use protocol access)#20}}'
@@ -75,6 +75,7 @@ selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 b
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 selSysConfig = '{{selSystemConfig#PROD-2:Selection System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc43-opt}}'
+# outputFileMaskStripp = '{{WorkflowOutputDataFileMaskStripp#PROD-2:Selection: Workflow file extensions to save (comma separated) e.g. DST,DIGI#}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'
@@ -150,7 +151,7 @@ if w1:
   pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
   pr.priorities = [MCPriority, selectionPriority, mergingPriority]
   pr.cpus = [MCCpu, selectionCPU, mergingCPU]
-  pr.outputFileMasks = [outputFileMask, '', '']
+  pr.outputFileSteps = [str( len( pr.stepsListDict ) - 2 ), '', '']
   pr.targets = [targets, '', '']
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
@@ -161,12 +162,23 @@ if w1:
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'MCStripping']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
-  pr.stepsInProds = [range( 1, len( pr.stepsList ) ),
-                     [len( pr.stepsList )]]
+
+  if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
+    pr.stepsListDict.pop()
+
+  mooreStepIndex = 1
+  for sld in pr.stepsListDict:
+    if sld['ApplicationName'].lower() == 'moore':
+      break
+    mooreStepIndex += 1
+
+  pr.stepsInProds = [range( 1, mooreStepIndex + 1 ),
+                     range( mooreStepIndex, len( pr.stepsListDict ) + 1 )]
+  pr.outputFileSteps = [str( mooreStepIndex ), str( len( pr.stepsListDict ) )]
+
   pr.removeInputsFlags = [False, removeInputSelection]
   pr.priorities = [MCPriority, selectionPriority]
   pr.cpus = [MCCpu, selectionCPU]
-  pr.outputFileMasks = [outputFileMask, '']
   pr.targets = [targets, '']
   pr.groupSizes = [1, selectionGroupSize]
   pr.plugins = ['', selectionPlugin]
@@ -182,7 +194,7 @@ elif w3:
   pr.removeInputsFlags = [False, removeInputMerge]
   pr.priorities = [MCPriority, mergingPriority]
   pr.cpus = [MCCpu, mergingCPU]
-  pr.outputFileMasks = [outputFileMask, '']
+  pr.outputFileSteps = [str( len( pr.stepsListDict ) - 1 ), '']
   pr.targets = [targets, '']
   pr.groupSizes = [1, mergingGroupSize]
   pr.plugins = ['', mergingPlugin]
@@ -197,7 +209,7 @@ elif w4:
   pr.removeInputsFlags = [False]
   pr.priorities = [MCPriority]
   pr.cpus = [MCCpu]
-  pr.outputFileMasks = [outputFileMask]
+  pr.outputFileSteps = [str( len( pr.stepsListDict ) - 1 )]
   pr.targets = [targets]
   pr.groupSizes = [1]
   pr.plugins = ['']
