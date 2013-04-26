@@ -216,6 +216,29 @@ class ProductionRequest( object ):
     if len( self.events ) != len( self.prodsTypeList ):
       self.events += ['-1'] * ( len( self.prodsTypeList ) - len( self.events ) )
 
+    if not self.removeInputsFlags:
+      removeInputsFlags = []
+      for prodType in self.prodsTypeList:
+        if prodType.lower() == 'merge':
+          removeInputsFlags.append( True )
+        else:
+          removeInputsFlags.append( False )
+      self.removeInputsFlags = removeInputsFlags
+
+    if not self.outputFileMasks:
+      self.outputFileMasks = [''] * len( self.prodsTypeList )
+
+    if not self.outputFileSteps:
+      self.outputFileSteps = [''] * len( self.prodsTypeList )
+
+    if not self.inputs:
+      self.inputs = [[]] * len( self.prodsTypeList )
+
+    if not self.targets:
+      self.targets = [''] * len( self.prodsTypeList )
+
+    if not self.inputDataPolicies:
+      self.inputDataPolicies = ['download'] * len( self.prodsTypeList )
 
     # Checking if we need to split the merging step into many productions
     if 'merge' in [pt.lower() for pt in self.prodsTypeList]:
@@ -298,30 +321,6 @@ class ProductionRequest( object ):
       correctedStepsInProds.append( li )
 
     self.stepsInProds = correctedStepsInProds
-
-    if not self.removeInputsFlags:
-      removeInputsFlags = []
-      for prodType in self.prodsTypeList:
-        if prodType.lower() == 'merge':
-          removeInputsFlags.append( True )
-        else:
-          removeInputsFlags.append( False )
-      self.removeInputsFlags = removeInputsFlags
-
-    if not self.outputFileMasks:
-      self.outputFileMasks = [''] * len( self.prodsTypeList )
-
-    if not self.outputFileSteps:
-      self.outputFileSteps = [''] * len( self.prodsTypeList )
-
-    if not self.inputs:
-      self.inputs = [[]] * len( self.prodsTypeList )
-
-    if not self.targets:
-      self.targets = [''] * len( self.prodsTypeList )
-
-    if not self.inputDataPolicies:
-      self.inputDataPolicies = ['download'] * len( self.prodsTypeList )
 
   #############################################################################
 
@@ -456,7 +455,8 @@ class ProductionRequest( object ):
     if outputFileMask:
       outputFileMask = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ',' )]
     if outputFileStep:
-      outputFileStep = [m.lower() for m in outputFileStep.replace( ' ', '' ).split( ',' )]
+      if type( outputFileStep ) == type( '' ):
+        outputFileStep = [m.lower() for m in outputFileStep.replace( ' ', '' ).split( ',' )]
     prod.setFileMask( outputFileMask, outputFileStep )
     if target:
       if target == 'Tier2':

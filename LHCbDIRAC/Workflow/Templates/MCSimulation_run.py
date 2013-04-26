@@ -48,9 +48,10 @@ pr.appendName = '{{WorkflowAppendName#GENERAL: Workflow string to append to prod
 
 w = '{{w#----->WORKFLOW: choose one below#}}'
 w1 = '{{w1#-WORKFLOW1: Simulation+Selection+Merge#False}}'
-w2 = '{{w2#-WORKFLOW2: Simulation(up to Moore)+Selection(-->avoid merge)#False}}'
-w3 = '{{w3#-WORKFLOW3: Simulation+Merge#False}}'
-w4 = '{{w4#-WORKFLOW4: Simulation#False}}'
+w2 = '{{w2#-WORKFLOW2: Simulation(up to Moore)+Selection+Merge#False}}'
+w3 = '{{w3#-WORKFLOW3: Simulation(up to Moore)+Selection(-->avoid merge)#False}}'
+w4 = '{{w4#-WORKFLOW4: Simulation+Merge#False}}'
+w5 = '{{w5#-WORKFLOW5: Simulation#False}}'
 
 certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
@@ -67,15 +68,13 @@ MCCpu = '{{MCMaxCPUTime#PROD-1:MC: Max CPU time in secs#1000000}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 pr.extend = '{{MCExtend#PROD-1:MC: extend production by this many jobs#100}}'
 MCSysConfig = '{{MCSystemConfig#PROD-1:MC System config e.g. x86_64-slc5-gcc43-opt, ANY#i686-slc5-gcc43-opt}}'
-# outputFileMaskMC = '{{WorkflowOutputDataFileMaskMC#PROD-1:MC: Workflow file extensions to save (comma separated) e.g. DST,DIGI#}}'
 
 selectionPlugin = '{{selectionPlugin#PROD-2:Selection: plugin e.g. Standard, BySize#BySize}}'
-selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total size (we\'ll use protocol access)#20}}'
+selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total size (we\'ll download)#20}}'
 selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 by default#6}}'
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 selSysConfig = '{{selSystemConfig#PROD-2:Selection System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc43-opt}}'
-# outputFileMaskStripp = '{{WorkflowOutputDataFileMaskStripp#PROD-2:Selection: Workflow file extensions to save (comma separated) e.g. DST,DIGI#}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'
@@ -137,8 +136,9 @@ w1 = eval( w1 )
 w2 = eval( w2 )
 w3 = eval( w3 )
 w4 = eval( w4 )
+w5 = eval( w5 )
 
-if not w1 and not w2 and not w3 and not w4:
+if not w1 and not w2 and not w3 and not w4 and not w5:
   gLogger.error( 'Vladimir, I told you to select at least one workflow!' )
   DIRAC.exit( 2 )
 
@@ -155,11 +155,38 @@ if w1:
   pr.targets = [targets, '', '']
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
-  pr.inputDataPolicies = ['', 'protocol', 'download']
+  pr.inputDataPolicies = ['', 'download', 'download']
   pr.events = [events, '-1', '-1']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
 elif w2:
+  pr.prodsTypeList = ['MCSimulation', 'MCStripping', 'Merge']
+  pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
+
+  mooreStepIndex = 1
+  for sld in pr.stepsListDict:
+    if sld['ApplicationName'].lower() == 'moore':
+      break
+    mooreStepIndex += 1
+
+  pr.stepsInProds = [range( 1, mooreStepIndex + 1 ),
+                     range( mooreStepIndex + 1, len( pr.stepsListDict ) ),
+                     [len( pr.stepsListDict )]]
+  pr.outputFileSteps = [len( pr.stepsInProds[0] ),
+                        len( pr.stepsInProds[1] ),
+                        '1']
+
+  pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
+  pr.priorities = [MCPriority, selectionPriority, mergingPriority]
+  pr.cpus = [MCCpu, selectionCPU, mergingCPU]
+  pr.targets = [targets, '', '']
+  pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
+  pr.plugins = ['', selectionPlugin, mergingPlugin]
+  pr.inputDataPolicies = ['', 'download', 'download']
+  pr.events = [events, '-1', '-1']
+  pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
+  pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
+elif w3:
   pr.prodsTypeList = ['MCSimulation', 'MCStripping']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
 
@@ -173,8 +200,9 @@ elif w2:
     mooreStepIndex += 1
 
   pr.stepsInProds = [range( 1, mooreStepIndex + 1 ),
-                     range( mooreStepIndex, len( pr.stepsListDict ) + 1 )]
-  pr.outputFileSteps = [str( mooreStepIndex ), str( len( pr.stepsListDict ) )]
+                     range( mooreStepIndex + 1, len( pr.stepsListDict ) + 1 )]
+  pr.outputFileSteps = [len( pr.stepsInProds[0] ),
+                        len( pr.stepsInProds[1] )]
 
   pr.removeInputsFlags = [False, removeInputSelection]
   pr.priorities = [MCPriority, selectionPriority]
@@ -182,11 +210,11 @@ elif w2:
   pr.targets = [targets, '']
   pr.groupSizes = [1, selectionGroupSize]
   pr.plugins = ['', selectionPlugin]
-  pr.inputDataPolicies = ['', 'protocol']
+  pr.inputDataPolicies = ['', 'download']
   pr.events = [events, '-1']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, selSysConfig]
-elif w3:
+elif w4:
   pr.prodsTypeList = ['MCSimulation', 'Merge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
   pr.stepsInProds = [range( 1, len( pr.stepsList ) ),
@@ -202,7 +230,7 @@ elif w3:
   pr.events = [events, '-1']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, mergeSysConfig]
-elif w4:
+elif w5:
   pr.prodsTypeList = ['MCSimulation']
   pr.outputSEs = ['Tier1_MC-DST']
   pr.stepsInProds = [range( 1, len( pr.stepsList ) + 1 )]
@@ -217,8 +245,6 @@ elif w4:
   pr.events = [events]
   pr.bkQueries = ['']
   pr.sysConfig = [MCSysConfig]
-
-pr.inputs = [[]] * len( pr.prodsTypeList )
 
 # In case of local test (these examples are for the merging)
 if localTestFlag:
