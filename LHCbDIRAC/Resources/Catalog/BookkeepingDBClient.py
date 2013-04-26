@@ -218,11 +218,11 @@ class BookkeepingDBClient( FileCatalogueBase ):
         for lfn in lfnList:
           failed[lfn] = res['Message']
       else:
-        for lfn in lfnList:
-          if res['Value'].has_key( lfn ):
-            failed[lfn] = res['Value'][lfn]
-          else:
-            successful[lfn] = True
+        #It is a dirty, but ...
+        for lfn in res['Value']['Failed']:
+          failed[lfn] = "The file does not exists in the Bookkeeping catalogue!"
+        for lfn in res['Value']['Successful']:
+          successful[lfn] = True
     resDict = {'Successful':successful, 'Failed':failed}
     return S_OK( resDict )
 
@@ -241,11 +241,11 @@ class BookkeepingDBClient( FileCatalogueBase ):
         for lfn in lfnList:
           failed[lfn] = res['Message']
       else:
-        for lfn in lfnList:
-          if res['Value'].has_key( lfn ):
-            failed[lfn] = res['Value'][lfn]
-          else:
-            successful[lfn] = True
+        #It is a dirty, but ...
+        for lfn in res['Value']['Failed']:
+          failed[lfn] = "The file does not exists in the Bookkeeping catalogue!"
+        for lfn in res['Value']['Successful']:
+          successful[lfn] = True
     resDict = {'Successful':successful, 'Failed':failed}
     return S_OK( resDict )
 
