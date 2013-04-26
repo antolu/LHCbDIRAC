@@ -32,14 +32,10 @@ print 'Do you want to add these new simulation conditions? (yes or no)'
 value = raw_input('Choice:')
 choice = value.lower()
 if choice in ['yes', 'y']:
-  res = bk.insertSimConditions(desc,
-                                beamcond,
-                                beamEnergy,
-                                generator,
-                                magneticField,
-                                detectorCond,
-                                luminosity,
-                                g4settings)
+  in_dict={'SimDescription':desc,'BeamCond':beamcond, 'BeamEnergy': beamEnergy, 'Generator':generator,\
+           'MagneticField':magneticField,'DetectorCond':detectorCond,'Luminosity':luminosity,'G4settings':g4settings,\
+           'Visible':'Y'}
+  res = bk.insertSimConditions(in_dict)
   if res['OK']:
     print 'The simulation conditions added successfully!'
   else:
