@@ -23,8 +23,8 @@ class BookkeepingDBClientt_TestCase( unittest.TestCase ):
 #    self.mock_pathFinder = mock_pathFinder
 #
     mock_RPC = mock.Mock()
-    mock_RPC.addFiles.return_value        = { 'OK' : True, 'Value' : { 'Successful' : 1 , 'Failed' : 2} }
-    mock_RPC.removeFiles.return_value     = { 'OK' : True, 'Value' : { 'Successful' : 1 , 'Failed' : 2} }
+    mock_RPC.addFiles.return_value        = { 'OK' : True, 'Value' : { 'Successful' : ['1','2'] , 'Failed' :['3','4']} }
+    mock_RPC.removeFiles.return_value     = { 'OK' : True, 'Value' : { 'Successful' : ['1','2'] , 'Failed' : ['3','4']} }
     mock_RPC.exists.return_value          = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
     mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : { 'Successful':{'A' : { 'FileSize' : 1} ,
                                                                                      'B' : { 'FileSize' : 2} } } }
