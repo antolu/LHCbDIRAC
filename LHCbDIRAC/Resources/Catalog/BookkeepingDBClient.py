@@ -7,7 +7,6 @@ from DIRAC                                                          import gLogg
 from DIRAC.Core.DISET.RPCClient                                     import RPCClient
 from DIRAC.Core.Utilities.List                                      import breakListIntoChunks
 from DIRAC.Resources.Catalog.FileCatalogueBase                      import FileCatalogueBase
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
 import types
 
 class BookkeepingDBClient( FileCatalogueBase ):
@@ -19,21 +18,26 @@ class BookkeepingDBClient( FileCatalogueBase ):
     self.splitSize = 1000
     self.name = 'BookkeepingDB'
     self.valid = True
+    self.server = None
+    self.url = None
     try:
-      if url:
-        self.url = url
-      else:
-        self.url = 'Bookkeeping/BookkeepingManager'
+      self.server = self.__getServer( url = url )
       gLogger.verbose( "BK catalog URLs: %s" % self.url )
-      server = RPCClient( self.url, timeout = 120 )
-      self.bkClient = BookkeepingClient( server )
     except Exception, exceptionMessage:
       gLogger.exception( 'BookkeepingDBClient.__init__: Exception while obtaining Bookkeeping service URL.', '', exceptionMessage )
       self.valid = False
 
+  def __getServer( self, url = False ):
+    if not self.server:
+      if url:
+        self.url = url
+      if not self.url:
+        self.url = 'Bookkeeping/BookkeepingManager'
+      self.server = RPCClient( self.url, timeout = 120 )
+    return self.server
+
   def isOK( self ):
-    '''
-      Returns valid
+    ''' Returns valid
     '''
     return self.valid
 
@@ -41,9 +45,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
     """ Set the replica flag
     """
     res = self.__checkArgumentFormat( lfn )
-    if not res['OK']:
-      return res
-    return self.__setHasReplicaFlag( res['Value'] )
+    return self.__setHasReplicaFlag( res['Value'] ) if res['OK'] else res
 
   def addReplica( self, lfn ):
     """ Same as addFile
@@ -51,17 +53,19 @@ class BookkeepingDBClient( FileCatalogueBase ):
     return self.addFile( lfn )
 
   def removeFile( self, path ):
-    """ Remove teh replica flag
+    """ Remove the replica flag
     """
     res = self.__checkArgumentFormat( path )
-    if not res['OK']:
-      return res
-    return self.__unsetHasReplicaFlag( res['Value'] )
+    return self.__unsetHasReplicaFlag( res['Value'] ) if res['OK'] else res
 
   def isFile( self, lfn ):
+    """ Returns a dictionary True/False
+    """
     return self.exists( lfn )
 
   def isDirectory( self, lfn ):
+    """ Return Successful dict: True if lfn is a directory, False if a file - Failed dict if not existing
+    """
     res = self.isFile( lfn )
     if not res['OK']:
       successful = {}
@@ -72,7 +76,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
       toCheck = [lfn for lfn, val in res['Value']['Successful'].items() if not val]
       if toCheck:
         # Can't use service directly as
-        res = self.bkClient.getDirectoryMetadata( toCheck )
+        res = self.__getServer().getDirectoryMetadata_new( toCheck )
         if not res['OK']:
           failed.update( dict.fromkeys( toCheck, res['Message'] ) )
         else:
@@ -86,9 +90,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
   def __returnSuccess( self, lfn, val = True ):
     """ Generic method returning success for all input files"""
     res = self.__checkArgumentFormat( lfn )
-    if not res['OK']:
-      return res
-    return S_OK( {'Failed':{}, 'Successful':dict.fromkeys( res['Value'], val )} )
+    return S_OK( {'Failed':{}, 'Successful':dict.fromkeys( res['Value'], val )} ) if res['OK'] else res
 
   def removeReplica( self, lfn ):
     return self.__returnSuccess( lfn )
@@ -115,39 +117,37 @@ class BookkeepingDBClient( FileCatalogueBase ):
     """ Returns a dictionary of True/False on file existence
     """
     res = self.__checkArgumentFormat( path )
-    if not res['OK']:
-      return res
-    return self.__exists( res['Value'] )
+    return self.__exists( res['Value'] ) if res['OK'] else res
 
   def getFileMetadata( self, path ):
     """ Return the metadata dictionary
     """
     res = self.__checkArgumentFormat( path )
-    if not res['OK']:
-      return res
-    return self.__getFileMetadata( res['Value'] )
+    return self.__getFileMetadata( res['Value'] ) if res['OK'] else res
 
   def getFileSize( self, path ):
     """ Return just the file size
     """
     res = self.__checkArgumentFormat( path )
-    if not res['OK']:
+    if res['OK']:
+      res = self.__getFileMetadata( res['Value'] )
+      # Always returns OK
+      successful = dict( [( lfn, metadata['FileSize'] ) for lfn, metadata in res['Value']['Successful'].items()] )
+      return S_OK( {'Successful':successful, 'Failed':res['Value']['Failed']} )
+    else:
       return res
-    res = self.__getFileMetadata( res['Value'] )
-    # Always returns OK
-    successful = dict( [( lfn, metadata['FileSize'] ) for lfn, metadata in res['Value']['Successful'].items()] )
-    return S_OK( {'Successful':successful, 'Failed':res['Value']['Failed']} )
 
   ################################################################
   #
   # These are the internal methods used for actual interaction with the BK service
   #
 
-  @staticmethod
-  def __checkArgumentFormat( path ):
+  def __checkArgumentFormat( self, path ):
     '''
       Returns a list, either from a string or keys of a dict
     '''
+    if not self.valid:
+      return S_ERROR( 'BKDBClient not initialised' )
     if type( path ) in types.StringTypes:
       return S_OK( [path] )
     elif type( path ) == types.ListType:
@@ -160,12 +160,10 @@ class BookkeepingDBClient( FileCatalogueBase ):
       return S_ERROR( errStr )
 
   def __toggleReplicaFlag( self, lfns, setflag = True ):
-
-    gLogger.verbose( "**** Set replica flag on %s" % self.url )
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
-      res = {True: self.bkClient.addFiles, False:self.bkClient.removeFiles}[setflag]( lfnList )
+      res = {True: self.__getServer().addFiles, False:self.__getServer().removeFiles}[setflag]( lfnList )
       if not res['OK']:
         failed.update( dict.fromkeys( lfnList, res['Message'] ) )
       else:
@@ -190,11 +188,10 @@ class BookkeepingDBClient( FileCatalogueBase ):
     '''
       Checks if lfns exist
     '''
-
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
-      res = self.bkClient.exists( lfnList )
+      res = self.__getServer().exists( lfnList )
       if not res['OK']:
         failed.update( dict.fromkeys( lfnList, res['Message'] ) )
       else:
@@ -205,11 +202,10 @@ class BookkeepingDBClient( FileCatalogueBase ):
     '''
       Returns lfns metadata
     '''
-
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
-      res = self.bkClient.getFileMetadata( lfnList )
+      res = self.__getServer().getFileMetadata( lfnList )
       if not res['OK']:
         failed.update( dict.fromkeys( lfnList, res['Message'] ) )
       else:
