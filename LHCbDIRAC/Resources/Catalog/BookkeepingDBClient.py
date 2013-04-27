@@ -73,8 +73,11 @@ class BookkeepingDBClient( FileCatalogueBase ):
       if toCheck:
         # Can't use service directly as
         res = self.bkClient.getDirectoryMetadata( toCheck )
-        failed.update( dict.fromkeys( [lfn for lfn in res['Value']['Failed']], 'Not a file or directory' ) )
-        successful.update( dict.fromkeys( [lfn for lfn in res['Value']['Successful']], True ) )
+        if not res['OK']:
+          failed.update( dict.fromkeys( toCheck, res['Message'] ) )
+        else:
+          failed.update( dict.fromkeys( [lfn for lfn in res['Value']['Failed']], 'Not a file or directory' ) )
+          successful.update( dict.fromkeys( [lfn for lfn in res['Value']['Successful']], True ) )
     return S_OK( {'Successful':successful, 'Failed':failed} )
 
   def isLink( self, lfn ):
