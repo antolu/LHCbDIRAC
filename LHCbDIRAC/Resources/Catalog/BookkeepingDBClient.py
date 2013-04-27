@@ -3,12 +3,12 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                          import gLogger, gConfig, S_OK, S_ERROR
-from DIRAC.ConfigurationSystem.Client                               import PathFinder
+from DIRAC                                                          import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient                                     import RPCClient
-from DIRAC.Core.Utilities.List                                      import breakListIntoChunks, randomize
+from DIRAC.Core.Utilities.List                                      import breakListIntoChunks
 from DIRAC.Resources.Catalog.FileCatalogueBase                      import FileCatalogueBase
-import types, os
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
+import types
 
 class BookkeepingDBClient( FileCatalogueBase ):
   """ File catalog client for bookkeeping DB
@@ -20,11 +20,13 @@ class BookkeepingDBClient( FileCatalogueBase ):
     self.name = 'BookkeepingDB'
     self.valid = True
     try:
-      if not url:
-        self.url = 'Bookkeeping/BookkeepingManager'
-      else:
+      if url:
         self.url = url
+      else:
+        self.url = 'Bookkeeping/BookkeepingManager'
       gLogger.verbose( "BK catalog URLs: %s" % self.url )
+      server = RPCClient( self.url, timeout = 120 )
+      self.bkClient = BookkeepingClient( server )
     except Exception, exceptionMessage:
       gLogger.exception( 'BookkeepingDBClient.__init__: Exception while obtaining Bookkeeping service URL.', '', exceptionMessage )
       self.valid = False
@@ -36,146 +38,102 @@ class BookkeepingDBClient( FileCatalogueBase ):
     return self.valid
 
   def addFile( self, lfn ):
+    """ Set the replica flag
+    """
     res = self.__checkArgumentFormat( lfn )
     if not res['OK']:
       return res
-    fileList = []
-    for lfn, _info in res['Value'].items():
-      fileList.append( lfn )
-    return self.__setHasReplicaFlag( fileList )
+    return self.__setHasReplicaFlag( res['Value'] )
 
   def addReplica( self, lfn ):
-    res = self.__checkArgumentFormat( lfn )
-    if not res['OK']:
-      return res
-    fileList = []
-    for lfn, _info in res['Value'].items():
-      fileList.append( lfn )
-    return self.__setHasReplicaFlag( fileList )
+    """ Same as addFile
+    """
+    return self.addFile( lfn )
 
   def removeFile( self, path ):
-    #FIXME: who can be such short method soooo messy ???
+    """ Remove teh replica flag
+    """
     res = self.__checkArgumentFormat( path )
     if not res['OK']:
       return res
-    lfns = res['Value'].keys()
-    res = self.__exists( lfns )
+    return self.__unsetHasReplicaFlag( res['Value'] )
+
+  def isFile( self, lfn ):
+    return self.exists( lfn )
+
+  def isDirectory( self, lfn ):
+    res = self.isFile( lfn )
+    if not res['OK']:
+      successful = {}
+      failed = dict.fromkeys( lfn, res['Message'] )
+    else:
+      successful = dict.fromkeys( [lfn for lfn, val in res['Value']['Successful'].items() if val], False )
+      failed = res['Value']['Failed']
+      toCheck = [lfn for lfn, val in res['Value']['Successful'].items() if not val]
+      if toCheck:
+        # Can't use service directly as
+        res = self.bkClient.getDirectoryMetadata( toCheck )
+        failed.update( dict.fromkeys( [lfn for lfn in res['Value']['Failed']], 'Not a file or directory' ) )
+        successful.update( dict.fromkeys( [lfn for lfn in res['Value']['Successful']], True ) )
+    return S_OK( {'Successful':successful, 'Failed':failed} )
+
+  def isLink( self, lfn ):
+    return self.__returnSuccess( lfn, val = False )
+
+  def __returnSuccess( self, lfn, val = True ):
+    """ Generic method returning success for all input files"""
+    res = self.__checkArgumentFormat( lfn )
     if not res['OK']:
       return res
-    lfnsToRemove = []
-    successful = {}
-    for lfn, exists in res['Value']['Successful'].items():
-      if exists:
-        lfnsToRemove.append( lfn )
-      else:
-        successful[lfn] = True
-    res = self.__unsetHasReplicaFlag( lfnsToRemove )
-    failed = res['Value']['Failed']
-    successful.update( res['Value']['Successful'] )
-    resDict = {'Failed':failed, 'Successful':successful}
-    return S_OK( resDict )
+    return S_OK( {'Failed':{}, 'Successful':dict.fromkeys( res['Value'], val )} )
 
   def removeReplica( self, lfn ):
-    res = self.__checkArgumentFormat( lfn )
-    if not res['OK']:
-      return res
-    successful = {}
-    for lfn, _info in res['Value'].items():
-      successful[lfn] = True
-    resDict = {'Failed':{}, 'Successful':successful}
-    return S_OK( resDict )
+    return self.__returnSuccess( lfn )
 
   def setReplicaStatus( self, lfn ):
-    #FIXME: the same method as removeReplica, setReplicaHost, removeDirectory
-    #createDirectory, removeLink... ??
-    res = self.__checkArgumentFormat( lfn )
-    if not res['OK']:
-      return res
-    successful = {}
-    for lfn, _info in res['Value'].items():
-      successful[lfn] = True
-    resDict = {'Failed':{}, 'Successful':successful}
-    return S_OK( resDict )
+    return self.__returnSuccess( lfn )
 
   def setReplicaHost( self, lfn ):
-    res = self.__checkArgumentFormat( lfn )
-    if not res['OK']:
-      return res
-    successful = {}
-    for lfn, _info in res['Value'].items():
-      successful[lfn] = True
-    resDict = {'Failed':{}, 'Successful':successful}
-    return S_OK( resDict )
+    return self.__returnSuccess( lfn )
 
   def removeDirectory( self, lfn, recursive = False ):
-    res = self.__checkArgumentFormat( lfn )
-    if not res['OK']:
-      return res
-    successful = {}
-    for lfn, _info in res['Value'].items():
-      successful[lfn] = True
-    resDict = {'Failed':{}, 'Successful':successful}
-    return S_OK( resDict )
+    return self.__returnSuccess( lfn )
 
   def createDirectory( self, lfn ):
-    res = self.__checkArgumentFormat( lfn )
-    if not res['OK']:
-      return res
-    successful = {}
-    for lfn, _info in res['Value'].items():
-      successful[lfn] = True
-    resDict = {'Failed':{}, 'Successful':successful}
-    return S_OK( resDict )
+    return self.__returnSuccess( lfn )
 
   def removeLink( self, lfn ):
-    res = self.__checkArgumentFormat( lfn )
-    if not res['OK']:
-      return res
-    successful = {}
-    for lfn, _info in res['Value'].items():
-      successful[lfn] = True
-    resDict = {'Failed':{}, 'Successful':successful}
-    return S_OK( resDict )
+    return self.__returnSuccess( lfn )
 
   def createLink( self, lfn ):
-    res = self.__checkArgumentFormat( lfn )
-    if not res['OK']:
-      return res
-    successful = {}
-    for lfn, _info in res['Value'].items():
-      successful[lfn] = True
-    resDict = {'Failed':{}, 'Successful':successful}
-    return S_OK( resDict )
+    return self.__returnSuccess( lfn )
 
   def exists( self, path ):
+    """ Returns a dictionary of True/False on file existence
+    """
     res = self.__checkArgumentFormat( path )
     if not res['OK']:
       return res
-    lfns = res['Value'].keys()
-    return self.__exists( lfns )
+    return self.__exists( res['Value'] )
 
   def getFileMetadata( self, path ):
+    """ Return the metadata dictionary
+    """
     res = self.__checkArgumentFormat( path )
     if not res['OK']:
       return res
-    lfns = res['Value'].keys()
-    return self.__getFileMetadata( lfns )
+    return self.__getFileMetadata( res['Value'] )
 
   def getFileSize( self, path ):
+    """ Return just the file size
+    """
     res = self.__checkArgumentFormat( path )
     if not res['OK']:
       return res
-    lfns = res['Value'].keys()
-    res = self.__getFileMetadata( lfns )
-    #FIXME: this is an unreachable line !
-    if not res['OK']:
-      return res
-    failed = res['Value']['Failed']
-    successful = {}
-    for lfn, metadata in res['Value']['Successful'].items():
-      successful[lfn] = metadata['FileSize']
-    resDict = {'Successful':successful, 'Failed':failed}
-    return S_OK( resDict )
+    res = self.__getFileMetadata( res['Value'] )
+    # Always returns OK
+    successful = dict( [( lfn, metadata['FileSize'] ) for lfn, metadata in res['Value']['Successful'].items()] )
+    return S_OK( {'Successful':successful, 'Failed':res['Value']['Failed']} )
 
   ################################################################
   #
@@ -185,113 +143,77 @@ class BookkeepingDBClient( FileCatalogueBase ):
   @staticmethod
   def __checkArgumentFormat( path ):
     '''
-      If argument given is a string, returns false. If it is a list, all them
-      are converted into dictionary keys with false value. If a dictionary,
-      it returns it.
+      Returns a list, either from a string or keys of a dict
     '''
-    #FIXME: why value is False ? Just a default ?
     if type( path ) in types.StringTypes:
-      urls = {path:False}
+      return S_OK( [path] )
     elif type( path ) == types.ListType:
-      urls = {}
-      for url in path:
-        urls[url] = False
+      return S_OK( path )
     elif type( path ) == types.DictType:
-      urls = path
+      return S_OK( path.keys() )
     else:
       errStr = "BookkeepingDBClient.__checkArgumentFormat: Supplied path is not of the correct format."
       gLogger.error( errStr )
       return S_ERROR( errStr )
-    return S_OK( urls )
+
+  def __toggleReplicaFlag( self, lfns, setflag = True ):
+
+    gLogger.verbose( "**** Set replica flag on %s" % self.url )
+    successful = {}
+    failed = {}
+    for lfnList in breakListIntoChunks( lfns, self.splitSize ):
+      res = {True: self.bkClient.addFiles, False:self.bkClient.removeFiles}[setflag]( lfnList )
+      if not res['OK']:
+        failed.update( dict.fromkeys( lfnList, res['Message'] ) )
+      else:
+        #It is a dirty, but ...
+        failed.update( dict.fromkeys( [lfn for lfn in res['Value']['Failed']], 'File does not exist' ) )
+        successful.update( dict.fromkeys( [lfn for lfn in res['Value']['Successful']], True ) )
+    return S_OK( {'Successful':successful, 'Failed':failed} )
 
   def __setHasReplicaFlag( self, lfns ):
     '''
       Set replica flags on BKK
     '''
-    server = RPCClient( self.url, timeout = 120 )
-    gLogger.verbose( "**** Set replica flag on %s" % self.url )
-    successful = {}
-    failed = {}
-    for lfnList in breakListIntoChunks( lfns, self.splitSize ):
-      res = server.addFiles( lfnList )
-      if not res['OK']:
-        for lfn in lfnList:
-          failed[lfn] = res['Message']
-      else:
-        #It is a dirty, but ...
-        for lfn in res['Value']['Failed']:
-          failed[lfn] = "The file does not exists in the Bookkeeping catalogue!"
-        for lfn in res['Value']['Successful']:
-          successful[lfn] = True
-    resDict = {'Successful':successful, 'Failed':failed}
-    return S_OK( resDict )
+    return self.__toggleReplicaFlag( lfns, setflag = True )
 
   def __unsetHasReplicaFlag( self, lfns ):
     '''
       Removes replica flags on BKK
     '''
-    #FIXME: this method is VERY VERY similar to setHasReplicaFlag.. why not refactor
-    # a little bit ?
-    server = RPCClient( self.url, timeout = 120 )
-    successful = {}
-    failed = {}
-    for lfnList in breakListIntoChunks( lfns, self.splitSize ):
-      res = server.removeFiles( lfnList )
-      if not res['OK']:
-        for lfn in lfnList:
-          failed[lfn] = res['Message']
-      else:
-        #It is a dirty, but ...
-        for lfn in res['Value']['Failed']:
-          failed[lfn] = "The file does not exists in the Bookkeeping catalogue!"
-        for lfn in res['Value']['Successful']:
-          successful[lfn] = True
-    resDict = {'Successful':successful, 'Failed':failed}
-    return S_OK( resDict )
+    return self.__toggleReplicaFlag( lfns, setflag = False )
 
   def __exists( self, lfns ):
     '''
       Checks if lfns exist
     '''
-    #FIXME: what if the lfns returned by the service are different than the ones
-    # we are asking for.. the output will be totally messed up.
-    server = RPCClient( self.url, timeout = 120 )
+
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
-      res = server.exists( lfnList )
+      res = self.bkClient.exists( lfnList )
       if not res['OK']:
-        for lfn in lfnList:
-          #FIXME: W(TF)hat happens with failed after all ?
-          failed[lfn] = res['Message']
+        failed.update( dict.fromkeys( lfnList, res['Message'] ) )
       else:
-        for lfn, exists in res['Value'].items():
-          successful[lfn] = exists
-    resDict = {'Successful':successful, 'Failed':{}}
-    return S_OK( resDict )
+        successful.update( res['Value'] )
+    return S_OK( {'Successful':successful, 'Failed':failed} )
 
   def __getFileMetadata( self, lfns ):
     '''
       Returns lfns metadata
     '''
-    server = RPCClient( self.url, timeout = 120 )
+
     successful = {}
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
-      res = server.getFileMetadata( lfnList )
+      res = self.bkClient.getFileMetadata( lfnList )
       if not res['OK']:
-        for lfn in lfnList:
-          failed[lfn] = res['Message']
+        failed.update( dict.fromkeys( lfnList, res['Message'] ) )
       else:
-        for lfn in lfnList:
-          if not lfn in res['Value']['Successful'].keys():
-            failed[lfn] = 'File does not exist'
-          #FIXME: Should not it be isinstance( res['Value'][lfn], str )
-          elif res['Value']['Successful'][lfn] in types.StringTypes:
-            failed[lfn] = res['Value']['Successful'][lfn]
-          else:
-            successful[lfn] = res['Value']['Successful'][lfn]
-    resDict = {'Successful':successful, 'Failed':failed}
-    return S_OK( resDict )
+        success = res['Value'].get( 'Successful', res['Value'] )
+        failed.update( dict.fromkeys( [lfn for lfn in lfnList if lfn not in success], 'File does not exist' ) )
+        failed.update( dict( [( lfn, val ) for lfn, val in success.items() if type( val ) in types.StringTypes ] ) )
+        successful.update( dict( [( lfn, val ) for lfn, val in success.items() if type( val ) not in types.StringTypes ] ) )
+    return S_OK( {'Successful':successful, 'Failed':failed} )
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
