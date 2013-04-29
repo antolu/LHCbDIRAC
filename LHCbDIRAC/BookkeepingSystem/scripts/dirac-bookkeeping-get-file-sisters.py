@@ -57,7 +57,7 @@ if not res['OK']:
   print "Error getting file metadata", res['Message']
   DIRAC.exit( 1 )
 lfnTypes = {}
-for lfn in res['Value']:
+for lfn in res['Value'].get( 'Successful', res['Value'] ):
   metadata = res['Value'][lfn]
   lfnTypes[lfn] = metadata['FileType']
 
