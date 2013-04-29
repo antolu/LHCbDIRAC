@@ -3351,7 +3351,7 @@ and files.qualityid= dataquality.qualityid'
                       filetype=default, quality=default,
                       runnb=default, startrun=default, endrun=default,
                       visible=default, startDate = None, endDate = None,
-                      runnumbers = []):
+                      runnumbers = [], replicaflag=default):
 
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
@@ -3434,12 +3434,31 @@ and files.qualityid= dataquality.qualityid'
     if filetype != default and visible.upper().startswith('Y'):
       if tables2.find('bview') < 0:
         tables2 += ', prodview bview'
+      if tables.find('bview') < 0:
+        tables += ', prodview bview'
       tables2 += ' ,filetypes ftypes '
-      condition += " and f.filetypeid=ftypes.filetypeid and ftypes.Name='%s'" % (str(filetype))
+      condition += " and bview.filetypeid=ftypes.filetypeid and bview.production=j.production"
       fcond += " and bview.production=prod.production and ftypes.Name='%s'" % (str(filetype))
       fcond += 'and bview.filetypeid=ftypes.filetypeid '
-    elif filetype != default and visible.upper().startswith('N'):
-      condition += " and f.filetypeid=ftypes.filetypeid and ftypes.Name='%s'" % (str(filetype))
+      if type(filetype) == types.ListType:
+        values = ' and ftypes.name in ('
+        for i in filetype:
+          values += " '%s'," % (i)
+        condition += values[:-1] + ')'
+      else:
+        condition += " and ftypes.name='%s' " % (str(filetype))
+    else:
+      if type(filetype) == types.ListType:
+        values = ' and ftypes.name in ('
+        for i in filetype:
+          values += " '%s'," % (i)
+        condition += values[:-1] + ')'
+      elif filetype != default:
+        condition += " and ftypes.name='%s' " % (str(filetype))
+
+
+    if replicaflag.upper() != default:
+      condition += " and f.gotreplica='%s'" % (replicaflag)
 
     if quality != default:
       tables += ' , dataquality d'
@@ -3486,7 +3505,6 @@ and files.qualityid= dataquality.qualityid'
     SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
     j.jobid=f.jobid and \
     ftypes.filetypeid=f.filetypeid and \
-    f.gotreplica='Yes' and \
     ftypes.filetypeid=f.filetypeid  %s" % (tables, condition)
     return self.dbR_.query(command)
 
