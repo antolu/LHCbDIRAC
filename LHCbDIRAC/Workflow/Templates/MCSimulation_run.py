@@ -161,7 +161,7 @@ if w1:
   pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
 
 elif w2:
-  pr.prodsTypeList = ['MCSimulation', 'MCStripping', 'Merge']
+  pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'Merge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
 
   mooreStepIndex = 1
@@ -189,7 +189,7 @@ elif w2:
   pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
 
 elif w3:
-  pr.prodsTypeList = ['MCSimulation', 'MCStripping']
+  pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
 
   if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
@@ -254,14 +254,6 @@ elif w5:
   pr.events = [events]
   pr.bkQueries = ['']
   pr.sysConfig = [MCSysConfig]
-
-# In case of local test (these examples are for the merging)
-if localTestFlag:
-  pr.inputs = [[],
-                 ['/lhcb/certification/test/ALLSTREAMS.DST/00000127/0000/00000127_00000030_5.AllStreams.dst',
-                  '/lhcb/certification/test/ALLSTREAMS.DST/00000127/0000/00000127_00000030_5.AllStreams.dst']
-                ]
-  pr.inputDataPolicies = ['', 'protocol']
 
 res = pr.buildAndLaunchRequest()
 if not res['OK']:
