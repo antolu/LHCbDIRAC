@@ -40,7 +40,7 @@ if __name__ == "__main__":
     pass
 
   bkQuery = dmScript.getBKQuery()
-  prodList = bkQuery.getQueryDict().get( 'Production ', [None] )
+  prodList = bkQuery.getQueryDict().get( 'Production', [None] )
   bkQuery.setOption( 'ProductionID', None )
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
@@ -50,6 +50,10 @@ if __name__ == "__main__":
   lfns = dmScript.getOption( 'LFNs' )
 
   for prod in prodList:
+    queryDict = bkQuery.getQueryDict()
+    if 'Visible' not in queryDict:
+      bkQuery.setOption( 'Visible', 'NO' )
+      bkQuery.setOption( 'ReplicaFlag', 'ALL' )
     if prod:
       res = transClient.getTransformation( prod, extraParams = False )
       if not res['OK']: continue
@@ -66,9 +70,8 @@ if __name__ == "__main__":
       DIRAC.exit( 1 )
 
     # Get information from BK
-    if not lfns: #queryDict.get( 'Visible', 'No' ) == 'Yes':
+    if not lfns and 'ReplicaFlag' not in queryDict:
       print "Getting info from filesSummary..."
-      if 'Visible' not in queryDict: queryDict[ 'Visible' ] = "All"
       query = queryDict.copy()
       if len( query ) <= 3:
         query.update( {'1':1, '2':2, '3':3 } )
@@ -78,7 +81,7 @@ if __name__ == "__main__":
       if 'FileType' in query:
         query.pop( 'FileType' )
       records = []
-      if fileTypes:
+      if type( fileTypes ) == type( [] ):
         nDatasets = len( fileTypes )
       else:
         nDatasets = 1
@@ -104,7 +107,7 @@ if __name__ == "__main__":
           elif name == 'Luminosity':
             lumi = value
         record.append( nevts / float( lumi ) if lumi else 0. )
-        record.append( size / float( lumi ) if lumi else 0. )
+        record.append( size / float( lumi )  if lumi else 0. )
         if not records:
           records = len( record ) * [0]
         records = [rec1 + rec2 for rec1, rec2 in zip( record, records )]
@@ -120,6 +123,9 @@ if __name__ == "__main__":
       lumi = 0
       nDatasets = 1
       if not lfns:
+        fileTypes = queryDict.get( 'FileType' )
+        if type( fileTypes ) == type( [] ):
+          nDatasets = len( fileTypes )
         res = bk.getFilesWithMetadata( queryDict )
         if res['OK']:
           parameterNames = res['Value']['ParameterNames']
@@ -129,22 +135,28 @@ if __name__ == "__main__":
           continue
         for item in info:
           metadata = dict( zip( parameterNames, item ) )
-          nbFiles += 1
-          nbEvents += metadata['EventStat']
-          fileSize += metadata['FileSize']
-          lumi += metadata['Luminosity']
-      else:
-        res = bk.getFileMetadata( lfns )
-        if res['OK']:
-          for lfn, metadata in res['Value']['Successful'].items():
-            nbFiles += 1
+          try:
             nbEvents += metadata['EventStat']
             fileSize += metadata['FileSize']
             lumi += metadata['Luminosity']
+            nbFiles += 1
+          except:
+            pass
+      else:
+        res = bk.getFileMetadata( lfns )
+        if res['OK']:
+          for lfn, metadata in res['Value'].items():
+            try:
+              nbEvents += metadata['EventStat']
+              fileSize += metadata['FileSize']
+              lumi += metadata['Luminosity']
+              nbFiles += 1
+            except:
+              pass
         else:
           print "Error getting files metadata:", res['Message']
           continue
-      records = [nbFiles, nbEvents, fileSize, lumi, nbEvents / float( lumi ) if lumi else 0., fileSize / float( lumi ) if lumi else 0.]
+      records = [nbFiles, nbEvents, fileSize, lumi, nbEvents * nDatasets / float( lumi ) if lumi else 0., fileSize * nDatasets / float( lumi ) if lumi else 0.]
 
     # Now printout the results
     tab = 17
@@ -172,7 +184,6 @@ if __name__ == "__main__":
         print '%s: %.3f %s %s' % ( 'Total size'.ljust( tab ), size, sizeUnit, sizePerEvt )
       elif name == 'Luminosity':
         lumi = value / float( nDatasets )
-        totalLumi = value
         if lumi:
           for lumiUnit in lumiUnits:
             if lumi < 1000.:
@@ -187,9 +198,9 @@ if __name__ == "__main__":
         evtsPerLumi = value
       elif name == 'SizePerLumi':
         print "%s: %.1f GB" % ( ( 'Size  per %s' % '/pb' ).ljust( tab ), value * 1000000. / 1000000000. )
-        if nDatasets != 1:
-          sizePerEvt = value / evtsPerLumi / 1000. if evtsPerLumi else 0.
-          print '%s: %.1f kB' % ( 'Avg size per evt'.ljust( tab ), sizePerEvt )
+        #if nDatasets != 1:
+        #  sizePerEvt = value / evtsPerLumi / 1000. if evtsPerLumi else 0.
+        #  print '%s: %.1f kB' % ( 'Avg size per evt'.ljust( tab ), sizePerEvt )
     if lumi:
       filesPerLumi = nfiles / lumi
       print "%s: %.1f" % ( ( 'Files per %s' % lumiUnit ).ljust( tab ), filesPerLumi )
