@@ -180,7 +180,7 @@ class UserJobFinalization( ModuleBase ):
         self.setApplicationStatus( 'No Output Data Files To Upload' )
         return S_OK()
 
-      fileMetadata = result['Value']['Successful']
+      fileMetadata = result['Value']
 
       #First get the local (or assigned) SE to try first for upload and others in random fashion
       result = getDestinationSEList( 'Tier1-USER', DIRAC.siteName(), outputmode = 'local' )
