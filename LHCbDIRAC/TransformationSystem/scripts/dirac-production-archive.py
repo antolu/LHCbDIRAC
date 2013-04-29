@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from DIRAC.Core.Base.Script import parseCommandLine
+import DIRAC
 parseCommandLine()
 
 __RCSID__ = "$Id$"
@@ -7,10 +8,13 @@ __RCSID__ = "$Id$"
 import sys
 if len( sys.argv ) < 2:
   print 'Usage: dirac-production-archive transID [transID] [transID]'
-  sys.exit()
+  DIRAC.exit( 1 )
 else:
-  transIDs = [int( arg ) for arg in sys.argv[1:]]
-
+  try:
+    transIDs = [int( arg ) for arg in sys.argv[1:]]
+  except:
+    print 'Invalid list of transformations'
+    DIRAC.exit( 1 )
 
 from LHCbDIRAC.TransformationSystem.Agent.TransformationCleaningAgent     import TransformationCleaningAgent
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
@@ -31,6 +35,6 @@ for transID in transIDs:
     continue
   status = res['Value']
   if not status in ['Completed']:
-    gLogger.error( "The transformation is in %s status and can not be archived" % status )
+    gLogger.error( "The transformation is in %s status and cannot be archived" % status )
     continue
   agent.archiveTransformation( transID )
