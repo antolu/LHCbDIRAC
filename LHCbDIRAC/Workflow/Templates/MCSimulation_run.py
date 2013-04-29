@@ -159,6 +159,7 @@ if w1:
   pr.events = [events, '-1', '-1']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
+
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'MCStripping', 'Merge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
@@ -186,12 +187,14 @@ elif w2:
   pr.events = [events, '-1', '-1']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
+
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'MCStripping']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
 
   if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
-    pr.stepsListDict.pop()
+    gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
+    DIRAC.exit( 2 )
 
   mooreStepIndex = 1
   for sld in pr.stepsListDict:
@@ -214,6 +217,7 @@ elif w3:
   pr.events = [events, '-1']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, selSysConfig]
+
 elif w4:
   pr.prodsTypeList = ['MCSimulation', 'Merge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
@@ -230,9 +234,14 @@ elif w4:
   pr.events = [events, '-1']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, mergeSysConfig]
+
 elif w5:
   pr.prodsTypeList = ['MCSimulation']
   pr.outputSEs = ['Tier1_MC-DST']
+  if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
+    gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
+    DIRAC.exit( 2 )
+
   pr.stepsInProds = [range( 1, len( pr.stepsList ) + 1 )]
   pr.removeInputsFlags = [False]
   pr.priorities = [MCPriority]
