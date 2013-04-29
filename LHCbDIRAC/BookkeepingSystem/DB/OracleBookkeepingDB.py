@@ -1091,7 +1091,7 @@ class OracleBookkeepingDB:
         condition += " and ftypes.name='%s' " % (str(filetype))
 
 
-    if replicaflag != default:
+    if replicaflag.upper() != default:
       condition += " and f.gotreplica='%s'" % (replicaflag)
 
     if quality != default:
