@@ -23,8 +23,8 @@ class BookkeepingDBClientt_TestCase( unittest.TestCase ):
 #    self.mock_pathFinder = mock_pathFinder
 #
     mock_RPC = mock.Mock()
-    mock_RPC.addFiles.return_value        = { 'OK' : True, 'Value' : { 'Successful' : ['1','2'] , 'Failed' :['3','4']} }
-    mock_RPC.removeFiles.return_value     = { 'OK' : True, 'Value' : { 'Successful' : ['1','2'] , 'Failed' : ['3','4']} }
+    mock_RPC.addFiles.return_value        = { 'OK' : True, 'Value' : { 'Successful' : ['A'] , 'Failed' :['B']} }
+    mock_RPC.removeFiles.return_value     = { 'OK' : True, 'Value' : { 'Successful' : ['A'] , 'Failed' : ['B']} }
     mock_RPC.exists.return_value          = { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2} }
     mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : { 'Successful':{'A' : { 'FileSize' : 1} ,
                                                                                      'B' : { 'FileSize' : 2} } } }
@@ -100,32 +100,32 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     res = catalog._BookkeepingDBClient__checkArgumentFormat( 'path' )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
-    self.assertEqual( { 'path' : False }, res )
+    self.assertEqual( ['path'], res )
 
     res = catalog._BookkeepingDBClient__checkArgumentFormat( [] )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
-    self.assertEqual( {}, res )
+    self.assertEqual( [], res )
 
     res = catalog._BookkeepingDBClient__checkArgumentFormat( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
-    self.assertEqual( { 'path' : False }, res )
+    self.assertEqual( ['path'], res )
 
     res = catalog._BookkeepingDBClient__checkArgumentFormat( [ 'path', 'path2' ] )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
-    self.assertEqual( { 'path' : False, 'path2' : False }, res )
+    self.assertEqual( ['path','path2'], res )
 
     res = catalog._BookkeepingDBClient__checkArgumentFormat( {} )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
-    self.assertEqual( {}, res )
+    self.assertEqual( [], res )
 
     res = catalog._BookkeepingDBClient__checkArgumentFormat( { 'A' : 1, 'B' : 2 } )
     self.assertEqual( True, res['OK'] )
     res = res[ 'Value' ]
-    self.assertEqual( { 'A' : 1, 'B' : 2 }, res )
+    self.assertEqual( [ 'A', 'B'], res )
 
     res = catalog._BookkeepingDBClient__checkArgumentFormat( 1 )
     self.assertEqual( False, res['OK'] )
@@ -142,15 +142,15 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog._BookkeepingDBClient__setHasReplicaFlag( ['A'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 1 } }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {'A':True}, 'Failed' : { 'B' : "File does not exist" } }, res[ 'Value' ] )
 
     res = catalog._BookkeepingDBClient__setHasReplicaFlag( ['A', 'B'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 1, 'B' : 2 } }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {'A':True}, 'Failed' : { 'B' :'File does not exist' } }, res[ 'Value' ] )
 
     res = catalog._BookkeepingDBClient__setHasReplicaFlag( ['C'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : { 'C' : True }, 'Failed' : {} }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : { 'A' : True }, 'Failed' : {'B':'File does not exist'} }, res[ 'Value' ] )
 
     mock_RPC = mock.Mock()
     mock_RPC.addFiles.return_value = { 'OK' : False, 'Message' : 'Bo!' }
@@ -193,11 +193,11 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( True, res['OK'] )
     self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
 
-    _myValues = [ { 'OK' : False, 'Message' : 'Bo!' }, { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } } ]
+    _myValues = [ { 'OK' : False, 'Message' : 'Bo!' }, { 'OK' : True, 'Value' : { 'Successful':['A'],'Failed':[] } } ]
 
     res = catalog._BookkeepingDBClient__setHasReplicaFlag( ['A','C','B'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : { 'C' : True }, 'Failed' : { 'A' : 1, 'B' : 'Bo!' } }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : { 'A' : True }, 'Failed' : {'B' : 'Bo!' } }, res[ 'Value' ] )
 
     # Restore the module
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
@@ -215,15 +215,15 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog._BookkeepingDBClient__unsetHasReplicaFlag( ['A'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 1 } }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {'A':True}, 'Failed' : { 'B' : "File does not exist"}}, res[ 'Value' ] )
 
     res = catalog._BookkeepingDBClient__unsetHasReplicaFlag( ['A', 'B'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 1, 'B' : 2 } }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {'A':True}, 'Failed' : { 'B' : 'File does not exist' } }, res[ 'Value' ] )
 
     res = catalog._BookkeepingDBClient__unsetHasReplicaFlag( ['C'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : { 'C' : True }, 'Failed' : {} }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : { 'A' : True }, 'Failed' : {'B':'File does not exist'} }, res[ 'Value' ] )
 
     mock_RPC = mock.Mock()
     mock_RPC.removeFiles.return_value = { 'OK' : False, 'Message' : 'Bo!' }
@@ -250,7 +250,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     mock_RPC = mock.Mock()
     #side_effect does not work very well, cooked a workaround
-    _myValues = [ { 'OK' : False, 'Message' : 'Bo!' }, { 'OK' : True, 'Value' : { 'A' : 1 , 'B' : 2 } } ]
+    _myValues = [ { 'OK' : False, 'Message' : 'Bo!' }, { 'OK' : True, 'Value' : { 'Successful':[],'Failed':['A', 'B']} } ]
     def _side_effect( _pfn ):
       return _myValues.pop()
     mock_RPC.removeFiles.side_effect = _side_effect
@@ -268,7 +268,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog._BookkeepingDBClient__unsetHasReplicaFlag( ['A','C','B'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : { 'C' : True }, 'Failed' : { 'A' : 1, 'B' : 'Bo!' } }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' :'File does not exist', 'B' : 'Bo!' } }, res[ 'Value' ] )
 
     # Restore the module
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
@@ -305,15 +305,15 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog._BookkeepingDBClient__exists( ['A'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {'A':'Bo!'} }, res[ 'Value' ] )
 
     res = catalog._BookkeepingDBClient__exists( ['A', 'B'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {'A':'Bo!','B':'Bo!'} }, res[ 'Value' ] )
 
     res = catalog._BookkeepingDBClient__exists( ['C'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {'C':'Bo!'} }, res[ 'Value' ] )
 
     mock_RPC = mock.Mock()
 
@@ -338,7 +338,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog._BookkeepingDBClient__exists( ['A','C','B'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : { 'A' : 1, 'B' : 2 }, 'Failed' : {} }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : { 'A' : 1, 'B' : 2 }, 'Failed' : {'B':'Bo!'} }, res[ 'Value' ] )
 
     # Restore the module
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
@@ -361,7 +361,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog._BookkeepingDBClient__getFileMetadata( ['C'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'C' : 'File does not exist'} }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {'A':{'FileSize':1},'B':{'FileSize':2}}, 'Failed' : { 'C' : 'File does not exist'} }, res[ 'Value' ] )
 
     mock_RPC = mock.Mock()
     mock_RPC.getFileMetadata.return_value = { 'OK' : True, 'Value' : {'Successful': { 'A' : '1' , 'B' : '2' } } }
@@ -372,11 +372,11 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog._BookkeepingDBClient__getFileMetadata( ['A', 'B'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {'A': '1', 'B': '2'}, 'Failed' : {} }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : {'A':'1','B':'2'} }, res[ 'Value' ] )
 
     res = catalog._BookkeepingDBClient__getFileMetadata( ['C'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'C' : 'File does not exist'} }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A':'1','B':'2','C': 'File does not exist'} }, res[ 'Value' ] )
 
     mock_RPC = mock.Mock()
     mock_RPC.getFileMetadata.return_value = { 'OK' : False, 'Message' : 'Bo!' }
@@ -410,7 +410,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog._BookkeepingDBClient__getFileMetadata( ['A','C','B'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : { 'A' : 1 }, 'Failed' : { 'C' : 'File does not exist',
+    self.assertEqual( { 'Successful' : { 'A' : 1,'B':2 }, 'Failed' : { 'C' : 'File does not exist',
                                                                  'B' : 'Bo!'} }, res[ 'Value' ] )
 
     mock_RPC = mock.Mock()
@@ -422,7 +422,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog._BookkeepingDBClient__getFileMetadata( ['A', 'B'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {'B': '2'}, 'Failed' : {'A':str} }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {'A': str}, 'Failed' : {'B':'2'} }, res[ 'Value' ] )
 
     # Restore the module
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
@@ -447,15 +447,15 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog.addFile( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( { 'Successful' : { 'A' : True }, 'Failed' : {'B':'File does not exist'} }, res['Value'] )
 
     res = catalog.addFile( [ 'A' ] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 1 } }, res['Value'] )
+    self.assertEqual( { 'Successful' : {'A':True}, 'Failed' : { 'B' : 'File does not exist' } }, res['Value'] )
 
     res = catalog.addFile( [ 'A', 'path' ] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : { 'A' : 1 } }, res['Value'] )
+    self.assertEqual( { 'Successful' : { 'A' : True }, 'Failed' : { 'B' : 'File does not exist' } }, res['Value'] )
 
   def test_addReplica(self):
     ''' tests the output of addReplica
@@ -476,15 +476,15 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog.addReplica( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( { 'Successful' : { 'A' : True }, 'Failed' : {'B':'File does not exist'} }, res['Value'] )
 
     res = catalog.addReplica( [ 'A' ] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : { 'A' : 1 } }, res['Value'] )
+    self.assertEqual( { 'Successful' : {'A':True}, 'Failed' : { 'B' : 'File does not exist' } }, res['Value'] )
 
     res = catalog.addReplica( [ 'A', 'path' ] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : { 'path' : True }, 'Failed' : { 'A' : 1 } }, res['Value'] )
+    self.assertEqual( { 'Successful' : { 'A' : True }, 'Failed' : { 'B' : 'File does not exist' } }, res['Value'] )
 
   def test_removeFile(self):
     ''' tests the output of removeFile
@@ -505,11 +505,11 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog.removeFile( [ 'A', 'B', 'C' ] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {'A': 1, 'B': 2} }, res['Value'] )
+    self.assertEqual( { 'Successful' : {'A':True}, 'Failed' : {'B': 'File does not exist'} }, res['Value'] )
 
     res = catalog.removeFile( {'A': 1, 'B': 2, 'C' : 3 } )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {'A': 1, 'B': 2} }, res['Value']  )
+    self.assertEqual( { 'Successful' : {'A':True}, 'Failed' : {'B': 'File does not exist'} }, res['Value']  )
 
     #FIXME: to be continued, but the method is quite tangled to be tested
     # on a rational way
@@ -765,7 +765,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog.getFileMetadata( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {'path': 'File does not exist'} }, res['Value'] )
+    self.assertEqual( { 'Successful' : {'A':{'FileSize':1},'B':{'FileSize':2}}, 'Failed' : {'path': 'File does not exist'} }, res['Value'] )
 
     res = catalog.getFileMetadata( [ 'A', 'B', 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -774,7 +774,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog.getFileMetadata( { 'A' : 2, 'C' : 3 } )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( {'Successful': {'A': {'FileSize': 1}},
+    self.assertEqual( {'Successful': {'A': {'FileSize': 1},'B':{'FileSize':2}},
                        'Failed': {'C': 'File does not exist'}}, res['Value'] )
 
   def test_getFileSize(self):
@@ -796,7 +796,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog.getFileSize( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {'path': 'File does not exist'} }, res['Value'] )
+    self.assertEqual( { 'Successful' : {'A':1,'B':2}, 'Failed' : {'path': 'File does not exist'} }, res['Value'] )
 
     res = catalog.getFileSize( [ 'A', 'B', 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -804,7 +804,7 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     res = catalog.getFileSize( { 'A' : 2, 'C' : 3 } )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( {'Successful': {'A': 1}, 'Failed': {'C': 'File does not exist'}}, res['Value'] )
+    self.assertEqual( {'Successful': {'A': 1,'B':2}, 'Failed': {'C': 'File does not exist'}}, res['Value'] )
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
