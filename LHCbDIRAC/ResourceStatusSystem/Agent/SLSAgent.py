@@ -190,7 +190,7 @@ class SpaceTokenOccupancyTest( TestBase ):
       pass # The dir exist already, or cannot be created: do nothing
 
     for site in self.storageElements:
-      for st in CSHelpers.getSpaceTokens():
+      for st in CSHelpers.getSpaceTokens()[ 'Value' ]:
         try:
           res = self.generate_xml_and_dashboard( site, st, lcg_util )
           if not res[ 'OK' ]:
