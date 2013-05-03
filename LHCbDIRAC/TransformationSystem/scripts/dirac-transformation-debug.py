@@ -171,7 +171,7 @@ def __fixRunZero( filesWithRunZero, fixRun ):
     res = bkClient.getFileMetadata( filesWithRunZero )
     if res['OK']:
       runFiles = {}
-      for lfn, metadata in res['Value'].items():
+      for lfn, metadata in res['Value']['Successful'].items():
         runFiles.setdefault( metadata['RunNumber'], [] ).append( lfn )
       for run in runFiles:
         if not run:
