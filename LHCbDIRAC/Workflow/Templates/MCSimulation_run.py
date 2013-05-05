@@ -173,8 +173,8 @@ elif w2:
   pr.stepsInProds = [range( 1, mooreStepIndex + 1 ),
                      range( mooreStepIndex + 1, len( pr.stepsListDict ) ),
                      [len( pr.stepsListDict )]]
-  pr.outputFileSteps = [len( pr.stepsInProds[0] ),
-                        len( pr.stepsInProds[1] ),
+  pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
+                        str( len( pr.stepsInProds[1] ) ),
                         '1']
 
   pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
@@ -204,8 +204,8 @@ elif w3:
 
   pr.stepsInProds = [range( 1, mooreStepIndex + 1 ),
                      range( mooreStepIndex + 1, len( pr.stepsListDict ) + 1 )]
-  pr.outputFileSteps = [len( pr.stepsInProds[0] ),
-                        len( pr.stepsInProds[1] )]
+  pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
+                        str( len( pr.stepsInProds[1] ) )]
 
   pr.removeInputsFlags = [False, removeInputSelection]
   pr.priorities = [MCPriority, selectionPriority]
@@ -246,7 +246,7 @@ elif w5:
   pr.removeInputsFlags = [False]
   pr.priorities = [MCPriority]
   pr.cpus = [MCCpu]
-  pr.outputFileSteps = [str( len( pr.stepsListDict ) - 1 )]
+  pr.outputFileSteps = [str( len( pr.stepsListDict ) )]
   pr.targets = [targets]
   pr.groupSizes = [1]
   pr.plugins = ['']
