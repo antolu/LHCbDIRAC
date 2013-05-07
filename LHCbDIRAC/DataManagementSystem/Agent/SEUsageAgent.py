@@ -42,21 +42,6 @@ class SEUsageAgent( AgentModule ):
   :param int maximumDelaySinceSD: max delay after SE dump creation
   :param list activeSites: active sites
   '''
-#  storageUsage = None
-#  replicaManager = None
-#  opHelper = None
-#  maximumDelaySinceSD = 43200
-#  activeSites = None
-#  specialTokens = None
-#  specialReplicas = None
-#  siteConfig = None
-#  dirDict = None
-#  spaceTokens = None
-#  spaceTokToIgnore = None
-#  inputFilesLocation = None
-#  workDirectory = None
-#  specialReplicas = None
-#  pathToUploadResults = '/lhcb/test/dataNotRegistered'
 
   def __init__( self, *args, **kwargs ):
     ''' c'tor
@@ -72,14 +57,14 @@ class SEUsageAgent( AgentModule ):
     self.opHelper = Operations()
     # # Dirac API
     self.diracApi = Dirac()
-    self.activeSites = self.am_getOption( 'ActiveSites' )
+    self.activeSites = self.am_getOption( 'ActiveSites', None )
 
     self.specialReplicas = self.am_getOption( 'SpecialReplicas', [] )
-    self.workDirectory = self.am_getOption( "WorkDirectory" )
+    self.workDirectory = self.am_getOption( "WorkDirectory", None )
     # maximum delay after storage dump creation
-    self.maximumDelaySinceSD = self.am_getOption( 'MaximumDelaySinceStorageDump', self.maximumDelaySinceSD )
-    self.spaceTokToIgnore = self.am_getOption( 'SpaceTokenToIgnore' )  # STs to skip during checks
-    self.pathToUploadResults = self.am_getOption( 'PathToUploadResults', self.pathToUploadResults )
+    self.maximumDelaySinceSD = self.am_getOption( 'MaximumDelaySinceStorageDump', 43200 )
+    self.spaceTokToIgnore = self.am_getOption( 'SpaceTokenToIgnore', None )  # STs to skip during checks
+    self.pathToUploadResults = self.am_getOption( 'PathToUploadResults', '/lhcb/test/dataNotRegistered' )
 
     self.spaceTokens = {}
     self.siteConfig = {}
