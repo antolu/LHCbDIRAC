@@ -83,11 +83,11 @@ if __name__ == "__main__":
     if not res['OK']:
       gLogger.error( "Error getting transformation files", res['Message'] )
     else:
-      for fileDict in [fileDict for fileDict in res['Value'] if fileDict['Status'] not in ( 'Processed', 'Removed' )]:
+      for fileDict in [fileDict for fileDict in res['Value'] if fileDict['Status'] not in ( 'Removed' )]:
         lfnsToSet.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
     # If required, set files Removed in transformations
     for transID, lfns in lfnsToSet.items():
-      res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns )
+      res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns, force = True )
       if not res['OK']:
         gLogger.error( 'Error setting %d files to Removed' % len( lfns ), res['Message'] )
       else:
