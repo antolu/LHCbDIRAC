@@ -125,7 +125,7 @@ class PluginUtilities:
   """
   Utility class used by plugins
   """
-  def __init__( self, plugin, transClient, replicaManager, bkClient, rmClient, resourceStatus, debug, transInThread ):
+  def __init__( self, plugin, transClient, replicaManager, bkClient, rmClient, resourceStatus, debug, transInThread, transID = None ):
     self.plugin = plugin
     self.transClient = transClient
     self.bkClient = bkClient
@@ -134,7 +134,7 @@ class PluginUtilities:
     self.resourceStatus = resourceStatus
     self.freeSpace = {}
     self.debug = debug
-    self.transID = None
+    self.transID = transID
     self.params = {}
     self.seConfig = {}
     self.cachedLFNAncestors = {}
