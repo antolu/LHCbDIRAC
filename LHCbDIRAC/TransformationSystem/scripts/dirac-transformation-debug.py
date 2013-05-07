@@ -43,7 +43,7 @@ def __filesProcessed( transID, runID ):
 
 def __getRuns( transID, runList, byRuns, seList, status = None ):
   runs = []
-  if status and byRuns:
+  if status and byRuns and not runList:
     files = __getFilesForRun( transID, status = status )
     runList = []
     for fileDict in files:
@@ -130,7 +130,7 @@ def __justStats( transID, status, seList ):
     print prString
   return improperJobs
 
-def __getTransformationInfo( transID ):
+def __getTransformationInfo( transID, transSep ):
   res = transClient.getTransformation( transID, extraParams = False )
   if not res['OK']:
     print "Couldn't find transformation", transID
@@ -149,7 +149,7 @@ def __getTransformationInfo( transID ):
     else:
       taskType = "Job"
     transGroup = res['Value']['TransformationGroup']
-  print "==============================\nTransformation", \
+  print transSep, "Transformation", \
         transID, "(%s) :" % transStatus, transName, "of type", transType, "(plugin %s)" % strPlugin, "in", transGroup
   if transType == 'Removal':
     print "Transformation body:", transBody
@@ -161,7 +161,7 @@ def __getTransformationInfo( transID ):
     print "No BKQuery for this transformation"
     queryProduction = None
   print ""
-  return transID, transType, taskType, queryProduction
+  return transID, transType, taskType, queryProduction, transPlugin
 
 def __fixRunZero( filesWithRunZero, fixRun ):
   if not fixRun:
@@ -528,6 +528,7 @@ def __checkJobs( jobsForLfn ):
 #====================================
 if __name__ == "__main__":
 
+  transSep = ''
   verbose = False
   byFiles = False
   byRuns = False
@@ -635,6 +636,7 @@ if __name__ == "__main__":
   from DIRAC.RequestManagementSystem.Client.RequestClient           import RequestClient
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+  from LHCbDirac.TransformationSystem.Client.Utilities import PluginUtilities
   from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
   from DIRAC import gLogger
   import DIRAC
@@ -647,9 +649,12 @@ if __name__ == "__main__":
   dmTransTypes = ( "Replication", "Removal" )
   assignedReqLimit = datetime.datetime.utcnow() - datetime.timedelta( hours = 2 )
   improperJobs = []
+  pluginUtil = None
 
+  transSep = ''
   for transID in transList:
-    transID, transType, taskType, queryProduction = __getTransformationInfo( transID )
+    transID, transType, taskType, queryProduction, transPlugin = __getTransformationInfo( transID, transSep )
+    transSep = '==============================\n'
     dmFileStatusComment = {"Replication":"missing", "Removal":"remaining"}.get( transType, "absent" )
     if not transID:
       continue
@@ -692,8 +697,68 @@ if __name__ == "__main__":
           prString = "Run: %d" % runID
           if runStatus:
             prString += " (%s)" % runStatus
-          prString += " - %d files (SelectedSite: %s), %d processed" % ( files, SEs, processed )
+          prString += " - %d files (SelectedSite: %s), %d processed, status: %s" % ( files, SEs, processed, runStatus )
           print prString
+
+      if ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in transPlugin and runStatus != 'Flush':
+        # Check if the run should be flushed
+        if not pluginUtil:
+          pluginUtil = PluginUtilities( transPlugin, transClient, rm, bkClient, None, None, False, {}, transID = transID )
+        evtType = 90000000
+        rawFiles = pluginUtil.getNbRAWInRun( runID, evtType )
+        if 'FileType' in transPlugin:
+          param = 'FileType'
+        elif 'EventType' in transPlugin:
+          param = 'EventType'
+        else:
+          param = ''
+          paramValues = ['']
+        if param:
+          res = bkClient.getFileMetadata( [fileDict['LFN'] for fileDict in transFilesList] )
+          if not res['OK']:
+            print 'Error getting files metadata', res['Message']
+            DIRAC.exit( 2 )
+          paramValues = []
+          for lfn in res['Value']['Successful']:
+            val = res['Value']['Successful'][lfn].get( param )
+            if val and val not in paramValues:
+              paramValues.append( val )
+        ancestors = {}
+        for paramValue in paramValues:
+          try:
+            ancestors.setdefault( pluginUtil.getRAWAncestorsForRun( runID, param, paramValue ), [] ).append( paramValue )
+          except Exception, e:
+            print "Exception calling pluginUtilities:", e
+        prStr = ''
+        for anc in sorted( ancestors ):
+          ft = ancestors[anc]
+          if ft:
+            prStr += '%d ancestors found for %s; ' % ( anc, ','.join( ft ) )
+          else:
+            prStr = '%d ancestors found' % anc
+        toFlush = False
+        flushError = False
+        for ancestorRawFiles in ancestors:
+          if rawFiles == ancestorRawFiles:
+            toFlush = True
+          elif ancestorRawFiles > rawFiles:
+            flushError = True
+        if toFlush:
+          print "Run should be flushed: %d RAW files and ancestors found" % ( rawFiles )
+          if fixIt:
+            res = transClient.setTransformationRunStatus( transID, runID, 'Flush' )
+            if res['OK']:
+              print 'Run %d successfully flushed' % runID
+            else:
+              print "Error flushing run %d" % runID, res['Message']
+          else:
+            print "Use --FixIt to flush the run"
+        if flushError:
+          print "More ancestors than RAW files (%d) for run %d ==> Problem!\n\t%s" \
+            % ( rawFiles, runID, prStr, replace( '; ', '\n\t' ) )
+        if not toFlush and not flushError:
+          print "Run not flushed: %s while %d RAW files" \
+            % ( prStr, rawFiles )
 
       prString = "%d files found" % len( transFilesList )
       if status:
