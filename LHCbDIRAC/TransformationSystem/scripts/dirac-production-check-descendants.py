@@ -8,8 +8,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__,
                                      'Usage:',
                                      '  %s [option|cfgfile] [ProdIDs]' % Script.scriptName, ] ) )
 Script.registerSwitch( '', 'Runs=', 'Specify the run range' )
-Script.registerSwitch( '', 'RunStatus=', 'Specify a (list of) run status for selecting runs (default: Active' )
-Script.registerSwitch( '', 'FromProduction=', 'Specify the production from which the runs should be derived' )
+Script.registerSwitch( '', 'ActiveRunsProduction=', 'Specify the production from which the runs should be derived' )
 Script.registerSwitch( '', 'FileType=', 'Specify the descendants file type' )
 Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
 Script.parseCommandLine( ignoreErrors = True )
@@ -26,7 +25,6 @@ if __name__ == '__main__':
   fileType = []
   runsList = []
   fixIt = False
-  runStatus = 'Active'
   fromProd = None
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
@@ -35,9 +33,7 @@ if __name__ == '__main__':
       fileType = switch[1].split( ',' )
     elif switch[0] == 'FixIt':
       fixIt = True
-    elif switch[0] == 'RunStatus':
-      runStatus = switch[1].split( ',' )
-    elif switch[0] == 'FromProduction':
+    elif switch[0] == 'ActiveRunsProduction':
       try:
         fromProd = int( switch[1] )
       except:
@@ -72,11 +68,23 @@ if __name__ == '__main__':
       cc.fileType = fileType
       cc.fileTypesExcluded = ['LOG']
     cc.runsList = runsList
-    cc.runStatus = runStatus
+    cc.runStatus = 'Active'
     cc.fromProd = fromProd
     cc.checkTS2BKK()
+    if cc.inFCNotInBK:
+      gLogger.always( "%d descendants were found in FC but not in BK" % len( cc.inFCNotInBK ) )
+      if fixIt:
+        res = cc.bkClient.addFiles( cc.inFCNotInBK )
+        if not res['OK']:
+          gLogger.error( "Error setting replica flag", res['Message'] )
+        else:
+          gLogger.always( 'Replica flag set successfully' )
+      else:
+        gLogger.always( "use --FixIt for fixing, following results assume it is fixed" )
+
     if fileType:
       gLogger.always( "%d unique descendants found" % ( len( cc.descendantsForProcessedLFNs ) + len( cc.descendantsForNonProcessedLFNs ) ) )
+
     if cc.processedLFNsWithMultipleDescendants:
       gLogger.error( "Processed LFNs with multiple descendants (%d) -> ERROR\n%s" \
                      % ( len( cc.processedLFNsWithMultipleDescendants ) , '\n'.join( cc.processedLFNsWithMultipleDescendants ) ) )
