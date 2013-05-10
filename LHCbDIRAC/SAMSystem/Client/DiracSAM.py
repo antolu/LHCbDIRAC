@@ -56,128 +56,6 @@ class DiracSAM( Dirac ):
     
     return S_OK( validCEs )
 
-#  def submitSAMSWJob( self, ce, lockDeletion = False, areaDeletion = False,
-#                      installSW = True, projectURL = '', removeSW = True,
-#                      scriptName = '' ):
-#    '''
-#      Submit a SAMsw job.
-#    '''
-#    
-#    job = LHCbSAMJob()
-#    # setDefaults
-#    res = job.setDefaults()   
-#    if res[ 'OK' ]:
-#      # setDestinationCE
-#      res = job.setDestinationCE( ce )    
-#    if res[ 'OK' ]:
-#      # setSharedAreaLock
-#      self.log.verbose( 'Flag to remove lock on shared area is %s' % lockDeletion )
-#      res = job.setSharedAreaLock( forceDeletion = lockDeletion )
-#    if res[ 'OK' ]:
-#      # checkSystemConfiguration
-#      res = job.checkSystemConfiguration()    
-#    if res[ 'OK' ]:
-#      config = NativeMachine().CMTSupportedConfig()[ 0 ]
-#      res = job.setSystemConfig( config )
-#    if res[ 'OK' ]:
-#      res = job.installSoftware( forceDeletion = areaDeletion, 
-#                                 enableFlag = installSW, 
-#                                 installProjectURL = projectURL )
-#    if res[ 'OK' ]:
-#      res = job.reportSoftware( enableFlag = removeSW  )
-#
-#    if res[ 'OK' ]:
-#      res = job.runTestScript( scriptName = scriptName )
-#      
-#    if res[ 'OK' ]:
-#      res = job.setSAMGroup( "SAMsw" )
-#    
-#    self.log.verbose( 'Job JDL is: \n%s' % job._toJDL() )
-#        
-#    return self.submit( job )      
-#              
-#    
-#
-#  def submitSAMJob( self, ce, removeLock = False, deleteSharedArea = False, 
-#                    logUpload = True, mode = 'wms', enable = True, 
-#                    softwareEnable = True, reportEnable = True, install_project = None, 
-#                    scriptName = '' ):
-#    '''
-#       Submit a SAM test job to an individual CE.
-#    '''
-#    
-#    #FIXME: why ?
-#    # if we install the applications we do not run the report
-#    if softwareEnable:
-#      reportEnable = False
-#      
-#    config = NativeMachine().CMTSupportedConfig()[ 0 ]  
-#      
-#    job = LHCbSAMJob()
-#    
-#    # setDefaults
-#    res = job.setDefaults()   
-#    if res[ 'OK' ]:
-#      # setDestinationCE
-#      res = job.setDestinationCE( ce )
-#    else:
-#      self.log.error( res['Message'] )
-#      return res
-#    if res[ 'OK' ]:
-#      # setSharedAreaLock
-#      self.log.verbose( 'Flag to remove lock on shared area is %s' % ( removeLock ) )
-#      res = job.setSharedAreaLock( forceDeletion = removeLock, enableFlag = enable )
-#    else:
-#      self.log.error( res['Message'] )
-#      return res
-#    if res[ 'OK' ]:
-#      # checkSystemConfiguration
-#      res = job.checkSystemConfiguration( enableFlag = enable )
-#    else:
-#      self.log.error( res['Message'] )
-#      return res
-#    if res[ 'OK' ]:
-#      res = job.setSystemConfig( config )
-##    if res[ 'OK' ]:
-##      res = job.setPlatform( Operations().getValue( 'SAM/Platform', 'gLite' ) )  
-#    else:
-#      self.log.error( res['Message'] )
-#      return res
-#    if res[ 'OK' ]:
-#      # installSoftware
-#      self.log.verbose( 'Flag to force deletion of shared area is %s' % ( deleteSharedArea ) )
-#      if install_project:
-#        self.log.verbose( 'Optional install_project URL is set to %s' % ( install_project ) )
-#      res = job.installSoftware( forceDeletion = deleteSharedArea, enableFlag = softwareEnable, 
-#                                 installProjectURL = install_project )
-#    else:
-#      self.log.error( res['Message'] )
-#      return res
-#    if res[ 'OK' ]:
-#      # reportSoftware
-#      res = job.reportSoftware( enableFlag = reportEnable  )      
-#    else:
-#      self.log.error( res['Message'] )
-#      return res
-#      
-#    if not res[ 'OK' ]:
-#      # runTestScript
-#      if scriptName:
-#        res = job.runTestScript( scriptName = scriptName, enableFlag = enable )
-#    if not res[ 'OK' ]:
-#      # finalizeAndPublish
-#      res = job.finalizeAndPublish( logUpload = logUpload, enableFlag = enable )
-#
-#    if softwareEnable:
-#      res = job.setSAMGroup( "SAMsw" )
-#    
-#    if not res[ 'OK' ]:
-#      self.log.warn( res[ 'Message' ] )
-#      return res
-#    
-#    self.log.verbose( 'Job JDL is: \n%s' % job._toJDL() )
-#    return self.submit( job, mode )
-
   def defineSAMJob( self, ce ):
     '''
       Defines an LHCbJob which is going to be submitted to a given ce, which the
@@ -246,7 +124,13 @@ class DiracSAM( Dirac ):
     samJob._addParameter( samJob.workflow, 'Priority', 'JDL', samPriority, 'User Job Priority' )
     samJob._addJDLParameter( 'SubmitPools', 'SAM' )
     
-    # Steps definition
+    # CVMFS step definition
+    stepName = 'CVMFSCheck'
+    step     = getStepDefinition( stepName, modulesNameList = [ 'CVMFSCheck' ], 
+                                  importLine = "LHCbDIRAC.SAMSystem.Modules" )
+    addStepToWorkflow( samJob.workflow, step, stepName )
+    
+    # Application Step definitions
     for appTest in appTests:
       
       appTestOptions = self.opsH.getOptionsDict( 'SAM/ApplicationTestOptions/%s' % appTest )
