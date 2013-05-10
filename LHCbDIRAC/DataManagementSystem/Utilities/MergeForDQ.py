@@ -359,7 +359,7 @@ def _verifyReconstructionStatus( run, runData, bkDict, eventType, bkClient, tran
       reconstructedRAWFiles = _fromBKK( bkDict, run, bkClient )
 
   if not reconstructedRAWFiles:
-    return ( retVal, [] )
+    return ( retVal, res )
 
   countRAW = int( len( reconstructedRAWFiles ) * fraction )
   countBrunel = len( runData[ 'BRUNELHIST' ] )
