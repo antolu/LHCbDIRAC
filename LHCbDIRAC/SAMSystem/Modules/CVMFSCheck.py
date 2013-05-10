@@ -34,6 +34,7 @@ class CVMFSCheck( ModuleBase ):
     self.log.info( 'Checking presence of CVMFS' )
     
     if not 'VO_LHCB_SW_DIR' in os.environ:
+      self.log.error( 'Environment variable VO_LHCB_SW_DIR not found' )
       return S_ERROR( 'Environment variable VO_LHCB_SW_DIR not found' )
     
     swDir = os.environ[ 'VO_LHCB_SW_DIR' ]
@@ -42,8 +43,10 @@ class CVMFSCheck( ModuleBase ):
     self.log.info( 'CVMFS file path "%s"' % cvmfsFilePath )
     
     if not os.path.exists( cvmfsFilePath ):
+      self.log.error( 'CVMFS file path "%s" does not exist' % cvmfsFilePath )
       return S_ERROR( 'CVMFS file path "%s" does not exist' % cvmfsFilePath )
     
+    self.log.info( 'CVMFS is present' )
     return S_OK( 'CVMFS is present' )    
 
 #...............................................................................
