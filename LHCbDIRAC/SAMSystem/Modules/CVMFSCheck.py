@@ -21,10 +21,9 @@ class CVMFSCheck( ModuleBase ):
     """
     Constructor
     """
-    super( CVMFSCheck, self ).__init__()
+    log = gLogger.getSubLogger( self.__class__.__name__ )
+    super( CVMFSCheck, self ).__init__( loggerIn = log )
     
-    self.log = gLogger.getSubLogger( self.__class__.__name__ )
-
   def execute( self ):
     """
     Main method. If ${VO_LHCB_SW_DIR}/lib/etc/cernvmfs is present, we continue
@@ -39,6 +38,13 @@ class CVMFSCheck( ModuleBase ):
       return S_ERROR( 'Environment variable VO_LHCB_SW_DIR not found' )
     
     swDir = os.environ[ 'VO_LHCB_SW_DIR' ]
+     
+    if not swDir:
+      self.setApplicationStatus( 'CVMFS KO' )
+      self.log.error( 'Environment variable VO_LHCB_SW_DIR is empty' )
+      return S_ERROR( 'Environment variable VO_LHCB_SW_DIR is empty' )
+    
+    self.log.info( 'VO_LHCB_SW_DIR: "%s"' % swDir )  
     
     cvmfsFilePath = os.path.join( swDir, '/lib/etc/cernvmfs' )
     self.log.info( 'CVMFS file path "%s"' % cvmfsFilePath )
