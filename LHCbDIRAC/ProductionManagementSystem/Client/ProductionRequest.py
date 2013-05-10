@@ -571,9 +571,12 @@ class ProductionRequest( object ):
     elif mode.lower() == 'frompreviousprod':
       bkQuery = {
                  'FileType': ';;;'.join( fileType ).replace( ' ', '' ),
-                 'EventType': self.eventType,
                  'ProductionID': int( previousProdID )
                  }
+
+      if self.eventType:
+        bkQuery['EventType'] = str( self.eventType )
+
       if self.dqFlag:
         bkQuery['DataQualityFlag'] = self.dqFlag.replace( ',', ';;;' ).replace( ' ', '' )
 
