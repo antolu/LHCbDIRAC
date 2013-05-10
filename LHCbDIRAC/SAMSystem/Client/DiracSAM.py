@@ -126,10 +126,10 @@ class DiracSAM( Dirac ):
     
     # CVMFS step definition
     stepName = 'CVMFSCheck'
-    step     = getStepDefinition( stepName, modulesNameList = [ 'CVMFSCheck' ], 
+    step     = getStepDefinition( stepName, modulesNameList = [ 'CVMFSCheck' ],
                                   importLine = "LHCbDIRAC.SAMSystem.Modules" )
     addStepToWorkflow( samJob.workflow, step, stepName )
-    
+   
     # Application Step definitions
     for appTest in appTests:
       
@@ -150,7 +150,7 @@ class DiracSAM( Dirac ):
     
     return S_OK( samJob )
   
-  def submitNewSAMJob( self, ce, runLocal = False ):
+  def submitNewSAMJob( self, ce, runLocal = 'wms' ):
     '''
       Method that generates a NewStyle SAM Job and submits it to the given ce
       if mode is wms. If mode is local, it will be run locally
@@ -161,7 +161,7 @@ class DiracSAM( Dirac ):
     samJob = self.defineSAMJob( ce )
     if not samJob[ 'OK' ]:
       return samJob
-    return self.submit( samJob, mode )
+    return self.submit( samJob[ 'Value' ], mode )
 
   #FIXME: this method already exists on DiracAdmin, it is a copy.
   def _promptUser( self, message ):
