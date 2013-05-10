@@ -855,7 +855,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     res = pr._getBKKQuery( 'fromPreviousProd', ['type'], 123 )
     resExpected = {'ProductionID':123,
                    'FileType':'type',
-                   'EventType':'',
                    'DataQualityFlag':'OK;;;AA;;;BB'}
     self.assertEqual( res, resExpected )
 
@@ -864,7 +863,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     res = pr._getBKKQuery( 'fromPreviousProd', ['type'], 123 )
     resExpected = {'ProductionID':123,
                    'FileType':'type',
-                   'EventType':'',
                    'DataQualityFlag':'OK;;;AA;;;BB'}
     self.assertEqual( res, resExpected )
 
@@ -873,7 +871,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     res = pr._getBKKQuery( 'fromPreviousProd', ['type1', 'type2'], 123 )
     resExpected = {'ProductionID':123,
                    'FileType':'type1;;;type2',
-                   'EventType':'',
                    'DataQualityFlag':'OK;;;AA;;;BB'}
     self.assertEqual( res, resExpected )
 
@@ -991,7 +988,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     self.assertEqual( res, {'OK':True, 'Value': [321, 321, 321]} )
 
 #############################################################################
-# Test Suite run 
+# Test Suite run
 #############################################################################
 
 if __name__ == '__main__':
@@ -1001,4 +998,4 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionRequestFullChain ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
