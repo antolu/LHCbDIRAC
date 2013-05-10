@@ -78,7 +78,7 @@ class DiracSAM( Dirac ):
     appTests          = self.opsH.getValue( 'SAM/ApplicationTests', [] )
     samLogLevel       = self.opsH.getValue( 'SAM/LogLevel', 'verbose' )
     samDefaultCPUTime = self.opsH.getValue( 'SAM/CPUTime', 50000 )
-    samPlatform       = self.opsH.getValue( 'SAM/Platform', 'gLite-SAM' )
+#    samPlatform       = self.opsH.getValue( 'SAM/Platform', 'gLite-SAM' )
     samOutputFiles    = self.opsH.getValue( 'SAM/OutputSandbox', ['*.log'] )
     samGroup          = self.opsH.getValue( 'SAM/JobGroup', 'SAM' )
     samType           = self.opsH.getValue( 'SAM/JobType', 'SAM' )
@@ -105,9 +105,9 @@ class DiracSAM( Dirac ):
     res = samJob.setCPUTime( samDefaultCPUTime )
     if not res[ 'OK' ]: 
       return res
-    res = samJob.setPlatform( samPlatform )
-    if not res[ 'OK' ]:
-      return res
+#    res = samJob.setPlatform( samPlatform )
+#    if not res[ 'OK' ]:
+#      return res
     res = samJob.setOutputSandbox( samOutputFiles )
     if not res[ 'OK' ]:
       return res
@@ -150,7 +150,7 @@ class DiracSAM( Dirac ):
     
     return S_OK( samJob )
   
-  def submitNewSAMJob( self, ce, runLocal = 'wms' ):
+  def submitNewSAMJob( self, ce, runLocal = False ):
     '''
       Method that generates a NewStyle SAM Job and submits it to the given ce
       if mode is wms. If mode is local, it will be run locally
