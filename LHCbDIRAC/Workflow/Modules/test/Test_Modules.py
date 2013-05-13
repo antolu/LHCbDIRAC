@@ -4,7 +4,7 @@ from mock import Mock
 
 from DIRAC import gLogger
 
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce
 
 class ModulesTestCase( unittest.TestCase ):
   """ Base class for the Modules test cases
@@ -643,6 +643,18 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
     self.assert_( 'FooBAR.ext.txt' in os.listdir( '.' ) )
 
   #################################################
+
+  def test_getEventsToProduce( self ):
+
+    CPUe = 2.0
+    CPUTime = 1000000.0
+    CPUNormalizationFactor = 0.5
+
+    out = getEventsToProduce( CPUe, CPUTime, CPUNormalizationFactor )
+    outExp = 250000
+
+    self.assert_( out['OK'] )
+    self.assertEqual( out['Value'], outExp )
 
 #############################################################################
 # AnalyseXMLSummary.py
