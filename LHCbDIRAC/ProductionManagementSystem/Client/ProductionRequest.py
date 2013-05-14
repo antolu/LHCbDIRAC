@@ -92,6 +92,7 @@ class ProductionRequest( object ):
     self.plugins = []
     self.inputDataPolicies = []
     self.previousProds = [None]  # list of productions from which to take the inputs (the first is always None)
+    self.multicore = []  # list of flags to override the multi core flags of the steps
 
   #############################################################################
 
@@ -191,7 +192,8 @@ class ProductionRequest( object ):
                                     transformationFamily = prodDict['transformationFamily'],
                                     events = prodDict['events'],
                                     CPUe = prodDict['CPUe'],
-                                    sysConfig = prodDict['sysConfig'] )
+                                    sysConfig = prodDict['sysConfig'],
+                                    multicore = prodDict['multicore'] )
 
       max_e = getEventsToProduce( prodDict['CPUe'], self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
       if max_e == 0:
@@ -261,6 +263,9 @@ class ProductionRequest( object ):
     if not self.inputDataPolicies:
       self.inputDataPolicies = ['download'] * len( self.prodsTypeList )
 
+    if not self.multicore:
+      self.multicore = ['False'] * len( self.prodsTypeList )
+
     # Checking if we need to split the merging step into many productions
     if 'merge' in [pt.lower() for pt in self.prodsTypeList]:
       i = 0
@@ -289,6 +294,7 @@ class ProductionRequest( object ):
         CPUe = self.CPUeList[index]
         sysConfig = self.sysConfig[index]
         targets = self.targets[index]
+        multicore = self.multicore[index]
         if plugin.lower() != 'byrunfiletypesizewithflush':
           stepToSplit = self.stepsListDict[index]
           numberOfProdsToInsert = len( stepToSplit['fileTypesOut'] )
@@ -310,6 +316,7 @@ class ProductionRequest( object ):
           self.CPUeList.pop( index )
           self.sysConfig.pop( index )
           self.targets.pop( index )
+          self.multicore.pop( index )
           newSteps = _splitIntoProductionSteps( stepToSplit )
           newSteps.reverse()
           self.stepsListDict.remove( stepToSplit )
@@ -335,6 +342,7 @@ class ProductionRequest( object ):
             self.CPUeList.insert( index, CPUe )
             self.sysConfig.insert( index, sysConfig )
             self.targets.insert( index, targets )
+            self.multicore.insert( index, multicore )
 
     correctedStepsInProds = []
     toInsert = self.stepsInProds[0][0]
@@ -358,25 +366,26 @@ class ProductionRequest( object ):
 
     for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
     cpu, inputD, outFileMask, outFileStep, target, groupSize, plugin, idp, \
-    previousProd, events, CPUe, sysConfig in itertools.izip( self.prodsTypeList,
-                                                       self.stepsInProds,
-                                                       self.bkQueries,
-                                                       self.removeInputsFlags,
-                                                       self.outputSEs,
-                                                       self.priorities,
-                                                       self.cpus,
-                                                       self.inputs,
-                                                       self.outputFileMasks,
-                                                       self.outputFileSteps,
-                                                       self.targets,
-                                                       self.groupSizes,
-                                                       self.plugins,
-                                                       self.inputDataPolicies,
-                                                       self.previousProds,
-                                                       self.events,
-                                                       self.CPUeList,
-                                                       self.sysConfig
-                                                       ):
+    previousProd, events, CPUe, sysConfig, multicore in itertools.izip( self.prodsTypeList,
+                                                                        self.stepsInProds,
+                                                                        self.bkQueries,
+                                                                        self.removeInputsFlags,
+                                                                        self.outputSEs,
+                                                                        self.priorities,
+                                                                        self.cpus,
+                                                                        self.inputs,
+                                                                        self.outputFileMasks,
+                                                                        self.outputFileSteps,
+                                                                        self.targets,
+                                                                        self.groupSizes,
+                                                                        self.plugins,
+                                                                        self.inputDataPolicies,
+                                                                        self.previousProds,
+                                                                        self.events,
+                                                                        self.CPUeList,
+                                                                        self.sysConfig,
+                                                                        self.multicore
+                                                                        ):
 
       if not self.parentRequestID and self.requestID:
         transformationFamily = self.requestID
@@ -405,7 +414,8 @@ class ProductionRequest( object ):
                                  'stepsInProd-ProdName': [str( self.stepsList[index - 1] ) + str( self.stepsListDict[index - 1]['fileTypesIn'] ) for index in stepsInProd],
                                  'events': events,
                                  'CPUe' : CPUe,
-                                 'sysConfig': sysConfig
+                                 'sysConfig': sysConfig,
+                                 'multicore': multicore
                                  }
       prodNumber += 1
 
@@ -446,7 +456,8 @@ class ProductionRequest( object ):
                         transformationFamily = 0,
                         events = -1,
                         CPUe = 1.0,
-                        sysConfig = '' ):
+                        sysConfig = '',
+                        multicore = 'False' ):
     """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object
     """
@@ -468,6 +479,7 @@ class ProductionRequest( object ):
     prod.setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
     max_e = getEventsToProduce( CPUe, self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
     prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce' )
+    prod.setParameter( 'multicore', 'string', multicore, 'Flag for enabling gaudi parallel' )
     prod.prodGroup = self.prodGroup
     prod.priority = priority
     prod.LHCbJob.workflow.setDescription( 'prodDescription' )
