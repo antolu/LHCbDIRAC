@@ -2,26 +2,24 @@
 ''' Does a TS -> BKK check for processed files with descendants
 '''
 
-#Script initialization
-from DIRAC.Core.Base import Script
-Script.setUsageMessage( '\n'.join( [ __doc__,
-                                     'Usage:',
-                                     '  %s [option|cfgfile] [ProdIDs]' % Script.scriptName, ] ) )
-Script.registerSwitch( '', 'Runs=', 'Specify the run range' )
-Script.registerSwitch( '', 'ActiveRunsProduction=', 'Specify the production from which the runs should be derived' )
-Script.registerSwitch( '', 'FileType=', 'Specify the descendants file type' )
-Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
-Script.parseCommandLine( ignoreErrors = True )
 
 #imports
 import sys, os, time
 import DIRAC
 from DIRAC import gLogger
-from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
-from LHCbDIRAC.BookkeepingSystem.Client.BKQuery              import BKQuery
 #Code
 if __name__ == '__main__':
 
+  #Script initialization
+  from DIRAC.Core.Base import Script
+  Script.setUsageMessage( '\n'.join( [ __doc__,
+                                       'Usage:',
+                                       '  %s [option|cfgfile] [ProdIDs]' % Script.scriptName, ] ) )
+  Script.registerSwitch( '', 'Runs=', 'Specify the run range' )
+  Script.registerSwitch( '', 'ActiveRunsProduction=', 'Specify the production from which the runs should be derived' )
+  Script.registerSwitch( '', 'FileType=', 'Specify the descendants file type' )
+  Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
+  Script.parseCommandLine( ignoreErrors = True )
   fileType = []
   runsList = []
   fixIt = False
@@ -55,6 +53,8 @@ if __name__ == '__main__':
       else:
         idList.append( int( r[0] ) )
 
+  from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
+  from LHCbDIRAC.BookkeepingSystem.Client.BKQuery              import BKQuery
   for id in idList:
 
     cc = ConsistencyChecks()
@@ -71,6 +71,7 @@ if __name__ == '__main__':
     cc.runStatus = 'Active'
     cc.fromProd = fromProd
     cc.checkTS2BKK()
+    gLogger.always( '\nResults:' )
     if cc.inFCNotInBK:
       gLogger.always( "%d descendants were found in FC but not in BK" % len( cc.inFCNotInBK ) )
       if fixIt:
@@ -80,14 +81,46 @@ if __name__ == '__main__':
         else:
           gLogger.always( 'Replica flag set successfully' )
       else:
+        gLogger.always( '\n'.join( cc.inFCNotInBK ) )
         gLogger.always( "use --FixIt for fixing, following results assume it is fixed" )
+
+    if cc.removedFiles:
+      from DIRAC.Core.Utilities.List import breakListIntoChunks
+      gLogger.always( "%d input files are processed, have no descendants but are not in the FC" % len( cc.removedFiles ) )
+      for lfnChunk in breakListIntoChunks( cc.removedFiles, 1000 ):
+        while True:
+          res = cc.transClient.setFileStatusForTransformation( cc.prod, 'Removed', lfnChunk, force = True )
+          if not res['OK']:
+            gLogger.error( 'Error setting files Removed, retry...', res['Message'] )
+          else:
+            break
+      gLogger.always( "\tFiles set to status Removed" )
+
 
     if fileType:
       gLogger.always( "%d unique descendants found" % ( len( cc.descendantsForProcessedLFNs ) + len( cc.descendantsForNonProcessedLFNs ) ) )
 
     if cc.processedLFNsWithMultipleDescendants:
-      gLogger.error( "Processed LFNs with multiple descendants (%d) -> ERROR\n%s" \
-                     % ( len( cc.processedLFNsWithMultipleDescendants ) , '\n'.join( cc.processedLFNsWithMultipleDescendants ) ) )
+      nMax = 50
+      if len( cc.processedLFNsWithMultipleDescendants ) > nMax:
+        prStr = ' (first %d files)' % nMax
+      else:
+        prStr = ''
+      gLogger.error( "Processed LFNs with multiple descendants (%d) -> ERROR%s\n%s" \
+                     % ( len( cc.processedLFNsWithMultipleDescendants ) , prStr, '\n'.join( sorted( cc.processedLFNsWithMultipleDescendants )[0:nMax] ) ) )
+      suffix = ''
+      n = 0
+      import os
+      while True:
+        fileName = 'FilesMultiplyProcessed_%s%s.txt' % ( str( cc.prod ), suffix )
+        if not os.path.exists( fileName ):
+          break
+        n += 1
+        suffix = '-%d' % n
+      fp = open( fileName, 'w' )
+      fp.write( '\n'.join( sorted( cc.processedLFNsWithMultipleDescendants ) ) )
+      fp.close()
+      gLogger.always( 'Complete list of files is in %s' % fileName )
       gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
       gLogger.always( "No processed LFNs with multiple descendants found -> OK!" )
