@@ -248,7 +248,7 @@ class GaudiApplication( ModuleBase ):
       if self.multicore:
         cpus = multiprocessing.cpu_count()
         if cpus > 1:
-          gaudiRunFlags = gaudiRunFlags + ' --ncpus %d ' % cpus
+          gaudiRunFlags = gaudiRunFlags + ' --ncpus -1 '
 
       if self.optionsLine or self.jobType.lower() == 'user':
         command = '%s %s %s' % ( gaudiRunFlags, self.optfile, 'gaudi_extra_options.py' )
