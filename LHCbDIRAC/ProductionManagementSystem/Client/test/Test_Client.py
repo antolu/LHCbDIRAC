@@ -198,6 +198,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [['aa'], []]
     pr.inputDataPolicies = ['dl', 'pr']
     pr.events = [-1, -1]
+    pr.CPUeList = [1.0, 1.0]
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
@@ -218,6 +219,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [['aa'], [], [], []]
     inputDataPoliciesExpected = ['dl', 'pr', 'pr', 'pr']
     eventsExpected = [-1, -1, -1, -1]
+    CPUeListExpected = [1.0, 1.0, 1.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
@@ -236,6 +238,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
+    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
 
@@ -256,6 +259,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.outputFileSteps = ['', '2']
     pr.inputDataPolicies = ['pr', 'dl']
     pr.events = [-1, -1]
+    pr.CPUeList = [1.0, 1.0]
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
@@ -276,6 +280,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[], ['aa']]
     inputDataPoliciesExpected = ['pr', 'dl']
     eventsExpected = [-1, -1]
+    CPUeListExpected = [1.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target2']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
@@ -294,6 +299,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
+    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
 
@@ -313,6 +319,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[], ['aa']]
     pr.inputDataPolicies = ['dl', 'pr']
     pr.events = [-1, -1]
+    pr.CPUeList = [1.0, 1.0]
     pr.bkQueries = ['fromPreviousProd', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
@@ -333,6 +340,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[], [], [], ['aa']]
     inputDataPoliciesExpected = ['dl', 'dl', 'dl', 'pr']
     eventsExpected = [-1, -1, -1, -1]
+    CPUeListExpected = [1.0, 1.0, 1.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target1', 'Target1', 'Target2']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
@@ -351,6 +359,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
+    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
 
@@ -371,6 +380,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[]]
     pr.inputDataPolicies = ['']
     pr.events = [-1]
+    pr.CPUeList = [1.0]
     pr.bkQueries = ['Full']
     pr.targets = ['Target1']
     pr._applyOptionalCorrections()
@@ -391,6 +401,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[]]
     inputDataPoliciesExpected = ['']
     eventsExpected = [-1]
+    CPUeListExpected = [1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt']
     targetsExpected = ['Target1']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
@@ -409,6 +420,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
+    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
 
@@ -430,6 +442,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputDataPolicies = ['', 'dl', 'pr']
     pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
     pr.events = [-1, -1, -1]
+    pr.CPUeList = [1.0, 1.0, 1.0]
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2', 'Target3']
     pr._applyOptionalCorrections()
@@ -449,6 +462,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[], ['aa'], ['aa'], ['aa'], ['bb']]
     inputDataPoliciesExpected = ['', 'dl', 'dl', 'dl', 'pr']
     eventsExpected = [-1, -1, -1, -1, -1]
+    CPUeListExpected = [1.0, 1.0, 1.0, 1.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt' ]
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2', 'Target3']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
@@ -467,6 +481,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
+    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
 
@@ -487,6 +502,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[], []]
     pr.inputDataPolicies = ['', 'dl']
     pr.events = [-1, -1]
+    pr.CPUeList = [1.0, 1.0]
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
@@ -507,6 +523,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[], [], [], []]
     inputDataPoliciesExpected = ['', 'dl', 'dl', 'dl']
     eventsExpected = [-1, -1, -1, -1]
+    CPUeListExpected = [1.0, 1.0, 1.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', ]
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
@@ -525,6 +542,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
+    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
 
@@ -545,6 +563,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[]]
     pr.inputDataPolicies = ['dl']
     pr.events = [-1]
+    pr.CPUeList = [1.0]
     pr.bkQueries = ['Full']
     pr.sysConfig = ['i686-slc5-gcc43-opt']
     pr.targets = ['Target1']
@@ -565,6 +584,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[]]
     inputDataPoliciesExpected = ['dl']
     eventsExpected = [-1]
+    CPUeListExpected = [1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt']
     targetsExpected = ['Target1']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
@@ -583,6 +603,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
+    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
 
@@ -602,6 +623,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [['aa'], ['bb']]
     pr.inputDataPolicies = ['dl', 'pr']
     pr.events = [-1, -1]
+    pr.CPUeList = [1.0, 1.0]
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
@@ -622,6 +644,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [['aa'], ['aa'], ['aa'], ['bb']]
     inputDataPoliciesExpected = ['dl', 'dl', 'dl', 'pr']
     eventsExpected = [-1, -1, -1, -1]
+    CPUeListExpected = [1.0, 1.0, 1.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target1', 'Target1', 'Target2']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
@@ -640,6 +663,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
+    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
 
@@ -659,6 +683,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[], []]
     pr.inputDataPolicies = ['', 'dl']
     pr.events = [100, -1]
+    pr.CPUeList = [100.0, 1.0]
     pr.bkQueries = ['', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
@@ -679,6 +704,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[], []]
     inputDataPoliciesExpected = ['', 'dl']
     eventsExpected = [100, -1]
+    CPUeListExpected = [100.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target2']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
@@ -697,6 +723,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
+    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
 
@@ -719,6 +746,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.plugins = ['ByRun', 'BySize', 'BySize']
     pr.previousProds = [None, 1, 1]
     pr.events = [-1, -1, -1]
+    pr.CPUeList = [1.0, 1.0, 1.0]
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
 
     pr.stepsListDict = [{'StepId': 123, 'StepName':'Stripping14-Stripping',
@@ -773,6 +801,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'previousProd': None,
                       'stepsInProd-ProdName': ["123['SDST']", "456['BHADRON.DST']"],
                       'events':-1,
+                      'CPUe' : 1.0,
                       'sysConfig': 'i686-slc5-gcc43-opt'
                      },
 
@@ -797,6 +826,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'previousProd': 1,
                       'stepsInProd-ProdName': ["456['CALIBRATION.DST']"],
                       'events':-1,
+                      'CPUe' : 1.0,
                       'sysConfig': 'i686-slc5-gcc43-opt'
                       },
 
@@ -821,6 +851,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'previousProd': 1,
                       'stepsInProd-ProdName': ["456['PID.MDST']"],
                       'events':-1,
+                      'CPUe' : 1.0,
                       'sysConfig': 'i686-slc5-gcc43-opt'
                       }
                    }
@@ -958,6 +989,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     pr.configVersion = 'MC11a'
 
     pr.events = ['100', '-1']
+    pr.CPUeList = [100.0, 1.0]
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
 
     pr.extend = '100'

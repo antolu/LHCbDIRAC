@@ -8,6 +8,8 @@ from LHCbDIRAC.Interfaces.API.DiracProduction                 import DiracProduc
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
 from LHCbDIRAC.ProductionManagementSystem.Client.Production   import Production
 
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities              import getEventsToProduce
+
 class ProductionRequest( object ):
   """ Production request class - objects are usually created starting from a production request
   """
@@ -65,9 +67,13 @@ class ProductionRequest( object ):
     self.minFilesToProcess = 0
     self.modulesList = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
                         'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
+    # used to compute the maximum number of events to produce
+    self.CPUTimeAvg = 0.0
+    self.CPUNormalizationFactorAvg = 0.0
 
     # parameters of each production (the length of each list has to be the same as the number of productions
     self.events = []
+    self.CPUeList = []
     self.sysConfig = []
     self.stepsList = []
     self.extraOptions = {}
@@ -180,6 +186,7 @@ class ProductionRequest( object ):
                                     derivedProdID = prodDict['derivedProduction'],
                                     transformationFamily = prodDict['transformationFamily'],
                                     events = prodDict['events'],
+                                    CPUe = float ( prodDict['CPUe'] ),
                                     sysConfig = prodDict['sysConfig'] )
       res = self.diracProduction.launchProduction( prod = prod,
                                                    publishFlag = self.publishFlag,
@@ -215,6 +222,9 @@ class ProductionRequest( object ):
 
     if len( self.events ) != len( self.prodsTypeList ):
       self.events += ['-1'] * ( len( self.prodsTypeList ) - len( self.events ) )
+
+    if len( self.CPUeList ) != len( self.prodsTypeList ):
+      self.CPUeList += ['1.0'] * ( len( self.prodsTypeList ) - len( self.CPUeList ) )
 
     if not self.removeInputsFlags:
       removeInputsFlags = []
@@ -265,6 +275,7 @@ class ProductionRequest( object ):
         idp = self.inputDataPolicies[index]
         stepID = self.stepsList[index]
         events = self.events[index]
+        CPUe = self.CPUeList[index]
         sysConfig = self.sysConfig[index]
         targets = self.targets[index]
         if plugin.lower() != 'byrunfiletypesizewithflush':
@@ -285,6 +296,7 @@ class ProductionRequest( object ):
           self.inputDataPolicies.pop( index )
           self.stepsList.pop( index )
           self.events.pop( index )
+          self.CPUeList.pop( index )
           self.sysConfig.pop( index )
           self.targets.pop( index )
           newSteps = _splitIntoProductionSteps( stepToSplit )
@@ -309,6 +321,7 @@ class ProductionRequest( object ):
             self.stepsListDict.insert( index, newSteps[x] )
             self.stepsInProds.insert( index + x, [last + x] )
             self.events.insert( index, events )
+            self.CPUeList.insert( index, CPUe )
             self.sysConfig.insert( index, sysConfig )
             self.targets.insert( index, targets )
 
@@ -334,7 +347,7 @@ class ProductionRequest( object ):
 
     for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
     cpu, inputD, outFileMask, outFileStep, target, groupSize, plugin, idp, \
-    previousProd, events, sysConfig in itertools.izip( self.prodsTypeList,
+    previousProd, events, CPUe, sysConfig in itertools.izip( self.prodsTypeList,
                                                        self.stepsInProds,
                                                        self.bkQueries,
                                                        self.removeInputsFlags,
@@ -350,6 +363,7 @@ class ProductionRequest( object ):
                                                        self.inputDataPolicies,
                                                        self.previousProds,
                                                        self.events,
+                                                       self.CPUeList,
                                                        self.sysConfig
                                                        ):
 
@@ -379,6 +393,7 @@ class ProductionRequest( object ):
                                  'previousProd': previousProd,
                                  'stepsInProd-ProdName': [str( self.stepsList[index - 1] ) + str( self.stepsListDict[index - 1]['fileTypesIn'] ) for index in stepsInProd],
                                  'events': events,
+                                 'CPUe' : CPUe,
                                  'sysConfig': sysConfig
                                  }
       prodNumber += 1
@@ -419,6 +434,7 @@ class ProductionRequest( object ):
                         derivedProdID = 0,
                         transformationFamily = 0,
                         events = -1,
+                        CPUe = 1.0,
                         sysConfig = '' ):
     """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object
@@ -439,6 +455,8 @@ class ProductionRequest( object ):
                           groupDescription = self.prodGroup, conditions = self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
+    max_e = getEventsToProduce( CPUe, self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
+    prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce' )
     prod.prodGroup = self.prodGroup
     prod.priority = priority
     prod.LHCbJob.workflow.setDescription( 'prodDescription' )
