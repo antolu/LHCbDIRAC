@@ -636,7 +636,7 @@ if __name__ == "__main__":
   from DIRAC.RequestManagementSystem.Client.RequestClient           import RequestClient
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
-  from LHCbDirac.TransformationSystem.Client.Utilities import PluginUtilities
+  from LHCbDIRAC.TransformationSystem.Client.Utilities import PluginUtilities
   from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
   from DIRAC import gLogger
   import DIRAC
@@ -650,6 +650,7 @@ if __name__ == "__main__":
   assignedReqLimit = datetime.datetime.utcnow() - datetime.timedelta( hours = 2 )
   improperJobs = []
   pluginUtil = None
+  gLogger.setLevel( 'INFO' )
 
   transSep = ''
   for transID in transList:
@@ -703,7 +704,7 @@ if __name__ == "__main__":
       if ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in transPlugin and runStatus != 'Flush':
         # Check if the run should be flushed
         if not pluginUtil:
-          pluginUtil = PluginUtilities( transPlugin, transClient, rm, bkClient, None, None, False, {}, transID = transID )
+          pluginUtil = PluginUtilities( transPlugin, transClient, rm, bkClient, None, None, True, {}, transID = transID )
         evtType = 90000000
         rawFiles = pluginUtil.getNbRAWInRun( runID, evtType )
         if 'FileType' in transPlugin:
@@ -755,7 +756,7 @@ if __name__ == "__main__":
             print "Use --FixIt to flush the run"
         if flushError:
           print "More ancestors than RAW files (%d) for run %d ==> Problem!\n\t%s" \
-            % ( rawFiles, runID, prStr, replace( '; ', '\n\t' ) )
+            % ( rawFiles, runID, prStr.replace( '; ', '\n\t' ) )
         if not toFlush and not flushError:
           print "Run not flushed: %s while %d RAW files" \
             % ( prStr, rawFiles )
