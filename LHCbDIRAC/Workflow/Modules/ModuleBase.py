@@ -344,6 +344,9 @@ class ModuleBase( object ):
     if self.step_commons.has_key( 'DQTag' ):
       self.DQTag = self.step_commons['DQTag']
 
+    if self.step_commons.has_key( 'multiCore' ):
+      self.multicore = eval( self.step_commons['multiCore'] )
+
   #############################################################################
 
   def _determineOutputs( self ):

@@ -4,7 +4,7 @@
 
 __RCSID__ = "$Id$"
 
-import re, os, sys, time
+import re, os, sys, time, multiprocessing
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess  import shellCall
@@ -56,6 +56,7 @@ class GaudiApplication( ModuleBase ):
     self.outputFilePrefix = ''
     self.runNumber = 0
     self.TCK = ''
+    self.multicore = False
 
   #############################################################################
 
@@ -65,13 +66,6 @@ class GaudiApplication( ModuleBase ):
 
     super( GaudiApplication, self )._resolveInputVariables()
     super( GaudiApplication, self )._resolveInputStep()
-
-    # if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
-    if self.optionsLine or self.jobType.lower() == 'user':
-      # self.log.debug( "Won't get any step outputs (SAM or USER jobs)" )
-      self.log.debug( "Won't get any step outputs (USER jobs)" )
-    else:
-      self.log.debug( "Getting the step outputs" )
 
   #############################################################################
 
@@ -129,9 +123,9 @@ class GaudiApplication( ModuleBase ):
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
 
-      # if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
       if self.optionsLine or self.jobType.lower() == 'user':
 
+        self.log.debug( "Won't get any step outputs (USER jobs)" )
         stepOutputs = []
         # Prepare standard project run time options
         generatedOpts = 'gaudi_extra_options.py'
@@ -156,8 +150,10 @@ class GaudiApplication( ModuleBase ):
 
       else:
 
+        self.log.debug( "Getting the step outputs" )
         stepOutputs, stepOutputTypes, histogram = self._determineOutputs()
 
+        # Creating ProdConf file
         prodConfFileName = 'prodConf_%s_%s_%s_%s.py' % ( self.applicationName,
                                                          self.production_id,
                                                          self.prod_job_id,
@@ -247,12 +243,16 @@ class GaudiApplication( ModuleBase ):
           return result  # this will distinguish between LbLogin / SetupProject / actual application failures
         projectEnvironment = result['Value']
 
+      # Creating the command
       gaudiRunFlags = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
-#      command = '%s %s %s' % ( gaudiRunFlags, self.optfile, generatedOpts )
-#      if self.optionsLine or self.jobType.lower() == 'sam' or self.jobType.lower() == 'user':
+      if self.multicore:
+        cpus = multiprocessing.cpu_count()
+        if cpus > 1:
+          gaudiRunFlags = gaudiRunFlags + ' --ncpus %d ' % cpus
+
       if self.optionsLine or self.jobType.lower() == 'user':
         command = '%s %s %s' % ( gaudiRunFlags, self.optfile, 'gaudi_extra_options.py' )
-      else:
+      else:  # everything but user jobs
         if self.extraOptionsLine:
           fopen = open( 'gaudi_extra_options.py', 'w' )
           fopen.write( self.extraOptionsLine )
@@ -291,7 +291,6 @@ class GaudiApplication( ModuleBase ):
 
       self.log.info( 'Running %s %s step %s' % ( self.applicationName, self.applicationVersion, self.step_number ) )
       self.setApplicationStatus( '%s %s step %s' % ( self.applicationName, self.applicationVersion, self.step_number ) )
-  #    result = {'OK':True,'Value':(0,'Disabled Execution','')}
       result = shellCall( 0, finalCommand,
                           env = projectEnvironment,
                           callbackFunction = self.redirectLogOutput,
@@ -311,10 +310,6 @@ class GaudiApplication( ModuleBase ):
         return S_ERROR( '%s Exited With Status %s' % ( self.applicationName, status ) )
       else:
         self.log.info( "%s execution completed succesfully" % self.applicationName )
-
-      # I want to have only files with lower case extension
-      # decided NOT to use it for the moment
-  #    lowerExtension()
 
       self.log.info( "Going to manage %s output" % self.applicationName )
       try:

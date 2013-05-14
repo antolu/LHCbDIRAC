@@ -25,7 +25,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import Bookkee
 from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
 
 class Production():
-  """ Production does not inherits from LHCbJob, but uses an LHCbJob object.
+  """ Production uses an LHCbJob object, as well as few clients.
   """
 
   #############################################################################
@@ -40,7 +40,7 @@ class Production():
     self.opsHelper = Operations()
 
     self.histogramName = self.opsHelper.getValue( 'Productions/HistogramName',
-                                                          '@{applicationName}_@{STEP_ID}_Hist.root' )
+                                                  '@{applicationName}_@{STEP_ID}_Hist.root' )
     self.histogramSE = self.opsHelper.getValue( 'Productions/HistogramSE', 'CERN-HIST' )
     self.bkSteps = {}
     self.prodGroup = ''
@@ -175,6 +175,7 @@ class Production():
     dddbOpt = stepDict['DDDB']
     conddbOpt = stepDict['CONDDB']
     DQOpt = stepDict['DQTag']
+    multicore = stepDict['MultiCore']
 
     if extraPackages:
       if type( extraPackages ) == type( [] ):
@@ -245,7 +246,8 @@ class Production():
                         ['optionsFormat', 'string', '', 'ProdConf configuration'],
                         ['CondDBTag', 'string', '', 'ConditionDatabaseTag'],
                         ['DDDBTag', 'string', '', 'DetDescTag' ],
-                        ['DQTag', 'string', '', 'DataQualityTag']
+                        ['DQTag', 'string', '', 'DataQualityTag'],
+                        ['multiCore', 'string', '', 'MultiCore Flag']
                         ]
 
       gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
@@ -272,7 +274,8 @@ class Production():
                    ['optionsFormat', optionsFormat],
                    ['CondDBTag', conddbOpt],
                    ['DDDBTag', dddbOpt],
-                   ['DQTag', DQOpt]
+                   ['DQTag', DQOpt],
+                   ['multiCore', multicore]
                    ]
 
     if fileTypesIn:
