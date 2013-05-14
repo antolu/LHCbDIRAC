@@ -21,8 +21,8 @@ class CVMFSCheck( ModuleBase ):
     """
     Constructor
     """
-    log = gLogger.getSubLogger( self.__class__.__name__ )
-    super( CVMFSCheck, self ).__init__( loggerIn = log )
+    logger = gLogger.getSubLogger( self.__class__.__name__ )
+    super( CVMFSCheck, self ).__init__( loggerIn = logger )
     
   def execute( self ):
     """
@@ -46,7 +46,7 @@ class CVMFSCheck( ModuleBase ):
     
     self.log.info( 'VO_LHCB_SW_DIR: "%s"' % swDir )  
     
-    cvmfsFilePath = os.path.join( swDir, '/lib/etc/cernvmfs' )
+    cvmfsFilePath = os.path.join( swDir, 'lib/etc/cernvmfs' )
     self.log.info( 'CVMFS file path "%s"' % cvmfsFilePath )
     
     if not os.path.exists( cvmfsFilePath ):
