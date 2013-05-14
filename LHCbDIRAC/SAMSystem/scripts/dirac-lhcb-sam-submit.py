@@ -7,7 +7,8 @@
     Usage:
       dirac-lhcb-sam-submit
         --ce                  Computing Element to submit to or `all`
-        --number              number of SAM Jobs to be submitted [Experts only]
+        --number              Number of SAM Jobs to be submitted [Experts only]
+        --local               Run the job locally
 
     Verbosity:
         -o LogLevel=LEVEL     NOTICE by default, levels available: INFO, DEBUG, VERBOSE...
@@ -29,7 +30,8 @@ def registerSwitches():
 
   switches = ( 
     ( 'ce=', 'Computing Element to submit to (must be in DIRAC CS) or all' ),
-    ( 'number=', 'number of SAM Jobs to be submitted [Experts only]' )
+    ( 'number=', 'number of SAM Jobs to be submitted [Experts only]' ),
+    ( 'local', 'Run the job locally' )
               )
   for switch in switches:
     Script.registerSwitch( '', switch[ 0 ], switch[ 1 ] )
@@ -112,8 +114,8 @@ def submit( ces, number ):
     keyword arguments to diracSAM.
   '''
 
-  # FIXME: this needs to be updated to use the new API
-
+  # If local is in switchDict, we run jobs locally 
+  runLocal = 'local' in switchDict
 
   subLogger.info( 'Submitting %d jobs to each ce' % number )
 
@@ -124,7 +126,7 @@ def submit( ces, number ):
     # Submit a number of times the SAM Job to the same CE
     for _j in xrange( 0, number ):
 
-      result = diracSAM.submitNewSAMJob( ce )
+      result = diracSAM.submitNewSAMJob( ce, runLocal = runLocal )
       if not result[ 'OK' ]:
         subLogger.error( 'Submission of SAM job to CE %s failed' % ce )
         subLogger.verbose( 'with message:\n%s' % result[ 'Message' ] )

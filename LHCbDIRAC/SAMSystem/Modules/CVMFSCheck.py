@@ -23,6 +23,20 @@ class CVMFSCheck( ModuleBase ):
     """
     logger = gLogger.getSubLogger( self.__class__.__name__ )
     super( CVMFSCheck, self ).__init__( loggerIn = logger )
+
+    # This is needed to run self.setApplicationStatus
+    self.jobID = None
+    if os.environ.has_key( 'JOBID' ):
+      self.jobID = os.environ[ 'JOBID' ]
+
+#  def _resolveInputVariables( self ):
+#    """ Resolve all input variables for the module here.
+#    """
+#
+#    super( CVMFSCheck, self )._resolveInputVariables()
+#    super( CVMFSCheck, self )._resolveInputStep()
+#    
+#    # Extend if needed
     
   def execute( self ):
     """
