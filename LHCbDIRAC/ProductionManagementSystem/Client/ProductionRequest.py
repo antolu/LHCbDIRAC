@@ -42,6 +42,7 @@ class ProductionRequest( object ):
     self.prodsToLaunch = []  # productions to launch
     self.stepsListDict = []  # list of dict of steps
     self.stepsInProds = []  # a list of lists
+    self.eventsToProduce = 0
     # parameters of the input data
     self.processingPass = ''
     self.dataTakingConditions = ''
@@ -132,7 +133,7 @@ class ProductionRequest( object ):
 
       stepsListDictItem['prodStepID'] = str( stepID ) + str( stepsListDictItem['fileTypesIn'] )
 
-      if not stepsListDictItem.has_key('MultiCore'):
+      if not stepsListDictItem.has_key( 'MultiCore' ):
         stepsListDictItem['MultiCore'] = 'False'
 
       self.stepsListDict.append( stepsListDictItem )
@@ -189,13 +190,20 @@ class ProductionRequest( object ):
                                     derivedProdID = prodDict['derivedProduction'],
                                     transformationFamily = prodDict['transformationFamily'],
                                     events = prodDict['events'],
-                                    CPUe = float ( prodDict['CPUe'] ),
+                                    CPUe = prodDict['CPUe'],
                                     sysConfig = prodDict['sysConfig'] )
+
+      max_e = getEventsToProduce( prodDict['CPUe'], self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
+      if max_e == 0:
+        extend = 0
+      else:
+        extend = self.eventsToProduce / max_e
+
       res = self.diracProduction.launchProduction( prod = prod,
                                                    publishFlag = self.publishFlag,
                                                    testFlag = self.testFlag,
                                                    requestID = self.requestID,
-                                                   extend = self.extend,
+                                                   extend = extend,
                                                    tracking = prodDict['tracking'] )
       if not res['OK']:
         raise RuntimeError, res['Message']
@@ -621,6 +629,16 @@ class ProductionRequest( object ):
   def get_stepsList( self ):
     return self._stepsList
   stepsList = property( get_stepsList, set_stepsList )
+
+  def set_eventsToProduce( self, value ):
+    if type( value ) == type( '' ):
+      value = float( value )
+    if value < 0.0:
+      raise ValueError, 'eventsToProduce can not be negative'
+    self._eventsToProduce = value
+  def get_eventsToProduce( self ):
+    return self._eventsToProduce
+  eventsToProduce = property( get_eventsToProduce, set_eventsToProduce )
 
   def set_startRun( self, value ):
     if type( value ) == type( '' ):

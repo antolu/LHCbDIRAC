@@ -992,6 +992,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     pr.CPUeList = [100.0, 1.0]
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
 
+    pr.eventsToProduce = 10000
     pr.extend = '100'
 
     pr.eventType = '11124001'
@@ -1000,6 +1001,9 @@ class ProductionRequestFullChain( ClientTestCase ):
 
     pr.prodGroup = 'Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged'
     pr.dataTakingConditions = 'Beam3500GeV-2011-MagDown-Nu2-EmNoCuts'
+
+    pr.CPUNormalizationFactorAvg = 1.0
+    pr.CPUTimeAvg = 100000.0
 
     pr.prodsTypeList = ['Stripping', 'Merge']
     pr.outputSEs = ['Tier1_MC-DST', 'Tier1_MC-DST']
