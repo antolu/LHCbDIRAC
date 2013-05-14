@@ -6,12 +6,13 @@
 
 '''
 
+from datetime                                               import datetime
 from types                                                  import NoneType
 
-from DIRAC                                                  import gLogger, S_OK
+from DIRAC                                                  import gLogger, S_OK, gConfig, S_ERROR
 from DIRAC.Core.DISET.RequestHandler                        import RequestHandler
 from DIRAC.ResourceStatusSystem.Client.ResourceStatusClient import ResourceStatusClient
-from DIRAC.ResourceStatusSystem.Utilities                   import CSHelpers, RssConfiguration 
+from DIRAC.ResourceStatusSystem.Utilities                   import CSHelpers
 
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
@@ -39,7 +40,7 @@ class PublisherHandler( RequestHandler ):
     web portal, but not all of them.
   '''  
   
-  ## CSHelpers methods #########################################################
+  # ResourceStatusClient .......................................................
   
   types_getSites = []
   def export_getSites( self ):  
@@ -48,6 +49,34 @@ class PublisherHandler( RequestHandler ):
     '''
     gLogger.info( 'getSites' )
     return CSHelpers.getSites()
+
+  types_getSitesResources = [ ( str, list, NoneType ) ]
+  def export_getSitesResources( self, siteNames ):
+    
+    if siteNames is None:
+      siteNames = CSHelpers.getSites()
+      if not siteNames[ 'OK' ]:
+        return siteNames
+      siteNames = siteNames[ 'Value' ]
+    
+    if isinstance( siteNames, str ):
+      siteNames = [ siteNames ]
+    
+    sitesRes = {}
+    
+    for siteName in siteNames:
+      
+      res = {}      
+      res[ 'ces' ] = CSHelpers.getSiteComputingElements( siteName )
+      ses = CSHelpers.getSiteStorageElements( siteName )
+      sesHosts = CSHelpers.getStorageElementsHosts( ses )
+      if not sesHosts[ 'OK' ]:
+        return sesHosts
+      res[ 'ses' ] = list( set( sesHosts[ 'Value' ] ) )
+          
+      sitesRes[ siteName ] = res
+    
+    return S_OK( sitesRes )
 
   types_getElementStatuses = [ str, ( str, list, NoneType ), ( str, list, NoneType ), 
                             ( str, list, NoneType ), ( str, list, NoneType ),
@@ -75,95 +104,119 @@ class PublisherHandler( RequestHandler ):
   def export_getNodeStatuses( self ):
       return rsClient.selectStatusElement( 'Node', 'Status' ) 
 
-  types_getResourceStatuses = []
-  def export_getResourceStatuses( self ):
-      return rsClient.selectStatusElement( 'Resource', 'Status' ) 
+  types_getTree = [ str, str, str ]
+  def export_getTree( self, element, elementType, elementName ):
 
-  types_getResources = []
-  def export_getResources( self ):  
-    '''
-      Returns list of all resources considered by RSS
-    '''
-    gLogger.info( 'getResources' )
-    return CSHelpers.getResources()
+    tree = {}
 
-  types_getNodes = []
-  def export_getNodes( self ):  
-    '''
-      Returns list of all nodes considered by RSS
-    '''
-    gLogger.info( 'getNodes' )
-    return CSHelpers.getNodes()
+    site = self.getSite( element, elementType, elementName )        
+    if not site:
+      return S_ERROR( 'No site' )
+    
+    siteStatus = rsClient.selectStatusElement( 'Site', 'Status', name = site, 
+                                               meta = { 'columns' : [ 'StatusType', 'Status' ] } )
+    if not siteStatus[ 'OK' ]:
+      return siteStatus      
+
+    tree[ site ] = { 'statusTypes' : dict( siteStatus[ 'Value' ] ) }
+    
+    ces = CSHelpers.getSiteComputingElements( site )    
+    cesStatus = rsClient.selectStatusElement( 'Resource', 'Status', name = ces,
+                                              meta = { 'columns' : [ 'Name', 'StatusType', 'Status'] } )
+    if not cesStatus[ 'OK' ]:
+      return cesStatus
+    
+    tree[ site ][ 'ces' ] = {}
+    for ceTuple in cesStatus[ 'Value' ]:
+      name, statusType, status = ceTuple
+      if not name in tree[ site ][ 'ces' ]:
+        tree[ site ][ 'ces' ][ name ] = {}
+      tree[ site ][ 'ces' ][ name ][ statusType ] = status   
+    
+    ses = CSHelpers.getSiteStorageElements( site )
+    sesStatus = rsClient.selectStatusElement( 'Resource', 'Status', name = ses,
+                                              meta = { 'columns' : [ 'Name', 'StatusType', 'Status'] } )
+    if not sesStatus[ 'OK' ]:
+      return sesStatus
+    
+    tree[ site ][ 'ses' ] = {}
+    for seTuple in sesStatus[ 'Value' ]:
+      name, statusType, status = seTuple
+      if not name in tree[ site ][ 'ses' ]:
+        tree[ site ][ 'ses' ][ name ] = {}
+      tree[ site ][ 'ses' ][ name ][ statusType ] = status   
+
+    return S_OK( tree )
+    
+  #-----------------------------------------------------------------------------  
+    
+  def getSite( self, element, elementType, elementName ):
+    
+    if elementType == 'StorageElement':
+      elementType = 'SE'
+
+    domainNames = gConfig.getSections( 'Resources/Sites' )
+    if not domainNames[ 'OK' ]:
+      return domainNames
+    domainNames = domainNames[ 'Value' ]
   
-  ## RssConfiguration methods ##################################################
-  
-  types_getPolicies = []
-  def export_getPolicies( self ):  
-    '''
-      Returns list of all nodes considered by RSS
-    '''
-    gLogger.info( 'getPolicies' )
-    return RssConfiguration.getPolicies()
-  
-  types_getValidStatus = []
-  def export_getValidStatus( self ):
-    #TODO: return it from RssConfiguration
-    pass
-  
-  #TODO: set the types as in the previous method
-  def export_getValidStatusTypes( self ):
-    #TODO: return in from RssConfiguration().getConfig...
-    pass
-  
-  ## Status methods ############################################################
-  
-  # Element must be a string, names must be either a list, a string or None
-  types_selectStatusElement = [ str, ( str, list, NoneType )]
-  def export_selectStatusElement( self, element, name ):
-    '''
-      Given an element ( Site, Resource, Node ) and a name, we query the database
-      through the client.
+    for domainName in domainNames:
       
-    '''
-    
-    gLogger.info( 'selectStatusElement ( %s, %s )' % ( element, name ) )
-
-#    We can validate the element, if it is wrong, this query will not go to the
-#    database. Needed ?
-    
-#    validElements = RssConfiguration.getValidElements()
-#    if not element in validElements:
-#      message = '"%s" not in validElements' % element
-#      gLogger.error( message )
-#      return S_ERROR( message )
-    
-    #selectStatusElement( self, element, tableType, name = None, statusType = None, 
-    #                         status = None, elementType = None, reason = None, 
-    #                         dateEffective = None, lastCheckTime = None, 
-    #                         tokenOwner = None, tokenExpiration = None, meta = None ):
-    return rsClient.selectStatusElement( element, 'Status', name )   
-
-  types_selectStatusElementExtended = [ str, ( str, list, NoneType ), ( str, list, NoneType ),
-                                        ( str, list, NoneType ), ( str, list, NoneType ) ]
-  def export_selectStatusElementExtended( self, element, name, statusType, status,
-                                          elementType ):
-    '''
-      Given an element ( Site, Resource, Node ) and a name, we query the database
-      through the client.
+      sites = gConfig.getSections( 'Resources/Sites/%s' % domainName )
+      if not sites[ 'OK' ]:
+        continue
       
-    '''
-    
-    gLogger.info( 'selectStatusElementExtended ( %s, %s )' % ( element, name ) )
-    
-    #selectStatusElement( self, element, tableType, name = None, statusType = None, 
-    #                         status = None, elementType = None, reason = None, 
-    #                         dateEffective = None, lastCheckTime = None, 
-    #                         tokenOwner = None, tokenExpiration = None, meta = None ):
-    return rsClient.selectStatusElement( element, 'Status', name, statusType, status,
-                                         elementType )   
+      for site in sites[ 'Value' ]:
+      
+        elements = gConfig.getValue( 'Resources/Sites/%s/%s/%s' % ( domainName, site, elementType ), '' )
+        if elementName in elements:
+          return site          
 
-    
-  #TODO: Andrew, this is all yours ;)  
+    return ''
+
+  # ResourceManagementClient ...................................................
   
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF 
+  types_getDowntimes = [ str, str, str ]
+  def export_getDowntimes( self, element, elementType, name ):
+    
+    if elementType == 'StorageElement':
+      name = CSHelpers.getSEHost( name )
+    
+    return rmClient.selectDowntimeCache( element = element, name = name, 
+                                         meta = { 'columns' : [ 'StartDate', 'EndDate', 
+                                                                'Link', 'Description', 
+                                                                'Severity' ] } )
+
+  types_getCachedDowntimes = [ ( str, NoneType, list ), ( str, NoneType, list ), ( str, NoneType, list ),
+                               ( str, NoneType, list ), datetime, datetime ]
+  def export_getCachedDowntimes( self, element, elementType, name, severity, startDate, endDate ):
+    
+    if elementType == 'StorageElement':
+      name = CSHelpers.getSEHost( name )
+   
+    if startDate > endDate:
+      return S_ERROR( 'startDate > endDate' )
+    
+    res = rmClient.selectDowntimeCache( element = element, name = name, severity = severity,
+                                        meta = { 'columns' : [ 'Element', 'Name', 'StartDate',
+                                                               'EndDate', 'Severity',
+                                                               'Description', 'Link' ] } )
+    if not res[ 'OK' ]:
+      return res
+    
+    downtimes = []
+    
+    for dt in res[ 'Value' ]:
+      
+      dtDict = dict( zip( res[ 'Columns' ], dt ) ) 
+    
+      if dtDict[ 'StartDate' ] < endDate and dtDict[ 'EndDate' ] > startDate:
+        downtimes.append( dt )
+    
+    result = S_OK( downtimes )
+    result[ 'Columns' ] = res[ 'Columns' ]
+    
+    return result    
+
+#...............................................................................
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
