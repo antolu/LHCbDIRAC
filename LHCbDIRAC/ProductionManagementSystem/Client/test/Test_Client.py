@@ -202,6 +202,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
+    pr.multicore = ['False', 'True']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -222,6 +223,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     CPUeListExpected = [1.0, 1.0, 1.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2']
+    multicoreExpected = ['False', 'True', 'True', 'True']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -241,6 +243,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
+    self.assertEqual( pr.multicore, multicoreExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -263,6 +266,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
+    pr.multicore = ['False', 'True']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge']
     pluginsExpected = ['ByRun', 'ByRunFileTypeSizeWithFlush']
@@ -283,6 +287,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     CPUeListExpected = [1.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target2']
+    multicoreExpected = ['False', 'True']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -302,6 +307,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
+    self.assertEqual( pr.multicore, multicoreExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
@@ -323,6 +329,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.bkQueries = ['fromPreviousProd', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
+    pr.multicore = ['False', 'True']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -343,6 +350,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     CPUeListExpected = [1.0, 1.0, 1.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target1', 'Target1', 'Target2']
+    multicoreExpected = ['False', 'False', 'False', 'True']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -362,6 +370,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
+    self.assertEqual( pr.multicore, multicoreExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
@@ -383,6 +392,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.CPUeList = [1.0]
     pr.bkQueries = ['Full']
     pr.targets = ['Target1']
+    pr.multicore = ['False']
     pr._applyOptionalCorrections()
     pr.sysConfig = ['i686-slc5-gcc43-opt']
     prodsTypeListExpected = ['DataStripping']
@@ -404,6 +414,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     CPUeListExpected = [1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt']
     targetsExpected = ['Target1']
+    multicoreExpected = ['False']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -423,6 +434,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
+    self.assertEqual( pr.multicore, multicoreExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge', 'Merge']
@@ -445,6 +457,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.CPUeList = [1.0, 1.0, 1.0]
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2', 'Target3']
+    pr.multicore = ['False', 'True', 'False']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -465,6 +478,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     CPUeListExpected = [1.0, 1.0, 1.0, 1.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt' ]
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2', 'Target3']
+    multicoreExpected = ['False', 'True', 'True', 'True', 'False']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -484,6 +498,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
+    self.assertEqual( pr.multicore, multicoreExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -506,6 +521,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
+    pr.multicore = ['False', 'True']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -526,6 +542,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     CPUeListExpected = [1.0, 1.0, 1.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', ]
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2']
+    multicoreExpected = ['False', 'True', 'True', 'True']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -545,6 +562,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
+    self.assertEqual( pr.multicore, multicoreExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
@@ -567,6 +585,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.bkQueries = ['Full']
     pr.sysConfig = ['i686-slc5-gcc43-opt']
     pr.targets = ['Target1']
+    pr.multicore = ['False']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -587,6 +606,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     CPUeListExpected = [1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt']
     targetsExpected = ['Target1']
+    multicoreExpected = ['False']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -606,6 +626,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
+    self.assertEqual( pr.multicore, multicoreExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
@@ -627,6 +648,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
+    pr.multicore = ['False', 'True']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -647,6 +669,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     CPUeListExpected = [1.0, 1.0, 1.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target1', 'Target1', 'Target2']
+    multicoreExpected = ['False', 'False', 'False', 'True']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -666,6 +689,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
+    self.assertEqual( pr.multicore, multicoreExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['MCSimulation', 'Merge']
@@ -687,6 +711,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.bkQueries = ['', 'fromPreviousProd']
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
+    pr.multicore = ['False', 'True']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['MCSimulation', 'Merge']
     pluginsExpected = ['', 'ByRunFileTypeSizeWithFlush']
@@ -707,6 +732,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     CPUeListExpected = [100.0, 1.0]
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target2']
+    multicoreExpected = ['False', 'True']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -726,6 +752,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
+    self.assertEqual( pr.multicore, multicoreExpected )
 
   def test_getProdsDescriptionDict( self ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
@@ -748,33 +775,37 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.events = [-1, -1, -1]
     pr.CPUeList = [1.0, 1.0, 1.0]
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
+    pr.multicore = ['False', 'False', 'True']
 
     pr.stepsListDict = [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                          'ProcessingPass':'procPass', 'OptionsFormat':'',
-                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'',
+                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'False',
                          'fileTypesIn':['SDST'],
                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                         {'StepId': 456, 'StepName':'Merge',
                          'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                          'ProcessingPass':'procPass', 'OptionsFormat':'',
-                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'prodStepID': "456['BHADRON.DST']",
+                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'False',
+                         'prodStepID': "456['BHADRON.DST']",
                          'fileTypesIn':['BHADRON.DST'],
                          'fileTypesOut':['BHADRON.DST']},
                         {'StepId': 456, 'StepName':'Merge',
                          'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                          'ProcessingPass':'procPass', 'OptionsFormat':'',
-                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'prodStepID': "456['CALIBRATION.DST']",
+                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'False',
+                         'prodStepID': "456['CALIBRATION.DST']",
                          'fileTypesIn':['CALIBRATION.DST'],
                          'fileTypesOut':['CALIBRATION.DST']},
                         {'StepId': 456, 'StepName':'Merge',
                          'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                          'ProcessingPass':'procPass', 'OptionsFormat':'',
-                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'prodStepID': "456['PID.MDST']",
+                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'False',
+                         'prodStepID': "456['PID.MDST']",
                          'fileTypesIn':['PID.MDST'],
                          'fileTypesOut':['PID.MDST']},
                         ]
@@ -802,7 +833,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'stepsInProd-ProdName': ["123['SDST']", "456['BHADRON.DST']"],
                       'events':-1,
                       'CPUe' : 1.0,
-                      'sysConfig': 'i686-slc5-gcc43-opt'
+                      'sysConfig': 'i686-slc5-gcc43-opt',
+                      'multicore': 'False'
                      },
 
                    2:{
@@ -827,7 +859,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'stepsInProd-ProdName': ["456['CALIBRATION.DST']"],
                       'events':-1,
                       'CPUe' : 1.0,
-                      'sysConfig': 'i686-slc5-gcc43-opt'
+                      'sysConfig': 'i686-slc5-gcc43-opt',
+                      'multicore': 'False'
                       },
 
                    3:{
@@ -852,7 +885,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'stepsInProd-ProdName': ["456['PID.MDST']"],
                       'events':-1,
                       'CPUe' : 1.0,
-                      'sysConfig': 'i686-slc5-gcc43-opt'
+                      'sysConfig': 'i686-slc5-gcc43-opt',
+                      'multicore': 'True'
                       }
                    }
     self.maxDiff = None
