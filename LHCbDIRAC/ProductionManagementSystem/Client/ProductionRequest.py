@@ -638,6 +638,37 @@ class ProductionRequest( object ):
     return self._endRun
   endRun = property( get_endRun, set_endRun )
 
+  def set_CPUeList( self, value ):
+    if type( value ) != type( [] ):
+      value = list( value )
+    for x in value:
+      if x < 0.0:
+        raise ValueError, 'CPUe can not be negative'
+    self._CPUeList = value
+  def get_CPUeList( self ):
+    return self._CPUeList
+  CPUeList = property( get_CPUeList, set_CPUeList )
+
+  def set_CPUTimeAvg( self, value ):
+    if type( value ) == type( '' ):
+      value = float( value )
+    if value < 0.0:
+      raise ValueError, 'CPUTimeAvg can not be negative'
+    self._CPUTimeAvg = value
+  def get_CPUTimeAvg( self ):
+    return self._CPUTimeAvg
+  CPUTimeAvg = property( get_CPUTimeAvg, set_CPUTimeAvg )
+
+  def set_CPUNormalizationFactorAvg( self, value ):
+    if type( value ) == type( '' ):
+      value = float( value )
+    if value < 0.0:
+      raise ValueError, 'CPUNormalizationFactorAvg can not be negative'
+    self._CPUNormalizationFactorAvg = value
+  def get_CPUNormalizationFactorAvg( self ):
+    return self._CPUNormalizationFactorAvg
+  CPUNormalizationFactorAvg = property( get_CPUNormalizationFactorAvg, set_CPUNormalizationFactorAvg )
+
 #############################################################################
 
 def _splitIntoProductionSteps( step ):
