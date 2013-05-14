@@ -274,8 +274,7 @@ class BKQuery():
       dqFlag = dqFlag.upper()
     elif type( dqFlag ) == type( [] ):
       dqFlag = [dq.upper() for dq in dqFlag]
-    self.setOption( 'Quality', dqFlag )
-    return self.setOption( 'DataQualityFlag', dqFlag )
+    return self.setOption( 'DataQuality', dqFlag )
 
   def setStartDate( self, startDate ):
     """
@@ -752,9 +751,6 @@ class BKQuery():
     if 'EventType' in evtRecords['ParameterNames']:
       ind = evtRecords['ParameterNames'].index( 'EventType' )
       eventTypes = [str( rec[ind] ) for rec in evtRecords['Records']]
-    elif 'EventTypeId' in evtRecords['ParameterNames']:
-      ind = evtRecords['ParameterNames'].index( 'EventTypeId' )
-      eventTypes = sorted( [str( rec[ind] ) for rec in evtRecords['Records']] )
     else:
       eventTypes = []
 
