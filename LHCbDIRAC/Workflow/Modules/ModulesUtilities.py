@@ -54,10 +54,9 @@ def lowerExtension():
 def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
   """
     Return the number of events to produce considering the CPU time available.
+    CPUTime and CPUNormalizationFactor are taken from the LocalSite configuration if not provided.
+    No checks are made on the values passed !
   """
-
-  if CPUe <= 0.0:
-    return S_ERROR( 'CPUe must be strictly positive' );
 
   if CPUTime is None:
     CPUTime = gConfig.getValue( '/LocalSite/CPUTime', 0.0 )
@@ -67,4 +66,4 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
 
   eventsToProduce = int( math.floor( ( CPUTime * CPUNormalizationFactor ) / CPUe ) )
 
-  return S_OK( eventsToProduce )
+  return eventsToProduce

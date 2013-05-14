@@ -653,8 +653,7 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
     out = getEventsToProduce( CPUe, CPUTime, CPUNormalizationFactor )
     outExp = 250000
 
-    self.assert_( out['OK'] )
-    self.assertEqual( out['Value'], outExp )
+    self.assertEqual( out, outExp )
 
 #############################################################################
 # AnalyseXMLSummary.py
