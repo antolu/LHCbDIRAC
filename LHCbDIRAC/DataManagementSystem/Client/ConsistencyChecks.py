@@ -450,6 +450,7 @@ class ConsistencyChecks( object ):
       if notPresent:
         setPresent = set( present )
         setNotPresent = set( notPresent )
+        setDescendants = set( descendants )
         startTime = time.time()
         self.__write( "Now checking descendants from %d daughters without replicas (chunks of %d) "
                       % ( len( notPresent ), chunkSize ) )
@@ -476,13 +477,14 @@ class ConsistencyChecks( object ):
         self.__write( "Now establishing final list of existing descendants for %d mothers (chunks of %d)"
                       % ( len( filesWithDescendants ), chunkSize ) )
         i = -1
+        setDescFtCount = set( descFtCount )
         for lfn, daughters in filesWithDescendants.items():
           setDaughters = set( daughters )
           i += 1
           if i % chunkSize == 0:
             self.__write( '.' )
           # If all daughters are present, all is easy...
-          daughtersNotPresent = setDaughters.intersection( setNotPresent )
+          daughtersNotPresent = setDaughters & setNotPresent
           if not daughtersNotPresent:
             continue
           #print '\n\nLFN', lfn
@@ -492,9 +494,9 @@ class ConsistencyChecks( object ):
           # Only interested in descendants without replica, so if all have one, skip
 
           #Some daughters may have a replica though, take them into account
-          daughtersWithReplica = setDaughters.intersection( setPresent )
+          daughtersWithReplica = setDaughters & setPresent
           #print 'daughtersWithReplica', daughtersWithReplica
-          # descToCheck: dictionary with values = dictionary of real descendants metadata
+          # descToCheck: dictionary with key = daughter and value = dictionary of real descendants' file type counts
           if daughtersWithReplica:
             # Get metadata for present daughters
             # Get count per file type, key is present daughters
@@ -502,11 +504,9 @@ class ConsistencyChecks( object ):
             descToCheck = self._getFileTypesCount ( daughtersDict )
           else:
             descToCheck = {}
-          # For absent daughters, get daughters counts
-          for pr in daughtersNotPresent:
-            ft_count = descFtCount.get( pr, {} )
-            if ft_count:
-              descToCheck[pr] = ft_count
+          # For absent daughters, get descendants counts
+          for pr in daughtersNotPresent & setDescFtCount:
+            descToCheck[pr] = descFtCount[pr]
           #print 'descToCheck', descToCheck
 
           # Update the result dictionaries according to the final set of descendants
@@ -519,21 +519,18 @@ class ConsistencyChecks( object ):
           else:
             realDaughters = descToCheck.keys()
             filesWithDescendants[lfn] = realDaughters
-            descendants += realDaughters
+            setDescendants.update( realDaughters )
             # Count the descendants by file type
             ft_count = {}
-            for desc in descToCheck:
-              #print desc, descToCheck[desc]
-              for ft in descToCheck[desc]:
-                ft_count[ft] = ft_count.setdefault( ft, 0 ) + descToCheck[desc].get( ft, 0 )
+            for counts in descToCheck.values():
+              for ft in counts:
+                ft_count[ft] = ft_count.setdefault( ft, 0 ) + counts.get( ft, 0 )
             #print 'ft_count', ft_count
             multi = [ftc for ftc in ft_count.values() if ftc > 1]
+            setNotPresent -= set( descToCheck )
             #print 'Multi', multi
             # Mother has at least one real descendant
-            for lfn1 in descToCheck:
-              if lfn1 in notPresent:
-                notPresent.remove( lfn1 )
-              # Now check whether there are more than one descendant of the same file type
+            # Now check whether there are more than one descendant of the same file type
             if not multi:
               filesWithMultipleDescendants.pop( lfn, None )
               prStr = 'single'
@@ -543,18 +540,18 @@ class ConsistencyChecks( object ):
             gLogger.verbose( '%s has %s descendants: %s' % ( lfn, prStr, sorted( realDaughters ) ) )
         self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
         startTime = time.time()
-        descendants = list( set( descendants ) - set( notPresent ) )
+        setDescendants -= setNotPresent
         gLogger.always( "Reduced list of descendants in %.1f seconds" % ( time.time() - startTime ) )
     #print 'Final multiple descendants', filesWithMultipleDescendants
 
     # File files without descendants don't exist, not important
     if filesWithoutDescendants:
       present, removedFiles = self.getReplicasPresence( filesWithoutDescendants.keys() )
-      filesWithoutDescendants = dict( [( pr, None ) for pr in present] )
+      filesWithoutDescendants = dict.fromkeys( present )
     else:
       removedFiles = []
     return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
-      descendants, inFCNotInBK, inBKNotInFC, removedFiles
+      list( setDescendants ), inFCNotInBK, inBKNotInFC, removedFiles
 
   ################################################################################
 
