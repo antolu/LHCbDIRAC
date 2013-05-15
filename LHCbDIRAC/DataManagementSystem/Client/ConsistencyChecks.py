@@ -541,7 +541,7 @@ class ConsistencyChecks( object ):
         self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
         startTime = time.time()
         setDescendants -= setNotPresent
-        gLogger.always( "Reduced list of descendants in %.1f seconds" % ( time.time() - startTime ) )
+        gLogger.verbose( "Reduced list of descendants in %.1f seconds" % ( time.time() - startTime ) )
     #print 'Final multiple descendants', filesWithMultipleDescendants
 
     # File files without descendants don't exist, not important
