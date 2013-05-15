@@ -41,10 +41,14 @@ if __name__ == "__main__":
   #dirac = Dirac()
 
   from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
+  from DIRAC import gLogger
   rm = ReplicaManager()
 
   while True:
     res = rm.getCatalogReplicas( lfnList, allStatus = not active )
+    if not res['OK']:
+      gLogger.fatal( 'Failed to access FC:', res['Message'] )
+      DIRAC.exit( 2 )
     if active and not res['Value']['Successful'] and not res['Value']['Failed']:
       active = False
     else:
