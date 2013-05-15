@@ -432,7 +432,8 @@ class ConsistencyChecks( object ):
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
 
     # This is the list of all daughters
-    descendants = daughtersBKInfo.keys()
+    setDescendants = set( daughtersBKInfo )
+    descendants = list( setDescendants )
     inBK = [lfn for lfn in daughtersBKInfo if daughtersBKInfo[lfn][0]]
     # Now check whether these descendants files have replicas or have descendants that have replicas
     if filesWithDescendants:
@@ -450,7 +451,6 @@ class ConsistencyChecks( object ):
       if notPresent:
         setPresent = set( present )
         setNotPresent = set( notPresent )
-        setDescendants = set( descendants )
         startTime = time.time()
         self.__write( "Now checking descendants from %d daughters without replicas (chunks of %d) "
                       % ( len( notPresent ), chunkSize ) )
