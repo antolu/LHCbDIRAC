@@ -1027,7 +1027,6 @@ class ProductionRequestFullChain( ClientTestCase ):
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
 
     pr.eventsToProduce = 10000
-    pr.extend = '100'
 
     pr.eventType = '11124001'
     pr.parentRequestID = '34'

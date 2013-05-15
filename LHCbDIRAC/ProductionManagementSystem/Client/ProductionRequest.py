@@ -57,7 +57,6 @@ class ProductionRequest( object ):
     # parameters of the first production
     self.publishFlag = True
     self.testFlag = False
-    self.extend = 0
     self.derivedProduction = 0
     self.previousProdID = 0  # optional prod from which to start
 
@@ -195,6 +194,7 @@ class ProductionRequest( object ):
                                     sysConfig = prodDict['sysConfig'],
                                     multicore = prodDict['multicore'] )
 
+      # check if we have to extend on multiple jobs
       max_e = getEventsToProduce( prodDict['CPUe'], self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
       if max_e == 0:
         extend = 0
@@ -209,8 +209,6 @@ class ProductionRequest( object ):
                                                    tracking = prodDict['tracking'] )
       if not res['OK']:
         raise RuntimeError, res['Message']
-
-      self.extend = 0  # only extending the first one (MC can only go as first...)
 
       prodID = res['Value']
       prodsLaunched.append( prodID )
