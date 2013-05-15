@@ -358,7 +358,7 @@ class ConsistencyChecks( object ):
         if res['Value']:
           self.runsList.extend( [run['RunNumber'] for run in res['Value']] )
           gLogger.always( "%d runs selected" % len( res['Value'] ) )
-        else:
+        elif not self.runsList:
           gLogger.always( "No runs selected, check completed" )
           DIRAC.exit( 0 )
     if self.runsList:
