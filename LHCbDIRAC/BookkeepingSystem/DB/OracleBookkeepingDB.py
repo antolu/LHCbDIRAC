@@ -781,15 +781,15 @@ class OracleBookkeepingDB:
                   'TotalRecords':len(erecords)}])
 
   #############################################################################
-  def _getConditionString(self, conddescription, table='productionscontainer'):
+  def __getConditionString(self, conddescription, table='productionscontainer'):
     """builds the condition for data taking/ simulation conditions"""
     condition = ''
-    retVal = self._getDataTakingConditionId(conddescription)
+    retVal = self.__getDataTakingConditionId(conddescription)
     if retVal['OK']:
       if retVal['Value'] != -1:
         condition += " and %s.DAQPERIODID=%s and %s.DAQPERIODID is not null " % (table, str(retVal['Value']), table)
       else:
-        retVal = self._getSimulationConditioId(conddescription)
+        retVal = self.__getSimulationConditioId(conddescription)
         if retVal['OK']:
           if retVal['Value'] != -1:
             condition += " and %s.simid=%s and %s.simid is not null " % (table, str(retVal['Value']), table)
@@ -802,7 +802,7 @@ class OracleBookkeepingDB:
     return S_OK(condition)
 
   #############################################################################
-  def _getDataTakingConditionId(self, desc):
+  def __getDataTakingConditionId(self, desc):
     """returns the data taking conditions identifire"""
     command = 'select DAQPERIODID from data_taking_conditions where DESCRIPTION=\'' + str(desc) + '\''
     retVal = self.dbR_.query(command)
@@ -815,7 +815,7 @@ class OracleBookkeepingDB:
       return retVal
 
   #############################################################################
-  def _getSimulationConditioId(self, desc):
+  def __getSimulationConditioId(self, desc):
     """returns the simulation condition identifier"""
     command = "select simid from simulationconditions where simdescription='%s'" % (desc)
     retVal = self.dbR_.query(command)
@@ -880,7 +880,7 @@ class OracleBookkeepingDB:
         condition += ' and j.configurationid=c.configurationid '
 
       if conddescription != default:
-        retVal = self._getConditionString(conddescription, 'pcont')
+        retVal = self.__getConditionString(conddescription, 'pcont')
         if retVal['OK']:
           condition += retVal['Value']
         else:
@@ -942,7 +942,7 @@ class OracleBookkeepingDB:
         condition += ' and j.configurationid=c.configurationid '
 
     if conddescription != default:
-      retVal = self._getConditionString(conddescription, 'pcont')
+      retVal = self.__getConditionString(conddescription, 'pcont')
       if retVal['OK']:
         condition += retVal['Value']
       else:
@@ -1060,7 +1060,7 @@ class OracleBookkeepingDB:
       condition += " and c.configversion='%s' " % (configVersion)
 
     if conddescription != default:
-      retVal = self._getConditionString(conddescription, 'prod')
+      retVal = self.__getConditionString(conddescription, 'prod')
       if retVal['OK']:
         condition += retVal['Value']
       else:
@@ -1510,7 +1510,7 @@ class OracleBookkeepingDB:
     """sets the dataquality for a list of lfns"""
     result = S_ERROR()
     values = {}
-    retVal = self._getDataQualityId(flag)
+    retVal = self.__getDataQualityId(flag)
     if not retVal['OK']:
       result = retVal
     else:
@@ -1532,7 +1532,7 @@ class OracleBookkeepingDB:
     return result
 
   #############################################################################
-  def  _getProcessingPassId(self, root, fullpath):
+  def  __getProcessingPassId(self, root, fullpath):
     """returns the processing pass identifier for a given root and fullpath.
     for example root is 'Real Data' fullpath is '/Real Data/Reco11'"""
     return  self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getProcessingPassId', LongType, [root, fullpath])
@@ -1540,10 +1540,10 @@ class OracleBookkeepingDB:
   #############################################################################
   def getProcessingPassId(self, fullpath):
     """returns the processing pass identifier for a given path"""
-    return self._getProcessingPassId(fullpath.split('/')[1:][0], fullpath)
+    return self.__getProcessingPassId(fullpath.split('/')[1:][0], fullpath)
 
   #############################################################################
-  def _getDataQualityId(self, name):
+  def __getDataQualityId(self, name):
     """returns the quality identifire for a given data quality"""
     return  self.dbW_.executeStoredFunctions('BOOKKEEPINGORACLEDB.getDataQualityId', LongType, [name])
 
@@ -1551,10 +1551,10 @@ class OracleBookkeepingDB:
   def setRunAndProcessingPassDataQuality(self, runNB, procpass, flag):
     """set the data quality of a run which belongs to a given processing pass"""
     result = S_ERROR()
-    retVal = self._getProcessingPassId(procpass.split('/')[1:][0], procpass)
+    retVal = self.__getProcessingPassId(procpass.split('/')[1:][0], procpass)
     if retVal['OK']:
       processingid = retVal['Value']
-      retVal = self._getDataQualityId(flag)
+      retVal = self.__getDataQualityId(flag)
       if retVal['OK']:
         flag = retVal['Value']
         result = self.dbW_.executeStoredProcedure('BOOKKEEPINGORACLEDB.insertRunquality',
@@ -1581,7 +1581,7 @@ class OracleBookkeepingDB:
       if len(retVal['Value']) == 0:
         result = S_ERROR('This ' + str(runNb) + ' run is missing in the BKK DB!')
       else:
-        retVal = self._getDataQualityId(flag)
+        retVal = self.__getDataQualityId(flag)
 
         if not retVal['OK']:
           result = retVal
@@ -1628,7 +1628,7 @@ class OracleBookkeepingDB:
       if len(retVal['Value']) == 0:
         result = S_ERROR('This ' + str(prod) + ' production is missing in the BKK DB!')
       else:
-        retVal = self._getDataQualityId(flag)
+        retVal = self.__getDataQualityId(flag)
 
         if not retVal['OK']:
           result = retVal
@@ -2713,7 +2713,7 @@ class OracleBookkeepingDB:
           conditions += " and prod.processingid in %s" % (pro)
 
     if conddesc != default:
-      retVal = self._getConditionString(conddesc, 'prod')
+      retVal = self.__getConditionString(conddesc, 'prod')
       if not retVal['OK']:
         result = retVal
       else:
@@ -2942,7 +2942,7 @@ and files.qualityid= dataquality.qualityid'
 
     if run != default:
       if proc != default:
-        retVal = self._getProcessingPassId(proc.split('/')[1:][0], proc)
+        retVal = self.__getProcessingPassId(proc.split('/')[1:][0], proc)
         if retVal['OK']:
           processingid = retVal['Value']
           command = "select distinct bview.production  from prodview bview,\
@@ -2972,12 +2972,12 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def getRunWithProcessingPassAndDataQuality(self, procpass, flag=default):
     """returns the runs for a given flag and processing pass"""
-    retVal = self._getProcessingPassId(procpass.split('/')[1:][0], procpass)
+    retVal = self.__getProcessingPassId(procpass.split('/')[1:][0], procpass)
     if retVal['OK']:
       processingid = retVal['Value']
       qualityid = None
       if flag != default:
-        retVal = self._getDataQualityId(flag)
+        retVal = self.__getDataQualityId(flag)
         if retVal['OK']:
           qualityid = retVal['Value']
         else:
@@ -3021,41 +3021,107 @@ and files.qualityid= dataquality.qualityid'
     condition = ''
     tables = ' files f,jobs j '
 
+    retVal = self.__buildConfiguration(configName, configVersion, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildProduction(production, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildTCKS(tcks, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildProcessingPass(procPass, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildFileTypes(ftype, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildRunnumbers(runnumbers, startRunID, endRunID, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal =  self.__buildEventType(evt, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildStartenddate(startDate, endDate, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildDataquality(flag, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildReplicaflag(replicaFlag, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildVisibilityflag(visible, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildConditions(simdesc, datataking, condition, tables)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    if nbofEvents:
+      command = " select sum(f.eventstat) from %s where f.jobid= j.jobid %s " % (tables, condition)
+    elif filesize:
+      command = " select sum(f.filesize) from %s where f.jobid= j.jobid %s " % (tables, condition)
+    else:
+      command = " select distinct f.filename from %s where f.jobid= j.jobid %s " % (tables, condition)
+
+    res = self.dbR_.query(command)
+
+    return res
+
+  #############################################################################
+  @staticmethod
+  def __buildConfiguration(configName, configVersion, condition, tables):
+    """ it make the condition string for a given configName and configVersion"""
     if configName != default and configVersion != default:
       tables += ' ,configurations c'
-      condition = "  and c.ConfigName='%s' and c.ConfigVersion='%s' and \
+      condition += "  and c.ConfigName='%s' and c.ConfigVersion='%s' and \
       j.configurationid=c.configurationid " % (configName, configVersion)
+    return S_OK((condition, tables))
 
-
+  #############################################################################
+  @staticmethod
+  def __buildProduction(production, condition, tables):
+    """it adds the production which can be a list or string to the jobs table"""
     if production != default:
       if type(production) == types.ListType:
         condition += ' and '
         cond = ' ( '
         for i in production:
-          cond += ' j.production=' + str(i) + ' or '
+          cond += ' j.production=%s or ' % str(i)
         cond = cond[:-3] + ')'
         condition += cond
       else:
-        condition += ' and j.production=' + str(production)
+        condition += ' and j.production=%s' % str(production)
+    return S_OK((condition, tables))
 
-    if len(runnumbers) > 0:
-      cond = None
-      if type(runnumbers) == types.ListType:
-        cond = ' ( '
-        for i in runnumbers:
-          cond += ' j.runnumber=' + str(i) + ' or '
-        cond = cond[:-3] + ')'
-      elif type(runnumbers) == types.StringType:
-        cond = ' j.runnumber=%s' % (str(runnumbers))
-      if startRunID == None and endRunID == None:
-        condition += " and %s " % (cond)
-      elif startRunID != None and endRunID != None:
-        condition += ' and (j.runnumber>=%s and j.runnumber<=%s or %s)' % (str(startRunID), str(endRunID), cond)
-    else:
-      if startRunID != None:
-        condition += ' and j.runnumber>=' + str(startRunID)
-      if endRunID != None:
-        condition += ' and j.runnumber<=' + str(endRunID)
+  #############################################################################
+  @staticmethod
+  def __buildTCKS(tcks, condition, tables):
+    """ it adds the tck to the jobs table"""
 
     if len(tcks) > 0:
       if type(tcks) == types.ListType:
@@ -3069,6 +3135,11 @@ and files.qualityid= dataquality.qualityid'
       else:
         return S_ERROR('The TCK should be a list or a string')
 
+    return S_OK((condition, tables))
+
+  #############################################################################
+  def __buildProcessingPass(self, procPass, condition, tables):
+    """It adds the processing pass condition to the query"""
     if procPass != default:
       if not re.search('^/', procPass):
         procPass = procPass.replace(procPass, '/%s' % procPass)
@@ -3088,7 +3159,12 @@ and files.qualityid= dataquality.qualityid'
       condition += " and j.production=prod.production \
                      and prod.processingid in %s" % (pro)
       tables += ',productionscontainer prod'
+    return S_OK((condition, tables))
 
+  #############################################################################
+  @staticmethod
+  def __buildFileTypes(ftype, condition, tables):
+    """it adds the file type to the files list"""
     if ftype != default:
       tables += ' ,filetypes ft'
       if type(ftype) == types.ListType:
@@ -3103,7 +3179,36 @@ and files.qualityid= dataquality.qualityid'
       else:
         return S_ERROR('File type problem!')
       condition += ' and f.filetypeid=ft.filetypeid'
+    return S_OK((condition, tables))
 
+  #############################################################################
+  @staticmethod
+  def __buildRunnumbers(runnumbers, startRunID, endRunID, condition, tables):
+    """it adds the run numbers or start end run to the jobs table"""
+    if len(runnumbers) > 0:
+      cond = None
+      if type(runnumbers) == types.ListType:
+        cond = ' ( '
+        for i in runnumbers:
+          cond += ' j.runnumber=' + str(i) + ' or '
+        cond = cond[:-3] + ')'
+      elif type(runnumbers) == types.StringType:
+        cond = ' j.runnumber=%s' % (str(runnumbers))
+      if startRunID == None and endRunID == None:
+        condition += " and %s " % (cond)
+      elif startRunID != None and endRunID != None:
+        condition += ' and (j.runnumber>=%s and j.runnumber<=%s or %s)' % (str(startRunID), str(endRunID), cond)
+    else:
+      if startRunID != None:
+        condition += ' and j.runnumber>=' + str(startRunID)
+      if endRunID != None:
+        condition += ' and j.runnumber<=' + str(endRunID)
+    return S_OK((condition, tables))
+
+  #############################################################################
+  @staticmethod
+  def __buildEventType(evt, condition, tables):
+    """adds the event type to the files table"""
     if evt != 0:
       if type(evt) in (types.ListType, types.TupleType):
         condition += ' and '
@@ -3114,7 +3219,12 @@ and files.qualityid= dataquality.qualityid'
         condition += cond
       elif type(evt) in (types.StringTypes + (types.IntType, types.LongType)):
         condition += ' and f.eventtypeid=' + str(evt)
+    return S_OK((condition, tables))
 
+  #############################################################################
+  @staticmethod
+  def __buildStartenddate(startDate, endDate, condition, tables):
+    """it adds the start and end date to the files table"""
     if startDate != None:
       condition += " and f.inserttimestamp >= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % (str(startDate))
 
@@ -3123,7 +3233,11 @@ and files.qualityid= dataquality.qualityid'
     elif startDate != None and endDate == None:
       currentTimeStamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
       condition += " and f.inserttimestamp <= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % (str(currentTimeStamp))
+    return S_OK((condition, tables))
 
+  #############################################################################
+  def __buildDataquality(self, flag, condition, tables):
+    """it adds the data quality to the files table"""
     if flag != default:
       if type(flag) in (types.ListType, types.TupleType):
         conds = ' ('
@@ -3151,46 +3265,41 @@ and files.qualityid= dataquality.qualityid'
           quality = res['Value'][0][0]
 
         condition += ' and f.qualityid=' + str(quality)
+    return S_OK((condition, tables))
 
-
+  #############################################################################
+  @staticmethod
+  def __buildReplicaflag(replicaFlag, condition, tables):
+    """it adds the replica flag tp the files atble"""
     if replicaFlag in ['Yes', 'No']:
-      condition += ' and f.gotreplica=\'' + replicaFlag + '\''
+      condition += " and f.gotreplica='%s' " %  replicaFlag
 
+    return S_OK((condition, tables))
+
+  #############################################################################
+  @staticmethod
+  def __buildVisibilityflag(visible, condition, tables):
+    """it adds the visibility flag to the files table"""
     if not visible.upper().startswith('A'):
       if visible.upper().startswith('Y'):
         condition += " and f.visibilityflag='Y'"
       elif visible.upper().startswith('N'):
         condition += " and f.visibilityflag='N'"
+    return S_OK((condition, tables))
 
-    if simdesc != default:
-      condition += " and prod.simid=sim.simid and j.production=prod.production and \
-                     sim.simdescription='%s' " % (simdesc)
-      if re.search('productionscontainer', tables):
-        tables += ',simulationconditions sim'
-      else:
-        tables += ',simulationconditions sim, productionscontainer prod'
+  #############################################################################
+  def __buildConditions(self, simdesc, datataking, condition, tables):
+    """adds the data taking or simulation conditions to the query"""
 
-
-    if datataking != default:
-      condition += " and prod.DAQPERIODID =daq.daqperiodid and j.production=prod.production and \
-                    daq.description='%s' " % (datataking)
-      if re.search('productionscontainer', tables):
-        tables += ',data_taking_conditions daq'
-      else:
-        tables += ',data_taking_conditions daq, productionscontainer prod'
-
-
-    if nbofEvents:
-      command = " select sum(f.eventstat) from %s where f.jobid= j.jobid %s " % (tables, condition)
-    elif filesize:
-      command = " select sum(f.filesize) from %s where f.jobid= j.jobid %s " % (tables, condition)
-    else:
-      command = " select distinct f.filename from %s where f.jobid= j.jobid %s " % (tables, condition)
-
-    res = self.dbR_.query(command)
-
-    return res
-
+    conddesc = simdesc if simdesc != default else datataking
+    retVal = self.__getConditionString(conddesc, 'prod')
+    if not retVal['OK']:
+      return retVal
+    condition += retVal['Value']
+    condition += ' and prod.production=j.production '
+    if tables.upper().find('PRODUCTIONSCONTAINER') < 0:
+      tables += ' ,productionscontainer prod '
+    return S_OK((condition, tables))
 
   #############################################################################
   def getVisibleFilesWithMetadata(self, simdesc, datataking,
@@ -3225,7 +3334,7 @@ and files.qualityid= dataquality.qualityid'
 
     sim_dq_conditions = ''
     if conddescription != default:
-      retVal = self._getConditionString(conddescription, 'prod')
+      retVal = self.__getConditionString(conddescription, 'prod')
       if retVal['OK']:
         sim_dq_conditions = retVal['Value']
       else:
@@ -3411,7 +3520,7 @@ and files.qualityid= dataquality.qualityid'
 
     sim_dq_conditions = ''
     if conddescription != default:
-      retVal = self._getConditionString(conddescription, 'prod')
+      retVal = self.__getConditionString(conddescription, 'prod')
       if retVal['OK']:
         sim_dq_conditions = retVal['Value']
       else:
@@ -3532,7 +3641,7 @@ and files.qualityid= dataquality.qualityid'
 
     sim_dq_conditions = ''
     if conddescription != default:
-      retVal = self._getConditionString(conddescription, 'prod')
+      retVal = self.__getConditionString(conddescription, 'prod')
       if retVal['OK']:
         sim_dq_conditions = retVal['Value']
         condition += sim_dq_conditions
@@ -3904,13 +4013,13 @@ and files.qualityid= dataquality.qualityid'
       sim = None
       did = None
       if daq != None:
-        retVal = self._getDataTakingConditionId(daq)
+        retVal = self.__getDataTakingConditionId(daq)
         if retVal['OK'] and retVal['Value'] > -1:
           did = retVal['Value']
         else:
           return S_ERROR('Data taking condition is missing!!')
       if simcond != None:
-        retVal = self._getSimulationConditioId(simcond)
+        retVal = self.__getSimulationConditioId(simcond)
         if retVal['OK'] and retVal['Value'] > -1:
           sim = retVal['Value']
         else:
@@ -3964,7 +4073,7 @@ and files.qualityid= dataquality.qualityid'
                        )" % (procpass.split('/')[1], procpass)
 
     if cond != default:
-      retVal = self._getConditionString(cond, 'prod')
+      retVal = self.__getConditionString(cond, 'prod')
       if retVal['OK']:
         condition += retVal['Value']
       else:
@@ -4128,7 +4237,7 @@ and files.qualityid= dataquality.qualityid'
       condition += " and c.configversion='%s' " % (configVersion)
 
     if conddescription != default:
-      retVal = self._getConditionString(conddescription, 'prod')
+      retVal = self.__getConditionString(conddescription, 'prod')
       if retVal['OK']:
         condition += retVal['Value']
       else:
@@ -4203,7 +4312,7 @@ and files.qualityid= dataquality.qualityid'
     return self.dbR_.query(command)
 
   #############################################################################
-  def _prepareStepMetadata(self, configName, configVersion,
+  def __prepareStepMetadata(self, configName, configVersion,
                        cond=default, procpass=default,
                        evt=default, production=default,
                        filetype=default, runnb=default, selection=''):
@@ -4226,7 +4335,7 @@ and files.qualityid= dataquality.qualityid'
                        )" % (procpass.split('/')[1], procpass)
 
     if cond != default:
-      retVal = self._getConditionString(cond, 'prod')
+      retVal = self.__getConditionString(cond, 'prod')
       if retVal['OK']:
         condition += retVal['Value']
       else:
@@ -4263,7 +4372,7 @@ and files.qualityid= dataquality.qualityid'
     processing = {}
     result = None
     if configName.upper().find('MC') >= 0:
-      command = self._prepareStepMetadata(configName,
+      command = self.__prepareStepMetadata(configName,
                                           configVersion,
                                           cond,
                                           procpass,
@@ -4301,7 +4410,7 @@ and files.qualityid= dataquality.qualityid'
                              )" % (procpass.split('/')[1], procpass)
 
           if cond != default:
-            retVal = self._getConditionString(cond, 'prod')
+            retVal = self.__getConditionString(cond, 'prod')
             if retVal['OK']:
               condition += retVal['Value']
             else:
@@ -4315,7 +4424,7 @@ and files.qualityid= dataquality.qualityid'
 
 
     else:
-      command = self._prepareStepMetadata(configName,
+      command = self.__prepareStepMetadata(configName,
                                         configVersion,
                                         cond,
                                         procpass,
@@ -4472,7 +4581,7 @@ and files.qualityid= dataquality.qualityid'
       condition += " and c.configversion='%s' " % (configVersion)
 
     if conddescription != default:
-      retVal = self._getConditionString(conddescription, 'prod')
+      retVal = self.__getConditionString(conddescription, 'prod')
       if retVal['OK']:
         condition += retVal['Value']
       else:
@@ -4521,7 +4630,7 @@ and files.qualityid= dataquality.qualityid'
         condition += " and bview.configversion='%s'" % (configVersion)
 
       if conddescription != default:
-        retVal = self._getConditionString(conddescription, 'pcont')
+        retVal = self.__getConditionString(conddescription, 'pcont')
         if retVal['OK']:
           condition += retVal['Value']
         else:
@@ -4557,7 +4666,7 @@ and files.qualityid= dataquality.qualityid'
         condition += ' and j.configurationid=c.configurationid '
 
       if conddescription != default:
-        retVal = self._getConditionString(conddescription, 'pcont')
+        retVal = self.__getConditionString(conddescription, 'pcont')
         if retVal['OK']:
           condition += retVal['Value']
         else:
