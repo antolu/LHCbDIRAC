@@ -356,7 +356,7 @@ class ConsistencyChecks( object ):
         gLogger.error( "Failed to get runs for transformation %d" % self.prod )
       else:
         if res['Value']:
-          self.runsList.extend( [run['RunNumber'] for run in res['Value']] )
+          self.runsList.extend( [run['RunNumber'] for run in res['Value'] if run['RunNumber'] not in self.runsList] )
           gLogger.always( "%d runs selected" % len( res['Value'] ) )
         elif not self.runsList:
           gLogger.always( "No runs selected, check completed" )
