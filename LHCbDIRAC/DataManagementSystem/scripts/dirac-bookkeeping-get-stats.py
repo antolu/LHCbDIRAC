@@ -70,7 +70,7 @@ if __name__ == "__main__":
       DIRAC.exit( 1 )
 
     # Get information from BK
-    if not lfns and 'ReplicaFlag' not in queryDict:
+    if not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
       print "Getting info from filesSummary..."
       query = queryDict.copy()
       if len( query ) <= 3:
