@@ -47,8 +47,7 @@ if __name__ == "__main__":
   while True:
     res = rm.getCatalogReplicas( lfnList, allStatus = not active )
     if not res['OK']:
-      gLogger.fatal( 'Failed to access FC:', res['Message'] )
-      DIRAC.exit( 2 )
+      break
     if active and not res['Value']['Successful'] and not res['Value']['Failed']:
       active = False
     else:
