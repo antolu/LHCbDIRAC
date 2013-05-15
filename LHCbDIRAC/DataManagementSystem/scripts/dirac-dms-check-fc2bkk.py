@@ -15,8 +15,8 @@ def doCheck():
   cc.checkFC2BKK()
 
   if cc.existingLFNsWithBKKReplicaNO:
-    gLogger.error( "%d files are in the FC but have replica = NO in BKK: %s" % ( len( cc.existingLFNsWithBKKReplicaNO ),
-                                                                                 str( cc.existingLFNsWithBKKReplicaNO ) ) )
+    gLogger.error( "%d files are in the FC but have replica = NO in BKK:\n%s" % ( len( cc.existingLFNsWithBKKReplicaNO ),
+                                                                                 '\n'.join( cc.existingLFNsWithBKKReplicaNO ) ) )
     if fixIt:
       gLogger.always( "Going to fix them, setting the replica flag" )
       res = bk.addFiles( cc.existingLFNsWithBKKReplicaNO )
@@ -24,12 +24,14 @@ def doCheck():
         gLogger.always( "\tSuccessfully added replica flag" )
       else:
         gLogger.error( res['Message'] )
+    else:
+      gLogger.always( "Use --FixIt to fix it" )
   else:
     gLogger.always( "No files in FC with replica = NO in BKK -> OK!" )
 
   if cc.existingLFNsNotInBKK:
-    gLogger.error( "%d files are in the FC but are NOT in BKK: %s" % ( len( cc.existingLFNsNotInBKK ),
-                                                                       str( cc.existingLFNsNotInBKK ) ) )
+    gLogger.error( "%d files are in the FC but are NOT in BKK:\n%s" % ( len( cc.existingLFNsNotInBKK ),
+                                                                       '\n'.join( cc.existingLFNsNotInBKK ) ) )
     if fixIt:
       gLogger.always( "Going to fix them, by removing from the FC and storage" )
       res = rm.removeFile( cc.existingLFNsNotInBKK )
@@ -37,6 +39,8 @@ def doCheck():
         success = len( res['Value']['Successful'] )
         failures = len( res['Value']['Failed'] )
         gLogger.always( "\t%d success, %d failures" % ( success, failures ) )
+    else:
+      gLogger.always( "Use --FixIt to fix it" )
   else:
     gLogger.always( "No files in FC not in BKK -> OK!" )
 
@@ -57,7 +61,7 @@ if __name__ == '__main__':
   Script.registerSwitch( "P:", "Productions=",
                          "   Production ID to search (comma separated list)", dmScript.setProductions )
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
-  Script.parseCommandLine( ignoreErrors=True )
+  Script.parseCommandLine( ignoreErrors = True )
 
   #imports
   import sys, os, time
@@ -75,7 +79,7 @@ if __name__ == '__main__':
   rm = ReplicaManager()
   bk = BookkeepingClient()
 
-  cc = ConsistencyChecks( rm=rm, bkClient=bk )
+  cc = ConsistencyChecks( rm = rm, bkClient = bk )
   cc.directories = dmScript.getOption( 'Directory', [] )
   cc.lfns = dmScript.getOption( 'LFNs', [] )
   productions = dmScript.getOption( 'Productions', [] )
