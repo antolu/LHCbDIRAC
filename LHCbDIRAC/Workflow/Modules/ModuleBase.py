@@ -254,6 +254,13 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'numberOfEvents' ):
       self.numberOfEvents = self.workflow_commons['numberOfEvents']
 
+    if self.workflow_commons.has_key( 'maxNumberOfEvents' ):
+      self.maxNumberOfEvents = self.workflow_commons['maxNumberOfEvents']
+
+    if self.workflow_commons.has_key( 'CPUe' ):
+      self.CPUe = self.workflow_commons['CPUe']
+
+
   #############################################################################
 
   def _resolveInputStep( self ):

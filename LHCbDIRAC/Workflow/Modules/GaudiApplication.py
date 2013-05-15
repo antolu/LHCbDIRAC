@@ -13,6 +13,7 @@ from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment, addCommandDefaults, createDebugScript
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getEventsToProduce
 
 
 class GaudiApplication( ModuleBase ):
@@ -121,7 +122,7 @@ class GaudiApplication( ModuleBase ):
       firstEventNumberGauss = 0
       if self.applicationName.lower() == "gauss" and self.production_id and self.prod_job_id:
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
-        firstEventNumberGauss = int( self.numberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
+        firstEventNumberGauss = int( self.maxNumberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
 
       if self.optionsLine or self.jobType.lower() == 'user':
 
@@ -210,7 +211,11 @@ class GaudiApplication( ModuleBase ):
         if self.DQTag:
           optionsDict['DQTag'] = self.DQTag
 
-        optionsDict['NOfEvents'] = int( self.numberOfEvents )
+        eventsToProduce = getEventsToProduce( self.CPUe )
+        if eventsToProduce > self.maxNumberOfEvents:
+          eventsToProduce = self.maxNumberOfEvents
+        optionsDict['NOfEvents'] = eventsToProduce
+        self.log.debug( 'We can produce %d events' % eventsToProduce )
 
         if runNumberGauss:
           optionsDict['RunNumber'] = runNumberGauss

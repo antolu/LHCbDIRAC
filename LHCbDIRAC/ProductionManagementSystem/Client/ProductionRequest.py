@@ -477,8 +477,9 @@ class ProductionRequest( object ):
                           groupDescription = self.prodGroup, conditions = self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
+    prod.setParameter( 'CPUe', 'string', str( CPUe ), 'CPU time per event' )
     max_e = getEventsToProduce( CPUe, self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
-    prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce' )
+    prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce (Gauss only)' )
     prod.setParameter( 'multicore', 'string', multicore, 'Flag for enabling gaudi parallel' )
     prod.prodGroup = self.prodGroup
     prod.priority = priority
