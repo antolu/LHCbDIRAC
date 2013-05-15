@@ -61,7 +61,7 @@ pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 pr.configVersion = '{{mcConfigVersion#GENERAL: BK configuration version, e.g. MC10#2012}}'
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 
-events = '{{MCNumberOfEvents#GENERAL: Number of events per job#100}}'
+CPUe = '{{MCCPUperEvent#GENERAL: CPU time per event#1.0}}'
 
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2}}'
 MCCpu = '{{MCMaxCPUTime#PROD-1:MC: Max CPU time in secs#1000000}}'
@@ -156,7 +156,7 @@ if w1:
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
   pr.inputDataPolicies = ['', 'download', 'download']
-  pr.events = [events, '-1', '-1']
+  pr.CPUe = [CPUe, '1.0', '1.0']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
 
@@ -184,7 +184,7 @@ elif w2:
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
   pr.inputDataPolicies = ['', 'download', 'download']
-  pr.events = [events, '-1', '-1']
+  pr.CPUe = [CPUe, '1.0', '1.0']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
 
@@ -214,7 +214,7 @@ elif w3:
   pr.groupSizes = [1, selectionGroupSize]
   pr.plugins = ['', selectionPlugin]
   pr.inputDataPolicies = ['', 'download']
-  pr.events = [events, '-1']
+  pr.CPUe = [CPUe, '1.0']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, selSysConfig]
 
@@ -231,7 +231,7 @@ elif w4:
   pr.groupSizes = [1, mergingGroupSize]
   pr.plugins = ['', mergingPlugin]
   pr.inputDataPolicies = ['', 'download']
-  pr.events = [events, '-1']
+  pr.CPUe = [CPUe, '1.0']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, mergeSysConfig]
 
@@ -251,7 +251,7 @@ elif w5:
   pr.groupSizes = [1]
   pr.plugins = ['']
   pr.inputDataPolicies = ['']
-  pr.events = [events]
+  pr.CPUe = [CPUe]
   pr.bkQueries = ['']
   pr.sysConfig = [MCSysConfig]
 
