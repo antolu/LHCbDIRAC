@@ -71,6 +71,8 @@ if __name__ == '__main__':
     cc.runStatus = 'Active'
     cc.fromProd = fromProd
     cc.checkTS2BKK()
+
+    # Print out the results
     gLogger.always( '\nResults:' )
     if cc.inFCNotInBK:
       gLogger.always( "%d descendants were found in FC but not in BK" % len( cc.inFCNotInBK ) )
@@ -81,8 +83,8 @@ if __name__ == '__main__':
         else:
           gLogger.always( 'Replica flag set successfully' )
       else:
-        gLogger.always( '\n'.join( cc.inFCNotInBK ) )
-        gLogger.always( "use --FixIt for fixing, following results assume it is fixed" )
+        gLogger.always( '\n'.join( sorted( cc.inFCNotInBK ) ) )
+        gLogger.always( "Use --FixIt for fixing it (or dirac-dms-check-fc2bkk --Term and paste the list)" )
 
     if cc.removedFiles:
       from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -98,10 +100,10 @@ if __name__ == '__main__':
 
 
     if fileType:
-      gLogger.always( "%d unique descendants found" % ( len( cc.descendantsForProcessedLFNs ) + len( cc.descendantsForNonProcessedLFNs ) ) )
+      gLogger.always( "%d unique daughters found" % ( len( cc.descendantsForProcessedLFNs ) + len( cc.descendantsForNonProcessedLFNs ) ) )
 
     if cc.processedLFNsWithMultipleDescendants:
-      nMax = 50
+      nMax = 20
       if len( cc.processedLFNsWithMultipleDescendants ) > nMax:
         prStr = ' (first %d files)' % nMax
       else:
@@ -126,24 +128,25 @@ if __name__ == '__main__':
       gLogger.always( "No processed LFNs with multiple descendants found -> OK!" )
 
     if cc.processedLFNsWithoutDescendants:
+      lfns = sorted( cc.processedLFNsWithoutDescendants )
       gLogger.always( "Processed LFNs without descendants (%d) -> ERROR!\n%s" \
-                      % ( len( cc.processedLFNsWithoutDescendants ), '\n'.join( cc.processedLFNsWithoutDescendants.keys() ) ) )
+                      % ( len( cc.processedLFNsWithoutDescendants ), '\n'.join( lfns ) ) )
       if fixIt:
         gLogger.always( "Resetting them 'Unused'" )
-        res = cc.transClient.setFileStatusForTransformation( id, 'Unused', cc.processedLFNsWithoutDescendants.keys(), force = True )
+        res = cc.transClient.setFileStatusForTransformation( id, 'Unused', lfns, force = True )
         if not res['OK']:
           gLogger.error( "Error resetting files to Unused", res['Message'] )
         else:
           if res['Value']['Failed']:
             gLogger.error( "Those files could not be reset Unused:", '\n'.join( res['Value']['Failed'] ) )
       else:
-        gLogger.always( "use --FixIt for fixing" )
+        gLogger.always( "Use --FixIt for fixing" )
     else:
       gLogger.always( "No processed LFNs without descendants found -> OK!" )
 
     if cc.nonProcessedLFNsWithMultipleDescendants:
       gLogger.error( "Non processed LFNs with multiple descendants (%d) -> ERROR\n%s" \
-                     % ( len( cc.nonProcessedLFNsWithMultipleDescendants ) , '\n'.join( cc.nonProcessedLFNsWithMultipleDescendants ) ) )
+                     % ( len( cc.nonProcessedLFNsWithMultipleDescendants ) , '\n'.join( sorted( cc.nonProcessedLFNsWithMultipleDescendants ) ) ) )
       gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
       gLogger.always( "No non processed LFNs with multiple descendants found -> OK!" )
@@ -155,7 +158,7 @@ if __name__ == '__main__':
         gLogger.always( "Marking them as 'Processed'" )
         cc.transClient.setFileStatusForTransformation( id, 'Processed', cc.nonProcessedLFNsWithDescendants )
       else:
-        gLogger.always( "use --FixIt for fixing" )
+        gLogger.always( "Use --FixIt for fixing" )
     else:
       gLogger.always( "No non processed LFNs with descendants found -> OK!" )
     gLogger.always( "Processed production %d" % cc.prod )
