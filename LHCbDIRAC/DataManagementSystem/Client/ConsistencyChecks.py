@@ -393,9 +393,10 @@ class ConsistencyChecks( object ):
     inFCNotInBK = []
     inBKNotInFC = []
     descendants = []
+    removedFiles = []
     if not lfns:
       return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
-        descendants, inFCNotInBK, inBKNotInFC
+        descendants, inFCNotInBK, inBKNotInFC, removedFiles
 
     chunkSize = 500
     self.__write( "Now getting daughters for %d %s mothers in production %d (chunks of %d) "
