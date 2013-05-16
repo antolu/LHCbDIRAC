@@ -394,7 +394,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
         strMsg = '%d' % len( lfns )
       else:
         strMsg = 'none'
-      print "   %s : %d replicas of problematic files in FC, %s physically missing.%s" % ( se.ljust( 15 ), len( problematicReplicas[se] ), strMsg, str2Msg )
+      print "   %s : %d replicas of problematic files in FC, %s physically missing.%s" % ( str( se ).ljust( 15 ), len( problematicReplicas[se] ), strMsg, str2Msg )
     lfns = [lfn for lfn in existingReplicas if lfn in failedFiles]
     if lfns:
       prString = "Failed transfers but existing replicas"
@@ -720,6 +720,9 @@ if __name__ == "__main__":
   gLogger.setLevel( 'INFO' )
 
   transSep = ''
+  problematicReplicas = {}
+  nbReplicasProblematic = {}
+  failedFiles = []
   for transID in transList:
     transID, transType, taskType, queryProduction, transPlugin = __getTransformationInfo( transID, transSep )
     transSep = '==============================\n'
@@ -816,8 +819,6 @@ if __name__ == "__main__":
         __fixRunZero( filesWithRunZero, fixRun )
 
       # Problematic files
-      problematicReplicas = {}
-      nbReplicasProblematic = {}
       if problematicFiles:
         __checkReplicasForProblematic( problematicFiles, __getReplicas( transType, problematicFiles ) )
 
@@ -827,7 +828,6 @@ if __name__ == "__main__":
 
       ####################
       # Now loop on all tasks
-      failedFiles = []
       jobsForLfn = {}
       if verbose:
         print "Tasks:", ' '.join( sorted( taskDict ) )
