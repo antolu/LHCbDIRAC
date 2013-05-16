@@ -550,6 +550,10 @@ class ConsistencyChecks( object ):
       filesWithoutDescendants = dict.fromkeys( present )
     else:
       removedFiles = []
+
+    # For files in FC and not in BK, ignore if they are not active
+    if inFCNotInBK:
+      inFCNotInBK, notPr = self.getReplicasPresence( inFCNotInBK )
     return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
       list( setDescendants ), inFCNotInBK, inBKNotInFC, removedFiles
 
