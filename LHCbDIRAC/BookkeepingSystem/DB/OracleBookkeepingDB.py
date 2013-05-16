@@ -88,7 +88,7 @@ class OracleBookkeepingDB:
 
     condition = ''
     tables = 'steps s, steps r, runtimeprojects rr '
-    isMulticore = in_dict.get('isMulticore',default)
+    isMulticore = in_dict.get('isMulticore', default)
     if isMulticore.upper() != default:
       if isMulticore.upper() in ['Y','N']:
         condition += " and s.isMulticore='%s'" % (isMulticore)
@@ -309,32 +309,40 @@ class OracleBookkeepingDB:
                       sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable, sdqtag, soptsf, smulti, \
                        rsstepid, rsname, rsapplicationname, rsapplicationversion, rsoptionfiles, rsdddb, \
                        rsconddb, rsextrapackages, rsvisible, rsprocessingpass, rsusable, rdqtag, roptsf, rmulti from \
-    ( select ROWNUM r , sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable, sdqtag, soptsf, smulti, \
-       rsstepid, rsname, rsapplicationname, rsapplicationversion, rsoptionfiles, rsdddb, rsconddb, rsextrapackages, rsvisible, rsprocessingpass, rsusable , rdqtag, roptsf, rmulti from \
-      ( select ROWNUM r, s.stepid sstepid ,s.stepname sname, s.applicationname sapplicationname,s.applicationversion sapplicationversion, s.optionfiles soptionfiles,\
-      s.DDDB sdddb,s.CONDDB sconddb, s.extrapackages sextrapackages,s.Visible svisible , s.ProcessingPass sprocessingpass, s.Usable susable, s.dqtag sdqtag, s.optionsFormat soptsf, s.isMulticore smulti, \
-      r.stepid rsstepid ,r.stepname rsname, r.applicationname rsapplicationname, r.applicationversion rsapplicationversion, r.optionfiles rsoptionfiles,\
-      r.DDDB rsdddb,r.CONDDB rsconddb, r.extrapackages rsextrapackages,r.Visible rsvisible , r.ProcessingPass rsprocessingpass, r.Usable rsusable, r.dqtag rdqtag, r.optionsFormat roptsf, \
-      r.isMulticore rmulti \
+    ( select ROWNUM r , sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, sdddb, sconddb,\
+    sextrapackages, svisible, sprocessingpass, susable, sdqtag, soptsf, smulti, \
+       rsstepid, rsname, rsapplicationname, rsapplicationversion, rsoptionfiles, rsdddb, rsconddb,\
+       rsextrapackages, rsvisible, rsprocessingpass, rsusable , rdqtag, roptsf, rmulti from \
+      ( select ROWNUM r, s.stepid sstepid ,s.stepname sname, s.applicationname sapplicationname,\
+      s.applicationversion sapplicationversion, s.optionfiles soptionfiles,\
+      s.DDDB sdddb,s.CONDDB sconddb, s.extrapackages sextrapackages,s.Visible svisible ,\
+      s.ProcessingPass sprocessingpass, s.Usable susable, s.dqtag sdqtag, s.optionsFormat soptsf, s.isMulticore smulti, \
+      r.stepid rsstepid ,r.stepname rsname, r.applicationname rsapplicationname,\
+      r.applicationversion rsapplicationversion, r.optionfiles rsoptionfiles,\
+      r.DDDB rsdddb,r.CONDDB rsconddb, r.extrapackages rsextrapackages,r.Visible rsvisible , r.ProcessingPass rsprocessingpass,\
+       r.Usable rsusable, r.dqtag rdqtag, r.optionsFormat roptsf, r.isMulticore rmulti \
       from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid %s \
        ) where rownum <=%d ) where r >%d" % (tables, condition, maximum, start)
+
         else:
           command = 'select s.stepid,s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB,\
            s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat, s.ismulticore, \
-          r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.ismulticore \
+          r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,\
+          r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.ismulticore \
           from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid  %s ' % (tables, condition)
         retVal = self.dbR_.query(command)
     else:
       command = 'select s.stepid, s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, \
       s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat, s.isMulticore,\
-      r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.ismulticore \
+      r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,\
+      r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.ismulticore \
       from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid ' % (tables)
       retVal = self.dbR_.query(command)
 
     if retVal['OK']:
       parameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB',
-                    'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat', 'isMulticore',
-                    'RuntimeProjects']
+                    'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat',
+                    'isMulticore', 'RuntimeProjects']
       rParameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles',
                      'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag',
                      'OptionsFormat', 'isMulticore']
@@ -704,7 +712,7 @@ class OracleBookkeepingDB:
       condition += " and prodview.configversion='%s' " % (configVersion)
 
     if conddescription != default:
-      retVal = self._getConditionString(conddescription)
+      retVal = self.__getConditionString(conddescription)
       if not retVal['OK']:
         return  retVal
       else:
@@ -844,7 +852,7 @@ class OracleBookkeepingDB:
         condition += " and bview.configversion='%s'" % (configVersion)
 
       if conddescription != default:
-        retVal = self._getConditionString(conddescription, 'pcont')
+        retVal = self.__getConditionString(conddescription, 'pcont')
         if retVal['OK']:
           condition += retVal['Value']
         else:
@@ -1013,7 +1021,7 @@ class OracleBookkeepingDB:
                            processing=default, evt=default, production=default,
                            filetype=default, quality=default, runnb=default,
                            visible=default, replicaflag=default,
-                           startDate = None, endDate = None, runnumbers = [],
+                           startDate = None, endDate = None, runnumbers = list(),
                            startRunID = default, endRunID = default):
     """return a list of files with their metadata"""
     condition = ''
@@ -2044,10 +2052,10 @@ class OracleBookkeepingDB:
   def insertSimConditions(self, in_dict):
     """inserst a simulation conditions"""
 
-    simdesc = in_dict.get('SimDescription',None)
+    simdesc = in_dict.get('SimDescription', None)
     beamCond = in_dict.get('BeamCond', None)
     beamEnergy = in_dict.get('BeamEnergy', None)
-    generator = in_dict.get('Generator',None)
+    generator = in_dict.get('Generator', None)
     magneticField = in_dict.get('MagneticField', None)
     detectorCond = in_dict.get('DetectorCond', None)
     luminosity = in_dict.get('Luminosity', None)
@@ -2588,7 +2596,7 @@ class OracleBookkeepingDB:
     return result
 
   #############################################################################
-  def getProductionFilesStatus(self, productionid=None, lfns=[]):
+  def getProductionFilesStatus(self, productionid=None, lfns=list()):
     """returns the status of the files produced by a production"""
     result = {}
     missing = []
@@ -3015,8 +3023,8 @@ and files.qualityid= dataquality.qualityid'
                production=default, flag=default,
                startDate=None, endDate=None,
                nbofEvents=False, startRunID=None,
-               endRunID=None, runnumbers=[],
-               replicaFlag=default, visible=default, filesize=False, tcks=[]):
+               endRunID=None, runnumbers=list(),
+               replicaFlag=default, visible=default, filesize=False, tcks=list()):
     """returns a list of lfns"""
     condition = ''
     tables = ' files f,jobs j '
@@ -3308,7 +3316,7 @@ and files.qualityid= dataquality.qualityid'
                                   production=default, flag=default,
                                   startDate=None, endDate=None,
                                   nbofEvents=False, startRunID=None,
-                                  endRunID=None, runnumbers=[], replicaFlag='Yes', tcks=[]):
+                                  endRunID=None, runnumbers=list(), replicaFlag='Yes', tcks=list()):
     """returns the visible files"""
     condition = ''
 
@@ -3468,7 +3476,7 @@ and files.qualityid= dataquality.qualityid'
                       filetype=default, quality=default,
                       runnb=default, startrun=default, endrun=default,
                       visible=default, startDate = None, endDate = None,
-                      runnumbers = [], replicaflag=default):
+                      runnumbers = list(), replicaflag=default):
 
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
@@ -3877,7 +3885,7 @@ and files.qualityid= dataquality.qualityid'
       return True
 
   #############################################################################
-  def __insertprocessing(self, values, parentid=None, ids=[]):
+  def __insertprocessing(self, values, parentid=None, ids=list()):
     """inserts a processing pass"""
     for i in values:
       command = ''
@@ -4765,15 +4773,21 @@ and files.qualityid= dataquality.qualityid'
       condition += ' order by sim.inserttimestamps desc'
 
     if paging:
-      command = " select sim_simid, sim_simdescription, sim_beamcond, sim_beamenergy, sim_generator, sim_magneticfield, sim_detectorcond, sim_luminosity, sim_g4settings, sim_visible from \
-    ( select ROWNUM r , sim_simid, sim_simdescription, sim_beamcond, sim_beamenergy, sim_generator, sim_magneticfield, sim_detectorcond, sim_luminosity, sim_g4settings, sim_visible from \
-      ( select ROWNUM r, sim.simid sim_simid, sim.simdescription sim_simdescription, sim.beamcond sim_beamcond, sim.beamenergy sim_beamenergy, sim.generator sim_generator, \
-      sim.magneticfield sim_magneticfield, sim.detectorcond sim_detectorcond, sim.luminosity sim_luminosity, sim.g4settings sim_g4settings, sim.visible sim_visible \
+      command = " select sim_simid, sim_simdescription, sim_beamcond, sim_beamenergy, sim_generator,\
+      sim_magneticfield, sim_detectorcond, sim_luminosity, sim_g4settings, sim_visible from \
+      ( select ROWNUM r , sim_simid, sim_simdescription, sim_beamcond, sim_beamenergy, sim_generator, \
+      sim_magneticfield, sim_detectorcond, sim_luminosity, sim_g4settings, sim_visible from \
+      ( select ROWNUM r, sim.simid sim_simid, sim.simdescription sim_simdescription, sim.beamcond\
+      sim_beamcond, sim.beamenergy sim_beamenergy, sim.generator sim_generator, \
+      sim.magneticfield sim_magneticfield, sim.detectorcond sim_detectorcond, sim.luminosity\
+      sim_luminosity, sim.g4settings sim_g4settings, sim.visible sim_visible \
       from %s where sim.simid=sim.simid %s ) where rownum <=%d ) where r >%d" % (tables, condition, maximum, start)
       retVal = self.dbR_.query(command)
     else:
-      command = "select sim.simid sim_simid, sim.simdescription sim_simdescription, sim.beamcond sim_beamcond, sim.beamenergy sim_beamenergy, sim.generator sim_generator, \
-      sim.magneticfield sim_magneticfield, sim.detectorcond sim_detectorcond, sim.luminosity sim_luminosity, sim.g4settings sim_g4settings, sim.visible sim_visible from %s where sim.simid=sim.simid %s" % (tables, condition)
+      command = "select sim.simid sim_simid, sim.simdescription sim_simdescription, sim.beamcond sim_beamcond,\
+      sim.beamenergy sim_beamenergy, sim.generator sim_generator, \
+      sim.magneticfield sim_magneticfield, sim.detectorcond sim_detectorcond, sim.luminosity sim_luminosity,\
+      sim.g4settings sim_g4settings, sim.visible sim_visible from %s where sim.simid=sim.simid %s" % (tables, condition)
       retVal = self.dbR_.query(command)
 
     if not retVal['OK']:
@@ -4805,16 +4819,17 @@ and files.qualityid= dataquality.qualityid'
     """it updates a given simulation condition"""
     result = None
     simid = in_dict.get('SimId', default)
-    if simid!=default:
+    if simid != default:
       condition = ''
       for cond in in_dict:
         if cond != 'SimId':
-          condition+="%s='%s'," % (cond,in_dict[cond])
+          condition += "%s='%s'," % (cond, in_dict[cond])
       condition = condition[:-1]
-      command = "update simulationconditions set %s where simid=%d" % (condition,int(simid))
+      command = "update simulationconditions set %s where simid=%d" % (condition, int(simid))
       result = self.dbW_.query(command)
     else:
       result = S_ERROR('SimId is missing!')
+
 
     return result
 
