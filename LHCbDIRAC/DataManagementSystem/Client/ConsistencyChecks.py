@@ -302,9 +302,10 @@ class ConsistencyChecks( object ):
     if not self.prod:
       return S_ERROR( "You need a transformationID" )
 
-    processedLFNs, nonProcessedLFNs = self._getTSFiles()
-    gLogger.always( 'Found %d processed files and %d non processed files' % ( len( processedLFNs ),
-                                                                              len( nonProcessedLFNs ) ) )
+    processedLFNs, nonProcessedLFNs, statuses = self._getTSFiles()
+    gLogger.always( 'Found %d processed files and %d non processed files%s' % ( len( processedLFNs ),
+                                                                              len( nonProcessedLFNs ),
+                                                                              ' (%s)' % ','.join( statuses ) if statuses else '' ) )
 
     gLogger.verbose( 'Checking BKK for those files that are processed' )
     res = self.getDescendants( processedLFNs, status = 'processed' )
@@ -370,8 +371,9 @@ class ConsistencyChecks( object ):
     else:
       processedLFNs = [item['LFN'] for item in res['Value'] if item['Status'] == 'Processed']
       nonProcessedLFNs = [item['LFN'] for item in res['Value'] if item['Status'] != 'Processed']
+      nonProcessedStatuses = list( set( [item['Status'] for item in res['Value'] if item['Status'] != 'Processed'] ) )
 
-    return processedLFNs, nonProcessedLFNs
+    return processedLFNs, nonProcessedLFNs, nonProcessedStatuses
 
   ################################################################################
 
@@ -672,7 +674,7 @@ class ConsistencyChecks( object ):
     except ValueError, e:
       return S_ERROR( e )
     lfnsReplicaYes = self._getBKKFiles( bkQuery )
-    proc, nonProc = self._getTSFiles()
+    proc, nonProc, statuses = self._getTSFiles()
     self.filesInBKKNotInTS = list( set( lfnsReplicaYes ) - set( proc, nonProc ) )
     if self.filesInBKKNotInTS:
       gLogger.warn( "There are %d files in BKK that are not in TS: %s" % ( len( self.filesInBKKNotInTS ),
