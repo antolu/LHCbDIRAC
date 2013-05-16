@@ -460,7 +460,6 @@ class BookkeepingManagerHandler(RequestHandler):
     production = in_dict.get('Production', default)
     filetype = in_dict.get('FileType', default)
     quality = in_dict.get('DataQuality', in_dict.get('Quality', default))
-    runnb = in_dict.get('RunNumber', default)
     visible = in_dict.get('Visible', 'Y')
     replicaFlag = in_dict.get('ReplicaFlag', 'Yes')
     startDate = in_dict.get('StartDate', None)
@@ -483,7 +482,6 @@ class BookkeepingManagerHandler(RequestHandler):
                                             production,
                                             filetype,
                                             quality,
-                                            runnb,
                                             visible,
                                             replicaFlag,
                                             startDate,

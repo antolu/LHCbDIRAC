@@ -113,7 +113,8 @@ class OracleDB:
         self.logger.debug('No more connection in Queue')
         break
 
-  def __checkQueueSize(self, maxQueueSize):
+  @staticmethod
+  def __checkQueueSize(maxQueueSize):
     """the size of the internal queue is limited"""
 
     if maxQueueSize <= 0:
