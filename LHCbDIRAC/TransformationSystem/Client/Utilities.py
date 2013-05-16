@@ -603,15 +603,19 @@ class PluginUtilities:
       excludedStatuses = ( 'Removed', 'MissingLFC', 'MissingInFC', 'Problematic' )
       lfns = [fileDict['LFN'] for fileDict in res['Value'] if fileDict['Status'] not in excludedStatuses]
       self.transRunFiles[runID] = lfns
+      self.logVerbose( 'Obtained %d input files' % len( lfns ) )
 
     # Restrict to files with the required parameter
     if param:
+      paramStr = ' (%s:%s)' % ( param, paramValue )
       res = self.getFilesParam( lfns, param )
       if not res['OK']:
         self.logError( "Error getting BK param %s:" % param, res['Message'] )
         return 0
       paramValues = res['Value']
       lfns = [f for f in paramValues if paramValues[f] == paramValue]
+    else:
+      paramStr = ''
     if lfns:
       lfnToCheck = lfns[0]
     else:
@@ -630,7 +634,7 @@ class PluginUtilities:
     if lfns:
       startTime = time.time()
       res = self.bkClient.getFileAncestors( lfns, depth = 10 )
-      self.logVerbose( "Timing for getting all ancestors with metadata of %d files: %.3f s" % ( len( lfns ),
+      self.logVerbose( "Timing for getting all ancestors with metadata of %d files%s: %.3f s" % ( len( lfns ), paramStr,
                                                                                                   time.time() - startTime ) )
       if res['OK']:
         ancestorDict = res['Value']['Successful']
