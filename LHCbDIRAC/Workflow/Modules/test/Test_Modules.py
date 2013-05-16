@@ -1,10 +1,11 @@
 import unittest, itertools, os, copy, shutil
 
-from mock import Mock
+from mock import Mock, patch
 
-from DIRAC import gLogger
+from DIRAC import gConfig, gLogger, S_OK, S_ERROR
+from DIRAC.ConfigurationSystem.Client.Helpers import Resources
 
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce, getCPUNormalizationFactorAvg
 
 class ModulesTestCase( unittest.TestCase ):
   """ Base class for the Modules test cases
@@ -654,6 +655,63 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
     outExp = 250000
 
     self.assertEqual( out, outExp )
+
+  def test_getCPUNormalizationFactorAvg( self ):
+
+    with patch.object( gConfig, 'getSections' ) as mockGetSections:  # @UndefinedVariable
+      with patch.object( Resources, 'getQueues' ) as mockGetQueues:  # @UndefinedVariable
+
+        # gConfig.getSection error
+        mockGetSections.return_value = S_ERROR()
+        self.assertRaises( Exception, getCPUNormalizationFactorAvg )
+
+        # Resources.getQueues error
+        mockGetSections.return_value = S_OK( ['LCG.CERN.ch'] )
+        mockGetQueues.return_value = S_ERROR()
+        self.assertRaises( Exception, getCPUNormalizationFactorAvg )
+
+        # no queues
+        mockGetQueues.return_value = S_OK( {'LCG.CERN.ch' : {}} )
+        self.assertRaises( Exception, getCPUNormalizationFactorAvg )
+
+        # success
+        mockGetQueues.return_value = S_OK( {'LCG.CERN.ch':
+          {'ce201.cern.ch': {'CEType': 'CREAM',
+          'OS': 'ScientificCERNSLC_Boron_5.5',
+          'Pilot': 'True',
+          'Queues': {'cream-lsf-grid_2nh_lhcb': {'MaxTotalJobs': '1000',
+            'MaxWaitingJobs': '20',
+            'SI00': '1000',
+            'maxCPUTime': '120'},
+           'cream-lsf-grid_lhcb': {'MaxTotalJobs': '1000',
+            'MaxWaitingJobs': '100',
+            'SI00': '1000',
+            'WaitingToRunningRatio': '0.2',
+            'maxCPUTime': '10080'}},
+          'SI00': '5242',
+          'SubmissionMode': 'Direct',
+          'architecture': 'x86_64',
+          'wnTmpDir': '.'},
+         'ce202.cern.ch': {'CEType': 'CREAM',
+          'OS': 'ScientificCERNSLC_Boron_5.8',
+          'Pilot': 'True',
+          'Queues': {'cream-lsf-grid_2nh_lhcb': {'MaxTotalJobs': '1000',
+            'MaxWaitingJobs': '20',
+            'SI00': '1000',
+            'maxCPUTime': '120'},
+           'cream-lsf-grid_lhcb': {'MaxTotalJobs': '1000',
+            'MaxWaitingJobs': '100',
+            'SI00': '1000',
+            'WaitingToRunningRatio': '0.2',
+            'maxCPUTime': '10080'}},
+          'SI00': '5242',
+          'SubmissionMode': 'Direct',
+          'architecture': 'x86_64',
+          'wnTmpDir': '.'}}} )
+        outExp = 250000
+        out = getCPUNormalizationFactorAvg()
+        self.assertEqual( out, outExp )
+
 
 #############################################################################
 # AnalyseXMLSummary.py

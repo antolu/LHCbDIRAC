@@ -4,6 +4,7 @@
 import os, tarfile, math
 
 from DIRAC import S_OK, S_ERROR, gConfig
+from DIRAC.ConfigurationSystem.Client.Helpers import Resources
 
 def tarFiles( outputFile, files = [], compression = '', deleteInput = False ):
   """ just make a tar
@@ -53,7 +54,7 @@ def lowerExtension():
 
 def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
   """
-    Return the number of events to produce considering the CPU time available.
+    Returns the number of events to produce considering the CPU time available.
     CPUTime and CPUNormalizationFactor are taken from the LocalSite configuration if not provided.
     No checks are made on the values passed !
   """
@@ -67,3 +68,42 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
   eventsToProduce = int( math.floor( ( CPUTime * CPUNormalizationFactor ) / CPUe ) )
 
   return eventsToProduce
+
+#############################################################################
+
+def getCPUNormalizationFactorAvg():
+  """
+    Returns the average HS06 CPU normalization factor for the LCG sites (all CEs, all queues).
+    Raises an Exception if it can not.
+  """
+
+  factorsSum = 0.0
+  nQueues = 0
+
+  sites = gConfig.getSections( 'Resources/Sites/LCG' )
+  if not sites['OK']:
+    raise Exception, sites['Message']
+  else:
+    sites = sites['Value']
+
+  queuesRequest = Resources.getQueues( sites )
+  if not queuesRequest['OK']:
+    raise Exception, queuesRequest['Message']
+  else:
+    queuesRequest = queuesRequest['Value']
+
+  for site in queuesRequest.values():
+    for ce in site.values():
+      if 'Queues' in ce:
+        for queue in ce['Queues'].values():
+          if 'SI00' in queue:
+            # convert from SI00 to HS06
+            factorsSum += float ( queue['SI00'] ) * 250
+            nQueues += 1
+
+  if nQueues == 0:
+    raise Exception, 'No queues to get CPU normalization factor from'
+  else:
+    CPUNormalizationFactorAvg = factorsSum / nQueues
+
+  return CPUNormalizationFactorAvg
