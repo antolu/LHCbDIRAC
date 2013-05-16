@@ -47,9 +47,9 @@ if __name__ == "__main__":
 
   seList = dmScript.getOption( 'SEs', [] )
 
+  from DIRAC import gConfig, gLogger
   if not seList:
     sites = dmScript.getOption( 'Sites', [] )
-    from DIRAC import gConfig
     for site in sites:
       res = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site )
       if not res['OK']:
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     DIRAC.exit( 0 )
 
   from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
-  from DIRAC import gLogger, S_OK, S_ERROR
+  from DIRAC import S_OK, S_ERROR
   if len( seList ) > 1:
     gLogger.always( "Using the following list of SEs: %s" % str( seList ) )
   rm = ReplicaManager()
