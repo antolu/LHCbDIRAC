@@ -437,7 +437,7 @@ class ConsistencyChecks( object ):
     # This is the list of all daughters
     setDescendants = set( daughtersBKInfo )
     descendants = list( setDescendants )
-    inBK = [lfn for lfn in daughtersBKInfo if daughtersBKInfo[lfn][0]]
+    inBK = set( [lfn for lfn in daughtersBKInfo if daughtersBKInfo[lfn][0]] )
     # Now check whether these descendants files have replicas or have descendants that have replicas
     if filesWithDescendants:
       # First check in LFC the presence of daughters
@@ -446,14 +446,14 @@ class ConsistencyChecks( object ):
       else:
         present, notPresent = self.getReplicasPresence( descendants )
 
+      setPresent = set( present )
+      setNotPresent = set( notPresent )
       # Now check consistency between BK and FC for daughters
-      inBKNotInFC = [lfn for lfn in inBK if lfn in notPresent]
-      inFCNotInBK = [lfn for lfn in present if lfn not in inBK]
+      inBKNotInFC = list( inBK & setNotPresent )
+      inFCNotInBK = list( present - inBK )
 
       # Now check whether the daughters without replica have a descendant
       if notPresent:
-        setPresent = set( present )
-        setNotPresent = set( notPresent )
         startTime = time.time()
         self.__write( "Now checking descendants from %d daughters without replicas (chunks of %d) "
                       % ( len( notPresent ), chunkSize ) )
