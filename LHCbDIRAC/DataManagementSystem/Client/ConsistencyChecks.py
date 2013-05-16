@@ -676,7 +676,7 @@ class ConsistencyChecks( object ):
       return S_ERROR( e )
     lfnsReplicaYes = self._getBKKFiles( bkQuery )
     proc, nonProc, statuses = self._getTSFiles()
-    self.filesInBKKNotInTS = list( set( lfnsReplicaYes ) - set( proc, nonProc ) )
+    self.filesInBKKNotInTS = list( set( lfnsReplicaYes ) - set( proc + nonProc ) )
     if self.filesInBKKNotInTS:
       gLogger.warn( "There are %d files in BKK that are not in TS: %s" % ( len( self.filesInBKKNotInTS ),
                                                                            str( self.filesInBKKNotInTS ) ) )
