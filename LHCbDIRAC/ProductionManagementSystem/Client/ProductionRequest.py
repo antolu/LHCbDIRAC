@@ -7,8 +7,9 @@ from DIRAC import gLogger, S_OK
 from LHCbDIRAC.Interfaces.API.DiracProduction                 import DiracProduction
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
 from LHCbDIRAC.ProductionManagementSystem.Client.Production   import Production
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
 
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities              import getEventsToProduce
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities              import getEventsToProduce, getCPUNormalizationFactorAvg
 
 class ProductionRequest( object ):
   """ Production request class - objects are usually created starting from a production request
@@ -68,8 +69,9 @@ class ProductionRequest( object ):
     self.modulesList = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
                         'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
     # used to compute the maximum number of events to produce
-    self.CPUTimeAvg = 0.0
-    self.CPUNormalizationFactorAvg = 0.0
+    # default values
+    self.CPUTimeAvg = 1000000.0
+    self.CPUNormalizationFactorAvg = 1.0
 
     # parameters of each production (the length of each list has to be the same as the number of productions
     self.events = []
@@ -476,8 +478,25 @@ class ProductionRequest( object ):
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
     prod.setParameter( 'CPUe', 'string', str( CPUe ), 'CPU time per event' )
+
+    # maximum number of events to produce
+    # try to get the CPU parameters from the configuration if possible
+    op = Operations()
+    CPUTimeAvg = op.getValue( 'Transformations/CPUTimeAvg' )
+    if CPUTimeAvg is None:
+      self.logger.info( 'Could not get CPUTimeAvg from config, defaulting to %d' % self.CPUTimeAvg )
+    else:
+      self.CPUTimeAvg = CPUTimeAvg
+
+    try:
+      self.CPUNormalizationFactorAvg = getCPUNormalizationFactorAvg()
+    except:
+      self.logger.info( 'Could not get CPUNormalizationFactorAvg from config, defaulting to %d' % self.CPUNormalizationFactorAvg )
+
     max_e = getEventsToProduce( CPUe, self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
     prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce (Gauss only)' )
+
+
     prod.setParameter( 'multicore', 'string', multicore, 'Flag for enabling gaudi parallel' )
     prod.prodGroup = self.prodGroup
     prod.priority = priority
