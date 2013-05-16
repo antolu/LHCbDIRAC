@@ -75,7 +75,7 @@ def __getRuns( transID, runList, byRuns, seList, status = None ):
   elif not byRuns:
     # No run selection
     runs = [{'RunNumber': None}]
-  else:
+  elif not status:
     # All runs selected explicitly
     selectDict = {'TransformationID':transID}
     if seList:
@@ -667,6 +667,11 @@ if __name__ == "__main__":
     ################
     # Select runs, or all
     runsDictList = __getRuns( transID, runList, byRuns, seList, status )
+    if status and byRuns and not runList:
+      if not runsDictList:
+        print 'No runs found...'
+      else:
+        print '%d runs found: %s' % ( len( runsDictList ), ','.join( [str( runDict['RunNumber'] ) for runDict in runsDictList] ) )
     SEStat = {"Total":0}
     allFiles = []
     toBeKicked = 0
@@ -704,7 +709,7 @@ if __name__ == "__main__":
       if ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in transPlugin and runStatus != 'Flush':
         # Check if the run should be flushed
         if not pluginUtil:
-          pluginUtil = PluginUtilities( transPlugin, transClient, rm, bkClient, None, None, True, {}, transID = transID )
+          pluginUtil = PluginUtilities( transPlugin, transClient, rm, bkClient, None, None, verbose, {}, transID = transID )
         evtType = 90000000
         rawFiles = pluginUtil.getNbRAWInRun( runID, evtType )
         if 'FileType' in transPlugin:
