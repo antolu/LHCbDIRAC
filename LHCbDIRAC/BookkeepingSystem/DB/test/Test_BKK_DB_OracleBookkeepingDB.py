@@ -4,6 +4,8 @@
 import mock
 import unittest
 
+from DIRAC.Core.Base import Script
+Script.parseCommandLine(ignoreErrors=True)
 import LHCbDIRAC.BookkeepingSystem.DB.OracleBookkeepingDB as moduleTested
 
 __RCSID__ = ''
