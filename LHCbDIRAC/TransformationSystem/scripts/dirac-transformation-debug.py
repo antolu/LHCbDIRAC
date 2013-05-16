@@ -68,7 +68,7 @@ def __getRuns( transID, runList, byRuns, seList, status = None ):
         res = transClient.getTransformationRuns( selectDict )
         if res['OK']:
           if not len( res['Value'] ):
-            print "No runs found, set to 0"
+            print "No runs found, set to None"
             runs = [{'RunNumber':None}]
           else:
             runs = res['Value']
@@ -524,6 +524,69 @@ def __checkJobs( jobsForLfn ):
       prevStatus = status
   print ''
 
+def __checkRunsToFlush( pluginUtils, runID, transFilesList, runStatus, evtType = 90000000 ):
+  """
+  Check whether the run is flushed and if not, why it was not
+  """
+  if not runID:
+    print "Cannot check flush status for run", runID
+    return
+  rawFiles = pluginUtil.getNbRAWInRun( runID, evtType )
+  if 'FileType' in transPlugin:
+    param = 'FileType'
+  elif 'EventType' in transPlugin:
+    param = 'EventType'
+  else:
+    param = ''
+    paramValues = ['']
+  if param:
+    res = bkClient.getFileMetadata( [fileDict['LFN'] for fileDict in transFilesList] )
+    if not res['OK']:
+      print 'Error getting files metadata', res['Message']
+      DIRAC.exit( 2 )
+    paramValues = []
+    for lfn in res['Value']['Successful']:
+      val = res['Value']['Successful'][lfn].get( param )
+      if val and val not in paramValues:
+        paramValues.append( val )
+  ancestors = {}
+  for paramValue in paramValues:
+    try:
+      ancestors.setdefault( pluginUtil.getRAWAncestorsForRun( runID, param, paramValue ), [] ).append( paramValue )
+    except Exception, e:
+      print "Exception calling pluginUtilities:", e
+  prStr = ''
+  for anc in sorted( ancestors ):
+    ft = ancestors[anc]
+    if ft:
+      prStr += '%d ancestors found for %s; ' % ( anc, ','.join( ft ) )
+    else:
+      prStr = '%d ancestors found' % anc
+  toFlush = False
+  flushError = False
+  for ancestorRawFiles in ancestors:
+    if rawFiles == ancestorRawFiles:
+      toFlush = True
+    elif ancestorRawFiles > rawFiles:
+      flushError = True
+  if toFlush:
+    print "Run %s flushed: %d RAW files and ancestors found" % ( 'correctly' if runStatus == 'Flush' else 'should be', rawFiles )
+    if runStatus != 'Flush':
+      if fixIt:
+        res = transClient.setTransformationRunStatus( transID, runID, 'Flush' )
+        if res['OK']:
+          print 'Run %d successfully flushed' % runID
+        else:
+          print "Error flushing run %d" % runID, res['Message']
+      else:
+        print "Use --FixIt to flush the run"
+  if flushError:
+    print "More ancestors than RAW files (%d) for run %d ==> Problem!\n\t%s" \
+      % ( rawFiles, runID, prStr.replace( '; ', '\n\t' ) )
+  if not toFlush and not flushError:
+    print "Run %s flushed: %s while %d RAW files" \
+      % ( 'should not be' if runStatus == 'Flush' else 'not', prStr, rawFiles )
+
 
 #====================================
 if __name__ == "__main__":
@@ -545,9 +608,10 @@ if __name__ == "__main__":
   fixRun = False
   allTasks = False
   fixIt = False
+  checkFlush = False
   from DIRAC.Core.Base import Script
 
-  infoList = ( "files", "runs", "tasks", 'jobs', 'alltasks' )
+  infoList = ( "files", "runs", "tasks", 'jobs', 'alltasks', 'flush' )
   statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset", "Processed", "NotProcessed", "Removed" )
   dmScript = DMScript()
   dmScript.registerFileSwitches()
@@ -591,6 +655,9 @@ if __name__ == "__main__":
           byJobs = True
         elif val == "alltasks":
           allTasks = True
+        elif val == 'flush':
+          byRuns = True
+          checkFlush = True
     elif opt == 'Status':
       if val not in statusList:
         print "Unknown status %s... Select in %s" % ( val, str( statusList ) )
@@ -667,6 +734,9 @@ if __name__ == "__main__":
     ################
     # Select runs, or all
     runsDictList = __getRuns( transID, runList, byRuns, seList, status )
+    if runList and [run['RunNumber'] for run in runsDictList] == [None]:
+      print "None of the requested runs was found, exit"
+      DIRAC.exit( 0 )
     if status and byRuns and not runList:
       if not runsDictList:
         print 'No runs found...'
@@ -706,65 +776,11 @@ if __name__ == "__main__":
           prString += " - %d files (SelectedSite: %s), %d processed, status: %s" % ( files, SEs, processed, runStatus )
           print prString
 
-      if ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in transPlugin and runStatus != 'Flush':
+      if checkFlush or ( ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in transPlugin and runStatus != 'Flush' ):
         # Check if the run should be flushed
         if not pluginUtil:
           pluginUtil = PluginUtilities( transPlugin, transClient, rm, bkClient, None, None, verbose, {}, transID = transID )
-        evtType = 90000000
-        rawFiles = pluginUtil.getNbRAWInRun( runID, evtType )
-        if 'FileType' in transPlugin:
-          param = 'FileType'
-        elif 'EventType' in transPlugin:
-          param = 'EventType'
-        else:
-          param = ''
-          paramValues = ['']
-        if param:
-          res = bkClient.getFileMetadata( [fileDict['LFN'] for fileDict in transFilesList] )
-          if not res['OK']:
-            print 'Error getting files metadata', res['Message']
-            DIRAC.exit( 2 )
-          paramValues = []
-          for lfn in res['Value']['Successful']:
-            val = res['Value']['Successful'][lfn].get( param )
-            if val and val not in paramValues:
-              paramValues.append( val )
-        ancestors = {}
-        for paramValue in paramValues:
-          try:
-            ancestors.setdefault( pluginUtil.getRAWAncestorsForRun( runID, param, paramValue ), [] ).append( paramValue )
-          except Exception, e:
-            print "Exception calling pluginUtilities:", e
-        prStr = ''
-        for anc in sorted( ancestors ):
-          ft = ancestors[anc]
-          if ft:
-            prStr += '%d ancestors found for %s; ' % ( anc, ','.join( ft ) )
-          else:
-            prStr = '%d ancestors found' % anc
-        toFlush = False
-        flushError = False
-        for ancestorRawFiles in ancestors:
-          if rawFiles == ancestorRawFiles:
-            toFlush = True
-          elif ancestorRawFiles > rawFiles:
-            flushError = True
-        if toFlush:
-          print "Run should be flushed: %d RAW files and ancestors found" % ( rawFiles )
-          if fixIt:
-            res = transClient.setTransformationRunStatus( transID, runID, 'Flush' )
-            if res['OK']:
-              print 'Run %d successfully flushed' % runID
-            else:
-              print "Error flushing run %d" % runID, res['Message']
-          else:
-            print "Use --FixIt to flush the run"
-        if flushError:
-          print "More ancestors than RAW files (%d) for run %d ==> Problem!\n\t%s" \
-            % ( rawFiles, runID, prStr.replace( '; ', '\n\t' ) )
-        if not toFlush and not flushError:
-          print "Run not flushed: %s while %d RAW files" \
-            % ( prStr, rawFiles )
+        __checkRunsToFlush( pluginUtil, runID, transFilesList, runStatus )
 
       prString = "%d files found" % len( transFilesList )
       if status:
