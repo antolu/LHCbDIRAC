@@ -29,7 +29,6 @@ class OracleBookkeepingDB:
     """
     """
     self.cs_path = getDatabaseSection('Bookkeeping/BookkeepingDB')
-
     self.dbHost = ''
     result = gConfig.getOption(self.cs_path + '/LHCbDIRACBookkeepingTNS')
     if not result['OK']:
@@ -3048,7 +3047,7 @@ and files.qualityid= dataquality.qualityid'
   @staticmethod
   def __buildConfiguration(configName, configVersion, condition, tables):
     """ it make the condition string for a given configName and configVersion"""
-    if configName != default and configVersion != default:
+    if configName not in [default, None, '']  and configVersion not in [default, None, '']:
       if tables.upper().find('CONFIGURATIONS') < 0:
         tables += ' ,configurations c'
       condition += "  and c.ConfigName='%s' and c.ConfigVersion='%s' and \
@@ -3059,15 +3058,15 @@ and files.qualityid= dataquality.qualityid'
   @staticmethod
   def __buildProduction(production, condition, tables):
     """it adds the production which can be a list or string to the jobs table"""
-    if production != default:
-      if type(production) == types.ListType:
+    if production not in [default, None]:
+      if type(production) == types.ListType and len(production) > 0:
         condition += ' and '
         cond = ' ( '
         for i in production:
           cond += ' j.production=%s or ' % str(i)
         cond = cond[:-3] + ')'
         condition += cond
-      else:
+      elif type(production) in [types.StringType, types.LongType, types.IntType]:
         condition += ' and j.production=%s' % str(production)
     return S_OK((condition, tables))
 
@@ -3076,13 +3075,14 @@ and files.qualityid= dataquality.qualityid'
   def __buildTCKS(tcks, condition, tables):
     """ it adds the tck to the jobs table"""
 
-    if len(tcks) > 0:
+    if tcks not in [None, default]:
       if type(tcks) == types.ListType:
-        cond = '('
-        for i in tcks:
-          cond += "j.tck='%s' or " % (i)
-        cond = cond[:-3] + ')'
-        condition = " and %s " % (cond)
+        if len(tcks) > 0:
+          cond = '('
+          for i in tcks:
+            cond += "j.tck='%s' or " % (i)
+          cond = cond[:-3] + ')'
+          condition = " and %s " % (cond)
       elif type(tcks) == types.StringType:
         condition += " and j.tck='%s'" % (tcks)
       else:
@@ -3093,7 +3093,7 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def __buildProcessingPass(self, procPass, condition, tables):
     """It adds the processing pass condition to the query"""
-    if procPass != default:
+    if procPass not in [default, None]:
       if not re.search('^/', procPass):
         procPass = procPass.replace(procPass, '/%s' % procPass)
       command = "select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
@@ -3119,9 +3119,9 @@ and files.qualityid= dataquality.qualityid'
   @staticmethod
   def __buildFileTypes(ftype, condition, tables):
     """it adds the file type to the files list"""
-    if ftype != default:
+    if ftype not in [default, None]:
       tables += ' ,filetypes ft'
-      if type(ftype) == types.ListType:
+      if type(ftype) == types.ListType and len(ftype) > 0:
         condition += ' and '
         cond = ' ( '
         for i in ftype:
@@ -3168,8 +3168,8 @@ and files.qualityid= dataquality.qualityid'
   @staticmethod
   def __buildEventType(evt, condition, tables):
     """adds the event type to the files table"""
-    if evt != 0:
-      if type(evt) in (types.ListType, types.TupleType):
+    if evt not in [0, None, default]:
+      if type(evt) in (types.ListType, types.TupleType) and len(evt) > 0:
         condition += ' and '
         cond = ' ( '
         for i in evt:
@@ -3184,12 +3184,12 @@ and files.qualityid= dataquality.qualityid'
   @staticmethod
   def __buildStartenddate(startDate, endDate, condition, tables):
     """it adds the start and end date to the files table"""
-    if startDate != None:
+    if startDate not in [None, default, []]:
       condition += " and f.inserttimestamp >= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % (str(startDate))
 
-    if endDate != None:
+    if endDate not in [None, default, []]:
       condition += " and f.inserttimestamp <= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % (str(endDate))
-    elif startDate != None and endDate == None:
+    elif startDate not in [None, default, []] and endDate in [None, default, []]:
       currentTimeStamp = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
       condition += " and f.inserttimestamp <= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % (str(currentTimeStamp))
     return S_OK((condition, tables))
@@ -3197,7 +3197,7 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def __buildDataquality(self, flag, condition, tables):
     """it adds the data quality to the files table"""
-    if flag != default:
+    if flag not in [default, None]:
       if type(flag) in (types.ListType, types.TupleType):
         conds = ' ('
         for i in flag:
@@ -3249,7 +3249,6 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def __buildConditions(self, simdesc, datataking, condition, tables):
     """adds the data taking or simulation conditions to the query"""
-
     if simdesc != default or datataking != default:
       conddesc = simdesc if simdesc != default else datataking
       retVal = self.__getConditionString(conddesc, 'prod')
@@ -3579,7 +3578,8 @@ and files.qualityid= dataquality.qualityid'
                                %s %s %s \
                 )" % (processing.split('/')[1], processing, tables2, fcond, econd, sim_dq_conditions)
 
-    command = "select count(*), SUM(f.EventStat), SUM(f.FILESIZE), \
+    command = "select /*+INDEX(f FILES_JOB_EVENT_FILETYPE) PARALLEL(bview)*/ count(*),\
+    SUM(f.EventStat), SUM(f.FILESIZE), \
     SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
     j.jobid=f.jobid and \
     ftypes.filetypeid=f.filetypeid and \
