@@ -450,7 +450,7 @@ class ConsistencyChecks( object ):
       setNotPresent = set( notPresent )
       # Now check consistency between BK and FC for daughters
       inBKNotInFC = list( inBK & setNotPresent )
-      inFCNotInBK = list( present - inBK )
+      inFCNotInBK = list( setPresent - inBK )
 
       # Now check whether the daughters without replica have a descendant
       if notPresent:
@@ -538,9 +538,9 @@ class ConsistencyChecks( object ):
               filesWithMultipleDescendants.pop( lfn, None )
               prStr = 'single'
             else:
-              filesWithMultipleDescendants[lfn] = realDaughters
+              filesWithMultipleDescendants[lfn] = descToCheck
               prStr = 'multiple'
-            gLogger.verbose( '%s has %s descendants: %s' % ( lfn, prStr, sorted( realDaughters ) ) )
+            gLogger.verbose( '%s has %s descendants: %s' % ( lfn, prStr, sorted( descToCheck ) ) )
         self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
         startTime = time.time()
         setDescendants -= setNotPresent
