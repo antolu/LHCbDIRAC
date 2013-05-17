@@ -110,9 +110,9 @@ if __name__ == "__main__":
         for url in seMetadata['Successful']:
           pfnMetadata = seMetadata['Successful'][url].copy()
           if len( seList ) > 1:
-            metadata['Successful'].setdefault( url, {} )[se] = pfnMetadata if not exists else True
+            metadata['Successful'].setdefault( url, {} )[se] = pfnMetadata if not exists else {'Exists':True}
           else:
-            metadata['Successful'][url] = pfnMetadata if not exists else True
+            metadata['Successful'][url] = pfnMetadata if not exists else {'Exists':True}
           if check:
             res1 = rm.getCatalogFileMetadata( url )
             if res1['OK']:
