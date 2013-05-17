@@ -394,7 +394,10 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
         strMsg = '%d' % len( lfns )
       else:
         strMsg = 'none'
-      print "   %s : %d replicas of problematic files in FC, %s physically missing.%s" % ( str( se ).ljust( 15 ), len( problematicReplicas[se] ), strMsg, str2Msg )
+      if se:
+        print "   %s : %d replicas of problematic files in FC, %s physically missing.%s" % ( str( se ).ljust( 15 ), len( problematicReplicas[se] ), strMsg, str2Msg )
+      else:
+        print "   %s : %d files are not in FC.%s" % ( ''.ljust( 15 ), len( problematicReplicas[se] ), str2Msg )
     lfns = [lfn for lfn in existingReplicas if lfn in failedFiles]
     if lfns:
       prString = "Failed transfers but existing replicas"
@@ -418,11 +421,21 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
       res = rm.removeFile( filesInFCNotExisting )
       if res['OK']:
         print "Successfully removed %d files from FC" % len( filesInFCNotExisting )
+        nRemoved, transRemoved = __removeFilesFromTS( filesInFCNotExisting )
+        if nRemoved:
+          print 'Successfully removed %d files from transformations %s' % ( nRemoved, ','.join( transRemoved ) )
       else:
         print "ERROR when removing files from FC:", res['Message']
   if fixIt and nonExistingReplicas:
     nRemoved = 0
     failures = {}
+    # If SE == None, the file is not in the FC
+    notInFC = nonExistingReplicas.get( None )
+    if notInFC:
+      nonExistingReplicas.pop( None )
+      nRemoved, transRemoved = __removeFilesFromTS( notInFC )
+      if nRemoved:
+        print 'Successfully removed %d files from transformations %s' % ( nRemoved, ','.join( transRemoved ) )
     for se in nonExistingReplicas:
       lfns = [lfn for lfn in nonExistingReplicas[se] if lfn not in filesInFCNotExisting]
       res = rm.removeReplica( se, lfns )
@@ -436,12 +449,31 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
           for lfn in failed:
             failures.setdefault( failed[lfn], [] ).append( lfn )
         nRemoved += len( res['Value']['Successful'] )
-    print "Successfully removed %s replicas from FC" % nRemoved
+    if nRemoved:
+      print "Successfully removed %s replicas from FC" % nRemoved
     if failures:
       print "Failures:"
       for error in failures:
         print "%s: %d replicas" % ( error, len( failures[error] ) )
   print ""
+
+def __removeFilesFromTS( lfns ):
+  res = transClient.getTransformationFiles( {'LFN':lfns} )
+  if not res['OK']:
+    print "Error getting %d files in the TS" % len( lfns ), res['Message']
+    return
+  transFiles = {}
+  removed = 0
+  for fd in res['Value']:
+    transFiles.setdefault( fd['TransformationID'], [] ).append( fd['LFN'] )
+  for transID, lfns in transFiles.items():
+    res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns, force = True )
+    if not res['OK']:
+      print 'Error setting %d files Removed' % len( lfns ), res['Message']
+    else:
+      removed += len( lfns )
+  return removed, transFiles.keys()
+
 
 def __checkReplicasForProblematic( lfns, replicas ):
   for lfn in lfns:
