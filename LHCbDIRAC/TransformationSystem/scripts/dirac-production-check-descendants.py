@@ -120,7 +120,7 @@ if __name__ == '__main__':
         n += 1
         suffix = '-%d' % n
       fp = open( fileName, 'w' )
-      fp.write( '\n'.join( ['%s: %s' % ( lfn, str( desc ) ) for lfn, desc in cc.processedLFNsWithMultipleDescendants.items()] ) )
+      fp.write( '\n'.join( ['%s: %s' % ( lfn, str( multi ) ) for lfn, multi in cc.processedLFNsWithMultipleDescendants.items()] ) )
       fp.close()
       gLogger.always( 'Complete list of files is in %s' % fileName )
       gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )

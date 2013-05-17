@@ -423,8 +423,9 @@ class ConsistencyChecks( object ):
               # Assign the daughters list to the initial LFN
               filesWithDescendants[lfn] = desc
               # Is there a file type with more than one daughter of a given file type?
-              if [ftc for ftc in ft_count[lfn].values() if ftc > 1]:
-                filesWithMultipleDescendants[lfn] = desc
+              multi = dict( [( ft, ftc ) for ft, ftc in ft_count.items() if ftc > 1] )
+              if multi:
+                filesWithMultipleDescendants[lfn] = multi
             else:
               # No daughter, easy case!
               filesWithoutDescendants[lfn] = None
@@ -529,7 +530,7 @@ class ConsistencyChecks( object ):
               for ft in counts:
                 ft_count[ft] = ft_count.setdefault( ft, 0 ) + counts.get( ft, 0 )
             #print 'ft_count', ft_count
-            multi = [ftc for ftc in ft_count.values() if ftc > 1]
+            multi = dict( [( ft, ftc ) for ft, ftc in ft_count.items() if ftc > 1] )
             setNotPresent -= set( descToCheck )
             #print 'Multi', multi
             # Mother has at least one real descendant
@@ -538,7 +539,7 @@ class ConsistencyChecks( object ):
               filesWithMultipleDescendants.pop( lfn, None )
               prStr = 'single'
             else:
-              filesWithMultipleDescendants[lfn] = descToCheck
+              filesWithMultipleDescendants[lfn] = multi
               prStr = 'multiple'
             gLogger.verbose( '%s has %s descendants: %s' % ( lfn, prStr, sorted( descToCheck ) ) )
         self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
