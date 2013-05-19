@@ -332,7 +332,9 @@ class DataRecoveryAgent( AgentModule ):
 
     self.cc.prod = transformation
     for job, fileList in jobFileDict.items():
-      filesWithDesc, _filesWithoutDesc, filesWithMultipleDesc, _desc = self.cc.getDescendants( fileList )
+      result = self.cc.getDescendants( fileList )
+      filesWithDesc = result[0]
+      filesWithMultipleDesc = result[2]
       if filesWithDesc or filesWithMultipleDesc:
         jobsThatProducedOutputs.append( job )
       else:
