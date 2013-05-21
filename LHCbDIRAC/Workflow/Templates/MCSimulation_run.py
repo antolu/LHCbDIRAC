@@ -68,6 +68,7 @@ MCCpu = '{{MCMaxCPUTime#PROD-1:MC: Max CPU time in secs#1000000}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 pr.extend = '{{MCExtend#PROD-1:MC: extend production by this many jobs#100}}'
 MCSysConfig = '{{MCSystemConfig#PROD-1:MC System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc43-opt}}'
+MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#False}}'
 
 selectionPlugin = '{{selectionPlugin#PROD-2:Selection: plugin e.g. Standard, BySize#BySize}}'
 selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total size (we\'ll download)#20}}'
@@ -75,6 +76,7 @@ selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 b
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 selSysConfig = '{{selSystemConfig#PROD-2:Selection System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc43-opt}}'
+selmulticoreFlag = '{{selMulticoreFLag#PROD-1: multicore flag#False}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'
@@ -82,6 +84,7 @@ mergingPriority = '{{MergingPriority#PROD-3:Merging: Job Priority e.g. 8 by defa
 mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergeSysConfig = '{{mergeSystemConfig#PROD-3:Merging System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc43-opt}}'
+mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#False}}'
 
 pr.eventType = '{{eventType}}'
 # Often MC requests are defined with many subrequests but we want to retain
@@ -156,9 +159,10 @@ if w1:
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
   pr.inputDataPolicies = ['', 'download', 'download']
-  pr.CPUe = [CPUe, '1.0', '1.0']
+  pr.CPUeList = [CPUe, '1.0', '1.0']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
+  pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
 
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'Merge']
@@ -184,9 +188,10 @@ elif w2:
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
   pr.inputDataPolicies = ['', 'download', 'download']
-  pr.CPUe = [CPUe, '1.0', '1.0']
+  pr.CPUeList = [CPUe, '1.0', '1.0']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
+  pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
 
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
@@ -214,9 +219,10 @@ elif w3:
   pr.groupSizes = [1, selectionGroupSize]
   pr.plugins = ['', selectionPlugin]
   pr.inputDataPolicies = ['', 'download']
-  pr.CPUe = [CPUe, '1.0']
+  pr.CPUeList = [CPUe, '1.0']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, selSysConfig]
+  pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
 
 elif w4:
   pr.prodsTypeList = ['MCSimulation', 'Merge']
@@ -231,9 +237,10 @@ elif w4:
   pr.groupSizes = [1, mergingGroupSize]
   pr.plugins = ['', mergingPlugin]
   pr.inputDataPolicies = ['', 'download']
-  pr.CPUe = [CPUe, '1.0']
+  pr.CPUeList = [CPUe, '1.0']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.sysConfig = [MCSysConfig, mergeSysConfig]
+  pr.multicore = [MCmulticoreFlag, mergemulticoreFlag]
 
 elif w5:
   pr.prodsTypeList = ['MCSimulation']
@@ -251,9 +258,10 @@ elif w5:
   pr.groupSizes = [1]
   pr.plugins = ['']
   pr.inputDataPolicies = ['']
-  pr.CPUe = [CPUe]
+  pr.CPUeList = [CPUe]
   pr.bkQueries = ['']
   pr.sysConfig = [MCSysConfig]
+  pr.multicore = [MCmulticoreFlag]
 
 res = pr.buildAndLaunchRequest()
 if not res['OK']:

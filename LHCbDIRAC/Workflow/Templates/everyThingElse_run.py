@@ -79,6 +79,7 @@ p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
 p1RemoveInputs = eval( '{{p1RemoveInputs#PROD-P1: removeInputs flag#False}}' )
 p1sysConfig = '{{P1SystemConfig#PROD-P1: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 p1StepMask = '{{P1StepMask#PROD-P1: step output to save (default is last of prod)#}}'
+p1multicoreFlag = '{{P1MulticoreFLag#PROD-P1: multicore flag#False}}'
 
 #p2 params
 p2Plugin = '{{p2PluginType#PROD-P2: production plugin name#LHCbStandard}}'
@@ -90,6 +91,7 @@ p2Policy = '{{p2Policy#PROD-P2: data policy (download or protocol)#download}}'
 p2RemoveInputs = eval( '{{p2RemoveInputs#PROD-P2: removeInputs flag#False}}' )
 p2sysConfig = '{{P2SystemConfig#PROD-P2: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 p2StepMask = '{{P2StepMask#PROD-P2: step output to save (default is last of prod)#}}'
+p2multicoreFlag = '{{P2MulticoreFLag#PROD-P2: multicore flag#False}}'
 
 #p3 params
 p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
@@ -101,6 +103,7 @@ p3Policy = '{{p3Policy#PROD-P3: data policy (download or protocol)#download}}'
 p3RemoveInputs = eval( '{{p3RemoveInputs#PROD-P3: removeInputs flag#False}}' )
 p3sysConfig = '{{P3SystemConfig#PROD-P3: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 p3StepMask = '{{P3StepMask#PROD-P3: step output to save (default is last of prod)#}}'
+p3multicoreFlag = '{{P3MulticoreFLag#PROD-P3: multicore flag#False}}'
 
 parentReq = '{{_parent}}'
 if not parentReq:
@@ -191,5 +194,6 @@ pr.inputs = [inputDataList, [], []][0:len( pr.prodsTypeList )]
 pr.inputDataPolicies = [p1Policy, p2Policy, p3Policy][0:len( pr.prodsTypeList )]
 pr.sysConfig = [p1sysConfig, p2sysConfig, p3sysConfig][0:len( pr.prodsTypeList )]
 pr.outputFileSteps = [p1StepMask, p2StepMask, p3StepMask]
+pr.multicore = [p1multicoreFlag, p2multicoreFlag, p3multicoreFlag]
 
 pr.buildAndLaunchRequest()

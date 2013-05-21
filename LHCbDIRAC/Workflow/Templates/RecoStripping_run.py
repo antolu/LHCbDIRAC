@@ -75,6 +75,7 @@ recoDataSE = '{{RecoDataSE#PROD-1:RECO(Stripp): Output Data Storage Element#Tier
 recoType = '{{RecoType#PROD-1:RECO(Stripp): DataReconstruction or DataReprocessing#DataReconstruction}}'
 recoIDPolicy = '{{recoIDPolicy#PROD-1:RECO(Stripp): policy for input data access (download or protocol)#download}}'
 recoSysConfig = '{{recoSystemConfig#PROD-1:RECO(Stripp): system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
+recoMulticoreFlag = '{{recoMulticoreFLag#PROD-1: multicore flag#False}}'
 
 #stripp params
 strippPriority = int( '{{priority#PROD-2:Stripping: priority#5}}' )
@@ -84,6 +85,7 @@ strippFilesPerJob = '{{StrippFilesPerJob#PROD-2:Stripping: Group size or number 
 strippDataSE = '{{StrippStreamSE#PROD-2:Stripping: output data SE (un-merged streams)#Tier1-BUFFER}}'
 strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data access (download or protocol)#download}}'
 strippSysConfig = '{{strippSystemConfig#PROD-2:Stripping: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
+strippMulticoreFlag = '{{strippMulticoreFLag#PROD-2: multicore flag#False}}'
 
 #merging params
 mergingPriority = int( '{{MergePriority#PROD-3:Merging: priority#8}}' )
@@ -94,6 +96,7 @@ mergingDataSE = '{{MergeStreamSE#PROD-3:Merging: output data SE (merged streams)
 mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access (download or protocol)#download}}'
 mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data flag True/False#True}}'
 mergeSysConfig = '{{mergeSystemConfig#PROD-3:Merging: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
+mergeMulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#False}}'
 
 pr.requestID = '{{ID}}'
 pr.prodGroup = '{{pDsc}}'
@@ -193,6 +196,8 @@ if w1:
   pr.bkQueries = ['Full']
   pr.sysConfig = [recoSysConfig]
   pr.targets = [targetSite]
+  pr.multicore = [recoMulticoreFlag]
+
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
   pr.outputSEs = [strippDataSE, mergingDataSE]
@@ -208,6 +213,8 @@ elif w2:
   pr.bkQueries = ['Full', 'fromPreviousProd']
   pr.sysConfig = [strippSysConfig, mergeSysConfig]
   pr.targets = [targetSite, targetSite]
+  pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag]
+
 elif w3:
   pr.prodsTypeList = [recoType, 'Merge']
   pr.outputSEs = [recoDataSE, mergingDataSE]
@@ -223,6 +230,8 @@ elif w3:
   pr.bkQueries = ['Full', 'fromPreviousProd']
   pr.sysConfig = [recoSysConfig, mergeSysConfig]
   pr.targets = [targetSite, targetSite]
+  pr.multicore = [recoMulticoreFlag, mergeMulticoreFlag]
+
 elif w4:
   pr.prodsTypeList = [recoType, 'DataStripping', 'Merge']
   pr.outputSEs = [recoDataSE, strippDataSE, mergingDataSE]
@@ -239,5 +248,6 @@ elif w4:
   pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
   pr.sysConfig = [recoSysConfig, strippSysConfig, mergeSysConfig]
   pr.targets = [targetSite, targetSite, targetSite]
+  pr.multicore = [recoMulticoreFlag, strippMulticoreFlag, mergeMulticoreFlag]
 
 pr.buildAndLaunchRequest()
