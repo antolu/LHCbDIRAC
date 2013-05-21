@@ -366,7 +366,7 @@ class ModuleBase( object ):
     if self.jobType.lower() == 'merge':
       res = self.bkClient.getFileMetadata( self.stepInputData )
       if not res['OK']:
-        return res
+        raise RuntimeError, res['Message']
 
       outputTypes = []
       if len( res['Value']['Successful'] ) != len( self.stepInputData ):
