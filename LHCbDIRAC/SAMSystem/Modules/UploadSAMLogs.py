@@ -107,7 +107,7 @@ class UploadSAMLogs( ModuleBase ):
    
     self.finalize( self.__class__.__name__ )
    
-    self.setApplicationStatus( 'Finished' )
+#    self.setApplicationStatus( 'Finished' )
    
     return S_OK( 'Logs uploaded' )
    
