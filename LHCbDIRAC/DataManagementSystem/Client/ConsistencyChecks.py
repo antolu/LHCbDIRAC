@@ -230,12 +230,18 @@ class ConsistencyChecks( object ):
     dirs = {}
     present = []
     notPresent = []
+    compare = True
 
     for lfn in lfns:
       dirN = os.path.dirname( lfn )
+      if lfn == dirN + '/':
+        compare = False
       dirs.setdefault( dirN, [] ).append( lfn )
 
-    self.__write( "Checking File Catalog for %d files from %d directories " % ( len( lfns ), len( dirs ) ) )
+    if compare:
+      self.__write( "Checking File Catalog for %d files from %d directories " % ( len( lfns ), len( dirs ) ) )
+    else:
+      self.__write( "Getting files from %d directories " % len( dirs ) )
     startTime = time.time()
 
     for dirN in sorted( dirs ):
@@ -243,9 +249,12 @@ class ConsistencyChecks( object ):
       self.__write( '.' )
       lfnsFound = self._getFilesFromDirectoryScan( dirN )
       gLogger.verbose( "Obtained %d files in %.1f seconds" % ( len( lfnsFound ), time.time() - startTime1 ) )
-      pr, notPr = self.__compareLFNLists( dirs[dirN], lfnsFound )
-      notPresent += notPr
-      present += pr
+      if compare:
+        pr, notPr = self.__compareLFNLists( dirs[dirN], lfnsFound )
+        notPresent += notPr
+        present += pr
+      else:
+        present += lfnsFound
 
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
     gLogger.info( "Found %d files with replicas and %d without" % ( len( present ), len( notPresent ) ) )
@@ -398,7 +407,7 @@ class ConsistencyChecks( object ):
       return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
         allDaughters, inFCNotInBK, inBKNotInFC, removedFiles
 
-    chunkSize = 500
+    chunkSize = 100 if self.transType == 'DataStripping' else 500
     self.__write( "Now getting daughters for %d %s mothers in production %d (chunks of %d) "
                   % ( len( lfns ), status, self.prod, chunkSize ) )
     startTime = time.time()
@@ -454,6 +463,7 @@ class ConsistencyChecks( object ):
 
       # Now check whether the daughters without replica have a descendant
       if notPresent:
+        chunkSize = 500
         startTime = time.time()
         self.__write( "Now checking descendants from %d daughters without replicas (chunks of %d) "
                       % ( len( notPresent ), chunkSize ) )
@@ -606,10 +616,15 @@ class ConsistencyChecks( object ):
     '''
     if not self.lfns:
       try:
-        directories = self.__getDirectories()
+        directories = []
+        for dirName in self.__getDirectories():
+          if not dirName.endswith( '/' ):
+            dirName += '/'
+          directories.append( dirName )
       except RuntimeError, e:
         return S_ERROR( e )
-      present = self._getFilesFromDirectoryScan( directories )
+      present, notPresent = self.getReplicasPresenceFromDirectoryScan( directories )
+      gLogger.always( '%d files found in the FC' % len( present ) )
       prStr = ' are in the FC but'
     else:
       present, notPresent = self.getReplicasPresence( self.lfns )
@@ -621,7 +636,9 @@ class ConsistencyChecks( object ):
       prStr = ''
 
     res = self._getBKKMetadata( present )
-    self.existingLFNsNotInBKK, self.existingLFNsWithBKKReplicaNO, self.existingLFNsWithBKKReplicaYES = res
+    self.existingLFNsNotInBKK = res[0]
+    self.existingLFNsWithBKKReplicaNO = res[1]
+    self.existingLFNsWithBKKReplicaYES = res[2]
     msg = ''
     if self.transType:
       msg = "For prod %s of type %s, " % ( self.prod, self.transType )
@@ -654,15 +671,19 @@ class ConsistencyChecks( object ):
     ''' get metadata (i.e. replica flag) of a list of LFNs
     '''
     missingLFNs = noFlagLFNs = okLFNs = []
-    res = self.bkClient.getFileMetadata( lfns )
-    if not res['OK']:
-      gLogger.error( "Can't get the bkk metadata: ", res['Message'] )
-    else:
-      metadata = res['Value']['Successful']
-      missingLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == None]
-      noFlagLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'No']
-      okLFNs = [lfn for lfn in lfns if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'Yes']
-
+    chunkSize = 500
+    self.__write( 'Getting %d files metadata from BK (chinks of %d)' % ( len( lfns ), chunkSize ) )
+    for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
+      self.__write( '.' )
+      res = self.bkClient.getFileMetadata( lfnChunk )
+      if not res['OK']:
+        gLogger.error( "Can't get the bkk metadata: ", res['Message'] )
+      else:
+        metadata = res['Value']['Successful']
+        missingLFNs += [lfn for lfn in lfns if lfn not in metadata]
+        noFlagLFNs += [lfn for lfn in metadata if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'No']
+        okLFNs += [lfn for lfn in metadata if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'Yes']
+    self.__write( '\n' )
     return missingLFNs, noFlagLFNs, okLFNs
 
   ################################################################################
