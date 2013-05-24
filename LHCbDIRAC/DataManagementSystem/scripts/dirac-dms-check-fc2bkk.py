@@ -14,9 +14,19 @@
 def doCheck():
   cc.checkFC2BKK()
 
+  maxFiles = 20
   if cc.existingLFNsWithBKKReplicaNO:
-    gLogger.error( "%d files are in the FC but have replica = NO in BKK:\n%s" % ( len( cc.existingLFNsWithBKKReplicaNO ),
-                                                                                 '\n'.join( cc.existingLFNsWithBKKReplicaNO ) ) )
+    affectedRuns = []
+    for run in cc.existingLFNsWithBKKReplicaNO.values():
+      if run not in affectedRuns:
+        affectedRuns.append( str( run ) )
+    if len( cc.existingLFNsWithBKKReplicaNO ) > maxFiles:
+      prStr = ' (first %d)' % maxFiles
+    else:
+      prStr = ''
+    gLogger.error( "%d files are in the FC but have replica = NO in BKK%s:\nAffected runs: %s\n%s" %
+                   ( len( cc.existingLFNsWithBKKReplicaNO ), prStr, ','.join( affectedRuns ),
+                     '\n'.join( sorted( cc.existingLFNsWithBKKReplicaNO )[0:maxFiles] ) ) )
     if fixIt:
       gLogger.always( "Going to fix them, setting the replica flag" )
       res = bk.addFiles( cc.existingLFNsWithBKKReplicaNO )
@@ -30,15 +40,27 @@ def doCheck():
     gLogger.always( "No files in FC with replica = NO in BKK -> OK!" )
 
   if cc.existingLFNsNotInBKK:
-    gLogger.error( "%d files are in the FC but are NOT in BKK:\n%s" % ( len( cc.existingLFNsNotInBKK ),
-                                                                       '\n'.join( cc.existingLFNsNotInBKK ) ) )
+    if len( cc.existingLFNsNotInBKK ) > maxFiles:
+      prStr = ' (first %d)' % maxFiles
+    else:
+      prStr = ''
+    gLogger.error( "%d files are in the FC but are NOT in BKK%s:\n%s" %
+                   ( len( cc.existingLFNsNotInBKK ), prStr,
+                     '\n'.join( sorted( cc.existingLFNsNotInBKK[0:maxFiles] ) ) ) )
     if fixIt:
       gLogger.always( "Going to fix them, by removing from the FC and storage" )
       res = rm.removeFile( cc.existingLFNsNotInBKK )
       if res['OK']:
         success = len( res['Value']['Successful'] )
         failures = len( res['Value']['Failed'] )
-        gLogger.always( "\t%d success, %d failures" % ( success, failures ) )
+        errors = {}
+        for reason in res['Value']['Failed'].values():
+          reason = str( reason )
+          errors[reason] = errors.setdefault( reason, 0 ) + 1
+        gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if failures else '' ) )
+        if failures:
+          for reason in errors:
+            gLogger.always( '\t%s : %d' % ( reason, errors[reason] ) )
     else:
       gLogger.always( "Use --FixIt to fix it" )
   else:

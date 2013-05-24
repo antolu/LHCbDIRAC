@@ -359,7 +359,9 @@ class ConsistencyChecks( object ):
     '''
 
     selectDict = { 'TransformationID': self.prod}
-    if self.runStatus and self.fromProd:
+    if self._lfns:
+      selectDict['LFN'] = self._lfns
+    elif self.runStatus and self.fromProd:
       res = self.transClient.getTransformationRuns( {'TransformationID': self.fromProd, 'Status':self.runStatus} )
       if not res['OK']:
         gLogger.error( "Failed to get runs for transformation %d" % self.prod )
@@ -370,7 +372,7 @@ class ConsistencyChecks( object ):
         elif not self.runsList:
           gLogger.always( "No runs selected, check completed" )
           DIRAC.exit( 0 )
-    if self.runsList:
+    if not self._lfns and self.runsList:
       selectDict['RunNumber'] = self.runsList
 
     res = self.transClient.getTransformationFiles( selectDict )
@@ -643,10 +645,10 @@ class ConsistencyChecks( object ):
     if self.transType:
       msg = "For prod %s of type %s, " % ( self.prod, self.transType )
     if self.existingLFNsWithBKKReplicaNO:
-      gLogger.error( "%s %d files%s have replica = NO in BKK" % ( msg, len( self.existingLFNsWithBKKReplicaNO ),
+      gLogger.warn( "%s %d files%s have replica = NO in BKK" % ( msg, len( self.existingLFNsWithBKKReplicaNO ),
                                                                  prStr ) )
     if self.existingLFNsNotInBKK:
-      gLogger.error( "%s %d files%s not in BKK" % ( msg, len( self.existingLFNsNotInBKK ), prStr ) )
+      gLogger.warn( "%s %d files%s not in BKK" % ( msg, len( self.existingLFNsNotInBKK ), prStr ) )
 
   ################################################################################
 
@@ -670,20 +672,26 @@ class ConsistencyChecks( object ):
   def _getBKKMetadata( self, lfns ):
     ''' get metadata (i.e. replica flag) of a list of LFNs
     '''
-    missingLFNs = noFlagLFNs = okLFNs = []
-    chunkSize = 500
-    self.__write( 'Getting %d files metadata from BK (chinks of %d)' % ( len( lfns ), chunkSize ) )
+    missingLFNs = []
+    noFlagLFNs = {}
+    okLFNs = []
+    chunkSize = 1000
+    startTime = time.time()
+    self.__write( 'Getting %d files metadata from BK (chunks of %d) ' % ( len( lfns ), chunkSize ) )
     for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
       self.__write( '.' )
-      res = self.bkClient.getFileMetadata( lfnChunk )
-      if not res['OK']:
-        gLogger.error( "Can't get the bkk metadata: ", res['Message'] )
-      else:
-        metadata = res['Value']['Successful']
-        missingLFNs += [lfn for lfn in lfns if lfn not in metadata]
-        noFlagLFNs += [lfn for lfn in metadata if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'No']
-        okLFNs += [lfn for lfn in metadata if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'Yes']
-    self.__write( '\n' )
+      while True:
+        res = self.bkClient.getFileMetadata( lfnChunk )
+        if not res['OK']:
+          gLogger.error( "\Can't get the bkk metadata, retry: ", res['Message'] )
+        else:
+          metadata = res['Value']['Successful']
+          missingLFNs += [lfn for lfn in lfnChunk if lfn not in metadata]
+          noFlagLFNs.update( dict( [( lfn, metadata[lfn]['RunNumber'] )
+                                    for lfn in metadata if metadata[lfn]['GotReplica'] == 'No'] ) )
+          okLFNs += [lfn for lfn in metadata if metadata[lfn]['GotReplica'] == 'Yes']
+          break
+    self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
     return missingLFNs, noFlagLFNs, okLFNs
 
   ################################################################################
