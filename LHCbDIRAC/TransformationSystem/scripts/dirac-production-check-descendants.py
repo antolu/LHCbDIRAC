@@ -12,6 +12,11 @@ if __name__ == '__main__':
 
   #Script initialization
   from DIRAC.Core.Base import Script
+  from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+
+  dmScript = DMScript()
+  dmScript.registerFileSwitches()
+
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
                                        '  %s [option|cfgfile] [ProdIDs]' % Script.scriptName, ] ) )
@@ -52,12 +57,15 @@ if __name__ == '__main__':
           idList.append( i )
       else:
         idList.append( int( r[0] ) )
+  # In case the user asked for specific LFNs
+  lfnList = dmScript.getOption( 'LFNs', [] )
 
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
   from LHCbDIRAC.BookkeepingSystem.Client.BKQuery              import BKQuery
   for id in idList:
 
     cc = ConsistencyChecks()
+    cc.lfns = lfnList
     cc.prod = id
     gLogger.always( "Processing %s production %d" % ( cc.transType, cc.prod ) )
     if not fileType:
