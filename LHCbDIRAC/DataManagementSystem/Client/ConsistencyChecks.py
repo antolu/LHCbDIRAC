@@ -206,7 +206,7 @@ class ConsistencyChecks( object ):
     chunkSize = 1000
     printProgress = ( len( lfns ) > chunkSize )
     startTime = time.time()
-    self.__write( "Checking replicas for %d files%s" % ( len( lfns ), ( '(chunks of %d)' % chunkSize ) if printProgress else '... ' ) )
+    self.__write( "Checking replicas for %d files%s" % ( len( lfns ), ( ' (chunks of %d)' % chunkSize ) if printProgress else '... ' ) )
     for chunk in breakListIntoChunks( lfns, chunkSize ):
       if printProgress:
         self.__write( '.' )
