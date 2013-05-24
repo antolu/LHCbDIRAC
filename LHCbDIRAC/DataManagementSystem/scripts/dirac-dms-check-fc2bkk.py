@@ -35,7 +35,7 @@ def doCheck():
       else:
         gLogger.error( res['Message'] )
     else:
-      gLogger.always( "Use --FixIt to fix it" )
+      gLogger.always( "Use --FixIt to fix it (set the replica flag)" )
   else:
     gLogger.always( "No files in FC with replica = NO in BKK -> OK!" )
 
@@ -62,7 +62,7 @@ def doCheck():
           for reason in errors:
             gLogger.always( '\t%s : %d' % ( reason, errors[reason] ) )
     else:
-      gLogger.always( "Use --FixIt to fix it" )
+      gLogger.always( "Use --FixIt to fix it (remove from FC and storage)" )
   else:
     gLogger.always( "No files in FC not in BKK -> OK!" )
 

@@ -109,6 +109,7 @@ class ConsistencyChecks( object ):
         bkQuery = self.__getBKKQuery()
       except ValueError, e:
         return S_ERROR( e )
+      gLogger.always( 'Getting files for BK query %s...' % str( bkQuery ) )
       if checkAll:
         lfnsReplicaNo = self._getBKKFiles( bkQuery, 'No' )
       lfnsReplicaYes = self._getBKKFiles( bkQuery, 'Yes' )
@@ -161,11 +162,12 @@ class ConsistencyChecks( object ):
     bkQuery.setVisible( False )
     bkQueryRes = BKQuery( bkQuery, visible = visibility )
     bkQueryRes.setOption( 'ReplicaFlag', replicaFlag )
+    startTime = time.time()
     lfnsRes = bkQueryRes.getLFNs( printOutput = False )
     if not lfnsRes:
       gLogger.info( "No files found with replica flag = %s" % replicaFlag )
     else:
-      gLogger.info( "Found %d files with replica flag = %s" % ( len( lfnsRes ), replicaFlag ) )
+      gLogger.info( "Found %d files with replica flag = %s (%.1f seconds)" % ( len( lfnsRes ), replicaFlag, time.time() - startTime ) )
 
     return lfnsRes
 

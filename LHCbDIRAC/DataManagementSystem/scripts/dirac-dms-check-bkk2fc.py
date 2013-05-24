@@ -33,7 +33,7 @@ def doCheck( checkAll ):
           gLogger.always( "Successfully set replica flag to %d files" % nFiles )
       else:
         gLogger.error( "%d LFNs exist in the FC but have replicaFlag = No: %s" % ( nFiles, comment ) )
-        gLogger.always( "Use option --FixIt to fix it" )
+        gLogger.always( "Use option --FixIt to fix it (set the replica flag)" )
     else:
       gLogger.always( "No LFNs exist in the FC but have replicaFlag = No in the BKK -> OK!" )
 
@@ -53,7 +53,7 @@ def doCheck( checkAll ):
         gLogger.always( "Successfully removed replica flag to %d files" % nFiles )
     else:
       gLogger.error( "%d files have replicaFlag = Yes but are not in FC: %s" % ( nFiles, comment ) )
-      gLogger.always( "Use option --FixIt to fix it" )
+      gLogger.always( "Use option --FixIt to fix it (remove the replica flag)" )
   else:
     gLogger.always( "No LFNs have replicaFlag = Yes but are not in the FC -> OK!" )
 
