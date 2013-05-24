@@ -26,7 +26,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      '  File:     Name of the file with a list of LFNs',
                                      '  Level:    Number of levels to search (default: 1)' ] ) )
 
-Script.parseCommandLine( ignoreErrors=True )
+Script.parseCommandLine( ignoreErrors = True )
 
 full = False
 checkreplica = True
@@ -55,16 +55,17 @@ for lfn in lfns:
   except:
     lfnList.append( lfn )
 
-result = BookkeepingClient().getFileAncestors( lfnList, level, replica=checkreplica )
+result = BookkeepingClient().getFileAncestors( lfnList, level, replica = checkreplica )
 
 if full:
   del result['Value']['Successful']
 else:
-  del result['Value']['WithMetadata']
-  okResult = result['Value']['Successful']
+  okResult = result['Value']['WithMetadata']
   for lfn in okResult:
-    okResult[lfn] = dict( [( d['FileName'], 'Replica-%s' % d['GotReplica'] ) for d in okResult[lfn]] )
+    result['Value']['Successful'][lfn] = \
+      dict( [( desc, 'Replica-%s' % meta['GotReplica'] ) for desc, meta in okResult[lfn].items()] )
+  del result['Value']['WithMetadata']
 
 DIRAC.exit( printDMResult( result,
-                           empty="None", script="dirac-bookkeeping-get-file-ancestors" ) )
+                           empty = "None", script = "dirac-bookkeeping-get-file-ancestors" ) )
 
