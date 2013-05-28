@@ -26,14 +26,14 @@ class DataUsageClient( Client ):
     Client.__init__( self )
     self.setServer( 'DataManagement/DataUsage' )
 
-  def sendDataUsageReport( self, site, directoryDict, rpc = '', url = '', timeout = 120 ):
+  def sendDataUsageReport( self, site, directoryDict, rpc = None, url = '', timeout = 120 ):
     """ send data usage report """
     if type( directoryDict ) != DictType:
       return S_ERROR( 'Supplied dictionary is not in correct format!' )
     rpcClient = self._getRPC( rpc = rpc, url = url, timeout = timeout )
     return rpcClient.sendDataUsageReport( site, directoryDict )
 
-  def getDataUsageSummary( self, startTime, endTime, status, rpc = '', url = '', timeout = 120 ):
+  def getDataUsageSummary( self, startTime, endTime, status, rpc = None, url = '', timeout = 120 ):
     """ get usage summary """
     if ( type( startTime ) != StringType or type( endTime ) != StringType or type( status) != StringType ):
       return S_ERROR( 'Supplied arguments not in correct format!' )
@@ -44,19 +44,19 @@ class DataUsageClient( Client ):
     """ insert metadata to dir or maybe other way around """
     if type( directoryDict ) != DictType:
       return S_ERROR( 'Supplied dictionary is not in correct format!' )
-    rpcClient = self._getRPC( rpc = False, url = url, timeout = timeout )
+    rpcClient = self._getRPC( rpc = None, url = url, timeout = timeout )
     return rpcClient.insertToDirMetadata( directoryDict )
 
   def getDirMetadata( self, directoryList, url = '', timeout = 120 ):
     """ get directory metadata """
     if type( directoryList ) != ListType:
       return S_ERROR( 'Supplied dictionary is not in correct format!' )
-    rpcClient = self._getRPC( rpc = False, url = url, timeout = timeout )
+    rpcClient = self._getRPC( rpc = None, url = url, timeout = timeout )
     return rpcClient.getDirMetadata( directoryList )
 
   def updatePopEntryStatus( self, idList, newStatus, url = '', timeout = 120 ):
     """ whatever, pop new status """
     if type( idList ) != ListType or type( newStatus ) != StringType:
       return S_ERROR( 'Supplied dictionary is not in correct format!' )
-    rpcClient = self._getRPC( rpc = False, url = url, timeout = timeout )
+    rpcClient = self._getRPC( rpc = None, url = url, timeout = timeout )
     return rpcClient.updatePopEntryStatus( idList, newStatus )

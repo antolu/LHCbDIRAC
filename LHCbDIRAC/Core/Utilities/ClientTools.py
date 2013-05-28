@@ -41,7 +41,7 @@ def packageInputs( appName, appVersion, optionsFiles = [], destinationDir = '', 
      @type condDict: Dict of DB, tag pairs
   """
   if not type( appName ) in types.StringTypes or not type( appVersion ) in types.StringTypes:
-    gLogger.warn()
+    gLogger.warn( 'Expected strings for application name and version' )
     return _errorReport( 'Expected strings for application name and version' )
 
   if optsFlag:

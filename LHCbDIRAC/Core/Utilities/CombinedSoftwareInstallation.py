@@ -257,7 +257,7 @@ def installApplication( app, config, area ):
     try:
       shutil.copy( installProjectFile, localArea )
     except shutil.Error, errorMsg:
-      DIRAC.gLogger.warn( 'Failed to create:', installProject, errorMsg )
+      DIRAC.gLogger.warn( 'Failed to create: %s %s' % ( installProject, errorMsg ) )
       return False
 
   curDir = os.getcwd()
