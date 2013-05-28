@@ -51,13 +51,13 @@ POLICIESMETA_LHCB = {
       'command'         : ( 'JobCommand', 'JobCommand' ),
       'args'            : None,                          
     },
-  'PilotEfficiency' :
-    { 
-      'description'     : 'Pilots efficiency extracted from WMS',
-      'module'          : 'PilotEfficiencyPolicy',
-      'command'         : ( 'PilotCommand', 'PilotCommand' ),
-      'args'            : None,
-    }                                    
+#  'PilotEfficiency' :
+#    { 
+#      'description'     : 'Pilots efficiency extracted from WMS',
+#      'module'          : 'PilotEfficiencyPolicy',
+#      'command'         : ( 'PilotCommand', 'PilotCommand' ),
+#      'args'            : None,
+#    }                                    
 }
 
 ################################################################################
