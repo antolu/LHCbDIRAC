@@ -161,7 +161,8 @@ if __name__ == '__main__':
 
     #fixing, if requested
     if cc.nonProcessedLFNsWithDescendants:
-      gLogger.error( "There are %d LFNs not marked Processed but that have descendants" % len( cc.nonProcessedLFNsWithDescendants ) )
+      gLogger.error( "There are %d LFNs not marked Processed but that have descendants\n%s" \
+                     % ( len( cc.nonProcessedLFNsWithDescendants ), '\n'.join( sorted( cc.nonProcessedLFNsWithDescendants ) ) ) )
       if fixIt:
         gLogger.always( "Marking them as 'Processed'" )
         cc.transClient.setFileStatusForTransformation( id, 'Processed', cc.nonProcessedLFNsWithDescendants )
