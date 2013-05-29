@@ -398,6 +398,10 @@ class ConsistencyChecks( object ):
   def getDescendants( self, lfns, status = '' ):
     ''' get the descendants of a list of LFN (for the production)
     '''
+    if type( lfns ) == type( '' ):
+      lfns = [lfns]
+    elif type( lfns ) == type( {} ):
+      lfns = lfns.keys()
     filesWithDescendants = {}
     filesWithoutDescendants = {}
     filesWithMultipleDescendants = {}
@@ -476,7 +480,7 @@ class ConsistencyChecks( object ):
         for lfnChunk in breakListIntoChunks( notPresent, chunkSize ):
           self.__write( '.' )
           while True:
-            res = self.bkClient.getFileDescendants( lfnChunk, checkreplica = True )
+            res = self.bkClient.getFileDescendants( lfnChunk, depth = 99, checkreplica = True )
             if res['OK']:
               # Select the good file types, key is daughters
               daughtersWithDesc = self._selectByFileType( res['Value']['WithMetadata'],
@@ -589,11 +593,13 @@ class ConsistencyChecks( object ):
       fileTypesExcluded += [ft for ft in self.fileTypesExcluded if ft not in fileTypesExcluded]
     # lfnDict is a dictionary of dictionaries including the metadata, create a deep copy to get modified
     ancDict = copy.deepcopy( lfnDict )
+    if fileTypes == ['']:
+      fileTypes = []
     # and loop on the original dictionaries
     for ancestor in lfnDict:
       for desc in lfnDict[ancestor]:
         ft = lfnDict[ancestor][desc]['FileType']
-        if ft in fileTypesExcluded or ft not in fileTypes:
+        if ft in fileTypesExcluded or ( fileTypes and ft not in fileTypes ):
           ancDict[ancestor].pop( desc )
       if len( ancDict[ancestor] ) == 0:
         ancDict.pop( ancestor )
