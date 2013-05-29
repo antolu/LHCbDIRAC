@@ -29,11 +29,11 @@ def doCheck():
                      '\n'.join( sorted( cc.existingLFNsWithBKKReplicaNO )[0:maxFiles] ) ) )
     if fixIt:
       gLogger.always( "Going to fix them, setting the replica flag" )
-      res = bk.addFiles( cc.existingLFNsWithBKKReplicaNO )
+      res = bk.addFiles( cc.existingLFNsWithBKKReplicaNO.keys() )
       if res['OK']:
         gLogger.always( "\tSuccessfully added replica flag" )
       else:
-        gLogger.error( res['Message'] )
+        gLogger.error( 'Failed to set the replica flag', res['Message'] )
     else:
       gLogger.always( "Use --FixIt to fix it (set the replica flag)" )
   else:
@@ -52,15 +52,16 @@ def doCheck():
       res = rm.removeFile( cc.existingLFNsNotInBKK )
       if res['OK']:
         success = len( res['Value']['Successful'] )
-        failures = len( res['Value']['Failed'] )
+        failures = 0
         errors = {}
         for reason in res['Value']['Failed'].values():
           reason = str( reason )
-          errors[reason] = errors.setdefault( reason, 0 ) + 1
+          if reason != "{'BookkeepingDB': 'File does not exist'}":
+            errors[reason] = errors.setdefault( reason, 0 ) + 1
+            failures += 1
         gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if failures else '' ) )
-        if failures:
-          for reason in errors:
-            gLogger.always( '\t%s : %d' % ( reason, errors[reason] ) )
+        for reason in errors:
+          gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
     else:
       gLogger.always( "Use --FixIt to fix it (remove from FC and storage)" )
   else:
