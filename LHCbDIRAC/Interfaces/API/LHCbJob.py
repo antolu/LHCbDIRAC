@@ -286,7 +286,7 @@ class LHCbJob( Job ):
                             parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
                                               ( 'applicationVersion', 'string', '', 'Application Version' ),
                                               ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
-                                              ( 'executable', 'string', '', 'Script Name' ),
+                                              ( 'script', 'string', '', 'Script Name' ),
                                               ( 'arguments', 'string', '', 'Arguments for executable' ),
                                               ( 'poolXMLCatName', 'string', '', 'POOL XML Catalog file name' ),
                                               ( 'inputDataType', 'string', '', 'Input Data Type' ),
