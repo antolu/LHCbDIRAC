@@ -24,15 +24,19 @@ if __name__ == '__main__':
   Script.registerSwitch( '', 'ActiveRunsProduction=', 'Specify the production from which the runs should be derived' )
   Script.registerSwitch( '', 'FileType=', 'Specify the descendants file type' )
   Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
+  Script.registerSwitch( '', 'Verbose', 'Print full list of files with error' )
   Script.parseCommandLine( ignoreErrors = True )
   fileType = []
   runsList = []
   fixIt = False
   fromProd = None
+  verbose = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
       runsList = switch[1].split( ',' )
-    if switch[0] == 'FileType':
+    elif switch[0] == 'Verbose':
+      verbose = True
+    elif switch[0] == 'FileType':
       fileType = switch[1].split( ',' )
     elif switch[0] == 'FixIt':
       fixIt = True
@@ -91,7 +95,8 @@ if __name__ == '__main__':
         else:
           gLogger.always( 'Replica flag set successfully' )
       else:
-        gLogger.always( '\n'.join( sorted( cc.inFCNotInBK ) ) )
+        if verbose:
+          gLogger.always( '\n'.join( sorted( cc.inFCNotInBK ) ) )
         gLogger.always( "Use --FixIt for fixing it (or dirac-dms-check-fc2bkk --Term and paste the list)" )
 
     if cc.removedFiles:
@@ -107,17 +112,19 @@ if __name__ == '__main__':
       gLogger.always( "\tFiles set to status Removed" )
 
 
-    if fileType:
-      gLogger.always( "%d unique daughters found" % ( len( cc.descendantsForProcessedLFNs ) + len( cc.descendantsForNonProcessedLFNs ) ) )
+    gLogger.always( "%d unique daughters found with real descendants" % ( len( set( cc.descendantsForProcessedLFNs ).union( cc.descendantsForNonProcessedLFNs ) ) ) )
 
     if cc.processedLFNsWithMultipleDescendants:
       nMax = 20
-      if len( cc.processedLFNsWithMultipleDescendants ) > nMax:
+      if not verbose and len( cc.processedLFNsWithMultipleDescendants ) > nMax:
         prStr = ' (first %d files)' % nMax
       else:
         prStr = ''
-      gLogger.error( "Processed LFNs with multiple descendants (%d) -> ERROR%s\n%s" \
-                     % ( len( cc.processedLFNsWithMultipleDescendants ) , prStr, '\n'.join( sorted( cc.processedLFNsWithMultipleDescendants )[0:nMax] ) ) )
+      gLogger.error( "Processed LFNs with multiple descendants (%d) -> ERROR%s" \
+                     % ( len( cc.processedLFNsWithMultipleDescendants ) , prStr ),
+                     '\n'.join( [''] + sorted( cc.processedLFNsWithMultipleDescendants )[0:nMax] ) if not verbose else '' )
+      if verbose:
+        gLogger.error( '\n'.join( sorted( cc.processedLFNsWithMultipleDescendants ) ) )
       suffix = ''
       n = 0
       import os
@@ -137,8 +144,9 @@ if __name__ == '__main__':
 
     if cc.processedLFNsWithoutDescendants:
       lfns = sorted( cc.processedLFNsWithoutDescendants )
-      gLogger.always( "Processed LFNs without descendants (%d) -> ERROR!\n%s" \
-                      % ( len( cc.processedLFNsWithoutDescendants ), '\n'.join( lfns ) ) )
+      gLogger.always( "Processed LFNs without descendants (%d) -> ERROR!" \
+                      % len( cc.processedLFNsWithoutDescendants ),
+                      '\n'.join( [''] + sorted( lfns ) ) if verbose else '' )
       if fixIt:
         gLogger.always( "Resetting them 'Unused'" )
         res = cc.transClient.setFileStatusForTransformation( id, 'Unused', lfns, force = True )
@@ -153,16 +161,18 @@ if __name__ == '__main__':
       gLogger.always( "No processed LFNs without descendants found -> OK!" )
 
     if cc.nonProcessedLFNsWithMultipleDescendants:
-      gLogger.error( "Non processed LFNs with multiple descendants (%d) -> ERROR\n%s" \
-                     % ( len( cc.nonProcessedLFNsWithMultipleDescendants ) , '\n'.join( sorted( cc.nonProcessedLFNsWithMultipleDescendants ) ) ) )
+      gLogger.error( "Non processed LFNs with multiple descendants (%d) -> ERROR" \
+                     % len( cc.nonProcessedLFNsWithMultipleDescendants ) ,
+                     '\n'.join( [''] + sorted( cc.nonProcessedLFNsWithMultipleDescendants ) ) if verbose else '' )
       gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
       gLogger.always( "No non processed LFNs with multiple descendants found -> OK!" )
 
     #fixing, if requested
     if cc.nonProcessedLFNsWithDescendants:
-      gLogger.error( "There are %d LFNs not marked Processed but that have descendants\n%s" \
-                     % ( len( cc.nonProcessedLFNsWithDescendants ), '\n'.join( sorted( cc.nonProcessedLFNsWithDescendants ) ) ) )
+      gLogger.error( "There are %d LFNs not marked Processed but that have descendants -> ERROR" \
+                     % len( cc.nonProcessedLFNsWithDescendants ),
+                     '\n'.join( [''] + sorted( cc.nonProcessedLFNsWithDescendants ) ) if verbose else '' )
       if fixIt:
         gLogger.always( "Marking them as 'Processed'" )
         cc.transClient.setFileStatusForTransformation( id, 'Processed', cc.nonProcessedLFNsWithDescendants )
