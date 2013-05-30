@@ -237,6 +237,7 @@ class DMScript():
       return []
     lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ) for l in lfnList]
     lfnList = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] if '/lhcb' in lfn else '' for lfn in lfnList]
+    lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
     return [lfn for lfn in lfnList if lfn]
 
   def setLFNsFromFile( self, arg ):
