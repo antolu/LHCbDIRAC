@@ -300,6 +300,7 @@ class ProductionRequestDB( DB ):
         y = long( x )
     except ValueError:
       return S_ERROR( "Bad parameters (all request IDs must be numbers)" )
+    idFilter = False
     try: # test filters
       sfilter = []
       for x in filterIn:
@@ -324,6 +325,7 @@ class ProductionRequestDB( DB ):
             if not val:
               return S_OK( {'Rows':[], 'Total':0} )
             val = "( " + ','.join( val ) + ") "
+            idFilter = True
           sfilter.append( " t.%s IN %s " % ( x, val ) )
       sfilter = " AND ".join( sfilter )
     except Exception, e:
@@ -347,10 +349,13 @@ class ProductionRequestDB( DB ):
     else:
       if subrequestsFor:
         where = "t.ParentID=%s" % subrequestsFor
-      elif sfilter:
-        where = sfilter
       else:
-        where = "t.ParentID IS NULL"
+        where = sfilter
+        if not idFilter:
+          if where:
+            where += " AND t.ParentID IS NULL"
+          else:
+            where = "t.ParentID IS NULL"
     req += where
     req += " GROUP BY t.RequestID"
     order = ""
@@ -358,7 +363,7 @@ class ProductionRequestDB( DB ):
       # order have to be applyed twice: before LIMIT and at the end
       order = " ORDER BY %s %s" % ( sortBy, sortOrder )
       req += order
-    if limit:
+    if limit and not subrequestsFor:
       req += " LIMIT %s,%s" % ( offset, limit )
     result = self._query( self.__addMonitoring( req, order ) )
     if not result['OK']:
