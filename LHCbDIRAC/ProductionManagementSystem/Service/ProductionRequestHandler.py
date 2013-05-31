@@ -312,6 +312,49 @@ class ProductionRequestHandler( RequestHandler ):
     os.remove(proxyFile)
     return result
 
+  types_execWizardScript = [ str, dict ]
+  def export_execWizardScript( self, wizard, wizpar ):
+    """ Execure wizard with parameters """
+    creds = self.__clientCredentials()
+    if creds['Group'] != 'lhcb_prmgr':
+      #return S_ERROR("You have to be production manager")
+      if 'Generate' in wizpar:
+        del wizpar['Generate']
+    res = getShifterProxy("ProductionManager")
+    if not res['OK']:
+      return res
+    proxyFile = res['Value']['proxyFile']
+    try:
+      f = tempfile.mkstemp()
+      os.write(f[0], "wizardParameters = {\n")
+      for name, value in wizpar.items():
+        os.write(f[0], "  \""+str(name)+"\": \"\"\""+str(value)+"\"\"\",\n")
+      os.write(f[0], "}\n")
+      os.write(f[0], wizard)
+      os.close(f[0])
+    except Exception, msg:
+      gLogger.error("In temporary files createion: "+str(msg))
+      os.remove(proxyFile)
+      return S_ERROR(str(msg))
+    setenv = "source /opt/dirac/bashrc"
+    ##proxy = "X509_USER_PROXY=xxx"
+    proxy = "X509_USER_PROXY=%s" % proxyFile
+    cmd = "python %s" % (f[1])
+    try:
+      res = DIRAC.shellCall(1800, [ "/bin/bash -c '%s;%s %s'" \
+                                   % (setenv,proxy,cmd) ])
+      if res['OK']:
+        result = S_OK(str(res['Value'][1])+str(res['Value'][2]))
+      else:
+        gLogger.error(res['Message'])
+        result = res
+    except Exception, msg:
+      gLogger.error("During execution: "+str(msg))
+      result = S_ERROR("Failed to execute: %s" % str(msg))
+    os.remove(f[1])
+    os.remove(proxyFile)
+    return result
+
   types_getProductionList = [ long ]
   def export_getProductionList( self, requestID ):
     """ Return the list of productions associated with request and
