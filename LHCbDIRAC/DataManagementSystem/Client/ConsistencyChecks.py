@@ -411,7 +411,7 @@ class ConsistencyChecks( object ):
       return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
         allDaughters, inFCNotInBK, inBKNotInFC, removedFiles
 
-    chunkSize = 100 if self.transType == 'DataStripping' else 500
+    chunkSize = 100 if self.transType == 'DataStripping' and len( self.fileType ) > 1 else 500
     self.__write( "Now getting daughters for %d %s mothers in production %d (chunks of %d) "
                   % ( len( lfns ), status, self.prod, chunkSize ) )
     startTime = time.time()
@@ -492,6 +492,7 @@ class ConsistencyChecks( object ):
         #print "%d not Present daughters, %d have a descendant" % ( len( notPresent ), len( setDaughtersWithDesc ) )
 
         startTime = time.time()
+        chunkSize = 500
         self.__write( "Now establishing final list of existing descendants for %d mothers (chunks of %d)"
                       % ( len( filesWithDescendants ), chunkSize ) )
         i = -1
@@ -567,9 +568,12 @@ class ConsistencyChecks( object ):
     else:
       removedFiles = []
 
+    # Remove files with multiple descedants from files with descendants
+    for lfn in filesWithMultipleDescendants:
+      filesWithDescendants.pop( lfn, None )
     # For files in FC and not in BK, ignore if they are not active
     if inFCNotInBK:
-      inFCNotInBK, notPr = self.getReplicasPresence( inFCNotInBK )
+      inFCNotInBK = self.getReplicasPresence( inFCNotInBK )[0]
     return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
       list( setRealDaughters ), inFCNotInBK, inBKNotInFC, removedFiles
 
@@ -665,7 +669,25 @@ class ConsistencyChecks( object ):
       if not res['OK']:
         raise RuntimeError, res['Message']
       else:
-        return res['Value'].split( '\n' )
+        directories = []
+        dirList = res['Value'].split( '\n' )
+        for dirName in dirList:
+          # There is a shortcut when multiple streams are used, only the stream name is repeated!
+          if ';' in dirName:
+            items = dirName.split( ';' )
+            baseDir = os.path.dirname( items[0] )
+            items[0] = os.path.basename( items[0] )
+            lastItems = items[-1].split( '/' )
+            items[-1] = lastItems[0]
+            if len( lastItems ) > 1:
+              suffix = '/'.join( lastItems[1:] )
+            else:
+              suffix = ''
+            for it in items:
+              directories.append( os.path.join( baseDir, it, suffix ) )
+          else:
+            directories.append( dirName )
+        return directories
     else:
       raise RuntimeError( "Need to specify either the directories or a production id" )
 
