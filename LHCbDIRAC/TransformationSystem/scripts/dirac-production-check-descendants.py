@@ -71,6 +71,7 @@ if __name__ == '__main__':
     cc = ConsistencyChecks()
     cc.lfns = lfnList
     cc.prod = id
+    startTime = time.time()
     gLogger.always( "Processing %s production %d" % ( cc.transType, cc.prod ) )
     if not fileType:
       bkQuery = BKQuery( {'Production':id, 'FileType':'ALL', 'Visible':'All'} )
@@ -86,17 +87,35 @@ if __name__ == '__main__':
 
     # Print out the results
     gLogger.always( '\nResults:' )
+    if verbose:
+      nMax = sys.maxint
+    else:
+      nMax = 20
+    suffix = ''
+    n = 0
+    import os
+    while True:
+      fileName = 'CheckDescendantsResults_%s%s.txt' % ( str( cc.prod ), suffix )
+      if not os.path.exists( fileName ):
+        break
+      n += 1
+      suffix = '-%d' % n
+    fp = None
     if cc.inFCNotInBK:
-      gLogger.always( "%d descendants were found in FC but not in BK" % len( cc.inFCNotInBK ) )
+      lfns = cc.inFCNotInBK
+      gLogger.always( "%d descendants were found in FC but not in BK" % len( lfns ) )
       if fixIt:
-        res = cc.bkClient.addFiles( cc.inFCNotInBK )
+        res = cc.bkClient.addFiles( lfns )
         if not res['OK']:
-          gLogger.error( "Error setting replica flag", res['Message'] )
+          gLogger.always( "Error setting replica flag", res['Message'] )
         else:
           gLogger.always( 'Replica flag set successfully' )
       else:
-        if verbose:
-          gLogger.always( '\n'.join( sorted( cc.inFCNotInBK ) ) )
+        if not fp:
+          fp = open( fileName, 'w' )
+        fp.write( '\nInFCNotInBK '.join( [''] + lfns ) )
+        gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
+                       '\n'.join( [''] + lfns[0:nMax] ) )
         gLogger.always( "Use --FixIt for fixing it (or dirac-dms-check-fc2bkk --Term and paste the list)" )
 
     if cc.removedFiles:
@@ -106,7 +125,7 @@ if __name__ == '__main__':
         while True:
           res = cc.transClient.setFileStatusForTransformation( cc.prod, 'Removed', lfnChunk, force = True )
           if not res['OK']:
-            gLogger.error( 'Error setting files Removed, retry...', res['Message'] )
+            gLogger.always( 'Error setting files Removed, retry...', res['Message'] )
           else:
             break
       gLogger.always( "\tFiles set to status Removed" )
@@ -115,69 +134,68 @@ if __name__ == '__main__':
     gLogger.always( "%d unique daughters found with real descendants" % ( len( set( cc.descendantsForProcessedLFNs ).union( cc.descendantsForNonProcessedLFNs ) ) ) )
 
     if cc.processedLFNsWithMultipleDescendants:
-      nMax = 20
-      if not verbose and len( cc.processedLFNsWithMultipleDescendants ) > nMax:
-        prStr = ' (first %d files)' % nMax
-      else:
-        prStr = ''
-      gLogger.error( "Processed LFNs with multiple descendants (%d) -> ERROR%s" \
-                     % ( len( cc.processedLFNsWithMultipleDescendants ) , prStr ),
-                     '\n'.join( [''] + sorted( cc.processedLFNsWithMultipleDescendants )[0:nMax] ) if not verbose else '' )
-      if verbose:
-        gLogger.error( '\n'.join( sorted( cc.processedLFNsWithMultipleDescendants ) ) )
-      suffix = ''
-      n = 0
-      import os
-      while True:
-        fileName = 'FilesMultiplyProcessed_%s%s.txt' % ( str( cc.prod ), suffix )
-        if not os.path.exists( fileName ):
-          break
-        n += 1
-        suffix = '-%d' % n
-      fp = open( fileName, 'w' )
-      fp.write( '\n'.join( ['%s: %s' % ( lfn, str( multi ) ) for lfn, multi in cc.processedLFNsWithMultipleDescendants.items()] ) )
-      fp.close()
-      gLogger.always( 'Complete list of files is in %s' % fileName )
-      gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )
+      lfns = sorted( cc.processedLFNsWithMultipleDescendants )
+      gLogger.always( "Processed LFNs with multiple descendants (%d) -> ERROR" % len( lfns ) )
+      gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
+                      '\n'.join( [''] + lfns[0:nMax] ) )
+      if not fp:
+        fp = open( fileName, 'w' )
+      fp.write( '\nProcMultDesc '.join( ['%s: %s' % ( lfn, str( multi ) ) \
+                                        for lfn, multi in cc.processedLFNsWithMultipleDescendants.items()] ) )
+      gLogger.always( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
       gLogger.always( "No processed LFNs with multiple descendants found -> OK!" )
 
     if cc.processedLFNsWithoutDescendants:
       lfns = sorted( cc.processedLFNsWithoutDescendants )
-      gLogger.always( "Processed LFNs without descendants (%d) -> ERROR!" \
-                      % len( cc.processedLFNsWithoutDescendants ),
-                      '\n'.join( [''] + sorted( lfns ) ) if verbose else '' )
+      gLogger.always( "Processed LFNs without descendants (%d) -> ERROR!" % len( lfns ) )
       if fixIt:
         gLogger.always( "Resetting them 'Unused'" )
         res = cc.transClient.setFileStatusForTransformation( id, 'Unused', lfns, force = True )
         if not res['OK']:
-          gLogger.error( "Error resetting files to Unused", res['Message'] )
+          gLogger.always( "Error resetting files to Unused", res['Message'] )
         else:
           if res['Value']['Failed']:
-            gLogger.error( "Those files could not be reset Unused:", '\n'.join( res['Value']['Failed'] ) )
+            gLogger.always( "Those files could not be reset Unused:", '\n'.join( res['Value']['Failed'] ) )
       else:
+        if not fp:
+          fp = open( fileName, 'w' )
+        fp.write( '\nProcNoDesc '.join( [''] + lfns ) )
+        gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
+                        '\n'.join( [''] + lfns[0:nMax] ) )
         gLogger.always( "Use --FixIt for fixing" )
     else:
       gLogger.always( "No processed LFNs without descendants found -> OK!" )
 
     if cc.nonProcessedLFNsWithMultipleDescendants:
-      gLogger.error( "Non processed LFNs with multiple descendants (%d) -> ERROR" \
-                     % len( cc.nonProcessedLFNsWithMultipleDescendants ) ,
-                     '\n'.join( [''] + sorted( cc.nonProcessedLFNsWithMultipleDescendants ) ) if verbose else '' )
-      gLogger.error( "I'm not doing anything for them, neither with the 'FixIt' option" )
+      lfns = sorted( cc.nonProcessedLFNsWithMultipleDescendants )
+      gLogger.always( "Non processed LFNs with multiple descendants (%d) -> ERROR" % len( lfns ) )
+      if not fp:
+        fp = open( fileName, 'w' )
+      fp.write( '\nNotProcMultDesc '.join( [''] + lfns ) )
+      gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
+                     '\n'.join( [''] + lfns[0:nMax] ) )
+      gLogger.always( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
       gLogger.always( "No non processed LFNs with multiple descendants found -> OK!" )
 
     #fixing, if requested
     if cc.nonProcessedLFNsWithDescendants:
-      gLogger.error( "There are %d LFNs not marked Processed but that have descendants -> ERROR" \
-                     % len( cc.nonProcessedLFNsWithDescendants ),
-                     '\n'.join( [''] + sorted( cc.nonProcessedLFNsWithDescendants ) ) if verbose else '' )
+      lfns = sorted( cc.nonProcessedLFNsWithDescendants )
+      gLogger.always( "There are %d LFNs not marked Processed but that have descendants -> ERROR" % len( lfns ) )
       if fixIt:
         gLogger.always( "Marking them as 'Processed'" )
-        cc.transClient.setFileStatusForTransformation( id, 'Processed', cc.nonProcessedLFNsWithDescendants )
+        cc.transClient.setFileStatusForTransformation( id, 'Processed', lfns )
       else:
+        if not fp:
+          fp = open( fileName, 'w' )
+        fp.write( '\nNotProcWithDesc '.join( [''] + lfns ) )
+        gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
+                        '\n'.join( [''] + lfns[0:nMax] ) )
         gLogger.always( "Use --FixIt for fixing" )
     else:
       gLogger.always( "No non processed LFNs with descendants found -> OK!" )
-    gLogger.always( "Processed production %d" % cc.prod )
+    if fp:
+      fp.close()
+      gLogger.always( 'Complete list of files is in %s' % fileName )
+    gLogger.always( "Processed production %d in %.1f seconds" % ( cc.prod, time.time() - startTime ) )
