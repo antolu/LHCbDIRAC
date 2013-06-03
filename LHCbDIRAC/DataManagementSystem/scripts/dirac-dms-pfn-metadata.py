@@ -32,7 +32,7 @@ if __name__ == "__main__":
   dmScript.registerFileSwitches()
   dmScript.registerSiteSwitches()
   Script.registerSwitch( '', 'Check', '   Checks the PFN metadata vs LFN metadata' )
-  Script.registerSwitch( '', 'Exists', '   Only reports if hte file exists' )
+  Script.registerSwitch( '', 'Exists', '   Only reports if the file exists' )
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
                                        '  %s [option|cfgfile] ... [URL[,URL2[,URL3...]]] SE[ SE2...]' % Script.scriptName,
@@ -110,9 +110,9 @@ if __name__ == "__main__":
         for url in seMetadata['Successful']:
           pfnMetadata = seMetadata['Successful'][url].copy()
           if len( seList ) > 1:
-            metadata['Successful'].setdefault( url, {} )[se] = pfnMetadata if not exists else {'Exists':True}
+            metadata['Successful'].setdefault( url, {} )[se] = pfnMetadata if not exists else {'Exists': 'True (%sCached)' % ( '' if pfnMetadata['Cached'] else 'Not ' )}
           else:
-            metadata['Successful'][url] = pfnMetadata if not exists else {'Exists':True}
+            metadata['Successful'][url] = pfnMetadata if not exists else {'Exists':'True (%sCached)' % ( '' if pfnMetadata['Cached'] else 'Not ' )}
           if check:
             res1 = rm.getCatalogFileMetadata( url )
             if res1['OK']:
