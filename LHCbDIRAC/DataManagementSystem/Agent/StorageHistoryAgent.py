@@ -8,7 +8,7 @@
 
 __RCSID__ = "$Id$"
 
-import os, time
+import os, time, copy
 from types import IntType, StringType
 
 from DIRAC                                                  import S_OK, S_ERROR, gLogger
@@ -557,7 +557,6 @@ class StorageHistoryAgent( AgentModule ):
   def fillAndSendAccountingRecord( self, lfnDir, metadataDict, now ):
     ''' Create, fill and send to accounting a record for the DataStorage type.
     '''
-
     dataRecord = DataStorage()
     dataRecord.setStartTime( now )
     dataRecord.setEndTime( now )
@@ -580,7 +579,8 @@ class StorageHistoryAgent( AgentModule ):
       dataRecord.setValueByKey( "PhysicalFiles", physicalFiles )
       self.log.verbose( "\t\tStorageElement: %s --> physFiles: %d  physSize: %d " % ( se, physicalFiles, physicalSize ) )
 
-      res = gDataStoreClient.addRegister( dataRecord )
+      # addRegister is NOT making a copy, therefore all records are otherwise overwritten
+      res = gDataStoreClient.addRegister( copy.deepcopy( dataRecord ) )
       if not res[ 'OK']:
         self.log.error( "addRegister returned: %s" % res )
         return S_ERROR( "addRegister returned: %s" % res )
