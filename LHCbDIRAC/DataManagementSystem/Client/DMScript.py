@@ -229,7 +229,7 @@ class DMScript():
     if type( lfns ) == type( {} ):
       lfnList = lfns.keys()
     elif type( lfns ) == type( '' ):
-      lfnList = [lfns]
+      lfnList = lfns.split( ',' )
     elif type( lfns ) == type( [] ):
       lfnList = lfns
     else:
