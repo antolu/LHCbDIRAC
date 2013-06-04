@@ -1058,13 +1058,13 @@ class StorageUsageDB( DB ):
     metadata = {}
     resList = result['Value']
     for dirPath, dirKey in zip( dirList, stdDirList ):
-      t = ()
+      metadata[dirPath] = ()
       if dirKey  in dirIDs:
         did = dirIDs[dirKey]
         for t in resList:
           if t[0] == did:
+            metadata[dirPath] = t
             break
-      metadata[dirPath] = t
     self.log.verbose( 'getDirMetadata returns %s' % str( metadata ) )
     return S_OK( metadata )
 
