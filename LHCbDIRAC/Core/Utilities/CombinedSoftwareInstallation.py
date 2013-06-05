@@ -103,7 +103,7 @@ class CombinedSoftwareInstallation:
       DIRAC.gLogger.info( 'Assume locally running job without CE configuration settings' )
       return DIRAC.S_OK()
 
-    if self.jobConfig == DIRAC.gConfig.getValue( '/LocalSite/Architecture', '' ): # as set by the job agent in case of 'ANY'
+    if self.jobConfig == DIRAC.gConfig.getValue( '/LocalSite/Architecture', '' ):  # as set by the job agent in case of 'ANY'
       DIRAC.gLogger.info( 'Job SystemConfiguration is set to /LocalSite/Architecture, checking compatible platforms' )
       compatibleArchs = DIRAC.gConfig.getValue( '/Resources/Computing/OSCompatibility/%s' % ( self.jobConfig ), [] )
       if not compatibleArchs:
@@ -185,7 +185,7 @@ def checkApplication( app, config, area ):
       DIRAC.gLogger.warn( 'Failed to find:', installProjectFile )
       return False
     else:
-  #NOTE: must cd to LOCAL area directory (install_project requirement)
+  # NOTE: must cd to LOCAL area directory (install_project requirement)
       DIRAC.gLogger.info( ' change directory to %s ' % sharedArea )
       os.chdir( sharedArea )
       area = sharedArea
@@ -217,7 +217,7 @@ def checkApplication( app, config, area ):
   if not ret['OK']:
     DIRAC.gLogger.error( 'Software checking failed', '%s %s' % ( appName, appVersion ) )
     return False
-  if ret['Value'][0]: # != 0
+  if ret['Value'][0]:  # != 0
     DIRAC.gLogger.error( 'Software checking failed with non-zero status', '%s %s' % ( appName, appVersion ) )
     return False
 
@@ -291,69 +291,8 @@ def installApplication( app, config, area ):
     DIRAC.gLogger.warn( 'Failed to install software:', '_'.join( app ) )
     DIRAC.gLogger.warn( ret['Message'] )
     return False
-  if ret['Value'][0]: # != 0
+  if ret['Value'][0]:  # != 0
     DIRAC.gLogger.warn( 'Failed to install software:', '_'.join( app ) )
-    return False
-
-  return True
-
-#############################################################################
-
-def removeApplication( app, config, area ):
-  """
-   Install given application at given area, at some point (when supported)
-   it will check already installed packages in shared area and install locally
-   only missing parts
-  """
-  if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
-    try:
-      urllib.urlretrieve( '%s%s' % ( installProjectURL, installProjectFile ), installProjectFile )
-    except urllib.ContentTooShortError, msg:
-      DIRAC.gLogger.exception( 'Content too short', msg )
-      return False
-    if not os.path.exists( '%s/%s' % ( os.getcwd(), installProjectFile ) ):
-      DIRAC.gLogger.error( '%s/%s could not be downloaded' % ( installProjectURL, installProjectFile ) )
-      return False
-
-  if not area:
-    return False
-
-  appName, appVersion = _getApp( app )
-  # make a copy of the environment dictionary
-  cmtEnv = dict( os.environ )
-  cmtEnv['MYSITEROOT'] = area
-  cmtEnv['CMTCONFIG'] = config
-
-  installProject = os.path.join( area, installProjectFile )
-  if not os.path.exists( installProject ):
-    try:
-      shutil.copy( installProjectFile, area )
-    except:
-      DIRAC.gLogger.warn( 'Failed to create:', installProject )
-      return False
-
-  curDir = os.getcwd()
-
-  # Move to requested are and run the installation
-  os.chdir( area )
-  cmdTuple = [sys.executable]
-  cmdTuple += [installProjectFile]
-  #removal options
-  cmds = opsH.getValue( 'GaudiExecution/removalProjectOptions', '-r' )
-  for cmdTupleC in cmds.split( ' ' ):
-    cmdTuple += [cmdTupleC]
-  cmdTuple += [ appName ]
-  if appVersion:
-    cmdTuple += [ appVersion ]
-
-  ret = DIRAC.systemCall( 3600, cmdTuple, env = cmtEnv, callbackFunction = log )
-  os.chdir( curDir )
-  if not ret['OK']:
-    DIRAC.gLogger.warn( 'Software Removal Failed:', '_'.join( app ) )
-    DIRAC.gLogger.warn( ret['Message'] )
-    return False
-  if ret['Value'][0]: # != 0
-    DIRAC.gLogger.warn( 'Software Removal Failed:', '_'.join( app ) )
     return False
 
   return True
