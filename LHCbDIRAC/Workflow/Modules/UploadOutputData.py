@@ -29,7 +29,6 @@ class UploadOutputData( ModuleBase ):
     self.version = __RCSID__
     self.commandTimeOut = 10 * 60
     self.jobID = ''
-    self.jobType = ''
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
     self.existingCatalogs = []
     result = gConfig.getSections( '/Resources/FileCatalogs' )
@@ -78,9 +77,6 @@ class UploadOutputData( ModuleBase ):
         inputDataList = self.InputData.split( ';' )
       else:
         inputDataList = copy.deepcopy( self.InputData )
-
-    if self.workflow_commons.has_key( 'JobType' ):
-      self.jobType = self.workflow_commons['JobType']
 
     return inputDataList
 
