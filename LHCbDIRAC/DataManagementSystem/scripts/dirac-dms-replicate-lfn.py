@@ -37,14 +37,13 @@ if __name__ == "__main__":
                                        '  Source:   Valid DIRAC SE',
                                        '  Cache:    Local directory to be used as cache' ] ) )
   Script.parseCommandLine( ignoreErrors = True )
-  args = Script.getPositionalArgs()
 
-  seList, args = __checkSEs( args )
+  seList, args = __checkSEs( Script.getPositionalArgs() )
   destList = []
   sourceSE = []
   localCache = ''
   try:
-    destList, xx = __checkSEs( seList[0].split( ',' ) )
+    destList = __checkSEs( seList[0].split( ',' ) )[0]
     sourceSE = seList[1].split( ',' )
   except:
     pass
