@@ -663,16 +663,16 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
 
         # gConfig.getSection error
         mockGetSections.return_value = S_ERROR()
-        self.assertRaises( Exception, getCPUNormalizationFactorAvg )
+        self.assertRaises( RuntimeError, getCPUNormalizationFactorAvg )
 
         # Resources.getQueues error
         mockGetSections.return_value = S_OK( ['LCG.CERN.ch'] )
         mockGetQueues.return_value = S_ERROR()
-        self.assertRaises( Exception, getCPUNormalizationFactorAvg )
+        self.assertRaises( RuntimeError, getCPUNormalizationFactorAvg )
 
         # no queues
         mockGetQueues.return_value = S_OK( {'LCG.CERN.ch' : {}} )
-        self.assertRaises( Exception, getCPUNormalizationFactorAvg )
+        self.assertRaises( RuntimeError, getCPUNormalizationFactorAvg )
 
         # success
         mockGetQueues.return_value = S_OK( {'LCG.CERN.ch':

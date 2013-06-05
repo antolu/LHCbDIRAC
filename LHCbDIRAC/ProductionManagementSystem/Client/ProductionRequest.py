@@ -490,8 +490,8 @@ class ProductionRequest( object ):
 
     try:
       self.CPUNormalizationFactorAvg = getCPUNormalizationFactorAvg()
-    except:
-      self.logger.info( 'Could not get CPUNormalizationFactorAvg from config, defaulting to %d' % self.CPUNormalizationFactorAvg )
+    except RuntimeError:
+      self.logger.info( 'Could not get CPUNormalizationFactorAvg, defaulting to %d' % self.CPUNormalizationFactorAvg )
 
     max_e = getEventsToProduce( CPUe, self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
     prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce (Gauss only)' )

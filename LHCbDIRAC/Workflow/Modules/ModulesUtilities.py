@@ -82,13 +82,13 @@ def getCPUNormalizationFactorAvg():
 
   sites = gConfig.getSections( 'Resources/Sites/LCG' )
   if not sites['OK']:
-    raise Exception, sites['Message']
+    raise RuntimeError, sites['Message']
   else:
     sites = sites['Value']
 
   queuesRequest = Resources.getQueues( sites )
   if not queuesRequest['OK']:
-    raise Exception, queuesRequest['Message']
+    raise RuntimeError, queuesRequest['Message']
   else:
     queuesRequest = queuesRequest['Value']
 
@@ -102,7 +102,7 @@ def getCPUNormalizationFactorAvg():
             nQueues += 1
 
   if nQueues == 0:
-    raise Exception, 'No queues to get CPU normalization factor from'
+    raise RuntimeError, 'No queues to get CPU normalization factor from'
   else:
     CPUNormalizationFactorAvg = factorsSum / nQueues
 
