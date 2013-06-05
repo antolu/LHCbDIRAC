@@ -708,7 +708,7 @@ class ConsistencyChecks( object ):
       while True:
         res = self.bkClient.getFileMetadata( lfnChunk )
         if not res['OK']:
-          gLogger.error( "\Can't get the bkk metadata, retry: ", res['Message'] )
+          gLogger.error( "\nCan't get the bkk metadata, retry: ", res['Message'] )
         else:
           metadata = res['Value']['Successful']
           missingLFNs += [lfn for lfn in lfnChunk if lfn not in metadata]
