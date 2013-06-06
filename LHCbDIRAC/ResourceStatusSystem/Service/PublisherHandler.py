@@ -6,7 +6,7 @@
 
 '''
 
-from datetime                                               import datetime
+from datetime                                               import datetime, timedelta
 from types                                                  import NoneType
 
 from DIRAC                                                  import gLogger, S_OK, gConfig, S_ERROR
@@ -147,6 +147,89 @@ class PublisherHandler( RequestHandler ):
       tree[ site ][ 'ses' ][ name ][ statusType ] = status   
 
     return S_OK( tree )
+    
+    tree[ site ][ 'ses' ] = {}
+    for seTuple in sesStatus[ 'Value' ]:
+      name, statusType, status = seTuple
+      if not name in tree[ site ][ 'ses' ]:
+        tree[ site ][ 'ses' ][ name ] = {}
+      tree[ site ][ 'ses' ][ name ][ statusType ] = status   
+
+    return S_OK( tree )
+
+  types_setToken = [ str ] * 7
+  def export_setToken( self, element, name, statusType, token, elementType, username, lastCheckTime ):
+
+    lastCheckTime = datetime.strptime( lastCheckTime, '%Y-%m-%d %H:%M:%S' )
+
+    credentials = self.getRemoteCredentials()
+    gLogger.info( credentials )
+
+    elementInDB =rsClient.selectStatusElement( element, 'Status', name = name,
+                                               statusType = statusType,
+                                               elementType = elementType,
+                                               lastCheckTime = lastCheckTime )
+    if not elementInDB[ 'OK' ]:
+      return elementInDB
+    elif not elementInDB[ 'Value' ]:
+      return S_ERROR( 'Your selection has been modified. Please refresh.' )
+
+
+
+    if token == 'Acquire':
+      tokenOwner = username
+      tokenExpiration = datetime.utcnow() + timedelta( days = 1 )
+    elif token == 'Release':
+      tokenOwner = 'rs_svc'
+      tokenExpiration = datetime.max
+    else:
+      return S_ERROR( '%s is unknown token action' % token )
+
+    reason = 'Token %sd by %s ( web )' % ( token, username )
+
+    newStatus = rsClient.addOrModifyStatusElement( element, 'Status', name = name,
+                                                   statusType = statusType,
+                                                   elementType = elementType,
+                                                   reason = reason,
+                                                   tokenOwner = tokenOwner,
+                                                   tokenExpiration = tokenExpiration )
+    if not newStatus[ 'OK' ]:
+      return newStatus
+
+    return S_OK( reason )
+
+  types_setStatus = [ str ] * 7
+  def export_setStatus( self, element, name, statusType, status, elementType, username, lastCheckTime ):
+
+    lastCheckTime = datetime.strptime( lastCheckTime, '%Y-%m-%d %H:%M:%S' )
+
+    credentials = self.getRemoteCredentials()
+    gLogger.info( credentials )
+
+    elementInDB =rsClient.selectStatusElement( element, 'Status', name = name,
+                                               statusType = statusType,
+                                            #   status = status,
+                                               elementType = elementType,
+                                               lastCheckTime = lastCheckTime )
+    if not elementInDB[ 'OK' ]:
+      return elementInDB
+    elif not elementInDB[ 'Value' ]:
+      return S_ERROR( 'Your selection has been modified. Please refresh.' )
+
+    reason          = 'Status %s forced by %s ( web )' % ( status, username )
+    tokenExpiration = datetime.utcnow() + timedelta( days = 1 )
+
+    newStatus = rsClient.addOrModifyStatusElement( element, 'Status', name = name,
+                                                   statusType = statusType,
+                                                   status = status,
+                                                   elementType = elementType,
+                                                   reason = reason,
+                                                   tokenOwner = username,
+                                                   tokenExpiration = tokenExpiration )
+    if not newStatus[ 'OK' ]:
+      return newStatus
+
+    return S_OK( reason )    
     
   #-----------------------------------------------------------------------------  
     
