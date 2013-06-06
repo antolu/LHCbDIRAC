@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# File :    lhcb-import-dirac-release
+# File :    lhcb-import-vmdirac-release
 # Author :  Adria Casajus
 ########################################################################
 """
@@ -15,7 +15,7 @@ from LHCbDIRAC.Core.Utilities import Distribution
 
 import sys, os, tempfile, shutil
 
-project = "LHCbVMDIRAC"
+project = "VMDIRAC"
 module = "VMDIRAC"
 release = ""
 svnUsername = ""
@@ -29,8 +29,9 @@ def setRelease( optionValue ):
 
 def setPackage( optionValue ):
   """ set the package name """
-  global svnPackages
+  global svnPackages, module
   svnPackages = optionValue
+  module = optionValue
   return S_OK()
 
 def setUsername( optionValue ):
@@ -89,7 +90,7 @@ if __name__ == "__main__":
     localCFG.createNewSection( 'Versions' )
     localCFG['Versions'].createNewSection( release )
     localreleaseCFG = localCFG['Versions']
-    localreleaseCFG[release].setOption( 'Resources', release )
+#    localreleaseCFG[release].setOption( 'Resources', release )
     localreleaseCFG[release].setOption( 'Web', release )
     localreleaseCFG[release].setOption( 'WorkloadManagementSystem', release )
     localCFG.writeToFile( 'versions-new.cfg' )
