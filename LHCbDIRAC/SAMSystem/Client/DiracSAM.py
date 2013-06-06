@@ -9,7 +9,6 @@ from DIRAC.Interfaces.API.Dirac                          import Dirac, S_OK, S_E
 
 from LHCbDIRAC.Core.Utilities.DetectOS     import NativeMachine
 from LHCbDIRAC.Interfaces.API.LHCbJob      import LHCbJob
-#from LHCbDIRAC.SAMSystem.Client.LHCbSAMJob import LHCbSAMJob
 from LHCbDIRAC.Workflow.Utilities.Utils    import getStepDefinition, addStepToWorkflow
 
 COMPONENT_NAME = 'DiracSAMAPI'
