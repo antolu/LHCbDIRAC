@@ -1164,8 +1164,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.util.logInfo( "%d files are not in required list (only at %s)" % ( len( lfns ), replicaSE ) )
         else:
           newGroups.setdefault( ','.join( targetSEs ), [] ).extend( lfns )
+      # Restrict the query to the TS to the interesting productions
+      prodList = [pr for prods in activeProds.values() for pr in prods ]
+      self.util.logVerbose( "Using following list of productions: %s" % str( prodList ) )
       for stringTargetSEs, lfns in newGroups.items():
-        res = self.transClient.getTransformationFiles( {'LFN': lfns, 'Status':['Processed', 'Problematic']} )
+        res = self.transClient.getTransformationFiles( {'TransformationID': prodList, 'LFN': lfns, 'Status':['Processed', 'Problematic']} )
         if not res['OK']:
           self.util.logError( "Failed to get transformation files for %d files" % len( lfns ) )
           continue
