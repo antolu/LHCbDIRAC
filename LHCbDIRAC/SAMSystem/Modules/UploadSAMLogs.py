@@ -88,7 +88,7 @@ class UploadSAMLogs( ModuleBase ):
       return S_ERROR( 'No GridRequiredCE on workflow_commons' )
 
     date    = time.strftime( '%Y-%m-%d' )
-    lfnPath = '/lhcb/test/sam/%s/%s/%s' % ( ce, date, self.workflow_commons[ 'JOB_ID' ] )
+    lfnPath = '/lhcb/test/sam/%s/%s/%s' % ( ce, date, self.jobID )
 
     self.log.verbose( 'lfnPath: %s' % lfnPath )
 
