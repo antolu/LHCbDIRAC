@@ -791,7 +791,7 @@ class ModuleBase( object ):
       reportRequest = result['Value']
     if reportRequest:
       self.log.info( 'Populating request with job report information' )
-      self.request.addOperation( reportRequest )
+      self.request.addOperation( reportRequest[0] )
 
     accountingReport = None
     if self.workflow_commons.has_key( 'AccountingReport' ):

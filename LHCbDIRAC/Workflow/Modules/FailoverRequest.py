@@ -91,7 +91,7 @@ class FailoverRequest( ModuleBase ):
           if result['Value'] is None:
             self.log.info( 'Files correctly reported to TransformationDB' )
           else:
-            result = self.request.addOperation( result['Value'] )
+            result = self.request.addOperation( result['Value'][0] )
       else:
         self.log.info( 'Status of files have been properly updated in the TransformationDB' )
 

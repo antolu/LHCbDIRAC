@@ -4,6 +4,7 @@ from mock import Mock, patch
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers import Resources
+from DIRAC.RequestManagementSystem.Client.Request import Request
 
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce, getCPUNormalizationFactorAvg
 
@@ -19,9 +20,8 @@ class ModulesTestCase( unittest.TestCase ):
 
     jr_mock = Mock()
     jr_mock.setApplicationStatus.return_value = {'OK': True, 'Value': ''}
-    jr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': 'pippo'}
+    jr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': Request()}
     jr_mock.setJobParameter.return_value = {'OK': True, 'Value': 'pippo'}
-#    jr_mock.setJobApplicationStatus.return_value = {'OK': True, 'Value': 'pippo'}
 
     self.fr_mock = Mock()
     self.fr_mock.getFiles.return_value = {}
@@ -29,13 +29,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.fr_mock.commit.return_value = {'OK': True, 'Value': ''}
     self.fr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': ''}
 
-    rc_mock = Mock()
-    rc_mock.update.return_value = {'OK': True, 'Value': ''}
-    rc_mock.setDISETRequest.return_value = {'OK': True, 'Value': ''}
-    rc_mock.isEmpty.return_value = {'OK': True, 'Value': ''}
-    rc_mock.toXML.return_value = {'OK': True, 'Value': ''}
-    rc_mock.getDigest.return_value = {'OK': True, 'Value': ''}
-    self.rc_mock = rc_mock
+    rc_mock = Request()
 
     ar_mock = Mock()
     ar_mock.commit.return_value = {'OK': True, 'Value': ''}

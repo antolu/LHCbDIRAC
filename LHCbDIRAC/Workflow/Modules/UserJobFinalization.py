@@ -243,8 +243,8 @@ class UserJobFinalization( ModuleBase ):
                                                                                      ', '.join( metadata['resolvedSE'] ) ) )
         result = ft.transferAndRegisterFile( fileName = fileName,
                                              localPath = metadata['localpath'],
-                                             metadata['filedict']['LFN'],
-                                             metadata['resolvedSE'],
+                                             lfn = metadata['filedict']['LFN'],
+                                             targetSE = metadata['resolvedSE'],
                                              fileGUID = metadata['filedict']['GUID'],
                                              fileSize = metadata['filedict']['Size'],
                                              fileCatalog = self.userFileCatalog )
