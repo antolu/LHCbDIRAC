@@ -329,7 +329,7 @@ class UploadLogFile( ModuleBase ):
     logFile.LFN = logFileLFN
 
     logRemoval.addFile( logFile )
-    self.request.addOperation( logUpload )
+    self.request.addOperation( logRemoval )
 
     return S_OK()
 
