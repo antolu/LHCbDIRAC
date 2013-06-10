@@ -30,6 +30,9 @@ class XMLNode:
 class XMLTreeParser:
   """XMLTreeParser converts an XML file or a string into a tree of XMLNodes.
      It does not validate the XML.
+
+     Elements that are the only child of an element and are of text or cdata type
+     are considered to be the value of their parent.
   """
   def __init__( self ):
     self.tree = None
@@ -66,7 +69,11 @@ class XMLTreeParser:
       node.attributes = self.__getAttributesDict( el )
 
       if len( el.childNodes ) == 1:
-        node.value = self.__handleTextElement( el.childNodes[ 0 ] )
+        childNode = el.childNodes[ 0 ]
+        if childNode.nodeType == childNode.TEXT_NODE or childNode.nodeType == childNode.CDATA_SECTION_NODE:
+          node.value = self.__handleTextElement( el.childNodes[ 0 ] )
+        else:
+          node.children = self.__handleElement( el.childNodes )
       else:
         node.children = self.__handleElement( el.childNodes )
 
@@ -74,11 +81,12 @@ class XMLTreeParser:
 
     return nodes
 
-  def __getAttributesDict( self, attributes ):
+  def __getAttributesDict( self, element ):
     """ get the attributes in a dictionnary """
     dictionary = {}
-    for attr in attributes.attributes.values():
-      dictionary[ attr.name.encode( 'ascii' ) ] = attr.value.encode( 'ascii' )
+    if element.attributes:
+      for attr in element.attributes.values():
+        dictionary[ attr.name.encode( 'ascii' ) ] = attr.value.encode( 'ascii' )
     return dictionary
 
   def __handleTextElement( self, textElement ):
@@ -88,7 +96,7 @@ class XMLTreeParser:
   def __getText( self, node ):
     """ get the TEXT """
     data = ''
-    if node.nodeType == node.TEXT_NODE:
+    if node.nodeType == node.TEXT_NODE or node.nodeType == node.CDATA_SECTION_NODE:
       data = node.data.encode( 'ascii' )
     return data
 
