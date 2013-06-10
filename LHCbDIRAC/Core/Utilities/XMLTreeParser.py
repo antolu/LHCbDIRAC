@@ -28,7 +28,7 @@ class XMLNode:
 ################################################################################
 
 class XMLTreeParser:
-  """XMLTreeParser converts an XML file into a tree of XMLNodes.
+  """XMLTreeParser converts an XML file or a string into a tree of XMLNodes.
      It does not validate the XML.
   """
   def __init__( self ):
@@ -37,6 +37,12 @@ class XMLTreeParser:
   def parse( self, xmlFile ):
     """ parse the XML """
     domXML = xml.dom.minidom.parse( xmlFile )
+    self.__handleXML( domXML )
+    return self.tree
+
+  def parseString( self, xmlString ):
+    """ parse the XML """
+    domXML = xml.dom.minidom.parseString( xmlString )
     self.__handleXML( domXML )
     return self.tree
 
@@ -159,4 +165,4 @@ def addChildNode( parentNode, tag, returnChildren, args ):
   return parentNode
 
 ################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
