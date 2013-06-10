@@ -97,6 +97,7 @@ if __name__ == "__main__":
         replicas.pop( lfn )
         urlList.remove( lfn )
     metadata['Failed'].update( res['Value']['Failed'] )
+    metadata['Failed'].update( dict.fromkeys( [url for url in urlList if url not in replicas and url not in metadata['Failed']], 'No active replicas' ) )
   result = None
   if replicas:
     for se in seList:
