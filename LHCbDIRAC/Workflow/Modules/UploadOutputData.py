@@ -350,7 +350,6 @@ class UploadOutputData( ModuleBase ):
   def __cleanUp( self, lfnList ):
     """ Clean up uploaded data for the LFNs in the list
     """
-    #TODO: check if this is working!!!
     for op in self.request:
       if op.Type in ['PutAndRegister', 'ReplicateAndRegister', 'RegisterFile', 'RegisterReplica']:
         for files in op:
