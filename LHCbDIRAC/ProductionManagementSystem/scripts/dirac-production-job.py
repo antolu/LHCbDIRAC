@@ -1,8 +1,8 @@
 """
   dirac-production-job
 
-    This script merges the former scripts `dirac-production-job-lfn-check`,
-    `dirac-production-job-lfn` and `dirac-production-job-select-check`.
+    This script merges the former scripts dirac-production-job-lfn-check,
+    dirac-production-job-lfn and dirac-production-job-select-check.
 
     Usage:
       dirac-procuction-job
@@ -19,21 +19,22 @@
         -o LogLevel=LEVEL     NOTICE by default, levels available: INFO, DEBUG, VERBOSE...
 
 """
-from DIRAC.Core.Base                                  import Script
-Script.parseCommandLine( ignoreErrors = True )
 
-from DIRAC                                            import gLogger, exit as DiracExit, S_OK
-from DIRAC.Core.DISET.RPCClient                       import RPCClient
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-from DIRAC.Interfaces.API.Dirac                       import Dirac
+from DIRAC.Core.Base import Script
+from DIRAC           import gLogger, exit as DiracExit, S_OK
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.Core.Utilities.JobInfoFromXML              import JobInfoFromXML
 
 __RCSID__ = '$Id$'
 
-subLogger = None
-switchDict = {}
+
+# Place holders for lazy imports................................................
+dirac          = None
+jobInfoFromXML = None
+transClient    = None
+
+subLogger      = None
+switchDict     = {}
+
 
 def registerSwitches():
   '''
@@ -56,11 +57,13 @@ def registerSwitches():
 
   Script.setUsageMessage( __doc__ )
 
+
 def parseSwitches():
   '''
     Parses the arguments passed by the user
   '''
 
+  Script.parseCommandLine( ignoreErrors = True )
   args = Script.getPositionalArgs()
 
   if args:
@@ -76,24 +79,8 @@ def parseSwitches():
 
   return switchDict
 
-################################################################################
-# Cosmetic stuff, to be replaced by pprint
 
-def printDict( dictionary ):
-  """ Dictionary pretty printing
-  """
-  key_max = 0
-  value_max = 0
-  for key, value in dictionary.items():
-    if len( key ) > key_max:
-      key_max = len( key )
-    if len( str( value ) ) > value_max:
-      value_max = len( str( value ) )
-  for key, value in dictionary.items():
-    #subLogger.verbose( key.rjust( key_max ), ' : ', str( value ).ljust( value_max ) )
-    print key.rjust( key_max ), ' : ', str( value ).ljust( value_max )
-
-################################################################################
+#...............................................................................
 
 def getJobs():
   '''
@@ -123,7 +110,6 @@ def getJobs():
 
     subLogger.debug( '\n'.join( [ str( c ) for c in condDict.items()] ), switchDict )
 
-    dirac = Dirac()
     jobs = dirac.selectJobs( **condDict )
     if not jobs[ 'OK' ]:
       subLogger.error( jobs[ 'Message' ] )
@@ -134,6 +120,7 @@ def getJobs():
   subLogger.debug( "Processing %d jobs" % len( jobs ), switchDict )
 
   return jobs
+
 
 def processJobs( jobs ):
   '''
@@ -148,129 +135,54 @@ def processJobs( jobs ):
     Depending on the logger, more or less information is printed.
   '''
 
-  rManager = ReplicaManager()
-  bClient = BookkeepingClient()
-  pClient = RPCClient( 'Transformation/TransformationManager' )
-
   for job in jobs:
 
-    jobinfo = JobInfoFromXML( job )
-    result = jobinfo.valid()
+    jobinfo = jobInfoFromXML( job )
+    result  = jobinfo.valid()
     if not result[ 'OK' ]:
       subLogger.error( '%s %s' % ( job, result[ 'Message' ] ) )
       continue
-    subLogger.debug( job )
 
-    outputFlags = processOutput( jobinfo, rManager, bClient, switchDict )
-    if not outputFlags[ 'OK' ]:
-      subLogger.error( outputFlags[ 'Message' ] )
-      replicaFlag, bkkFlag = False, False
-    else:
-      replicaFlag, bkkFlag = outputFlags[ 'Value' ]
+    subLogger.info( 'JobID : %s' % job )
+    
 
-def processOutput( job, replicaManger, bookkeepingClient ):
-  '''
-    Given a Job and two clients, gets the flags for the replica and the bookkeeping.
-  '''
+    processInput( jobinfo )
 
-  lfns = job.getOutputLFN()
-  if not lfns[ 'OK' ]:
-    return lfns
-  lfns = lfns[ 'Value' ]
+    output = jobinfo.getOutputLFN()
+    if not output[ 'OK' ]:
+      subLogger.error( output[ 'Message' ] )
+      continue
+    subLogger.info( '\noutput' )
+    map( subLogger.info, output[ 'Value' ] )
+    
 
-  replicaFlag = getReplicas( lfns, replicaManager )
-  if not replicaFlag[ 'OK' ]:
-    subLogger.error( replicaFlag[ 'Message' ] )
-    replicaFlag = False
-  else:
-    replicaFlag = replicaFlag[ 'Value' ]
+def processInput( jobinfo ):
+  
+  input  = jobinfo.getInputLFN()
+  if not input[ 'OK' ]:
+    subLogger.error( input[ 'Message' ] )
+    return
+  
+  subLogger.info( '\ninput' )
+  if input[ 'Value' ]:
+    inputFiles = input[ 'Value' ][ 0 ].split( ';' )
+  
+    fileStatus = transClient.getFileSummary( inputFiles )
+    if not fileStatus[ 'OK' ]:
+      subLogger.error( fileStatus[ 'Message' ] )
+    
+    def processFileSummary( status ):
+    
+      subLogger.info( '%s files' % status )
+      for fileName, fileDict in fileStatus[ 'Value' ][ status ].iteritems():
+        summary = ''            
+        for value in fileDict.values():
+          summary += '%(Status)s ( %(TransformationID)s ),' % value
+        subLogger.info( '%s ::: %s' % ( fileName, summary ) )   
 
-  bookkeepingFlag = getBookkeeping( lfns, bookkeepingClient )
-  if not bookkeepingFlag[ 'OK' ]:
-    subLogger.error( bookkeepingFlag[ 'Message' ] )
-    bookkeepingFlag = False
-  else:
-    bookkeepingFlag = bookkeepingFlag[ 'Value' ]
+    processFileSummary( 'Successful' )
+    processFileSummary( 'Failed' )
 
-  return S_OK( replicaFlag, bookkeepingFlag )
-
-def getReplicas( lfns, replicaManager ):
-  '''
-    Gets replicas of the given lfns.
-  '''
-
-  replicaFlag = False
-
-  replicas = replicaManger.getReplicas( lfns )
-  if not replicas[ 'OK' ]:
-    return replicas
-  replicas = replicas[ 'Value' ]
-
-  successful = value.get( 'Successful', [] )
-  failed = value.get( 'Failed', [] )
-
-  if len( successful ) == len( lfns ):
-    replicaFlag = True
-
-  subLogger.verbose( "LFC replicas:" )
-  subLogger.verbose( "Successful:" )
-  printDict( successful )
-  subLogger.verbose( "Failed:" )
-  printDict( failed )
-
-  return S_OK( replicaFlag )
-
-def getBookkeeping( lfns, bookkeepingClient ):
-  '''
-    Gets files registered for the given lfns
-  '''
-
-  bookkeepingFlag = False
-
-  lfnsBKK = bookkeepingClient.exists( lfns )
-  if not lfnsBKK[ 'OK' ]:
-    return lfnsBKK
-  lfnsBKK = lfnsBKK[ 'Value' ]
-
-  subLogger.verbose( "Bookkeping:" )
-  printDict( lfnsBKK )
-
-  bkkFound = len( [ value for value in lfnsBKK.itervalues() if value ] )
-
-  if bkkFound == len( lfns ):
-    bookkeepingFlag = True
-
-  return S_OK( bookkeepingFlag )
-
-def processInput( job, productionClient ):
-
-  lfns = job.getInputLFN()
-  if not lfns[ 'OK' ]:
-    return lfns
-  lfns = lfns[ 'Value' ]
-
-  prodID = int( job.prodid )
-  subLogger.verbose( "ProductionDB for production %d" % prodID )
-
-  fileSummary = productionClient.getFileSummary( lfns, prodID )
-  if not fileSummary[ 'OK' ]:
-    return fileSummary
-  fileSummary = fileSummary[ 'Value' ]
-
-# TODO: finish it !  
-#  #okPROD = True
-#  if len( lfns ):
-#    
-#      for lfn in lfns:
-#        try:
-#          status = fs['Value']['Successful'][lfn][prodid]
-#          if not status['FileStatus'].count( 'Processed' ):
-#            okPROD = False
-#          if verbose:
-#            print status
-#      
-#        except:
-#          okPROD = False
 
 def run():
   '''
@@ -282,7 +194,25 @@ def run():
   jobs = getJobs()
   processJobs( jobs )
 
-################################################################################
+
+#...............................................................................
+
+def lazyImports():
+
+  global dirac
+  from DIRAC.Interfaces.API.Dirac import Dirac
+  dirac = Dirac()
+
+  global jobInfoFromXML
+  from LHCbDIRAC.Core.Utilities.JobInfoFromXML import JobInfoFromXML
+  jobInfoFromXML = JobInfoFromXML
+  
+  global transClient
+  from DIRAC.Core.DISET.RPCClient import RPCClient
+  transClient = RPCClient( 'Transformation/TransformationManager')
+
+
+#...............................................................................
 
 if __name__ == "__main__":
 
@@ -290,6 +220,9 @@ if __name__ == "__main__":
   registerSwitches()
   subLogger = gLogger.getSubLogger( __file__ )
   switchDict = parseSwitches()
+  
+  # lazy Imports
+  lazyImports()
 
   # Script execution  
   run()
@@ -297,5 +230,5 @@ if __name__ == "__main__":
   # Bye my friend  
   DiracExit( 0 )
 
-################################################################################
+#...............................................................................
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
