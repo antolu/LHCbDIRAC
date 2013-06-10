@@ -786,12 +786,12 @@ class ModuleBase( object ):
     reportRequest = None
     result = self.jobReport.generateForwardDISET()
     if not result['OK']:
-      self.log.warn( 'Could not generate request for job report with result:\n%s' % ( result ) )
+      self.log.warn( 'Could not generate Operation for job report with result:\n%s' % ( result ) )
     else:
       reportRequest = result['Value']
     if reportRequest:
       self.log.info( 'Populating request with job report information' )
-      self.request.addOperation( reportRequest[0] )
+      self.request.addOperation( reportRequest )
 
     accountingReport = None
     if self.workflow_commons.has_key( 'AccountingReport' ):
