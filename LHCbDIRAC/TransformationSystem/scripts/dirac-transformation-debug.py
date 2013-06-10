@@ -590,7 +590,7 @@ def __checkRunsToFlush( pluginUtils, runID, transFilesList, runStatus, evtType =
   prStr = ''
   for anc in sorted( ancestors ):
     ft = ancestors[anc]
-    if ft:
+    if ft and ft != ['']:
       prStr += '%d ancestors found for %s; ' % ( anc, ','.join( ft ) )
     else:
       prStr = '%d ancestors found' % anc
@@ -766,7 +766,7 @@ if __name__ == "__main__":
     if justStats:
       improperJobs += __justStats( transID, status, seList )
       continue
-    ################
+    pluginUtil = PluginUtilities( transPlugin, transClient, rm, bkClient, None, None, verbose, {}, transID = transID )    ################
     # Select runs, or all
     runsDictList = __getRuns( transID, runList, byRuns, seList, status )
     if runList and [run['RunNumber'] for run in runsDictList] == [None]:
@@ -813,8 +813,6 @@ if __name__ == "__main__":
 
       if checkFlush or ( ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in transPlugin and runStatus != 'Flush' ):
         # Check if the run should be flushed
-        if not pluginUtil:
-          pluginUtil = PluginUtilities( transPlugin, transClient, rm, bkClient, None, None, verbose, {}, transID = transID )
         __checkRunsToFlush( pluginUtil, runID, transFilesList, runStatus )
 
       prString = "%d files found" % len( transFilesList )
@@ -847,7 +845,7 @@ if __name__ == "__main__":
           filesWithRunZero.append( fileDict['LFN'] )
 
       # Files with run# == 0
-      if filesWithRunZero:
+      if filesWithRunZero and transType != 'Removal':
         __fixRunZero( filesWithRunZero, fixRun )
 
       # Problematic files
