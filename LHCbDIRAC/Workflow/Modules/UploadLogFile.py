@@ -203,7 +203,7 @@ class UploadLogFile( ModuleBase ):
     result = ft.transferAndRegisterFile( fileName = tarFileName,
                                          localPath = '%s/%s' % ( os.getcwd(), tarFileName ),
                                          lfn = self.logLFNPath,
-                                         targetSE = self.failoverSEs,
+                                         destinationSEList = self.failoverSEs,
                                          fileGUID = None,
                                          fileCatalog = 'LcgFileCatalogCombined' )
 

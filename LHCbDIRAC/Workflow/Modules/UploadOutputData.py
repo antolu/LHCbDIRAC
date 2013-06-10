@@ -191,7 +191,7 @@ class UploadOutputData( ModuleBase ):
         result = failoverTransfer.transferAndRegisterFile( fileName = fileName,
                                                            localPath = metadata['localpath'],
                                                            lfn = metadata['filedict']['LFN'],
-                                                           targetSE = targetSE,
+                                                           destinationSEList = targetSE,
                                                            fileGUID = metadata['filedict']['GUID'],
                                                            fileCatalog = 'LcgFileCatalogCombined',
                                                            fileSize = metadata['filedict']['Size'] )
