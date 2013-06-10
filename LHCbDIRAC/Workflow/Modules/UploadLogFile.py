@@ -311,7 +311,7 @@ class UploadLogFile( ModuleBase ):
     self.log.info( 'Setting log upload request for %s at %s' % ( logFileLFN, targetSE ) )
 
     logUpload = Operation()
-    logUpload.Type = 'UploadLogFiles'
+    logUpload.Type = 'LogUpload'
     logUpload.TargetSE = targetSE
 
     logFile = File()
