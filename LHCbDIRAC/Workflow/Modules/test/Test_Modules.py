@@ -5,6 +5,7 @@ from mock import Mock, patch
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers import Resources
 from DIRAC.RequestManagementSystem.Client.Request import Request
+from DIRAC.RequestManagementSystem.Client.Operation import Operation
 
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce, getCPUNormalizationFactorAvg
 
@@ -20,14 +21,14 @@ class ModulesTestCase( unittest.TestCase ):
 
     jr_mock = Mock()
     jr_mock.setApplicationStatus.return_value = {'OK': True, 'Value': ''}
-    jr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': Request()}
+    jr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': Operation()}
     jr_mock.setJobParameter.return_value = {'OK': True, 'Value': 'pippo'}
 
     self.fr_mock = Mock()
     self.fr_mock.getFiles.return_value = {}
     self.fr_mock.setFileStatus.return_value = {'OK': True, 'Value': ''}
     self.fr_mock.commit.return_value = {'OK': True, 'Value': ''}
-    self.fr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': ''}
+    self.fr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': Operation()}
 
     rc_mock = Request()
 
