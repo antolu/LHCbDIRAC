@@ -100,6 +100,7 @@ class LogUpload( OperationHandlerBase ):
         reason = logUpload["Failed"][lfn]
         self.log.error( "failed to replicate log file %s at %s: %s" % ( lfn, targetSE, reason ) )
         opFile.Error = str( reason )
+        opFile.Attempt += 1
         self.operation.Error = str( reason )
         continue
 
