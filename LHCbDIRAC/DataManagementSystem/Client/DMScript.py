@@ -219,7 +219,7 @@ class DMScript():
 
   def setLFNs( self, arg ):
     if arg:
-      self.options.setdefault( 'LFNs', [] ).extend( arg.split( ',' ) )
+      self.options.setdefault( 'LFNs', [] ).extend( self.getLFNsFromList( arg ) )
     return DIRAC.S_OK()
 
   def setLFNsFromTerm( self, arg ):
@@ -231,7 +231,7 @@ class DMScript():
     elif type( lfns ) == type( '' ):
       lfnList = lfns.split( ',' )
     elif type( lfns ) == type( [] ):
-      lfnList = lfns
+      lfnList = [lfn for lfn1 in lfns for lfn in lfn1.split( ',' )]
     else:
       gLogger.error( 'getLFNsFromList: invalid type %s' % type( lfns ) )
       return []
