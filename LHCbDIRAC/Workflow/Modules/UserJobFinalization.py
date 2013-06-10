@@ -164,23 +164,13 @@ class UserJobFinalization( ModuleBase ):
 
       self.log.verbose( 'Calling getCandidateFiles( %s, %s, %s)' % ( outputList, userOutputLFNs,
                                                                      self.outputDataFileMask ) )
-      result = self.getCandidateFiles( outputList, userOutputLFNs, self.outputDataFileMask )
-      if not result['OK']:
-        self.setApplicationStatus( result['Message'] )
-        return S_OK()
+      fileDict = self.getCandidateFiles( outputList, userOutputLFNs, self.outputDataFileMask )
 
-      fileDict = result['Value']
-      result = self.getFileMetadata( fileDict )
-      if not result['OK']:
-        self.setApplicationStatus( result['Message'] )
-        return S_OK()
-
-      if not result['Value']:
+      fileMetadata = self.getFileMetadata( fileDict )
+      if not fileMetadata:
         self.log.info( 'No output data files were determined to be uploaded for this workflow' )
         self.setApplicationStatus( 'No Output Data Files To Upload' )
         return S_OK()
-
-      fileMetadata = result['Value']
 
       # First get the local (or assigned) SE to try first for upload and others in random fashion
       result = getDestinationSEList( 'Tier1-USER', DIRAC.siteName(), outputmode = 'local' )
@@ -333,6 +323,7 @@ class UserJobFinalization( ModuleBase ):
       return S_OK( 'Output data uploaded' )
 
     except Exception, e:
+      self.setApplicationStatus( e )
       self.log.exception( e )
       return S_ERROR( e )
 

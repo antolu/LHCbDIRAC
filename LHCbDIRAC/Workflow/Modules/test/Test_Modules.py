@@ -385,8 +385,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
                             'workflowSE': outputList[0]['outputDataSE']}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], result )
+    self.assertEqual( res, result )
 
     fileMask = ['txt', 'py']
     stepMask = None
@@ -398,15 +397,13 @@ class ModuleBaseSuccess( ModulesTestCase ):
                            'workflowSE': outputList[1]['outputDataSE']},
               }
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], result )
+    self.assertEqual( res, result )
 
     fileMask = ['aa']
     stepMask = None
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
     result = {}
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], result )
+    self.assertEqual( res, result )
 
     fileMask = ''
     stepMask = '2'
@@ -416,8 +413,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], result )
+    self.assertEqual( res, result )
 
     fileMask = ''
     stepMask = 2
@@ -427,8 +423,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], result )
+    self.assertEqual( res, result )
 
 
     fileMask = ''
@@ -439,8 +434,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], result )
+    self.assertEqual( res, result )
 
     fileMask = ''
     stepMask = ['3']
@@ -448,8 +442,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], result )
+    self.assertEqual( res, result )
 
   def test__enableModule( self ):
 
@@ -589,9 +582,6 @@ class ModuleBaseSuccess( ModulesTestCase ):
                                    'workflowSE': 'SE2'},
                       }
 
-    result = self.mb.getFileMetadata( candidateFiles )
-    self.assertTrue( result['OK'] )
-
     expectedResult = {'bar_2.py': {'filedict': {'Status': 'Waiting',
                                                 'LFN': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                                                 'GUID': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
@@ -614,7 +604,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
                                     'type': 'txt'}
                       }
 
-    self.assertEqual( result['Value'], expectedResult )
+    result = self.mb.getFileMetadata( candidateFiles )
+    self.assertEqual( result, expectedResult )
 
 
 #############################################################################

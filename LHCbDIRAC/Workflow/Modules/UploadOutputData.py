@@ -106,23 +106,14 @@ class UploadOutputData( ModuleBase ):
 
       # Determine the final list of possible output files for the workflow and all the parameters needed to upload them.
       self.log.verbose( 'Getting the list of candidate files' )
-      result = self.getCandidateFiles( self.outputList, self.prodOutputLFNs,
+      fileDict = self.getCandidateFiles( self.outputList, self.prodOutputLFNs,
                                        self.outputDataFileMask, self.outputDataStep )
-      if not result['OK']:
-        self.setApplicationStatus( result['Message'] )
-        return result
 
-      fileDict = result['Value']
-      result = self.getFileMetadata( fileDict )
-      if not result['OK']:
-        self.setApplicationStatus( result['Message'] )
-        return result
+      fileMetadata = self.getFileMetadata( fileDict )
 
-      if not result['Value']:
+      if not fileMetadata:
         self.log.info( 'No output data files were determined to be uploaded for this workflow' )
         return S_OK()
-
-      fileMetadata = result['Value']
 
       # Get final, resolved SE list for files
       final = {}
@@ -293,12 +284,9 @@ class UploadOutputData( ModuleBase ):
         self.log.info( 'There are no files to perform the BK registration for, all could be saved to failover' )
       else:
         if registrationFailure:
-          self.log.info( 'There were catalog registration failures during the upload of files \
-          for this job, BK registration requests are being prepared' )
+          self.log.info( 'Catalog registration failures when upload files: preparing BK registration requests' )
           for lfn in performBKRegistration:
-            result = self.setBKRegistrationRequest( lfn )
-            if not result['OK']:
-              return result
+            self.setBKRegistrationRequest( lfn )
         else:
           result = self.rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
           self.log.verbose( result )
@@ -307,9 +295,7 @@ class UploadOutputData( ModuleBase ):
             return S_ERROR( 'Could Not Perform BK Registration' )
           if result['Value']['Failed']:
             for lfn, error in result['Value']['Failed'].items():
-              result = self.setBKRegistrationRequest( lfn, error, targetSE )
-              if not result['OK']:
-                return result
+              self.setBKRegistrationRequest( lfn, error )
 
       self.workflow_commons['Request'] = self.request
 
@@ -317,33 +303,12 @@ class UploadOutputData( ModuleBase ):
 
     except Exception, e:
       self.log.exception( e )
+      self.setApplicationStatus( e )
       return S_ERROR( e )
 
     finally:
       super( UploadOutputData, self ).finalize( self.version )
 
-
-  #############################################################################
-
-  def setBKRegistrationRequest( self, lfn, error = '', targetSE = 'CERN-HIST' ):
-    """ Set a BK registration request for changing the replica flag.  Uses the
-        global request object.
-    """
-    if error:
-      self.log.info( 'BK registration for %s failed with message: "%s" setting failover request' % ( lfn, error ) )
-    else:
-      self.log.info( 'Setting BK registration request for %s' % ( lfn ) )
-
-    regFile = Operation()
-    regFile.Type = 'RegisterFile'
-    regFile.Catalog = 'BookkeepingDB'
-    bkFile = File()
-    bkFile.LFN = lfn
-
-    regFile.addFile( bkFile )
-    self.request.addOperation( regFile )
-
-    return S_OK()
 
   #############################################################################
 

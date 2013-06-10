@@ -6,13 +6,15 @@ __RCSID__ = "$Id$"
 
 import os, copy
 
-from DIRAC                                                    import S_OK, S_ERROR, gLogger
+from DIRAC                                                    import gLogger
 from DIRAC.Core.Utilities.Adler                               import fileAdler
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
 from DIRAC.Resources.Catalog.PoolXMLFile                      import getGUID
 from DIRAC.WorkloadManagementSystem.Client.JobReport          import JobReport
 from DIRAC.TransformationSystem.Client.FileReport             import FileReport
 from DIRAC.RequestManagementSystem.Client.Request             import Request
+from DIRAC.RequestManagementSystem.Client.Operation           import Operation
+from DIRAC.RequestManagementSystem.Client.File                import File
 from DIRAC.RequestManagementSystem.private.RequestValidator   import gRequestValidator
 from DIRAC.DataManagementSystem.Client.ReplicaManager         import ReplicaManager
 
@@ -133,7 +135,7 @@ class ModuleBase( object ):
     """Wraps around setJobApplicationStatus of state update client
     """
     if not self._WMSJob():
-      return S_OK( 'JobID not defined' )  # e.g. running locally prior to submission
+      return 0  # e.g. running locally prior to submission
 
     self.log.verbose( 'setJobApplicationStatus(%s, %s)' % ( self.jobID, status ) )
 
@@ -144,15 +146,13 @@ class ModuleBase( object ):
     if not jobStatus['OK']:
       self.log.warn( jobStatus['Message'] )
 
-    return jobStatus
-
   #############################################################################
 
   def setJobParameter( self, name, value, sendFlag = True, jr = None ):
     """Wraps around setJobParameter of state update client
     """
     if not self._WMSJob():
-      return S_OK( 'JobID not defined' )  # e.g. running locally prior to submission
+      return 0  # e.g. running locally prior to submission
 
     self.log.verbose( 'setJobParameter(%s,%s,%s)' % ( self.jobID, name, value ) )
 
@@ -162,8 +162,6 @@ class ModuleBase( object ):
     jobParam = jr.setJobParameter( str( name ), str( value ), sendFlag )
     if not jobParam['OK']:
       self.log.warn( jobParam['Message'] )
-
-    return jobParam
 
   #############################################################################
 
@@ -500,21 +498,15 @@ class ModuleBase( object ):
         self.log.verbose( 'Found LFN %s for file %s' % ( lfn, os.path.basename( lfn ) ) )
 
     # check local existance
-    try:
-      self._checkLocalExistance( fileInfo.keys() )
-    except OSError:
-      return S_ERROR( 'Output Data Not Found' )
+    self._checkLocalExistance( fileInfo.keys() )
 
     # Select which files have to be uploaded: in principle all
     candidateFiles = self._applyMask( fileInfo, fileMask, stepMask )
 
-    # Sanity check all final candidate metadata keys are present (return S_ERROR if not)
-    try:
-      self._checkSanity( candidateFiles )
-    except ValueError:
-      return S_ERROR( 'Missing requested fileName keys' )
+    # Sanity check all final candidate metadata keys are present
+    self._checkSanity( candidateFiles )
 
-    return S_OK( candidateFiles )
+    return candidateFiles
 
   #############################################################################
 
@@ -530,7 +522,7 @@ class ModuleBase( object ):
 
     if notPresentFiles:
       self.log.error( 'Output data file list %s does not exist locally' % notPresentFiles )
-      raise os.error
+      raise os.error, "Output data not found"
 
   #############################################################################
 
@@ -582,8 +574,8 @@ class ModuleBase( object ):
 
     if notPresentKeys:
       for fileName_keys in notPresentKeys:
-        self.log.error( 'File %s has missing %s' % ( fileName_keys[0], fileName_keys[1] ) )
-      raise ValueError
+        self.log.error( "File %s has missing %s" % ( fileName_keys[0], fileName_keys[1] ) )
+      raise ValueError, "Missing requested fileName keys"
 
   #############################################################################
 
@@ -636,9 +628,9 @@ class ModuleBase( object ):
     for fileName, metadata in final.items():
       for key in mandatoryKeys:
         if not metadata.has_key( key ):
-          return S_ERROR( 'File %s has missing %s' % ( fileName, key ) )
+          return RuntimeError, 'File %s has missing %s' % ( fileName, key )
 
-    return S_OK( final )
+    return final
 
   #############################################################################
 
@@ -655,7 +647,7 @@ class ModuleBase( object ):
           if outputF['stepName'] == previousStep and outputF['outputBKType'].lower() == self.inputDataType.lower():
             stepInputData.append( outputF['outputDataName'] )
         except KeyError:
-          return S_ERROR( 'Can\'t find output of step %s' % previousStep )
+          raise RuntimeError, 'Can\'t find output of step %s' % previousStep
 
       return stepInputData
 
@@ -824,3 +816,25 @@ class ModuleBase( object ):
         raise RuntimeError, requestJSON['Message']
 
   #############################################################################
+
+  def setBKRegistrationRequest( self, lfn, error = '' ):
+    """ Set a BK registration request for changing the replica flag.  Uses the global request object.
+    """
+    if error:
+      self.log.info( 'BK registration for %s failed with message: "%s" setting failover request' % ( lfn, error ) )
+    else:
+      self.log.info( 'Setting BK registration request for %s' % ( lfn ) )
+
+    regFile = Operation()
+    regFile.Type = 'RegisterFile'
+    regFile.Catalog = 'BookkeepingDB'
+    bkFile = File()
+    bkFile.LFN = lfn
+
+    regFile.addFile( bkFile )
+    res = self.request.addOperation( regFile )
+    if not res['OK']:
+      raise RuntimeError, res['Message']
+
+  #############################################################################
+

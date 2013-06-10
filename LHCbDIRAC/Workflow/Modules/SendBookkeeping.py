@@ -73,7 +73,7 @@ class SendBookkeeping( ModuleBase ):
           self.log.info( 'Bookkeeping report sent for %s' % bkFile )
         else:
           self.log.error( 'Could not send Bookkeeping XML file to server, preparing DISET request for', bkFile )
-          self.request.setDISETRequest( result['rpcStub'], executionOrder = 0 )
+          self.setBKRegistrationRequest( bkFile )
           self.workflow_commons['Request'] = self.request
 
       return S_OK( 'SendBookkeeping Module Execution Complete' )
