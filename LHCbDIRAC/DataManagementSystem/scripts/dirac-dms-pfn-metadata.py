@@ -64,9 +64,6 @@ if __name__ == "__main__":
   if not seList:
     seList, args = __checkSEs( args )
   # This should be improved, with disk SEs first...
-  if not seList:
-    gLogger.fatal( "Give SE name as last argument or with --SE option" )
-    Script.showHelp()
   seList.sort()
 
   for lfn in args:
@@ -85,20 +82,23 @@ if __name__ == "__main__":
   metadata = {'Successful':{}, 'Failed':{}}
   replicas = {}
   # restrict SEs to those where the replicas are
-  res = rm.getReplicas( urlList )
+  res = rm.getCatalogReplicas( urlList, allStatus = True )
   if not res['OK']:
     gLogger.fatal( 'Error getting replicas for %d files' % len( urlList ), res['Message'] )
     DIRAC.exit( 2 )
   else:
     replicas = res['Value']['Successful']
     for lfn in sorted( replicas ):
-      if not [se for se in replicas[lfn] if se in seList]:
+      if seList and not [se for se in replicas[lfn] if se in seList]:
         metadata['Failed'][lfn] = 'No such file at %s' % ' '.join( seList )
         replicas.pop( lfn )
         urlList.remove( lfn )
     metadata['Failed'].update( res['Value']['Failed'] )
     metadata['Failed'].update( dict.fromkeys( [url for url in urlList if url not in replicas and url not in metadata['Failed']], 'No active replicas' ) )
   result = None
+  if not seList:
+    # take all SEs in replicas and add a fake '' to printout the SE name
+    seList = [''] + sorted( list( set( [se for lfn in replicas for se in replicas[lfn]] ) ) )
   if replicas:
     for se in seList:
       fileList = [url for url in urlList if se in replicas.get( url, [] )]
