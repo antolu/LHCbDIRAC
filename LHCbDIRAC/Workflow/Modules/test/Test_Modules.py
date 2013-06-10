@@ -19,7 +19,7 @@ class ModulesTestCase( unittest.TestCase ):
 
     jr_mock = Mock()
     jr_mock.setApplicationStatus.return_value = {'OK': True, 'Value': ''}
-    jr_mock.generateRequest.return_value = {'OK': True, 'Value': 'pippo'}
+    jr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': 'pippo'}
     jr_mock.setJobParameter.return_value = {'OK': True, 'Value': 'pippo'}
 #    jr_mock.setJobApplicationStatus.return_value = {'OK': True, 'Value': 'pippo'}
 
@@ -27,7 +27,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.fr_mock.getFiles.return_value = {}
     self.fr_mock.setFileStatus.return_value = {'OK': True, 'Value': ''}
     self.fr_mock.commit.return_value = {'OK': True, 'Value': ''}
-    self.fr_mock.generateRequest.return_value = {'OK': True, 'Value': ''}
+    self.fr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': ''}
 
     rc_mock = Mock()
     rc_mock.update.return_value = {'OK': True, 'Value': ''}
@@ -580,6 +580,46 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
     self.assertEqual( out, outExp )
     self.assertEqual( bk, bkExp )
+
+
+  def test_getFileMetadata( self ):
+    open( 'foo_1.txt', 'w' ).close()
+    open( 'bar_2.py', 'w' ).close()
+
+    candidateFiles = {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
+                                    'type': 'txt',
+                                    'workflowSE': 'SE1'},
+                      'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
+                                   'type': 'py',
+                                   'workflowSE': 'SE2'},
+                      }
+
+    result = self.mb.getFileMetadata( candidateFiles )
+    self.assertTrue( result['OK'] )
+
+    expectedResult = {'bar_2.py': {'filedict': {'Status': 'Waiting',
+                                                'LFN': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
+                                                'GUID': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
+                                                'Adler': '001',
+                                                'Size': 0},
+                                   'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
+                                   'localpath': os.getcwd() + '/bar_2.py',
+                                   'workflowSE': 'SE2',
+                                   'guid': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
+                                   'type': 'py'},
+                      'foo_1.txt': {'filedict': {'Status': 'Waiting',
+                                                 'LFN': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
+                                                 'GUID': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
+                                                 'Adler': '001',
+                                                 'Size': 0},
+                                    'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
+                                    'localpath': os.getcwd() + '/foo_1.txt',
+                                    'workflowSE': 'SE1',
+                                    'guid': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
+                                    'type': 'txt'}
+                      }
+
+    self.assertEqual( result['Value'], expectedResult )
 
 
 #############################################################################

@@ -22,8 +22,6 @@ class SendBookkeeping( ModuleBase ):
     super( SendBookkeeping, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
 
     self.version = __RCSID__
-    #Workflow parameters
-    self.request = None
 
   #############################################################################
 
@@ -50,10 +48,6 @@ class SendBookkeeping( ModuleBase ):
 
       self._resolveInputVariables()
 
-      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-      self.request.setJobID( self.jobID )
-      self.request.setSourceComponent( "Job_%s" % self.jobID )
-
       bkFileExtensions = ['bookkeeping*.xml']
       bkFiles = []
       for ext in bkFileExtensions:
@@ -64,7 +58,7 @@ class SendBookkeeping( ModuleBase ):
             self.log.verbose( 'Found locally existing BK file: %s' % check )
             bkFiles.append( check )
 
-      #Unfortunately we depend on the file names to order the BK records
+      # Unfortunately we depend on the file names to order the BK records
       bkFiles.sort()
       self.log.info( 'The following BK files will be sent: %s' % ( ', '.join( bkFiles ) ) )
 
@@ -81,7 +75,6 @@ class SendBookkeeping( ModuleBase ):
           self.log.error( 'Could not send Bookkeeping XML file to server, preparing DISET request for', bkFile )
           self.request.setDISETRequest( result['rpcStub'], executionOrder = 0 )
           self.workflow_commons['Request'] = self.request
-
 
       return S_OK( 'SendBookkeeping Module Execution Complete' )
 

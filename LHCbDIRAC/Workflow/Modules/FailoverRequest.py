@@ -8,8 +8,8 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC import S_OK, S_ERROR, gLogger
-from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+from DIRAC                                                      import S_OK, S_ERROR, gLogger
+from LHCbDIRAC.Workflow.Modules.ModuleBase                      import ModuleBase
 
 class FailoverRequest( ModuleBase ):
 
@@ -54,12 +54,12 @@ class FailoverRequest( ModuleBase ):
 
       self._resolveInputVariables()
 
-      #preparing the request, just in case
-      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-      self.request.setJobID( self.jobID )
-      self.request.setSourceComponent( "Job_%s" % self.jobID )
+      # preparing the request, just in case
+      self.request.RequestName = 'job_%s_request.xml' % self.jobID
+      self.request.JobID = self.jobID
+      self.request.SourceComponent = "Job_%s" % self.jobID
 
-      #report on the status of the input data
+      # report on the status of the input data
       if self.stepInputData:
         inputFiles = self.fileReport.getFiles()
         for lfn in self.stepInputData:
@@ -84,14 +84,14 @@ class FailoverRequest( ModuleBase ):
       result = self.fileReport.commit()
       if not result['OK']:
         self.log.error( 'Failed to report file status to TransformationDB, trying again before populating request with file report information' )
-        result = self.fileReport.generateRequest()
+        result = self.fileReport.generateForwardDISET()
         if not result['OK']:
           self.log.warn( 'Could not generate request for file report with result:\n%s' % ( result['Value'] ) )
         else:
           if result['Value'] is None:
             self.log.info( 'Files correctly reported to TransformationDB' )
           else:
-            result = self.request.update( result['Value'] )
+            result = self.request.addOperation( result['Value'] )
       else:
         self.log.info( 'Status of files have been properly updated in the TransformationDB' )
 
@@ -100,42 +100,7 @@ class FailoverRequest( ModuleBase ):
       if self.workflowStatus['OK'] and self.stepStatus['OK']:
         self.setApplicationStatus( 'Job Finished Successfully', jr = self.jobReport )
 
-      # Retrieve the accumulated reporting request
-      reportRequest = None
-      result = self.jobReport.generateRequest()
-      if not result['OK']:
-        self.log.warn( 'Could not generate request for job report with result:\n%s' % ( result ) )
-      else:
-        reportRequest = result['Value']
-      if reportRequest:
-        self.log.info( 'Populating request with job report information' )
-        self.request.update( reportRequest )
-
-      accountingReport = None
-      if self.workflow_commons.has_key( 'AccountingReport' ):
-        accountingReport = self.workflow_commons['AccountingReport']
-      if accountingReport:
-        result = accountingReport.commit()
-        if not result['OK']:
-          self.log.error( '!!! Both accounting and RequestDB are down? !!!' )
-          return result
-
-      if self.request.isEmpty()['Value']:
-        self.log.info( 'Request is empty, nothing to do.' )
-        return self.finalize()
-
-      request_string = self.request.toXML()['Value']
-      self.log.debug( request_string )
-      # Write out the request string
-      fname = '%s_%s_request.xml' % ( self.production_id, self.prod_job_id )
-      xmlfile = open( fname, 'w' )
-      xmlfile.write( request_string )
-      xmlfile.close()
-      self.log.info( 'Creating failover request for deferred operations for job %s:' % self.jobID )
-      result = self.request.getDigest()
-      if result['OK']:
-        digest = result['Value']
-        self.log.info( digest )
+      self.generateFailoverFile()
 
       res = self.finalize()
 
@@ -163,4 +128,4 @@ class FailoverRequest( ModuleBase ):
     self.log.info( 'Workflow successful, end of FailoverRequest module execution.' )
     return S_OK( 'FailoverRequest module completed' )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

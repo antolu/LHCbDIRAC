@@ -5,11 +5,12 @@
 __RCSID__ = "$Id$"
 
 import os, copy
+
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC.RequestManagementSystem.Client.Request          import Operation
+from DIRAC.Core.Utilities                                  import DEncode
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient import DataUsageClient
-
-
 
 class FileUsage( ModuleBase ):
 
@@ -78,9 +79,9 @@ class FileUsage( ModuleBase ):
         return S_OK()
       dirDict = result['Value']
 
-      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-      self.request.setJobID( self.jobID )
-      self.request.setSourceComponent( "Job_%s" % self.jobID )
+      self.request.RequestName = 'job_%s_request.xml' % self.jobID
+      self.request.JobID = self.jobID
+      self.request.SourceComponent = "Job_%s" % self.jobID
 
       if dirDict:
         result = self._reportFileUsage( dirDict )
@@ -135,7 +136,10 @@ class FileUsage( ModuleBase ):
       if not usageStatus['OK']:
         self.log.error( 'Could not send data usage report, preparing a DISET failover request object' )
         self.log.verbose( usageStatus['rpcStub'] )
-        self.request.setDISETRequest( usageStatus['rpcStub'] )
+        forwardDISETOp = Operation()
+        forwardDISETOp.Type = "ForwardDISET"
+        forwardDISETOp.Arguments = DEncode.encode( usageStatus['rpcStub'] )
+        self.request.addOperation( forwardDISETOp )
         self.workflow_commons['Request'] = self.request
     else:
       self.log.info( 'Would have attempted to report %s at %s' % ( dirDict, localSE ) )

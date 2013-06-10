@@ -5,16 +5,19 @@
 __RCSID__ = "$Id$"
 
 import os, random, time, glob, copy
-
 import DIRAC
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 
-from LHCbDIRAC.Core.Utilities.ResolveSE import getDestinationSEList
-from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
-from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import getFileDescendants
+from DIRAC                                                    import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC.Core.Utilities                                     import DEncode
+from DIRAC.DataManagementSystem.Client.FailoverTransfer       import FailoverTransfer
+from DIRAC.RequestManagementSystem.Client.Operation           import Operation
+from DIRAC.RequestManagementSystem.Client.File                import File
 
-from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+from LHCbDIRAC.Core.Utilities.ResolveSE                       import getDestinationSEList
+from LHCbDIRAC.Core.Utilities.ProductionData                  import constructProductionLFNs
+from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks  import getFileDescendants
+
+from LHCbDIRAC.Workflow.Modules.ModuleBase                    import ModuleBase
 
 class UploadOutputData( ModuleBase ):
 
@@ -98,15 +101,10 @@ class UploadOutputData( ModuleBase ):
 
       inputDataList = self._resolveInputVariables()
 
-      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-      self.request.setJobID( self.jobID )
-      self.request.setSourceComponent( "Job_%s" % self.jobID )
-
       if not self._checkWFAndStepStatus():
         return S_OK( 'No output data upload attempted' )
 
-      # Determine the final list of possible output files for the
-      # workflow and all the parameters needed to upload them.
+      # Determine the final list of possible output files for the workflow and all the parameters needed to upload them.
       self.log.verbose( 'Getting the list of candidate files' )
       result = self.getCandidateFiles( self.outputList, self.prodOutputLFNs,
                                        self.outputDataFileMask, self.outputDataStep )
@@ -192,10 +190,11 @@ class UploadOutputData( ModuleBase ):
                                                                                      ', '.join( targetSE ) ) )
         result = failoverTransfer.transferAndRegisterFile( fileName = fileName,
                                                            localPath = metadata['localpath'],
-                                                           lfn = metadata['lfn'],
-                                                           destinationSEList = targetSE,
-                                                           fileGUID = metadata['guid'],
-                                                           fileCatalog = 'LcgFileCatalogCombined' )
+                                                           lfn = metadata['filedict']['LFN'],
+                                                           targetSE = targetSE,
+                                                           fileGUID = metadata['filedict']['GUID'],
+                                                           fileCatalog = 'LcgFileCatalogCombined',
+                                                           fileSize = metadata['filedict']['Size'] )
         if not result['OK']:
           self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
           failover[fileName] = metadata
@@ -218,11 +217,12 @@ class UploadOutputData( ModuleBase ):
         metadata['resolvedSE'] = self.failoverSEs
         result = failoverTransfer.transferAndRegisterFileFailover( fileName = fileName,
                                                                    localPath = metadata['localpath'],
-                                                                   lfn = metadata['lfn'],
+                                                                   lfn = metadata['filedict']['LFN'],
                                                                    targetSE = targetSE,
                                                                    failoverSEList = metadata['resolvedSE'],
-                                                                   fileGUID = metadata['guid'],
-                                                                   fileCatalog = 'LcgFileCatalogCombined' )
+                                                                   fileGUID = metadata['filedict']['GUID'],
+                                                                   fileCatalog = 'LcgFileCatalogCombined',
+                                                                   fileSize = metadata['filedict']['Size'] )
         if not result['OK']:
           self.log.error( 'Could not transfer and register %s in failover with metadata:\n %s' % ( fileName,
                                                                                                    metadata ) )
@@ -230,12 +230,7 @@ class UploadOutputData( ModuleBase ):
           break  # no point continuing if one completely fails
 
       # Now after all operations, retrieve potentially modified request object
-      result = failoverTransfer.getRequestObject()
-      if not result['OK']:
-        self.log.error( result )
-        return S_ERROR( 'Could not retrieve modified request' )
-
-      self.request = result['Value']
+      self.request = ft.request
 
       # If some or all of the files failed to be saved to failover
       if cleanUp:
@@ -275,7 +270,6 @@ class UploadOutputData( ModuleBase ):
       # Unfortunately we depend on the file names to order the BK records
       bkFiles.sort()
       self.log.info( 'The following BK records will be sent: %s' % ( ', '.join( bkFiles ) ) )
-      execOrder = 0
       for bkFile in bkFiles:
         fopen = open( bkFile, 'r' )
         bkXML = fopen.read()
@@ -288,8 +282,10 @@ class UploadOutputData( ModuleBase ):
         else:
           self.log.error( "Could not send Bookkeeping XML file to server: %s" % result['Message'] )
           self.log.info( "Preparing DISET request for", bkFile )
-          self.request.setDISETRequest( result['rpcStub'], executionOrder = execOrder )
-          execOrder += 1
+          bkDISETReq = Operation()
+          bkDISETReq.Type = "ForwardDISET"
+          bkDISETReq.Arguments = DEncode.encode( result['rpcStub'] )
+          self.request.addOperation( bkDISETReq )
           self.workflow_commons['Request'] = self.request  # update each time, just in case
 
       # Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
@@ -338,18 +334,15 @@ class UploadOutputData( ModuleBase ):
     else:
       self.log.info( 'Setting BK registration request for %s' % ( lfn ) )
 
-    lastOperationOnFile = self.request._getLastOrder()
-    result = self.request.addSubRequest( {'Attributes':{'Operation':'registerFile',
-                                                        'ExecutionOrder':lastOperationOnFile + 1,
-                                                        'Catalogue':'BookkeepingDB',
-                                                        'TargetSE':targetSE}},
-                                        'register' )
-    if not result['OK']:
-      self.log.error( 'Could not set registerFile request:\n%s' % result )
-      return S_ERROR( 'Could Not Set BK Registration Request' )
-    fileDict = {'LFN':lfn, 'Status':'Waiting'}
-    index = result['Value']
-    self.request.setSubRequestFiles( index, 'register', [fileDict] )
+    regFile = Operation()
+    regFile.Type = 'RegisterFile'
+    regFile.Catalog = 'BookkeepingDB'
+    bkFile = File()
+    bkFile.LFN = lfn
+
+    regFile.addFile( bkFile )
+    self.request.addOperation( regFile )
+
     return S_OK()
 
   #############################################################################
@@ -357,34 +350,21 @@ class UploadOutputData( ModuleBase ):
   def __cleanUp( self, lfnList ):
     """ Clean up uploaded data for the LFNs in the list
     """
-    # Clean up the current request
-    for req_type in ['transfer', 'register']:
-      for lfn in lfnList:
-        result = self.request.getNumSubRequests( req_type )
-        if result['OK']:
-          nreq = result['Value']
-          if nreq:
-            # Go through subrequests in reverse order in order not to spoil the numbering
-            ind_range = [0]
-            if nreq > 1:
-              ind_range = range( nreq - 1, -1, -1 )
-            for i in ind_range:
-              result = self.request.getSubRequestFiles( i, req_type )
-              if result['OK']:
-                fileList = result['Value']
-                if fileList[0]['LFN'] == lfn:
-                  result = self.request.removeSubRequest( i, req_type )
+    #TODO: check if this is working!!!
+    for op in self.request:
+      if op.Type in ['PutAndRegister', 'ReplicateAndRegister', 'RegisterFile', 'RegisterReplica']:
+        for files in op:
+          if files.LFN in lfnList:
+            del op
 
     # Set removal requests just in case
+    removeFiles = Operation()
+    removeFiles.Type = 'RemoveFile'
     for lfn in lfnList:
-      lastOperationOnFile = self.request._getLastOrder( lfn )
-      result = self.request.addSubRequest( {'Attributes':{'Operation':'removeFile',
-                                                          'TargetSE':'',
-                                                          'ExecutionOrder':lastOperationOnFile + 1}},
-                                          'removal' )
-      index = result['Value']
-      fileDict = {'LFN':lfn, 'PFN':'', 'Status':'Waiting'}
-      self.request.setSubRequestFiles( index, 'removal', [fileDict] )
+      removedFile = File()
+      removedFile.LFN = lfn
+      removeFiles.addFile( removedFile )
+    self.request.addOperation( removeFiles )
 
     return S_OK()
 

@@ -1,14 +1,13 @@
-########################################################################
-# $Id$
-########################################################################
 """ Module to remove input data files for given workflow. Initially written
     for use after merged outputs have been successfully uploaded to an SE.
 """
 
 __RCSID__ = "$Id$"
 
-from DIRAC import S_OK, S_ERROR, gLogger
-from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+from DIRAC                                          import S_OK, S_ERROR, gLogger
+from DIRAC.RequestManagementSystem.Client.Operation import Operation
+from DIRAC.RequestManagementSystem.Client.File      import File
+from LHCbDIRAC.Workflow.Modules.ModuleBase          import ModuleBase
 
 class RemoveInputData( ModuleBase ):
 
@@ -23,8 +22,7 @@ class RemoveInputData( ModuleBase ):
 
     self.version = __RCSID__
 
-    #List all parameters here
-    self.request = None
+    # List all parameters here
     self.inputDataList = []
 
   #############################################################################
@@ -35,7 +33,7 @@ class RemoveInputData( ModuleBase ):
 
     super( RemoveInputData, self )._resolveInputVariables()
 
-    #Get job input data files to be removed if previous modules were successful
+    # Get job input data files to be removed if previous modules were successful
     if self.InputData:
       self.inputDataList = self.InputData.split( ';' )
     self.inputDataList = [x.replace( 'LFN:', '' ) for x in self.inputDataList]
@@ -63,11 +61,7 @@ class RemoveInputData( ModuleBase ):
 
       result = self._resolveInputVariables()
 
-      self.request.setRequestName( 'job_%s_request.xml' % self.jobID )
-      self.request.setJobID( self.jobID )
-      self.request.setSourceComponent( "Job_%s" % self.jobID )
-
-      #Try to remove the file list with failover if necessary
+      # Try to remove the file list with failover if necessary
       failover = []
       self.log.info( 'Attempting rm.removeFile("%s")' % ( self.inputDataList ) )
       result = self.rm.removeFile( self.inputDataList )
@@ -89,8 +83,6 @@ class RemoveInputData( ModuleBase ):
       for lfn in failover:
         self.__setFileRemovalRequest( lfn )
 
-      self.workflow_commons['Request'] = self.request
-
       return S_OK( 'Input Data Removed' )
 
     except Exception, e:
@@ -106,13 +98,11 @@ class RemoveInputData( ModuleBase ):
     """ Sets a removal request for a file including all replicas.
     """
     self.log.info( 'Setting file removal request for %s' % lfn )
-    lastOperationOnFile = self.request._getLastOrder( lfn )
-    result = self.request.addSubRequest( {'Attributes':{'Operation':'removeFile',
-                                                       'TargetSE':'',
-                                                       'ExecutionOrder':lastOperationOnFile + 1}},
-                                         'removal' )
-    index = result['Value']
-    fileDict = {'LFN':lfn, 'Status':'Waiting'}
-    result = self.request.setSubRequestFiles( index, 'removal', [fileDict] )
+    removeFile = Operation()
+    removeFile.Type = 'RemoveFile'
+    rmFile = File()
+    rmFile.LFN = lfn
+    removeFile.addFile( rmFile )
+    self.request.addOperation( removeFile )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

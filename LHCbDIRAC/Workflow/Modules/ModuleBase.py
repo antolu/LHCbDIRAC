@@ -6,17 +6,18 @@ __RCSID__ = "$Id$"
 
 import os, copy
 
-from DIRAC import S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities.Adler import fileAdler
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
-from DIRAC.WorkloadManagementSystem.Client.JobReport import JobReport
-from DIRAC.TransformationSystem.Client.FileReport import FileReport
-from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC                                                    import S_OK, S_ERROR, gLogger
+from DIRAC.Core.Utilities.Adler                               import fileAdler
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
+from DIRAC.Resources.Catalog.PoolXMLFile                      import getGUID
+from DIRAC.WorkloadManagementSystem.Client.JobReport          import JobReport
+from DIRAC.TransformationSystem.Client.FileReport             import FileReport
+from DIRAC.RequestManagementSystem.Client.Request             import Request
+from DIRAC.RequestManagementSystem.private.RequestValidator   import gRequestValidator
+from DIRAC.DataManagementSystem.Client.ReplicaManager         import ReplicaManager
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
+from LHCbDIRAC.Core.Utilities.ProductionData                  import constructProductionLFNs
 
 
 class ModuleBase( object ):
@@ -54,6 +55,10 @@ class ModuleBase( object ):
     self.jobID = ''
     self.step_number = ''
     self.step_id = ''
+
+    self.fileReport = None
+    self.jobReport = None
+    self.request = None
 
     self.workflowStatus = None
     self.stepStatus = None
@@ -440,13 +445,13 @@ class ModuleBase( object ):
   #############################################################################
 
   def _getRequestContainer( self ):
-    """ just return the RequestContainer reporter (object)
+    """ just return the Request reporter (object)
     """
 
     if self.workflow_commons.has_key( 'Request' ):
       return self.workflow_commons['Request']
     else:
-      request = RequestContainer()
+      request = Request()
       self.workflow_commons['Request'] = request
       return request
 
@@ -586,7 +591,13 @@ class ModuleBase( object ):
     """ Returns the candidate file dictionary with associated metadata.
 
         The input candidate files dictionary has the structure:
-        {'lfn':'','type':'','workflowSE':''}
+        {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
+                            'type': 'txt',
+                            'workflowSE': SE1},
+        'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
+                           'type': 'py',
+                           'workflowSE': 'SE2'},
+        }
 
         this also assumes the files are in the current working directory.
     """
@@ -612,7 +623,7 @@ class ModuleBase( object ):
       fileDict = {}
       fileDict['LFN'] = metadata['lfn']
       fileDict['Size'] = os.path.getsize( fileName )
-      fileDict['Addler'] = fileAdler( fileName )
+      fileDict['Adler'] = fileAdler( fileName )
       fileDict['GUID'] = metadata['guid']
       fileDict['Status'] = "Waiting"
 
@@ -769,3 +780,47 @@ class ModuleBase( object ):
 
   #############################################################################
 
+  def generateFailoverFile( self ):
+    """ Retrieve the accumulated reporting request, and produce a JSON file that is consumed by the JobWrapper
+    """
+    reportRequest = None
+    result = self.jobReport.generateForwardDISET()
+    if not result['OK']:
+      self.log.warn( 'Could not generate request for job report with result:\n%s' % ( result ) )
+    else:
+      reportRequest = result['Value']
+    if reportRequest:
+      self.log.info( 'Populating request with job report information' )
+      self.request.addOperation( reportRequest )
+
+    accountingReport = None
+    if self.workflow_commons.has_key( 'AccountingReport' ):
+      accountingReport = self.workflow_commons['AccountingReport']
+    if accountingReport:
+      result = accountingReport.commit()
+      if not result['OK']:
+        self.log.error( '!!! Both accounting and RequestDB are down? !!!' )
+        return result
+
+    isValid = gRequestValidator.validate( self.request )
+    if not isValid["OK"]:
+      self.log.warn( "Failover request is not valid: %s" % isValid["Message"] )
+    else:
+      requestJSON = self.request.toJSON()
+      if requestJSON['OK']:
+        request_string = requestJSON['Value']
+        self.log.debug( request_string )
+        # Write out the request string
+        fname = '%s_%s_request.json' % ( self.production_id, self.prod_job_id )
+        jsonFile = open( fname, 'w' )
+        jsonFile.write( request_string )
+        jsonFile.close()
+        self.log.info( 'Creating failover request for deferred operations for job %s:' % self.jobID )
+        result = self.request.getDigest()
+        if result['OK']:
+          digest = result['Value']
+          self.log.info( digest )
+      else:
+        raise RuntimeError, requestJSON['Message']
+
+  #############################################################################
