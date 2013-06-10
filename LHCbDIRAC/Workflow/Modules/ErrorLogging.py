@@ -1,6 +1,3 @@
-########################################################################
-# $Id$
-########################################################################
 """ The ErrorLogging module is used to perform error analysis using AppConfig
     utilities. This occurs at the end of each workflow step such that the
     step_commons dictionary can be utilized.
@@ -25,26 +22,25 @@ class ErrorLogging( ModuleBase ):
   #############################################################################
 
   def __init__( self, bkClient = None, rm = None ):
-    """Module initialization.
+    """ c'tor
     """
 
     self.log = gLogger.getSubLogger( "ErrorLogging" )
     super( ErrorLogging, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
 
     self.version = __RCSID__
-    #Step parameters
+    # Step parameters
     self.applicationName = ''
     self.applicationVersion = ''
     self.applicationLog = ''
-    #Workflow commons parameters
-    self.request = None
+    # Workflow commons parameters
     self.systemConfig = ''
-    #Internal parameters
+    # Internal parameters
     self.executable = '$APPCONFIGROOT/scripts/LogErr.py'
     self.errorLogFile = ''
     self.errorLogName = ''
     self.stdError = ''
-    #Error log parameters
+    # Error log parameters
     self.defaultName = 'errors.html'
 
   #############################################################################
@@ -94,7 +90,7 @@ class ErrorLogging( ModuleBase ):
         self.log.info( 'Application log file from previous module not found locally: %s' % self.applicationLog )
         return S_OK()
 
-      #Now obtain the project environment for execution
+      # Now obtain the project environment for execution
       result = getProjectEnvironment( self.systemConfig,
                                       self.applicationName,
                                       applicationVersion = self.applicationVersion,
@@ -108,7 +104,7 @@ class ErrorLogging( ModuleBase ):
                                                                        self.applicationName,
                                                                        self.applicationVersion )
 
-      #Set some parameter names
+      # Set some parameter names
       scriptName = 'Error_Log_%s_%s_Run_%s.sh' % ( self.applicationName,
                                                    self.applicationVersion,
                                                    self.step_number )
@@ -117,17 +113,17 @@ class ErrorLogging( ModuleBase ):
   #    dumpEnvName = '%s_%s_%s_%s_EnvironmentDumpErrorLogging.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName )
       coreDumpName = 'ErrorLogging_Step%s' % ( self.step_number )
 
-      #Wrap final execution command with defaults
+      # Wrap final execution command with defaults
       finalCommand = addCommandDefaults( command,
                                          envDump = dumpEnvName,
-                                         coreDumpLog = coreDumpName )['Value'] #should always be S_OK()
+                                         coreDumpLog = coreDumpName )['Value']  # should always be S_OK()
 
-      #Create debug shell script to reproduce the application execution
+      # Create debug shell script to reproduce the application execution
       debugResult = createDebugScript( scriptName,
                                        command,
                                        env = projectEnvironment,
                                        envLogFile = dumpEnvName,
-                                       coreDumpLog = coreDumpName ) #will add command defaults internally
+                                       coreDumpLog = coreDumpName )  # will add command defaults internally
       if debugResult['OK']:
         self.log.verbose( 'Created debug script %s for Step %s' % ( debugResult['Value'], self.step_number ) )
 
@@ -156,7 +152,7 @@ class ErrorLogging( ModuleBase ):
                                                                                   self.step_number ) )
       shutil.copy( self.defaultName, self.errorLogName )
 
-      #TODO - report to error logging service when suitable method is available
+      # TODO - report to error logging service when suitable method is available
       return S_OK()
 
     except Exception, e:
@@ -180,4 +176,4 @@ class ErrorLogging( ModuleBase ):
       if fd == 1:
         self.stdError += message
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
