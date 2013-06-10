@@ -1,20 +1,13 @@
-########################################################################
-# File: LogUploadAgent.py
-########################################################################
-"""  
+"""
     :mod: LogUplaodAgent
     ====================
- 
+
     .. module: LogUplaodAgent
     :synopsis: LogUploadAgent uploads log and other auxilliary files of the given job
      to the long term log storage.
     .. moduleauthor:: Krzysztof.Ciba@NOSPAMgmail.com
 
 """
-## too many public methods
-# pylint: disable=R0904
-
-__RCSID__ = "$Id$"
 
 import os
 from DIRAC  import gMonitor, S_OK
@@ -30,29 +23,34 @@ AGENT_NAME = 'DataManagement/LogUploadAgent'
 class LogUploadAgent( AgentModule ):
   """
   .. class:: LogUploadAgent
-  
+
   :param RequestClient requestClient: RequestClient instance
   :param ReplicaManager replicaManager: ReplicaManager instance
   """
   requestClient = None
-  replicaManager = None 
+  replicaManager = None
 
-  def initialize( self ):
-    """ agent initalisation
-
-    :param self: self reference
-    """
-    gMonitor.registerActivity( "Iteration", "Agent Loops", 
-                               "JobLogUploadAgent", "Loops/min", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "Attempted", "Request Processed", 
-                               "JobLogUploadAgent", "Requests/min", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "Successful", "Request Forward Successful", 
-                               "JobLogUploadAgent", "Requests/min", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "Failed", "Request Forward Failed", 
-                               "JobLogUploadAgent", "Requests/min", gMonitor.OP_SUM )
+  def __init__( self, *args, **kwargs ):
+    ''' c'tor
+    '''
+    AgentModule.__init__( self, *args, **kwargs )
 
     self.requestClient = RequestClient()
     self.replicaManager = ReplicaManager()
+
+  def initialize( self ):
+    """ agent initalization
+
+        :param self: self reference
+    """
+    gMonitor.registerActivity( "Iteration", "Agent Loops",
+                               "JobLogUploadAgent", "Loops/min", gMonitor.OP_SUM )
+    gMonitor.registerActivity( "Attempted", "Request Processed",
+                               "JobLogUploadAgent", "Requests/min", gMonitor.OP_SUM )
+    gMonitor.registerActivity( "Successful", "Request Forward Successful",
+                               "JobLogUploadAgent", "Requests/min", gMonitor.OP_SUM )
+    gMonitor.registerActivity( "Failed", "Request Forward Failed",
+                               "JobLogUploadAgent", "Requests/min", gMonitor.OP_SUM )
 
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
     return S_OK()
@@ -60,7 +58,7 @@ class LogUploadAgent( AgentModule ):
   def execute( self ):
     """ Takes the logupload requests and forwards to destination service.
 
-    :param self: self reference
+        :param self: self reference
     """
     gMonitor.addMark( "Iteration", 1 )
 
@@ -82,11 +80,11 @@ class LogUploadAgent( AgentModule ):
       jobID = res['Value']['JobID']
       try:
         jobID = int( res['Value']['JobID'] )
-      except (TypeError, ValueError):
+      except ( TypeError, ValueError ):
         jobID = 0
       self.log.info( "Obtained request %s" % requestName )
 
-      result = self.requestClient.getCurrentExecutionOrder( requestName)
+      result = self.requestClient.getCurrentExecutionOrder( requestName )
       if result['OK']:
         currentOrder = result['Value']
       else:
@@ -129,9 +127,9 @@ class LogUploadAgent( AgentModule ):
           else:
             gMonitor.addMark( "Failed", 1 )
             self.log.error( "Failed to upload log file: ", res['Message'] )
-            ## put error to subrequest 
+            # # put error to subrequest
             oRequest.setSubRequestAttributeValue( ind, 'logupload', 'Error', res["Message"] )
-            ## source doesn't exist? 
+            # # source doesn't exist?
             if "source local file does not exist" in res["Message"]:
               modified = True
               work_done = True
@@ -139,7 +137,7 @@ class LogUploadAgent( AgentModule ):
               oRequest.setSubRequestFileAttributeValue( ind, 'logupload', lfn, "Status", "Failed" )
               oRequest.setSubRequestFileAttributeValue( ind, 'logupload', lfn, "Error", res["Message"] )
         else:
-          self.log.info( "Subrequest %s status is '%s', skipping." % ( ind, 
+          self.log.info( "Subrequest %s status is '%s', skipping." % ( ind,
                                                                        subRequestAttributes['Status'] ) )
 
       ################################################
@@ -151,12 +149,12 @@ class LogUploadAgent( AgentModule ):
       else:
         self.log.error( "Failed to update request '%s': %s" % ( requestName, res["Message"] ) )
         return res
-    
+
       if modified and jobID:
         result = self.requestClient.finalizeRequest( requestName, jobID )
         if not result["OK"]:
           self.log.error( "Failed to finalize request '%s': %s" % ( requestName, result["Message"] ) )
           return result
         else:
-          self.log.info("Request '%s' has been finalised." % requestName )
+          self.log.info( "Request '%s' has been finalized." % requestName )
     return S_OK()
