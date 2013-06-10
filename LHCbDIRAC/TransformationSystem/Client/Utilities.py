@@ -1127,3 +1127,42 @@ def closerSEs( existingSEs, targetSEs, local = False ):
       targetSEs += randomize( otherSEs )
   return ( targetSEs + sameSEs ) if not local else targetSEs
 
+def addFilesToTransformation( transID, lfns, addRunInfo = True ):
+  from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+  transClient = TransformationClient()
+  bk = BookkeepingClient()
+  gLogger.info( "Adding %d files to transformation %s" % ( len( lfns ), transID ) )
+  res = transClient.getTransformation( transID )
+  if not res['OK']:
+    return res
+  transType = res['Value']['Type']
+  addRunInfo = addRunInfo and transType != 'Removal'
+  addedLfns = []
+  for lfnChunk in breakListIntoChunks( lfns, 10000 ):
+    runDict = {}
+    if addRunInfo:
+      res = bk.getFileMetadata( lfnChunk )
+      if res['OK']:
+        resMeta = res['Value'].get( 'Successful', res['Value'] )
+        for lfn, metadata in resMeta.items():
+          runID = metadata.get( 'RunNumber' )
+          if runID:
+            runDict.setdefault( int( runID ), [] ).append( lfn )
+      else:
+        return res
+    res = transClient.addFilesToTransformation( transID, lfnChunk )
+    added = [lfn for ( lfn, status ) in res['Value']['Successful'].items() if status == 'Added']
+    addedLfns += added
+    if addRunInfo and res['OK']:
+      for runID, runLfns in runDict.items():
+        runLfns = [lfn for lfn in runLfns if lfn in added]
+        if runLfns:
+          res = transClient.addTransformationRunFiles( transID, runID, runLfns )
+          if not res['OK']:
+            break
+
+    if not res['OK']:
+      return res
+  gLogger.info( "%d files successfully added to transformation" % len( addedLfns ) )
+  return S_OK( addedLfns )
