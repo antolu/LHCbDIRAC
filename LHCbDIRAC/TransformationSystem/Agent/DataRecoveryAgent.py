@@ -30,6 +30,7 @@ from DIRAC.Core.Utilities.Time                                   import dateTime
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations         import Operations
 from DIRAC.DataManagementSystem.Client.ReplicaManager            import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.RequestClient          import RequestClient
+from DIRAC.RequestManagementSystem.Client.ReqClient              import ReqClient
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient        import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks     import ConsistencyChecks
@@ -49,7 +50,12 @@ class DataRecoveryAgent( AgentModule ):
     self.replicaManager = ReplicaManager()
     self.transClient = TransformationClient()
     self.bkClient = BookkeepingClient()
+
+    # FIXME: This is the "old" RMS
     self.requestClient = RequestClient()
+    # FIXME: This is the "new" RMS
+    self.reqClient = ReqClient()
+
     self.cc = ConsistencyChecks( interactive = False, transClient = self.transClient,
                                  rm = self.replicaManager, bkClient = self.bkClient )
 
@@ -299,16 +305,33 @@ class DataRecoveryAgent( AgentModule ):
         for the set of WMS jobIDs.
     '''
     jobs = jobFileDict.keys()
-    result = self.requestClient.getRequestForJobs( jobs )
-    if not result['OK']:
-      return result
+
+    new = True
+
+    # FIXME: This is the "new" RMS (this only should remain)
+    resultNewRMS = self.reqClient.getRequestNamesForJobs( jobs )
+    if not resultNewRMS['OK']:
+      return resultNewRMS
+    if not resultNewRMS['Value']:
+      new = False
+      # FIXME: This is the "old" RMS
+      result = self.requestClient.getRequestForJobs( jobs )
+      if not result['OK']:
+        return result
+    else:
+      result = resultNewRMS
 
     if not result['Value']:
       self.log.info( 'None of the jobs have pending requests' )
       return S_OK( jobFileDict )
 
     for jobID, requestName in result['Value'].items():
-      res = self.requestClient.getRequestStatus( requestName )
+      # FIXME: This is the switch for the "new/old" RMS
+      if new:
+        rClient = self.reqClient
+      else:
+        rClient = self.requestClient
+      res = rClient.getRequestStatus( requestName )
       if not res['OK']:
         self.log.error( 'Failed to get Status for Request', '%s:%s' % ( requestName, res['Message'] ) )
       else:

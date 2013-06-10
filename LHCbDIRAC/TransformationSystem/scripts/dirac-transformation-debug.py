@@ -275,12 +275,22 @@ def __fillStatsPerSE( rep, listSEs ):
   return completed
 
 def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRequests ):
+
+  # FIXME: some horrible hacks for old/new RMS
   requestID = int( task['ExternalID'] )
-  res = reqClient.getRequestInfo( requestID )
+  res = requestClient.getRequestInfo( requestID )
   if res['OK']:
+    if res['Value']:
+      rClient = requestClient
+    else:
+      rClient = reqClient
+      res = rClient.getRequestInfo( requestID )
     requestName = res['Value'][2]
   else:
     requestName = None
+
+
+
   if not taskCompleted and task['ExternalStatus'] == 'Failed':
     if kickRequests:
       res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnsInTask )
@@ -292,7 +302,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     prString = "Task %s is completed: no %s replicas" % ( requestName, dmFileStatusComment )
     if kickRequests:
       if requestName:
-        res = reqClient.setRequestStatus( requestName, 'Done' )
+        res = rClient.setRequestStatus( requestName, 'Done' )
         if res['OK']:
           prString += ": request set to Done"
         else:
@@ -305,7 +315,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     else:
         prString += " - To mark them done, use option --KickRequests"
     print prString
-  res = reqClient.getRequestFileStatus( requestID, lfnsInTask )
+  res = rClient.getRequestFileStatus( requestID, lfnsInTask )
   if res['OK']:
     reqFiles = res['Value']
     statFiles = {}
@@ -321,13 +331,13 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
         prString += ": it should be marked as Failed, use --KickRequests"
       else:
         failedFiles += reqFiles.keys()
-        res = reqClient.setRequestStatus( requestName, 'Failed' )
+        res = rClient.setRequestStatus( requestName, 'Failed' )
         if res['OK']:
           prString += ": request set to Failed"
       print prString
   selectDict = { 'RequestID':requestID}
   toBeKicked = 0
-  res = reqClient.getRequestSummaryWeb( selectDict, [], 0, 100000 )
+  res = rClient.getRequestSummaryWeb( selectDict, [], 0, 100000 )
   if res['OK']:
     params = res['Value']['ParameterNames']
     records = res['Value']['Records']
@@ -344,7 +354,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
         print subReqStr
         toBeKicked += 1
         if kickRequests:
-          res = reqClient.setRequestStatus( subReqDict['RequestName'], 'Waiting' )
+          res = rClient.setRequestStatus( subReqDict['RequestName'], 'Waiting' )
           if res['OK']:
             print 'Request %d reset Waiting' % requestID
   return toBeKicked
@@ -732,7 +742,9 @@ if __name__ == "__main__":
   transList = __getTransformations( Script.getPositionalArgs() )
 
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
+  # FIXME: RequestClient is the client to the old RMS, ReqClient the new one
   from DIRAC.RequestManagementSystem.Client.RequestClient           import RequestClient
+  from DIRAC.RequestManagementSystem.Client.ReqClient           import ReqClient
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   from LHCbDIRAC.TransformationSystem.Client.Utilities import PluginUtilities
@@ -743,7 +755,8 @@ if __name__ == "__main__":
 
   bkClient = BookkeepingClient()
   transClient = TransformationClient()
-  reqClient = RequestClient()
+  requestClient = RequestClient()
+  reqClient = ReqClient()
   rm = ReplicaManager()
   dmTransTypes = ( "Replication", "Removal" )
   assignedReqLimit = datetime.datetime.utcnow() - datetime.timedelta( hours = 2 )
