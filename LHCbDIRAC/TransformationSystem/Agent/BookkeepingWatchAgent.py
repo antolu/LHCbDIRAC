@@ -44,6 +44,11 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.pickleFile = os.path.join( self.am_getWorkDirectory(), "BookkeepingWatchAgent.pkl" )
     self.chunkSize = self.am_getOption( 'maxFilesPerChunk', 1000 )
 
+    self.pluginsWithNoRunInfo = self.am_getOption( 'PluginsWithNoRunInfo',
+                                                   ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset',
+                                                    'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE',
+                                                    'BySize', 'Standard' ) )
+
     self.timeLog = {}
     self.fullTimeLog = {}
     self.bkQueries = {}
@@ -141,12 +146,19 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
         startTime = time.time()
         self._logInfo( "Processing transformation %s." % transID, transID = transID )
-        res = self.transClient.getBookkeepingQueryForTransformation( transID )
         self.transInThread[transID] = ' [Thread%d] [%s] ' % ( threadID, str( transID ) )
+
+        res = self.transClient.getTransformation( transID, extraParams = False )
+        if not res['OK']:
+          self._logError( "Failed to get transformation", res['Message'], transID = transID )
+          continue
+        transType = res['Value']['Type']
+        transPlugin = res['Value']['Plugin']
+
+        res = self.transClient.getBookkeepingQueryForTransformation( transID )
         if not res['OK']:
           self._logError( "Failed to get BkQuery", res['Message'], transID = transID )
           continue
-
         bkQuery = res[ 'Value' ]
 
         # Determine the correct time stamp to use for this transformation
@@ -174,7 +186,8 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
             _printFailed = [self._logWarn( "Failed to add %s to transformation\
             " % lfn, error, transID = transID ) for ( lfn, error ) in result['Value']['Failed'].items()]
             addedLfns = [lfn for ( lfn, status ) in result['Value']['Successful'].items() if status == 'Added']
-            if addedLfns:
+            # There is no need to add the run information for a removal transformation
+            if addedLfns and transType != 'Removal' and transPlugin not in self.pluginsWithNoRunInfo:
               self._logInfo( "Added %d files to transformation, now including run information"
                               % len( addedLfns ) , transID = transID )
               res = self.bkClient.getFileMetadata( addedLfns )
