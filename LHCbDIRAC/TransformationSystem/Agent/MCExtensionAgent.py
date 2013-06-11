@@ -1,7 +1,10 @@
-from DIRAC import gLogger, S_OK, S_ERROR
+''' An agent to extend MC productions based on the remaning events to produce.
+'''
+
+from DIRAC import S_OK, S_ERROR
 from DIRAC.TransformationSystem.Agent.MCExtensionAgent import MCExtensionAgent as DIRACMCExtensionAgent
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.ConfigurationSystem.Client.Helpers import Operations
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getCPUNormalizationFactorAvg, getEventsToProduce
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
 import math
@@ -9,23 +12,22 @@ import math
 AGENT_NAME = 'Transformation/MCExtensionAgent'
 
 class MCExtensionAgent( DIRACMCExtensionAgent ):
+  ''' MCExtensionAgent
+  '''
+
   def __init__( self, agentName, loadName, baseAgentName, properties = {} ):
-    ''' c'tor
-    '''
     DIRACMCExtensionAgent.__init__( self, agentName, loadName, baseAgentName, properties )
 
-    self.RPCProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
+    self.rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
+    self.enableFlag = True
 
   #############################################################################
   def initialize( self ):
     ''' Logs some parameters
     '''
 
-    gLogger.info( "Will consider the following transformation types: %s" % str( self.transformationTypes ) )
-    gLogger.info( "Will create a maximum of %s tasks per iteration" % self.maxIterationTasks )
-    # not used in LHCbDIRAC
-    # gLogger.info( "Will not submit tasks for transformations with failure rate greater than %s%%" % ( self.maxFailRate ) )
-    # gLogger.info( "Will not submit tasks for transformations with more than %d waiting jobs" % self.maxWaitingJobs )
+    self.log.info( "Will consider the following transformation types: %s" % str( self.transformationTypes ) )
+    self.log.info( "Will create a maximum of %s tasks per iteration" % self.maxIterationTasks )
 
     return S_OK()
 
@@ -40,7 +42,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       return S_OK( 'Disabled via CS flag' )
 
     # get the production requests in which we are interested
-    productionRequests = self.RPCProductionRequest.getProductionRequestSummary( 'Active', 'Simulation' )
+    productionRequests = self.rpcProductionRequest.getProductionRequestSummary( 'Active', 'Simulation' )
     if productionRequests['OK']:
       productionRequests = productionRequests['Value']
     else:
@@ -64,7 +66,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       return
 
     # get the associated productions/transformations progress
-    productionsProgress = self.RPCProductionRequest.getProductionProgressList( long( productionRequestID ) )
+    productionsProgress = self.rpcProductionRequest.getProductionProgressList( long( productionRequestID ) )
     if productionsProgress['OK']:
       productionsProgress = productionsProgress['Value']
     else:
@@ -102,7 +104,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       if all( production['Status'].lower() == 'idle' for production in productions ):
         # extension factor
         extensionFactor = float( simulationProgress['BkEvents'] ) / float( productionRequestSummary['bkTotal'] )
-        self._extendProdution( simulation, simulationID, extensionFactor, missingEvents )
+        self._extendProduction( simulation, simulationID, extensionFactor, missingEvents )
 
   #############################################################################
   def _getSimulationProductionID( self, productions ):
@@ -117,7 +119,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     return None
 
   #############################################################################
-  def _extendProdution( self, production, productionID, extensionFactor, eventsNeeded ):
+  def _extendProduction( self, production, productionID, extensionFactor, eventsNeeded ):
     ''' Extend a production to produce eventsNeeded*extensionFactor more events.
     '''
 
@@ -129,28 +131,29 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     # TODO: maybe get these from ProductionRequest ?
     # TODO: don't get time and normalization factor each time
     # TODO: eliminate code redundency with ProductionRequest
-    CPUTimeAvgDefault = 1000000.0
-    CPUNormalizationFactorAvgDefault = 1.0
-    CPUeDefault = 1.0
+    cpuTimeAvgDefault = 1000000.0
+    cpuNormalizationFactorAvgDefault = 1.0
+    cpuEDefault = 1.0
 
     op = Operations()
-    CPUTimeAvg = op.getValue( 'Transformations/CPUTimeAvg' )
-    if CPUTimeAvg is None:
-      self.logger.info( 'Could not get CPUTimeAvg from config, defaulting to %d' % CPUTimeAvgDefault )
-      CPUTimeAvg = CPUTimeAvgDefault
+    cpuTimeAvg = op.getValue( 'Transformations/cpuTimeAvg' )
+    if cpuTimeAvg is None:
+      self.log.info( 'Could not get cpuTimeAvg from config, defaulting to %d' % cpuTimeAvgDefault )
+      cpuTimeAvg = cpuTimeAvgDefault
 
     try:
-      CPUNormalizationFactorAvg = getCPUNormalizationFactorAvg()
-    except:
-      self.logger.info( 'Could not get CPUNormalizationFactorAvg from config, defaulting to %d' % CPUNormalizationFactorAvgDefault )
-      CPUNormalizationFactorAvg = CPUNormalizationFactorAvgDefault
+      cpuNormalizationFactorAvg = getCPUNormalizationFactorAvg()
+    except RuntimeError:
+      self.log.info( 'Could not get CPUNormalizationFactorAvg from config, defaulting to %d'
+                     % cpuNormalizationFactorAvgDefault )
+      cpuNormalizationFactorAvg = cpuNormalizationFactorAvgDefault
 
-    CPUe = self._getProductionParameter( production, 'CPUe' )
-    if CPUe is None:
-      self.logger.info( 'Could not get CPUe from production, defaulting to %d' % CPUeDefault )
-      CPUe = CPUeDefault
+    cpuE = self._getProductionParameterValue( production, 'CPUe' )
+    if cpuE is None:
+      self.log.info( 'Could not get CPUe from production, defaulting to %d' % cpuEDefault )
+      cpuE = cpuEDefault
 
-    max_e = getEventsToProduce( CPUe, CPUTimeAvg, CPUNormalizationFactorAvg )
+    max_e = getEventsToProduce( cpuE, cpuTimeAvg, cpuNormalizationFactorAvg )
 
     numberOfTasks = int( math.ceil( float( eventsToProduce ) / float( max_e ) ) )
 
