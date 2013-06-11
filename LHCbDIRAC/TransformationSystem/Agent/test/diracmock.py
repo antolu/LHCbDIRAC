@@ -16,8 +16,9 @@ __RCSID__ = '$Id: $'
 # raise ImportError( 'Too old version of mock, we need %s < 1.0.1' % mock.__version__ )
 
 #...............................................................................
-# Standard TestCase
-
+# TestCases
+# * regular test case
+# * Agents test case
 
 class DIRAC_TestCase( unittest.TestCase ):
   
@@ -31,43 +32,38 @@ class DIRAC_TestCase( unittest.TestCase ):
     
     del self.moduleTested
 
+
 class DIRACAgent_TestCase( unittest.TestCase ):
   
   sutPath = ''
 
   def setUp( self ):
     
-    _moduleTested = sut( self.sutPath )
-    self.moduleTested = mockAgent( _moduleTested, self.sutPath )
-
-#    agentClass = getattr( self.moduleTested, self.sutPath.split('.')[-1] )
-#    
-#    AgentModule = mockAgentModule()
-#    
-#        
-#    self.moduleTested.AgentModule = AgentModule
-#    agentClass.__bases__          = ( AgentModule, )
-   
+    self.moduleTested = mockAgent( self.sutPath )   
   
   def tearDown( self ):
     
     del self.moduleTested
     unmock()
 
+
+#...............................................................................
+
 def sut( sutPath ):
   """ sut ( Software Under Test )
-Imports the module ( not the class ! ) to be tested and returns it.
+  Imports the module ( not the class ! ) to be tested and returns it.
 
-examples:
->>> sut( 'DIRAC.ResourceStatusSytem.Client.ResourceStatusClient' )
+  examples:
+    >>> sut( 'DIRAC.ResourceStatusSytem.Client.ResourceStatusClient' )
 
-:Parameters:
-**sutPath** - `str`
-path to the module to be tested
+  :Parameters:
+    **sutPath** - `str`
+    path to the module to be tested
 
-"""
+  """
   
   return __import__( sutPath, globals(), locals(), '*' )
+
 
 def mockAgentModule():
   
@@ -84,6 +80,7 @@ def mockAgentModule():
   for k, v in pStarted.__dict__.iteritems():
     setattr( AgentModule, k, v )
   return AgentModule
+
 
 def mockAgent( sutPath ):
   
