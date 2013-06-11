@@ -5,8 +5,8 @@ from DIRAC import S_OK, S_ERROR
 from DIRAC.TransformationSystem.Agent.MCExtensionAgent import MCExtensionAgent as DIRACMCExtensionAgent
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getCPUNormalizationFactorAvg, getEventsToProduce
-from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getCPUNormalizationFactorAvg, getEventsToProduce, getProductionParameterValue
+
 import math
 
 AGENT_NAME = 'Transformation/MCExtensionAgent'
@@ -148,7 +148,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
                      % cpuNormalizationFactorAvgDefault )
       cpuNormalizationFactorAvg = cpuNormalizationFactorAvgDefault
 
-    cpuE = self._getProductionParameterValue( production, 'CPUe' )
+    cpuE = getProductionParameterValue( production['Body'], 'CPUe' )
     if cpuE is None:
       self.log.info( 'Could not get CPUe from production, defaulting to %d' % cpuEDefault )
       cpuE = cpuEDefault
@@ -163,32 +163,3 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       self.log.error( 'Failed to extend transformation", "%s %s' % ( productionID, res['Message'] ) )
     else:
       self.log.info( 'Successfully extended transformation %d by %d tasks' % ( productionID, numberOfTasks ) )
-
-  #############################################################################
-  def _getProductionParameterValue( self, production, parameterName ):
-    ''' Get a parameter value from a production
-    '''
-
-    # TODO: move to utilities ?
-    # lets assume no parameters are different only by case, as it would be a bad idea
-    parameterName = parameterName.lower()
-
-    body = production['Body']
-    parser = XMLTreeParser()
-    parser.parseString( body )
-    tree = parser.tree.pop()
-
-    for parameterElement in tree.childrens( 'Parameter' ):
-      if parameterElement.attributes['name'].lower() == parameterName:
-        valueElement = parameterElement.children
-        if valueElement.empty():
-          return None
-        valueElement = valueElement[0]
-
-        cdataElement = valueElement.children
-        if cdataElement.empty():
-          return None
-
-        return cdataElement.value
-
-    return None

@@ -5,6 +5,7 @@ import os, tarfile, math
 
 from DIRAC import S_OK, S_ERROR, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers import Resources
+from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
 
 def tarFiles( outputFile, files = [], compression = '', deleteInput = False ):
   """ just make a tar
@@ -107,3 +108,31 @@ def getCPUNormalizationFactorAvg():
     CPUNormalizationFactorAvg = factorsSum / nQueues
 
   return CPUNormalizationFactorAvg
+
+###############################################################################
+
+def getProductionParameterValue( productionXML, parameterName ):
+  ''' Get a parameter value from a production XML description
+  '''
+
+  # lets assume no parameters are different only by case, as it would be a bad idea
+  parameterName = parameterName.lower()
+
+  parser = XMLTreeParser()
+  parser.parseString( productionXML )
+  tree = parser.tree.pop()
+
+  for parameterElement in tree.childrens( 'Parameter' ):
+    if parameterElement.attributes['name'].lower() == parameterName:
+      valueElement = parameterElement.children
+      if valueElement.empty():
+        return None
+      valueElement = valueElement[0]
+
+      cdataElement = valueElement.children
+      if cdataElement.empty():
+        return None
+
+      return cdataElement.value
+
+  return None
