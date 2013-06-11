@@ -1115,7 +1115,12 @@ class UploadLogFileSuccess( ModulesTestCase ):
     open( 'aLog.log', 'w' ).close()
     res = self.ulf._determineRelevantFiles()
     self.assertTrue( res['OK'] )
-    self.assertEqual( res['Value'], ['foo.txt', 'aLog.log'] )
+    expected = ['foo.txt', 'aLog.log']
+    if 'pylint.txt' in os.listdir( '.' ):
+      expected.append( 'pylint.txt' )
+    if 'nosetests.xml' in os.listdir( '.' ):
+      expected.append( 'nosetests.xml' )
+    self.assertEqual( res['Value'], expected)
 
     fd = open( 'aLongLog.log', 'w' )
     for _x in range( 2500 ):
@@ -1123,7 +1128,12 @@ class UploadLogFileSuccess( ModulesTestCase ):
     fd.close()
     res = self.ulf._determineRelevantFiles()
     self.assertTrue( res['OK'] )
-    self.assertEqual( res['Value'], ['foo.txt', 'aLog.log', 'aLongLog.log.gz'] )
+    expected = ['foo.txt', 'aLog.log', 'aLongLog.log.gz']
+    if 'pylint.txt' in os.listdir( '.' ):
+      expected.append( 'pylint.txt' )
+    if 'nosetests.xml' in os.listdir( '.' ):
+      expected.append( 'nosetests.xml' )
+    self.assertEqual( res['Value'], expected )
 
     open( 'foo.txt', 'w' ).close()
     fd = open( 'aLongLog.log', 'w' )
@@ -1132,8 +1142,13 @@ class UploadLogFileSuccess( ModulesTestCase ):
     fd.close()
     open( 'bar.py', 'w' ).close()
     res = self.ulf._determineRelevantFiles()
+    expected = ['foo.txt', 'aLog.log', 'aLongLog.log.gz']
+    if 'pylint.txt' in os.listdir( '.' ):
+      expected.append( 'pylint.txt' )
+    if 'nosetests.xml' in os.listdir( '.' ):
+      expected.append( 'nosetests.xml' )
     self.assertTrue( res['OK'] )
-    self.assertEqual( res['Value'], ['foo.txt', 'aLog.log', 'aLongLog.log.gz'] )
+    self.assertEqual( res['Value'], expected )
 
 ##############################################################################
 # # UploadOutputData.py
