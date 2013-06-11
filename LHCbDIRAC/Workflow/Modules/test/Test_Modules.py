@@ -7,7 +7,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers import Resources
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
 
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce, getCPUNormalizationFactorAvg
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce, getCPUNormalizationFactorAvg, getProductionParameterValue
 
 class ModulesTestCase( unittest.TestCase ):
   """ Base class for the Modules test cases
@@ -682,6 +682,8 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
 
     self.assertEqual( out, outExp )
 
+  #################################################
+
   def test_getCPUNormalizationFactorAvg( self ):
 
     with patch.object( gConfig, 'getSections' ) as mockGetSections:  # @UndefinedVariable
@@ -738,6 +740,50 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
         out = getCPUNormalizationFactorAvg()
         self.assertEqual( out, outExp )
 
+  #################################################
+
+  def test_getProductionParameterValue( self ):
+
+    emptyXML = '<Workflow></Workflow>'
+    noValueProductionXML = '''
+      <Workflow>
+        <origin></origin>
+        <description><![CDATA[prodDescription]]></description>
+        <descr_short></descr_short>
+        <version>0.0</version>
+        <type></type>
+        <name>Request_12416_MCSimulation_Sim08a/Digi13/Trig0x40760037/Reco14a/Stripping20r1NoPrescalingFlagged_EventType_13296003__1</name>
+        <Parameter name="JobType" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified type">
+          <value></value>
+        </Parameter>
+      </Workflow>
+    '''
+    productionXML = '''
+      <Workflow>
+        <origin></origin>
+        <description><![CDATA[prodDescription]]></description>
+        <descr_short></descr_short>
+        <version>0.0</version>
+        <type></type>
+        <name>Request_12416_MCSimulation_Sim08a/Digi13/Trig0x40760037/Reco14a/Stripping20r1NoPrescalingFlagged_EventType_13296003__1</name>
+        <Parameter name="JobType" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified type">
+          <value><![CDATA[MCSimulation]]></value>
+        </Parameter>
+      </Workflow>
+    '''
+
+    parameterName = 'JobType'
+
+    valueExp = 'MCSimulation'
+
+    value = getProductionParameterValue( emptyXML, parameterName )
+    self.assertEqual( value, None )
+
+    value = getProductionParameterValue( noValueProductionXML, parameterName )
+    self.assertEqual( value, None )
+
+    value = getProductionParameterValue( productionXML, parameterName )
+    self.assertEqual( value, valueExp )
 
 #############################################################################
 # AnalyseXMLSummary.py
@@ -1120,7 +1166,7 @@ class UploadLogFileSuccess( ModulesTestCase ):
       expected.append( 'pylint.txt' )
     if 'nosetests.xml' in os.listdir( '.' ):
       expected.append( 'nosetests.xml' )
-    self.assertEqual( res['Value'], expected)
+    self.assertEqual( res['Value'], expected )
 
     fd = open( 'aLongLog.log', 'w' )
     for _x in range( 2500 ):
