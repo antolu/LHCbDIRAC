@@ -1,30 +1,30 @@
 ########################################################################
 # File: RAWIntegrityAgent.py
 ########################################################################
-
 """ :mod: RAWIntegrityAgent
     =======================
  
     .. module: RAWIntegrityAgent
     :synopsis: RAWIntegrityAgent determines whether RAW files in CASTOR were migrated correctly.
 """
-
 __RCSID__ = "$Id $"
-
 ## imports
 import os
 ## from DIRAC
 from DIRAC import gMonitor, S_OK
+## from Core
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.DISET.RPCClient import RPCClient 
-from DIRAC.RequestManagementSystem.Client.RequestClient import RequestClient
-from DIRAC.RequestManagementSystem.Client.RequestContainer import RequestContainer
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC.ConfigurationSystem.Client import PathFinder
+## from DMS
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from DIRAC.DataManagementSystem.Client.DataLoggingClient import DataLoggingClient
-## from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB import RAWIntegrityDB
+## from RMS
+from DIRAC.RequestManagementSystem.Client.Request import Request
+from DIRAC.RequestManagementSystem.Client.Operation import Operation
+from DIRAC.RequestManagementSystem.Client.File import File
 
 AGENT_NAME = 'DataManagement/RAWIntegrityAgent'
 
@@ -32,7 +32,6 @@ class RAWIntegrityAgent( AgentModule ):
   """
   .. class:: RAWIntegirtyAgent
 
-  :param RequestClient requestClient: RequestDB client
   :param ReplicaManager replicaManager: ReplicaManager instance
   :param RAWIntegrityDB rawIntegrityDB: RAWIntegrityDB instance
   :param DataLoggingClient dataLoggingClient: DataLoggingClient instance
@@ -48,7 +47,6 @@ class RAWIntegrityAgent( AgentModule ):
   def initialize( self ):
     """ agent initialisation """
 
-    self.requestClient = RequestClient()
     self.replicaManager = ReplicaManager()
     self.rawIntegrityDB = RAWIntegrityDB()
     self.dataLoggingClient = DataLoggingClient()
@@ -239,21 +237,23 @@ class RAWIntegrityAgent( AgentModule ):
           # Create a removal request and set it to the gateway request DB
           #
           self.log.info( "Creating removal request for correctly migrated files." )
-          oRequest = RequestContainer()
-          subRequestIndex = oRequest.initiateSubRequest( 'removal' )['Value']
-          attributeDict = { 'Operation':'physicalRemoval', 'TargetSE':'OnlineRunDB' }
-          oRequest.setSubRequestAttributes( subRequestIndex, 'removal', attributeDict )
-          filesDict = [ {'LFN' : lfn, 'PFN' : pfn } ]
-          oRequest.setSubRequestFiles( subRequestIndex, 'removal', filesDict )
-          fileName = os.path.basename( lfn )
-          requestName = 'remove_%s.xml' % fileName
-          requestString = oRequest.toXML()['Value']
-          self.log.info( "Attempting to put %s to gateway requestDB." % requestName )
-          res = self.onlineRequestMgr.setRequest( requestName, requestString )
+          oRequest = Request()
+          oRequest.RequestName = "remove_%s" % os.path.basename( lfn )
+          physRemoval = Operation()
+          physRemoval.Type = "PhysicalRemoval"
+          physRemoval.TargetSE = "OnlineRunDB"
+          fileToRemove = File()
+          fileToRemove.LFN = lfn
+          fileToRemove.PFN = pfn
+          physRemoval.addFile( fileToRemove )
+          oRequest.addOperation( physRemoval )
+          
+          self.log.info( "Attempting to put %s to gateway requestDB." % oRequest.RequestName )
+          res = self.onlineRequestMgr.putRequest( oRequest )
           if not res['OK']:
             self.log.error( "Failed to set removal request to gateway requestDB.", res['Message'] )
           else:
-            self.log.info( "Successfully put %s to gateway requestDB." % requestName )
+            self.log.info( "Successfully put %s to gateway requestDB." % oRequest.RequestName )
             ############################################################
             #
             # Remove the file from the list of files awaiting migration in database
@@ -292,21 +292,27 @@ class RAWIntegrityAgent( AgentModule ):
           # Create a transfer request for the files incorrectly migrated
           #
           self.log.info( "Creating (re)transfer request for incorrectly migrated files." )
-          oRequest = RequestContainer()
-          subRequestIndex = oRequest.initiateSubRequest( 'removal' )['Value']
-          attributeDict = { 'Operation' : 'reTransfer', 'TargetSE' : 'OnlineRunDB' }
-          oRequest.setSubRequestAttributes( subRequestIndex, 'removal', attributeDict )
-          fileName = os.path.basename( lfn )
-          filesDict = [ { 'LFN' : lfn, 'PFN' : fileName } ]
-          oRequest.setSubRequestFiles( subRequestIndex, 'removal', filesDict )
-          requestName = 'retransfer_%s.xml' % fileName
-          requestString = oRequest.toXML()['Value']
-          self.log.info( "Attempting to put %s to gateway requestDB." % requestName )
-          res = self.onlineRequestMgr.setRequest( requestName, requestString )
+
+          oRequest = Request()
+          oRequest.RequestName = "retransfer_%s" % os.path.basename( lfn )
+
+          reTransfer = Operation()
+          reTransfer.Type = "ReTransfer"
+          reTransfer.targetSE = "OnlineRunDB"
+
+          reTransferFile = File()
+          reTransferFile.LFN = lfn
+          reTransferFile.PFN = os.path.basename( lfn )
+
+          reTransfer.addFile( reTransferFile )
+          oRequest.addOperation( reTransfer )
+
+          self.log.info( "Attempting to put %s to gateway requestDB." % oRequest.RequestName )
+          res = self.onlineRequestMgr.putRequest( oRequest )
           if not res['OK']:
             self.log.error( "Failed to set removal request to gateway requestDB.", res['Message'] )
           else:
-            self.log.info( "Successfully put %s to gateway requestDB." % requestName )
+            self.log.info( "Successfully put %s to gateway requestDB." % oRequest.RequestName )
             ############################################################
             #
             # Remove the file from the list of files awaiting migration in database
