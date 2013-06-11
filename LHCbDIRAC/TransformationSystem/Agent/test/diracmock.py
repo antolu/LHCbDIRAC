@@ -53,15 +53,16 @@ class DIRACAgent_TestCase( unittest.TestCase ):
 
   def setUp( self ):
     
-    self.moduleTested = sut( self.sutPath )
+    _moduleTested = sut( self.sutPath )
+    self.moduleTested = mockAgent( _moduleTested, self.sutPath )
 
-    agentClass = self.moduleTested.getattr( self.sutPath.split('.')[-1] )
-    
-    AgentModule = mockAgentModule()
-    
-    
-    self.moduleTested.AgentModule = AgentModule
-    agentClass.__bases__          = ( AgentModule, )
+#    agentClass = getattr( self.moduleTested, self.sutPath.split('.')[-1] )
+#    
+#    AgentModule = mockAgentModule()
+#    
+#        
+#    self.moduleTested.AgentModule = AgentModule
+#    agentClass.__bases__          = ( AgentModule, )
    
   
   def tearDown( self ):
@@ -70,24 +71,49 @@ class DIRACAgent_TestCase( unittest.TestCase ):
     unmock()
 
 def mockAgentModule():
-
-  patcher  = mock.patch( 'DIRAC.Core.Base.AgentModule.AgentModule', 
-                         autospec = True )
+  
+  patcher  = mock.patch( 'DIRAC.Core.Base.AgentModule.AgentModule', autospec = True )
   # The patcher needs to be started...
   pStarted = patcher.start()
-
   # Why all this ugliness ?
   # Python is a tricky bastard that allows you doing everything you want except
   # using a mock class as a base class. We create a REAL python class, and then
   # once one object is instantiated, we overwrite all methods and class variables
   # from the mock into the REAL class
-      
   class AgentModule():
     def __init__( self, *args, **kwargs ): pass
   for k, v in pStarted.__dict__.iteritems():
     setattr( AgentModule, k, v )
-
   return AgentModule
+
+def mockAgent( moduleTested, sutPath ):
+  
+  agentClass = getattr( moduleTested, sutPath.split( '.' )[ -1 ] )
+  
+  if hasattr( moduleTested, 'AgentModule' ):
+  
+    AgentModule = mockAgentModule()
+    
+    moduleTested.AgentModule = AgentModule
+    
+    baseClassBuffer = []
+    
+    for baseClass in agentClass.__bases__:
+      if baseClass.__name__ == 'AgentModule':
+        baseClassBuffer.append( AgentModule )    
+      else:
+        baseClassBuffer.append( baseClass ) 
+    
+    newBases = tuple( baseClassBuffer )
+    if agentClass.__bases__ != newBases:
+      agentClass.__bases__ = newBases      
+  
+  else:
+    for baseClass in agentClass.__bases__:
+      mockAgent( agentClass, baseClass.__module__ )
+      
+  return moduleTested    
+          
 
 def unmock():
   
