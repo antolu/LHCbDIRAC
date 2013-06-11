@@ -15,22 +15,6 @@ __RCSID__ = '$Id: $'
 #if mock.__version__ < '1.0.1':
 # raise ImportError( 'Too old version of mock, we need %s < 1.0.1' % mock.__version__ )
 
-def sut( sutPath ):
-  """ sut ( Software Under Test )
-Imports the module ( not the class ! ) to be tested and returns it.
-
-examples:
->>> sut( 'DIRAC.ResourceStatusSytem.Client.ResourceStatusClient' )
-
-:Parameters:
-**sutPath** - `str`
-path to the module to be tested
-
-"""
-  
-  return __import__( sutPath, globals(), locals(), '*' )
-
-
 #...............................................................................
 # Standard TestCase
 
@@ -70,6 +54,21 @@ class DIRACAgent_TestCase( unittest.TestCase ):
     del self.moduleTested
     unmock()
 
+def sut( sutPath ):
+  """ sut ( Software Under Test )
+Imports the module ( not the class ! ) to be tested and returns it.
+
+examples:
+>>> sut( 'DIRAC.ResourceStatusSytem.Client.ResourceStatusClient' )
+
+:Parameters:
+**sutPath** - `str`
+path to the module to be tested
+
+"""
+  
+  return __import__( sutPath, globals(), locals(), '*' )
+
 def mockAgentModule():
   
   patcher  = mock.patch( 'DIRAC.Core.Base.AgentModule.AgentModule', autospec = True )
@@ -86,9 +85,10 @@ def mockAgentModule():
     setattr( AgentModule, k, v )
   return AgentModule
 
-def mockAgent( moduleTested, sutPath ):
+def mockAgent( sutPath ):
   
-  agentClass = getattr( moduleTested, sutPath.split( '.' )[ -1 ] )
+  moduleTested = sut( sutPath )
+  agentClass   = getattr( moduleTested, sutPath.split( '.' )[ -1 ] )
   
   if hasattr( moduleTested, 'AgentModule' ):
   
@@ -110,7 +110,7 @@ def mockAgent( moduleTested, sutPath ):
   
   else:
     for baseClass in agentClass.__bases__:
-      mockAgent( agentClass, baseClass.__module__ )
+      mockAgent( baseClass.__module__ )
       
   return moduleTested    
           
