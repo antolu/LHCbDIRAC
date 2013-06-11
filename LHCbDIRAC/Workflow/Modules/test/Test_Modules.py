@@ -266,8 +266,8 @@ class ModulesTestCase( unittest.TestCase ):
     self.cdf = CreateDataFile( bkClient = self.bkc_mock, rm = self.rm_mock )
 
   def tearDown( self ):
-    for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst',
-                     'ccc.charm.mdst', 'prova.txt', 'foo.txt', 'BAR.txt', 'FooBAR.ext.txt', 'foo_1.txt', 'bar_2.py',
+    for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst', 'bar.py', 'aLongLog.log', 'aLongLog.log.gz'
+                     'ccc.charm.mdst', 'prova.txt', 'aLog.log', 'BAR.txt', 'FooBAR.ext.txt', 'foo_1.txt', 'bar_2.py',
                      'ErrorLogging_Step1_coredump.log', '123_00000456_request.xml', 'lfn1', 'lfn2',
                      'aaa.bhadron.dst', 'bbb.calibration.dst', 'ProductionOutputData', 'data.py',
                      '00000123_00000456.tar', 'someOtherDir', 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK',
@@ -1102,6 +1102,38 @@ class UploadLogFileSuccess( ModulesTestCase ):
                                            ft_mock )['OK'] )
 #        self.assertTrue( self.ulf.finalize( rm_mock, self.ft_mock )['OK'] )
 
+
+  def test__determinRelevantFiles( self ):
+    for fileN in ['foo.txt', 'aLog.log', 'aLongLog.log', 'aLongLog.log.gz']:
+      try:
+        os.remove( fileN )
+      except OSError:
+        continue
+
+    open( 'foo.txt', 'w' ).close()
+    open( 'bar.py', 'w' ).close()
+    open( 'aLog.log', 'w' ).close()
+    res = self.ulf._determineRelevantFiles()
+    self.assertTrue( res['OK'] )
+    self.assertEqual( res['Value'], ['foo.txt', 'aLog.log'] )
+
+    fd = open( 'aLongLog.log', 'w' )
+    for _x in range( 2500 ):
+      fd.writelines( "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum" )
+    fd.close()
+    res = self.ulf._determineRelevantFiles()
+    self.assertTrue( res['OK'] )
+    self.assertEqual( res['Value'], ['foo.txt', 'aLog.log', 'aLongLog.log.gz'] )
+
+    open( 'foo.txt', 'w' ).close()
+    fd = open( 'aLongLog.log', 'w' )
+    for _x in range( 2500 ):
+      fd.writelines( "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum" )
+    fd.close()
+    open( 'bar.py', 'w' ).close()
+    res = self.ulf._determineRelevantFiles()
+    self.assertTrue( res['OK'] )
+    self.assertEqual( res['Value'], ['foo.txt', 'aLog.log', 'aLongLog.log.gz'] )
 
 ##############################################################################
 # # UploadOutputData.py

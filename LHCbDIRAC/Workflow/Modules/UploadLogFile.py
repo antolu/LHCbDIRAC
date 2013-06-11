@@ -33,7 +33,7 @@ class UploadLogFile( ModuleBase ):
     self.version = __RCSID__
 
     self.logSE = self.opsH.getValue( 'LogStorage/LogSE', 'LogSE' )
-    self.logSizeLimit = self.opsH.getValue( 'LogFiles/SizeLimit', 20 * 1024 * 1024 )
+    self.logSizeLimit = self.opsH.getValue( 'LogFiles/SizeLimit', 1 * 1024 * 1024 )
     self.logExtensions = self.opsH.getValue( 'LogFiles/Extensions', [] )
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
     self.diracLogo = self.opsH.getValue( 'SAM/LogoURL',
@@ -103,14 +103,111 @@ class UploadLogFile( ModuleBase ):
       self.logdir = os.path.realpath( './job/log/%s/%s' % ( self.production_id, self.prod_job_id ) )
       self.log.info( 'Selected log files will be temporarily stored in %s' % self.logdir )
 
+      ##########################################
+      # First determine the files which should be saved
+      self.log.info( 'Determining the files to be saved in the logs.' )
+      res = self._determineRelevantFiles()
+      if not res['OK']:
+        self.log.error( 'Completely failed to select relevant log files.', res['Message'] )
+        return S_OK()
+      selectedFiles = res['Value']
+      self.log.info( 'The following %s files were selected to be saved:\n%s' % ( len( selectedFiles ),
+                                                                                 '\n'.join( selectedFiles ) ) )
+
+      #########################################
+      # Create a temporary directory containing these files
+      self.log.info( 'Populating a temporary directory for selected files.' )
+      res = self.__populateLogDirectory( selectedFiles )
+      if not res['OK']:
+        self.log.error( 'Completely failed to populate temporary log file directory.', res['Message'] )
+        self.setApplicationStatus( 'Failed To Populate Log Dir', jr = self.jobReport )
+        return S_OK()
+      self.log.info( '%s populated with log files.' % self.logdir )
+
+      #########################################
+      # Create a tailored index page
+      self.log.info( 'Creating an index page for the logs' )
+      result = self.__createLogIndex( selectedFiles )
+      if not result['OK']:
+        self.log.error( 'Failed to create index page for logs', res['Message'] )
+
+      #########################################
+      # Make sure all the files in the log directory have the correct permissions
+      result = self.__setLogFilePermissions( self.logdir )
+      if not result['OK']:
+        self.log.error( 'Could not set permissions of log files to 0755 with message:\n%s' % ( result['Message'] ) )
+
+
       # Instantiate the failover transfer client with the global request object
       if not ft:
         ft = FailoverTransfer( self.request )
 
-      res = self.finalize( ft )
+      #########################################
+      # Attempt to uplaod logs to the LogSE
+      self.log.info( 'Transferring log files to the %s' % self.logSE )
+      res = S_ERROR()
+      logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
+      self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
+      self.log.info( 'PutDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
+
+      res = self.rm.putStorageDirectory( storageDirectory = {self.logFilePath:os.path.realpath( self.logdir )},
+                                         storageElementName = self.logSE,
+                                         singleDirectory = True )
+      self.log.verbose( res )
+      self.setJobParameter( 'Log URL', logURL, jr = self.jobReport )
+      if res['OK']:
+        self.log.info( 'Successfully upload log directory to %s' % self.logSE )
+        # TODO: The logURL should be constructed using the LogSE and StorageElement()
+        # FS: Tried, not available ATM in Dirac
+        # storageElement = StorageElement(self.logSE)
+        # pfn = storageElement.getPfnForLfn(self.logFilePath)['Value']
+        # logURL = getPfnForProtocol(res['Value'],'http')['Value']
+        return S_OK()
+
+      #########################################
+      # Recover the logs to a failover storage element
+      self.log.error( 'Failed to upload log files with message "%s", uploading to failover SE' % res['Message'] )
+
+      # make a tar file
+      tarFileName = os.path.basename( self.logLFNPath )
+      res = tarFiles( tarFileName, selectedFiles, compression = 'gz' )
+      if not res['OK']:
+        self.log.error( 'Failed to create tar of log files: %s' % res['Message'] )
+        self.setApplicationStatus( 'Failed to create tar of log files' )
+        return S_OK()
+
+      ############################################################W
+      random.shuffle( self.failoverSEs )
+      self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName,
+                                                                                   ', '.join( self.failoverSEs ) ) )
+      result = ft.transferAndRegisterFile( fileName = tarFileName,
+                                           localPath = '%s/%s' % ( os.getcwd(), tarFileName ),
+                                           lfn = self.logLFNPath,
+                                           destinationSEList = self.failoverSEs,
+                                           fileGUID = None,
+                                           fileCatalog = 'LcgFileCatalogCombined' )
+
+      if not result['OK']:
+        self.log.error( 'Failed to upload logs to all failover destinations' )
+        self.setApplicationStatus( 'Failed To Upload Logs' )
+        return S_OK()
+
+      uploadedSE = result['Value']['uploadedSE']
+      self.log.info( 'Uploaded logs to failover SE %s' % uploadedSE )
+
+      # Now after all operations, retrieve potentially modified request object
+      self.request = ft.request
+
+      res = self.__createLogUploadRequest( self.logSE, self.logLFNPath, uploadedSE )
+      if not res['OK']:
+        self.log.error( 'Failed to create failover request', res['Message'] )
+        self.setApplicationStatus( 'Failed To Upload Logs To Failover' )
+      else:
+        self.log.info( 'Successfully created failover request' )
+
       self.workflow_commons['Request'] = self.request
 
-      return res
+      return S_OK( "Log Files uploaded" )
 
     except Exception, e:
       self.log.exception( e )
@@ -121,116 +218,8 @@ class UploadLogFile( ModuleBase ):
 
   #############################################################################
 
-  def finalize( self, ft ):
 
-    """ finalize method performs final operations after all the job
-        steps were executed. Only production jobs are treated.
-    """
-    self.log.verbose( 'Starting UploadLogFile finalize' )
-    ##########################################
-    # First determine the files which should be saved
-    self.log.info( 'Determining the files to be saved in the logs.' )
-    res = self.determineRelevantFiles()
-    if not res['OK']:
-      self.log.error( 'Completely failed to select relevant log files.', res['Message'] )
-      return S_OK()
-    selectedFiles = res['Value']
-    self.log.info( 'The following %s files were selected to be saved:\n%s' % ( len( selectedFiles ),
-                                                                               '\n'.join( selectedFiles ) ) )
-
-    #########################################
-    # Create a temporary directory containing these files
-    self.log.info( 'Populating a temporary directory for selected files.' )
-    res = self.populateLogDirectory( selectedFiles )
-    if not res['OK']:
-      self.log.error( 'Completely failed to populate temporary log file directory.', res['Message'] )
-      self.setApplicationStatus( 'Failed To Populate Log Dir', jr = self.jobReport )
-      return S_OK()
-    self.log.info( '%s populated with log files.' % self.logdir )
-
-    #########################################
-    # Create a tailored index page
-    self.log.info( 'Creating an index page for the logs' )
-    result = self.__createLogIndex( selectedFiles )
-    if not result['OK']:
-      self.log.error( 'Failed to create index page for logs', res['Message'] )
-
-    #########################################
-    # Make sure all the files in the log directory have the correct permissions
-    result = self.__setLogFilePermissions( self.logdir )
-    if not result['OK']:
-      self.log.error( 'Could not set permissions of log files to 0755 with message:\n%s' % ( result['Message'] ) )
-
-    #########################################
-    # Attempt to uplaod logs to the LogSE
-    self.log.info( 'Transferring log files to the %s' % self.logSE )
-    res = S_ERROR()
-    logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
-    self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
-    self.log.info( 'PutDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
-
-    res = self.rm.putStorageDirectory( storageDirectory = {self.logFilePath:os.path.realpath( self.logdir )},
-                                       storageElementName = self.logSE,
-                                       singleDirectory = True )
-    self.log.verbose( res )
-    self.setJobParameter( 'Log URL', logURL, jr = self.jobReport )
-    if res['OK']:
-      self.log.info( 'Successfully upload log directory to %s' % self.logSE )
-      # TODO: The logURL should be constructed using the LogSE and StorageElement()
-      # FS: Tried, not available ATM in Dirac
-      # storageElement = StorageElement(self.logSE)
-      # pfn = storageElement.getPfnForLfn(self.logFilePath)['Value']
-      # logURL = getPfnForProtocol(res['Value'],'http')['Value']
-      return S_OK()
-
-    #########################################
-    # Recover the logs to a failover storage element
-    self.log.error( 'Completely failed to upload log files to %s with message "%s", \
-    will attempt upload to failover SE' % ( self.logSE, res['Message'] ) )
-
-    # make a tar file
-    tarFileName = os.path.basename( self.logLFNPath )
-    res = tarFiles( tarFileName, selectedFiles, compression = 'gz' )
-    if not res['OK']:
-      self.log.error( 'Failed to create tar of log files: %s' % res['Message'] )
-      self.setApplicationStatus( 'Failed to create tar of log files' )
-      return S_OK()
-
-    ############################################################W
-    random.shuffle( self.failoverSEs )
-    self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName,
-                                                                                 ', '.join( self.failoverSEs ) ) )
-    result = ft.transferAndRegisterFile( fileName = tarFileName,
-                                         localPath = '%s/%s' % ( os.getcwd(), tarFileName ),
-                                         lfn = self.logLFNPath,
-                                         destinationSEList = self.failoverSEs,
-                                         fileGUID = None,
-                                         fileCatalog = 'LcgFileCatalogCombined' )
-
-    if not result['OK']:
-      self.log.error( 'Failed to upload logs to all failover destinations' )
-      self.setApplicationStatus( 'Failed To Upload Logs' )
-      return S_OK()
-
-    uploadedSE = result['Value']['uploadedSE']
-    self.log.info( 'Uploaded logs to failover SE %s' % uploadedSE )
-
-    # Now after all operations, retrieve potentially modified request object
-    self.request = ft.request
-
-    res = self.createLogUploadRequest( self.logSE, self.logLFNPath, uploadedSE )
-    if not res['OK']:
-      self.log.error( 'Failed to create failover request', res['Message'] )
-      self.setApplicationStatus( 'Failed To Upload Logs To Failover' )
-    else:
-      self.log.info( 'Successfully created failover request' )
-
-    self.workflow_commons['Request'] = self.request
-    return S_OK()
-
-  #############################################################################
-
-  def determineRelevantFiles( self ):
+  def _determineRelevantFiles( self ):
     """ The files which are below a configurable size will be stored in the logs.
         This will typically pick up everything in the working directory minus the output data files.
     """
@@ -258,7 +247,10 @@ class UploadLogFile( ModuleBase ):
         if fileSize < self.logSizeLimit:
           selectedFiles.append( candidate )
         else:
-          self.log.error( 'Log file found to be greater than maximum of %s bytes' % self.logSizeLimit, candidate )
+          self.log.info( 'Log file found to be greater than maximum of %s bytes, compressing' % self.logSizeLimit )
+          tarFileName = os.path.basename( candidate ) + '.gz'
+          tarFiles( tarFileName, [candidate], compression = 'gz' )
+          selectedFiles.append( tarFileName )
       return S_OK( selectedFiles )
     except OSError, x:
       self.log.exception( 'Exception while determining files to save.', '', str( x ) )
@@ -266,7 +258,7 @@ class UploadLogFile( ModuleBase ):
 
   #############################################################################
 
-  def populateLogDirectory( self, selectedFiles ):
+  def __populateLogDirectory( self, selectedFiles ):
     """ A temporary directory is created for all the selected files.
         These files are then copied into this directory before being uploaded
     """
@@ -305,7 +297,7 @@ class UploadLogFile( ModuleBase ):
 
   #############################################################################
 
-  def createLogUploadRequest( self, targetSE, logFileLFN, uploadedSE ):
+  def __createLogUploadRequest( self, targetSE, logFileLFN, uploadedSE ):
     """ Set a request to upload job log files from the output sandbox
     """
     self.log.info( 'Setting log upload request for %s at %s' % ( logFileLFN, targetSE ) )
