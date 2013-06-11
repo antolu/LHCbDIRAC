@@ -1,39 +1,38 @@
-''' Simple extension of base class
-'''
+""" Simple extension of base class
+"""
 
-__RCSID__ = "$Id$"
-
-from DIRAC import S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities.List import sortList
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC                                                    import S_OK, S_ERROR, gLogger
+from DIRAC.Core.Utilities.List                                import sortList
+from DIRAC.DataManagementSystem.Client.ReplicaManager         import ReplicaManager
 from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
-from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
-from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient import DataIntegrityClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient       import StorageUsageClient
+from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient      import DataIntegrityClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient  import ProductionsClient
 
 AGENT_NAME = 'Transformation/ValidateOutputDataAgent'
 
 class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
-  ''' Simple extension of base class
-  '''
+  """ Simple extension of base class
+  """
 
   #############################################################################
 
   def __init__( self, *args, **kwargs ):
-    ''' c'tor
-    '''
+    """ c'tor
+    """
     DIRACValidateOutputDataAgent.__init__( self, *args, **kwargs )
 
     self.integrityClient = DataIntegrityClient()
     self.replicaManager = ReplicaManager()
-    self.transClient = TransformationClient()
+    self.transClient = ProductionsClient()
     self.storageUsageClient = StorageUsageClient()
 
   #############################################################################
 
   def checkTransformationIntegrity( self, prodID ):
-    ''' This method contains the real work
-    '''
+    """ This method contains the real work
+    """
     gLogger.info( "-" * 40 )
     gLogger.info( "Checking the integrity of production %s" % prodID )
     gLogger.info( "-" * 40 )
@@ -100,11 +99,11 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
     return S_OK()
 
   def getTransformationDirectories( self, transID ):
-    ''' get the directories for the supplied transformation from the transformation system
+    """ get the directories for the supplied transformation from the transformation system
 
     :param self: self reference
     :param int transID: transformation ID
-    '''
+    """
 
     res = DIRACValidateOutputDataAgent.getTransformationDirectories( self, transID )
 

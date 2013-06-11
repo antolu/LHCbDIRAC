@@ -16,8 +16,8 @@ from DIRAC.Core.DISET.RPCClient                                   import RPCClie
 from DIRAC.Core.Utilities.Time                                    import toString
 from DIRAC.Core.Utilities.PromptUser                              import promptUser
 
-from LHCbDIRAC.Interfaces.API.DiracLHCb                           import DiracLHCb
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
+from LHCbDIRAC.Interfaces.API.DiracLHCb                             import DiracLHCb
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient  import ProductionsClient
 
 COMPONENT_NAME = 'DiracProduction'
 
@@ -33,7 +33,7 @@ class DiracProduction( DiracLHCb ):
     super( DiracProduction, self ).__init__()
 
     if tsClientIn is None:
-      self.transformationClient = TransformationClient()
+      self.transformationClient = ProductionsClient()
     else:
       self.transformationClient = tsClientIn
 

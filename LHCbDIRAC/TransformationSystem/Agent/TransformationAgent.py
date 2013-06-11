@@ -7,10 +7,10 @@ __RCSID__ = "$Id: TransformationAgent.py 43068 2011-09-28 16:21:29Z phicharp $"
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Agent.TransformationAgent import TransformationAgent as DIRACTransformationAgent
 from DIRAC.TransformationSystem.Agent.TransformationAgent import AGENT_NAME
-from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
+from DIRAC.ResourceStatusSystem.Client.ResourceStatus     import ResourceStatus
 
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient  import ProductionsClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
 AGENT_NAME = 'Transformation/LHCbTransformationAgent'
@@ -34,7 +34,7 @@ class TransformationAgent( DIRACTransformationAgent ):
     """
     res = DIRACTransformationAgent._getClients( self )
 
-    threadTransformationClient = TransformationClient()
+    threadTransformationClient = ProductionsClient()
     threadRMClient = ResourceManagementClient()
     threadResourceStatus = ResourceStatus()
     threadBkk = BookkeepingClient()

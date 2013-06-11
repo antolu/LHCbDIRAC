@@ -8,13 +8,13 @@
 __RCSID__ = "$Id$"
 
 # # from DIRAC
-from DIRAC import S_OK, S_ERROR, gConfig
-from DIRAC.Core.Utilities.List import sortList
+from DIRAC                                                        import S_OK, S_ERROR, gConfig
+from DIRAC.Core.Utilities.List                                    import sortList
 from DIRAC.TransformationSystem.Agent.TransformationCleaningAgent import TransformationCleaningAgent as DiracTCAgent
 # # from LHCbDIRAC
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient  import ProductionsClient
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
+from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient       import StorageUsageClient
 
 # # agent's name
 AGENT_NAME = 'Transformation/TransformationCleaningAgent'
@@ -30,7 +30,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
     """
     DiracTCAgent.__init__( self, *args, **kwargs )
     self.bkClient = BookkeepingClient()
-    self.transClient = TransformationClient()
+    self.transClient = ProductionsClient()
     self.storageUsageClient = StorageUsageClient()
 
     self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', [ 'TransformationDB',
