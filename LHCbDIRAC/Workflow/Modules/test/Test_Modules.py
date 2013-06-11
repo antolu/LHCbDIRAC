@@ -1166,7 +1166,7 @@ class UploadLogFileSuccess( ModulesTestCase ):
       expected.append( 'pylint.txt' )
     if 'nosetests.xml' in os.listdir( '.' ):
       expected.append( 'nosetests.xml' )
-    self.assertEqual( res['Value'], expected )
+    self.assertEqual( set( res['Value'] ), set( expected ) )
 
     fd = open( 'aLongLog.log', 'w' )
     for _x in range( 2500 ):
@@ -1179,7 +1179,7 @@ class UploadLogFileSuccess( ModulesTestCase ):
       expected.append( 'pylint.txt' )
     if 'nosetests.xml' in os.listdir( '.' ):
       expected.append( 'nosetests.xml' )
-    self.assertEqual( res['Value'], expected )
+    self.assertEqual( set( res['Value'] ), set( expected ) )
 
     open( 'foo.txt', 'w' ).close()
     fd = open( 'aLongLog.log', 'w' )
@@ -1194,7 +1194,7 @@ class UploadLogFileSuccess( ModulesTestCase ):
     if 'nosetests.xml' in os.listdir( '.' ):
       expected.append( 'nosetests.xml' )
     self.assertTrue( res['OK'] )
-    self.assertEqual( res['Value'], expected )
+    self.assertEqual( set( res['Value'] ), set( expected ) )
 
 ##############################################################################
 # # UploadOutputData.py
