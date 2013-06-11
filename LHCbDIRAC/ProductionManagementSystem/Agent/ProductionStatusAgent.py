@@ -1,4 +1,4 @@
-'''  The ProductionStatusAgent monitors productions for active requests
+"""  The ProductionStatusAgent monitors productions for active requests
      and takes care to update their status. Initially this is just to handle
      simulation requests.
 
@@ -18,7 +18,7 @@
      In addition this also updates request status from Active to Done.
 
      To do: review usage of production API(s) and re-factor into Production Client
-'''
+"""
 
 __RCSID__ = "$Id$"
 
@@ -29,44 +29,43 @@ from DIRAC.Core.DISET.RPCClient                                 import RPCClient
 from DIRAC.Interfaces.API.Dirac                                 import Dirac
 from DIRAC.FrameworkSystem.Client.NotificationClient            import NotificationClient
 
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from LHCbDIRAC.Interfaces.API.DiracProduction                   import DiracProduction
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient  import ProductionsClient
+from LHCbDIRAC.Interfaces.API.DiracProduction                       import DiracProduction
 
 
 class ProductionStatusAgent( AgentModule ):
-  ''' Usual DIRAC agent
-  '''
+  """ Usual DIRAC agent
+  """
 
   def __init__( self, *args, **kwargs ):
-    ''' c'tor
+    """ c'tor
 
     :param self: self reference
     :param str agentName: name of agent
     :param str loadName: load name of agent
     :param bool baseAgentName: whatever
     :param dict properties: whatever else
-    '''
+    """
     AgentModule.__init__( self, *args, **kwargs )
 
     self.dProd = DiracProduction()
     self.dirac = Dirac()
     self.reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
-    self.transformationClient = TransformationClient()
-
+    self.productionsClient = ProductionsClient()
 
   #############################################################################
   def initialize( self ):
-    '''Sets default values.
-    '''
+    """Sets default values.
+    """
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
 
     return S_OK()
 
   #############################################################################
   def execute( self ):
-    ''' The execution method, periodically checks productions for requests in the
+    """ The execution method, periodically checks productions for requests in the
         Active status.
-    '''
+    """
     updatedProductions = {}
     updatedRequests = []
 
@@ -172,10 +171,10 @@ class ProductionStatusAgent( AgentModule ):
   #############################################################################
 
   def __getTransformations( self, status ):
-    ''' dev function. Get the transformations (print info in the meanwhile)
-    '''
+    """ dev function. Get the transformations (print info in the meanwhile)
+    """
 
-    res = self.transformationClient.getTransformationWithStatus( status )
+    res = self.productionsClient.getTransformationWithStatus( status )
     if not res['OK']:
       self.log.error( "Failed to get %s productions: %s" % ( status, res['Message'] ) )
       raise RuntimeError, "Failed to get %s productions: %s" % ( status, res['Message'] )
@@ -189,8 +188,8 @@ class ProductionStatusAgent( AgentModule ):
 
 
   def _getProgress( self ):
-    ''' get production request summary and progress
-    '''
+    """ get production request summary and progress
+    """
     result = self.reqClient.getProductionRequestSummary( 'Active', 'Simulation' )
     if not result['OK']:
       self.log.error( 'Could not retrieve production request summary: %s' % result['Message'] )
@@ -208,8 +207,8 @@ class ProductionStatusAgent( AgentModule ):
     return prodReqSummary, progressSummary
 
   def _evaluateProgress( self, prodReqSummary, progressSummary ):
-    ''' determines which prods have reached the number of events requested and which didn't
-    '''
+    """ determines which prods have reached the number of events requested and which didn't
+    """
     doneAndUsed = {}
     doneAndNotUsed = {}
     notDoneAndUsed = {}
@@ -242,8 +241,8 @@ class ProductionStatusAgent( AgentModule ):
     return doneAndUsed, doneAndNotUsed, notDoneAndUsed, notDoneAndNotUsed
 
   def _getReqsMap( self, prodReqS, progressS ):
-    ''' just create a dict with all the requests (master -> subRequets and the prods of each)
-    '''
+    """ just create a dict with all the requests (master -> subRequets and the prods of each)
+    """
     reqsMap = dict()
     for request, mData in dict( prodReqS ).iteritems():
       masterReq = mData['master']
@@ -260,9 +259,9 @@ class ProductionStatusAgent( AgentModule ):
     return reqsMap
 
   def _mailProdManager( self, updatedProductions, updatedRequests ):
-    ''' Notify the production manager of the changes as productions should be
+    """ Notify the production manager of the changes as productions should be
         manually extended in some cases.
-    '''
+    """
     if not updatedProductions and not updatedRequests:
       self.log.info( 'No changes this cycle, mail will not be sent' )
       return S_OK()
@@ -283,8 +282,8 @@ class ProductionStatusAgent( AgentModule ):
     return S_OK()
 
   def _updateRequestStatus( self, reqID, status, updatedRequests ):
-    ''' This method updates the request status.
-    '''
+    """ This method updates the request status.
+    """
     updatedRequests.append( reqID )
 
     reqClient = RPCClient( 'ProductionManagement/ProductionRequest', useCertificates = False, timeout = 120 )
@@ -295,10 +294,10 @@ class ProductionStatusAgent( AgentModule ):
     return result
 
   def _cleanActiveJobs( self, prodID ):
-    ''' This method checks if a production having enough BK events has any Waiting
+    """ This method checks if a production having enough BK events has any Waiting
         or Running jobs in the WMS and removes them to ensure the output data sample
         is static.  Then the production status is updated.
-    '''
+    """
     running = self.dProd.selectProductionJobs( int( prodID ), Status = 'Running' )
     if running['OK']:
       self.log.info( 'Killing %s running jobs for production %s' % ( len( running['Value'] ), prodID ) )
@@ -314,10 +313,10 @@ class ProductionStatusAgent( AgentModule ):
         self.log.error( result )
 
   def _updateProductionStatus( self, prodID, origStatus, status, updatedProductions ):
-    ''' This method updates the production status and logs the changes for each
+    """ This method updates the production status and logs the changes for each
         iteration of the agent.  Most importantly this method only allows status
         transitions based on what the original status should be.
-    '''
+    """
     result = self.dProd.getProduction( long( prodID ) )
     if not result['OK']:
       self.log.error( 'Could not update production status for %s to %s:\n%s' % ( prodID, status, result ) )
@@ -325,7 +324,7 @@ class ProductionStatusAgent( AgentModule ):
       currentStatus = result['Value']['Status']
       if currentStatus.lower() == origStatus.lower():
         self.log.verbose( 'Changing status for prod %s from %s to %s' % ( prodID, currentStatus, origStatus ) )
-        res = self.transformationClient.setTransformationParameter( prodID, 'Status', status )
+        res = self.productionsClient.setStatus( prodID, status, origStatus )
         if not res['OK']:
           self.log.error( "Failed to update status of production %s from %s to %s" % ( prodID, origStatus, status ) )
         else:
