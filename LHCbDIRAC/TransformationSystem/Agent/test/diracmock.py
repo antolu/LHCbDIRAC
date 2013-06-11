@@ -76,9 +76,11 @@ def mockAgentModule():
   # once one object is instantiated, we overwrite all methods and class variables
   # from the mock into the REAL class
   class AgentModule():
-    def __init__( self, *args, **kwargs ): pass
+    def __init__( self, *args, **kwargs ):
+      self.log = mock.Mock()
   for k, v in pStarted.__dict__.iteritems():
     setattr( AgentModule, k, v )
+    
   return AgentModule
 
 
