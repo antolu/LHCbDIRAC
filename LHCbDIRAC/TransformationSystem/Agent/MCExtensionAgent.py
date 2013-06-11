@@ -5,6 +5,7 @@ from DIRAC import S_OK, S_ERROR
 from DIRAC.TransformationSystem.Agent.MCExtensionAgent import MCExtensionAgent as DIRACMCExtensionAgent
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getCPUNormalizationFactorAvg, getEventsToProduce, getProductionParameterValue
 
 import math
@@ -21,13 +22,18 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     self.rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
     self.enableFlag = True
 
+    # default values
+    self.cpuE = 1.0
+    self.cpuTimeAvg = 1000000.0
+    self.cpuNormalizationFactorAvg = 1.0
+
   #############################################################################
   def initialize( self ):
     ''' Logs some parameters
     '''
 
-    self.log.info( "Will consider the following transformation types: %s" % str( self.transformationTypes ) )
-    self.log.info( "Will create a maximum of %s tasks per iteration" % self.maxIterationTasks )
+    self.log.info( 'Will consider the following transformation types: %s' % str( self.transformationTypes ) )
+    self.log.info( 'Will create a maximum of %s tasks per iteration' % self.maxIterationTasks )
 
     return S_OK()
 
@@ -41,6 +47,9 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       self.log.info( 'MCExtensionAgent is disabled by configuration option EnableFlag' )
       return S_OK( 'Disabled via CS flag' )
 
+    # done every cycle, as they may have changed
+    self._getCPUParameters()
+
     # get the production requests in which we are interested
     productionRequests = self.rpcProductionRequest.getProductionRequestSummary( 'Active', 'Simulation' )
     if productionRequests['OK']:
@@ -53,6 +62,28 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       self._checkProductionRequest( productionRequestID, productionRequestSummary )
 
     return S_OK()
+
+  #############################################################################
+
+  def _getCPUParameters( self ):
+    ''' Get the CPUTimeAvg and CPUNormalizationFactorAvg from config,
+        or as a fail-over, from ProductionRequest defaults.
+    '''
+
+    productionRequest = ProductionRequest()
+
+    op = Operations()
+    self.cpuTimeAvg = op.getValue( 'Transformations/cpuTimeAvg' )
+    if self.cpuTimeAvg is None:
+      self.cpuTimeAvg = productionRequest.CPUTimeAvg
+      self.log.info( 'Could not get cpuTimeAvg from config, defaulting to %d' % self.cpuTimeAvg )
+
+    try:
+      self.cpuNormalizationFactorAvg = getCPUNormalizationFactorAvg()
+    except RuntimeError:
+      self.cpuNormalizationFactorAvg = productionRequest
+      self.log.info( 'Could not get CPUNormalizationFactorAvg from config, defaulting to %d'
+                     % self.cpuNormalizationFactorAvg )
 
   #############################################################################
   def _checkProductionRequest( self, productionRequestID, productionRequestSummary ):
@@ -125,35 +156,12 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
     eventsToProduce = eventsNeeded * extensionFactor
 
-    # maximum number of events to produce
-    # try to get the CPU parameters from the configuration if possible
-
-    # TODO: maybe get these from ProductionRequest ?
-    # TODO: don't get time and normalization factor each time
-    # TODO: eliminate code redundency with ProductionRequest
-    cpuTimeAvgDefault = 1000000.0
-    cpuNormalizationFactorAvgDefault = 1.0
-    cpuEDefault = 1.0
-
-    op = Operations()
-    cpuTimeAvg = op.getValue( 'Transformations/cpuTimeAvg' )
-    if cpuTimeAvg is None:
-      self.log.info( 'Could not get cpuTimeAvg from config, defaulting to %d' % cpuTimeAvgDefault )
-      cpuTimeAvg = cpuTimeAvgDefault
-
-    try:
-      cpuNormalizationFactorAvg = getCPUNormalizationFactorAvg()
-    except RuntimeError:
-      self.log.info( 'Could not get CPUNormalizationFactorAvg from config, defaulting to %d'
-                     % cpuNormalizationFactorAvgDefault )
-      cpuNormalizationFactorAvg = cpuNormalizationFactorAvgDefault
-
     cpuE = getProductionParameterValue( production['Body'], 'CPUe' )
     if cpuE is None:
-      self.log.info( 'Could not get CPUe from production, defaulting to %d' % cpuEDefault )
-      cpuE = cpuEDefault
+      self.log.info( 'Could not get CPUe from production, defaulting to %d' % self.cpuE )
+      cpuE = self.cpuE
 
-    max_e = getEventsToProduce( cpuE, cpuTimeAvg, cpuNormalizationFactorAvg )
+    max_e = getEventsToProduce( cpuE, self.cpuTimeAvg, self.cpuNormalizationFactorAvg )
 
     numberOfTasks = int( math.ceil( float( eventsToProduce ) / float( max_e ) ) )
 
