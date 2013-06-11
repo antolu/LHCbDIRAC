@@ -125,14 +125,10 @@ def getProductionParameterValue( productionXML, parameterName ):
   for parameterElement in tree.childrens( 'Parameter' ):
     if parameterElement.attributes['name'].lower() == parameterName:
       valueElement = parameterElement.children
-      if valueElement.empty():
+      if valueElement is []:
         return None
       valueElement = valueElement[0]
 
-      cdataElement = valueElement.children
-      if cdataElement.empty():
-        return None
-
-      return cdataElement.value
+      return valueElement.value
 
   return None
