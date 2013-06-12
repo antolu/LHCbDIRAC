@@ -36,14 +36,6 @@ POLICIESMETA_LHCB = {
       'command'     : ( 'TransferCommand', 'TransferCommand' ),
       'args'        : { 'direction' : 'Destination', 'metric' : 'Quality', 'hours' : 2 }      
      },
-   #FIXME: rename it to add cache ? Duplicate ? Add cache option ?                           
-   'SpaceTokenOccupancy' :
-    { 
-      'description' : 'Space token occupancy',
-      'module'      : 'SpaceTokenOccupancyPolicy',
-      'command'     : ( 'SpaceTokenOccupancyCommand', 'SpaceTokenOccupancyCommand' ),
-      'args'        : { 'onlyCache' : True },
-     },     
    'JobEfficiency' :
     { 
       'description'     : 'Jobs efficiency extracted from WMS',
