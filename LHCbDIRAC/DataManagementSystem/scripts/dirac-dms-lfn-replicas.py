@@ -56,6 +56,7 @@ if __name__ == "__main__":
     if active:
       res = rm.checkActiveReplicas( res['Value'] )
       value = res['Value']
+      print value
       for lfn in sorted( value['Successful'] ):
         for se in sorted( value['Successful'][lfn] ):
           res2 = rm.getPfnForLfn( [lfn], se )
@@ -68,8 +69,6 @@ if __name__ == "__main__":
             else:
               value['Failed'].update( res2['Value']['Failed'] )
               value['Successful'][lfn].pop( se )
-        if not value['Successful'][lfn]:
-          value['Successful'].pop( lfn )
     else:
       lfns = []
       replicas = res['Value']['Successful']
