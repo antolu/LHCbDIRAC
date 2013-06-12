@@ -15,7 +15,7 @@ if __name__ == "__main__":
   dmScript.registerBKSwitches()
   dmScript.registerFileSwitches()
 
-  Script.registerSwitch( '', 'FixTransformations', '   Allows to set the files as Removed in all transformations' )
+  Script.registerSwitch( '', 'SetProcessed', '  Forced to set Removed the files in status Processed (default:not reset)' )
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
@@ -36,11 +36,11 @@ if __name__ == "__main__":
     lfnList += bkQuery.getLFNs()
 
   fixTrans = True
+  setProcessed = False
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
-    if switch[0] == 'FixTransformations':
-      gLogger.always( "--FixTransformations is now by default, will be removed soon" )
-      fixTrans = True
+    if switch[0] == 'SetProcessed':
+      setProcessed = True
 
   from DIRAC.Core.Utilities.List import sortList, breakListIntoChunks
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -78,20 +78,32 @@ if __name__ == "__main__":
   gLogger.setLevel( 'ERROR' )
 
   if fixTrans and successfullyRemoved + notExisting:
-    lfnsToSet = {}
     res = transClient.getTransformationFiles( {'LFN':successfullyRemoved + notExisting } )
     if not res['OK']:
       gLogger.error( "Error getting transformation files", res['Message'] )
     else:
-      for fileDict in [fileDict for fileDict in res['Value'] if fileDict['Status'] not in ( 'Removed' )]:
-        lfnsToSet.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
-    # If required, set files Removed in transformations
-    for transID, lfns in lfnsToSet.items():
-      res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns, force = True )
-      if not res['OK']:
-        gLogger.error( 'Error setting %d files to Removed' % len( lfns ), res['Message'] )
+      transFiles = res['Value']
+      lfnsToSet = {}
+      if setProcessed:
+        ignoreStatus = ( 'Removed' )
       else:
-        gLogger.always( 'Successfully set %d files as Removed in transformation %d' % ( len( lfns ), transID ) )
+        ignoreStatus = ( 'Processed', 'Removed' )
+        ignoredFiles = {}
+        for fileDict in [fileDict for fileDict in transFiles if fileDict['Status'] == 'Processed']:
+          ignoredFiles.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
+        if ignoredFiles:
+          for transID, lfns in ignoredFiles.items():
+            gLogger.always( 'Ignored %d files in status Processed in transformation %d' % ( len( lfns ), transID ) )
+
+      for fileDict in [fileDict for fileDict in transFiles if fileDict['Status'] not in ignoreStatus]:
+        lfnsToSet.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
+      # If required, set files Removed in transformations
+      for transID, lfns in lfnsToSet.items():
+        res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns, force = setProcessed )
+        if not res['OK']:
+          gLogger.error( 'Error setting %d files to Removed' % len( lfns ), res['Message'] )
+        else:
+          gLogger.always( 'Successfully set %d files as Removed in transformation %d' % ( len( lfns ), transID ) )
 
   if notExisting:
     # The files are not yet removed from the catalog!! :(((
