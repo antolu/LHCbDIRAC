@@ -111,7 +111,9 @@ if __name__ == "__main__":
         for url in seMetadata['Successful']:
           pfnMetadata = seMetadata['Successful'][url].copy()
           if len( seList ) > 1:
-            metadata['Successful'].setdefault( url, {} )[se] = pfnMetadata if not exists else {'Exists': 'True (%sCached)' % ( '' if pfnMetadata['Cached'] else 'Not ' )}
+            metadata['Successful'].setdefault( url, {} )[se] = pfnMetadata if not exists else {'Exists': 'True (%sCached)' % ( '' if pfnMetadata.get( 'Cached' ) else 'Not ' )}
+            if exists and not pfnMetadata.get( 'Size' ):
+              metadata['Successful'][url][se].update( {'Exists':'Zero size'} )
           else:
             metadata['Successful'][url] = pfnMetadata if not exists else {'Exists':'True (%sCached)' % ( '' if pfnMetadata['Cached'] else 'Not ' )}
           if check:
@@ -119,13 +121,15 @@ if __name__ == "__main__":
             if res1['OK']:
               lfnMetadata = res1['Value']['Successful'][url]
               ok = True
+              diff = 'False -'
               for field in ( 'Checksum', 'Size' ):
                 if lfnMetadata[field] != pfnMetadata[field]:
                   ok = False
+                  diff += ' %s: (LFN %s, PFN %s)' % ( field, lfnMetadata[field], pfnMetadata[field] )
               if len( seList ) > 1:
-                metadata['Successful'][url][se][' MatchLFN'] = ok
+                metadata['Successful'][url][se]['MatchLFN'] = ok if ok else diff
               else:
-                metadata['Successful'][url][' MatchLFN'] = ok
+                metadata['Successful'][url]['MatchLFN'] = ok if ok else diff
           metadata['Failed'].pop( url, None )
         for url in seMetadata['Failed']:
            if url not in metadata['Successful']:
