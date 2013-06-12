@@ -30,12 +30,12 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
         __printDictionary( value, offset = newOffset, shift = shift, empty = empty, depth = depth - 1 )
       elif key not in ( 'Failed', 'Successful' ):
         print '%s%s : %s' % ( offset * ' ', key, empty )
-    if type( value ) == type( [] ):
-      if value == []:
+    if type( value ) == type( [] ) or type( value ) == type( set() ):
+      if not value:
         print '%s%s : %s' % ( offset * ' ', key, '[]' )
       else:
         print '%s%s : ' % ( offset * ' ', key )
-        for val in value:
+        for val in sorted( value ):
           print '%s%s' % ( newOffset * ' ', val )
     elif type( value ) != type( {} ):
       print '%s : %s' % ( key.rjust( center ), str( value ) )
@@ -260,7 +260,7 @@ class DMScript():
       return convertSEs( self.options.get( switch, default ) )
     value = self.options.get( switch, default )
     if type( value ) == type( set() ):
-      value = sorted( list( value ) )
+      value = sorted( value )
     return value
 
   def getBKQuery( self, visible = None ):
