@@ -52,6 +52,7 @@ class DiracProduction( DiracLHCb ):
                      'cleaning':['Cleaning', 'Manual'],
                      'flush':['Flush', 'Automatic'],
                      'deleted':['Deleted', 'Manual'],
+                     'cleaned':['Cleaned', 'Manual'],
                      'archived':['Archived', 'Manual'],
                      'valinput':['ValidatingInput', 'Manual'],
                      'valoutput':['ValidatingOutput', 'Manual'],

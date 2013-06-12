@@ -15,8 +15,7 @@ class ProductionsStateMachine( StateMachine ):
 
     # Current states
     self.states = {
-                   'Deleted'          : State( 15 ),  # final state
-                   'Cleaned'          : State( 14, ['Deleted'] ),
+                   'Cleaned'          : State( 14 ),  # final state
                    'Cleaning'         : State( 13, ['Cleaned'] ),
                    'Completing'       : State( 12, ['Validating', 'Cleaning'], defState = 'Validating' ),
                    'Stopped'          : State( 11, ['Active', 'Flush', 'Cleaning'], defState = 'Active' ),
@@ -35,8 +34,7 @@ class ProductionsStateMachine( StateMachine ):
 
     # NEW states proposal
 #    self.states = {
-#                   'Deleted'    : State( 11 ),  # final state
-#                   'Cleaned'    : State( 10, ['Deleted']),
+#                   'Cleaned'    : State( 10 ), # final state
 #                   'Cleaning'   : State( 9, ['Cleaned'] ),
 #                   'Completing' : State( 8, ['Validating', 'Cleaning'], defState = 'Validating' ),
 #                   'Stopped'    : State( 7, ['Active', 'Flush', 'Cleaning'], defState = 'Active' ),
