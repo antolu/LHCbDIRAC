@@ -105,7 +105,6 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       return
     productionsProgress = productionsProgress['Rows']
 
-
     # get the informations for the productions/transformations
     productions = {}
     for productionProgress in productionsProgress:
@@ -116,14 +115,18 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
         # return ?
         continue
       production = production['Value']
-      productions[productionID] = production
+      productions.update( production )
 
-    # determine which one is the simulation production
-    simulationID = self._getSimulationProductionID( productions )
-    simulation = productions[simulationID]
-    for productionProgress in productionsProgress:
-      if productionProgress['ProductionID'] == simulationID:
-        simulationProgress = productionProgress
+      # determine which one is the simulation production
+      if production['Type'] in self.transformationTypes:
+        simulation = production
+        simulationID = productionID
+        for productionProgress in productionsProgress:
+          if productionProgress['ProductionID'] == simulationID:
+            simulationProgress = productionProgress
+
+    if simulation == None:
+      self.log.error( 'Failed to get simulation production for request %d' % productionRequestID )
 
     if simulation['Status'].lower() != 'idle':
       return
@@ -136,18 +139,6 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
         # extension factor
         extensionFactor = float( simulationProgress['BkEvents'] ) / float( productionRequestSummary['bkTotal'] )
         self._extendProduction( simulation, simulationID, extensionFactor, missingEvents )
-
-  #############################################################################
-  def _getSimulationProductionID( self, productions ):
-    ''' Given a productionID -> production infos dictionnary,
-        find the simulation production and returns its id (or None if not found)
-    '''
-
-    for productionID, production in productions.items():
-      if 'Type' in production and production['Type'] in self.transformationTypes:
-        return productionID
-
-    return None
 
   #############################################################################
   def _extendProduction( self, production, productionID, extensionFactor, eventsNeeded ):
