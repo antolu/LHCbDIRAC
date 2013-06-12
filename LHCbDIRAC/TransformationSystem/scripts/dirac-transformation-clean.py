@@ -7,7 +7,7 @@ __RCSID__ = "$Id$"
 
 import sys
 if len( sys.argv ) < 2:
-  print 'Usage: dirac-production-clean transID [transID] [transID]'
+  print 'Usage: dirac-transformation-clean transID [transID] [transID]'
   DIRAC.exit( 1 )
 else:
   try:
@@ -17,24 +17,11 @@ else:
     DIRAC.exit( 1 )
 
 from LHCbDIRAC.TransformationSystem.Agent.TransformationCleaningAgent     import TransformationCleaningAgent
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-from DIRAC                                                                import gLogger
-import DIRAC
 
 agent = TransformationCleaningAgent( 'Transformation/TransformationCleaningAgent',
                                      'Transformation/TransformationCleaningAgent',
-                                     'dirac-production-clean' )
+                                     'dirac-transformation-clean' )
 agent.initialize()
 
-client = TransformationClient()
 for transID in transIDs:
-  res = client.getTransformationParameters( transID, ['Status'] )
-  if not res['OK']:
-    gLogger.error( "Failed to determine transformation status" )
-    gLogger.error( res['Message'] )
-    continue
-  status = res['Value']
-  if not status in ['Deleted', 'Cleaning', 'Archived', 'Completed']:
-    gLogger.error( "The transformation is in %s status and cannot be cleaned" % status )
-    continue
   agent.cleanTransformation( transID )
