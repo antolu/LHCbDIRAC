@@ -111,8 +111,11 @@ if __name__ == "__main__":
             notInBK.setdefault( 'File is not in BK', [] ).extend( bkToRemove )
         else:
           bkFailed = res['Value'].get( 'Failed', res['Value'] )
-          for lfn, reason in bkFailed.items():
-            notInBK.setdefault( str( reason ), [] ).append( lfn )
+          if type( bkFailed ) == type( {} ):
+            for lfn, reason in bkFailed.items():
+              notInBK.setdefault( str( reason ), [] ).append( lfn )
+          elif type( bkFailed ) == type( [] ):
+            notInBK.setdefault( 'Not in BK', [] ).extend( bkFailed )
           bkOK += len( bkToRemove ) - len( bkFailed )
     if showProgress:
       gLogger.always( '' )
