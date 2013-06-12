@@ -19,6 +19,7 @@ if __name__ == "__main__":
   dmScript = DMScript()
   dmScript.registerFileSwitches()
   Script.registerSwitch( '', 'Full', '   Print out full BK dictionary (default: print out BK path)' )
+  Script.registerSwitch( '', 'GroupBy=', '   Return a list of files per <metadata item>' )
   Script.registerSwitch( '', 'GroupByPath', '   Return a list of files per BK path' )
   Script.registerSwitch( '', 'GroupByProduction', '   Return a list of files per production' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
@@ -30,20 +31,21 @@ if __name__ == "__main__":
   Script.parseCommandLine()
 
   import DIRAC
-  from DIRAC import S_OK
+  from DIRAC import S_OK, gLogger
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
   full = False
-  groupByPath = False
-  groupByProd = False
+  groupBy = False
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
     if switch[0] == 'Full':
       full = True
     elif switch[0] == 'GroupByPath':
-      groupByPath = True
+      groupBy = 'Path'
     elif switch[0] == 'GroupByProduction':
-      groupByProd = True
+      groupBy = 'Production'
+    elif switch[0] == 'GroupBy':
+      groupBy = switch[1]
 
   args = Script.getPositionalArgs()
   for lfn in args:
@@ -69,18 +71,24 @@ if __name__ == "__main__":
   paths = {'Successful':{}, 'Failed':{}}
   for dirName in dirList:
     if full:
-      res['Value']['Successful'][dirName] = dirList[dirName][0]
+      dirList[dirName] = dirList[dirName][0]
     else:
       bkDict = dirList[dirName][0].copy()
-      path = __buildPath( bkDict )
-      dirList[dirName] = path
-      if groupByPath:
-        paths['Successful'].setdefault( path, {} ).update( dict.fromkeys( directories[dirName], '' ) )
-      elif groupByProd:
-        prod = 'Production ' + str( bkDict['Production'] )
-        paths['Successful'].setdefault( prod, {} ).update( dict.fromkeys( directories[dirName], '' ) )
+      bkDict['Path'] = __buildPath( bkDict )
+      if groupBy in bkDict:
+        if groupBy != 'Path':
+          prStr = '%s %s' % ( groupBy, bkDict[groupBy] )
+        else:
+          prStr = bkDict[groupBy]
+        paths['Successful'].setdefault( prStr, set() ).update( directories[dirName] )
+      elif groupBy:
+        gLogger.always( 'Invalid metadata item: %s' % groupBy )
+        gLogger.always( 'Available are: %s' % str( bkDict.keys() ) )
+        DIRAC.exit( 1 )
+      else:
+        dirList[dirName] = bkDict['Path']
 
-  if groupByPath or groupByProd:
+  if groupBy:
     for dirName in res.get( 'Value', {} ).get( 'Failed', {} ):
       paths['Failed'].update( dict.fromkeys( directories[dirName], 'Directory not in BK' ) )
     res = S_OK( paths )
