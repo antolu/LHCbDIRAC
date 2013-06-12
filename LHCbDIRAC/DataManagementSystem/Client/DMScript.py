@@ -219,7 +219,7 @@ class DMScript():
 
   def setLFNs( self, arg ):
     if arg:
-      self.options.setdefault( 'LFNs', [] ).extend( self.getLFNsFromList( arg ) )
+      self.options.setdefault( 'LFNs', set() ).update( self.getLFNsFromList( arg ) )
     return DIRAC.S_OK()
 
   def setLFNsFromTerm( self, arg ):
@@ -238,7 +238,7 @@ class DMScript():
     lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ) for l in lfnList]
     lfnList = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] if '/lhcb' in lfn else '' for lfn in lfnList]
     lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
-    return [lfn for lfn in lfnList if lfn]
+    return sorted( [lfn for lfn in set( lfnList ) if lfn] )
 
   def setLFNsFromFile( self, arg ):
     try:
@@ -249,7 +249,7 @@ class DMScript():
         f.close()
     except:
       lfns = self.getLFNsFromList( arg )
-    self.options.setdefault( 'LFNs', [] ).extend( lfns )
+    self.options.setdefault( 'LFNs', set() ).update( lfns )
     return DIRAC.S_OK()
 
   def getOptions( self ):
@@ -258,7 +258,10 @@ class DMScript():
   def getOption( self, switch, default = None ):
     if switch == 'SEs':
       return convertSEs( self.options.get( switch, default ) )
-    return self.options.get( switch, default )
+    value = self.options.get( switch, default )
+    if type( value ) == type( set() ):
+      value = sorted( list( value ) )
+    return value
 
   def getBKQuery( self, visible = None ):
     if self.bkQuery:
