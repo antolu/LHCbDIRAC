@@ -133,18 +133,19 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
     if simulationProgress['BkEvents'] < productionRequestSummary['reqTotal']:
       # no extension factor
-      self._extendProduction( simulation, simulationID, 1.0, missingEvents )
+      self._extendProduction( simulation, 1.0, missingEvents )
     else:
       if all( production['Status'].lower() == 'idle' for production in productions ):
         # extension factor
         extensionFactor = float( simulationProgress['BkEvents'] ) / float( productionRequestSummary['bkTotal'] )
-        self._extendProduction( simulation, simulationID, extensionFactor, missingEvents )
+        self._extendProduction( simulation, extensionFactor, missingEvents )
 
   #############################################################################
-  def _extendProduction( self, production, productionID, extensionFactor, eventsNeeded ):
+  def _extendProduction( self, production, extensionFactor, eventsNeeded ):
     ''' Extend a production to produce eventsNeeded*extensionFactor more events.
     '''
 
+    productionID = production['TransformationID']
     eventsToProduce = eventsNeeded * extensionFactor
 
     cpuE = getProductionParameterValue( production['Body'], 'CPUe' )
