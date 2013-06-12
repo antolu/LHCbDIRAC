@@ -72,26 +72,7 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return res
 
-
-    # delete files, tasks, taskinputs and parameters as for base DIRAC class 
-    res = self.__deleteTransformationFileTasks( transID, connection = connection )
-    if not res['OK']:
-      return res
-    res = self.__deleteTransformationFiles( transID, connection = connection )
-    if not res['OK']:
-      return res
-    res = self.__deleteTransformationTaskInputs( transID, connection = connection )
-    if not res['OK']:
-      return res
-    res = self.__deleteTransformationTasks( transID, connection = connection )
-    if not res['OK']:
-      return res
-    res = self.setTransformationParameter( transID, 'Status', 'Cleaned', author = author, connection = connection )
-    if not res['OK']:
-      return res
-    message = "Transformation Cleaned"
-    self.__updateTransformationLogging( transID, message, author, connection = connection )
-    return S_OK( transID )
+    return DIRACTransformationDB.cleanTransformation( self, transName, author, connection )
 
 
   def getTasksForSubmission( self, transName, numTasks = 1, site = "", statusList = ['Created'],
@@ -151,7 +132,7 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     res = self.__addBookkeepingQuery( queryDict, connection = connection )
     if not res['OK']:
-      print "not res ", res#canc
+      print "not res ", res  # canc
       return res
     bkQueryID = res['Value']
     res = self.__setTransformationQuery( transName, bkQueryID, author = author, connection = connection )
@@ -345,10 +326,10 @@ class TransformationDB( DIRACTransformationDB ):
     else:
       return S_OK( resultDict )
 
-  # 
+  #
   # extends DIRAC.__insertExistingTransformationFiles
   # Does not add userSE and adds runNumber
-  # 
+  #
   def __insertExistingTransformationFiles( self, transID, fileTuples, connection = False ):
     req = "INSERT INTO TransformationFiles (TransformationID,Status,TaskID,FileID,TargetSE,LastUpdate,RunNumber) VALUES"
     candidates = False
