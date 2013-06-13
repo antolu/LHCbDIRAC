@@ -5,6 +5,7 @@ from DIRAC import S_OK, S_ERROR
 from DIRAC.TransformationSystem.Agent.MCExtensionAgent import MCExtensionAgent as DIRACMCExtensionAgent
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getCPUNormalizationFactorAvg, getEventsToProduce, getProductionParameterValue
 
@@ -20,6 +21,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     DIRACMCExtensionAgent.__init__( self, agentName, loadName, baseAgentName, properties )
 
     self.rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
+    self.transClient = ProductionsClient()
     self.enableFlag = True
 
     # default values
