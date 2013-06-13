@@ -55,11 +55,14 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     if productionRequests['OK']:
       productionRequests = productionRequests['Value']
     else:
-      self.log.error( 'RPC call to ProductionRequest service failed : ' + productionRequests['Message'] )
-      return S_ERROR()
+      message = 'RPC call to ProductionRequest service failed : %s' % productionRequests['Message']
+      self.log.error( message )
+      return S_ERROR( message )
 
     for productionRequestID, productionRequestSummary in productionRequests.items():
-      self._checkProductionRequest( productionRequestID, productionRequestSummary )
+      ret = self._checkProductionRequest( productionRequestID, productionRequestSummary )
+      if not ret['OK']:
+        return ret
 
     return S_OK()
 
@@ -93,16 +96,18 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     # check if enough events have been produced
     missingEvents = productionRequestSummary['reqTotal'] - productionRequestSummary['bkTotal']
     if productionRequestSummary['bkTotal'] > 0 and missingEvents <= 0:
-      self.log.verbose( 'Enough events produced for production request %d' % productionRequestID )
-      return
+      message = 'Enough events produced for production request %d' % productionRequestID
+      self.log.verbose( message )
+      return S_OK( message )
 
     # get the associated productions/transformations progress
     productionsProgress = self.rpcProductionRequest.getProductionProgressList( long( productionRequestID ) )
     if productionsProgress['OK']:
       productionsProgress = productionsProgress['Value']
     else:
-      self.log.error( 'Failed to get productions progress : ' + productionsProgress['Message'] )
-      return
+      message = 'Failed to get productions progress : %s' % productionsProgress['Message']
+      self.log.error( message )
+      return S_ERROR( message )
     productionsProgress = productionsProgress['Rows']
 
     # get the informations for the productions/transformations
@@ -112,8 +117,9 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       productionID = productionProgress['ProductionID']
       production = self.transClient.getTransformation( productionID )
       if not production['OK']:
-        self.log.error( 'Failed to get informations on production %d : %s' % ( productionID, production['Message'] ) )
-        return
+        message = 'Failed to get informations on production %d : %s' % ( productionID, production['Message'] )
+        self.log.error( message )
+        return S_ERROR( message )
       production = production['Value']
       productions.append( production )
 
@@ -126,24 +132,27 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
             simulationProgress = productionProgress
 
     if simulation == None:
-      self.log.error( 'Failed to get simulation production for request %d' % productionRequestID )
-      return
+      message = 'Failed to get simulation production for request %d' % productionRequestID
+      self.log.error( message )
+      return S_ERROR( message )
 
     if simulation['Status'].lower() != 'idle':
       # the simulation is still producting events
-      return
+      message = 'Simulation for production request %d is not Idle (%s)' % ( productionRequestID, simulation['Status'] )
+      self.log.verbose( message )
+      return S_OK( message )
 
     if simulationProgress['BkEvents'] < productionRequestSummary['reqTotal']:
       # the number of events produced by the simulation is of the order of the number of events requested
       # -> there is probably no stripping production, no extension factor necessary
-      self._extendProduction( simulation, 1.0, missingEvents )
+      return self._extendProduction( simulation, 1.0, missingEvents )
     else:
       # the number of events produced by the simulation is more than the number of events requested, yet events are missing
       # -> there is probably a stripping production, an extension factor is needed to account for stripped events
       # some events may still be processed (eg. merged), so wait that all the productions are idle
       if all( production['Status'].lower() == 'idle' for production in productions ):
         extensionFactor = float( simulationProgress['BkEvents'] ) / float( productionRequestSummary['bkTotal'] )
-        self._extendProduction( simulation, extensionFactor, missingEvents )
+        return self._extendProduction( simulation, extensionFactor, missingEvents )
 
   #############################################################################
   def _extendProduction( self, production, extensionFactor, eventsNeeded ):
@@ -165,6 +174,10 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     # extend the transformation by the determined number of tasks
     res = self.transClient.extendTransformation( productionID, numberOfTasks )
     if not res['OK']:
-      self.log.error( 'Failed to extend transformation", "%s %s' % ( productionID, res['Message'] ) )
+      message = 'Failed to extend transformation %d : %s' % ( productionID, res['Message'] )
+      self.log.error( message )
+      return S_ERROR( message )
     else:
-      self.log.info( 'Successfully extended transformation %d by %d tasks' % ( productionID, numberOfTasks ) )
+      message = 'Successfully extended transformation %d by %d tasks' % ( productionID, numberOfTasks )
+      self.log.info( message )
+      return S_OK( message )

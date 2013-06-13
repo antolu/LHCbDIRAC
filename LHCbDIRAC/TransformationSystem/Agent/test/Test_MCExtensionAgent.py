@@ -1,8 +1,8 @@
 import diracmock
 import datetime
+import copy
 from mock import Mock, call
 from DIRAC import S_OK, S_ERROR
-import copy
 
 class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
   ''' Test for MCExtensionAgent
@@ -19,20 +19,18 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
 
     # disabled by configuration
     agent.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'False'}[( optionName, defaultValue )]
-    retExp = S_OK( 'Disabled via CS flag' )
 
     ret = agent.execute()
-    self.assertEqual( ret, retExp )
+    self.assertEqual( ret['OK'], True )
 
     ###########################################################################
 
     # bad request
     agent.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'True'}[( optionName, defaultValue )]
     agent.rpcProductionRequest.getProductionRequestSummary.return_value = S_ERROR()
-    retExp = S_ERROR()
 
     ret = agent.execute()
-    self.assertEqual( ret, retExp )
+    self.assertEqual( ret['OK'], False )
 
     ###########################################################################
 
@@ -42,10 +40,10 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
                           10965: {'bkTotal': 610999L, 'master': 10960, 'reqTotal': 1000000L},
                           10966: {'bkTotal': 660995L, 'master': 10959, 'reqTotal': 1000000L}}
     agent.rpcProductionRequest.getProductionRequestSummary.return_value = S_OK( productionRequests )
-    retExp = S_OK()
+    agent._checkProductionRequest.return_value = S_OK()
 
     ret = agent.execute()
-    self.assertEqual( ret, retExp )
+    self.assertEqual( ret['OK'], True )
     self.assertEqual( agent._checkProductionRequest.call_count, len( productionRequests ) )
     agent._checkProductionRequest.assert_has_calls( [call( ID, summary ) for ID, summary in productionRequests.items()] )
 
@@ -114,7 +112,8 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
     ###########################################################################
 
     # complete production request, no extension needed
-    agent._checkProductionRequest( completeProductionRequestID, completeProductionRequestSummary )
+    ret = agent._checkProductionRequest( completeProductionRequestID, completeProductionRequestSummary )
+    self.assertEqual( ret['OK'], True )
     self.assertFalse( agent._extendProduction.called )
     agent._extendProduction.reset_mock()
 
@@ -123,7 +122,8 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
     # failed request for production progress
     agent.rpcProductionRequest.getProductionProgressList.return_value = S_ERROR()
 
-    agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    ret = agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    self.assertEqual( ret['OK'], False )
     self.assertFalse( agent._extendProduction.called )
     agent._extendProduction.reset_mock()
 
@@ -133,7 +133,8 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
     agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressNoStripping )
     agent.transClient.getTransformation.return_value = S_ERROR()
 
-    agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    ret = agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    self.assertEqual( ret['OK'], False )
     self.assertFalse( agent._extendProduction.called )
     agent._extendProduction.reset_mock()
 
@@ -146,7 +147,8 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
       t['Type'] = 'Merge'
     agent.transClient.getTransformation.side_effect = lambda transformationID : S_OK( noSimulationTransformations[transformationID] )
 
-    agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    ret = agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    self.assertEqual( ret['OK'], False )
     self.assertFalse( agent._extendProduction.called )
     agent._extendProduction.reset_mock()
 
@@ -160,7 +162,8 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
         t['Status'] = 'Active'
     agent.transClient.getTransformation.side_effect = lambda transformationID : S_OK( nonIdleSimulationTransformations[transformationID] )
 
-    agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    ret = agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    self.assertEqual( ret['OK'], True )
     self.assertFalse( agent._extendProduction.called )
     agent._extendProduction.reset_mock()
 
@@ -169,8 +172,10 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
     # no stripping production (no extension factor)
     agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressNoStripping )
     agent.transClient.getTransformation.side_effect = lambda transformationID : S_OK( transformations[transformationID] )
+    agent._extendProduction.return_value = S_OK()
 
-    agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    ret = agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    self.assertEqual( ret['OK'], True )
     agent._extendProduction.assert_called_once_with( simulation, 1.0, missingEventsExp )
     agent._extendProduction.reset_mock()
 
@@ -179,8 +184,10 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
     # stripping production (extension factor)
     agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressWithStripping )
     agent.transClient.getTransformation.side_effect = lambda transformationID : S_OK( transformations[transformationID] )
+    agent._extendProduction.return_value = S_OK()
 
-    agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    ret = agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    self.assertEqual( ret['OK'], True )
     agent._extendProduction.assert_called_once_with( simulation, extensionFactorExp, missingEventsExp )
     agent._extendProduction.reset_mock()
 
