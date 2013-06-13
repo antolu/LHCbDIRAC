@@ -741,7 +741,7 @@ if __name__ == "__main__":
 
   transList = __getTransformations( Script.getPositionalArgs() )
 
-  from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
+  from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient           import ProductionsClient
   # FIXME: RequestClient is the client to the old RMS, ReqClient the new one
   from DIRAC.RequestManagementSystem.Client.RequestClient           import RequestClient
   from DIRAC.RequestManagementSystem.Client.ReqClient           import ReqClient
@@ -754,7 +754,7 @@ if __name__ == "__main__":
   import datetime
 
   bkClient = BookkeepingClient()
-  transClient = TransformationClient()
+  transClient = ProductionsClient()
   requestClient = RequestClient()
   reqClient = ReqClient()
   rm = ReplicaManager()

@@ -286,7 +286,7 @@ class DMScript():
 
   def getRequestID( self, prod = None ):
     """ Get the request ID for a single production """
-    from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+    from DIRAC.TransformationSystem.Client.ProductionsClient import ProductionsClient
     if not prod:
       prod = self.options.get( 'Productions', [] )
     requestID = None
@@ -295,7 +295,7 @@ class DMScript():
     else:
       prods = prod
     if len( prods ) == 1 and str( prods[0] ).upper() != 'ALL':
-      res = TransformationClient().getTransformation( prods[0] )
+      res = ProductionsClient().getTransformation( prods[0] )
       if res['OK']:
         requestID = int( res['Value']['TransformationFamily'] )
     return requestID

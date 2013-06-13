@@ -45,8 +45,8 @@ if __name__ == "__main__":
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
-  from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-  transClient = TransformationClient()
+  from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient           import ProductionsClient
+  transClient = ProductionsClient()
   lfns = dmScript.getOption( 'LFNs' )
 
   for prod in prodList:

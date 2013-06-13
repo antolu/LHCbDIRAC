@@ -32,7 +32,7 @@ from DIRAC.RequestManagementSystem.Client.ReqClient              import ReqClien
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient        import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks     import ConsistencyChecks
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient  import ProductionsClient
 
 AGENT_NAME = 'Transformation/DataRecoveryAgent'
 
@@ -46,7 +46,7 @@ class DataRecoveryAgent( AgentModule ):
     AgentModule.__init__( self, *args, **kwargs )
 
     self.replicaManager = ReplicaManager()
-    self.transClient = TransformationClient()
+    self.transClient = ProductionsClient()
     self.bkClient = BookkeepingClient()
 
     # FIXME: This is the "old" RMS

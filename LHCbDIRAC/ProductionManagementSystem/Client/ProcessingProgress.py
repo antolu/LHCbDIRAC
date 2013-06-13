@@ -18,7 +18,7 @@ from DIRAC.Core.Utilities.List import breakListIntoChunks
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery                 import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
 from LHCbDIRAC.Core.Utilities.HTML                              import Table, TableCell, TableRow
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
 
 __RCSID__ = "$Id:  $"
 
@@ -264,7 +264,7 @@ class ProcessingProgress:
     self.readCache()
 
     self.bk = BookkeepingClient()
-    self.transClient = TransformationClient()
+    self.transClient = ProductionsClient()
 
   def setClearCache( self, clearCache ):
     self.clearCache = clearCache

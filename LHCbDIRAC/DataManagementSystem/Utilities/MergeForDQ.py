@@ -13,7 +13,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager           import ReplicaMa
 from DIRAC.RequestManagementSystem.Client.RequestContainer      import RequestContainer
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
 from LHCbDIRAC.Core.Utilities.XMLTreeParser                     import addChildNode
 
 # Libraries needed for XML report
@@ -295,7 +295,7 @@ def _fromTransformationDB( bkDict, run, bkClient, transClient = None ):
   """
 
   if transClient is None:
-    tc = TransformationClient()
+    tc = ProductionsClient()
   else:
     tc = transClient
 

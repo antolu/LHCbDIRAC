@@ -6,7 +6,7 @@ __RCSID__ = "$Id$"
 from DIRAC                                                      import gLogger, S_OK
 from DIRAC.TransformationSystem.Client.Transformation           import Transformation as DIRACTransformation
 
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
 
 COMPONENT_NAME = 'Transformation'
@@ -19,11 +19,11 @@ class Transformation( DIRACTransformation ):
 
   def __init__( self, transID = 0, transClientIn = None ):
     """ Just params setting.
-        transClient is passed here as LHCbDIRAC TransformationClient, it will be self.transClient
+        transClient is passed here as LHCbDIRAC ProductionsClient, it will be self.transClient
     """
 
     if not transClientIn:
-      self.transClient = TransformationClient()
+      self.transClient = ProductionsClient()
     else:
       self.transClient = transClientIn
 
@@ -107,7 +107,7 @@ class Transformation( DIRACTransformation ):
   #############################################################################
 
   def addTransformation( self, addFiles = True, printOutput = False ):
-    """ Add a transformation, using TransformationClient()
+    """ Add a transformation, using ProductionsClient()
     """
     res = self._checkCreation()
     if not res['OK']:

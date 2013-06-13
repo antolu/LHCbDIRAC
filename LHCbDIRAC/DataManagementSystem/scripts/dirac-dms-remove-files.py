@@ -46,8 +46,8 @@ if __name__ == "__main__":
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   rm = ReplicaManager()
   if fixTrans:
-    from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-    transClient = TransformationClient()
+    from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
+    transClient = ProductionsClient()
 
   errorReasons = {}
   successfullyRemoved = []

@@ -46,7 +46,7 @@ import DIRAC
 from DIRAC                                                      import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base.AgentModule                                import AgentModule
 from DIRAC.FrameworkSystem.Client.NotificationClient            import NotificationClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment             import getProjectEnvironment
 from LHCbDIRAC.DataManagementSystem.Utilities.MergeForDQ        import getRuns, getProductionId, buildLFNs, \
@@ -74,7 +74,7 @@ class MergingForDQAgent( AgentModule ):
     self.logFile = ''
 
     self.bkClient = BookkeepingClient()
-    self.transClient = TransformationClient()
+    self.transClient = ProductionsClient()
 
     self.applicationName = self.am_getOption ( "applicationName" )
     self.homeDir = self.am_getOption( "homeDir" )

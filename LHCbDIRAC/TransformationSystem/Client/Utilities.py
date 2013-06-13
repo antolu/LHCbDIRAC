@@ -1128,9 +1128,9 @@ def closerSEs( existingSEs, targetSEs, local = False ):
   return ( targetSEs + sameSEs ) if not local else targetSEs
 
 def addFilesToTransformation( transID, lfns, addRunInfo = True ):
-  from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+  from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-  transClient = TransformationClient()
+  transClient = ProductionsClient()
   bk = BookkeepingClient()
   gLogger.info( "Adding %d files to transformation %s" % ( len( lfns ), transID ) )
   res = transClient.getTransformation( transID )
