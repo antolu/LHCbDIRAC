@@ -23,7 +23,7 @@ Script.parseCommandLine( ignoreErrors = False )
 
 
 import DIRAC
-from DIRAC.ResourceStatusSystem.Utilities                   import CS
+from DIRAC.ResourceStatusSystem.Utilities               import CSHelpers
 from DIRAC.Core.DISET.RPCClient                         import RPCClient
 from DIRAC.Resources.Storage.StorageElement             import StorageElement
 import time
@@ -64,7 +64,7 @@ for lcgSite in sites:
 
 
 try:
-  spaceTokenInfo = CS.getSpaceTokenEndpoints()
+  spaceTokenInfo = CSHelpers.getSpaceTokenEndpoints()
 except:
   print 'ERROR: could not retrieve space tokens info from the CS'
   DIRAC.exit( -1 )
