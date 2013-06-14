@@ -142,7 +142,7 @@ if __name__ == "__main__":
             for lfn, reason in res['Value']['Failed'].items():
               errorReasons.setdefault( str( reason ), [] ).append( lfn )
               lfnChunk.remove( lfn )
-        notExistingRemoved += lfnChnuk
+        notExistingRemoved += lfnChunk
       if verbose:
         print ''
     if notExistingRemoved:
