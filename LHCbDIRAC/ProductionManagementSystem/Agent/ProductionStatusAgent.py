@@ -4,8 +4,8 @@
 
      Allowed production status transitions performed by this agent include:
 
-     Active -> ValidatingInput
-     Active -> ValidatingOutput
+     Idle -> ValidatingInput
+     Idle -> ValidatingOutput
 
      ValidatedOutput -> Completed
      ValidatedOutput -> Active
@@ -14,6 +14,8 @@
      ValidatingInput -> RemovingFiles
 
      RemovedFiles -> Completed
+
+     Active -> Idle
 
      In addition this also updates request status from Active to Done.
 
@@ -28,6 +30,7 @@ from DIRAC.Core.Base.AgentModule                                import AgentModu
 from DIRAC.Core.DISET.RPCClient                                 import RPCClient
 from DIRAC.Interfaces.API.Dirac                                 import Dirac
 from DIRAC.FrameworkSystem.Client.NotificationClient            import NotificationClient
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations        import Operations
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient  import ProductionsClient
 from LHCbDIRAC.Interfaces.API.DiracProduction                       import DiracProduction
@@ -52,6 +55,7 @@ class ProductionStatusAgent( AgentModule ):
     self.dirac = Dirac()
     self.reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
     self.productionsClient = ProductionsClient()
+    self.simulationTypes = Operations().getValue( 'Transformations/ExtendableTransfTypes', ['MCSimulation', 'Simulation'] )
 
   #############################################################################
   def initialize( self ):
@@ -103,6 +107,11 @@ class ProductionStatusAgent( AgentModule ):
     except RuntimeError, error:
       self.log.error( error )
 
+    self.log.info( "***************************" )
+    self.log.info( "Checking for Active -> Idle" )
+    self.log.info( "***************************" )
+
+    self._checkActiveToIdle( updatedProductions )
 
     self.log.info( "*********************************************************************************************" )
     self.log.info( "Checking for ValidatedOutput -> Completed/Active and ValidatingInputs -> RemovingFiles/Active" )
@@ -134,26 +143,11 @@ class ProductionStatusAgent( AgentModule ):
     except RuntimeError, error:
       self.log.error( error )
 
-    self.log.info( "*********************************************************************" )
-    self.log.info( "Checking for Active -> ValidatingInput and Active -> ValidatingOutput" )
-    self.log.info( "*********************************************************************" )
+    self.log.info( "*******************************************************************" )
+    self.log.info( "Checking for Idle -> ValidatingInput and Idle -> ValidatingOutput" )
+    self.log.info( "*******************************************************************" )
 
-    try:
-      prods = self.__getTransformations( 'Active' )
-      if prods:
-        if not doneAndUsed:
-          self.log.info( 'No productions have yet reached the necessary number of BK events' )
-        else:
-          # Now have to update productions to ValidatingOutput / Input after cleaning jobs
-          for prod in prods:
-            if prod in doneAndUsed:
-              self._cleanActiveJobs( prod )
-              self._updateProductionStatus( prod, 'Active', 'ValidatingOutput', updatedProductions )
-            elif prod in doneAndNotUsed:
-              self._cleanActiveJobs( prod )
-              self._updateProductionStatus( prod, 'Active', 'ValidatingInput', updatedProductions )
-    except RuntimeError, error:
-      self.log.error( error )
+    self._checkIdleToValidatingInputAndValidatingOutput( doneAndUsed, doneAndNotUsed, updatedProductions )
 
     self.log.info( "*********" )
     self.log.info( "Reporting" )
@@ -167,6 +161,53 @@ class ProductionStatusAgent( AgentModule ):
       self.log.info( 'Requests updated to Done status: %s' % ( ', '.join( [str( i ) for i in updatedRequests] ) ) )
     self._mailProdManager( updatedProductions, updatedRequests )
     return S_OK()
+
+  #############################################################################
+
+  def _checkActiveToIdle( self, updatedProductions ):
+    try:
+      prods = self.__getTransformations( 'Active' )
+      if prods:
+        for prod in prods:
+          prodInfo = self.productionsClient.getTransformation( prod )
+          if prodInfo['Type'] in self.simulationTypes:
+            # simulation : go to Idle if
+            #     only failed and done jobs
+            # AND number of created == number of submited
+            prodStats = self._getTransformationTaskStats( prod )
+            isIdle = ( prodStats['Created'] == prodStats['Submitted'] ) \
+            and all( [prodStats[status] == 0 for status in ['Matched', 'Checking', 'Waiting', 'Staging', 'Rescheduled', 'Running', 'Completed']] )
+          else:
+            # other production type : go to Idle if
+            #     0 unused, 0 assigned files
+            # AND > 0 processed files
+            prodStats = self._getTransformationFilesStats( prod )
+            isIdle = ( prodStats['Processed'] > 0 ) \
+            and all( [prodStats[status] == 0 for status in ['Unused', 'Assigned']] )
+
+          if isIdle:
+            self.log.info( 'Production %d is put in Idle status' % prod )
+            self._updateProductionStatus( prod, 'Active', 'Idle', updatedProductions )
+    except RuntimeError, error:
+      self.log.error( error )
+
+  def _checkIdleToValidatingInputAndValidatingOutput( self, doneAndUsed, doneAndNotUsed, updatedProductions ):
+    try:
+      prods = self.__getTransformations( 'Idle' )
+      if prods:
+        if not doneAndUsed:
+          self.log.info( 'No productions have yet reached the necessary number of BK events' )
+        else:
+          # Now have to update productions to ValidatingOutput / Input after cleaning jobs
+          for prod in prods:
+            if prod in doneAndUsed:
+              self._cleanActiveJobs( prod )
+              self._updateProductionStatus( prod, 'Idle', 'ValidatingOutput', updatedProductions )
+            elif prod in doneAndNotUsed:
+              self._cleanActiveJobs( prod )
+              self._updateProductionStatus( prod, 'Idle', 'ValidatingInput', updatedProductions )
+    except RuntimeError, error:
+      self.log.error( error )
 
   #############################################################################
 
@@ -205,6 +246,32 @@ class ProductionStatusAgent( AgentModule ):
       progressSummary = result['Value']
 
     return prodReqSummary, progressSummary
+
+  def _getTransformationTaskStats( self, transformationID ):
+    """ get the stats for a transformation tasks (number of tasks in each status)
+    """
+
+    result = self.productionsClient.getTransformationTaskStats( transformationID )
+    if not result['OK']:
+      self.log.error( 'Could not retrieve transformation tasks stats: %s' % result['Message'] )
+      transformationStats = {}
+    else:
+      transformationStats = result['Value']
+
+    return transformationStats
+
+  def _getTransformationFilesStats( self, transformationID ):
+    """ get the stats for a transformation files (number of files in each status)
+    """
+
+    result = self.productionsClient.getTransformationStats( transformationID )
+    if not result['OK']:
+      self.log.error( 'Could not retrieve transformation files stats: %s' % result['Message'] )
+      transformationStats = {}
+    else:
+      transformationStats = result['Value']
+
+    return transformationStats
 
   def _evaluateProgress( self, prodReqSummary, progressSummary ):
     """ determines which prods have reached the number of events requested and which didn't

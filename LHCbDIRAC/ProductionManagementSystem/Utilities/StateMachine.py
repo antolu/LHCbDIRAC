@@ -15,19 +15,20 @@ class ProductionsStateMachine( StateMachine ):
 
     # Current states
     self.states = {
-                   'Cleaned'          : State( 14 ),  # final state
-                   'Cleaning'         : State( 13, ['Cleaned'] ),
-                   'Completing'       : State( 12, ['Validating', 'Cleaning'], defState = 'Validating' ),
-                   'Stopped'          : State( 11, ['Active', 'Flush', 'Cleaning'], defState = 'Active' ),
-                   'Archived'         : State( 10 ),  # final state
-                   'Completed'        : State( 9, ['Archived'] ),
-                   'WaitingIntegrity' : State( 8, ['ValidatedOutput'] ),
-                   'ValidatedOutput'  : State( 6, ['Active', 'Completed', 'Cleaning'], defState = 'Completed' ),
-                   'ValidatingOutput' : State( 6, ['Active', 'ValidatedOutput', 'WaitingIntegrity'], defState = 'ValidatedOutput' ),
-                   'RemovedFiles'     : State( 5, ['Completed'] ),
-                   'RemovingFiles'    : State( 4, ['RemovedFiles'] ),
-                   'ValidatingInput'  : State( 3, ['Active', 'RemovingFiles', 'Cleaning'], defState = 'Active' ),
-                   'Flush'            : State( 2, ['Active', 'Cleaning'], defState = 'Active' ),
+                   'Cleaned'          : State( 15 ),  # final state
+                   'Cleaning'         : State( 14, ['Cleaned'] ),
+                   'Completing'       : State( 13, ['Validating', 'Cleaning'], defState = 'Validating' ),
+                   'Stopped'          : State( 12, ['Active', 'Flush', 'Cleaning'], defState = 'Active' ),
+                   'Archived'         : State( 11 ),  # final state
+                   'Completed'        : State( 10, ['Archived'] ),
+                   'WaitingIntegrity' : State( 9, ['ValidatedOutput'] ),
+                   'ValidatedOutput'  : State( 7, ['Active', 'Completed', 'Cleaning'], defState = 'Completed' ),
+                   'ValidatingOutput' : State( 7, ['Active', 'ValidatedOutput', 'WaitingIntegrity'], defState = 'ValidatedOutput' ),
+                   'RemovedFiles'     : State( 6, ['Completed'] ),
+                   'RemovingFiles'    : State( 5, ['RemovedFiles'] ),
+                   'ValidatingInput'  : State( 4, ['Active', 'RemovingFiles', 'Cleaning'], defState = 'Active' ),
+                   'Flush'            : State( 3, ['Active', 'Cleaning'], defState = 'Active' ),
+                   'Idle'             : State( 2, ['Active', 'ValidatingInput', 'ValidatingOutput'], defState = 'Active' ),
                    'Active'           : State( 1, ['Flush', 'Idle', 'Stopped', 'Completing', 'ValidatingInput', 'ValidatingOutput', 'Cleaning'], defState = 'Flush' ),
                    'New'              : State( 0, ['Active', 'Cleaning'], defState = 'Active' )  # initial state
                   }
