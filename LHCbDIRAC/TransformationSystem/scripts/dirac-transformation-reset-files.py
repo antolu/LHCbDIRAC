@@ -5,7 +5,7 @@
 
 import DIRAC
 from DIRAC.Core.Base import Script
-from DIRAC.TransformationSystem.Client.ProductionsClient     import ProductionsClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
 
 import re, time, types, string, signal, sys, os, cmd
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
