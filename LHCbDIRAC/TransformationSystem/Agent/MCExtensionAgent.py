@@ -182,4 +182,12 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     else:
       message = 'Successfully extended transformation %d by %d tasks' % ( productionID, numberOfTasks )
       self.log.info( message )
+
+      originalStatus = production.get( 'Status', '' )
+      res = self.transClient.setStatus( productionID, 'Active', originalStatus )
+      if not res['OK']:
+        message = 'Failed to set transformation %d to Active (from %s)' % ( productionID, originalStatus )
+        self.log.error( message )
+        return S_ERROR( message )
+
       return S_OK( message )

@@ -196,6 +196,7 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
     agent.transformationTypes = ['MCSimulation', 'Simulation']
     agent.transClient = Mock()
     agent.transClient.extendTransformation.return_value = S_OK()
+    agent.transClient.setStatus.return_value = S_OK()
 
     agent.cpuTimeAvg = 1000000.0
     agent.cpuNormalizationFactorAvg = 1.0
@@ -226,7 +227,7 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
       'LongDescription': 'prodDescription',
       'MaxNumberOfTasks': 0L,
       'Plugin': '',
-      'Status': 'Active',
+      'Status': 'Idle',
       'TransformationFamily': '12415',
       'TransformationGroup': 'Sim08a/Digi13/Trig0x40760037/Reco14a/Stripping20r1NoPrescalingFl',
       'TransformationID': 24614L,
@@ -238,6 +239,8 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
     productionIDExp = 24614
     numberOfTasksExp = 20
 
-    agent._extendProduction( production, extensionFactor, eventsNeeded )
+    ret = agent._extendProduction( production, extensionFactor, eventsNeeded )
+    self.assertTrue( ret['OK'] )
     agent.transClient.extendTransformation.assert_called_once_with( productionIDExp, numberOfTasksExp )
+    agent.transClient.setStatus.assert_called_once_with( productionIDExp, 'Active', 'Idle' )
 
