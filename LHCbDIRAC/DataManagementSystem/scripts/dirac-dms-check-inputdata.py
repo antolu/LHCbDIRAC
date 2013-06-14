@@ -78,7 +78,7 @@ if __name__ == "__main__":
                   'ApplicationStatus':'Failed Input Data Resolution '}
     prStr = 'all jobs'
     if production:
-      prStr = 'production %s' % ' '.join( productions )
+      prStr = 'production %s' % ' '.join( production )
       if len( production ) == 1:
         production = production[0]
       conditions['JobGroup'] = production
