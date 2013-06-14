@@ -169,8 +169,7 @@ def GetProcessingPasses(runNumber, headPass):
 
     res = bkClient.getProcessingPass(bkDict, headPass)
     if not res['OK']:
-        return S_ERROR('Cannot load the processing passes for Version %s Data taking condition' %(
-            cfgVersion, dtd))
+        return S_ERROR('Cannot load the processing passes for Version %s' % cfgVersion )
 
     for recordList in res['Value']:
         if recordList['TotalRecords'] == 0:
