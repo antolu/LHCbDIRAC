@@ -21,7 +21,6 @@ class DiracSAM( Dirac ):
     It provides the following methods:
     - getSuitableCEs
     - submitSAMJob
-    - _promptUser
   '''
 
   def __init__( self ):
@@ -162,28 +161,6 @@ class DiracSAM( Dirac ):
       return samJob
     return self.submit( samJob[ 'Value' ], mode )
 
-  #FIXME: this method already exists on DiracAdmin, it is a copy.
-  def _promptUser( self, message ):
-    '''
-      Internal function to prompt user before submitting all SAM test jobs.
-    '''
-    
-    self.log.verbose( '%s %s' % ( message, '[yes/no] : ' ) )
-    response = raw_input( '%s %s' % ( message, '[yes/no] : ' ) )
-    responses = ['yes', 'y', 'n', 'no']
-    if not response.strip() or response == '\n':
-      self.log.info( 'Possible responses are: %s' % ( ', '.join( responses ) ) )
-      response = raw_input( '%s %s' % ( message, '[yes/no] : ' ) )
-
-    if not response.strip().lower() in responses:
-      self.log.info( 'Problem interpreting input "%s", assuming negative response.' % ( response ) )
-      return S_ERROR( response )
-
-    if response.strip().lower() == 'y' or response.strip().lower() == 'yes':
-      return S_OK( response )
-    else:
-      return S_ERROR( response )
-    
 # functions
 #...............................................................................  
     
