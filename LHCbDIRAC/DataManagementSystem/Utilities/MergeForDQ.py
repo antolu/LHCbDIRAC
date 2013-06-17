@@ -1073,8 +1073,11 @@ def _upLoadOutputData( localpath, localfilename, lfn, xMLBookkeepingReport, logD
   registrationFailure = False
 
   # Registration in the LFC
-  result = failoverTransfer.transferAndRegisterFile( localpath, localfilename, lfn,
-                                                     [ 'CERN-HIST' ], fileGUID = None,
+  result = failoverTransfer.transferAndRegisterFile( fileName = localfilename,
+                                                     localPath = localpath,
+                                                     lfn = lfn,
+                                                     destinationSEList = [ 'CERN-HIST' ],
+                                                     fileMetaDict = {},
                                                      fileCatalog = 'LcgFileCatalogCombined' )
   if not result[ 'OK' ]:
     return result

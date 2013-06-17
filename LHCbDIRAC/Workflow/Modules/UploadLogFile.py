@@ -184,7 +184,7 @@ class UploadLogFile( ModuleBase ):
                                            localPath = '%s/%s' % ( os.getcwd(), tarFileName ),
                                            lfn = self.logLFNPath,
                                            destinationSEList = self.failoverSEs,
-                                           fileGUID = None,
+                                           fileMetaDict = {},
                                            fileCatalog = 'LcgFileCatalogCombined' )
 
       if not result['OK']:
