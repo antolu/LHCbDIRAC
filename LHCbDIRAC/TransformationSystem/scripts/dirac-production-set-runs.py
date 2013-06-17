@@ -107,7 +107,7 @@ if 'start' in settings:
 
 if 'end' in settings:
   changed = True
-  runId = settings['start']
+  runId = settings['end']
   res = client.setBookkeepingQueryEndRunForTransformation( prodId, runId )
   if res['OK']:
     print "End run of production %d is now %d" % ( prodId, runId )
