@@ -415,19 +415,14 @@ class Production():
 
   #############################################################################
 
-  def runLocal( self, diracLHCb = None ):
+  def runLocal( self ):
     """ Create XML workflow for local testing then reformulate as a job and run locally.
     """
 
     name = self.createWorkflow()['Value']
     # this "name" is the xml file
-    j = LHCbJob( name )
+    return LHCbJob( name ).runLocal( bkkClientIn = self.BKKClient )
     # it makes a job (a Worklow, with Parameters), out of the xml file
-
-    if diracLHCb is None:
-      diracLHCb = DiracLHCb()
-
-    return j.runLocal( diracLHCb, self.BKKClient )
 
   #############################################################################
 

@@ -105,6 +105,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations  import Operations
 
 from LHCbDIRAC.Workflow.Utilities.Utils                   import getStepDefinition, addStepToWorkflow
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.Interfaces.API.DiracLHCb                   import DiracLHCb
 
 class LHCbJob( Job ):
   """ LHCbJob class as extension of DIRAC Job class
@@ -1089,15 +1090,13 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def runLocal( self, DiracLHCb = None, bkkClientIn = None ):
+  def runLocal( self, diracLHCb = None, bkkClientIn = None ):
     """ The DiracLHCb (API) object is for local submission.
         A BKKClient might be needed.
         First, adds Ancestors (in any) to the InputData.
     """
 
-    if DiracLHCb is not None:
-      diracLHCb = DiracLHCb
-    else:
+    if not diracLHCb:
       diracLHCb = DiracLHCb()
 
     if self.workflow.parameters.find( 'AncestorDepth' ):
