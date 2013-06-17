@@ -82,7 +82,7 @@ class ProductionStatusAgent( AgentModule ):
     self.log.info( "******************************" )
 
     try:
-      prodsList = self.__getTransformations( 'Completed' )
+      prodsList = self._getTransformations( 'Completed' )
       if prodsList:
         reqsMap = self._getReqsMap( prodReqSummary, progressSummary )
         for masterReq, reqs in reqsMap.iteritems():
@@ -100,7 +100,7 @@ class ProductionStatusAgent( AgentModule ):
     self.log.info( "**************************************" )
 
     try:
-      prods = self.__getTransformations( 'RemovedFiles' )
+      prods = self._getTransformations( 'RemovedFiles' )
       if prods:
         for prod in prods:
           self._updateProductionStatus( prod, 'RemovedFiles', 'Completed', updatedProductions )
@@ -118,7 +118,7 @@ class ProductionStatusAgent( AgentModule ):
     self.log.info( "*********************************************************************************************" )
 
     try:
-      prods = self.__getTransformations( 'ValidatedOutput' )
+      prods = self._getTransformations( 'ValidatedOutput' )
       if prods:
         for prod in prods:
           if prod not in doneAndUsed:
@@ -131,7 +131,7 @@ class ProductionStatusAgent( AgentModule ):
       self.log.error( error )
 
     try:
-      prods = self.__getTransformations( 'ValidatingInput' )
+      prods = self._getTransformations( 'ValidatingInput' )
       if prods:
         for prod in prods:
           if prod not in doneAndNotUsed:
@@ -166,7 +166,7 @@ class ProductionStatusAgent( AgentModule ):
 
   def _checkActiveToIdle( self, updatedProductions ):
     try:
-      prods = self.__getTransformations( 'Active' )
+      prods = self._getTransformations( 'Active' )
       if prods:
         for prod in prods:
           prodInfo = self.productionsClient.getTransformation( prod )
@@ -193,7 +193,7 @@ class ProductionStatusAgent( AgentModule ):
 
   def _checkIdleToValidatingInputAndValidatingOutput( self, doneAndUsed, doneAndNotUsed, updatedProductions ):
     try:
-      prods = self.__getTransformations( 'Idle' )
+      prods = self._getTransformations( 'Idle' )
       if prods:
         if not doneAndUsed:
           self.log.info( 'No productions have yet reached the necessary number of BK events' )
@@ -211,7 +211,7 @@ class ProductionStatusAgent( AgentModule ):
 
   #############################################################################
 
-  def __getTransformations( self, status ):
+  def _getTransformations( self, status ):
     """ dev function. Get the transformations (print info in the meanwhile)
     """
 
