@@ -1,23 +1,22 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-from LHCbTestDirac.Regression.utils import cleanTestDir, getOutput
+from LHCbTestDirac.Utilities.utils import getOutput
+from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
 
 import unittest
-from DIRAC import gLogger
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 
-class RegressionTestCase( unittest.TestCase ):
+class RegressionTestCase( IntegrationTest ):
   ''' Base class for the Regression test cases
   '''
   def setUp( self ):
-    cleanTestDir()
+    super( IntegrationTest, self ).setUp()
 
-    gLogger.setLevel( 'DEBUG' )
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
 

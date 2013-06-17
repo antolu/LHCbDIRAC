@@ -3,21 +3,18 @@ parseCommandLine()
 
 import unittest
 
-from LHCbTestDirac.Regression.utils import cleanTestDir, getOutput
-
-from DIRAC import gLogger
+from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
+from LHCbTestDirac.Utilities.utils import getOutput
 
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
 
 
-class ProductionJobTestCase( unittest.TestCase ):
+class ProductionJobTestCase( IntegrationTest ):
   ''' Base class for the ProductionJob test cases
   '''
   def setUp( self ):
-    cleanTestDir()
-
-    gLogger.setLevel( 'DEBUG' )
+    super( IntegrationTest, self ).setUp()
 
     self.pr = ProductionRequest()
     self.diracProduction = DiracProduction()

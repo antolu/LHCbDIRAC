@@ -3,19 +3,18 @@ parseCommandLine()
 
 import unittest
 
-from LHCbTestDirac.Regression.utils import cleanTestDir
+from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
 
 from DIRAC import gLogger, gConfig
 
 from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
 
-class SAMJobTestCase( unittest.TestCase ):
+class SAMJobTestCase( IntegrationTest ):
   ''' Base class for the SAMJob test cases
   '''
   def setUp( self ):
-    cleanTestDir()
+    super( IntegrationTest, self ).setUp()
 
-    gLogger.setLevel( 'DEBUG' )
     self.diracSAM = DiracSAM()
     self.subLogger = gLogger.getSubLogger( __file__ )
 
