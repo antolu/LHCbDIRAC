@@ -6,7 +6,7 @@ if mock.__version__ < '1.0.1':
 
 import sys
 if sys.version_info < ( 2, 7 ):
-  import unittest2 as unittest  
+  import unittest2 as unittest
 else:
   import unittest
 
@@ -22,21 +22,21 @@ class AgentTestCase( unittest.TestCase ):
     # reload SoftwareUnderTest to drop old patchers
     reload( sut )
 
-    patcher  = mock.patch( 'DIRAC.Core.Base.AgentModule.AgentModule', autospec = True )
+    patcher = mock.patch( 'DIRAC.Core.Base.AgentModule.AgentModule', autospec = True )
     pStarted = patcher.start()
     class AgentMocked():
       def __init__( self, *args, **kwargs ):
-        for k,v in pStarted.__dict__.iteritems():
+        for k, v in pStarted.__dict__.iteritems():
           setattr( self, k, v )
-    
-    sut.AgentModule                     = AgentMocked
-    sut.ProductionStatusAgent.__bases__ = ( AgentMocked, )    
-     
+
+    sut.AgentModule = AgentMocked
+    sut.ProductionStatusAgent.__bases__ = ( AgentMocked, )
+
     self.psa = sut.ProductionStatusAgent( '', '', '' )
     self.psa.log = gLogger
 
   def tearDown( self ):
-    
+
     # Stop patchers
     mock.patch.stopall()
 
@@ -45,6 +45,54 @@ class AgentTestCase( unittest.TestCase ):
 #############################################################################
 
 class ProductionStatusSuccess( AgentTestCase ):
+
+  def test__checkActiveToIdle( self ):
+    self.psa.productionsClient = mock.Mock()
+    self.psa._getTransformations = mock.Mock()
+    self.psa._getTransformationTaskStats = mock.Mock()
+    self.psa._getTransformationFilesStats = mock.Mock()
+    self.psa._updateProductionStatus = mock.Mock()
+
+    ###########################################################################
+    # no productions
+
+    updatedProductions = []
+    prods = []
+
+    self.psa._getTransformations.return_value = prods
+
+    self.psa._checkActiveToIdle( updatedProductions )
+    self.assertFalse( self.psa._updateProductionStatus.called )
+    self.psa._updateProductionStatus.reset_mock()
+
+    ###########################################################################
+    # simulations and other type, idle and non idle
+
+    updatedProductions = []
+    prods = [1L, 2L, 3L, 4L]
+    prodsInfo = {1L : {'Type' : 'MCSimulation'},
+                 2L : {'Type' : 'MCSimulation'},
+                 3L : {'Type' : 'MCSimulation'},
+                 4L : {'Type' : 'Merge'},
+                 5L : {'Type' : 'Merge'},
+                 6L : {'Type' : 'Merge'}}
+    tasksStats = {1L : {'Created' : 100, 'Submitted' : 100, 'Done' : 90, 'Failed' : 10},  # idle
+                  2L : {'Created' : 100, 'Submitted' : 50, 'Done' : 50},  # not idle
+                  3L : {'Created' : 100, 'Submitted' : 100, 'Done' : 50, 'Failed' : 10, 'Running' : 40}}  # not idle
+    filesStats = {4L : {'Processed' : 100},  # idle
+                  5L : {'Processes' : 0, 'Unused' : 100},  # not idle
+                  6L : {'Processed' : 50, 'Unused' : 25, 'Assigned' : 25}}  # not idle
+
+    callsExp = [ mock.call( 1L, 'Active', 'Idle', updatedProductions ), mock.call( 4L, 'Active', 'Idle', updatedProductions ) ]
+
+    self.psa._getTransformations.return_value = prods
+    self.psa.productionsClient.getTransformation.side_effect = lambda prod : prodsInfo[prod]
+    self.psa._getTransformationTaskStats.side_effect = lambda prod : tasksStats[prod]
+    self.psa._getTransformationFilesStats.side_effect = lambda prod : filesStats[prod]
+
+    self.psa._checkActiveToIdle( updatedProductions )
+    self.psa._updateProductionStatus.assert_has_calls( callsExp )
+
 
   def test__evaluateProgress( self ):
     prodReqSummary = {
@@ -131,7 +179,7 @@ class ProductionStatusSuccess( AgentTestCase ):
 
 
 #############################################################################
-# Test Suite run 
+# Test Suite run
 #############################################################################
 
 if __name__ == '__main__':
@@ -139,4 +187,4 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionStatusSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
