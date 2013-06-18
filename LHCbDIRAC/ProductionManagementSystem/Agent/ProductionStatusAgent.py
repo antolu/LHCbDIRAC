@@ -170,20 +170,20 @@ class ProductionStatusAgent( AgentModule ):
       if prods:
         for prod in prods:
           prodInfo = self.productionsClient.getTransformation( prod )
-          if prodInfo['Type'] in self.simulationTypes:
+          if prodInfo.get( 'Type', None ) in self.simulationTypes:
             # simulation : go to Idle if
             #     only failed and done jobs
             # AND number of created == number of submited
             prodStats = self._getTransformationTaskStats( prod )
-            isIdle = ( prodStats['Created'] == prodStats['Submitted'] ) \
-            and all( [prodStats[status] == 0 for status in ['Matched', 'Checking', 'Waiting', 'Staging', 'Rescheduled', 'Running', 'Completed']] )
+            isIdle = ( prodStats.get( 'Created', 0 ) == prodStats.get( 'Submitted', 0 ) ) \
+            and all( [prodStats.get( status, 0 ) == 0 for status in ['Matched', 'Checking', 'Waiting', 'Staging', 'Rescheduled', 'Running', 'Completed']] )
           else:
             # other production type : go to Idle if
             #     0 unused, 0 assigned files
             # AND > 0 processed files
             prodStats = self._getTransformationFilesStats( prod )
-            isIdle = ( prodStats['Processed'] > 0 ) \
-            and all( [prodStats[status] == 0 for status in ['Unused', 'Assigned']] )
+            isIdle = ( prodStats.get( 'Processed', 0 ) > 0 ) \
+            and all( [prodStats.get( status, 0 ) == 0 for status in ['Unused', 'Assigned']] )
 
           if isIdle:
             self.log.info( 'Production %d is put in Idle status' % prod )
