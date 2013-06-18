@@ -36,13 +36,6 @@ POLICIESMETA_LHCB = {
       'command'     : ( 'TransferCommand', 'TransferCommand' ),
       'args'        : { 'direction' : 'Destination', 'metric' : 'Quality', 'hours' : 2 }      
      },
-   'JobEfficiency' :
-    { 
-      'description'     : 'Jobs efficiency extracted from WMS',
-      'module'          : 'JobEfficiencyPolicy',
-      'command'         : ( 'JobCommand', 'JobCommand' ),
-      'args'            : None,                          
-    },
 #  'PilotEfficiency' :
 #    { 
 #      'description'     : 'Pilots efficiency extracted from WMS',
