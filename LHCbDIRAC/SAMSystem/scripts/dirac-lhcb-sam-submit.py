@@ -101,7 +101,7 @@ def getNumber():
     DIRACExit( 2 )
 
   if number != 1:
-    userReply = _promptUser( 'Are you sure you want to submit %d jobs to DIRAC?' % number )
+    userReply = promptUser( 'Are you sure you want to submit %d jobs to DIRAC?' % number )
     if not userReply[ 'OK' ]:
       subLogger.info( 'Buddy, You are wise !' )
       DIRACExit( 2 )
@@ -157,7 +157,7 @@ if __name__ == "__main__":
   # Script initialization
   from DIRAC                            import gLogger, exit as DIRACExit
   from DIRAC.Core.Base                  import Script
-  from DIRAC.Core.Utilities.PromptUser  import PromptUser
+  from DIRAC.Core.Utilities.PromptUser  import promptUser
   subLogger = gLogger.getSubLogger( __file__ )
 
   registerSwitches()
