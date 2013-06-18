@@ -379,42 +379,55 @@ class PluginUtilities:
     """ Get free space in an SE from the RSS
     """
     from DIRAC.Resources.Storage.StorageElement import StorageElement
-    if se in self.freeSpace:
-      return self.freeSpace[se]['freeSpace']
-    # get the site and space token, for the time being short cut ;-)
-    res = StorageElement( se ).getStorageParameters( 'SRM2' )
-    if res['OK']:
-      params = res['Value']
-      token = params['SpaceToken']
-      if token == 'LHCb-Tape':
-        freeSpace = 1000.
-        self.freeSpace[se] = {'freeSpace' : freeSpace}
-        return freeSpace
-      res = getSiteForSE( se )
-      if res['OK'] or not res['Value']:
-        site = res['Value'].split( '.' )[1]
-    if not res['OK'] or not site:
-      self.logError( 'Unable to determine site or space token for SE %s:' % se, res['Message'] )
+    
+    # get the endpoint and space token
+    params = StorageElement( se ).getStorageParameters( 'SRM2' )
+    if not params[ 'OK' ]:
+      self.logError( 'Unable to determine site or space token for SE %s:' % se, params['Message'] )
       return 0
+    token = params[ 'SpaceToken' ]
 
-    # Check first if cached for the same site and token
-    for value in self.freeSpace.values():
-      if value.get( 'site' ) == site and value.get( 'token' ) == token:
-        self.freeSpace[se] = {'site':site, 'token':token, 'freeSpace':value['freeSpace']}
-        return self.freeSpace[se]['freeSpace']
-    # if not get the information from RSS
-    res = self.rmClient.getSLSStorage( site = site, token = token )
-    if res['OK']:
-      if len( res['Value'] ) == 0 or len( res['Value'][0] ) < 9:
-        self.logError( "Incorrect return value from RSS for site %s, token %s: %s" % ( site, token, res['Value'] ) )
-        return 0
-      freeSpace = res['Value'][0][8]
-      self.freeSpace[se] = {'site':site, 'token':token, 'freeSpace':freeSpace}
-      self.logVerbose( 'Free space for SE %s, site %s, token %s: %d' % ( se, site, token, freeSpace ) )
-      return freeSpace
-    else:
-      self.logError( 'Error when getting space for SE %s, site %s, token %s' % ( se, site, token ), res['Message'] )
+    from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
+    endpoint = CSHelpers.getStorageElementEndpoint( se )
+    if not endpoint[ 'OK' ]:
+      self.logError( 'Unable to determine endpoint for SE %s:' % se, endpoint[ 'Message' ] )
       return 0
+    endpoint = endpoint[ 'Value' ]
+    
+    # Check first if cached for the same endpoint and token    
+    if ( endpoint, token ) in self.freeSpace:
+      return self.freeSpace[ ( endpoint, token ) ][ 'Free' ]
+    
+    if token == 'LHCb-Tape':
+      freeSpace            = 1000.
+      self.freeSpace[ ( endpoint, token ) ] = { 'Free' : freeSpace }
+      return freeSpace
+      
+    # if not get the information from RSS   
+    spaceInfo = self.rmClient.selectSpaceTokenOccupancyCache( endpoint = endpoint, 
+                                                              token = token )
+    if not spaceInfo[ 'OK' ]:
+      self.logError( "Unable to contact Service: %s" % spaceInfo[ 'Message' ] )
+      return 0
+        
+    if not spaceInfo[ 'Value' ]:
+      self.logError( "Empty spaceInfo" )
+      return 0 
+    
+    # This dictionary looks like:
+    # { 'Endpoint': 'httpg://srm-lhcb.cern.ch:8443/srm/managerv2', 
+    #   'LastCheckTime': datetime.datetime(2013, 6, 18, 14, 43, 19), 
+    #   'Guaranteed': 153L, 
+    #   'Free': 33L, 
+    #   'Token': 'LHCb-Disk', 
+    #   'Total': 153L
+    # }
+    spaceDict = dict( zip( spaceInfo[ 'Columns' ], spaceInfo[ 'Value' ][ 0 ] ) )
+    freeSpace = spaceDict[ 'Free' ]
+    
+    self.freeSpace[ ( spaceDict[ 'Endpoint' ], spaceDict[ 'Token' ] ) ] = { 'Free' : freeSpace }
+    
+    return freeSpace
 
   def rankSEs( self, candSEs ):
     """ Ranks the SEs according to their free space
