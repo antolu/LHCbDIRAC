@@ -32,7 +32,6 @@ class UserJobFinalization( ModuleBase ):
     self.enable = True
     self.defaultOutputSE = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-USER', [] )
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
-    self.jobID = '0'
     # List all parameters here
     self.userFileCatalog = 'LcgFileCatalogCombined'
     self.request = None

@@ -154,7 +154,7 @@ class ModuleBase( object ):
     if not self._WMSJob():
       return 0  # e.g. running locally prior to submission
 
-    self.log.verbose( 'setJobParameter(%s,%s,%s)' % ( self.jobID, name, value ) )
+    self.log.verbose( 'setJobParameter(%d,%s,%s)' % ( self.jobID, name, value ) )
 
     if not jr:
       jr = self._getJobReporter()
@@ -750,7 +750,7 @@ class ModuleBase( object ):
       self.log.info( 'No WMS JobID found, disabling module via control flag' )
       return False
     else:
-      self.log.verbose( 'Found WMS JobID = %s' % self.jobID )
+      self.log.verbose( 'Found WMS JobID = %d' % self.jobID )
       return True
 
   #############################################################################
@@ -804,7 +804,7 @@ class ModuleBase( object ):
         jsonFile = open( fname, 'w' )
         jsonFile.write( request_string )
         jsonFile.close()
-        self.log.info( 'Creating failover request for deferred operations for job %s:' % self.jobID )
+        self.log.info( 'Creating failover request for deferred operations for job %d:' % self.jobID )
         result = self.request.getDigest()
         if result['OK']:
           digest = result['Value']
