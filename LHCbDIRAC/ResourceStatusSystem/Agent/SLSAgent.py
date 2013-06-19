@@ -86,12 +86,6 @@ def gen_mysql( n, d, keys ):
   return req
 
 # Convenience funs
-#def insert_slsservice( **kw ):
-#  '''
-#    #TODO: see below
-#    Use the client !
-#  '''
-#  return rmDB._update( gen_mysql( "SLSService", kw, ["System", "Service"] ) )
 
 def insert_slst1service( **kw ):
   '''
@@ -113,13 +107,6 @@ def insert_slsstorage( **kw ):
     Use the client !
   '''  
   return rmDB._update( gen_mysql( "SLSStorage", kw, ["Site", "Token"] ) )
-
-#def insert_slsrmstats( **kw ):
-#  '''
-#    #TODO: see below
-#    Use the client !
-#  '''  
-#  return rmDB._update( gen_mysql( "SLSRMStats", kw, ["Site", "System", "Name"] ) )
 
 def gen_xml_stub():
   doc = impl.createDocument( "http://sls.cern.ch/SLS/XML/update",

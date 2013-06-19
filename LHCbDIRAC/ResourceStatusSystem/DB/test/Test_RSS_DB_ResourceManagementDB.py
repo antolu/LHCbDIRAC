@@ -52,13 +52,9 @@ class ResourceManagementDB_Success( ResourceManagementDB_TestCase ):
     self.assertEquals( True, 'JobAccountingCache' in module._tablesDB )  
     self.assertEquals( True, 'PilotAccountingCache' in module._tablesDB )
       
-    self.assertEquals( True, 'SLSTest' in module._tablesDB )
-    self.assertEquals( True, 'SLSService' in module._tablesDB )
-    self.assertEquals( True, 'SLSRMStats' in module._tablesDB )
     self.assertEquals( True, 'SLST1Service' in module._tablesDB )
     self.assertEquals( True, 'SLSLogSE' in module._tablesDB )
     self.assertEquals( True, 'SLSStorage' in module._tablesDB )
-    self.assertEquals( True, 'SLSCondDB' in module._tablesDB )
     
   def test_tablesDB_HammerCloudTest( self ):
     ''' tests the table HammerCloudTest
@@ -158,77 +154,6 @@ class ResourceManagementDB_Success( ResourceManagementDB_TestCase ):
     self.assertEquals( 'DATETIME NOT NULL', table[ 'Fields' ][ 'LastCheckTime' ] )                           
     
     self.assertEquals( [ 'Name' ], table[ 'PrimaryKey' ] )  
-
-  def test_tablesDB_SLSTest( self ):
-    ''' test the table SLSTest
-    '''                      
-
-    module = self.testClass( mySQL = 1 )
-    table  = module._tablesDB[ 'SLSTest' ]
-    
-    self.assertEquals( set( [ 'Fields', 'PrimaryKey' ] ), set( table.keys() ) )
-
-    fields = [ 'TestName', 'Target', 'Availability', 'Result', 'Description',
-               'DateEffective' ]
-    
-    self.assertEquals( set( fields ), set( table[ 'Fields' ].keys() ) )
-
-    self.assertEquals( 'VARCHAR(64) NOT NULL', table[ 'Fields' ][ 'TestName' ] )
-    self.assertEquals( 'VARCHAR(255) NOT NULL', table[ 'Fields' ][ 'Target' ] )
-    self.assertEquals( 'INT UNSIGNED NOT NULL', table[ 'Fields' ][ 'Availability' ] )
-    self.assertEquals( 'INT NOT NULL', table[ 'Fields' ][ 'Result' ] )    
-    self.assertEquals( 'VARCHAR(511) NOT NULL', table[ 'Fields' ][ 'Description' ] )
-    self.assertEquals( 'DATETIME NOT NULL', table[ 'Fields' ][ 'DateEffective' ] )
-
-    self.assertEquals( [ 'TestName', 'Target' ], table[ 'PrimaryKey' ] )
-                      
-  def test_tablesDB_SLSService( self ):
-    ''' test the table SLSService
-    '''                                           
-
-    module = self.testClass( mySQL = 1 )
-    table  = module._tablesDB[ 'SLSService' ]
-    
-    self.assertEquals( set( [ 'Fields', 'PrimaryKey' ] ), set( table.keys() ) )
-
-    fields = [ 'System', 'Service', 'Availability', 'TimeStamp', 'Host', 'ServiceUptime',
-               'HostUptime', 'InstantLoad', 'Message' ]
-    
-    self.assertEquals( set( fields ), set( table[ 'Fields' ].keys() ) )
-
-    self.assertEquals( 'VARCHAR(64) NOT NULL', table[ 'Fields' ][ 'System' ] )
-    self.assertEquals( 'VARCHAR(32) NOT NULL', table[ 'Fields' ][ 'Service' ] )
-    self.assertEquals( 'TINYINT UNSIGNED NOT NULL', table[ 'Fields' ][ 'Availability' ] )    
-    self.assertEquals( 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', table[ 'Fields' ][ 'TimeStamp' ] )
-    self.assertEquals( 'VARCHAR(64)', table[ 'Fields' ][ 'Host' ] )
-    self.assertEquals( 'INT UNSIGNED', table[ 'Fields' ][ 'ServiceUptime' ] )
-    self.assertEquals( 'INT UNSIGNED', table[ 'Fields' ][ 'HostUptime' ] )
-    self.assertEquals( 'FLOAT UNSIGNED', table[ 'Fields' ][ 'InstantLoad' ] )
-    self.assertEquals( 'TEXT', table[ 'Fields' ][ 'Message' ] )
-
-    self.assertEquals( [ 'System', 'Service' ], table[ 'PrimaryKey' ] )
-
-  def test_tablesDB_SLSRMStats( self ):
-    ''' test the table SLSRMStats
-    '''
-    
-    module = self.testClass( mySQL = 1 )
-    table  = module._tablesDB[ 'SLSRMStats' ]
-    
-    self.assertEquals( set( [ 'Fields', 'PrimaryKey' ] ), set( table.keys() ) )
-
-    fields = [ 'Site', 'System', 'Name', 'Assigned', 'Waiting', 'Done' ]
-    
-    self.assertEquals( set( fields ), set( table[ 'Fields' ].keys() ) )
-
-    self.assertEquals( 'VARCHAR(64) REFERENCES SLST1Service', table[ 'Fields' ][ 'Site' ] )
-    self.assertEquals( 'VARCHAR(32) REFERENCES SLST1Service', table[ 'Fields' ][ 'System' ] )
-    self.assertEquals( 'VARCHAR(32) NOT NULL', table[ 'Fields' ][ 'Name' ] )                       
-    self.assertEquals( 'INT UNSIGNED', table[ 'Fields' ][ 'Assigned' ] )                       
-    self.assertEquals( 'INT UNSIGNED', table[ 'Fields' ][ 'Waiting' ] )                       
-    self.assertEquals( 'INT UNSIGNED', table[ 'Fields' ][ 'Done' ] )                       
-    
-    self.assertEquals( [ 'Site', 'System', 'Name' ], table[ 'PrimaryKey' ] )
     
   def test_tablesDB_SLST1Service( self ):
     ''' test the table SLST1Service
@@ -303,25 +228,6 @@ class ResourceManagementDB_Success( ResourceManagementDB_TestCase ):
     self.assertEquals( 'BIGINT UNSIGNED', table[ 'Fields' ][ 'FreeSpace' ] )                       
                       
     self.assertEquals( [ 'Site', 'Token' ], table[ 'PrimaryKey' ] )
-            
-  def test_tablesDB_SLSCondDB( self ):
-    ''' test the table SLSCondDB
-    '''
-
-    module = self.testClass( mySQL = 1 )
-    table  = module._tablesDB[ 'SLSCondDB' ]
-    
-    self.assertEquals( set( [ 'Fields', 'PrimaryKey' ] ), set( table.keys() ) )
-
-    fields = [ 'Site', 'Availability', 'TimeStamp', 'AccessTime' ]
-    
-    self.assertEquals( set( fields ), set( table[ 'Fields' ].keys() ) )
-    self.assertEquals( 'VARCHAR(64)', table[ 'Fields' ][ 'Site' ] )
-    self.assertEquals( 'TINYINT UNSIGNED', table[ 'Fields' ][ 'Availability' ] )
-    self.assertEquals( 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', table[ 'Fields' ][ 'TimeStamp' ] )
-    self.assertEquals( 'FLOAT UNSIGNED', table[ 'Fields' ][ 'AccessTime' ] )
-            
-    self.assertEquals( [ 'Site' ], table[ 'PrimaryKey' ] )
             
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

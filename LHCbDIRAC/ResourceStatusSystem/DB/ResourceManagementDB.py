@@ -17,13 +17,9 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
     Extension of ResourceManagementDB, adding the following tables:
     - HammerCloudTest
     - MonitoringTest
-    - SLSTest
-    - SLSService
-    - SLSSRMStats
     - SLST1Service
     - SLSLogSE
     - SLSStorage
-    - SLSCondDB
   '''
   
   _tablesDB    = DIRACResourceManagementDB._tablesDB
@@ -67,18 +63,6 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                       },
                       'PrimaryKey' : [ 'MetricName', 'ServiceURI' ]                                            
                                 }
-  _tablesDB[ 'SLSTest' ] = { 'Fields' : 
-                     {
-                       'TestName'      : 'VARCHAR(64) NOT NULL',
-                       'Target'        : 'VARCHAR(255) NOT NULL',
-                       'Availability'  : 'INT UNSIGNED NOT NULL',
-                       'Result'        : 'INT NOT NULL',
-                       'Description'   : 'VARCHAR(511) NOT NULL',
-                       'DateEffective' : 'DATETIME NOT NULL'
-                      },
-                      'PrimaryKey' : [ 'TestName', 'Target' ]                                            
-                                }
-
   _tablesDB[ 'JobAccountingCache' ] = { 'Fields' : 
                      {
                        'Name'          : 'VARCHAR(64) NOT NULL',
@@ -110,31 +94,6 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
   
   # TABLES THAT WILL EVENTUALLY BE DELETED
   
-  _tablesDB[ 'SLSService' ] = { 'Fields' : 
-                     {
-                       'System'        : 'VARCHAR(64) NOT NULL',
-                       'Service'       : 'VARCHAR(32) NOT NULL',
-                       'Availability'  : 'TINYINT UNSIGNED NOT NULL',
-                       'TimeStamp'     : 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
-                       'Host'          : 'VARCHAR(64)',
-                       'ServiceUptime' : 'INT UNSIGNED',
-                       'HostUptime'    : 'INT UNSIGNED',
-                       'InstantLoad'   : 'FLOAT UNSIGNED',
-                       'Message'       : 'TEXT',
-                      },
-                      'PrimaryKey' : [ 'System', 'Service' ]                                            
-                                }
-  _tablesDB[ 'SLSRMStats' ] = { 'Fields' : 
-                     {
-                       'Site'     : 'VARCHAR(64) REFERENCES SLST1Service',
-                       'System'   : 'VARCHAR(32) REFERENCES SLST1Service',
-                       'Name'     : 'VARCHAR(32) NOT NULL',
-                       'Assigned' : 'INT UNSIGNED',
-                       'Waiting'  : 'INT UNSIGNED',
-                       'Done'     : 'INT UNSIGNED'
-                      },
-                      'PrimaryKey' : [ 'Site', 'System', 'Name' ]                                            
-                                }
   _tablesDB[ 'SLST1Service' ] = { 'Fields' : 
                      {
                        'Site'          : 'VARCHAR(64) NOT NULL',
@@ -173,18 +132,9 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                       },
                       'PrimaryKey' : [ 'Site', 'Token' ]                                            
                                 }
-  _tablesDB[ 'SLSCondDB' ] = { 'Fields' : 
-                     {
-                       'Site'         : 'VARCHAR(64)',
-                       'Availability' : 'TINYINT UNSIGNED',
-                       'TimeStamp'    : 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
-                       'AccessTime'   : 'FLOAT UNSIGNED'
-                      },
-                      'PrimaryKey' : [ 'Site' ]                                            
-                                }
   
   #_tablesLike  = DIRACResourceManagementDB._tablesLike
   #_likeToTable = DIRACResourceManagementDB._likeToTable
   
-################################################################################
+#...............................................................................
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
