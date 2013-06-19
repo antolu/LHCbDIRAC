@@ -20,7 +20,6 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations          import Operati
 from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubmissionLFNs
 from LHCbDIRAC.Workflow.Utilities.Utils                           import getStepDefinition
 from LHCbDIRAC.Interfaces.API.LHCbJob                             import LHCbJob
-from LHCbDIRAC.Interfaces.API.DiracLHCb                           import DiracLHCb
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
 
