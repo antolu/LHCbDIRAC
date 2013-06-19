@@ -30,9 +30,9 @@ def getDestinationSEList( outputSE, site, outputmode = 'Any' ):
   localSEs = getSEsForSite( site )['Value']
   gLogger.verbose( 'Local SE list is: %s' % ( localSEs ) )
   groupSEs = gConfig.getValue( '/Resources/StorageElementGroups/' + outputSE, [] )
-  gLogger.verbose( 'Group SE list is: %s' % ( groupSEs ) )
   if not groupSEs:
     raise RuntimeError, 'Failed to resolve SE ' + outputSE
+  gLogger.verbose( 'Group SE list is: %s' % ( groupSEs ) )
 
   if outputmode.lower() == "local":
     for se in localSEs:
@@ -68,8 +68,7 @@ def getDestinationSEList( outputSE, site, outputmode = 'Any' ):
       gLogger.info( 'Found alias SE for site: %s' % alias_se )
       return alias_se
     else:
-      gLogger.error( 'Could not establish alias SE for country %s from section: %s' % ( country, section ) )
-      raise RuntimeError, 'Failed to resolve SE ' + outputSE
+      raise RuntimeError, 'Could not establish alias SE for country %s from section: %s' % ( country, section )
 
   # For collective Any and All modes return the whole group
 
