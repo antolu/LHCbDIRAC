@@ -62,9 +62,6 @@ def getDestinationSEList( outputSE, site, outputmode = 'Any' ):
           break
       count += 1
 
-    if not assignedCountry:
-      raise RuntimeError, 'Could not determine associated SE list for %s' % country
-
     section = '/Resources/Countries/%s/AssociatedSEs/%s' % ( assignedCountry, outputSE )
     alias_se = gConfig.getValue( section, [] )
     if alias_se:
