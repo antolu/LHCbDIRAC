@@ -6,7 +6,7 @@ It is possible to do minor fixes to those files, using options
 
 __RCSID__ = "$transID: dirac-transformation-debug.py 61232 2013-01-28 16:29:21Z phicharp $"
 
-import sys
+import sys, os
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
 def __getFilesForRun( transID, runID = None, status = None, lfnList = None, seList = None ):
@@ -134,7 +134,7 @@ def __getTransformationInfo( transID, transSep ):
   res = transClient.getTransformation( transID, extraParams = False )
   if not res['OK']:
     print "Couldn't find transformation", transID
-    return None, None, None, None
+    return None, None, None, None, None
   else:
     transName = res['Value']['TransformationName']
     transStatus = res['Value']['Status']
@@ -275,22 +275,12 @@ def __fillStatsPerSE( rep, listSEs ):
   return completed
 
 def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRequests ):
-
-  # FIXME: some horrible hacks for old/new RMS
   requestID = int( task['ExternalID'] )
-  res = requestClient.getRequestInfo( requestID )
+  res = reqClient.getRequestInfo( requestID )
   if res['OK']:
-    if res['Value']:
-      rClient = requestClient
-    else:
-      rClient = reqClient
-      res = rClient.getRequestInfo( requestID )
     requestName = res['Value'][2]
   else:
     requestName = None
-
-
-
   if not taskCompleted and task['ExternalStatus'] == 'Failed':
     if kickRequests:
       res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnsInTask )
@@ -302,7 +292,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     prString = "Task %s is completed: no %s replicas" % ( requestName, dmFileStatusComment )
     if kickRequests:
       if requestName:
-        res = rClient.setRequestStatus( requestName, 'Done' )
+        res = reqClient.setRequestStatus( requestName, 'Done' )
         if res['OK']:
           prString += ": request set to Done"
         else:
@@ -315,7 +305,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     else:
         prString += " - To mark them done, use option --KickRequests"
     print prString
-  res = rClient.getRequestFileStatus( requestID, lfnsInTask )
+  res = reqClient.getRequestFileStatus( requestID, lfnsInTask )
   if res['OK']:
     reqFiles = res['Value']
     statFiles = {}
@@ -331,13 +321,13 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
         prString += ": it should be marked as Failed, use --KickRequests"
       else:
         failedFiles += reqFiles.keys()
-        res = rClient.setRequestStatus( requestName, 'Failed' )
+        res = reqClient.setRequestStatus( requestName, 'Failed' )
         if res['OK']:
           prString += ": request set to Failed"
       print prString
   selectDict = { 'RequestID':requestID}
   toBeKicked = 0
-  res = rClient.getRequestSummaryWeb( selectDict, [], 0, 100000 )
+  res = reqClient.getRequestSummaryWeb( selectDict, [], 0, 100000 )
   if res['OK']:
     params = res['Value']['ParameterNames']
     records = res['Value']['Records']
@@ -354,7 +344,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
         print subReqStr
         toBeKicked += 1
         if kickRequests:
-          res = rClient.setRequestStatus( subReqDict['RequestName'], 'Waiting' )
+          res = reqClient.setRequestStatus( subReqDict['RequestName'], 'Waiting' )
           if res['OK']:
             print 'Request %d reset Waiting' % requestID
   return toBeKicked
@@ -496,31 +486,179 @@ def __checkReplicasForProblematic( lfns, replicas ):
     for se in realSEs:
       problematicReplicas.setdefault( se, [] ).append( lfn )
 
-def __checkJobs( jobsForLfn ):
+def __getLog( urlBase, logFile, debug = False ):
+  import gzip, urllib, tarfile, fnmatch
+  # if logFile == "" it is assumed the file is directly the urlBase
+  # Otherwise it can either be referenced within urlBase or contained (.tar.gz)
+  if debug:
+    print "Entering getLog", urlBase, logFile
+  url = urlBase
+  if logFile and ".tgz" not in url:
+    if debug: print "Opening URL ", url
+    f = urllib.urlopen( url )
+    c = f.read()
+    f.close()
+    if "was not found on this server." in c:
+      return ""
+    c = c.split( "\n" )
+    logURL = None
+    for l in c:
+      # If hte line matches the requested URL
+      if fnmatch.fnmatch( l, '*' + logFile + '*' ):
+        try:
+          logURL = l.split( '"' )[1]
+          break
+        except:
+          pass
+      elif fnmatch.fnmatch( l, '*.tgz*' ):
+        # If a tgz file is found, it could help!
+        try:
+          logURL = l.split( '"' )[1]
+        except:
+          pass
+    if not logURL:
+        return ''
+    url += logURL
+    if debug:
+      print "URL found:", url
+  tmp = None
+  tmp1 = None
+  tf = None
+  if ".tgz" in url:
+    if debug: print "Opening tgz file ", url
+    # retrieve the zipped file
+    tmp = os.path.join( os.environ.get( "TMPDIR", "/tmp" ), "logFile.tmp" )
+    if debug: print "Retrieve the file in ", tmp
+    if os.path.exists( tmp ):
+      os.remove( tmp )
+    urllib.urlretrieve( url, tmp )
+    f = open( tmp, "r" )
+    c = f.read()
+    f.close()
+    if "404 Not Found" in c:
+      return ""
+      # unpack the tarfile
+    if debug: print "Open tarfile ", tmp
+    tf = tarfile.open( tmp, 'r:gz' )
+    mn = tf.getnames()
+    f = None
+    if debug: print "Found those members", mn, ', looking for', logFile
+    for file in mn:
+      if fnmatch.fnmatch( file, logFile + '*' ):
+        if debug: print "Found ", logFile, " in tar object ", file
+        if '.gz' in file:
+          # file is again a gzip file!!
+          tmp1 = os.path.join( os.environ.get( "TMPDIR", "/tmp" ), "logFile-1.tmp" )
+          if os.path.exists( tmp1 ):
+            os.remove( tmp1 )
+          if debug: print "Extract", file, "into", tmp1, "and open it"
+          tf.extract( file, tmp1 )
+          tmp1 += file
+          f = gzip.GzipFile( tmp1, 'r' )
+        else:
+          f = tf.extractfile( file )
+        break
+  else:
+    f = urllib.urlopen( url )
+  #read the actual file...
+  if not f:
+    if debug: print "Couldn't open file..."
+    c = ''
+  else:
+    if debug: print "File successfully open"
+    c = f.read()
+    f.close()
+    if "was not found on this server." not in c:
+      if debug: print "Reading the file now... %d lines" % len( c )
+      c = c.split( "\n" )
+    else:
+      c = ''
+  if tf:
+    tf.close()
+  if tmp:
+    os.remove( tmp )
+  if tmp1:
+    os.remove( tmp1 )
+  return c
+
+def __getSandbox( job, logFile, debug = False ):
+  from DIRAC.WorkloadManagementSystem.Client.SandboxStoreClient     import SandboxStoreClient
+  import fnmatch
+  sbClient = SandboxStoreClient()
+  tmpDir = os.path.join( os.environ.get( "TMPDIR", "/tmp" ), "sandBoxes/" )
+  if not os.path.exists( tmpDir ):
+    os.mkdir( tmpDir )
+  f = None
+  files = []
+  try:
+    res = sbClient.downloadSandboxForJob( job, 'Output', tmpDir )
+    if res['OK']:
+      if debug: print 'Job', job, ': sandbox retrieved in', tmpDir
+      files = os.listdir( tmpDir )
+      if debug: print 'Files:', files
+      for lf in files:
+        if fnmatch.fnmatch( lf, logFile ):
+          if debug: print file, 'matched', logFile
+          f = open( os.path.join( tmpDir, lf ), 'r' )
+          return f.readlines()
+      return ''
+  except:
+    print 'Exception while getting sandbox'
+    return ''
+  finally:
+    if f:
+      f.close()
+    for lf in files:
+      os.remove( os.path.join( tmpDir, lf ) )
+    os.rmdir( tmpDir )
+
+
+def __checkXMLSummary( job, logURL ):
+  xmlFile = __getLog( logURL, 'summary*.xml', debug = False )
+  if not xmlFile:
+    xmlFile = __getSandbox( job, 'summary*.xml', debug = False )
+  lfns = {}
+  if xmlFile:
+    for line in xmlFile:
+      if 'status="part"' in line and 'LFN:' in line:
+        lfns.update( {line.split( 'LFN:' )[1].split( '"' )[0] : 'Partial'} )
+      elif 'status="fail"' in line and 'LFN:' in line:
+        lfns.update( {line.split( 'LFN:' )[1].split( '"' )[0] : 'Failed'} )
+    if not lfns:
+      lfns = {None:'No errors found in XML summary'}
+  return lfns
+
+def __checkJobs( jobsForLfn, byFiles = False ):
   from DIRAC.Core.DISET.RPCClient                          import RPCClient
   monitoring = RPCClient( 'WorkloadManagement/JobMonitoring' )
-  for lfn, jobs in jobsForLfn.items():
-    jobs.sort()
-    res = monitoring.getJobsStatus( jobs )
+  failedLfns = {}
+  for lfnStr, allJobs in jobsForLfn.items():
+    lfnList = lfnStr.split( ',' )
+    exitedJobs = []
+    allJobs.sort()
+    res = monitoring.getJobsStatus( allJobs )
     if res['OK']:
       jobStatus = res['Value']
-      res = monitoring.getJobsMinorStatus( jobs )
+      res = monitoring.getJobsMinorStatus( allJobs )
       if res['OK']:
         jobMinorStatus = res['Value']
-        res = monitoring.getJobsApplicationStatus( jobs )
+        res = monitoring.getJobsApplicationStatus( allJobs )
         if res['OK']:
           jobApplicationStatus = res['Value']
     if not res['OK']:
       print 'Error getting jobs statuses:', res['Message']
       return
     allStatus = {}
-    for job in [int( j ) for j in jobs]:
+    for job in [int( j ) for j in allJobs]:
       status = jobStatus.get( job, {} ).get( 'Status', 'Unknown' ) + '; ' + \
                jobMinorStatus.get( job, {} ).get( 'MinorStatus', 'Unknown' ) + '; ' + \
                jobApplicationStatus.get( job, {} ).get( 'ApplicationStatus', 'Unknown' )
       allStatus[job] = status
-    print '\nLFN:', lfn, ': Status of corresponding %d jobs (ordered):' % len( jobs )
-    print ' '.join( jobs )
+    if byFiles or len( lfnList ) < 3:
+      print '\n %d LFNs:' % len( lfnList ), lfnList, ': Status of corresponding %d jobs (ordered):' % len( allJobs )
+    else:
+      print '\n %d LFNs:' % len( lfnList ), 'Status of corresponding %d jobs (ordered):' % len( allJobs )
+    print ' '.join( allJobs )
     prevStatus = None
     allStatus[sys.maxint] = ''
     for job in sorted( allStatus ):
@@ -539,6 +677,8 @@ def __checkJobs( jobsForLfn ):
         prStr += ' in status:'
       print prStr, prevStatus
       majorStatus, minorStatus, applicationStatus = prevStatus.split( '; ' )
+      if majorStatus == 'Failed' and 'Exited With Status' in applicationStatus:
+        exitedJobs += jobs
       if majorStatus == 'Failed' and minorStatus == 'Job stalled: pilot not running':
         lastLine = ''
         # Now get last lines
@@ -559,11 +699,41 @@ def __checkJobs( jobsForLfn ):
           elif line == lastLine:
             jobs.append( job )
             continue
+          for xx in ( 'LbLogin.sh', 'SetupProject.sh' ):
+            if xx in lastLine:
+              lastLine = lastLine.split()[0] + ' Executing %s' % xx + lastLine.split( xx )[1].split( '&&' )[0]
+              break
           print '\t%3d jobs' % len( jobs ), 'stalled with last line:', lastLine
           lastLine = line
           jobs = [job1]
       jobs = [job]
       prevStatus = status
+      if exitedJobs:
+        badLfns = {}
+        for lastJob in sorted( exitedJobs, reverse = True )[0:10]:
+          res = monitoring.getJobParameter( int( lastJob ), 'Log URL' )
+          if res['OK']:
+            logURL = res['Value']['Log URL'].split( '"' )[1] + '/'
+            lfns = __checkXMLSummary( lastJob, logURL )
+            if lfns:
+              badLfns.update( {lastJob: lfns} )
+          #break
+        if not badLfns:
+          print "No logfiles found for any of the jobs..."
+        else:
+          # lfnsFound is an AND of files found bad in all jobs
+          lfnsFound = set( badLfns.values()[0] )
+          for lfns in badLfns.values():
+            lfnsFound &= set( [lfn for lfn in lfns if lfn] )
+          if lfnsFound:
+            for lfn, job, reason in [( lfn, job, badLfns[job][lfn] ) for job in badLfns for lfn in set( badLfns[job] ) & lfnsFound]:
+              failedLfns.setdefault( ( lfn, reason ), [] ).append( job )
+          else:
+            print "No error was found in XML summary files"
+  if failedLfns:
+    print "\nSummary of failures due to: Application Exited with non-zero status"
+    for ( lfn, reason ), jobs in failedLfns.items():
+      print "ERROR ==> %s was %s during processing from jobs %s: " % ( lfn, reason, jobs )
   print ''
 
 def __checkRunsToFlush( pluginUtils, runID, transFilesList, runStatus, evtType = 90000000 ):
@@ -654,7 +824,7 @@ if __name__ == "__main__":
   from DIRAC.Core.Base import Script
 
   infoList = ( "files", "runs", "tasks", 'jobs', 'alltasks', 'flush' )
-  statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset", "Processed", "NotProcessed", "Removed" )
+  statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset", "Processed", "NotProcessed", "Removed", 'ProbInFC' )
   dmScript = DMScript()
   dmScript.registerFileSwitches()
   Script.registerSwitch( '', 'Info=', "Specify what to print out from %s" % str( infoList ) )
@@ -741,10 +911,8 @@ if __name__ == "__main__":
 
   transList = __getTransformations( Script.getPositionalArgs() )
 
-  from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient           import ProductionsClient
-  # FIXME: RequestClient is the client to the old RMS, ReqClient the new one
+  from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
   from DIRAC.RequestManagementSystem.Client.RequestClient           import RequestClient
-  from DIRAC.RequestManagementSystem.Client.ReqClient           import ReqClient
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   from LHCbDIRAC.TransformationSystem.Client.Utilities import PluginUtilities
@@ -754,9 +922,8 @@ if __name__ == "__main__":
   import datetime
 
   bkClient = BookkeepingClient()
-  transClient = ProductionsClient()
-  requestClient = RequestClient()
-  reqClient = ReqClient()
+  transClient = TransformationClient()
+  reqClient = RequestClient()
   rm = ReplicaManager()
   dmTransTypes = ( "Replication", "Removal" )
   assignedReqLimit = datetime.datetime.utcnow() - datetime.timedelta( hours = 2 )
@@ -854,7 +1021,7 @@ if __name__ == "__main__":
               taskDict.setdefault( taskID, [] ).append( fileDict['LFN'] )
         if byFiles and not taskList:
             print fileDict['LFN'], "- Run:", fileDict['RunNumber'], "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
-        if not fileDict['RunNumber'] and fileDict['LFN'].find( '/MC' ) < 0:
+        if not fileDict['RunNumber'] and '/MC' not in fileDict['LFN']:
           filesWithRunZero.append( fileDict['LFN'] )
 
       # Files with run# == 0
@@ -922,7 +1089,7 @@ if __name__ == "__main__":
 
           print ""
       if byJobs and jobsForLfn:
-        __checkJobs( jobsForLfn )
+        __checkJobs( jobsForLfn, byFiles )
     if status == 'Problematic':
       __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas, failedFiles, fixIt )
     if toBeKicked:
