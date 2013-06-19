@@ -2,14 +2,11 @@
     of destination storage elements for uploading an output file.
 """
 
-__RCSID__ = "$Id$"
-
-from DIRAC                              import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC                              import gLogger, gConfig
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.Core.Utilities.List          import uniqueElements
 
-#############################################################################
-def getDestinationSEList( outputSE, site, outputmode='Any' ):
+def getDestinationSEList( outputSE, site, outputmode = 'Any' ):
   """ Evaluate the output SE list from a workflow and return the concrete list
       of SEs to upload output data.
   """
@@ -23,32 +20,32 @@ def getDestinationSEList( outputSE, site, outputmode='Any' ):
   result = gConfig.getOptions( '/Resources/StorageElements/' + outputSE )
   if result['OK']:
     gLogger.info( 'Found concrete SE %s' % outputSE )
-    return S_OK( [outputSE] )
+    return [outputSE]
   # There is an alias defined for this Site
   alias_se = gConfig.getValue( '/Resources/Sites/%s/%s/AssociatedSEs/%s' % ( prefix, site, outputSE ), [] )
   if alias_se:
     gLogger.info( 'Found associated SE for site %s' % ( alias_se ) )
-    return S_OK( alias_se )
+    return alias_se
 
   localSEs = getSEsForSite( site )['Value']
   gLogger.verbose( 'Local SE list is: %s' % ( localSEs ) )
   groupSEs = gConfig.getValue( '/Resources/StorageElementGroups/' + outputSE, [] )
   gLogger.verbose( 'Group SE list is: %s' % ( groupSEs ) )
   if not groupSEs:
-    return S_ERROR( 'Failed to resolve SE ' + outputSE )
+    raise RuntimeError, 'Failed to resolve SE ' + outputSE
 
   if outputmode.lower() == "local":
     for se in localSEs:
       if se in groupSEs:
         gLogger.info( 'Found eligible local SE: %s' % ( se ) )
-        return S_OK( [se] )
+        return [se]
 
-    #check if country is already one with associated SEs
+    # check if country is already one with associated SEs
     section = '/Resources/Countries/%s/AssociatedSEs/%s' % ( country, outputSE )
     associatedSE = gConfig.getValue( section, '' )
     if associatedSE:
       gLogger.info( 'Found associated SE %s in %s' % ( associatedSE, section ) )
-      return S_OK( [associatedSE] )
+      return [associatedSE]
 
     # Final check for country associated SE
     count = 0
@@ -66,16 +63,16 @@ def getDestinationSEList( outputSE, site, outputmode='Any' ):
       count += 1
 
     if not assignedCountry:
-      return S_ERROR( 'Could not determine associated SE list for %s' % country )
+      raise RuntimeError, 'Could not determine associated SE list for %s' % country
 
     section = '/Resources/Countries/%s/AssociatedSEs/%s' % ( assignedCountry, outputSE )
     alias_se = gConfig.getValue( section, [] )
     if alias_se:
       gLogger.info( 'Found alias SE for site: %s' % alias_se )
-      return S_OK( alias_se )
+      return alias_se
     else:
       gLogger.error( 'Could not establish alias SE for country %s from section: %s' % ( country, section ) )
-      return S_ERROR( 'Failed to resolve SE ' + outputSE )
+      raise RuntimeError, 'Failed to resolve SE ' + outputSE
 
   # For collective Any and All modes return the whole group
 
@@ -86,6 +83,6 @@ def getDestinationSEList( outputSE, site, outputmode='Any' ):
       newSEList.append( se )
   listOfSEs = uniqueElements( newSEList + groupSEs )
   gLogger.verbose( 'Found unique SEs: %s' % ( listOfSEs ) )
-  return S_OK( listOfSEs )
+  return listOfSEs
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

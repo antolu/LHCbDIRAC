@@ -120,12 +120,7 @@ class UploadOutputData( ModuleBase ):
 
       for fileName, metadata in fileMetadata.items():
         if not SEs:
-          result = getDestinationSEList( metadata['workflowSE'], DIRAC.siteName(), self.outputMode )
-          if not result['OK']:
-            self.log.error( 'Could not resolve output data SE: ', result['Message'] )
-            self.setApplicationStatus( 'Failed To Resolve OutputSE' )
-            return result
-          resolvedSE = result['Value']
+          resolvedSE = getDestinationSEList( metadata['workflowSE'], DIRAC.siteName(), self.outputMode )
         else:
           resolvedSE = SEs
         final[fileName] = metadata

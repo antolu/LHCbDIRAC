@@ -164,13 +164,7 @@ class UserJobFinalization( ModuleBase ):
         return S_OK()
 
       # First get the local (or assigned) SE to try first for upload and others in random fashion
-      result = getDestinationSEList( 'Tier1-USER', DIRAC.siteName(), outputmode = 'local' )
-      if not result['OK']:
-        self.log.error( 'Could not resolve output data SE', result['Message'] )
-        self.setApplicationStatus( 'Failed To Resolve OutputSE' )
-        return result
-
-      localSE = result['Value']
+      localSE = getDestinationSEList( 'Tier1-USER', DIRAC.siteName(), outputmode = 'local' )
       self.log.verbose( 'Site Local SE for user outputs is: %s' % ( localSE ) )
       orderedSEs = self.defaultOutputSE
       for se in localSE:
