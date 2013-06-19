@@ -190,8 +190,7 @@ class UserJobFinalization( ModuleBase ):
 
       # At this point can exit and see exactly what the module will upload
       if not self._enableModule():
-        self.log.info( 'Module is disabled by control flag, \
-        would have attempted to upload the following files %s' % ', '.join( final.keys() ) )
+        self.log.info( 'Module disabled would have attempted to upload the files %s' % ', '.join( final.keys() ) )
         for fileName, metadata in final.items():
           self.log.info( '--------%s--------' % fileName )
           for n, v in metadata.items():
@@ -222,7 +221,7 @@ class UserJobFinalization( ModuleBase ):
         result = ft.transferAndRegisterFile( fileName = fileName,
                                              localPath = metadata['localpath'],
                                              lfn = metadata['filedict']['LFN'],
-                                             targetSE = metadata['resolvedSE'],
+                                             destinationSEList = metadata['resolvedSE'],
                                              fileMetaDict = fileMetaDict,
                                              fileCatalog = self.userFileCatalog )
         if not result['OK']:
@@ -302,7 +301,7 @@ class UserJobFinalization( ModuleBase ):
         result = self.rm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
         if not result['OK']:
           self.log.info( 'Replication failed with below error\
-           but file already exists in Grid storage with at least one replica:\n%s' % ( result ) )
+           but file already exists in Grid storage with at least one replica:\n%s' % ( result['Message'] ) )
 
       self.workflow_commons['Request'] = self.request
 
@@ -313,8 +312,8 @@ class UserJobFinalization( ModuleBase ):
       return S_OK( 'Output data uploaded' )
 
     except Exception, e:
-      self.setApplicationStatus( e )
       self.log.exception( e )
+      self.setApplicationStatus( e )
       return S_ERROR( e )
 
     finally:
