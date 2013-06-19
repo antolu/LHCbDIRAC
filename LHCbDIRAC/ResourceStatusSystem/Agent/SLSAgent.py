@@ -8,9 +8,6 @@
   insert_slsstorage
   insert_slsrmstats
   gen_xml_stub
-  get_pledged_value_for_token
-  contact_mail_of_site
-  send_mail_to_site
   TestBase.__bases__: 
     object
   SpaceTokenOccupancyTest.__bases__: 
@@ -114,32 +111,27 @@ def gen_xml_stub():
 
 #### Helper functions to send a warning mail to a site (for space-token test)
 
-def get_pledged_value_for_token( se, st ):
-  opHelper = Operations()
-  val = float( opHelper.getValue( "Shares/Disk/" + se + "/" + st ) )
-  return ( val if val != None else 0 )
+#def contact_mail_of_site( site ):
+#  opHelper = Operations()
+#  return opHelper.getValue( "Shares/Disk/" + site + "/Mail" )
 
-def contact_mail_of_site( site ):
-  opHelper = Operations()
-  return opHelper.getValue( "Shares/Disk/" + site + "/Mail" )
-
-def send_mail_to_site( site, token, pledged, total ):
-  from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-  nc = NotificationClient()
-  subject = "%s provide insufficient space for space-token %s" % ( site, token )
-  body = """
-Hi ! Our RSS monitoring systems informs us that %s has
-pledged %f TB to the space-token %s, but in reality, only %f TB of
-space is available. Thanks to solve the problem if possible.
-
-""" % ( site, pledged, token, total )
-  address = contact_mail_of_site( site )
-  if address:
-    res = nc.sendMail( address, subject, body )
-    if res['OK'] == False:
-      gLogger.warn( "Unable to send mail to %s: %s" % ( address, res['Message'] ) )
-    else:
-      gLogger.info( "Sent mail to %s OK!" % address )
+#def send_mail_to_site( site, token, pledged, total ):
+#  from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+#  nc = NotificationClient()
+#  subject = "%s provide insufficient space for space-token %s" % ( site, token )
+#  body = """
+#Hi ! Our RSS monitoring systems informs us that %s has
+#pledged %f TB to the space-token %s, but in reality, only %f TB of
+#space is available. Thanks to solve the problem if possible.
+#
+#""" % ( site, pledged, token, total )
+#  address = contact_mail_of_site( site )
+#  if address:
+#    res = nc.sendMail( address, subject, body )
+#    if res['OK'] == False:
+#      gLogger.warn( "Unable to send mail to %s: %s" % ( address, res['Message'] ) )
+#    else:
+#      gLogger.info( "Sent mail to %s OK!" % address )
 
 class TestBase( object ):
   def __init__( self, agent ):
@@ -254,8 +246,6 @@ class SpaceTokenOccupancyTest( TestBase ):
 class DIRACTest( TestBase ):
   def __init__( self, am ):
     super( DIRACTest, self ).__init__( am )
-#    self.setup = gConfig.getValue( 'DIRAC/Setup', "" )
-#    self.setupDict = CS.getTypedDictRootedAt( root = "/DIRAC/Setups", relpath = self.setup )
     self.xmlPath = rootPath + "/" + self.getAgentValue( "webRoot" ) + self.getTestValue( "dir" )
     from DIRAC.Interfaces.API.Dirac import Dirac
     self.dirac = Dirac()
@@ -265,33 +255,7 @@ class DIRACTest( TestBase ):
     except OSError:
       pass # The dir exist already, or cannot be created: do nothing
 
-#    self.xml_gw()
-#    self.run_xml_sensors()
     self.run_t1_xml_sensors()
-
-#TODO: evaluate if we want to test all our services or not !
-#  def run_xml_sensors( self ):
-#    # For each service of each system, run xml_sensors...
-#    systems = CS.getTypedDictRootedAt( root = "", relpath = "/Systems" )
-#    discovered_services = []
-#    for system in systems:
-#      try:
-#        services = systems[system][self.setupDict[system]]['Services']
-#        for service in services:
-#          discovered_services.append( ( system, service ) )
-#      except KeyError:
-#        try:
-#          gLogger.warn( "DIRACTest: No /Systems/%s/%s/Services in CS." % ( system, self.setupDict[system] ) )
-#        except KeyError:
-#          gLogger.warn( "DIRACTest: No /Systems/%s in CS." % system )
-#
-#    gLogger.info( "DIRACTest: discovered %d services" % len( discovered_services ) )
-#
-#    for ( system, service ) in discovered_services:
-#      try:
-#        self.xml_sensor( system, service )
-#      except:
-#        gLogger.warn( 'DIRACTest.xml_sensors crashed on %s, %s' % ( system, service ) )
 
   def run_t1_xml_sensors( self ):
     # For each T0/T1 VO-BOXes, run xml_t1_sensors...
@@ -307,106 +271,13 @@ class DIRACTest( TestBase ):
       except:
         gLogger.warn( 'DIRACTest.t1_xml_sensors crashed on %s' % url )
 
-  # XML GENERATORS
-
-#FIXME: do we want to do anything with this ?
-# This test is an isolated SLS test for one service.. Why is it different ?
-#  def xml_gw( self ):
-#    opHelper = Operations()
-#    try:
-#      sites = opHelper.getSections( 'Sites/LCG' )['Value']
-#    except KeyError:
-#      gLogger.error( "SLSAgent, DIRACTest: Unable to query CS" )
-#      sites = []
-#
-#    doc = gen_xml_stub()
-#    xml_append( doc, "id", "Framework_Gateway" )
-#    xml_append( doc, "webpage", self.getTestValue( "webpage" ) )
-#    xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
-#
-#    if sites == []:
-#      xml_append( doc, "availability", 0 )
-#      xml_append( doc, "notes",
-#                 "Retrieved 0 sites out of the Configuration Service.\
-# Please check the CS is up and running otherwise is the Gateway" )
-#
-#    else:
-#      xml_append( doc, "availability", 100 )
-#      xml_append( doc, "notes", "Retrieved " + str( len( sites ) ) + "\
-# sites out of the Configuration Service through the Gateway" )
-#
-#    xmlfile = open( self.xmlPath + "Framework_Gateway.xml", "w" )
-#    try:
-#      xmlfile.write( doc.toxml() )
-#    finally:
-#      xmlfile.close()
-
-#  def xml_sensor( self, system, service ):
-#    res = self.dirac.ping( system, service )
-#    doc = gen_xml_stub()
-#    xml_append( doc, "id", system + "_" + service )
-#    xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
-#
-#    if res["OK"]:
-#      gLogger.info( "%s/%s successfully pinged" % ( system, service ) )
-#      res = res["Value"]
-#      host = urlparse.urlparse( res['service url'] ).netloc.split( ":" )[0]
-#      xml_append( doc, "availability", 100 )
-#      xml_append( doc, "webpage", "http://lemonweb.cern.ch/lemon-web/info.php?entity=" + host )
-#      elt = xml_append( doc, "data" )
-#      xml_append( doc, "numericvalue", res['service uptime'], elt_ = elt,
-#                 name = "Service Uptime", desc = "Seconds since last restart of service" )
-#      xml_append( doc, "numericvalue", res['host uptime'], elt_ = elt,
-#                 name = "Host Uptime", desc = "Seconds since last restart of machine" )
-#      xml_append( doc, "numericvalue", res['load'].split()[0], elt_ = elt,
-#                 name = "Load", desc = "Instantaneous load" )
-#      xml_append( doc, "notes", "Service " + res['service url'] + " completely up and running" )
-#
-#      # Fill database
-#      response =  insert_slsservice( System = system, Service = service, Availability = 100,
-#                                     Host = host,
-#                                     ServiceUptime = res['service uptime'],
-#                                     HostUptime = res['host uptime'],
-#                                     InstantLoad = res['load'].split()[0],
-#                                     Message = ( "Service " + res['service url'] + " completely up and running" ) )
-#    else:
-#      gLogger.info( "%s/%s does not respond to ping" % ( system, service ) )
-#      xml_append( doc, "availability", 0 )
-#      xml_append( doc, "notes", res['Message'] )
-#      response = insert_slsservice( System = system, Service = service, Availability = 0, Message = res["Message"] )
-#    
-#    if not response[ 'OK' ]:
-#      gLogger.error( response[ 'Message' ] )
-#      return response
-#
-#    xmlfile = open( self.xmlPath + system + "_" + service + ".xml", "w" )
-#    try:
-#      xmlfile.write( doc.toxml() )
-#    finally:
-#      xmlfile.close()
-
   def xml_t1_sensor( self, url ):
     parsed = urlparse.urlparse( url )
-    #if sys.version_info >= ( 2, 6 ):
-    #  system, _service = parsed.path.strip( "/" ).split( "/" )
-    #  site = parsed.netloc.split( ":" )[0]
-    #else:
-    #site, system, _service = parsed[2].strip( "/" ).split( "/" )
-    #site = site.split( ":" )[0]
     system, _service = parsed[2].strip( "/" ).split( "/" )
     site             = parsed[1].split( ":" )[0]
 
     pinger = RPCClient( url )
     res = pinger.ping()
-
-#    if system == "RequestManagement":
-#      pingRes = pinger.getDBSummary()
-#      if not pingRes[ 'OK' ]:
-#        gLogger.error( pingRes[ 'Message' ] )
-#        return pingRes
-#      
-#      #res2 = Utils.unpack( pinger.getDBSummary() )
-#      res2 = pingRes[ 'Value' ]
 
     doc = gen_xml_stub()
     xml_append( doc, "id", site + "_" + system )
@@ -433,23 +304,6 @@ class DIRACTest( TestBase ):
       if not response[ 'OK' ]:
         gLogger.error( response[ 'Message' ] )
         return response
-       
-#      if system == "RequestManagement":
-#        for k, v in res2.items():
-#          xml_append( doc, "numericvalue", v["Assigned"], elt_ = elt,
-#                     name = k + " - Assigned", desc = "Number of Assigned " + k + " requests" )
-#          xml_append( doc, "numericvalue", v["Waiting"], elt_ = elt,
-#                     name = k + " - Waiting", desc = "Number of Waiting " + k + " requests" )
-#          xml_append( doc, "numericvalue", v["Done"], elt_ = elt,
-#                     name = k + " - Done", desc = "Number of Done " + k + " requests" )
-#
-#          response = insert_slsrmstats( Site = site, System = system, Name = k,
-#                                         Assigned = int( v["Assigned"] ),
-#                                         Waiting = int( v["Waiting"] ),
-#                                         Done = int( v["Done"] ) )
-#          if not response[ 'OK' ]:
-#            gLogger.error( response[ 'Message' ] )
-#            return response
 
       gLogger.info( "%s/%s successfully pinged" % ( site, system ) )
 
