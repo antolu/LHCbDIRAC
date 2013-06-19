@@ -350,19 +350,20 @@ class PluginUtilities:
     """
     activeSE = []
 
-    try:
-      res = self.resourceStatus.getStorageElementStatus( selist, statusType = 'WriteAccess' )
-      if res[ 'OK' ]:
-        for k, v in res[ 'Value' ].items():
-          if v.get( 'WriteAccess' ) in [ 'Active', 'Degraded', 'Bad' ]:
-            activeSE.append( k )
-      else:
-        self.logError( "Error getting active SEs from RSS for %s" % str( selist ), res['Message'] )
-    except:
-      for se in selist:
-        res = gConfig.getOption( '/Resources/StorageElements/%s/WriteAccess' % se, 'Unknown' )
-        if res['OK'] and res['Value'] == 'Active':
-          activeSE.append( se )
+    if selist:
+      try:
+        res = self.resourceStatus.getStorageElementStatus( selist, statusType = 'WriteAccess' )
+        if res[ 'OK' ]:
+          for k, v in res[ 'Value' ].items():
+            if v.get( 'WriteAccess' ) in [ 'Active', 'Degraded', 'Bad' ]:
+              activeSE.append( k )
+        else:
+          self.logError( "Error getting active SEs from RSS for %s" % str( selist ), res['Message'] )
+      except:
+        for se in selist:
+          res = gConfig.getOption( '/Resources/StorageElements/%s/WriteAccess' % se, 'Unknown' )
+          if res['OK'] and res['Value'] == 'Active':
+            activeSE.append( se )
 
     return activeSE
   def getStorageFreeSpace( self, candSEs ):
@@ -374,11 +375,12 @@ class PluginUtilities:
     self.logVerbose( "Free space from RSS: %s" % weight )
     return weight
 
+
   def getRMFreeSpace( self, se ):
     """ Get free space in an SE from the RSS
     """
     from DIRAC.Resources.Storage.StorageElement import StorageElement
-    
+
     # get the endpoint and space token
     params = StorageElement( se ).getStorageParameters( 'SRM2' )
     if not params[ 'OK' ]:
@@ -392,40 +394,40 @@ class PluginUtilities:
       self.logError( 'Unable to determine endpoint for SE %s:' % se, endpoint[ 'Message' ] )
       return 0
     endpoint = endpoint[ 'Value' ]
-    
-    # Check first if cached for the same endpoint and token    
+
+    # Check first if cached for the same endpoint and token
     if ( endpoint, token ) in self.freeSpace:
       return self.freeSpace[ ( endpoint, token ) ][ 'Free' ]
-    
+
     if token == 'LHCb-Tape':
-      freeSpace            = 1000.
+      freeSpace = 1000.
       self.freeSpace[ ( endpoint, token ) ] = { 'Free' : freeSpace }
       return freeSpace
-      
-    # if not get the information from RSS   
-    spaceInfo = self.rmClient.selectSpaceTokenOccupancyCache( endpoint = endpoint, 
+
+    # if not get the information from RSS
+    spaceInfo = self.rmClient.selectSpaceTokenOccupancyCache( endpoint = endpoint,
                                                               token = token )
     if not spaceInfo[ 'OK' ]:
       self.logError( "Unable to contact Service: %s" % spaceInfo[ 'Message' ] )
       return 0
-        
+
     if not spaceInfo[ 'Value' ]:
       self.logError( "Empty spaceInfo" )
-      return 0 
-    
+      return 0
+
     # This dictionary looks like:
-    # { 'Endpoint': 'httpg://srm-lhcb.cern.ch:8443/srm/managerv2', 
-    #   'LastCheckTime': datetime.datetime(2013, 6, 18, 14, 43, 19), 
-    #   'Guaranteed': 153L, 
-    #   'Free': 33L, 
-    #   'Token': 'LHCb-Disk', 
+    # { 'Endpoint': 'httpg://srm-lhcb.cern.ch:8443/srm/managerv2',
+    #   'LastCheckTime': datetime.datetime(2013, 6, 18, 14, 43, 19),
+    #   'Guaranteed': 153L,
+    #   'Free': 33L,
+    #   'Token': 'LHCb-Disk',
     #   'Total': 153L
     # }
     spaceDict = dict( zip( spaceInfo[ 'Columns' ], spaceInfo[ 'Value' ][ 0 ] ) )
     freeSpace = spaceDict[ 'Free' ]
-    
+
     self.freeSpace[ ( spaceDict[ 'Endpoint' ], spaceDict[ 'Token' ] ) ] = { 'Free' : freeSpace }
-    
+
     return freeSpace
 
   def rankSEs( self, candSEs ):
@@ -1140,9 +1142,9 @@ def closerSEs( existingSEs, targetSEs, local = False ):
   return ( targetSEs + sameSEs ) if not local else targetSEs
 
 def addFilesToTransformation( transID, lfns, addRunInfo = True ):
-  from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
+  from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-  transClient = ProductionsClient()
+  transClient = TransformationClient()
   bk = BookkeepingClient()
   gLogger.info( "Adding %d files to transformation %s" % ( len( lfns ), transID ) )
   res = transClient.getTransformation( transID )
