@@ -30,21 +30,22 @@
 
 import os
 import string
-import sys
 import time
 import xml.dom, xml.sax
 import urllib
 import urlparse
 
 import lfc2
-import lcg_util
 
-from DIRAC                                               import gLogger, gConfig, S_OK, rootPath
-from DIRAC.Core.Base.AgentModule                         import AgentModule
-from DIRAC.Core.DISET.RPCClient                          import RPCClient
-from DIRAC.Core.Base.DB                                  import DB
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.ResourceStatusSystem.Utilities                import CSHelpers
+from datetime import datetime, timedelta
+
+from DIRAC                                                      import gLogger, gConfig, S_OK, rootPath
+from DIRAC.Core.Base.AgentModule                                import AgentModule
+from DIRAC.Core.DISET.RPCClient                                 import RPCClient
+from DIRAC.Core.Base.DB                                         import DB
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations        import Operations
+from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+from DIRAC.ResourceStatusSystem.Utilities                       import CSHelpers
 
 __RCSID__  = "$Id$"
 AGENT_NAME = 'ResourceStatus/SLSAgent'
@@ -100,13 +101,6 @@ def insert_slslogse( **kw ):
     Use the client !
   '''  
   return rmDB._update( gen_mysql( "SLSLogSE", kw, ["Name"] ) )
-
-def insert_slsstorage( **kw ):
-  '''
-    #TODO: see below
-    Use the client !
-  '''  
-  return rmDB._update( gen_mysql( "SLSStorage", kw, ["Site", "Token"] ) )
 
 def gen_xml_stub():
   doc = impl.createDocument( "http://sls.cern.ch/SLS/XML/update",
@@ -165,50 +159,63 @@ class SpaceTokenOccupancyTest( TestBase ):
   def __init__( self, am ):
     super( SpaceTokenOccupancyTest, self ).__init__( am )
     self.xmlPath = rootPath + "/" + self.getAgentOption( "webRoot" ) + self.getTestOption( "dir" )
-    ses = Operations().getSections( 'Shares/Disk' )[ 'Value' ]
-   
-    self.storageElements = {}
-    for se in ses:
-      self.storageElements[ se ] = Operations().getOptionsDict( 'Shares/Disk/%s' % se )[ 'Value' ]
-
-    try:
-      os.makedirs( self.xmlPath )
-    except OSError:
-      pass # The dir exist already, or cannot be created: do nothing
-
-    for site in self.storageElements:
-      for st in CSHelpers.getSpaceTokens()[ 'Value' ]:
-        try:
-          res = self.generate_xml_and_dashboard( site, st, lcg_util )
-          if not res[ 'OK' ]:
-            gLogger.error( res[ 'Message' ] )
-        except:
-          gLogger.warn( 'SpaceTokenOccupancyTest crashed at %s, %s' % ( site, st ) )
     
-  def generate_xml_and_dashboard( self, site, st, lcg_util ):
-    url = self.storageElements[site]['Endpoint']
-    total = 0
-    guaranteed = 0
-    free = 0
-    validity = 'PT0M'
-    availability = 0
+    self.rmClient = ResourceManagementClient()
 
-    answer = lcg_util.lcg_stmd( st, url, True, 0 )
+    self.generate_xml_and_dashboard()
 
-    if answer[0] == 0:
-      output = answer[1][0]
-      total = float( output['totalsize'] ) / 1e12 # Bytes to Terabytes
-      guaranteed = float( output['guaranteedsize'] ) / 1e12
-      free = float( output['unusedsize'] ) / 1e12
-      availability = 100 if free > 4 else ( free * 100 / total if total != 0 else 0 )
-      validity = self.getTestOption( "validity" )
-    else:
-      gLogger.info( "StorageSpace: problew with lcg_util:\
- lcg_util.lcg_stmd('%s', '%s', True, 0) = (%d, %s)" % ( st, url, answer[0], answer[1] ) )
-      gLogger.info( str( answer ) )
+  def generate_xml_and_dashboard( self ):
+    
+    oneHour = datetime.utcnow() - timedelta( hours = 1 )
+    
+    res = self.rmClient.selectSpaceTokenOccupancyCache( meta = { 'newer' : ( 'LastCheckTime', oneHour ) } )
+    if not res[ 'OK' ]:
+      gLogger.error( res[ 'Message' ] )
+      return
+    
+    itemDicts = [ dict( zip( res[ 'Columns' ], item ) ) for item in res[ 'Value' ] ]
+    for itemDict in itemDicts:
+      
+      self.generate_xml( itemDict )
+  
+  def generate_xml( self, itemDict ):
+
+    endpoint = itemDict[ 'Endpoint' ]
+    
+    site = ''
+    
+    ses = CSHelpers.getStorageElements()
+    if not ses[ 'OK' ]:
+      gLogger.error( ses[ 'Message' ] )
+    
+    for se in ses[ 'Value' ]:
+      # Ugly, ugly, ugly.. waiting for DIRAC v7r0 to do it properly
+      if ( not '-' in se ) or ( '_' in se ):
+        continue
+      
+      res = CSHelpers.getStorageElementEndpoint( se )
+      if not res[ 'OK' ]:
+        continue
+      
+      if endpoint == res[ 'Value' ]:
+        site = se.split( '-', 1 )[ 0 ] 
+        break
+    
+    if not site:
+      gLogger.error( 'Unable to find site for %s' % endpoint )
+      return
+    
+    token = itemDict[ 'SpaceToken' ]
+    
+    # ['Endpoint', 'LastCheckTime', 'Guaranteed', 'Free', 'Token', 'Total']
+    total        = itemDict[ 'Total' ]
+    guaranteed   = itemDict[ 'Guaranteed' ]
+    free         = itemDict[ 'Free' ]
+    availability = 100 if free > 4 else ( free * 100 / total if total != 0 else 0 )
+    validity     = self.getTestOption( "validity" )
 
     doc = gen_xml_stub()
-    xml_append( doc, "id", site + "_" + st )
+    xml_append( doc, "id", site + "_" + token )
     xml_append( doc, "availability", availability )
     elt = xml_append( doc, "availabilitythresholds" )
     xml_append( doc, "threshold", value_ = self.getTestOption( "Thresholds/available" ), elt_ = elt, level = "available" )
@@ -228,35 +235,20 @@ class SpaceTokenOccupancyTest( TestBase ):
     xml_append( doc, "textvalue", "Storage space for the specific space token", elt_ = elt )
     xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
 
-    res = insert_slsstorage( Site = site, Token = st, Availability = availability,
-                             RefreshPeriod = "PT27M", ValidityDuration = validity,
-                             TotalSpace = int( total ), GuaranteedSpace = int( guaranteed ),
-                             FreeSpace = int( free ) )
-    
-    if not res[ 'OK' ]:
-      gLogger.error( res[ 'Message' ] )
-      return res
-
-    xmlfile = open( self.xmlPath + site + "_" + st + ".xml", "w" )
+    xmlfile = open( self.xmlPath + site + "_" + token + ".xml", "w" )
     try:
       xmlfile.write( doc.toxml() )
     finally:
       xmlfile.close()
 
-    # Send notifications
-    # pledged = get_pledged_value_for_token(site, st)
-    # if not fake and total+1 < pledged:
-    #   gLogger.info("%s/%s: pledged = %f, total = %f, sending mail to site..." % (site, st, pledged, total))
-    #   send_mail_to_site(site, st, pledged, total)
-
     # Dashboard
-    dbfile = open( self.xmlPath + site + "_" + st + "_space_monitor", "w" )
+    dbfile = open( self.xmlPath + site + "_" + token + "_space_monitor", "w" )
     try:
-      dbfile.write( st + ' ' + str( total ) + ' ' + str( guaranteed ) + ' ' + str( free ) + '\n' )
+      dbfile.write( token + ' ' + str( total ) + ' ' + str( guaranteed ) + ' ' + str( free ) + '\n' )
     finally:
       dbfile.close()
 
-    gLogger.info( "SpaceTokenOccupancyTest: %s/%s done." % ( site, st ) )
+    gLogger.info( "SpaceTokenOccupancyTest: %s/%s done." % ( site, token ) )
     return S_OK()
 
 class DIRACTest( TestBase ):

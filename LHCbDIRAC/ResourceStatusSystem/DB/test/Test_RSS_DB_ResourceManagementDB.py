@@ -54,7 +54,6 @@ class ResourceManagementDB_Success( ResourceManagementDB_TestCase ):
       
     self.assertEquals( True, 'SLST1Service' in module._tablesDB )
     self.assertEquals( True, 'SLSLogSE' in module._tablesDB )
-    self.assertEquals( True, 'SLSStorage' in module._tablesDB )
     
   def test_tablesDB_HammerCloudTest( self ):
     ''' tests the table HammerCloudTest
@@ -201,33 +200,7 @@ class ResourceManagementDB_Success( ResourceManagementDB_TestCase ):
     self.assertEquals( 'TINYINT UNSIGNED', table[ 'Fields' ][ 'DataPartitionUsed' ] )
     self.assertEquals( 'BIGINT UNSIGNED', table[ 'Fields' ][ 'DataPartitionTotal' ] )                                                
 
-    self.assertEquals( [ 'Name' ], table[ 'PrimaryKey' ] )   
-
-  def test_tablesDB_SLSStorage( self ):
-    ''' test the table SLSStorage
-    '''
-    
-    module = self.testClass( mySQL = 1 )
-    table  = module._tablesDB[ 'SLSStorage' ]
-    
-    self.assertEquals( set( [ 'Fields', 'PrimaryKey' ] ), set( table.keys() ) )
-
-    fields = [ 'Site', 'Token', 'Availability', 'TimeStamp', 'RefreshPeriod',
-               'ValidityDuration', 'TotalSpace', 'GuaranteedSpace', 'FreeSpace' ]
-    
-    self.assertEquals( set( fields ), set( table[ 'Fields' ].keys() ) )
-
-    self.assertEquals( 'VARCHAR(64) NOT NULL', table[ 'Fields' ][ 'Site' ] )
-    self.assertEquals( 'VARCHAR(32) NOT NULL', table[ 'Fields' ][ 'Token' ] )    
-    self.assertEquals( 'TINYINT UNSIGNED', table[ 'Fields' ][ 'Availability' ] )
-    self.assertEquals( 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', table[ 'Fields' ][ 'TimeStamp' ] )
-    self.assertEquals( 'VARCHAR(32) NOT NULL', table[ 'Fields' ][ 'RefreshPeriod' ] )
-    self.assertEquals( 'VARCHAR(32) NOT NULL', table[ 'Fields' ][ 'ValidityDuration' ] )
-    self.assertEquals( 'BIGINT UNSIGNED', table[ 'Fields' ][ 'TotalSpace' ] )
-    self.assertEquals( 'BIGINT UNSIGNED', table[ 'Fields' ][ 'GuaranteedSpace' ] )
-    self.assertEquals( 'BIGINT UNSIGNED', table[ 'Fields' ][ 'FreeSpace' ] )                       
-                      
-    self.assertEquals( [ 'Site', 'Token' ], table[ 'PrimaryKey' ] )
+    self.assertEquals( [ 'Name' ], table[ 'PrimaryKey' ] )
             
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

@@ -118,20 +118,6 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                       },
                       'PrimaryKey' : [ 'Name' ]                                            
                                 }
-  _tablesDB[ 'SLSStorage' ] = { 'Fields' : 
-                     {
-                       'Site'             : 'VARCHAR(64) NOT NULL',
-                       'Token'            : 'VARCHAR(32) NOT NULL',
-                       'Availability'     : 'TINYINT UNSIGNED',
-                       'TimeStamp'        : 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
-                       'RefreshPeriod'    : 'VARCHAR(32) NOT NULL',
-                       'ValidityDuration' : 'VARCHAR(32) NOT NULL',
-                       'TotalSpace'       : 'BIGINT UNSIGNED',
-                       'GuaranteedSpace'  : 'BIGINT UNSIGNED',
-                       'FreeSpace'        : 'BIGINT UNSIGNED',
-                      },
-                      'PrimaryKey' : [ 'Site', 'Token' ]                                            
-                                }
   
   #_tablesLike  = DIRACResourceManagementDB._tablesLike
   #_likeToTable = DIRACResourceManagementDB._likeToTable
