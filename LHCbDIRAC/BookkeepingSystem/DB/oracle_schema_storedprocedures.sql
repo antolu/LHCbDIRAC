@@ -781,7 +781,9 @@ function checkFileTypeAndVersion (
            version=v_VERSION;
    return id;
    EXCEPTION
-   WHEN OTHERS THEN
+    when TOO_MANY_ROWS THEN
+     select min(filetypeid) into id from filetypes where NAME=v_NAME and version=v_VERSION; return id;
+    WHEN OTHERS THEN
    select count(*) into id from filetypes where
            NAME=v_NAME;
    IF id > 0 then

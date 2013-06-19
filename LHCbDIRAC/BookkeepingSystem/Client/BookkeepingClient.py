@@ -997,8 +997,11 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.deleteSimulationConditions( simid )
 
-
-
+  #############################################################################
+  def getProductionSummaryFromView(self, in_dict):
+    """it returns a summary for a given condition."""
+    server = self.__getServer()
+    return server.getProductionSummaryFromView(in_dict)
 
 
   # The following method names are changed in the Bookkeeping client.
@@ -1441,5 +1444,6 @@ class BookkeepingClient:
     will be removed from the next release. Please use the 'getTCKs'!" )
     server = self.__getServer()
     return server.getTCKs( in_dict )
+
 
 

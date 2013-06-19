@@ -1916,3 +1916,10 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_deleteSimulationConditions(simid):
     """deletes a given simulation conditions"""
     return dataMGMT_.deleteSimulationConditions(simid)
+
+  #############################################################################
+  types_getProductionSummaryFromView = [DictType]
+  @staticmethod
+  def export_getProductionSummaryFromView(in_dict):
+    """it returns a summary for a given condition."""
+    return dataMGMT_.getProductionSummaryFromView(in_dict)

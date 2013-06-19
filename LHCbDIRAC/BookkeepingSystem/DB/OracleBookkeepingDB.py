@@ -499,7 +499,7 @@ class OracleBookkeepingDB:
       sid = retVal['Value'][0][0]
 
     selection = 'insert into steps(stepid,stepname,applicationname,applicationversion,OptionFiles,dddb,conddb,\
-    extrapackages,visible, processingpass, usable, DQTag, optionsformat,isMulticore '
+    extrapackages,visible, processingpass, usable, DQTag, optionsformat,isMulticore, SystemConfig'
     inFileTypes = in_dict.get('InputFileTypes', default)
     if inFileTypes != default:
       inFileTypes = sorted(inFileTypes, key=lambda k: k['FileType'])
@@ -3041,11 +3041,14 @@ and files.qualityid= dataquality.qualityid'
     condition, tables = retVal['Value']
 
     if nbofEvents:
-      command = " select sum(f.eventstat) from %s where f.jobid= j.jobid %s " % (tables, condition)
+      command = " select sum(f.eventstat) \
+      from %s where f.jobid= j.jobid %s " % (tables, condition)
     elif filesize:
-      command = " select sum(f.filesize) from %s where f.jobid= j.jobid %s " % (tables, condition)
+      command = " select sum(f.filesize) \
+      from %s where f.jobid= j.jobid %s " % (tables, condition)
     else:
-      command = " select distinct f.filename from %s where f.jobid= j.jobid %s " % (tables, condition)
+      command = " select distinct f.filename \
+      from %s where f.jobid= j.jobid %s " % (tables, condition)
 
     res = self.dbR_.query(command)
 
@@ -4768,7 +4771,7 @@ and files.qualityid= dataquality.qualityid'
                 'Visible']
       records = [ list(record) for record in retVal['Value']]
       retVal = self.dbR_.query(command)
-      if not retVal['Value']:
+      if not retVal['OK']:
         return retVal
       totalRecords = retVal['Value'][0][0]
       result = S_OK({'ParameterNames':parameterNames, 'Records':records, 'TotalRecords':totalRecords})
@@ -4800,4 +4803,49 @@ and files.qualityid= dataquality.qualityid'
     command = "delete simulationconditions where simid=%d" % simid
     return self.dbW_.query(command)
 
+  #############################################################################
+  def getProductionSummaryFromView(self, in_dict):
+    """
+    it returns a summary for a given condition.
+    """
+    evt = in_dict.get('EventType', default)
+    prod = in_dict.get('Production', default)
+    configName = in_dict.get('ConfigName', default)
+    configVersion = in_dict.get('ConfigVersion', default)
 
+    condition = ""
+    if evt != default:
+      condition += "and bview.eventtypeid=%d" % (int(evt))
+
+    if prod != default:
+      condition += " and bview.production=%d" % (int(prod))
+
+    if configName != default:
+      condition += " and bview.configname='%s'" % (configName)
+
+    if configVersion != default:
+      condition += " and bview.configversion='%s'" % (configVersion)
+
+    command = "select bview.production, bview.eventtypeid, bview.configname, bview.configversion, \
+                      BOOKKEEPINGORACLEDB.getProductionProcessingPass(prod.production),\
+                      sim.simdescription, daq.description\
+                 from prodview bview, simulationconditions sim, data_taking_conditions daq, productionscontainer prod \
+                 where sim.simid(+)=bview.simid and \
+                daq.daqperiodid(+)=bview.daqperiodid and \
+                bview.production=prod.production %s" % (condition)
+    parameterNames = ['Production',
+                      'EventType',
+                      'ConfigName',
+                      'ConfigVersion',
+                      'ProcessingPass',
+                      'ConditionDescription']
+    retVal = self.dbR_.query(command)
+    if not retVal['OK']:
+      return retVal
+    rows = []
+    for record in retVal['Value']:
+      i = dict(zip(parameterNames[:-1], record[:-2]))
+      i['ConditionDescription'] = record[len(parameterNames)] if record[len(parameterNames)] != None \
+                                                              else record[len(parameterNames)-1]
+      rows += [i]
+    return S_OK(rows)

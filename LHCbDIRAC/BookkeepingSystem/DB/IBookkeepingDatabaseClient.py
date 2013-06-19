@@ -698,3 +698,8 @@ class IBookkeepingDatabaseClient(object):
   def deleteSimulationConditions(self, simid):
     "more info in the BookkeepingClient.py"
     return self.getManager().deleteSimulationConditions(simid)
+
+  #############################################################################
+  def getProductionSummaryFromView(self, in_dict):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().getProductionSummaryFromView(in_dict)

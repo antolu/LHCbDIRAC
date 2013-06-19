@@ -50,6 +50,8 @@ class XMLFilesReaderManager:
 
     #self.dataManager_ = BookkeepingDatabaseClient()
     self.replicaManager_ = ReplicaManager()
+    self.fileTypeCache = {}
+
 
   #############################################################################
   @staticmethod
@@ -124,14 +126,22 @@ class XMLFilesReaderManager:
 
       typeName = outputfile.getFileType()
       typeVersion = outputfile.getFileVersion()
-      result = dataManager_.checkFileTypeAndVersion(typeName, typeVersion)
-      if not result['OK']:
-        errorMessage = "The type:%s, version:%s is missing." % (str(typeName),
-                                                                str(typeVersion))
-        return S_ERROR(errorMessage)
-      else:
-        typeID = long(result['Value'])
+      cahedTypeNameVersion = typeName+'<<'+typeVersion
+      if cahedTypeNameVersion in self.fileTypeCache:
+        gLogger.debug(cahedTypeNameVersion + ' in the cache!')
+        typeID = self.fileTypeCache[cahedTypeNameVersion]
         outputfile.setTypeID(typeID)
+      else:
+        result = dataManager_.checkFileTypeAndVersion(typeName, typeVersion)
+        if not result['OK']:
+          errorMessage = "The type:%s, version:%s is missing." % (str(typeName),
+                                                                  str(typeVersion))
+          return S_ERROR(errorMessage)
+        else:
+          gLogger.debug(cahedTypeNameVersion+ " added to the cache!")
+          typeID = long(result['Value'])
+          outputfile.setTypeID(typeID)
+          self.fileTypeCache[cahedTypeNameVersion] = typeID
 
       if job.getParam('JobType') and \
          job.getParam('JobType').getValue() == 'DQHISTOMERGING': #all the merged histogram files have to be visible
