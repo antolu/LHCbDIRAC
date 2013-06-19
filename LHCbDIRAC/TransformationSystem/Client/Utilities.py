@@ -374,7 +374,6 @@ class PluginUtilities:
     self.logVerbose( "Free space from RSS: %s" % weight )
     return weight
 
-
   def getRMFreeSpace( self, se ):
     """ Get free space in an SE from the RSS
     """
@@ -383,9 +382,9 @@ class PluginUtilities:
     # get the endpoint and space token
     params = StorageElement( se ).getStorageParameters( 'SRM2' )
     if not params[ 'OK' ]:
-      self.logError( 'Unable to determine site or space token for SE %s:' % se, params['Message'] )
+      self.logError( 'Unable to determine site or space token for SE %s:' % se, params[ 'Message' ] )
       return 0
-    token = params[ 'SpaceToken' ]
+    token = params[ 'Value' ][ 'SpaceToken' ]
 
     from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
     endpoint = CSHelpers.getStorageElementEndpoint( se )
