@@ -845,4 +845,4 @@ class ModuleBase( object ):
     self._jobID = value
   def get_jobID( self ):
     return self._jobID
-  lfns = property( get_jobID, set_jobID )
+  jobID = property( get_jobID, set_jobID )
