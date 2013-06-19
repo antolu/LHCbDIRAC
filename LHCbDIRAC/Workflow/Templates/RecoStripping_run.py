@@ -197,6 +197,7 @@ if w1:
   pr.sysConfig = [recoSysConfig]
   pr.targets = [targetSite]
   pr.multicore = [recoMulticoreFlag]
+  pr.outputModes = ['Local']
 
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -214,6 +215,7 @@ elif w2:
   pr.sysConfig = [strippSysConfig, mergeSysConfig]
   pr.targets = [targetSite, targetSite]
   pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag]
+  pr.outputModes = ['Local', 'Any']
 
 elif w3:
   pr.prodsTypeList = [recoType, 'Merge']
@@ -231,6 +233,7 @@ elif w3:
   pr.sysConfig = [recoSysConfig, mergeSysConfig]
   pr.targets = [targetSite, targetSite]
   pr.multicore = [recoMulticoreFlag, mergeMulticoreFlag]
+  pr.outputModes = ['Local', 'Any']
 
 elif w4:
   pr.prodsTypeList = [recoType, 'DataStripping', 'Merge']
@@ -249,5 +252,6 @@ elif w4:
   pr.sysConfig = [recoSysConfig, strippSysConfig, mergeSysConfig]
   pr.targets = [targetSite, targetSite, targetSite]
   pr.multicore = [recoMulticoreFlag, strippMulticoreFlag, mergeMulticoreFlag]
+  pr.outputModes = ['Local', 'Local', 'Any']
 
 pr.buildAndLaunchRequest()

@@ -86,6 +86,7 @@ class ProductionRequest( object ):
     self.priorities = []
     self.cpus = []
     self.inputs = []  # list of lists
+    self.outputModes = []
     self.targets = []
     self.outputFileMasks = []
     self.outputFileSteps = []
@@ -178,14 +179,20 @@ class ProductionRequest( object ):
         fromProd = prodsLaunched[prodDict['previousProd'] - 1 ]
         self.previousProdID = fromProd
 
-      prod = self._buildProduction( prodDict['productionType'], stepsInProd, self.extraOptions, prodDict['outputSE'],
-                                    prodDict['priority'], prodDict['cpu'], prodDict['input'],
+      prod = self._buildProduction( prodType = prodDict['productionType'],
+                                    stepsInProd = stepsInProd,
+                                    extraOptions = self.extraOptions,
+                                    outputSE = prodDict['outputSE'],
+                                    priority = prodDict['priority'],
+                                    cpu = prodDict['cpu'],
+                                    inputDataList = prodDict['input'],
+                                    outputMode = prodDict['outputMode'],
+                                    inputDataPolicy = prodDict['inputDataPolicy'],
                                     outputFileMask = prodDict['outputFileMask'],
                                     outputFileStep = prodDict['outputFileStep'],
                                     target = prodDict['target'],
                                     removeInputData = prodDict['removeInputsFlag'],
                                     groupSize = prodDict['groupSize'],
-                                    inputDataPolicy = prodDict['inputDataPolicy'],
                                     bkQuery = prodDict['bkQuery'],
                                     plugin = prodDict['plugin'],
                                     previousProdID = fromProd,
@@ -257,6 +264,9 @@ class ProductionRequest( object ):
     if not self.inputs:
       self.inputs = [[]] * len( self.prodsTypeList )
 
+    if not self.outputModes:
+      self.outputModes = ['Any'] * len( self.prodsTypeList )
+
     if not self.targets:
       self.targets = [''] * len( self.prodsTypeList )
 
@@ -295,6 +305,7 @@ class ProductionRequest( object ):
         sysConfig = self.sysConfig[index]
         targets = self.targets[index]
         multicore = self.multicore[index]
+        outputMode = self.outputModes[index]
         if plugin.lower() != 'byrunfiletypesizewithflush':
           stepToSplit = self.stepsListDict[index]
           numberOfProdsToInsert = len( stepToSplit['fileTypesOut'] )
@@ -317,6 +328,7 @@ class ProductionRequest( object ):
           self.sysConfig.pop( index )
           self.targets.pop( index )
           self.multicore.pop( index )
+          self.outputModes.pop( index )
           newSteps = _splitIntoProductionSteps( stepToSplit )
           newSteps.reverse()
           self.stepsListDict.remove( stepToSplit )
@@ -343,6 +355,7 @@ class ProductionRequest( object ):
             self.sysConfig.insert( index, sysConfig )
             self.targets.insert( index, targets )
             self.multicore.insert( index, multicore )
+            self.outputModes.insert( index, outputMode )
 
     correctedStepsInProds = []
     toInsert = self.stepsInProds[0][0]
@@ -365,7 +378,7 @@ class ProductionRequest( object ):
     prodNumber = 1
 
     for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
-    cpu, inputD, outFileMask, outFileStep, target, groupSize, plugin, idp, \
+    cpu, inputD, outputMode, outFileMask, outFileStep, target, groupSize, plugin, idp, \
     previousProd, events, CPUe, sysConfig, multicore in itertools.izip( self.prodsTypeList,
                                                                         self.stepsInProds,
                                                                         self.bkQueries,
@@ -374,6 +387,7 @@ class ProductionRequest( object ):
                                                                         self.priorities,
                                                                         self.cpus,
                                                                         self.inputs,
+                                                                        self.outputModes,
                                                                         self.outputFileMasks,
                                                                         self.outputFileSteps,
                                                                         self.targets,
@@ -402,6 +416,7 @@ class ProductionRequest( object ):
                                  'priority': priority,
                                  'cpu': cpu,
                                  'input': inputD,
+                                 'outputMode': outputMode,
                                  'outputFileMask':outFileMask,
                                  'outputFileStep':outFileStep,
                                  'target':target,

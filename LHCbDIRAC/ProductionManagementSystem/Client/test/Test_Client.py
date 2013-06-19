@@ -203,6 +203,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
+    pr.outputModes = ['Local', 'Any']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -224,6 +225,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2']
     multicoreExpected = ['False', 'True', 'True', 'True']
+    outputModeExpected = ['Local', 'Any', 'Any', 'Any']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -244,6 +246,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
+    self.assertEqual( pr.outputModes, outputModeExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -267,6 +270,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
+    pr.outputModes = ['Local', 'Any']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge']
     pluginsExpected = ['ByRun', 'ByRunFileTypeSizeWithFlush']
@@ -288,6 +292,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target2']
     multicoreExpected = ['False', 'True']
+    outputModeExpected = ['Local', 'Any']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -308,6 +313,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
+    self.assertEqual( pr.outputModes, outputModeExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
@@ -330,6 +336,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
+    pr.outputModes = ['Local', 'Any']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -351,6 +358,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target1', 'Target1', 'Target2']
     multicoreExpected = ['False', 'False', 'False', 'True']
+    outputModeExpected = ['Local', 'Local', 'Local', 'Any']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -371,6 +379,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
+    self.assertEqual( pr.outputModes, outputModeExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
@@ -393,6 +402,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.bkQueries = ['Full']
     pr.targets = ['Target1']
     pr.multicore = ['False']
+    pr.outputModes = ['Local']
     pr._applyOptionalCorrections()
     pr.sysConfig = ['i686-slc5-gcc43-opt']
     prodsTypeListExpected = ['DataStripping']
@@ -415,6 +425,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     sysConfigExpected = ['i686-slc5-gcc43-opt']
     targetsExpected = ['Target1']
     multicoreExpected = ['False']
+    outputModeExpected = ['Local']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -435,6 +446,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
+    self.assertEqual( pr.outputModes, outputModeExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge', 'Merge']
@@ -458,6 +470,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2', 'Target3']
     pr.multicore = ['False', 'True', 'False']
+    pr.outputModes = ['Local', 'Any', 'Any']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -479,6 +492,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt' ]
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2', 'Target3']
     multicoreExpected = ['False', 'True', 'True', 'True', 'False']
+    outputModeExpected = ['Local', 'Any', 'Any', 'Any', 'Any']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -499,6 +513,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
+    self.assertEqual( pr.outputModes, outputModeExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -522,6 +537,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
+    pr.outputModes = ['Local', 'Any']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -543,6 +559,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', ]
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2']
     multicoreExpected = ['False', 'True', 'True', 'True']
+    outputModeExpected = ['Local', 'Any', 'Any', 'Any']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -563,6 +580,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
+    self.assertEqual( pr.outputModes, outputModeExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
@@ -586,6 +604,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.sysConfig = ['i686-slc5-gcc43-opt']
     pr.targets = ['Target1']
     pr.multicore = ['False']
+    pr.outputModes = ['Local']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -607,6 +626,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     sysConfigExpected = ['i686-slc5-gcc43-opt']
     targetsExpected = ['Target1']
     multicoreExpected = ['False']
+    outputModeExpected = ['Local']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -627,6 +647,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
+    self.assertEqual( pr.outputModes, outputModeExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
@@ -649,6 +670,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
+    pr.outputModes = ['Local', 'Any']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -670,6 +692,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target1', 'Target1', 'Target2']
     multicoreExpected = ['False', 'False', 'False', 'True']
+    outputModeExpected = ['Local', 'Local', 'Local', 'Any']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -690,6 +713,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
+    self.assertEqual( pr.outputModes, outputModeExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['MCSimulation', 'Merge']
@@ -712,6 +736,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
+    pr.outputModes = ['Local', 'Any']
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['MCSimulation', 'Merge']
     pluginsExpected = ['', 'ByRunFileTypeSizeWithFlush']
@@ -733,6 +758,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     sysConfigExpected = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     targetsExpected = ['Target1', 'Target2']
     multicoreExpected = ['False', 'True']
+    outputModeExpected = ['Local', 'Any']
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -753,6 +779,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.sysConfig, sysConfigExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
+    self.assertEqual( pr.outputModes, outputModeExpected )
 
   def test_getProdsDescriptionDict( self ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
@@ -776,6 +803,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.CPUeList = [1.0, 1.0, 1.0]
     pr.sysConfig = ['i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt', 'i686-slc5-gcc43-opt']
     pr.multicore = ['False', 'False', 'True']
+    pr.outputModes = ['Any', 'Local', 'Any']
 
     pr.stepsListDict = [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
@@ -834,7 +862,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'events':-1,
                       'CPUe' : 1.0,
                       'sysConfig': 'i686-slc5-gcc43-opt',
-                      'multicore': 'False'
+                      'multicore': 'False',
+                      'outputMode': 'Any'
                      },
 
                    2:{
@@ -860,7 +889,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'events':-1,
                       'CPUe' : 1.0,
                       'sysConfig': 'i686-slc5-gcc43-opt',
-                      'multicore': 'False'
+                      'multicore': 'False',
+                      'outputMode': 'Local'
                       },
 
                    3:{
@@ -886,7 +916,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'events':-1,
                       'CPUe' : 1.0,
                       'sysConfig': 'i686-slc5-gcc43-opt',
-                      'multicore': 'True'
+                      'multicore': 'True',
+                      'outputMode': 'Any'
                       }
                    }
     self.maxDiff = None
@@ -1044,6 +1075,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     pr.removeInputsFlags = [False, True]
     pr.priorities = [1, 6]
     pr.cpus = [1000, 100]
+    pr.outputModes = ['Local', 'Any']
     pr.outputFileMasks = ['FOO', '']
     pr.outputFileSteps = ['2', '']
     pr.targets = ['Tier2', '']
