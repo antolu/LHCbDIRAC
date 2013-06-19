@@ -87,9 +87,9 @@ class UploadLogFile( ModuleBase ):
 
       self._resolveInputVariables()
 
-      self.request.RequestName = 'job_%s_request.xml' % self.jobID
+      self.request.RequestName = 'job_%d_request.xml' % self.jobID
       self.request.JobID = self.jobID
-      self.request.SourceComponent = "Job_%s" % self.jobID
+      self.request.SourceComponent = "Job_%d" % self.jobID
 
       res = shellCall( 0, 'ls -al' )
       if res['OK'] and res['Value'][0] == 0:
@@ -349,7 +349,7 @@ class UploadLogFile( ModuleBase ):
     """
     productionID = self.production_id
     prodJobID = self.prod_job_id
-    wmsJobID = self.jobID
+    wmsJobID = str( self.jobID )
 
     targetFile = '%s/index.html' % ( self.logdir )
     fopen = open( targetFile, 'w' )

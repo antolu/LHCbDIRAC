@@ -54,7 +54,7 @@ class ModuleBase( object ):
 
     self.production_id = ''
     self.prod_job_id = ''
-    self.jobID = ''
+    self.jobID = 0
     self.step_number = ''
     self.step_id = ''
 
@@ -137,7 +137,7 @@ class ModuleBase( object ):
     if not self._WMSJob():
       return 0  # e.g. running locally prior to submission
 
-    self.log.verbose( 'setJobApplicationStatus(%s, %s)' % ( self.jobID, status ) )
+    self.log.verbose( 'setJobApplicationStatus(%d, %s)' % ( self.jobID, status ) )
 
     if not jr:
       jr = self._getJobReporter()
@@ -739,10 +739,7 @@ class ModuleBase( object ):
   def _WMSJob( self ):
     """ Check if this job is running via WMS
     """
-    if not self.jobID:
-      return False
-    else:
-      return True
+    return True if self.jobID else False
 
   #############################################################################
 
@@ -838,3 +835,14 @@ class ModuleBase( object ):
 
   #############################################################################
 
+  # properties
+  def set_jobID( self, value ):
+    if type( value ) == type( "" ):
+      if value:
+        value = int( value )
+      else:
+        value = 0
+    self._jobID = value
+  def get_jobID( self ):
+    return self._jobID
+  lfns = property( get_jobID, set_jobID )

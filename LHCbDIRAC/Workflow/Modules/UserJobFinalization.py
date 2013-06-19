@@ -11,6 +11,7 @@ from DIRAC                                                    import S_OK, S_ERR
 from DIRAC.Core.Utilities                                     import List
 from DIRAC.Core.Utilities.File                                import getGlobbedFiles
 from DIRAC.DataManagementSystem.Client.FailoverTransfer       import FailoverTransfer
+from DIRAC.Core.Security.ProxyInfo                            import getProxyInfo
 
 from LHCbDIRAC.Core.Utilities.ProductionData                  import constructUserLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase                    import ModuleBase
@@ -31,6 +32,7 @@ class UserJobFinalization( ModuleBase ):
     self.enable = True
     self.defaultOutputSE = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-USER', [] )
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
+    self.jobID = '0'
     # List all parameters here
     self.userFileCatalog = 'LcgFileCatalogCombined'
     self.request = None
@@ -97,9 +99,9 @@ class UserJobFinalization( ModuleBase ):
       self._resolveInputVariables()
 
       # Earlier modules may have populated the report objects
-      self.request.RequestName = 'job_%s_request.xml' % self.jobID
+      self.request.RequestName = 'job_%d_request.xml' % self.jobID
       self.request.JobID = self.jobID
-      self.request.SourceComponent = "Job_%s" % self.jobID
+      self.request.SourceComponent = "Job_%d" % self.jobID
 
       if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
         self.log.verbose( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'],
@@ -144,23 +146,13 @@ class UserJobFinalization( ModuleBase ):
       userOutputLFNs = []
       if self.userOutputData:
         self.log.info( 'Constructing user output LFN(s) for %s' % ( ', '.join( self.userOutputData ) ) )
-        if not self.jobID:
-          self.jobID = 12345
-        owner = ''
 
         if self.workflow_commons.has_key( 'OwnerName' ):
           owner = self.workflow_commons['OwnerName']
         else:
           owner = self.getCurrentOwner()
-          if not owner['OK']:
-            return owner
-          owner = owner['Value']
 
-        result = constructUserLFNs( int( self.jobID ), owner, self.userOutputData, self.userOutputPath )
-        if not result['OK']:
-          self.log.error( 'Could not create production LFNs', result['Message'] )
-          return result
-        userOutputLFNs = result['Value']
+        userOutputLFNs = constructUserLFNs( self.jobID, owner, self.userOutputData, self.userOutputPath )
 
       self.log.verbose( 'Calling getCandidateFiles( %s, %s, %s)' % ( outputList, userOutputLFNs,
                                                                      self.outputDataFileMask ) )
@@ -340,17 +332,14 @@ class UserJobFinalization( ModuleBase ):
   def getCurrentOwner( self ):
     """Simple function to return current DIRAC username.
     """
-    from DIRAC.Core.Security.ProxyInfo import getProxyInfo
     result = getProxyInfo()
 
     if not result['OK']:
-      return S_ERROR( 'Could not obtain proxy information' )
+      raise RuntimeError, 'Could not obtain proxy information'
 
     if not result['Value'].has_key( 'username' ):
-      return S_ERROR( 'Could not get username from proxy' )
+      raise RuntimeError, 'Could not get username from proxy'
 
-    username = result['Value']['username']
-
-    return S_OK( username )
+    return result['Value']['username']
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

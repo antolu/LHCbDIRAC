@@ -79,9 +79,9 @@ class FileUsage( ModuleBase ):
         return S_OK()
       dirDict = result['Value']
 
-      self.request.RequestName = 'job_%s_request.xml' % self.jobID
+      self.request.RequestName = 'job_%d_request.xml' % self.jobID
       self.request.JobID = self.jobID
-      self.request.SourceComponent = "Job_%s" % self.jobID
+      self.request.SourceComponent = "Job_%d" % self.jobID
 
       if dirDict:
         result = self._reportFileUsage( dirDict )

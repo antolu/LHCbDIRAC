@@ -23,7 +23,6 @@ class RootApplication( ModuleBase ):
 
     self.version = __RCSID__
     self.result = S_ERROR()
-    self.jobID = ''
 
     self.applicationLog = ''
     self.rootVersion = ''
@@ -224,9 +223,9 @@ class RootApplication( ModuleBase ):
     if not self.jobID:
       return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
 
-    self.log.verbose( 'setJobApplicationStatus(%s,%s,%s)' % ( self.jobID, status, 'RootApplication' ) )
+    self.log.verbose( 'setJobApplicationStatus(%d,%s,%s)' % ( self.jobID, status, 'RootApplication' ) )
     jobReport = RPCClient( 'WorkloadManagement/JobStateUpdate', timeout = 120 )
-    jobStatus = jobReport.setJobApplicationStatus( int( self.jobID ), status, 'RootApplication' )
+    jobStatus = jobReport.setJobApplicationStatus( self.jobID, status, 'RootApplication' )
     if not jobStatus['OK']:
       self.log.warn( jobStatus['Message'] )
 

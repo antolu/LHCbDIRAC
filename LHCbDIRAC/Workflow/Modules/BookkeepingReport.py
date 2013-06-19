@@ -303,7 +303,7 @@ class BookkeepingReport( ModuleBase ):
     tempVar = gConfig.getValue( "/LocalSite/CPUNormalizationFactor", "1" )
     typedParams.append( ( "WNCPUHS06", tempVar ) )
     typedParams.append( ( "Production", self.production_id ) )
-    typedParams.append( ( "DiracJobId", self.jobID ) )
+    typedParams.append( ( "DiracJobId", str( self.jobID ) ) )
     typedParams.append( ( "Name", self.step_id ) )
     typedParams.append( ( "JobStart", '%s %s' % ( self.ldatestart, self.ltimestart ) ) )
     typedParams.append( ( "JobEnd", '%s %s' % ( self.ldate, self.ltime ) ) )

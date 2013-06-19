@@ -173,41 +173,38 @@ def constructUserLFNs( jobID, owner, outputFiles, outputPath ):
 
       /lhcb/user/<initial e.g. p>/<owner e.g. paterson>/<outputPath>/<yearMonth e.g. 2010_02>/<subdir>/<fileName>
   """
-  try:
-    initial = owner[:1]
-    subdir = str( jobID / 1000 )
-    timeTup = datetime.date.today().timetuple()
-    yearMonth = '%s_%s' % ( timeTup[0], str( timeTup[1] ).zfill( 2 ) )
-    outputLFNs = {}
+  initial = owner[:1]
+  subdir = str( jobID / 1000 )
+  timeTup = datetime.date.today().timetuple()
+  yearMonth = '%s_%s' % ( timeTup[0], str( timeTup[1] ).zfill( 2 ) )
+  outputLFNs = {}
 
-    #Strip out any leading or trailing slashes but allow fine structure
-    if outputPath:
-      outputPathList = str( outputPath ).split( os.sep )
-      newPath = []
-      for i in outputPathList:
-        if i:
-          newPath.append( i )
-      outputPath = ( os.sep ).join( newPath )
+  # Strip out any leading or trailing slashes but allow fine structure
+  if outputPath:
+    outputPathList = str( outputPath ).split( os.sep )
+    newPath = []
+    for i in outputPathList:
+      if i:
+        newPath.append( i )
+    outputPath = ( os.sep ).join( newPath )
 
-    if not type( outputFiles ) == types.ListType:
-      outputFiles = [outputFiles]
+  if not type( outputFiles ) == types.ListType:
+    outputFiles = [outputFiles]
 
-    for outputFile in outputFiles:
-      #strip out any fine structure in the output file specified by the user, restrict to output file names
-      #the output path field can be used to describe this
-      outputFile = outputFile.replace( 'LFN:', '' )
-      lfn = os.sep + os.path.join( 'lhcb', 'user', initial, owner, outputPath, yearMonth, subdir, str( jobID ) ) + os.sep + os.path.basename( outputFile )
-      outputLFNs[outputFile] = lfn
+  for outputFile in outputFiles:
+    # strip out any fine structure in the output file specified by the user, restrict to output file names
+    # the output path field can be used to describe this
+    outputFile = outputFile.replace( 'LFN:', '' )
+    lfn = os.sep + os.path.join( 'lhcb', 'user', initial, owner, outputPath, yearMonth, subdir, str( jobID ) ) + os.sep + os.path.basename( outputFile )
+    outputLFNs[outputFile] = lfn
 
-    outputData = outputLFNs.values()
-    if outputData:
-      gLogger.info( 'Created the following output data LFN(s):\n%s' % ( '\n'.join( outputData ) ) )
-    else:
-      gLogger.info( 'No output LFN(s) constructed' )
+  outputData = outputLFNs.values()
+  if outputData:
+    gLogger.info( 'Created the following output data LFN(s):\n%s' % ( '\n'.join( outputData ) ) )
+  else:
+    gLogger.info( 'No output LFN(s) constructed' )
 
-    return S_OK( outputData )
-  except Exception, e:
-    return S_ERROR( e )
+  return outputData
 
 #############################################################################
 
