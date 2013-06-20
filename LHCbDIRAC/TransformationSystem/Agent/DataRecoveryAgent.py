@@ -1,4 +1,4 @@
-''' In general for data processing productions we need to completely abandon the 'by hand'
+""" In general for data processing productions we need to completely abandon the 'by hand'
     reschedule operation such that accidental reschedulings don't result in data being processed twice.
 
     For all above cases the following procedure should be used to achieve 100%:
@@ -17,7 +17,7 @@
       o if the data has a replica flag it means all was uploaded successfully - should be investigated by hand
       o if there is no replica flag can proceed with file removal from LFC / storage (can be disabled by flag)
     - Mark the recovered input file status as 'Unused' in the ProductionDB
-'''
+"""
 
 import datetime
 
@@ -32,21 +32,21 @@ from DIRAC.RequestManagementSystem.Client.ReqClient              import ReqClien
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient        import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks     import ConsistencyChecks
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient  import ProductionsClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
 
 AGENT_NAME = 'Transformation/DataRecoveryAgent'
 
 class DataRecoveryAgent( AgentModule ):
-  ''' Standard DIRAC agent class
-  '''
+  """ Standard DIRAC agent class
+  """
 
   def __init__( self, *args, **kwargs ):
-    ''' c'tor
-    '''
+    """ c'tor
+    """
     AgentModule.__init__( self, *args, **kwargs )
 
     self.replicaManager = ReplicaManager()
-    self.transClient = ProductionsClient()
+    self.transClient = TransformationClient()
     self.bkClient = BookkeepingClient()
 
     # FIXME: This is the "old" RMS
@@ -63,8 +63,8 @@ class DataRecoveryAgent( AgentModule ):
   #############################################################################
 
   def initialize( self ):
-    '''Sets defaults
-    '''
+    """Sets defaults
+    """
     # This sets the Default Proxy
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
@@ -73,8 +73,8 @@ class DataRecoveryAgent( AgentModule ):
 
   #############################################################################
   def execute( self ):
-    ''' The main execution method.
-    '''
+    """ The main execution method.
+    """
     # Configuration settings
     self.enableFlag = self.am_getOption( 'EnableFlag', True )
     self.log.verbose( 'Enable flag is %s' % self.enableFlag )
@@ -145,16 +145,25 @@ class DataRecoveryAgent( AgentModule ):
         continue
 
       self.log.info( '%s files are selected after examining related WMS jobs' % ( fileCount ) )
+
+      # FIXME: This is for the old system
       result = self._checkOutstandingRequests( jobFileDict )
       if not result['OK']:
         self.log.error( result )
         continue
+      # FIXME: This is for the new system
+      resultNew = self._checkOutstandingRequestsNew( jobFileDict )
+      if not resultNew['OK']:
+        self.log.error( resultNew )
+        continue
 
-      if not result['Value']:
+      if not result['Value'] and not resultNew['Value']['Successful']:
         self.log.info( 'No WMS jobs without pending requests to process.' )
         continue
 
+      # FIXME: Sum of old and new
       jobFileNoRequestsDict = result['Value']
+      jobFileNoRequestsDict.update( resultNew['Value'] )
       fileCount = 0
       for job, lfnList in jobFileNoRequestsDict.items():
         fileCount += len( lfnList )
@@ -191,8 +200,8 @@ class DataRecoveryAgent( AgentModule ):
 
   #############################################################################
   def _getEligibleTransformations( self, status, typeList ):
-    ''' Select transformations of given status and type.
-    '''
+    """ Select transformations of given status and type.
+    """
     res = self.transClient.getTransformations( condDict = {'Status':status, 'Type':typeList} )
     self.log.debug( res )
     if not res['OK']:
@@ -205,8 +214,8 @@ class DataRecoveryAgent( AgentModule ):
 
   #############################################################################
   def _selectTransformationFiles( self, transformation, statusList ):
-    ''' Select files, production jobIDs in specified file status for a given transformation.
-    '''
+    """ Select files, production jobIDs in specified file status for a given transformation.
+    """
     # Until a query for files with timestamp can be obtained must rely on the
     # WMS job last update
     res = self.transClient.getTransformationFiles( condDict = {'TransformationID':transformation, 'Status':statusList} )
@@ -228,13 +237,13 @@ class DataRecoveryAgent( AgentModule ):
 
   #############################################################################
   def _obtainWMSJobIDs( self, transformation, fileDict, selectDelay, wmsStatusList ):
-    ''' Group files by the corresponding WMS jobIDs, check the corresponding
+    """ Group files by the corresponding WMS jobIDs, check the corresponding
         jobs have not been updated for the delay time.  Can't get into any
         mess because we start from files only in MaxReset / Assigned and check
         corresponding jobs.  Mixtures of files for jobs in MaxReset and Assigned
         statuses only possibly include some files in Unused status (not Processed
         for example) that will not be touched.
-    '''
+    """
     prodJobIDs = uniqueElements( fileDict.values() )
     self.log.info( 'The following %s production jobIDs apply to the selected files:\n%s' % ( len( prodJobIDs ),
                                                                                              prodJobIDs ) )
@@ -299,37 +308,20 @@ class DataRecoveryAgent( AgentModule ):
 
   #############################################################################
   def _checkOutstandingRequests( self, jobFileDict ):
-    ''' Before doing anything check that no outstanding requests are pending
+    """ Before doing anything check that no outstanding requests are pending
         for the set of WMS jobIDs.
-    '''
+    """
     jobs = jobFileDict.keys()
-
-    new = True
-
-    # FIXME: This is the "new" RMS (this only should remain)
-    resultNewRMS = self.reqClient.getRequestNamesForJobs( jobs )
-    if not resultNewRMS['OK']:
-      return resultNewRMS
-    if not resultNewRMS['Value']:
-      new = False
-      # FIXME: This is the "old" RMS
-      result = self.requestClient.getRequestForJobs( jobs )
-      if not result['OK']:
-        return result
-    else:
-      result = resultNewRMS
+    result = self.requestClient.getRequestForJobs( jobs )
+    if not result['OK']:
+      return result
 
     if not result['Value']:
-      self.log.info( 'None of the jobs have pending requests' )
+      self.log.info( 'None of the jobs have pending requests (in the old RMS)' )
       return S_OK( jobFileDict )
 
     for jobID, requestName in result['Value'].items():
-      # FIXME: This is the switch for the "new/old" RMS
-      if new:
-        rClient = self.reqClient
-      else:
-        rClient = self.requestClient
-      res = rClient.getRequestStatus( requestName )
+      res = self.requestClient.getRequestStatus( requestName )
       if not res['OK']:
         self.log.error( 'Failed to get Status for Request', '%s:%s' % ( requestName, res['Message'] ) )
       else:
@@ -342,11 +334,40 @@ class DataRecoveryAgent( AgentModule ):
 
     return S_OK( jobFileDict )
 
+  # FIXME: This is the "new" RMS (this only should remain)
+  def _checkOutstandingRequestsNew( self, jobFileDict ):
+    """ Before doing anything check that no outstanding requests are pending
+        for the set of WMS jobIDs. (this one differs because it uses the new RMS)
+    """
+    jobs = jobFileDict.keys()
+
+    result = self.reqClient.getRequestNamesForJobs( jobs )
+    if not result['OK']:
+      return result
+
+    if not result['Value']['Successful']:
+      self.log.info( 'None of the jobs have pending requests (in the new RMS)' )
+      return S_OK( jobFileDict )
+
+    for jobID, requestName in result['Value']['Successful'].items():
+      res = self.reqClient.getRequestStatus( requestName )
+      if not res['OK']:
+        self.log.error( 'Failed to get Status for Request', '%s:%s' % ( requestName, res['Message'] ) )
+      else:
+        if res['Value']['RequestStatus'] == 'Done':
+          continue
+
+      # If we fail to get the Status or it is not Done, we must wait, so remove the job from the list.
+      del jobFileDict[str( jobID )]
+      self.log.info( 'Removing jobID %s from consideration until requests are completed' % ( jobID ) )
+
+    return S_OK( jobFileDict )
+
   #############################################################################
   def _checkdescendants( self, transformation, jobFileDict ):
-    ''' Check BK descendants for input files, prepare list of actions to be
+    """ Check BK descendants for input files, prepare list of actions to be
         taken for recovery.
-    '''
+    """
 
     jobsThatDidntProduceOutputs = []
     jobsThatProducedOutputs = []
@@ -365,8 +386,8 @@ class DataRecoveryAgent( AgentModule ):
 
   ############################################################################
   def _updateFileStatus( self, transformation, fileList, fileStatus ):
-    ''' Update file list to specified status.
-    '''
+    """ Update file list to specified status.
+    """
     if not self.enableFlag:
       self.log.info( "Enable flag is False, would have updated %d files to '%s' status for %s" % ( len( fileList ),
                                                                                                    fileStatus,
