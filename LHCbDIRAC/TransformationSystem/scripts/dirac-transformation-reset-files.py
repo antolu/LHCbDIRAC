@@ -5,7 +5,7 @@
 
 import DIRAC
 from DIRAC.Core.Base import Script
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
+from DIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
 
 import re, time, types, string, signal, sys, os, cmd
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     status = 'Unknown'
   lfnsExplicit = dmScript.getOption( 'LFNs' )
 
-  transClient = ProductionsClient()
+  transClient = TransformationClient()
 
   for transID in idList:
     lfns = lfnsExplicit

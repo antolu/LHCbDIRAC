@@ -34,8 +34,8 @@ if __name__ == "__main__":
         else:
             idList.append( int( r[0] ) )
 
-  from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
-  transClient = ProductionsClient()
+  from DIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
+  transClient = TransformationClient()
 
   for transID in idList:
     res = transClient.getBookkeepingQueryForTransformation( transID )

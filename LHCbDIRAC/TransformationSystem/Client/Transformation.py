@@ -6,7 +6,7 @@ __RCSID__ = "$Id$"
 from DIRAC                                                      import gLogger, S_OK
 from DIRAC.TransformationSystem.Client.Transformation           import Transformation as DIRACTransformation
 
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
 
 COMPONENT_NAME = 'Transformation'
@@ -19,11 +19,11 @@ class Transformation( DIRACTransformation ):
 
   def __init__( self, transID = 0, transClientIn = None ):
     """ Just params setting.
-        transClient is passed here as LHCbDIRAC ProductionsClient, it will be self.transClient
+        transClient is passed here as LHCbDIRAC TransformationsClient, it will be self.transClient
     """
 
     if not transClientIn:
-      self.transClient = ProductionsClient()
+      self.transClient = TransformationClient()
     else:
       self.transClient = transClientIn
 
@@ -107,8 +107,8 @@ class Transformation( DIRACTransformation ):
   #############################################################################
 
   def addTransformation( self, addFiles = True, printOutput = False ):
-    """ Add a transformation, using ProductionsClient()
-    """
+    ''' Add a transformation, using TransformationClient()
+    '''
     res = self._checkCreation()
     if not res['OK']:
       return self._errorReport( res, 'Failed transformation sanity check' )

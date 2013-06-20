@@ -13,7 +13,7 @@ from DIRAC.Core.Utilities.ThreadPool                                      import
 from DIRAC.Core.Utilities.ThreadSafe                                      import Synchronizer
 from DIRAC.TransformationSystem.Agent.TransformationAgentsUtilities       import TransformationAgentsUtilities
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient           import ProductionsClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC.Core.Utilities.List                                            import breakListIntoChunks
 import os, time, datetime, pickle, Queue
 
@@ -33,7 +33,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
     self.bkQueriesToBeChecked = Queue.Queue()
     self.bkQueriesInCheck = []
-    self.transClient = ProductionsClient()
+    self.transClient = TransformationClient()
     self.bkClient = BookkeepingClient()
 
     self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', 86400 )

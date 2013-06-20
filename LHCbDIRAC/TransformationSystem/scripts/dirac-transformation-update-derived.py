@@ -39,8 +39,8 @@ else:
         else:
             idList.append( int( r[0] ) )
 
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient           import ProductionsClient
-transClient = ProductionsClient()
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
+transClient = TransformationClient()
 
 for prod in idList:
   res = transClient.getTransformation( prod, extraParams=True )

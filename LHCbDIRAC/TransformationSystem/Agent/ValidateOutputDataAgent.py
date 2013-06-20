@@ -8,7 +8,7 @@ from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent import ValidateOut
 
 from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient       import StorageUsageClient
 from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient      import DataIntegrityClient
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient  import ProductionsClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
 
 AGENT_NAME = 'Transformation/ValidateOutputDataAgent'
 

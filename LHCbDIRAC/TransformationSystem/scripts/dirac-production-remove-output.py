@@ -16,7 +16,7 @@ else:
     DIRAC.exit( 1 )
 
 from LHCbDIRAC.TransformationSystem.Agent.TransformationCleaningAgent     import TransformationCleaningAgent
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient           import ProductionsClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC                                                                import gLogger
 import DIRAC
 
@@ -25,7 +25,7 @@ agent = TransformationCleaningAgent( 'Transformation/TransformationCleaningAgent
                                      'dirac-production-remove-output' )
 agent.initialize()
 
-client = ProductionsClient()
+client = TransformationClient()
 for transID in transIDs:
   res = client.getTransformationParameters( transID, ['Status'] )
   if not res['OK']:

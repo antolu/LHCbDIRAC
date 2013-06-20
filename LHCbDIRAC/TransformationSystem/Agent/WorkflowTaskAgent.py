@@ -9,7 +9,7 @@ from DIRAC.TransformationSystem.Agent.WorkflowTaskAgent import WorkflowTaskAgent
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 from LHCbDIRAC.TransformationSystem.Client.TaskManager import LHCbWorkflowTasks
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
 AGENT_NAME = 'Transformation/WorkflowTaskAgent'
@@ -21,7 +21,7 @@ class WorkflowTaskAgent( DIRACWorkflowTaskAgent ):
     ''' c'tor
     '''
     DIRACWorkflowTaskAgent.__init__( self, *args, **kwargs )
-    self.transClient = ProductionsClient()
+    self.transClient = TransformationClient()
     outputDataModule = Operations().getValue( "Transformations/OutputDataModule",
                                               "LHCbDIRAC.Core.Utilities.OutputDataPolicy" )
     self.taskManager = LHCbWorkflowTasks( transClient = self.transClient,

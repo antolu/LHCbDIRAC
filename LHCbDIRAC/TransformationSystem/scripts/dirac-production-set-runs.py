@@ -70,8 +70,8 @@ if 'add' in settings and ( 'start' in settings or 'end' in settings ):
   print 'Incompatible requests, cannot set run list and start/end run'
   DIRAC.exit( 1 )
 
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
-client = ProductionsClient()
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+client = TransformationClient()
 try:
   res = client.getBookkeepingQueryForTransformation( prodId )
   bkDict = res['Value']

@@ -10,8 +10,8 @@ class fakeClient:
   def __init__( self, trans, transID, lfns, asIfProd ):
     self.trans = trans
     self.transID = transID
-    from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
-    self.transClient = ProductionsClient()
+    from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+    self.transClient = TransformationClient()
     from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
     self.bk = BookkeepingClient()
     from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -219,7 +219,7 @@ if __name__ == "__main__":
   #print pluginParams
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
-  from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
+  from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
   from LHCbDIRAC.TransformationSystem.Client.Utilities   import getRemovalPlugins, getReplicationPlugins
   from DIRAC import gLogger
   gLogger.setLevel( 'INFO' )

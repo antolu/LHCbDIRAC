@@ -11,7 +11,7 @@ else:
   transIDs = [int( arg ) for arg in sys.argv[1:]]
 
 from LHCbDIRAC.TransformationSystem.Agent.ValidateOutputDataAgent       import ValidateOutputDataAgent
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient         import ProductionsClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient         import TransformationClient
 from DIRAC import gLogger
 import DIRAC
 
@@ -20,7 +20,7 @@ agent = ValidateOutputDataAgent( 'Transformation/ValidateOutputDataAgent',
                                  'dirac-production-verify-outputdata' )
 agent.initialize()
 
-client = ProductionsClient()
+client = TransformationClient()
 for transID in transIDs:
   res = client.getTransformationParameters( transID, ['Status'] )
   if not res['OK']:
