@@ -1,8 +1,3 @@
-########################################################################
-# $Id$
-# File :   JobPathResolution.py
-# Author : Stuart Paterson
-########################################################################
 
 """ The job path resolution module is a VO-specific plugin that
     allows to define VO job policy in a simple way.  This allows the
@@ -13,8 +8,6 @@
     job description and therefore decisions are made based on the existence
     of JDL parameters.
 """
-
-__RCSID__ = "$Id$"
 
 from DIRAC.WorkloadManagementSystem.DB.JobDB               import JobDB
 from DIRAC                                                 import S_OK, S_ERROR, gConfig, gLogger

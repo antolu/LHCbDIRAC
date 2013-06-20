@@ -2,7 +2,6 @@
 
     DIRAC assumes an execute() method will exist during usage.
 """
-__RCSID__ = "$Id$"
 
 from DIRAC                                          import gLogger
 from DIRAC.Interfaces.API.Job                       import Job

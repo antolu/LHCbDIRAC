@@ -2,8 +2,6 @@ import os, unittest
 
 from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile
 
-__RCSID__ = "$Id$"
-
 class ProductionLogAnalysisTestCase( unittest.TestCase ):
   """ Base class for the ProductionLogAnalysis test cases
   """

@@ -134,6 +134,9 @@ class ModuleBase( object ):
   def setApplicationStatus( self, status, sendFlag = True, jr = None ):
     """Wraps around setJobApplicationStatus of state update client
     """
+    if not type( status ) == type( '' ):
+      status = str( status )
+
     if not self._WMSJob():
       return 0  # e.g. running locally prior to submission
 

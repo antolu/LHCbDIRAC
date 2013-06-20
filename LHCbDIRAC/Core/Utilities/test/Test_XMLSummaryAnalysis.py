@@ -2,8 +2,6 @@ import os, unittest
 
 from LHCbDIRAC.Core.Utilities.XMLSummaries import analyseXMLSummary
 
-__RCSID__ = "$Id$"
-
 class XMLSummaryAnalysisTestCase( unittest.TestCase ):
   """ Base class for the XMLSummaryAnalysis test cases
   """

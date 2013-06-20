@@ -223,7 +223,7 @@ class UploadOutputData( ModuleBase ):
           break  # no point continuing if one completely fails
 
       # Now after all operations, retrieve potentially modified request object
-      self.request = ft.request
+      self.request = failoverTransfer.request
 
       # If some or all of the files failed to be saved to failover
       if cleanUp:

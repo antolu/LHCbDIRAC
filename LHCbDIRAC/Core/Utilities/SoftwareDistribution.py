@@ -1,9 +1,3 @@
-########################################################################
-# $Id$
-# File :   SoftwareDistribution.py
-# Author : Stuart Paterson
-########################################################################
-
 """ The LHCb Software Distribution class is used by the DIRAC Job Agent
     to install necessary software via the ModuleFactory.  This relies on
     two JDL parameters in LHCb workflows:
@@ -15,8 +9,6 @@
     availability of packages in the shared area and trigger local installation
     as required.
 """
-
-__RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
 from DIRAC                                               import S_OK, S_ERROR, gLogger

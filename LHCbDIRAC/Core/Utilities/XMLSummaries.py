@@ -1,8 +1,6 @@
 ''' Utilities to check the XML summary files
 '''
 
-__RCSID__ = "$Id$"
-
 import os
 from DIRAC import S_OK, S_ERROR
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser

@@ -7,8 +7,6 @@
 
 """
 
-__RCSID__ = "$Id$"
-
 import re, os, types, datetime, copy
 
 from DIRAC import S_OK, S_ERROR, gLogger
