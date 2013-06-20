@@ -9,7 +9,7 @@ from DIRAC import gLogger
 from DIRAC.Core.Utilities.List import sortList
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient  import ProductionsClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
 
 class BKQuery():
   """
@@ -615,7 +615,7 @@ class BKQuery():
     """
     Returns the status of a given transformation
     """
-    res = ProductionsClient().getTransformation( prod, extraParams = False )
+    res = TransformationClient().getTransformation( prod, extraParams = False )
     if not res['OK']:
       gLogger.error( "Couldn't get information on production %d" % prod )
       return None
@@ -643,7 +643,7 @@ class BKQuery():
     if not res['OK']:
       gLogger.error( 'Error getting productions from BK', res['Message'] )
       return []
-    transClient = ProductionsClient()
+    transClient = TransformationClient()
     if self.getProcessingPass().replace( '/', '' ) != 'Real Data':
       fileTypes = self.getFileTypeList()
       prodList = [prod for p in res['Value']['Records'] for prod in p

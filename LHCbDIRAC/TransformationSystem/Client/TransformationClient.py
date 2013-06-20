@@ -1,9 +1,12 @@
-""" Class that contains client access to the transformation DB handler. """
+""" Module that contains client access to the transformation DB handler.
+    This is a very simple extension to the DIRAC one
+"""
 
-__RCSID__ = "$Id$"
+from DIRAC                                                        import S_OK, gLogger
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations          import Operations
+from DIRAC.TransformationSystem.Client.TransformationClient       import TransformationClient as DIRACTransformationClient
+from LHCbDIRAC.ProductionManagementSystem.Utilities.StateMachine  import ProductionsStateMachine
 
-from DIRAC                                                    import S_OK, gLogger
-from DIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient as DIRACTransformationClient
 
 class TransformationClient( DIRACTransformationClient ):
 
@@ -18,6 +21,10 @@ class TransformationClient( DIRACTransformationClient ):
           createTransformationQuery(transName,queryDict)
           getBookkeepingQueryForTransformation(transName)
   """
+
+  def __init__(self, **kwargs):
+    DIRACTransformationClient.__init__(self, **kwargs)
+    self.opsH = Operations()
 
   def addTransformation( self, transName, description, longDescription, transfType, plugin, agentType, fileMask,
                          transformationGroup = 'General',
@@ -43,3 +50,32 @@ class TransformationClient( DIRACTransformationClient ):
       if not res['OK']:
         gLogger.error( "Failed to publish BKQuery for transformation", "%s %s" % ( transID, res['Message'] ) )
     return S_OK( transID )
+
+  def setTransformationParameter( self, transID, paramName, paramValue ):
+    """ just invokes the state machine check when needed
+    """
+    if paramName.lower() == 'status':
+      return self.setStatus( transID, paramValue )
+    else:
+      return DIRACTransformationClient.setTransformationParameter( self, transID, paramName, paramValue )
+
+  def setStatus( self, transID, status, originalStatus = '' ):
+    """ Performs a state machine check for productions when asked to change the status
+    """
+    if not originalStatus:
+      originalStatus = DIRACTransformationClient.getTransformationParameters( transID, 'Status' )
+      if not originalStatus['OK']:
+        return originalStatus
+      originalStatus = originalStatus['Value']
+
+    transformation = DIRACTransformationClient.getTransformation( self, transID )
+    if not transformation['OK']:
+      return transformation
+    transformationType = transformation['Value']['Status']
+    if transformationType in self.opsH.getValue( 'Transformations/DataProcessing', [] ):
+      psm = ProductionsStateMachine( originalStatus )
+      stateChange = psm.setState( status )
+      if not stateChange['OK']:
+        return stateChange
+
+    return DIRACTransformationClient.setTransformationParameter( self, transID, 'Status', status )

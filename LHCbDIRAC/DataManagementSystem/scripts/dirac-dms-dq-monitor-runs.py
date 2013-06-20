@@ -39,7 +39,7 @@ from DIRAC                      import S_OK, S_ERROR, gLogger
 
 from DIRAC.Core.Utilities.List                                  import sortList
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient import ProductionsClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
 
 
 import sys
@@ -51,7 +51,7 @@ import time
 
 
 bkClient = BookkeepingClient()
-tfClient = ProductionsClient()
+tfClient = TransformationClient()
 ################################################################################
 #                                                                              #
 # checkTransformationStatus:                                                   #

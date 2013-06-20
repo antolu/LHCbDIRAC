@@ -71,8 +71,8 @@ if __name__ == "__main__":
 
   from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
   rm = ReplicaManager()
-  from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient        import ProductionsClient
-  tr = ProductionsClient()
+  from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
+  tr = TransformationClient()
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
   from DIRAC.Core.Utilities.List                                         import breakListIntoChunks

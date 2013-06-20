@@ -32,8 +32,8 @@ from DIRAC.Interfaces.API.Dirac                                 import Dirac
 from DIRAC.FrameworkSystem.Client.NotificationClient            import NotificationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations        import Operations
 
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionsClient  import ProductionsClient
-from LHCbDIRAC.Interfaces.API.DiracProduction                       import DiracProduction
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
+from LHCbDIRAC.Interfaces.API.DiracProduction                    import DiracProduction
 
 
 class ProductionStatusAgent( AgentModule ):
@@ -54,7 +54,7 @@ class ProductionStatusAgent( AgentModule ):
     self.dProd = DiracProduction()
     self.dirac = Dirac()
     self.reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
-    self.productionsClient = ProductionsClient()
+    self.productionsClient = TransformationClient()
     self.simulationTypes = Operations().getValue( 'Transformations/ExtendableTransfTypes', ['MCSimulation', 'Simulation'] )
 
   #############################################################################

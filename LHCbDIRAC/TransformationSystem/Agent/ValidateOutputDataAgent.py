@@ -25,7 +25,7 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
 
     self.integrityClient = DataIntegrityClient()
     self.replicaManager = ReplicaManager()
-    self.transClient = ProductionsClient()
+    self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
 
   #############################################################################
