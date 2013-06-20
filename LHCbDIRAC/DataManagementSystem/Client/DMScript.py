@@ -116,9 +116,9 @@ class DMScript():
     Script.registerSwitch( '', "Invisible", "   See also invisible files", self.setInvisible )
 
 
-  def registerNamespaceSwitches( self ):
+  def registerNamespaceSwitches( self, action = 'search [ALL]' ):
     ''' namespace switches '''
-    Script.registerSwitch( "D:", "Directory=", "   Directory to search [ALL]", self.setDirectory )
+    Script.registerSwitch( "D:", "Directory=", "   Directory to " + action, self.setDirectory )
 
   def registerSiteSwitches( self ):
     ''' SE switches '''
