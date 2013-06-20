@@ -301,5 +301,10 @@ class PublisherHandler( RequestHandler ):
     
     return result    
 
+  types_getSpaceTokenOccupancy = [ ( str, NoneType, list ) ] * 4
+  def export_getSpaceTokenOccupancy( self, site, se, endpoint, token ):
+
+    return rmClient.selectSpaceTokenOccupancyCache( endpoint = endpoint, token = token )
+
 #...............................................................................
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
