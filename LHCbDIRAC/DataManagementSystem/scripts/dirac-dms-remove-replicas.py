@@ -5,7 +5,7 @@
 __RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-from DIRAC import DIRAC, gConfig, gLogger
+from DIRAC import gConfig, gLogger, exit as DIRACExit
 
 def __checkSEs( args ):
   """ Extract SE names from a list of arguments """
@@ -197,7 +197,7 @@ if __name__ == "__main__":
         res = rm.removeReplica( seName, lfnChunk )
         if not res['OK']:
           gLogger.fatal( "Failed to remove replica", res['Message'] )
-          DIRAC.exit( -2 )
+          DIRACExit( -2 )
         for lfn, reason in res['Value']['Failed'].items():
           reason = str( reason )
           if 'No such file or directory' in reason:
@@ -241,4 +241,4 @@ if __name__ == "__main__":
       gLogger.always( "Failed to remove %d files from %s with error: %s" % ( len( lfns ), se, reason ) )
   if not successfullyRemoved and not errorReasons and not checkFC:
     gLogger.always( "Files were found at no SE in %s" % str( seList ) )
-  DIRAC.exit( 0 )
+  DIRACExit( 0 )

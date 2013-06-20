@@ -11,7 +11,7 @@ __RCSID__ = "$Id$"
 import DIRAC
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult
-from DIRAC import DIRAC, gConfig, gLogger
+from DIRAC import gConfig, gLogger, exit as DIRACExit
 import os
 
 def __checkSEs( args ):
@@ -83,4 +83,4 @@ if __name__ == "__main__":
             result['Value']['Successful'][lfn] = 'Already present'
           finalResult['Value']['Successful'].setdefault( seName, {} ).update( result['Value']['Successful'] )
 
-  DIRAC.exit( printDMResult( finalResult ) )
+  DIRACExit( printDMResult( finalResult ) )
