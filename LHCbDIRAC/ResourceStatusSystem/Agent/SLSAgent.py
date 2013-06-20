@@ -233,13 +233,6 @@ class SpaceTokenOccupancyTest( TestBase ):
     finally:
       xmlfile.close()
 
-    # Dashboard
-    dbfile = open( self.xmlPath + site + "_" + token + "_space_monitor", "w" )
-    try:
-      dbfile.write( token + ' ' + str( total ) + ' ' + str( guaranteed ) + ' ' + str( free ) + '\n' )
-    finally:
-      dbfile.close()
-
     gLogger.info( "SpaceTokenOccupancyTest: %s/%s done." % ( site, token ) )
     return S_OK()
 
