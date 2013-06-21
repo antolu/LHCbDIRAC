@@ -132,12 +132,12 @@ class HelloWorldSuccess( UserJobTestCase ):
 
 
 
-if __name__ == '__main__':
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase( UserJobTestCase )
+# if __name__ == '__main__':
+#  suite = unittest.defaultTestLoader.loadTestsFromTestCase( UserJobTestCase )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessWithJobID ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutput ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutputWithJobID ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutputWithJobID ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudirunSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiScriptSuccess ) )
-  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
+#  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
