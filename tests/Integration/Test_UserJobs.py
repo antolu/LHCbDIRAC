@@ -1,6 +1,7 @@
 import unittest, os
 
 from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
+from LHCbTestDirac.Utilities.utils import find_all
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
@@ -19,8 +20,11 @@ class HelloWorldSuccess( UserJobTestCase ):
 
     lhcbJob = LHCbJob()
 
+    fileLocation = find_all( 'exe-script.py', '.', 'Integration' )
+    print fileLocation
+
     lhcbJob.setName( "helloWorld-test" )
-    lhcbJob.setExecutable( "exe-script.py" )
+    lhcbJob.setExecutable( fileLocation[0] )
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
@@ -132,12 +136,12 @@ class HelloWorldSuccess( UserJobTestCase ):
 
 
 
-# if __name__ == '__main__':
-#  suite = unittest.defaultTestLoader.loadTestsFromTestCase( UserJobTestCase )
-#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
+if __name__ == '__main__':
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( UserJobTestCase )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessWithJobID ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutput ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutputWithJobID ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudirunSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiScriptSuccess ) )
-#  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
+  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
