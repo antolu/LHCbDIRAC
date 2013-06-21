@@ -11,9 +11,7 @@ __RCSID__ = '$Id$'
 
 
 # Module variables used along the functions
-cfg        = None
 subLogger  = None
-switchDict = {}
 
 
 def registerSwitches():
@@ -37,12 +35,7 @@ def parseSwitches():
   '''
 
   Script.parseCommandLine( ignoreErrors = True )
-  args = Script.getPositionalArgs()
-  if args:
-    subLogger.error( "Found the following positional args '%s', but we only accept switches" % args )
-    subLogger.error( "Please, check documentation below" )
-    Script.showHelp()
-    DIRACExit( 1 )
+  configArgs = Script.getPositionalArgs()
 
   processSwitches = dict( Script.getUnprocessedSwitches() )
 
@@ -54,21 +47,113 @@ def parseSwitches():
   subLogger.debug( "The switches used are:" )
   map( subLogger.debug, processSwitches.iteritems() )
 
-  return processSwitches
+  return configArgs, processSwitches
+
 
 #...............................................................................
 
 def setSecurity():
+  """
+  DIRAC
+  {
+    Security
+    {
+      UseServerCertificate = yes
+      CertFile = /opt/dirac/etc/grid-security/hostcert.pem
+      KeyFile  = /opt/dirac/etc/grid-security/hostkey.pem
+    }
+  }
+  """
   
-  cfg.setOption( '/DIRAC/Security/UseServerCertificate', 'yes' )
-  cfg.setOption( 'CertFile', '/opt/dirac/etc/grid-security/hostcert.pem' )
+  secPath = '/DIRAC/Security'
+  gridSec = '/opt/dirac/etc/grid-security' 
+  
+  cfg.setOption( '%s/UseServerCertificate' % secPath, 'yes' )
+  cfg.setOption( '%s/CertFile' % secPath, '%s/hostcert.pem' % gridSec )
+  cfg.setOption( '%s/KeyFile' % secPath, '%s/hostkey.pem' % gridSec )
 
-def run():
+
+def setLocalSiteDefaults():
+  """
+  LocalSite
+  {
+    Architecture   = #ARCHITECTURE
+    InstancePath   = /opt/dirac
+    ReleaseVersion = DEV
+    ReleaseProject = LHCb
+    SharedArea     = /cvmfs/lhcb.cern.ch/lib
+    LocalArea      = /opt/dirac
+    
+    CPUTime    = 1400000
+    MaxCPUTime = 1400000
+    
+    CPUScalingFactor       = #CPUScalingFactor
+    CPUNormalizationFactor = #CPUNormalizationFactor 
+  }
+  
+  """
+  
+  locPath = '/LocalSite'
+  cfg.createNewSection( locPath ) 
+  
+  cfg.setOption( '%s/Architecture'   % locPath, '#ARCHITECTURE' )
+  # Used to get control and work directories
+  cfg.setOption( '%s/InstancePath'   % locPath, '/opt/dirac' )
+  # LHCbDIRAC version
+  cfg.setOption( '%s/ReleaseVersion' % locPath, 'DEV' )
+  # DIRAC extension
+  cfg.setOption( '%s/ReleaseProject' % locPath, 'LHCb' ) 
+  # Site DIRAC name
+  #Site=#
+  
+  # SW Areas
+  cfg.setOption( '%s/SharedArea' % locPath, '/cvmfs/lhcb.cern.ch/lib' )
+  cfg.setOption( '%s/LocalArea'  % locPath , '/opt/dirac' )
+  
+  # CPU Queues
+  cfg.setOption( '%s/CPUTime'    % locPath, 300000 )
+  cfg.setOption( '%s/MaxCPUTime' % locPath, 300000 )
+  
+  # CPU Factors
+  cfg.setOption( '%s/CPUScalingFactor'       % locPath, '#CPUScalingFactor' )
+  cfg.setOption( '%s/CPUNormalizationFactor' % locPath, '#CPUNormalizationFactor' )
+  
+
+def setConfigOptions( configOptionsList ):
+  """ setConfigOptions
+  
+  Given a list of options, sets them. Note that if the Section does not exist
+  on the dirac.cfg this method will not work.
+  
+  """
+  
+  for option in configOptionsList:
+      
+    try:
+      cfg.setOption( *option.split( '=' ) )
+    except KeyError, e:
+      DIRACExit( e )
+    except ValueError, e:
+      DIRACExit( e )  
+  
+    subLogger.info( option )
+  
+  
+def run( configOptionsList, cfgFile ):
+  """ run
+  
+  Main method. Loads the default config and populates with our additions.
+  
+  """
 
   cfg.loadFromFile( gConfig.diracConfigFilePath )
+    
+  setSecurity() 
+  setLocalSiteDefaults()
   
+  setConfigOptions( configOptionsList )
 
-  cfg.writeToFile( switchDict[ 'cfg' ] )
+  cfg.writeToFile( cfgFile )
   
 
 #...............................................................................
@@ -81,13 +166,13 @@ if __name__ == '__main__':
   subLogger = gLogger.getSubLogger( __file__ )
 
   registerSwitches()
-  switchDict = parseSwitches()
+  configList, switchDict = parseSwitches()
 
   from DIRAC.Core.Utilities.CFG import CFG
   cfg = CFG()
   
   # Run the script
-  run()
+  run( configList, switchDict[ 'cfg' ] )
 
   # Bye
   DIRACExit( 0 )
