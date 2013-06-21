@@ -13,18 +13,15 @@ class UserJobTestCase( IntegrationTest ):
     super( IntegrationTest, self ).setUp()
 
     self.dLHCb = DiracLHCb()
-
+    self.exeScriptLocation = find_all( 'exe-script.py', '.', 'Integration' )[0]
 
 class HelloWorldSuccess( UserJobTestCase ):
   def test_execute( self ):
 
     lhcbJob = LHCbJob()
 
-    fileLocation = find_all( 'exe-script.py', '.', 'Integration' )
-    print fileLocation
-
     lhcbJob.setName( "helloWorld-test" )
-    lhcbJob.setExecutable( fileLocation[0] )
+    lhcbJob.setExecutable( self.exeScriptLocation )
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
@@ -36,7 +33,7 @@ class HelloWorldSuccessWithJobID( UserJobTestCase ):
     lhcbJob = LHCbJob()
 
     lhcbJob.setName( "helloWorld-test" )
-    lhcbJob.setExecutable( "exe-script.py" )
+    lhcbJob.setExecutable( self.exeScriptLocation )
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )  # There's nothing to upload, so it will complete happily
 
@@ -48,7 +45,7 @@ class HelloWorldSuccessOutput( UserJobTestCase ):
     lhcbJob = LHCbJob()
 
     lhcbJob.setName( "helloWorld-test" )
-    lhcbJob.setExecutable( "exe-script.py" )
+    lhcbJob.setExecutable( self.exeScriptLocation )
     lhcbJob.setOutputData( "Script1_exe-script.py.log" )
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
@@ -61,7 +58,7 @@ class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
     lhcbJob = LHCbJob()
 
     lhcbJob.setName( "helloWorld-test" )
-    lhcbJob.setExecutable( "exe-script.py" )
+    lhcbJob.setExecutable( self.exeScriptLocation )
     lhcbJob.setOutputData( "Script1_exe-script.py.log" )
     res = lhcbJob.runLocal( self.dLHCb )  # Can't upload, so it will fail
     self.assertFalse( res['OK'] )
