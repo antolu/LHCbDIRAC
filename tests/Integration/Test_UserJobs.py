@@ -1,4 +1,4 @@
-import unittest
+import unittest, os
 
 from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
 
@@ -23,6 +23,46 @@ class HelloWorldSuccess( UserJobTestCase ):
     lhcbJob.setExecutable( "exe-script.py" )
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
+
+class HelloWorldSuccessWithJobID( UserJobTestCase ):
+  def test_execute( self ):
+
+    os.environ['JOBID'] = '12345'
+
+    lhcbJob = LHCbJob()
+
+    lhcbJob.setName( "helloWorld-test" )
+    lhcbJob.setExecutable( "exe-script.py" )
+    res = lhcbJob.runLocal( self.dLHCb )
+    self.assertTrue( res['OK'] )  # There's nothing to upload, so it will complete happily
+
+    del os.environ['JOBID']
+
+class HelloWorldSuccessOutput( UserJobTestCase ):
+  def test_execute( self ):
+
+    lhcbJob = LHCbJob()
+
+    lhcbJob.setName( "helloWorld-test" )
+    lhcbJob.setExecutable( "exe-script.py" )
+    lhcbJob.setOutputData( "Script1_exe-script.py.log" )
+    res = lhcbJob.runLocal( self.dLHCb )
+    self.assertTrue( res['OK'] )
+
+class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
+  def test_execute( self ):
+
+    os.environ['JOBID'] = '12345'
+
+    lhcbJob = LHCbJob()
+
+    lhcbJob.setName( "helloWorld-test" )
+    lhcbJob.setExecutable( "exe-script.py" )
+    lhcbJob.setOutputData( "Script1_exe-script.py.log" )
+    res = lhcbJob.runLocal( self.dLHCb )  # Can't upload, so it will fail
+    self.assertFalse( res['OK'] )
+
+    del os.environ['JOBID']
 
 class GaudirunSuccess( UserJobTestCase ):
   def test_mc( self ):
@@ -94,7 +134,10 @@ class GaudirunSuccess( UserJobTestCase ):
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( UserJobTestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessWithJobID ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutput ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutputWithJobID ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudirunSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiScriptSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
