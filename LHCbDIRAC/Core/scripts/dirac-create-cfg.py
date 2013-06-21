@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
   dirac-create-cfg
+    Script created to prepare dirac.cfg files on CloudComputing world.
 
     Verbosity:
         -o LogLevel=LEVEL     NOTICE by default, levels available: INFO, DEBUG, VERBOSE...
