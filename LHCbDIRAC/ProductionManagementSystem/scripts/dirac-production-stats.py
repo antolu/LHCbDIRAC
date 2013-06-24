@@ -43,7 +43,7 @@ if __name__ == "__main__":
     elif opt == "NoPrint":
       printResult = False
 
-  bkQuery = dmScript.getBKQuery( visible = False )
+  bkQuery = dmScript.getBKQuery( visible = 'All' )
   if not bkQuery.getQueryDict():
     Script.showHelp()
     DIRAC.exit( 2 )
