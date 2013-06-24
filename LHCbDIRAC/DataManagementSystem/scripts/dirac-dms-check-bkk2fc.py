@@ -97,8 +97,7 @@ if __name__ == '__main__':
   bk = BookkeepingClient()
 
   cc = ConsistencyChecks( rm = rm, bkClient = bk )
-  bkQuery = dmScript.getBKQuery()
-  bkQuery.setVisible( False )
+  bkQuery = dmScript.getBKQuery( visible = 'All' )
   cc.bkQuery = bkQuery
   cc.lfns = dmScript.getOption( 'LFNs', [] )
   prods = dmScript.getOption( 'Productions', [] )

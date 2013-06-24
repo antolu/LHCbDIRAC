@@ -30,7 +30,7 @@ if __name__ == "__main__":
     dmScript.setLFNsFromFile( lfn )
   lfnList = dmScript.getOption( 'LFNs', [] )
 
-  bkQuery = dmScript.getBKQuery()
+  bkQuery = dmScript.getBKQuery( visible = 'All' )
   if bkQuery.getQueryDict().keys() not in ( [''], ['Visible'] ):
     print "Executing BKQuery:", bkQuery
     lfnList += bkQuery.getLFNs()

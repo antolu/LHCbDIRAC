@@ -271,7 +271,7 @@ if __name__ == "__main__":
 
   # Create a bkQuery looking at all files
   if bkBrowse:
-    bkQuery = dmScript.getBKQuery( visible = False )
+    bkQuery = dmScript.getBKQuery( visible = 'All' )
     browseBK( bkQuery, ses, scaleFactor )
     DIRAC.exit( 0 )
 
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     fileTypes = [fileTypes]
   if not dirs:
     dirs = ['']
-    bkQuery = dmScript.getBKQuery( visible = False )
+    bkQuery = dmScript.getBKQuery( visible = 'All' )
     bkFileTypes = bkQuery.getFileTypeList()
     if bkFileTypes:
       fileTypes = bkFileTypes

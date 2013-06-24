@@ -86,9 +86,9 @@ if __name__ == "__main__":
   transformation = Transformation()
   bk = BookkeepingClient()
 
-  visible = not pluginScript.getOption( 'Invisible', False )
   if plugin in ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ) or prods:
-    visible = False
+    visible = 'All'
+    lfcCheck = False
 
   if not requestedLFNs:
     bkQuery = pluginScript.getBKQuery( visible = visible )
