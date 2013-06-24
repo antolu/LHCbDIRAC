@@ -57,14 +57,15 @@ for lfn in lfns:
 
 result = BookkeepingClient().getFileAncestors( lfnList, level, replica = checkreplica )
 
-if full:
-  del result['Value']['Successful']
-else:
-  okResult = result['Value']['WithMetadata']
-  for lfn in okResult:
-    result['Value']['Successful'][lfn] = \
-      dict( [( desc, 'Replica-%s' % meta['GotReplica'] ) for desc, meta in okResult[lfn].items()] )
-  del result['Value']['WithMetadata']
+if result['OK']:
+  if full:
+    del result['Value']['Successful']
+  else:
+    okResult = result['Value']['WithMetadata']
+    for lfn in okResult:
+      result['Value']['Successful'][lfn] = \
+        dict( [( desc, 'Replica-%s' % meta['GotReplica'] ) for desc, meta in okResult[lfn].items()] )
+    del result['Value']['WithMetadata']
 
 DIRAC.exit( printDMResult( result,
                            empty = "None", script = "dirac-bookkeeping-get-file-ancestors" ) )

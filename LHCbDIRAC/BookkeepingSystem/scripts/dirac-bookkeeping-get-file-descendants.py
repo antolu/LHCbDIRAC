@@ -68,18 +68,19 @@ for lfn in lfns:
     lfnList.append( lfn )
 
 result = BookkeepingClient().getFileDescendants( lfnList, depth = level, production = prod, checkreplica = checkreplica )
-noDescendants = set( lfnList ) - set( result['Value']['Successful'] ) - set( result['Value']['Failed'] ) - \
-                set( result['Value']['NotProcessed'] )
-if full:
-  del result['Value']['Successful']
-else:
-  okResult = result['Value']['WithMetadata']
-  for lfn in okResult:
-    result['Value']['Successful'][lfn] = \
-      dict( [( anc, 'Replica-%s' % meta['GotReplica'] ) for anc, meta in okResult[lfn].items()] )
-  del result['Value']['WithMetadata']
-if noDescendants:
-  result['Value']['NoDescendants'] = list( noDescendants )
+if result['OK']:
+  noDescendants = set( lfnList ) - set( result['Value']['Successful'] ) - set( result['Value']['Failed'] ) - \
+                  set( result['Value']['NotProcessed'] )
+  if full:
+    del result['Value']['Successful']
+  else:
+    okResult = result['Value']['WithMetadata']
+    for lfn in okResult:
+      result['Value']['Successful'][lfn] = \
+        dict( [( anc, 'Replica-%s' % meta['GotReplica'] ) for anc, meta in okResult[lfn].items()] )
+    del result['Value']['WithMetadata']
+  if noDescendants:
+    result['Value']['NoDescendants'] = list( noDescendants )
 
 DIRAC.exit( printDMResult( result,
                            empty = "None", script = "dirac-bookkeeping-get-file-descendants" ) )
