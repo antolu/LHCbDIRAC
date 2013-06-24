@@ -146,10 +146,7 @@ class UserJobFinalization( ModuleBase ):
       if self.userOutputData:
         self.log.info( 'Constructing user output LFN(s) for %s' % ( ', '.join( self.userOutputData ) ) )
 
-        if self.workflow_commons.has_key( 'OwnerName' ):
-          owner = self.workflow_commons['OwnerName']
-        else:
-          owner = self.getCurrentOwner()
+        owner = self.getCurrentOwner()
 
         userOutputLFNs = constructUserLFNs( self.jobID, owner, self.userOutputData, self.userOutputPath )
 
@@ -327,6 +324,8 @@ class UserJobFinalization( ModuleBase ):
     result = getProxyInfo()
 
     if not result['OK']:
+      if not self._enableModule():
+        return 'testUser'
       raise RuntimeError, 'Could not obtain proxy information'
 
     if not result['Value'].has_key( 'username' ):
