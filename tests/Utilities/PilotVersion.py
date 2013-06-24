@@ -1,4 +1,5 @@
 import sys
+from distutils.version import LooseVersion
 
 setup = sys.argv[ 1 ]
     
