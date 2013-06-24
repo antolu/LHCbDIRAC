@@ -33,6 +33,7 @@ class TransformationDB( DIRACTransformationDB ):
                          'StartRun', 'EndRun', 'Visible', 'RunNumbers', 'TCK']
     self.intFields = ['EventType', 'ProductionID', 'StartRun', 'EndRun']
     self.transRunParams = ['TransformationID', 'RunNumber', 'SelectedSite', 'Status', 'LastUpdate']
+    self.allowedStatusForTasks = ( 'Unused', 'ProbInFC' )
     self.TRANSFILEPARAMS.append( "RunNumber" )
     self.TASKSPARAMS.append( "RunNumber" )
 
@@ -103,7 +104,7 @@ class TransformationDB( DIRACTransformationDB ):
     tasksDict = tasksDict['Value']
     runNumbers = []
     for taskForSumbission in tasksDict.values():
-      run = taskForSumbission.get('RunNumber')
+      run = taskForSumbission.get( 'RunNumber' )
       if run and run not in runNumbers:
         runNumbers.append( run )
 
@@ -393,7 +394,7 @@ class TransformationDB( DIRACTransformationDB ):
           foundLfns.update( lfn )
         else:
           gLogger.error( "Supplied file not in %s status but %s" % ( self.allowedStatusForTasks, fileDict['Status'] ), lfn )
-      unvailableLfns = set( lfns ) - foundLfns
+      unavailableLfns = set( lfns ) - foundLfns
       if unavailableLfns:
         return S_ERROR( "Not all supplied files available in the transformation database" )
 
@@ -486,7 +487,7 @@ class TransformationDB( DIRACTransformationDB ):
       transID = attrDict['TransformationID']
       runID = attrDict['RunNumber']
       status = attrDict['Status']
-      transRunStatusDict[transID][runID]['Total'] = transRunStatusDict.setdefault( transID, {}).setdefault(runID,{}).setdefault('Total', 0) + count
+      transRunStatusDict[transID][runID]['Total'] = transRunStatusDict.setdefault( transID, {} ).setdefault( runID, {} ).setdefault( 'Total', 0 ) + count
       transRunStatusDict[transID][runID][status] = count
     return S_OK( transRunStatusDict )
 
@@ -653,7 +654,7 @@ class TransformationDB( DIRACTransformationDB ):
       res = res['Value']
       dictOfNameValue = {}
       for t in res:
-        dictOfNameValue.setdefault( t[0], {}).update({t[1]:t[2]})
+        dictOfNameValue.setdefault( t[0], {} ).update( {t[1]:t[2]} )
       return S_OK( dictOfNameValue )
 
   def deleteRunsMetadata( self, condDict = None, connection = False ):
