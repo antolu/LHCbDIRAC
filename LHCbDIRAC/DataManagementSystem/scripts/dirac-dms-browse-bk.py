@@ -22,7 +22,7 @@ def printTree( tree, tabs = 0, depth = sys.maxint ):
     keys = tree
   elif type( tree ) == type( '' ):
     keys = [tree]
-  keys = sortList( uniqueElements( keys ) )
+  keys = sorted( set( keys ) )
   prStr = tabs * '   '
   tabs += 1
   newTabs = tabs
@@ -73,12 +73,12 @@ def datasetsFromTree( tree ):
           datasets.append( makeDataset( conf, cond, pPass, eventType ) )
   return sortList( datasets )
 
-def bkPathsFromTree( tree ):
+def bkPathsFromTree( tree, noEventType = False ):
   paths = []
   for conf in tree:
     for cond in tree[conf]:
       for pPass in tree[conf][cond]:
-        paths.append( makeBKPath( conf, cond, pPass, tree[conf][cond][pPass] ) )
+        paths.append( makeBKPath( conf, cond, pPass, {} if noEventType else tree[conf][cond][pPass] ) )
   return sortList( paths )
 
 def commonDatasetsInTrees( tree, cmpTree ):
@@ -102,6 +102,7 @@ if __name__ == "__main__":
   Script.registerSwitch( "", "ToKeep=", "   File containing the twiki source of the retention table" )
   Script.registerSwitch( "", "PrintBKPath", "   Print the BKPaths of datasets that can be removed" )
   Script.registerSwitch( "", "Verbose", "   Print the current BK tree and the trees from the retention table" )
+  Script.registerSwitch( "", "NoEventType", "   Stops printing the tree at Processing Pass level" )
 
   Script.parseCommandLine( ignoreErrors = True )
   #print "Start time: %.3f seconds" % (time.time() - startTime)
@@ -109,6 +110,7 @@ if __name__ == "__main__":
   toKeepFile = None
   printBKPath = False
   verbose = False
+  noEventType = False
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
     opt = switch[0]
@@ -119,6 +121,8 @@ if __name__ == "__main__":
       printBKPath = True
     elif opt == "Verbose":
       verbose = True
+    elif opt == 'NoEventType':
+      noEventType = True
 
   bkQuery = dmScript.getBKQuery()
   configuration = bkQuery.getConfiguration()
@@ -179,6 +183,8 @@ if __name__ == "__main__":
   if toKeepTree:
     print "Datasets to ke kept:"
     depth = printTree( toKeepTree )
+  elif noEventType:
+    depth = 3
   else:
     depth = sys.maxint
   if verbose and toRemoveTree:
@@ -210,7 +216,7 @@ if __name__ == "__main__":
         print path
   elif printBKPath:
       print "BKPaths present in %s:" % bkQuery.getPath()
-      bkPaths = bkPathsFromTree( bkTree )
+      bkPaths = bkPathsFromTree( bkTree, noEventType = noEventType )
       for path in bkPaths:
         print path
 
