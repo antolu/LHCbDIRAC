@@ -41,6 +41,7 @@ class UploadLogFile( ModuleBase ):
     self.logFilePath = ''
     self.logLFNPat = ''
     self.logdir = ''
+    self.failoverTransfer = None
 
 ######################################################################
 
@@ -71,8 +72,7 @@ class UploadLogFile( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None,
-               ft = None ):
+               step_number = None, step_id = None ):
     """ Main executon method
     """
 
@@ -139,8 +139,8 @@ class UploadLogFile( ModuleBase ):
 
 
       # Instantiate the failover transfer client with the global request object
-      if not ft:
-        ft = FailoverTransfer( self.request )
+      if not self.failoverTransfer:
+        self.failoverTransfer = FailoverTransfer( self.request )
 
       #########################################
       # Attempt to uplaod logs to the LogSE
@@ -180,7 +180,7 @@ class UploadLogFile( ModuleBase ):
       random.shuffle( self.failoverSEs )
       self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName,
                                                                                    ', '.join( self.failoverSEs ) ) )
-      result = ft.transferAndRegisterFile( fileName = tarFileName,
+      result = self.failoverTransfer.transferAndRegisterFile( fileName = tarFileName,
                                            localPath = '%s/%s' % ( os.getcwd(), tarFileName ),
                                            lfn = self.logLFNPath,
                                            destinationSEList = self.failoverSEs,
@@ -196,7 +196,7 @@ class UploadLogFile( ModuleBase ):
       self.log.info( 'Uploaded logs to failover SE %s' % uploadedSE )
 
       # Now after all operations, retrieve potentially modified request object
-      self.request = ft.request
+      self.request = self.failoverTransfer.request
 
       res = self.__createLogUploadRequest( self.logSE, self.logLFNPath, uploadedSE )
       if not res['OK']:

@@ -42,6 +42,7 @@ class UserJobFinalization( ModuleBase ):
     self.userOutputSE = ''
     self.userOutputPath = ''
     self.jobReport = None
+    self.failoverTransfer = None
 
   #############################################################################
   def _resolveInputVariables( self ):
@@ -72,8 +73,7 @@ class UserJobFinalization( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None,
-               ft = None ):
+               step_number = None, step_id = None ):
     """ Main execution function.
     """
     # Have to work out if the module is part of the last step i.e.
@@ -205,8 +205,8 @@ class UserJobFinalization( ModuleBase ):
       fopen.close()
 
       # Instantiate the failover transfer client with the global request object
-      if not ft:
-        ft = FailoverTransfer( self.request )
+      if not self.failoverTransfer:
+        self.failoverTransfer = FailoverTransfer( self.request )
 
       # One by one upload the files with failover if necessary
       replication = {}
@@ -218,7 +218,7 @@ class UserJobFinalization( ModuleBase ):
         fileMetaDict = { "Size": metadata['filedict']['Size'],
                          "LFN" : metadata['filedict']['LFN'],
                          'GUID' : metadata['filedict']['GUID'] }
-        result = ft.transferAndRegisterFile( fileName = fileName,
+        result = self.failoverTransfer.transferAndRegisterFile( fileName = fileName,
                                              localPath = metadata['localpath'],
                                              lfn = metadata['filedict']['LFN'],
                                              destinationSEList = metadata['resolvedSE'],
@@ -252,7 +252,7 @@ class UserJobFinalization( ModuleBase ):
         fileMetaDict = { "Size": metadata['filedict']['Size'],
                          "LFN" : metadata['filedict']['LFN'],
                          'GUID' : metadata['filedict']['GUID'] }
-        result = ft.transferAndRegisterFileFailover( fileName,
+        result = self.failoverTransfer.transferAndRegisterFileFailover( fileName,
                                                      metadata['localpath'],
                                                      metadata['lfn'],
                                                      targetSE,
@@ -273,7 +273,7 @@ class UserJobFinalization( ModuleBase ):
         self.jobReport.setJobParameter( 'UploadedOutputData', report )
 
       # Now after all operations, retrieve potentially modified request object
-      self.request = ft.request
+      self.request = self.failoverTransfer.request
 
       # If some or all of the files failed to be saved to failover
       if cleanUp:

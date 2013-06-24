@@ -44,6 +44,7 @@ class UploadOutputData( ModuleBase ):
     self.outputList = []
     self.outputDataStep = ''
     self.request = None
+    self.failoverTransfer = None
 
   #############################################################################
   def _resolveInputVariables( self ):
@@ -89,7 +90,7 @@ class UploadOutputData( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None,
-               ft = None, SEs = None, fileDescendants = None ):
+               SEs = None, fileDescendants = None ):
     """ Main execution function.
     """
 
@@ -158,10 +159,8 @@ class UploadOutputData( ModuleBase ):
       fopen.close()
 
       # Instantiate the failover transfer client with the global request object
-      if not ft:
-        failoverTransfer = FailoverTransfer( self.request )
-      else:
-        failoverTransfer = ft
+      if not self.failoverTransfer:
+        self.failoverTransfer = FailoverTransfer( self.request )
 
       # Track which files are successfully uploaded (not to failover) via
       performBKRegistration = []
@@ -178,7 +177,7 @@ class UploadOutputData( ModuleBase ):
                          "LFN" : metadata['filedict']['LFN'],
                          'GUID' : metadata['filedict']['GUID'] }
 
-        result = failoverTransfer.transferAndRegisterFile( fileName = fileName,
+        result = self.failoverTransfer.transferAndRegisterFile( fileName = fileName,
                                                            localPath = metadata['localpath'],
                                                            lfn = metadata['filedict']['LFN'],
                                                            destinationSEList = targetSE,
@@ -209,7 +208,7 @@ class UploadOutputData( ModuleBase ):
                          "LFN" : metadata['filedict']['LFN'],
                          'GUID' : metadata['filedict']['GUID'] }
 
-        result = failoverTransfer.transferAndRegisterFileFailover( fileName = fileName,
+        result = self.failoverTransfer.transferAndRegisterFileFailover( fileName = fileName,
                                                                    localPath = metadata['localpath'],
                                                                    lfn = metadata['filedict']['LFN'],
                                                                    targetSE = targetSE,
@@ -223,7 +222,7 @@ class UploadOutputData( ModuleBase ):
           break  # no point continuing if one completely fails
 
       # Now after all operations, retrieve potentially modified request object
-      self.request = failoverTransfer.request
+      self.request = self.failoverTransfer.request
 
       # If some or all of the files failed to be saved to failover
       if cleanUp:

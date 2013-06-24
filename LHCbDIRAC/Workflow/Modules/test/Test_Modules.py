@@ -248,16 +248,20 @@ class ModulesTestCase( unittest.TestCase ):
 
     from LHCbDIRAC.Workflow.Modules.UploadOutputData import UploadOutputData
     self.uod = UploadOutputData( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.uod.failoverTransfer = self.ft_mock
 
     from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
     self.ujf = UserJobFinalization( bkClient = self.bkc_mock, rm = self.rm_mock )
     self.ujf.bkClient = self.bkc_mock
+    self.ujf.failoverTransfer = self.ft_mock
 
     from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
     self.sa = StepAccounting( bkClient = self.bkc_mock, rm = self.rm_mock )
 
     from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
     self.ulf = UploadLogFile( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.ulf.failoverTransfer = self.ft_mock
+
 
     from LHCbDIRAC.Workflow.Modules.FileUsage import FileUsage
     self.fu = FileUsage( bkClient = self.bkc_mock, rm = self.rm_mock )
@@ -1139,13 +1143,13 @@ class UploadLogFileSuccess( ModulesTestCase ):
     request_mock.getNumSubRequests.return_value = {'OK': True, 'Value': ''}
     request_mock._getLastOrder.return_value = 1
     ft_mock.getRequestObject.return_value = {'OK': True, 'Value': request_mock}
+    self.ulf.failoverTransfer = ft_mock
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertTrue( self.ulf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                            self.workflowStatus, self.stepStatus,
                                            wf_commons, step_commons,
-                                           self.step_number, self.step_id,
-                                           ft_mock )['OK'] )
+                                           self.step_number, self.step_id )['OK'] )
 #        self.assertTrue( self.ulf.finalize( rm_mock, self.ft_mock )['OK'] )
 
 
@@ -1216,7 +1220,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                            self.workflowStatus, self.stepStatus,
                                            wf_commons, step_commons,
                                            self.step_number, self.step_id,
-                                           self.ft_mock, SEs = ['SomeSE'],
+                                           SEs = ['SomeSE'],
                                            fileDescendants = fileDescendants )['OK'] )
 
 
@@ -1251,7 +1255,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                              self.workflowStatus, self.stepStatus,
                                              wf_commons, step_commons,
                                              self.step_number, self.step_id,
-                                             self.ft_mock, SEs = ['SomeSE'],
+                                             SEs = ['SomeSE'],
                                              fileDescendants = fileDescendants )['OK'] )
 #          self.bkc_mock.getFileDescendants.return_value = {'OK': True,
 #                                                           'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
@@ -1268,7 +1272,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                   self.workflowStatus, self.stepStatus,
                                   wf_commons, step_commons,
                                   self.step_number, self.step_id,
-                                  self.ft_mock, SEs = ['SomeSE'],
+                                  SEs = ['SomeSE'],
                                   fileDescendants = fileDescendants )
           print res, transferAndRegisterFile
           self.assertTrue( res['OK'] )
@@ -1296,8 +1300,7 @@ class UserJobFinalizationSuccess( ModulesTestCase ):
         self.assertTrue( self.ujf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, step_commons,
-                                         self.step_number, self.step_id,
-                                         self.ft_mock )['OK'] )
+                                         self.step_number, self.step_id )['OK'] )
       # with input data - would require correct CS settings...
 #      wf_commons['UserOutputData'] = ['i1', 'i2']
 #      wf_commons['OwnerName'] = 'fstagni'
