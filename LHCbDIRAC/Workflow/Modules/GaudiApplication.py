@@ -121,8 +121,12 @@ class GaudiApplication( ModuleBase ):
       runNumberGauss = 0
       firstEventNumberGauss = 0
       if self.applicationName.lower() == "gauss" and self.production_id and self.prod_job_id:
+        if self.jobType.lower() == 'user':
+          eventsMax = self.numberOfEvents
+        else:
+          eventsMax = self.maxNumberOfEvents
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
-        firstEventNumberGauss = int( self.maxNumberOfEvents ) * ( int( self.prod_job_id ) - 1 ) + 1
+        firstEventNumberGauss = int( eventsMax ) * ( int( self.prod_job_id ) - 1 ) + 1
 
       if self.optionsLine or self.jobType.lower() == 'user':
 
