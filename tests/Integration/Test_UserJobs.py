@@ -130,6 +130,7 @@ class GaudiScriptSuccess( UserJobTestCase ):
 
     lhcbJob.setApplicationScript( 'Gauss', 'v42r4', script,
                                   extraPackages = 'AppConfig.v3r160;DecFiles.v26r24;ProdConf.v1r9' )
+    lhcbJob.setSystemConfig( 'x86_64-slc5-gcc43-opt' )
 
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
