@@ -9,7 +9,7 @@ from DIRAC import gLogger
 from DIRAC.Core.Utilities.List import sortList
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 class BKQuery():
   """
@@ -319,6 +319,8 @@ class BKQuery():
     """
     if visible == True or ( type( visible ) == type( '' ) and visible[0].lower() == 'y' ):
       visible = 'Yes'
+    if visible == False:
+      visible = 'No'
     return self.setOption( 'Visible', visible )
 
   def setExceptFileTypes( self, fileTypes ):
@@ -739,7 +741,8 @@ class BKQuery():
     #print "Start", initialPP, queryDict
     res = self.__bkClient.getProcessingPass( queryDict, initialPP )
     if not res['OK']:
-      print "ERROR getting processing passes for %s" % queryDict, res['Message']
+      if 'Empty Directory' not in res['Message']:
+        print "ERROR getting processing passes for %s" % queryDict, res['Message']
       return {}
     ppRecords = res['Value'][0]
     if 'Name' in ppRecords['ParameterNames']:
@@ -773,6 +776,7 @@ class BKQuery():
     """
     It builds the bookkeeping dictionary
     """
+    from fnmatch import fnmatch
     configuration = self.getConfiguration()
     conditions = self.getBKConditions()
     #print conditions
@@ -780,12 +784,34 @@ class BKQuery():
     requestedEventTypes = self.getEventTypeList()
     #requestedFileTypes = self.getFileTypeList()
     requestedPP = self.getProcessingPass()
+    matchLength = 0
+    if '...' in requestedPP:
+      pp = requestedPP.split( '/' )
+      initialPP = '/'
+      for p in pp[1:]:
+        if '...' not in p:
+          initialPP = os.path.join( initialPP, p )
+        else:
+          break
+      self.setProcessingPass( initialPP )
+      requestedPP = requestedPP.replace( '...', '*' )
+      if requestedPP.endswith( '*' ) and not requestedPP.endswith( '/*' ):
+        matchLength = len( requestedPP.split( '/' ) )
+    else:
+      initialPP = requestedPP
     requestedConditions = self.getConditions()
+    #print initialPP, requestedPP, matchLength
     for cond in conditions:
       self.setConditions( cond )
       processingPasses = self.getBKProcessingPasses()
       #print processingPasses
       for processingPass in [pp for pp in processingPasses if processingPasses[pp]]:
+        #print processingPass
+        if initialPP != requestedPP and not fnmatch( processingPass, requestedPP ):
+          continue
+        if matchLength and len( processingPass.split( '/' ) ) != matchLength:
+          continue
+        #print 'Matched!'
         if requestedEventTypes:
           eventTypes = [t for t in requestedEventTypes if t in processingPasses[processingPass]]
           if not eventTypes:
@@ -798,7 +824,7 @@ class BKQuery():
           self.setEventType( eventType )
           fileTypes = self.getBKFileTypes()
           bkTree[configuration].setdefault( cond, {} ).setdefault( processingPass, {} )[int( eventType )] = fileTypes
-          self.setEventType( requestedEventTypes )
-        self.setProcessingPass( requestedPP )
-      self.setConditions( requestedConditions )
+        self.setEventType( requestedEventTypes )
+      self.setProcessingPass( initialPP )
+    self.setConditions( requestedConditions )
     return bkTree
