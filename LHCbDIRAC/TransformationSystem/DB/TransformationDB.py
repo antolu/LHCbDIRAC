@@ -72,7 +72,23 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return res
 
-    return DIRACTransformationDB.cleanTransformation( self, transName, author, connection )
+
+    # delete files, tasks, taskinputs and parameters as for base DIRAC class
+    res = self.__deleteTransformationFiles( transID, connection = connection )
+    if not res['OK']:
+      return res
+    res = self.__deleteTransformationTasks( transID, connection = connection )
+    if not res['OK']:
+      return res
+    res = self.__deleteTransformationTaskInputs( transID, connection = connection )
+    if not res['OK']:
+      return res
+    res = self.setTransformationParameter( transID, 'Status', 'Cleaned', author = author, connection = connection )
+    if not res['OK']:
+      return res
+    message = "Transformation Cleaned"
+    self.__updateTransformationLogging( transID, message, author, connection = connection )
+    return S_OK( transID )
 
 
   def getTasksForSubmission( self, transName, numTasks = 1, site = "", statusList = ['Created'],
@@ -87,11 +103,9 @@ class TransformationDB( DIRACTransformationDB ):
     tasksDict = tasksDict['Value']
     runNumbers = []
     for taskForSumbission in tasksDict.values():
-      if 'RunNumber' in taskForSumbission.keys():
-        run = taskForSumbission['RunNumber']
-        if run:
-          if run not in runNumbers:
-            runNumbers.append( run )
+      run = taskForSumbission.get('RunNumber')
+      if run and run not in runNumbers:
+        runNumbers.append( run )
 
     if runNumbers:
       runsMetadata = self.getRunsMetadata( runNumbers, connection )
@@ -132,7 +146,7 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     res = self.__addBookkeepingQuery( queryDict, connection = connection )
     if not res['OK']:
-      print "not res ", res  # canc
+      print "not res ", res#canc
       return res
     bkQueryID = res['Value']
     res = self.__setTransformationQuery( transName, bkQueryID, author = author, connection = connection )
@@ -368,23 +382,19 @@ class TransformationDB( DIRACTransformationDB ):
       res = self.getTransformationFiles( condDict = {'TransformationID':transID, 'LFN':lfns}, connection = connection )
       if not res['OK']:
         return res
-      foundLfns = []
-      allAvailable = True
+      foundLfns = set()
       for fileDict in res['Value']:
         fileIDs.append( fileDict['FileID'] )
         runID = fileDict.get( 'RunNumber' )
         if not runID:
           runID = 0
         lfn = fileDict['LFN']
-        foundLfns.append( lfn )
-        if fileDict['Status'] != 'Unused':
-          allAvailable = False
-          gLogger.error( "Supplied file not in Unused status but %s" % fileDict['Status'], lfn )
-      for lfn in lfns:
-        if not lfn in foundLfns:
-          allAvailable = False
-          gLogger.error( "Supplied file not found for transformation" % lfn )
-      if not allAvailable:
+        if fileDict['Status'] in self.allowedStatusForTasks:
+          foundLfns.update( lfn )
+        else:
+          gLogger.error( "Supplied file not in %s status but %s" % ( self.allowedStatusForTasks, fileDict['Status'] ), lfn )
+      unvailableLfns = set( lfns ) - foundLfns
+      if unavailableLfns:
         return S_ERROR( "Not all supplied files available in the transformation database" )
 
     # Insert the task into the jobs table and retrieve the taskID
@@ -476,13 +486,8 @@ class TransformationDB( DIRACTransformationDB ):
       transID = attrDict['TransformationID']
       runID = attrDict['RunNumber']
       status = attrDict['Status']
-      if not transRunStatusDict.has_key( transID ):
-        transRunStatusDict[transID] = {}
-      if not transRunStatusDict[transID].has_key( runID ):
-        transRunStatusDict[transID][runID] = {}
-        transRunStatusDict[transID][runID]['Total'] = 0
+      transRunStatusDict[transID][runID]['Total'] = transRunStatusDict.setdefault( transID, {}).setdefault(runID,{}).setdefault('Total', 0) + count
       transRunStatusDict[transID][runID][status] = count
-      transRunStatusDict[transID][runID]['Total'] += count
     return S_OK( transRunStatusDict )
 
   def addTransformationRunFiles( self, transName, runID, lfns, connection = False ):
@@ -648,10 +653,7 @@ class TransformationDB( DIRACTransformationDB ):
       res = res['Value']
       dictOfNameValue = {}
       for t in res:
-        if t[0] in dictOfNameValue.keys():
-          dictOfNameValue[t[0]].update( {t[1]:t[2]} )
-        else:
-          dictOfNameValue[t[0]] = {t[1]:t[2]}
+        dictOfNameValue.setdefault( t[0], {}).update({t[1]:t[2]})
       return S_OK( dictOfNameValue )
 
   def deleteRunsMetadata( self, condDict = None, connection = False ):
