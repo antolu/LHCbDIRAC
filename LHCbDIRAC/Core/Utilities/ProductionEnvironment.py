@@ -52,7 +52,7 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
 
   environment = result['Value']
   result = getProjectCommand( setupProjectLocation, applicationName, applicationVersion, extraPackages,
-                              site, runTimeProject, runTimeProjectVersion, '', directory ) #leave out additional options initially
+                              site, runTimeProject, runTimeProjectVersion, '', directory )  # leave out additional options initially
 
   if not result['OK']:
     return result
@@ -65,7 +65,7 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
 
   environment = result['Value']
 
-  #Have to repeat this with the resulting environment since LbLogin / SetupProject overwrite any changes...
+  # Have to repeat this with the resulting environment since LbLogin / SetupProject overwrite any changes...
   return setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, systemConfiguration,
                                 directory, poolXMLCatalogName, environment )
 
@@ -75,7 +75,7 @@ def addCommandDefaults( command, postExecution = '', envDump = 'localEnv.log', c
       debugging. This is always executed by a shellCall so can use standard
       commands.
   """
-  #First some preamble
+  # First some preamble
   cmdList = []
   cmdSep = 'echo "%s"' % ( '=' * 50 )
   cmdList.append( cmdSep )
@@ -87,13 +87,13 @@ def addCommandDefaults( command, postExecution = '', envDump = 'localEnv.log', c
 
   cmdList.append( cmdSep )
   cmdList.append( 'env | sort >> %s' % ( envDump ) )
-  #Now do what is requested
+  # Now do what is requested
   cmdList.append( command )
   cmdList.append( 'declare -x appstatus=$?' )
-  #Add any requested postExecution commands
+  # Add any requested postExecution commands
   if postExecution:
     cmdList.append( postExecution )
-  #Now add some standard post execution commands
+  # Now add some standard post execution commands
   cmdList.append( 'if [ -e core.* ] ; then  gdb python core.* >> %s_coredump.log << EOF' % ( coreDumpLog ) )
   cmdList.append( 'where' )
   cmdList.append( 'quit' )
@@ -152,7 +152,7 @@ def runEnvironmentScripts( commandsList, env = None ):
     gLogger.info( 'Attempting to run: %s' % ( command ) )
     name = os.path.basename( command.split( ' ' )[0] )
     names.append( name )
-    #very annoying sourceEnv feature, implies .sh will be added for you so have to remove it!
+    # very annoying sourceEnv feature, implies .sh will be added for you so have to remove it!
     exeCommand = command.replace( groupLogin, groupLogin[:-3] ).replace( projectEnv, projectEnv[:-3] )
     exeCommand = exeCommand.split( ' ' )
     result = sourceEnv( timeout, exeCommand, env )
@@ -221,21 +221,21 @@ def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, syst
     if not systemConfig:
       gLogger.error( '/LocalSite/Architecture is not defined' )
       return S_ERROR( 'SystemConfig Not Found' )
-    compatibleArchs = gConfig.getValue( '/Resources/Computing/OSCompatibility/%s' % ( systemConfig ), [] )
+    compatibleArchs = gConfig.getValue( '/Resources/Computing/OSCompatibility/%s' % systemConfig, [] )
     if not compatibleArchs:
-      gLogger.error( 'Could not find matching section for %s in /Resources/Computing/OSCompatibility/' % ( systemConfig ) )
+      gLogger.error( 'Could not find matching section for %s in /Resources/Computing/OSCompatibility/' % systemConfig )
       return S_ERROR( 'SystemConfig Not Found' )
     systemConfig = compatibleArchs[0]
-    gLogger.verbose( 'Setting system config to compatible platform %s since it was set to "ANY" in the job description' % ( systemConfig ) )
+    gLogger.verbose( 'Setting SystemConfig to compatible platform %s since it was set to "ANY"' % systemConfig )
 
   gLogger.info( 'Setting CMTCONFIG to %s' % ( systemConfig ) )
   env['CMTCONFIG'] = systemConfig
 
-  #miscellaneous vars
+  # miscellaneous vars
   env['CSEC_TRACE'] = '1'
   env['CSEC_TRACEFILE'] = "csec.log"
 
-  #in case of CMT requirements (this is not nice)
+  # in case of CMT requirements (this is not nice)
   if os.path.exists( os.path.join( directory, 'lib', 'requirements' ) ) and applicationVersion:
     gLogger.info( 'Setting environment variables for fake CMT package' )
     env['User_release_area'] = directory
@@ -292,7 +292,7 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
     gLogger.verbose( 'Requested extra package versions: %s' % ( ', '.join( extraPackages ) ) )
     for package in extraPackages:
 #      if not re.search( '.', package ):
-##        gLogger.error( 'Not sure what to do with "%s", expected "<Application>.<Version>", will be left out' )
+# #        gLogger.error( 'Not sure what to do with "%s", expected "<Application>.<Version>", will be left out' )
 #        gLogger.warn( 'Package %s: expected "<Application>.<Version>", will try anyway' % package )
 #        cmd.append( '--use="%s" ' % package )
 #      else:
@@ -390,4 +390,4 @@ def getScriptsLocation():
   result = {groupLogin:groupLoginPath, projectEnv:projectScriptPath, 'MYSITEROOT':softwareArea}
   return S_OK( result )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
