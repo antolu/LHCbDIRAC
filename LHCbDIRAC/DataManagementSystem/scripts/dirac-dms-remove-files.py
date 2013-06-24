@@ -46,7 +46,7 @@ if __name__ == "__main__":
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   rm = ReplicaManager()
   if fixTrans:
-    from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
+    from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
     transClient = TransformationClient()
 
   errorReasons = {}
@@ -68,7 +68,7 @@ if __name__ == "__main__":
       DIRAC.exit( -2 )
     for lfn, reason in res['Value']['Failed'].items():
       reason = str( reason )
-      if 'No such file or directory' in reason:
+      if 'No such file or directory' in reason or 'File does not exist' in reason:
         notExisting.append( lfn )
       else:
         errorReasons.setdefault( reason, [] ).append( lfn )
