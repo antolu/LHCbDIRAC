@@ -1,7 +1,7 @@
 import unittest, os
 
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
-from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
+# from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
 
 from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
 from LHCbTestDirac.Utilities.utils import find_all
@@ -20,11 +20,11 @@ class UserJobTestCase( IntegrationTest ):
     certFile = "/opt/dirac/etc/grid-security/hostcert.pem"
     keyFile = "/opt/dirac/etc/grid-security/hostkey.pem"
 
-    localCfg = LocalConfiguration()
-    localCfg.addDefaultEntry( "/DIRAC/Security/UseServerCertificate", "yes" )
-    localCfg.addDefaultEntry( "/DIRAC/Security/CertFile", certFile )
-    localCfg.addDefaultEntry( "/DIRAC/Security/KeyFile", keyFile )
-    resultDict = localCfg.loadUserData()
+#    localCfg = LocalConfiguration()
+#    localCfg.addDefaultEntry( "/DIRAC/Security/UseServerCertificate", "yes" )
+#    localCfg.addDefaultEntry( "/DIRAC/Security/CertFile", certFile )
+#    localCfg.addDefaultEntry( "/DIRAC/Security/KeyFile", keyFile )
+#    resultDict = localCfg.loadUserData()
 
     self.dLHCb = DiracLHCb()
     self.exeScriptLocation = find_all( 'exe-script.py', '.', 'Integration' )[0]
