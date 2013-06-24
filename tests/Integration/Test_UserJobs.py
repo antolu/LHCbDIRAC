@@ -92,27 +92,27 @@ class GaudirunSuccess( UserJobTestCase ):
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
-#  def test_boole( self ):
-#
-#    lhcbJob = LHCbJob()
-#
-#    lhcbJob.setName( "gaudirun-test-inputs" )
-#    lhcbJob.setInputSandbox( 'prodConf_Boole_00012345_00067890_1.py' )
-#
-#    opts = "$APPCONFIGOPTS/Boole/Default.py;"
-#    optDT = "$APPCONFIGOPTS/Boole/DataType-2012.py;"
-#    optTCK = "$APPCONFIGOPTS/L0/L0TCK-0x0042.py;"
-#    optComp = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
-#    optPConf = "prodConf_Boole_00012345_00067890_1.py"
-#    options = opts + optDT + optTCK + optComp + optPConf
-#    lhcbJob.addPackage( 'AppConfig', 'v3r155' )
-#
-#    lhcbJob.setApplication( 'Boole', 'v24r0', options,
-#                            inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
-#                            extraPackages = 'AppConfig.v3r155;ProdConf.v1r9' )
-#
-#    res = lhcbJob.runLocal( self.dLHCb )
-#    self.assertTrue( res['OK'] )
+  def test_boole( self ):
+
+    lhcbJob = LHCbJob()
+
+    lhcbJob.setName( "gaudirun-test-inputs" )
+    lhcbJob.setInputSandbox( find_all( 'prodConf_Boole_00012345_00067890_1.py', '.', 'Integration' )[0] )
+
+    opts = "$APPCONFIGOPTS/Boole/Default.py;"
+    optDT = "$APPCONFIGOPTS/Boole/DataType-2012.py;"
+    optTCK = "$APPCONFIGOPTS/L0/L0TCK-0x0042.py;"
+    optComp = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
+    optPConf = "prodConf_Boole_00012345_00067890_1.py"
+    options = opts + optDT + optTCK + optComp + optPConf
+    lhcbJob.addPackage( 'AppConfig', 'v3r155' )
+
+    lhcbJob.setApplication( 'Boole', 'v24r0', options,
+                            inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
+                            extraPackages = 'AppConfig.v3r155;ProdConf.v1r9' )
+
+    res = lhcbJob.runLocal( self.dLHCb )
+    self.assertTrue( res['OK'] )
 
 class GaudiScriptSuccess( UserJobTestCase ):
   def test_execute( self ):
