@@ -489,6 +489,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logError( "Error when grouping %d files by run for param %s" % ( len( self.transReplicas ), param ) )
       return res
     runDict = res['Value']
+    zeroRunDict = runDict.pop( 0, None )
+    if zeroRunDict:
+      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
+      for param, zeroRun in zeroRunDict.items():
+        newRuns = self.util.setRunForFiles( zeroRun )
+        for newRun, runLFNs in newRuns.items():
+          runDict.setdefault( newRun, {} ).setdefault( param, [] ).extend( runLFNs )
     transStatus = self.params['Status']
     startTime = time.time()
     res = self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runDict.keys()} )
@@ -497,7 +504,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return res
     self.util.logVerbose( "Obtained %d runs from transDB in %.1f seconds" % ( len( res['Value'] ),
                                                                               time.time() - startTime ) )
-    runSites = dict( [ ( r['RunNumber'], r['SelectedSite'] ) for r in res['Value'] if r['SelectedSite'] ] )
+    runSites = dict( [ ( run['RunNumber'], run['SelectedSite'] ) for run in res['Value'] if run['SelectedSite'] ] )
     # Loop on all runs that have new files
     inputData = self.transReplicas.copy()
     runEvtType = {}
@@ -684,8 +691,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not runFileDict:
       # No files, no tasks!
       return S_OK( [] )
-    if forceRun and runFileDict.pop( 0, None ):
-      self.util.logInfo( "Removing run #0, which means it was not set yet" )
+    if forceRun:
+      zeroRun = runFileDict.pop( 0, None )
+      if zeroRun:
+        self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
+        newRuns = self.util.setRunForFiles( zeroRun )
+        for newRun, runLFNs in newRuns.items():
+          runFileDict.setdefault( newRun, [] ).extend( runLFNs )
     if not runFileDict:
       return S_OK( [] )
 
