@@ -16,7 +16,7 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 #FIXME: this is quite dirty, what should be checked is exactly what it is done
@@ -159,7 +159,7 @@ class ConsistencyChecks( object ):
     visibility = bkQuery.isVisible()
     if self.transType:
       visibility = 'Yes' if self.transType not in prodsWithMerge else 'All'
-    bkQuery.setVisible( False )
+    bkQuery.setVisible( 'All' )
     bkQueryRes = BKQuery( bkQuery, visible = visibility )
     bkQueryRes.setOption( 'ReplicaFlag', replicaFlag )
     startTime = time.time()
