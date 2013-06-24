@@ -20,7 +20,7 @@ class fakeClient:
 
     ( self.files, self.replicas ) = self.prepareForPlugin( lfns )
 
-  def getTransformation( self, transID, extraParams=False ):
+  def getTransformation( self, transID, extraParams = False ):
     if transID == self.transID and self.asIfProd:
       transID = self.asIfProd
     if transID != self.transID:
@@ -61,7 +61,7 @@ class fakeClient:
     else:
       return self.transClient.getTransformationRuns( condDict )
 
-  def getTransformationFiles( self, condDict=None ):
+  def getTransformationFiles( self, condDict = None ):
     if condDict.get( 'TransformationID' ) == self.transID and self.asIfProd:
       condDict['TransformationID'] = self.asIfProd
     if condDict.get( 'TransformationID' ) == self.transID:
@@ -78,9 +78,9 @@ class fakeClient:
           transFiles.append( {'LFN':file['LFN'], 'Status':'Unused'} )
       return DIRAC.S_OK( transFiles )
     else:
-      return self.transClient.getTransformationFiles( condDict=condDict )
+      return self.transClient.getTransformationFiles( condDict = condDict )
 
-  def getTransformationFilesCount( self, transID, field, selection=None ):
+  def getTransformationFilesCount( self, transID, field, selection = None ):
     if transID == self.transID or selection['TransformationID'] == self.transID:
       if field != 'Status':
         return DIRAC.S_ERROR( 'Not implemented for field ' + field )
@@ -96,7 +96,7 @@ class fakeClient:
       counters['Total'] = counters['Unused']
       return DIRAC.S_OK( counters )
     else:
-      return self.transClient.getTransformationFilesCount( transID, field, selection=selection )
+      return self.transClient.getTransformationFilesCount( transID, field, selection = selection )
 
   def getTransformationRunStats( self, transIDs ):
     counters = {}
@@ -198,7 +198,7 @@ if __name__ == "__main__":
                                        'Usage:',
                                        '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
 
-  Script.parseCommandLine( ignoreErrors=True )
+  Script.parseCommandLine( ignoreErrors = True )
 
   asIfProd = None
   allFiles = False
@@ -237,13 +237,13 @@ if __name__ == "__main__":
   transType = pluginScript.getOption( 'Type', transType )
   transformation.setType( transType )
 
-  visible = True
+  visible = 'Yes'
   if allFiles or not plugin or plugin == "DestroyDataset" or pluginScript.getOption( 'Productions' ) or transType == 'Processing':
-    visible = False
+    visible = 'All'
   bkQueryDict = {}
   checkReplica = True
   if not requestedLFNs:
-    bkQuery = pluginScript.getBKQuery( visible=visible )
+    bkQuery = pluginScript.getBKQuery( visible = visible )
     if noRepFiles and not plugin:
       #FIXME: this should work but doesn't yet...
       #bkQuery.setOption( 'ReplicaFlag', "ALL" )
@@ -282,12 +282,12 @@ if __name__ == "__main__":
     lfns = requestedLFNs
   else:
     print "Getting the files from BK"
-    lfns = bkQuery.getLFNs( printSEUsage=( ( transType == 'Removal' or not plugin ) \
+    lfns = bkQuery.getLFNs( printSEUsage = ( ( transType == 'Removal' or not plugin ) \
                                            and not pluginScript.getOption( 'Runs' ) \
-                                           and not pluginScript.getOption( 'DQFlags' ) ), printOutput=checkReplica, visible=visible )
+                                           and not pluginScript.getOption( 'DQFlags' ) ), printOutput = checkReplica, visible = visible )
     if not checkReplica:
       bkQuery.setOption( 'ReplicaFlag', "No" )
-      lfns += bkQuery.getLFNs( printSEUsage=False, printOutput=False, visible=visible )
+      lfns += bkQuery.getLFNs( printSEUsage = False, printOutput = False, visible = visible )
       print '%d files in directories:' % len( lfns )
       directories = {}
       import os
@@ -317,7 +317,7 @@ if __name__ == "__main__":
   fakeClient = fakeClient( transformation, transID, lfns, asIfProd )
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-  oplugin = TransformationPlugin( plugin, transClient=fakeClient, replicaManager=ReplicaManager(), bkkClient=BookkeepingClient() )
+  oplugin = TransformationPlugin( plugin, transClient = fakeClient, replicaManager = ReplicaManager(), bkkClient = BookkeepingClient() )
   pluginParams['TransformationID'] = transID
   oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()
