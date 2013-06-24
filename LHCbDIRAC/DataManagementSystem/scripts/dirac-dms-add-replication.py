@@ -89,6 +89,8 @@ if __name__ == "__main__":
   if plugin in ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ) or prods:
     visible = 'All'
     lfcCheck = False
+  else:
+    visible = 'Yes'
 
   if not requestedLFNs:
     bkQuery = pluginScript.getBKQuery( visible = visible )
