@@ -224,10 +224,14 @@ if __name__ == "__main__":
   dmScript.registerSiteSwitches()
 
   unit = 'TB'
+  minimum = 0.1
   Script.registerSwitch( "u:", "Unit=", "   Unit to use [%s] (MB,GB,TB,PB)" % unit )
   Script.registerSwitch( "l", "LCG", "  Group results by tape and disk" )
   Script.registerSwitch( '', "Full", "  Output the directories matching selection" )
   Script.registerSwitch( '', "BrowseBK", "   Loop overall paths matching the BK query" )
+  Script.registerSwitch( '', "Users=", "   Get storage usage for a (list of) user(s)" )
+  Script.registerSwitch( '', 'Summary', '  Only print a summary for users' )
+  Script.registerSwitch( '', 'Minimum=', "   Don't print usage for users below that usage (same units, default %.1f" % minimum )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -236,21 +240,36 @@ if __name__ == "__main__":
 
   Script.parseCommandLine( ignoreErrors = False )
 
-  from DIRAC import gConfig
+  from DIRAC import gConfig, gLogger
   from DIRAC.Core.DISET.RPCClient import RPCClient
 
+  gLogger.setLevel( 'FATAL' )
   lcg = False
   full = False
   bkBrowse = False
+  users = None
+  summary = False
+  rank = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0].lower() == "u" or switch[0].lower() == "unit":
       unit = switch[1]
-    if switch[0].lower() == "l" or switch[0].lower() == "lcg":
+    elif switch[0].lower() == "l" or switch[0].lower() == "lcg":
       lcg = True
-    if switch[0].lower() == "full":
+    elif switch[0].lower() == "full":
       full = True
-    if switch[0] == "BrowseBK":
+    elif switch[0] == "BrowseBK":
       bkBrowse = True
+    elif switch[0] == "Users":
+      if switch[1].lower() == 'all':
+        users = sorted( gConfig.getSections( '/Registry/Users' )['Value'] )
+        summary = True
+        rank = True
+      else:
+        users = sorted( switch[1].split( ',' ) )
+    elif switch[0] == "Summary":
+      summary = True
+    elif switch[0] == 'Minimum':
+      minimum = float( switch[1] )
 
   scaleDict = { 'MB' : 1000 * 1000.0,
                 'GB' : 1000 * 1000 * 1000.0,
@@ -275,7 +294,9 @@ if __name__ == "__main__":
     browseBK( bkQuery, ses, scaleFactor )
     DIRAC.exit( 0 )
 
-  dirs = dmScript.getOption( 'Directory' )
+  dirs = dmScript.getOption( 'Directory', [] )
+  if users:
+    dirs += ['/lhcb/user/%s/%s' % ( user[0], user ) for user in users]
   prods = None
   fileTypes = dmScript.getOption( 'FileType' )
   if type( fileTypes ) != type( [] ):
@@ -323,7 +344,8 @@ if __name__ == "__main__":
       prString += 'in %d directories' % len( dirs )
     else:
       prString += 'directories %s' % str( dirs )
-  print prString
+  if not users:
+    print prString
   if full:
     dirData = {}
     for prodID in sorted( prods ):
@@ -339,10 +361,25 @@ if __name__ == "__main__":
 
   totalUsage = None
   grandTotal = None
+  usersUsage = {}
   for prodID in prods:
     for fileType in fileTypes:
       for dir in dirs:
-        totalUsage, grandTotal = getStorageSummary( totalUsage, grandTotal, dir, fileType, prodID, ses )
+        if users:
+          user = dir.split( '/' )[-1]
+          quota = gConfig.getValue( '/Registry/Users/%s/Quota' % user, 0 )
+          if not quota:
+            quota = gConfig.getValue( '/Registry/DefaultStorageQuota', 0 )
+          quota *= scaleDict['GB'] / scaleFactor
+          totalUsage, grandTotal = getStorageSummary( 0, 0, dir, fileType, prodID, ses )
+          spaceUsed = grandTotal['Size'] / scaleFactor
+          if summary:
+            usersUsage[user] = ( spaceUsed, quota )
+          else:
+            print "Storage usage for user %s (quota: %.1f %s)%s" % ( user, quota, unit, ' <== Over quota' if spaceUsed > quota else '' )
+            printSEUsage( totalUsage, grandTotal, scaleFactor )
+        else:
+          totalUsage, grandTotal = getStorageSummary( totalUsage, grandTotal, dir, fileType, prodID, ses )
 
   if lcg:
     from DIRAC.Resources.Storage.StorageElement                    import StorageElement
@@ -367,6 +404,15 @@ if __name__ == "__main__":
     print "%s %s %s" % ( 'T*D1'.ljust( 20 ), ( '%.1f' % ( diskTotalSize / scaleFactor ) ).ljust( 20 ), str( diskTotalFiles ).ljust( 20 ) )
     DIRAC.exit( 0 )
 
-  printSEUsage( totalUsage, grandTotal, scaleFactor )
+  if not users:
+    printSEUsage( totalUsage, grandTotal, scaleFactor )
+  elif summary:
+    if rank:
+      users = sorted( usersUsage, cmp = ( lambda u1, u2: int( ( usersUsage[u2][0] - usersUsage[u1][0] ) * 1000. ) ) )
+    for user in users:
+      spaceUsed, quota = usersUsage[user]
+      if spaceUsed > minimum:
+        print "Storage usage for user %8s: %6.3f %s (quota: %4.1f %s)%s" % ( user, spaceUsed, unit, quota, unit, ' <== Over quota' if spaceUsed > quota else '' )
+
   DIRAC.exit( 0 )
 
