@@ -147,7 +147,7 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     res = self.__addBookkeepingQuery( queryDict, connection = connection )
     if not res['OK']:
-      print "not res ", res#canc
+      print "not res ", res  # canc
       return res
     bkQueryID = res['Value']
     res = self.__setTransformationQuery( transName, bkQueryID, author = author, connection = connection )
@@ -391,7 +391,7 @@ class TransformationDB( DIRACTransformationDB ):
           runID = 0
         lfn = fileDict['LFN']
         if fileDict['Status'] in self.allowedStatusForTasks:
-          foundLfns.update( lfn )
+          foundLfns.add( lfn )
         else:
           gLogger.error( "Supplied file not in %s status but %s" % ( self.allowedStatusForTasks, fileDict['Status'] ), lfn )
       unavailableLfns = set( lfns ) - foundLfns
