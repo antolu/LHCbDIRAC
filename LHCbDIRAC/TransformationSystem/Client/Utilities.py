@@ -57,6 +57,7 @@ class PluginScript( DMScript ):
                            "   List of processing passes for the DeleteReplicasWhenProcessed plugin", self.setProcessingPasses )
     Script.registerSwitch( "", "Period=",
                            "   minimal period at which a plugin is executed (if instrumented)", self.setPeriod )
+    Script.registerSwitch( "", "CacheLifeTime=", "   plugin cache life time", self.setCacheLifeTime )
     Script.registerSwitch( "", "CleanTransformations",
                            "   (only for DestroyDataset) clean transformations from the files being destroyed", self.setCleanTransformations )
     Script.registerSwitch( '', 'Debug', '   Sets a debug flag in the plugin', self.setDebug )
@@ -96,6 +97,13 @@ class PluginScript( DMScript ):
     self.options['ProcessingPasses'] = val.split( ',' )
     return S_OK()
 
+  def setCacheLifeTime( self, val ):
+    try:
+      self.options['CacheLifeTime'] = int( val )
+    except:
+      gLogger.error( 'Invalid value for CacheLifeTime: %s' % val )
+    return S_OK()
+
   def setPeriod( self, val ):
     self.options['Period'] = val
     return S_OK()
@@ -113,8 +121,8 @@ class PluginScript( DMScript ):
       params = eval( self.options['Parameters'] )
     else:
       params = {}
-    pluginParams = ( 'NumberOfReplicas', 'GroupSize', 'ProcessingPasses', 'Period', 'CleanTransformations', 'Debug' )
-    #print self.options
+    pluginParams = ( 'NumberOfReplicas', 'GroupSize', 'ProcessingPasses', 'Period', 'CleanTransformations', 'Debug', 'CacheLifeTime' )
+    # print self.options
     for key in [k for k in self.options if k in pluginParams]:
       params[key] = self.options[key]
     for key in [k for k in self.options if k.endswith( 'SE' ) or k.endswith( 'SEs' )]:
@@ -761,7 +769,7 @@ class PluginUtilities:
   def groupBySize( self, files, status ):
     startTime = time.time()
     if not self.groupSize:
-      self.groupSize = float( self.getPluginParam( 'GroupSize', 1 ) ) * 1000 * 1000 * 1000 # input size in GB converted to bytes
+      self.groupSize = float( self.getPluginParam( 'GroupSize', 1 ) ) * 1000 * 1000 * 1000  # input size in GB converted to bytes
     requestedSize = self.groupSize
     flush = ( status == 'Flush' )
     self.logVerbose( "groupBySize: %d files, groupSize %d, flush %s" % ( len( files ), self.groupSize, flush ) )
