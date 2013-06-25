@@ -2,7 +2,8 @@
 #-------------------------------------------------------------------------------
 # latest_release
 #  
-# : gets releases.cfg and returns latest_release
+# : gets releases.cfg and writes the result into two files
+# : dirac.version and lhcbdirac.version
 #  
 # ubeda@cern.ch  
 # 10/VI/2013
