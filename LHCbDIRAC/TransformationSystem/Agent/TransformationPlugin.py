@@ -202,7 +202,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if not res['OK']:
             self.util.logError( "Failed to assign TransformationRun SE", res['Message'] )
             return res
-        #Create the tasks
+        # Create the tasks
         tasks.append( ( assignedSE, runLfns ) )
     return S_OK( tasks )
 
@@ -755,7 +755,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             self.util.logError( "Failed to assign TransformationRun site", res['Message'] )
             return S_ERROR( "Failed to assign TransformationRun site" )
 
-        #Now assign the individual files to their targets
+        # Now assign the individual files to their targets
         targetSEs = stringTargetSEs.split( ',' )
         if 'CNAF-DST' in targetSEs and 'CNAF_M-DST' in targetSEs:
           targetSEs.remove( 'CNAF-DST' )
@@ -904,7 +904,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           alreadyCompleted += lfns
         if targetSEs:
           stringTargetSEs = ','.join( sorted( targetSEs ) )
-          #Now assign the individual files to their targets
+          # Now assign the individual files to their targets
           ( chunkFileTargetSEs, completed ) = self.util.assignTargetToLfns( lfns, self.transReplicas, stringTargetSEs )
           alreadyCompleted += completed
           fileTargetSEs.update( chunkFileTargetSEs )
@@ -1042,7 +1042,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         existingSEs = [se for se in existingSEs if se not in mandatorySEs]
         self.util.logVerbose( "%d files, non-keep SEs: %s, removal from %s, keep %d" % ( len( lfns ), existingSEs,
                                                                                          listSEs, minKeep ) )
-        #print existingSEs, listSEs, minKeep
+        # print existingSEs, listSEs, minKeep
         if len( existingSEs ) > minKeep:
           # explicit deletion
           if listSEs:
@@ -1107,9 +1107,23 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if not res['OK']:
         self.util.logError( "Failed to get BK query for transformation", res['Message'] )
         return S_OK( [] )
-      bkQuery = BKQuery( res['Value'] )
+      bkQuery = BKQuery( res['Value'], visible = 'All' )
       self.util.logVerbose( "BKQuery: %s" % bkQuery )
       transProcPass = bkQuery.getProcessingPass()
+      if not transProcPass:
+        lfn = self.transReplicas.keys()[0]
+        res = self.bkClient.getDirectoryMetadata( lfn )
+        if not res['OK']:
+          self.util.logError( "Error getting directory metadata", res['Message'] )
+          return res
+        transQuery = res['Value']['Successful'].get( lfn, [{}] )[0]
+        for key in ( 'ConditionDescription', 'FileType', 'Production', 'EventType' ):
+          transQuery.pop( key, None )
+        bkQuery = BKQuery( transQuery, visible = 'All' )
+        transProcPass = bkQuery.getProcessingPass()
+        if not transProcPass:
+          self.util.logError( 'Unable to find processing pass for transformation nor for %s' % lfn )
+        self.util.logVerbose( "BKQuery reconstructed: %s" % bkQuery )
       processingPasses = [os.path.join( transProcPass, procPass ) for procPass in processingPasses]
 
       now = datetime.datetime.utcnow()
@@ -1137,11 +1151,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       else:
         self.util.logVerbose( "Cache is being refreshed (lifetime %d hours)" % cacheLifeTime )
         bkQuery.setFileType( None )
+        bkQuery.setEventType( None )
         for procPass in processingPasses:
           bkQuery.setProcessingPass( procPass )
-          # Temporary work around for getting Stripping production from merging (parent should be set to False)
-          bkQuery.setEventType( None )
-          prods = bkQuery.getBKProductions( visible = 'ALL' )
+          prods = bkQuery.getBKProductions()
           if not prods:
             self.util.logVerbose( "For procPass %s, found no productions, wait next time" % ( procPass ) )
             return S_OK( [] )
@@ -1208,7 +1221,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
         lfnsProcessed = [lfn for lfn in lfnsNotProcessed if not lfnsNotProcessed[lfn]]
         lfnsNotProcessed = [lfn for lfn in lfns if lfnsNotProcessed.get( lfn, True )]
-        #print lfnsProcessed, lfnsNotProcessed
+        # print lfnsProcessed, lfnsNotProcessed
         if lfnsNotProcessed:
           self.util.logInfo( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ),
                                                                                      stringTargetSEs ) )
@@ -1287,7 +1300,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if targetSEs:
           storageElementGroups.setdefault( ','.join( targetSEs ), [] ).append( lfn )
         else:
-          #print lfn, sorted( replicas[lfn] ), sorted( replicaSE )
+          # print lfn, sorted( replicas[lfn] ), sorted( replicaSE )
           noMissingSE.append( lfn )
       if noMissingSE:
         self.util.logInfo( "Found %d files that are already present in the destination SEs (set Processed)" % len( noMissingSE ) )
