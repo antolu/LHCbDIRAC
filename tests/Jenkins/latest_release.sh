@@ -44,11 +44,9 @@ cd $tmp_dir
 
 wget http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC/releases.cfg --quiet
 
-latest=`cat releases.cfg | grep [^:]v[[:digit:]]r[[:digit:]]*$PRE | head -1 | sed 's/ //g'`
+project=`cat releases.cfg | grep [^:]v[[:digit:]]r[[:digit:]]*$PRE | head -1 | sed 's/ //g'`
 
-echo LHCbDIRAC Release: $latest
-
-s=`cat releases.cfg | grep -n $latest | cut -d ':' -f 1 | head -1`  
+s=`cat releases.cfg | grep -n $project | cut -d ':' -f 1 | head -1`  
 s=$(($s+2))
 e=$(($s+3))
 versions=`sed -n "$s,$e p" releases.cfg`
@@ -59,6 +57,7 @@ lhcbdirac=`echo $versions | tr ' ' '\n' | grep ^LHCbDIRAC:v* | sed 's/,//g' | cu
 cd - >> /dev/null 
 rm -r $tmp_dir
 
+echo PROJECT:$project && echo $project > project.version
 echo DIRAC:$dirac && echo $dirac > dirac.version
 echo LHCbDIRAC:$lhcbdirac && echo $lhcbdirac > lhcbdirac.version
 
