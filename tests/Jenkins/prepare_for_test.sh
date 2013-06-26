@@ -121,13 +121,14 @@ diracConfigure(){
 }  
 
 #-------------------------------------------------------------------------------
-# diracMySQL:
+# diracStopMySQL:
 #
-#   installs MySQL. If it was running before, it returns an error.
+#   if MySQL is running, it stops it. If not running, returns exit code 1
+#
 #-------------------------------------------------------------------------------
 
-diracMySQL(){
-  
+diracStopMySQL(){
+
   # It happens that if ps does not find anything, spits a return code 1 !
   set +o errexit
   mysqlRunning=`ps aux | grep mysql | grep -v grep`
@@ -135,11 +136,20 @@ diracMySQL(){
    
   if [ ! -z "$mysqlRunning" ]
   then
-    echo MySQL is running, being killed.
     killall mysqld
-    exit 1
-  fi  
-    
+  fi   
+   
+}
+
+#-------------------------------------------------------------------------------
+# diracMySQL:
+#
+#   installs MySQL. If it was running before, it returns an error.
+#-------------------------------------------------------------------------------
+
+diracMySQL(){
+  
+  diracStopMySQL    
   dirac-install-mysql
   
 }  
@@ -156,31 +166,6 @@ diracDBs(){
   cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1 | xargs dirac-install-db
 
 }
-
-#-------------------------------------------------------------------------------
-# diracStopMySQL:
-#
-#   if MySQL is running, it stops it. If not running, returns exit code 1
-#
-#-------------------------------------------------------------------------------
-
-diracStopMySQL(){
-
-  # It happens that if ps does not find anything, spits a return code 1 !
-  set +o errexit
-  mysqlRunning=`ps aux | grep mysql | grep -v grep`
-  set -o errexit
-   
-  if [ -z "$mysqlRunning" ]
-  then
-    echo MySQL is NOT running.
-    exit 1
-  fi   
-  
-  dirac-stop-mysql
- 
-}
-
 
 #-------------------------------------------------------------------------------
 #EOF
