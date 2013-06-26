@@ -53,5 +53,6 @@ def find_all( name, path, directory = None ):
     if name in files:
       result.append( os.path.join( root, name ) )
   if directory:
-    return [x for x in result if directory in x]
+    if directory not in os.getcwd():
+      return [x for x in result if directory in x]
   return result
