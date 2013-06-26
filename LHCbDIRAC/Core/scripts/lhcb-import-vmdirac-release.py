@@ -90,7 +90,7 @@ if __name__ == "__main__":
     localCFG.createNewSection( 'Versions' )
     localCFG['Versions'].createNewSection( release )
     localreleaseCFG = localCFG['Versions']
-#    localreleaseCFG[release].setOption( 'Resources', release )
+    localreleaseCFG[release].setOption( 'Resources', release )
     localreleaseCFG[release].setOption( 'Web', release )
     localreleaseCFG[release].setOption( 'WorkloadManagementSystem', release )
     localCFG.writeToFile( 'versions-new.cfg' )
