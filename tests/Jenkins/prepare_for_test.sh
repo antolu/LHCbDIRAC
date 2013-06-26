@@ -130,7 +130,14 @@ diracMySQL(){
   
   mysqlRunning=`ps | grep mysql | grep -v grep`
   
-  [ "$mysqlRunning" ] && echo 'MySQL is running' && dirac-stop-mysql && exit 1
+  echo mysqlRunning
+  
+  if [ "$mysqlRunning" ]
+  then
+    echo 'MySQL is running'
+    dirac-stop-mysql
+    exit 1
+  fi  
   
   dirac-install-mysql
   
