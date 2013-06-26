@@ -129,12 +129,11 @@ class GaudiScriptSuccess( UserJobTestCase ):
     pConfFile = find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'Integration' )[0]
     lhcbJob.setInputSandbox( [pConfFile, script] )
 
-    lhcbJob.addPackage( 'AppConfig', 'v3r160' )
-    lhcbJob.addPackage( 'DecFiles', 'v26r24' )
+    lhcbJob.addPackage( 'AppConfig', 'v3r171' )
     lhcbJob.addPackage( 'ProdConf', 'v1r9' )
 
-    lhcbJob.setApplicationScript( 'Gauss', 'v42r4', script,
-                                  extraPackages = 'AppConfig.v3r160;DecFiles.v26r24;ProdConf.v1r9' )
+    lhcbJob.setApplicationScript( 'Gauss', 'v45r3', script,
+                                  extraPackages = 'AppConfig.v3r171;ProdConf.v1r9' )
     lhcbJob.setSystemConfig( 'x86_64-slc5-gcc43-opt' )
 
     res = lhcbJob.runLocal( self.dLHCb )
