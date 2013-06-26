@@ -130,9 +130,7 @@ diracMySQL(){
   
   echo 1
   
-  ps | grep mysql | grep -v grep
-  
-  mysqlRunning=`ps | grep mysql | grep -v grep`
+  mysqlRunning=`ps aux | grep mysql | grep -v grep`
   
   echo $mysqlRunning
   echo 2
