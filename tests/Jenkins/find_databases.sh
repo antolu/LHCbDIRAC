@@ -9,7 +9,7 @@
 # 26/VI/2013
 #-------------------------------------------------------------------------------
 
-find *DIRAC -name *DB.sql` | uniq | awk -F "/" '{print $2,$4} > databases
+find *DIRAC -name *DB.sql | uniq | awk -F "/" '{print $2,$4} > databases
 
 cat databases
 
