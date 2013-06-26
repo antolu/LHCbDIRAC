@@ -128,22 +128,18 @@ diracConfigure(){
 
 diracMySQL(){
   
-  echo 1
-  
+  # It happens that if ps does not find anything, spits a return code 1 !
+  set +o errexit
   mysqlRunning=`ps aux | grep mysql | grep -v grep`
-  
-  echo $mysqlRunning
-  echo 2
-  
+  set -o errexit
+   
   if [ ! -z "$mysqlRunning" ]
   then
     echo MySQL is running, being killed.
     killall mysqld
     exit 1
   fi  
-  
-  echo 3
-  
+    
   dirac-install-mysql
   
 }  
