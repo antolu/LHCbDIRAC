@@ -75,19 +75,17 @@ class GaudirunSuccess( UserJobTestCase ):
     lhcbJob.setName( "gaudirun-test" )
     lhcbJob.setInputSandbox( find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'Integration' )[0] )
 
-    optGauss = "$APPCONFIGOPTS/Gauss/Beam4000GeV-md100-JulSep2012-nu2.5.py;"
-    optDec = "$DECFILESROOT/options/15512012.py;"
-    optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
-    optOpts = " $APPCONFIGOPTS/Gauss/G4PL_LHEP_EmNoCuts.py;"
-    optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
+    optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;"
+    optDec = "$DECFILESROOT/options/11102400.py;"
+    optPythia = "$LBPYTHIA8ROOT/options/Pythia8.py;"
+    optOpts = " $APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
+    optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py"
     optPConf = "prodConf_Gauss_00012345_00067890_1.py"
     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-    lhcbJob.addPackage( 'AppConfig', 'v3r160' )
-    lhcbJob.addPackage( 'DecFiles', 'v26r24' )
-    lhcbJob.addPackage( 'ProdConf', 'v1r9' )
+    lhcbJob.addPackage( 'AppConfig', 'v3r171' )
 
-    lhcbJob.setApplication( 'Gauss', 'v42r4', options,
-                            extraPackages = 'AppConfig.v3r160;DecFiles.v26r24;ProdConf.v1r9',
+    lhcbJob.setApplication( 'Gauss', 'v45r3', options,
+                            extraPackages = 'AppConfig.v3r171',
                             events = '3' )
     lhcbJob.setSystemConfig( 'x86_64-slc5-gcc43-opt' )
 
