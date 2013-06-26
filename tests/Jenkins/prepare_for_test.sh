@@ -126,7 +126,7 @@ diracConfigure(){
 #   installs MySQL. If it was running before, it returns an error.
 #-------------------------------------------------------------------------------
 
-diracMysql(){
+diracMySQL(){
   
   [ -e mysql/db/`hostname`.pid ] && echo 'MySQL is running (PID found)' && dirac-stop-mysql && exit 1
   
