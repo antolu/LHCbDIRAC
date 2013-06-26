@@ -83,9 +83,10 @@ class GaudirunSuccess( UserJobTestCase ):
     optPConf = "prodConf_Gauss_00012345_00067890_1.py"
     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
     lhcbJob.addPackage( 'AppConfig', 'v3r171' )
+    lhcbJob.addPackage( 'ProdConf', 'v1r9' )
 
     lhcbJob.setApplication( 'Gauss', 'v45r3', options,
-                            extraPackages = 'AppConfig.v3r171',
+                            extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
                             events = '3' )
     lhcbJob.setSystemConfig( 'x86_64-slc5-gcc43-opt' )
 
