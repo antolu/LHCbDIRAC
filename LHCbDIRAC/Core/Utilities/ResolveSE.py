@@ -27,8 +27,12 @@ def getDestinationSEList( outputSE, site, outputmode = 'Any' ):
     gLogger.info( 'Found associated SE for site %s' % ( alias_se ) )
     return alias_se
 
-  localSEs = getSEsForSite( site )['Value']
+  localSEs = getSEsForSite( site )
+  if not localSEs['OK']:
+    raise RuntimeError, localSEs['Message']
+  localSEs = localSEs['Value']
   gLogger.verbose( 'Local SE list is: %s' % ( localSEs ) )
+
   groupSEs = gConfig.getValue( '/Resources/StorageElementGroups/' + outputSE, [] )
   if not groupSEs:
     raise RuntimeError, 'Failed to resolve SE ' + outputSE
