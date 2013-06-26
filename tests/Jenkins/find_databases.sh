@@ -11,7 +11,7 @@
 
 find *DIRAC -name *DB.sql | uniq | awk -F "/" '{print $2,$4}' > databases
 
-cat databases
+echo found `wc -l databases` Databases
 
 #-------------------------------------------------------------------------------
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
