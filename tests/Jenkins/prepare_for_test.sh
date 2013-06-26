@@ -135,13 +135,16 @@ diracMySQL(){
   mysqlRunning=`ps | grep mysql | grep -v grep`
   
   echo $mysqlRunning
+  echo 2
   
-  if [ "$mysqlRunning" ]
+  if [ ! -z "$mysqlRunning" ]
   then
     echo MySQL is running, being killed.
     killall mysqld
     exit 1
   fi  
+  
+  echo 3
   
   dirac-install-mysql
   
