@@ -79,7 +79,7 @@ class GaudirunSuccess( UserJobTestCase ):
     optDec = "$DECFILESROOT/options/11102400.py;"
     optPythia = "$LBPYTHIA8ROOT/options/Pythia8.py;"
     optOpts = " $APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
-    optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py"
+    optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
     optPConf = "prodConf_Gauss_00012345_00067890_1.py"
     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
     lhcbJob.addPackage( 'AppConfig', 'v3r171' )
