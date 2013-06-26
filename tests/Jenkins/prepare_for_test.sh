@@ -60,7 +60,7 @@ findRelease(){
 
 findDatabases(){
 
-  find *DIRAC -name *DB.sql | uniq | awk -F "/" '{print $2,$4}' > databases
+  find *DIRAC -name *DB.sql | sort | uniq -u | awk -F "/" '{print $2,$4}' > databases
 
   echo found `wc -l databases`
 
