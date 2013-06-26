@@ -134,8 +134,8 @@ diracMySQL(){
   
   if [ "$mysqlRunning" ]
   then
-    echo 'MySQL is running'
-    dirac-stop-mysql
+    echo MySQL is running, being killed.
+    killall mysqld
     exit 1
   fi  
   
