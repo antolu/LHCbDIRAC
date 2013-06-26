@@ -1,6 +1,5 @@
 import unittest
 from DIRAC import gLogger
-from DIRAC.Core.Base.Script import parseCommandLine
 from LHCbTestDirac.Utilities.utils import cleanTestDir
 
 class IntegrationTest( unittest.TestCase ):
@@ -9,7 +8,6 @@ class IntegrationTest( unittest.TestCase ):
 
   def setUp( self ):
     cleanTestDir()
-    parseCommandLine()
 
     gLogger.setLevel( 'DEBUG' )
 
