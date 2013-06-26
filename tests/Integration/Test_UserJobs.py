@@ -99,8 +99,7 @@ class GaudirunSuccess( UserJobTestCase ):
   def test_boole( self ):
 
     # get a shifter proxy
-    res = setupShifterProxyInEnv( 'ProductionManager' )
-    print res
+    setupShifterProxyInEnv( 'ProductionManager' )
 
     lhcbJob = LHCbJob()
 
