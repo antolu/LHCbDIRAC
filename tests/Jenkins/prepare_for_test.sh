@@ -128,9 +128,11 @@ diracConfigure(){
 
 diracMySQL(){
   
+  echo 1
+  
   mysqlRunning=`ps | grep mysql | grep -v grep`
   
-  echo mysqlRunning
+  echo $mysqlRunning
   
   if [ "$mysqlRunning" ]
   then
