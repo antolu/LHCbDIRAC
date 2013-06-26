@@ -128,7 +128,9 @@ diracConfigure(){
 
 diracMySQL(){
   
-  [ -e mysql/db/`hostname`.pid ] && echo 'MySQL is running (PID found)' && dirac-stop-mysql && exit 1
+  mysqlRunning=`ps | grep mysql | grep -v grep`
+  
+  [ "$mysqlRunning" ] && echo 'MySQL is running' && dirac-stop-mysql && exit 1
   
   dirac-install-mysql
   
