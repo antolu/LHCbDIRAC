@@ -27,7 +27,7 @@ class MCSuccess( ProductionJobTestCase ):
     stepsInProd = [{'StepId': 125080, 'StepName': 'Sim08a', 'ApplicationName': 'Gauss', 'ApplicationVersion': 'v45r3',
                     'ExtraPackages': 'AppConfig.v3r171', 'ProcessingPass': 'Sim08a', 'Visible': 'Y', 'Usable': 'Yes',
                     'DDDB': 'Sim08-20130503-1', 'CONDDB': 'Sim08-20130503-1-vc-mu100', 'DQTag': '', 'OptionsFormat': '',
-                    'OptionFiles': '$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/@{eventType}.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
+                    'OptionFiles': '$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'fileTypesIn':[],
                     'fileTypesOut':['SIM']},
                    {'StepId': 124620, 'StepName': 'Digi13', 'ApplicationName': 'Boole', 'ApplicationVersion': 'v26r3',
