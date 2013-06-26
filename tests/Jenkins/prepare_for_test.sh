@@ -60,7 +60,7 @@ findRelease(){
 
 findDatabases(){
 
-  find *DIRAC -name *DB.sql | uniq | awk -F "/" '{print $4}' | cut -d '.' -f1 > databases
+  find *DIRAC -name *DB.sql | uniq | awk -F "/" '{print $2,$4}' > databases
 
   echo found `wc -l databases`
 
@@ -141,6 +141,8 @@ diracMySQL(){
   fi  
     
   dirac-install-mysql
+  
+  
   
 }  
 
