@@ -1,3 +1,6 @@
+from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
+
 import unittest, os
 
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
