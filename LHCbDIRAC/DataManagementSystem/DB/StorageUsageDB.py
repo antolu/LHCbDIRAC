@@ -10,16 +10,13 @@
 ## imports
 from types import StringType, IntType
 ## from DIRAC
-from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Base.DB import DB
 
 __RCSID__ = "$Id$"
 
 def _standardDirectory( dirPath ):
   return dirPath if dirPath[-1] == '/' else dirPath + '/'
-
-def _standardDirList( dirList ):
-  return [_standardDirectory( dirPath ) for dirPath in dirList]
 
 #############################################################################
 class StorageUsageDB( DB ):
@@ -906,9 +903,9 @@ class StorageUsageDB( DB ):
     insertedEntries = 0
     for d in directoryDict:
       try:
-        site = directoryDict[ d ]['site']
+        site  = directoryDict[ d ]['site']
         count = directoryDict[ d ]['count']
-      except:
+      except KeyError:
         self.log.error( "input directoryDict should specify site and count keys . %s " % str( directoryDict ) )
         return S_ERROR( 'wrong arguments format' )
       # set default value for status
