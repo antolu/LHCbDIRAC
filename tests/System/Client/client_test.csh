@@ -96,6 +96,25 @@ if $status != 0 then
    exit 0
 endif
 echo " "
+echo "====== dirac-dms-add-replication --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=ReplicateDataset --Test"
+dirac-dms-add-replication --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=ReplicateDataset --Test
+if $status != 0 then
+   exit 0
+endif
+echo " "
+echo "dirac-dms-add-replication --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start"
+dirac-dms-add-replication --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start
+if $status != 0 then
+   exit 0
+endif
+echo " "
+echo "dirac-dms-replica-stats  --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST"
+dirac-dms-replica-stats  --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST
+if $status != 0 then
+   exit 0
+endif
+
+echo " "
 echo "======  dirac-bookkeeping-run-files 81789"
 dirac-bookkeeping-run-files 81789
 if $status != 0 then
