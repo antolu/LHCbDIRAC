@@ -116,8 +116,8 @@ class RAWIntegrityDB( DB ):
     if not res['OK']:
       return res
     statusDict = {}
-    for tuple in res['Value']:
-      status, count = tuple
+    for resValue in res['Value']:
+      status, count = resValue
       statusDict[status] = count
     return S_OK( statusDict )
 
@@ -129,14 +129,14 @@ class RAWIntegrityDB( DB ):
     res = self._query( req )
     if not res['OK']:
       return res
-    for tuple in res['Value']:
-      selDict['StorageElement'].append( tuple[0] )
+    for resValue in res['Value']:
+      selDict['StorageElement'].append( resValue[0] )
     req = "SELECT DISTINCT(Status) FROM Files;"
     res = self._query( req )
     if not res['OK']:
       return res
-    for tuple in res['Value']:
-      selDict['Status'].append( tuple[0] )
+    for resValue in res['Value']:
+      selDict['Status'].append( resValue[0] )
     return S_OK( selDict )
 
   def __buildCondition( self, condDict, older = None, newer = None, timeStamp = 'SubmitTime' ):
