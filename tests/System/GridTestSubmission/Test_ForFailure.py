@@ -1,6 +1,8 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
+import random
+
 from DIRAC import gLogger
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
@@ -34,8 +36,13 @@ gaudirunJob.setApplication( 'Gauss', 'v45r3', options, extraPackages = 'AppConfi
                                                 'FileUsage',
                                                 'UploadOutputData',
                                                 'UploadLogFile',
+                                                'FailoverRequest',
                                                 'UserJobFinalization'], )
 
+gaudirunJob._addParameter( gaudirunJob.workflow, 'PRODUCTION_ID', 'string',
+                           'test%s' % str( random.randint( 1, 1000 ) ), 'ProductionID' )
+gaudirunJob._addParameter( gaudirunJob.workflow, 'JOB_ID', 'string',
+                           'test%s' % str( random.randint( 1, 1000 ) ), 'JobID' )
 gaudirunJob._addParameter( gaudirunJob.workflow, 'configName', 'string', 'testCfg', 'ConfigName' )
 gaudirunJob._addParameter( gaudirunJob.workflow, 'configVersion', 'string', 'testVer', 'ConfigVersion' )
 
