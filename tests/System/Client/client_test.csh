@@ -102,13 +102,13 @@ if $status != 0 then
    exit 0
 endif
 echo " "
-echo "dirac-dms-add-replication --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start"
+echo "====== dirac-dms-add-replication --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start"
 dirac-dms-add-replication --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start
 if $status != 0 then
    exit 0
 endif
 echo " "
-echo "dirac-dms-replica-stats  --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST"
+echo "====== dirac-dms-replica-stats  --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST"
 dirac-dms-replica-stats  --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST
 if $status != 0 then
    exit 0
