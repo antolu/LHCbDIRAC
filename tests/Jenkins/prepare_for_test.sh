@@ -89,6 +89,7 @@ diracInstall(){
 # 
 #   writes dirac.cfg file 
 #
+#   o /DIRAC/Extensions
 #   o /DIRAC/Security/UseServerCertificate
 #   o /DIRAC/Security/CertFile
 #   o /DIRAC/Security/KeyFile
@@ -100,6 +101,7 @@ diracInstall(){
 
 diracConfigure(){
 
+  exts='/DIRAC/Extensions=LHCb'
   certFile='/DIRAC/Security/CertFile='$WORKSPACE/etc/grid-security/hostcert.pem
   keyFile='/DIRAC/Security/KeyFile='$WORKSPACE/etc/grid-security/hostkey.pem
   arch=`dirac-architecture`
@@ -110,13 +112,14 @@ diracConfigure(){
   hostPath=/LocalInstallation/Database/Host='localhost'
 
   echo '/LocalSite/Architecture:' $arch
+  echo $exts
   echo $certFile
   echo $keyFile
   echo $rootPass
   echo $userPass
   echo $hostPath
 
-  dirac-configure -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath -S Jenkins
+  dirac-configure -o $exts -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath -S Jenkins
   
 }  
 
