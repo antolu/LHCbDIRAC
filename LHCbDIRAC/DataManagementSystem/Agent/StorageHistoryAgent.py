@@ -9,9 +9,8 @@
 __RCSID__ = "$Id$"
 
 import os, time, copy
-from types import IntType, StringType
 
-from DIRAC                                                  import S_OK, S_ERROR, gLogger
+from DIRAC                                                  import S_OK, S_ERROR
 from DIRAC.Core.Utilities                                   import Time
 
 from DIRAC.Core.Base.AgentModule                            import AgentModule
@@ -27,9 +26,6 @@ byteToGB = 1.0e9
 
 def _standardDirectory( dirPath ):
   return dirPath if dirPath[-1] == '/' else dirPath + '/'
-
-def _standardDirList( dirList ):
-  return [_standardDirectory( dirPath ) for dirPath in dirList]
 
 def _fillMetadata( dictToFill, metadataValue ):
   ''' Fill the dictionary to send to the accounting.
@@ -186,12 +182,12 @@ class StorageHistoryAgent( AgentModule ):
         storageRecord.setValueByKey( "LogicalSize", topDirLogicalUsage[ directory ][ 'Size' ] )
         try:
           physicalFiles = seData[ directory ][ se ][ 'Files' ]
-        except:
+        except KeyError:
           self.log.error( "WARNING! no files replicas for directory %s on SE %s" % ( directory, se ) )
           physicalFiles = 0
         try:
           physicalSize = seData[ directory ][ se ][ 'Size' ]
-        except:
+        except KeyError:
           self.log.error( "WARNING! no size for replicas for directory %s on SE %s" % ( directory, se ) )
           physicalSize = 0
         storageRecord.setValueByKey( "PhysicalFiles", physicalFiles )
@@ -534,9 +530,10 @@ class StorageHistoryAgent( AgentModule ):
 
   def __getEventTypeDescription( self, eventType ):
     # convert eventType to string:
+    #FIXME: the lines above and below do not make any sense
     try:
       eventType = int( eventType )
-    except:
+    except ValueError:
       pass
     # check that the event type description is in the cached dictionary, and otherwise query the Bkk
     if eventType not in self.eventTypeDescription:
