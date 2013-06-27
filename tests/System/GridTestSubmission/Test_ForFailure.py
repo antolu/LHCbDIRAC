@@ -45,6 +45,11 @@ gaudirunJob._addParameter( gaudirunJob.workflow, 'JOB_ID', 'string',
                            'test%s' % str( random.randint( 1, 1000 ) ), 'JobID' )
 gaudirunJob._addParameter( gaudirunJob.workflow, 'configName', 'string', 'testCfg', 'ConfigName' )
 gaudirunJob._addParameter( gaudirunJob.workflow, 'configVersion', 'string', 'testVer', 'ConfigVersion' )
+outputList = [{'stepName': 'GaussStep1', 'outputDataType': 'sim', 'outputBKType': 'SIM', 'outputDataSE': 'Tier1-BUFFER',
+               'outputDataName': '00012345_00067890_1.sim'}]
+gaudirunJob._addParameter( gaudirunJob.workflow, 'outputList', 'list', outputList, 'outputList' )
+gaudirunJob._addParameter( gaudirunJob.workflow, 'outputDataFileMask', 'string', '', 'outputFM' )
+gaudirunJob._addParameter( gaudirunJob.workflow, 'outputMode', 'string', 'Local', 'OM' )
 
 gaudirunJob.setSystemConfig( 'ANY' )
 gaudirunJob.setConfigArgs( 'wrongConfig.cfg' )
