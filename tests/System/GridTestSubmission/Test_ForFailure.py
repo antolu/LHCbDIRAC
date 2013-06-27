@@ -39,10 +39,8 @@ gaudirunJob.setApplication( 'Gauss', 'v45r3', options, extraPackages = 'AppConfi
                                                 'FailoverRequest',
                                                 'UserJobFinalization'], )
 
-gaudirunJob._addParameter( gaudirunJob.workflow, 'PRODUCTION_ID', 'string',
-                           'test%s' % str( random.randint( 1, 1000 ) ), 'ProductionID' )
-gaudirunJob._addParameter( gaudirunJob.workflow, 'JOB_ID', 'string',
-                           'test%s' % str( random.randint( 1, 1000 ) ), 'JobID' )
+gaudirunJob._addParameter( gaudirunJob.workflow, 'PRODUCTION_ID', 'string', '00000000', 'ProductionID' )
+gaudirunJob._addParameter( gaudirunJob.workflow, 'JOB_ID', 'string', '00000000', 'JobID' )
 gaudirunJob._addParameter( gaudirunJob.workflow, 'configName', 'string', 'testCfg', 'ConfigName' )
 gaudirunJob._addParameter( gaudirunJob.workflow, 'configVersion', 'string', 'testVer', 'ConfigVersion' )
 outputList = [{'stepName': 'GaussStep1', 'outputDataType': 'sim', 'outputBKType': 'SIM', 'outputDataSE': 'Tier1-BUFFER',
