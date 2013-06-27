@@ -12,8 +12,8 @@ from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
 class UserJobTestCase( IntegrationTest ):
-  ''' Base class for the UserJob test cases
-  '''
+  """ Base class for the UserJob test cases
+  """
   def setUp( self ):
     super( IntegrationTest, self ).setUp()
 
@@ -91,7 +91,6 @@ class GaudirunSuccess( UserJobTestCase ):
     lhcbJob.setApplication( 'Gauss', 'v45r3', options,
                             extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
                             events = '3' )
-    lhcbJob.setSystemConfig( 'x86_64-slc5-gcc43-opt' )
 
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
@@ -136,7 +135,6 @@ class GaudiScriptSuccess( UserJobTestCase ):
 
     lhcbJob.setApplicationScript( 'Gauss', 'v45r3', script,
                                   extraPackages = 'AppConfig.v3r171;ProdConf.v1r9' )
-    lhcbJob.setSystemConfig( 'x86_64-slc5-gcc43-opt' )
 
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
