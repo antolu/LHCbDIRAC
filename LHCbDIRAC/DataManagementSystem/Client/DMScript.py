@@ -178,7 +178,7 @@ class DMScript():
       for ( i, j ) in items:
         try:
           j = int( j )
-        except:
+        except ValueError:
           pass
         if i in self.bkFields + self.extraBKitems and j:
           self.bkQueryDict[i] = j
