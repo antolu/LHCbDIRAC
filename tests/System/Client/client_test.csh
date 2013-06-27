@@ -127,3 +127,6 @@ if $status != 0 then
    exit 0
 endif
 exit 0
+echo " "
+echo " if 2 replicas exists you can run "
+echo "====== dirac-dms-add-replication --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping19a//PID.MDST --Plugin=DeleteReplicas --NumberOfReplicas=1 --Start"
