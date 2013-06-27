@@ -4,9 +4,9 @@ parseCommandLine()
 import os.path
 
 from DIRAC import gLogger
-from DIRAC.Core.Utilities.List import breakListIntoChunks
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
+from LHCbTestDirac.Utilities.utils import find_all
 
 gLogger.setLevel( 'DEBUG' )
 
@@ -20,7 +20,7 @@ helloJ = LHCbJob()
 dirac = DiracLHCb()
 
 helloJ.setName( "helloWorld-test-T2s" )
-helloJ.setInputSandbox( [cwd + '/exe-script.py'] )
+helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
 
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
@@ -38,7 +38,7 @@ helloJ = LHCbJob()
 dirac = DiracLHCb()
 
 helloJ.setName( "helloWorld-test-CERN" )
-helloJ.setInputSandbox( [cwd + '/exe-script.py'] )
+helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
@@ -53,20 +53,19 @@ gLogger.info( "Submitting gaudiRun job (Gauss only)" )
 gaudirunJob = LHCbJob()
 
 gaudirunJob.setName( "gaudirun-Gauss-test" )
-gaudirunJob.setInputSandbox( 'prodConf_Gauss_00012345_00067890_1.py' )
+gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
 gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
 
-optGauss = "$APPCONFIGOPTS/Gauss/Beam4000GeV-md100-JulSep2012-nu2.5.py;"
-optDec = "$DECFILESROOT/options/15512012.py;"
-optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
-optOpts = " $APPCONFIGOPTS/Gauss/G4PL_LHEP_EmNoCuts.py;"
+optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;"
+optDec = "$DECFILESROOT/options/11102400.py;"
+optPythia = "$LBPYTHIA8ROOT/options/Pythia8.py;"
+optOpts = " $APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
 optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
 optPConf = "prodConf_Gauss_00012345_00067890_1.py"
 options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-gaudirunJob.addPackage( 'AppConfig', 'v3r160' )
-gaudirunJob.addPackage( 'DecFiles', 'v26r24' )
+gaudirunJob.addPackage( 'AppConfig', 'v3r171' )
 gaudirunJob.addPackage( 'ProdConf', 'v1r9' )
-gaudirunJob.setApplication( 'Gauss', 'v42r4', options, extraPackages = 'AppConfig.v3r160;DecFiles.v26r24;ProdConf.v1r9' )
+gaudirunJob.setApplication( 'Gauss', 'v45r3', options, extraPackages = 'AppConfig.v3r171;ProdConf.v1r9' )
 
 gaudirunJob.setSystemConfig( 'ANY' )
 gaudirunJob.setCPUTime( 172800 )
@@ -81,7 +80,7 @@ gLogger.info( "Submitting gaudiRun job (Boole only)" )
 gaudirunJob = LHCbJob()
 
 gaudirunJob.setName( "gaudirun-Boole-test" )
-gaudirunJob.setInputSandbox( 'prodConf_Boole_00012345_00067890_1.py' )
+gaudirunJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
 gaudirunJob.setOutputSandbox( '00012345_00067890_1.digi' )
 
 opts = "$APPCONFIGOPTS/Boole/Default.py;"
