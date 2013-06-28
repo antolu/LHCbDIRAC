@@ -46,6 +46,7 @@ outputList = [{'stepName': 'GaussStep1', 'outputDataType': 'sim', 'outputBKType'
 gaudirunJob._addParameter( gaudirunJob.workflow, 'outputList', 'list', outputList, 'outputList' )
 gaudirunJob._addParameter( gaudirunJob.workflow, 'outputDataFileMask', 'string', '', 'outputFM' )
 gaudirunJob._addParameter( gaudirunJob.workflow, 'outputMode', 'string', 'Local', 'OM' )
+gaudirunJob._addParameter( gaudirunJob.workflow, 'LogLevel', 'string', 'DEBUG', 'LL' )
 
 gaudirunJob.setSystemConfig( 'ANY' )
 gaudirunJob.setConfigArgs( 'wrongConfig.cfg' )
