@@ -6,6 +6,7 @@ from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers import Resources
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
+from DIRAC.RequestManagementSystem.Client.File import File
 
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce, getCPUNormalizationFactorAvg, getProductionParameterValue
 
@@ -31,6 +32,17 @@ class ModulesTestCase( unittest.TestCase ):
     self.fr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': Operation()}
 
     rc_mock = Request()
+    rc_mock.OwnerDN = 'pippo'
+    rc_mock.OwnerGroup = 'pippoGRP'
+    rOp = Operation()
+    rOp.Type = 'PutAndRegister'
+    rOp.TargetSE = 'anSE'
+    f = File()
+    f.LFN = '/foo/bar.py'
+    f.PFN = '/foo/bar.py'
+    rOp.addFile( f )
+#    rOp.Arguments = "{{}}"
+    rc_mock.addOperation( rOp )
 
     ar_mock = Mock()
     ar_mock.commit.return_value = {'OK': True, 'Value': ''}

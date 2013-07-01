@@ -800,7 +800,7 @@ class ModuleBase( object ):
     else:
       requestJSON = self.request.toJSON()
       if requestJSON['OK']:
-        request_string = requestJSON['Value']
+        request_string = str( requestJSON['Value'] )
         self.log.debug( request_string )
         # Write out the request string
         fname = '%s_%s_request.json' % ( self.production_id, self.prod_job_id )
