@@ -143,7 +143,7 @@ diracConfigure(){
   dirac-setup-site -ddd
   
   # Do not use Server Certificate
-  sed -e '87i\    UseServerCertificate=no' etc/dirac.cfg
+  sed -i '87i\    UseServerCertificate=no' etc/dirac.cfg
   
 }  
 
