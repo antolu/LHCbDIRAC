@@ -134,7 +134,7 @@ diracConfigure(){
   echo $cMaster
   echo $cName
 
-  dirac-configure -o $exts -0 $useCert -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath $setups -o $hostDN -o $services -o $cMaster -o $cName -S Jenkins
+  dirac-configure -o $exts -o $useCert -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath $setups -o $hostDN -o $services -o $cMaster -o $cName -S Jenkins
   
   dirac-setup-site -d
   
