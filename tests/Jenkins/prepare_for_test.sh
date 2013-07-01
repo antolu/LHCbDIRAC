@@ -138,7 +138,7 @@ diracConfigure(){
 
   #dirac-configure -o $exts -o $useCert -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath $setups -o $hostDN -o $services -o $cMaster -o $cName -S Jenkins
   dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass -o $certFile -o $keyFile -o $useCert -d
-  dirac-setup-site
+  dirac-setup-site -d
   
 }  
 
