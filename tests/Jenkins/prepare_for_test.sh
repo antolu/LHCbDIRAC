@@ -113,7 +113,7 @@ diracConfigure(){
   hostPath=/LocalInstallation/Database/Host='localhost'
   # Setups
   setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Systems\/Jenkins\//' | sed 's/$/=Jenkins/'` 
-  echo $setups | tr '-' -\n'
+  echo $setups | tr '-' '\n'
 
   echo '/LocalSite/Architecture:' $arch
   echo $exts
