@@ -55,9 +55,9 @@ class FailoverRequest( ModuleBase ):
       self._resolveInputVariables()
 
       # preparing the request, just in case
-      self.request.RequestName = 'job_%s_request.xml' % self.jobID
+      self.request.RequestName = 'job_%d_request.xml' % self.jobID
       self.request.JobID = self.jobID
-      self.request.SourceComponent = "Job_%s" % self.jobID
+      self.request.SourceComponent = "Job_%d" % self.jobID
 
       # report on the status of the input data
       if self.stepInputData:
