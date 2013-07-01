@@ -92,6 +92,9 @@ class UploadSAMLogs( ModuleBase ):
 
       self.log.verbose( 'lfnPath: %s' % lfnPath )
 
+      if not self._enableModule():
+        return S_OK( 'No logs to upload' )
+
       result = self.rManager.putStorageDirectory( { lfnPath : os.path.realpath( logDir ) },
                                                    self.logSE, singleDirectory = True )
 
