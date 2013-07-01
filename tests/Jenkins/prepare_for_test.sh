@@ -107,7 +107,7 @@ diracConfigure(){
   exts='/DIRAC/Extensions=LHCb'
   certFile='/DIRAC/Security/CertFile='$WORKSPACE/etc/grid-security/hostcert.pem
   keyFile='/DIRAC/Security/KeyFile='$WORKSPACE/etc/grid-security/hostkey.pem
-  useCert='/DIRAC/Security/UseServerCertificate=yes'
+  useCert='/DIRAC/Security/UseServerCertificate=no'
   arch=`dirac-architecture`
   # Randomly generated
   rootPass=/LocalInstallation/Database/RootPwd=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
@@ -139,7 +139,7 @@ diracConfigure(){
   cp $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/
 
   #dirac-configure -o $exts -o $useCert -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath $setups -o $hostDN -o $services -o $cMaster -o $cName -S Jenkins
-  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass -d 
+  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass -o $useCert -d 
   dirac-setup-site -ddd
   
 }  
