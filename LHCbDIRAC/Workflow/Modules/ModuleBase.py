@@ -778,11 +778,11 @@ class ModuleBase( object ):
     reportRequest = None
     result = self.jobReport.generateForwardDISET()
     if not result['OK']:
-      self.log.warn( 'Could not generate Operation for job report with result:\n%s' % ( result ) )
+      self.log.warn( "Could not generate Operation for job report with result:\n%s" % ( result ) )
     else:
       reportRequest = result['Value']
     if reportRequest:
-      self.log.info( 'Populating request with job report information' )
+      self.log.info( "Populating request with job report information" )
       self.request.addOperation( reportRequest )
 
     accountingReport = None
@@ -791,12 +791,12 @@ class ModuleBase( object ):
     if accountingReport:
       result = accountingReport.commit()
       if not result['OK']:
-        self.log.error( '!!! Both accounting and RequestDB are down? !!!' )
+        self.log.error( "!!! Both accounting and RequestDB are down? !!!" )
         return result
 
     isValid = gRequestValidator.validate( self.request )
-    if not isValid["OK"]:
-      self.log.warn( "Failover request is not valid: %s" % isValid["Message"] )
+    if not isValid['OK']:
+      raise RuntimeError, "Failover request is not valid: %s" % isValid['Message']
     else:
       requestJSON = self.request.toJSON()
       if requestJSON['OK']:
@@ -830,6 +830,8 @@ class ModuleBase( object ):
     regFile.Catalog = 'BookkeepingDB'
     bkFile = File()
     bkFile.LFN = lfn
+    # FIXME: this should NOT be needed... but RMS complains!
+    bkFile.PFN = lfn
 
     regFile.addFile( bkFile )
     res = self.request.addOperation( regFile )
