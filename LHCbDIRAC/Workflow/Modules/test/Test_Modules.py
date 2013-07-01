@@ -41,7 +41,6 @@ class ModulesTestCase( unittest.TestCase ):
     f.LFN = '/foo/bar.py'
     f.PFN = '/foo/bar.py'
     rOp.addFile( f )
-#    rOp.Arguments = "{{}}"
     rc_mock.addOperation( rOp )
 
     ar_mock = Mock()
@@ -601,7 +600,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
     expectedResult = {'bar_2.py': {'filedict': {'Status': 'Waiting',
                                                 'LFN': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                                                 'GUID': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
-                                                'Adler': '001',
+                                                'Checksum': '001',
+                                                'ChecksumType': 'adler32',
                                                 'Size': 0},
                                    'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                                    'localpath': os.getcwd() + '/bar_2.py',
@@ -611,7 +611,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
                       'foo_1.txt': {'filedict': {'Status': 'Waiting',
                                                  'LFN': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
                                                  'GUID': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
-                                                 'Adler': '001',
+                                                 'Checksum': '001',
+                                                 'ChecksumType': 'adler32',
                                                  'Size': 0},
                                     'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
                                     'localpath': os.getcwd() + '/foo_1.txt',
@@ -1164,6 +1165,12 @@ class UploadLogFileSuccess( ModulesTestCase ):
                                            self.step_number, self.step_id )['OK'] )
 #        self.assertTrue( self.ulf.finalize( rm_mock, self.ft_mock )['OK'] )
 
+  def test__uploadLogToFailoverSE(self):
+    open( 'foo.txt', 'w' ).close()
+    tarFileName = 'foo.txt'
+    self.ulf.logLFNPath = '/an/lfn/foo.txt'
+    self.ulf.failoverSEs = ['SE1', 'SE2']
+    self.ulf._uploadLogToFailoverSE( tarFileName )
 
   def test__determinRelevantFiles( self ):
     for fileN in ['foo.txt', 'aLog.log', 'aLongLog.log', 'aLongLog.log.gz']:

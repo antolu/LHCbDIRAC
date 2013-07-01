@@ -587,11 +587,11 @@ class ModuleBase( object ):
 
         The input candidate files dictionary has the structure:
         {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
-                            'type': 'txt',
-                            'workflowSE': SE1},
+                       'type': 'txt',
+                       'workflowSE': SE1},
         'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
-                           'type': 'py',
-                           'workflowSE': 'SE2'},
+                     'type': 'py',
+                     'workflowSE': 'SE2'},
         }
 
         this also assumes the files are in the current working directory.
@@ -605,7 +605,7 @@ class ModuleBase( object ):
       for fileName in candidateFiles.keys():
         candidateFiles[fileName]['guid'] = ''
     elif pfnGUID['generated']:
-      self.log.verbose( 'PoolXMLFile generated GUID(s) for the following files ', ', '.join( pfnGUID['generated'] ) )
+      self.log.warn( 'PoolXMLFile generated GUID(s) for the following files ', ', '.join( pfnGUID['generated'] ) )
     else:
       self.log.info( 'GUIDs found for all specified POOL files: %s' % ( ', '.join( candidateFiles.keys() ) ) )
 
@@ -618,9 +618,10 @@ class ModuleBase( object ):
       fileDict = {}
       fileDict['LFN'] = metadata['lfn']
       fileDict['Size'] = os.path.getsize( fileName )
-      fileDict['Adler'] = fileAdler( fileName )
+      fileDict['Checksum'] = fileAdler( fileName )
+      fileDict['ChecksumType'] = 'adler32'
       fileDict['GUID'] = metadata['guid']
-      fileDict['Status'] = "Waiting"
+      fileDict['Status'] = 'Waiting'
 
       final[fileName] = metadata
       final[fileName]['filedict'] = fileDict
@@ -800,6 +801,7 @@ class ModuleBase( object ):
     else:
       requestJSON = self.request.toJSON()
       if requestJSON['OK']:
+        self.log.info( "Creating failover request for deferred operations for job %d" % self.jobID )
         request_string = str( requestJSON['Value'] )
         self.log.debug( request_string )
         # Write out the request string
@@ -807,11 +809,12 @@ class ModuleBase( object ):
         jsonFile = open( fname, 'w' )
         jsonFile.write( request_string )
         jsonFile.close()
-        self.log.info( 'Creating failover request for deferred operations for job %d:' % self.jobID )
+        self.log.info( "Created file containing failover request %s" % fname )
         result = self.request.getDigest()
         if result['OK']:
-          digest = result['Value']
-          self.log.info( digest )
+          self.log.info( "Digest of the request: %s" % result['Value'] )
+        else:
+          self.log.error( "No digest? That's not sooo important, anyway: %s" % result['Message'] )
       else:
         raise RuntimeError, requestJSON['Message']
 

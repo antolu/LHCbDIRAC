@@ -82,9 +82,6 @@ class UploadLogFile( ModuleBase ):
                                             workflowStatus, stepStatus,
                                             wf_commons, step_commons, step_number, step_id )
 
-      if not self._enableModule():
-        return S_OK()
-
       self._resolveInputVariables()
 
       self.request.RequestName = 'job_%d_request.xml' % self.jobID
@@ -143,6 +140,10 @@ class UploadLogFile( ModuleBase ):
         self.failoverTransfer = FailoverTransfer( self.request )
 
       #########################################
+      if not self._enableModule():
+        self.log.info( "Would have attempted to upload log files, but there's not JobID" )
+        return S_OK()
+
       # Attempt to uplaod logs to the LogSE
       self.log.info( 'Transferring log files to the %s' % self.logSE )
       res = S_ERROR()
@@ -162,48 +163,19 @@ class UploadLogFile( ModuleBase ):
         # storageElement = StorageElement(self.logSE)
         # pfn = storageElement.getPfnForLfn(self.logFilePath)['Value']
         # logURL = getPfnForProtocol(res['Value'],'http')['Value']
-        return S_OK()
 
-      #########################################
-      # Recover the logs to a failover storage element
-      self.log.error( 'Failed to upload log files with message "%s", uploading to failover SE' % res['Message'] )
-
-      # make a tar file
-      tarFileName = os.path.basename( self.logLFNPath )
-      res = tarFiles( tarFileName, selectedFiles, compression = 'gz' )
-      if not res['OK']:
-        self.log.error( 'Failed to create tar of log files: %s' % res['Message'] )
-        self.setApplicationStatus( 'Failed to create tar of log files' )
-        return S_OK()
-
-      ############################################################W
-      random.shuffle( self.failoverSEs )
-      self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName,
-                                                                                   ', '.join( self.failoverSEs ) ) )
-      result = self.failoverTransfer.transferAndRegisterFile( fileName = tarFileName,
-                                                              localPath = '%s/%s' % ( os.getcwd(), tarFileName ),
-                                                              lfn = self.logLFNPath,
-                                                              destinationSEList = self.failoverSEs,
-                                                              fileMetaDict = {},
-                                                              fileCatalog = 'LcgFileCatalogCombined' )
-
-      if not result['OK']:
-        self.log.error( 'Failed to upload logs to all failover destinations' )
-        self.setApplicationStatus( 'Failed To Upload Logs' )
-        return S_OK()
-
-      uploadedSE = result['Value']['uploadedSE']
-      self.log.info( 'Uploaded logs to failover SE %s' % uploadedSE )
-
-      # Now after all operations, retrieve potentially modified request object
-      self.request = self.failoverTransfer.request
-
-      res = self.__createLogUploadRequest( self.logSE, self.logLFNPath, uploadedSE )
-      if not res['OK']:
-        self.log.error( 'Failed to create failover request', res['Message'] )
-        self.setApplicationStatus( 'Failed To Upload Logs To Failover' )
       else:
-        self.log.info( 'Successfully created failover request' )
+        self.log.error( "Failed to upload log files with message '%s', uploading to failover SE" % res['Message'] )
+        # make a tar file
+        tarFileName = os.path.basename( self.logLFNPath )
+        res = tarFiles( tarFileName, selectedFiles, compression = 'gz' )
+        if not res['OK']:
+          self.log.error( 'Failed to create tar of log files: %s' % res['Message'] )
+          self.setApplicationStatus( 'Failed to create tar of log files' )
+          # We do not fail the job for this case
+          return S_OK()
+        self._uploadLogToFailoverSE( tarFileName )
+
 
       self.workflow_commons['Request'] = self.request
 
@@ -217,6 +189,43 @@ class UploadLogFile( ModuleBase ):
       super( UploadLogFile, self ).finalize( self.version )
 
   #############################################################################
+
+  def _uploadLogToFailoverSE( self, tarFileName ):
+    """  Recover the logs to a failover storage element
+    """
+
+    random.shuffle( self.failoverSEs )
+    self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName,
+                                                                                 ', '.join( self.failoverSEs ) ) )
+
+    fileDict = { tarFileName: { 'lfn': self.logLFNPath,
+                                'workflowSE': self.failoverSEs }}
+    metadata = self.getFileMetadata( fileDict )
+    fileMetaDict = { 'Size'         : metadata[tarFileName]['filedict']['Size'],
+                     'LFN'          : metadata[tarFileName]['filedict']['LFN'],
+                     'GUID'         : metadata[tarFileName]['filedict']['GUID'],
+                     'Checksum'     : metadata[tarFileName]['filedict']['Checksum'],
+                     'ChecksumType' : metadata[tarFileName]['filedict']['ChecksumType'] }
+
+    result = self.failoverTransfer.transferAndRegisterFile( fileName = tarFileName,
+                                                            localPath = '%s/%s' % ( os.getcwd(), tarFileName ),
+                                                            lfn = self.logLFNPath,
+                                                            destinationSEList = self.failoverSEs,
+                                                            fileMetaDict = fileMetaDict,
+                                                            fileCatalog = 'LcgFileCatalogCombined' )
+
+    if not result['OK']:
+      self.log.error( 'Failed to upload logs to all failover destinations' )
+      self.setApplicationStatus( 'Failed To Upload Logs' )
+
+    uploadedSE = result['Value']['uploadedSE']
+    self.log.info( 'Uploaded logs to failover SE %s' % uploadedSE )
+
+    # Now after all operations, retrieve potentially modified request object
+    self.request = self.failoverTransfer.request
+
+    self.__createLogUploadRequest( self.logSE, self.logLFNPath, uploadedSE )
+    self.log.info( 'Successfully created failover request' )
 
 
   def _determineRelevantFiles( self ):
@@ -322,8 +331,6 @@ class UploadLogFile( ModuleBase ):
 
     logRemoval.addFile( logFile )
     self.request.addOperation( logRemoval )
-
-    return S_OK()
 
   #############################################################################
 

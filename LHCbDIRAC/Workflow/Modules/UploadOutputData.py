@@ -173,9 +173,11 @@ class UploadOutputData( ModuleBase ):
         targetSE = metadata['resolvedSE']
         self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName,
                                                                                      ', '.join( targetSE ) ) )
-        fileMetaDict = { "Size": metadata['filedict']['Size'],
-                         "LFN" : metadata['filedict']['LFN'],
-                         'GUID' : metadata['filedict']['GUID'] }
+        fileMetaDict = { 'Size'         : metadata['filedict']['Size'],
+                         'LFN'          : metadata['filedict']['LFN'],
+                         'GUID'         : metadata['filedict']['GUID'],
+                         'Checksum'     : metadata['filedict']['Checksum'],
+                         'ChecksumType' : metadata['filedict']['ChecksumType'] }
 
         result = self.failoverTransfer.transferAndRegisterFile( fileName = fileName,
                                                            localPath = metadata['localpath'],
@@ -204,9 +206,11 @@ class UploadOutputData( ModuleBase ):
         targetSE = metadata['resolvedSE'][0]
         metadata['resolvedSE'] = self.failoverSEs
 
-        fileMetaDict = { "Size": metadata['filedict']['Size'],
-                         "LFN" : metadata['filedict']['LFN'],
-                         'GUID' : metadata['filedict']['GUID'] }
+        fileMetaDict = { 'Size'         : metadata['filedict']['Size'],
+                         'LFN'          : metadata['filedict']['LFN'],
+                         'GUID'         : metadata['filedict']['GUID'],
+                         'Checksum'     : metadata['filedict']['Checksum'],
+                         'ChecksumType' : metadata['filedict']['ChecksumType'] }
 
         result = self.failoverTransfer.transferAndRegisterFileFailover( fileName = fileName,
                                                                         localPath = metadata['localpath'],
