@@ -209,12 +209,12 @@ class UploadOutputData( ModuleBase ):
                          'GUID' : metadata['filedict']['GUID'] }
 
         result = self.failoverTransfer.transferAndRegisterFileFailover( fileName = fileName,
-                                                                   localPath = metadata['localpath'],
-                                                                   lfn = metadata['filedict']['LFN'],
-                                                                   targetSE = targetSE,
-                                                                   failoverSEList = metadata['resolvedSE'],
-                                                                   fileMetaDict = fileMetaDict,
-                                                                   fileCatalog = 'LcgFileCatalogCombined' )
+                                                                        localPath = metadata['localpath'],
+                                                                        lfn = metadata['filedict']['LFN'],
+                                                                        targetSE = targetSE,
+                                                                        failoverSEList = metadata['resolvedSE'],
+                                                                        fileMetaDict = fileMetaDict,
+                                                                        fileCatalog = 'LcgFileCatalogCombined' )
         if not result['OK']:
           self.log.error( 'Could not transfer and register %s in failover with metadata:\n %s' % ( fileName,
                                                                                                    metadata ) )

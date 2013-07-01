@@ -181,11 +181,11 @@ class UploadLogFile( ModuleBase ):
       self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( tarFileName,
                                                                                    ', '.join( self.failoverSEs ) ) )
       result = self.failoverTransfer.transferAndRegisterFile( fileName = tarFileName,
-                                           localPath = '%s/%s' % ( os.getcwd(), tarFileName ),
-                                           lfn = self.logLFNPath,
-                                           destinationSEList = self.failoverSEs,
-                                           fileMetaDict = {},
-                                           fileCatalog = 'LcgFileCatalogCombined' )
+                                                              localPath = '%s/%s' % ( os.getcwd(), tarFileName ),
+                                                              lfn = self.logLFNPath,
+                                                              destinationSEList = self.failoverSEs,
+                                                              fileMetaDict = {},
+                                                              fileCatalog = 'LcgFileCatalogCombined' )
 
       if not result['OK']:
         self.log.error( 'Failed to upload logs to all failover destinations' )
