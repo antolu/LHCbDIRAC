@@ -139,11 +139,11 @@ diracConfigure(){
   cp $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/
 
   #dirac-configure -o $exts -o $useCert -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath $setups -o $hostDN -o $services -o $cMaster -o $cName -S Jenkins
-  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass -d 
+  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass -o $useCert -d 
   dirac-setup-site -ddd
   
-  mv etc/dirac.cfg etc/dirac.cfg_cert
-  dirac-configure etc/dirac.cfg_cert -o $useCert -d
+#  mv etc/dirac.cfg etc/dirac.cfg_cert
+#  dirac-configure etc/dirac.cfg_cert -o $useCert -d
   
 }  
 
