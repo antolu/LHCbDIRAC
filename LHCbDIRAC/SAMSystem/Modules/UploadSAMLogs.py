@@ -38,6 +38,8 @@ class UploadSAMLogs( ModuleBase ):
     self.logSE = 'LogSE'
     self.logURL = 'http://lhcb-logs.cern.ch/storage/'
 
+    self.version = __RCSID__
+
   def _resolveInputVariables( self ):
     """ Resolve all input variables for the module here.
     """
@@ -49,63 +51,71 @@ class UploadSAMLogs( ModuleBase ):
     '''
       Main method.
     '''
-
-    self.log.verbose( 'WORKFLOW_COMMONS' )
-    self.log.verbose( self.workflow_commons )
-    self.log.verbose( 'STEP_COMMONS' )
-    self.log.verbose( self.step_commons )
-
-    self.log.info( 'Starting %s module execution' % self.__class__.__name__ )
-
-    logDir = '%s/%s' % ( os.getcwd(), 'log' )
-    self.log.verbose( 'Creating log directory %s' % logDir )
-
     try:
-      os.mkdir( logDir )
-    except OSError:
-      return S_ERROR( 'Could not create log directory %s' % logDir )
+      super( UploadSAMLogs, self ).execute( self.version, production_id = 'SAM', prod_job_id = '0000', step_number = '2' )
 
-    logExtensions = self.opsH.getValue( 'SAM/LogFiles', self.__logExtensions )
-    self.log.verbose( 'logExtensions %s' % logExtensions )
+      self.log.verbose( 'WORKFLOW_COMMONS' )
+      self.log.verbose( self.workflow_commons )
+      self.log.verbose( 'STEP_COMMONS' )
+      self.log.verbose( self.step_commons )
+
+      self.log.info( 'Starting %s module execution' % self.__class__.__name__ )
+
+      logDir = '%s/%s' % ( os.getcwd(), 'log' )
+      self.log.verbose( 'Creating log directory %s' % logDir )
+
+      try:
+        os.mkdir( logDir )
+      except OSError:
+        return S_ERROR( 'Could not create log directory %s' % logDir )
+
+      logExtensions = self.opsH.getValue( 'SAM/LogFiles', self.__logExtensions )
+      self.log.verbose( 'logExtensions %s' % logExtensions )
 
 
-    self.log.verbose( 'Files to be uploaded:' )
-    for logExtension in logExtensions:
+      self.log.verbose( 'Files to be uploaded:' )
+      for logExtension in logExtensions:
 
-      # Usage of iglob, which is much faster
-      for filePath in glob.iglob( logExtension ):
-        if os.path.isfile( filePath ):
-          self.log.verbose( filePath )
-          shutil.copy( filePath, logDir )
+        # Usage of iglob, which is much faster
+        for filePath in glob.iglob( logExtension ):
+          if os.path.isfile( filePath ):
+            self.log.verbose( filePath )
+            shutil.copy( filePath, logDir )
 
-    ce = self.workflow_commons.get( 'GridRequiredCEs', '' )
-    if not ce:
-      self.log.error( 'No GridRequiredCE on workflow_commons' )
-      return S_ERROR( 'No GridRequiredCE on workflow_commons' )
+      ce = self.workflow_commons.get( 'GridRequiredCEs', '' )
+      if not ce:
+        self.log.error( 'No GridRequiredCE on workflow_commons' )
+        return S_ERROR( 'No GridRequiredCE on workflow_commons' )
 
-    date = time.strftime( '%Y-%m-%d' )
-    lfnPath = '/lhcb/test/sam/%s/%s/%d' % ( ce, date, self.jobID )
+      date = time.strftime( '%Y-%m-%d' )
+      lfnPath = '/lhcb/test/sam/%s/%s/%d' % ( ce, date, self.jobID )
 
-    self.log.verbose( 'lfnPath: %s' % lfnPath )
+      self.log.verbose( 'lfnPath: %s' % lfnPath )
 
-    result = self.rManager.putStorageDirectory( { lfnPath : os.path.realpath( logDir ) },
-                                                 self.logSE, singleDirectory = True )
+      result = self.rManager.putStorageDirectory( { lfnPath : os.path.realpath( logDir ) },
+                                                   self.logSE, singleDirectory = True )
 
-    self.log.verbose( result )
-    if not result[ 'OK' ]:
-      self.log.error( result )
-      return result
+      self.log.verbose( result )
+      if not result[ 'OK' ]:
+        self.log.error( result )
+        return result
 
-    logReference = '<a href="%s%s">Log file directory</a>' % ( self.logURL, lfnPath )
-    self.log.verbose( 'Adding Log URL job parameter: %s' % logReference )
-    res = self.setJobParameter( 'Log URL', logReference )
-    self.log.info( res )
+      logReference = '<a href="%s%s">Log file directory</a>' % ( self.logURL, lfnPath )
+      self.log.verbose( 'Adding Log URL job parameter: %s' % logReference )
+      res = self.setJobParameter( 'Log URL', logReference )
+      self.log.info( res )
 
-    self.finalize( self.__class__.__name__ )
+      self.finalize( self.__class__.__name__ )
 
-#    self.setApplicationStatus( 'Finished' )
+      return S_OK( 'Logs uploaded' )
 
-    return S_OK( 'Logs uploaded' )
+    except Exception, e:
+      self.log.exception( e )
+      return S_ERROR( e )
+
+    finally:
+      super( UploadSAMLogs, self ).finalize( self.version )
+
 
 ################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
