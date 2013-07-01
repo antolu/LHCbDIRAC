@@ -114,10 +114,10 @@ diracConfigure(){
   # Setups
   setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'` 
   
-  hostDN='HostDN=/DC=ch/DC=cern/OU=computers/CN=lhcb-ci01.cern.ch'
-  services='Services=Configuration/Server'
-  cMaster='ConfigurationMaster = yes'
-  cName='ConfigurationName = Jenkins'
+  hostDN='/LocalInstallation/HostDN=/DC=ch/DC=cern/OU=computers/CN=lhcb-ci01.cern.ch'
+  services='/LocalInstallation/Services=Configuration/Server'
+  cMaster='/LocalInstallation/ConfigurationMaster = yes'
+  cName='/LocalInstallation/ConfigurationName = Jenkins'
   
   echo '/LocalSite/Architecture:' $arch
   echo $setups | tr '-' '\n'
@@ -134,7 +134,7 @@ diracConfigure(){
 
   dirac-configure -o $exts -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath $setups -o $hostDN -o $services -o $cMaster -o $cName -S Jenkins
   
-  dirac-setup-site
+  dirac-setup-site -d
   
 }  
 
