@@ -109,8 +109,6 @@ class ErrorLogging( ModuleBase ):
                                                    self.applicationVersion,
                                                    self.step_number )
       dumpEnvName = 'Environment_Dump_ErrorLogging_Step%s.log' % ( self.step_number )
-  #    scriptName = '%s_%s_%s_%s_Run-%s.sh' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName, self.applicationVersion )
-  #    dumpEnvName = '%s_%s_%s_%s_EnvironmentDumpErrorLogging.log' % ( self.PRODUCTION_ID, self.JOB_ID, self.STEP_NUMBER, self.applicationName )
       coreDumpName = 'ErrorLogging_Step%s' % ( self.step_number )
 
       # Wrap final execution command with defaults
