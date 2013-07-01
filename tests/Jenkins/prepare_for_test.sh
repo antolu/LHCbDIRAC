@@ -134,7 +134,9 @@ diracConfigure(){
   #echo $cMaster
   #echo $cName
 
-  cp LHCbTestDIRAC/Jenkins/install.cfg etc/
+  pwd
+  ls -a
+  cp $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/
 
   #dirac-configure -o $exts -o $useCert -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath $setups -o $hostDN -o $services -o $cMaster -o $cName -S Jenkins
   dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass -d
