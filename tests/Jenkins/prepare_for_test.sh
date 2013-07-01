@@ -166,7 +166,7 @@ diracMySQL(){
 
 diracDBs(){
 
-  cat databases | grep -v TransferDB.sql | cut -d ' ' -f 2 | cut -d '.' -f 1 | xargs dirac-install-db
+  cat databases | grep -v TransferDB.sql | cut -d ' ' -f 2 | cut -d '.' -f 1 | xargs 'dirac-install-db -ddd'
 
 }
 
