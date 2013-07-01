@@ -112,7 +112,7 @@ diracConfigure(){
   userPass=/LocalInstallation/Database/Password=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
   hostPath=/LocalInstallation/Database/Host='localhost'
   # Setups
-  setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Systems\/Jenkins\//' | sed 's/$/=Jenkins/'` 
+  setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Systems\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'` 
   echo $setups | tr '-' '\n'
 
   echo '/LocalSite/Architecture:' $arch
