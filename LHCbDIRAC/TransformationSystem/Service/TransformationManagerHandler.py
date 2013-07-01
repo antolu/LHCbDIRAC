@@ -1,11 +1,11 @@
 """ DISET request handler for the LHCbDIRAC/TransformationDB. """
 
-__RCSID__ = "$Id: TransformationManagerHandler.py 58367 2012-11-07 14:08:05Z fstagni $"
+__RCSID__ = "$Id$"
 
 from types import LongType, IntType, StringType, DictType, ListType, StringTypes
 
 from DIRAC import S_OK, S_ERROR
-from DIRAC.TransformationSystem.Service.TransformationManagerHandler import TransformationManagerHandlerBase
+from DIRAC.TransformationSystem.Service.TransformationManagerHandler import TransformationManagerHandler as TManagerBase
 from LHCbDIRAC.TransformationSystem.DB.TransformationDB import TransformationDB
 
 database = False
@@ -14,13 +14,13 @@ def initializeTransformationManagerHandler( serviceInfo ):
   database = TransformationDB( 'TransformationDB', 'Transformation/TransformationDB' )
   return S_OK()
 
-class TransformationManagerHandler( TransformationManagerHandlerBase ):
+class TransformationManagerHandler( TManagerBase ):
 
   def __init__( self, *args, **kargs ):
     """ c'tor
     """
     self.setDatabase( database )
-    TransformationManagerHandlerBase.__init__( self, *args, **kargs )
+    TManagerBase.__init__( self, *args, **kargs )
 
   #############################################################################
   #
