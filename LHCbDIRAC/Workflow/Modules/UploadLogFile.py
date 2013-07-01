@@ -39,7 +39,7 @@ class UploadLogFile( ModuleBase ):
     self.diracLogo = self.opsH.getValue( 'SAM/LogoURL',
                                          'https://lhcbweb.pic.es/DIRAC/images/logos/DIRAC-logo-transp.png' )
     self.logFilePath = ''
-    self.logLFNPat = ''
+    self.logLFNPath = ''
     self.logdir = ''
     self.failoverTransfer = None
 
