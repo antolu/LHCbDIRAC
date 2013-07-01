@@ -116,8 +116,8 @@ diracConfigure(){
   
   hostDN='/LocalInstallation/HostDN=/DC=ch/DC=cern/OU=computers/CN=lhcb-ci01.cern.ch'
   services='/LocalInstallation/Services=Configuration/Server'
-  cMaster='/LocalInstallation/ConfigurationMaster = yes'
-  cName='/LocalInstallation/ConfigurationName = Jenkins'
+  cMaster='/LocalInstallation/ConfigurationMaster=yes'
+  cName='/LocalInstallation/ConfigurationName=Jenkins'
   
   echo '/LocalSite/Architecture:' $arch
   echo $setups | tr '-' '\n'
