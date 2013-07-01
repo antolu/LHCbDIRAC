@@ -60,7 +60,8 @@ findRelease(){
 
 findDatabases(){
 
-  find *DIRAC -name *DB.sql | awk -F "/" '{print $2,$4}' | sort | uniq -u > databases
+  #find *DIRAC -name *DB.sql | awk -F "/" '{print $2,$4}' | sort | uniq -u > databases
+  find *DIRAC -name *DB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
 
   echo found `wc -l databases`
 
@@ -110,6 +111,9 @@ diracConfigure(){
   # Randomly generated
   userPass=/LocalInstallation/Database/Password=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
   hostPath=/LocalInstallation/Database/Host='localhost'
+  # Setups
+  setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Systems\/Jenkins\//' | sed 's/$/=Jenkins/'` 
+  echo $setups | tr '-' -\n'
 
   echo '/LocalSite/Architecture:' $arch
   echo $exts
@@ -119,7 +123,7 @@ diracConfigure(){
   echo $userPass
   echo $hostPath
 
-  dirac-configure -o $exts -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath -S Jenkins
+  dirac-configure -o $exts -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath $setups -S Jenkins
   
 }  
 
@@ -166,7 +170,7 @@ diracMySQL(){
 
 diracDBs(){
 
-  cat databases | grep -v TransferDB.sql | cut -d ' ' -f 2 | cut -d '.' -f 1 | xargs dirac-install-db -ddd
+  cat databases | grep -v TransferDB.sql | cut -d ' ' -f 2 | cut -d '.' -f 1 | xargs dirac-install-db
 
 }
 
