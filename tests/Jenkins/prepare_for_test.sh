@@ -103,40 +103,40 @@ diracInstall(){
 diracConfigure(){
 
   exts='/DIRAC/Extensions=LHCb'
-  certFile='/DIRAC/Security/CertFile='$WORKSPACE/etc/grid-security/hostcert.pem
-  keyFile='/DIRAC/Security/KeyFile='$WORKSPACE/etc/grid-security/hostkey.pem
-  useCert='/DIRAC/Security/UseServerCertificate=yes'
+  #certFile='/DIRAC/Security/CertFile='$WORKSPACE/etc/grid-security/hostcert.pem
+  #keyFile='/DIRAC/Security/KeyFile='$WORKSPACE/etc/grid-security/hostkey.pem
+  #useCert='/DIRAC/Security/UseServerCertificate=yes'
   arch=`dirac-architecture`
   # Randomly generated
   rootPass=/LocalInstallation/Database/RootPwd=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
   # Randomly generated
   userPass=/LocalInstallation/Database/Password=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
-  hostPath=/LocalInstallation/Database/Host='localhost'
+  #hostPath=/LocalInstallation/Database/Host='localhost'
   # Setups
-  setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'` 
+  # setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'` 
   
-  hostDN='/LocalInstallation/HostDN=/DC=ch/DC=cern/OU=computers/CN=lhcb-ci01.cern.ch'
-  services='/LocalInstallation/Services=Configuration/Server'
-  cMaster='/LocalInstallation/ConfigurationMaster=yes'
+  #hostDN='/LocalInstallation/HostDN=/DC=ch/DC=cern/OU=computers/CN=lhcb-ci01.cern.ch'
+  #services='/LocalInstallation/Services=Configuration/Server'
+  #cMaster='/LocalInstallation/ConfigurationMaster=yes'
   cName='/LocalInstallation/ConfigurationName=Jenkins'
   
   echo '/LocalSite/Architecture:' $arch
   echo $setups | tr '-' '\n'
-  echo $exts
-  echo $useCert
-  echo $certFile
-  echo $keyFile
+  #echo $exts
+  #echo $useCert
+  #echo $certFile
+  #echo $keyFile
   echo $rootPass
   echo $userPass
-  echo $hostPath
-  echo $hostDN
+  #echo $hostPath
+  #echo $hostDN
   echo $services
-  echo $cMaster
-  echo $cName
+  #echo $cMaster
+  #echo $cName
 
-  dirac-configure -o $exts -o $useCert -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath $setups -o $hostDN -o $services -o $cMaster -o $cName -S Jenkins
-  
-  dirac-setup-site -d
+  #dirac-configure -o $exts -o $useCert -o $certFile -o $keyFile -A $arch -o $rootPass -o $userPass -o $hostPath $setups -o $hostDN -o $services -o $cMaster -o $cName -S Jenkins
+  dirac-configure LHCbTestDIRAC/Jenkins/install.cfg -A $arch -o $rootPass -o $userPass -S Jenkins
+  dirac-setup-site
   
 }  
 
