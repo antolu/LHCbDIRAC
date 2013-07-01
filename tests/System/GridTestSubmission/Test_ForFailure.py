@@ -65,7 +65,7 @@ def createJob():
   outputFilesDict = [{'outputDataName': '/lhcb/testCfg/testVer/SIM/00012345/0006/00012345_00067890_1.sim',
                       'outputDataSE': 'Tier1_MC-DST',
                       'outputDataType': 'SIM'}]
-  gaudirunJob._addParameter( gaudirunJob.workflow.step_instances[0].setValue( 'listoutput', ( outputFilesDict ) ) )
+  gaudirunJob._addParameter( gaudirunJob.workflow.step_instances[0], 'listoutput', 'list', outputFilesDict, 'listoutput' )
 
   gaudirunJob.setSystemConfig( 'ANY' )
   gaudirunJob.setConfigArgs( 'wrongConfig.cfg' )
