@@ -131,7 +131,7 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def setApplicationStatus( self, status, sendFlag = True, jr = None ):
+  def setApplicationStatus( self, status, sendFlag = True ):
     """Wraps around setJobApplicationStatus of state update client
     """
     if not type( status ) == type( '' ):
@@ -142,16 +142,13 @@ class ModuleBase( object ):
 
     self.log.verbose( 'setJobApplicationStatus(%d, %s)' % ( self.jobID, status ) )
 
-    if not jr:
-      jr = self._getJobReporter()
-
-    jobStatus = jr.setApplicationStatus( status, sendFlag )
+    jobStatus = self.jobReport.setApplicationStatus( status, sendFlag )
     if not jobStatus['OK']:
       self.log.warn( jobStatus['Message'] )
 
   #############################################################################
 
-  def setJobParameter( self, name, value, sendFlag = True, jr = None ):
+  def setJobParameter( self, name, value, sendFlag = True ):
     """Wraps around setJobParameter of state update client
     """
     if not self._WMSJob():
@@ -159,10 +156,7 @@ class ModuleBase( object ):
 
     self.log.verbose( 'setJobParameter(%d,%s,%s)' % ( self.jobID, name, value ) )
 
-    if not jr:
-      jr = self._getJobReporter()
-
-    jobParam = jr.setJobParameter( str( name ), str( value ), sendFlag )
+    jobParam = self.jobReport.setJobParameter( str( name ), str( value ), sendFlag )
     if not jobParam['OK']:
       self.log.warn( jobParam['Message'] )
 

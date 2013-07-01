@@ -41,7 +41,6 @@ class UserJobFinalization( ModuleBase ):
     self.userOutputData = []
     self.userOutputSE = ''
     self.userOutputPath = ''
-    self.jobReport = None
     self.failoverTransfer = None
 
   #############################################################################
@@ -267,7 +266,7 @@ class UserJobFinalization( ModuleBase ):
       # For files correctly uploaded must report LFNs to job parameters
       if uploaded:
         report = ', '.join( uploaded )
-        self.jobReport.setJobParameter( 'UploadedOutputData', report )
+        self.setJobParameter( 'UploadedOutputData', report )
 
       # Now after all operations, retrieve potentially modified request object
       self.request = self.failoverTransfer.request

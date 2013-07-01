@@ -182,6 +182,7 @@ class GaudiApplicationScript( ModuleBase ):
 
     except Exception, e:
       self.log.exception( e )
+      self.setApplicationStatus( e )
       return S_ERROR( e )
 
     finally:

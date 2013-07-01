@@ -99,7 +99,7 @@ class FailoverRequest( ModuleBase ):
       # Must ensure that the local job report instance is used to report the final status
       # in case of failure and a subsequent failover operation
       if self.workflowStatus['OK'] and self.stepStatus['OK']:
-        self.setApplicationStatus( 'Job Finished Successfully', jr = self.jobReport )
+        self.setApplicationStatus( 'Job Finished Successfully' )
 
       self.generateFailoverFile()
 
@@ -109,6 +109,7 @@ class FailoverRequest( ModuleBase ):
 
     except Exception, e:
       self.log.exception( e )
+      self.setApplicationStatus( e )
       return S_ERROR( e )
 
     finally:
