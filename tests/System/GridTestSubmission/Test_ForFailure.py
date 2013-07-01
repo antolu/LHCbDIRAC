@@ -1,7 +1,7 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-import unittest
+import os, unittest
 
 from DIRAC import gLogger
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
@@ -37,7 +37,19 @@ def createJob():
                                                   'UploadOutputData',
                                                   'UploadLogFile',
                                                   'FailoverRequest',
-                                                  'UserJobFinalization'], )
+                                                  'UserJobFinalization'],
+                             parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
+                                               ( 'applicationVersion', 'string', '', 'Application Version' ),
+                                               ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
+                                               ( 'optionsFile', 'string', '', 'Options File' ),
+                                               ( 'extraOptionsLine', 'string', '', 'This is appended to standard options' ),
+                                               ( 'inputDataType', 'string', '', 'Input Data Type' ),
+                                               ( 'inputData', 'string', '', 'Input Data' ),
+                                               ( 'numberOfEvents', 'string', '', 'Events treated' ),
+                                               ( 'extraPackages', 'string', '', 'ExtraPackages' ),
+                                               ( 'listoutput', 'list', [], 'StepOutputList'), 
+                                               ]
+ )
 
   gaudirunJob._addParameter( gaudirunJob.workflow, 'PRODUCTION_ID', 'string', '00012345', 'ProductionID' )
   gaudirunJob._addParameter( gaudirunJob.workflow, 'JOB_ID', 'string', '00067890', 'JobID' )
@@ -50,6 +62,10 @@ def createJob():
   gaudirunJob._addParameter( gaudirunJob.workflow, 'outputDataFileMask', 'string', '', 'outputFM' )
   gaudirunJob._addParameter( gaudirunJob.workflow, 'outputMode', 'string', 'Local', 'OM' )
   gaudirunJob._addParameter( gaudirunJob.workflow, 'LogLevel', 'string', 'DEBUG', 'LL' )
+  outputFilesDict = [{'outputDataName': '/lhcb/testCfg/testVer/SIM/00012345/0006/00012345_00067890_1.sim',
+                      'outputDataSE': 'Tier1_MC-DST',
+                      'outputDataType': 'SIM'}]
+  gaudirunJob._addParameter( gaudirunJob.workflow.step_instances[0].setValue( 'listoutput', ( outputFilesDict ) ) )
 
   gaudirunJob.setSystemConfig( 'ANY' )
   gaudirunJob.setConfigArgs( 'wrongConfig.cfg' )
@@ -71,11 +87,13 @@ class UserJobsFailingLocalSuccess( FailingUserJobTestCase ):
   def test_run( self ):
     gLogger.info( "Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info" )
     gLogger.info( "This will generate a local job" )
+    os.environ['JOBID'] = '12345'
 
     gaudirunJob = createJob()
     result = self.dirac.submit( gaudirunJob, mode = 'Local' )
     self.assertTrue( result['OK'] )
 
+    del os.environ['JOBID']
 
 class UserJobsFailingGridSuccess( FailingUserJobTestCase ):
 
