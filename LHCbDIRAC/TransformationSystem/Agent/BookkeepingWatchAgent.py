@@ -228,6 +228,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
     return S_OK()
 
+  @gSynchro
   def __timeStampForTransformation( self, transID, bkQuery, now ):
     """ Determine the correct time stamp to use for this transformation
     """
@@ -248,7 +249,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
       self.fullTimeLog[transID] = now
       self.__dumpLog()
 
-
+  @gSynchro
   def __getFiles( self, transID, bkQuery, now ):
     """ Perform the query to the Bookkeeping
     """
