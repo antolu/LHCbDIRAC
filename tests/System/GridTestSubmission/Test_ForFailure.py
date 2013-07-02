@@ -4,6 +4,7 @@ parseCommandLine()
 import os, unittest
 
 from DIRAC import gLogger
+from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
@@ -62,7 +63,7 @@ def createJob():
   gaudirunJob._addParameter( gaudirunJob.workflow, 'outputDataFileMask', 'string', '', 'outputFM' )
   gaudirunJob._addParameter( gaudirunJob.workflow, 'outputMode', 'string', 'Local', 'OM' )
   gaudirunJob._addParameter( gaudirunJob.workflow, 'LogLevel', 'string', 'DEBUG', 'LL' )
-  outputFilesDict = [{'outputDataName': '/lhcb/testCfg/testVer/SIM/00012345/0006/00012345_00067890_1.sim',
+  outputFilesDict = [{'outputDataName': '00012345_00067890_1.sim',
                       'outputDataSE': 'Tier1_MC-DST',
                       'outputDataType': 'SIM'}]
   gaudirunJob._addParameter( gaudirunJob.workflow.step_instances[0], 'listoutput', 'list', outputFilesDict, 'listoutput' )
@@ -81,6 +82,13 @@ class FailingUserJobTestCase( IntegrationTest ):
     super( IntegrationTest, self ).setUp()
     self.dirac = DiracLHCb()
 
+    rm = ReplicaManager()
+    res = rm.removeFile( ['/lhcb/testCfg/testVer/LOG/00012345/0006/00012345_00067890.tar',
+                          '/lhcb/testCfg/testVer/SIM/00012345/0006/00012345_00067890_1.sim'],
+                        force = True )
+    if not res['OK']:
+      print "Could not remove files", res['Message']
+      exit( 1 )
 
 class UserJobsFailingLocalSuccess( FailingUserJobTestCase ):
 
