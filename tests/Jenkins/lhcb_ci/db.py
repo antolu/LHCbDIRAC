@@ -14,7 +14,14 @@ def install( dbName ):
   
   """
 
-  return InstallTools.installDatabase( dbName )
+  InstallTools.getMySQLPasswords()
+  result = InstallTools.installDatabase( dbName )
+  if not result[ 'OK' ]:
+    return result
+  
+  _extension, system = result[ 'Value' ]
+  
+  return InstallTools.addDatabaseOptionsToCS( None, system, dbName, overwrite = True )
   
   
 def scratch( dbName ):

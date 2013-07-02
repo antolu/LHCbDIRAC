@@ -14,7 +14,7 @@ def import_( base_mod ):
   """
   
   extensions = gConfig.getValue( '/DIRAC/Extensions', [] )
-  for extension in extensions:  
+  for ext in extensions:  
     try:
       return  __import__( ext + base_mod, globals(), locals(), ['*'] )
     except ImportError:
