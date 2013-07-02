@@ -32,7 +32,7 @@ class DB_TestCase( Base_TestCase ):
   def setUpClass( cls ):
 
     super( DB_TestCase, cls ).setUpClass()
-    cls.log( '=== DB_TestCase ===' )
+    cls.log.info( '=== DB_TestCase ===' )
     
     cls.databases = collections.defaultdict( set )   
        
@@ -41,12 +41,13 @@ class DB_TestCase( Base_TestCase ):
     
       for db_line in db_data:
       
-        if db_line:
+        if not db_line:
+          continue
       
-          cls.log.info( db_line )
+        cls.log.info( db_line )
       
-          system, dbName = db_line.split( ' ' )
-          cls.databases[ system ].update( dbName.split( '.' )[ 0 ] )  
+        system, dbName = db_line.split( ' ' )
+        cls.databases[ system ].update( dbName.split( '.' )[ 0 ] )  
 
     with open( os.path.join( cls.workspace, 'rootMySQL' ), 'r' ) as f:  
       cls.rootPass = f.read().split( '\n' )[ 0 ]
