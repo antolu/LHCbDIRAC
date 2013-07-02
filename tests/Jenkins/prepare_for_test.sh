@@ -192,6 +192,18 @@ diracMySQL(){
 }  
 
 #-------------------------------------------------------------------------------
+# removeLinks:
+#
+#   remove symlinks
+#-------------------------------------------------------------------------------
+
+removeLinks(){
+  
+  rm etc/grid-security/certificates
+  rm etc/grid-security/host*.pem
+}  
+
+#-------------------------------------------------------------------------------
 # diracDBs:
 #
 #   installs all databases on the file databases
