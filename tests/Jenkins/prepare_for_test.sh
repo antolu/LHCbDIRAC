@@ -148,6 +148,29 @@ diracStopMySQL(){
 }
 
 #-------------------------------------------------------------------------------
+# diracStopRunit:
+#
+#   stops scripts running on startup
+#
+#-------------------------------------------------------------------------------
+
+diracStopRunit(){
+
+  set +o errexit
+  runitRunning=`ps -aux | grep 'runsv ' | grep -v 'grep'`
+  set -o errexit
+
+  # It happens that if ps does not find anything, spits a return code 1 !  
+  if [ ! -z "$runitRunning" ]
+  then
+    cd startup
+    runsvctrl d *
+    cd -
+  fi   
+   
+}
+
+#-------------------------------------------------------------------------------
 # diracMySQL:
 #
 #   installs MySQL. If it was running before, it returns an error.
