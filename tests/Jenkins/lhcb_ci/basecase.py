@@ -21,8 +21,10 @@ class Base_TestCase( unittest.TestCase ):
   def setUpClass( cls ):   
     cls.workspace = os.getenv( 'WORKSPACE' ) 
   
+  
   def setUp( self ):
     self.log.info( '*** %s ***' % self.__class__.__name__ )  
+    
     
 class DB_TestCase( Base_TestCase ):
   

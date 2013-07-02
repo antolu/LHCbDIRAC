@@ -157,15 +157,23 @@ diracStopMySQL(){
 diracStopRunit(){
 
   set +o errexit
-  runitRunning=`ps -aux | grep 'runsv ' | grep -v 'grep'`
+  runsvdirRunning=`ps -aux | grep 'runsvdir ' | grep -v 'grep'`
   set -o errexit
 
   # It happens that if ps does not find anything, spits a return code 1 !  
-  if [ ! -z "$runitRunning" ]
+  if [ ! -z "$runsvdirRunning" ]
   then
-    cd startup
-    runsvctrl d *
-    cd -
+    killall runsvdir
+  fi   
+
+  set +o errexit
+  runsvRunning=`ps -aux | grep 'runsv ' | grep -v 'grep'`
+  set -o errexit
+
+  # It happens that if ps does not find anything, spits a return code 1 !  
+  if [ ! -z "$runsvRunning" ]
+  then
+    killall runsv
   fi   
    
 }
