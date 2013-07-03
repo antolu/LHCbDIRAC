@@ -77,7 +77,7 @@ diracInstall(){
 
   wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
   chmod +x dirac-install
-  ./dirac-install -l LHCb -r `cat project.version` -e LHCb -t server
+  ./dirac-install -r `cat project.version` -t server -ddd
 
   mkdir -p etc/grid-security
   ln -s ~/host{cert,key}.pem etc/grid-security
@@ -185,16 +185,18 @@ diracMySQL(){
 }  
 
 #-------------------------------------------------------------------------------
-# removeLinks:
+# finalCleanup:
 #
-#   remove symlinks
+#   remove symlinks, remove cached info
 #-------------------------------------------------------------------------------
 
-removeLinks(){
+finalCleanup(){
   
   rm etc/grid-security/certificates
   rm etc/grid-security/host*.pem
-}  
+  rm -r .installCache
+
+} 
 
 #-------------------------------------------------------------------------------
 # diracDBs:
