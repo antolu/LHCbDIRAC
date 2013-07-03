@@ -42,7 +42,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         
         try:
           self.log.debug( '%s/%s' % ( diracSystem, systemDB ) )
-          db = DB( systemDB, '%s/%s' % ( diracSystem, systemDB ) )
+          db = DB( systemDB, '%s/%s' % ( diracSystem, systemDB ), 10 )
         except RuntimeError, msg:
           self.fail( msg )   
         
