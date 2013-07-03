@@ -108,8 +108,8 @@ diracConfigure(){
   # Setups
   # setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'` 
 
-  echo $rootPass > rootMySQL
-  echo $userPass > userMySQL
+  echo $randomRoot > rootMySQL
+  echo $randomUser > userMySQL
 
   ln -s $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/install.cfg
 
