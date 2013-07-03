@@ -38,12 +38,15 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
   
     for diracSystem, systemDBs in self.databases.iteritems():   
       
+      diracSystem = diracSystem.replace( 'System', '' )
+      
       for systemDB in systemDBs:
         
         try:
           self.log.debug( '%s/%s' % ( diracSystem, systemDB ) )
           db = DB( systemDB, '%s/%s' % ( diracSystem, systemDB ), 10 )
         except RuntimeError, msg:
+          self.log.error( 'Error importing %s/%s' % diracSystem, systemDB )
           self.fail( msg )   
         
         result = db._query( "status;" )

@@ -39,15 +39,15 @@ class DB_TestCase( Base_TestCase ):
     with open( os.path.join( cls.workspace, 'databases' ), 'r' ) as f:
       db_data = f.read().split( '\n' )
     
-      for db_line in db_data:
+    for db_line in db_data:
       
-        if not db_line:
-          continue
+      if not db_line:
+        continue
       
-        cls.log.info( db_line )
-      
-        system, dbName = db_line.split( ' ' )
-        cls.databases[ system ].update( dbName.split( '.' )[ 0 ] )  
+      cls.log.info( db_line )
+    
+      system, dbName = db_line.split( ' ' )
+      cls.databases[ system ].update( [ dbName.split( '.' )[ 0 ] ] )  
 
     with open( os.path.join( cls.workspace, 'rootMySQL' ), 'r' ) as f:  
       cls.rootPass = f.read().split( '\n' )[ 0 ]
