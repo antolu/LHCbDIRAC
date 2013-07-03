@@ -100,9 +100,11 @@ diracConfigure(){
 
   arch=`dirac-architecture`
   # Randomly generated
-  rootPass=/LocalInstallation/Database/RootPwd=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
+  randomRoot=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
+  rootPass=/LocalInstallation/Database/RootPwd=$randomRoot
   # Randomly generated
-  userPass=/LocalInstallation/Database/Password=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
+  randomUser=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
+  userPass=/LocalInstallation/Database/Password=$randomUser
   # Setups
   # setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'` 
 
