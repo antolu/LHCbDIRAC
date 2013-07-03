@@ -60,7 +60,6 @@ findRelease(){
 
 findDatabases(){
 
-  #find *DIRAC -name *DB.sql | awk -F "/" '{print $2,$4}' | sort | uniq -u > databases
   find *DIRAC -name *DB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
 
   echo found `wc -l databases`
@@ -92,19 +91,13 @@ diracInstall(){
 # 
 #   writes dirac.cfg file 
 #
-#   o /DIRAC/Extensions
-#   o /DIRAC/Security/UseServerCertificate
-#   o /DIRAC/Security/CertFile
-#   o /DIRAC/Security/KeyFile
 #   o /LocalSite/Architecture
 #   o /LocalInstallation/Database/RootPwd
 #   o /LocalInstallation/Database/Password
-#   o /LocalInstallation/Database/Host
 #-------------------------------------------------------------------------------
 
 diracConfigure(){
 
-  exts='/DIRAC/Extensions=LHCb'
   arch=`dirac-architecture`
   # Randomly generated
   rootPass=/LocalInstallation/Database/RootPwd=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
@@ -157,7 +150,7 @@ diracStopMySQL(){
 diracStopRunit(){
 
   set +o errexit
-  runsvdirRunning=`ps -aux | grep 'runsvdir ' | grep -v 'grep'`
+  runsvdirRunning=`ps aux | grep 'runsvdir ' | grep -v 'grep'`
   set -o errexit
 
   # It happens that if ps does not find anything, spits a return code 1 !  
@@ -167,7 +160,7 @@ diracStopRunit(){
   fi   
 
   set +o errexit
-  runsvRunning=`ps -aux | grep 'runsv ' | grep -v 'grep'`
+  runsvRunning=`ps aux | grep 'runsv ' | grep -v 'grep'`
   set -o errexit
 
   # It happens that if ps does not find anything, spits a return code 1 !  
