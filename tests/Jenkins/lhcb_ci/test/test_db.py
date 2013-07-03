@@ -10,6 +10,7 @@
 import lhcb_ci.basecase
 
 
+from DIRAC.Core.Base.DB   import DB
 from DIRAC.Core.Utilities import InstallTools
 
 
@@ -30,14 +31,24 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     self.assertEquals( res[ 'OK' ], True )
     
     self.assertEquals( InstallTools.mysqlRootPwd,  self.rootPass )
-    self.assertEquals( InstallTools.mysqlPassword, self.userPass )
+    self.assertEquals( InstallTools.mysqlPassword, self.userPass )    
   
   
-  def test_databases( self ):
+  def test_databases_db_reachable( self ):
   
-    self.databases   
-    pass
+    for diracSystem, systemDBs in self.databases.iteritems():   
+      
+      for systemDB in systemDBs:
         
+        try:
+          self.log.debug( '%s/%s' % ( diracSystem, systemDB ) )
+          db = DB( systemDB, '%s/%s' % ( diracSystem, systemDB ) )
+        except RuntimeError, msg:
+          self.fail( msg )   
+        
+        result = db._query( "status;" )
+        self.assertEquals( result[ 'OK' ], True )
+        self.log.info( result[ 'Message' ] )
   
   def test_import( self ):
     pass 
