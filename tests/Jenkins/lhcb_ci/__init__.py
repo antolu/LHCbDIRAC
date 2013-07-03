@@ -16,8 +16,8 @@ def _init_once():
   """
   Utility function that is ran once on Library import.
 
-  This checks for the LHCB_CI_DEBUG enviroment variable, which if it exists
-  is where we will log debug information about the provider transports.
+  This checks for the LHCB_CI_DEBUG environment variable, which if it exists
+  is where we will log debug information.
   """
 
   import os
