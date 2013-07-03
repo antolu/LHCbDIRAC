@@ -247,7 +247,6 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
       bkQuery['StartDate'] = ( timeStamp - datetime.timedelta( seconds = 10 ) ).strftime( '%Y-%m-%d %H:%M:%S' )
     if 'StartDate' not in bkQuery:
       self.fullTimeLog[transID] = now
-      self.__dumpLog()
 
   @gSynchro
   def __getFiles( self, transID, bkQuery, now ):
