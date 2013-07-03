@@ -46,7 +46,8 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           self.log.debug( '%s/%s' % ( diracSystem, systemDB ) )
           db = DB( systemDB, '%s/%s' % ( diracSystem, systemDB ), 10 )
         except RuntimeError, msg:
-          self.log.error( 'Error importing %s/%s' % diracSystem, systemDB )
+          self.log.error( 'Error importing %s/%s' % ( diracSystem, systemDB ) )
+          self.log.error( msg )
           self.fail( msg )   
         
         result = db._query( "status;" )
