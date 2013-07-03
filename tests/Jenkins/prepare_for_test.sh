@@ -106,14 +106,14 @@ diracConfigure(){
   randomUser=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
   userPass=/LocalInstallation/Database/Password=$randomUser
   # Setups
-  # setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'` 
+  setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'` 
 
   echo $randomRoot > rootMySQL
   echo $randomUser > userMySQL
 
   ln -s $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/install.cfg
 
-  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass -d 
+  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass -o $setups -d 
   dirac-setup-site -d
   
   # Do not use Server Certificate
