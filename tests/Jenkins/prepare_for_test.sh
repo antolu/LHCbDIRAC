@@ -121,7 +121,7 @@ diracConfigure(){
   dirac-setup-site -d
   
   # Do not use Server Certificate
-  sed -i '106i\    UseServerCertificate=yes' etc/dirac.cfg
+  sed -i '107i\    UseServerCertificate=yes' etc/dirac.cfg
   #sed -i '125i\    UseServerCertificate=yes' etc/dirac.cfg
   
 }  
