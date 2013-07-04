@@ -108,7 +108,7 @@ diracConfigure(){
   # Setups
   setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'` 
   # Databases
-  dbs=`cat databases | cut -d ' ' -f 2 | uniq | cut -d '.' -f 1 | tr '\n' ','`
+  dbs=`cat databases | cut -d ' ' -f 2 | uniq | grep -v TransferDB | cut -d '.' -f 1 | tr '\n' ','`
   databases=/LocalInstallation/Databases=$dbs
  
   echo $randomRoot > rootMySQL
