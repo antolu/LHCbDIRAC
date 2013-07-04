@@ -392,7 +392,7 @@ class StorageUsageDB( DB ):
   #############
 
   def __getIDsLike( self, dirPath ):
-    dirpath = self.__stripDirectory( dirPath )
+    dirPath = self.__stripDirectory( dirPath )
     sqlCmd = "SELECT Path, DID FROM `su_Directory` WHERE Path LIKE '%s/%%'" % dirPath
     result = self._query( sqlCmd )
     if not result[ 'OK' ]:
