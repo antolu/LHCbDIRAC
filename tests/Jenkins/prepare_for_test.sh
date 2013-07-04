@@ -108,8 +108,8 @@ diracConfigure(){
   # Setups
   setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'` 
   # Databases
-  dbs=`cat databases | cut -d ' ' -f 2 | uniq | grep -v TransferDB | cut -d '.' -f 1 | tr '\n' ','`
-  databases=/LocalInstallation/Databases=$dbs
+  #dbs=`cat databases | cut -d ' ' -f 2 | uniq | grep -v TransferDB | cut -d '.' -f 1 | tr '\n' ','`
+  #databases=/LocalInstallation/Databases=$dbs
  
   echo $randomRoot > rootMySQL
   echo $randomUser > userMySQL
@@ -121,8 +121,8 @@ diracConfigure(){
   dirac-setup-site -d
   
   # Do not use Server Certificate
-  sed -i '107i\    UseServerCertificate=yes' etc/dirac.cfg
-  #sed -i '125i\    UseServerCertificate=yes' etc/dirac.cfg
+  sed -i '107i\    UseServerCertificate = yes' etc/dirac.cfg
+  #sed -i '125i\    UseServerCertificate = yes' etc/dirac.cfg
   
 }  
 
