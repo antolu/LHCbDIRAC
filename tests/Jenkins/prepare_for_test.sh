@@ -187,7 +187,7 @@ diracStopRunit(){
 diracMySQL(){
   
   diracStopMySQL    
-  dirac-install-mysql
+  dirac-install-mysql -ddd
   
 }  
 
