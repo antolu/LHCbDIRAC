@@ -107,15 +107,16 @@ diracConfigure(){
   userPass=/LocalInstallation/Database/Password=$randomUser
   # Setups
   setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'` 
-  
-  
-  
+  # Databases
+  dbs=`cat databases | cut -d ' ' -f 2 | uniq | cut -d '.' -f 1 | tr '\n' ','`
+  databases=/LocalInstallation/Databases=$dbs
+ 
   echo $randomRoot > rootMySQL
   echo $randomUser > userMySQL
 
   ln -s $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/install.cfg
 
-  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass -o $setups -o /LocalInstallation/Databases=ResourceStatusDB,ResourceManagementDB -d 
+  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass -o $setups -o $databases -d 
   dirac-setup-site -d
   
   # Do not use Server Certificate
