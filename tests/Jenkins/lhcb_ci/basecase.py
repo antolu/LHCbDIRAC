@@ -13,12 +13,19 @@ import os
 import unittest
 
 
+from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
+
+
 class Base_TestCase( unittest.TestCase ):  
 
   log = lhcb_ci.logger
   
   @classmethod
-  def setUpClass( cls ):   
+  def setUpClass( cls ):
+
+    localCFG = LocalConfiguration()
+    localCFG.loadUserData()
+    
     cls.workspace = os.getenv( 'WORKSPACE' ) 
   
   
