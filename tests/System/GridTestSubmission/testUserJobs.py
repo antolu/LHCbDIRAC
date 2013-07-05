@@ -7,6 +7,7 @@ from DIRAC import gLogger
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from LHCbTestDirac.Utilities.utils import find_all
+from LHCbTestDirac.Integration.Test_UserJobs import createJob
 
 gLogger.setLevel( 'DEBUG' )
 
@@ -102,3 +103,10 @@ result = dirac.submit( gaudirunJob )
 gLogger.info( 'Submission Result: ', result )
 
 ########################################################################################
+
+gLogger.info( "Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info" )
+gLogger.info( "This will generate a job that should become Completed, use the failover, and only later it will be Done" )
+
+gaudirunJob = createJob()
+result = dirac.submit( gaudirunJob )
+gLogger.info( 'Submission Result: ', result )
