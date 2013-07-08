@@ -23,6 +23,8 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     Makes sure the passwords are properly set on the dirac.cfg and accessed via
     the InstallTools module.
     """
+    self.log.info( 'test_passwords' )
+    
     
     self.assertEquals( InstallTools.mysqlRootPwd,  self.rootPass )
     self.assertEquals( InstallTools.mysqlPassword, self.userPass )
@@ -35,6 +37,8 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
   
   
   def test_databases_db_reachable( self ):
+  
+    self.log.info( 'test_databases_db_reachable' )
   
     for diracSystem, systemDBs in self.databases.iteritems():   
       
@@ -51,10 +55,15 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           self.fail( msg )   
         
         result = db._query( "show status" )
+        if not result[ 'OK' ]:
+          # Print before it crashes
+          self.log.error( result[ 'Message' ] )
         self.assertEquals( result[ 'OK' ], True )
-        self.log.info( result[ 'Message' ] )
-  
+          
   def test_import( self ):
+  
+    self.log.info( 'test_import' )
+    
     pass 
 
 #...............................................................................
