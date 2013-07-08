@@ -321,10 +321,10 @@ class UploadLogFile( ModuleBase ):
     logUpload.addFile( logFile )
     self.request.addOperation( logUpload )
 
-
     logRemoval = Operation()
     logRemoval.Type = 'RemoveFile'
     logRemoval.TargetSE = uploadedSE
+
 
     logFile = File()
     logFile.LFN = logFileLFN

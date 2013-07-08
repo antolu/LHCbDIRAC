@@ -88,28 +88,14 @@ class LogUpload( OperationHandlerBase ):
         self.dataLoggingClient().addFileRecord( lfn, "LogUploadFail", targetSE, "", "LogUpload" )
         self.log.error( "completely failed to upload log file: %s" % logUpload["Message"] )
         opFile.Error = str( logUpload["Message"] )
+        opFile.Attempt += 1
         self.operation.Error = str( logUpload["Message"] )
         continue
 
-      logUpload = logUpload["Value"]
-
-      if lfn in logUpload["Failed"]:
-        gMonitor.addMark( "LogUploadFail", 1 )
-        self.dataLoggingClient().addFileRecord( lfn, "LogUploadFail", targetSE, "", "LogUpload" )
-
-        reason = logUpload["Failed"][lfn]
-        self.log.error( "failed to replicate log file %s at %s: %s" % ( lfn, targetSE, reason ) )
-        opFile.Error = str( reason )
-        opFile.Attempt += 1
-        self.operation.Error = str( reason )
-        continue
-
-      logUpload = logUpload["Successful"]
-
-      if lfn in logUpload:
+      if lfn in logUpload['Value']:
         gMonitor.addMark( "LogUploadOK", 1 )
         self.dataLoggingClient().addFileRecord( lfn, "LogUpload", targetSE, "", "LogUpload" )
-        opFile.Status = "Done"
-        self.log.info( "%s to %s took %s seconds" % ( lfn, targetSE, logUpload[lfn]['LogUpload'] ) )
+        opFile.Status = 'Done'
+        self.log.info( "Uploaded %s to %s took %s seconds" % ( lfn, targetSE ) )
 
     return S_OK()
