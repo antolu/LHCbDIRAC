@@ -13,7 +13,7 @@ import os
 import unittest
 
 
-from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
+#from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
 
 
 class Base_TestCase( unittest.TestCase ):  
@@ -23,8 +23,9 @@ class Base_TestCase( unittest.TestCase ):
   @classmethod
   def setUpClass( cls ):
 
-    localCFG = LocalConfiguration()
-    localCFG.loadUserData()
+#    localCfg = LocalConfiguration()
+#    localCfg.isCSEnabled()
+#    localCfg.disableParsingCommandLine()
     
     cls.workspace = os.getenv( 'WORKSPACE' ) 
   
