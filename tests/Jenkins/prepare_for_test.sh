@@ -230,7 +230,7 @@ finalCleanup(){
 diracDBs(){
 
   dbs=`cat databases | grep -v TransferDB.sql | cut -d ' ' -f 2 | cut -d '.' -f 1`
-  for db in $databases
+  for db in $dbs
   do
     dirac-install-db -ddd $db
   done  
