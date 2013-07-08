@@ -96,6 +96,6 @@ class LogUpload( OperationHandlerBase ):
         gMonitor.addMark( "LogUploadOK", 1 )
         self.dataLoggingClient().addFileRecord( lfn, "LogUpload", targetSE, "", "LogUpload" )
         opFile.Status = 'Done'
-        self.log.info( "Uploaded %s to %s took %s seconds" % ( lfn, targetSE ) )
+        self.log.info( "Uploaded %s to %s" % ( lfn, targetSE ) )
 
     return S_OK()
