@@ -60,7 +60,7 @@ findRelease(){
 
 findDatabases(){
 
-  find *DIRAC -name *DB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
+  find *DIRAC -name *DB.sql | grep -v TransferDB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
 
   echo found `wc -l databases`
 
@@ -229,7 +229,7 @@ finalCleanup(){
 
 diracDBs(){
 
-  dbs=`cat databases | grep -v TransferDB.sql | cut -d ' ' -f 2 | cut -d '.' -f 1`
+  dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1`
   for db in $dbs
   do
     dirac-install-db $db
