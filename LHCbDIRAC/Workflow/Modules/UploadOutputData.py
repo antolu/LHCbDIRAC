@@ -180,11 +180,11 @@ class UploadOutputData( ModuleBase ):
                          'ChecksumType' : metadata['filedict']['ChecksumType'] }
 
         result = self.failoverTransfer.transferAndRegisterFile( fileName = fileName,
-                                                           localPath = metadata['localpath'],
-                                                           lfn = metadata['filedict']['LFN'],
-                                                           destinationSEList = targetSE,
-                                                           fileMetaDict = fileMetaDict,
-                                                           fileCatalog = 'LcgFileCatalogCombined' )
+                                                                localPath = metadata['localpath'],
+                                                                lfn = metadata['filedict']['LFN'],
+                                                                destinationSEList = targetSE,
+                                                                fileMetaDict = fileMetaDict,
+                                                                fileCatalog = 'LcgFileCatalogCombined' )
         if not result['OK']:
           self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
           failover[fileName] = metadata
