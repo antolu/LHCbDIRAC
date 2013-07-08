@@ -50,7 +50,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           self.log.error( msg )
           self.fail( msg )   
         
-        result = db._query( "status;" )
+        result = db._query( "show status" )
         self.assertEquals( result[ 'OK' ], True )
         self.log.info( result[ 'Message' ] )
   
