@@ -304,7 +304,7 @@ class UploadOutputData( ModuleBase ):
               lfnMetadata = {}
               for lfnMD in performBKRegistration:
                 if lfnMD['lfn'] == lfn:
-                  lfnMetadata = lfnMD['fildict']
+                  lfnMetadata = lfnMD['filedict']
                   break
               self.setBKRegistrationRequest( lfn, error = error, metaData = lfnMetadata )
 
