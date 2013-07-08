@@ -77,8 +77,8 @@ class BookkeepingReport( ModuleBase ):
 
       if saveOnFile:
         bfilename = 'bookkeeping_' + self.step_id + '.xml'
-        #bfilename = '%s_Bookkeeping_Step%d.xml' % ( self.applicationName, self.step_number )
-        #bfilename = '%s_%s_Bookkeeping.xml' % ( self.step_id, self.applicationName )
+        # bfilename = '%s_Bookkeeping_Step%d.xml' % ( self.applicationName, self.step_number )
+        # bfilename = '%s_%s_Bookkeeping.xml' % ( self.step_id, self.applicationName )
         bfile = open( bfilename, 'w' )
         print >> bfile, doc
         bfile.close()
@@ -107,7 +107,7 @@ class BookkeepingReport( ModuleBase ):
 
     self.stepOutputs, _sot, _hist = self._determineOutputs()
 
-    ## VARS FROM WORKFLOW_COMMONS ##
+    # # VARS FROM WORKFLOW_COMMONS ##
 
     if self.workflow_commons.has_key( 'outputList' ):
       for outputItem in self.stepOutputs:
@@ -222,7 +222,7 @@ class BookkeepingReport( ModuleBase ):
 
     prettyXMLDoc = doc.toprettyxml( indent = "    ", encoding = "ISO-8859-1" )
 
-    #horrible, necessary hack!
+    # horrible, necessary hack!
     prettyXMLDoc = prettyXMLDoc.replace( '\'book.dtd\'', '\"book.dtd\"' )
 
     return prettyXMLDoc
@@ -506,7 +506,7 @@ class BookkeepingReport( ModuleBase ):
       oFileAttributes = ( lfn, typeName, typeVersion )
       jobNode, oFile = addChildNode( jobNode, "OutputFile", 1, oFileAttributes )
 
-      #HIST is in the dataTypes e.g. we may have new names in the future ;)
+      # HIST is in the dataTypes e.g. we may have new names in the future ;)
       if oldTypeName:
         typeName = oldTypeName
 
@@ -532,7 +532,7 @@ class BookkeepingReport( ModuleBase ):
 
     return jobNode
 
-################################################################################        
+################################################################################
 
   def __generateSimulationCondition( self, jobNode ):
     '''SimulationCondition looks like this:
@@ -586,4 +586,4 @@ class BookkeepingReport( ModuleBase ):
 # END AUXILIAR FUNCTIONS
 ################################################################################
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
