@@ -178,6 +178,22 @@ diracStopRunit(){
 }
 
 #-------------------------------------------------------------------------------
+# diracCredentials:
+#
+#   hacks CS service to create a first dirac_admin proxy that will be used
+#   to install and play around
+#-------------------------------------------------------------------------------
+
+diracCredentials(){
+  
+  sed -i 's/commitNewData = CSAdministrator/commitNewData = authenticated/g' etc/Configuration_Server.cfg
+  dirac-proxy-init -g dirac_admin
+  sed -i 's/commitNewData = authenticated/commitNewData = CSAdministrator/g' etc/Configuration_Server.cfg
+  
+}  
+
+
+#-------------------------------------------------------------------------------
 # diracMySQL:
 #
 #   installs MySQL. If it was running before, it returns an error.
