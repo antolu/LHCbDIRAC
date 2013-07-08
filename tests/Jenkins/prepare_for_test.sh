@@ -126,13 +126,13 @@ diracConfigure(){
 }  
 
 #-------------------------------------------------------------------------------
-# diracStopMySQL:
+# diracKillMySQL:
 #
 #   if MySQL is running, it stops it. If not running, returns exit code 1
 #
 #-------------------------------------------------------------------------------
 
-diracStopMySQL(){
+diracKillMySQL(){
 
   # It happens that if ps does not find anything, spits a return code 1 !
   set +o errexit
@@ -147,13 +147,13 @@ diracStopMySQL(){
 }
 
 #-------------------------------------------------------------------------------
-# diracStopRunit:
+# diracKillRunit:
 #
 #   stops scripts running on startup
 #
 #-------------------------------------------------------------------------------
 
-diracStopRunit(){
+diracKillRunit(){
 
   set +o errexit
   runsvdirRunning=`ps aux | grep 'runsvdir ' | grep -v 'grep'`
@@ -190,7 +190,7 @@ diracCredentials(){
   dirac-proxy-init -g dirac_admin
   sed -i 's/commitNewData = authenticated/commitNewData = CSAdministrator/g' etc/Configuration_Server.cfg
   
-}  
+}
 
 
 #-------------------------------------------------------------------------------
@@ -201,7 +201,7 @@ diracCredentials(){
 
 diracMySQL(){
   
-  diracStopMySQL    
+  diracKillMySQL    
   dirac-install-mysql -ddd
   
 }  
@@ -229,7 +229,13 @@ finalCleanup(){
 
 diracDBs(){
 
-  cat databases | grep -v TransferDB.sql | cut -d ' ' -f 2 | cut -d '.' -f 1 | xargs dirac-install-db
+  dbs=`cat databases | grep -v TransferDB.sql | cut -d ' ' -f 2 | cut -d '.' -f 1`
+  for db in $databases
+  do
+    dirac-install-db -ddd $db
+  done  
+
+#  cat databases | grep -v TransferDB.sql | cut -d ' ' -f 2 | cut -d '.' -f 1 | xargs dirac-install-db
 
 }
 
