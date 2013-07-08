@@ -272,7 +272,7 @@ class ModulesTestCase( unittest.TestCase ):
     from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
     self.ulf = UploadLogFile( bkClient = self.bkc_mock, rm = self.rm_mock )
     self.ulf.failoverTransfer = self.ft_mock
-
+    self.ulf.request = Request()
 
     from LHCbDIRAC.Workflow.Modules.FileUsage import FileUsage
     self.fu = FileUsage( bkClient = self.bkc_mock, rm = self.rm_mock )
@@ -1165,7 +1165,7 @@ class UploadLogFileSuccess( ModulesTestCase ):
                                            self.step_number, self.step_id )['OK'] )
 #        self.assertTrue( self.ulf.finalize( rm_mock, self.ft_mock )['OK'] )
 
-  def test__uploadLogToFailoverSE(self):
+  def test__uploadLogToFailoverSE( self ):
     open( 'foo.txt', 'w' ).close()
     tarFileName = 'foo.txt'
     self.ulf.logLFNPath = '/an/lfn/foo.txt'
