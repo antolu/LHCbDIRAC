@@ -814,7 +814,10 @@ class ModuleBase( object ):
 
   #############################################################################
 
-  def setBKRegistrationRequest( self, lfn, error = '' ):
+  def setBKRegistrationRequest( self, lfn, error = '',
+                                metaData = {'Checksum':'justSomething',
+                                            'ChecksumType': 'adler32',
+                                            'GUID': 'aGUID'} ):
     """ Set a BK registration request for changing the replica flag.  Uses the global request object.
     """
     if error:
@@ -829,6 +832,9 @@ class ModuleBase( object ):
     bkFile.LFN = lfn
     # FIXME: this should NOT be needed... but RMS complains!
     bkFile.PFN = lfn
+    bkFile.GUID = metaData['GUID']
+    bkFile.Checksum = metaData['Checksum']
+    bkFile.ChecksumType = metaData['ChecksumType']
 
     regFile.addFile( bkFile )
     res = self.request.addOperation( regFile )

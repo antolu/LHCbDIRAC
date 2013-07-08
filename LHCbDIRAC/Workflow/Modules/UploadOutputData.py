@@ -197,7 +197,7 @@ class UploadOutputData( ModuleBase ):
             self.log.info( '%s uploaded successfully, will be registered in BK if \
             all files uploaded for job' % ( fileName ) )
 
-          performBKRegistration.append( metadata['lfn'] )
+          performBKRegistration.append( metadata )
 
       cleanUp = False
       for fileName, metadata in failover.items():
@@ -290,17 +290,23 @@ class UploadOutputData( ModuleBase ):
       else:
         if registrationFailure:
           self.log.info( 'Catalog registration failures when upload files: preparing BK registration requests' )
-          for lfn in performBKRegistration:
-            self.setBKRegistrationRequest( lfn )
+          for lfnMetadata in performBKRegistration:
+            self.setBKRegistrationRequest( lfnMetadata['lfn'], metaData = lfnMetadata['filedict'] )
         else:
-          result = self.rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
+          result = self.rm.addCatalogFile( [lfnMeta['lfn'] for lfnMeta in performBKRegistration],
+                                           catalogs = ['BookkeepingDB'] )
           self.log.verbose( result )
           if not result['OK']:
             self.log.error( result )
             return S_ERROR( 'Could Not Perform BK Registration' )
           if result['Value']['Failed']:
             for lfn, error in result['Value']['Failed'].items():
-              self.setBKRegistrationRequest( lfn, error )
+              lfnMetadata = {}
+              for lfnMD in performBKRegistration:
+                if lfnMD['lfn'] == lfn:
+                  lfnMetadata = lfnMD['fildict']
+                  break
+              self.setBKRegistrationRequest( lfn, error = error, metaData = lfnMetadata )
 
       self.workflow_commons['Request'] = self.request
 
