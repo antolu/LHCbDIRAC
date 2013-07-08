@@ -116,7 +116,7 @@ diracConfigure(){
 
   ln -s $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/install.cfg
 
-  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass -o $setups -d 
+  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups -d 
   dirac-setup-site -d
   
   # Do not use Server Certificate
@@ -232,7 +232,7 @@ diracDBs(){
   dbs=`cat databases | grep -v TransferDB.sql | cut -d ' ' -f 2 | cut -d '.' -f 1`
   for db in $dbs
   do
-    dirac-install-db -ddd $db
+    dirac-install-db $db
   done  
 
 #  cat databases | grep -v TransferDB.sql | cut -d ' ' -f 2 | cut -d '.' -f 1 | xargs dirac-install-db
