@@ -134,17 +134,17 @@ class ModuleBase( object ):
   def setApplicationStatus( self, status, sendFlag = True ):
     """Wraps around setJobApplicationStatus of state update client
     """
-    if not type( status ) == type( '' ):
-      status = str( status )
-
     if not self._WMSJob():
       return 0  # e.g. running locally prior to submission
 
-    self.log.verbose( 'setJobApplicationStatus(%d, %s)' % ( self.jobID, status ) )
-
-    jobStatus = self.jobReport.setApplicationStatus( status, sendFlag )
-    if not jobStatus['OK']:
-      self.log.warn( jobStatus['Message'] )
+    if self._checkWFAndStepStatus( noPrint = True ):
+      # The application status won't be updated in case the workflow or the step is failed already
+      if not type( status ) == type( '' ):
+        status = str( status )
+      self.log.verbose( 'setJobApplicationStatus(%d, %s)' % ( self.jobID, status ) )
+      jobStatus = self.jobReport.setApplicationStatus( status, sendFlag )
+      if not jobStatus['OK']:
+        self.log.warn( jobStatus['Message'] )
 
   #############################################################################
 
@@ -789,28 +789,29 @@ class ModuleBase( object ):
         self.log.error( "!!! Both accounting and RequestDB are down? !!!" )
         return result
 
-    isValid = gRequestValidator.validate( self.request )
-    if not isValid['OK']:
-      raise RuntimeError, "Failover request is not valid: %s" % isValid['Message']
-    else:
-      requestJSON = self.request.toJSON()
-      if requestJSON['OK']:
-        self.log.info( "Creating failover request for deferred operations for job %d" % self.jobID )
-        request_string = str( requestJSON['Value'] )
-        self.log.debug( request_string )
-        # Write out the request string
-        fname = '%s_%s_request.json' % ( self.production_id, self.prod_job_id )
-        jsonFile = open( fname, 'w' )
-        jsonFile.write( request_string )
-        jsonFile.close()
-        self.log.info( "Created file containing failover request %s" % fname )
-        result = self.request.getDigest()
-        if result['OK']:
-          self.log.info( "Digest of the request: %s" % result['Value'] )
-        else:
-          self.log.error( "No digest? That's not sooo important, anyway: %s" % result['Message'] )
+    if len( self.request ):
+      isValid = gRequestValidator.validate( self.request )
+      if not isValid['OK']:
+        raise RuntimeError, "Failover request is not valid: %s" % isValid['Message']
       else:
-        raise RuntimeError, requestJSON['Message']
+        requestJSON = self.request.toJSON()
+        if requestJSON['OK']:
+          self.log.info( "Creating failover request for deferred operations for job %d" % self.jobID )
+          request_string = str( requestJSON['Value'] )
+          self.log.debug( request_string )
+          # Write out the request string
+          fname = '%s_%s_request.json' % ( self.production_id, self.prod_job_id )
+          jsonFile = open( fname, 'w' )
+          jsonFile.write( request_string )
+          jsonFile.close()
+          self.log.info( "Created file containing failover request %s" % fname )
+          result = self.request.getDigest()
+          if result['OK']:
+            self.log.info( "Digest of the request: %s" % result['Value'] )
+          else:
+            self.log.error( "No digest? That's not sooo important, anyway: %s" % result['Message'] )
+        else:
+          raise RuntimeError, requestJSON['Message']
 
   #############################################################################
 
