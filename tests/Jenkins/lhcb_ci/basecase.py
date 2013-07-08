@@ -23,7 +23,9 @@ class Base_TestCase( unittest.TestCase ):
   @classmethod
   def setUpClass( cls ):
 
-    LocalConfiguration().loadUserData()   
+    localCfg = LocalConfiguration()
+    localCfg.isParsed = True
+    localCfg.loadUserData()   
     cls.workspace = os.getenv( 'WORKSPACE' ) 
   
   
