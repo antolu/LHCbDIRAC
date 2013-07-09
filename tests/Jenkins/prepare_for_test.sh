@@ -229,7 +229,7 @@ finalCleanup(){
 
 diracDBs(){
 
-  dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1`
+  dbs=`cat databases | cut -d ' ' -f 2 | grep -v RequestDB | cut -d '.' -f 1`
   for db in $dbs
   do
     dirac-install-db $db
