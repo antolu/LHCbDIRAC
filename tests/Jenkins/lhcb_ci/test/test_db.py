@@ -106,7 +106,6 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           continue
         
         dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
-        
         self.log.debug( 'Importing %s' % dbPath )
         
         dbMod = lhcb_ci.extensions.import_( 'DIRAC.%s.DB.%s' % ( diracSystem, dbName ) )
@@ -122,17 +121,17 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         
         if not hasattr( dbInstance, '_checkTable' ):
           self.log.error( '%s NOT FOLLOWING STANDARDS' % dbName )
-          continue 
-        
+          continue
           
         # Each DB Instance using the pythonic DB definition must have this method  
         self.assertEquals( hasattr( dbInstance, "_checkTable" ), True )
         
         res = dbInstance._checkTable()
+        if not res[ 'OK' ]:
+          self.log.error( res[ 'Message' ] )
         
         self.assertEquals( res[ 'OK' ], True )
-        self.log.debug( res )  
-          
+                  
         del dbMod
         del dbClass
         del dbInstance    
