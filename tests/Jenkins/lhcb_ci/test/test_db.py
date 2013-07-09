@@ -8,6 +8,7 @@
 
 
 import lhcb_ci.basecase
+import lhcb_ci.db
 
 
 from DIRAC.Core.Base.DB   import DB
@@ -36,7 +37,11 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     self.assertEquals( InstallTools.mysqlPassword, self.userPass )    
   
   
-  def test_databases_db_reachable( self ):
+  def test_databases_reachable( self ):
+    """ test_databases_reachable
+    
+    Tests that we can import the DIRAC DB objects pointing to an specific Database.
+    """
   
     self.log.info( 'test_databases_db_reachable' )
   
@@ -59,12 +64,32 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           # Print before it crashes
           self.log.error( result[ 'Message' ] )
         self.assertEquals( result[ 'OK' ], True )
+        del db
+   
           
-  def test_import( self ):
-  
-    self.log.info( 'test_import' )
+  def test_databases_drop( self ):
+    """ test_databases_drop
     
-    pass 
+    Tests that we can drop directly databases from the MySQL server
+    """
+   
+    self.log.info( 'test_databases_drop' )
+
+    for systemDBs in self.databases.itervalues():   
+    
+      for dbName in systemDBs:
+        
+        self.log.debug( "Dropping %s" % dbName )
+        
+        res = lhcb_ci.db.dropDB( dbName )
+        self.assertEquals( res, True )
+        
+        self.log.debug( "Installing %s" % dbName )
+        
+        res = lhcb_ci.db.install( dbName )
+        if not res[ 'OK' ]:
+          self.log.error( res[ 'Message' ] )
+        self.assertEquals( res[ 'OK' ], True )  
 
 #...............................................................................
 #EOF
