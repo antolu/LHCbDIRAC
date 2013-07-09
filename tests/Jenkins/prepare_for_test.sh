@@ -60,7 +60,7 @@ findRelease(){
 
 findDatabases(){
 
-  find *DIRAC -name *DB.sql | grep -v ^TransferDB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
+  find *DIRAC -name *DB.sql | grep -v TransferDB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
 
   echo found `wc -l databases`
 
