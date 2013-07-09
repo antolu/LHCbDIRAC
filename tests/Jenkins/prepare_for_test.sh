@@ -77,7 +77,7 @@ diracInstall(){
 
   wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
   chmod +x dirac-install
-  ./dirac-install -l LHCb -r `cat project.version` -e LHCb -t server
+  ./dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
 
   mkdir -p etc/grid-security
   ln -s ~/host{cert,key}.pem etc/grid-security
@@ -116,8 +116,8 @@ diracConfigure(){
 
   ln -s $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/install.cfg
 
-  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups -d 
-  dirac-setup-site -d
+  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG 
+  dirac-setup-site $DEBUG
   
   # Do not use Server Certificate
   #sed -i '107i\    UseServerCertificate = yes' etc/dirac.cfg
@@ -187,7 +187,7 @@ diracKillRunit(){
 diracCredentials(){
   
   sed -i 's/commitNewData = CSAdministrator/commitNewData = authenticated/g' etc/Configuration_Server.cfg
-  dirac-proxy-init -g dirac_admin
+  dirac-proxy-init -g dirac_admin $DEBUG
   sed -i 's/commitNewData = authenticated/commitNewData = CSAdministrator/g' etc/Configuration_Server.cfg
   
 }
@@ -202,7 +202,7 @@ diracCredentials(){
 diracMySQL(){
   
   diracKillMySQL    
-  dirac-install-mysql -ddd
+  dirac-install-mysql $DEBUG
   
 }  
 
@@ -232,10 +232,8 @@ diracDBs(){
   dbs=`cat databases | cut -d ' ' -f 2 | grep -v ^RequestDB | cut -d '.' -f 1`
   for db in $dbs
   do
-    dirac-install-db $db
-  done  
-
-#  cat databases | grep -v TransferDB.sql | cut -d ' ' -f 2 | cut -d '.' -f 1 | xargs dirac-install-db
+    dirac-install-db $db $DEBUG
+  done
 
 }
 
