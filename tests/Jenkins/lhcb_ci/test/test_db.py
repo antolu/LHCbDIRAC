@@ -9,6 +9,7 @@
 
 import lhcb_ci.basecase
 import lhcb_ci.db
+import lhcb_ci.extensions
 
 
 from DIRAC.Core.Base.DB   import DB
@@ -63,6 +64,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           # Print before it crashes
           self.log.error( result[ 'Message' ] )
         self.assertEquals( result[ 'OK' ], True )
+        
         del db
    
           
@@ -83,6 +85,52 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         
         res = lhcb_ci.db.install( dbName )
         self.assertEquals( res[ 'OK' ], True )  
+   
 
+  def test_install_tables( self ):
+    """ test_install_tables
+    
+    This test only applies to databases defined on Python.
+    """
+    
+    self.log.info( 'test_install_tables' )
+    
+    for diracSystem, systemDBs in self.databases.iteritems():
+      
+      for dbName in systemDBs:
+        
+        tables = lhcb_ci.db.getTables( dbName )
+        if tables:
+          self.log.debug( 'Tables found for %s/%s' % ( diracSystem, dbName ) )
+          self.log.debug( tables )
+          continue
+        
+        dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
+        
+        self.log.debug( 'Importing %s' % dbPath )
+        
+        dbMod = lhcb_ci.extensions.import_( 'DIRAC.%s.DB.%s' % ( diracSystem, dbName ) )
+        self.assertEquals( hasattr( dbMod, dbName ), True )
+        
+        dbClass = getattr( dbMod, dbName )
+        
+        try:
+          dbInstance = dbClass()
+        except Exception, e:
+          self.log.error( e )
+          self.fail( 'Creating db instance crashed. This should not happen' )
+          
+        # Each DB Instance using the pythonic DB definition must have this method  
+        self.assertEquals( hasattr( dbInstance, "_checkTable" ), True )
+        
+        res = dbInstance._checkTable()
+        
+        self.assertEquals( res[ 'OK' ], True )
+        self.log.debug( res )  
+          
+        del dbMod
+        del dbClass
+        del dbInstance    
+    
 #...............................................................................
 #EOF
