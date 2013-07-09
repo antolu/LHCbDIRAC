@@ -48,7 +48,9 @@ def dropDB( dbName ):
   cursor = conn.cursor()
   
   try:
-    res = cursor.execute( "drop database %s", ( dbName, ) )
+    # I know... it is unsafe, but the current version does not work with
+    # parametrics...
+    res = cursor.execute( "drop database %s" % dbName )
     logger.debug( res )
     result = True
   except MySQLdb.Error, e:
