@@ -93,11 +93,17 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     This test only applies to databases defined on Python.
     """
     
+    EXCEPTIONS = [ 'SystemLoggingDB' ]
+    
     self.log.info( 'test_install_tables' )
     
     for diracSystem, systemDBs in self.databases.iteritems():
       
       for dbName in systemDBs:
+    
+        if dbName in EXCEPTIONS:
+          self.log.exception( 'Skipped %s' % dbName )
+          continue
         
         tables = lhcb_ci.db.getTables( dbName )
         if tables:
@@ -120,7 +126,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           self.fail( 'Creating db instance crashed. This should not happen' )
         
         if not hasattr( dbInstance, '_checkTable' ):
-          self.log.error( '%s NOT FOLLOWING STANDARDS' % dbName )
+          self.log.exception( '%s NOT FOLLOWING STANDARDS' % dbName )
           continue
           
         # Each DB Instance using the pythonic DB definition must have this method  
