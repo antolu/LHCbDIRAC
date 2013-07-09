@@ -107,8 +107,8 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         
         tables = lhcb_ci.db.getTables( dbName )
         if tables:
-          self.log.debug( 'Tables found for %s/%s' % ( diracSystem, dbName ) )
-          self.log.debug( tables )
+          self.log.exception( 'Tables found for %s/%s' % ( diracSystem, dbName ) )
+          self.log.exception( tables )
           continue
         
         dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
