@@ -26,7 +26,6 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     """
     self.log.info( 'test_passwords' )
     
-    
     self.assertEquals( InstallTools.mysqlRootPwd,  self.rootPass )
     self.assertEquals( InstallTools.mysqlPassword, self.userPass )
     
@@ -52,7 +51,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
       for systemDB in systemDBs:
         
         try:
-          self.log.debug( '%s/%s' % ( diracSystem, systemDB ) )
+          self.log.debug( 'Reaching %s/%s' % ( diracSystem, systemDB ) )
           db = DB( systemDB, '%s/%s' % ( diracSystem, systemDB ), 10 )
         except RuntimeError, msg:
           self.log.error( 'Error importing %s/%s' % ( diracSystem, systemDB ) )
@@ -78,17 +77,11 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     for systemDBs in self.databases.itervalues():   
     
       for dbName in systemDBs:
-        
-        self.log.debug( "Dropping %s" % dbName )
-        
+                
         res = lhcb_ci.db.dropDB( dbName )
         self.assertEquals( res, True )
         
-        self.log.debug( "Installing %s" % dbName )
-        
         res = lhcb_ci.db.install( dbName )
-        if not res[ 'OK' ]:
-          self.log.error( res[ 'Message' ] )
         self.assertEquals( res[ 'OK' ], True )  
 
 #...............................................................................

@@ -22,7 +22,11 @@ def install( dbName ):
   """
 
   InstallTools.getMySQLPasswords()
-  return InstallTools.installDatabase( dbName )
+  logger.debug( "install database %s" % dbName )
+  result = InstallTools.installDatabase( dbName )
+  logger.debug( "result: %s" % result )
+  return result
+  
   #if not result[ 'OK' ]:
   #  return result
   #
@@ -51,7 +55,7 @@ def dropDB( dbName ):
     # I know... it is unsafe, but the current version does not work with
     # parametrics...
     res = cursor.execute( "drop database %s" % dbName )
-    logger.debug( res )
+    logger.debug( "result: %s" % str( res ) )
     result = True
   except MySQLdb.Error, e:
     logger.error( 'Error executing' )
