@@ -52,7 +52,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
       for dbName in systemDBs:
         
         res = lhcb_ci.db.installDB( dbName )
-        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )  
+        self.assertDIRACEquals( res[ 'OK' ], True, res )  
         
         try:
           self.log.debug( 'Reaching %s/%s' % ( diracSystem, dbName ) )
@@ -62,13 +62,13 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           self.log.error( msg )
           self.fail( msg )   
         
-        result = db._query( "show status" )
-        self.assertEquals( result[ 'OK' ], True, result[ 'Message' ] )
+        res = db._query( "show status" )
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
         
         # Cleanup
         del db
         res = lhcb_ci.db.dropDB( dbName )
-        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
    
           
   def test_databases_install_drop( self ):
@@ -83,11 +83,11 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     
       for dbName in systemDBs:
 
-        res = lhcb_ci.db.installDB( dbName )
-        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )
+        res = lhcb_ci.db.installDB( dbName )         
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
                 
         res = lhcb_ci.db.dropDB( dbName )
-        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )  
+        self.assertDIRACEquals( res[ 'OK' ], True, res )  
 
 
   def test_install_tables( self ):
@@ -115,7 +115,8 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           continue
 
         res = lhcb_ci.db.installDB( dbName )
-        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )
+        
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
         
         dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
         self.log.debug( 'Importing %s' % dbPath )
@@ -139,14 +140,14 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         self.assertEquals( hasattr( dbInstance, "_checkTable" ), True )
         
         res = dbInstance._checkTable()
-        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
 
         # Cleaning                  
         del dbMod
         del dbClass
         del dbInstance    
         res = lhcb_ci.db.dropDB( dbName )
-        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
     
 #...............................................................................
 #EOF

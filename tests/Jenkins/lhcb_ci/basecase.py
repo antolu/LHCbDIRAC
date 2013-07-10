@@ -80,6 +80,12 @@ class DB_TestCase( Base_TestCase ):
     if res[ 'Value' ]:
       self.log.error( 'tearDown' )
       self.fail( 'DBs still installed: %s' % res[ 'Value' ] )      
+
+  def assertDIRACEquals( self, first, second, res ):
+    
+    _message = ( not res[ 'OK' ] and res[ 'Message' ] ) or ''   
+    self.assertEquals( first, second, _message )
+  
     
 #...............................................................................
 #EOF
