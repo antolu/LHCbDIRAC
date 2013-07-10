@@ -19,6 +19,7 @@ class Base_TestCase( unittest.TestCase ):
 
   log = lhcb_ci.logger
   
+  
   @classmethod
   def setUpClass( cls ):
 
@@ -34,6 +35,7 @@ class Base_TestCase( unittest.TestCase ):
     
     
 class DB_TestCase( Base_TestCase ):
+
   
   @classmethod
   def setUpClass( cls ):
@@ -44,6 +46,40 @@ class DB_TestCase( Base_TestCase ):
     cls.databases = lhcb_ci.db.getDatabases()         
     cls.rootPass  = lhcb_ci.db.getRootPass()
     cls.userPass  = lhcb_ci.db.getUserPass()
+
+  
+  def setUp( self ):
+    """ setUp
+    
+    Makes sure there are no DBs installed before starting the test.
+    """
+    
+    super( DB_TestCase, self ).setUp()
+    
+    res = lhcb_ci.db.getInstalledDBs()  
+    if not res[ 'OK' ]:
+      self.log.error( 'setUp' )
+      self.fail( res[ 'Message' ] )
+      
+    if res[ 'Value' ]:
+      self.log.error( 'setUp' )
+      self.fail( 'DBs still installed: %s' % res[ 'Value' ] )  
+
+    
+  def tearDown( self ):
+    """ tearDown
+    
+    Makes sure there are no DBs installed after the test.
+    """
+    
+    res = lhcb_ci.db.getInstalledDBs()
+    if not res[ 'OK' ]:
+      self.log.error( 'tearDown' )
+      self.fail( res[ 'Message' ] )
+    
+    if res[ 'Value' ]:
+      self.log.error( 'tearDown' )
+      self.fail( 'DBs still installed: %s' % res[ 'Value' ] )      
     
 #...............................................................................
 #EOF

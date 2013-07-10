@@ -101,6 +101,28 @@ def dropDB( dbName ):
 #  
 #  return { 'OK' : True, 'Value' : None }   
 
+def getInstalledDBs():
+  """ getInstalledDBs
+  
+  """
+
+  EXCEPTIONS = [ 'test', 'mysql', 'information_schema' ]
+
+  logger.debug( "getInstalledDBs" )
+  
+  dbs = _execute( "show databases" )
+  if not dbs[ 'OK' ] or not dbs[ 'Value' ]:
+    return dbs
+
+  result = []
+    
+  for db in dbs[ 'Value' ]:
+    if db[ 0 ] in EXCEPTIONS:
+      continue
+    result.append( db[ 0 ] )
+
+  return { 'OK' : True, 'Value' : result }  
+  
 
 def getTables( dbName ):
   """ getTables
