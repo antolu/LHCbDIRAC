@@ -8,13 +8,23 @@
 
 from DIRAC import gConfig
 
+
+def getExtensions():
+  """ getExtensions
+  
+  Gets DIRAC extensions from configuration
+  """
+  
+  return gConfig.getValue( '/DIRAC/Extensions', [] )
+
+
 def import_( base_mod ):
   """ import_
     
   Imports taking into account the extensions.  
   """
   
-  extensions = gConfig.getValue( '/DIRAC/Extensions', [] )
+  extensions = getExtensions()
   for ext in extensions:  
     try:
       return  __import__( ext + base_mod, globals(), locals(), ['*'] )

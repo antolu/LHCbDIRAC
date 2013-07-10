@@ -43,16 +43,6 @@ def getDatabases():
   return databases
 
 
-def __readPass( passFile ):
-  """ __readPass
-  
-  Reads file passFile and returns its content
-  """
-  
-  with open( os.path.join( workspace, passFile ), 'r' ) as f:  
-    return f.read().split( '\n' )[ 0 ]
-
-
 def getRootPass():
   """ getRootPass
   
@@ -138,23 +128,7 @@ def getTables( dbName ):
   return { 'OK' : True, 'Value' : [ t[0] for t in tables[ 'Value' ] ] } 
 
 
-def __getCursor( dbName ):
-  """ __getCursor
-  
-  Given a dbName, get a connection and a cursor to execute queries.
-  """
-
-  InstallTools.getMySQLPasswords()
-  
-  conn = MySQLdb.connect( host   = InstallTools.mysqlHost,
-                          port   = InstallTools.mysqlPort,
-                          user   = InstallTools.mysqlRootUser,
-                          passwd = InstallTools.mysqlRootPwd,
-                          db     = dbName )
-  
-  cursor = conn.cursor()
-  
-  return conn, cursor 
+#...............................................................................
 
 
 def _execute( query, dbName = '' ):
@@ -193,6 +167,34 @@ def _execute( query, dbName = '' ):
     return { 'OK' : False, 'Message' : errMsg }
   return { 'OK' : True, 'Value' : res }  
   
+
+def __getCursor( dbName ):
+  """ __getCursor
+  
+  Given a dbName, get a connection and a cursor to execute queries.
+  """
+
+  InstallTools.getMySQLPasswords()
+  
+  conn = MySQLdb.connect( host   = InstallTools.mysqlHost,
+                          port   = InstallTools.mysqlPort,
+                          user   = InstallTools.mysqlRootUser,
+                          passwd = InstallTools.mysqlRootPwd,
+                          db     = dbName )
+  
+  cursor = conn.cursor()
+  
+  return conn, cursor 
+
+
+def __readPass( passFile ):
+  """ __readPass
+  
+  Reads file passFile and returns its content
+  """
+  
+  with open( os.path.join( workspace, passFile ), 'r' ) as f:  
+    return f.read().split( '\n' )[ 0 ]
 
 #...............................................................................
 #EOF

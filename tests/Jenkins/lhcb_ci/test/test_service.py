@@ -16,7 +16,8 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
 
   def test_install_services( self ):
     
-    print self.services
+    self.log.debug( self.services )
+    self.fail( 'msg' )
 
 #...............................................................................
 #EOF

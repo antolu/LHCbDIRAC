@@ -10,8 +10,8 @@
 from DIRAC.Core.Utilities import InstallTools
 
 # lhcb_ci
-from lhcb_ci import logger
-
+from lhcb_ci            import logger
+from lhcb_ci.extensions import getExtensions
 
 def getCodedServices():
   """ getCodedServices
@@ -19,8 +19,10 @@ def getCodedServices():
   Gets the available services inspecting the CODE.
   """
 
-  logger.debug( 'getCodedServices' )  
-  res = InstallTools.getSoftwareComponents( 'LHCb' )
+  logger.debug( 'getCodedServices' )
+  
+  extensions = getExtensions()
+  res = InstallTools.getSoftwareComponents( extensions )
   # Always return S_OK
   return res[ 'Value' ][ 'Services' ]
   
