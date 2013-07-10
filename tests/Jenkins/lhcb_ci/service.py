@@ -22,7 +22,7 @@ def getCodedServices():
   logger.debug( 'getCodedServices' )  
   res = InstallTools.getSoftwareComponents( 'LHCb' )
   # Always return S_OK
-  return res[ 'Services' ]
+  return res[ 'Value' ][ 'Services' ]
   
 
 #...............................................................................
