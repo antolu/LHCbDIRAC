@@ -25,6 +25,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     Makes sure the passwords are properly set on the dirac.cfg and accessed via
     the InstallTools module.
     """
+    
     self.log.info( 'test_passwords' )
     
     self.assertEquals( InstallTools.mysqlRootPwd,  self.rootPass )
@@ -51,9 +52,11 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
       
       for dbName in systemDBs:
         
+        # First installs database on  server
         res = lhcb_ci.db.installDB( dbName )
         self.assertDIRACEquals( res[ 'OK' ], True, res )  
         
+        # Tries to connect to the DB using the DB DIRAC module
         try:
           self.log.debug( 'Reaching %s/%s' % ( diracSystem, dbName ) )
           db = DB( dbName, '%s/%s' % ( diracSystem, dbName ), 10 )
@@ -62,6 +65,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           self.log.error( msg )
           self.fail( msg )   
         
+        # If the DB is installed, we make a simple query
         res = db._query( "show status" )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
@@ -96,6 +100,8 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     This test only applies to databases defined on Python.
     """
     
+    # Some DBs are a bit different ( to be ironed ), so for the time being are
+    # skipped
     EXCEPTIONS = [ 'SystemLoggingDB' ]
     
     self.log.info( 'test_install_tables' )
@@ -108,9 +114,11 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           self.log.exception( 'Skipped %s' % dbName )
           continue
 
+        # Installs DB
         res = lhcb_ci.db.installDB( dbName )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
+        # Gets tables of the DB ( if sql schema provided, this if is positive )
         tables = lhcb_ci.db.getTables( dbName )
         if tables:
           self.log.exception( 'Tables found for %s/%s' % ( diracSystem, dbName ) )
@@ -119,6 +127,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           self.assertDIRACEquals( res[ 'OK' ], True, res )
           continue
         
+        # Import DIRAC module and get object
         dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
         self.log.debug( 'Importing %s' % dbPath )
         
