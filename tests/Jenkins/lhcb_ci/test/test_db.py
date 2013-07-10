@@ -104,7 +104,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     Tries to import the DB modules and create a class Object.
     """
     
-    _EXCEPTIONS = [ 'TransformationDB', 'RAWIntegrityDB' ]
+    _EXCEPTIONS = [ 'TransformationDB', 'RAWIntegrityDB', 'RequestDB' ]
 
     self.log.info( 'test_import_db_modules' )
     
