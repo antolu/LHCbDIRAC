@@ -238,4 +238,19 @@ diracDBs(){
 }
 
 #-------------------------------------------------------------------------------
+# dumpDBs:
+#
+#   removes all the DBs from the MySQL server to start with a fresh installation
+#
+#-------------------------------------------------------------------------------
+
+dumpDBs(){
+
+  rootPass=`cat rootMySQL`
+  sqlStatements=`mysql -u root -p$rootPass -e "show databases" | grep -v mysql | grep -v Database | grep -v information_schema | grep -v test`
+  echo "$sqlStatements" | gawk '{print "drop database " $1 ";select sleep(0.1);"}' | mysql -u root -p$rootPass 
+
+}
+
+#-------------------------------------------------------------------------------
 #EOF

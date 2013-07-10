@@ -43,49 +43,52 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     Tests that we can import the DIRAC DB objects pointing to an specific Database.
     """
   
-    self.log.info( 'test_databases_db_reachable' )
+    self.log.info( 'test_databases_reachable' )
   
     for diracSystem, systemDBs in self.databases.iteritems():   
       
       diracSystem = diracSystem.replace( 'System', '' )
       
-      for systemDB in systemDBs:
+      for dbName in systemDBs:
+        
+        res = lhcb_ci.db.installDB( dbName )
+        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )  
         
         try:
-          self.log.debug( 'Reaching %s/%s' % ( diracSystem, systemDB ) )
-          db = DB( systemDB, '%s/%s' % ( diracSystem, systemDB ), 10 )
+          self.log.debug( 'Reaching %s/%s' % ( diracSystem, dbName ) )
+          db = DB( dbName, '%s/%s' % ( diracSystem, dbName ), 10 )
         except RuntimeError, msg:
-          self.log.error( 'Error importing %s/%s' % ( diracSystem, systemDB ) )
+          self.log.error( 'Error importing %s/%s' % ( diracSystem, dbName ) )
           self.log.error( msg )
           self.fail( msg )   
         
         result = db._query( "show status" )
-        if not result[ 'OK' ]:
-          # Print before it crashes
-          self.log.error( result[ 'Message' ] )
-        self.assertEquals( result[ 'OK' ], True )
+        self.assertEquals( result[ 'OK' ], True, result[ 'Message' ] )
         
+        # Cleanup
         del db
+        res = lhcb_ci.db.dropDB( dbName )
+        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )
    
           
-  def test_databases_drop( self ):
+  def test_databases_install_drop( self ):
     """ test_databases_drop
     
-    Tests that we can drop directly databases from the MySQL server
+    Tests that we can install / drop directly databases from the MySQL server
     """
    
-    self.log.info( 'test_databases_drop' )
+    self.log.info( 'test_databases_install_drop' )
 
     for systemDBs in self.databases.itervalues():   
     
       for dbName in systemDBs:
+
+        res = lhcb_ci.db.installDB( dbName )
+        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )
                 
         res = lhcb_ci.db.dropDB( dbName )
-        self.assertEquals( res, True )
-        
-        res = lhcb_ci.db.install( dbName )
-        self.assertEquals( res[ 'OK' ], True )  
-   
+        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )  
+
 
   def test_install_tables( self ):
     """ test_install_tables
@@ -110,6 +113,9 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           self.log.exception( 'Tables found for %s/%s' % ( diracSystem, dbName ) )
           self.log.exception( tables )
           continue
+
+        res = lhcb_ci.db.installDB( dbName )
+        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )
         
         dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
         self.log.debug( 'Importing %s' % dbPath )
@@ -133,14 +139,14 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         self.assertEquals( hasattr( dbInstance, "_checkTable" ), True )
         
         res = dbInstance._checkTable()
-        if not res[ 'OK' ]:
-          self.log.error( res[ 'Message' ] )
-        
-        self.assertEquals( res[ 'OK' ], True )
-                  
+        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )
+
+        # Cleaning                  
         del dbMod
         del dbClass
         del dbInstance    
+        res = lhcb_ci.db.dropDB( dbName )
+        self.assertEquals( res[ 'OK' ], True, res[ 'Message' ] )
     
 #...............................................................................
 #EOF

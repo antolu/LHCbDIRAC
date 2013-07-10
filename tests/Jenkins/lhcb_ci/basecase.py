@@ -7,9 +7,8 @@
 """
 
 
-import collections
 import lhcb_ci
-import os
+import lhcb_ci.db
 import unittest
 
 
@@ -25,8 +24,9 @@ class Base_TestCase( unittest.TestCase ):
 
     localCfg = LocalConfiguration()
     localCfg.isParsed = True
-    localCfg.loadUserData()   
-    cls.workspace = os.getenv( 'WORKSPACE' ) 
+    localCfg.loadUserData()
+    
+    cls.workspace = lhcb_ci.db.workspace
   
   
   def setUp( self ):
@@ -41,26 +41,9 @@ class DB_TestCase( Base_TestCase ):
     super( DB_TestCase, cls ).setUpClass()
     cls.log.info( '=== DB_TestCase ===' )
     
-    cls.databases = collections.defaultdict( set )   
-       
-    with open( os.path.join( cls.workspace, 'databases' ), 'r' ) as f:
-      db_data = f.read().split( '\n' )
+    cls.databases = lhcb_ci.db.getDatabases()         
+    cls.rootPass  = lhcb_ci.db.getRootPass()
+    cls.userPass  = lhcb_ci.db.getUserPass()
     
-    for db_line in db_data:
-      
-      if not db_line:
-        continue
-      
-      cls.log.info( db_line )
-    
-      system, dbName = db_line.split( ' ' )
-      cls.databases[ system ].update( [ dbName.split( '.' )[ 0 ] ] )  
-
-    with open( os.path.join( cls.workspace, 'rootMySQL' ), 'r' ) as f:  
-      cls.rootPass = f.read().split( '\n' )[ 0 ]
-    
-    with open( os.path.join( cls.workspace, 'userMySQL' ), 'r' ) as f:
-      cls.userPass = f.read().split( '\n' )[ 0 ]  
-
 #...............................................................................
 #EOF
