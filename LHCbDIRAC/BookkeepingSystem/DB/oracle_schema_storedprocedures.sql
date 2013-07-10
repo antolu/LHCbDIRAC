@@ -1388,7 +1388,7 @@ procedure getNbOfFiles( prodId                  number,
   begin
    select /*+ INDEX(files FILES_JOB_EVENT_FILETYPE) */ count(*) into total from files, jobs where files.jobid=jobs.jobid and jobs.production=prodId;
    open a_Cursor for
-     select count(*), filetypes.Name,total as TotalFiles from files, jobs,filetypes where
+     select /*+ INDEX(files FILES_JOB_EVENT_FILETYPE) */ count(*), filetypes.Name,total as TotalFiles from files, jobs,filetypes where
         files.jobid=jobs.jobid and
         jobs.production=prodId and
         filetypes.filetypeid=files.filetypeid GROUP By filetypes.NAME;

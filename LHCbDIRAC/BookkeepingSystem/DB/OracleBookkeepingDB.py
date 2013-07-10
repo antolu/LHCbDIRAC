@@ -108,23 +108,6 @@ class OracleBookkeepingDB:
         return S_ERROR ('Wrong Equal value!')
 
       if infiletypes != default or outfiletypes != default:
-        sort = in_dict.get('Sort', default)
-        if sort != default:
-          condition += 'Order by '
-          order = sort.get('Order', 'Asc')
-          if order.upper() not in ['ASC', 'DESC']:
-            return S_ERROR("wrong sorting order!")
-          items = sort.get('Items', default)
-          if type(items) == types.ListType:
-            order = ''
-            for item in items:
-              order += 's.%s,' % (item)
-            condition += ' %s %s' % (order[:-1], order)
-          elif type(items) == types.StringType:
-            condition += ' s.%s %s' % (items, order)
-          else:
-            result = S_ERROR('SortItems is not properly defined!')
-
         if type(infiletypes) == types.StringType:
           infiletypes = []
         if type(outfiletypes) == types.StringType:
@@ -142,201 +125,200 @@ class OracleBookkeepingDB:
         out = values[:-1] + ')'
 
         command = "select * from table(BOOKKEEPINGORACLEDB.getStepsForFiletypes(%s, %s, '%s')) s \
-                                   %s" % (inp, out, matching.upper(), condition)
+                                   " % (inp, out, matching.upper())
 
-        retVal = self.dbR_.query(command)
+      startDate = in_dict.get('StartDate', default)
+      if startDate != default:
+        condition += " and s.inserttimestamps >= TO_TIMESTAMP (' %s ' ,'YYYY-MM-DD HH24:MI:SS')" % (startDate)
+
+      stepId = in_dict.get('StepId', default)
+      if stepId != default:
+        condition += ' and s.stepid= %s' % (str(stepId))
+
+      stepName = in_dict.get('StepName', default)
+      if stepName != default:
+        if type(stepName) == types.StringType:
+          condition += " and s.stepname='%s'" % (stepName)
+        elif type(stepName) == types.ListType:
+          values = ' and ('
+          for i in stepName:
+            values += " s.stepname='%s' or " % (i)
+          condition += values[:-3] + ')'
+
+      appName = in_dict.get('ApplicationName', default)
+      if appName != default:
+        if type(appName) == types.StringType:
+          condition += " and s.applicationName='%s'" % (appName)
+        elif type(appName) == types.ListType:
+          values = ' and ('
+          for i in appName:
+            values += " s.applicationName='%s' or " % (i)
+          condition += values[:-3] + ')'
+
+      appVersion = in_dict.get('ApplicationVersion', default)
+      if appVersion != default:
+        if type(appVersion) == types.StringType:
+          condition += " and s.applicationversion='%s'" % (appVersion)
+        elif type(appVersion) == types.ListType:
+          values = ' and ('
+          for i in appVersion:
+            values += " s.applicationversion='%s' or " % (i)
+          condition += values[:-3] + ')'
+
+      optFile = in_dict.get('OptionFiles', default)
+      if optFile != default:
+        if type(optFile) == types.StringType:
+          condition += " and s.optionfiles='%s'" % (optFile)
+        elif type(optFile) == types.ListType:
+          values = ' and ('
+          for i in optFile:
+            values += " s.optionfiles='%s' or " % (i)
+          condition += values[:-3] + ')'
+
+      dddb = in_dict.get('DDDB', default)
+      if dddb != default:
+        if type(dddb) == types.StringType:
+          condition += " and s.dddb='%s'" % (dddb)
+        elif type(dddb) == types.ListType:
+          values = ' and ('
+          for i in dddb:
+            values += " s.dddb='%s' or " % (i)
+          condition += values[:-3] + ')'
+
+      conddb = in_dict.get('CONDDB', default)
+      if conddb != default:
+        if type(conddb) == types.StringType:
+          condition += " and s.conddb='%s'" % (conddb)
+        elif type(conddb) == types.ListType:
+          values = ' and ('
+          for i in conddb:
+            values += " s.conddb='%s' or " % (i)
+          condition += values[:-3] + ')'
+
+      extraP = in_dict.get('ExtraPackages', default)
+      if extraP != default:
+        if type(extraP) == types.StringType:
+          condition += " and s.extrapackages='%s'" % (extraP)
+        elif type(extraP) == types.ListType:
+          values = ' and ('
+          for i in extraP:
+            values += " s.extrapackages='%s' or " % (i)
+          condition += values + ')'
+
+      visible = in_dict.get('Visible', default)
+      if visible != default:
+        if type(visible) == types.StringType:
+          condition += " and s.visible='%s'" % (visible)
+        elif type(visible) == types.ListType:
+          values = ' and ('
+          for i in visible:
+            values += " s.visible='%s' or " % (i)
+          condition += values[:-3] + ')'
+
+      procPass = in_dict.get('ProcessingPass', default)
+      if procPass != default:
+        if type(procPass) == types.StringType:
+          condition += " and s.processingpass='%s'" % (procPass)
+        elif type(procPass) == types.ListType:
+          values = ' and ('
+          for i in procPass:
+            values += " s.processingpass='%s' or " % (i)
+          condition += values[:-3] + ')'
+
+      usable = in_dict.get('Usable', default)
+      if usable != default:
+        if type(usable) == types.StringType:
+          condition += " and s.usable='%s'" % (usable)
+        elif type(usable) == types.ListType:
+          values = ' and ('
+          for i in usable:
+            values += " s.usable='%s' or " % (i)
+          condition += values[:-3] + ')'
+
+      runtimeProject = in_dict.get('RuntimeProjects', default)
+      if runtimeProject != default:
+        condition += " and s.runtimeProject=%d" % (runtimeProject)
+
+      dqtag = in_dict.get('DQTag', default)
+      if dqtag != default:
+        if type(dqtag) == types.StringType:
+          condition += " and s.dqtag='%s'" % (dqtag)
+        elif type(dqtag) == types.ListType:
+          values = ' and ('
+          for i in dqtag:
+            values += "  s.dqtag='%s' or " % (i)
+          condition += values[:-3] + ')'
+
+      optsf = in_dict.get('OptionsFormat', default)
+      if optsf != default:
+        if type(optsf) == types.StringType:
+          condition += " and s.optionsFormat='%s'" % (optsf)
+        elif type(optsf) == types.ListType:
+          values = ' and ('
+          for i in optsf:
+            values += " s.optionsFormat='%s' or " % (i)
+          condition += values[:-3] + ')'
+
+      sysconfig = in_dict.get('SystemConfig', default)
+      if sysconfig != default:
+        condition += " and s.systemconfig='%s'" % sysconfig
+
+      start = in_dict.get('StartItem', default)
+      maximum = in_dict.get('MaxItem', default)
+
+      if start != default and maximum != default:
+        paging = True
+
+      sort = in_dict.get('Sort', default)
+      if sort != default:
+        condition += 'Order by '
+        order = sort.get('Order', 'Asc')
+        if order.upper() not in ['ASC', 'DESC']:
+          return S_ERROR("wrong sorting order!")
+        items = sort.get('Items', default)
+        if type(items) == types.ListType:
+          order = ''
+          for item in items:
+            order += 's.%s,' % (item)
+          condition += ' %s %s' % (order[:-1], order)
+        elif type(items) == types.StringType:
+          condition += ' s.%s %s' % (items, order)
+        else:
+          result = S_ERROR('SortItems is not properly defined!')
       else:
-        startDate = in_dict.get('StartDate', default)
-        if startDate != default:
-          condition += " and s.inserttimestamps >= TO_TIMESTAMP (' %s ' ,'YYYY-MM-DD HH24:MI:SS')" % (startDate)
+        condition += ' order by s.inserttimestamps desc'
+      if command:
+        command += " where s.stepid=s.stepid %s" % condition
+      elif paging:
+        command = " select sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, \
+                    sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable, \
+                    sdqtag, soptsf, smulti, ssysconfig, \
+                     rsstepid, rsname, rsapplicationname, rsapplicationversion, rsoptionfiles, rsdddb, \
+                     rsconddb, rsextrapackages, rsvisible, rsprocessingpass, rsusable, \
+                     rdqtag, roptsf, rmulti, rsysconfig from \
+  ( select ROWNUM r , sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, sdddb, sconddb,\
+  sextrapackages, svisible, sprocessingpass, susable, sdqtag, soptsf, smulti, ssysconfig,\
+     rsstepid, rsname, rsapplicationname, rsapplicationversion, rsoptionfiles, rsdddb, rsconddb,\
+     rsextrapackages, rsvisible, rsprocessingpass, rsusable , rdqtag, roptsf, rmulti, rsysconfig from \
+    ( select ROWNUM r, s.stepid sstepid ,s.stepname sname, s.applicationname sapplicationname,\
+    s.applicationversion sapplicationversion, s.optionfiles soptionfiles,\
+    s.DDDB sdddb,s.CONDDB sconddb, s.extrapackages sextrapackages,s.Visible svisible ,\
+    s.ProcessingPass sprocessingpass, s.Usable susable, s.dqtag sdqtag, s.optionsFormat soptsf,\
+     s.isMulticore smulti, s.systemconfig ssysconfig, \
+    r.stepid rsstepid ,r.stepname rsname, r.applicationname rsapplicationname,\
+    r.applicationversion rsapplicationversion, r.optionfiles rsoptionfiles,\
+    r.DDDB rsdddb,r.CONDDB rsconddb, r.extrapackages rsextrapackages,r.Visible rsvisible , r.ProcessingPass rsprocessingpass,\
+     r.Usable rsusable, r.dqtag rdqtag, r.optionsFormat roptsf, r.isMulticore rmulti, r.systemconfig rsysconfig \
+    from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid %s \
+     ) where rownum <=%d ) where r >%d" % (tables, condition, maximum, start)
 
-        stepId = in_dict.get('StepId', default)
-        if stepId != default:
-          condition += ' and s.stepid= %s' % (str(stepId))
-
-        stepName = in_dict.get('StepName', default)
-        if stepName != default:
-          if type(stepName) == types.StringType:
-            condition += " and s.stepname='%s'" % (stepName)
-          elif type(stepName) == types.ListType:
-            values = ' and ('
-            for i in stepName:
-              values += " s.stepname='%s' or " % (i)
-            condition += values[:-3] + ')'
-
-        appName = in_dict.get('ApplicationName', default)
-        if appName != default:
-          if type(appName) == types.StringType:
-            condition += " and s.applicationName='%s'" % (appName)
-          elif type(appName) == types.ListType:
-            values = ' and ('
-            for i in appName:
-              values += " s.applicationName='%s' or " % (i)
-            condition += values[:-3] + ')'
-
-        appVersion = in_dict.get('ApplicationVersion', default)
-        if appVersion != default:
-          if type(appVersion) == types.StringType:
-            condition += " and s.applicationversion='%s'" % (appVersion)
-          elif type(appVersion) == types.ListType:
-            values = ' and ('
-            for i in appVersion:
-              values += " s.applicationversion='%s' or " % (i)
-            condition += values[:-3] + ')'
-
-        optFile = in_dict.get('OptionFiles', default)
-        if optFile != default:
-          if type(optFile) == types.StringType:
-            condition += " and s.optionfiles='%s'" % (optFile)
-          elif type(optFile) == types.ListType:
-            values = ' and ('
-            for i in optFile:
-              values += " s.optionfiles='%s' or " % (i)
-            condition += values[:-3] + ')'
-
-        dddb = in_dict.get('DDDB', default)
-        if dddb != default:
-          if type(dddb) == types.StringType:
-            condition += " and s.dddb='%s'" % (dddb)
-          elif type(dddb) == types.ListType:
-            values = ' and ('
-            for i in dddb:
-              values += " s.dddb='%s' or " % (i)
-            condition += values[:-3] + ')'
-
-        conddb = in_dict.get('CONDDB', default)
-        if conddb != default:
-          if type(conddb) == types.StringType:
-            condition += " and s.conddb='%s'" % (conddb)
-          elif type(conddb) == types.ListType:
-            values = ' and ('
-            for i in conddb:
-              values += " s.conddb='%s' or " % (i)
-            condition += values[:-3] + ')'
-
-        extraP = in_dict.get('ExtraPackages', default)
-        if extraP != default:
-          if type(extraP) == types.StringType:
-            condition += " and s.extrapackages='%s'" % (extraP)
-          elif type(extraP) == types.ListType:
-            values = ' and ('
-            for i in extraP:
-              values += " s.extrapackages='%s' or " % (i)
-            condition += values + ')'
-
-        visible = in_dict.get('Visible', default)
-        if visible != default:
-          if type(visible) == types.StringType:
-            condition += " and s.visible='%s'" % (visible)
-          elif type(visible) == types.ListType:
-            values = ' and ('
-            for i in visible:
-              values += " s.visible='%s' or " % (i)
-            condition += values[:-3] + ')'
-
-        procPass = in_dict.get('ProcessingPass', default)
-        if procPass != default:
-          if type(procPass) == types.StringType:
-            condition += " and s.processingpass='%s'" % (procPass)
-          elif type(procPass) == types.ListType:
-            values = ' and ('
-            for i in procPass:
-              values += " s.processingpass='%s' or " % (i)
-            condition += values[:-3] + ')'
-
-        usable = in_dict.get('Usable', default)
-        if usable != default:
-          if type(usable) == types.StringType:
-            condition += " and s.usable='%s'" % (usable)
-          elif type(usable) == types.ListType:
-            values = ' and ('
-            for i in usable:
-              values += " s.usable='%s' or " % (i)
-            condition += values[:-3] + ')'
-
-        runtimeProject = in_dict.get('RuntimeProjects', default)
-        if runtimeProject != default:
-          condition += " and s.runtimeProject=%d" % (runtimeProject)
-
-        dqtag = in_dict.get('DQTag', default)
-        if dqtag != default:
-          if type(dqtag) == types.StringType:
-            condition += " and s.dqtag='%s'" % (dqtag)
-          elif type(dqtag) == types.ListType:
-            values = ' and ('
-            for i in dqtag:
-              values += "  s.dqtag='%s' or " % (i)
-            condition += values[:-3] + ')'
-
-        optsf = in_dict.get('OptionsFormat', default)
-        if optsf != default:
-          if type(optsf) == types.StringType:
-            condition += " and s.optionsFormat='%s'" % (optsf)
-          elif type(optsf) == types.ListType:
-            values = ' and ('
-            for i in optsf:
-              values += " s.optionsFormat='%s' or " % (i)
-            condition += values[:-3] + ')'
-
-        sysconfig = in_dict.get('SystemConfig', default)
-        if sysconfig != default:
-          condition += " and s.systemconfig='%s'" % sysconfig
-
-        start = in_dict.get('StartItem', default)
-        maximum = in_dict.get('MaxItem', default)
-
-        if start != default and maximum != default:
-          paging = True
-
-        sort = in_dict.get('Sort', default)
-        if sort != default:
-          condition += 'Order by '
-          order = sort.get('Order', 'Asc')
-          if order.upper() not in ['ASC', 'DESC']:
-            return S_ERROR("wrong sorting order!")
-          items = sort.get('Items', default)
-          if type(items) == types.ListType:
-            order = ''
-            for item in items:
-              order += 's.%s,' % (item)
-            condition += ' %s %s' % (order[:-1], order)
-          elif type(items) == types.StringType:
-            condition += ' s.%s %s' % (items, order)
-          else:
-            result = S_ERROR('SortItems is not properly defined!')
-        else:
-          condition += ' order by s.inserttimestamps desc'
-
-        if paging:
-          command = " select sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, \
-                      sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable, \
-                      sdqtag, soptsf, smulti, ssysconfig, \
-                       rsstepid, rsname, rsapplicationname, rsapplicationversion, rsoptionfiles, rsdddb, \
-                       rsconddb, rsextrapackages, rsvisible, rsprocessingpass, rsusable, \
-                       rdqtag, roptsf, rmulti, rsysconfig from \
-    ( select ROWNUM r , sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, sdddb, sconddb,\
-    sextrapackages, svisible, sprocessingpass, susable, sdqtag, soptsf, smulti, ssysconfig,\
-       rsstepid, rsname, rsapplicationname, rsapplicationversion, rsoptionfiles, rsdddb, rsconddb,\
-       rsextrapackages, rsvisible, rsprocessingpass, rsusable , rdqtag, roptsf, rmulti, rsysconfig from \
-      ( select ROWNUM r, s.stepid sstepid ,s.stepname sname, s.applicationname sapplicationname,\
-      s.applicationversion sapplicationversion, s.optionfiles soptionfiles,\
-      s.DDDB sdddb,s.CONDDB sconddb, s.extrapackages sextrapackages,s.Visible svisible ,\
-      s.ProcessingPass sprocessingpass, s.Usable susable, s.dqtag sdqtag, s.optionsFormat soptsf,\
-       s.isMulticore smulti, s.systemconfig ssysconfig, \
-      r.stepid rsstepid ,r.stepname rsname, r.applicationname rsapplicationname,\
-      r.applicationversion rsapplicationversion, r.optionfiles rsoptionfiles,\
-      r.DDDB rsdddb,r.CONDDB rsconddb, r.extrapackages rsextrapackages,r.Visible rsvisible , r.ProcessingPass rsprocessingpass,\
-       r.Usable rsusable, r.dqtag rdqtag, r.optionsFormat roptsf, r.isMulticore rmulti, r.systemconfig rsysconfig \
-      from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid %s \
-       ) where rownum <=%d ) where r >%d" % (tables, condition, maximum, start)
-
-        else:
-          command = 'select s.stepid,s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB,\
-           s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat, s.ismulticore, s.systemconfig, \
-          r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,\
-          r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.ismulticore, r.systemconfig \
-          from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid  %s ' % (tables, condition)
-        retVal = self.dbR_.query(command)
+      else:
+        command = 'select s.stepid,s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB,\
+         s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat, s.ismulticore, s.systemconfig, \
+        r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,\
+        r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.ismulticore, r.systemconfig \
+        from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid  %s ' % (tables, condition)
+      retVal = self.dbR_.query(command)
     else:
       command = 'select s.stepid, s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, \
       s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig,\
@@ -2629,7 +2611,6 @@ class OracleBookkeepingDB:
                            production=default, ftype=default,
                            evttype=default):
     """returns a statistics for a given dataset"""
-    result = S_ERROR()
     conditions = ''
 
     if cName != default:
@@ -2674,43 +2655,43 @@ class OracleBookkeepingDB:
     if conddesc != default:
       retVal = self.__getConditionString(conddesc, 'prod')
       if not retVal['OK']:
-        result = retVal
+        return retVal
       else:
         conditions += retVal['Value']
 
-        command = " select bview.configname, bview.configversion, sim.simdescription, daq.description, \
-     prod.processingid, bview.eventtypeid,bview.description, bview.production, ftypes.name, sum(f.eventstat) \
+    command = " select bview.configname, bview.configversion, sim.simdescription, daq.description, \
+ prod.processingid, bview.eventtypeid,bview.description, bview.production, ftypes.name, sum(f.eventstat) \
 from jobs j, prodview bview, files f, filetypes ftypes, productionscontainer prod, simulationconditions sim, data_taking_conditions daq \
 where j.jobid= f.jobid and \
-      f.gotreplica='Yes' and \
-      bview.programname= j.programname and \
-      bview.programversion= j.programversion and \
-      sim.simid(+)=bview.simid and \
-      daq.daqperiodid(+)=bview.daqperiodid  and \
-      bview.production = prod.production " + conditions
+  f.gotreplica='Yes' and \
+  bview.programname= j.programname and \
+  bview.programversion= j.programversion and \
+  sim.simid(+)=bview.simid and \
+  daq.daqperiodid(+)=bview.daqperiodid  and \
+  bview.production = prod.production " + conditions
 
-        command += "group by bview.configname, bview.configversion, sim.simdescription, \
-        daq.description, prod.processingid, bview.eventtypeid, bview.description, bview.production, ftypes.name"
-        retVal = self.dbR_.query(command)
-        if not retVal['OK']:
-          return S_ERROR(retVal['Message'])
+    command += "group by bview.configname, bview.configversion, sim.simdescription, \
+    daq.description, prod.processingid, bview.eventtypeid, bview.description, bview.production, ftypes.name"
+    retVal = self.dbR_.query(command)
+    if not retVal['OK']:
+      return S_ERROR(retVal['Message'])
 
-        parameters = ['ConfigurationName', 'ConfigurationVersion',
-                      'ConditionDescription', 'Processing pass ',
-                      'EventType', 'EventType description',
-                      'Production', 'FileType', 'Number of events']
-        dbResult = retVal['Value']
-        records = []
-        nbRecords = 0
-        for record in dbResult:
-          if record[2] != None:
-            conddesc = record[2]
-          else:
-            conddesc = record[3]
-          row = [record[0], record[1], conddesc, record[4], record[5], record[6], record[7], record[8], record[9]]
-          records += [row]
-          nbRecords += 1
-        result = S_OK({'TotalRecords':nbRecords, 'ParameterNames':parameters, 'Records':records, 'Extras': {}})
+    parameters = ['ConfigurationName', 'ConfigurationVersion',
+                  'ConditionDescription', 'Processing pass ',
+                  'EventType', 'EventType description',
+                  'Production', 'FileType', 'Number of events']
+    dbResult = retVal['Value']
+    records = []
+    nbRecords = 0
+    for record in dbResult:
+      if record[2] != None:
+        conddesc = record[2]
+      else:
+        conddesc = record[3]
+      row = [record[0], record[1], conddesc, record[4], record[5], record[6], record[7], record[8], record[9]]
+      records += [row]
+      nbRecords += 1
+    result = S_OK({'TotalRecords':nbRecords, 'ParameterNames':parameters, 'Records':records, 'Extras': {}})
 
     return result
 
@@ -3041,7 +3022,7 @@ and files.qualityid= dataquality.qualityid'
     condition, tables = retVal['Value']
 
     if nbofEvents:
-      command = " select sum(f.eventstat) \
+      command = " select  sum(f.eventstat) \
       from %s where f.jobid= j.jobid %s " % (tables, condition)
     elif filesize:
       command = " select sum(f.filesize) \
