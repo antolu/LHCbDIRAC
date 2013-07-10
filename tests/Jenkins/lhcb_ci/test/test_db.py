@@ -17,6 +17,10 @@ from DIRAC.Core.Utilities import InstallTools
 
 
 class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
+  """ Installation_Test
+  
+  Tests performing operations related with the DBs installation.
+  """
   
   
   def test_passwords( self ):
@@ -102,7 +106,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     
     # Some DBs are a bit different ( to be ironed ), so for the time being are
     # skipped
-    EXCEPTIONS = [ 'SystemLoggingDB' ]
+    _EXCEPTIONS = [ 'SystemLoggingDB' ]
     
     self.log.info( 'test_install_tables' )
     
@@ -110,7 +114,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
       
       for dbName in systemDBs:
     
-        if dbName in EXCEPTIONS:
+        if dbName in _EXCEPTIONS:
           self.log.exception( 'Skipped %s' % dbName )
           continue
 

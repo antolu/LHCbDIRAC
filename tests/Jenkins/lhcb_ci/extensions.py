@@ -11,6 +11,7 @@ from DIRAC import gConfig
 def import_( base_mod ):
   """ import_
     
+  Imports taking into account the extensions.  
   """
   
   extensions = gConfig.getValue( '/DIRAC/Extensions', [] )

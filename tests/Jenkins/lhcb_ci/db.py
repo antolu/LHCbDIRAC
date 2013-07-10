@@ -19,6 +19,10 @@ from lhcb_ci import logger
 workspace = os.getenv( 'WORKSPACE' )
 
 def getDatabases():
+  """ getDatabases
+  
+  Reads file $WORKSPACE/databases and transforms it into a dictionary  
+  """
   
   databases = collections.defaultdict( set )   
        
@@ -39,21 +43,37 @@ def getDatabases():
 
 
 def __readPass( passFile ):
+  """ __readPass
+  
+  Reads file passFile and returns its content
+  """
+  
   with open( os.path.join( workspace, passFile ), 'r' ) as f:  
     return f.read().split( '\n' )[ 0 ]
 
 
 def getRootPass():
+  """ getRootPass
+  
+  Reads file containing random MySQL root password
+  """
+  
   return __readPass( 'rootMySQL' )
   
 
 def getUserPass():
+  """ getUserPass
+  
+  Reads file containing random MySQL user password
+  """
+  
   return __readPass( 'userMySQL' )
 
 
 def installDB( dbName ):
-  """ install
+  """ installDB
   
+  Installs Database using DIRAC standard tools.
   """
 
   InstallTools.getMySQLPasswords()
@@ -66,47 +86,24 @@ def installDB( dbName ):
 def dropDB( dbName ):
   """ dropDB
   
+  Drops database connecting directly to MySQL server.
   """  
 
   logger.debug( "dropDB %s" % dbName )
-
-#  conn, cursor = _getCursor( dbName )
-
   # I know... it is unsafe, but the current version does not work with
   # parametrics... 
   query = "drop database %s" % dbName
   
   return _execute( query )
-  
-#  try:
-#    # I know... it is unsafe, but the current version does not work with
-#    # parametrics...
-#    res = cursor.execute( "drop database %s" % dbName )
-#    logger.debug( "result: %s" % str( res ) )
-#  except MySQLdb.Error, e:
-#    logger.error( 'Error executing' )
-#    logger.error( e )
-#    errMsg = e
-#    
-#  cursor.close()
-#  try:
-#    conn.close()
-#  except MySQLdb.Error, e:
-#    logger.error( 'Error closing connection' )
-#    logger.error( e )
-#    errMsg += e
-#    
-#  if errMsg:
-#    return { 'OK' : False, 'Message' : errMsg }  
-#  
-#  return { 'OK' : True, 'Value' : None }   
+
 
 def getInstalledDBs():
   """ getInstalledDBs
   
+  Gets from MySQL server all DBs installed ( without _EXCEPTIONS ).
   """
 
-  EXCEPTIONS = [ 'test', 'mysql', 'information_schema' ]
+  _EXCEPTIONS = [ 'test', 'mysql', 'information_schema' ]
 
   logger.debug( "getInstalledDBs" )
   
@@ -117,7 +114,7 @@ def getInstalledDBs():
   result = []
     
   for db in dbs[ 'Value' ]:
-    if db[ 0 ] in EXCEPTIONS:
+    if db[ 0 ] in _EXCEPTIONS:
       continue
     result.append( db[ 0 ] )
 
@@ -127,6 +124,7 @@ def getInstalledDBs():
 def getTables( dbName ):
   """ getTables
   
+  Given a dbName, returns all its tables ( installed ).
   """
 
   logger.debug( "getTables %s" % dbName )
@@ -137,66 +135,13 @@ def getTables( dbName ):
     return tables
     
   return { 'OK' : True, 'Value' : [ t[0] for t in tables[ 'Value' ] ] } 
-    
-  
-#  tables = []
-#  
-#  conn, cursor = _getCursor( dbName )
-#
-#  try:
-#    # I know... it is unsafe, but the current version does not work with
-#    # parametrics...
-#    res = cursor.execute( "show tables" )
-#    if res > 0:
-#      tables = [ table[0] for table in cursor.fetchall() ]
-#      
-#    logger.debug( "result: %s" % str( tables ) )
-#    
-#  except MySQLdb.Error, e:
-#    logger.error( 'Error executing' )
-#    logger.error( e )
-#    
-#  cursor.close()
-#  try:
-#    conn.close()
-#  except MySQLdb.Error, e:
-#    logger.error( 'Error closing connection' )
-#    logger.error( e )
-#        
-#  return tables   
-
-
-#def dropTable( dbName, tableName ):
-#  """ dropTable
-#  
-#  """
-#  
-#  logger.debug( "dropTable %s.%s" % ( dbName, tableName ) )
-#
-#  conn, cursor = _getCursor( dbName ) 
-#
-#  try:
-#    # I know... it is unsafe, but the current version does not work with
-#    # parametrics...
-#    res = cursor.execute( "drop table %s" % tableName )
-#    logger.debug( "result: %s" % str( res ) )
-#    result = True
-#  except MySQLdb.Error, e:
-#    logger.error( 'Error executing' )
-#    logger.error( e )
-#    
-#  cursor.close()
-#  try:
-#    conn.close()
-#  except MySQLdb.Error, e:
-#    logger.error( 'Error closing connection' )
-#    logger.error( e )
-#    result = False
-#    
-#  return result   
 
 
 def __getCursor( dbName ):
+  """ __getCursor
+  
+  Given a dbName, get a connection and a cursor to execute queries.
+  """
 
   InstallTools.getMySQLPasswords()
   
@@ -212,6 +157,11 @@ def __getCursor( dbName ):
 
 
 def _execute( query, dbName = '' ):
+  """ _execute
+  
+  Given a query and a dbName ( if not given it will not connect to any DB in
+  particular ), executes it and closes connection and cursor.
+  """
 
   conn, cursor = __getCursor( dbName )  
 
