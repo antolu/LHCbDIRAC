@@ -14,7 +14,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
   Tests performing operations related with the Services installation.
   """
 
-  def install_services( self ):
+  def test_install_services( self ):
     
     print self.services
 
