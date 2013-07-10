@@ -98,6 +98,35 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )  
 
 
+  def test_import_db_modules( self ):
+    """ test_import_db_modules
+    
+    Tries to import the DB modules and create a class Object.
+    """
+
+    self.log.info( 'test_import_databases' )
+    
+    for diracSystem, systemDBs in self.databases.iteritems():
+      
+      for dbName in systemDBs:
+
+        # Import DIRAC module and get object
+        dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
+        self.log.debug( 'VO Importing %s' % dbPath )
+        
+        dbMod = lhcb_ci.extensions.import_( 'DIRAC.%s.DB.%s' % ( diracSystem, dbName ) )
+        self.assertEquals( hasattr( dbMod, dbName ), True )
+        
+        dbClass = getattr( dbMod, dbName )
+        
+        try:
+          dbInstance = dbClass()
+          del dbInstance
+          self.fail( 'Created instance of %s should have failed' % dbPath )
+        except RuntimeError, e:          
+          self.assertEquals( e.startswith( 'Can not connect to DB' ), True )
+    
+
   def test_install_tables( self ):
     """ test_install_tables
     
@@ -133,7 +162,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         
         # Import DIRAC module and get object
         dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
-        self.log.debug( 'Importing %s' % dbPath )
+        self.log.debug( 'VO Importing %s' % dbPath )
         
         dbMod = lhcb_ci.extensions.import_( 'DIRAC.%s.DB.%s' % ( diracSystem, dbName ) )
         self.assertEquals( hasattr( dbMod, dbName ), True )
