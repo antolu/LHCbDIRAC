@@ -107,16 +107,17 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         if dbName in EXCEPTIONS:
           self.log.exception( 'Skipped %s' % dbName )
           continue
+
+        res = lhcb_ci.db.installDB( dbName )
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
         
         tables = lhcb_ci.db.getTables( dbName )
         if tables:
           self.log.exception( 'Tables found for %s/%s' % ( diracSystem, dbName ) )
           self.log.exception( tables )
+          res = lhcb_ci.db.dropDB( dbName )
+          self.assertDIRACEquals( res[ 'OK' ], True, res )
           continue
-
-        res = lhcb_ci.db.installDB( dbName )
-        
-        self.assertDIRACEquals( res[ 'OK' ], True, res )
         
         dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
         self.log.debug( 'Importing %s' % dbPath )
