@@ -106,7 +106,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     
     _EXCEPTIONS = [ 'TransformationDB' ]
 
-    self.log.info( 'test_import_databases' )
+    self.log.info( 'test_import_db_modules' )
     
     for diracSystem, systemDBs in self.databases.iteritems():
       
