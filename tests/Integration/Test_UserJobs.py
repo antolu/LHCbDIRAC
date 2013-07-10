@@ -177,7 +177,7 @@ def createJob():
                                modulesNameList = ['CreateDataFile',
                                                   'GaudiApplication',
                                                   'FileUsage',
-                                                  'BookkeepingReport',
+#                                                  'BookkeepingReport',
                                                   'UploadOutputData',
                                                   'UploadLogFile',
                                                   'FailoverRequest',
