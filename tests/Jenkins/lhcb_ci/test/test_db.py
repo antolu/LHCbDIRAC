@@ -103,6 +103,8 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     
     Tries to import the DB modules and create a class Object.
     """
+    
+    _EXCEPTIONS = [ 'TransferDB' ]
 
     self.log.info( 'test_import_databases' )
     
@@ -110,6 +112,10 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
       
       for dbName in systemDBs:
 
+        if dbName in _EXCEPTIONS:
+          self.log.exception( 'EXCEPTION: Skipped %s' % dbName )
+          continue
+          
         # Import DIRAC module and get object
         dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
         self.log.debug( 'VO Importing %s' % dbPath )
@@ -144,7 +150,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
       for dbName in systemDBs:
     
         if dbName in _EXCEPTIONS:
-          self.log.exception( 'Skipped %s' % dbName )
+          self.log.exception( 'EXCEPTION: Skipped %s' % dbName )
           continue
 
         # Installs DB
