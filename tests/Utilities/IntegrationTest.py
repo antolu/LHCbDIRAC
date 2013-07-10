@@ -3,7 +3,6 @@ from DIRAC import gLogger
 from LHCbTestDirac.Utilities.utils import cleanTestDir
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
 
 class IntegrationTest( unittest.TestCase ):
   """ Base class for the integration and regression tests
