@@ -72,7 +72,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
    
           
   def test_databases_install_drop( self ):
-    """ test_databases_drop
+    """ test_databases_install_drop
     
     Tests that we can install / drop directly databases from the MySQL server
     """

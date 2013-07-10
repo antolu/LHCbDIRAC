@@ -196,7 +196,7 @@ def getTables( dbName ):
 #  return result   
 
 
-def __getCursor( dbName = None ):
+def __getCursor( dbName ):
 
   InstallTools.getMySQLPasswords()
   
@@ -211,7 +211,7 @@ def __getCursor( dbName = None ):
   return conn, cursor 
 
 
-def _execute( query, dbName = None ):
+def _execute( query, dbName = '' ):
 
   conn, cursor = __getCursor( dbName )  
 
