@@ -24,6 +24,7 @@ def getDatabases():
   Reads file $WORKSPACE/databases and transforms it into a dictionary  
   """
   
+  logger.debug( 'getDatabases' )
   databases = collections.defaultdict( set )   
        
   with open( os.path.join( workspace, 'databases' ), 'r' ) as f:

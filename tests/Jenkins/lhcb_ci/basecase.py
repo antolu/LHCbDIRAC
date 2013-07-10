@@ -9,6 +9,7 @@
 
 import lhcb_ci
 import lhcb_ci.db
+import lhcb_ci.service
 import unittest
 
 
@@ -81,11 +82,22 @@ class DB_TestCase( Base_TestCase ):
       self.log.error( 'tearDown' )
       self.fail( 'DBs still installed: %s' % res[ 'Value' ] )      
 
+
   def assertDIRACEquals( self, first, second, res ):
     
     _message = ( not res[ 'OK' ] and res[ 'Message' ] ) or ''   
     self.assertEquals( first, second, _message )
-  
+
+
+class Service_TestCase( Base_TestCase ):  
+
+  @classmethod
+  def setUpClass( cls ):
+
+    super( Service_TestCase, cls ).setUpClass()
+    cls.log.info( '=== Service_TestCase ===' )
     
+    cls.services = lhcb_ci.service.getCodedServices()
+
 #...............................................................................
 #EOF
