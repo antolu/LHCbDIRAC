@@ -124,7 +124,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           del dbInstance
           self.fail( 'Created instance of %s should have failed' % dbPath )
         except RuntimeError, e:          
-          self.assertEquals( e.startswith( 'Can not connect to DB' ), True )
+          self.assertEquals( str( e ).startswith( 'Can not connect to DB' ), True )
     
 
   def test_install_tables( self ):
