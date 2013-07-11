@@ -84,6 +84,7 @@ class OracleBookkeepingDB:
     maximum = 10
     paging = False
     retVal = None
+    fileTypefilter = None
 
     condition = ''
     tables = 'steps s, steps r, runtimeprojects rr '
@@ -124,7 +125,7 @@ class OracleBookkeepingDB:
           values += "'%s'," % (i)
         out = values[:-1] + ')'
 
-        command = "select * from table(BOOKKEEPINGORACLEDB.getStepsForFiletypes(%s, %s, '%s')) s \
+        fileTypefilter = " table(BOOKKEEPINGORACLEDB.getStepsForFiletypes(%s, %s, '%s')) s \
                                    " % (inp, out, matching.upper())
 
       startDate = in_dict.get('StartDate', default)
@@ -287,10 +288,33 @@ class OracleBookkeepingDB:
           result = S_ERROR('SortItems is not properly defined!')
       else:
         condition += ' order by s.inserttimestamps desc'
-      if command:
-        command += " where s.stepid=s.stepid %s" % condition
+      if fileTypefilter:
+        if paging:
+          command = " select sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, \
+                    sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable, \
+                    sdqtag, soptsf, smulti, ssysconfig, \
+                     rsstepid, rsname, rsapplicationname, rsapplicationversion, rsoptionfiles, rsdddb, \
+                     rsconddb, rsextrapackages, rsvisible, rsprocessingpass, rsusable, \
+                     rdqtag, roptsf, rmulti, rsysconfig from \
+  ( select ROWNUM r , sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, sdddb, sconddb,\
+  sextrapackages, svisible, sprocessingpass, susable, sdqtag, soptsf, smulti, ssysconfig,\
+     rsstepid, rsname, rsapplicationname, rsapplicationversion, rsoptionfiles, rsdddb, rsconddb,\
+     rsextrapackages, rsvisible, rsprocessingpass, rsusable , rdqtag, roptsf, rmulti, rsysconfig from \
+    ( select ROWNUM r, s.stepid sstepid ,s.stepname sname, s.applicationname sapplicationname,\
+    s.applicationversion sapplicationversion, s.optionfiles soptionfiles,\
+    s.DDDB sdddb,s.CONDDB sconddb, s.extrapackages sextrapackages,s.Visible svisible ,\
+    s.ProcessingPass sprocessingpass, s.Usable susable, s.dqtag sdqtag, s.optionsFormat soptsf,\
+     s.isMulticore smulti, s.systemconfig ssysconfig, \
+    s.rstepid rsstepid ,s.rstepname rsname, s.rapplicationname rsapplicationname,\
+    s.rapplicationversion rsapplicationversion, s.roptionfiles rsoptionfiles,\
+    s.rDDDB rsdddb,s.rCONDDB rsconddb, s.rextrapackages rsextrapackages,s.rVisible rsvisible , s.rProcessingPass rsprocessingpass,\
+     s.rUsable rsusable, s.rdqtag rdqtag, s.roptionsFormat roptsf, s.risMulticore rmulti, s.rsystemconfig rsysconfig \
+    from %s where s.stepid=s.stepid %s \
+     ) where rownum <=%d ) where r >%d" % (fileTypefilter, condition, maximum, start)
+        else:
+          command = " select * from %s where s.stepid=s.stepid %s" % (fileTypefilter, condition)
       elif paging:
-        command = " select sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, \
+        command = "select sstepid, sname, sapplicationname, sapplicationversion, soptionfiles, \
                     sdddb, sconddb, sextrapackages, svisible, sprocessingpass, susable, \
                     sdqtag, soptsf, smulti, ssysconfig, \
                      rsstepid, rsname, rsapplicationname, rsapplicationversion, rsoptionfiles, rsdddb, \
