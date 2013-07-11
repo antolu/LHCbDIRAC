@@ -13,7 +13,7 @@ from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
 if __name__ == "__main__":
   site = 'DIRAC.BOINC.ch'
-  status = "Running"
+  status = ["Running"]
   workerNode = None
   since = None
   date = 'today'
@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
 
   if workerNode:
-    status = None
+    status = [None]
     full = True
 
   import DIRAC
@@ -125,7 +125,8 @@ if __name__ == "__main__":
   else:
     gLogger.always( 'Found %d jobs %s at %s (since %s):' % ( len( allJobs ), status, site, date ) )
     gLogger.always( 'List of WNs:', ','.join( ['%s (%d)' % ( node, wnJobs[node] )
-                                               for node in sorted( wnJobs, cmp = ( lambda n1, n2: wnJobs[n2] - wnJobs[n1] ) )] ) )
+                                               for node in sorted( wnJobs,
+                                                                   cmp = ( lambda n1, n2: ( wnJobs[n2] - wnJobs[n1] ) ) )] ) )
   if full:
     for job in sorted( allJobs, reverse = True ):
       status = result[job]['Status']
