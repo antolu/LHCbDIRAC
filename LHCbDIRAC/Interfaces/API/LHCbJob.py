@@ -1096,7 +1096,9 @@ class LHCbJob( Job ):
         First, adds Ancestors (in any) to the InputData.
     """
 
-    if not diracLHCb:
+    if diracLHCb is not None:
+      diracLHCb = diracLHCb
+    else:
       diracLHCb = DiracLHCb()
 
     if self.workflow.parameters.find( 'AncestorDepth' ):
