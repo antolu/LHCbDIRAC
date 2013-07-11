@@ -92,7 +92,7 @@ if __name__ == "__main__":
           if workerNode != node:
             continue
           allJobs.append( job )
-        result.setdefault( job, {} )['Status'] = status
+        result.setdefault( job, {} )['Status'] = stat
         result[job]['Node'] = node
         wnJobs[node] = wnJobs.setdefault( node, 0 ) + 1
 
