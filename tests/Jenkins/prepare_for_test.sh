@@ -265,7 +265,8 @@ diracServices(){
   services=`cat services | cut -d '.' -f 1 | sed 's/System//g' | sed 's/Handler//g'`
   for service in "$services"
   do
-    dirac-install-service $service $DEBUG 
+    echo "$service"
+    dirac-install-service "$service" -ddd 
   done
 
 }
