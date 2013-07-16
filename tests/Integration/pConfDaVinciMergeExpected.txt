@@ -8,6 +8,6 @@ ProdConf(
   Application='DaVinci',
   OutputFilePrefix='00012345_00006789_1',
   XMLFileCatalog='pool_xml_catalog.xml',
-  InputFiles=['LFN:/lhcb/LHCb/Collision12/LEPTONIC.MDST/00021210/0000/00021210_00002481_1.Leptonic.mdst','LFN:/lhcb/LHCb/Collision12/LEPTONIC.MDST/00021210/0000/00021210_00002482_1.Leptonic.mdst'],
+  InputFiles=['LFN:/lhcb/LHCb/Collision12/LEPTONIC.MDST/00021210/0000/00021210_00002481_1.Leptonic.mdst', 'LFN:/lhcb/LHCb/Collision12/LEPTONIC.MDST/00021210/0000/00021210_00002482_1.Leptonic.mdst'],
   OutputFileTypes=['leptonic.mdst'],
 )

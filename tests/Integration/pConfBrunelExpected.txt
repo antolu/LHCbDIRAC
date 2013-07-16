@@ -2,9 +2,9 @@ from ProdConf import ProdConf
 
 ProdConf(
   NOfEvents=2,
-  DDDBTag='MC2011-20120727',
-  CondDBTag='MC2011-20120727-vc-mu100',
-  AppVersion='v41r1p1',
+  DDDBTag='Sim08-20130503-1',
+  CondDBTag='Sim08-20130503-1-vc-mu100',
+  AppVersion='v43r2p7',
   XMLSummaryFile='summaryBrunel_00012345_00006789_4.xml',
   Application='Brunel',
   OutputFilePrefix='00012345_00006789_4',
