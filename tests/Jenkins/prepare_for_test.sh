@@ -262,11 +262,12 @@ diracDBs(){
 
 diracServices(){
 
-  services=`cat services | cut -d '.' -f 1 | sed 's/System//g' | sed 's/Handler//g'`
-  for service in "$services"
+  services=`cat services | cut -d '.' -f 1 | sed 's/System//g' | sed 's/Handler//g' | sed 's/ /\//g'`
+  for serv in $services
   do
-    echo "$service"
-    dirac-install-service "$service" -ddd 
+    echo $serv
+    dirac-install-service $serv -ddd
+    echo $serv
   done
 
 }
