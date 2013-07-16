@@ -182,7 +182,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           self.fail( 'Creating db instance crashed. This should not happen' )
         
         if not hasattr( dbInstance, '_checkTable' ):
-          self.log.exception( '%s NOT FOLLOWING STANDARDS' % dbName )
+          self.log.exception( 'EXCEPTION: %s NOT FOLLOWING STANDARDS' % dbName )
           continue
           
         # Each DB Instance using the pythonic DB definition must have this method  
