@@ -67,6 +67,22 @@ findDatabases(){
 }
 
 #-------------------------------------------------------------------------------
+# findServices:
+#
+#   gets all service names from *DIRAC code and writes them to a file
+#   named services.
+#
+#-------------------------------------------------------------------------------
+
+findServices(){
+
+  find *DIRAC -name *Handler.py | grep -v test | awk -F "/" '{print $2,$4}' | sort | uniq > services
+
+  echo found `wc -l services`
+
+}
+
+#-------------------------------------------------------------------------------
 # diracInstall:
 #
 #   gets `project.version` code from the repository and copies certificates
@@ -233,6 +249,23 @@ diracDBs(){
   for db in $dbs
   do
     dirac-install-db $db $DEBUG
+  done
+
+}
+
+#-------------------------------------------------------------------------------
+# diracServices:
+#
+#   installs all services on the file services
+#
+#-------------------------------------------------------------------------------
+
+diracServices(){
+
+  services=`cat services | cut -d '.' -f 1 | sed 's/System//g' | sed 's/Handler//g'`
+  for service in "$services"
+  do
+    dirac-install-service $service $DEBUG 
   done
 
 }

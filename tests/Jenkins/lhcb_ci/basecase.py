@@ -97,7 +97,8 @@ class Service_TestCase( Base_TestCase ):
     super( Service_TestCase, cls ).setUpClass()
     cls.log.info( '=== Service_TestCase ===' )
     
-    cls.services = lhcb_ci.service.getCodedServices()
+    cls.codeServices      = lhcb_ci.service.getCodedServices()
+    cls.installedServices = lhcb_ci.service.getRunitServices()
 
 #...............................................................................
 #EOF

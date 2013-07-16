@@ -13,6 +13,7 @@ from DIRAC.Core.Utilities import InstallTools
 from lhcb_ci            import logger
 from lhcb_ci.extensions import getExtensions
 
+
 def getCodedServices():
   """ getCodedServices
   
@@ -25,6 +26,23 @@ def getCodedServices():
   res = InstallTools.getSoftwareComponents( extensions )
   # Always return S_OK
   return res[ 'Value' ][ 'Services' ]
+
+
+def getRunitServices():
+  """ getRunitServices
+  
+  Gets the available services inspecting runit ( aka installed ).
+  """
+
+  logger.debug( 'getRunitServices' )
+  
+  res = InstallTools.getInstalledComponents()
+  # Always return S_OK
+  return res[ 'Value' ][ 'Services' ]
+
+
+
+
   
 
 #...............................................................................

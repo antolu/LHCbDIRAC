@@ -16,8 +16,14 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
 
   def test_install_services( self ):
     
-    self.log.debug( self.services )
-    #self.fail( 'msg' )
+    self.log.debug( self.codeServices )
+    self.log.debug( self.installedServices )
+    
+    for system, services in self.codeServices.iteritems():
+      
+      for service in services:
+        self.log.debug( "%s %s" % ( system, service ) )
+                        
 
 #...............................................................................
 #EOF
