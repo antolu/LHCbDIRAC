@@ -14,13 +14,13 @@ from lhcb_ci            import logger
 from lhcb_ci.extensions import getExtensions
 
 
-def getCodedServices():
+def getSoftwareServices():
   """ getCodedServices
   
   Gets the available services inspecting the CODE.
   """
 
-  logger.debug( 'getCodedServices' )
+  logger.debug( 'getSoftwareServices' )
   
   extensions = getExtensions()
   res = InstallTools.getSoftwareComponents( extensions )
@@ -28,20 +28,41 @@ def getCodedServices():
   return res[ 'Value' ][ 'Services' ]
 
 
-def getRunitServices():
+def getInstalledServices():
   """ getRunitServices
   
   Gets the available services inspecting runit ( aka installed ).
   """
 
-  logger.debug( 'getRunitServices' )
+  logger.debug( 'getInstalledServices' )
   
   res = InstallTools.getInstalledComponents()
   # Always return S_OK
   return res[ 'Value' ][ 'Services' ]
 
 
+def setupService( system, component ):
+  """ setupService
+  
+  Setups service and runs it
+  """  
 
+  logger.debug( 'setupService' )
+  
+  extensions = getExtensions()
+  
+  return InstallTools.setupComponent( 'service', system, component, extensions )
+
+
+def uninstallService( system, component ):
+  """ uninstallService
+  
+  Stops the service.
+  """
+
+  logger.debug( 'uninstallService' )
+  
+  return InstallTools.uninstallComponent( system, component )
 
   
 

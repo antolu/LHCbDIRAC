@@ -7,6 +7,7 @@
 """
 
 import lhcb_ci.basecase
+import lhcb_ci.service
 
 class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
   """ Installation_Test
@@ -14,22 +15,25 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
   Tests performing operations related with the Services installation.
   """
 
-  def test_install_services( self ):
+  def test_install_services_drop( self ):
     
-    self.log.debug( self.codeServices )
-    self.log.debug( self.installedServices )
-    
-    for system, services in self.codeServices.iteritems():
+    self.log.debug( self.swServices )
+        
+    for system, services in self.swServices.iteritems():
       
-      if system not in self.installedServices:
-        self.log.exception( 'EXCEPTION: System %s not installed' % system )
-        continue
+      if system == 'Configuration':
+        self.log.debug( 'Skipping Master Configuration' )
+        continue 
       
       for service in services:
         self.log.debug( "%s %s" % ( system, service ) )
+
+        res = lhcb_ci.service.setupService( system, service )      
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
+        
+        res = lhcb_ci.service.uninstallService( system, service )      
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
       
-        if not service in self.installedServices[ system ]:  
-          self.log.exception( 'EXCEPTION: Service %s/%s not installed' % ( system, service ) )                       
 
 #...............................................................................
 #EOF

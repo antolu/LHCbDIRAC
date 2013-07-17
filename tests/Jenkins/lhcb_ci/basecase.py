@@ -33,6 +33,12 @@ class Base_TestCase( unittest.TestCase ):
   
   def setUp( self ):
     self.log.info( '*** %s ***' % self.__class__.__name__ )  
+
+
+  def assertDIRACEquals( self, first, second, res ):
+    
+    _message = ( not res[ 'OK' ] and res[ 'Message' ] ) or ''   
+    self.assertEquals( first, second, _message )
     
     
 class DB_TestCase( Base_TestCase ):
@@ -80,13 +86,7 @@ class DB_TestCase( Base_TestCase ):
     
     if res[ 'Value' ]:
       self.log.error( 'tearDown' )
-      self.fail( 'DBs still installed: %s' % res[ 'Value' ] )      
-
-
-  def assertDIRACEquals( self, first, second, res ):
-    
-    _message = ( not res[ 'OK' ] and res[ 'Message' ] ) or ''   
-    self.assertEquals( first, second, _message )
+      self.fail( 'DBs still installed: %s' % res[ 'Value' ] )
 
 
 class Service_TestCase( Base_TestCase ):  
@@ -97,8 +97,48 @@ class Service_TestCase( Base_TestCase ):
     super( Service_TestCase, cls ).setUpClass()
     cls.log.info( '=== Service_TestCase ===' )
     
-    cls.codeServices      = lhcb_ci.service.getCodedServices()
-    cls.installedServices = lhcb_ci.service.getRunitServices()
+    cls.swServices = lhcb_ci.service.getSoftwareServices()
+
+
+  def setUp( self ):
+    """ setUp
+    
+    Makes sure there are no Services installed before starting the test.
+    """
+    
+    super( Service_TestCase, self ).setUp()
+    
+    res = lhcb_ci.service.getInstalledServices()  
+    if not res[ 'OK' ]:
+      self.log.error( 'setUp' )
+      self.fail( res[ 'Message' ] )
+    
+    # Configuration Service is ALWAYS installed ( Master ! )
+    del res[ 'Configuration' ]
+      
+    if res[ 'Value' ]:
+      self.log.error( 'setUp' )
+      self.fail( 'Services still installed: %s' % res[ 'Value' ] )  
+
+    
+  def tearDown( self ):
+    """ tearDown
+    
+    Makes sure there are no Services installed after the test.
+    """
+    
+    res = lhcb_ci.service.getInstalledServices()
+    if not res[ 'OK' ]:
+      self.log.error( 'tearDown' )
+      self.fail( res[ 'Message' ] )
+    
+    # Configuration Service is ALWAYS installed ( Master ! )
+    del res[ 'Configuration' ]
+    
+    if res[ 'Value' ]:
+      self.log.error( 'tearDown' )
+      self.fail( 'DBs still installed: %s' % res[ 'Value' ] )
+
 
 #...............................................................................
 #EOF
