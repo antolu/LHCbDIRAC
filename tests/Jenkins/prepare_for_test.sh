@@ -76,7 +76,7 @@ findDatabases(){
 
 findServices(){
 
-  find *DIRAC -name *Handler.py | grep -v test | awk -F "/" '{print $2,$4}' | sort | uniq > services
+  find *DIRAC/*/Service/ -name *Handler.py | grep -v test | awk -F "/" '{print $2,$4}' | sort | uniq > services
 
   echo found `wc -l services`
 
@@ -262,7 +262,7 @@ diracDBs(){
 
 diracServices(){
 
-  services=`cat services | cut -d '.' -f 1 | grep -v ^ConfigurationSystem | grep -v SystemAdministrator | grep -v HttpStorageAccess | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v Strategy | grep -v ProductionRequest | grep -v MigrationMonitoring | grep -v Future | sed 's/System / /g' | sed 's/Handler//g' | sed 's/ /\//g'`
+  services=`cat services | cut -d '.' -f 1 | grep -v ^ConfigurationSystem | grep -v SystemAdministrator | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v ProductionRequest | grep -v MigrationMonitoring | grep -v Future | sed 's/System / /g' | sed 's/Handler//g' | sed 's/ /\//g'`
   for serv in $services
   do
     dirac-install-service $serv $DEBUG
