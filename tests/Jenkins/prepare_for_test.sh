@@ -90,7 +90,7 @@ findServices(){
 #
 #-------------------------------------------------------------------------------
 
-findServices(){
+findSystems(){
 
   find *DIRAC/ -name *System  | cut -d '/' -f 2 | sort | uniq > systems
 
