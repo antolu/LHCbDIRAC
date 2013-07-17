@@ -83,6 +83,22 @@ findServices(){
 }
 
 #-------------------------------------------------------------------------------
+# findSystems:
+#
+#   gets all system names from *DIRAC code and writes them to a file
+#   named systems.
+#
+#-------------------------------------------------------------------------------
+
+findServices(){
+
+  find *DIRAC/ -name *System  | cut -d '/' -f 2 | sort | uniq > systems
+
+  echo found `wc -l system`
+
+}
+
+#-------------------------------------------------------------------------------
 # diracInstall:
 #
 #   gets `project.version` code from the repository and copies certificates
@@ -122,10 +138,9 @@ diracConfigure(){
   randomUser=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
   userPass=/LocalInstallation/Database/Password=$randomUser
   # Setups
-  systems=`ls -l *DIRAC/*System | grep "^.*DIRAC" | cut -d '/' -f 2 | cut -d ':' -f 1 | sort | uniq | sed 's/System//g'`
   #setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'`
   #setups=`echo $systems | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/'`
-  setups=`echo "$services" | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/'` 
+  setups=`cat systems | sed 's/System//' | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/'` 
   # Databases
   #dbs=`cat databases | cut -d ' ' -f 2 | uniq | grep -v TransferDB | cut -d '.' -f 1 | tr '\n' ','`
   #databases=/LocalInstallation/Databases=$dbs
