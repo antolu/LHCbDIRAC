@@ -145,8 +145,9 @@ diracConfigure(){
 
   ln -s $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/install.cfg
 
-  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG 
-  dirac-setup-site $DEBUG
+  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups -ddd
+  echo "=======================================================================" 
+  dirac-setup-site -ddd
   
   # Do not use Server Certificate
   #sed -i '107i\    UseServerCertificate = yes' etc/dirac.cfg

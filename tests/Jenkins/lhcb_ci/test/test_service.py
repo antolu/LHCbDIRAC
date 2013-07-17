@@ -23,6 +23,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
       
       if system not in self.installedServices:
         self.log.exception( 'EXCEPTION: System %s not installed' % system )
+        continue
       
       for service in services:
         self.log.debug( "%s %s" % ( system, service ) )
