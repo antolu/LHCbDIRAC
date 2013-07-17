@@ -75,7 +75,7 @@ recoDataSE = '{{RecoDataSE#PROD-1:RECO(Stripp): Output Data Storage Element#Tier
 recoType = '{{RecoType#PROD-1:RECO(Stripp): DataReconstruction or DataReprocessing#DataReconstruction}}'
 recoIDPolicy = '{{recoIDPolicy#PROD-1:RECO(Stripp): policy for input data access (download or protocol)#download}}'
 recoSysConfig = '{{recoSystemConfig#PROD-1:RECO(Stripp): system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
-recoMulticoreFlag = '{{recoMulticoreFLag#PROD-1: multicore flag#False}}'
+recoMulticoreFlag = '{{recoMulticoreFLag#PROD-1: multicore flag#True}}'
 
 #stripp params
 strippPriority = int( '{{priority#PROD-2:Stripping: priority#5}}' )
@@ -85,7 +85,7 @@ strippFilesPerJob = '{{StrippFilesPerJob#PROD-2:Stripping: Group size or number 
 strippDataSE = '{{StrippStreamSE#PROD-2:Stripping: output data SE (un-merged streams)#Tier1-BUFFER}}'
 strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data access (download or protocol)#download}}'
 strippSysConfig = '{{strippSystemConfig#PROD-2:Stripping: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
-strippMulticoreFlag = '{{strippMulticoreFLag#PROD-2: multicore flag#False}}'
+strippMulticoreFlag = '{{strippMulticoreFLag#PROD-2: multicore flag#True}}'
 
 #merging params
 mergingPriority = int( '{{MergePriority#PROD-3:Merging: priority#8}}' )
@@ -96,7 +96,7 @@ mergingDataSE = '{{MergeStreamSE#PROD-3:Merging: output data SE (merged streams)
 mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access (download or protocol)#download}}'
 mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data flag True/False#True}}'
 mergeSysConfig = '{{mergeSystemConfig#PROD-3:Merging: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
-mergeMulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#False}}'
+mergeMulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
 
 pr.requestID = '{{ID}}'
 pr.prodGroup = '{{pDsc}}'

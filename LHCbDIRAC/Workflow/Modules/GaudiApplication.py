@@ -57,7 +57,8 @@ class GaudiApplication( ModuleBase ):
     self.outputFilePrefix = ''
     self.runNumber = 0
     self.TCK = ''
-    self.multicore = False
+    self.multicoreJob = 'True'
+    self.multicoreStep = 'N'
 
   #############################################################################
 
@@ -254,10 +255,11 @@ class GaudiApplication( ModuleBase ):
 
       # Creating the command
       gaudiRunFlags = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
-      if self.multicore:
-        cpus = multiprocessing.cpu_count()
-        if cpus > 1:
-          gaudiRunFlags = gaudiRunFlags + ' --ncpus -1 '
+      if self.multicoreJob == 'True':
+        if self.multicoreStep.upper() == 'Y':
+          cpus = multiprocessing.cpu_count()
+          if cpus > 1:
+            gaudiRunFlags = gaudiRunFlags + ' --ncpus -1 '
 
       if self.optionsLine or self.jobType.lower() == 'user':
         command = '%s %s %s' % ( gaudiRunFlags, self.optfile, 'gaudi_extra_options.py' )

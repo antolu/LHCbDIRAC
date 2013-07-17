@@ -137,7 +137,7 @@ class ProductionRequest( object ):
       stepsListDictItem['prodStepID'] = str( stepID ) + str( stepsListDictItem['fileTypesIn'] )
 
       if not stepsListDictItem.has_key( 'MultiCore' ):
-        stepsListDictItem['MultiCore'] = 'False'
+        stepsListDictItem['MultiCore'] = 'N'
 
       self.stepsListDict.append( stepsListDictItem )
 
@@ -274,7 +274,7 @@ class ProductionRequest( object ):
       self.inputDataPolicies = ['download'] * len( self.prodsTypeList )
 
     if not self.multicore:
-      self.multicore = ['False'] * len( self.prodsTypeList )
+      self.multicore = ['True'] * len( self.prodsTypeList )
 
     # Checking if we need to split the merging step into many productions
     if 'merge' in [pt.lower() for pt in self.prodsTypeList]:

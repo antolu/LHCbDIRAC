@@ -260,6 +260,8 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'CPUe' ):
       self.CPUe = self.workflow_commons['CPUe']
 
+    if self.workflow_commons.has_key( 'multicore' ):
+      self.multicoreJob = self.workflow_commons.has_key( 'multicore' )
 
   #############################################################################
 
@@ -352,7 +354,7 @@ class ModuleBase( object ):
       self.DQTag = self.step_commons['DQTag']
 
     if self.step_commons.has_key( 'multiCore' ):
-      self.multicore = eval( self.step_commons['multiCore'] )
+      self.multicoreStep = eval( self.step_commons['multiCore'] )
 
   #############################################################################
 
