@@ -472,7 +472,7 @@ class ProductionRequest( object ):
                         events = -1,
                         CPUe = 1.0,
                         sysConfig = '',
-                        multicore = 'False' ):
+                        multicore = 'True' ):
     """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object
     """
