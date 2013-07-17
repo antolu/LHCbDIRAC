@@ -78,9 +78,10 @@ p1DataSE = '{{p1DataSE#PROD-P1: Output Data Storage Element#Tier1-DST}}'
 p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
 p1RemoveInputs = eval( '{{p1RemoveInputs#PROD-P1: removeInputs flag#False}}' )
 p1sysConfig = '{{P1SystemConfig#PROD-P1: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
-p1StepMask = '{{P1StepMask#PROD-P1: step output to save (default is last of prod)#}}'
+p1StepMask = '{{P1StepMask#PROD-P1: step output to save, semicolon separated (default is last)#}}'
 p1multicoreFlag = '{{P1MulticoreFLag#PROD-P1: multicore flag#True}}'
 p1outputMode = '{{P1OutputMode#PROD-P1: output mode#Local}}'
+p1eventsRequested = '{{P1EventsRequested#PROD-P1: events requested (-1 = ALL)#-1}}'
 
 #p2 params
 p2Plugin = '{{p2PluginType#PROD-P2: production plugin name#LHCbStandard}}'
@@ -91,9 +92,10 @@ p2DataSE = '{{p2DataSE#PROD-P2: Output Data Storage Element#Tier1-DST}}'
 p2Policy = '{{p2Policy#PROD-P2: data policy (download or protocol)#download}}'
 p2RemoveInputs = eval( '{{p2RemoveInputs#PROD-P2: removeInputs flag#False}}' )
 p2sysConfig = '{{P2SystemConfig#PROD-P2: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
-p2StepMask = '{{P2StepMask#PROD-P2: step output to save (default is last of prod)#}}'
+p2StepMask = '{{P2StepMask#PROD-P2: step output to save, semicolon separated (default is last#}}'
 p2multicoreFlag = '{{P2MulticoreFLag#PROD-P2: multicore flag#True}}'
 p2outputMode = '{{P2OutputMode#PROD-P2: output mode#Local}}'
+p2eventsRequested = '{{P2EventsRequested#PROD-P2: events requested (-1 = ALL)#-1}}'
 
 #p3 params
 p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
@@ -104,9 +106,10 @@ p3DataSE = '{{p3DataSE#PROD-P3: Output Data Storage Element#Tier1-DST}}'
 p3Policy = '{{p3Policy#PROD-P3: data policy (download or protocol)#download}}'
 p3RemoveInputs = eval( '{{p3RemoveInputs#PROD-P3: removeInputs flag#False}}' )
 p3sysConfig = '{{P3SystemConfig#PROD-P3: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
-p3StepMask = '{{P3StepMask#PROD-P3: step output to save (default is last of prod)#}}'
+p3StepMask = '{{P3StepMask#PROD-P3: step output to save, semicolon separated (default is last#}}'
 p3multicoreFlag = '{{P3MulticoreFLag#PROD-P3: multicore flag#True}}'
 p3outputMode = '{{P3OutputMode#PROD-P3: output mode#Any}}'
+p3eventsRequested = '{{P3EventsRequested#PROD-P3: events requested (-1 = ALL)#-1}}'
 
 parentReq = '{{_parent}}'
 if not parentReq:
@@ -183,9 +186,15 @@ if pr.testFlag:
 if not p1StepMask:
   p1StepMask = len( pr.stepsInProds[0] )
 if not p2StepMask:
-  p2StepMask = len( pr.stepsInProds[1] )
+  try:
+    p2StepMask = len( pr.stepsInProds[1] )
+  except IndexError:
+    p2StepMask = ''
 if not p3StepMask:
-  p3StepMask = len( pr.stepsInProds[2] )
+  try:
+    p3StepMask = len( pr.stepsInProds[2] )
+  except IndexError:
+    p3StepMask = ''
 
 pr.outputSEs = [x for x in [p1DataSE, p2DataSE, p3DataSE] if x != '']
 pr.removeInputsFlags = [p1RemoveInputs, p2RemoveInputs, p3RemoveInputs][0:len( pr.prodsTypeList )]
@@ -199,5 +208,6 @@ pr.sysConfig = [p1sysConfig, p2sysConfig, p3sysConfig][0:len( pr.prodsTypeList )
 pr.outputFileSteps = [p1StepMask, p2StepMask, p3StepMask]
 pr.multicore = [p1multicoreFlag, p2multicoreFlag, p3multicoreFlag]
 pr.outputModes = [p1outputMode, p2outputMode, p3outputMode]
+pr.events = [p1eventsRequested, p2eventsRequested, p3eventsRequested]
 
 pr.buildAndLaunchRequest()
