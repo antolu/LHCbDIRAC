@@ -79,6 +79,8 @@ class DB_TestCase( Base_TestCase ):
     Makes sure there are no DBs installed after the test.
     """
     
+    super( DB_TestCase, self ).tearDown()
+    
     res = lhcb_ci.db.getInstalledDBs()
     if not res[ 'OK' ]:
       self.log.error( 'tearDown' )
@@ -89,7 +91,7 @@ class DB_TestCase( Base_TestCase ):
       self.fail( 'DBs still installed: %s' % res[ 'Value' ] )
 
 
-class Service_TestCase( Base_TestCase ):  
+class Service_TestCase( DB_TestCase ):  
 
   @classmethod
   def setUpClass( cls ):
@@ -109,9 +111,6 @@ class Service_TestCase( Base_TestCase ):
     super( Service_TestCase, self ).setUp()
     
     res = lhcb_ci.service.getInstalledServices()  
-    if not res[ 'OK' ]:
-      self.log.error( 'setUp' )
-      self.fail( res[ 'Message' ] )
     
     # Configuration Service is ALWAYS installed ( Master ! )
     del res[ 'Configuration' ]
@@ -127,11 +126,10 @@ class Service_TestCase( Base_TestCase ):
     Makes sure there are no Services installed after the test.
     """
     
-    res = lhcb_ci.service.getInstalledServices()
-    if not res[ 'OK' ]:
-      self.log.error( 'tearDown' )
-      self.fail( res[ 'Message' ] )
+    super( Service_TestCase, self ).tearDown()
     
+    res = lhcb_ci.service.getInstalledServices()
+   
     # Configuration Service is ALWAYS installed ( Master ! )
     del res[ 'Configuration' ]
     
