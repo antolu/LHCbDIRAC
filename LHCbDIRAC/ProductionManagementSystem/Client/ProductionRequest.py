@@ -136,8 +136,8 @@ class ProductionRequest( object ):
 
       stepsListDictItem['prodStepID'] = str( stepID ) + str( stepsListDictItem['fileTypesIn'] )
 
-      if not stepsListDictItem.has_key( 'MultiCore' ):
-        stepsListDictItem['MultiCore'] = 'N'
+      if not stepsListDictItem.has_key( 'isMulticore' ):
+        stepsListDictItem['isMulticore'] = 'N'
 
       self.stepsListDict.append( stepsListDictItem )
 

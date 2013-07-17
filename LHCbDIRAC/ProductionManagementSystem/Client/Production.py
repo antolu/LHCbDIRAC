@@ -174,7 +174,7 @@ class Production():
     dddbOpt = stepDict['DDDB']
     conddbOpt = stepDict['CONDDB']
     DQOpt = stepDict['DQTag']
-    multicore = stepDict['MultiCore']
+    multicore = stepDict['isMulticore']
 
     if extraPackages:
       if type( extraPackages ) == type( [] ):
