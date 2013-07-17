@@ -110,14 +110,14 @@ class Service_TestCase( DB_TestCase ):
     
     super( Service_TestCase, self ).setUp()
     
-    res = lhcb_ci.service.getInstalledServices()  
+    installedServices = lhcb_ci.service.getInstalledServices()  
     
     # Configuration Service is ALWAYS installed ( Master ! )
-    del res[ 'Configuration' ]
+    del installedServices[ 'Configuration' ]
       
-    if res[ 'Value' ]:
+    if installedServices:
       self.log.error( 'setUp' )
-      self.fail( 'Services still installed: %s' % res[ 'Value' ] )  
+      self.fail( 'Services still installed: %s' % installedServices )  
 
     
   def tearDown( self ):
@@ -128,14 +128,14 @@ class Service_TestCase( DB_TestCase ):
     
     super( Service_TestCase, self ).tearDown()
     
-    res = lhcb_ci.service.getInstalledServices()
+    installedServices = lhcb_ci.service.getInstalledServices()
    
     # Configuration Service is ALWAYS installed ( Master ! )
-    del res[ 'Configuration' ]
+    del installedServices[ 'Configuration' ]
     
-    if res[ 'Value' ]:
+    if installedServices:
       self.log.error( 'tearDown' )
-      self.fail( 'DBs still installed: %s' % res[ 'Value' ] )
+      self.fail( 'DBs still installed: %s' % installedServices )
 
 
 #...............................................................................
