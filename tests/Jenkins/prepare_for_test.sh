@@ -122,7 +122,10 @@ diracConfigure(){
   randomUser=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
   userPass=/LocalInstallation/Database/Password=$randomUser
   # Setups
-  setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'` 
+  systems=`ls -l *DIRAC/*System | grep "^.*DIRAC" | cut -d '/' -f 2 | cut -d ':' -f 1 | sort | uniq | sed 's/System//g'`
+  #setups=`cat databases | cut -d ' ' -f 1 | uniq | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/' | sed 's/System=/=/'`
+  #setups=`echo $systems | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/'`
+  setups=`echo "$services" | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/'` 
   # Databases
   #dbs=`cat databases | cut -d ' ' -f 2 | uniq | grep -v TransferDB | cut -d '.' -f 1 | tr '\n' ','`
   #databases=/LocalInstallation/Databases=$dbs
@@ -132,7 +135,7 @@ diracConfigure(){
 
   ln -s $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/install.cfg
 
-  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG 
+  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups -o /DIRAC/Setups/Jenkins/Configuration=Jenkins $DEBUG 
   dirac-setup-site $DEBUG
   
   # Do not use Server Certificate
