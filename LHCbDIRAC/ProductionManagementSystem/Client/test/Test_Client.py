@@ -73,7 +73,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
                                          'prodStepID': "123['SDST']",
-                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'False',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'N',
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
@@ -83,7 +83,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
-                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'False',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'N',
                                          'prodStepID': "123['SDST']",
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
@@ -92,7 +92,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
                                          'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
-                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'False',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'N',
                                          'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                            ] )
@@ -103,7 +103,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
-                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'False',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'N',
                                          'prodStepID': "123['SDST']",
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
@@ -112,7 +112,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
                                          'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
-                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'False',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'N',
                                          'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                            ] )
@@ -123,7 +123,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
-                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'False',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'N',
                                          'prodStepID': "123['SDST']",
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
@@ -135,7 +135,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
                                          'prodStepID': "123['SDST']",
-                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'False',
+                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'MultiCore': 'N',
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
