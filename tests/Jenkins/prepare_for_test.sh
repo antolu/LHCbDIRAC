@@ -262,7 +262,7 @@ diracDBs(){
 
 diracServices(){
 
-  services=`cat services | cut -d '.' -f 1 | grep -v ^ConfigurationSystem | grep -v SystemAdministrator | grep -v HttpStorageAccess | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v Strategy | grep -v SiteMap | sed 's/System//g' | sed 's/Handler//g' | sed 's/ /\//g'`
+  services=`cat services | cut -d '.' -f 1 | grep -v ^ConfigurationSystem | grep -v SystemAdministrator | grep -v HttpStorageAccess | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v Strategy | grep -v SiteMap | grep -v SecurityLogging | sed 's/System//g' | sed 's/Handler//g' | sed 's/ /\//g'`
   for serv in $services
   do
     dirac-install-service $serv $DEBUG
