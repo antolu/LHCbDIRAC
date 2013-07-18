@@ -8,6 +8,7 @@
 
 # Python libraries
 from threading import Thread
+from time      import sleep
 
 # DIRAC
 from DIRAC.Core.DISET.RPCClient      import RPCClient
@@ -96,8 +97,11 @@ def serveAndPing( sReactor ):
   
   ServiceThread.sReactor = sReactor
   
-  action = ServiceThread( action = 'ping' ).start()
-  server = ServiceThread().start()
+  action = ServiceThread( action = 'ping' )
+  server = ServiceThread()
+  
+  server.start()
+  action.start()
   
   action.join( 60 )
   if action.isAlive():
@@ -126,6 +130,9 @@ class ServiceThread( Thread ):
   
   def run( self ):
     if self.action:
+      
+      # Sleep 2 seconds to allow the server wake up
+      sleep( 2 )
       
       service = self.sReactor._ServiceReactor__services.keys()[ 0 ]
       
