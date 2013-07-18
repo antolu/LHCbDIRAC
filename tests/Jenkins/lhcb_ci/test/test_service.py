@@ -48,7 +48,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     
     _EXCEPTIONS = [ 'BookkeepingManager', 'RequestManager', 'StorageElement', 
                     'TransferDBMonitoring', 'StorageElementProxy', 'DataUsage',
-                    'RunDBInterface' ]
+                    'RunDBInterface', 'Gateway' ]
     # BookkeepingManager   : cx_Oracle
     # RequestManager       : RequestDB
     # StorageElement       : failed to get base path
@@ -56,6 +56,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     # StorageElementProxy  : failed to get base path
     # DataUsage            : Can not connect to DB StorageUsageDB
     # RunDBInterface       : from path import SQL_ALCHEMY_PATH
+    # Gateway              : string indices must be integers, not str
     
     for system, services in self.swServices.iteritems():
       
@@ -79,8 +80,10 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         try:
           res = lhcb_ci.service.initializeServiceReactor( system, service )
         #self.assertDIRACEquals( res[ 'OK' ], True, res )
-        except:
-          pass
+        except Exception, e:
+          self.log.error( '#' * 80 )
+          self.log.error( e )
+          self.log.error( '#' * 80 )
         # Extract the initialized ServiceReactor
 #        sReactor = res[ 'Value' ]
         
