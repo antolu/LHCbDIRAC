@@ -46,6 +46,8 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     
     self.logTestName( 'test_run_services' )
     
+    _EXCEPTIONS = [ 'BookkeepingManager' ]
+    
     for system, services in self.swServices.iteritems():
       
       if system == 'Configuration':
@@ -54,8 +56,9 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
 
       for service in services:
 
-#        if service != 'ResourceStatus':
-#          continue
+        if service in _EXCEPTIONS:
+          self.log.exception( 'EXCEPTION: Skipped %s' % service )
+          continue
 
         self.log.debug( "%s %s" % ( system, service ) )
 
