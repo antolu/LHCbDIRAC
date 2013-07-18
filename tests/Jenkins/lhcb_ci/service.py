@@ -65,16 +65,18 @@ def uninstallService( system, service ):
   Stops the service.
   """
 
-  logger.debug( 'uninstallService' )
+  logger.debug( 'uninstallService for %s/%s' % ( system, service ) )
   
   return InstallTools.uninstallComponent( system, service )
 
 
-def initializeService( system, service ):
-  """ initializeService
+def initializeServiceReactor( system, service ):
+  """ initializeServiceReactor
   
   Initializes the ServiceReactor for a given system/service
   """
+  
+  logger.debug( 'initializeServiceReactor for %s/%s' % ( system, service ) )
   
   sReactor = ServiceReactor()
   

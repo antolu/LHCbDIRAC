@@ -18,21 +18,38 @@ from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfigurati
 
 class Base_TestCase( unittest.TestCase ):  
 
-  log = lhcb_ci.logger
+  log = lhcb_ci.logger 
   
-  
+  def logTestName( self, testName ):
+    
+    self.log.debug( '.' * 80 )
+    self.log.info( testName )
+    self.log.debug( '.' * 80 )
+    
   @classmethod
   def setUpClass( cls ):
+
+    # Print separator
+    cls.log.info( '=' * 80 )
 
     localCfg = LocalConfiguration()
     localCfg.isParsed = True
     localCfg.loadUserData()
     
     cls.workspace = lhcb_ci.db.workspace
-  
+
+  @classmethod
+  def tearDownClass( cls ):
+    
+    # Print separator
+    cls.log.info( 'o' * 80 )
+     
   
   def setUp( self ):
-    self.log.info( '*** %s ***' % self.__class__.__name__ )  
+    
+    self.log.debug( '-' * 80 )
+    self.log.debug( self.__class__.__name__ )  
+    self.log.debug( '-' * 80 )
 
 
   def assertDIRACEquals( self, first, second, res ):
@@ -48,7 +65,7 @@ class DB_TestCase( Base_TestCase ):
   def setUpClass( cls ):
 
     super( DB_TestCase, cls ).setUpClass()
-    cls.log.info( '=== DB_TestCase ===' )
+    cls.log.debug( '::: DB_TestCase setUpClass :::' )
     
     cls.databases = lhcb_ci.db.getDatabases()         
     cls.rootPass  = lhcb_ci.db.getRootPass()
@@ -97,7 +114,7 @@ class Service_TestCase( DB_TestCase ):
   def setUpClass( cls ):
 
     super( Service_TestCase, cls ).setUpClass()
-    cls.log.info( '=== Service_TestCase ===' )
+    cls.log.info( '::: Service_TestCase setUpClass :::' )
     
     cls.swServices = lhcb_ci.service.getSoftwareServices()
 

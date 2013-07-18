@@ -23,7 +23,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     does not check whether the services run with errors or not.
     """    
     
-    self.log.debug( 'test_services_install_drop' )
+    self.logTestName( 'test_services_install_drop' )
             
     for system, services in self.swServices.iteritems():
       
@@ -44,7 +44,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
 
   def test_run_services( self ):
     
-    self.log.debug( 'test_run_services' )
+    self.logTestName( 'test_run_services' )
     
     for system, services in self.swServices.iteritems():
       
@@ -53,17 +53,18 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         continue 
 
       for service in services:
-        self.log.debug( "%s %s" % ( system, service ) )
 
         if service != 'ResourceStatus':
           continue
+
+        self.log.debug( "%s %s" % ( system, service ) )
 
         dbName = '%sDB' % service
         db = lhcb_ci.db.installDB( dbName )
         if not db[ 'OK' ]:
           self.log.debug( 'No DB for service %s' % service )
 
-        res = lhcb_ci.service.initializeService( system, service )
+        res = lhcb_ci.service.initializeServiceReactor( system, service )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
         # Extract the initialized ServiceReactor
