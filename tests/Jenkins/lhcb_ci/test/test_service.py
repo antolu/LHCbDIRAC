@@ -46,10 +46,11 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     
     self.logTestName( 'test_run_services' )
     
-    _EXCEPTIONS = [ 'BookkeepingManager', 'RequestManager', 'StorageElement' ]
-    # BookkeepingManager : cx_Oracle
-    # RequestManager     : RequestDB
-    # StorageElement     : failed to get base path
+    _EXCEPTIONS = [ 'BookkeepingManager', 'RequestManager', 'StorageElement', 'TransferDBMonitoring' ]
+    # BookkeepingManager   : cx_Oracle
+    # RequestManager       : RequestDB
+    # StorageElement       : failed to get base path
+    # TransferDBMonitoring : Can not connect to DB RequestDB
     
     for system, services in self.swServices.iteritems():
       
