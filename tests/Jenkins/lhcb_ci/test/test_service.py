@@ -47,13 +47,15 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     self.logTestName( 'test_run_services' )
     
     _EXCEPTIONS = [ 'BookkeepingManager', 'RequestManager', 'StorageElement', 
-                    'TransferDBMonitoring', 'StorageElementProxy', 'DataUsage' ]
+                    'TransferDBMonitoring', 'StorageElementProxy', 'DataUsage',
+                    'RunDBInterface' ]
     # BookkeepingManager   : cx_Oracle
     # RequestManager       : RequestDB
     # StorageElement       : failed to get base path
     # TransferDBMonitoring : Can not connect to DB RequestDB
     # StorageElementProxy  : failed to get base path
     # DataUsage            : Can not connect to DB StorageUsageDB
+    # RunDBInterface       : from path import SQL_ALCHEMY_PATH
     
     for system, services in self.swServices.iteritems():
       
