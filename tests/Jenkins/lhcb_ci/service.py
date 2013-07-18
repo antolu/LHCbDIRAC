@@ -85,75 +85,8 @@ def initializeServiceReactor( system, service ):
   if res[ 'OK' ]:
     res[ 'Value' ] = sReactor
     
-  return res  
- 
-#def serveAndPing( sReactor ):
-#  """ serveAndPing
-#  
-#  Serve Service from ServiceReactor and ping it
-#  """
-#  
-#  logger.debug( 'serveAndPing' )
-#  
-#  ServiceThread.sReactor = sReactor
-#
-#  server = ServiceThread()  
-#  action = ServiceThread( action = 'ping' )
-#  
-#  server.start()
-#  action.start()
-#  
-#  action.join( 60 )
-#  if action.isAlive():
-#    logger.exception( 'EXCEPTION: action thread still alive' )
-#  del action
-#           
-#  server.join( 60 )
-#  if server.isAlive():
-#    logger.exception( 'EXCEPTION: server thread still alive' )
-#  del server
-#  
-#  ServiceThread.sReactor = None
-#
-#  return action.actionResult
+  return res
 
-#class ServiceThread( Thread ):
-#  
-#  sReactor     = None
-#  actionResult = None
-#  
-#  def __init__( self, action = '', *args, **kwargs ):
-#    super( ServiceThread, self ).__init__( *args, **kwargs )
-#     
-#    self.action       = action
-#  
-#  def run( self ):
-#    if self.action:
-#      
-#      # Sleep 2 seconds to allow the server wake up
-#      sleep( 2 )
-#      
-#      service = self.sReactor._ServiceReactor__services.keys()[ 0 ]
-#      
-#      logger.debug( 'Connecting to %s' % service )
-#      
-#      url = self.sReactor._ServiceReactor__services[ service ]._url
-#      rss = RPCClient( url )
-#      
-#      logger.debug( 'Requesting ping to %s' % service )
-#      self.actionResult = rss.ping()
-#      
-#      logger.debug( 'Cleanup %s' % service )
-#      # Stop while True
-#      self.sReactor._ServiceReactor__alive = False
-#      self.sReactor.closeListeningConnections()
-#      del self.sReactor._ServiceReactor__services[ service ]
-#      
-#      logger.debug( 'Action Done' )
-#    else:
-#  
-#      self.sReactor.serve()
-#      logger.debug( 'End of ServiceReactor' )
 
 def serveAndPing( sReactor ):
   """ serveAndPing
@@ -191,22 +124,7 @@ def serveAndPing( sReactor ):
     return { 'OK' : False, 'Message' : 'server thread is alive' }
 
   return actionResult
-  
-#  action.start()
-#  
-#  action.join( 60 )
-#  if action.isAlive():
-#    logger.exception( 'EXCEPTION: action thread still alive' )
-#  del action
-#           
-#  server.join( 60 )
-#  if server.isAlive():
-#    logger.exception( 'EXCEPTION: server thread still alive' )
-#  del server
-#  
-#  ServiceThread.sReactor = None
-#
-#  return action.actionResult
+
 
 class ServiceThread( Thread ):
     

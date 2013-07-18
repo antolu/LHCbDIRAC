@@ -54,8 +54,8 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
 
       for service in services:
 
-        if service != 'ResourceStatus':
-          continue
+#        if service != 'ResourceStatus':
+#          continue
 
         self.log.debug( "%s %s" % ( system, service ) )
 
