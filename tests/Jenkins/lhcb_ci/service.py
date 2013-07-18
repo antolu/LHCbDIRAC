@@ -87,6 +87,10 @@ def initializeServiceReactor( system, service ):
   return res  
  
 def serveAndPing( sReactor ):
+  """ serveAndPing
+  
+  Serve Service from ServiceReactor and ping it
+  """
   
   logger.debug( 'serveAndPing' )
   

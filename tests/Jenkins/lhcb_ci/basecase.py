@@ -31,6 +31,7 @@ class Base_TestCase( unittest.TestCase ):
 
     # Print separator
     cls.log.info( '=' * 80 )
+    cls.log.info( 'setup test')
 
     localCfg = LocalConfiguration()
     localCfg.isParsed = True
@@ -42,7 +43,7 @@ class Base_TestCase( unittest.TestCase ):
   def tearDownClass( cls ):
     
     # Print separator
-    cls.log.info( 'o' * 80 )
+    cls.log.info( '#' * 80 )
      
   
   def setUp( self ):

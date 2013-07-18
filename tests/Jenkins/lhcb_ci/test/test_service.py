@@ -70,6 +70,12 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         # Extract the initialized ServiceReactor
         sReactor = res[ 'Value' ]
         
+        res = lhcb_ci.service.serveAndPing( sReactor )
+        self.log.debug( str( res ) )
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
+                
+        del sReactor
+        
           
         if db[ 'OK' ]:
           self.log.debug( 'Dropping DB %s for service' % dbName )

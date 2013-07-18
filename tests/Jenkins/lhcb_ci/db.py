@@ -148,7 +148,7 @@ def _execute( query, dbName = '' ):
     res = cursor.execute( query )
     if res > 0:
       res = cursor.fetchall()
-    logger.debug( "result: %s" % str( res ) )
+    logger.debug( "lhcb_ci.db._execute: %s" % str( res ) )
     
   except MySQLdb.Error, e:
     logger.error( 'Error executing' )
