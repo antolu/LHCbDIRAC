@@ -50,7 +50,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
                     'TransferDBMonitoring', 'StorageElementProxy', 'DataUsage',
                     'RunDBInterface', 'Gateway', 'SystemLoggingReport',
                     'UserProfileManager', 'ProxyManager', 'JobMonitoring',
-                    'SandboxStore' ]
+                    'SandboxStore', 'Matcher' ]
     # BookkeepingManager   : cx_Oracle
     # RequestManager       : RequestDB
     # StorageElement       : failed to get base path
@@ -64,6 +64,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     # ProxyManager         : Can not connect to DB ProxyDB
     # JobMonitoring        : Can not connect to DB JobDB
     # SandboxStore         : Can not connect to DB SandboxMetadataDB
+    # Matcher              : Can not connect to DB JobDB
     
     _SPEEDUP = [ 'ResourceManagement', 'Publisher', 'ResourceStatus', 'RequestProxy',
                  'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity',
