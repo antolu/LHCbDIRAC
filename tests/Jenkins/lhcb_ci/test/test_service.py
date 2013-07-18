@@ -49,7 +49,8 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     _EXCEPTIONS = [ 'BookkeepingManager', 'RequestManager', 'StorageElement', 
                     'TransferDBMonitoring', 'StorageElementProxy', 'DataUsage',
                     'RunDBInterface', 'Gateway', 'SystemLoggingReport',
-                    'UserProfileManager', 'ProxyManager', 'JobMonitoring' ]
+                    'UserProfileManager', 'ProxyManager', 'JobMonitoring',
+                    'SandboxStore' ]
     # BookkeepingManager   : cx_Oracle
     # RequestManager       : RequestDB
     # StorageElement       : failed to get base path
@@ -62,6 +63,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     # UserProfileManager   : Can not connect to DB UserProfileDB
     # ProxyManager         : Can not connect to DB ProxyDB
     # JobMonitoring        : Can not connect to DB JobDB
+    # SandboxStore         : Can not connect to DB SandboxMetadataDB
     
     _SPEEDUP = [ 'ResourceManagement', 'Publisher', 'ResourceStatus', 'RequestProxy',
                  'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity',
