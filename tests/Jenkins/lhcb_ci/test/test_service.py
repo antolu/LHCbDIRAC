@@ -16,7 +16,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
   Tests performing operations related with the Services installation.
   """
 
-  def test_services_install_drop( self ):
+  def services_install_drop( self ):
     """ test_services_install_drop
     
     Tests that we can install / drop directly services using the DIRAC tools. It
