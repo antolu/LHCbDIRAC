@@ -33,26 +33,16 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
       
       for service in services:
         self.log.debug( "%s %s" % ( system, service ) )
-
-#        dbName = '%sDB' % service
-#        db = lhcb_ci.db.installDB( dbName )
-#        if not db[ 'OK' ]:
-#          self.log.debug( 'No DB for service %s' % service )
-        
+       
         res = lhcb_ci.service.setupService( system, service )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )
-        self.log.debug( res )
+        self.assertEquals( res[ 'Value' ][ 'RunitStatus' ], 'Run' )
         
         res = lhcb_ci.service.uninstallService( system, service )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )
-        self.log.debug( res )
-      
-#        if db[ 'OK' ]:
-#          self.log.debug( 'Dropping DB %s for service' % dbName )
-#          res = lhcb_ci.db.dropDB( dbName )
-#          self.assertDIRACEquals( res[ 'OK' ], True, res )
+        
 
-  def run_services( self ):
+  def test_run_services( self ):
     
     self.log.debug( 'test_run_services' )
     
@@ -65,9 +55,25 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
       for service in services:
         self.log.debug( "%s %s" % ( system, service ) )
 
-      
+        if service != 'ResourceStatus':
+          continue
 
+        dbName = '%sDB' % service
+        db = lhcb_ci.db.installDB( dbName )
+        if not db[ 'OK' ]:
+          self.log.debug( 'No DB for service %s' % service )
 
+        res = lhcb_ci.service.initializeService( system, service )
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
+        
+        # Extract the initialized ServiceReactor
+        sReactor = res[ 'Value' ]
+        
+          
+        if db[ 'OK' ]:
+          self.log.debug( 'Dropping DB %s for service' % dbName )
+          res = lhcb_ci.db.dropDB( dbName )
+          self.assertDIRACEquals( res[ 'OK' ], True, res )
     
 
 #...............................................................................
