@@ -49,7 +49,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     _EXCEPTIONS = [ 'BookkeepingManager', 'RequestManager', 'StorageElement', 
                     'TransferDBMonitoring', 'StorageElementProxy', 'DataUsage',
                     'RunDBInterface', 'Gateway', 'SystemLoggingReport',
-                    'UserProfileManager' ]
+                    'UserProfileManager', 'ProxyManager' ]
     # BookkeepingManager   : cx_Oracle
     # RequestManager       : RequestDB
     # StorageElement       : failed to get base path
@@ -60,6 +60,13 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     # Gateway              : string indices must be integers, not str
     # SystemLoggingReport  : Can not connect to DB SystemLoggingDB
     # UserProfileManager   : Can not connect to DB UserProfileDB
+    # ProxyManager         : Can not connect to DB ProxyDB
+    
+    _SPEEDUP = [ 'ResourceManagement', 'Publisher', 'ResourceStatus', 'RequestProxy',
+                 'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity',
+                 'LcgFileCatalogProxy', 'FileCatalog', 'StorageUsage', 'RAWIntegrity',
+                 'BundleDelivery', 'SystemAdministrator', 'Monitoring', 'SiteMap',
+                 'SystemLogging', 'SecurityLogging',  ]
     
     for system, services in self.swServices.iteritems():
       
@@ -71,6 +78,9 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
 
         if service in _EXCEPTIONS:
           self.log.exception( 'EXCEPTION: Skipped %s' % service )
+          continue
+
+        if service in _SPEEDUP:
           continue
 
         self.log.debug( "%s %s" % ( system, service ) )
