@@ -48,7 +48,8 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     
     _EXCEPTIONS = [ 'BookkeepingManager', 'RequestManager', 'StorageElement', 
                     'TransferDBMonitoring', 'StorageElementProxy', 'DataUsage',
-                    'RunDBInterface', 'Gateway', 'SystemLoggingReport' ]
+                    'RunDBInterface', 'Gateway', 'SystemLoggingReport',
+                    'UserProfileManager' ]
     # BookkeepingManager   : cx_Oracle
     # RequestManager       : RequestDB
     # StorageElement       : failed to get base path
@@ -58,6 +59,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     # RunDBInterface       : from path import SQL_ALCHEMY_PATH
     # Gateway              : string indices must be integers, not str
     # SystemLoggingReport  : Can not connect to DB SystemLoggingDB
+    # UserProfileManager   : Can not connect to DB UserProfileDB
     
     for system, services in self.swServices.iteritems():
       
