@@ -73,6 +73,10 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         res = lhcb_ci.service.serveAndPing( sReactor )
         self.log.debug( str( res ) )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
+        
+        self.assertEquals( res[ 'Value' ][ 'name' ], '%s/%s' % ( system, service ) )
+        # If everything is OK, the ping should be done within the first 10 seconds
+        self.assertEquals( res[ 'Value' ][ 'service uptime' ] < 10, True )
                 
         del sReactor
         
