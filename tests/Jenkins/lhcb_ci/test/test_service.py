@@ -46,7 +46,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     
     self.logTestName( 'test_run_services' )
     
-    _EXCEPTIONS = [ 'BookkeepingManager' ]
+    _EXCEPTIONS = [ 'BookkeepingManager', 'RequestManager' ]
     
     for system, services in self.swServices.iteritems():
       
