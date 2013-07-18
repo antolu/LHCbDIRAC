@@ -96,9 +96,9 @@ def serveAndPing( sReactor ):
   logger.debug( 'serveAndPing' )
   
   ServiceThread.sReactor = sReactor
-  
+
+  server = ServiceThread()  
   action = ServiceThread( action = 'ping' )
-  server = ServiceThread()
   
   server.start()
   action.start()
@@ -115,7 +115,7 @@ def serveAndPing( sReactor ):
   
   ServiceThread.sReactor = None
 
-  return ServiceThread.actionResult
+  return action.actionResult
 
 class ServiceThread( Thread ):
   
@@ -125,7 +125,6 @@ class ServiceThread( Thread ):
   def __init__( self, action = '', *args, **kwargs ):
     super( ServiceThread, self ).__init__( *args, **kwargs )
      
-    self.actionResult = None
     self.action       = action
   
   def run( self ):
