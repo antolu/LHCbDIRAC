@@ -133,8 +133,14 @@ def serveAndPing( sReactor ):
   sReactor.closeListeningConnections()
   
   # Stop all threads in gThreadScheduler.. dirty, I know.
-  try: 
-    service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__hood = None
+  try:
+    logger.debug( 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' ) 
+    taskDict = service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__taskDict
+    for taskId in taskDict:
+      logger.debug( str( taskDict[ taskId ] ) )
+      service._handler[ 'module' ].gThreadScheduler.removeTask( taskId )
+      logger.debug( 'Removed %s' % str( taskDict[ taskId ] ) )
+      
   except AttributeError:
     logger.debug( 'No gThreadScheduler in %s' % service )  
 
