@@ -53,30 +53,31 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
                     'SandboxStore', 'Matcher', 'JobStateUpdate', 'JobManager',
                     'WMSAdministrator', 'JobStateSync', 'OptimizationMind',
                     'MigrationMonitoring', 'StorageManager', 'ReportGenerator',
-                    'DataStore' ]
-    # BookkeepingManager   : cx_Oracle
-    # RequestManager       : RequestDB
-    # StorageElement       : failed to get base path
-    # TransferDBMonitoring : Can not connect to DB RequestDB
-    # StorageElementProxy  : failed to get base path
-    # DataUsage            : Can not connect to DB StorageUsageDB
-    # RunDBInterface       : from path import SQL_ALCHEMY_PATH
-    # Gateway              : string indices must be integers, not str
-    # SystemLoggingReport  : Can not connect to DB SystemLoggingDB
-    # UserProfileManager   : Can not connect to DB UserProfileDB
-    # ProxyManager         : Can not connect to DB ProxyDB
-    # JobMonitoring        : Can not connect to DB JobDB
-    # SandboxStore         : Can not connect to DB SandboxMetadataDB
-    # Matcher              : Can not connect to DB JobDB
-    # JobStateUpdate       : Can not connect to DB JobDB
-    # JobManager           : Can not connect to DB JobDB
-    # WMSAdministrator     : Can not connect to DB JobDB
-    # JobStateSync         : Can not connect to DB JobDB
-    # OptimizationMind     : Could not connect to DB  
-    # MigrationMonitoring  : Can not connect to DB StorageManagementDB
-    # StorageManager       : Can not connect to DB StorageManagementDB
-    # ReportGenerator      : Can not connect to DB AccountingDB
-    # DataStore            : Can not connect to DB AccountingDB
+                    'DataStore', 'TransformationManager' ]
+    # BookkeepingManager    : cx_Oracle
+    # RequestManager        : RequestDB
+    # StorageElement        : failed to get base path
+    # TransferDBMonitoring  : Can not connect to DB RequestDB
+    # StorageElementProxy   : failed to get base path
+    # DataUsage             : Can not connect to DB StorageUsageDB
+    # RunDBInterface        : from path import SQL_ALCHEMY_PATH
+    # Gateway               : string indices must be integers, not str
+    # SystemLoggingReport   : Can not connect to DB SystemLoggingDB
+    # UserProfileManager    : Can not connect to DB UserProfileDB
+    # ProxyManager          : Can not connect to DB ProxyDB
+    # JobMonitoring         : Can not connect to DB JobDB
+    # SandboxStore          : Can not connect to DB SandboxMetadataDB
+    # Matcher               : Can not connect to DB JobDB
+    # JobStateUpdate        : Can not connect to DB JobDB
+    # JobManager            : Can not connect to DB JobDB
+    # WMSAdministrator      : Can not connect to DB JobDB
+    # JobStateSync          : Can not connect to DB JobDB
+    # OptimizationMind      : Could not connect to DB  
+    # MigrationMonitoring   : Can not connect to DB StorageManagementDB
+    # StorageManager        : Can not connect to DB StorageManagementDB
+    # ReportGenerator       : Can not connect to DB AccountingDB
+    # DataStore             : Can not connect to DB AccountingDB
+    # TransformationManager : Can not connect to DB TransformationDB
     
     _SPEEDUP = [ 'ResourceManagement', 'Publisher', 'ResourceStatus', 'RequestProxy',
                  'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity',
