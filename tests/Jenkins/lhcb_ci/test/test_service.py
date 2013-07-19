@@ -16,7 +16,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
   Tests performing operations related with the Services installation.
   """
 
-  def services_install_drop( self ):
+  def test_services_install_drop( self ):
     """ test_services_install_drop
     
     Tests that we can install / drop directly services using the DIRAC tools. It
@@ -98,8 +98,8 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
           self.log.exception( 'EXCEPTION: Skipped %s' % service )
           continue
 
-        if service in _SPEEDUP:
-          continue
+        #if service in _SPEEDUP:
+        #  continue
 
         self.log.debug( "%s %s" % ( system, service ) )
 

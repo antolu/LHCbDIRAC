@@ -23,7 +23,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
   """
   
   
-  def passwords( self ):
+  def test_passwords( self ):
     """ test_passwords
     
     Makes sure the passwords are properly set on the dirac.cfg and accessed via
@@ -42,7 +42,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     self.assertEquals( InstallTools.mysqlPassword, self.userPass )    
   
   
-  def databases_reachable( self ):
+  def test_databases_reachable( self ):
     """ test_databases_reachable
     
     Tests that we can import the DIRAC DB objects pointing to an specific Database.
@@ -79,7 +79,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )
    
           
-  def databases_install_drop( self ):
+  def test_databases_install_drop( self ):
     """ test_databases_install_drop
     
     Tests that we can install / drop directly databases from the MySQL server
@@ -98,7 +98,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )  
 
 
-  def import_db_modules( self ):
+  def test_import_db_modules( self ):
     """ test_import_db_modules
     
     Tries to import the DB modules and create a class Object.
@@ -133,7 +133,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
           self.assertEquals( str( e ).startswith( 'Can not connect to DB' ), True )
     
 
-  def install_tables( self ):
+  def test_install_tables( self ):
     """ test_install_tables
     
     This test only applies to databases defined on Python.
