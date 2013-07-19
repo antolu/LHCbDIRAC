@@ -51,7 +51,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
                     'RunDBInterface', 'Gateway', 'SystemLoggingReport',
                     'UserProfileManager', 'ProxyManager', 'JobMonitoring',
                     'SandboxStore', 'Matcher', 'JobStateUpdate', 'JobManager',
-                    'WMSAdministrator', 'JobStateSync' ]
+                    'WMSAdministrator', 'JobStateSync', 'OptimizationMind' ]
     # BookkeepingManager   : cx_Oracle
     # RequestManager       : RequestDB
     # StorageElement       : failed to get base path
@@ -69,7 +69,8 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     # JobStateUpdate       : Can not connect to DB JobDB
     # JobManager           : Can not connect to DB JobDB
     # WMSAdministrator     : Can not connect to DB JobDB
-    # JobStateSync         : Can not connect to DB JobDB  
+    # JobStateSync         : Can not connect to DB JobDB
+    # OptimizationMind     : Could not connect to DB  
     
     _SPEEDUP = [ 'ResourceManagement', 'Publisher', 'ResourceStatus', 'RequestProxy',
                  'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity',
