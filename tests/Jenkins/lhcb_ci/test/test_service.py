@@ -52,7 +52,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
                     'UserProfileManager', 'ProxyManager', 'JobMonitoring',
                     'SandboxStore', 'Matcher', 'JobStateUpdate', 'JobManager',
                     'WMSAdministrator', 'JobStateSync', 'OptimizationMind',
-                    'MigrationMonitoring', 'StorageManager' ]
+                    'MigrationMonitoring', 'StorageManager', 'ReportGenerator' ]
     # BookkeepingManager   : cx_Oracle
     # RequestManager       : RequestDB
     # StorageElement       : failed to get base path
@@ -74,6 +74,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     # OptimizationMind     : Could not connect to DB  
     # MigrationMonitoring  : Can not connect to DB StorageManagementDB
     # StorageManager       : Can not connect to DB StorageManagementDB
+    # ReportGenerator      : Can not connect to DB AccountingDB
     
     _SPEEDUP = [ 'ResourceManagement', 'Publisher', 'ResourceStatus', 'RequestProxy',
                  'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity',
