@@ -135,7 +135,8 @@ def serveAndPing( sReactor ):
   # Stop all threads in gThreadScheduler.. dirty, I know.
   try:
     service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__hood = []
-    service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__destroyExecutor()    
+    service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__destroyExecutor()
+    logger.debug( 'Destroy Executor in %s' % serviceName )    
 #    taskDict = service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__taskDict
 #    logger.debug( 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' )
 #    for taskId in taskDict.iterkeys():
@@ -144,7 +145,7 @@ def serveAndPing( sReactor ):
 #      logger.debug( 'Removed %s' % str( taskDict[ taskId ] ) )
 #      
   except AttributeError:
-    logger.debug( 'No gThreadScheduler in %s' % service )  
+    pass  
 
   # And delete Service object from dictionary
   #FIXME: maybe we do not need to do this

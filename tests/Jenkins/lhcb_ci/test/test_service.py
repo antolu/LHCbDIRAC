@@ -42,7 +42,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
 
-  def test_run_services( self ):
+  def run_services( self ):
     
     self.logTestName( 'test_run_services' )
     
