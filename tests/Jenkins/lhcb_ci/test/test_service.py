@@ -6,6 +6,8 @@
   
 """
 
+import threading
+
 import lhcb_ci.basecase
 import lhcb_ci.db
 import lhcb_ci.service
@@ -16,7 +18,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
   Tests performing operations related with the Services installation.
   """
 
-  def test_services_install_drop( self ):
+  def _services_install_drop( self ):
     """ test_services_install_drop
     
     Tests that we can install / drop directly services using the DIRAC tools. It
@@ -42,7 +44,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
 
-  def run_services( self ):
+  def test_run_services( self ):
     
     self.logTestName( 'test_run_services' )
     
@@ -79,12 +81,12 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     # DataStore             : Can not connect to DB AccountingDB
     # TransformationManager : Can not connect to DB TransformationDB
     
-#    _SPEEDUP = [ 'ResourceManagement', 'Publisher', 'ResourceStatus', 'RequestProxy',
-#                 'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity',
-#                 'LcgFileCatalogProxy', 'FileCatalog', 'StorageUsage', 'RAWIntegrity',
-#                 'BundleDelivery', 'SystemAdministrator', 'Monitoring', 'SiteMap',
-#                 'SystemLogging', 'SecurityLogging', 'Notification', 'Plotting',
-#                 'Future'  ]
+    _SPEEDUP = [ 'RequestProxy', #'ResourceManagement', 'Publisher', 'ResourceStatus', 
+                 'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity', 
+                 'LcgFileCatalogProxy', 'FileCatalog', 'StorageUsage', 'RAWIntegrity',
+                 'BundleDelivery', 'SystemAdministrator', 'Monitoring', 'SiteMap',
+                 'SystemLogging', 'SecurityLogging', 'Notification', 'Plotting',
+                 'Future'  ]
     
     for system, services in self.swServices.iteritems():
       
@@ -98,10 +100,11 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
           self.log.exception( 'EXCEPTION: Skipped %s' % service )
           continue
 
-        #if service in _SPEEDUP:
-        #  continue
+        if service in _SPEEDUP:
+          continue
 
         self.log.debug( "%s %s" % ( system, service ) )
+        self.log.debug( 'START %s' % threading.active_count() )
 
         dbName = '%sDB' % service
         db = lhcb_ci.db.installDB( dbName )
@@ -127,6 +130,8 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
           self.log.debug( 'Dropping DB %s for service' % dbName )
           res = lhcb_ci.db.dropDB( dbName )
           self.assertDIRACEquals( res[ 'OK' ], True, res )
+          
+        self.log.debug( 'END %s' % threading.active_count() )  
     
 
 #...............................................................................

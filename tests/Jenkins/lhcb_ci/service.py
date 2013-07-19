@@ -6,6 +6,8 @@
   
 """
 
+import threading
+
 # Python libraries
 from threading import Thread
 from time      import sleep
@@ -114,6 +116,8 @@ def serveAndPing( sReactor ):
   server.start()
   
   sleep( 2 )
+  logger.debug( 'RUNNING %s' % threading.active_count() )
+  
   serviceName = sReactor._ServiceReactor__services.keys()[ 0 ]
   service     = sReactor._ServiceReactor__services[ serviceName ]
       
@@ -134,6 +138,7 @@ def serveAndPing( sReactor ):
   
   # Stop all threads in gThreadScheduler.. dirty, I know.
   try:
+    #logger.debug( service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__taskDict )
     service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__hood = []
     service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__destroyExecutor()
     logger.debug( 'Destroy Executor in %s' % serviceName )    
