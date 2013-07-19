@@ -79,12 +79,12 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     # DataStore             : Can not connect to DB AccountingDB
     # TransformationManager : Can not connect to DB TransformationDB
     
-    _SPEEDUP = [ 'ResourceManagement', 'Publisher', 'ResourceStatus', 'RequestProxy',
-                 'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity',
-                 'LcgFileCatalogProxy', 'FileCatalog', 'StorageUsage', 'RAWIntegrity',
-                 'BundleDelivery', 'SystemAdministrator', 'Monitoring', 'SiteMap',
-                 'SystemLogging', 'SecurityLogging', 'Notification', 'Plotting',
-                 'Future'  ]
+#    _SPEEDUP = [ 'ResourceManagement', 'Publisher', 'ResourceStatus', 'RequestProxy',
+#                 'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity',
+#                 'LcgFileCatalogProxy', 'FileCatalog', 'StorageUsage', 'RAWIntegrity',
+#                 'BundleDelivery', 'SystemAdministrator', 'Monitoring', 'SiteMap',
+#                 'SystemLogging', 'SecurityLogging', 'Notification', 'Plotting',
+#                 'Future'  ]
     
     for system, services in self.swServices.iteritems():
       

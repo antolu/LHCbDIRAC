@@ -87,6 +87,20 @@ def initializeServiceReactor( system, service ):
     
   return res
 
+#def _getServiceUrl( sReactor ):
+#  
+#  service = sReactor._ServiceReactor__services.keys()[ 0 ]
+#  url     = sReactor._ServiceReactor__services[ service ]._url
+#  
+#  return service, url
+#
+#def _clearSReactorService( sReactor, service ):
+#  
+#  # Stop while True
+#  sReactor._ServiceReactor__alive = False
+#  sReactor.closeListeningConnections()
+#  del sReactor._ServiceReactor__services[ service ]
+  
 
 def serveAndPing( sReactor ):
   """ serveAndPing
@@ -100,24 +114,34 @@ def serveAndPing( sReactor ):
   server.start()
   
   sleep( 2 )
-  service = sReactor._ServiceReactor__services.keys()[ 0 ]
+  serviceName = sReactor._ServiceReactor__services.keys()[ 0 ]
+  service     = sReactor._ServiceReactor__services[ serviceName ]
       
-  logger.debug( 'Connecting to %s' % service )
+  logger.debug( 'Connecting to %s' % serviceName )
   
   #FIXME: somehow it does not read the url properly    
-  url = sReactor._ServiceReactor__services[ service ]._url
+  url = service._url
   rss = RPCClient( url )
       
-  logger.debug( 'Requesting ping to %s' % service )
+  logger.debug( 'Requesting ping to %s' % serviceName )
   actionResult = rss.ping()
       
-  logger.debug( 'Cleanup %s' % service )
+  logger.debug( 'Cleanup %s' % serviceName )
   
   # Stop while True
   sReactor._ServiceReactor__alive = False
   sReactor.closeListeningConnections()
-  del sReactor._ServiceReactor__services[ service ]
   
+  # Stop all threads in gThreadScheduler.. dirty, I know.
+  try: 
+    service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__hood = None
+  except AttributeError:
+    logger.debug( 'No gThreadScheduler in %s' % service )  
+
+  # And delete Service object from dictionary
+  #FIXME: maybe we do not need to do this
+  del sReactor._ServiceReactor__services[ serviceName ]
+    
   server.join( 60 )
   if server.isAlive():
     logger.exception( 'EXCEPTION: server thread is alive' )
