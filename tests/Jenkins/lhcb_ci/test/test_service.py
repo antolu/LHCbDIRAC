@@ -105,6 +105,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
 
         self.log.debug( "%s %s" % ( system, service ) )
         self.log.debug( 'START %s' % threading.active_count() )
+        self.log.debug( threading.enumerate() )
 
         dbName = '%sDB' % service
         db = lhcb_ci.db.installDB( dbName )
@@ -131,7 +132,8 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
           res = lhcb_ci.db.dropDB( dbName )
           self.assertDIRACEquals( res[ 'OK' ], True, res )
           
-        self.log.debug( 'END %s' % threading.active_count() )  
+        self.log.debug( 'END %s' % threading.active_count() )
+        self.log.debug( threading.enumerate() )
     
 
 #...............................................................................

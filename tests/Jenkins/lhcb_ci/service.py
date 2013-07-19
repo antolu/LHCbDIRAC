@@ -117,6 +117,7 @@ def serveAndPing( sReactor ):
   
   sleep( 2 )
   logger.debug( 'RUNNING %s' % threading.active_count() )
+  logger.debug( threading.enumerate() )
   
   serviceName = sReactor._ServiceReactor__services.keys()[ 0 ]
   service     = sReactor._ServiceReactor__services[ serviceName ]
