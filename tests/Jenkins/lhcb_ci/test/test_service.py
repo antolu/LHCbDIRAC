@@ -81,7 +81,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     # DataStore             : Can not connect to DB AccountingDB
     # TransformationManager : Can not connect to DB TransformationDB
     
-    _SPEEDUP = [ 'RequestProxy', 'Publisher', 'ResourceManagement', #'ResourceStatus', 
+    _SPEEDUP = [ 'RequestProxy', 'Publisher', #'ResourceManagement', 'ResourceStatus', 
                  'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity', 
                  'LcgFileCatalogProxy', 'FileCatalog', 'StorageUsage', 'RAWIntegrity',
                  'BundleDelivery', 'SystemAdministrator', 'Monitoring', 'SiteMap',
