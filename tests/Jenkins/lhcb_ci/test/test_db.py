@@ -185,6 +185,11 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         
         if not hasattr( dbInstance, '_checkTable' ):
           self.log.exception( 'EXCEPTION: %s NOT FOLLOWING STANDARDS' % dbName )
+          res = lhcb_ci.db.dropDB( dbName )
+          self.assertDIRACEquals( res[ 'OK' ], True, res )
+          del dbMod
+          del dbClass
+          del dbInstance
           continue
           
         # Each DB Instance using the pythonic DB definition must have this method  
