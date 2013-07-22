@@ -25,6 +25,13 @@ class CVMFSCheck( ModuleBase ):
     super( CVMFSCheck, self ).__init__( loggerIn = logger )
     self.version = __RCSID__
 
+  def _resolveInputVariables( self ):
+    """ Resolve all input variables for the module here.
+    """
+
+    super( CVMFSCheck, self )._resolveInputVariables()
+    super( CVMFSCheck, self )._resolveInputStep()
+
   def execute( self ):
     """
     Main method. If ${VO_LHCB_SW_DIR}/lib/etc/cernvmfs is present, we continue
@@ -33,6 +40,8 @@ class CVMFSCheck( ModuleBase ):
     try:
       super( CVMFSCheck, self ).execute( self.version, production_id = 'SAM', prod_job_id = '0000', step_number = '1' )
   
+      self._resolveInputVariables()
+
       self.log.info( 'Checking presence of CVMFS' )
   
       if not 'VO_LHCB_SW_DIR' in os.environ:

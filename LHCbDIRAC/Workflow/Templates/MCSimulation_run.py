@@ -76,7 +76,7 @@ selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 b
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 selSysConfig = '{{selSystemConfig#PROD-2:Selection System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc46-opt}}'
-selmulticoreFlag = '{{selMulticoreFLag#PROD-1: multicore flag#True}}'
+selmulticoreFlag = '{{selMulticoreFLag#PROD-2: multicore flag#True}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'

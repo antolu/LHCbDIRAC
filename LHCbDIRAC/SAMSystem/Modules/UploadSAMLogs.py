@@ -1,6 +1,6 @@
-''' LHCbDIRAC.SAMSystem.Modules.UploadSAMLogs
+""" LHCbDIRAC.SAMSystem.Modules.UploadSAMLogs
 
-'''
+"""
 
 import glob
 import os
@@ -16,14 +16,14 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 __RCSID__ = '$Id$'
 
 class UploadSAMLogs( ModuleBase ):
-  '''
+  """
     UploadSAMLogs extends Workflow.Modules.ModuleBase
 
       it is used by SAMJobs to upload their outputs, as they do not need a very
       complex module to do it.
 
       Takes all logs and uploads to LogSE.
-  '''
+  """
 
   __logExtensions = [ '*.log' ]
 
@@ -48,11 +48,13 @@ class UploadSAMLogs( ModuleBase ):
     super( UploadSAMLogs, self )._resolveInputStep()
 
   def execute( self ):
-    '''
+    """
       Main method.
-    '''
+    """
     try:
       super( UploadSAMLogs, self ).execute( self.version, production_id = 'SAM', prod_job_id = '0000', step_number = '2' )
+
+      self._resolveInputVariables()
 
       self.log.verbose( 'WORKFLOW_COMMONS' )
       self.log.verbose( self.workflow_commons )
