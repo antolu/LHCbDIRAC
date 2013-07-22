@@ -108,6 +108,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         self.log.debug( threading.enumerate() )
         for th in threading.enumerate():
           self.log.debug( th.name )
+          self.log.debug( th.isDaemon() )
           self.log.debug( th._Thread__args )
           self.log.debug( th._Thread__kwargs )
           
@@ -141,6 +142,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         self.log.debug( threading.enumerate() )
         for th in threading.enumerate():
           self.log.debug( th.name )
+          self.log.debug( th.isDaemon() )
           self.log.debug( th._Thread__args )
           self.log.debug( th._Thread__kwargs )
     
