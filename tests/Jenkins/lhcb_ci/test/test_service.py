@@ -106,7 +106,13 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         self.log.debug( "%s %s" % ( system, service ) )
         self.log.debug( 'START %s' % threading.active_count() )
         self.log.debug( threading.enumerate() )
+        
+        currentThread = threading.current_thread()
+        
         for th in threading.enumerate():
+          
+          if th == currentThread:
+            continue
           self.log.debug( th.name )
           self.log.debug( th.isDaemon() )
           self.log.debug( th._Thread__args )
@@ -140,11 +146,19 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
           
         self.log.debug( 'END %s' % threading.active_count() )
         self.log.debug( threading.enumerate() )
+        
+        currentThread = threading.current_thread()
+        
         for th in threading.enumerate():
+          
+          if th == currentThread:
+            continue
+          
           self.log.debug( th.name )
           self.log.debug( th.isDaemon() )
           self.log.debug( th._Thread__args )
           self.log.debug( th._Thread__kwargs )
+          
     
 
 #...............................................................................

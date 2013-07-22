@@ -118,7 +118,14 @@ def serveAndPing( sReactor ):
   sleep( 2 )
   logger.debug( 'RUNNING %s' % threading.active_count() )
   logger.debug( threading.enumerate() )
+  
+  currentThread = threading.current_thread()
+  
   for th in threading.enumerate():
+    
+    if th == currentThread:
+      continue
+    
     logger.debug( th.isDaemon() )
     logger.debug( th.name )
     logger.debug( th._Thread__args )
