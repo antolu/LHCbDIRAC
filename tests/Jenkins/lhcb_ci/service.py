@@ -94,15 +94,7 @@ def initializeServiceReactor( system, service ):
 #  service = sReactor._ServiceReactor__services.keys()[ 0 ]
 #  url     = sReactor._ServiceReactor__services[ service ]._url
 #  
-#  return service, url
-#
-#def _clearSReactorService( sReactor, service ):
-#  
-#  # Stop while True
-#  sReactor._ServiceReactor__alive = False
-#  sReactor.closeListeningConnections()
-#  del sReactor._ServiceReactor__services[ service ]
-  
+#  return service, url 
 
 def serveAndPing( sReactor ):
   """ serveAndPing
@@ -156,16 +148,11 @@ def killThreads( threadsToBeAvoided = [] ):
     if th.isAlive():
       try:
         
-        logger.debug( th.ident )
-        logger.debug( threading._active )
-        
         th._Thread__stop()
-        
-        logger.debug( threading._active )        
-                 
+                
         del threading._active[ th.ident ]
       except:
-        logger.debug( 'Cannot kill thread %s' % th.name )  
+        logger.debug( 'Cannot kill thread %s : %s' % ( th.ident, th.name ) )  
   
 
 class ServiceThread( Thread ):

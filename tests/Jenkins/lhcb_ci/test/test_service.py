@@ -81,12 +81,12 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     # DataStore             : Can not connect to DB AccountingDB
     # TransformationManager : Can not connect to DB TransformationDB
     
-    _SPEEDUP = [ 'RequestProxy', 'Publisher', #'ResourceManagement', 'ResourceStatus', 
-                 'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity', 
-                 'LcgFileCatalogProxy', 'FileCatalog', 'StorageUsage', 'RAWIntegrity',
-                 'BundleDelivery', 'SystemAdministrator', 'Monitoring', 'SiteMap',
-                 'SystemLogging', 'SecurityLogging', 'Notification', 'Plotting',
-                 'Future'  ]
+#    _SPEEDUP = [ 'RequestProxy', 'Publisher', 'ResourceManagement', 'ResourceStatus', 
+#                 'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity', 
+#                 'LcgFileCatalogProxy', 'FileCatalog', 'StorageUsage', 'RAWIntegrity',
+#                 'BundleDelivery', 'SystemAdministrator', 'Monitoring', 'SiteMap',
+#                 'SystemLogging', 'SecurityLogging', 'Notification', 'Plotting',
+#                 'Future'  ]
     
     for system, services in self.swServices.iteritems():
       
@@ -100,25 +100,15 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
           self.log.exception( 'EXCEPTION: Skipped %s' % service )
           continue
 
-        if service in _SPEEDUP:
-          continue
+#        if service in _SPEEDUP:
+#          continue
 
         self.log.debug( "%s %s" % ( system, service ) )
-        self.log.debug( 'START %s' % threading.active_count() )
-        self.log.debug( threading.enumerate() )
         
-        currentThread = threading.current_thread()
-        
+        # This also includes the _limbo threads..
         threadsToBeAvoided = threading.enumerate() 
-        
-        for th in threading.enumerate():
-          
-          if th == currentThread:
-            continue
-          self.log.debug( th.name )
-          self.log.debug( th.isDaemon() )
-          self.log.debug( th.isAlive() )
-        
+        activeThreads      = threading.active_count()      
+              
         dbName = '%sDB' % service
         db = lhcb_ci.db.installDB( dbName )
         if not db[ 'OK' ]:
@@ -149,16 +139,10 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         
         lhcb_ci.service.killThreads( threadsToBeAvoided )
         
-        currentThread = threading.current_thread()
-        
-        for th in threading.enumerate():
-          
-          if th == currentThread:
-            continue
-          
-          self.log.debug( th.name )
-          self.log.debug( th.isDaemon() )
-          self.log.debug( th.isAlive() )       
+        currentActiveThreads = threading.active_count()
+       
+        # We make sure that there are no leftovers on the threading
+        self.assertEquals( activeThreads, currentActiveThreads ) 
     
 
 #...............................................................................
