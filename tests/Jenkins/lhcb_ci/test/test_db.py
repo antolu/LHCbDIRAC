@@ -30,8 +30,8 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     the InstallTools module.
     """
     
-    self.log.info( 'test_passwords' )
-    
+    self.logTestName( 'test_passwords' )
+        
     self.assertEquals( InstallTools.mysqlRootPwd,  self.rootPass )
     self.assertEquals( InstallTools.mysqlPassword, self.userPass )
     
@@ -48,7 +48,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     Tests that we can import the DIRAC DB objects pointing to an specific Database.
     """
   
-    self.log.info( 'test_databases_reachable' )
+    self.logTestName( 'test_databases_reachable' )
   
     for diracSystem, systemDBs in self.databases.iteritems():   
       
@@ -85,7 +85,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     Tests that we can install / drop directly databases from the MySQL server
     """
    
-    self.log.info( 'test_databases_install_drop' )
+    self.logTestName( 'test_databases_install_drop' )
 
     for systemDBs in self.databases.itervalues():   
     
@@ -104,7 +104,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     Tries to import the DB modules and create a class Object.
     """
     
-    self.log.info( 'test_import_db_modules' )    
+    self.logTestName( 'test_import_db_modules' )    
     
     _EXCEPTIONS = [ 'TransformationDB', 'RAWIntegrityDB', 'RequestDB' ]
    
@@ -139,7 +139,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     This test only applies to databases defined on Python.
     """
     
-    self.log.info( 'test_install_tables' )    
+    self.logTestName( 'test_install_tables' )    
     
     # Some DBs are a bit different ( to be ironed ), so for the time being are
     # skipped
@@ -159,9 +159,11 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         
         # Gets tables of the DB ( if sql schema provided, this if is positive )
         tables = lhcb_ci.db.getTables( dbName )
-        if tables:
+        self.assertDIRACEquals( tables[ 'OK' ], True, tables )
+        
+        if tables[ 'Value' ]:
           self.log.exception( 'Tables found for %s/%s' % ( diracSystem, dbName ) )
-          self.log.exception( tables )
+          self.log.exception( tables[ 'Value' ] )
           res = lhcb_ci.db.dropDB( dbName )
           self.assertDIRACEquals( res[ 'OK' ], True, res )
           continue

@@ -8,9 +8,19 @@
 
 
 import logging
+import warnings
+
+
+# Get rid of annoying MySQLdb warnings 
+with warnings.catch_warnings():
+  warnings.simplefilter( 'ignore', DeprecationWarning )
+  warnings.filterwarnings( 'ignore' , 'Unknown table.*' )
+  import MySQLdb
+
 
 logger = logging.getLogger( 'lhcb_ci' )
 logger.setLevel( level = logging.DEBUG )
+
 
 def _init_once():
   """

@@ -89,12 +89,6 @@ def initializeServiceReactor( system, service ):
     
   return res
 
-#def _getServiceUrl( sReactor ):
-#  
-#  service = sReactor._ServiceReactor__services.keys()[ 0 ]
-#  url     = sReactor._ServiceReactor__services[ service ]._url
-#  
-#  return service, url 
 
 def serveAndPing( sReactor ):
   """ serveAndPing
@@ -138,7 +132,12 @@ def serveAndPing( sReactor ):
     
   return actionResult 
 
+
 def killThreads( threadsToBeAvoided = [] ):
+  """ killThreads
+  
+  Kills leftover threads to prevent them from interacting with the next execution.
+  """
   
   for th in threading.enumerate():
     
@@ -156,6 +155,10 @@ def killThreads( threadsToBeAvoided = [] ):
   
 
 class ServiceThread( Thread ):
+  """ ServiceThread
+  
+  Runs on a separate thread a DIRAC service to allow querying it.
+  """
     
   def __init__( self, sReactor = None, *args, **kwargs ):
     super( ServiceThread, self ).__init__( *args, **kwargs )
