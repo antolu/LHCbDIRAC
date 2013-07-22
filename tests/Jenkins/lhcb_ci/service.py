@@ -158,14 +158,12 @@ def killThreads( threadsToBeAvoided = [] ):
         
         logger.debug( th.ident )
         logger.debug( threading._active )
-        logger.debug( threading._limbo )
         
         th._Thread__stop()
         
-        logger.debug( threading._active )
-        logger.debug( threading._limbo )         
+        logger.debug( threading._active )        
                  
-        del threading._limbo[ th.ident ]
+        del threading._active[ th.ident ]
       except:
         logger.debug( 'Cannot kill thread %s' % th.name )  
   
