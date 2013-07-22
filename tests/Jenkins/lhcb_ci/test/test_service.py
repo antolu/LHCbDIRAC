@@ -18,7 +18,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
   Tests performing operations related with the Services installation.
   """
 
-  def _services_install_drop( self ):
+  def test_services_install_drop( self ):
     """ test_services_install_drop
     
     Tests that we can install / drop directly services using the DIRAC tools. It
@@ -133,14 +133,11 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
           self.log.debug( 'Dropping DB %s for service' % dbName )
           res = lhcb_ci.db.dropDB( dbName )
           self.assertDIRACEquals( res[ 'OK' ], True, res )
-          
-        self.log.debug( 'END %s' % threading.active_count() )
-        self.log.debug( threading.enumerate() )
         
+        # Clean leftovers         
         lhcb_ci.service.killThreads( threadsToBeAvoided )
         
         currentActiveThreads = threading.active_count()
-       
         # We make sure that there are no leftovers on the threading
         self.assertEquals( activeThreads, currentActiveThreads ) 
     
