@@ -119,8 +119,6 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
           self.log.debug( th.isDaemon() )
           self.log.debug( th.isAlive() )
         
-        continue  
-
         dbName = '%sDB' % service
         db = lhcb_ci.db.installDB( dbName )
         if not db[ 'OK' ]:
