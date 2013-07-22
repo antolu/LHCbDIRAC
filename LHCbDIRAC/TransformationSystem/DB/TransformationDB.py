@@ -75,7 +75,7 @@ class TransformationDB( DIRACTransformationDB ):
                                        'EndRun'               : 'INT(11) NOT NULL DEFAULT 0',
                                        'RunNumbers'           : 'BLOB NOT NULL DEFAULT "All"',
                                        'TCK'                  : 'VARCHAR(512) NOT NULL DEFAULT "All"',
-                                       'Visible'              : 'VARCHAR(8) NOT NULL DEFAULT "All"'                                       
+                                       'Visible'              : 'VARCHAR(8) NOT NULL DEFAULT "All"'
                                       },
                        'Indexes'    : { 
                                        'SimulationConditions' : [ 'SimulationConditions' ],
