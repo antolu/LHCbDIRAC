@@ -170,13 +170,11 @@ def serveAndPing( sReactor ):
     
   return actionResult 
 
-def killThreads():
-
-  currentThread = threading.current_thread()
+def killThreads( threadsToBeAvoided = [] ):
   
   for th in threading.enumerate():
     
-    if th == currentThread:
+    if th in threadsToBeAvoided:
       continue
     
     if th.isAlive():

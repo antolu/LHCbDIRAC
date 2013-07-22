@@ -109,6 +109,8 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         
         currentThread = threading.current_thread()
         
+        threadsToBeAvoided = threading.enumerate() 
+        
         for th in threading.enumerate():
           
           if th == currentThread:
@@ -147,7 +149,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         self.log.debug( 'END %s' % threading.active_count() )
         self.log.debug( threading.enumerate() )
         
-        lhcb_ci.service.killThreads()
+        lhcb_ci.service.killThreads( threadsToBeAvoided )
         
         currentThread = threading.current_thread()
         
