@@ -116,20 +116,6 @@ def serveAndPing( sReactor ):
   server.start()
   
   sleep( 2 )
-#  logger.debug( 'RUNNING %s' % threading.active_count() )
-#  logger.debug( threading.enumerate() )
-#  
-#  currentThread = threading.current_thread()
-#  
-#  for th in threading.enumerate():
-#    
-#    if th == currentThread:
-#      continue
-#    
-#    logger.debug( th.isDaemon() )
-#    logger.debug( th.name )
-#    logger.debug( th._Thread__args )
-#    logger.debug( th._Thread__kwargs )
   
   serviceName = sReactor._ServiceReactor__services.keys()[ 0 ]
   service     = sReactor._ServiceReactor__services[ serviceName ]
@@ -149,16 +135,6 @@ def serveAndPing( sReactor ):
   sReactor._ServiceReactor__alive = False
   sReactor.closeListeningConnections()
   
-  # Stop all threads in gThreadScheduler.. dirty, I know.
-#  try:
-#    #logger.debug( service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__taskDict )
-#    service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__hood = []
-#    service._handler[ 'module' ].gThreadScheduler._ThreadScheduler__destroyExecutor()
-#    logger.debug( 'Destroy Executor in %s' % serviceName )    
-#
-#  except AttributeError:
-#    pass  
-#
 #  # And delete Service object from dictionary
 #  #FIXME: maybe we do not need to do this
 #  del sReactor._ServiceReactor__services[ serviceName ]
@@ -180,6 +156,7 @@ def killThreads( threadsToBeAvoided = [] ):
     if th.isAlive():
       try:
         th._Thread__stop()
+        del th
       except:
         logger.debug( 'Cannot kill thread %s' % th.name )  
   
