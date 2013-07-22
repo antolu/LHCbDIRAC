@@ -511,7 +511,6 @@ class ProductionRequest( object ):
     max_e = getEventsToProduce( CPUe, self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
     prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce (Gauss only)' )
 
-
     prod.setParameter( 'multicore', 'string', multicore, 'Flag for enabling gaudi parallel' )
     prod.prodGroup = self.prodGroup
     prod.priority = priority
@@ -547,6 +546,8 @@ class ProductionRequest( object ):
       prod.setParameter( 'FractionToProcess', 'string', str( self.fractionToProcess ), 'Fraction to process' )
     if self.minFilesToProcess:
       prod.setParameter( 'MinFilesToProcess', 'string', str( self.minFilesToProcess ), 'Min N of Files to process' )
+    if self.processingPass:
+      prod.setParameter( 'processingPass', 'string', self.processingPass, 'Processing pass of input for the request' )
 
     # Adding optional input BK query
     if bkQuery:

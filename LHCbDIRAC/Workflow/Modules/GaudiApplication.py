@@ -59,6 +59,7 @@ class GaudiApplication( ModuleBase ):
     self.TCK = ''
     self.multicoreJob = 'True'
     self.multicoreStep = 'N'
+    self.processingPass = ''
 
   #############################################################################
 
@@ -234,6 +235,9 @@ class GaudiApplication( ModuleBase ):
 
         if self.TCK:
           optionsDict['TCK'] = self.TCK
+
+        if self.processingPass:
+          optionsDict['ProcessingPass'] = self.processingPass
 
         prodConfFile = ProdConf( prodConfFileName )
         prodConfFile.putOptionsIn( optionsDict )

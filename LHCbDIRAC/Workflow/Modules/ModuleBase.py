@@ -2,8 +2,6 @@
     common utility methods
 """
 
-__RCSID__ = "$Id$"
-
 import os, copy
 
 from DIRAC                                                    import gLogger
@@ -262,6 +260,9 @@ class ModuleBase( object ):
 
     if self.workflow_commons.has_key( 'multicore' ):
       self.multicoreJob = self.workflow_commons['multicore']
+
+    if self.workflow_commons.has_key( 'processingPass' ):
+      self.processingPass = self.workflow_commons['processingPass']
 
   #############################################################################
 

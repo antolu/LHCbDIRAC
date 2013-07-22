@@ -33,7 +33,8 @@ class ProdConf:
                         'NOfEvents':'integer',
                         'RunNumber':'integer',
                         'FirstEventNumber':'integer',
-                        'TCK':'string'
+                        'TCK':'string',
+                        'ProcessingPass':'string'
                         }
 
     if not log:
