@@ -22,9 +22,13 @@ gRAWIntegrityDB  = False
 
 def initializeRAWIntegrityHandler( _serviceInfo ):
   """ handler initialisation """
+  
   global gRAWIntegrityDB
   gRAWIntegrityDB = RAWIntegrityDB()
-  return S_OK()
+  
+  # Create DB tables if needed
+  return gRAWIntegrityDB._checkTable()
+  
 
 class RAWIntegrityHandler( RequestHandler ):
   """

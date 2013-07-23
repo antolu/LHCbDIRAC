@@ -4,16 +4,83 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC  import gLogger, S_OK, S_ERROR
-from DIRAC.Core.Base.DB import DB
 import types
+
+from DIRAC              import gLogger, S_OK, S_ERROR
+from DIRAC.Core.Base.DB import DB
 
 gLogger.initialize( 'DMS', '/Databases/RAWIntegrityDB/Test' )
 
 class RAWIntegrityDB( DB ):
 
+
+  _tablesDict = {}
+  # Files table
+  _tablesDict[ 'Files' ] = { 'Fields' :
+                                       {
+                                        'LFN'            : 'VARCHAR(255) NOT NULL',
+                                        'PFN'            : 'VARCHAR(255) NOT NULL',
+                                        'Size'           : 'BIGINT NOT NULL',
+                                        'StorageElement' : 'VARCHAR(32) NOT NULL',
+                                        'GUID'           : 'VARCHAR(255) NOT NULL',
+                                        'FileChecksum'   : 'VARCHAR(255) NOT NULL',
+                                        'SubmitTime'     : 'DATETIME NOT NULL',
+                                        'CompleteTime'   : 'DATETIME',
+                                        'Status'         : 'VARCHAR(255) DEFAULT "Active"'
+                                       },
+                             'Indexes' : { 'Status' : [ 'Status' ] }        
+                           }
+  # LastMonitor table
+  _tablesDict[ 'LastMonitor' ] = { 'Fields' :
+                                             {
+                                              'LastMonitorTime' : 'DATETIME NOT NULL'
+                                             }
+                                 } 
+
+
   def __init__( self, systemInstance = 'Default', maxQueueSize = 10 ):
     DB.__init__( self, 'RAWIntegrityDB', 'DataManagement/RAWIntegrityDB', maxQueueSize )
+
+
+  def _checkTable( self ):
+    """ _checkTable
+     
+    Make sure the table is created
+    """
+    
+    return self.__createTables()
+
+  def __createTables( self ):
+    """ __createTables
+    
+    Writes the schema in the database. If a table is already in the schema, it is
+    skipped to avoid problems trying to create a table that already exists.
+    """
+
+    # Horrible SQL here !!
+    existingTables = self._query( "show tables" )
+    if not existingTables[ 'OK' ]:
+      return existingTables
+    existingTables = [ existingTable[0] for existingTable in existingTables[ 'Value' ] ]
+
+    # Makes a copy of the dictionary _tablesDict
+    tables = {}
+    tables.update( self._tablesDict )
+        
+    for existingTable in existingTables:
+      if existingTable in tables:
+        del tables[ existingTable ]  
+              
+    res = self._createTables( tables )
+    if not res[ 'OK' ]:
+      return res
+    
+    # Human readable S_OK message
+    if res[ 'Value' ] == 0:
+      res[ 'Value' ] = 'No tables created'
+    else:
+      res[ 'Value' ] = 'Tables created: %s' % ( ','.join( tables.keys() ) )
+    return res     
 
 
   def getActiveFiles( self ):
@@ -37,6 +104,7 @@ class RAWIntegrityDB( DB ):
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
 
+
   def setFileStatus( self, lfn, status ):
     """ Update the status of the file in the database
     """
@@ -53,6 +121,7 @@ class RAWIntegrityDB( DB ):
       errStr = "RAWIntegrityDB.setFileStatus: Exception while updating file status."
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
+
 
   def addFile( self, lfn, pfn, size, se, guid, checksum ):
     """ Insert file into the database
@@ -72,6 +141,7 @@ class RAWIntegrityDB( DB ):
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
 
+
   def setLastMonitorTime( self ):
     """ Set the last time the migration rate was calculated
     """
@@ -88,6 +158,7 @@ class RAWIntegrityDB( DB ):
       errStr = "RAWIntegrityDB.setLastMonitorTime: Exception while updating migration marker."
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
+
 
   def getLastMonitorTimeDiff( self ):
     """ Get the last time the migration rate was calculated
@@ -108,6 +179,7 @@ class RAWIntegrityDB( DB ):
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
 
+
   def getGlobalStatistics( self ):
     """ Get the count of the file statutes in the DB
     """
@@ -120,6 +192,7 @@ class RAWIntegrityDB( DB ):
       status, count = resValue
       statusDict[status] = count
     return S_OK( statusDict )
+
 
   def getFileSelections( self ):
     """ Get the unique values of the selection fields
@@ -138,6 +211,7 @@ class RAWIntegrityDB( DB ):
     for resValue in res['Value']:
       selDict['Status'].append( resValue[0] )
     return S_OK( selDict )
+
 
   def __buildCondition( self, condDict, older = None, newer = None, timeStamp = 'SubmitTime' ):
     """ build SQL condition statement from provided condDict and other extra conditions
@@ -182,6 +256,7 @@ class RAWIntegrityDB( DB ):
       condition = ' %s %s %s >= %s' % ( condition, conjunction, timeStamp, newer )
     return condition
 
+
   def selectFiles( self, selectDict, orderAttribute = 'LFN', newer = None, older = None, limit = None ):
     """ Select the files which match the selection criteria.
     """
@@ -206,4 +281,5 @@ class RAWIntegrityDB( DB ):
       return S_OK( [] )
     return S_OK( res['Value'] )
 
-
+#...............................................................................
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
