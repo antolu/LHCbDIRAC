@@ -40,7 +40,7 @@ from DIRAC                                                      import gLogger, 
 from DIRAC.Core.Base.AgentModule                                import AgentModule
 from DIRAC.Core.DISET.RPCClient                                 import RPCClient
 from DIRAC.Core.Base.DB                                         import DB
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations        import Operations
+#from DIRAC.ConfigurationSystem.Client.Helpers.Operations        import Operations
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from DIRAC.ResourceStatusSystem.Utilities                       import CSHelpers
 
@@ -201,7 +201,7 @@ class SpaceTokenOccupancyTest( TestBase ):
     
     # ['Endpoint', 'LastCheckTime', 'Guaranteed', 'Free', 'Token', 'Total']
     total        = itemDict[ 'Total' ]
-    guaranteed   = itemDict[ 'Guaranteed' ]
+    #guaranteed   = itemDict[ 'Guaranteed' ]
     free         = itemDict[ 'Free' ]
     availability = 100 if free > 4 else ( free * 100 / total if total != 0 else 0 )
     validity     = self.getTestOption( "validity" )
