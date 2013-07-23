@@ -37,22 +37,28 @@ class RAWIntegrityAgent( AgentModule ):
   :param DataLoggingClient dataLoggingClient: DataLoggingClient instance
   :param str gatewayUrl: URL to online RequestClient
   """
-  requestClient = None
-  onlineRequestMgr = None
-  replicaManager = None
-  rawIntegrityDB = None
-  dataLoggingClient = None
-  gatewayUrl = None
-
+  
+  def __init__( self, *args, **kwargs ):
+    """ c'tor
+    """
+    
+    AgentModule.__init__( self, *args, **kwargs )
+  
+    self.dataLoggingClient = None
+    self.rawIntegrityDB    = None
+    self.replicaManager    = None
+    self.onlineRequestMgr  = None
+    
+    
   def initialize( self ):
     """ agent initialisation """
 
-    self.replicaManager = ReplicaManager()
-    self.rawIntegrityDB = RAWIntegrityDB()
     self.dataLoggingClient = DataLoggingClient()
+    self.rawIntegrityDB    = RAWIntegrityDB()
+    self.replicaManager    = ReplicaManager()   
 
-    self.gatewayUrl = PathFinder.getServiceURL( 'RequestManagement/onlineGateway' )
-    self.onlineRequestMgr = RPCClient( self.gatewayUrl )
+    gatewayUrl = PathFinder.getServiceURL( 'RequestManagement/onlineGateway' )
+    self.onlineRequestMgr = RPCClient( gatewayUrl )
     
     gMonitor.registerActivity( "Iteration", "Agent Loops/min", 
                                "RAWIntegriryAgent", "Loops", gMonitor.OP_SUM )
