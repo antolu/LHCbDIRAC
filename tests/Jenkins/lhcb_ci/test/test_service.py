@@ -47,15 +47,23 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
   def test_run_services( self ):
     
     self.logTestName( 'test_run_services' )
-    
+
     _EXCEPTIONS = [ 'BookkeepingManager', 'RequestManager', 'StorageElement', 
                     'TransferDBMonitoring', 'StorageElementProxy', 'DataUsage',
                     'RunDBInterface', 'Gateway', 'SystemLoggingReport',
-                    'UserProfileManager', 'ProxyManager', 'JobMonitoring',
-                    'SandboxStore', 'Matcher', 'JobStateUpdate', 'JobManager',
-                    'WMSAdministrator', 'JobStateSync', 'OptimizationMind',
+                    'UserProfileManager', 'ProxyManager',
+                    'SandboxStore', 'OptimizationMind',
                     'MigrationMonitoring', 'StorageManager', 'ReportGenerator',
                     'DataStore', 'TransformationManager' ]
+    
+#    _EXCEPTIONS = [ 'BookkeepingManager', 'RequestManager', 'StorageElement', 
+#                    'TransferDBMonitoring', 'StorageElementProxy', 'DataUsage',
+#                    'RunDBInterface', 'Gateway', 'SystemLoggingReport',
+#                    'UserProfileManager', 'ProxyManager', 'JobMonitoring',
+#                    'SandboxStore', 'Matcher', 'JobStateUpdate', 'JobManager',
+#                    'WMSAdministrator', 'JobStateSync', 'OptimizationMind',
+#                    'MigrationMonitoring', 'StorageManager', 'ReportGenerator',
+#                    'DataStore', 'TransformationManager' ]
     # BookkeepingManager    : cx_Oracle
     # RequestManager        : RequestDB
     # StorageElement        : failed to get base path
@@ -114,9 +122,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         dbNames = self.databases.get( '%sSystem' % system, [] )
         if '%sDB' % service in dbNames:
           self.log.debug( 'Found database for %s' % service )
-          dbNames = [ '%sDB' % service ]
-        
-        
+          dbNames = [ '%sDB' % service ]        
         
         for dbName in dbNames:          
           db = lhcb_ci.db.installDB( dbName )
