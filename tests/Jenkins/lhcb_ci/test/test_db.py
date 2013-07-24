@@ -204,6 +204,32 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         del dbInstance    
         res = lhcb_ci.db.dropDB( dbName )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
+
+
+  #.............................................................................    
+  # Nosetests tags
+
+
+  # test_passwords
+  test_passwords.install = 1
+  test_passwords.db      = 1
+  
+  # test_databases_reachable
+  test_databases_reachable.install = 1
+  test_databases_reachable.db      = 1
+  
+  # test_databases_install_drop
+  test_databases_install_drop.install = 1
+  test_databases_install_drop.db      = 1
+  
+  # test_import_db_modules
+  test_import_db_modules.install = 1
+  test_import_db_modules.db      = 1
+  
+  # test_install_tables
+  test_install_tables.install = 1
+  test_install_tables.db      = 1
+
     
 #...............................................................................
 #EOF

@@ -42,7 +42,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         
         res = lhcb_ci.service.uninstallService( system, service )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )
-        
+                
 
   def test_run_services( self ):
     
@@ -154,6 +154,18 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         # We make sure that there are no leftovers on the threading
         self.assertEquals( activeThreads, currentActiveThreads )
     
+
+  #.............................................................................    
+  # Nosetests tags
+
+  # test_services_install_drop
+  test_services_install_drop.install = 1
+  test_services_install_drop.service = 1
+  
+  # test_run_services
+  test_run_services.install = 1
+  test_run_services.service = 1
+
 
 #...............................................................................
 #EOF
