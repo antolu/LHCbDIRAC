@@ -30,6 +30,8 @@ class Configure_Test( lhcb_ci.basecase.DB_TestCase ):
       
       for dbName in systemDBs:
   
+        continue
+  
         if dbName in _EXCEPTIONS:
           self.log.exception( 'EXCEPTION: skipping %s' % dbName )
           continue
