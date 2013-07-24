@@ -22,7 +22,7 @@ class Configure_Test( lhcb_ci.basecase.DB_TestCase ):
     
     self.logTestName( 'test_configure_db' )
   
-    _EXCEPTIONS = [ 'RequestDB' ]
+#    _EXCEPTIONS = [ 'RequestDB' ]
   
     for systemName, systemDBs in self.databases.iteritems():   
       
@@ -30,11 +30,9 @@ class Configure_Test( lhcb_ci.basecase.DB_TestCase ):
       
       for dbName in systemDBs:
   
-        continue
-  
-        if dbName in _EXCEPTIONS:
-          self.log.exception( 'EXCEPTION: skipping %s' % dbName )
-          continue
+#        if dbName in _EXCEPTIONS:
+#          self.log.exception( 'EXCEPTION: skipping %s' % dbName )
+#          continue
         
         res = lhcb_ci.db.configureDB( systemName, dbName )
         self.assertDIRACEquals( res[ 'OK' ], True, res ) 
