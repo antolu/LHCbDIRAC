@@ -48,6 +48,8 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
 
     self.logTestName( 'test_configure_service' )
 
+    _EXCEPTIONS = [ 'ProductionRequest' ]
+
     for systemName, services in self.swServices.iteritems():
       
       # Master Configuration is already on place.
@@ -56,6 +58,10 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
         continue 
       
       for serviceName in services:
+      
+        if serviceName in _EXCEPTIONS:
+          self.log.exception( 'EXCEPTION: skipped %s' % serviceName )
+          continue
       
         res = lhcb_ci.service.configureService( systemName, serviceName )
         self.assertDIRACEquals( res[ 'OK' ], True, res )         
