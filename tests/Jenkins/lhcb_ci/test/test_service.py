@@ -111,10 +111,12 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         
         # Tries to find on the same system a database to be installed. If it fails,
         # installs all databases on the system.      
-        dbNames = self.databases.get( system, [] )
+        dbNames = self.databases.get( '%sSystem' % system, [] )
         if '%sDB' % service in dbNames:
           self.log.debug( 'Found database for %s' % service )
           dbNames = [ '%sDB' % service ]
+        
+        
         
         for dbName in dbNames:          
           db = lhcb_ci.db.installDB( dbName )
