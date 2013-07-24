@@ -13,9 +13,11 @@ from threading import Thread
 from time      import sleep
 
 # DIRAC
-from DIRAC.Core.DISET.RPCClient      import RPCClient
-from DIRAC.Core.DISET.ServiceReactor import ServiceReactor
-from DIRAC.Core.Utilities            import InstallTools
+from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
+from DIRAC.Core.DISET.RPCClient                    import RPCClient
+from DIRAC.Core.DISET.ServiceReactor               import ServiceReactor
+from DIRAC.Core.Utilities                          import InstallTools
+
 
 # lhcb_ci
 from lhcb_ci            import logger
@@ -47,6 +49,18 @@ def getInstalledServices():
   res = InstallTools.getInstalledComponents()
   # Always return S_OK
   return res[ 'Value' ][ 'Services' ]
+
+
+def getServicePort( system, service ):
+  """ getServicePort
+  
+  Given a system and a service, returns its configured port.
+  """
+
+  serviceName = '%s/%s' % ( system.replace( 'System', '' ), service )
+
+  servConf = ServiceConfiguration( [ serviceName ] )
+  return servConf.getPort()
 
 
 def setupService( system, service ):
