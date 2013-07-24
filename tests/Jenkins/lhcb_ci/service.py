@@ -6,6 +6,7 @@
   
 """
 
+
 import threading
 
 # Python libraries
@@ -13,15 +14,15 @@ from threading import Thread
 from time      import sleep
 
 # DIRAC
+from DIRAC                                         import gConfig 
 from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
 from DIRAC.Core.DISET.RPCClient                    import RPCClient
 from DIRAC.Core.DISET.ServiceReactor               import ServiceReactor
 from DIRAC.Core.Utilities                          import InstallTools
 
-
 # lhcb_ci
 from lhcb_ci            import logger
-from lhcb_ci.extensions import getExtensions
+from lhcb_ci.extensions import getCSExtensions
 
 
 def getSoftwareServices():
@@ -32,7 +33,7 @@ def getSoftwareServices():
 
   logger.debug( 'getSoftwareServices' )
   
-  extensions = getExtensions()
+  extensions = getCSExtensions()
   res = InstallTools.getSoftwareComponents( extensions )
   # Always return S_OK
   return res[ 'Value' ][ 'Services' ]
@@ -63,6 +64,17 @@ def getServicePort( system, service ):
   return servConf.getPort()
 
 
+def configureService( systemName, serviceName ):
+  """ configureDB
+  
+  Configures systemName/serviceName in the CS
+  """
+  
+  logger.debug( 'Configuring Service %s/%s' % ( systemName, serviceName ) )
+  return InstallTools.addDefaultOptionsToCS( gConfig, 'service', systemName, 
+                                             serviceName, getCSExtensions() )
+
+
 def setupService( system, service ):
   """ setupService
   
@@ -71,7 +83,7 @@ def setupService( system, service ):
 
   logger.debug( 'setupService' )
   
-  extensions = getExtensions()
+  extensions = getCSExtensions()
   
   return InstallTools.setupComponent( 'service', system, service, extensions )
 

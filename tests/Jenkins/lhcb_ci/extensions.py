@@ -6,16 +6,8 @@
 
 """
 
-from DIRAC import gConfig
 
-
-def getExtensions():
-  """ getExtensions
-  
-  Gets DIRAC extensions from configuration
-  """
-  
-  return gConfig.getValue( '/DIRAC/Extensions', [] )
+from DIRAC.ConfigurationSystem.Client.Helpers import getCSExtensions
 
 
 def import_( base_mod ):
@@ -24,7 +16,7 @@ def import_( base_mod ):
   Imports taking into account the extensions.  
   """
   
-  extensions = getExtensions()
+  extensions = getCSExtensions()
   for ext in extensions:  
     try:
       return  __import__( ext + base_mod, globals(), locals(), ['*'] )

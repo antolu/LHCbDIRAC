@@ -18,7 +18,9 @@ from DIRAC.Core.Utilities import InstallTools
 # lhcb_ci
 from lhcb_ci import logger
 
+
 workspace = os.getenv( 'WORKSPACE' )
+
 
 def getDatabases():
   """ getDatabases

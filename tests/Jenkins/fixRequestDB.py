@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# OBSOLETE !
+
 import sys
 
 from DIRAC.Core.Utilities import InstallTools
