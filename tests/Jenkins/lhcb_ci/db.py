@@ -61,6 +61,16 @@ def getUserPass():
   return __readPass( 'userMySQL' )
 
 
+def configureDB( systemName, dbName ):
+  """ configureDB
+  
+  Configures dbName in the CS
+  """
+  
+  logger.debug( 'Configuring DB %s/%s' % ( systemName, dbName ) )
+  return InstallTools.addDatabaseOptionsToCS( None, systemName, dbName )
+
+
 def installDB( dbName ):
   """ installDB
   
