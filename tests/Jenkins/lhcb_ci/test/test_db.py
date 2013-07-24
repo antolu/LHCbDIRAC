@@ -12,10 +12,6 @@ import lhcb_ci.db
 import lhcb_ci.extensions
 
 
-from DIRAC.Core.Base.DB   import DB
-from DIRAC.Core.Utilities import InstallTools
-
-
 class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
   """ Installation_Test
   
@@ -32,14 +28,14 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     
     self.logTestName( 'test_passwords' )
         
-    self.assertEquals( InstallTools.mysqlRootPwd,  self.rootPass )
-    self.assertEquals( InstallTools.mysqlPassword, self.userPass )
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )
     
-    res = InstallTools.getMySQLPasswords()
+    res = lhcb_ci.db.InstallTools.getMySQLPasswords()
     self.assertEquals( res[ 'OK' ], True )
     
-    self.assertEquals( InstallTools.mysqlRootPwd,  self.rootPass )
-    self.assertEquals( InstallTools.mysqlPassword, self.userPass )    
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )    
   
   
   def test_databases_reachable( self ):
@@ -63,7 +59,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         # Tries to connect to the DB using the DB DIRAC module
         try:
           self.log.debug( 'Reaching %s/%s' % ( diracSystem, dbName ) )
-          db = DB( dbName, '%s/%s' % ( diracSystem, dbName ), 10 )
+          db = lhcb_ci.db.DB( dbName, '%s/%s' % ( diracSystem, dbName ), 10 )
         except RuntimeError, msg:
           self.log.error( 'Error importing %s/%s' % ( diracSystem, dbName ) )
           self.log.error( msg )
@@ -207,7 +203,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
 
 
   #.............................................................................    
-  # Nosetests tags
+  # Nosetests attrs
 
 
   # test_passwords
