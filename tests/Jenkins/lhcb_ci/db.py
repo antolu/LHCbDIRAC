@@ -11,6 +11,7 @@ import MySQLdb
 import os
 
 # DIRAC
+from DIRAC                import gConfig
 from DIRAC.Core.Utilities import InstallTools
 
 # lhcb_ci
@@ -68,7 +69,7 @@ def configureDB( systemName, dbName ):
   """
   
   logger.debug( 'Configuring DB %s/%s' % ( systemName, dbName ) )
-  return InstallTools.addDatabaseOptionsToCS( None, systemName, dbName )
+  return InstallTools.addDatabaseOptionsToCS( gConfig, systemName, dbName )
 
 
 def installDB( dbName ):
