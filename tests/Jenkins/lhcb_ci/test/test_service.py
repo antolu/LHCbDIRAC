@@ -108,12 +108,18 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         # This also includes the _limbo threads..
         threadsToBeAvoided = threading.enumerate() 
         activeThreads      = threading.active_count()      
-              
-        dbName = '%sDB' % service
-        db = lhcb_ci.db.installDB( dbName )
-        if not db[ 'OK' ]:
-          self.log.debug( 'No DB for service %s' % service )
-
+        
+        # Tries to find on the same system a database to be installed. If it fails,
+        # installs all databases on the system.      
+        dbNames = self.databases.get( system, [] )
+        if '%sDB' % service in dbNames:
+          self.log.debug( 'Found database for %s' % service )
+          dbNames = [ '%sDB' % service ]
+        
+        for dbName in dbNames:          
+          db = lhcb_ci.db.installDB( dbName )
+          self.assertDIRACEquals( db[ 'OK' ], True, db )
+          
         res = lhcb_ci.service.initializeServiceReactor( system, service )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         # Extract the initialized ServiceReactor
@@ -128,18 +134,17 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         self.assertEquals( res[ 'Value' ][ 'service uptime' ] < 10, True )
                 
         del sReactor
-                  
-        if db[ 'OK' ]:
-          self.log.debug( 'Dropping DB %s for service' % dbName )
-          res = lhcb_ci.db.dropDB( dbName )
-          self.assertDIRACEquals( res[ 'OK' ], True, res )
+
+        for dbName in dbNames:          
+          db = lhcb_ci.db.dropDB( dbName )
+          self.assertDIRACEquals( db[ 'OK' ], True, db )
         
         # Clean leftovers         
         lhcb_ci.service.killThreads( threadsToBeAvoided )
         
         currentActiveThreads = threading.active_count()
         # We make sure that there are no leftovers on the threading
-        self.assertEquals( activeThreads, currentActiveThreads ) 
+        self.assertEquals( activeThreads, currentActiveThreads )
     
 
 #...............................................................................
