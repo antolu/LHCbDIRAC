@@ -48,9 +48,10 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
 
     self.logTestName( 'test_configure_service' )
 
-    _EXCEPTIONS = [ 'ProductionRequest', 'RunDBInterface' ]
+    _EXCEPTIONS = [ 'ProductionRequest', 'RunDBInterface', 'Future' ]
     # ProductionRequest : Can not find Services/ProductionRequest in template
     # RunDBInterface    : Can not find Services/RunDBInterface in template
+    # Future            : Can not find Services/Future in template
 
     for systemName, services in self.swServices.iteritems():
       
