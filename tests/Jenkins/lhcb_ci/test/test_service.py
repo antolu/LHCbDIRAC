@@ -44,6 +44,26 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )
                 
 
+  def test_check_ports( self ):
+    """ test_check_ports
+    
+    Tests that the services configuration does not overlap, namely ports and
+    hosts.
+    """
+    
+    self.logTestName( 'test_check_ports' )
+    
+    ports = []
+    
+    for system, services in self.swServices.iteritems():
+      
+      for service in services:
+      
+        port = lhcb_ci.service.getServicePort( system, service )
+        self.assertTrue( port not in ports, '%s/%s:%s already taken' % ( system, service, port ) )
+        ports.append( port )
+        
+
   def test_run_services( self ):
     
     self.logTestName( 'test_run_services' )
@@ -156,7 +176,8 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     
 
   #.............................................................................    
-  # Nosetests tags
+  # Nosetests attrs
+
 
   # test_services_install_drop
   test_services_install_drop.install = 1
@@ -165,7 +186,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
   # test_run_services
   test_run_services.install = 1
   test_run_services.service = 1
-
+  
 
 #...............................................................................
 #EOF

@@ -12,6 +12,7 @@ import os
 
 # DIRAC
 from DIRAC                import gConfig
+from DIRAC.Core.Base.DB   import DB 
 from DIRAC.Core.Utilities import InstallTools
 
 # lhcb_ci
@@ -98,6 +99,14 @@ def dropDB( dbName ):
   
   return _execute( query )
 
+
+def getDB( dbname, fullname, maxQueueSize ):
+  """ getDB
+  
+  Returns a database object.
+  """
+
+  return DB( dbname, fullname, maxQueueSize )
 
 def getInstalledDBs():
   """ getInstalledDBs

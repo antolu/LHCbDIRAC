@@ -59,7 +59,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
         # Tries to connect to the DB using the DB DIRAC module
         try:
           self.log.debug( 'Reaching %s/%s' % ( diracSystem, dbName ) )
-          db = lhcb_ci.db.DB( dbName, '%s/%s' % ( diracSystem, dbName ), 10 )
+          db = lhcb_ci.db.getDB( dbName, '%s/%s' % ( diracSystem, dbName ), 10 )
         except RuntimeError, msg:
           self.log.error( 'Error importing %s/%s' % ( diracSystem, dbName ) )
           self.log.error( msg )
