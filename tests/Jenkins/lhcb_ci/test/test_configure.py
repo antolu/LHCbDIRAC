@@ -7,6 +7,9 @@
 """
 
 
+import os
+
+import lhcb_ci
 import lhcb_ci.basecase 
 import lhcb_ci.db
 import lhcb_ci.service
@@ -107,6 +110,15 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
         port = lhcb_ci.service.getServicePort( system, service )
         self.assertTrue( port not in ports, '%s/%s:%s already taken by %s' % ( system, service, port, ports[ port ] ) )
         ports[ port ] = '%s/%s' % ( system, service )
+
+    # Sort port numbers
+    sortedPorts = ports.keys()
+    sortedPorts.sort()
+
+    # Write ports report
+    with open( os.path.join( lhcb_ci.workspace, 'services' ), 'w' ) as servFile:
+      for port in sortedPorts:
+        servFile.write( '%s : %s' % ( port, ports[ port ] ) )  
 
 
   ##############################################################################

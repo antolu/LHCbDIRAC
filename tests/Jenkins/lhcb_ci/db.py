@@ -6,6 +6,7 @@
   
 """
 
+
 import collections
 import MySQLdb
 import os
@@ -16,10 +17,7 @@ from DIRAC.Core.Base.DB   import DB
 from DIRAC.Core.Utilities import InstallTools
 
 # lhcb_ci
-from lhcb_ci import logger
-
-
-workspace = os.getenv( 'WORKSPACE' )
+from lhcb_ci import logger, workspace
 
 
 def getDatabases():

@@ -8,6 +8,7 @@
 
 
 import logging
+import os
 import warnings
 
 
@@ -20,6 +21,8 @@ with warnings.catch_warnings():
 
 logger = logging.getLogger( 'lhcb_ci' )
 logger.setLevel( level = logging.DEBUG )
+
+workspace = os.getenv( 'WORKSPACE' )
 
 
 def _init_once():
