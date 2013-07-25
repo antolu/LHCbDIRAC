@@ -108,7 +108,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
       for service in services:
       
         port = lhcb_ci.service.getServicePort( system, service )
-        self.assertTrue( port not in ports, '%s/%s:%s already taken by %s' % ( system, service, port, ports[ port ] ) )
+        self.assertTrue( port in ports, '%s/%s:%s already taken by %s' % ( system, service, port, ports[ port ] ) )
         ports[ port ] = '%s/%s' % ( system, service )
 
     # Sort port numbers
@@ -116,7 +116,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     sortedPorts.sort()
 
     # Write ports report
-    with open( os.path.join( lhcb_ci.workspace, 'services' ), 'w' ) as servFile:
+    with open( os.path.join( lhcb_ci.workspace, 'lhcb_ci-services.txt' ), 'w' ) as servFile:
       for port in sortedPorts:
         servFile.write( '%s : %s' % ( port, ports[ port ] ) )  
 
