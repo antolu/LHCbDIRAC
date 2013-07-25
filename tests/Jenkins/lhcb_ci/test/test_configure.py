@@ -73,11 +73,6 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
 
     self.logTestName( 'test_configure_service' )
 
-    _EXCEPTIONS = [ 'ProductionRequest', 'RunDBInterface', 'Future' ]
-    # ProductionRequest : Can not find Services/ProductionRequest in template
-    # RunDBInterface    : Can not find Services/RunDBInterface in template
-    # Future            : Can not find Services/Future in template
-
     for systemName, services in self.swServices.iteritems():
       
       # Master Configuration is already on place.
@@ -87,8 +82,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
       
       for serviceName in services:
       
-        if serviceName in _EXCEPTIONS:
-          self.log.exception( 'EXCEPTION: skipped %s' % serviceName )
+        if self.isException( serviceName ):
           continue
       
         res = lhcb_ci.service.configureService( systemName, serviceName )
@@ -104,8 +98,6 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     
     self.logTestName( 'test_configured_service_ports' )
     
-#    _EXCEPTIONS = [ 'LcgFileCatalogProxy', 'RunDBInterface', 'Future', 'MigrationMonitoring', 'ProductionRequest' ]
-    
     ports = {}
     
     for system, services in self.swServices.iteritems():
@@ -113,8 +105,6 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
       for service in services:
       
         if self.isException( service ):
-#        if service in _EXCEPTIONS:
-#          self.log.exception( 'EXCEPTION: skipped %s' % service )
           continue
       
         serviceName = '%s/%s' % ( system, service )
@@ -145,10 +135,6 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
 
     self.logTestName( 'test_configured_service_authorization' )
     
-#    _EXCEPTIONS = [ 'BookkeepingManager', 'Publisher', 'ProductionRequest', 'LcgFileCatalogProxy',
-#                    'DataUsage', 'StorageUsage', 'DataIntegrity', 'RunDBInterface', 'RAWIntegrity',
-#                    'Gateway', 'JobStateSync', 'Future', 'OptimizationMind' ]
-    
     securityProperties = set( lhcb_ci.service.getSecurityProperties() )
     
     authRules = {}
@@ -157,9 +143,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
       
       for service in services:
         
-        #if service in _EXCEPTIONS:
         if self.isException( service ):
-          #self.log.exception( 'EXCEPTION: skipped %s' % service )
           continue
         
         serviceName = '%s/%s' % ( system, service )
@@ -193,7 +177,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
           elif secProp & set( [ 'all', 'any' ] ):
             self.log.warning( '%s.%s has all/any no SecurityProperty' % ( serviceName, method ) )
 
-          authRules[ serviceName ][ method ] = secProp
+          authRules[ serviceName ][ method ] = ', '.join([ sp for sp in secProp ])
             
            
     # Write authorization report

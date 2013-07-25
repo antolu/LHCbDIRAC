@@ -35,7 +35,15 @@ test_configure = {
     'RunDBInterface', 
     'Future', 
     'MigrationMonitoring', 
-    'ProductionRequest' ]                  
+    'ProductionRequest' ],
+                
+  'test_configure_service' : [
+    # ProductionRequest : Can not find Services/ProductionRequest in template                          
+    'ProductionRequest', 
+    # RunDBInterface : Can not find Services/RunDBInterface in template
+    'RunDBInterface', 
+    # Future : Can not find Services/Future in template
+    'Future' ]                                    
                   
                   }
 
