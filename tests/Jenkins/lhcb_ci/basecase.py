@@ -56,10 +56,7 @@ class Base_TestCase( unittest.TestCase ):
     self.log.debug( self.__class__.__name__ )  
     self.log.debug( '-' * 80 )
 
-    self.log.error( dir( self ) )
-    self.log.error( self.__module__ )
-    
-    self.exceptions = getattr( lhcb_ci.exceptions, self.__class__.__name__, {} )
+    self.exceptions = getattr( lhcb_ci.exceptions, self.__module__, {} )
 
 
   def assertDIRACEquals( self, first, second, res ):
@@ -72,17 +69,13 @@ class Base_TestCase( unittest.TestCase ):
     
     testMethod = inspect.stack()[1][3]
     
-    self.log.error( testMethod )
     try:
       if value in self.exceptions[ testMethod ]:
         self.log.exception( 'EXCEPTION: skipped %s' % value )
         return True
     except KeyError,e :
-      self.log.error( e )
       pass
-    
-    self.log.error( self.exceptions[ testMethod ] )
-    
+        
     return False    
     
     
