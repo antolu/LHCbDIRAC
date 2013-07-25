@@ -33,8 +33,6 @@ def _init_once():
   is where we will log debug information.
   """
 
-  import os
-
   logFormat = '[%(asctime)s]%(levelname)-8s: %(message)s'
 
   ch = logging.StreamHandler()
