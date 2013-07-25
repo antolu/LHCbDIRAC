@@ -69,12 +69,16 @@ class Base_TestCase( unittest.TestCase ):
     
     testMethod = inspect.stack()[1][3]
     
+    self.log.error( testMethod )
     try:
       if value in self.exceptions[ testMethod ]:
         self.log.exception( 'EXCEPTION: skipped %s' % value )
         return True
-    except KeyError:
+    except KeyError,e :
+      self.log.error( e )
       pass
+    
+    self.log.error( self.exceptions[ testMethod ] )
     
     return False    
     
