@@ -73,7 +73,7 @@ class Base_TestCase( unittest.TestCase ):
       if value in self.exceptions[ testMethod ]:
         self.log.exception( 'EXCEPTION: skipped %s' % value )
         return True
-    except KeyError,e :
+    except KeyError:
       pass
         
     return False    

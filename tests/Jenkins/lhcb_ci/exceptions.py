@@ -28,7 +28,8 @@ test_configure = {
     'JobStateSync', 
     'Future', 
     'OptimizationMind',
-    'Server'
+    'Server',
+    'TransformationManager'
     
                                             ],
 
