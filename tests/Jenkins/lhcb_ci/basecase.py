@@ -21,7 +21,8 @@ from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfigurati
 
 class Base_TestCase( unittest.TestCase ):  
 
-  log = lhcb_ci.logger 
+  log        = lhcb_ci.logger
+  exceptions = None
   
   def logTestName( self, testName ):
     
@@ -55,15 +56,27 @@ class Base_TestCase( unittest.TestCase ):
     self.log.debug( self.__class__.__name__ )  
     self.log.debug( '-' * 80 )
 
+    self.exceptions = getattr( lhcb_ci.exceptions, self.__class__.__name__, {} )
+
 
   def assertDIRACEquals( self, first, second, res ):
     
     _message = ( not res[ 'OK' ] and res[ 'Message' ] ) or ''   
     self.assertEquals( first, second, _message )
     
+    
   def isException( self, value ):
     
-    self.log.exception( inspect.stack() )     
+    testMethod = inspect.stack()[1][3]
+    
+    try:
+      if value in self.exceptions[ testMethod ]:
+        self.log.exception( 'EXCEPTION: skipped %s' % value )
+        return True
+    except KeyError:
+      pass
+    
+    return False    
     
     
 class DB_TestCase( Base_TestCase ):

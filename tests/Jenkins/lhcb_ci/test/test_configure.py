@@ -142,13 +142,11 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     Tests that the services default configuration sets a minimum security level.   
     """
 
-    self.isException( 1 )
-
     self.logTestName( 'test_configured_service_authorization' )
     
-    _EXCEPTIONS = [ 'BookkeepingManager', 'Publisher', 'ProductionRequest', 'LcgFileCatalogProxy',
-                    'DataUsage', 'StorageUsage', 'DataIntegrity', 'RunDBInterface', 'RAWIntegrity',
-                    'Gateway', 'JobStateSync', 'Future', 'OptimizationMind' ]
+#    _EXCEPTIONS = [ 'BookkeepingManager', 'Publisher', 'ProductionRequest', 'LcgFileCatalogProxy',
+#                    'DataUsage', 'StorageUsage', 'DataIntegrity', 'RunDBInterface', 'RAWIntegrity',
+#                    'Gateway', 'JobStateSync', 'Future', 'OptimizationMind' ]
     
     securityProperties = set( lhcb_ci.service.getSecurityProperties() )
     
@@ -158,8 +156,9 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
       
       for service in services:
         
-        if service in _EXCEPTIONS:
-          self.log.exception( 'EXCEPTION: skipped %s' % service )
+        #if service in _EXCEPTIONS:
+        if self.isException( service ):
+          #self.log.exception( 'EXCEPTION: skipped %s' % service )
           continue
         
         serviceName = '%s/%s' % ( system, service )
