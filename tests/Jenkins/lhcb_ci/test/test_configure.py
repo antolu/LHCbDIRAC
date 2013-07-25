@@ -185,8 +185,8 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
             self.assertFalse( 'all' in secProp, 'Default : All authorization rule is FORBIDDEN %s' % serviceName )
             self.assertFalse( 'any' in secProp, 'Default : Any authorization rule is FORBIDDEN %s' % serviceName )
           
-          if not secProp & set( [ 'all', 'any', 'authenticated' ] ):
-            self.assertFalse( secProp & securityProperties, '%s is an invalid SecProp %s' % ( secProp, serviceName ) )
+          if not ( secProp & set( [ 'all', 'any', 'authenticated' ] ) ):
+            self.assertTrue( secProp & securityProperties, '%s is an invalid SecProp %s' % ( secProp, serviceName ) )
           elif secProp & set( [ 'all', 'any' ] ):
             self.log.warning( '%s.%s has all/any no SecurityProperty' % ( serviceName, method ) )
 
