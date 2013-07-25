@@ -144,6 +144,8 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
 
     self.logTestName( 'test_configured_service_authorization' )
     
+    _EXCEPTIONS = [ 'BookkeepingManager' ]
+    
     securityProperties = lhcb_ci.service.getSecurityProperties()
     
     authRules = {}
@@ -151,6 +153,9 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     for system, services in self.swServices.iteritems():
       
       for service in services:
+        
+        if service in _EXCEPTIONS:
+          self.log.exception( 'EXCEPTION: skipped %s' % service )
         
         serviceName = '%s/%s' % ( system, service )
         
@@ -175,7 +180,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
           
           self.assertNotEqual( secProp, 'all', 'All authorization rule is FORBIDDEN' )
           self.assertNotEqual( secProp, 'any', 'Any authorization rule is FORBIDDEN' )
-          if secProp not in [ 'all', 'any', 'authenticated' ]:
+          if secProp != 'authenticated':
             self.assertEquals( secProp in securityProperties, True, '%s is an invalid SecProp' % secProp )
 
           authRules[ ( system,service ) ][ method ] = secProp
