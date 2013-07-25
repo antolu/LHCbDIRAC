@@ -21,7 +21,10 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
   This class contains dirty & sticky tests. The configuration steps have been
   transformed into simple unittests, which are run here. Dirty & sticky because
   the tests will alter the CS structure, adding the necessary configuration 
-  parameters to be able to run the rest of the tests.
+  parameters to be able to run the rest of the tests. 
+  
+  Disclaimer: do not change the name of the tests, as some of them need to
+  run in order.
   
   """
   
@@ -101,11 +104,17 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     
     self.logTestName( 'test_configured_service_ports' )
     
+    _EXCEPTIONS = [ 'LcgFileCatalogProxy' ]
+    
     ports = {}
     
     for system, services in self.swServices.iteritems():
       
       for service in services:
+      
+        if service in _EXCEPTIONS:
+          self.log.exception( 'EXCEPTION: skipped %s' % service )
+          continue
       
         serviceName = '%s/%s' % ( system, service )
       
