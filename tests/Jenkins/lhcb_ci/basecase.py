@@ -56,6 +56,9 @@ class Base_TestCase( unittest.TestCase ):
     self.log.debug( self.__class__.__name__ )  
     self.log.debug( '-' * 80 )
 
+    self.log.error( dir( self ) )
+    self.log.error( self.__module__ )
+    
     self.exceptions = getattr( lhcb_ci.exceptions, self.__class__.__name__, {} )
 
 
