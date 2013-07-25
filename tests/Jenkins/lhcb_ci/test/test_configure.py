@@ -152,7 +152,11 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
       
       for service in services:
         
-        authRules[ ( system,service ) ] = {}
+        serviceName = '%s/%s' % ( system, service )
+        
+        self.log.debug( '%s authorization rules' % serviceName )
+        
+        authRules[ serviceName ] = {}
         
         res = lhcb_ci.service.getServiceAuthorization( system, service )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
@@ -180,7 +184,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     # Write authorization report
     with open( os.path.join( lhcb_ci.workspace, 'lhcb_ci-service-authorization.txt' ), 'w' ) as servFile:
       for servName, authRule in authRules.iteritems():
-        servFile.write( '%s/%s\n' % servName )
+        servFile.write( '%s\n' % servName )
         for method, secProp in authRule.iteritems():
           servFile.write( '  %s : %s\n' % ( secProp.ljust( 30 ), method ) )        
     
