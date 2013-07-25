@@ -177,12 +177,17 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
             continue
           
           # lower case, just in case
+          method  = method.lower()
           secProp = secProp.lower()
           
-          self.assertNotEqual( secProp, 'all', 'All authorization rule is FORBIDDEN %s' % serviceName )
-          self.assertNotEqual( secProp, 'any', 'Any authorization rule is FORBIDDEN %s' % serviceName )
-          if secProp != 'authenticated':
+          if method == 'default':
+            self.assertNotEqual( secProp, 'all', 'Default : All authorization rule is FORBIDDEN %s' % serviceName )
+            self.assertNotEqual( secProp, 'any', 'Default : Any authorization rule is FORBIDDEN %s' % serviceName )
+          
+          if secProp not in [ 'all', 'any', 'authenticated' ]:
             self.assertEquals( secProp in securityProperties, True, '%s is an invalid SecProp %s' % ( secProp, serviceName ) )
+          elif secProp in [ 'all', 'any' ]:
+            self.log.warning( '%s.%s has all/any no SecurityProperty' % ( serviceName, method ) )
 
           authRules[ serviceName ][ method ] = secProp
             
