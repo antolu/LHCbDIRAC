@@ -147,7 +147,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     _EXCEPTIONS = [ 'BookkeepingManager', 'Publisher', 'ProductionRequest', 'LcgFileCatalogProxy',
                     'DataUsage', 'StorageUsage', 'DataIntegrity', 'RunDBInterface', 'RAWIntegrity' ]
     
-    securityProperties = lhcb_ci.service.getSecurityProperties()
+    securityProperties = set( lhcb_ci.service.getSecurityProperties() )
     
     authRules = {}
     
@@ -179,15 +179,15 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
           
           # lower case, just in case
           method  = method.lower()
-          secProp = secProp.lower()
+          secProp = set( secProp.lower().replace( ' ','' ).split( ',' ) )
           
           if method == 'default':
-            self.assertNotEqual( secProp, 'all', 'Default : All authorization rule is FORBIDDEN %s' % serviceName )
-            self.assertNotEqual( secProp, 'any', 'Default : Any authorization rule is FORBIDDEN %s' % serviceName )
+            self.assertFalse( 'all' in secProp, 'Default : All authorization rule is FORBIDDEN %s' % serviceName )
+            self.assertFalse( 'any' in secProp, 'Default : Any authorization rule is FORBIDDEN %s' % serviceName )
           
-          if secProp not in [ 'all', 'any', 'authenticated' ]:
-            self.assertEquals( secProp in securityProperties, True, '%s is an invalid SecProp %s' % ( secProp, serviceName ) )
-          elif secProp in [ 'all', 'any' ]:
+          if not secProp & set( [ 'all', 'any', 'authenticated' ] ):
+            self.assertFalse( secProp & securityProperties, '%s is an invalid SecProp %s' % ( secProp, serviceName ) )
+          elif secProp & set( [ 'all', 'any' ] ):
             self.log.warning( '%s.%s has all/any no SecurityProperty' % ( serviceName, method ) )
 
           authRules[ serviceName ][ method ] = secProp
