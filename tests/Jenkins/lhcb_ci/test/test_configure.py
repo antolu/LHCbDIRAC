@@ -145,7 +145,8 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     self.logTestName( 'test_configured_service_authorization' )
     
     _EXCEPTIONS = [ 'BookkeepingManager', 'Publisher', 'ProductionRequest', 'LcgFileCatalogProxy',
-                    'DataUsage', 'StorageUsage', 'DataIntegrity', 'RunDBInterface', 'RAWIntegrity' ]
+                    'DataUsage', 'StorageUsage', 'DataIntegrity', 'RunDBInterface', 'RAWIntegrity',
+                    'Gateway' ]
     
     securityProperties = set( lhcb_ci.service.getSecurityProperties() )
     
