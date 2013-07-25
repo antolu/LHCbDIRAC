@@ -15,9 +15,11 @@ from time      import sleep
 
 # DIRAC
 from DIRAC                                         import gConfig 
+from DIRAC.ConfigurationSystem.Client              import PathFinder
 from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
 from DIRAC.Core.DISET.RPCClient                    import RPCClient
 from DIRAC.Core.DISET.ServiceReactor               import ServiceReactor
+from DIRAC.Core.Security                           import Properties
 from DIRAC.Core.Utilities                          import InstallTools
 
 # lhcb_ci
@@ -69,6 +71,18 @@ def getServicePort( system, service ):
   return servConf.getPort()
 
 
+def getServiceAuthorization( system, service ):
+  """ getServiceAuthorization
+  
+  Given a system and a service, returns its configured Authorization rules.
+  """
+
+  serviceName = '%s/%s' % ( system.replace( 'System', '' ), service )
+  servicePath = PathFinder.getServiceSection( serviceName )
+
+  return gConfig.getOptionsDict( '%s/Authorization' % servicePath )
+
+
 def configureService( systemName, serviceName ):
   """ configureDB
   
@@ -78,6 +92,23 @@ def configureService( systemName, serviceName ):
   logger.debug( 'Configuring Service %s/%s' % ( systemName, serviceName ) )
   return InstallTools.addDefaultOptionsToCS( gConfig, 'service', systemName, 
                                              serviceName, getCSExtensions() )
+
+
+def getSecurityProperties():
+  """ getProperties
+
+  Gets all security properties.  
+  """
+
+  properties = []
+
+  for propName in dir( Properties ):
+    if propName.startswith( '__' ):
+      continue
+    
+    properties.append( getattr( Properties, propName ).lower() )
+  
+  return properties          
 
 
 def setupService( system, service ):

@@ -44,7 +44,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     self.assertEquals( res[ 'OK' ], True )
     
     self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
-    self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )  
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )       
   
   
   def test_configure_db( self ):
@@ -131,14 +131,63 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     sortedPorts.sort()
 
     # Write ports report
-    with open( os.path.join( lhcb_ci.workspace, 'lhcb_ci-services.txt' ), 'w' ) as servFile:
+    with open( os.path.join( lhcb_ci.workspace, 'lhcb_ci-service-ports.txt' ), 'w' ) as servFile:
       for port in sortedPorts:
         servFile.write( '%s : %s\n' % ( port, ports[ port ] ) )  
 
 
+  def test_configured_service_authorization( self ):
+    """ test_configured_service_authorization
+    
+    Tests that the services default configuration sets a minimum security level.   
+    """
+
+    self.logTestName( 'test_configured_service_authorization' )
+    
+    securityProperties = lhcb_ci.service.getSecurityProperties()
+    
+    authRules = {}
+    
+    for system, services in self.swServices.iteritems():
+      
+      for service in services:
+        
+        authRules[ ( system,service ) ] = {}
+        
+        res = lhcb_ci.service.getServiceAuthorization( system, service )
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
+        
+        authorization = res[ 'Value' ]
+        
+        self.assertTrue( authorization, 'Empty authorization rules not allowed' )
+        for method, secProp in authorization.iteritems():
+          
+          if not isinstance( secProp, str ):
+            self.log.debug( 'Found non str authorization rule for %s' % method )
+            continue
+          
+          # lower case, just in case
+          secProp = secProp.lower()
+          
+          self.assertNotEqual( secProp, 'all', 'All authorization rule is FORBIDDEN' )
+          self.assertNotEqual( secProp, 'any', 'Any authorization rule is FORBIDDEN' )
+          if secProp not in [ 'all', 'any', 'authenticated' ]:
+            self.assertEquals( secProp in securityProperties, True, '%s is an invalid SecProp' % secProp )
+
+          authRules[ ( system,service ) ][ method ] = secProp
+            
+           
+    # Write authorization report
+    with open( os.path.join( lhcb_ci.workspace, 'lhcb_ci-service-authorization.txt' ), 'w' ) as servFile:
+      for servName, authRule in authRules.iteritems():
+        servFile.write( '%s/%s\n' % servName )
+        for method, secProp in authRule.iteritems():
+          servFile.write( '  %s : %s\n' % ( secProp.ljust( 30 ), method ) )        
+    
+    
+
   ##############################################################################
   #
-  # Check services port
   # Check services authentication
   #
   ##############################################################################
