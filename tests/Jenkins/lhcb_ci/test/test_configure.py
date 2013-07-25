@@ -9,6 +9,7 @@
 
 import lhcb_ci.basecase 
 import lhcb_ci.db
+import lhcb_ci.service
 
 
 class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
@@ -20,6 +21,24 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
   parameters to be able to run the rest of the tests.
   
   """
+  
+  def test_configured_mysql_passwords( self ):
+    """ test_configured_mysql_passwords
+    
+    Makes sure the passwords are properly set on the dirac.cfg and accessed via
+    the InstallTools module.
+    """
+    
+    self.logTestName( 'test_configured_mysql_passwords' )
+        
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )
+    
+    res = lhcb_ci.db.InstallTools.getMySQLPasswords()
+    self.assertEquals( res[ 'OK' ], True )
+    
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )  
   
   
   def test_configure_db( self ):
@@ -70,9 +89,41 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )         
         
 
+  def test_configured_service_ports( self ):
+    """ test_configured_service_ports
+    
+    Tests that the services configuration does not overlap, namely ports and
+    hosts.
+    """
+    
+    self.logTestName( 'test_configured_service_ports' )
+    
+    ports = []
+    
+    for system, services in self.swServices.iteritems():
+      
+      for service in services:
+      
+        port = lhcb_ci.service.getServicePort( system, service )
+        self.assertTrue( port not in ports, '%s/%s:%s already taken' % ( system, service, port ) )
+        ports.append( port )
+
+
+  ##############################################################################
+  #
+  # Check services port
+  # Check services authentication
+  #
+  ##############################################################################
+
+
   #.............................................................................
   # Nosetests attrs
+
   
+  # test_configured_mysql_passwords
+  test_configured_mysql_passwords.configure = 1
+  test_configured_mysql_passwords.db        = 1
   
   # test_configure_db
   test_configure_db.configure = 1
@@ -81,6 +132,9 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
   # test_configure_service
   test_configure_service.configure = 1
   test_configure_service.service   = 1
+  
+  test_configured_service_ports.configure = 1
+  test_configured_service_ports.service   = 1
 
 
 #...............................................................................
