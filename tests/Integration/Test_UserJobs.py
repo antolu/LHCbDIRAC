@@ -1,5 +1,5 @@
-from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
+# from DIRAC.Core.Base.Script import parseCommandLine
+# parseCommandLine()
 
 import unittest, os
 
@@ -20,6 +20,9 @@ class UserJobTestCase( IntegrationTest ):
 
     self.dLHCb = DiracLHCb()
     self.exeScriptLocation = find_all( 'exe-script.py', '.', 'Integration' )[0]
+
+  def tearDown( self ):
+    pass
 
 class HelloWorldSuccess( UserJobTestCase ):
   def test_execute( self ):
@@ -221,11 +224,11 @@ def createJob():
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( UserJobTestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessWithJobID ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessWithJobID ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutput ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutputWithJobID ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudirunSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiScriptSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FailingUserJobTestCase ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutputWithJobID ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudirunSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiScriptSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FailingUserJobTestCase ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
