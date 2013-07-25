@@ -14,7 +14,6 @@
 test_configure = {
                   
   'test_configured_service_authorization' : [ 
-    
     'BookkeepingManager', 
     'Publisher', 
     'ProductionRequest', 
@@ -29,10 +28,14 @@ test_configure = {
     'Future', 
     'OptimizationMind',
     'Server',
-    'TransformationManager'
-    
-                                            ],
-
+    'TransformationManager' ],
+                  
+  'test_configured_service_ports' : [            
+    'LcgFileCatalogProxy', 
+    'RunDBInterface', 
+    'Future', 
+    'MigrationMonitoring', 
+    'ProductionRequest' ]                  
                   
                   }
 

@@ -104,7 +104,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     
     self.logTestName( 'test_configured_service_ports' )
     
-    _EXCEPTIONS = [ 'LcgFileCatalogProxy', 'RunDBInterface', 'Future', 'MigrationMonitoring', 'ProductionRequest' ]
+#    _EXCEPTIONS = [ 'LcgFileCatalogProxy', 'RunDBInterface', 'Future', 'MigrationMonitoring', 'ProductionRequest' ]
     
     ports = {}
     
@@ -112,8 +112,9 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
       
       for service in services:
       
-        if service in _EXCEPTIONS:
-          self.log.exception( 'EXCEPTION: skipped %s' % service )
+        if self.isException( service ):
+#        if service in _EXCEPTIONS:
+#          self.log.exception( 'EXCEPTION: skipped %s' % service )
           continue
       
         serviceName = '%s/%s' % ( system, service )
@@ -200,7 +201,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
       for servName, authRule in authRules.iteritems():
         servFile.write( '%s\n' % servName )
         for method, secProp in authRule.iteritems():
-          servFile.write( '  %s : %s\n' % ( secProp.ljust( 30 ), method ) )
+          servFile.write( '  %s : %s\n' % ( method.ljust( 40 ), secProp ) )
 
 
   #.............................................................................
