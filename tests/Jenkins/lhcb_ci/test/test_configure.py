@@ -144,7 +144,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
 
     self.logTestName( 'test_configured_service_authorization' )
     
-    _EXCEPTIONS = [ 'BookkeepingManager' ]
+    _EXCEPTIONS = [ 'BookkeepingManager', 'Publisher' ]
     
     securityProperties = lhcb_ci.service.getSecurityProperties()
     
@@ -169,22 +169,22 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
         
         authorization = res[ 'Value' ]
         
-        self.assertTrue( authorization, 'Empty authorization rules not allowed' )
+        self.assertTrue( authorization, 'Empty authorization rules not allowed %s' % serviceName )
         for method, secProp in authorization.iteritems():
           
           if not isinstance( secProp, str ):
-            self.log.debug( 'Found non str authorization rule for %s' % method )
+            self.log.debug( 'Found non str authorization rule for %s.%s' % ( serviceName, method ) )
             continue
           
           # lower case, just in case
           secProp = secProp.lower()
           
-          self.assertNotEqual( secProp, 'all', 'All authorization rule is FORBIDDEN' )
-          self.assertNotEqual( secProp, 'any', 'Any authorization rule is FORBIDDEN' )
+          self.assertNotEqual( secProp, 'all', 'All authorization rule is FORBIDDEN %s' % serviceName )
+          self.assertNotEqual( secProp, 'any', 'Any authorization rule is FORBIDDEN %s' % serviceName )
           if secProp != 'authenticated':
-            self.assertEquals( secProp in securityProperties, True, '%s is an invalid SecProp' % secProp )
+            self.assertEquals( secProp in securityProperties, True, '%s is an invalid SecProp %s' % ( secProp, serviceName ) )
 
-          authRules[ ( system,service ) ][ method ] = secProp
+          authRules[ serviceName ][ method ] = secProp
             
            
     # Write authorization report
@@ -192,15 +192,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
       for servName, authRule in authRules.iteritems():
         servFile.write( '%s\n' % servName )
         for method, secProp in authRule.iteritems():
-          servFile.write( '  %s : %s\n' % ( secProp.ljust( 30 ), method ) )        
-    
-    
-
-  ##############################################################################
-  #
-  # Check services authentication
-  #
-  ##############################################################################
+          servFile.write( '  %s : %s\n' % ( secProp.ljust( 30 ), method ) )
 
 
   #.............................................................................
