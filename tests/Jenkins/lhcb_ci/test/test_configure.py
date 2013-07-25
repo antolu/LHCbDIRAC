@@ -98,15 +98,15 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     
     self.logTestName( 'test_configured_service_ports' )
     
-    ports = []
+    ports = {}
     
     for system, services in self.swServices.iteritems():
       
       for service in services:
       
         port = lhcb_ci.service.getServicePort( system, service )
-        self.assertTrue( port not in ports, '%s/%s:%s already taken' % ( system, service, port ) )
-        ports.append( port )
+        self.assertTrue( port not in ports, '%s/%s:%s already taken by %s' % ( system, service, port, ports[ port ] ) )
+        ports[ port ] = '%s/%s' % ( system, service )
 
 
   ##############################################################################
