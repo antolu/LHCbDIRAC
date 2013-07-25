@@ -142,11 +142,13 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     Tests that the services default configuration sets a minimum security level.   
     """
 
+    self.isException( 1 )
+
     self.logTestName( 'test_configured_service_authorization' )
     
     _EXCEPTIONS = [ 'BookkeepingManager', 'Publisher', 'ProductionRequest', 'LcgFileCatalogProxy',
                     'DataUsage', 'StorageUsage', 'DataIntegrity', 'RunDBInterface', 'RAWIntegrity',
-                    'Gateway', 'JobStateSync' ]
+                    'Gateway', 'JobStateSync', 'Future' ]
     
     securityProperties = set( lhcb_ci.service.getSecurityProperties() )
     

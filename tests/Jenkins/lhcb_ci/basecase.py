@@ -7,10 +7,13 @@
 """
 
 
+import inspect
+import unittest
+
 import lhcb_ci
 import lhcb_ci.db
+import lhcb_ci.exceptions
 import lhcb_ci.service
-import unittest
 
 
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
@@ -57,6 +60,12 @@ class Base_TestCase( unittest.TestCase ):
     
     _message = ( not res[ 'OK' ] and res[ 'Message' ] ) or ''   
     self.assertEquals( first, second, _message )
+    
+  def isException( self, value ):
+    
+    self.log.exception( inspect.stack()[1][3] )
+    self.log.exception( inspect.stack()[2] )
+      
     
     
 class DB_TestCase( Base_TestCase ):
