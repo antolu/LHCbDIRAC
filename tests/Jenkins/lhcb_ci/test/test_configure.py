@@ -107,10 +107,15 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
       
       for service in services:
       
+        serviceName = '%s/%s' % ( system, service )
+      
         port = lhcb_ci.service.getServicePort( system, service )
-        _msg = '%s/%s:%s already taken by %s' % ( system, service, port, ports.get( port,'' ) )
-        self.assertTrue( port in ports, _msg )
-        ports[ port ] = '%s/%s' % ( system, service )
+        _msg = '%s:%s already taken by %s' % ( serviceName, port, ports.get( port,'' ) )
+        
+        # If false, it raises. 
+        self.assertTrue( port not in ports, _msg )
+        
+        ports[ port ] = serviceName
 
     # Sort port numbers
     sortedPorts = ports.keys()
