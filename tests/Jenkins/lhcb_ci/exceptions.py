@@ -27,7 +27,8 @@ test_configure = {
     'Gateway', 
     'JobStateSync', 
     'Future', 
-    'OptimizationMind' 
+    'OptimizationMind',
+    'Server'
     
                                             ],
 
