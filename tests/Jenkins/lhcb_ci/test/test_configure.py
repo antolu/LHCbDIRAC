@@ -156,6 +156,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
         
         if service in _EXCEPTIONS:
           self.log.exception( 'EXCEPTION: skipped %s' % service )
+          continue
         
         serviceName = '%s/%s' % ( system, service )
         
