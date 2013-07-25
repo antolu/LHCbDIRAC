@@ -211,6 +211,9 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
   
   test_configured_service_ports.configure = 1
   test_configured_service_ports.service   = 1
+  
+  test_configured_service_authorization.configure = 1
+  test_configured_service_authorization.service   = 1
 
 
 #...............................................................................
