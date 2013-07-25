@@ -63,9 +63,7 @@ class Base_TestCase( unittest.TestCase ):
     
   def isException( self, value ):
     
-    self.log.exception( inspect.stack()[1][3] )
-    self.log.exception( inspect.stack()[2] )
-      
+    self.log.exception( inspect.stack() )     
     
     
 class DB_TestCase( Base_TestCase ):
