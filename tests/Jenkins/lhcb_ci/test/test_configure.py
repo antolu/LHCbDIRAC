@@ -146,7 +146,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     
     _EXCEPTIONS = [ 'BookkeepingManager', 'Publisher', 'ProductionRequest', 'LcgFileCatalogProxy',
                     'DataUsage', 'StorageUsage', 'DataIntegrity', 'RunDBInterface', 'RAWIntegrity',
-                    'Gateway' ]
+                    'Gateway', 'JobStateSync' ]
     
     securityProperties = set( lhcb_ci.service.getSecurityProperties() )
     
