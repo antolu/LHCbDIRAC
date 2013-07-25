@@ -104,7 +104,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     
     self.logTestName( 'test_configured_service_ports' )
     
-    _EXCEPTIONS = [ 'LcgFileCatalogProxy', 'RunDBInterface', 'Future', 'MigrationMonitoring' ]
+    _EXCEPTIONS = [ 'LcgFileCatalogProxy', 'RunDBInterface', 'Future', 'MigrationMonitoring', 'ProductionRequest' ]
     
     ports = {}
     
