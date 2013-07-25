@@ -133,7 +133,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     # Write ports report
     with open( os.path.join( lhcb_ci.workspace, 'lhcb_ci-services.txt' ), 'w' ) as servFile:
       for port in sortedPorts:
-        servFile.write( '%s : %s' % ( port, ports[ port ] ) )  
+        servFile.write( '%s : %s\n' % ( port, ports[ port ] ) )  
 
 
   ##############################################################################
