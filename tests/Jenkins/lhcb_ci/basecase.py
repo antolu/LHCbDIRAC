@@ -118,7 +118,7 @@ class Service_TestCase( DB_TestCase ):
     cls.log.info( '::: Service_TestCase setUpClass :::' )
     
     cls.swServices = lhcb_ci.service.getSoftwareServices()
-
+    
 
   def setUp( self ):
     """ setUp

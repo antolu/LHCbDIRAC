@@ -36,7 +36,12 @@ def getSoftwareServices():
   extensions = getCSExtensions()
   res = InstallTools.getSoftwareComponents( extensions )
   # Always return S_OK
-  return res[ 'Value' ][ 'Services' ]
+  serviceDict = res[ 'Value' ][ 'Services' ]
+  # The method is a bit buggy, so we have to fix it here.
+  for systemName, serviceList in serviceDict.items():
+    serviceDict[ systemName ] = list( set( serviceList ) )
+  
+  return serviceDict  
 
 
 def getInstalledServices():
