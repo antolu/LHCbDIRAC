@@ -119,9 +119,7 @@ class Base_TestCase( unittest.TestCase ):
     
     Returns a path where to write the report.
     """
-    
-    self.log.error( lhcb_ci.reports )
-    self.log.error( self.__testMethod() )
+
     return os.path.join( lhcb_ci.reports, '%s.txt' % self.__testMethod() )
         
     

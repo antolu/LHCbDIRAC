@@ -22,10 +22,10 @@ with warnings.catch_warnings():
 logger = logging.getLogger( 'lhcb_ci' )
 logger.setLevel( level = logging.DEBUG )
 
+# Workspace directory
 workspace = os.getenv( 'WORKSPACE' )
-
-# Create reports directory
-reports   = None
+# Reports directory
+reports   = os.path.join( workspace, 'lhcb_ci' )
 
 
 def _init_once():
@@ -56,7 +56,6 @@ def _init_once():
     
     logger.addHandler( fh )    
 
-  reports = os.path.join( workspace, 'lhcb_ci' )
   if not os.path.exists( reports ):
     os.mkdir( reports )
 
