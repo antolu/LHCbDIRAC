@@ -79,12 +79,46 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )
 
 
+  def test_agents_import( self ):
+    """ test_agents_import
+    
+    """
+
+    self.logTestName()
+    
+    for diracSystem, agents in self.swAgents.iteritems():
+      
+      for agentName in agents:
+        self.log.debug( "%s %s" % ( diracSystem, agentName ) )
+
+        # Import DIRAC module and get object
+        agentPath = 'DIRAC.%s.Agent.%s' % ( diracSystem, agentName )
+        self.log.debug( 'VO Importing %s' % agentPath )
+        
+        agentMod = lhcb_ci.extensions.import_( agentPath )
+        self.assertEquals( hasattr( agentMod, agentName ), True )
+        
+        agentClass = getattr( agentMod, agentName )
+        
+        try:
+          agentInstance = agentClass()
+          del agentInstance
+          self.fail( 'Created instance of %s should have failed' % agentPath )
+        except RuntimeError, e:          
+          self.assertEquals( str( e ).startswith( 'Can not connect to Agent' ), True )
+    
+    
+    
+
   #.............................................................................
   # Nosetests attrs
   
   
   test_agents_install_drop.install = 1
-  test_agents_install_drop.agent   = 1  
+  test_agents_install_drop.agent   = 1
+  
+  test_agents_import.install = 1
+  test_agents_import.agent   = 1
 
 
 #...............................................................................

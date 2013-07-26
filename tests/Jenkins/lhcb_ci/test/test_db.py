@@ -168,7 +168,7 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
         self.log.debug( 'VO Importing %s' % dbPath )
         
-        dbMod = lhcb_ci.extensions.import_( 'DIRAC.%s.DB.%s' % ( diracSystem, dbName ) )
+        dbMod = lhcb_ci.extensions.import_( dbPath )
         self.assertEquals( hasattr( dbMod, dbName ), True )
         
         dbClass = getattr( dbMod, dbName )
