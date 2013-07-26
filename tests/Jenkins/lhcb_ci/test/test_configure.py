@@ -195,8 +195,8 @@ class Configure_Test( lhcb_ci.basecase.Agent_TestCase ):
           servFile.write( '  %s : %s\n' % ( method.ljust( 40 ), secProp ) )
 
   
-  def test_configure_agents( self ):
-    """ test_configure_agents
+  def test_configure_agent( self ):
+    """ test_configure_agent
     """
     
     self.logTestName()
@@ -233,6 +233,9 @@ class Configure_Test( lhcb_ci.basecase.Agent_TestCase ):
   
   test_configured_service_authorization.configure = 1
   test_configured_service_authorization.service   = 1
+  
+  test_configure_agent.configure = 1
+  test_configure_agent.agent     = 1
 
 
 #...............................................................................
