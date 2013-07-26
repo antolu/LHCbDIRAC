@@ -30,7 +30,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     
     """    
     
-    self.logTestName( 'test_services_install_drop' )
+    self.logTestName()
             
     for system, services in self.swServices.iteritems():
       
@@ -62,7 +62,7 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
     
     """
     
-    self.logTestName( 'test_run_services' )
+    self.logTestName()
     
     for system, services in self.swServices.iteritems():
       

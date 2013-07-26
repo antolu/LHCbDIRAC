@@ -36,9 +36,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     the InstallTools module.
     """
     
-    self.logTestName( 'test_configured_mysql_passwords' )
-    
-    self.testMethod()
+    self.logTestName()
         
     self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
     self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )
@@ -56,7 +54,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     Tests that we can configure databases on an "empty CS".
     """
     
-    self.logTestName( 'test_configure_db' )
+    self.logTestName()
   
     for systemName, systemDBs in self.databases.iteritems():   
       
@@ -74,7 +72,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     Test that we can configure services on an "empty CS".
     """
 
-    self.logTestName( 'test_configure_service' )
+    self.logTestName()
 
     for systemName, services in self.swServices.iteritems():
       
@@ -97,11 +95,9 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     
     Tests that the services configuration does not overlap, namely ports.
     
-    REPORT: lhcb_ci-service-ports.txt
-    
     """
     
-    self.logTestName( 'test_configured_service_ports' )
+    self.logTestName()
     
     ports = {}
     
@@ -131,7 +127,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     sortedPorts.sort()
 
     # Write ports report
-    with open( os.path.join( lhcb_ci.workspace, 'lhcb_ci-service-ports.txt' ), 'w' ) as servFile:
+    with open( os.path.join( lhcb_ci.workspace, self.reportPath() ), 'w' ) as servFile:
       for port in sortedPorts:
         servFile.write( '%s : %s\n' % ( port, ports[ port ] ) )  
 
@@ -143,11 +139,9 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     This means, any / all by Default is forbidden, all the security properties
     must be valid ones and discourages from the usage of any / all in general.
     
-    REPORT: lhcb_ci-service-authorization.txt
-    
     """
 
-    self.logTestName( 'test_configured_service_authorization' )
+    self.logTestName()
     
     securityProperties = set( lhcb_ci.service.getSecurityProperties() )
     
@@ -194,7 +188,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
             
            
     # Write authorization report
-    with open( os.path.join( lhcb_ci.workspace, 'lhcb_ci-service-authorization.txt' ), 'w' ) as servFile:
+    with open( os.path.join( lhcb_ci.workspace, self.reportPath() ), 'w' ) as servFile:
       for servName, authRule in authRules.iteritems():
         servFile.write( '%s\n' % servName )
         for method, secProp in authRule.iteritems():

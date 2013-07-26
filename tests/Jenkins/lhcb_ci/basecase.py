@@ -32,7 +32,7 @@ class Base_TestCase( unittest.TestCase ):
   exceptions = None
     
   
-  def logTestName( self, testName ):
+  def logTestName( self ):
     """ logTestName
     
     Prints a header with the test name.
@@ -40,19 +40,19 @@ class Base_TestCase( unittest.TestCase ):
     """
     
     self.log.debug( '.' * 80 )
-    self.log.info( self.testMethod() )
+    self.log.info( self.__testMethod() )
     self.log.debug( '.' * 80 )
   
   
-  def testMethod( self ):
+  def __testMethod( self ):
     """ testMethod
     
-    Inspects the calls stack to get the name of the caller method.
+    Inspects the calls stack to get the name of the caller method. Use it carefully,
+    if you add more calls to the stack, the indexes may not work !
     
     """
     
-    self.log.error( inspect.stack() )
-    return '1'
+    return inspect.stack()[2][3]
     
     
   @classmethod
@@ -114,15 +114,14 @@ class Base_TestCase( unittest.TestCase ):
     self.assertEquals( first, second, _message )
     
   
-  def getReportName( self ):
+  def reportPath( self ):
+    """ reportPath 
+    
+    Returns a path where to write the report.
     """
     
-    """
-    
-    testMethod = inspect.stack()[1][3]
-    return os.path.join( lhcb_ci.reports, '%s.txt' % testMethod )
-    
-    
+    return os.path.join( lhcb_ci.reports, '%s.txt' % self.__testMethod() )
+        
     
   def isException( self, value ):
     """ isException
@@ -132,10 +131,8 @@ class Base_TestCase( unittest.TestCase ):
     
     """
     
-    testMethod = inspect.stack()[1][3]
-    
     try:
-      if value in self.exceptions[ self.testMethod() ]:
+      if value in self.exceptions[ self.__testMethod() ]:
         self.log.exception( 'EXCEPTION: skipped %s' % value )
         return True
     except KeyError:

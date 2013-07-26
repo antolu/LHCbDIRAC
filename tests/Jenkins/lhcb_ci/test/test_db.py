@@ -29,7 +29,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     
     """
   
-    self.logTestName( 'test_databases_reachable' )
+    self.logTestName()
   
     for diracSystem, systemDBs in self.databases.iteritems():   
       
@@ -68,7 +68,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     
     """
    
-    self.logTestName( 'test_databases_install_drop' )
+    self.logTestName()
 
     for systemDBs in self.databases.itervalues():   
     
@@ -90,7 +90,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     
     """
     
-    self.logTestName( 'test_import_db_modules' )
+    self.logTestName()
    
     for diracSystem, systemDBs in self.databases.iteritems():
       
@@ -124,7 +124,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     
     """
     
-    self.logTestName( 'test_install_tables' )
+    self.logTestName()
     
     for diracSystem, systemDBs in self.databases.iteritems():
       
