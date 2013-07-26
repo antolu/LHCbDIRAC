@@ -12,6 +12,70 @@ import lhcb_ci.db
 import lhcb_ci.extensions
 
 
+class Configure_Test( lhcb_ci.basecase.DB_TestCase ):
+  """ Configure_Test
+  
+  This class contains dirty & sticky tests. The configuration steps have been
+  transformed into simple unittests, which are run here. Dirty & sticky because
+  the tests will alter the CS structure, adding the necessary configuration 
+  parameters to be able to run the rest of the tests. 
+  
+  Disclaimer: do not change the name of the tests, as some of them need to
+  run in order.
+  
+  """
+  
+  def test_configured_mysql_passwords( self ):
+    """ test_configured_mysql_passwords
+    
+    Makes sure the passwords are properly set on the dirac.cfg and accessed via
+    the InstallTools module.
+    
+    """
+    
+    self.logTestName()
+        
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )
+    
+    res = lhcb_ci.db.InstallTools.getMySQLPasswords()
+    self.assertEquals( res[ 'OK' ], True )
+    
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
+    self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )       
+  
+  
+  def test_configure_db( self ):
+    """ test_configure_db
+    
+    Tests that we can configure databases on an "empty CS".
+    """
+    
+    self.logTestName()
+  
+    for systemName, systemDBs in self.databases.iteritems():   
+      
+      systemName = systemName.replace( 'System', '' )
+      
+      for dbName in systemDBs:
+        
+        res = lhcb_ci.db.configureDB( systemName, dbName )
+        self.assertDIRACEquals( res[ 'OK' ], True, res ) 
+
+
+  #.............................................................................
+  # Nosetests attrs
+
+  
+  # test_configured_mysql_passwords
+  test_configured_mysql_passwords.configure = 1
+  test_configured_mysql_passwords.db        = 1
+  
+  # test_configure_db
+  test_configure_db.configure = 1
+  test_configure_db.db        = 1   
+
+
 class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
   """ Installation_Test
   
