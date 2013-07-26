@@ -16,6 +16,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
   """ Installation_Test
   
   Tests performing operations related with the DBs installation.
+  
   """ 
   
   
@@ -23,6 +24,9 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     """ test_databases_reachable
     
     Tests that we can import the DIRAC DB objects pointing to an specific Database.
+    It iterates over all databases discovered on the code *DB.py objects and instantiates
+    a DIRAC.Core.Base.DB object to interact with them. 
+    
     """
   
     self.logTestName( 'test_databases_reachable' )
@@ -59,7 +63,9 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
   def test_databases_install_drop( self ):
     """ test_databases_install_drop
     
-    Tests that we can install / drop directly databases from the MySQL server
+    Tests that we can install databases on the MySQL server using a DIRAC command
+    and drop directly databases from the MySQL server using a SQL statement.
+    
     """
    
     self.logTestName( 'test_databases_install_drop' )
@@ -78,7 +84,10 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
   def test_import_db_modules( self ):
     """ test_import_db_modules
     
-    Tries to import the DB modules and create a class Object.
+    Tries to import the DB modules and create a class Object. Iterating over all
+    databases found in the code, tries to import their modules and instantiate
+    one class object.
+    
     """
     
     self.logTestName( 'test_import_db_modules' )
@@ -110,7 +119,9 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
   def test_install_tables( self ):
     """ test_install_tables
     
-    This test only applies to databases defined on Python.
+    This test only applies to databases defined on Python ( some of the databases
+    are still using the sql schema definition ).
+    
     """
     
     self.logTestName( 'test_install_tables' )

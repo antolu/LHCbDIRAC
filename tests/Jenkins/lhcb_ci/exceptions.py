@@ -1,11 +1,10 @@
-""" lhcb_ci.utils.exceptions
+""" lhcb_ci.exceptions
 
   LHCb Continuous Integration system libraries.
 
   @author: mario.ubeda.garcia@cern.ch
   
 """
-
 
 #...............................................................................
 # test_configure_exceptions

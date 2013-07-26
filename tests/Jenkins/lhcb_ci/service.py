@@ -1,4 +1,4 @@
-""" lhcb_ci.utils.service
+""" lhcb_ci.service
 
   LHCb Continuous Integration system libraries.
 

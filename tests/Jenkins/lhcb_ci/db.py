@@ -1,4 +1,4 @@
-""" lhcb_ci.utils.db
+""" lhcb_ci.db
 
   LHCb Continuous Integration system libraries.
 

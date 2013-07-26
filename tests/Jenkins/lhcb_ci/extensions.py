@@ -1,4 +1,4 @@
-""" lhcb_ci.utils.extensions
+""" lhcb_ci.extensions
 
   LHCb Continuous Integration system libraries
 

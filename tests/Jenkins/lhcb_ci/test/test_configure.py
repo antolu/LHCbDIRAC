@@ -94,6 +94,9 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     """ test_configured_service_ports
     
     Tests that the services configuration does not overlap, namely ports.
+    
+    REPORT: lhcb_ci-service-ports.txt
+    
     """
     
     self.logTestName( 'test_configured_service_ports' )
@@ -130,7 +133,12 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
   def test_configured_service_authorization( self ):
     """ test_configured_service_authorization
     
-    Tests that the services default configuration sets a minimum security level.   
+    Tests that the services default configuration sets a minimum security level.
+    This means, any / all by Default is forbidden, all the security properties
+    must be valid ones and discourages from the usage of any / all in general.
+    
+    REPORT: lhcb_ci-service-authorization.txt
+    
     """
 
     self.logTestName( 'test_configured_service_authorization' )

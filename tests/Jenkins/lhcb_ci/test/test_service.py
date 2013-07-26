@@ -16,13 +16,18 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
   """ Installation_Test
   
   Tests performing operations related with the Services installation.
+  
   """
 
   def test_services_install_drop( self ):
     """ test_services_install_drop
     
     Tests that we can install / drop directly services using the DIRAC tools. It
-    does not check whether the services run with errors or not.
+    does not check whether the services run with errors or not. It iterates over
+    all services found in self.swServices, which are all python files *Hanlder.py
+    
+    It avoids the Configuration Server as it is running.
+    
     """    
     
     self.logTestName( 'test_services_install_drop' )
@@ -45,6 +50,17 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         
 
   def test_run_services( self ):
+    """ test_run_services
+    
+    This test iterates over all the services found in the code ( self.swServices )
+    and runs then through the ServiceReactor. This is kind of ugly, due to an
+    unknown number of daemonized and non daemonized threads started by each
+    service ( it happens that every developer likes different solutions ). In this
+    respect, all threads created by the ServiceReactor and childs, are stopped
+    to avoid problems. Once the service is running on a paralell thread, it is 
+    pinged to check it is working.
+    
+    """
     
     self.logTestName( 'test_run_services' )
     
