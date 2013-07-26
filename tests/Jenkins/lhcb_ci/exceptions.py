@@ -50,7 +50,9 @@ test_configure = {
     # ElementInspectorAgent : Can not find Agents/ElementInspectorAgent in template
     'ElementInspectorAgent',
     # GridSiteMonitoringAgent : Can not find Agents/GridSiteMonitoringAgent in template
-    'GridSiteMonitoringAgent'                         
+    'GridSiteMonitoringAgent',
+    # CacheFeederAgent : Can not find Agents/CacheFeederAgent in template
+    'CacheFeederAgent'                         
                            ]                                                      
                   
 }
