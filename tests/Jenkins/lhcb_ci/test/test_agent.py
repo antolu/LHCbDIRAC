@@ -48,12 +48,43 @@ class Configure_Test( lhcb_ci.basecase.Agent_TestCase ):
   test_configure_agent.agent     = 1  
   
 
-class Installation_Test:#( lhcb_ci.basecase.DB_TestCase ):
+class Installation_Test( lhcb_ci.basecase.Agent_TestCase ):
   """ Installation_Test
   
   Tests performing operations related with the Agents installation.
+  
   """
-  pass
+
+  def test_agents_install_drop( self ):
+    """ test_agents_install_drop
+    
+    Tests that we can install / drop directly agents using the DIRAC tools. It
+    does not check whether the agents run with errors or not. It iterates over
+    all agents found in self.swAgents, which are all python files *Agent.py
+    
+    """    
+    
+    self.logTestName()
+            
+    for system, agents in self.swAgents.iteritems():
+      
+      for agent in agents:
+        self.log.debug( "%s %s" % ( system, agent ) )
+       
+        res = lhcb_ci.agent.setupAgent( system, agent )      
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
+        self.assertEquals( res[ 'Value' ][ 'RunitStatus' ], 'Run' )
+        
+        res = lhcb_ci.agent.uninstallAgent( system, agent )      
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
+
+
+  #.............................................................................
+  # Nosetests attrs
+  
+  
+  test_agents_install_drop.install = 1
+  test_agents_install_drop.agent   = 1  
 
 
 #...............................................................................

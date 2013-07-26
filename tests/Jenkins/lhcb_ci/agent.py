@@ -35,7 +35,7 @@ def getSoftwareAgents():
 
 
 def configureAgent( systemName, agentName ):
-  """ configureDB
+  """ configureAgent
   
   Configures systemName/agentName in the CS
   """
@@ -43,6 +43,31 @@ def configureAgent( systemName, agentName ):
   logger.debug( 'Configuring Agent %s/%s' % ( systemName, agentName ) )
   return InstallTools.addDefaultOptionsToCS( gConfig, 'agent', systemName, 
                                              agentName, getCSExtensions() )
+
+
+def setupAgent( system, agent ):
+  """ setupAgent
+  
+  Setups agent and runs it
+  """  
+
+  logger.debug( 'setupAgent' )
+  
+  extensions = getCSExtensions()
+  
+  return InstallTools.setupComponent( 'agent', system, agent, extensions )
+
+
+def uninstallAgent( system, agent ):
+  """ uninstallAgent
+  
+  Stops the agent.
+  """
+
+  logger.debug( 'uninstallAgent for %s/%s' % ( system, agent ) )
+  
+  return InstallTools.uninstallComponent( system, agent )
+
 
 #...............................................................................
 #EOF
