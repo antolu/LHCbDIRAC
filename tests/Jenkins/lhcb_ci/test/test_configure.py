@@ -112,7 +112,10 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
         serviceName = '%s/%s' % ( system, service )
       
         if self.isException( service ):
-          ports[ 'xxxx' ] = serviceName
+          try:
+            ports[ 'xxxx' ].append( serviceName )
+          except KeyError:
+            ports[ 'xxxx' ] = [ serviceName ]  
           continue  
       
         port = lhcb_ci.service.getServicePort( system, service )
