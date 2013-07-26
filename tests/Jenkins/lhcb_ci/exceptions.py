@@ -42,7 +42,12 @@ test_configure = {
     # RunDBInterface : Can not find Services/RunDBInterface in template
     'RunDBInterface', 
     # Future : Can not find Services/Future in template
-    'Future' ]                                    
+    'Future' ],
+                  
+  'test_configure_agent' : [
+    # NagiosConsumerAgent : Can not find Agents/NagiosConsumerAgent in template                       
+    'NagiosConsumerAgent'                         
+                           ]                                                      
                   
 }
 
