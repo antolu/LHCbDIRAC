@@ -130,7 +130,7 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
   # Nosetests attrs
   
   
-  #test_agents_install_drop.install         = 1
+  test_agents_install_drop.install = 1
   test_agents_install_drop.agent   = 1
   
   test_agents_import.install = 1
