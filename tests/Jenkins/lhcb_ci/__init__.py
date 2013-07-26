@@ -24,13 +24,20 @@ logger.setLevel( level = logging.DEBUG )
 
 workspace = os.getenv( 'WORKSPACE' )
 
+# Create reports directory
+reports   = None
+
 
 def _init_once():
-  """
+  """ _init_once
+  
   Utility function that is ran once on Library import.
 
   This checks for the LHCB_CI_DEBUG environment variable, which if it exists
   is where we will log debug information.
+  
+  Creates reports directory where tests can store their reports.
+  
   """
 
   logFormat = '[%(asctime)s]%(levelname)-8s: %(message)s'
@@ -49,7 +56,12 @@ def _init_once():
     
     logger.addHandler( fh )    
 
+  os.path.join( workspace, 'lhcb_ci' )
+  if not os.path.exists( reports ):
+    os.mkdir( reports )
+
 _init_once()
+
 
 #...............................................................................
 #EOF

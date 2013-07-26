@@ -37,6 +37,8 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     """
     
     self.logTestName( 'test_configured_mysql_passwords' )
+    
+    self.testMethod()
         
     self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
     self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )

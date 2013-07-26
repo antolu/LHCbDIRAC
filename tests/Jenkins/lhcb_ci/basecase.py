@@ -8,9 +8,9 @@
 
 
 import inspect
+import os
 import unittest
 
-import lhcb_ci
 import lhcb_ci.db
 import lhcb_ci.exceptions
 import lhcb_ci.service
@@ -30,7 +30,7 @@ class Base_TestCase( unittest.TestCase ):
 
   log        = lhcb_ci.logger
   exceptions = None
-  
+    
   
   def logTestName( self, testName ):
     """ logTestName
@@ -40,8 +40,19 @@ class Base_TestCase( unittest.TestCase ):
     """
     
     self.log.debug( '.' * 80 )
-    self.log.info( testName )
+    self.log.info( self.testMethod() )
     self.log.debug( '.' * 80 )
+  
+  
+  def testMethod( self ):
+    """ testMethod
+    
+    Inspects the calls stack to get the name of the caller method.
+    
+    """
+    
+    self.log.error( inspect.stack() )
+    return '1'
     
     
   @classmethod
@@ -102,6 +113,16 @@ class Base_TestCase( unittest.TestCase ):
     _message = ( not res[ 'OK' ] and res[ 'Message' ] ) or ''   
     self.assertEquals( first, second, _message )
     
+  
+  def getReportName( self ):
+    """
+    
+    """
+    
+    testMethod = inspect.stack()[1][3]
+    return os.path.join( lhcb_ci.reports, '%s.txt' % testMethod )
+    
+    
     
   def isException( self, value ):
     """ isException
@@ -114,7 +135,7 @@ class Base_TestCase( unittest.TestCase ):
     testMethod = inspect.stack()[1][3]
     
     try:
-      if value in self.exceptions[ testMethod ]:
+      if value in self.exceptions[ self.testMethod() ]:
         self.log.exception( 'EXCEPTION: skipped %s' % value )
         return True
     except KeyError:
