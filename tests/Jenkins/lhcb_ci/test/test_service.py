@@ -15,8 +15,8 @@ import lhcb_ci.db
 import lhcb_ci.service
 
 
-class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
-  """ Configure_Test
+class ConfigureTest( lhcb_ci.basecase.Service_TestCase ):
+  """ ConfigureTest
   
   This class contains dirty & sticky tests. The configuration steps have been
   transformed into simple unittests, which are run here. Dirty & sticky because
@@ -170,8 +170,8 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
   test_configured_service_authorization.service   = 1
 
 
-class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
-  """ Installation_Test
+class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
+  """ InstallationTest
   
   Tests performing operations related with the Services installation.
   

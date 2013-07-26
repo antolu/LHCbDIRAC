@@ -12,8 +12,8 @@ import lhcb_ci.db
 import lhcb_ci.extensions
 
 
-class Configure_Test( lhcb_ci.basecase.DB_TestCase ):
-  """ Configure_Test
+class ConfigureTest( lhcb_ci.basecase.DB_TestCase ):
+  """ ConfigureTest
   
   This class contains dirty & sticky tests. The configuration steps have been
   transformed into simple unittests, which are run here. Dirty & sticky because
@@ -76,8 +76,8 @@ class Configure_Test( lhcb_ci.basecase.DB_TestCase ):
   test_configure_db.db        = 1   
 
 
-class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
-  """ Installation_Test
+class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
+  """ InstallationTest
   
   Tests performing operations related with the DBs installation.
   

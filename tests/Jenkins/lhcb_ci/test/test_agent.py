@@ -11,8 +11,8 @@ import lhcb_ci.agent
 import lhcb_ci.basecase
 
 
-class Configure_Test( lhcb_ci.basecase.Agent_TestCase ):
-  """ Configure_Test
+class ConfigureTest( lhcb_ci.basecase.Agent_TestCase ):
+  """ ConfigureTest
   
   This class contains dirty & sticky tests. The configuration steps have been
   transformed into simple unittests, which are run here. Dirty & sticky because
@@ -48,8 +48,8 @@ class Configure_Test( lhcb_ci.basecase.Agent_TestCase ):
   test_configure_agent.agent     = 1  
   
 
-class Installation_Test( lhcb_ci.basecase.Agent_TestCase ):
-  """ Installation_Test
+class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
+  """ InstallationTest
   
   Tests performing operations related with the Agents installation.
   
