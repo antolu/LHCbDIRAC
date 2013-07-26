@@ -7,6 +7,7 @@
 """
 
 
+import collections
 import os
 
 import lhcb_ci
@@ -92,8 +93,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
   def test_configured_service_ports( self ):
     """ test_configured_service_ports
     
-    Tests that the services configuration does not overlap, namely ports and
-    hosts.
+    Tests that the services configuration does not overlap, namely ports.
     """
     
     self.logTestName( 'test_configured_service_ports' )
@@ -137,7 +137,7 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
     
     securityProperties = set( lhcb_ci.service.getSecurityProperties() )
     
-    authRules = {}
+    authRules = collections.defaultdict( dict )
     
     for system, services in self.swServices.iteritems():
       
@@ -147,14 +147,10 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
           continue
         
         serviceName = '%s/%s' % ( system, service )
-        
         self.log.debug( '%s authorization rules' % serviceName )
-        
-        authRules[ serviceName ] = {}
         
         res = lhcb_ci.service.getServiceAuthorization( system, service )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
-        
         authorization = res[ 'Value' ]
         
         self.assertTrue( authorization, 'Empty authorization rules not allowed %s' % serviceName )

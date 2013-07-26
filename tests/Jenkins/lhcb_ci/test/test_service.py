@@ -42,79 +42,11 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
         
         res = lhcb_ci.service.uninstallService( system, service )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )
-                
-
-  def test_check_ports( self ):
-    """ test_check_ports
-    
-    Tests that the services configuration does not overlap, namely ports and
-    hosts.
-    """
-    
-    self.logTestName( 'test_check_ports' )
-    
-    ports = []
-    
-    for system, services in self.swServices.iteritems():
-      
-      for service in services:
-      
-        port = lhcb_ci.service.getServicePort( system, service )
-        self.assertTrue( port not in ports, '%s/%s:%s already taken' % ( system, service, port ) )
-        ports.append( port )
         
 
   def test_run_services( self ):
     
     self.logTestName( 'test_run_services' )
-
-    _EXCEPTIONS = [ 'BookkeepingManager', 'RequestManager', 'StorageElement', 
-                    'TransferDBMonitoring', 'StorageElementProxy', 'DataUsage',
-                    'RunDBInterface', 'Gateway', 'SystemLoggingReport',
-                    'UserProfileManager', 'ProxyManager',
-                    'SandboxStore', 'OptimizationMind',
-                    'MigrationMonitoring', 'StorageManager', 'ReportGenerator',
-                    'DataStore', 'TransformationManager' ]
-    
-#    _EXCEPTIONS = [ 'BookkeepingManager', 'RequestManager', 'StorageElement', 
-#                    'TransferDBMonitoring', 'StorageElementProxy', 'DataUsage',
-#                    'RunDBInterface', 'Gateway', 'SystemLoggingReport',
-#                    'UserProfileManager', 'ProxyManager', 'JobMonitoring',
-#                    'SandboxStore', 'Matcher', 'JobStateUpdate', 'JobManager',
-#                    'WMSAdministrator', 'JobStateSync', 'OptimizationMind',
-#                    'MigrationMonitoring', 'StorageManager', 'ReportGenerator',
-#                    'DataStore', 'TransformationManager' ]
-    # BookkeepingManager    : cx_Oracle
-    # RequestManager        : RequestDB
-    # StorageElement        : failed to get base path
-    # TransferDBMonitoring  : Can not connect to DB RequestDB
-    # StorageElementProxy   : failed to get base path
-    # DataUsage             : Can not connect to DB StorageUsageDB
-    # RunDBInterface        : from path import SQL_ALCHEMY_PATH
-    # Gateway               : string indices must be integers, not str
-    # SystemLoggingReport   : Can not connect to DB SystemLoggingDB
-    # UserProfileManager    : Can not connect to DB UserProfileDB
-    # ProxyManager          : Can not connect to DB ProxyDB
-    # JobMonitoring         : Can not connect to DB JobDB
-    # SandboxStore          : Can not connect to DB SandboxMetadataDB
-    # Matcher               : Can not connect to DB JobDB
-    # JobStateUpdate        : Can not connect to DB JobDB
-    # JobManager            : Can not connect to DB JobDB
-    # WMSAdministrator      : Can not connect to DB JobDB
-    # JobStateSync          : Can not connect to DB JobDB
-    # OptimizationMind      : Could not connect to DB  
-    # MigrationMonitoring   : Can not connect to DB StorageManagementDB
-    # StorageManager        : Can not connect to DB StorageManagementDB
-    # ReportGenerator       : Can not connect to DB AccountingDB
-    # DataStore             : Can not connect to DB AccountingDB
-    # TransformationManager : Can not connect to DB TransformationDB
-    
-#    _SPEEDUP = [ 'RequestProxy', 'Publisher', 'ResourceManagement', 'ResourceStatus', 
-#                 'ProductionRequest', 'FileCatalogProxy', 'DataLogging', 'DataIntegrity', 
-#                 'LcgFileCatalogProxy', 'FileCatalog', 'StorageUsage', 'RAWIntegrity',
-#                 'BundleDelivery', 'SystemAdministrator', 'Monitoring', 'SiteMap',
-#                 'SystemLogging', 'SecurityLogging', 'Notification', 'Plotting',
-#                 'Future'  ]
     
     for system, services in self.swServices.iteritems():
       
@@ -124,12 +56,8 @@ class Installation_Test( lhcb_ci.basecase.Service_TestCase ):
 
       for service in services:
 
-        if service in _EXCEPTIONS:
-          self.log.exception( 'EXCEPTION: Skipped %s' % service )
+        if self.isException( service ):
           continue
-
-#        if service in _SPEEDUP:
-#          continue
 
         self.log.debug( "%s %s" % ( system, service ) )
         

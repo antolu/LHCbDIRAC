@@ -16,26 +16,7 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
   """ Installation_Test
   
   Tests performing operations related with the DBs installation.
-  """
-  
-  
-  def test_passwords( self ):
-    """ test_passwords
-    
-    Makes sure the passwords are properly set on the dirac.cfg and accessed via
-    the InstallTools module.
-    """
-    
-    self.logTestName( 'test_passwords' )
-        
-    self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
-    self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )
-    
-    res = lhcb_ci.db.InstallTools.getMySQLPasswords()
-    self.assertEquals( res[ 'OK' ], True )
-    
-    self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
-    self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )    
+  """ 
   
   
   def test_databases_reachable( self ):
@@ -100,16 +81,13 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     Tries to import the DB modules and create a class Object.
     """
     
-    self.logTestName( 'test_import_db_modules' )    
-    
-    _EXCEPTIONS = [ 'TransformationDB', 'RAWIntegrityDB', 'RequestDB' ]
+    self.logTestName( 'test_import_db_modules' )
    
     for diracSystem, systemDBs in self.databases.iteritems():
       
       for dbName in systemDBs:
 
-        if dbName in _EXCEPTIONS:
-          self.log.exception( 'EXCEPTION: Skipped %s' % dbName )
+        if self.isException( dbName ):
           continue
           
         # Import DIRAC module and get object
@@ -135,18 +113,13 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
     This test only applies to databases defined on Python.
     """
     
-    self.logTestName( 'test_install_tables' )    
-    
-    # Some DBs are a bit different ( to be ironed ), so for the time being are
-    # skipped
-    _EXCEPTIONS = [ 'SystemLoggingDB' ]
+    self.logTestName( 'test_install_tables' )
     
     for diracSystem, systemDBs in self.databases.iteritems():
       
       for dbName in systemDBs:
     
-        if dbName in _EXCEPTIONS:
-          self.log.exception( 'EXCEPTION: Skipped %s' % dbName )
+        if self.isException( dbName ):
           continue
 
         # Installs DB
@@ -205,10 +178,6 @@ class Installation_Test( lhcb_ci.basecase.DB_TestCase ):
   #.............................................................................    
   # Nosetests attrs
 
-
-  # test_passwords
-  test_passwords.install = 1
-  test_passwords.db      = 1
   
   # test_databases_reachable
   test_databases_reachable.install = 1
