@@ -50,7 +50,23 @@ class ConfigureTest( lhcb_ci.basecase.Service_TestCase ):
       
         res = lhcb_ci.service.configureService( systemName, serviceName )
         self.assertDIRACEquals( res[ 'OK' ], True, res )         
-        
+
+
+  #.............................................................................    
+  # Nosetests attrs
+
+  # test_configure_service
+  test_configure_service.configure = 1
+  test_configure_service.service   = 1
+
+
+class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
+  """ InstallationTest
+  
+  Tests performing operations related with the Services installation.
+  
+  """
+
 
   def test_configured_service_ports( self ):
     """ test_configured_service_ports
@@ -155,27 +171,7 @@ class ConfigureTest( lhcb_ci.basecase.Service_TestCase ):
         servFile.write( '%s\n' % servName )
         for method, secProp in authRule.iteritems():
           servFile.write( '  %s : %s\n' % ( method.ljust( 40 ), secProp ) )
-
-  #.............................................................................    
-  # Nosetests attrs
-
-  # test_configure_service
-  test_configure_service.configure = 1
-  test_configure_service.service   = 1
-  
-  test_configured_service_ports.configure = 1
-  test_configured_service_ports.service   = 1
-  
-  test_configured_service_authorization.configure = 1
-  test_configured_service_authorization.service   = 1
-
-
-class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
-  """ InstallationTest
-  
-  Tests performing operations related with the Services installation.
-  
-  """
+          
 
   def test_services_install_drop( self ):
     """ test_services_install_drop
@@ -280,6 +276,14 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
   #.............................................................................    
   # Nosetests attrs
 
+
+  # test_configured_service_ports
+  test_configured_service_ports.configure = 1
+  test_configured_service_ports.service   = 1
+  
+  # test_configured_service_authorization
+  test_configured_service_authorization.configure = 1
+  test_configured_service_authorization.service   = 1
 
   # test_services_install_drop
   test_services_install_drop.install = 1
