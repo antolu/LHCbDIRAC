@@ -69,6 +69,7 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
     for system, agents in self.swAgents.iteritems():
       
       for agent in agents:
+        
         self.log.debug( "%s %s" % ( system, agent ) )
        
         res = lhcb_ci.agent.setupAgent( system, agent )      
@@ -89,6 +90,10 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
     for diracSystem, agents in self.swAgents.iteritems():
       
       for agentName in agents:
+        
+        if self.isException( agentName ):
+          continue
+        
         self.log.debug( "%s %s" % ( diracSystem, agentName ) )
 
         # Import DIRAC module and get object

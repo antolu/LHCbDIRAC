@@ -49,7 +49,13 @@ test_agent = {
     'DataProcessingProgressAgent',
     # TaskManagerAgentBase : Can not find Agents/TaskManagerAgentBase in template
     'TaskManagerAgentBase'    
-                           ]                                                      
+                           ],
+              
+  'test_agents_import' : [
+    # Can't import it                      
+    'NagiosConsumerAgent',                        
+                          
+                          ]                                                                   
                   
 }
 
