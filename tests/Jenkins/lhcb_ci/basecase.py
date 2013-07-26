@@ -263,7 +263,7 @@ class Service_TestCase( DB_TestCase ):
     
     if installedServices:
       self.log.error( 'tearDown' )
-      self.fail( 'DBs still installed: %s' % installedServices )
+      self.fail( 'Services still installed: %s' % installedServices )
 
 
 class Agent_TestCase( Service_TestCase ):
@@ -286,6 +286,38 @@ class Agent_TestCase( Service_TestCase ):
     cls.log.info( '::: Agent_TestCase setUpClass :::' )
     
     cls.swAgents = lhcb_ci.agent.getSoftwareAgents()  
+
+
+  def setUp( self ):
+    """ setUp
+    
+    Makes sure there are no Agents installed before starting the test.
+    
+    """
+    
+    super( Agent_TestCase, self ).setUp()
+    
+    installedAgents = lhcb_ci.agent.getInstalledAgents()  
+      
+    if installedAgents:
+      self.log.error( 'setUp' )
+      self.fail( 'Agents still installed: %s' % installedAgents )  
+
+    
+  def tearDown( self ):
+    """ tearDown
+    
+    Makes sure there are no Agents installed after the test.
+    
+    """
+    
+    super( Agent_TestCase, self ).tearDown()
+    
+    installedAgents = lhcb_ci.agent.getInstalledAgents()
+   
+    if installedAgents:
+      self.log.error( 'tearDown' )
+      self.fail( 'Agents still installed: %s' % installedAgents )
   
 
 class DIRAC_TestCase( Agent_TestCase ): 

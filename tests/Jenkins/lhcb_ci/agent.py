@@ -69,5 +69,18 @@ def uninstallAgent( system, agent ):
   return InstallTools.uninstallComponent( system, agent )
 
 
+def getInstalledAgents():
+  """ getInstalledAgents
+  
+  Gets the available agents inspecting runit ( aka installed ).
+  """
+
+  logger.debug( 'getInstalledAgents' )
+  
+  res = InstallTools.getInstalledComponents()
+  # Always return S_OK
+  return res[ 'Value' ][ 'Agents' ]
+
+
 #...............................................................................
 #EOF
