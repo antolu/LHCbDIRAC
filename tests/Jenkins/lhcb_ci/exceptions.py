@@ -48,7 +48,9 @@ test_configure = {
     # NagiosConsumerAgent : Can not find Agents/NagiosConsumerAgent in template                       
     'NagiosConsumerAgent',
     # ElementInspectorAgent : Can not find Agents/ElementInspectorAgent in template
-    'ElementInspectorAgent'                         
+    'ElementInspectorAgent',
+    # GridSiteMonitoringAgent : Can not find Agents/GridSiteMonitoringAgent in template
+    'GridSiteMonitoringAgent'                         
                            ]                                                      
                   
 }
