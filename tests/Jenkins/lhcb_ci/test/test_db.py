@@ -124,6 +124,7 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )
    
           
+  #FIXME: this test is redundant and should be deleted.        
   def test_databases_install_drop( self ):
     """ test_databases_install_drop
     
