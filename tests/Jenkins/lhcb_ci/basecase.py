@@ -11,6 +11,7 @@ import inspect
 import os
 import unittest
 
+import lhcb_ci.agent
 import lhcb_ci.db
 import lhcb_ci.exceptions
 import lhcb_ci.service
@@ -263,6 +264,33 @@ class Service_TestCase( DB_TestCase ):
     if installedServices:
       self.log.error( 'tearDown' )
       self.fail( 'DBs still installed: %s' % installedServices )
+
+
+class Agent_TestCase( Service_TestCase ):
+  """ Agent_TestCase
+  
+  TestCase for agent related tests. It discovers the agent modules in the
+  code from a quick inspection of *Agent.py
+  
+  """
+  
+  @classmethod
+  def setUpClass( cls ):
+    """ setUpClass
+    
+    Prints a little header and discovers tests.
+    
+    """
+
+    super( Agent_TestCase, cls ).setUpClass()
+    cls.log.info( '::: Agent_TestCase setUpClass :::' )
+    
+    cls.swAgents = lhcb_ci.agent.getSoftwareAgents()  
+  
+
+class DIRAC_TestCase( Agent_TestCase ): 
+  #FIXME: implement it !
+  pass
 
 
 #...............................................................................

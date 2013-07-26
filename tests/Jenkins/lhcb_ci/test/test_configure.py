@@ -10,13 +10,13 @@
 import collections
 import os
 
-import lhcb_ci
+import lhcb_ci.agent
 import lhcb_ci.basecase 
 import lhcb_ci.db
 import lhcb_ci.service
 
 
-class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
+class Configure_Test( lhcb_ci.basecase.Agent_TestCase ):
   """ Configure_Test
   
   This class contains dirty & sticky tests. The configuration steps have been
@@ -193,6 +193,23 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
         servFile.write( '%s\n' % servName )
         for method, secProp in authRule.iteritems():
           servFile.write( '  %s : %s\n' % ( method.ljust( 40 ), secProp ) )
+
+  
+  def test_configure_agents( self ):
+    """ test_configure_agents
+    """
+    
+    self.logTestName()
+    
+    for systemName, agents in self.swAgents.iteritems():
+            
+      for agentName in agents:
+      
+        if self.isException( agentName ):
+          continue
+      
+        res = lhcb_ci.agent.configureAgent( systemName, agentName )
+        self.assertDIRACEquals( res[ 'OK' ], True, res )    
 
 
   #.............................................................................
