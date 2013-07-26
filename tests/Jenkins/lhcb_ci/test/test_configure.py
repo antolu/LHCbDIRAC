@@ -107,10 +107,11 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
       
       for service in services:
       
-        if self.isException( service ):
-          continue
-      
         serviceName = '%s/%s' % ( system, service )
+      
+        if self.isException( service ):
+          ports[ 'xxxx' ] = serviceName
+          continue  
       
         port = lhcb_ci.service.getServicePort( system, service )
         _msg = '%s:%s already taken by %s' % ( serviceName, port, ports.get( port,'' ) )
@@ -151,10 +152,13 @@ class Configure_Test( lhcb_ci.basecase.Service_TestCase ):
       
       for service in services:
         
+        serviceName = '%s/%s' % ( system, service )
+        
         if self.isException( service ):
+          authRules[ serviceName ] = { 'xxxx' : 'skipped' }
           continue
         
-        serviceName = '%s/%s' % ( system, service )
+        
         self.log.debug( '%s authorization rules' % serviceName )
         
         res = lhcb_ci.service.getServiceAuthorization( system, service )
