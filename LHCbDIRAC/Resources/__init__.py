@@ -1,5 +1,6 @@
-'''LHCbDIRAC.Resources package
-'''
+"""
+  LHCbDIRAC.Resources package
+"""
 
 __RCSID__  = '$Id:  $'
 
