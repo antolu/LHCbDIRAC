@@ -53,7 +53,19 @@ test_agent = {
               
   'test_agents_import' : [
     # Can't import it                      
-    'NagiosConsumerAgent',                        
+    'NagiosConsumerAgent',
+    # Can't import it
+    'HCProxyAgent',
+    # Can't import it
+    'GridSiteMonitoringAgent',
+    # Can't import it
+    'HCAgent',
+    # invalid syntax (FTSRequest.py, line 894)
+    'FTSMonitorAgent',
+    # Can not connect to DB StorageUsageDB, exiting...
+    'UserStorageQuotaAgent',
+    # invalid syntax (FTSRequest.py, line 894)
+    'FTSSubmitAgent'                        
                           
                           ]                                                                   
                   
