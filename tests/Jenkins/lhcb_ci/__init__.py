@@ -56,7 +56,7 @@ def _init_once():
     
     logger.addHandler( fh )    
 
-  os.path.join( workspace, 'lhcb_ci' )
+  reports = os.path.join( workspace, 'lhcb_ci' )
   if not os.path.exists( reports ):
     os.mkdir( reports )
 
