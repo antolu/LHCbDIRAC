@@ -92,7 +92,7 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
         self.log.debug( "%s %s" % ( diracSystem, agentName ) )
 
         # Import DIRAC module and get object
-        agentPath = 'DIRAC.%s.Agent.%s' % ( diracSystem, agentName )
+        agentPath = 'DIRAC.%sSystem.Agent.%s' % ( diracSystem, agentName )
         self.log.debug( 'VO Importing %s' % agentPath )
         
         agentMod = lhcb_ci.extensions.import_( agentPath )
@@ -114,7 +114,7 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
   # Nosetests attrs
   
   
-  test_agents_install_drop.install = 1
+  test_agents_install_drop         = 1
   test_agents_install_drop.agent   = 1
   
   test_agents_import.install = 1
