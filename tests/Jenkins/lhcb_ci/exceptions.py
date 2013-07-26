@@ -27,14 +27,14 @@ test_configure = {
     'Future', 
     'OptimizationMind',
     'Server',
-    'TransformationManager' ],
+    'TransformationManager', ],
                   
   'test_configured_service_ports' : [            
     'LcgFileCatalogProxy', 
     'RunDBInterface', 
     'Future', 
     'MigrationMonitoring', 
-    'ProductionRequest' ],
+    'ProductionRequest', ],
                 
   'test_configure_service' : [
     # ProductionRequest : Can not find Services/ProductionRequest in template                          
@@ -42,7 +42,7 @@ test_configure = {
     # RunDBInterface : Can not find Services/RunDBInterface in template
     'RunDBInterface', 
     # Future : Can not find Services/Future in template
-    'Future' ],
+    'Future', ],
                   
   'test_configure_agent' : [
     # NagiosConsumerAgent : Can not find Agents/NagiosConsumerAgent in template                       
@@ -52,7 +52,35 @@ test_configure = {
     # GridSiteMonitoringAgent : Can not find Agents/GridSiteMonitoringAgent in template
     'GridSiteMonitoringAgent',
     # CacheFeederAgent : Can not find Agents/CacheFeederAgent in template
-    'CacheFeederAgent'                         
+    'CacheFeederAgent',
+    # TokenAgent : Can not find Agents/TokenAgent in template
+    'TokenAgent',
+    # HCAgent : Can not find Agents/HCAgent in template
+    'HCAgent',
+    # SAMAgent : Can not find Agents/SAMAgent in template     
+    'SAMAgent',
+    # TargzJobLogAgent : Can not find Agents/TargzJobLogAgent in template
+    'TargzJobLogAgent',
+    # UserStorageQuotaAgent : Can not find Agents/UserStorageQuotaAgent in template
+    'UserStorageQuotaAgent',
+    # LemonAgent : Can not find Agents/LemonAgent in template
+    'LemonAgent',
+    # TaskQueueAgent : Can not find Agents/TaskQueueAgent in template
+    'TaskQueueAgent',
+    # JobSanityAgent : Can not find Agents/JobSanityAgent in template
+    'JobSanityAgent',
+    # JobSchedulingAgent : Can not find Agents/JobSchedulingAgent in template
+    'JobSchedulingAgent',
+    # DiracSiteAgent : Can not find Agents/DiracSiteAgent in template
+    'DiracSiteAgent',
+    # ThreadedMightyOptimizer : Can not find Agents/ThreadedMightyOptimizer in template
+    'ThreadedMightyOptimizer',
+    # OptimizerModule : Can not find Agents/OptimizerModule in template
+    'OptimizerModule',
+    # DataProcessingProgressAgent : Can not find Agents/DataProcessingProgressAgent in template
+    'DataProcessingProgressAgent',
+    # TaskManagerAgentBase : Can not find Agents/TaskManagerAgentBase in template
+    'TaskManagerAgentBase'    
                            ]                                                      
                   
 }
@@ -67,10 +95,10 @@ test_db = {
   'test_import_db_modules' : [
     'TransformationDB', 
     'RAWIntegrityDB', 
-    'RequestDB' ],
+    'RequestDB', ],
                       
   'test_install_tables' : [
-    'SystemLoggingDB' ]                      
+    'SystemLoggingDB', ]                      
                       
 }
 
@@ -117,7 +145,7 @@ test_service = {
     # DataStore : Can not connect to DB AccountingDB
     'DataStore',
     # TransformationManager : Can not connect to DB TransformationDB
-    'TransformationManager' ]
+    'TransformationManager', ]
                
 }   
     
