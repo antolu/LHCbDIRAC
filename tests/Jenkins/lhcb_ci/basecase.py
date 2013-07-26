@@ -19,19 +19,39 @@ import lhcb_ci.service
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
 
 
-class Base_TestCase( unittest.TestCase ):  
+class Base_TestCase( unittest.TestCase ):
+  """ Base_TestCase
+  
+  BaseCase extending unittests used by lhcb_ci tests. It sets a logger with two
+  handlers: file and stream for errors. It also provides automatic exception detection
+  making use of the exceptions module.
+  
+  """
 
   log        = lhcb_ci.logger
   exceptions = None
   
+  
   def logTestName( self, testName ):
+    """ logTestName
+    
+    Prints a header with the test name.
+    
+    """
     
     self.log.debug( '.' * 80 )
     self.log.info( testName )
     self.log.debug( '.' * 80 )
     
+    
   @classmethod
   def setUpClass( cls ):
+    """ setUpClass
+    
+    When a test is loaded, the local configuration is loaded and parsed to detect
+    proxies and environment variables.
+    
+    """
 
     # Print separator
     cls.log.info( '=' * 80 )
@@ -43,14 +63,26 @@ class Base_TestCase( unittest.TestCase ):
     
     cls.workspace = lhcb_ci.db.workspace
 
+
   @classmethod
   def tearDownClass( cls ):
+    """ tearDownClass
+    
+    Nothing special, just a separator.
+    
+    """
     
     # Print separator
     cls.log.info( '#' * 80 )
      
   
   def setUp( self ):
+    """ setUp
+    
+    Prints a header with the class name and loads exceptions using the MODULE
+    name, not the CLASS name.
+    
+    """
     
     self.log.debug( '-' * 80 )
     self.log.debug( self.__class__.__name__ )  
@@ -60,12 +92,24 @@ class Base_TestCase( unittest.TestCase ):
 
 
   def assertDIRACEquals( self, first, second, res ):
+    """ assertDIRACEquals
+    
+    This is a wrapper around unittest.assertEquqls that makes use of res[ 'Message ' ]
+    if there is one.
+        
+    """
     
     _message = ( not res[ 'OK' ] and res[ 'Message' ] ) or ''   
     self.assertEquals( first, second, _message )
     
     
   def isException( self, value ):
+    """ isException
+    
+    Given a value and the already loaded exceptions dictionary, decides whether
+    it is an exception or not.
+    
+    """
     
     testMethod = inspect.stack()[1][3]
     
@@ -80,10 +124,22 @@ class Base_TestCase( unittest.TestCase ):
     
     
 class DB_TestCase( Base_TestCase ):
+  """ DB_TestCase
+  
+  TestCase for database related tests. It parses databases file and transforms it
+  into a dictionary ( databases ). Similarly, MySQL passwords are parsed from files. 
+  
+  """
 
   
   @classmethod
   def setUpClass( cls ):
+    """ setUpClass
+    
+    Prints a little header, and parses files with relevant information which will
+    be used on the tests.
+    
+    """
 
     super( DB_TestCase, cls ).setUpClass()
     cls.log.debug( '::: DB_TestCase setUpClass :::' )
@@ -97,6 +153,7 @@ class DB_TestCase( Base_TestCase ):
     """ setUp
     
     Makes sure there are no DBs installed before starting the test.
+    
     """
     
     super( DB_TestCase, self ).setUp()
@@ -115,6 +172,7 @@ class DB_TestCase( Base_TestCase ):
     """ tearDown
     
     Makes sure there are no DBs installed after the test.
+    
     """
     
     super( DB_TestCase, self ).tearDown()
@@ -129,10 +187,21 @@ class DB_TestCase( Base_TestCase ):
       self.fail( 'DBs still installed: %s' % res[ 'Value' ] )
 
 
-class Service_TestCase( DB_TestCase ):  
+class Service_TestCase( DB_TestCase ):
+  """ Service_TestCase
+  
+  TestCase for service related tests. It discovers the service modules in the
+  code from a quick inspection of *Handler.py
+  
+  """
 
   @classmethod
   def setUpClass( cls ):
+    """ setUpClass
+    
+    Prints a little header and discovers tests.
+    
+    """
 
     super( Service_TestCase, cls ).setUpClass()
     cls.log.info( '::: Service_TestCase setUpClass :::' )
@@ -144,6 +213,7 @@ class Service_TestCase( DB_TestCase ):
     """ setUp
     
     Makes sure there are no Services installed before starting the test.
+    
     """
     
     super( Service_TestCase, self ).setUp()
@@ -162,6 +232,7 @@ class Service_TestCase( DB_TestCase ):
     """ tearDown
     
     Makes sure there are no Services installed after the test.
+    
     """
     
     super( Service_TestCase, self ).tearDown()
