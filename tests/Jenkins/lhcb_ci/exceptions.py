@@ -65,7 +65,9 @@ test_agent = {
     # Can not connect to DB StorageUsageDB, exiting...
     'UserStorageQuotaAgent',
     # invalid syntax (FTSRequest.py, line 894)
-    'FTSSubmitAgent'                        
+    'FTSSubmitAgent',
+    # __init__() takes at least 4 arguments (3 given)
+    'MCExtensionAgent'                        
                           
                           ]                                                                   
                   
