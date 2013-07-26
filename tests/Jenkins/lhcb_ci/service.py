@@ -194,7 +194,7 @@ def serveAndPing( sReactor ):
     
   return actionResult 
 
-
+#FIXME: move it to commons.py
 def killThreads( threadsToBeAvoided = [] ):
   """ killThreads
   

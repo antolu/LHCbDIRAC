@@ -7,8 +7,11 @@
 """
 
 
+import threading
+
 import lhcb_ci.agent
 import lhcb_ci.basecase
+import lhcb_ci.service
 
 
 class ConfigureTest( lhcb_ci.basecase.Agent_TestCase ):
@@ -89,30 +92,38 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
     
     for diracSystem, agents in self.swAgents.iteritems():
       
-      for agentName in agents:
+      for agent in agents:
         
-        if self.isException( agentName ):
+        agentName = "%s/%s" % ( diracSystem, agent )
+        
+        if self.isException( agent ):
           continue
         
-        self.log.debug( "%s %s" % ( diracSystem, agentName ) )
+        self.log.debug( agentName )
 
         # Import DIRAC module and get object
-        agentPath = 'DIRAC.%sSystem.Agent.%s' % ( diracSystem, agentName )
+        agentPath = 'DIRAC.%sSystem.Agent.%s' % ( diracSystem, agent )
         self.log.debug( 'VO Importing %s' % agentPath )
         
+        # This also includes the _limbo threads..
+        # Protection measure against out-of-control __init__ methods on Agents
+        threadsToBeAvoided = threading.enumerate() 
+        activeThreads      = threading.active_count()      
+        
         agentMod = lhcb_ci.extensions.import_( agentPath )
-        self.assertEquals( hasattr( agentMod, agentName ), True )
+        self.assertEquals( hasattr( agentMod, agent ), True )
         
-        agentClass = getattr( agentMod, agentName )
+        agentClass = getattr( agentMod, agent )
         
-        try:
-          agentInstance = agentClass()
-          del agentInstance
-          self.fail( 'Created instance of %s should have failed' % agentPath )
-        except RuntimeError, e:          
-          self.assertEquals( str( e ).startswith( 'Can not connect to Agent' ), True )
-    
-    
+        agentInstance = agentClass( agentName, agentName )
+        del agentInstance 
+
+        # Clean leftovers         
+        lhcb_ci.service.killThreads( threadsToBeAvoided )
+        
+        currentActiveThreads = threading.active_count()
+        # We make sure that there are no leftovers on the threading
+        self.assertEquals( activeThreads, currentActiveThreads )
     
 
   #.............................................................................
