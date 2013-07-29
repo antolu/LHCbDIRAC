@@ -86,7 +86,10 @@ dirac_branch_update_workspace(){
 
 }
 
+
 dirac_externals(){
+
+  echo "Getting dirac externals"
 
   wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
   python dirac-install -X -l DIRAC -r `cat $WORKSPACE/new_tag.txt`
@@ -97,7 +100,10 @@ dirac_externals(){
   )
 }
 
+
 dirac_scripts(){
+
+  echo "Getting dirac scripts hacked"
 
   cd $WORKSPACE
   mkdir scripts
