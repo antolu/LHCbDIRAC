@@ -40,7 +40,6 @@ dirac_new_tag(){
   then
     echo "We are on PRE-Release"
     tags=$'integration\n'$tags
-
   else
     echo "We are on PRODUCTION"
     wereOnPreRelease=`echo $currentBranch|grep pre`
