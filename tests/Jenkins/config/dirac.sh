@@ -36,7 +36,7 @@ dirac_new_tag(){
   tags="`git tag | grep $DIRACVERSION | sort -n -t p -k 2`"
 
   nonPreRelease=`echo "$tags" | grep -v pre`
-  if [ ! $nonPreRelease ]
+  if [ ! $"nonPreRelease" ]
   then
     echo "We are on PRE-Release"
     tags=$'integration\n'$tags
