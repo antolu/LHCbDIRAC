@@ -146,8 +146,8 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )  
 
 
-  def test_import_db_modules( self ):
-    """ test_import_db_modules
+  def test_databases_import( self ):
+    """ test_databases_import
     
     Tries to import the DB modules and create a class Object. Iterating over all
     databases found in the code, tries to import their modules and instantiate
@@ -263,14 +263,24 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
   test_databases_install_drop.install = 1
   test_databases_install_drop.db      = 1
   
-  # test_import_db_modules
-  test_import_db_modules.install = 1
-  test_import_db_modules.db      = 1
+  # test_databases_import
+  test_databases_import.install = 1
+  test_databases_import.db      = 1
   
   # test_install_tables
   test_install_tables.install = 1
   test_install_tables.db      = 1
 
+
+class SmokeTest( lhcb_ci.basecase.DB_TestCase ):
+  """ SmokeTest
+  
+  Tests performing basic common operations on the databases.
+  
+  """ 
+
+  pass
+  
     
 #...............................................................................
 #EOF

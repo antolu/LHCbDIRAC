@@ -68,8 +68,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
   """
 
 
-  def test_configured_service_ports( self ):
-    """ test_configured_service_ports
+  def test_service_ports( self ):
+    """ test_service_ports
     
     Tests that the services configuration does not overlap, namely ports.
     
@@ -110,8 +110,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         servFile.write( '%s : %s\n' % ( port, ports[ port ] ) )  
 
 
-  def test_configured_service_authorization( self ):
-    """ test_configured_service_authorization
+  def test_service_authorization( self ):
+    """ test_service_authorization
     
     Tests that the services default configuration sets a minimum security level.
     This means, any / all by Default is forbidden, all the security properties
@@ -278,12 +278,12 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
 
 
   # test_configured_service_ports
-  test_configured_service_ports.configure = 1
-  test_configured_service_ports.service   = 1
+  test_service_ports.configure = 1
+  test_service_ports.service   = 1
   
   # test_configured_service_authorization
-  test_configured_service_authorization.configure = 1
-  test_configured_service_authorization.service   = 1
+  test_service_authorization.configure = 1
+  test_service_authorization.service   = 1
 
   # test_services_install_drop
   test_services_install_drop.install = 1
@@ -293,6 +293,16 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
   test_run_services.install = 1
   test_run_services.service = 1
   
+
+class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
+  """ SmokeTest
+  
+  Tests performing basic common operations on the services.
+  
+  """ 
+
+  pass
+
 
 #...............................................................................
 #EOF

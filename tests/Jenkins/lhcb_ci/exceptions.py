@@ -80,7 +80,7 @@ test_agent = {
 
 test_db = {
 
-  'test_import_db_modules' : [
+  'test_databases_import' : [
     'TransformationDB', 
     'RAWIntegrityDB', 
     'RequestDB', ],
@@ -135,7 +135,7 @@ test_service = {
     # TransformationManager : Can not connect to DB TransformationDB
     'TransformationManager', ],
 
-  'test_configured_service_authorization' : [ 
+  'test_service_authorization' : [ 
     'BookkeepingManager', 
     'Publisher', 
     'ProductionRequest', 
@@ -152,7 +152,7 @@ test_service = {
     'Server',
     'TransformationManager', ],
                   
-  'test_configured_service_ports' : [            
+  'test_service_ports' : [            
     'LcgFileCatalogProxy', 
     'RunDBInterface', 
     'Future', 

@@ -137,5 +137,14 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
   test_agents_import.agent   = 1
 
 
+class SmokeTest( lhcb_ci.basecase.Agent_TestCase ):
+  """ SmokeTest
+  
+  Tests performing basic common operations on the agents.
+  
+  """ 
+
+  pass
+
 #...............................................................................
 #EOF
