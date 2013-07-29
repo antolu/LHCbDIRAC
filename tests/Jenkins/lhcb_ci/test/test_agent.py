@@ -11,7 +11,7 @@ import threading
 
 import lhcb_ci.agent
 import lhcb_ci.basecase
-import lhcb_ci.service
+import lhcb_ci.commons
 
 
 class ConfigureTest( lhcb_ci.basecase.Agent_TestCase ):
@@ -119,7 +119,7 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
         del agentInstance 
 
         # Clean leftovers         
-        lhcb_ci.service.killThreads( threadsToBeAvoided )
+        lhcb_ci.commons.killThreads( threadsToBeAvoided )
         
         currentActiveThreads = threading.active_count()
         # We make sure that there are no leftovers on the threading
