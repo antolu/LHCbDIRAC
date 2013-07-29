@@ -83,8 +83,8 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )
 
 
-  def test_agents_import( self ):
-    """ test_agents_import
+  def test_agents_voimport( self ):
+    """ test_agents_voimport
     
     """
 
@@ -133,8 +133,8 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
   test_agents_install_drop.install = 1
   test_agents_install_drop.agent   = 1
   
-  test_agents_import.install = 1
-  test_agents_import.agent   = 1
+  test_agents_voimport.install = 1
+  test_agents_voimport.agent   = 1
 
 
 class SmokeTest( lhcb_ci.basecase.Agent_TestCase ):

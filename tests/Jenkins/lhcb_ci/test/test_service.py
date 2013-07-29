@@ -11,6 +11,7 @@ import collections
 import threading
 
 import lhcb_ci.basecase
+import lhcb_ci.commons
 import lhcb_ci.db
 import lhcb_ci.service
 
@@ -171,7 +172,57 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         servFile.write( '%s\n' % servName )
         for method, secProp in authRule.iteritems():
           servFile.write( '  %s : %s\n' % ( method.ljust( 40 ), secProp ) )
+
+
+  def test_services_common( self ):
+    """ test_services_common
+    
+    Tests that we can import the service module and instantiate one object.
+    
+    """
+    
+  def test_services_voimport( self ):
+    """ test_services_voimport
+    
+    Tries to import the Handler modules and create a class Object. Iterating over all
+    services found in the code, tries to import their modules and instantiate
+    one class object.
+    
+    """
+    
+    self.logTestName()
+   
+    for diracSystem, services in self.swServices.iteritems():
+      
+      for service in services:
+
+        serviceName = '%s/%s' % ( diracSystem, service )
+
+        if self.isException( service ):
+          continue
           
+        # Import DIRAC module and get object
+        servicePath = 'DIRAC.%s.Service.%s' % ( diracSystem, service )
+        self.log.debug( 'VO Importing %s' % servicePath )
+        
+        # Keep track of threads to wash them
+        currentThreads, activeThreads = lhcb_ci.commons.trackThreads()
+        
+        serviceMod = lhcb_ci.extensions.import_( servicePath )
+        self.assertEquals( hasattr( serviceMod, service ), True )
+        
+        serviceClass = getattr( serviceMod, service )
+        
+        lhcb_ci.service.initializeServiceClass( serviceClass, serviceName )
+        
+        serviceInstance = serviceClass( {}, None )
+        del serviceInstance    
+
+        # Clean leftovers         
+        threadsAfterPurge = lhcb_ci.commons.killThreads( currentThreads )
+        # We make sure that there are no leftovers on the threading
+        self.assertEquals( activeThreads, threadsAfterPurge )
+
 
   def test_services_install_drop( self ):
     """ test_services_install_drop
@@ -201,7 +252,35 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         
         res = lhcb_ci.service.uninstallService( system, service )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )
-        
+    
+
+  #.............................................................................    
+  # Nosetests attrs
+
+  # test_configured_service_ports
+  test_service_ports.configure = 1
+  test_service_ports.service   = 1
+  
+  # test_configured_service_authorization
+  test_service_authorization.configure = 1
+  test_service_authorization.service   = 1
+
+  test_services_voimport.installTest = 1
+  test_services_voimport.service     = 1
+
+  # test_services_install_drop
+  test_services_install_drop.install = 1
+  test_services_install_drop.service = 1
+  
+    
+
+class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
+  """ SmokeTest
+  
+  Tests performing basic common operations on the services.
+  
+  """
+  
 
   def test_run_services( self ):
     """ test_run_services
@@ -231,9 +310,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
 
         self.log.debug( "%s %s" % ( system, service ) )
         
-        # This also includes the _limbo threads..
-        threadsToBeAvoided = threading.enumerate() 
-        activeThreads      = threading.active_count()      
+        # Keep track of threads to wash them
+        currentThreads, activeThreads = lhcb_ci.commons.trackThreads()
         
         # Tries to find on the same system a database to be installed. If it fails,
         # installs all databases on the system.      
@@ -266,43 +344,19 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
           self.assertDIRACEquals( db[ 'OK' ], True, db )
         
         # Clean leftovers         
-        lhcb_ci.service.killThreads( threadsToBeAvoided )
-        
-        currentActiveThreads = threading.active_count()
+        threadsAfterPurge = lhcb_ci.commons.killThreads( currentThreads )
         # We make sure that there are no leftovers on the threading
-        self.assertEquals( activeThreads, currentActiveThreads )
-    
+        self.assertEquals( activeThreads, threadsAfterPurge )
+
 
   #.............................................................................    
   # Nosetests attrs
 
 
-  # test_configured_service_ports
-  test_service_ports.configure = 1
-  test_service_ports.service   = 1
-  
-  # test_configured_service_authorization
-  test_service_authorization.configure = 1
-  test_service_authorization.service   = 1
-
-  # test_services_install_drop
-  test_services_install_drop.install = 1
-  test_services_install_drop.service = 1
-  
   # test_run_services
   test_run_services.install = 1
   test_run_services.service = 1
   
-
-class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
-  """ SmokeTest
-  
-  Tests performing basic common operations on the services.
-  
-  """ 
-
-  pass
-
 
 #...............................................................................
 #EOF

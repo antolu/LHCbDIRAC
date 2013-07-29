@@ -83,9 +83,31 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
   
   """ 
   
+
+  #FIXME: this test is redundant and should be deleted.        
+  def test_databases_install_drop( self ):
+    """ test_databases_install_drop
+    
+    Tests that we can install databases on the MySQL server using a DIRAC command
+    and drop directly databases from the MySQL server using a SQL statement.
+    
+    """
+   
+    self.logTestName()
+
+    for systemDBs in self.databases.itervalues():   
+    
+      for dbName in systemDBs:
+
+        res = lhcb_ci.db.installDB( dbName )         
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
+                
+        res = lhcb_ci.db.dropDB( dbName )
+        self.assertDIRACEquals( res[ 'OK' ], True, res )  
   
-  def test_databases_reachable( self ):
-    """ test_databases_reachable
+  
+  def test_databases_common( self ):
+    """ test_databases_common
     
     Tests that we can import the DIRAC DB objects pointing to an specific Database.
     It iterates over all databases discovered on the code *DB.py objects and instantiates
@@ -122,32 +144,10 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         del db
         res = lhcb_ci.db.dropDB( dbName )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
-   
-          
-  #FIXME: this test is redundant and should be deleted.        
-  def test_databases_install_drop( self ):
-    """ test_databases_install_drop
-    
-    Tests that we can install databases on the MySQL server using a DIRAC command
-    and drop directly databases from the MySQL server using a SQL statement.
-    
-    """
-   
-    self.logTestName()
-
-    for systemDBs in self.databases.itervalues():   
-    
-      for dbName in systemDBs:
-
-        res = lhcb_ci.db.installDB( dbName )         
-        self.assertDIRACEquals( res[ 'OK' ], True, res )
-                
-        res = lhcb_ci.db.dropDB( dbName )
-        self.assertDIRACEquals( res[ 'OK' ], True, res )  
 
 
-  def test_databases_import( self ):
-    """ test_databases_import
+  def test_databases_voimport( self ):
+    """ test_databases_voimport
     
     Tries to import the DB modules and create a class Object. Iterating over all
     databases found in the code, tries to import their modules and instantiate
@@ -254,18 +254,17 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
   #.............................................................................    
   # Nosetests attrs
 
-  
-  # test_databases_reachable
-  test_databases_reachable.install = 1
-  test_databases_reachable.db      = 1
-  
   # test_databases_install_drop
   test_databases_install_drop.install = 1
-  test_databases_install_drop.db      = 1
+  test_databases_install_drop.db      = 1  
+  
+  # test_databases_reachable
+  test_databases_common.install = 1
+  test_databases_common.db      = 1
   
   # test_databases_import
-  test_databases_import.install = 1
-  test_databases_import.db      = 1
+  test_databases_voimport.install = 1
+  test_databases_voimport.db      = 1
   
   # test_install_tables
   test_install_tables.install = 1
