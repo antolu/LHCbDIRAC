@@ -80,8 +80,9 @@ dirac_branch_update_workspace(){
   ( [ $new_tag ] && git checkout tags/$new_tag -b $new_tag ) || git checkout $current
 
   cd ..
-  [ ! -e Linux_x86_64_glibc-2.5 ] && dirac_externals
   [ ! -e scripts ] && dirac_scripts
+  [ ! -e Linux_x86_64_glibc-2.5 ] && dirac_externals
+  
 
 }
 
@@ -89,7 +90,11 @@ dirac_externals(){
 
   wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
   python dirac-install -X -l DIRAC -r `cat $WORKSPACE/new_tag.txt`
-
+  ( 
+    . bashrc
+    python `which easy_install` nose
+    python `which easy_install` pylint  
+  )
 }
 
 dirac_scripts(){
