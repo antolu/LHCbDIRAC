@@ -198,7 +198,7 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         currentThreads, activeThreads = lhcb_ci.commons.trackThreads()
         
         # Tries to connect to the Service using the Service DIRAC module
-        self.log.debug( 'Service %s/%s' % serviceName )
+        self.log.debug( 'Service %s' % serviceName )
         service = lhcb_ci.service.getService( serviceName )
         
         # Cleanup
