@@ -196,22 +196,23 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
       
       for service in services:
 
-        serviceName = '%s/%s' % ( diracSystem, service )
-
-        if self.isException( service ):
+        serviceName   = '%s/%s' % ( diracSystem, service )
+        serviceHander = '%sHandler' % service  
+         
+        if self.isException( serviceHander ):
           continue
           
         # Import DIRAC module and get object
-        servicePath = 'DIRAC.%s.Service.%s' % ( diracSystem, service )
+        servicePath = 'DIRAC.%sSystem.Service.%s' % ( diracSystem, serviceHander )
         self.log.debug( 'VO Importing %s' % servicePath )
         
         # Keep track of threads to wash them
         currentThreads, activeThreads = lhcb_ci.commons.trackThreads()
         
         serviceMod = lhcb_ci.extensions.import_( servicePath )
-        self.assertEquals( hasattr( serviceMod, service ), True )
+        self.assertEquals( hasattr( serviceMod, serviceHander ), True )
         
-        serviceClass = getattr( serviceMod, service )
+        serviceClass = getattr( serviceMod, serviceHander )
         
         lhcb_ci.service.initializeServiceClass( serviceClass, serviceName )
         

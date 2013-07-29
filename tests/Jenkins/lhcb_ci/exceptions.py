@@ -97,6 +97,11 @@ test_db = {
 
 test_service = {
 
+  'test_services_voimport' : [
+    # BookkeepingManager : cx_Oracle
+    'BookkeepingManagerHandler'                              
+                              ],
+
   'test_run_services' : [
     # BookkeepingManager : cx_Oracle
     'BookkeepingManager',
