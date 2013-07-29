@@ -6,9 +6,6 @@
   
 """
 
-
-import threading
-
 # Python libraries
 from threading import Thread
 from time      import sleep
