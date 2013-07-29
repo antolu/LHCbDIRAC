@@ -81,6 +81,7 @@ dirac_branch_update_workspace(){
 
   cd ..
   [ ! -e Linux_x86_64_glibc-2.5 ] && dirac_externals
+  [ ! -e scripts ] && dirac_scripts
 
 }
 
@@ -91,6 +92,13 @@ dirac_externals(){
 
 }
 
+dirac_scripts(){
+
+  cd $WORKSPACE
+  mkdir scripts
+  cp DIRAC/Core/scripts/dirac-platform.py scripts/dirac-platform
+
+}
 
 #-------------------------------------------------------------------------------
 #EOF
