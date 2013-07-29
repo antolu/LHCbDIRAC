@@ -25,8 +25,8 @@ class ConfigureTest( lhcb_ci.basecase.DB_TestCase ):
   
   """
   
-  def test_configured_mysql_passwords( self ):
-    """ test_configured_mysql_passwords
+  def test_configure_mysql_passwords( self ):
+    """ test_configure_mysql_passwords
     
     Makes sure the passwords are properly set on the dirac.cfg and accessed via
     the InstallTools module.
@@ -45,8 +45,8 @@ class ConfigureTest( lhcb_ci.basecase.DB_TestCase ):
     self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )       
   
   
-  def test_configure_db( self ):
-    """ test_configure_db
+  def test_configure_dbs( self ):
+    """ test_configure_dbs
     
     Tests that we can configure databases on an "empty CS".
     """
@@ -68,12 +68,12 @@ class ConfigureTest( lhcb_ci.basecase.DB_TestCase ):
 
   
   # test_configured_mysql_passwords
-  test_configured_mysql_passwords.configure = 1
-  test_configured_mysql_passwords.db        = 1
+  test_configure_mysql_passwords.configure = 1
+  test_configure_mysql_passwords.db        = 1
   
   # test_configure_db
-  test_configure_db.configure = 1
-  test_configure_db.db        = 1   
+  test_configure_dbs.configure = 1
+  test_configure_dbs.db        = 1   
 
 
 class InstallationTest( lhcb_ci.basecase.DB_TestCase ):

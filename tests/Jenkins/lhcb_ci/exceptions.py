@@ -12,7 +12,7 @@
 
 test_agent = {
                   
-  'test_configure_agent' : [
+  'test_configure_agents' : [
     # NagiosConsumerAgent : Can not find Agents/NagiosConsumerAgent in template                       
     'NagiosConsumerAgent',
     # ElementInspectorAgent : Can not find Agents/ElementInspectorAgent in template
@@ -159,7 +159,7 @@ test_service = {
     'MigrationMonitoring', 
     'ProductionRequest', ],
                 
-  'test_configure_service' : [
+  'test_configure_services' : [
     # ProductionRequest : Can not find Services/ProductionRequest in template                          
     'ProductionRequest', 
     # RunDBInterface : Can not find Services/RunDBInterface in template

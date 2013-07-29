@@ -28,8 +28,8 @@ class ConfigureTest( lhcb_ci.basecase.Service_TestCase ):
   
   """
 
-  def test_configure_service( self ):
-    """ test_configure_service
+  def test_configure_services( self ):
+    """ test_configure_services
     
     Test that we can configure services on an "empty CS".
     """
@@ -56,8 +56,8 @@ class ConfigureTest( lhcb_ci.basecase.Service_TestCase ):
   # Nosetests attrs
 
   # test_configure_service
-  test_configure_service.configure = 1
-  test_configure_service.service   = 1
+  test_configure_services.configure = 1
+  test_configure_services.service   = 1
 
 
 class InstallationTest( lhcb_ci.basecase.Service_TestCase ):

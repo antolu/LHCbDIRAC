@@ -27,8 +27,8 @@ class ConfigureTest( lhcb_ci.basecase.Agent_TestCase ):
   
   """
   
-  def test_configure_agent( self ):
-    """ test_configure_agent
+  def test_configure_agents( self ):
+    """ test_configure_agents
     """
     
     self.logTestName()
@@ -47,8 +47,8 @@ class ConfigureTest( lhcb_ci.basecase.Agent_TestCase ):
   #.............................................................................
   # Nosetests attrs
   
-  test_configure_agent.configure = 1
-  test_configure_agent.agent     = 1  
+  test_configure_agents.configure = 1
+  test_configure_agents.agent     = 1  
   
 
 class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
