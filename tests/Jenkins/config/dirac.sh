@@ -15,7 +15,6 @@ dirac_branch(){
   then
     echo 'Getting new DIRAC'
     git clone git://github.com/DIRACGrid/DIRAC.git
-#    cd DIRAC
   else
     echo 'Fetching latest DIRAC'
     cd DIRAC
