@@ -16,6 +16,7 @@ from time      import sleep
 # DIRAC
 from DIRAC                                         import gConfig 
 from DIRAC.ConfigurationSystem.Client              import PathFinder
+from DIRAC.Core.DISET.private.MessageBroker        import MessageBroker
 from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
 from DIRAC.Core.DISET.RPCClient                    import RPCClient
 from DIRAC.Core.DISET.ServiceReactor               import ServiceReactor
@@ -135,6 +136,20 @@ def uninstallService( system, service ):
   return InstallTools.uninstallComponent( system, service )
 
 
+def initializeServiceClass( serviceClass, serviceName ):
+  """ initializeServiceClass
+  
+  The RequestHandler class from where all services inherit has been designed in
+  such a way that requires to run the class method _rh__initializeClass before
+  instantiating any Service object.
+  
+  """
+  
+  msgBroker = MessageBroker( serviceName )
+  serviceClass._rh__initializeClass( { 'serviceName' : serviceName }, None, 
+                                     msgBroker, None )
+
+
 def initializeServiceReactor( system, service ):
   """ initializeServiceReactor
   
@@ -193,27 +208,6 @@ def serveAndPing( sReactor ):
     actionResult = { 'OK' : False, 'Message' : 'server thread is alive' }
     
   return actionResult 
-
-#FIXME: move it to commons.py
-def killThreads( threadsToBeAvoided = [] ):
-  """ killThreads
-  
-  Kills leftover threads to prevent them from interacting with the next execution.
-  """
-  
-  for th in threading.enumerate():
-    
-    if th in threadsToBeAvoided:
-      continue
-    
-    if th.isAlive():
-      try:
-        
-        th._Thread__stop()
-                
-        del threading._active[ th.ident ]
-      except:
-        logger.debug( 'Cannot kill thread %s : %s' % ( th.ident, th.name ) )  
   
 
 class ServiceThread( Thread ):

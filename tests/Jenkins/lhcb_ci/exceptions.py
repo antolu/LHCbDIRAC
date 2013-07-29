@@ -51,7 +51,7 @@ test_agent = {
     'TaskManagerAgentBase'    
                            ],
               
-  'test_agents_import' : [
+  'test_agents_voimport' : [
     # Can't import it                      
     'NagiosConsumerAgent',
     # Can't import it
@@ -80,7 +80,7 @@ test_agent = {
 
 test_db = {
 
-  'test_databases_import' : [
+  'test_databases_voimport' : [
     'TransformationDB', 
     'RAWIntegrityDB', 
     'RequestDB', ],
