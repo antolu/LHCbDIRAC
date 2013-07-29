@@ -294,7 +294,7 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
   test_service_authorization.configure = 1
   test_service_authorization.service   = 1
 
-  test_services_common_import.installTest = 1
+  test_services_common_import.install = 1
   test_services_common_import.service = 1
 
   test_services_voimport.install = 1
