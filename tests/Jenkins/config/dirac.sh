@@ -23,7 +23,8 @@ dirac_branch(){
  
 }
 
-dirac_tags(){
+
+dirac_new_tag(){
 
   cd $WORKSPACE/DIRAC
 
@@ -47,9 +48,40 @@ dirac_tags(){
     tags=$'integration\n'"$nonPreRelease"
   fi
 
-  echo $tags > dirac_tags
+  newTag=`echo $tags | awk -F "$currentBranch " '{ print $2 }' | cut -d ' ' -f 1`
+  
+  echo $currentBranch > ../current.txt
+  echo $newTag > ../new_tag.txt
+
+  cd $WORKSPACE
 
 }
+
+
+dirac_branch_script_trigger(){
+
+  dirac_branch
+  dirac_new_tag
+  new_tag=`cat $WORKSPACE/new_tag.txt`
+  [ $new_tag ] && exit 0
+  exit 1
+
+}
+
+
+dirac_branch_update_workspace(){
+
+  dirac_branch
+  dirac_new_tag
+  
+  new_tag=`cat $WORKSPACE/new_tag.txt`
+  current=`cat $WORKSPACE/current.txt`
+  
+  cd $WORKSPACE/DIRAC
+  ( [ $new_tag ] && git checkout tags/$new_tag -b $new_tag ) || git checkout $current
+
+}
+
 
 #-------------------------------------------------------------------------------
 #EOF
