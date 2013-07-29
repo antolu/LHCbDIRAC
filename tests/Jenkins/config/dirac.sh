@@ -79,6 +79,7 @@ dirac_branch_update_workspace(){
   cd $WORKSPACE/DIRAC
   ( [ $new_tag ] && git checkout tags/$new_tag -b $new_tag ) || git checkout $current
 
+  cd ..
   [ ! -e Linux_x86_64_glibc-2.5 ] && dirac_externals
 
 }
