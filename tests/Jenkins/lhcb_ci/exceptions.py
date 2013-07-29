@@ -101,7 +101,9 @@ test_service = {
     # BookkeepingManager : cx_Oracle
     'BookkeepingManagerHandler',
     # No module named GatewayHandler
-    'GatewayHandler'                              
+    'GatewayHandler',
+    # No module named ServerHandler
+    'ServerHandler'                              
                               ],
 
   'test_run_services' : [
