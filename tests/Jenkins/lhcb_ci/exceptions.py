@@ -99,7 +99,9 @@ test_service = {
 
   'test_services_voimport' : [
     # BookkeepingManager : cx_Oracle
-    'BookkeepingManagerHandler'                              
+    'BookkeepingManagerHandler',
+    # No module named GatewayHandler
+    'GatewayHandler'                              
                               ],
 
   'test_run_services' : [
