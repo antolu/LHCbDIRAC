@@ -174,12 +174,40 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
           servFile.write( '  %s : %s\n' % ( method.ljust( 40 ), secProp ) )
 
 
-  def test_services_common( self ):
-    """ test_services_common
+  def test_services_common_import( self ):
+    """ test_services_common_import
     
-    Tests that we can import the service module and instantiate one object.
+    Tests that we can import the DIRAC Service objects pointing to an specific Service.
+    It iterates over all services discovered on the code *Handler.py objects and instantiates
+    a DIRAC.Core.DISET.private.Service object to interact with them. 
     
     """
+
+    self.logTestName()
+   
+    for diracSystem, services in self.swServices.iteritems():
+      
+      for service in services:
+
+        serviceName = '%s/%s' % ( diracSystem, service )
+          
+        if self.isException( service ):
+          continue
+
+        # Keep track of threads to wash them
+        currentThreads, activeThreads = lhcb_ci.commons.trackThreads()
+        
+        # Tries to connect to the Service using the Service DIRAC module
+        self.log.debug( 'Service %s/%s' % serviceName )
+        service = lhcb_ci.service.getService( serviceName )
+        
+        # Cleanup
+        del service       
+        # Clean leftovers         
+        threadsAfterPurge = lhcb_ci.commons.killThreads( currentThreads )
+        # We make sure that there are no leftovers on the threading
+        self.assertEquals( activeThreads, threadsAfterPurge )        
+            
     
   def test_services_voimport( self ):
     """ test_services_voimport
@@ -266,8 +294,11 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
   test_service_authorization.configure = 1
   test_service_authorization.service   = 1
 
-  test_services_voimport.installTest = 1
-  test_services_voimport.service     = 1
+  test_services_common_import.installTest = 1
+  test_services_common_import.service = 1
+
+  test_services_voimport.install = 1
+  test_services_voimport.service = 1
 
   # test_services_install_drop
   test_services_install_drop.install = 1

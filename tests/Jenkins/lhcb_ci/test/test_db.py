@@ -106,8 +106,8 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )  
   
   
-  def test_databases_common( self ):
-    """ test_databases_common
+  def test_databases_common_import( self ):
+    """ test_databases_common_import
     
     Tests that we can import the DIRAC DB objects pointing to an specific Database.
     It iterates over all databases discovered on the code *DB.py objects and instantiates
@@ -259,8 +259,8 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
   test_databases_install_drop.db      = 1  
   
   # test_databases_reachable
-  test_databases_common.install = 1
-  test_databases_common.db      = 1
+  test_databases_common_import.install = 1
+  test_databases_common_import.db      = 1
   
   # test_databases_import
   test_databases_voimport.install = 1

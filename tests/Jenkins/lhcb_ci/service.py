@@ -17,6 +17,7 @@ from time      import sleep
 from DIRAC                                         import gConfig 
 from DIRAC.ConfigurationSystem.Client              import PathFinder
 from DIRAC.Core.DISET.private.MessageBroker        import MessageBroker
+from DIRAC.Core.DISET.private.Service              import Service
 from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
 from DIRAC.Core.DISET.RPCClient                    import RPCClient
 from DIRAC.Core.DISET.ServiceReactor               import ServiceReactor
@@ -148,6 +149,15 @@ def initializeServiceClass( serviceClass, serviceName ):
   msgBroker = MessageBroker( serviceName )
   serviceClass._rh__initializeClass( { 'serviceName' : serviceName }, None, 
                                      msgBroker, None )
+
+
+def getService( serviceName ):
+  """ getService
+  
+  Returns a Service object, give a serviceName of the form system/service.
+  """
+
+  return Service( { 'loadName' : serviceName, 'modName' : serviceName, 'standalone' : False } )
 
 
 def initializeServiceReactor( system, service ):
