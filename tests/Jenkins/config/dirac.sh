@@ -13,7 +13,7 @@ dirac_get(){
 
   [ $1 ] && project=$1 || project=`echo $JOB_NAME | cut -d '_' -f 1`
 
-  if [ ! -e $project ]
+  if [ ! -e "$project" ]
   then
     echo Getting new $project
     git clone git://github.com/DIRACGrid/$project.git
@@ -119,12 +119,14 @@ dirac_integration_update_workspace(){
   for project in $@
   do
     echo $project
+    cd $WORKSPACE
     dirac_get $project 
     cd $WORKSPACE/$project
     git merge origin/integration
-    cd ..
+    cd $WORKSPACE
   done
 
+  cd $WORKSPACE
   [ ! -e scripts ] && dirac_scripts
   echo integration > $WORKSPACE/new_tag.txt
   [ ! -e Linux_x86_64_glibc-2.5 ] && dirac_externals
