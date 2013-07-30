@@ -39,12 +39,13 @@ dirac_new_tag(){
   if [ ! $"nonPreRelease" ]
   then
     echo "We are on PRE-Release"
-    tags=$'integration\n'$tags
+    #tags=$'integration\n'$tags
   else
     echo "We are on PRODUCTION"
     wereOnPreRelease=`echo $currentBranch|grep pre`
     [ $wereOnPreRelease ] && currentBranch=integration && echo "Moved from PRE-Release to PRODUCTION"
-    tags=$'integration\n'"$nonPreRelease"
+    #tags=$'integration\n'"$nonPreRelease"
+    tags=$nonPreRelease
   fi
 
   #newTag=`echo $tags | awk -F "$currentBranch " '{ print $2 }' | cut -d ' ' -f 1`
