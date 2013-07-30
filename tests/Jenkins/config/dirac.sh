@@ -47,10 +47,11 @@ dirac_new_tag(){
     tags=$'integration\n'"$nonPreRelease"
   fi
 
-  newTag=`echo $tags | awk -F "$currentBranch " '{ print $2 }' | cut -d ' ' -f 1`
+  #newTag=`echo $tags | awk -F "$currentBranch " '{ print $2 }' | cut -d ' ' -f 1`
+  latestTag=`$tags | rev | cut -d ' ' -f 1 | rev`
   
   echo $currentBranch > ../current.txt
-  echo $newTag > ../new_tag.txt
+  echo $latestTag > ../new_tag.txt
 
   cd $WORKSPACE
 
@@ -62,7 +63,8 @@ dirac_branch_script_trigger(){
   dirac_branch
   dirac_new_tag
   new_tag=`cat $WORKSPACE/new_tag.txt`
-  [ $new_tag ] && exit 0
+  cur_tag=`cat $WORKSPACE/current.txt`
+  [ $new_tag != $cur_tag ] && exit 0
   exit 1
 
 }
@@ -74,10 +76,10 @@ dirac_branch_update_workspace(){
   dirac_new_tag
   
   new_tag=`cat $WORKSPACE/new_tag.txt`
-  current=`cat $WORKSPACE/current.txt`
+  cur_tag=`cat $WORKSPACE/current.txt`
   
   cd $WORKSPACE/DIRAC
-  ( [ $new_tag ] && git checkout tags/$new_tag -b $new_tag ) || git checkout $current
+  ( [ $new_tag != $cur_tag ] && git checkout tags/$new_tag -b $new_tag ) || git checkout $cur_tag
 
   cd ..
   [ ! -e scripts ] && dirac_scripts
