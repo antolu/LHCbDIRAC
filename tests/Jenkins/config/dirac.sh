@@ -55,11 +55,9 @@ dirac_new_tag(){
     echo "We are on PRODUCTION"
     wereOnPreRelease=`echo $currentBranch|grep pre`
     [ $wereOnPreRelease ] && currentBranch=integration && echo "Moved from PRE-Release to PRODUCTION"
-    #tags=$'integration\n'"$nonPreRelease"
-    tags=`echo $nonPreRelease | sort -n -t p -k 2`
+    tags=`echo "$nonPreRelease" | sort -n -t p -k 2`
   fi
 
-  #newTag=`echo $tags | awk -F "$currentBranch " '{ print $2 }' | cut -d ' ' -f 1`
   latestTag=`echo $tags | rev | cut -d ' ' -f 1 | rev`
   
   echo $currentBranch > ../current.txt
