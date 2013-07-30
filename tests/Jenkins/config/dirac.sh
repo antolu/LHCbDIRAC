@@ -123,7 +123,6 @@ dirac_integration_update_workspace(){
   do
     echo $project
     dirac_get $project 
-    project=`echo $JOB_NAME | cut -d '_' -f 1`
     cd $WORKSPACE/$project
     git merge origin/integration
     cd ..
