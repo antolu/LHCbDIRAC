@@ -99,7 +99,8 @@ dirac_externals(){
   ( 
     . bashrc
     python `which easy_install` nose
-    python `which easy_install` pylint  
+    python `which easy_install` pylint
+    python `which easy_install` mock  
   )
 }
 
