@@ -98,7 +98,7 @@ dirac_branch_script_trigger(){
 
 dirac_branch_update_workspace(){
 
-  dirac_branch
+  dirac_get
   dirac_new_tag
   
   new_tag=`cat $WORKSPACE/new_tag.txt`
@@ -122,7 +122,7 @@ dirac_integration_update_workspace(){
   for project in $@
   do
     echo $project
-    dirac_branch $project 
+    dirac_get $project 
     project=`echo $JOB_NAME | cut -d '_' -f 1`
     cd $WORKSPACE/$project
     git merge origin/integration
