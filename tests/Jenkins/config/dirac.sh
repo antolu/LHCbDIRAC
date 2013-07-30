@@ -11,9 +11,15 @@
 
 dirac_get(){
 
+
+
   [ $1 ] && project=$1 || project=`echo $JOB_NAME | cut -d '_' -f 1`
 
-  if [ ! -e "$project" ]
+  pwd
+  echo $project
+  ll
+
+  if [ ! -e $project ]
   then
     echo Getting new $project
     git clone git://github.com/DIRACGrid/$project.git
