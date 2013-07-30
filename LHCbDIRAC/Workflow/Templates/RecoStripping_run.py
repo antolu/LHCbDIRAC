@@ -66,7 +66,7 @@ pr.previousProdID = int( '{{previousProdID#GENERAL: previous prod ID (for BK que
 pr.fractionToProcess = int( '{{fractionToProcess#GENERAL: fraction to process, per run#0}}' )
 pr.minFilesToProcess = int( '{{minFilesToProcess#GENERAL: minimum number of files to process, per run#0}}' )
 
-#reco params
+# reco params
 recoPriority = int( '{{RecoPriority#PROD-1:RECO(Stripp): priority#2}}' )
 recoCPU = '{{RecoMaxCPUTime#PROD-1:RECO(Stripp): Max CPU time in secs#1000000}}'
 recoPlugin = '{{RecoPluginType#PROD-1:RECO(Stripp): production plugin name#AtomicRun}}'
@@ -74,20 +74,18 @@ recoFilesPerJob = '{{RecoFilesPerJob#PROD-1:RECO(Stripp): Group size or number o
 recoDataSE = '{{RecoDataSE#PROD-1:RECO(Stripp): Output Data Storage Element#Tier1-BUFFER}}'
 recoType = '{{RecoType#PROD-1:RECO(Stripp): DataReconstruction or DataReprocessing#DataReconstruction}}'
 recoIDPolicy = '{{recoIDPolicy#PROD-1:RECO(Stripp): policy for input data access (download or protocol)#download}}'
-recoSysConfig = '{{recoSystemConfig#PROD-1:RECO(Stripp): system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 recoMulticoreFlag = '{{recoMulticoreFLag#PROD-1: multicore flag#True}}'
 
-#stripp params
+# stripp params
 strippPriority = int( '{{priority#PROD-2:Stripping: priority#5}}' )
 strippCPU = '{{StrippMaxCPUTime#PROD-2:Stripping: Max CPU time in secs#1000000}}'
 strippPlugin = '{{StrippPluginType#PROD-2:Stripping: plugin name#ByRunWithFlush}}'
 strippFilesPerJob = '{{StrippFilesPerJob#PROD-2:Stripping: Group size or number of files per job#2}}'
 strippDataSE = '{{StrippStreamSE#PROD-2:Stripping: output data SE (un-merged streams)#Tier1-BUFFER}}'
 strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data access (download or protocol)#download}}'
-strippSysConfig = '{{strippSystemConfig#PROD-2:Stripping: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 strippMulticoreFlag = '{{strippMulticoreFLag#PROD-2: multicore flag#True}}'
 
-#merging params
+# merging params
 mergingPriority = int( '{{MergePriority#PROD-3:Merging: priority#8}}' )
 mergingCPU = '{{MergeMaxCPUTime#PROD-3:Merging: Max CPU time in secs#300000}}'
 mergingPlugin = '{{MergePlugin#PROD-3:Merging: plugin#ByRunFileTypeSizeWithFlush}}'
@@ -95,16 +93,15 @@ mergingGroupSize = '{{MergeFileSize#PROD-3:Merging: Size (in GB) of the merged f
 mergingDataSE = '{{MergeStreamSE#PROD-3:Merging: output data SE (merged streams)#Tier1-DST}}'
 mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access (download or protocol)#download}}'
 mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data flag True/False#True}}'
-mergeSysConfig = '{{mergeSystemConfig#PROD-3:Merging: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 mergeMulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
 
 pr.requestID = '{{ID}}'
 pr.prodGroup = '{{pDsc}}'
-#used in case of a test e.g. certification etc.
+# used in case of a test e.g. certification etc.
 pr.configName = '{{configName}}'
 pr.configVersion = '{{configVersion}}'
-#Other parameters from the request page
-pr.dqFlag = '{{inDataQualityFlag}}' #UNCHECKED
+# Other parameters from the request page
+pr.dqFlag = '{{inDataQualityFlag}}'  # UNCHECKED
 pr.dataTakingConditions = '{{simDesc}}'
 pr.processingPass = '{{inProPass}}'
 pr.bkFileType = '{{inFileType}}'
@@ -142,9 +139,9 @@ else:
 recoInputDataList = []
 strippInputDataList = []
 if not pr.publishFlag:
-  #this is 1380Gev MagUp
-  #recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/88162/088162_0000000020.raw'
-  #this is collision11
+  # this is 1380Gev MagUp
+  # recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/88162/088162_0000000020.raw'
+  # this is collision11
   recoTestData = 'LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/89333/089333_0000000003.raw'
   recoInputDataList.append( recoTestData )
   recoIDPolicy = 'protocol'
@@ -159,7 +156,7 @@ if not pr.publishFlag:
 
 pr.outConfigName = pr.configName
 
-#In case we want just to test, we publish in the certification/test part of the BKK
+# In case we want just to test, we publish in the certification/test part of the BKK
 if pr.testFlag:
   pr.outConfigName = 'certification'
   pr.configVersion = 'test'
@@ -194,7 +191,6 @@ if w1:
   pr.inputs = [recoInputDataList]
   pr.inputDataPolicies = [recoIDPolicy]
   pr.bkQueries = ['Full']
-  pr.sysConfig = [recoSysConfig]
   pr.targets = [targetSite]
   pr.multicore = [recoMulticoreFlag]
   pr.outputModes = ['Local']
@@ -212,7 +208,6 @@ elif w2:
   pr.inputs = [strippInputDataList, []]
   pr.inputDataPolicies = [strippIDPolicy, mergingIDPolicy]
   pr.bkQueries = ['Full', 'fromPreviousProd']
-  pr.sysConfig = [strippSysConfig, mergeSysConfig]
   pr.targets = [targetSite, targetSite]
   pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Local', 'Any']
@@ -230,7 +225,6 @@ elif w3:
   pr.inputs = [recoInputDataList, []]
   pr.inputDataPolicies = [recoIDPolicy, mergingIDPolicy]
   pr.bkQueries = ['Full', 'fromPreviousProd']
-  pr.sysConfig = [recoSysConfig, mergeSysConfig]
   pr.targets = [targetSite, targetSite]
   pr.multicore = [recoMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Local', 'Any']
@@ -249,7 +243,6 @@ elif w4:
   pr.inputs = [recoInputDataList, [], []]
   pr.inputDataPolicies = [recoIDPolicy, strippIDPolicy, mergingIDPolicy]
   pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
-  pr.sysConfig = [recoSysConfig, strippSysConfig, mergeSysConfig]
   pr.targets = [targetSite, targetSite, targetSite]
   pr.multicore = [recoMulticoreFlag, strippMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Local', 'Local', 'Any']

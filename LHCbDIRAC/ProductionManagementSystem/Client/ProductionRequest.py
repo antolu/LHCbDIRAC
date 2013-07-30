@@ -76,7 +76,6 @@ class ProductionRequest( object ):
     # parameters of each production (the length of each list has to be the same as the number of productions
     self.events = []
     self.CPUeList = []
-    self.sysConfig = []
     self.stepsList = []
     self.extraOptions = {}
     self.prodsTypeList = []
@@ -200,7 +199,6 @@ class ProductionRequest( object ):
                                     transformationFamily = prodDict['transformationFamily'],
                                     events = prodDict['events'],
                                     CPUe = prodDict['CPUe'],
-                                    sysConfig = prodDict['sysConfig'],
                                     multicore = prodDict['multicore'] )
 
       # check if we have to extend on multiple jobs
@@ -302,7 +300,6 @@ class ProductionRequest( object ):
         stepID = self.stepsList[index]
         events = self.events[index]
         CPUe = self.CPUeList[index]
-        sysConfig = self.sysConfig[index]
         targets = self.targets[index]
         multicore = self.multicore[index]
         outputMode = self.outputModes[index]
@@ -325,7 +322,6 @@ class ProductionRequest( object ):
           self.stepsList.pop( index )
           self.events.pop( index )
           self.CPUeList.pop( index )
-          self.sysConfig.pop( index )
           self.targets.pop( index )
           self.multicore.pop( index )
           self.outputModes.pop( index )
@@ -352,7 +348,6 @@ class ProductionRequest( object ):
             self.stepsInProds.insert( index + x, [last + x] )
             self.events.insert( index, events )
             self.CPUeList.insert( index, CPUe )
-            self.sysConfig.insert( index, sysConfig )
             self.targets.insert( index, targets )
             self.multicore.insert( index, multicore )
             self.outputModes.insert( index, outputMode )
@@ -379,27 +374,26 @@ class ProductionRequest( object ):
 
     for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
     cpu, inputD, outputMode, outFileMask, outFileStep, target, groupSize, plugin, idp, \
-    previousProd, events, CPUe, sysConfig, multicore in itertools.izip( self.prodsTypeList,
-                                                                        self.stepsInProds,
-                                                                        self.bkQueries,
-                                                                        self.removeInputsFlags,
-                                                                        self.outputSEs,
-                                                                        self.priorities,
-                                                                        self.cpus,
-                                                                        self.inputs,
-                                                                        self.outputModes,
-                                                                        self.outputFileMasks,
-                                                                        self.outputFileSteps,
-                                                                        self.targets,
-                                                                        self.groupSizes,
-                                                                        self.plugins,
-                                                                        self.inputDataPolicies,
-                                                                        self.previousProds,
-                                                                        self.events,
-                                                                        self.CPUeList,
-                                                                        self.sysConfig,
-                                                                        self.multicore
-                                                                        ):
+    previousProd, events, CPUe, multicore in itertools.izip( self.prodsTypeList,
+                                                             self.stepsInProds,
+                                                             self.bkQueries,
+                                                             self.removeInputsFlags,
+                                                             self.outputSEs,
+                                                             self.priorities,
+                                                             self.cpus,
+                                                             self.inputs,
+                                                             self.outputModes,
+                                                             self.outputFileMasks,
+                                                             self.outputFileSteps,
+                                                             self.targets,
+                                                             self.groupSizes,
+                                                             self.plugins,
+                                                             self.inputDataPolicies,
+                                                             self.previousProds,
+                                                             self.events,
+                                                             self.CPUeList,
+                                                             self.multicore
+                                                             ):
 
       if not self.parentRequestID and self.requestID:
         transformationFamily = self.requestID
@@ -429,7 +423,6 @@ class ProductionRequest( object ):
                                  'stepsInProd-ProdName': [str( self.stepsList[index - 1] ) + str( self.stepsListDict[index - 1]['fileTypesIn'] ) for index in stepsInProd],
                                  'events': events,
                                  'CPUe' : CPUe,
-                                 'sysConfig': sysConfig,
                                  'multicore': multicore
                                  }
       prodNumber += 1
@@ -471,7 +464,6 @@ class ProductionRequest( object ):
                         transformationFamily = 0,
                         events = -1,
                         CPUe = 1.0,
-                        sysConfig = '',
                         multicore = 'True' ):
     """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object
@@ -522,8 +514,6 @@ class ProductionRequest( object ):
     prod.jobFileGroupSize = groupSize
     if inputDataPolicy:
       prod.LHCbJob.setInputDataPolicy( inputDataPolicy )
-    if sysConfig:
-      prod.setJobParameters( { 'SystemConfig': sysConfig } )
     prod.setOutputMode( outputMode )
     if outputFileMask:
       outputFileMask = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ',' )]

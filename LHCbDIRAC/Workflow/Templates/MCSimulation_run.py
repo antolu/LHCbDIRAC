@@ -67,7 +67,6 @@ targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2
 MCCpu = '{{MCMaxCPUTime#PROD-1:MC: Max CPU time in secs#1000000}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 pr.extend = '{{MCExtend#PROD-1:MC: extend production by this many jobs#100}}'
-MCSysConfig = '{{MCSystemConfig#PROD-1:MC System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc46-opt}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
 
 selectionPlugin = '{{selectionPlugin#PROD-2:Selection: plugin e.g. Standard, BySize#BySize}}'
@@ -75,7 +74,6 @@ selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total s
 selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 by default#6}}'
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
-selSysConfig = '{{selSystemConfig#PROD-2:Selection System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc46-opt}}'
 selmulticoreFlag = '{{selMulticoreFLag#PROD-2: multicore flag#True}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
@@ -83,7 +81,6 @@ mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = 
 mergingPriority = '{{MergingPriority#PROD-3:Merging: Job Priority e.g. 8 by default#8}}'
 mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
-mergeSysConfig = '{{mergeSystemConfig#PROD-3:Merging System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc46-opt}}'
 mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
 
 pr.eventType = '{{eventType}}'
@@ -161,7 +158,6 @@ if w1:
   pr.inputDataPolicies = ['', 'download', 'download']
   pr.CPUeList = [CPUe, '1.0', '1.0']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
-  pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
 
 elif w2:
@@ -190,7 +186,6 @@ elif w2:
   pr.inputDataPolicies = ['', 'download', 'download']
   pr.CPUeList = [CPUe, '1.0', '1.0']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
-  pr.sysConfig = [MCSysConfig, selSysConfig, mergeSysConfig]
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
 
 elif w3:
@@ -221,7 +216,6 @@ elif w3:
   pr.inputDataPolicies = ['', 'download']
   pr.CPUeList = [CPUe, '1.0']
   pr.bkQueries = ['', 'fromPreviousProd']
-  pr.sysConfig = [MCSysConfig, selSysConfig]
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
 
 elif w4:
@@ -239,7 +233,6 @@ elif w4:
   pr.inputDataPolicies = ['', 'download']
   pr.CPUeList = [CPUe, '1.0']
   pr.bkQueries = ['', 'fromPreviousProd']
-  pr.sysConfig = [MCSysConfig, mergeSysConfig]
   pr.multicore = [MCmulticoreFlag, mergemulticoreFlag]
 
 elif w5:
@@ -260,7 +253,6 @@ elif w5:
   pr.inputDataPolicies = ['']
   pr.CPUeList = [CPUe]
   pr.bkQueries = ['']
-  pr.sysConfig = [MCSysConfig]
   pr.multicore = [MCmulticoreFlag]
 
 res = pr.buildAndLaunchRequest()
@@ -269,9 +261,3 @@ if not res['OK']:
   DIRAC.exit( 2 )
 else:
   gLogger.always( "Submitted %s" % str( res['Value'] ) )
-
-gLogger.always( "##########################################################################################" )
-gLogger.always( "##########################################################################################" )
-gLogger.always( "REMINDER: no replication has been created!!! If you want one, please use the script" )
-gLogger.always( "dirac-dms-add-replication --Plugin <yourPlugin> --Production <yourProd> --FileType <yourFileType' --Start" )
-gLogger.always( "##########################################################################################" )

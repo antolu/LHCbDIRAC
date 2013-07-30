@@ -179,9 +179,6 @@ class ModuleBase( object ):
     """ Resolve the input variables that are in the workflow_commons
     """
 
-    if self.workflow_commons.has_key( 'SystemConfig' ):
-      self.systemConfig = self.workflow_commons['SystemConfig']
-
     if self.workflow_commons.has_key( 'runNumber' ):
       self.runNumber = self.workflow_commons['runNumber']
     else:
@@ -245,6 +242,19 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'gaudiSteps' ):
       self.gaudiSteps = self.workflow_commons['gaudiSteps']
 
+    if self.workflow_commons.has_key( 'CPUe' ):
+      self.CPUe = self.workflow_commons['CPUe']
+
+    if self.workflow_commons.has_key( 'multicore' ):
+      self.multicoreJob = self.workflow_commons['multicore']
+
+    if self.workflow_commons.has_key( 'processingPass' ):
+      self.processingPass = self.workflow_commons['processingPass']
+
+    # for newer productions this is found in the step parameter
+    if self.workflow_commons.has_key( 'SystemConfig' ):
+      self.systemConfig = self.workflow_commons['SystemConfig']
+
     # for older productions these are found the step parameters
     if self.workflow_commons.has_key( 'eventType' ):
       self.eventType = self.workflow_commons['eventType']
@@ -254,15 +264,6 @@ class ModuleBase( object ):
 
     if self.workflow_commons.has_key( 'maxNumberOfEvents' ):
       self.maxNumberOfEvents = self.workflow_commons['maxNumberOfEvents']
-
-    if self.workflow_commons.has_key( 'CPUe' ):
-      self.CPUe = self.workflow_commons['CPUe']
-
-    if self.workflow_commons.has_key( 'multicore' ):
-      self.multicoreJob = self.workflow_commons['multicore']
-
-    if self.workflow_commons.has_key( 'processingPass' ):
-      self.processingPass = self.workflow_commons['processingPass']
 
   #############################################################################
 
@@ -344,6 +345,12 @@ class ModuleBase( object ):
     if self.step_commons.has_key( 'optionsFormat' ):
       self.optionsFormat = self.step_commons['optionsFormat']
 
+    if self.step_commons.has_key( 'multiCore' ):
+      self.multicoreStep = self.step_commons['multiCore']
+
+    if self.step_commons.has_key( 'SystemConfig' ):
+      self.systemConfig = self.step_commons['SystemConfig']
+
     # for older productions these are found in the workflow parameters
     if self.step_commons.has_key( 'DDDBTag' ):
       self.DDDBTag = self.step_commons['DDDBTag']
@@ -353,9 +360,6 @@ class ModuleBase( object ):
 
     if self.step_commons.has_key( 'DQTag' ):
       self.DQTag = self.step_commons['DQTag']
-
-    if self.step_commons.has_key( 'multiCore' ):
-      self.multicoreStep = self.step_commons['multiCore']
 
   #############################################################################
 

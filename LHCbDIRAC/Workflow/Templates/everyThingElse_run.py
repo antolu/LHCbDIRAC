@@ -69,7 +69,7 @@ pr.previousProdID = int( '{{previousProdID#GENERAL: previous prod ID (for BK que
 modulesList = '{{modulesList#GENERAL: custom modules list#}}'
 enablePopularityReport = eval( '{{popularityReport#GENERAL: enable popularity report#False}}' )
 
-#p1 params
+# p1 params
 p1Plugin = '{{p1PluginType#PROD-P1: production plugin name#LHCbStandard}}'
 p1Priority = int( '{{p1Priority#PROD-P1: priority#2}}' )
 p1CPU = '{{p1MaxCPUTime#PROD-P1: Max CPU time in secs#1000000}}'
@@ -77,13 +77,12 @@ p1GroupSize = '{{p1GroupSize#PROD-P1: Group size or number of files per job#1}}'
 p1DataSE = '{{p1DataSE#PROD-P1: Output Data Storage Element#Tier1-DST}}'
 p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
 p1RemoveInputs = eval( '{{p1RemoveInputs#PROD-P1: removeInputs flag#False}}' )
-p1sysConfig = '{{P1SystemConfig#PROD-P1: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 p1StepMask = '{{P1StepMask#PROD-P1: step output to save, semicolon separated (default is last)#}}'
 p1multicoreFlag = '{{P1MulticoreFLag#PROD-P1: multicore flag#True}}'
 p1outputMode = '{{P1OutputMode#PROD-P1: output mode#Local}}'
 p1eventsRequested = '{{P1EventsRequested#PROD-P1: events requested (-1 = ALL)#-1}}'
 
-#p2 params
+# p2 params
 p2Plugin = '{{p2PluginType#PROD-P2: production plugin name#LHCbStandard}}'
 p2Priority = int( '{{p2Priority#PROD-P2: priority#2}}' )
 p2CPU = '{{p2MaxCPUTime#PROD-P2: Max CPU time in secs#1000000}}'
@@ -91,13 +90,12 @@ p2GroupSize = '{{p2GroupSize#PROD-P2: Group Size#1}}'
 p2DataSE = '{{p2DataSE#PROD-P2: Output Data Storage Element#Tier1-DST}}'
 p2Policy = '{{p2Policy#PROD-P2: data policy (download or protocol)#download}}'
 p2RemoveInputs = eval( '{{p2RemoveInputs#PROD-P2: removeInputs flag#False}}' )
-p2sysConfig = '{{P2SystemConfig#PROD-P2: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 p2StepMask = '{{P2StepMask#PROD-P2: step output to save, semicolon separated (default is last#}}'
 p2multicoreFlag = '{{P2MulticoreFLag#PROD-P2: multicore flag#True}}'
 p2outputMode = '{{P2OutputMode#PROD-P2: output mode#Local}}'
 p2eventsRequested = '{{P2EventsRequested#PROD-P2: events requested (-1 = ALL)#-1}}'
 
-#p3 params
+# p3 params
 p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
 p3Priority = int( '{{p3Priority#PROD-p3: priority#2}}' )
 p3CPU = '{{p3MaxCPUTime#PROD-P3: Max CPU time in secs#1000000}}'
@@ -105,7 +103,6 @@ p3GroupSize = '{{p3GroupSize#PROD-P3: Group Size#1}}'
 p3DataSE = '{{p3DataSE#PROD-P3: Output Data Storage Element#Tier1-DST}}'
 p3Policy = '{{p3Policy#PROD-P3: data policy (download or protocol)#download}}'
 p3RemoveInputs = eval( '{{p3RemoveInputs#PROD-P3: removeInputs flag#False}}' )
-p3sysConfig = '{{P3SystemConfig#PROD-P3: system config e.g. x86_64-slc5-gcc46-opt#ANY}}'
 p3StepMask = '{{P3StepMask#PROD-P3: step output to save, semicolon separated (default is last#}}'
 p3multicoreFlag = '{{P3MulticoreFLag#PROD-P3: multicore flag#True}}'
 p3outputMode = '{{P3OutputMode#PROD-P3: output mode#Any}}'
@@ -118,12 +115,12 @@ else:
   pr.requestID = parentReq
 
 pr.prodGroup = '{{pDsc}}'
-#used in case of a test e.g. certification etc.
+# used in case of a test e.g. certification etc.
 pr.configName = '{{configName}}'
 pr.configVersion = '{{configVersion}}'
 pr.outConfigName = pr.configName
-#Other parameters from the request page
-pr.dqFlag = '{{inDataQualityFlag}}' #UNCHECKED
+# Other parameters from the request page
+pr.dqFlag = '{{inDataQualityFlag}}'  # UNCHECKED
 pr.dataTakingConditions = '{{simDesc}}'
 pr.processingPass = '{{inProPass}}'
 if p1[0] == 1 and pr.prodsTypeList[0].lower() != 'mcsimulation':
@@ -169,7 +166,7 @@ if not pr.publishFlag:
 else:
   bkScriptFlag = False
 
-#In case we want just to test, we publish in the certification/test part of the BKK
+# In case we want just to test, we publish in the certification/test part of the BKK
 if pr.testFlag:
   pr.outConfigName = 'certification'
   pr.configVersion = 'test'
@@ -204,7 +201,6 @@ pr.groupSizes = [p1GroupSize, p2GroupSize, p3GroupSize][0:len( pr.prodsTypeList 
 pr.plugins = [p1Plugin, p2Plugin, p3Plugin][0:len( pr.prodsTypeList )]
 pr.inputs = [inputDataList, [], []][0:len( pr.prodsTypeList )]
 pr.inputDataPolicies = [p1Policy, p2Policy, p3Policy][0:len( pr.prodsTypeList )]
-pr.sysConfig = [p1sysConfig, p2sysConfig, p3sysConfig][0:len( pr.prodsTypeList )]
 pr.outputFileSteps = [p1StepMask, p2StepMask, p3StepMask]
 pr.multicore = [p1multicoreFlag, p2multicoreFlag, p3multicoreFlag]
 pr.outputModes = [p1outputMode, p2outputMode, p3outputMode]

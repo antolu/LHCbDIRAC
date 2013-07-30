@@ -175,6 +175,9 @@ class Production():
     conddbOpt = stepDict['CONDDB']
     DQOpt = stepDict['DQTag']
     multicore = stepDict['isMulticore']
+    sysConfig = stepDict['SystemConfig']
+    if sysConfig == 'None' or not sysConfig:
+      sysConfig = 'ANY'
 
     if extraPackages:
       if type( extraPackages ) == type( [] ):
@@ -246,7 +249,8 @@ class Production():
                         ['CondDBTag', 'string', '', 'ConditionDatabaseTag'],
                         ['DDDBTag', 'string', '', 'DetDescTag' ],
                         ['DQTag', 'string', '', 'DataQualityTag'],
-                        ['multiCore', 'string', '', 'MultiCore Flag']
+                        ['multiCore', 'string', '', 'MultiCore Flag'],
+                        ['SystemConfig', 'string', '', 'system config']
                         ]
 
       gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
@@ -274,7 +278,8 @@ class Production():
                    ['CondDBTag', conddbOpt],
                    ['DDDBTag', dddbOpt],
                    ['DQTag', DQOpt],
-                   ['multiCore', multicore]
+                   ['multiCore', multicore],
+                   ['SystemConfig', sysConfig]
                    ]
 
     if fileTypesIn:
