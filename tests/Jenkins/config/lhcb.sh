@@ -15,15 +15,26 @@ lhcbdirac_integration_update_workspace(){
 
   rm -rf $WORKSPACE/LHCbDIRAC
   svn co http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC > /dev/null
+
+
+}
+
+lhcbdirac_integration_scripts(){
+
+  cd $WORKSPACE
   
-  # from dirac.sh
-  dirac_get DIRAC
-  cd $WORKSPACE/DIRAC
-  
-  branch=rel-$1
-  git checkout $branch
-  git merge origin/$branch  
-  
+  scripts=`ls LHCbDIRAC/*/scripts/dirac*.py`
+
+  for script in $scripts
+  do
+    mv $script $(echo $script | sed 's/-/_/g' )
+  done
+
+  dirs=`ls LHCbDIRAC/*/scripts -d`
+  for dir in $dirs
+  do
+    touch $dir/__init__.py
+  done
 
 }
 
