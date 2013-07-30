@@ -191,7 +191,7 @@ dirac_scripts(){
   echo "Getting dirac scripts hacked"
 
   cd $WORKSPACE
-  mkdir scripts
+  [ ! -e scripts ] && mkdir scripts
   cp DIRAC/Core/scripts/dirac-platform.py scripts/dirac-platform
 
 }
