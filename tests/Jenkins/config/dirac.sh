@@ -116,9 +116,6 @@ dirac_branch_update_workspace(){
 
 dirac_integration_update_workspace(){
 
-  echo $@
-  echo $i
-
   for project in $@
   do
     echo $project
