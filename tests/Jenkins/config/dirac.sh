@@ -174,6 +174,7 @@ dirac_externals(){
     python `which easy_install` pylint
     python `which easy_install` mock
     python `which easy_install` PIL
+    python `which easy_install` pyqt
   )
 }
 
