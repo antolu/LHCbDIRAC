@@ -16,6 +16,7 @@ lhcbdirac_integration_update_workspace(){
   rm -rf $WORKSPACE/LHCbDIRAC
   svn co http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC > /dev/null
 
+  lhcbdirac_externals
 
 }
 
@@ -35,6 +36,16 @@ lhcbdirac_integration_scripts(){
   do
     touch $dir/__init__.py
   done
+
+}
+
+lhcbdirac_externals(){
+
+  ( 
+    . bashrc
+    python `which easy_install` PIL
+  
+  )
 
 }
 
