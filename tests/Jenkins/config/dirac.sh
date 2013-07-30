@@ -128,7 +128,6 @@ dirac_integration_update_workspace(){
 
   cd $WORKSPACE
   [ ! -e scripts ] && dirac_scripts
-  echo integration > $WORKSPACE/new_tag.txt
   [ ! -e Linux_x86_64_glibc-2.5 ] && dirac_externals
 
 }
@@ -142,14 +141,12 @@ dirac_integration_scripts(){
 
   for script in $scripts
   do
-    echo $script
     mv $script $(echo $script | sed 's/-/_/g' )
   done
 
   dirs=`ls DIRAC/*/scripts -d`
   for dir in $dirs
   do
-    echo $dir
     touch $dir/__init__.py
   done
 
