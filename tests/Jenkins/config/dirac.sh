@@ -16,8 +16,8 @@ dirac_get(){
   [ $1 ] && project=$1 || project=`echo $JOB_NAME | cut -d '_' -f 1`
 
   pwd
-  echo $project
-  ll
+  echo a"$project"a
+  ls
 
   if [ ! -e $project ]
   then
