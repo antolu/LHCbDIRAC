@@ -33,19 +33,20 @@ dirac_new_tag(){
   currentBranch=`git branch | grep '*' | cut -d ' ' -f 2`
   echo currentBranch $currentBranch
   
-  tags="`git tag | grep $DIRACVERSION | sort -n -t p -k 2`"
+  #tags="`git tag | grep $DIRACVERSION | sort -n -t p -k 2`"
+  tags="`git tag | grep $DIRACVERSION`"
 
   nonPreRelease=`echo "$tags" | grep -v pre`
-  if [ ! $"nonPreRelease" ]
+  if [ ! "$nonPreRelease" ]
   then
     echo "We are on PRE-Release"
-    #tags=$'integration\n'$tags
+    tags=`echo $tags | sort -n -t e -k 2`
   else
     echo "We are on PRODUCTION"
     wereOnPreRelease=`echo $currentBranch|grep pre`
     [ $wereOnPreRelease ] && currentBranch=integration && echo "Moved from PRE-Release to PRODUCTION"
     #tags=$'integration\n'"$nonPreRelease"
-    tags=$nonPreRelease
+    tags=`echo $nonPreRelease | sort -n -t p -k 2`
   fi
 
   #newTag=`echo $tags | awk -F "$currentBranch " '{ print $2 }' | cut -d ' ' -f 1`
