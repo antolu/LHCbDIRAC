@@ -288,6 +288,7 @@ class UserJobFinalization( ModuleBase ):
         self.log.info( 'Could not get %s section to turn off mirrors' )
       else:
         for tier in result['Value']:
+          # FIXME: really this check?
           if not tier == 'LCG.CERN.ch':
             tierCfg = '%s/%s/Status' % ( cfgRoot, tier )
             self.log.verbose( 'Setting "%s" to "InActive" in local configuration' % tierCfg )
@@ -296,6 +297,7 @@ class UserJobFinalization( ModuleBase ):
       for lfn, repSE in replication.items():
         result = self.rm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
         if not result['OK']:
+          # FIXME: shouldn't we set a replication request here?
           self.log.info( 'Replication failed with below error\
            but file already exists in Grid storage with at least one replica:\n%s' % ( result['Message'] ) )
 
