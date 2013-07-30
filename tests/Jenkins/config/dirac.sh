@@ -127,8 +127,9 @@ dirac_integration_update_workspace(){
   done
 
   cd $WORKSPACE
-  [ ! -e scripts ] && dirac_scripts
+  
   [ ! -e Linux_x86_64_glibc-2.5 ] && dirac_externals
+  dirac_scripts
 
 }
 
@@ -189,7 +190,7 @@ dirac_scripts(){
   echo "Getting dirac scripts hacked"
 
   cd $WORKSPACE
-  mkdir scripts
+  #mkdir scripts
   cp DIRAC/Core/scripts/dirac-platform.py scripts/dirac-platform
 
 }
