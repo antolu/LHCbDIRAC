@@ -165,12 +165,13 @@ dirac_externals(){
   echo "Getting dirac externals"
 
   wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
-  python dirac-install -X -l DIRAC -r `cat $WORKSPACE/new_tag.txt`
+  python dirac-install -X -l DIRAC -r `cat $WORKSPACE/new_tag.txt` -t server
   ( 
     . bashrc
     python `which easy_install` nose
     python `which easy_install` pylint
-    python `which easy_install` mock  
+    python `which easy_install` mock
+    python `which easy_install` matplotlib  
   )
 }
 
