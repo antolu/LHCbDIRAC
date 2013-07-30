@@ -9,20 +9,28 @@
 # 29/VII/2013
 #-------------------------------------------------------------------------------
 
-dirac_branch(){
+dirac_get(){
 
-  if [ ! -e DIRAC ]
+  [ $1 ] && project=$1 || project=`echo $JOB_NAME | cut -d '_' -f 1`
+
+  if [ ! -e $project ]
   then
-    echo 'Getting new DIRAC'
-    git clone git://github.com/DIRACGrid/DIRAC.git
+    echo Getting new $project
+    git clone git://github.com/DIRACGrid/$project.git
   else
-    echo 'Fetching latest DIRAC'
-    cd DIRAC
+    echo Fetching latest $project
+    cd $project
     git fetch origin
   fi
  
 }
 
+#...............................................................................
+#
+# dirac_new_tag
+#
+# : writes new_tag.txt with the latest tag for the given $JOB_NAME
+#...............................................................................
 
 dirac_new_tag(){
 
@@ -60,9 +68,17 @@ dirac_new_tag(){
 }
 
 
+#...............................................................................
+#
+# dirac_branch_script_trigger
+#
+# : gets DIRAC and decides which is next tag to be taken into account. If there
+# : is a new tag, it exits 0.
+#...............................................................................
+
 dirac_branch_script_trigger(){
 
-  dirac_branch
+  dirac_get
   dirac_new_tag
   new_tag=`cat $WORKSPACE/new_tag.txt`
   cur_tag=`cat $WORKSPACE/current.txt`
@@ -71,6 +87,14 @@ dirac_branch_script_trigger(){
 
 }
 
+
+#...............................................................................
+#
+# dirac_branch_update_workspace
+#
+# : gets DIRAC and decides which is next tag to be taken into account. If needed
+# : checksout a new version of the tag and creates Externals and Scripts ( if needed ).
+#...............................................................................
 
 dirac_branch_update_workspace(){
 
@@ -90,6 +114,32 @@ dirac_branch_update_workspace(){
 
 }
 
+dirac_integration_update_workspace(){
+
+  for project in $@
+  do
+    echo $project
+    dirac_branch $project 
+    project=`echo $JOB_NAME | cut -d '_' -f 1`
+    cd $WORKSPACE/$project
+    git merge origin/integration
+    cd ..
+  done
+
+  [ ! -e scripts ] && dirac_scripts
+  echo integration > $WORKSPACE/new_tag.txt
+  [ ! -e Linux_x86_64_glibc-2.5 ] && dirac_externals
+
+}
+
+
+#...............................................................................
+#
+# dirac_externals
+#
+# : gets dirac-install from the repository and installs externals for the given
+# : tag ( new_tag.txt )
+#...............................................................................
 
 dirac_externals(){
 
@@ -106,6 +156,14 @@ dirac_externals(){
 }
 
 
+#...............................................................................
+#
+# dirac_scripts
+#
+# : mimics the scripts directory, putting on place dirac-platform needed by
+# : bashrc
+#...............................................................................
+
 dirac_scripts(){
 
   echo "Getting dirac scripts hacked"
@@ -115,6 +173,7 @@ dirac_scripts(){
   cp DIRAC/Core/scripts/dirac-platform.py scripts/dirac-platform
 
 }
+
 
 #-------------------------------------------------------------------------------
 #EOF
