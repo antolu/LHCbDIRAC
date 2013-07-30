@@ -40,7 +40,7 @@ dirac_new_tag(){
   if [ ! "$nonPreRelease" ]
   then
     echo "We are on PRE-Release"
-    tags=`echo $tags | sort -n -t e -k 2`
+    tags=`echo "$tags" | sort -n -t e -k 2`
   else
     echo "We are on PRODUCTION"
     wereOnPreRelease=`echo $currentBranch|grep pre`
