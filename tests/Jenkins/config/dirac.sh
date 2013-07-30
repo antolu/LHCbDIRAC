@@ -48,7 +48,7 @@ dirac_new_tag(){
   fi
 
   #newTag=`echo $tags | awk -F "$currentBranch " '{ print $2 }' | cut -d ' ' -f 1`
-  latestTag=`$tags | rev | cut -d ' ' -f 1 | rev`
+  latestTag=`echo $tags | rev | cut -d ' ' -f 1 | rev`
   
   echo $currentBranch > ../current.txt
   echo $latestTag > ../new_tag.txt
