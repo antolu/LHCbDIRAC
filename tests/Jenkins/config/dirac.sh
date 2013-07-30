@@ -173,8 +173,7 @@ dirac_externals(){
     python `which easy_install` nose
     python `which easy_install` pylint
     python `which easy_install` mock
-    #python `which easy_install` matplotlib
-    #python `which easy_install` numpy
+    python `which easy_install` PIL
   )
 }
 
