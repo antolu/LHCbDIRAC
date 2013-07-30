@@ -137,17 +137,19 @@ dirac_integration_update_workspace(){
 dirac_integration_scripts(){
 
   cd $WORKSPACE
-
+  
   scripts=`ls DIRAC/*/scripts/dirac*.py`
 
   for script in $scripts
   do
+    echo $script
     mv $script $(echo $script | sed 's/-/_/g' )
   done
 
   dirs=`ls DIRAC/*/scripts -d`
   for dir in $dirs
   do
+    echo $dir
     touch $dir/__init__.py
   done
 
