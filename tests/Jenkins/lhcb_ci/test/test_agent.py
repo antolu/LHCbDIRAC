@@ -80,7 +80,7 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
         self.assertEquals( res[ 'Value' ][ 'RunitStatus' ], 'Run' )
         
         res = lhcb_ci.agent.uninstallAgent( system, agent )      
-        self.assertDIRACEquals( res[ 'OK' ], True, res )
+        self.assertDIRACEquals( res[ 'OK' ], True, res )  
 
 
   def test_agents_voimport( self ):
