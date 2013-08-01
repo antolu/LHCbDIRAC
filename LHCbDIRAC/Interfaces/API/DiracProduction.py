@@ -767,35 +767,6 @@ class DiracProduction( DiracLHCb ):
 
   #############################################################################
 
-  def setFileStatus( self, lfns, productionID, status, printOutput = False ):
-    """ Set status for the given files in the lfns list for production specified by its ID
-    """
-    if type( productionID ) == type( 2 ):
-      productionID = long( productionID )
-    if not type( productionID ) == type( long( 1 ) ):
-      if not type( productionID ) == type( " " ):
-        return self._errorReport( 'Expected string, long or int for production ID' )
-
-    if type( lfns ) in types.StringTypes:
-      lfnList = [lfns]
-    elif type( lfns ) == types.ListType:
-      lfnList = lfns
-    else:
-      return self._errorReport( 'Expected string or list for LFNs' )
-
-    result = self.transformationClient.setFileStatusForTransformation( productionID, status, lfnList )
-    if printOutput:
-      if not result['OK']:
-        print result
-        print "Failed to update status for files:\n%s" % ( '\n'.join( lfnList ) )
-      for lfn, message in result['Value']['Successful'].items():
-        print "Successful:", lfn, ":", message
-      for lfn, message in result['Value']['Failed'].items():
-        print "Failed:", lfn, ":", message
-
-    return result
-
-  #############################################################################
   def getProdJobOutputData( self, jobID ):
     """ For a single jobID / list of jobIDs retrieve the output data LFN list.
     """
