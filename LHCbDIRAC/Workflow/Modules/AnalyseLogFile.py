@@ -6,8 +6,9 @@ __RCSID__ = "$Id$"
 import os, re, glob
 
 import DIRAC
-from DIRAC                                   import S_OK, S_ERROR, gLogger
-from DIRAC.Resources.Catalog.PoolXMLFile     import getGUID
+from DIRAC                                            import S_OK, S_ERROR, gLogger
+from DIRAC.Resources.Catalog.PoolXMLFile              import getGUID
+from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
 
 from LHCbDIRAC.Core.Utilities.ProductionData import getLogPath, constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase   import ModuleBase
@@ -28,6 +29,7 @@ class AnalyseLogFile( ModuleBase ):
     self.site = DIRAC.siteName()
     self.logFilePath = ''
     self.coreFile = ''
+    self.nc = NotificationClient()
 
 ################################################################################
 
@@ -35,7 +37,7 @@ class AnalyseLogFile( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None,
-               nc = None, logAnalyser = None ):
+               logAnalyser = None ):
     """ Main execution method.
     """
 
@@ -71,7 +73,7 @@ class AnalyseLogFile( ModuleBase ):
       if not analyseLogResult['OK']:
         self.log.error( analyseLogResult['Message'] )
 
-        self._finalizeWithErrors( analyseLogResult['Message'], nc )
+        self._finalizeWithErrors( analyseLogResult['Message'] )
 
         self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), self.fileReport )
         # return S_OK if the Step already failed to avoid overwriting the error
@@ -121,14 +123,13 @@ class AnalyseLogFile( ModuleBase ):
       if type( self.InputData ) != type( [] ):
         inputDataList = self.InputData.split( ';' )
       jobStatusDict = {}
-      #clumsy but now make this a dictionary with default "OK" status for all input data
+      # clumsy but now make this a dictionary with default "OK" status for all input data
       for lfn in inputDataList:
         jobStatusDict[lfn.replace( 'LFN:', '' )] = 'OK'
       dictOfInputData = jobStatusDict
     else:
       self.log.verbose( 'Job has no input data requirement' )
 
-    #Use LHCb utility for local running via jobexec
     if self.workflow_commons.has_key( 'LogFilePath' ):
       self.logFilePath = self.workflow_commons['LogFilePath']
       if type( self.logFilePath ) == type( [] ):
@@ -146,8 +147,7 @@ class AnalyseLogFile( ModuleBase ):
 ################################################################################
 
   def _updateFileStatus( self, inputs, defaultStatus, prod_id, fr ):
-    """ Allows to update file status to a given default, important statuses are
-        not overwritten.
+    """ Allows to update file status to a given default, important statuses are not overwritten.
     """
     for fileName in inputs.keys():
       stat = inputs[fileName]
@@ -160,14 +160,14 @@ class AnalyseLogFile( ModuleBase ):
 
 ################################################################################
 
-  def _finalizeWithErrors( self, subj, nc ):
+  def _finalizeWithErrors( self, subj ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
 
     self.workflow_commons['AnalyseLogFilePreviouslyFinalized'] = True
-    #Have to check that the output list is defined in the workflow commons, this is
-    #done by the first BK report module that executes at the end of a step but in 
-    #this case the current step 'listoutput' must be added.
+    # Have to check that the output list is defined in the workflow commons, this is
+    # done by the first BK report module that executes at the end of a step but in
+    # this case the current step 'listoutput' must be added.
     if self.workflow_commons.has_key( 'outputList' ):
       for outputItem in self.step_commons['listoutput']:
         if outputItem not in self.workflow_commons['outputList']:
@@ -279,11 +279,8 @@ class AnalyseLogFile( ModuleBase ):
       mailAddress = self.opsH.getValue( 'EMail/JobFailures', 'lhcb-datacrash@cern.ch' )
       self.log.info( 'Sending crash mail for job to %s' % ( mailAddress ) )
 
-      if not nc:
-        from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-        nc = NotificationClient()
       for mA in mailAddress.replace( ' ', '' ).split( ',' ):
-        res = nc.sendMail( mA, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
+        res = self.nc.sendMail( mA, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
       if not res['OK']:
         self.log.warn( "The mail could not be sent" )
 
@@ -291,4 +288,4 @@ class AnalyseLogFile( ModuleBase ):
 # END AUXILIAR FUNCTIONS
 ################################################################################
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

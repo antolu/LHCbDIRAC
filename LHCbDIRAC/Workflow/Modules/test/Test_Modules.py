@@ -866,6 +866,7 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
 
     self.alf.stepInputData = ['some.sdst', '00012345_00006789_1.sdst']
     self.alf.jobType = 'merge'
+    self.alf.nc = self.nc_mock,
 
     logAnalyser = Mock()
     logAnalyser.return_value = {'OK':True, 'Value':''}
@@ -876,7 +877,7 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
                                             self.workflowStatus, self.stepStatus,
                                             wf_commons, step_commons,
                                             self.step_number, self.step_id,
-                                            self.nc_mock, logAnalyser )['OK'] )
+                                            logAnalyser )['OK'] )
 
 
     self.alf.jobType = 'reco'
@@ -892,7 +893,7 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, step_commons,
                                           self.step_number, self.step_id,
-                                          self.nc_mock, logAnalyser )['OK'] )
+                                          logAnalyser )['OK'] )
 
     # there's a core dump
     logAnalyser.return_value = {'OK':True, 'Message':''}
@@ -903,7 +904,7 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, step_commons,
                                           self.step_number, self.step_id,
-                                          self.nc_mock, logAnalyser )['OK'] )
+                                          logAnalyser )['OK'] )
 
 
   def test__updateFileStatus( self ):
