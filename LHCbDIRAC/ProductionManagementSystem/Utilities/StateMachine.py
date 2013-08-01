@@ -8,7 +8,8 @@ class LHCbStateMachine( StateMachine ):
   """
 
   def setState( self, candidateState ):
-    """ Makes sure the state is either None or known to the machine, and that it is a valid state to move into
+    """ Makes sure the state is either None or known to the machine, and that it is a valid state to move into.
+        Final states are also checked.
         This is a re-definition of original one that wasn't making these checks
     """
 
@@ -19,18 +20,20 @@ class LHCbStateMachine( StateMachine ):
       self.state = candidateState
     elif candidateState in self.states.keys():
       if not self.states[self.state].stateMap:
-        return S_ERROR( 'Final state' )
+        return S_ERROR( "Final state" )
+      if candidateState not in self.states[self.state].stateMap:
+        return S_ERROR( "Can't move in this state" )
       nextState = self.getNextState( candidateState )
       if not nextState[ 'OK' ]:
         return nextState
       nextState = nextState[ 'Value' ]
       # If the StateMachine does not accept the candidate, return error message
       if candidateState != nextState:
-        return S_ERROR( '%s is not a valid state' % candidateState )
+        return S_ERROR( "%s is not a valid state" % candidateState )
       else:
         self.state = candidateState
     else:
-      return S_ERROR( '%s is not a valid state' % candidateState )
+      return S_ERROR( "%s is not a valid state" % candidateState )
 
     return S_OK()
 
