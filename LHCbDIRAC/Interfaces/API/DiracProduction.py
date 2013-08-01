@@ -765,57 +765,8 @@ class DiracProduction( DiracLHCb ):
       self._prettyPrint( fileStatus['Value'] )
     return fileStatus
 
-
   #############################################################################
-  def selectAndSetFileStatus( self, productionID, selectStatus, selectMinorStatus = '',
-                              site = '', setFlag = 1, setStatus = 'Unused', printOutput = False ):
-    """ Set status for the given files in the lfns list for production specified by its ID
-    """
-    if type( productionID ) == type( 2 ):
-      productionID = long( productionID )
-    if not type( productionID ) == type( long( 1 ) ):
-      if not type( productionID ) == type( " " ):
-        return self._errorReport( 'Expected string, long or int for production ID' )
 
-    jobs = self.selectProductionJobs( productionID, Status = selectStatus,
-                                      MinorStatus = selectMinorStatus, Site = site )
-    if not jobs['OK']:
-      self.log.error( jobs )
-      return jobs
-
-    jobs = jobs['Value']
-    self.log.info( 'Selected %s jobs:\n%s' % ( len( jobs ), ', '.join( jobs ) ) )
-    lfns = []
-    res = self.getJobInputData( jobs )
-    # print res
-    if not res['OK']:
-      self.log.error( 'Could not determine input data for all jobs' )
-      return res
-
-    lfnsDict = res['Value']
-    for _job, lfnList in lfnsDict.items():
-      lfns += lfnList
-
-    lfns = [i.replace( 'LFN:', '' ) for i in lfns]
-
-    self.log.verbose( 'Found LFNs:\n%s' % ( '\n'.join( lfns ) ) )
-
-    if setFlag:
-      result = self.transformationClient.setFileStatusForTransformation( productionID, setStatus, lfns )
-      if printOutput:
-        if not result['OK']:
-          print result
-          print "Failed to update status for files:\n%s" % ( '\n'.join( lfns ) )
-        for lfn, message in result['Value']['Successful'].items():
-          print "Successful:", lfn, ":", message
-        for lfn, message in result['Value']['Failed'].items():
-          print "Failed:", lfn, ":", message
-      return result
-    else:
-      self.log.info( 'setFlag disabled, would have set %s files to %s' % ( len( lfns ), setStatus ) )
-      return S_OK()
-
-  #############################################################################
   def setFileStatus( self, lfns, productionID, status, printOutput = False ):
     """ Set status for the given files in the lfns list for production specified by its ID
     """
