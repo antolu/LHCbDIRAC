@@ -10,7 +10,7 @@ from DIRAC                                            import S_OK, S_ERROR, gLog
 from DIRAC.Resources.Catalog.PoolXMLFile              import getGUID
 from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
 
-from LHCbDIRAC.Core.Utilities.ProductionData import getLogPath, constructProductionLFNs
+from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase   import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile
 
@@ -129,18 +129,6 @@ class AnalyseLogFile( ModuleBase ):
       dictOfInputData = jobStatusDict
     else:
       self.log.verbose( 'Job has no input data requirement' )
-
-    if self.workflow_commons.has_key( 'LogFilePath' ):
-      self.logFilePath = self.workflow_commons['LogFilePath']
-      if type( self.logFilePath ) == type( [] ):
-        self.logFilePath = self.logFilePath[0]
-    else:
-      self.log.info( 'LogFilePath parameter not found, creating on the fly' )
-      result = getLogPath( self.workflow_commons, self.bkClient )
-      if not result['OK']:
-        self.log.error( 'Could not create LogFilePath', result['Message'] )
-        raise Exception, result['Message']
-      self.logFilePath = result['Value']['LogFilePath'][0]
 
     return dictOfInputData
 

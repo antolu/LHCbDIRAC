@@ -49,8 +49,7 @@ class UploadLogFile( ModuleBase ):
 
     super( UploadLogFile, self )._resolveInputVariables()
 
-    if self.workflow_commons.has_key( 'LogFilePath' ) and self.workflow_commons.has_key( 'LogTargetPath' ):
-      self.logFilePath = self.workflow_commons['LogFilePath']
+    if self.workflow_commons.has_key( 'LogTargetPath' ):
       self.logLFNPath = self.workflow_commons['LogTargetPath']
     else:
       self.log.info( 'LogFilePath parameter not found, creating on the fly' )
@@ -58,14 +57,10 @@ class UploadLogFile( ModuleBase ):
       if not result['OK']:
         self.log.error( 'Could not create LogFilePath', result['Message'] )
         return result
-      self.logFilePath = result['Value']['LogFilePath'][0]
       self.logLFNPath = result['Value']['LogTargetPath'][0]
 
-    if not type( self.logFilePath ) == type( ' ' ):
-      self.logFilePath = self.logFilePath[0]
     if not type( self.logLFNPath ) == type( ' ' ):
       self.logLFNPath = self.logLFNPath[0]
-
 
 ######################################################################
 

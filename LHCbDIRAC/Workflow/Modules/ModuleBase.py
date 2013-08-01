@@ -17,8 +17,7 @@ from DIRAC.RequestManagementSystem.private.RequestValidator   import gRequestVal
 from DIRAC.DataManagementSystem.Client.ReplicaManager         import ReplicaManager
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
-from LHCbDIRAC.Core.Utilities.ProductionData                  import constructProductionLFNs
-
+from LHCbDIRAC.Core.Utilities.ProductionData                  import getLogPath, constructProductionLFNs
 
 class ModuleBase( object ):
   """ Base class for Modules - works only within DIRAC workflows
@@ -250,6 +249,18 @@ class ModuleBase( object ):
 
     if self.workflow_commons.has_key( 'processingPass' ):
       self.processingPass = self.workflow_commons['processingPass']
+
+    if self.workflow_commons.has_key( 'LogFilePath' ):
+      self.logFilePath = self.workflow_commons['LogFilePath']
+      if type( self.logFilePath ) == type( [] ):
+        self.logFilePath = self.logFilePath[0]
+    else:
+      self.log.info( 'LogFilePath parameter not found, creating on the fly' )
+      result = getLogPath( self.workflow_commons, self.bkClient )
+      if not result['OK']:
+        self.log.error( 'Could not create LogFilePath', result['Message'] )
+        raise RuntimeError, result['Message']
+      self.logFilePath = result['Value']['LogFilePath'][0]
 
     # for newer productions this is found in the step parameter
     if self.workflow_commons.has_key( 'SystemConfig' ):
