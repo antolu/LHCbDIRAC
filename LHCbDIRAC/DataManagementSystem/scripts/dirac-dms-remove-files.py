@@ -108,7 +108,7 @@ if __name__ == "__main__":
   if notExisting:
     # The files are not yet removed from the catalog!! :(((
     if verbose:
-      sys.stdout.write( "Removing %d files from FC (chunks of %d) " % ( len( lfnList ), chunkSize ) )
+      sys.stdout.write( "Removing %d non-existing files from FC (chunks of %d) " % ( len( notExisting ), chunkSize ) )
     notExistingRemoved = []
     for lfnChunk in breakListIntoChunks( notExisting, chunkSize ):
       if verbose:
@@ -143,8 +143,8 @@ if __name__ == "__main__":
               errorReasons.setdefault( str( reason ), [] ).append( lfn )
               lfnChunk.remove( lfn )
         notExistingRemoved += lfnChunk
-      if verbose:
-        print ''
+    if verbose:
+      print ''
     if notExistingRemoved:
       successfullyRemoved += notExistingRemoved
       gLogger.always( "Removed from FC %d non-existing files" % len( notExistingRemoved ) )

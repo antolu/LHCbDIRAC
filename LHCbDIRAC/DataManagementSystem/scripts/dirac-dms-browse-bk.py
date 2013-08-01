@@ -12,8 +12,7 @@ import os, sys, datetime
 
 import DIRAC
 from DIRAC.Core.Base import Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-from DIRAC.Core.Utilities.List                                         import uniqueElements, sortList
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, BKQuery
 
 def printTree( tree, tabs = 0, depth = sys.maxint ):
   if type( tree ) == type( {} ):
@@ -37,7 +36,7 @@ def printTree( tree, tabs = 0, depth = sys.maxint ):
 def makeDataset( configuration, condition, processingPass, eventTypes, separator = '|' ):
   if type( eventTypes ) == type( 0 ):
     eventTypes = [eventTypes]
-  eventTypes = ','.join( uniqueElements( [str( evtType ) for evtType in eventTypes] ) )
+  eventTypes = ','.join( sorted( set( [str( evtType ) for evtType in eventTypes] ) ) )
   return separator.join( [configuration, condition, processingPass, eventTypes] )
 
 def makeBKPath( configuration, condition, processingPass, eventTypes ):
@@ -71,7 +70,7 @@ def datasetsFromTree( tree ):
       for pPass in tree[conf][cond]:
         for eventType in tree[conf][cond][pPass]:
           datasets.append( makeDataset( conf, cond, pPass, eventType ) )
-  return sortList( datasets )
+  return sorted( datasets )
 
 def bkPathsFromTree( tree, noEventType = False ):
   paths = []
@@ -79,15 +78,15 @@ def bkPathsFromTree( tree, noEventType = False ):
     for cond in tree[conf]:
       for pPass in tree[conf][cond]:
         paths.append( makeBKPath( conf, cond, pPass, {} if noEventType else tree[conf][cond][pPass] ) )
-  return sortList( paths )
+  return sorted( paths )
 
 def commonDatasetsInTrees( tree, cmpTree ):
   # Get paths in tree that are in cmpTree
-  #print pathsFromTree(tree)
-  return sortList( [dataset for dataset in datasetsFromTree( tree ) if isDatasetInTree( dataset, cmpTree )] )
+  # print pathsFromTree(tree)
+  return sorted( [dataset for dataset in datasetsFromTree( tree ) if isDatasetInTree( dataset, cmpTree )] )
 
 def absentDatasetsInTree( tree, cmpTree ):
-  return sortList( [dataset for dataset in datasetsFromTree( tree ) if not isDatasetInTree( dataset, cmpTree )] )
+  return sorted( [dataset for dataset in datasetsFromTree( tree ) if not isDatasetInTree( dataset, cmpTree )] )
 
 if __name__ == "__main__":
   import time
@@ -100,15 +99,17 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
   Script.registerSwitch( "", "ToKeep=", "   File containing the twiki source of the retention table" )
-  Script.registerSwitch( "", "PrintBKPath", "   Print the BKPaths of datasets that can be removed" )
+  Script.registerSwitch( "", "PrintBKPath", "   Print the BKPaths of datasets (that can be removed if --ToKeep)" )
+  Script.registerSwitch( "", "PrintProductions", "   Print the list of productions" )
   Script.registerSwitch( "", "Verbose", "   Print the current BK tree and the trees from the retention table" )
   Script.registerSwitch( "", "NoEventType", "   Stops printing the tree at Processing Pass level" )
 
   Script.parseCommandLine( ignoreErrors = True )
-  #print "Start time: %.3f seconds" % (time.time() - startTime)
+  # print "Start time: %.3f seconds" % (time.time() - startTime)
 
   toKeepFile = None
   printBKPath = False
+  printProductions = False
   verbose = False
   noEventType = False
   switches = Script.getUnprocessedSwitches()
@@ -119,6 +120,8 @@ if __name__ == "__main__":
       toKeepFile = val
     elif opt == "PrintBKPath":
       printBKPath = True
+    elif opt == "PrintProductions":
+      printProductions = True
     elif opt == "Verbose":
       verbose = True
     elif opt == 'NoEventType':
@@ -126,11 +129,10 @@ if __name__ == "__main__":
 
   bkQuery = dmScript.getBKQuery()
   configuration = bkQuery.getConfiguration()
-  if configuration[0] != '/':
-    configuration = '/' + configuration
-  conf = configuration[1:].split( '/' )
-  confName = conf[0]
-  confVersion = conf[1]
+  if not configuration:
+    print "It is only possible to browse BK giving a BK path..."
+    DIRAC.exit( 1 )
+  confName, confVersion = configuration.split( '/' )[1:]
 
   toKeep = {}
   toKeepTree = {}
@@ -166,13 +168,13 @@ if __name__ == "__main__":
           else:
             conditions.append( cond )
         processingPass = l[2].replace( confVersion + '-', '' ).strip()
-        #print processingPass
+        # print processingPass
         if processingPass.find( '/' ) == -1:
           processingPass = '/'.join( processingPass.replace( ' ', '' ).split( '+' ) )
-          #print processingPass[0:3]
+          # print processingPass[0:3]
           if processingPass[0:3] == 'Sim':
             processingPass = os.path.join( '/', processingPass[0:5], processingPass[5:] )
-            #print processingPass
+            # print processingPass
           if processingPass[0:3] == 'Reco':
             processingPass = os.path.join( '/', processingPass[0:6], processingPass[6:] )
         if processingPass[0] != '/':
@@ -193,31 +195,41 @@ if __name__ == "__main__":
 
   print "Browsing BK..."
   bkTree = bkQuery.browseBK()
-  if ( not toKeepFile and not printBKPath ) or verbose:
+  if ( not toKeepFile and not printBKPath and not printProductions ) or verbose:
     printTree( bkTree, depth = depth )
 
   if toKeepFile:
     # Get paths in toKeepTree that are not in bkTree
     datasets = absentDatasetsInTree( toKeepTree, bkTree )
-    #print datasets
+    # print datasets
     print "The following datasets should have been kept but are not present:"
     printTree( makeTreeFromDatasets( datasets ) )
 
     # Get datasets in toRemoveTree that are in bkTree and should be removed
     datasets = absentDatasetsInTree( bkTree, toKeepTree )
-    #print datasets
+    # print datasets
     print "The following datasets can be removed:"
-    removeTree = makeTreeFromDatasets( sortList( datasets ) )
+    removeTree = makeTreeFromDatasets( sorted( datasets ) )
     printTree( removeTree )
     if printBKPath:
       print "BKPaths to be removed:"
       bkPaths = bkPathsFromTree( removeTree )
       for path in bkPaths:
         print path
-  elif printBKPath:
-      print "BKPaths present in %s:" % bkQuery.getPath()
-      bkPaths = bkPathsFromTree( bkTree, noEventType = noEventType )
-      for path in bkPaths:
-        print path
+  elif printBKPath or printProductions:
+    print "BKPaths present in %s:" % bkQuery.getPath()
+    bkPaths = bkPathsFromTree( bkTree, noEventType = noEventType )
+    productions = []
+    for path in sorted( bkPaths ):
+      if printProductions:
+        prods = [str( pr ) for pr in BKQuery( path ).getBKProductions()]
+        productions += prods
+      else:
+        prods = None
+      print path, '- Productions: ' + ','.join( sorted( prods ) ) if prods else ''
+    if printProductions:
+      print '\nProductions in %s:' % bkQuery.getPath()
+      print ','.join( [str( pr ) for pr in sorted( productions )] )
+
 
 

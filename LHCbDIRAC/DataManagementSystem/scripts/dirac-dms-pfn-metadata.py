@@ -90,10 +90,11 @@ if __name__ == "__main__":
     replicas = res['Value']['Successful']
     for lfn in sorted( replicas ):
       if seList and not [se for se in replicas[lfn] if se in seList]:
-        metadata['Failed'][lfn] = 'No such file at %s' % ' '.join( seList )
+        metadata['Failed'][lfn] = 'No such file at %s in FC' % ' '.join( seList )
         replicas.pop( lfn )
         urlList.remove( lfn )
-    metadata['Failed'].update( res['Value']['Failed'] )
+    for lfn in res['Value']['Failed']:
+      metadata['Failed'][lfn] = 'FC: ' + res['Value']['Failed']
     metadata['Failed'].update( dict.fromkeys( [url for url in urlList if url not in replicas and url not in metadata['Failed']], 'No active replicas' ) )
   result = None
   if not seList:
@@ -107,15 +108,11 @@ if __name__ == "__main__":
       res = rm.getStorageFileMetadata( fileList, se )
       if res['OK']:
         seMetadata = res['Value']
-        metadata['Failed'].update( seMetadata['Failed'] )
         for url in seMetadata['Successful']:
           pfnMetadata = seMetadata['Successful'][url].copy()
-          if len( seList ) > 1:
-            metadata['Successful'].setdefault( url, {} )[se] = pfnMetadata if not exists else {'Exists': 'True (%sCached)' % ( '' if pfnMetadata.get( 'Cached' ) else 'Not ' )}
-            if exists and not pfnMetadata.get( 'Size' ):
-              metadata['Successful'][url][se].update( {'Exists':'Zero size'} )
-          else:
-            metadata['Successful'][url] = pfnMetadata if not exists else {'Exists':'True (%sCached)' % ( '' if pfnMetadata['Cached'] else 'Not ' )}
+          metadata['Successful'].setdefault( url, {} )[se] = pfnMetadata if not exists else {'Exists': 'True (%sCached)' % ( '' if pfnMetadata.get( 'Cached' ) else 'Not ' )}
+          if exists and not pfnMetadata.get( 'Size' ):
+            metadata['Successful'][url][se].update( {'Exists':'Zero size'} )
           if check:
             res1 = rm.getCatalogFileMetadata( url )
             if res1['OK']:
@@ -130,12 +127,12 @@ if __name__ == "__main__":
                 metadata['Successful'][url][se]['MatchLFN'] = ok if ok else diff
               else:
                 metadata['Successful'][url]['MatchLFN'] = ok if ok else diff
-          metadata['Failed'].pop( url, None )
+          # metadata['Failed'].pop( url, None )
         for url in seMetadata['Failed']:
-           if url not in metadata['Successful']:
-             metadata['Failed'][url] += ' at %s' % se
-        #urlList = seMetadata['Failed']
-        #if not urlList: break
+           # if url not in metadata['Successful']:
+           metadata['Failed'].setdefault( url, {} )[se] = seMetadata['Failed'][url] if not exists else {'Exists': False}
+        # urlList = seMetadata['Failed']
+        # if not urlList: break
       else:
         for url in fileList:
           metadata['Failed'][url] = res['Message'] + ' at %s' % se

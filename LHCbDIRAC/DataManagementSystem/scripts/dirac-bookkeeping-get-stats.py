@@ -45,14 +45,13 @@ if __name__ == "__main__":
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
-  from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
+  from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
   transClient = TransformationClient()
   lfns = dmScript.getOption( 'LFNs' )
 
   for prod in prodList:
     queryDict = bkQuery.getQueryDict()
-    if 'Visible' not in queryDict:
-      bkQuery.setOption( 'Visible', 'NO' )
+    if queryDict.get( 'Visible', 'All' ).lower() in ( 'no', 'all' ):
       bkQuery.setOption( 'ReplicaFlag', 'ALL' )
     if prod:
       res = transClient.getTransformation( prod, extraParams = False )
@@ -61,7 +60,7 @@ if __name__ == "__main__":
       bkQuery.setOption( 'Production', prod )
       print "For production %d, %s (query %s)" % ( prod, prodName, bkQuery )
     elif lfns:
-      print "For %d LFNs:", len( lfns )
+      print "For %d LFNs:" % len( lfns )
     else:
       print "For BK query:", bkQuery
     queryDict = bkQuery.getQueryDict()
@@ -98,7 +97,7 @@ if __name__ == "__main__":
           if not record:
             record = len( paramValues ) * [0]
           record = [( rec + val ) if val else rec for rec, val in zip( record, paramValues )]
-        #print fileType, record
+        # print fileType, record
         for name, value in zip( paramNames, record ):
           if name == 'NumberOfEvents':
             nevts = value
@@ -111,7 +110,7 @@ if __name__ == "__main__":
         if not records:
           records = len( record ) * [0]
         records = [rec1 + rec2 for rec1, rec2 in zip( record, records )]
-        #print fileType, records, 'Total'
+        # print fileType, records, 'Total'
       paramNames += ['EvtsPerLumi', 'SizePerLumi' ]
     else:
       print "Getting info from files..."
@@ -198,7 +197,7 @@ if __name__ == "__main__":
         evtsPerLumi = value
       elif name == 'SizePerLumi':
         print "%s: %.1f GB" % ( ( 'Size  per %s' % '/pb' ).ljust( tab ), value * 1000000. / 1000000000. )
-        #if nDatasets != 1:
+        # if nDatasets != 1:
         #  sizePerEvt = value / evtsPerLumi / 1000. if evtsPerLumi else 0.
         #  print '%s: %.1f kB' % ( 'Avg size per evt'.ljust( tab ), sizePerEvt )
     if lumi:

@@ -119,6 +119,8 @@ if __name__ == "__main__":
     prodsStr = ','.join( [str( p ) for p in prods] )
     fileStr = ','.join( fileType )
     longName = transGroup + " of " + fileStr + " for productions %s " % prodsStr
+    if len( prods ) > 5:
+      prodsStr = '%d-productions' % len( prods )
     transName += '-' + fileStr + '-' + prodsStr
   elif 'BKPath' not in pluginScript.getOptions():
     if type( transBKQuery['FileType'] ) == type( [] ):
