@@ -216,7 +216,9 @@ def __checkFilesMissingInFC( transFilesList, status, fixIt ):
         if not kickRequests:
           print "%d files are %s but indeed are in the LFC - Use --KickRequests to reset them Unused" % ( notMissing, status )
         else:
-          res = transClient.setFileStatusForTransformation( transID, 'Unused', [lfn for lfn in lfns if lfn in replicas] )
+          filesToReset = [lfn for lfn in lfns if lfn in replicas]
+          res = transClient.setFileStatusForTransformation( transID, 'Unused', filesToReset,
+                                           originalStatuses = dict( [( lfn, 'MissingInFC' ) for lfn in filesToReset] ) )
           if res['OK']:
             print "%d files were %s but indeed are in the LFC - Reset to Unused" % ( notMissing, status )
       else:
@@ -284,7 +286,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     if kickRequests:
       res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnsInTask )
       if res['OK']:
-        print "Task is failed: %d files reset Unused" % len( lfnsInTask )
+        print "Task is failed: not all the %d files were reset Unused" % len( lfnsInTask )
     else:
       print "Task is failed: %d files could be reset Unused: use --KickRequests option" % len( lfnsInTask )
   if taskCompleted and ( task['ExternalStatus'] != 'Done' or status == 'Assigned' ):

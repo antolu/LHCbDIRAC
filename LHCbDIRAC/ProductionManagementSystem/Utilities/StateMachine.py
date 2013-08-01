@@ -18,6 +18,8 @@ class LHCbStateMachine( StateMachine ):
     if candidateState is None:
       self.state = candidateState
     elif candidateState in self.states.keys():
+      if not self.states[self.state].stateMap:
+        return S_ERROR( 'Final state' )
       nextState = self.getNextState( candidateState )
       if not nextState[ 'OK' ]:
         return nextState

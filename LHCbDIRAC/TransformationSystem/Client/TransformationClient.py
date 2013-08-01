@@ -6,6 +6,7 @@ from DIRAC                                                        import S_OK, g
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations          import Operations
 from DIRAC.TransformationSystem.Client.TransformationClient       import TransformationClient as DIRACTransformationClient
 from LHCbDIRAC.ProductionManagementSystem.Utilities.StateMachine  import ProductionsStateMachine
+from LHCbDIRAC.TransformationSystem.Utilities.StateMachine        import TransformationFilesStateMachine
 
 
 class TransformationClient( DIRACTransformationClient ):
@@ -22,8 +23,8 @@ class TransformationClient( DIRACTransformationClient ):
           getBookkeepingQueryForTransformation(transName)
   """
 
-  def __init__(self, **kwargs):
-    DIRACTransformationClient.__init__(self, **kwargs)
+  def __init__( self, **kwargs ):
+    DIRACTransformationClient.__init__( self, **kwargs )
     self.opsH = Operations()
 
   def addTransformation( self, transName, description, longDescription, transfType, plugin, agentType, fileMask,
@@ -79,3 +80,26 @@ class TransformationClient( DIRACTransformationClient ):
         return stateChange
 
     return DIRACTransformationClient.setTransformationParameter( self, transID, 'Status', status )
+
+  def setFileStatusForTransformation( self, transID, status, lfns, originalStatuses = {}, force = False ):
+    """ Performs a state machine check for files status when asked to change the status
+    """
+    origStatuses = dict( originalStatuses )
+    if not origStatuses:
+      tsFiles = self.getTransformationFiles( {'TransformationID':transID, 'LFN': lfns} )
+      if not tsFiles['OK']:
+        return tsFiles
+      tsFiles = tsFiles['Value']
+      for tsFile in tsFiles:
+        origStatuses[tsFile['LFN']] = tsFile['Status']
+
+    for lfn in lfns:
+      if lfn not in origStatuses:
+        continue
+      tfsm = TransformationFilesStateMachine( origStatuses[lfn] )
+      stateChange = tfsm.setState( status )
+      print stateChange
+      if not stateChange['OK']:
+        return stateChange
+
+      return DIRACTransformationClient.setFileStatusForTransformation( self, transID, status, lfns, force )
