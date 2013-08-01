@@ -5,15 +5,12 @@
 
 """
 
-import os
-import glob
-import fnmatch
-import time
+import os, glob, fnmatch, time, types
 
 from DIRAC                                               import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.List                           import removeEmptyElements
-from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite
+from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite, getSitesForSE
 from DIRAC.Interfaces.API.Dirac                          import Dirac
 from DIRAC.Interfaces.API.DiracAdmin                     import DiracAdmin
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
@@ -24,6 +21,16 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 __RCSID__ = "$Id$"
 
 COMPONENT_NAME = 'DiracLHCb'
+
+def getSiteForSE( se ):
+  """ Get site name for the given SE
+  """
+  result = getSitesForSE( se )
+  if not result['OK']:
+    return result
+  if result['Value']:
+    return S_OK( result['Value'][0] )
+  return S_OK( '' )
 
 class DiracLHCb( Dirac ):
 
@@ -53,7 +60,7 @@ class DiracLHCb( Dirac ):
                              'EndRun'                   :     0,
                              'DataQualityFlag'          : 'All',
                              'Visible'                  : 'Yes'}
-    self.bk = BookkeepingClient() #to expose all BK client methods indirectly
+    self.bk = BookkeepingClient()  # to expose all BK client methods indirectly
     self.resourceStatus = ResourceStatus()
 
   #############################################################################
@@ -305,8 +312,8 @@ class DiracLHCb( Dirac ):
     if not type( bkPath ) == type( ' ' ):
       return S_ERROR( 'Expected string for bkPath' )
 
-    #remove any double slashes, spaces must be preserved
-    #remove any empty components from leading and trailing slashes
+    # remove any double slashes, spaces must be preserved
+    # remove any empty components from leading and trailing slashes
     bkPath = self.__translateBKPath( bkPath, procPassID = 2 )
     if not len( bkPath ) == 5:
       return S_ERROR( 'Expected 5 components to the BK path: /<ConfigurationName>/<Configuration Version>/<Processing Pass>/<Event Type>/<File Type>' )
@@ -337,7 +344,7 @@ class DiracLHCb( Dirac ):
 
     runs = result['Value'][selection]
     self.log.info( 'Found the following %s runs:\n%s' % ( len( runs ), ', '.join( [str( i ) for i in runs] ) ) )
-    #temporary until we can query for a discrete list of runs
+    # temporary until we can query for a discrete list of runs
 
     selectedData = []
     for run in runs:
@@ -398,8 +405,8 @@ class DiracLHCb( Dirac ):
     if not type( bkPath ) == type( ' ' ):
       return S_ERROR( 'Expected string for bkPath' )
 
-    #remove any double slashes, spaces must be preserved
-    #remove any empty components from leading and trailing slashes
+    # remove any double slashes, spaces must be preserved
+    # remove any empty components from leading and trailing slashes
     bkPath = self.__translateBKPath( bkPath, procPassID = 1 )
     if not len( bkPath ) == 4:
       return S_ERROR( 'Expected 4 components to the BK path: /<Run Number>/<Processing Pass>/<Event Type>/<File Type>' )
@@ -473,8 +480,8 @@ class DiracLHCb( Dirac ):
     if not type( bkPath ) == type( ' ' ):
       return S_ERROR( 'Expected string for bkPath' )
 
-    #remove any double slashes, spaces must be preserved
-    #remove any empty components from leading and trailing slashes
+    # remove any double slashes, spaces must be preserved
+    # remove any empty components from leading and trailing slashes
     bkPath = self.__translateBKPath( bkPath, procPassID = 1 )
     if len( bkPath ) < 2:
       return S_ERROR( 'Invalid bkPath: should at least contain /ProductionID/FileType' )
@@ -528,8 +535,8 @@ class DiracLHCb( Dirac ):
     if not type( bkPath ) == type( ' ' ):
       return S_ERROR( 'Expected string for bkPath' )
 
-    #remove any double slashes, spaces must be preserved
-    #remove any empty components from leading and trailing slashes
+    # remove any double slashes, spaces must be preserved
+    # remove any empty components from leading and trailing slashes
     bkPath = self.__translateBKPath( bkPath, procPassID = 3 )
     if not len( bkPath ) == 6:
       return S_ERROR( 'Expected 6 components to the BK path: \
@@ -549,8 +556,8 @@ class DiracLHCb( Dirac ):
       dqFlag = check['Value']
       query['DataQualityFlag'] = dqFlag
 
-    #The problem here is that we don't know if it's a sim or data taking condition,
-    #assume that if configName=MC this is simulation
+    # The problem here is that we don't know if it's a sim or data taking condition,
+    # assume that if configName=MC this is simulation
     if bkPath[0].lower() == 'mc':
       query['SimulationConditions'] = bkPath[2]
     else:
@@ -621,7 +628,7 @@ class DiracLHCb( Dirac ):
     """
     problematicFields = []
     # Remove the Visible flag as anyway the method is for visible files ;-)
-    #bkQueryDict.setdefault( 'Visible', 'Yes' )
+    # bkQueryDict.setdefault( 'Visible', 'Yes' )
     for name, value in bkQueryDict.items():
       if name not in self.bkQueryTemplate:
         problematicFields.append( name )
@@ -700,7 +707,7 @@ class DiracLHCb( Dirac ):
         else:
           final.append( flag )
 
-    #when first coding this it was not possible to use a list ;)
+    # when first coding this it was not possible to use a list ;)
     if len( final ) == 1:
       final = final[0]
 
@@ -967,3 +974,87 @@ class DiracLHCb( Dirac ):
         print '%s %s %s' % ( k.ljust( 25 ), readState.rjust( 15 ), writeState.rjust( 15 ) )
 
     return S_OK( result )
+
+  def splitInputDataBySize( self, lfns, maxSizePerJob = 20, printOutput = False ):
+    """Split the supplied lfn list by the replicas present at the possible
+       destination sites, based on a maximum size.
+       An S_OK object will be returned containing a list of
+       lists in order to create the jobs.
+
+       Example usage:
+
+       >>> d.splitInputDataBySize(lfns,10)
+       {'OK': True, 'Value': [['<LFN>'], ['<LFN>']]}
+
+
+       @param lfns: Logical File Name(s) to split
+       @type lfns: list
+       @param maxSizePerJob: Maximum size (in GB) per bunch
+       @type maxSizePerJob: integer
+       @param printOutput: Optional flag to print result
+       @type printOutput: boolean
+       @return: S_OK,S_ERROR
+    """
+    sitesForSE = {}
+    if type( lfns ) == type( " " ):
+      lfns = [lfns.replace( 'LFN:', '' )]
+    elif type( lfns ) == type( [] ):
+      try:
+        lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
+      except Exception, x:
+        return self._errorReport( str( x ), 'Expected strings for LFNs' )
+    else:
+      return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
+
+    if not type( maxSizePerJob ) == types.IntType:
+      try:
+        maxSizePerJob = int( maxSizePerJob )
+      except Exception, x:
+        return self._errorReport( str( x ), 'Expected integer for maxSizePerJob' )
+    maxSizePerJob *= 1000 * 1000 * 1000
+
+    replicaDict = self.getReplicas( lfns )
+    if not replicaDict['OK']:
+      return replicaDict
+    replicas = replicaDict['Value']['Successful']
+    if not replicas:
+      return self._errorReport( replicaDict['Value']['Failed'].items()[0], 'Failed to get replica information' )
+    siteLfns = {}
+    for lfn, reps in replicas.items():
+      possibleSites = set( [site for se in reps for site in sitesForSE.setdefault( se, getSitesForSE( se ).get( 'Value', [] ) )] )
+      siteLfns.setdefault( ','.join( sorted( possibleSites ) ), [] ).append( lfn )
+
+    if '' in siteLfns:
+      # Some files don't have active replicas
+      return self._errorReport( 'No active replica found for', str( siteLfns[''] ) )
+    # Get size of files
+    metadataDict = self.getMetadata( lfns, printOutput )
+    if not metadataDict['OK']:
+      return metadataDict
+    fileSizes = dict( [( lfn, metadataDict['Value']['Successful'].get( lfn, {} ).get( 'Size', maxSizePerJob ) ) for lfn in lfns] )
+
+    lfnGroups = []
+    # maxSize is in GB
+    for files in siteLfns.values():
+      # Now get bunches of files,
+      # Sort in decreasing size
+      files.sort( cmp = ( lambda f1, f2: fileSizes[f2] - fileSizes[f1] ) )
+      while( files ):
+        print [( lfn, fileSizes[lfn] ) for lfn in files]
+        group = []
+        sizeTot = 0
+        for lfn in list( files ):
+          size = fileSizes[lfn]
+          if size >= maxSizePerJob:
+            lfnGroups.append( [lfn] )
+          elif sizeTot + size < maxSizePerJob:
+            sizeTot += size
+            group.append( lfn )
+            files.remove( lfn )
+        if group:
+          lfnGroups.append( group )
+
+    if printOutput:
+      print self.pPrint.pformat( lfnGroups )
+    return S_OK( lfnGroups )
+
