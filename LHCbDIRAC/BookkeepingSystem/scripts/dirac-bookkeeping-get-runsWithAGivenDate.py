@@ -11,37 +11,35 @@ __RCSID__ = "$Id$"
 from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from DIRAC.Core.Base import Script
-Script.setUsageMessage('\n'.join([ __doc__.split('\n')[1],
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ... Start [End]' % Script.scriptName,
                                      'Arguments:',
                                      '  Start:    Start date (Format: YYYY-MM-DD)',
-                                     '  End:      End date (Format: YYYY-MM-DD)' ]))
-Script.parseCommandLine(ignoreErrors=True)
+                                     '  End:      End date (Format: YYYY-MM-DD). Default is Start' ] ) )
+Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
 start = ''
 end = ''
-if len(args) > 2 or not args:
+if len( args ) > 2 or not args or not args[0]:
   Script.showHelp()
 
-if len(args) == 2:
+if len( args ) == 2:
   end = args[1]
 start = args[0]
 
 in_dict = {}
-if start != '':
-  in_dict['StartDate'] = start
-if end != '':
-  in_dict['EndDate'] = end
+in_dict['StartDate'] = start
+in_dict['EndDate'] = end if end else start
 
-client = RPCClient('Bookkeeping/BookkeepingManager')
-res = client.getRunsForAGivenPeriod(in_dict)
+client = RPCClient( 'Bookkeeping/BookkeepingManager' )
+res = client.getRunsForAGivenPeriod( in_dict )
 if not res['OK']:
   print 'ERROR: Failed to retrieve runs: %s' % res['Message']
 else:
   if not res['Value']['Runs']:
-    print 'No runs found for a given dates', start, end
+    print 'No runs found for the date range', start, end
   else:
     print 'Runs:', res['Value']['Runs']
     if 'ProcessedRuns' in res['Value']:

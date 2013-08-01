@@ -5,7 +5,7 @@
 # Author :  Zoltan Mathe
 ########################################################################
 """
-  Report ancestors for the given LFNs
+  returns ancestors for a (list of) LFN(s)
 """
 __RCSID__ = "$Id$"
 

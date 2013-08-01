@@ -9,13 +9,14 @@
 __RCSID__ = "$Id$"
 
 import DIRAC
-from DIRAC.Core.Base import Script
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script
 
-
-Script.setUsageMessage('\n'.join([ __doc__.split('\n')[1],
+dmScript = DMScript()
+dmScript.registerBKSwitches()
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
-                                     '  %s [option|cfgfile] ...' % Script.scriptName ]))
-Script.parseCommandLine(ignoreErrors=True)
+                                     '  %s [option|cfgfile] ...' % Script.scriptName ] ) )
+Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
 exitCode = 0
@@ -23,37 +24,19 @@ exitCode = 0
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
 
-print 'It you do not know the attributes, the default value is ALL or press ENTER'
+bkQuery = dmScript.getBKQuery()
+dict = bkQuery.getQueryDict()
+dictItems = ( 'ConfigName', 'ConfigVersion', 'Production', 'ConditionDescription', 'ProcessingPass', 'FileType', 'EventType' )
+for item in dictItems:
+  if item not in dict:
+    dict[item] = 'ALL'
+for item in dict.keys():
+  if item not in dictItems:
+    dict.pop( item )
 
-cName = raw_input("Configuration Name(ALL is the default value):")
-if cName == '':
-  cName = 'ALL'
-cVersion = raw_input("Configuration Version(ALL is the default value):")
-if cVersion == '':
-  cVersion = 'ALL'
-
-production = raw_input("Production(ALL is the default value):")
-if production == '':
-  production = 'ALL'
-
-simdesc = raw_input("SimulationDescription(ALL is the default value):")
-if simdesc == '':
-  simdesc = 'ALL'
-
-pgroup = raw_input("Processing pass group(ALL is the default value):")
-if pgroup == '':
-  pgroup = 'ALL'
-
-ftype = raw_input("File type(ALL is the default value):")
-if ftype == '':
-  ftype = 'ALL'
-
-evttype = raw_input("Event type(ALL is the default value):")
-if evttype == '':
-  evttype = 'ALL'
-
-dict = {'ConfigName':cName, 'ConfigVersion':cVersion, 'Production':production, 'ConditionDescription':simdesc, 'ProcessingPass':pgroup, 'FileType':ftype, 'EventType':evttype}
-res = bk.getProductionSummary(dict)
+print 'BKQuery:', dict
+res = bk.getProductionSummary( dict )
+print res
 
 if not res["OK"]:
   print res["Message"]
@@ -63,18 +46,18 @@ else:
   nbRec = value['TotalRecords']
   params = value['ParameterNames']
   width = 20
-  print params[0].ljust(30) + str(params[1]).ljust(30) + \
-  str(params[2]).ljust(30) + str(params[3]).ljust(30) + \
-  str(params[4]).ljust(30) + str(params[5]).ljust(30) + \
-  str(params[6]).ljust(20) + str(params[7]).ljust(20) + \
-  str(params[8]).ljust(20)
+  print params[0].ljust( 30 ) + str( params[1] ).ljust( 30 ) + \
+  str( params[2] ).ljust( 30 ) + str( params[3] ).ljust( 30 ) + \
+  str( params[4] ).ljust( 30 ) + str( params[5] ).ljust( 30 ) + \
+  str( params[6] ).ljust( 20 ) + str( params[7] ).ljust( 20 ) + \
+  str( params[8] ).ljust( 20 )
   for record in records:
-    print str(record[0]).ljust(15) + str(record[1]).ljust(15) + \
-    str(record[2]).ljust(20) + str(record[3]).ljust(width) + \
-    str(record[4]).ljust(width) + str(record[5]).ljust(width) + \
-    str(record[6]).ljust(width) + str(record[7]).ljust(width) + \
-    str(record[8]).ljust(width)
+    print str( record[0] ).ljust( 15 ) + str( record[1] ).ljust( 15 ) + \
+    str( record[2] ).ljust( 20 ) + str( record[3] ).ljust( width ) + \
+    str( record[4] ).ljust( width ) + str( record[5] ).ljust( width ) + \
+    str( record[6] ).ljust( width ) + str( record[7] ).ljust( width ) + \
+    str( record[8] ).ljust( width )
 
 
-DIRAC.exit(exitCode)
+DIRAC.exit( exitCode )
 

@@ -7,13 +7,12 @@
   Return the BK path for the directories of a (list of) files
 """
 __RCSID__ = "$Id: dirac-bookkeeping-file-path.py 65177 2013-04-22 15:24:07Z phicharp $"
-import  DIRAC.Core.Base.Script as Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult
 import os
 
 def __buildPath( bkDict ):
   return os.path.join( '/' + bkDict['ConfigName'], bkDict['ConfigVersion'], bkDict['ConditionDescription'],
-                  bkDict['ProcessingPass'][1:], str( bkDict['EventType'] ), bkDict['FileType'] )
+                  bkDict['ProcessingPass'][1:].replace( 'Real Data', 'RealData' ), str( bkDict['EventType'] ), bkDict['FileType'] )
 
 if __name__ == "__main__":
   dmScript = DMScript()
@@ -58,40 +57,59 @@ if __name__ == "__main__":
 
   bk = BookkeepingClient()
 
-  directories = {}
-  for lfn in lfnList:
-    directories.setdefault( os.path.dirname( lfn ), [] ).append( lfn )
+  dirMetadata = ( 'Production', 'ConfigName', 'ConditionDescription', 'EventType',
+                 'FileType', 'ConfigVersion', 'ProcessingPass', 'Path' )
+  fileMetadata = ( 'EventType', 'FileType', 'RunNumber', 'JobId', 'DQFlag', 'GotReplica' )
+  if groupBy and groupBy not in dirMetadata:
+    if groupBy not in fileMetadata:
+      gLogger.always( 'Invalid metata item', groupBy )
+      gLogger.always( 'Directory metadata:', ', '.join( dirMetadata ) )
+      gLogger.always( 'File metadata:', ', '.join( fileMetadata ) )
+      DIRAC.exit( 1 )
+    res = bk.getFileMetadata( lfnList )
+    if res['OK']:
+      paths = {'Successful':{}, 'Failed':[]}
+      for lfn, metadata in res['Value']['Successful'].items():
+        group = metadata.get( groupBy )
+        paths['Successful'].setdefault( '%s %s' % ( groupBy, group ), set() ).add( lfn )
+        lfnList.remove( lfn )
+      paths['Failed'].extend( lfnList )
+      res = S_OK( paths )
+  else:
+    directories = {}
+    for lfn in lfnList:
+      directories.setdefault( os.path.dirname( lfn ), [] ).append( lfn )
 
-  res = bk.getDirectoryMetadata( sorted( directories ) )
-  if not res['OK']:
-    printDMResult( res )
-    DIRAC.exit( 1 )
+    res = bk.getDirectoryMetadata( sorted( directories ) )
+    if not res['OK']:
+      printDMResult( res )
+      DIRAC.exit( 1 )
 
-  dirList = res.get( 'Value', {} ).get( 'Successful', {} )
-  paths = {'Successful':{}, 'Failed':{}}
-  for dirName in dirList:
-    if full:
-      dirList[dirName] = dirList[dirName][0]
-    else:
-      bkDict = dirList[dirName][0].copy()
-      bkDict['Path'] = __buildPath( bkDict )
-      if groupBy in bkDict:
-        if groupBy != 'Path':
-          prStr = '%s %s' % ( groupBy, bkDict[groupBy] )
-        else:
-          prStr = bkDict[groupBy]
-        paths['Successful'].setdefault( prStr, set() ).update( directories[dirName] )
-      elif groupBy:
-        gLogger.always( 'Invalid metadata item: %s' % groupBy )
-        gLogger.always( 'Available are: %s' % str( bkDict.keys() ) )
-        DIRAC.exit( 1 )
+    dirList = res.get( 'Value', {} ).get( 'Successful', {} )
+    paths = {'Successful':{}, 'Failed':{}}
+    for dirName in dirList:
+      if full:
+        dirList[dirName] = dirList[dirName][0]
       else:
-        dirList[dirName] = bkDict['Path']
+        bkDict = dirList[dirName][0].copy()
+        bkDict['Path'] = __buildPath( bkDict )
+        if groupBy in bkDict:
+          if groupBy != 'Path':
+            prStr = '%s %s' % ( groupBy, bkDict[groupBy] )
+          else:
+            prStr = bkDict[groupBy]
+          paths['Successful'].setdefault( prStr, set() ).update( directories[dirName] )
+        elif groupBy:
+          gLogger.always( 'Invalid metadata item: %s' % groupBy )
+          gLogger.always( 'Available are: %s' % str( bkDict.keys() ) )
+          DIRAC.exit( 1 )
+        else:
+          dirList[dirName] = bkDict['Path']
 
-  if groupBy:
-    for dirName in res.get( 'Value', {} ).get( 'Failed', {} ):
-      paths['Failed'].update( dict.fromkeys( directories[dirName], 'Directory not in BK' ) )
-    res = S_OK( paths )
+    if groupBy:
+      for dirName in res.get( 'Value', {} ).get( 'Failed', {} ):
+        paths['Failed'].update( dict.fromkeys( directories[dirName], 'Directory not in BK' ) )
+      res = S_OK( paths )
 
   printDMResult( res, empty = 'None', script = 'dirac-bookkeeping-file-path' )
 
