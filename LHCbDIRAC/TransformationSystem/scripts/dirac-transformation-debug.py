@@ -10,7 +10,7 @@ import sys, os
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
 def __getFilesForRun( transID, runID = None, status = None, lfnList = None, seList = None ):
-  #print transID, runID, status, lfnList
+  # print transID, runID, status, lfnList
   selectDict = {}
   if runID != None:
     if runID:
@@ -18,11 +18,11 @@ def __getFilesForRun( transID, runID = None, status = None, lfnList = None, seLi
     else:
       selectDict["RunNumber"] = str( runID )
   if status:
-      selectDict['Status'] = status
+    selectDict['Status'] = status
   if lfnList:
-      selectDict['LFN'] = lfnList
+    selectDict['LFN'] = lfnList
   if seList:
-      selectDict['UsedSE'] = seList
+    selectDict['UsedSE'] = seList
   selectDict['TransformationID'] = transID
   res = transClient.getTransformationFiles( selectDict )
   if res['OK']:
@@ -36,9 +36,9 @@ def __filesProcessed( transID, runID ):
   files = 0
   processed = 0
   for fileDict in transFilesList:
-      files += 1
-      if fileDict['Status'] == "Processed":
-          processed += 1
+    files += 1
+    if fileDict['Status'] == "Processed":
+      processed += 1
   return ( files, processed )
 
 def __getRuns( transID, runList, byRuns, seList, status = None ):
@@ -52,26 +52,26 @@ def __getRuns( transID, runList, byRuns, seList, status = None ):
         runList.append( str( run ) )
 
   if runList:
-      for runRange in runList:
-        runRange = runRange.split( ':' )
-        if len( runRange ) == 1:
-          runs.append( int( runRange[0] ) )
-        else:
-          for run in range( int( runRange[0] ), int( runRange[1] ) + 1 ):
-            runs.append( run )
-      selectDict = {'TransformationID':transID, 'RunNumber': runs}
-      if runs == [0]:
-        runs = [{'RunNumber':0}]
+    for runRange in runList:
+      runRange = runRange.split( ':' )
+      if len( runRange ) == 1:
+        runs.append( int( runRange[0] ) )
       else:
-        if seList:
-          selectDict['SelectedSite'] = seList
-        res = transClient.getTransformationRuns( selectDict )
-        if res['OK']:
-          if not len( res['Value'] ):
-            print "No runs found, set to None"
-            runs = [{'RunNumber':None}]
-          else:
-            runs = res['Value']
+        for run in range( int( runRange[0] ), int( runRange[1] ) + 1 ):
+          runs.append( run )
+    selectDict = {'TransformationID':transID, 'RunNumber': runs}
+    if runs == [0]:
+      runs = [{'RunNumber':0}]
+    else:
+      if seList:
+        selectDict['SelectedSite'] = seList
+      res = transClient.getTransformationRuns( selectDict )
+      if res['OK']:
+        if not len( res['Value'] ):
+          print "No runs found, set to None"
+          runs = [{'RunNumber':None}]
+        else:
+          runs = res['Value']
   elif not byRuns:
     # No run selection
     runs = [{'RunNumber': None}]
@@ -97,21 +97,20 @@ def __justStats( transID, status, seList ):
   if not transFilesList:
     return improperJobs
   statsPerSE = {}
-  #print transFilesList
-  statusList = [ 'Received', 'Checking', 'Staging', 'Waiting', 'Running', 'Stalled']
+  # print transFilesList
+  statusList = set( [ 'Received', 'Checking', 'Staging', 'Waiting', 'Running', 'Stalled'] )
   if status == 'Processed':
-    statusList += [ 'Done', 'Completed', 'Failed']
+    statusList.update( [ 'Done', 'Completed', 'Failed'] )
   taskList = [fileDict['TaskID'] for fileDict in transFilesList]
   res = transClient.getTransformationTasks( {'TransformationID':transID, "TaskID":taskList} )
   if not res['OK']:
     print "Could not get the list of tasks (%s)..." % res['Message']
     DIRAC.exit( 2 )
   for task in res['Value']:
-    #print task
+    # print task
     targetSE = task['TargetSE']
     stat = task['ExternalStatus']
-    if stat not in statusList:
-      statusList.append( stat )
+    statusList.add( stat )
     statsPerSE[targetSE][stat] = statsPerSE.setdefault( targetSE, dict.fromkeys( statusList, 0 ) ).setdefault( stat, 0 ) + 1
     if status == 'Processed' and stat not in ( 'Done', 'Completed', 'Stalled', 'Failed', 'Killed', 'Running' ):
       improperJobs.append( task['ExternalID'] )
@@ -195,15 +194,15 @@ def __getTransformations( args ):
     print "Specify transformation number..."
     Script.showHelp()
   else:
-      ids = args[0].split( "," )
-      transList = []
-      for transID in ids:
-          r = transID.split( ':' )
-          if len( r ) > 1:
-              for i in range( int( r[0] ), int( r[1] ) + 1 ):
-                  transList.append( i )
-          else:
-              transList.append( int( r[0] ) )
+    ids = args[0].split( "," )
+    transList = []
+    for transID in ids:
+      r = transID.split( ':' )
+      if len( r ) > 1:
+        for i in range( int( r[0] ), int( r[1] ) + 1 ):
+          transList.append( i )
+      else:
+        transList.append( int( r[0] ) )
   return transList
 
 def __checkFilesMissingInFC( transFilesList, status, fixIt ):
@@ -560,7 +559,7 @@ def __getLog( urlBase, logFile, debug = False ):
         break
   else:
     f = urllib.urlopen( url )
-  #read the actual file...
+  # read the actual file...
   if not f:
     if debug: print "Couldn't open file..."
     c = ''
@@ -717,7 +716,7 @@ def __checkJobs( jobsForLfn, byFiles = False ):
             lfns = __checkXMLSummary( lastJob, logURL )
             if lfns:
               badLfns.update( {lastJob: lfns} )
-          #break
+          # break
         if not badLfns:
           print "No logfiles found for any of the jobs..."
         else:
@@ -845,7 +844,7 @@ if __name__ == "__main__":
 
   Script.parseCommandLine( ignoreErrors = True )
   import DIRAC
-  #from DIRAC.ConfigurationSystem.Client import PathFinder
+  # from DIRAC.ConfigurationSystem.Client import PathFinder
   from DIRAC.Core.DISET.RPCClient import RPCClient
 
   switches = Script.getUnprocessedSwitches()
@@ -946,7 +945,7 @@ if __name__ == "__main__":
     if justStats:
       improperJobs += __justStats( transID, status, seList )
       continue
-    pluginUtil = PluginUtilities( transPlugin, transClient, rm, bkClient, None, None, verbose, {}, transID = transID )    ################
+    pluginUtil = PluginUtilities( transPlugin, transClient, rm, bkClient, None, None, verbose, {}, transID = transID )  ################
     # Select runs, or all
     runsDictList = __getRuns( transID, runList, byRuns, seList, status )
     if runList and [run['RunNumber'] for run in runsDictList] == [None]:
@@ -984,12 +983,12 @@ if __name__ == "__main__":
 
       # Run display
       if ( byRuns and runID ) or verbose:
-          files, processed = __filesProcessed( transID, runID )
-          prString = "Run: %d" % runID
-          if runStatus:
-            prString += " (%s)" % runStatus
-          prString += " - %d files (SelectedSite: %s), %d processed, status: %s" % ( files, SEs, processed, runStatus )
-          print prString
+        files, processed = __filesProcessed( transID, runID )
+        prString = "Run: %d" % runID
+        if runStatus:
+          prString += " (%s)" % runStatus
+        prString += " - %d files (SelectedSite: %s), %d processed, status: %s" % ( files, SEs, processed, runStatus )
+        print prString
 
       if checkFlush or ( ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in transPlugin and runStatus != 'Flush' ):
         # Check if the run should be flushed
@@ -1068,13 +1067,13 @@ if __name__ == "__main__":
         if status == 'Problematic':
           __checkReplicasForProblematic( lfnsInTask, replicas )
 
-        #Collect statistics per SE
+        # Collect statistics per SE
         for lfn in replicas:
           taskCompleted = __fillStatsPerSE( replicas[lfn], listSEs ) and taskCompleted
 
         # Print out task's information
         if byTasks:
-          #print task
+          # print task
           prString = "TaskID: %s (created %s, updated %s) - %d files" % ( taskID, task['CreationTime'], task['LastUpdateTime'], nfiles )
           if byFiles and lfnsInTask:
             prString += " (" + str( lfnsInTask ) + ")"
