@@ -83,8 +83,7 @@ class FailoverRequest( ModuleBase ):
 
       result = self.fileReport.commit()
       if not result['OK']:
-        self.log.error( 'Failed to report file status to TransformationDB, \
-        trying again before populating request with file report information' )
+        self.log.error( 'Failed to report file status to TransformationDB, populating request with file report info' )
         result = self.fileReport.generateForwardDISET()
         if not result['OK']:
           self.log.warn( 'Could not generate Operation for file report with result:\n%s' % ( result['Value'] ) )
