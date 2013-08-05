@@ -197,7 +197,7 @@ class SpaceTokenOccupancyTest( TestBase ):
       gLogger.error( 'Unable to find site for %s' % endpoint )
       return
     
-    token = itemDict[ 'SpaceToken' ]
+    token = itemDict[ 'Token' ]
     
     # ['Endpoint', 'LastCheckTime', 'Guaranteed', 'Free', 'Token', 'Total']
     total        = itemDict[ 'Total' ]
