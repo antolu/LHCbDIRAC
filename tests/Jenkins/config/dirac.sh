@@ -42,7 +42,6 @@ dirac_new_tag(){
   currentBranch=`git branch | grep '*' | cut -d ' ' -f 2`
   echo currentBranch $currentBranch
   
-  #tags="`git tag | grep $DIRACVERSION | sort -n -t p -k 2`"
   tags="`git tag | grep $DIRACVERSION`"
 
   nonPreRelease=`echo "$tags" | grep -v pre`
@@ -79,10 +78,13 @@ dirac_branch_script_trigger(){
 
   dirac_get DIRAC
   dirac_new_tag
-  new_tag=`cat $WORKSPACE/new_tag.txt`
-  cur_tag=`cat $WORKSPACE/current.txt`
-  [ $new_tag != $cur_tag ] && exit 0
-  exit 1
+  #new_tag=`cat $WORKSPACE/new_tag.txt`
+  #cur_tag=`cat $WORKSPACE/current.txt`
+  #[ $new_tag != $cur_tag ] && exit 0
+  cd DIRAC
+  new=`git log --since="1 hour ago"`
+  
+  [ "$new" ] && exit 0 || exit 1 
 
 }
 
