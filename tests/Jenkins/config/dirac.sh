@@ -173,8 +173,8 @@ dirac_externals(){
     cd $WORKSPACE
     sed -i 's/`$DIRACSCRIPTS\/dirac-platform`/Linux_x86_64_glibc-2.5/g' bashrc
     . bashrc
-    python `which easy_install` nose
-    python `which easy_install` pylint
+    python `which easy_install` --upgrade nose
+    python `which easy_install` --upgrade pylint
     python `which easy_install` mock
     python `which easy_install` PIL
     python `which easy_install` pyqt
