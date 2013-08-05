@@ -67,6 +67,7 @@ class StorageUsageAgent( AgentModule ):
     self.dataLock = threading.Lock()
     self.replicaListLock = threading.Lock()
     self.proxyCache = DictCache()
+    self.__noProxy = set()
 
   def initialize( self ):
     ''' agent initialisation '''
@@ -191,6 +192,7 @@ class StorageUsageAgent( AgentModule ):
     self.__startExecutionTime = long( time.time() )
     self.__dirExplorer = DirectoryExplorer( reverse = True )
     self.__resetReplicaListFiles()
+    self.__noProxy = set()
 
     self.__printSummary()
 
@@ -305,6 +307,8 @@ class StorageUsageAgent( AgentModule ):
 
     # Getting the proxy...
     cacheKey = ( ownerDN, ownerRole )
+    if cacheKey in self.__noProxy:
+      return S_ERROR( "Proxy not available" )
     userProxy = self.proxyCache.get( cacheKey, 3600 )
     if userProxy:
       return S_OK( userProxy )
@@ -320,6 +324,7 @@ class StorageUsageAgent( AgentModule ):
       self.proxyCache.add( cacheKey, secsLeft, userProxy )
       self.log.verbose( "Got proxy for %s@%s [%s]" % ( ownerDN, ownerGroup, ownerRole ) )
       return S_OK( userProxy )
+    self.__noProxy.add( cacheKey )
     return S_ERROR( "Could not download user proxy:\n%s " % "\n ".join( downErrors ) )
 
   def removeEmptyDir( self, dirPath ):
