@@ -12,7 +12,7 @@
 dirac_get(){
 
 
-  [ $1 ] && project=$1 || project=`echo $JOB_NAME | cut -d '_' -f 1`
+  [ $1 ] && project=$1 || project=`echo $JOB_NAME | cut -d '-' -f 1`
 
 
   if [ ! -e $project ]
@@ -38,7 +38,7 @@ dirac_new_tag(){
 
   cd $WORKSPACE/DIRAC
 
-  DIRACVERSION=`echo $JOB_NAME | cut -d '_' -f 2`
+  DIRACVERSION=`echo $JOB_NAME | cut -d '-' -f 2`
   
   currentBranch=`git branch | grep '*' | cut -d ' ' -f 2`
   echo currentBranch $currentBranch
