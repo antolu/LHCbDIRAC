@@ -12,8 +12,7 @@
 dirac_get(){
 
 
-  [ $1 ] && project=$1 || project=`echo $JOB_NAME | cut -d '-' -f 1`
-
+  [ $1 ] && project=$1 || project=`echo $JOB_NAME | cut -d '-' -f 2`
 
   if [ ! -e $project ]
   then
@@ -38,7 +37,7 @@ dirac_new_tag(){
 
   cd $WORKSPACE/DIRAC
 
-  DIRACVERSION=`echo $JOB_NAME | cut -d '-' -f 2`
+  DIRACVERSION=`echo $JOB_NAME | cut -d '-' -f 3`
   
   currentBranch=`git branch | grep '*' | cut -d ' ' -f 2`
   echo currentBranch $currentBranch
@@ -78,7 +77,7 @@ dirac_new_tag(){
 
 dirac_branch_script_trigger(){
 
-  dirac_get
+  dirac_get DIRAC
   dirac_new_tag
   new_tag=`cat $WORKSPACE/new_tag.txt`
   cur_tag=`cat $WORKSPACE/current.txt`
@@ -98,7 +97,7 @@ dirac_branch_script_trigger(){
 
 dirac_branch_update_workspace(){
 
-  dirac_get
+  dirac_get DIRAC
   dirac_new_tag
   
   new_tag=`cat $WORKSPACE/new_tag.txt`
