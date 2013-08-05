@@ -168,7 +168,7 @@ dirac_externals(){
   echo "Getting dirac externals"
 
   wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
-  python dirac-install -X -l DIRAC -r `cat $WORKSPACE/new_tag.txt` -t server -ddd
+  python dirac-install -X -l DIRAC -r `cat $WORKSPACE/new_tag.txt` -t server -p 'Linux_x86_64_glibc-2.5'
   ( 
     . bashrc
     python `which easy_install` nose
