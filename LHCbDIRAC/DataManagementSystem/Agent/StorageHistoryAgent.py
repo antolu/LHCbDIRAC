@@ -9,8 +9,9 @@
 __RCSID__ = "$Id$"
 
 import os, time, copy
+from types import IntType, StringType
 
-from DIRAC                                                  import S_OK, S_ERROR
+from DIRAC                                                  import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities                                   import Time
 
 from DIRAC.Core.Base.AgentModule                            import AgentModule
@@ -21,11 +22,15 @@ from LHCbDIRAC.AccountingSystem.Client.Types.Storage        import Storage
 from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage    import DataStorage
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient  import DataUsageClient
+from DIRAC.Core.Utilities.List                              import breakListIntoChunks
 
 byteToGB = 1.0e9
 
 def _standardDirectory( dirPath ):
   return dirPath if dirPath[-1] == '/' else dirPath + '/'
+
+def _standardDirList( dirList ):
+  return [_standardDirectory( dirPath ) for dirPath in dirList]
 
 def _fillMetadata( dictToFill, metadataValue ):
   ''' Fill the dictionary to send to the accounting.
@@ -182,12 +187,12 @@ class StorageHistoryAgent( AgentModule ):
         storageRecord.setValueByKey( "LogicalSize", topDirLogicalUsage[ directory ][ 'Size' ] )
         try:
           physicalFiles = seData[ directory ][ se ][ 'Files' ]
-        except KeyError:
+        except:
           self.log.error( "WARNING! no files replicas for directory %s on SE %s" % ( directory, se ) )
           physicalFiles = 0
         try:
           physicalSize = seData[ directory ][ se ][ 'Size' ]
-        except KeyError:
+        except:
           self.log.error( "WARNING! no size for replicas for directory %s on SE %s" % ( directory, se ) )
           physicalSize = 0
         storageRecord.setValueByKey( "PhysicalFiles", physicalFiles )
@@ -230,7 +235,7 @@ class StorageHistoryAgent( AgentModule ):
 
     # set the time for the accounting records (same time for all records)
     now = Time.dateTime()
-    #Get the directory metadata in a bulk query
+    # Get the directory metadata in a bulk query
     metaForList = self.__getMetadataForAcc( self.dirDict.values() )
 
     # loop on all directories  to get the bkk metadata
@@ -332,71 +337,79 @@ class StorageHistoryAgent( AgentModule ):
       metaForList[dirName] = self.cachedMetadata.get( dirName, {} )
       if not metaForList[dirName]:
         notFound.append( dirName )
+    notInCache = []
     if notFound:
       self.log.info( "Memory metadata cache missed for %d directories" % len( notFound ) )
-      self.log.verbose( "call getDirMetadata for: %s " % notFound )
-      self.callsToDudbForMetadata += 1
-      res = self.__dataUsageClient.getDirMetadata( notFound )  # this could be a bulk query for a list of directories
-      if not res[ 'OK' ]:
-        self.log.error( "Error retrieving directory meta-data %s " % res['Message'] )
-        # this usually happens when directories are removed from LFC between the StorageUsageDB dump and this call,
-        # if the Db is refreshed exactly in this time interval. Not really a problem.
-        #######################3 just a try ##############################################3
-        return {}
-      self.log.verbose( "getDirMetadata returned: %s " % str( res['Value'] ) )
-      notInCache = []
-      for dirName in notFound:
-        # Compatibility with old (list for single file) and new (dictionary) service
-        if type( res['Value'] ) == type( {} ):
-          metaTuple = res['Value'].get( dirName, () )
-        elif len( dirList ) == 1 and res['Value']:
-          metaTuple = res['Value'][0]
-        else:
-          metaTuple = ()
-        if metaTuple:
-          metaForDir = metaForList[dirName]
-          _dirID, metaForDir[ 'DataType' ], metaForDir[ 'Activity' ], metaForDir[ 'Conditions' ], metaForDir[ 'ProcessingPass' ], \
-            metaForDir[ 'EventType' ], metaForDir[ 'FileType' ], metaForDir[ 'Production' ] = metaTuple
-        else:
-          notInCache.append( dirName )
+      self.log.verbose( "call getDirMetadata for (first 10): %s " % str( notFound[0:10] ) )
+      for dirChunk in breakListIntoChunks( notFound, 10000 ):
+        self.callsToDudbForMetadata += 1
+        res = self.__dataUsageClient.getDirMetadata( dirChunk )  # this could be a bulk query for a list of directories
+        if not res[ 'OK' ]:
+          self.log.error( "Error retrieving %d directories meta-data %s " % ( len( dirChunk ), res['Message'] ) )
+          # this usually happens when directories are removed from LFC between the StorageUsageDB dump and this call,
+          # if the Db is refreshed exactly in this time interval. Not really a problem.
+          #######################3 just a try ##############################################3
+          notInCache += dirChunk
+          continue
+        self.log.verbose( "getDirMetadata returned: %s " % str( res['Value'] ) )
+        for dirName in dirChunk:
+          # Compatibility with old (list for single file) and new (dictionary) service
+          if type( res['Value'] ) == type( {} ):
+            metaTuple = res['Value'].get( dirName, () )
+          elif len( dirList ) == 1 and res['Value']:
+            metaTuple = res['Value'][0]
+          else:
+            metaTuple = ()
+          if metaTuple:
+            metaForDir = metaForList[dirName]
+            _dirID, metaForDir[ 'DataType' ], metaForDir[ 'Activity' ], metaForDir[ 'Conditions' ], metaForDir[ 'ProcessingPass' ], \
+              metaForDir[ 'EventType' ], metaForDir[ 'FileType' ], metaForDir[ 'Production' ] = metaTuple
+          else:
+            notInCache.append( dirName )
 
       failedBK = []
       if notInCache:
+        cachedFromBK = []
         self.log.info( "Directory metadata cache missed for %d directories => query BK and cache" % len( notInCache ) )
-        self.callsToBkkgetDirectoryMetadata += 1
-        res = self.__bkClient.getDirectoryMetadata( notInCache )
-        if not res[ 'OK' ]:
-          self.log.error( "Totally failed to query Bookkeeping %s" % res[ 'Message' ] )
-          failedBK = notInCache
-          for dirName in notInCache:
-            metaForDir = metaForList[dirName]
-            _fillMetadata( metaForDir, 'FailedBkkQuery' )
-        else:
-          bkMetadata = res['Value']
-          self.log.verbose( "Successfully queried Bookkeeping, result: %s " % bkMetadata )
-          for dirName in notInCache:
-            metaForDir = metaForList[dirName]
-            # BK returns a list of metadata, chose the first one...
-            metadata = bkMetadata['Successful'].get( dirName, [{}] )[0]
-            if metadata:
-              # All is OK, directory found
-              _fillMetadata( metaForDir, metadata )
-              self.log.verbose( "Cache this entry in DirMetadata table.." )
-              resInsert = self.__dataUsageClient.insertToDirMetadata( { dirName: metadata} )
-              if not resInsert[ 'OK' ]:
-                self.log.error( "Failed to cache metadata in DirMetadata table! %s " % resInsert[ 'Message' ] )
+        for dirChunk in breakListIntoChunks( notInCache, 1000 ):
+          self.callsToBkkgetDirectoryMetadata += 1
+          res = self.__bkClient.getDirectoryMetadata( dirChunk )
+          if not res[ 'OK' ]:
+            self.log.error( "Totally failed to query Bookkeeping %s" % res[ 'Message' ] )
+            failedBK += dirChunk
+            for dirName in dirChunk:
+              metaForDir = metaForList[dirName]
+              _fillMetadata( metaForDir, 'FailedBkkQuery' )
+          else:
+            bkMetadata = res['Value']
+            self.log.debug( "Successfully queried Bookkeeping, result: %s " % bkMetadata )
+            for dirName in dirChunk:
+              metaForDir = metaForList[dirName]
+              # BK returns a list of metadata, chose the first one...
+              metadata = bkMetadata['Successful'].get( dirName, [{}] )[0]
+              if metadata:
+                # All is OK, directory found
+                _fillMetadata( metaForDir, metadata )
+                self.log.verbose( "Cache entry %s in DirMetadata table.." % dirName )
+                resInsert = self.__dataUsageClient.insertToDirMetadata( { dirName: metadata} )
+                if not resInsert[ 'OK' ]:
+                  self.log.error( "Failed to cache metadata in DirMetadata table! %s " % resInsert[ 'Message' ] )
+                else:
+                  cachedFromBK.append( dirName )
+                  self.log.verbose( "Successfully cached metadata for %s : %s" % ( dirName, str( metadata ) ) )
+                  self.log.debug( "result: %s " % str( resInsert ) )
               else:
-                self.log.info( "Successfully cached metadata for %s : %s" % ( dirName, str( metadata ) ) )
-                self.log.verbose( "result: %s " % resInsert )
-            else:
-              # Directory not found
-              self.log.warn( "Directory %s not registered in Bookkeeping!" % dirName )
-              _fillMetadata( metaForDir, 'notInBkk' )
-              failedBK.append( dirName )
-              self.directoriesNotInBkk.append( dirName )
-            # Translate a few keys for accounting
-            for bkName, accName in ( ( 'ConfigName', 'DataType' ), ( 'ConfigVersion', 'Activity' ), ( 'ConditionDescription', 'Conditions' ) ):
-              metaForDir[accName] = metaForDir.pop( bkName, 'na' )
+                # Directory not found
+                self.log.verbose( "Directory %s not registered in Bookkeeping!" % dirName )
+                _fillMetadata( metaForDir, 'notInBkk' )
+                failedBK.append( dirName )
+                self.directoriesNotInBkk.append( dirName )
+              # Translate a few keys for accounting
+              for bkName, accName in ( ( 'ConfigName', 'DataType' ), ( 'ConfigVersion', 'Activity' ), ( 'ConditionDescription', 'Conditions' ) ):
+                metaForDir[accName] = metaForDir.pop( bkName, 'na' )
+        self.log.info( 'Successfully cached %d directories from BK' % len( cachedFromBK ) )
+        if self.directoriesNotInBkk:
+          self.log.warn( '%d directories not found in BK' % len( self.directoriesNotInBkk ) )
 
       # cache locally the metadata
       for dirName in [dn for dn in notFound if dn not in failedBK]:
@@ -530,10 +543,9 @@ class StorageHistoryAgent( AgentModule ):
 
   def __getEventTypeDescription( self, eventType ):
     # convert eventType to string:
-    #FIXME: the lines above and below do not make any sense
     try:
       eventType = int( eventType )
-    except ValueError:
+    except:
       pass
     # check that the event type description is in the cached dictionary, and otherwise query the Bkk
     if eventType not in self.eventTypeDescription:

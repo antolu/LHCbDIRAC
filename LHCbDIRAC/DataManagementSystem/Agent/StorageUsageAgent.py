@@ -300,6 +300,7 @@ class StorageUsageAgent( AgentModule ):
     result = self.catalog.getCatalogDirectoryMetadata( dirPath, singleFile = True )
     if not result[ 'OK' ]:
       self.log.error( "Could not get metadata info", result[ 'Message' ] )
+      return result
     ownerRole = result[ 'Value' ][ 'OwnerRole' ]
     ownerDN = result[ 'Value' ][ 'OwnerDN' ]
     if ownerRole[0] != "/":
