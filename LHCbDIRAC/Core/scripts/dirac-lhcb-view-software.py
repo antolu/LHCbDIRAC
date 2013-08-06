@@ -22,8 +22,6 @@
 
 __RCSID__ = "$Id: $"
 
-import sys, string
-
 
 runMode = None
 subLogger = None
@@ -33,6 +31,7 @@ software = None
 active = None
 deprecated = None
 systemConfigs = None
+
 
 def registerSwitches():
   '''
@@ -48,6 +47,7 @@ def registerSwitches():
   for switch in switches:
     Script.registerSwitch( '', switch[ 0 ], switch[ 1 ] )
   Script.setUsageMessage( __doc__ )
+
 
 def parseSwitches():
   '''
@@ -81,9 +81,7 @@ def parseSwitches():
 
   switches.setdefault( 'systemConfig', None )
 
-
   return switches
-
 
 
 def printSoftware( package, packageArch ):
@@ -96,13 +94,12 @@ def printSoftware( package, packageArch ):
                   + package.split( '.' )[1].ljust( adj )\
                   + ','.join( packageArch ).ljust( adj ) )
 
+
 def printHeader( header ):
   '''
     Helper function to format the output : prints a header
   '''
   gLogger.notice( '=========> %s ' % header )
-
-
 
 
 def getSoftwareDistribution():
@@ -150,6 +147,7 @@ def checkPackage( name, version ):
   else:
     gLogger.notice( 'This package is distributed on the GRID' )
 
+
 def listConfig( configuration = None ):
   '''
     List the installed packages.
@@ -181,7 +179,6 @@ def listConfig( configuration = None ):
   if not configuration:
     printHeader( 'Deprecated LHCb Software' )
     gLogger.notice( '%s' % ( ', '.join( deprecated ) ) )
-
 
 
 if __name__ == "__main__":
