@@ -1165,6 +1165,9 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
       else:
         return res
     res = transClient.addFilesToTransformation( transID, lfnChunk )
+    if not res['OK']:
+      gLogger.fatal( "Error adding %d files to transformation" % len( lfnChunk ), res['Message'] )
+      DIRAC.exit( 2 )
     added = [lfn for ( lfn, status ) in res['Value']['Successful'].items() if status == 'Added']
     addedLfns += added
     if addRunInfo and res['OK']:
