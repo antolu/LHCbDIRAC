@@ -9,8 +9,6 @@ Script.parseCommandLine( ignoreErrors = True )
 
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 
-import time
-
 prodID = ''
 for switch in Script.getUnprocessedSwitches():
   if switch[0].lower() == "productionid":

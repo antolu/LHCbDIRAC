@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+__RCSID__ = '$Id$'
+
 from DIRAC.Core.Base import Script
 Script.parseCommandLine( ignoreErrors = True )
 
@@ -9,7 +11,7 @@ from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 args = Script.getPositionalArgs()
 
 def usage():
-  print 'Usage: %s <Production ID> |<Production ID>' %(Script.scriptName)
+  print 'Usage: %s <Production ID> |<Production ID>' % Script.scriptName
   DIRAC.exit(2)
 
 if len(args) < 1:
@@ -20,7 +22,7 @@ exitCode = 0
 errorList = []
 
 for prodID in args:
-  result = diracProd.getProductionLoggingInfo(prodID,printOutput=True)
+  result = diracProd.getProductionLoggingInfo( prodID, printOutput = True )
   if result.has_key('Message'):
     errorList.append( (prodID, result['Message']) )
     exitCode = 2
