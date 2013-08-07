@@ -178,7 +178,15 @@ dirac_externals(){
     python `which easy_install` mock
     python `which easy_install` PIL
     python `which easy_install` pyqt
+  
+    # little hack to get right version  of logilab-common
+    wget http://download.logilab.org/pub/common/logilab-common-0.60.0.tar.gz
+    tar xfv logilab-common-0.60.0.tar.gz
+    cd logilab-common-0.60.0
+    python setup.py install
+    cd -
   )
+  
 }
 
 
