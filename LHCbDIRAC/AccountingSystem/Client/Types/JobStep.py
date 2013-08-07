@@ -42,5 +42,5 @@ class JobStep( BaseAccountingType ):
 
     self.checkType()
     
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

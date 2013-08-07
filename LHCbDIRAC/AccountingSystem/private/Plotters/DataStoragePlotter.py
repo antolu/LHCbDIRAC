@@ -448,5 +448,5 @@ class DataStoragePlotter( BaseReporter ):
     dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

@@ -419,5 +419,5 @@ class UserStoragePlotter( BaseReporter ):
                   'unit'          : 'PFN / LFN' 
     } )
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

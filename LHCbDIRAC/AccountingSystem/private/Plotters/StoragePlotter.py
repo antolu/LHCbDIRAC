@@ -613,5 +613,5 @@ class StoragePlotter( BaseReporter ):
                    'unit'          : 'PFN / LFN' 
                   } )
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

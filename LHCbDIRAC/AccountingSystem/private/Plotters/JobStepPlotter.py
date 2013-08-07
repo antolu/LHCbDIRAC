@@ -724,5 +724,5 @@ class JobStepPlotter( BaseReporter ):
     
     return self._generateTimedStackedBarPlot( filename, plotInfo[ 'data' ], metadata )
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

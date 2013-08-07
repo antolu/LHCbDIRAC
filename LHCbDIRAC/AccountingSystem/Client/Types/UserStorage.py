@@ -31,5 +31,5 @@ class UserStorage( BaseAccountingType ):
                          ]
     self.checkType()
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

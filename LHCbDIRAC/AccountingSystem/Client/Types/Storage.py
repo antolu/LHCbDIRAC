@@ -28,5 +28,5 @@ class Storage( BaseAccountingType ):
                          ]
     self.checkType()
     
-################################################################################    
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

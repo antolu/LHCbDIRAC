@@ -242,5 +242,5 @@ class PopularityPlotter( BaseReporter ):
     dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

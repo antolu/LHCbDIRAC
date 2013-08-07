@@ -36,5 +36,5 @@ class DataStorage( BaseAccountingType ):
                          ]
     self.checkType()
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

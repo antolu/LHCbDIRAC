@@ -34,5 +34,5 @@ class Popularity( BaseAccountingType ):
                          ]
     self.checkType()
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF
