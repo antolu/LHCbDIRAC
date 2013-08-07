@@ -27,15 +27,14 @@ lhcbdirac_integration_scripts(){
   for script in $scripts
   do
     mv $script $(echo $script | sed 's/-/_/g' )
+    echo $script | cut -d '.' -f 1 >> $WORKSPACE/scripts_list.txt
   done
 
   dirs=`ls LHCbDIRAC/*/scripts -d`
   for dir in $dirs
   do
     touch $dir/__init__.py
-  done
-
-  ls $dir/dirac-* | cut -d '.' -f 1 > $WORKSPACE/scripts_list 
+  done 
 
 }
 
