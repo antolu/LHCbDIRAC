@@ -74,5 +74,5 @@ class HCProxyAgent( AgentModule ):
       return S_ERROR( x )
   
   
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

@@ -259,5 +259,5 @@ def xml_append( doc, base, elem, cdata = None, **attrs ):
 
   return base.appendChild( new_elem )
 
-################################################################################
-# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

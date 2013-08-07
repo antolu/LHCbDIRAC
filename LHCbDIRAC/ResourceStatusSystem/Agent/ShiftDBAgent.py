@@ -327,5 +327,5 @@ class ShiftDBAgent( AgentModule ):
                                     body, fromAddress = 'joel.closier@cern.ch' )
     return res    
  
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

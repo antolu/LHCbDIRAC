@@ -52,6 +52,6 @@ def getBodyEmail( role ):
     return __productionBody__
   else:
     return None
-  
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+
+#...............................................................................
+#EOF

@@ -393,5 +393,5 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
 
     return monDict
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF
