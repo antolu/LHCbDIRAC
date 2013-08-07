@@ -68,5 +68,5 @@ class SEQueuedTransfersPolicy( PolicyBase ):
     result[ 'Reason' ] = 'Queued transfers on the SE: %d (%s)' % ( commandResult, comment )
     return result
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

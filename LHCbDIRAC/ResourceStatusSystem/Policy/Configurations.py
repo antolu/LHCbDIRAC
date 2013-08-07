@@ -452,5 +452,5 @@ policies = {
 #Update DIRAC policies with LHCbDIRAC policies
 POLICIESMETA.update( POLICIESMETA_LHCB )
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

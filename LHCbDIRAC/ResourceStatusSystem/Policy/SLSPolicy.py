@@ -65,5 +65,5 @@ class SLSPolicy( PolicyBase ):
     result[ 'Reason' ] = 'SLS availability: %d %% (%s)' % ( commandResult, comment )
     return result
   
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
+#...............................................................................
+#EOF

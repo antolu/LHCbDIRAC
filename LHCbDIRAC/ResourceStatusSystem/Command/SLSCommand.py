@@ -108,5 +108,5 @@ class SLSServiceInfoCommand( Command ):
 
     return { 'Result' : res }    
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

@@ -360,4 +360,4 @@ class PublisherHandler( RequestHandler ):
     
 
 #...............................................................................
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#EOF

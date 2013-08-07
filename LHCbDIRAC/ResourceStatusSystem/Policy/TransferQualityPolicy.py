@@ -104,5 +104,5 @@ class TransferQualityPolicy( PolicyBase ):
     result[ 'Reason' ] = result[ 'Reason' ] + strReason
     return S_OK( result )
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

@@ -70,5 +70,5 @@ class GGUSTicketsPolicy( PolicyBase ):
 
     return S_OK( result )
   
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

@@ -123,4 +123,4 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
   #_likeToTable = DIRACResourceManagementDB._likeToTable
   
 #...............................................................................
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
+#EOF

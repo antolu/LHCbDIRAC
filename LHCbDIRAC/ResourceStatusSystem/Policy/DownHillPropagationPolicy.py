@@ -62,5 +62,5 @@ class DownHillPropagationPolicy( PolicyBase ):
     result[ 'Reason' ] = 'DownHill propagated status: %s' % commandResult
     return result
   
-################################################################################  
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

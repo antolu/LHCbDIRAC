@@ -17,7 +17,7 @@ class Synchronizer( DIRACSyncrhonizer ):
     correspondant DIRAC class. It adds two specific things to
     synchronize: VOBOX and CondDBs, which are LHCb specific.
   '''
-  
+
   def __init__( self, rStatus = None, rManagement = None ):
     super( Synchronizer, self ).__init__( rStatus, rManagement )
   

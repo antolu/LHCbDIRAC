@@ -334,5 +334,5 @@ class PilotAccountingCommand( AccountingCommand ):
 
     return S_OK( self.metrics )  
   
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

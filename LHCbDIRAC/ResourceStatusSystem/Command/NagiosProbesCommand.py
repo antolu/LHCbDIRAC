@@ -54,5 +54,6 @@ class NagiosProbesCommand( Command ):
 
     return S_OK( res )    
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
+#...............................................................................
+#EOF
+  

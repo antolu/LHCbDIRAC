@@ -692,4 +692,4 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #    return self._query( 'addOrModify', 'HammerCloudTest', locals() )
 
 #...............................................................................
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#EOF

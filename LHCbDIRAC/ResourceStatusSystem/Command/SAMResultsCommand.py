@@ -66,5 +66,6 @@ class SAMResultsCommand( Command ):
     
     return self.samClient.getStatus( element, siteName, gocSiteName, metrics ) 
  
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
+#...............................................................................
+#EOF
+  

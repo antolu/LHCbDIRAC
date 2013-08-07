@@ -49,4 +49,4 @@ class ResourceManagementHandler( DIRACResourceManagementHandler ):
     self.setDatabase( db )
 
 #...............................................................................
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#EOF
