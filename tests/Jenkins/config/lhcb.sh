@@ -35,6 +35,8 @@ lhcbdirac_integration_scripts(){
     touch $dir/__init__.py
   done
 
+  ls $dir/dirac-* | cut -d '.' -f 1 > $WORKSPACE/scripts_list 
+
 }
 
 
