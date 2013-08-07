@@ -516,5 +516,5 @@ class UsersAndGroups( AgentModule ):
 
     return S_OK()
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF
