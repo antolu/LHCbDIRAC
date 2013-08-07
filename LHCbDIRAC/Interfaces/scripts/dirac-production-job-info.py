@@ -8,23 +8,23 @@ from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 args = Script.getPositionalArgs()
 
 def usage():
-  print 'Usage: %s <Production ID> <Production Job ID>' %(Script.scriptName)
+  print 'Usage: %s <Production ID> <Production Job ID>' % Script.scriptName
   DIRAC.exit(2)
 
 if len(args)!=2:
   usage()
 
 diracProd = DiracProduction()
-prodID=args[0]
-jobID=args[1]
+prodID = args[0]
+jobID  = args[1]
 try:
-  prodID=int(prodID)
-  jobID=int(jobID)
+  prodID = int(prodID)
+  jobID  = int(jobID)
 except Exception,x:
   print 'ERROR ProdID and Production JobID must be integers'
   DIRAC.exit(2)
 
-result = diracProd.getProdJobInfo(prodID,jobID,printOutput=True)
+result = diracProd.getProdJobInfo( prodID, jobID, printOutput = True )
 if result['OK']:
   DIRAC.exit(0)
 elif result.has_key('Message'):

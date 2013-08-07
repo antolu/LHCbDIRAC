@@ -6,8 +6,6 @@
 __RCSID__   = "$Id$"
 __VERSION__ = "$Revision$"
 
-import string
-
 import DIRAC
 from DIRAC.Core.Base import Script
 
@@ -16,23 +14,23 @@ Script.parseCommandLine( ignoreErrors = True )
 
 args = Script.getPositionalArgs()
 
-disableChecks=False
+disableChecks = False
 for switch in Script.getUnprocessedSwitches():
   if switch[0].lower() in ('f','force'):
-    disableChecks=True
+    disableChecks = True
 
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 diracProd = DiracProduction()
 
 def usage():
-  print 'Usage: %s <Command> <Production ID> |<Production ID>' %(Script.scriptName)
+  print 'Usage: %s <Command> <Production ID> |<Production ID>' % Script.scriptName
   commands = diracProd.getProductionCommands()['Value']
   print "\nCommands include: %s" % ( ', '.join( commands.keys() ) )
   print '\nDescription:\n'
-  for n,v in commands.items():
+  for n, v in commands.items():
     print '%s:' %n
-    for i,j in v.items():
-      print '     %s = %s' %(i,j)
+    for i, j in v.items():
+      print '     %s = %s' % ( i, j )
   print '\nOptional flag: -f --Force to disable checks'
 
   DIRAC.exit(2)
@@ -46,7 +44,7 @@ command = args[0]
 
 for prodID in args[1:]:
 
-  result = diracProd.production(prodID,command,printOutput=True,disableCheck=disableChecks)
+  result = diracProd.production( prodID, command, printOutput = True, disableCheck = disableChecks )
   if result.has_key('Message'):
     errorList.append( (prodID, result['Message']) )
     exitCode = 2

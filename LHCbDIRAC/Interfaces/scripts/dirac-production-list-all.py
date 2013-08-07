@@ -9,11 +9,11 @@ args = Script.getPositionalArgs()
 
 diracProd = DiracProduction()
 
-result = diracProd.getAllProductions(printOutput=True)
+result = diracProd.getAllProductions( printOutput = True )
 if result['OK']:
   DIRAC.exit(0)
 elif result.has_key('Message'):
-  print 'Listing productions failed with message:\n%s' %(result['Message'])
+  print 'Listing productions failed with message:\n%s' % result['Message']
   DIRAC.exit(2)
 else:
   print 'Null result for getAllProductions() call'
