@@ -35,7 +35,8 @@ load-plugins=
 
 #R0801 = Similar lines in %s files
 #R0904 = Too many public methods (%s/%s)
-disable=R0801,R0904
+#C0303 = Trailing whitespace 
+disable=R0801,R0904,C0303
 
 [REPORTS]
 
