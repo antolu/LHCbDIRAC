@@ -33,7 +33,7 @@ load-plugins=
 # multiple time (only on the command line, not in the configuration file where
 # it should appear only once).
 #C0303 = Trailing whitespace 
-disable=C0303
+#disable=C0303
 
 
 [REPORTS]
