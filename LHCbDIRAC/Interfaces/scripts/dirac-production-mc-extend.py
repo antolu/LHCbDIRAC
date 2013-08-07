@@ -11,6 +11,12 @@ from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 args = Script.getPositionalArgs()
 
 def usage():
+  """ usage
+  
+  Prints script usage 
+  
+  """
+    
   print 'Usage: %s <Production ID> <Number Of Jobs>' % Script.scriptName
   DIRAC.exit(2)
 

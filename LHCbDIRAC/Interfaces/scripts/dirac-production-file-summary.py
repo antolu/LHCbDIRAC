@@ -45,6 +45,12 @@ for switch in Script.getUnprocessedSwitches():
 args = Script.getPositionalArgs()
 
 def usage():
+  """ usage
+  
+  Prints script usage 
+  
+  """
+    
   print 'Usage: %s <ProductionID> <Options> [Try -h,--help for more information]' % Script.scriptName
   DIRAC.exit(2)
 
