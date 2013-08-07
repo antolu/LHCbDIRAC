@@ -15,6 +15,7 @@ from DIRAC                            import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client import PathFinder
 from DIRAC.Core.DISET.RequestHandler  import RequestHandler
 from DIRAC.Core.Utilities.Shifter     import getShifterProxy
+from DIRAC.Core.Utilities.Subprocess  import shellCall
 
 from LHCbDIRAC.ProductionManagementSystem.DB.ProductionRequestDB import ProductionRequestDB
 
@@ -297,7 +298,7 @@ class ProductionRequestHandler( RequestHandler ):
     proxy = "X509_USER_PROXY=%s" % proxyFile
     cmd = "python %s %s" % (fs[1], f[1])
     try:
-      res = DIRAC.shellCall(1800, [ "/bin/bash -c '%s;%s %s'" \
+      res = shellCall(1800, [ "/bin/bash -c '%s;%s %s'" \
                                    % (setenv,proxy,cmd) ])
       if res['OK']:
         result = S_OK(str(res['Value'][1])+str(res['Value'][2]))
@@ -341,7 +342,7 @@ class ProductionRequestHandler( RequestHandler ):
     proxy = "X509_USER_PROXY=%s" % proxyFile
     cmd = "python %s" % (f[1])
     try:
-      res = DIRAC.shellCall(1800, [ "/bin/bash -c '%s;%s %s'" \
+      res = shellCall(1800, [ "/bin/bash -c '%s;%s %s'" \
                                    % (setenv,proxy,cmd) ])
       if res['OK']:
         result = S_OK(str(res['Value'][1])+str(res['Value'][2]))

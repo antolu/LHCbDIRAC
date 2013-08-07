@@ -107,5 +107,5 @@ class RequestTrackingAgent( AgentModule ):
       return S_ERROR( "Can not convert result from BK call: %s" % str( e ) )
     return S_OK( sum_nr )
 
-################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+#...............................................................................
+#EOF

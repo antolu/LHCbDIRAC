@@ -9,9 +9,10 @@ import tempfile
 
 import DIRAC
 
-from DIRAC.Core.Base.AgentModule    import AgentModule
-from DIRAC.Core.DISET.RPCClient     import RPCClient
-from DIRAC                          import S_OK, S_ERROR, gLogger
+from DIRAC                           import S_OK, S_ERROR, gLogger
+from DIRAC.Core.Base.AgentModule     import AgentModule
+from DIRAC.Core.DISET.RPCClient      import RPCClient
+from DIRAC.Core.Utilities.Subprocess import shellCall
 
 __RCSID__ = "$Id$"
 # AZ: Copy/paste from the controller... should be in a "library"
@@ -86,7 +87,7 @@ def runTest(script,data):
   setenv = "source /opt/dirac/bashrc"
   cmd = "python %s %s" % (fs[1], fTmp[1])
   try:
-    res = DIRAC.shellCall(1800, [ "/bin/bash -c '%s;%s'" \
+    res = shellCall(1800, [ "/bin/bash -c '%s;%s'" \
                                  % (setenv, cmd) ])
     if res['OK']:
       result = S_OK(str(res['Value'][1])+str(res['Value'][2]))
