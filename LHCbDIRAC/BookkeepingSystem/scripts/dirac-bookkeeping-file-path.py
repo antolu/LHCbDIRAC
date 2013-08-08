@@ -6,7 +6,7 @@
 """
   Return the BK path for the directories of a (list of) files
 """
-__RCSID__ = "$Id: dirac-bookkeeping-file-path.py 65177 2013-04-22 15:24:07Z phicharp $"
+__RCSID__ = "$Id$"
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult
 import os
 

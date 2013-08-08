@@ -2,8 +2,8 @@
 """
     Set a (set of) LFNs as problematic in the LFC and in the BK and transformation system if only one replica
 """
-__RCSID__ = "$Id: dirac-dms-set-problematic-files.py 22056 2010-02-23 18:41:29Z rgracian $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__ = "$Id$"
+__VERSION__ = "$Revision$"
 
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript

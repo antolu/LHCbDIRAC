@@ -1,7 +1,7 @@
 """  TransformationAgent is and LHCb class just for overwriting some of the DIRAC methods
 """
 
-__RCSID__ = "$Id: TransformationAgent.py 43068 2011-09-28 16:21:29Z phicharp $"
+__RCSID__ = "$Id$"
 
 
 from DIRAC import gLogger, S_OK, S_ERROR

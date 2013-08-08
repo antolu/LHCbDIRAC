@@ -6,8 +6,8 @@
 """
     Show replicas for a (set of) LFNs
 """
-__RCSID__ = "$Id: dirac-dms-lfn-replicas.py 22056 2010-02-23 18:41:29Z rgracian $"
-__VERSION__ = "$Revision: 1.1 $"
+__RCSID__ = "$Id$"
+__VERSION__ = "$Revision$"
 
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult

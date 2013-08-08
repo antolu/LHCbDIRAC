@@ -4,7 +4,7 @@
   Check the space token usage at the site and report the space usage from several sources: File Catalogue, Storage dumps, SRM interface
 """
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 unit = 'TB'

@@ -6,7 +6,7 @@
    and in this case creates a list of datasets to be deleted and datasets to be kept
 """
 
-__RCSID__ = "$Id: dirac-dms-browse-bk.py 42387 2011-09-07 13:53:37Z phicharp $"
+__RCSID__ = "$Id$"
 
 import os, sys, datetime
 

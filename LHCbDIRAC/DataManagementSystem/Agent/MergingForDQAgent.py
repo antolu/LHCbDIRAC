@@ -54,7 +54,7 @@ from LHCbDIRAC.DataManagementSystem.Utilities.MergeForDQ        import getRuns, 
 
 
 AGENT_NAME = 'DataManagement/MergingForDQAgent'
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 class MergingForDQAgent( AgentModule ):
 

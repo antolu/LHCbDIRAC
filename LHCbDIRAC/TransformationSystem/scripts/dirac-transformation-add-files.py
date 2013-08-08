@@ -4,7 +4,7 @@
  Add files to a transformation
 """
 
-__RCSID__ = "$Id: dirac-transformation-add-files.py 65086 2013-04-19 07:58:35Z phicharp $"
+__RCSID__ = "$Id$"
 
 def __getTransformations( args ):
   if not len( args ):

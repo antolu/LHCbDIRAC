@@ -5,7 +5,7 @@ Move files that are Unused or MaxReset from a parent production to its derived p
 The argument is a list of productions: comma separated list of ranges (a range has the form p1:p2)
 """
 
-__RCSID__ = "$Id: dirac-transformation-update-derived.py 52217 2012-05-07 08:18:33Z phicharp $"
+__RCSID__ = "$Id$"
 
 import sys
 from DIRAC.Core.Base import Script

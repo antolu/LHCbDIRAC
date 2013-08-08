@@ -1,0 +1,156 @@
+#-- start of make_header -----------------
+
+#====================================
+#  Document deploy_dirac_scripts_action
+#
+#   Generated Wed Apr 17 18:55:09 2013  by phicharp
+#
+#====================================
+
+include ${CMTROOT}/src/Makefile.core
+
+ifdef tag
+CMTEXTRATAGS = $(tag)
+else
+tag       = $(CMTCONFIG)
+endif
+
+cmt_deploy_dirac_scripts_action_has_target_tag = 1
+
+#--------------------------------------------------------
+
+ifdef cmt_deploy_dirac_scripts_action_has_target_tag
+
+tags      = $(tag),$(CMTEXTRATAGS),target_deploy_dirac_scripts_action
+
+Interfaces_tag = $(tag)
+
+#cmt_local_tagfile_deploy_dirac_scripts_action = $(Interfaces_tag)_deploy_dirac_scripts_action.make
+cmt_local_tagfile_deploy_dirac_scripts_action = $(bin)$(Interfaces_tag)_deploy_dirac_scripts_action.make
+
+else
+
+tags      = $(tag),$(CMTEXTRATAGS)
+
+Interfaces_tag = $(tag)
+
+#cmt_local_tagfile_deploy_dirac_scripts_action = $(Interfaces_tag).make
+cmt_local_tagfile_deploy_dirac_scripts_action = $(bin)$(Interfaces_tag).make
+
+endif
+
+include $(cmt_local_tagfile_deploy_dirac_scripts_action)
+#-include $(cmt_local_tagfile_deploy_dirac_scripts_action)
+
+ifdef cmt_deploy_dirac_scripts_action_has_target_tag
+
+cmt_final_setup_deploy_dirac_scripts_action = $(bin)setup_deploy_dirac_scripts_action.make
+#cmt_final_setup_deploy_dirac_scripts_action = $(bin)Interfaces_deploy_dirac_scripts_actionsetup.make
+cmt_local_deploy_dirac_scripts_action_makefile = $(bin)deploy_dirac_scripts_action.make
+
+else
+
+cmt_final_setup_deploy_dirac_scripts_action = $(bin)setup.make
+#cmt_final_setup_deploy_dirac_scripts_action = $(bin)Interfacessetup.make
+cmt_local_deploy_dirac_scripts_action_makefile = $(bin)deploy_dirac_scripts_action.make
+
+endif
+
+cmt_final_setup = $(bin)setup.make
+#cmt_final_setup = $(bin)Interfacessetup.make
+
+#deploy_dirac_scripts_action :: ;
+
+dirs ::
+	@if test ! -r requirements ; then echo "No requirements file" ; fi; \
+	  if test ! -d $(bin) ; then $(mkdir) -p $(bin) ; fi
+
+javadirs ::
+	@if test ! -d $(javabin) ; then $(mkdir) -p $(javabin) ; fi
+
+srcdirs ::
+	@if test ! -d $(src) ; then $(mkdir) -p $(src) ; fi
+
+help ::
+	$(echo) 'deploy_dirac_scripts_action'
+
+binobj = 
+ifdef STRUCTURED_OUTPUT
+binobj = deploy_dirac_scripts_action/
+#deploy_dirac_scripts_action::
+#	@if test ! -d $(bin)$(binobj) ; then $(mkdir) -p $(bin)$(binobj) ; fi
+#	$(echo) "STRUCTURED_OUTPUT="$(bin)$(binobj)
+endif
+
+ifdef use_requirements
+$(use_requirements) : ;
+endif
+
+#-- end of make_header ------------------
+#-- start of cmt_action_runner_header ---------------
+
+ifdef ONCE
+deploy_dirac_scripts_action_once = 1
+endif
+
+ifdef deploy_dirac_scripts_action_once
+
+deploy_dirac_scripts_actionactionstamp = $(bin)deploy_dirac_scripts_action.actionstamp
+#deploy_dirac_scripts_actionactionstamp = deploy_dirac_scripts_action.actionstamp
+
+deploy_dirac_scripts_action :: $(deploy_dirac_scripts_actionactionstamp)
+	$(echo) "deploy_dirac_scripts_action ok"
+#	@echo deploy_dirac_scripts_action ok
+
+$(deploy_dirac_scripts_actionactionstamp) :: $(deploy_dirac_scripts_action_dependencies)
+	$(silent) python /home/phicharp/cmtuser/Dirac_v99/DiracPolicy/scripts/dirac-deploy-scripts.py -d /home/phicharp/cmtuser/LHCbDirac_v99/LHCbDIRAC/Interfaces -i /home/phicharp/cmtuser/LHCbDirac_v99/InstallArea/../scripts
+	$(silent) cat /dev/null > $(deploy_dirac_scripts_actionactionstamp)
+#	@echo ok > $(deploy_dirac_scripts_actionactionstamp)
+
+deploy_dirac_scripts_actionclean ::
+	$(cleanup_silent) /bin/rm -f $(deploy_dirac_scripts_actionactionstamp)
+
+else
+
+deploy_dirac_scripts_action :: $(deploy_dirac_scripts_action_dependencies)
+	$(silent) python /home/phicharp/cmtuser/Dirac_v99/DiracPolicy/scripts/dirac-deploy-scripts.py -d /home/phicharp/cmtuser/LHCbDirac_v99/LHCbDIRAC/Interfaces -i /home/phicharp/cmtuser/LHCbDirac_v99/InstallArea/../scripts
+
+endif
+
+install ::
+uninstall ::
+
+#-- end of cmt_action_runner_header -----------------
+#-- start of cleanup_header --------------
+
+clean :: deploy_dirac_scripts_actionclean ;
+#	@cd .
+
+ifndef PEDANTIC
+.DEFAULT::
+	$(echo) "(deploy_dirac_scripts_action.make) $@: No rule for such target" >&2
+#	@echo "#CMT> Warning: $@: No rule for such target" >&2; exit
+	if echo $@ | grep '$(package)setup\.make$$' >/dev/null; then\
+	 echo "$(CMTMSGPREFIX)" "(deploy_dirac_scripts_action.make): $@: File no longer generated" >&2; exit 0; fi
+else
+.DEFAULT::
+	$(echo) "(deploy_dirac_scripts_action.make) PEDANTIC: $@: No rule for such target" >&2
+	if echo $@ | grep '$(package)setup\.make$$' >/dev/null; then\
+	 echo "$(CMTMSGPREFIX)" "(deploy_dirac_scripts_action.make): $@: File no longer generated" >&2; exit 0;\
+	 elif test $@ = "$(cmt_final_setup)" -o\
+	 $@ = "$(cmt_final_setup_deploy_dirac_scripts_action)" ; then\
+	 found=n; for s in 1 2 3 4 5; do\
+	 sleep $$s; test ! -f $@ || { found=y; break; }\
+	 done; if test $$found = n; then\
+	 test -z "$(cmtmsg)" ||\
+	 echo "$(CMTMSGPREFIX)" "(deploy_dirac_scripts_action.make) PEDANTIC: $@: Seems to be missing. Ignore it for now" >&2; exit 0 ; fi;\
+	 elif test `expr $@ : '.*/'` -ne 0 ; then\
+	 test -z "$(cmtmsg)" ||\
+	 echo "$(CMTMSGPREFIX)" "(deploy_dirac_scripts_action.make) PEDANTIC: $@: Seems to be a missing file. Please check" >&2; exit 2 ; \
+	 else\
+	 test -z "$(cmtmsg)" ||\
+	 echo "$(CMTMSGPREFIX)" "(deploy_dirac_scripts_action.make) PEDANTIC: $@: Seems to be a fake target due to some pattern. Just ignore it" >&2 ; exit 0; fi
+endif
+
+deploy_dirac_scripts_actionclean ::
+#-- end of cleanup_header ---------------

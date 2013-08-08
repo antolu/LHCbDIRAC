@@ -625,7 +625,7 @@ class ProcessingProgress:
   def _getStatsFromBK( self, prod, fileType, runList, allReplicas ):
     bkQueryDict = { "ProductionID": prod, "FileType": fileType }
     bkStr = str( bkQueryDict )
-    bkQuery = BKQuery( bkQueryDict, visible = False )
+    bkQuery = BKQuery( bkQueryDict, visible = not allReplicas )
     if allReplicas:
       bkQuery.setOption( 'ReplicaFlag', "All" )
     cached = self.cachedInfo.get( bkStr, {} )

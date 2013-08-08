@@ -9,7 +9,7 @@ from DIRAC.Core.Base import Script
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 
-__RCSID__ = "$Id: DMScripts.py 42387 2011-09-07 13:53:37Z phicharp $"
+__RCSID__ = "$Id$"
 
 def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directory", depth = 9999 ):
   """ Dictionary pretty printing """

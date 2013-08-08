@@ -2,7 +2,7 @@
 """
   For a given LFN directory, check the files that are registered in the LFC and checks that they exist on the SE (using ReplicaManager), and in Bookkeeping, with the  correct ReplicaFlag """
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script

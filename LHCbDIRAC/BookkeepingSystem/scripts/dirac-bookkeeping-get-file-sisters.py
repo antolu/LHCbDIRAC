@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r10_branch/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-sisters.py $
+# $HeadURL$
 # File :    dirac-bookkeeping-get-file-sisters
 # Author :  Zoltan Mathe
 ########################################################################
 """
   Report sisters or cousins (i.e. descendant of a parent or ancestor) for a (list of) LFN(s)
 """
-__RCSID__ = "$Id: dirac-bookkeeping-get-file-sisters.py 60156 2012-12-19 14:48:55Z phicharp $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult

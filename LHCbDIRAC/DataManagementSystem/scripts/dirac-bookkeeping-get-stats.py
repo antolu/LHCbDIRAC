@@ -3,7 +3,7 @@
    Get statistical information on a dataset
 """
 
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script
