@@ -98,7 +98,6 @@ class TransformationClient( DIRACTransformationClient ):
         continue
       tfsm = TransformationFilesStateMachine( origStatuses[lfn] )
       stateChange = tfsm.setState( status )
-      print stateChange
       if not stateChange['OK']:
         return stateChange
 
