@@ -151,9 +151,18 @@ class UserJobFinalization( ModuleBase ):
 
       self.log.verbose( 'Calling getCandidateFiles( %s, %s, %s)' % ( outputList, userOutputLFNs,
                                                                      self.outputDataFileMask ) )
-      fileDict = self.getCandidateFiles( outputList, userOutputLFNs, self.outputDataFileMask )
+      try:
+        fileDict = self.getCandidateFiles( outputList, userOutputLFNs, self.outputDataFileMask )
+      except os.error, e:
+        self.setApplicationStatus( e )
+        return S_OK()
 
-      fileMetadata = self.getFileMetadata( fileDict )
+      try:
+        fileMetadata = self.getFileMetadata( fileDict )
+      except RuntimeError, e:
+        self.setApplicationStatus( e )
+        return S_OK()
+
       if not fileMetadata:
         self.log.info( 'No output data files were determined to be uploaded for this workflow' )
         self.setApplicationStatus( 'No Output Data Files To Upload' )
