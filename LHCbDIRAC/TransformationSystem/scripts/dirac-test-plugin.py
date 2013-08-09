@@ -124,9 +124,6 @@ class fakeClient:
   def setFileStatusForTransformation( self, transID, status, lfns ):
     return DIRAC.S_OK()
 
-  def setFileUsedSEForTransformation( self, transID, se, lfns ):
-    return DIRAC.S_OK()
-
   def addTransformationRunFiles( self, transID, run, lfns ):
     return DIRAC.S_OK()
 
@@ -150,12 +147,12 @@ class fakeClient:
     startTime = time.time()
     from DIRAC.Core.Utilities.List                        import breakListIntoChunks
     for lfnChunk in breakListIntoChunks( lfns, 200 ):
-      #print lfnChunk
+      # print lfnChunk
       if type.lower() in ( "replication", "removal" ):
         res = self.rm.getReplicas( lfnChunk )
       else:
         res = self.rm.getActiveReplicas( lfnChunk )
-      #print res
+      # print res
       if res['OK']:
         for lfn, ses in res['Value']['Successful'].items():
           if ses:
@@ -211,12 +208,12 @@ if __name__ == "__main__":
       allFiles = True
     elif opt == 'NoReplicaFiles':
       noRepFiles = True
-  #print pluginScript.getOptions()
+  # print pluginScript.getOptions()
   plugin = pluginScript.getOption( 'Plugin' )
   requestID = pluginScript.getOption( 'RequestID', 0 )
   pluginParams = pluginScript.getPluginParameters()
   requestedLFNs = pluginScript.getOption( 'LFNs' )
-  #print pluginParams
+  # print pluginParams
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
   from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
@@ -245,8 +242,8 @@ if __name__ == "__main__":
   if not requestedLFNs:
     bkQuery = pluginScript.getBKQuery( visible = visible )
     if noRepFiles and not plugin:
-      #FIXME: this should work but doesn't yet...
-      #bkQuery.setOption( 'ReplicaFlag', "ALL" )
+      # FIXME: this should work but doesn't yet...
+      # bkQuery.setOption( 'ReplicaFlag', "ALL" )
       checkReplica = False
     bkQueryDict = bkQuery.getQueryDict()
     if bkQueryDict.keys() in ( [], ['Visible'] ):
@@ -351,7 +348,7 @@ if __name__ == "__main__":
       location = []
       for lfn in task[1]:
         l = ','.join( sorted( replicas[lfn] ) )
-        #print "LFN", lfn, l
+        # print "LFN", lfn, l
         if not l in location:
           location.append( l )
       if len( task[1] ) == 1:
