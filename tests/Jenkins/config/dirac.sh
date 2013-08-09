@@ -175,6 +175,7 @@ dirac_externals(){
     . bashrc
 
     python `which easy_install` mock
+    python `which easy_install` -U docutils
     python `which easy_install` PIL
     python `which easy_install` pyqt
 
