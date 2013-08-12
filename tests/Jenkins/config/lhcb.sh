@@ -53,8 +53,6 @@ lhcbdirac_branch_changelog(){
   prevTag=`echo $previous | rev | cut -d ' ' -f 1 | rev`
   #prevTag=`echo "$previous" | sort -n -t p -k 2 | rev | cut -d ' ' -f 1 | rev`  
   
-  cd $WORKSPACE
-  
 #  echo $previous > $WORKSPACE/previousBranches.txt
   echo $prevTag  > $WORKSPACE/prevTag.txt
   
@@ -62,9 +60,10 @@ lhcbdirac_branch_changelog(){
   
   echo "Getting changelog between $prevRev and $SVN_REVISION"
   
-  svn log http://svn.cern.ch/guest/dirac/LHCbDIRAC/branches/LHCbDIRAC_$currentBranch_branch -r $prevRev:$SVN_REVISION -v --xml > xmlFile.xml
+  echo "svn log http://svn.cern.ch/guest/dirac/LHCbDIRAC/branches/LHCbDIRAC_$currentBranch_branch -r $prevRev:$SVN_REVISION -v --xml > xmlFile.xml"
+  svn log http://svn.cern.ch/guest/dirac/LHCbDIRAC/branches/LHCbDIRAC_$currentBranch_branch -r $prevRev:$SVN_REVISION -v --xml > $WORKSPACE/xmlFile.xml
   
-  
+  cd $WORKSPACE
 
 
 }
