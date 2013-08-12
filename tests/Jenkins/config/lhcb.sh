@@ -58,7 +58,7 @@ lhcbdirac_branch_changelog(){
   
   echo "Getting changelog between $prevRev and $SVN_REVISION"
   
-  svn log http://svn.cern.ch/guest/dirac/LHCbDIRAC/branches/LHCbDIRAC_$currentBranch_branch -r $prevRev:$SVN_REVISION -v --xml > xmlFile
+  svn log http://svn.cern.ch/guest/dirac/LHCbDIRAC/branches/LHCbDIRAC_$currentBranch_branch -r $prevRev:$SVN_REVISION -v --xml > xmlFile.xml
   
   
 
