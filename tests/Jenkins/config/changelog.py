@@ -6,9 +6,12 @@
 
 """
 
+
 import os
+import sys
 
 from xml.dom import minidom
+
 
 def parseSvnXml( filePath ):
 
@@ -138,7 +141,10 @@ def __writeLog( logFilePath, parsedXML, revision ):
     logFile.close()    
 
 
-generateChangeLog( 'xmlFile', '/tmp', 'v7r14p3' )
+if __name__ == "__main__":
+  
+  
+  generateChangeLog( *sys.argv[1:] )
 
 
 #...............................................................................

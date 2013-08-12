@@ -39,8 +39,6 @@ lhcbdirac_integration_scripts(){
 }
 
 lhcbdirac_branch_changelog(){
-  
-  env > $WORKSPACE/evn.txt
 
   tmpdir=`mktemp -d`
   cd $tmpdir
@@ -60,6 +58,8 @@ lhcbdirac_branch_changelog(){
   
   cd $WORKSPACE
 
+  mkdir $WORKSPACE/changelog
+  python Jenkins/config/changelog.py $WORKSPACE/xmlFile.xml $WORKSPACE/changelog newVersion
 
 }
 
