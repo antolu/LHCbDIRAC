@@ -48,7 +48,7 @@ class ProductionRequest( object ):
     self.processingPass = ''
     self.dataTakingConditions = ''
     self.eventType = ''
-    self.bkFileType = ''
+    self.bkFileType = []
     self.dqFlag = ''
     self.startRun = 0
     self.endRun = 0
@@ -598,7 +598,7 @@ class ProductionRequest( object ):
 
     if mode.lower() == 'full':
       bkQuery = {
-                 'FileType'                 : self.bkFileType,
+                 'FileType'                 : ';;;'.join( self.bkFileType ).replace( ' ', '' ),
                  'EventType'                : str( self.eventType ),
                  'ConfigName'               : self.configName,
                  'ConfigVersion'            : self.configVersion,
@@ -722,6 +722,16 @@ class ProductionRequest( object ):
   def get_CPUNormalizationFactorAvg( self ):
     return self._CPUNormalizationFactorAvg
   CPUNormalizationFactorAvg = property( get_CPUNormalizationFactorAvg, set_CPUNormalizationFactorAvg )
+
+  def set_bkFileType( self, value ):
+    if type( value ) == type( '' ):
+      value = value.replace( ' ', '' ).split( ',' )
+    self._bkFileType = value
+  def get_bkFileType( self ):
+    return self._bkFileType
+  bkFileType = property( get_bkFileType, set_bkFileType )
+
+
 
 #############################################################################
 
