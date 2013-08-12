@@ -45,13 +45,14 @@ lhcbdirac_branch_changelog(){
   svn co http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC --depth=immediates -q .
   currentBranch=`echo $JOB_NAME | cut -d '-' -f 3`
   
-  previous=`ls -d $currentBranch* | grep -v pre`
+  #previous=`ls -d $currentBranch* | grep -v pre`
   
-  prevTag=`echo "$previous" | sort -n -t p -k 2 | rev | cut -d ' ' -f 1 | rev`  
+  prevTag=`ls -d $currentBranch* | grep -v pre | sort -n -t p -k 2 | rev | cut -d ' ' -f 1 | rev`
+  #prevTag=`echo "$previous" | sort -n -t p -k 2 | rev | cut -d ' ' -f 1 | rev`  
   
   cd $WORKSPACE
   
-  echo $previous > $WORKSPACE/previousBranches.txt
+#  echo $previous > $WORKSPACE/previousBranches.txt
   echo $prevTag  > $WORKSPACE/prevTag.txt
   
   prevRev=`svn log http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/$prevTag --stop-on-copy --xml --with-no-revprops | grep revision | head -n 1 | cut -d '"' -f 2`
