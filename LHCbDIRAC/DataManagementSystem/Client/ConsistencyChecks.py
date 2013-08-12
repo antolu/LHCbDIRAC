@@ -729,11 +729,11 @@ class ConsistencyChecks( object ):
     except ValueError, e:
       return S_ERROR( e )
     lfnsReplicaYes = self._getBKKFiles( bkQuery )
-    proc, nonProc, statuses = self._getTSFiles()
+    proc, nonProc, _statuses = self._getTSFiles()
     self.filesInBKKNotInTS = list( set( lfnsReplicaYes ) - set( proc + nonProc ) )
     if self.filesInBKKNotInTS:
       gLogger.error( "There are %d files in BKK that are not in TS: %s" % ( len( self.filesInBKKNotInTS ),
-                                                                           str( self.filesInBKKNotInTS ) ) )
+                                                                            str( self.filesInBKKNotInTS ) ) )
 
   ################################################################################
 
@@ -841,7 +841,7 @@ class ConsistencyChecks( object ):
       value = int( value )
       res = self.transClient.getTransformation( value, extraParams = False )
       if not res['OK']:
-        gLogger.error( "Couldn't find transformation %d: %s" % ( value, res['Message'] ) )
+        raise RuntimeError, "Couldn't find transformation %d: %s" % ( value, res['Message'] )
       else:
         self.transType = res['Value']['Type']
       if self.interactive:
