@@ -225,14 +225,16 @@ class ShiftDBAgent( AgentModule ):
     else:
       lastShifterEmail = members[ 0 ].Email
     
+
+    if email is None:
+      #self.log.warn( 'Get email returned None, deleting previous ... %s' % lastShifterEmail )
+      #return self.__deleteMembers( client, wgroup )
+      self.log.warn( 'None email. Keeping previous one till an update is found.' )
+      return S_OK()
    
     if lastShifterEmail.strip().lower() == email.strip().lower():
       self.log.info( '%s has not changed as shifter, no changes needed' % email )      
       return S_OK()
-
-    if email is None:
-      self.log.warn( 'Get email returned None, deleting previous ... %s' % lastShifterEmail )
-      return self.__deleteMembers( client, wgroup )      
     
     self.log.info( '%s is not anymore shifter, deleting ...' % lastShifterEmail )
 
@@ -262,6 +264,9 @@ class ShiftDBAgent( AgentModule ):
     '''
     Adds a new member to the group
     '''
+   
+    # Clear e-Group before inserting anything
+    self.__deleteMembers( client, wgroup ) 
    
     self.log.info( 'Adding member %s to eGroup' % email )
    
