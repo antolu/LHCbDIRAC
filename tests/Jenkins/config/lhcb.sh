@@ -39,6 +39,8 @@ lhcbdirac_integration_scripts(){
 }
 
 lhcbdirac_branch_changelog(){
+  
+  env > $WORKSPACE/evn.txt
 
   tmpdir=`mktemp -d`
   cd $tmpdir
