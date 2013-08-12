@@ -47,7 +47,8 @@ lhcbdirac_branch_changelog(){
   
   #previous=`ls -d $currentBranch* | grep -v pre`
   
-  prevTag=`ls -d $currentBranch* | grep -v pre | sort -n -t p -k 2 | rev | cut -d ' ' -f 1 | rev`
+  previous=`ls -d $currentBranch* | grep -v pre | sort -n -t p -k 2`
+  prevTag=`echo $previous | rev | cut -d ' ' -f 1 | rev`
   #prevTag=`echo "$previous" | sort -n -t p -k 2 | rev | cut -d ' ' -f 1 | rev`  
   
   cd $WORKSPACE
