@@ -217,8 +217,7 @@ def __checkFilesMissingInFC( transFilesList, status, fixIt ):
           print "%d files are %s but indeed are in the LFC - Use --KickRequests to reset them Unused" % ( notMissing, status )
         else:
           filesToReset = [lfn for lfn in lfns if lfn in replicas]
-          res = transClient.setFileStatusForTransformation( transID, 'Unused', filesToReset,
-                                           originalStatuses = dict( [( lfn, 'MissingInFC' ) for lfn in filesToReset] ) )
+          res = transClient.setFileStatusForTransformation( transID, 'Unused', filesToReset, force = True )
           if res['OK']:
             print "%d files were %s but indeed are in the LFC - Reset to Unused" % ( notMissing, status )
       else:

@@ -81,7 +81,7 @@ class TransformationClient( DIRACTransformationClient ):
 
     return DIRACTransformationClient.setTransformationParameter( self, transID, 'Status', status )
 
-  def _applyProductionFilesStateMachine(self, tsFilesAsDict, dictOfProposedLFNsStatus, force ):
+  def _applyProductionFilesStateMachine( self, tsFilesAsDict, dictOfProposedLFNsStatus, force ):
     """ Apply LHCb state machine for transformation files
     """
     newStatuses = dict()
@@ -105,25 +105,3 @@ class TransformationClient( DIRACTransformationClient ):
             newStatuses[lfn] = stateChange['Value']
 
     return newStatuses
-  
-#  def setFileStatusForTransformation( self, transID, status, lfns, originalStatuses = {}, force = False ):
-#    """ Performs a state machine check for files status when asked to change the status
-#    """
-#    origStatuses = dict( originalStatuses )
-#    if not origStatuses:
-#      tsFiles = self.getTransformationFiles( {'TransformationID':transID, 'LFN': lfns} )
-#      if not tsFiles['OK']:
-#        return tsFiles
-#      tsFiles = tsFiles['Value']
-#      for tsFile in tsFiles:
-#        origStatuses[tsFile['LFN']] = tsFile['Status']
-#
-#    for lfn in lfns:
-#      if lfn not in origStatuses:
-#        continue
-#      tfsm = TransformationFilesStateMachine( origStatuses[lfn] )
-#      stateChange = tfsm.setState( status )
-#      if not stateChange['OK']:
-#        return stateChange
-#
-#      return DIRACTransformationClient.setFileStatusForTransformation( self, transID, status, lfns, force )
