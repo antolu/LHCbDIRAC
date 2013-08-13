@@ -14,14 +14,13 @@ class TransformationFilesStateMachine( LHCbStateMachine ):
     self.states = {
                    'Moved'        : State( 9 ),  # final state
                    'Removed'      : State( 8 ),  # final state
-                   'MissingInFC'  : State( 7, ['Unused'] ),  # final state
-                   'NotProcessed' : State( 6, ['Unused'] ),
+                   'MissingInFC'  : State( 7 ),  # final state
+                   'NotProcessed' : State( 6, ['Unused'], defState = 'NotProcessed' ),
                    'ProbInFC'     : State( 5 ),  # final state
-                   'MaxReset'     : State( 4, ['Unused', 'Removed'] ),
+                   'MaxReset'     : State( 4, ['Unused', 'Removed'], defState = 'MaxReset' ),
                    'Problematic'  : State( 3 ),  # final state
-                   'Processed'    : State( 2, ['Removed', 'Unused'] ),  # final state
+                   'Processed'    : State( 2 ),  # final state
                    'Assigned'     : State( 1, ['Unused', 'Processed', 'MaxReset'], defState = 'Processed' ),
-                   'Unused'       : State( 0,
-                                           ['Assigned', 'MissingInFC', 'ProbInFC', 'Removed', 'Processed', 'NotProcessed'],
+                   'Unused'       : State( 0, ['Assigned', 'MissingInFC', 'ProbInFC', 'Removed', 'NotProcessed'],
                                            defState = 'Assigned' )
                    }

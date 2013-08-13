@@ -81,24 +81,49 @@ class TransformationClient( DIRACTransformationClient ):
 
     return DIRACTransformationClient.setTransformationParameter( self, transID, 'Status', status )
 
-  def setFileStatusForTransformation( self, transID, status, lfns, originalStatuses = {}, force = False ):
-    """ Performs a state machine check for files status when asked to change the status
+  def _applyProductionFilesStateMachine(self, tsFilesAsDict, dictOfProposedLFNsStatus, force ):
+    """ Apply LHCb state machine for transformation files
     """
-    origStatuses = dict( originalStatuses )
-    if not origStatuses:
-      tsFiles = self.getTransformationFiles( {'TransformationID':transID, 'LFN': lfns} )
-      if not tsFiles['OK']:
-        return tsFiles
-      tsFiles = tsFiles['Value']
-      for tsFile in tsFiles:
-        origStatuses[tsFile['LFN']] = tsFile['Status']
-
-    for lfn in lfns:
-      if lfn not in origStatuses:
+    newStatuses = dict()
+    for lfn, status in dictOfProposedLFNsStatus.items():
+      if not tsFilesAsDict.has_key( lfn ):
         continue
-      tfsm = TransformationFilesStateMachine( origStatuses[lfn] )
-      stateChange = tfsm.setState( status )
-      if not stateChange['OK']:
-        return stateChange
+      else:
+        if force:
+          newStatuses[lfn] = dictOfProposedLFNsStatus[lfn]
+        else:
+          tfsm = TransformationFilesStateMachine( tsFilesAsDict[lfn][0] )
 
-      return DIRACTransformationClient.setFileStatusForTransformation( self, transID, status, lfns, force )
+          if tfsm.state.lower() == 'assigned' and status.lower() == 'unused':
+            if ( tsFilesAsDict[lfn][1] % self.maxResetCounter ) == 0:
+              status = 'MaxReset'
+
+          stateChange = tfsm.setState( status )
+          if not stateChange['OK']:
+            newStatuses[lfn] = status
+          else:
+            newStatuses[lfn] = stateChange['Value']
+
+    return newStatuses
+  
+#  def setFileStatusForTransformation( self, transID, status, lfns, originalStatuses = {}, force = False ):
+#    """ Performs a state machine check for files status when asked to change the status
+#    """
+#    origStatuses = dict( originalStatuses )
+#    if not origStatuses:
+#      tsFiles = self.getTransformationFiles( {'TransformationID':transID, 'LFN': lfns} )
+#      if not tsFiles['OK']:
+#        return tsFiles
+#      tsFiles = tsFiles['Value']
+#      for tsFile in tsFiles:
+#        origStatuses[tsFile['LFN']] = tsFile['Status']
+#
+#    for lfn in lfns:
+#      if lfn not in origStatuses:
+#        continue
+#      tfsm = TransformationFilesStateMachine( origStatuses[lfn] )
+#      stateChange = tfsm.setState( status )
+#      if not stateChange['OK']:
+#        return stateChange
+#
+#      return DIRACTransformationClient.setFileStatusForTransformation( self, transID, status, lfns, force )

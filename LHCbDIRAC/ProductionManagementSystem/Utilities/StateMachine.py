@@ -1,6 +1,6 @@
 """ A module defining the state machine for the Productions
 """
-from DIRAC import S_OK, S_ERROR
+from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import State, StateMachine
 
 class LHCbStateMachine( StateMachine ):
@@ -14,28 +14,26 @@ class LHCbStateMachine( StateMachine ):
     """
 
     if candidateState == self.state:
-      return S_OK()
+      return S_OK( candidateState )
 
     if candidateState is None:
       self.state = candidateState
     elif candidateState in self.states.keys():
       if not self.states[self.state].stateMap:
-        return S_ERROR( "Final state" )
+        gLogger.warn( "Final state, won't move" )
+        return S_OK( self.state )
       if candidateState not in self.states[self.state].stateMap:
-        return S_ERROR( "Can't move in this state" )
+        gLogger.warn( "Can't move from %s to %s, choosing a good one" % ( self.state, candidateState ) )
       nextState = self.getNextState( candidateState )
       if not nextState[ 'OK' ]:
         return nextState
       nextState = nextState[ 'Value' ]
       # If the StateMachine does not accept the candidate, return error message
-      if candidateState != nextState:
-        return S_ERROR( "%s is not a valid state" % candidateState )
-      else:
-        self.state = candidateState
+      self.state = nextState
     else:
       return S_ERROR( "%s is not a valid state" % candidateState )
 
-    return S_OK()
+    return S_OK( nextState )
 
 
 
