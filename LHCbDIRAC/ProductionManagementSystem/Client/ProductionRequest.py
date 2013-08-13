@@ -598,7 +598,7 @@ class ProductionRequest( object ):
 
     if mode.lower() == 'full':
       bkQuery = {
-                 'FileType'                 : ';;;'.join( self.bkFileType ).replace( ' ', '' ),
+                 'FileType'                 : ';;;'.join( self.bkFileType ),
                  'EventType'                : str( self.eventType ),
                  'ConfigName'               : self.configName,
                  'ConfigVersion'            : self.configVersion,
@@ -730,8 +730,6 @@ class ProductionRequest( object ):
   def get_bkFileType( self ):
     return self._bkFileType
   bkFileType = property( get_bkFileType, set_bkFileType )
-
-
 
 #############################################################################
 

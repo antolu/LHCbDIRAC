@@ -10,19 +10,19 @@ class bkClientFake:
               'Value': {'TotalRecords': 1,
                         'ParameterNames': ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
                                            'OptionFiles', 'Visible', 'ExtraPackages', 'ProcessingPass', 'OptionsFormat',
-                                           'DDDB', 'CONDDB', 'DQTag'],
+                                           'DDDB', 'CONDDB', 'DQTag', 'SystemConfig'],
                         'Records': [[123, 'Stripping14-Stripping', 'DaVinci', 'v2r2',
                                      'optsFiles', 'Yes', 'eps', 'procPass', '',
-                                     '', '123456', '']]}}
+                                     '', '123456', '', '']]}}
     elif stepID in ( {'StepId':456}, {'StepId':789}, {'StepId':987} ):
       return {'OK': True,
               'Value': {'TotalRecords': 1,
                         'ParameterNames': ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
                                            'OptionFiles', 'Visible', 'ExtraPackages', 'ProcessingPass', 'OptionsFormat',
-                                           'DDDB', 'CONDDB', 'DQTag'],
+                                           'DDDB', 'CONDDB', 'DQTag', 'SystemConfig'],
                         'Records': [[456, 'Merge', 'LHCb', 'v1r2',
                                      'optsFiles', 'Yes', 'eps', 'procPass', '',
-                                     '', 'fromPreviousStep', '']]}}
+                                     '', 'fromPreviousStep', '', 'x86']]}}
 
   def getStepInputFiles( self, stepID ):
     if stepID == 123:
@@ -72,7 +72,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
-                                         'prodStepID': "123['SDST']",
+                                         'prodStepID': "123['SDST']", 'SystemConfig':'',
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
@@ -82,7 +82,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
-                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'',
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                          'prodStepID': "123['SDST']",
                                          'fileTypesIn':['SDST'],
@@ -90,7 +90,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          {'StepId': 456, 'StepName':'Merge',
                                          'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
-                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'x86',
                                          'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                          'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
@@ -102,7 +102,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
-                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'',
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                          'prodStepID': "123['SDST']",
                                          'fileTypesIn':['SDST'],
@@ -110,7 +110,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          {'StepId': 456, 'StepName':'Merge',
                                          'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
-                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'x86',
                                          'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                          'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
@@ -122,7 +122,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
-                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'',
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                          'prodStepID': "123['SDST']",
                                          'fileTypesIn':['SDST'],
@@ -133,7 +133,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
-                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                                         'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'',
                                          'prodStepID': "123['SDST']",
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                          'fileTypesIn':['SDST'],
@@ -255,7 +255,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
     pr.groupSizes = [1, 2]
-    pr.bkFileType = 'TYPE'
+    pr.bkFileType = ['Type1', 'Type2']
     pr.inputs = [[], ['aa']]
     pr.removeInputsFlags = [False, True]
     pr.outputFileMasks = ['', 'dst']
@@ -906,6 +906,86 @@ class ProductionRequestSuccess( ClientTestCase ):
     resExpected = {'DataTakingConditions':'dataTC',
                    'ProcessingPass':'procePass',
                    'FileType':'',
+                   'EventType':'',
+                   'ConfigName':'test',
+                   'ConfigVersion':'certification',
+                   'DataQualityFlag':'OK;;;AA;;;BB',
+                   'StartRun':123,
+                   'EndRun':456
+                   }
+    self.assertEqual( res, resExpected )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.dataTakingConditions = 'dataTC'
+    pr.processingPass = 'procePass'
+    pr.dqFlag = 'OK,AA, BB'
+    pr.bkFileType = ['type1', 'type2']
+    pr.startRun = '123'
+    pr.endRun = '456'
+    res = pr._getBKKQuery()
+    resExpected = {'DataTakingConditions':'dataTC',
+                   'ProcessingPass':'procePass',
+                   'FileType':'type1;;;type2',
+                   'EventType':'',
+                   'ConfigName':'test',
+                   'ConfigVersion':'certification',
+                   'DataQualityFlag':'OK;;;AA;;;BB',
+                   'StartRun':123,
+                   'EndRun':456
+                   }
+    self.assertEqual( res, resExpected )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.dataTakingConditions = 'dataTC'
+    pr.processingPass = 'procePass'
+    pr.dqFlag = 'OK,AA, BB'
+    pr.bkFileType = ['type1']
+    pr.startRun = '123'
+    pr.endRun = '456'
+    res = pr._getBKKQuery()
+    resExpected = {'DataTakingConditions':'dataTC',
+                   'ProcessingPass':'procePass',
+                   'FileType':'type1',
+                   'EventType':'',
+                   'ConfigName':'test',
+                   'ConfigVersion':'certification',
+                   'DataQualityFlag':'OK;;;AA;;;BB',
+                   'StartRun':123,
+                   'EndRun':456
+                   }
+    self.assertEqual( res, resExpected )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.dataTakingConditions = 'dataTC'
+    pr.processingPass = 'procePass'
+    pr.dqFlag = 'OK,AA, BB'
+    pr.bkFileType = 'type1'
+    pr.startRun = '123'
+    pr.endRun = '456'
+    res = pr._getBKKQuery()
+    resExpected = {'DataTakingConditions':'dataTC',
+                   'ProcessingPass':'procePass',
+                   'FileType':'type1',
+                   'EventType':'',
+                   'ConfigName':'test',
+                   'ConfigVersion':'certification',
+                   'DataQualityFlag':'OK;;;AA;;;BB',
+                   'StartRun':123,
+                   'EndRun':456
+                   }
+    self.assertEqual( res, resExpected )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.dataTakingConditions = 'dataTC'
+    pr.processingPass = 'procePass'
+    pr.dqFlag = 'OK,AA, BB'
+    pr.bkFileType = 'type1, type2'
+    pr.startRun = '123'
+    pr.endRun = '456'
+    res = pr._getBKKQuery()
+    resExpected = {'DataTakingConditions':'dataTC',
+                   'ProcessingPass':'procePass',
+                   'FileType':'type1;;;type2',
                    'EventType':'',
                    'ConfigName':'test',
                    'ConfigVersion':'certification',
