@@ -2,34 +2,39 @@
 '''
     Uses the DM script switches, and, unless a list of LFNs is provided:
 
-    1) If --Directory is used: get files in FC directories, check if they are in BKK and if the replica flag is set
+    1) If --Directory is used: get files in FC directories, check if they are in BK and if the replica flag is set
     2) If --Production is used get files in the FC directories used, and proceed as with --Directory
 
     If --FixIt is set, take actions:
       Missing files: remove from SE and FC
-      No replica flag: set it (in the BKK)
+      No replica flag: set it (in the BK)
 '''
+__RCSID__ = "$Id$"
 
-#Code
+# Code
 def doCheck():
-  cc.checkFC2BKK()
+  """
+  Method actually calling for the the check using ConsistencyChecks module
+  It prints out results and calls corrective actions if required
+  """
+  cc.checkFC2BK()
 
   maxFiles = 20
-  if cc.existingLFNsWithBKKReplicaNO:
+  if cc.existLFNsBKRepNo:
     affectedRuns = []
-    for run in cc.existingLFNsWithBKKReplicaNO.values():
+    for run in cc.existLFNsBKRepNo.values():
       if run not in affectedRuns:
         affectedRuns.append( str( run ) )
-    if len( cc.existingLFNsWithBKKReplicaNO ) > maxFiles:
+    if len( cc.existLFNsBKRepNo ) > maxFiles:
       prStr = ' (first %d)' % maxFiles
     else:
       prStr = ''
-    gLogger.error( "%d files are in the FC but have replica = NO in BKK%s:\nAffected runs: %s\n%s" %
-                   ( len( cc.existingLFNsWithBKKReplicaNO ), prStr, ','.join( affectedRuns ),
-                     '\n'.join( sorted( cc.existingLFNsWithBKKReplicaNO )[0:maxFiles] ) ) )
+    gLogger.error( "%d files are in the FC but have replica = NO in BK%s:\nAffected runs: %s\n%s" %
+                   ( len( cc.existLFNsBKRepNo ), prStr, ','.join( affectedRuns ),
+                     '\n'.join( sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) ) )
     if fixIt:
       gLogger.always( "Going to fix them, setting the replica flag" )
-      res = bk.addFiles( cc.existingLFNsWithBKKReplicaNO.keys() )
+      res = bk.addFiles( cc.existLFNsBKRepNo.keys() )
       if res['OK']:
         gLogger.always( "\tSuccessfully added replica flag" )
       else:
@@ -37,19 +42,19 @@ def doCheck():
     else:
       gLogger.always( "Use --FixIt to fix it (set the replica flag)" )
   else:
-    gLogger.always( "No files in FC with replica = NO in BKK -> OK!" )
+    gLogger.always( "No files in FC with replica = NO in BK -> OK!" )
 
-  if cc.existingLFNsNotInBKK:
-    if len( cc.existingLFNsNotInBKK ) > maxFiles:
+  if cc.existingLFNsNotInBK:
+    if len( cc.existingLFNsNotInBK ) > maxFiles:
       prStr = ' (first %d)' % maxFiles
     else:
       prStr = ''
-    gLogger.error( "%d files are in the FC but are NOT in BKK%s:\n%s" %
-                   ( len( cc.existingLFNsNotInBKK ), prStr,
-                     '\n'.join( sorted( cc.existingLFNsNotInBKK[0:maxFiles] ) ) ) )
+    gLogger.error( "%d files are in the FC but are NOT in BK%s:\n%s" %
+                   ( len( cc.existingLFNsNotInBK ), prStr,
+                     '\n'.join( sorted( cc.existingLFNsNotInBK[0:maxFiles] ) ) ) )
     if fixIt:
       gLogger.always( "Going to fix them, by removing from the FC and storage" )
-      res = rm.removeFile( cc.existingLFNsNotInBKK )
+      res = rm.removeFile( cc.existingLFNsNotInBK )
       if res['OK']:
         success = len( res['Value']['Successful'] )
         failures = 0
@@ -65,13 +70,13 @@ def doCheck():
     else:
       gLogger.always( "Use --FixIt to fix it (remove from FC and storage)" )
   else:
-    gLogger.always( "No files in FC not in BKK -> OK!" )
+    gLogger.always( "No files in FC not in BK -> OK!" )
 
 
 
 if __name__ == '__main__':
 
-  #Script initialization
+  # Script initialization
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
@@ -79,16 +84,14 @@ if __name__ == '__main__':
                                        'Usage:',
                                        '  %s [option|cfgfile] [values]' % Script.scriptName, ] ) )
   dmScript = DMScript()
-  dmScript.registerNamespaceSwitches() #Directory
-  dmScript.registerFileSwitches() #File, LFNs
+  dmScript.registerNamespaceSwitches()  # Directory
+  dmScript.registerFileSwitches()  # File, LFNs
   Script.registerSwitch( "P:", "Productions=",
                          "   Production ID to search (comma separated list)", dmScript.setProductions )
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
   Script.parseCommandLine( ignoreErrors = True )
 
-  #imports
-  import sys, os, time
-  import DIRAC
+  # imports
   from DIRAC import gLogger
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient

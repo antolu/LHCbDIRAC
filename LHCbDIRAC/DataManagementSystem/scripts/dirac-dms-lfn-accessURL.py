@@ -1,17 +1,20 @@
 #!/usr/bin/env python
-########################################################################
-# File :    dirac-dms-lfn-accessURL
-# Author :  Stuart Paterson
-########################################################################
+
 """
   Retrieve an access URL for an LFN replica given a valid DIRAC SE.
 """
+
 __RCSID__ = "$Id$"
+
+
 import DIRAC
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult
 from DIRAC.Core.Base import Script
 
 def __checkSEs( args ):
+  """
+  Check which arguments are SE names listed in the CS
+  """
   seList = []
   res = gConfig.getSections( '/Resources/StorageElements' )
   if res['OK']:
@@ -22,18 +25,10 @@ def __checkSEs( args ):
         args.remove( ses )
   return seList, args
 
-if __name__ == "__main__":
-
-  dmScript = DMScript()
-  dmScript.registerFileSwitches()
-  dmScript.registerSiteSwitches()
-  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
-                                       'Usage:',
-                                       '  %s [option|cfgfile] ... [LFN[,LFN2[,LFN3...]]] SE[,SE2...]' % Script.scriptName,
-                                       'Arguments:',
-                                       '  LFN:      Logical File Name or file containing LFNs',
-                                       '  SE:       Valid DIRAC SE' ] ) )
-  Script.parseCommandLine( ignoreErrors = True )
+def execute():
+  """
+  Actual script executor
+  """
 
   seList = dmScript.getOption( 'SEs', [] )
 
@@ -73,9 +68,26 @@ if __name__ == "__main__":
     if res['OK']:
       printDMResult( res, empty = "File not at SE" )
       lfnList = res['Value']['Failed']
-      if not lfnList: break
+      if not lfnList:
+        break
 
   if not res['OK']:
     gLogger.fatal( "Error getting accessURL for %s at %s" % ( lfnList, str( seList ) ) )
     printDMResult( res, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
+
+if __name__ == "__main__":
+
+  dmScript = DMScript()
+  dmScript.registerFileSwitches()
+  dmScript.registerSiteSwitches()
+  Script.setUsageMessage( '\n'.join( __doc__.split( '\n' ) + [
+                                       'Usage:',
+                                       '  %s [option|cfgfile] ... [LFN[,LFN2[,LFN3...]]] SE[,SE2...]' % Script.scriptName,
+                                       'Arguments:',
+                                       '  LFN:      Logical File Name or file containing LFNs',
+                                       '  SE:       Valid DIRAC SE' ] ) )
+  Script.parseCommandLine( ignoreErrors = True )
+
+  execute()
   DIRAC.exit( 0 )
+

@@ -2,31 +2,37 @@
 '''
     Uses the DM script switches, and, unless a list of LFNs is provided:
 
-    1) If --BKQuery is used: get files in BKK directories, check if they are in FC
+    1) If --BKQuery is used: get files in BK directories, check if they are in FC
     2) If --Production is used get files using the bk query of the given production
 
-    Then check if files registered as having a replica in the BKK are also in the FC.
+    Then check if files registered as having a replica in the BK are also in the FC.
 
     If --FixIt is set, take actions:
-      - add files to the BKK if they exist in the FC, but have replica = NO in the BKK
-      - set replicaFlag = No in the BKK for those files that are not in the FC
+      - add files to the BK if they exist in the FC, but have replica = NO in the BK
+      - set replicaFlag = No in the BK for those files that are not in the FC
 '''
 
-#Code
+__RCSID__ = "$Id$"
+
+# Code
 def doCheck( checkAll ):
-  cc.checkBKK2FC( checkAll )
+  """
+  Method actually calling for the the check using ConsistencyChecks module
+  It prints out results and calls corrective actions if required
+  """
+  cc.checkBK2FC( checkAll )
   maxPrint = 20
 
   if checkAll:
-    if cc.existingLFNsWithBKKReplicaNO:
-      nFiles = len( cc.existingLFNsWithBKKReplicaNO )
+    if cc.existLFNsBKRepNo:
+      nFiles = len( cc.existLFNsBKRepNo )
       if nFiles <= maxPrint:
-        comment = str( cc.existingLFNsWithBKKReplicaNO )
+        comment = str( cc.existLFNsBKRepNo )
       else:
-        comment = ' (first %d LFNs) : %s' % ( maxPrint, str( cc.existingLFNsWithBKKReplicaNO[:maxPrint] ) )
+        comment = ' (first %d LFNs) : %s' % ( maxPrint, str( cc.existLFNsBKRepNo[:maxPrint] ) )
       if fixIt:
         gLogger.always( "Setting the replica flag to %d files: %s" % ( nFiles, comment ) )
-        res = bk.addFiles( cc.existingLFNsWithBKKReplicaNO )
+        res = bk.addFiles( cc.existLFNsBKRepNo )
         if not res['OK']:
           gLogger.error( "Something wrong: %s" % res['Message'] )
         else:
@@ -35,18 +41,18 @@ def doCheck( checkAll ):
         gLogger.error( "%d LFNs exist in the FC but have replicaFlag = No: %s" % ( nFiles, comment ) )
         gLogger.always( "Use option --FixIt to fix it (set the replica flag)" )
     else:
-      gLogger.always( "No LFNs exist in the FC but have replicaFlag = No in the BKK -> OK!" )
+      gLogger.always( "No LFNs exist in the FC but have replicaFlag = No in the BK -> OK!" )
 
-  if cc.nonExistingLFNsWithBKKReplicaYES:
-    nFiles = len( cc.nonExistingLFNsWithBKKReplicaYES )
+  if cc.absentLFNsBKRepYes:
+    nFiles = len( cc.absentLFNsBKRepYes )
     if nFiles <= maxPrint:
-      comment = str( cc.nonExistingLFNsWithBKKReplicaYES )
+      comment = str( cc.absentLFNsBKRepYes )
     else:
-      comment = ' (first %d LFNs) : %s' % ( maxPrint, str( cc.nonExistingLFNsWithBKKReplicaYES[:maxPrint] ) )
+      comment = ' (first %d LFNs) : %s' % ( maxPrint, str( cc.absentLFNsBKRepYes[:maxPrint] ) )
 
     if fixIt:
       gLogger.always( "Removing the replica flag to %d files: %s" % ( nFiles, comment ) )
-      res = bk.removeFiles( cc.nonExistingLFNsWithBKKReplicaYES )
+      res = bk.removeFiles( cc.absentLFNsBKRepYes )
       if not res['OK']:
         gLogger.error( "Something wrong: %s" % res['Message'] )
       else:
@@ -60,7 +66,7 @@ def doCheck( checkAll ):
 
 if __name__ == '__main__':
 
-  #Script initialization
+  # Script initialization
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
   from DIRAC import gLogger
@@ -85,9 +91,7 @@ if __name__ == '__main__':
     elif opt == 'CheckAllFlags':
       checkAll = True
 
-  #imports
-  import sys, os, time
-  import DIRAC
+  # imports
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks

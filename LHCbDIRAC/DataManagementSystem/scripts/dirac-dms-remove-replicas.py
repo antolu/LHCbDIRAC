@@ -2,6 +2,10 @@
 ########################################################################
 # $HeadURL$
 ########################################################################
+"""
+Remove replicas of a (list of) LFNs at a list of sites. It is possible to request a minimum of remaining replicas
+"""
+
 __RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
@@ -18,26 +22,12 @@ def __checkSEs( args ):
         args.remove( se )
   return seList, args
 
-if __name__ == "__main__":
-  dmScript = DMScript()
-  dmScript.registerFileSwitches()
-  dmScript.registerSiteSwitches()
-
-  Script.registerSwitch( "v", "Verbose", " use this option for verbose output [False]" )
-  Script.registerSwitch( "n", "NoLFC", " use this option to force the removal from storage of replicas not in FC" )
-  Script.setUsageMessage( """
-  Remove the given file replica or a list of file replicas from the File Catalog
-  and from the storage.
-
-  Usage:
-     %s <LFN | fileContainingLFNs> SE [SE]
-  """ % Script.scriptName )
-
+def execute():
   verbose = False
   checkFC = True
-  Script.parseCommandLine()
+  minReplicas = 1
 
-  from DIRAC.Core.Utilities.List                        import breakListIntoChunks
+  from DIRAC.Core.Utilities.List                        import breakListIntoChunks, randomize
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   rm = ReplicaManager()
@@ -56,11 +46,6 @@ if __name__ == "__main__":
   args = Script.getPositionalArgs()
   if not seList:
     seList, args = __checkSEs( args )
-  # This should be improved, with disk SEs first...
-  if not seList:
-    gLogger.fatal( "Give SE name as last argument or with --SE option" )
-    Script.showHelp()
-  seList.sort()
 
   for lfn in args:
     dmScript.setLFNsFromFile( lfn )
@@ -72,7 +57,24 @@ if __name__ == "__main__":
       verbose = True
     if switch[0] == "n" or switch[0].lower() == "nolfc":
       checkFC = False
+    elif switch[0] == 'ReduceReplicas':
+      try:
+        minReplicas = max( 1, int( switch[1] ) )
+        # Set a default for Users
+        if not seList:
+          dmScript.setSEs( 'Tier1-USER' )
+          seList = dmScript.getOption( 'SEs', [] )
+      except:
+        print "Invalid number of replicas:", switch[1]
+        DIRAC.exit( 1 )
 
+  # This should be improved, with disk SEs first...
+  if not seList:
+    gLogger.fatal( "Give SE name as last argument or with --SE option" )
+    Script.showHelp()
+  seList.sort()
+  dmScript.setSEs( 'Tier1-ARCHIVE' )
+  archiveSEs = set( dmScript.getOption( 'SEs', [] ) )
 
   errorReasons = {}
   successfullyRemoved = {}
@@ -192,19 +194,45 @@ if __name__ == "__main__":
     # Normal removal using FC
     #########################
     gLogger.setLevel( 'FATAL' )
+    seList = set( seList )
     for lfnChunk in breakListIntoChunks( sorted( lfnList ), 500 ):
-      for seName in sorted( seList ):
-        res = rm.removeReplica( seName, lfnChunk )
-        if not res['OK']:
-          gLogger.fatal( "Failed to remove replica", res['Message'] )
-          DIRACExit( -2 )
-        for lfn, reason in res['Value']['Failed'].items():
-          reason = str( reason )
-          if 'No such file or directory' in reason:
-            notExisting.setdefault( lfn, [] ).append( seName )
-          else:
-            errorReasons.setdefault( reason, {} ).setdefault( seName, [] ).append( lfn )
-        successfullyRemoved.setdefault( seName, [] ).extend( res['Value']['Successful'].keys() )
+      res = rm.getReplicas( lfnChunk )
+      if not res['OK']:
+        gLogger.fatal( "Failed to get replicas", res['Message'] )
+        DIRACExit( -2 )
+      if res['Value']['Failed']:
+        lfnChunk = list( set( lfnChunk ) - set( res['Value']['Failed'] ) )
+      seReps = {}
+      for lfn in res['Value']['Successful']:
+        rep = set( res['Value']['Successful'][lfn] ) - archiveSEs
+        if not seList & rep:
+          errorReasons.setdefault( 'No replicas at requested sites (%d existing)' % ( len( rep ) ), {} ).setdefault( 'anywhere', [] ).append( lfn )
+        elif len( rep ) <= minReplicas:
+          seString = ','.join( sorted( seList & rep ) )
+          errorReasons.setdefault( 'No replicas to remove (%d existing/%d requested)' % ( len( rep ), minReplicas ), {} ).setdefault( seString, [] ).append( lfn )
+        else:
+          seString = ','.join( sorted( rep ) )
+          seReps.setdefault( seString, [] ).append( lfn )
+      for seString in seReps:
+        ses = set( seString.split( ',' ) )
+        lfns = seReps[seString]
+        removeSEs = list( seList & ses )
+        remaining = len( ses - seList )
+        if remaining < minReplicas:
+          # Not enough replicas outside seList, remove only part, otherwisae remove all
+          removeSEs = randomize( removeSEs )[0:remaining - minReplicas]
+        for seName in sorted( removeSEs ):
+          res = rm.removeReplica( seName, lfns )
+          if not res['OK']:
+            gLogger.fatal( "Failed to remove replica", res['Message'] )
+            DIRACExit( -2 )
+          for lfn, reason in res['Value']['Failed'].items():
+            reason = str( reason )
+            if 'No such file or directory' in reason:
+              notExisting.setdefault( lfn, [] ).append( seName )
+            else:
+              errorReasons.setdefault( reason, {} ).setdefault( seName, [] ).append( lfn )
+          successfullyRemoved.setdefault( seName, [] ).extend( res['Value']['Successful'].keys() )
 
     gLogger.setLevel( 'ERROR' )
     if notExisting:
@@ -235,10 +263,27 @@ if __name__ == "__main__":
 
   if successfullyRemoved:
     for se in successfullyRemoved:
-      gLogger.always( "Successfully removed %d files from %s" % ( len( successfullyRemoved[se] ), se ) )
+      gLogger.always( "Successfully removed %d replicas from %s" % ( len( successfullyRemoved[se] ), se ) )
   for reason, seDict in errorReasons.items():
     for se, lfns in seDict.items():
-      gLogger.always( "Failed to remove %d files from %s with error: %s" % ( len( lfns ), se, reason ) )
+      gLogger.always( "Failed to remove %d replicas from %s with error: %s" % ( len( lfns ), se, reason ) )
   if not successfullyRemoved and not errorReasons and not checkFC:
-    gLogger.always( "Files were found at no SE in %s" % str( seList ) )
+    gLogger.always( "Replicas were found at no SE in %s" % str( seList ) )
   DIRACExit( 0 )
+
+if __name__ == "__main__":
+  dmScript = DMScript()
+  dmScript.registerFileSwitches()
+  dmScript.registerSiteSwitches()
+
+  Script.registerSwitch( "v", "Verbose", " use this option for verbose output [False]" )
+  Script.registerSwitch( "n", "NoLFC", " use this option to force the removal from storage of replicas not in FC" )
+  Script.registerSwitch( '', 'ReduceReplicas=', '  specify the number of replicas you want to keep (default SE: Tier1-USER)' )
+  Script.setUsageMessage( '\n'.join( __doc__.split( '\n' ) + [
+                                       'Usage:',
+                                       '  %s [option|cfgfile] ... [LFN[,LFN2[,LFN3...]]] SE[,SE2...]' % Script.scriptName,
+                                       'Arguments:',
+                                       '  LFN:      Logical File Name or file containing LFNs',
+                                       '  SE:       Valid DIRAC SE' ] ) )
+  Script.parseCommandLine()
+  execute()
