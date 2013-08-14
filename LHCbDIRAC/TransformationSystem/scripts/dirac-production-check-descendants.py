@@ -1,16 +1,16 @@
 #!/usr/bin/env python
-''' Does a TS -> BKK check for processed files with descendants
+''' Does a TS -> BK check for processed files with descendants
 '''
 
 
-#imports
+# imports
 import sys, os, time
 import DIRAC
 from DIRAC import gLogger
-#Code
+# Code
 if __name__ == '__main__':
 
-  #Script initialization
+  # Script initialization
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     cc.runsList = runsList
     cc.runStatus = 'Active'
     cc.fromProd = fromProd
-    cc.checkTS2BKK()
+    cc.checkTS2BK()
 
     # Print out the results
     gLogger.always( '\nResults:' )
@@ -131,23 +131,23 @@ if __name__ == '__main__':
       gLogger.always( "\tFiles set to status Removed" )
 
 
-    gLogger.always( "%d unique daughters found with real descendants" % ( len( set( cc.descendantsForProcessedLFNs ).union( cc.descendantsForNonProcessedLFNs ) ) ) )
+    gLogger.always( "%d unique daughters found with real descendants" % ( len( set( cc.descForPrcdLFNs ).union( cc.descForNonPrcdLFNs ) ) ) )
 
-    if cc.processedLFNsWithMultipleDescendants:
-      lfns = sorted( cc.processedLFNsWithMultipleDescendants )
+    if cc.prcdWithMultDesc:
+      lfns = sorted( cc.prcdWithMultDesc )
       gLogger.always( "Processed LFNs with multiple descendants (%d) -> ERROR" % len( lfns ) )
       gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
                       '\n'.join( [''] + lfns[0:nMax] ) )
       if not fp:
         fp = open( fileName, 'w' )
       fp.write( '\nProcMultDesc '.join( ['%s: %s' % ( lfn, str( multi ) ) \
-                                        for lfn, multi in cc.processedLFNsWithMultipleDescendants.items()] ) )
+                                        for lfn, multi in cc.prcdWithMultDesc.items()] ) )
       gLogger.always( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
       gLogger.always( "No processed LFNs with multiple descendants found -> OK!" )
 
-    if cc.processedLFNsWithoutDescendants:
-      lfns = sorted( cc.processedLFNsWithoutDescendants )
+    if cc.prcdWithoutDesc:
+      lfns = sorted( cc.prcdWithoutDesc )
       gLogger.always( "Processed LFNs without descendants (%d) -> ERROR!" % len( lfns ) )
       if fixIt:
         gLogger.always( "Resetting them 'Unused'" )
@@ -167,8 +167,8 @@ if __name__ == '__main__':
     else:
       gLogger.always( "No processed LFNs without descendants found -> OK!" )
 
-    if cc.nonProcessedLFNsWithMultipleDescendants:
-      lfns = sorted( cc.nonProcessedLFNsWithMultipleDescendants )
+    if cc.nonPrcdWithMultDesc:
+      lfns = sorted( cc.nonPrcdWithMultDesc )
       gLogger.always( "Non processed LFNs with multiple descendants (%d) -> ERROR" % len( lfns ) )
       if not fp:
         fp = open( fileName, 'w' )
@@ -179,9 +179,9 @@ if __name__ == '__main__':
     else:
       gLogger.always( "No non processed LFNs with multiple descendants found -> OK!" )
 
-    #fixing, if requested
-    if cc.nonProcessedLFNsWithDescendants:
-      lfns = sorted( cc.nonProcessedLFNsWithDescendants )
+    # fixing, if requested
+    if cc.nonPrcdWithDesc:
+      lfns = sorted( cc.nonPrcdWithDesc )
       gLogger.always( "There are %d LFNs not marked Processed but that have descendants -> ERROR" % len( lfns ) )
       if fixIt:
         gLogger.always( "Marking them as 'Processed'" )
