@@ -19,7 +19,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
-#FIXME: this is quite dirty, what should be checked is exactly what it is done
+# FIXME: this is quite dirty, what should be checked is exactly what it is done
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction' )
 
 def getFileDescendants( transID, lfns, transClient = None, rm = None, bkClient = None ):
@@ -40,121 +40,109 @@ class ConsistencyChecks( object ):
         One object for every production/BkQuery/directoriesList...
     '''
     self.interactive = interactive
-    if transClient is None:
-      self.transClient = TransformationClient()
-    else:
-      self.transClient = transClient
-
-    if rm is None:
-      self.rm = ReplicaManager()
-    else:
-      self.rm = rm
-
-    if bkClient is None:
-      self.bkClient = BookkeepingClient()
-    else:
-      self.bkClient = bkClient
+    self.transClient = TransformationClient() if transClient is None else transClient
+    self.rm = ReplicaManager() if rm is None else rm
+    self.bkClient = BookkeepingClient() if bkClient is None else bkClient
 
     self.dirac = Dirac()
 
-    #Base elements from which to start the consistency checks
-    self.prod = 0
+    # Base elements from which to start the consistency checks
+    self._prod = 0
+    self._bkQuery = None
+    self._fileType = []
+    self._fileTypesExcluded = []
+    self._lfns = []
     self.directories = []
-    self.bkQuery = None
 
-    #Accessory elements
-    self.lfns = []
+    # Accessory elements
     self.runsList = []
     self.runStatus = None
     self.fromProd = None
-    self.fileType = []
-    self.fileTypesExcluded = []
     self.transType = ''
 
-    #Results of the checks
-    self.existingLFNsWithBKKReplicaNO = []
-    self.nonExistingLFNsWithBKKReplicaNO = []
-    self.existingLFNsWithBKKReplicaYES = []
-    self.nonExistingLFNsWithBKKReplicaYES = []
-    self.existingLFNsNotInBKK = []
-    self.nonExistingLFNsThatAreNotInBK = []
-    self.nonexistingLFNsWithBKKReplicaYES = []
-    self.filesInBKKNotInTS = []
+    # Results of the checks
+    self.existLFNsBKRepNo = {}
+    self.absentLFNsBKRepNo = []
+    self.existLFNsBKRepYes = []
+    self.absentLFNsBKRepYes = []
+    self.existingLFNsNotInBK = []
+    self.absentLFNsNotInBK = []
+    self.filesInBKNotInTS = []
 
-    self.processedLFNsWithDescendants = []
-    self.processedLFNsWithoutDescendants = []
-    self.processedLFNsWithMultipleDescendants = []
-    self.nonProcessedLFNsWithDescendants = []
-    self.nonProcessedLFNsWithoutDescendants = []
-    self.nonProcessedLFNsWithMultipleDescendants = []
-    self.descendantsForProcessedLFNs = []
-    self.descendantsForNonProcessedLFNs = []
+    self.prcdWithDesc = []
+    self.prcdWithoutDesc = []
+    self.prcdWithMultDesc = []
+    self.nonPrcdWithDesc = []
+    self.nonPrcdWithoutDesc = []
+    self.nonPrcdWithMultDesc = []
+    self.descForPrcdLFNs = []
+    self.descForNonPrcdLFNs = []
     self.inBKNotInFC = []
     self.inFCNotInBK = []
     self.removedFiles = []
 
   ################################################################################
 
-  def checkBKK2FC( self, checkAll ):
-    ''' Starting from the BKK, check if the FileCatalog has consistent information (BK -> FileCatalog)
+  def checkBK2FC( self, checkAll ):
+    ''' Starting from the BK, check if the FileCatalog has consistent information (BK -> FileCatalog)
 
         Works either when the bkQuery is free, or when it is made using a transformation ID
     '''
 
     if self.lfns:
-      lfnsNotInBK, lfnsReplicaNo, lfnsReplicaYes = self._getBKKMetadata( self.lfns )
+      lfnsNotInBK, lfnsReplicaNo, lfnsReplicaYes = self._getBKMetadata( self.lfns )
       lfnsReplicaNo += lfnsNotInBK
     else:
       try:
-        bkQuery = self.__getBKKQuery()
+        bkQuery = self.__getBKQuery()
       except ValueError, e:
         return S_ERROR( e )
       gLogger.always( 'Getting files for BK query %s...' % str( bkQuery ) )
       if checkAll:
-        lfnsReplicaNo = self._getBKKFiles( bkQuery, 'No' )
-      lfnsReplicaYes = self._getBKKFiles( bkQuery, 'Yes' )
+        lfnsReplicaNo = self._getBKFiles( bkQuery, 'No' )
+      lfnsReplicaYes = self._getBKFiles( bkQuery, 'Yes' )
 
     if self.lfns:
-      gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
-      self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsWithBKKReplicaNO = self.getReplicasPresence( lfnsReplicaNo )
-      gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
-      self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = self.getReplicasPresence( lfnsReplicaYes )
+      gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = No' )
+      self.existLFNsBKRepNo, self.absentLFNsBKRepNo = self.getReplicasPresence( lfnsReplicaNo )
+      gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = Yes' )
+      self.existLFNsBKRepYes, self.absentLFNsBKRepYes = self.getReplicasPresence( lfnsReplicaYes )
     elif self.transType not in prodsWithMerge:
       # Merging and Reconstruction
       # In principle few files without replica flag, check them in FC
       if checkAll:
-        gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
-        self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsWithBKKReplicaNO = self.getReplicasPresence( lfnsReplicaNo )
-      gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
-      self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaYes )
+        gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = No' )
+        self.existLFNsBKRepNo, self.absentLFNsBKRepNo = self.getReplicasPresence( lfnsReplicaNo )
+      gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = Yes' )
+      self.existLFNsBKRepYes, self.absentLFNsBKRepYes = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaYes )
 
     else:
       # prodsWithMerge
       # In principle most files have no replica flag, start from the File Catalog files with replicas
       if checkAll:
-        gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = No' )
-        self.existingLFNsWithBKKReplicaNO, self.nonExistingLFNsThatAreNotInBK = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaNo )
-      gLogger.verbose( 'Checking the File Catalog for those files with BKK ReplicaFlag = Yes' )
-      self.existingLFNsWithBKKReplicaYES, self.nonExistingLFNsWithBKKReplicaYES = self.getReplicasPresence( lfnsReplicaYes )
+        gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = No' )
+        self.existLFNsBKRepNo, self.absentLFNsNotInBK = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaNo )
+      gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = Yes' )
+      self.existLFNsBKRepYes, self.absentLFNsBKRepYes = self.getReplicasPresence( lfnsReplicaYes )
 
-    if checkAll and self.existingLFNsWithBKKReplicaNO:
+    if checkAll and self.existLFNsBKRepNo:
       msg = "%d files have ReplicaFlag = No, but %d are in the FC" % ( len( lfnsReplicaNo ),
-                                                                       len( self.existingLFNsWithBKKReplicaNO ) )
+                                                                       len( self.existLFNsBKRepNo ) )
       if self.transType:
         msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
       gLogger.info( msg )
 
-    if self.nonExistingLFNsWithBKKReplicaYES:
+    if self.absentLFNsBKRepYes:
       msg = "%d files have ReplicaFlag = Yes, but %d are not in the FC" % ( len( lfnsReplicaYes ),
-                                                                         len( self.nonExistingLFNsWithBKKReplicaYES ) )
+                                                                         len( self.absentLFNsBKRepYes ) )
       if self.transType:
         msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
       gLogger.info( msg )
 
   ################################################################################
 
-  def _getBKKFiles( self, bkQuery, replicaFlag = 'Yes' ):
-    ''' Helper function - get files from BKK, first constructing the bkQuery
+  def _getBKFiles( self, bkQuery, replicaFlag = 'Yes' ):
+    ''' Helper function - get files from BK, first constructing the bkQuery
     '''
     visibility = bkQuery.isVisible()
     if self.transType:
@@ -167,11 +155,12 @@ class ConsistencyChecks( object ):
     if not lfnsRes:
       gLogger.info( "No files found with replica flag = %s" % replicaFlag )
     else:
-      gLogger.info( "Found %d files with replica flag = %s (%.1f seconds)" % ( len( lfnsRes ), replicaFlag, time.time() - startTime ) )
+      gLogger.info( "Found %d files with replica flag = %s (%.1f seconds)" %
+                    ( len( lfnsRes ), replicaFlag, time.time() - startTime ) )
 
     return lfnsRes
 
-  def __getBKKQuery( self, fromTS = False ):
+  def __getBKQuery( self, fromTS = False ):
     ''' get the bkQuery to be used
     '''
     bkQuery = None
@@ -188,7 +177,7 @@ class ConsistencyChecks( object ):
       if not bkQuery:
         raise ValueError( "Need to specify either the bkQuery or a production id" )
 
-    #if self.runsList:
+    # if self.runsList:
     #  bkQuery.update( {'RunNumbers':self.runsList} )
     #  bkQuery.pop( 'StartRun', 0 )
     #  bkQuery.pop( 'EndRun', 0 )
@@ -200,28 +189,29 @@ class ConsistencyChecks( object ):
   def getReplicasPresence( self, lfns ):
     ''' get the replicas using the standard ReplicaManager.getReplicas()
     '''
-    present = []
-    notPresent = []
+    present = set()
+    notPresent = set()
 
     chunkSize = 1000
     printProgress = ( len( lfns ) > chunkSize )
     startTime = time.time()
-    self.__write( "Checking replicas for %d files%s" % ( len( lfns ), ( ' (chunks of %d)' % chunkSize ) if printProgress else '... ' ) )
+    self.__write( "Checking replicas for %d files%s" %
+                  ( len( lfns ), ( ' (chunks of %d)' % chunkSize ) if printProgress else '... ' ) )
     for chunk in breakListIntoChunks( lfns, chunkSize ):
       if printProgress:
         self.__write( '.' )
       while True:
         res = self.rm.getReplicas( chunk )
         if res['OK']:
-          present += res['Value']['Successful'].keys()
-          notPresent += res['Value']['Failed'].keys()
+          present.update( res['Value']['Successful'] )
+          notPresent.update( res['Value']['Failed'] )
           break
         else:
           gLogger.error( "\nError getting replicas from FC, retry", res['Message'] )
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
 
     gLogger.info( "Found %d files with replicas and %d without" % ( len( present ), len( notPresent ) ) )
-    return present, notPresent
+    return list( present ), list( notPresent )
 
   ################################################################################
 
@@ -273,14 +263,14 @@ class ConsistencyChecks( object ):
     startTime = time.time()
     gLogger.verbose( "Comparing list of %d LFNs with second list of %d" % ( len( lfns ), len( lfnsFound ) ) )
     if lfnsFound:
-      #print sorted( lfns )
-      #print sorted( lfnsFound )
+      # print sorted( lfns )
+      # print sorted( lfnsFound )
       setLfns = set( lfns )
       setLfnsFound = set( lfnsFound )
       present = list( setLfns & setLfnsFound )
       notPresent = list( setLfns - setLfnsFound )
-      #print sorted( present )
-      #print sorted( notPresent )
+      # print sorted( present )
+      # print sorted( notPresent )
     gLogger.verbose( "End of comparison: %.1f seconds" % ( time.time() - startTime ) )
     return present, notPresent
 
@@ -305,7 +295,7 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
-  def checkTS2BKK( self ):
+  def checkTS2BK( self ):
     ''' Check if lfns has descendants (TransformationFiles -> BK)
     '''
     if not self.prod:
@@ -314,41 +304,42 @@ class ConsistencyChecks( object ):
     gLogger.always( 'Getting files from the TransformationSystem...' )
     startTime = time.time()
     processedLFNs, nonProcessedLFNs, statuses = self._getTSFiles()
-    gLogger.always( 'Found %d processed files and %d non processed%s files (%.1f seconds)' % ( len( processedLFNs ),
-                                                                              len( nonProcessedLFNs ),
-                                                                              ' (%s)' % ','.join( statuses ) if statuses else '',
-                                                                              ( time.time() - startTime ) ) )
+    gLogger.always( 'Found %d processed files and %d non processed%s files (%.1f seconds)' %
+                    ( len( processedLFNs ),
+                      len( nonProcessedLFNs ),
+                      ' (%s)' % ','.join( statuses ) if statuses else '',
+                      ( time.time() - startTime ) ) )
 
     res = self.getDescendants( processedLFNs, status = 'processed' )
-    self.processedLFNsWithDescendants = res[0]
-    self.processedLFNsWithoutDescendants = res[1]
-    self.processedLFNsWithMultipleDescendants = res[2]
-    self.descendantsForProcessedLFNs = res[3]
+    self.prcdWithDesc = res[0]
+    self.prcdWithoutDesc = res[1]
+    self.prcdWithMultDesc = res[2]
+    self.descForPrcdLFNs = res[3]
     self.inFCNotInBK = res[4]
     self.inBKNotInFC = res[5]
     self.removedFiles = res[6]
 
     res = self.getDescendants( nonProcessedLFNs, status = 'non-processed' )
-    self.nonProcessedLFNsWithDescendants = res[0]
-    self.nonProcessedLFNsWithoutDescendants = res[1]
-    self.nonProcessedLFNsWithMultipleDescendants = res[2]
-    self.descendantsForNonProcessedLFNs = res[3]
+    self.nonPrcdWithDesc = res[0]
+    self.nonPrcdWithoutDesc = res[1]
+    self.nonPrcdWithMultDesc = res[2]
+    self.descForNonPrcdLFNs = res[3]
 
-    if self.processedLFNsWithoutDescendants:
-      gLogger.verbose( "For prod %s of type %s, %d files are processed, and %d of those do not have descendants" \
-                     % ( self.prod, self.transType, len( processedLFNs ), len( self.processedLFNsWithoutDescendants ) ) )
+    if self.prcdWithoutDesc:
+      gLogger.verbose( "For prod %s of type %s, %d files are processed, and %d of those do not have descendants" %
+                       ( self.prod, self.transType, len( processedLFNs ), len( self.prcdWithoutDesc ) ) )
 
-    if self.processedLFNsWithMultipleDescendants:
-      gLogger.verbose( "For prod %s of type %s, %d files are processed, and %d of those have multiple descendants: " \
-                     % ( self.prod, self.transType, len( processedLFNs ), len( self.processedLFNsWithMultipleDescendants ) ) )
+    if self.prcdWithMultDesc:
+      gLogger.verbose( "For prod %s of type %s, %d files are processed, and %d of those have multiple descendants: " %
+                       ( self.prod, self.transType, len( processedLFNs ), len( self.prcdWithMultDesc ) ) )
 
-    if self.nonProcessedLFNsWithDescendants:
-      gLogger.verbose( "For prod %s of type %s, %d files are not processed, but %d of those have descendants" % \
-                     ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonProcessedLFNsWithDescendants ) ) )
+    if self.nonPrcdWithDesc:
+      gLogger.verbose( "For prod %s of type %s, %d files are not processed, but %d of those have descendants" %
+                       ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonPrcdWithDesc ) ) )
 
-    if self.nonProcessedLFNsWithMultipleDescendants:
-      gLogger.verbose( "For prod %s of type %s, %d files are not processed, but %d of those have multiple descendants: " % \
-                     ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonProcessedLFNsWithMultipleDescendants ) ) )
+    if self.nonPrcdWithMultDesc:
+      gLogger.verbose( "For prod %s of type %s, %d files are not processed, but %d of those have multiple descendants: " %
+                       ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonPrcdWithMultDesc ) ) )
 
   ################################################################################
 
@@ -391,30 +382,13 @@ class ConsistencyChecks( object ):
       sys.stdout.write( text )
       sys.stdout.flush()
 
-  def getDescendants( self, lfns, status = '' ):
-    ''' get the descendants of a list of LFN (for the production)
-    '''
-    if type( lfns ) == type( '' ):
-      lfns = [lfns]
-    elif type( lfns ) == type( {} ):
-      lfns = lfns.keys()
-    filesWithDescendants = {}
-    filesWithoutDescendants = {}
-    filesWithMultipleDescendants = {}
-    fileTypesExcluded = Operations().getValue( 'DataConsistency/IgnoreDescendantsOfType', [] )
-    daughtersBKInfo = {}
-    inFCNotInBK = []
-    inBKNotInFC = []
-    allDaughters = []
-    removedFiles = []
-    if not lfns:
-      return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
-        allDaughters, inFCNotInBK, inBKNotInFC, removedFiles
-
+  def __getDaughtersInfo( self, lfns, status, filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants ):
+    """ Get BK information about daughers of lfns """
     chunkSize = 100 if self.transType == 'DataStripping' and len( self.fileType ) > 1 else 500
     self.__write( "Now getting daughters for %d %s mothers in production %d (chunks of %d) "
                   % ( len( lfns ), status, self.prod, chunkSize ) )
     startTime = time.time()
+    daughtersBKInfo = {}
     for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
       self.__write( '.' )
       while True:
@@ -445,6 +419,28 @@ class ConsistencyChecks( object ):
           gLogger.error( "\nError getting daughters for %d files, retry"
                         % len( lfnChunk ), resChunk['Message'] )
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
+    return daughtersBKInfo
+
+  def getDescendants( self, lfns, status = '' ):
+    ''' get the descendants of a list of LFN (for the production)
+    '''
+    if type( lfns ) == type( '' ):
+      lfns = [lfns]
+    elif type( lfns ) == type( {} ):
+      lfns = lfns.keys()
+    filesWithDescendants = {}
+    filesWithoutDescendants = {}
+    filesWithMultipleDescendants = {}
+    fileTypesExcluded = Operations().getValue( 'DataConsistency/IgnoreDescendantsOfType', [] )
+    inFCNotInBK = []
+    inBKNotInFC = []
+    allDaughters = []
+    removedFiles = []
+    if not lfns:
+      return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
+        allDaughters, inFCNotInBK, inBKNotInFC, removedFiles
+
+    daughtersBKInfo = self.__getDaughtersInfo( lfns, status, filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants )
 
     # This is the list of all daughters, sets will contain unique entries
     setAllDaughters = set( daughtersBKInfo )
@@ -452,12 +448,13 @@ class ConsistencyChecks( object ):
     inBK = set( [lfn for lfn in setAllDaughters if daughtersBKInfo[lfn][0]] )
     setRealDaughters = set()
     # Now check whether these daughters files have replicas or have descendants that have replicas
+    chunkSize = 100 if self.transType == 'DataStripping' and len( self.fileType ) > 1 else 500
     if filesWithDescendants:
       # First check in LFC the presence of daughters
-      if len( allDaughters ) > 10 * chunkSize and len( inBK ) < len( allDaughters ) / 2:
-        present, notPresent = self.getReplicasPresenceFromDirectoryScan( allDaughters )
-      else:
-        present, notPresent = self.getReplicasPresence( allDaughters )
+      present, notPresent = self.getReplicasPresenceFromDirectoryScan( allDaughters ) \
+                              if len( allDaughters ) > 10 * chunkSize and \
+                                 len( inBK ) < len( allDaughters ) / 2 else \
+                            self.getReplicasPresence( allDaughters )
 
       setPresent = set( present )
       setRealDaughters = setPresent
@@ -489,7 +486,7 @@ class ConsistencyChecks( object ):
               gLogger.error( "\nError getting descendants for %d files, retry"
                              % len( lfnChunk ), res['Message'] )
         self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
-        #print "%d not Present daughters, %d have a descendant" % ( len( notPresent ), len( setDaughtersWithDesc ) )
+        # print "%d not Present daughters, %d have a descendant" % ( len( notPresent ), len( setDaughtersWithDesc ) )
 
         startTime = time.time()
         chunkSize = 500
@@ -510,10 +507,10 @@ class ConsistencyChecks( object ):
             print '\n\nLFN', lfn
             print 'Daughters', sorted( filesWithDescendants[lfn] )
             print 'Not present daughters', sorted( list( daughtersNotPresent ) )
-            #print 'Multiple descendants', filesWithMultipleDescendants.get( lfn )
+            # print 'Multiple descendants', filesWithMultipleDescendants.get( lfn )
           # Only interested in daughters without replica, so if all have one, skip
 
-          #Some daughters may have a replica though, take them into account
+          # Some daughters may have a replica though, take them into account
           daughtersWithReplica = setDaughters & setPresent
           # and add those without a replica but that have  a descendant with replica
           realDaughters = list( daughtersWithReplica.union( daughtersNotPresent & setDaughtersWithDesc ) )
@@ -559,7 +556,7 @@ class ConsistencyChecks( object ):
         self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
         startTime = time.time()
         gLogger.verbose( "Reduced list of descendants in %.1f seconds" % ( time.time() - startTime ) )
-    #print 'Final multiple descendants', filesWithMultipleDescendants
+    # print 'Final multiple descendants', filesWithMultipleDescendants
 
     # File files without descendants don't exist, not important
     if filesWithoutDescendants:
@@ -568,7 +565,7 @@ class ConsistencyChecks( object ):
     else:
       removedFiles = []
 
-    # Remove files with multiple descedants from files with descendants
+    # Remove files with multiple descendants from files with descendants
     for lfn in filesWithMultipleDescendants:
       filesWithDescendants.pop( lfn, None )
     # For files in FC and not in BK, ignore if they are not active
@@ -620,8 +617,8 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
-  def checkFC2BKK( self ):
-    ''' check that files present in the FC are also in the BKK
+  def checkFC2BK( self ):
+    ''' check that files present in the FC are also in the BK
     '''
     if not self.lfns:
       try:
@@ -640,22 +637,22 @@ class ConsistencyChecks( object ):
       gLogger.always( 'Out of %d files, %d are in the FC, %d are not' \
                       % ( len( self.lfns ), len( present ), len( notPresent ) ) )
       if not present:
-        gLogger.always( 'No files are in the FC, no check in the BK. Use dirac-dms-check-bkk2fc instead' )
+        gLogger.always( 'No files are in the FC, no check in the BK. Use dirac-dms-check-BK2fc instead' )
         return
       prStr = ''
 
-    res = self._getBKKMetadata( present )
-    self.existingLFNsNotInBKK = res[0]
-    self.existingLFNsWithBKKReplicaNO = res[1]
-    self.existingLFNsWithBKKReplicaYES = res[2]
+    res = self._getBKMetadata( present )
+    self.existingLFNsNotInBK = res[0]
+    self.existLFNsBKRepNo = res[1]
+    self.existLFNsBKRepYes = res[2]
     msg = ''
     if self.transType:
       msg = "For prod %s of type %s, " % ( self.prod, self.transType )
-    if self.existingLFNsWithBKKReplicaNO:
-      gLogger.warn( "%s %d files%s have replica = NO in BKK" % ( msg, len( self.existingLFNsWithBKKReplicaNO ),
+    if self.existLFNsBKRepNo:
+      gLogger.warn( "%s %d files%s have replica = NO in BK" % ( msg, len( self.existLFNsBKRepNo ),
                                                                  prStr ) )
-    if self.existingLFNsNotInBKK:
-      gLogger.warn( "%s %d files%s not in BKK" % ( msg, len( self.existingLFNsNotInBKK ), prStr ) )
+    if self.existingLFNsNotInBK:
+      gLogger.warn( "%s %d files%s not in BK" % ( msg, len( self.existingLFNsNotInBK ), prStr ) )
 
   ################################################################################
 
@@ -694,7 +691,7 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
-  def _getBKKMetadata( self, lfns ):
+  def _getBKMetadata( self, lfns ):
     ''' get metadata (i.e. replica flag) of a list of LFNs
     '''
     missingLFNs = []
@@ -708,7 +705,7 @@ class ConsistencyChecks( object ):
       while True:
         res = self.bkClient.getFileMetadata( lfnChunk )
         if not res['OK']:
-          gLogger.error( "\nCan't get the bkk metadata, retry: ", res['Message'] )
+          gLogger.error( "\nCan't get the BK metadata, retry: ", res['Message'] )
         else:
           metadata = res['Value']['Successful']
           missingLFNs += [lfn for lfn in lfnChunk if lfn not in metadata]
@@ -721,19 +718,19 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
-  def checkBKK2TS( self ):
-    ''' check that files present in the BKK are also in the FC (re-check of BKKWatchAgent)
+  def checkBK2TS( self ):
+    ''' check that files present in the BK are also in the FC (re-check of BKWatchAgent)
     '''
     try:
-      bkQuery = self.__getBKKQuery( fromTS = True )
+      bkQuery = self.__getBKQuery( fromTS = True )
     except ValueError, e:
       return S_ERROR( e )
-    lfnsReplicaYes = self._getBKKFiles( bkQuery )
+    lfnsReplicaYes = self._getBKFiles( bkQuery )
     proc, nonProc, _statuses = self._getTSFiles()
-    self.filesInBKKNotInTS = list( set( lfnsReplicaYes ) - set( proc + nonProc ) )
-    if self.filesInBKKNotInTS:
-      gLogger.error( "There are %d files in BKK that are not in TS: %s" % ( len( self.filesInBKKNotInTS ),
-                                                                            str( self.filesInBKKNotInTS ) ) )
+    self.filesInBKNotInTS = list( set( lfnsReplicaYes ) - set( proc + nonProc ) )
+    if self.filesInBKNotInTS:
+      gLogger.error( "There are %d files in BK that are not in TS: %s" % ( len( self.filesInBKNotInTS ),
+                                                                           str( self.filesInBKNotInTS ) ) )
 
   ################################################################################
 
@@ -771,18 +768,18 @@ class ConsistencyChecks( object ):
         gLogger.info( "Failed request for LFN %s: %s" % ( lfn, val['Failed'][lfn] ) )
         continue
       elif lfn in val['Successful']:
-        if lfn not in csDict.keys():
+        if lfn not in csDict:
           csDict[ lfn ] = {}
         csDict[ lfn ][ 'LFCChecksum' ] = val['Successful'][lfn][ 'Checksum']
       else:
         gLogger.error( "LFN not in return values! %s " % lfn )
         continue
 
-      if lfn not in replicasRes['Value']['Successful'].keys():
+      if lfn not in replicasRes['Value']['Successful']:
         gLogger.error( "did not get replicas for this LFN: %s " % lfn )
         continue
       replicaDict = replicasRes['Value']['Successful'][ lfn ]
-      for se in replicaDict.keys():
+      for se in replicaDict:
         surl = replicaDict[ se ]
         # get the surls metadata and compare the checksum
         surlRes = self.rm.getStorageFileMetadata( surl, se )
@@ -799,24 +796,24 @@ class ConsistencyChecks( object ):
         lfcChecksum = csDict[ lfn ][ 'LFCChecksum' ]
         if lfcChecksum != surlChecksum:
           gLogger.info( "Check if the difference is just leading zeros" )
-          #if lfcChecksum not in surlChecksum and surlChecksum not in lfcChecksum:
+          # if lfcChecksum not in surlChecksum and surlChecksum not in lfcChecksum:
           if lfcChecksum.lstrip( '0' ) != surlChecksum.lstrip( '0' ):
             gLogger.error( "ERROR!! checksum mismatch at %s for LFN \
             %s:  LFC checksum: %s , PFN checksum : %s " % ( se, lfn, csDict[ lfn ][ 'LFCChecksum' ], surlChecksum ) )
             if lfn not in checkSumMismatch:
               checkSumMismatch.append( lfn )
           else:
-            gLogger.info( "Checksums differ only for leading zeros: LFC Checksum: %s PFN Checksum %s " % ( lfcChecksum,
-                                                                                                           surlChecksum ) )
+            gLogger.info( "Checksums differ only for leading zeros: LFC Checksum: %s PFN Checksum %s " %
+                          ( lfcChecksum, surlChecksum ) )
 
     for lfn in checkSumMismatch:
       oneGoodReplica = False
       gLogger.info( "LFN: %s, LFC Checksum: %s " % ( lfn, csDict[ lfn ][ 'LFCChecksum'] ) )
       lfcChecksum = csDict[ lfn ][ 'LFCChecksum' ]
-      for k in csDict[ lfn ].keys():
+      for k in csDict[ lfn ]:
         if k == 'LFCChecksum':
           continue
-        for kk in csDict[ lfn ][ k ].keys():
+        for kk in csDict[ lfn ][ k ]:
           if 'PFNChecksum' == kk:
             pfnChecksum = csDict[ lfn ][ k ]['PFNChecksum']
             pfn = k
@@ -837,6 +834,7 @@ class ConsistencyChecks( object ):
   # properties
 
   def set_prod( self, value ):
+    """ Setter """
     if value:
       value = int( value )
       res = self.transClient.getTransformation( value, extraParams = False )
@@ -850,38 +848,47 @@ class ConsistencyChecks( object ):
       value = 0
     self._prod = value
   def get_prod( self ):
+    """ Getter """
     return self._prod
   prod = property( get_prod, set_prod )
 
   def set_fileType( self, value ):
+    """ Setter """
     fts = [ft.upper() for ft in value]
     self._fileType = fts
   def get_fileType( self ):
+    """ Getter """
     return self._fileType
   fileType = property( get_fileType, set_fileType )
 
   def set_fileTypesExcluded( self, value ):
+    """ Setter """
     fts = [ft.upper() for ft in value]
     self._fileTypesExcluded = fts
   def get_fileTypesExcluded( self ):
+    """ Getter """
     return self._fileTypesExcluded
   fileTypesExcluded = property( get_fileTypesExcluded, set_fileTypesExcluded )
 
   def set_bkQuery( self, value ):
+    """ Setter """
     if type( value ) == type( "" ):
       self._bkQuery = ast.literal_eval( value )
     else:
       self._bkQuery = value
   def get_bkQuery( self ):
+    """ Getter """
     return self._bkQuery
   bkQuery = property( get_bkQuery, set_bkQuery )
 
   def set_lfns( self, value ):
+    """ Setter """
     if type( value ) == type( "" ):
       value = [value]
     value = [v.replace( ' ', '' ).replace( '//', '/' ) for v in value]
     self._lfns = value
   def get_lfns( self ):
+    """ Getter """
     return self._lfns
   lfns = property( get_lfns, set_lfns )
 
