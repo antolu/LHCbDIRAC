@@ -251,18 +251,21 @@ class StorageUsageAgent( AgentModule ):
 
   def __processDir( self, dirPath, directoryMetadata ):
     ''' calculate nb of files and size of :dirPath:, remove it if it's empty '''
-    self.log.notice( "Processing %s" % dirPath )
     subDirs = directoryMetadata['SubDirs']
     closedDirs = directoryMetadata['ClosedDirs']
-    self.log.info( "Found %s sub-directories" % len( subDirs ) )
+    prStr = "%s: found %s sub-directories" % ( dirPath, len( subDirs ) if subDirs else 'no' )
     if closedDirs:
-      self.log.info( "%s sub-directories are closed (ignored)" % len( closedDirs ) )
-      for directory in closedDirs:
-        self.log.info( "Closed dir %s" % directory )
-        subDirs.pop( directory )
+      prStr += ", %s are closed (ignored)" % len( closedDirs )
+      subDirs = list( set( subDirs ) - set( closedDirs ) )
     numberOfFiles = long( directoryMetadata['Files'] )
     totalSize = long( directoryMetadata['TotalSize'] )
-    self.log.info( "Found %s files in the directory ( %s bytes )" % ( numberOfFiles, totalSize ) )
+    if numberOfFiles:
+      prStr += "and %s files( %s bytes )" % ( numberOfFiles, totalSize )
+    else:
+      prStr += "and no files"
+    self.log.notice( prStr )
+    if closedDirs:
+      self.log.verbose( "Closed dirs:\n %s" % '\n'.join( closedDirs ) )
     siteUsage = directoryMetadata['SiteUsage']
     if numberOfFiles > 0:
       dirData = { 'Files' : numberOfFiles, 'TotalSize' : totalSize, 'SEUsage' : siteUsage }
