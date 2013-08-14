@@ -181,7 +181,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
           result = self.transClient.addFilesToTransformation( transID, sorted( lfnList ) )
           runDict = {}
           if not result['OK']:
-            self._logWarn( "Failed to add lfns to transformation", result['Message'], transID = transID )
+            self._logWarn( "Failed to add %d lfns to transformation" % len( lfnList ), result['Message'], transID = transID )
           else:
             _printFailed = [self._logWarn( "Failed to add %s to transformation\
             " % lfn, error, transID = transID ) for ( lfn, error ) in result['Value']['Failed'].items()]
@@ -260,6 +260,8 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
       raise RuntimeError, result['Message']
     else:
       self.timeLog[transID] = now
+      if result['Value']:
+        self._logInfo( "Obtained %d files from BK" % len( result['Value'] ) )
       return result['Value']
 
 
