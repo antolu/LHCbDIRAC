@@ -16,6 +16,7 @@ def __checkSEs( args ):
   Check which arguments are SE names listed in the CS
   """
   seList = []
+  from DIRAC import gConfig
   res = gConfig.getSections( '/Resources/StorageElements' )
   if res['OK']:
     for ses in list( args ):
