@@ -29,12 +29,12 @@ if __name__ == "__main__":
   lfnList = dmScript.getOption( 'LFNs', [] )
 
   dirList = dmScript.getOption( 'Directory', [''] )
+  from DIRAC import gLogger
   if len( dirList ) > 1:
     gLogger.always( "Not allowed to specify more than one destination directory" )
     DIRAC.exit( 2 )
 
   from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
-  from DIRAC import gLogger
   rm = ReplicaManager()
   res = rm.getFile( lfnList, destinationDir = dirList[0] )
   DIRAC.exit( printDMResult( res,

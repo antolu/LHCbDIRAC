@@ -66,7 +66,7 @@ def execute():
           seList = dmScript.getOption( 'SEs', [] )
       except:
         print "Invalid number of replicas:", switch[1]
-        DIRAC.exit( 1 )
+        DIRACExit( 1 )
 
   # This should be improved, with disk SEs first...
   if not seList:
