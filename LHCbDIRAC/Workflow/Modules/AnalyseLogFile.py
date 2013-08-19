@@ -30,6 +30,7 @@ class AnalyseLogFile( ModuleBase ):
     self.logFilePath = ''
     self.coreFile = ''
     self.nc = NotificationClient()
+    self.logAnalyser = analyseLogFile
 
   def _resolveInputVariables( self ):
     """ By convention any workflow parameters are resolved here.
@@ -41,8 +42,7 @@ class AnalyseLogFile( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None,
-               logAnalyser = None ):
+               step_number = None, step_id = None ):
     """ Main execution method.
     """
 
@@ -62,19 +62,11 @@ class AnalyseLogFile( ModuleBase ):
       self.log.info( "Performing log file analysis for %s" % ( self.applicationLog ) )
       # Resolve the step and job input data
 
-      if not logAnalyser:
-        analyseLogResult = analyseLogFile( fileName = self.applicationLog,
+      analyseLogResult = self.logAnalyser( fileName = self.applicationLog,
                                            applicationName = self.applicationName,
                                            prod = self.production_id,
                                            job = self.prod_job_id,
                                            log = self.log )
-      else:
-        analyseLogResult = logAnalyser( fileName = self.applicationLog,
-                                        applicationName = self.applicationName,
-                                        prod = self.production_id,
-                                        job = self.prod_job_id,
-                                        log = self.log )
-
       if not analyseLogResult['OK']:
         self.log.error( analyseLogResult['Message'] )
 

@@ -845,15 +845,6 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
                                             self.step_number, self.step_id,
                                             self.nc_mock, logAnalyser, self.xf_o_mock )['OK'] )
 
-
-  def test__updateFileStatus( self ):
-    inputs = [{'i1':'OK', 'i2':'OK'},
-              {'i1':'OK', 'i2':'Unused'},
-              {'i1':'Unused', 'i2':'Unused'}
-              ]
-    for inp in inputs:
-      self.axlf._updateFileStatus( inp, 'Processed', self.prod_id, self.fr_mock )
-
 #############################################################################
 # AnalyseLogFile.py
 #############################################################################
@@ -870,20 +861,21 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
 
     logAnalyser = Mock()
     logAnalyser.return_value = {'OK':True, 'Value':''}
+    self.alf.logAnalyser = logAnalyser
 #    no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertTrue( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                             self.workflowStatus, self.stepStatus,
                                             wf_commons, step_commons,
-                                            self.step_number, self.step_id,
-                                            logAnalyser )['OK'] )
+                                            self.step_number, self.step_id )['OK'] )
 
 
     self.alf.jobType = 'reco'
 
     # logAnalyser gives errors
     logAnalyser.return_value = {'OK':False, 'Message':'a mess'}
+    self.alf.logAnalyser = logAnalyser
 
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in copy.deepcopy( self.step_commons ):
@@ -892,29 +884,18 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
         self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, step_commons,
-                                          self.step_number, self.step_id,
-                                          logAnalyser )['OK'] )
+                                          self.step_number, self.step_id )['OK'] )
 
     # there's a core dump
     logAnalyser.return_value = {'OK':True, 'Message':''}
+    self.alf.logAnalyser = logAnalyser
     open( 'ErrorLogging_Step1_coredump.log', 'w' ).close()
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                           self.workflowStatus, self.stepStatus,
                                           wf_commons, step_commons,
-                                          self.step_number, self.step_id,
-                                          logAnalyser )['OK'] )
-
-
-  def test__updateFileStatus( self ):
-    inputs = [{'i1':'OK', 'i2':'OK'},
-              {'i1':'OK', 'i2':'Unused'},
-              {'i1':'Unused', 'i2':'Unused'}
-              ]
-    for inp in inputs:
-      self.axlf._updateFileStatus( inp, 'Processed', self.prod_id, self.fr_mock )
-
+                                          self.step_number, self.step_id )['OK'] )
 
 #############################################################################
 # BookkeepingReport.py
