@@ -20,10 +20,10 @@ class ModulesTestCase( unittest.TestCase ):
 #    sys.modules["DIRAC"] = DIRAC.ResourceStatusSystem.test.fake_Logger
 #    sys.modules["DIRAC.ResourceStatusSystem.Utilities.CS"] = DIRAC.ResourceStatusSystem.test.fake_Logger
 
-    jr_mock = Mock()
-    jr_mock.setApplicationStatus.return_value = {'OK': True, 'Value': ''}
-    jr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': Operation()}
-    jr_mock.setJobParameter.return_value = {'OK': True, 'Value': 'pippo'}
+    self.jr_mock = Mock()
+    self.jr_mock.setApplicationStatus.return_value = {'OK': True, 'Value': ''}
+    self.jr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': Operation()}
+    self.jr_mock.setJobParameter.return_value = {'OK': True, 'Value': 'pippo'}
 
     self.fr_mock = Mock()
     self.fr_mock.getFiles.return_value = {}
@@ -107,7 +107,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.xf_o_mock = Mock()
     self.xf_o_mock.inputFileStats = {'a':1, 'b':2}
     self.xf_o_mock.outputFileStats = {'a':1, 'b':2}
-    self.xf_o_mock.analyse.return_value = {'OK': True, 'Value': ''}
+    self.xf_o_mock.analyse.return_value = True
 
     self.jobStep_mock = Mock()
     self.jobStep_mock.commit.return_value = {'OK': True, 'Value': ''}
@@ -124,72 +124,72 @@ class ModulesTestCase( unittest.TestCase ):
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id, 'eventType': '123456789', 'jobType': 'merge',
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
-                        'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
+                        'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'merge',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
-                        'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
+                        'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'runNumber':'Unknown',
                         'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'merge',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
-                        'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
+                        'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'merge',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
-                        'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
+                        'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'] },
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
-                        'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
+                        'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
-                        'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
+                        'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'runNumber':'Unknown',
                         'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
-                        'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
+                        'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
-                        'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
+                        'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
-                        'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
+                        'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': '', 'gaudiSteps': ['someApp_1'] },
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
-                        'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
+                        'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': 'foo;bar', 'gaudiSteps': ['someApp_1'] },
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
-                        'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
+                        'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': 'foo;bar', 'ParametricInputData':'' ,
                         'gaudiSteps': ['someApp_1']},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
-                        'JobReport':jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
+                        'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': 'foo;bar', 'ParametricInputData':'pid1;pid2;pid3',
                         'gaudiSteps': ['someApp_1']},
@@ -815,40 +815,128 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     self.axlf.stepInputData = ['some.sdst', '00012345_00006789_1.sdst']
     self.axlf.jobType = 'merge'
 
-
     logAnalyser = Mock()
 
-    logAnalyser.return_value = {'OK':True, 'Value':''}
+    logAnalyser.return_value = True
     self.axlf.logAnalyser = logAnalyser
     self.axlf.XMLSummary_o = self.xf_o_mock
     self.axlf.nc = self.nc_mock
-    open( 'XMLSummaryFile', 'w' )
+    f = open( 'XMLSummaryFile', 'w' )
+    f.write( """<?xml version="1.0" encoding="UTF-8"?>
+
+<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <success>True</success>
+        <step>finalize</step>
+        <usage>
+                <stat unit="KB" useOf="MemoryMaximum">866104.0</stat>
+        </usage>
+        <input>
+                <file GUID="CCE96707-4BE9-E011-81CD-003048F35252" name="LFN:00012478_00000532_1.sim" status="full">200</file>
+        </input>
+        <output>
+                <file GUID="229BBEF1-66E9-E011-BBD0-003048F35252" name="PFN:00012478_00000532_2.xdigi" status="full">200</file>
+        </output>
+</summary>
+""" )
+    f.close()
     self.XMLSummary = 'XMLSummaryFile'
 
-    # no errors, no input data -> it fails because the XML summary is empty!
+    # no errors, all ok
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
-        self.assertFalse( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+        self.assertTrue( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                             self.workflowStatus, self.stepStatus,
                                             wf_commons, step_commons,
                                             self.step_number, self.step_id )['OK'] )
 
-
     # logAnalyser gives errors
     self.axlf.jobType = 'reco'
 
-    logAnalyser.return_value = {'OK':False, 'Message':'a mess'}
+    logAnalyser.return_value = False
     self.axlf.logAnalyser = logAnalyser
-    self.axlf.XMLSummary_o = self.xf_o_mock
 
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         if wf_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
           continue
-        self.assertFalse( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+        self.assertTrue( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                             self.workflowStatus, self.stepStatus,
                                             wf_commons, step_commons,
                                             self.step_number, self.step_id )['OK'] )
+
+  def test__basicSuccess( self ):
+    from LHCbDIRAC.Workflow.Modules.AnalyseXMLSummary import AnalyseXMLSummary
+    from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
+    from DIRAC.TransformationSystem.Client.FileReport import FileReport
+
+    axlf = AnalyseXMLSummary( bkClient = self.bkc_mock, rm = self.rm_mock )
+
+    f = open( 'XMLSummaryFile', 'w' )
+    f.write( """<?xml version="1.0" encoding="UTF-8"?>
+
+<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <success>True</success>
+        <step>finalize</step>
+        <usage>
+                <stat unit="KB" useOf="MemoryMaximum">866104.0</stat>
+        </usage>
+        <input>
+                <file GUID="CCE96707-4BE9-E011-81CD-003048F35252" name="LFN:00012478_00000532_1.sim" status="full">200</file>
+        </input>
+        <output>
+                <file GUID="229BBEF1-66E9-E011-BBD0-003048F35252" name="PFN:00012478_00000532_2.xdigi" status="full">200</file>
+        </output>
+</summary>
+""" )
+    f.close()
+    axlf.XMLSummary_o = XMLSummary( 'XMLSummaryFile' )
+    axlf._basicSuccess()
+
+    axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':1, 'fail':0, 'other':0}
+    axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'full' ), ( 'aa/2.txt', 'part' )]
+    axlf.inputDataList = ['aa/1.txt', 'aa/2.txt']
+    axlf.numberOfEvents = '-1'
+    axlf.fileReport = FileReport()
+    axlf.production_id = '123'
+    axlf._basicSuccess()
+    self.assertEqual( axlf.fileReport.statusDict, {'aa/2.txt': 'Problematic'} )
+
+    axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':0, 'fail':1, 'other':0}
+    axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'fail' ), ( 'aa/2.txt', 'full' )]
+    axlf.inputDataList = ['aa/1.txt', 'aa/2.txt']
+    axlf.numberOfEvents = '-1'
+    axlf.fileReport = FileReport()
+    axlf.production_id = '123'
+    axlf._basicSuccess()
+    self.assertEqual( axlf.fileReport.statusDict, {'aa/1.txt': 'Problematic'} )
+
+    axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':0, 'fail':1, 'other':0}
+    axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'fail' ), ( 'aa/2.txt', 'full' )]
+    axlf.inputDataList = ['aa/3.txt']
+    axlf.numberOfEvents = '-1'
+    axlf.fileReport = FileReport()
+    axlf.production_id = '123'
+    axlf._basicSuccess()
+    self.assertEqual( axlf.fileReport.statusDict, {} )
+
+    axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':1, 'fail':1, 'other':0}
+    axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'fail' ), ( 'aa/2.txt', 'part' )]
+    axlf.inputDataList = ['aa/1.txt', 'aa/2.txt']
+    axlf.numberOfEvents = '-1'
+    axlf.fileReport = FileReport()
+    axlf.production_id = '123'
+    axlf._basicSuccess()
+    self.assertEqual( axlf.fileReport.statusDict, {'aa/1.txt': 'Problematic', 'aa/2.txt': 'Problematic'} )
+
+    axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':1, 'fail':1, 'other':0}
+    axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'fail' ), ( 'aa/2.txt', 'part' )]
+    axlf.inputDataList = ['aa/1.txt', 'aa/2.txt']
+    axlf.numberOfEvents = '10'
+    axlf.fileReport = FileReport()
+    axlf.production_id = '123'
+    axlf._basicSuccess()
+    self.assertEqual( axlf.fileReport.statusDict, {'aa/1.txt': 'Problematic'} )
+
 
 #############################################################################
 # AnalyseLogFile.py
@@ -897,7 +985,7 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
     open( 'ErrorLogging_Step1_coredump.log', 'w' ).close()
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
-        if not wf_commons.has_key('AnalyseLogFilePreviouslyFinalized'):
+        if not wf_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
           self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                             self.workflowStatus, self.stepStatus,
                                             wf_commons, step_commons,

@@ -13,7 +13,7 @@ from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
-from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary, analyseXMLSummary
+from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
 
 
 class AnalyseXMLSummary( ModuleBase ):
@@ -39,7 +39,6 @@ class AnalyseXMLSummary( ModuleBase ):
     super( AnalyseXMLSummary, self )._resolveInputVariables()
     super( AnalyseXMLSummary, self )._resolveInputStep()
 
-    self.logAnalyser = analyseXMLSummary
     self.XMLSummary_o = XMLSummary( self.XMLSummary, log = self.log )
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
@@ -47,6 +46,8 @@ class AnalyseXMLSummary( ModuleBase ):
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None ):
     """ Main execution method.
+
+        Here we analyse what is written in the XML summary, and take decisions accordingly
     """
 
     try:
@@ -62,33 +63,34 @@ class AnalyseXMLSummary( ModuleBase ):
       # Resolve the step and job input data
 
       self.step_commons['XMLSummary_o'] = self.XMLSummary_o
-
-      if self.numberOfEvents == '-1':
-        analyseXMLSummaryResult = self.logAnalyser( xf_o = self.XMLSummary_o, log = self.log )
+      if self.XMLSummary_o.success == 'True' \
+        and self.XMLSummary_o.step == 'finalize' \
+        and self.XMLSummary_o._outputsOK() \
+        and not self.XMLSummary_o.inputFileStats['mult'] \
+        and not self.XMLSummary_o.inputFileStats['other']:
+        # basic success, now check for failures in the input files
+        self._basicSuccess()
       else:
-        analyseXMLSummaryResult = self.logAnalyser( xf_o = self.XMLSummary_o, log = self.log, inputsOnPartOK = True )
-
-      if not analyseXMLSummaryResult['OK']:
+        # here fails!
         if self.workflow_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
           self.log.info( 'AnalyseLogFile has already run for this workflow and finalized with sending an error email' )
           return S_OK()
 
-        self.log.error( analyseXMLSummaryResult['Message'] )
-        self._finalizeWithErrors( analyseXMLSummaryResult['Message'] )
+        self._finalizeWithErrors( "XMLSummary reports error" )
 
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']:
           return S_OK()
-        self.setApplicationStatus( analyseXMLSummaryResult['Message'] )
-        return analyseXMLSummaryResult
+
+        self.setApplicationStatus( "XMLSummary reports error" )
+        return S_ERROR( "XMLSummary reports error" )
 
       # if the log looks ok but the step already failed, preserve the previous error
-      elif not self.stepStatus['OK']:
+      if not self.stepStatus['OK']:
         return S_OK()
 
       else:
-        # If the job was successful Update the status of the files to processed
-        self.log.info( 'XML summary %s, %s' % ( self.XMLSummary, analyseXMLSummaryResult['Value'] ) )
+        self.log.info( 'XML summary %s' % self.XMLSummary )
         self.setApplicationStatus( '%s Step OK' % self.applicationName )
 
         return S_OK()
@@ -106,10 +108,34 @@ class AnalyseXMLSummary( ModuleBase ):
 # AUXILIAR FUNCTIONS
 ################################################################################
 
+  def _basicSuccess( self ):
+    """ Treat basic success
+    """
+    if self.XMLSummary_o.inputFileStats['part']:
+      if self.numberOfEvents != '-1':
+        # this is not an error
+        pass
+      else:
+        # report to FileReport
+        filesInPart = [x[0].strip( 'LFN:' ) for x in self.XMLSummary_o.inputStatus if x[1] == 'part']
+        self.log.error( "Files %s are in status 'part'" % ';'.join( filesInPart ) )
+        for fileInPart in filesInPart:
+          if fileInPart in self.inputDataList:
+            self.log.error( "Reporting %s as 'Problematic'" % fileInPart )
+            self.fileReport.setFileStatus( int( self.production_id ), fileInPart, 'Problematic' )
+    if self.XMLSummary_o.inputFileStats['fail']:
+      # report to FileReport
+      filesInFail = [x[0].strip( 'LFN:' ) for x in self.XMLSummary_o.inputStatus if x[1] == 'fail']
+      self.log.error( "Files %s are in status 'fail'" % ';'.join( filesInFail ) )
+      for fileInFail in filesInFail:
+        if fileInFail in self.inputDataList:
+          self.log.error( "Reporting %s as 'Problematic'" % fileInFail )
+          self.fileReport.setFileStatus( int( self.production_id ), fileInFail, 'Problematic' )
+
   def _finalizeWithErrors( self, subj ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
-
+    self.log.error( subj )
     # Have to check that the output list is defined in the workflow commons, this is
     # done by the first BK report module that executes at the end of a step but in
     # this case the current step 'listoutput' must be added.
