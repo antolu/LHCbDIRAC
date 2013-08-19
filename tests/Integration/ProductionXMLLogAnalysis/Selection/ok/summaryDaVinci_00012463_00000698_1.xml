@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<success>True</success>
+	<step>finalize</step>
+	<usage>
+		<stat unit="KB" useOf="MemoryMaximum">2042108.0</stat>
+	</usage>
+	<input>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/SDST/00012448/0000/00012448_00006247_1.sdst" status="full">54362</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/SDST/00012448/0000/00012448_00006508_1.sdst" status="full">54199</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/SDST/00012448/0000/00012448_00006512_1.sdst" status="full">54365</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/SDST/00012448/0000/00012448_00006210_1.sdst" status="full">54382</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/SDST/00012448/0000/00012448_00006285_1.sdst" status="full">54311</file>
+	</input>
+	<output>
+		<file GUID="38FA120A-93EF-E011-BB5F-003048FEBA12" name="PFN:00012463_00000698_1.fmdst" status="full">160893</file>
+	</output>
+	<counters>
+		<counter name="UnpackTrack/# UnpackedTracks">47094164</counter>
+		<counter name="EcalClust/#clusters =&gt; &apos;Rec/Calo/EcalClusters&apos;">21831869</counter>
+		<counter name="EcalClust/Clusterisation pass">821156</counter>
+		<counter name="EcalShare/#Clusters from &apos;Rec/Calo/EcalClusters&apos;">21831869</counter>
+		<counter name="EcalCovar/#Clusters from &apos;Rec/Calo/EcalClusters&apos;">21831869</counter>
+		<counter name="createITClusters/# banks found">10802904</counter>
+		<counter name="createITClusters/# valid banks">10802904</counter>
+		<counter name="createITClusters/events with error banks">20</counter>
+		<counter name="createITClusters/recovered banks6">1</counter>
+		<counter name="createITClusters/recovered banks64">19</counter>
+		<counter name="createITClusters/skipped Banks">0</counter>
+		<counter name="createITClusters/sourceID 6">1</counter>
+		<counter name="createITClusters/sourceID 64">19</counter>
+		<counter name="createITClusters/total # error banks">20</counter>
+		<counter name="createTTClusters/# banks found">12346176</counter>
+		<counter name="createTTClusters/# valid banks">12346176</counter>
+		<counter name="createTTClusters/events with error banks">1</counter>
+		<counter name="createTTClusters/recovered banks9">1</counter>
+		<counter name="createTTClusters/skipped Banks">0</counter>
+		<counter name="createTTClusters/sourceID 9">1</counter>
+		<counter name="createTTClusters/total # error banks">1</counter>
+		<counter name="ChargedProtoPAddMuon/Rec/Muon/MuonPID ==&gt; Rec/ProtoP/Charged">21538725</counter>
+		<counter name="ChargedProtoPAddRich/Rec/Rich/PIDs ==&gt; Rec/ProtoP/Charged">21538725</counter>
+		<counter name="ChargedProtoPCombDLL/CombineDLL ==&gt; Rec/ProtoP/Charged">21538725</counter>
+		<counter name="UnpackMuonPIDs/# UnPackedData">23967202</counter>
+		<counter name="UnpackRichPIDs/# UnPackedData">22307111</counter>
+		<counter name="DaVinciInitAlg/Events">271619</counter>
+		<counter name="KaliFilter/#passed">257212</counter>
+		<counter name="KaliCounters/nEcalClusters">21831869</counter>
+		<counter name="KaliCounters/nEcalDigits">236034850</counter>
+		<counter name="KaliCounters/nITClusters">156431544</counter>
+		<counter name="KaliCounters/nLong">16747844</counter>
+		<counter name="KaliCounters/nOT">1426128936</counter>
+		<counter name="KaliCounters/nPV">532418</counter>
+		<counter name="KaliCounters/nSpd">85835733</counter>
+		<counter name="KaliCounters/nTTClusters">191497347</counter>
+		<counter name="KaliCounters/nVelo">10424706</counter>
+		<counter name="KaliCounters/nVeloClusters">440414671</counter>
+		<counter name="NeutralProtoPMaker/#protos in Rec/ProtoP/Neutrals">13283182</counter>
+		<counter name="NeutralProtoPMaker/Rec/Calo/Photons=&gt;Rec/ProtoP/Neutrals">13283182</counter>
+		<counter name="StdLooseAllPhotons/#accept">256222</counter>
+		<counter name="KaliPi0/# Phys/StdLooseAllPhotons">7232849</counter>
+		<counter name="KaliPi0/# input particles">7232849</counter>
+		<counter name="KaliPi0/#accept">160893</counter>
+		<counter name="KaliPi0/#gamma">5617519</counter>
+		<counter name="KaliPi0/#gamma_all">7232849</counter>
+		<counter name="KaliPi0/#photons">688317</counter>
+		<counter name="KaliPi0/nEcalClusters">21830114</counter>
+		<counter name="KaliPi0/nEcalDigits">236015992</counter>
+		<counter name="KaliPi0/nITClusters">156390358</counter>
+		<counter name="KaliPi0/nLong">16745404</counter>
+		<counter name="KaliPi0/nOT">1424238054</counter>
+		<counter name="KaliPi0/nPV">531355</counter>
+		<counter name="KaliPi0/nSpd">85828419</counter>
+		<counter name="KaliPi0/nTTClusters">191374403</counter>
+		<counter name="KaliPi0/nVelo">10402859</counter>
+		<counter name="KaliPi0/nVeloClusters">439808347</counter>
+		<counter name="Destroyer/# digits">9561394</counter>
+		<counter name="Destroyer/# hypos">688317</counter>
+		<counter name="Destroyer/# particles">688317</counter>
+		<counter name="Destroyer/# protos">688317</counter>
+		<counter name="Destroyer/# tracks">0</counter>
+		<counter name="Destroyer/#alldigit">9561394</counter>
+		<counter name="Destroyer/#dig 1">363020075</counter>
+		<counter name="Destroyer/#dig 2">9561394</counter>
+		<counter name="Destroyer/#dig 2/dig 1">4493</counter>
+		<counter name="Destroyer/#digs Ecal">8281710</counter>
+		<counter name="Destroyer/#digs Hcal">0</counter>
+		<counter name="Destroyer/#digs Prs">1269043</counter>
+		<counter name="Destroyer/#digs Spd">10641</counter>
+		<counter name="Destroyer/#trdigs">0</counter>
+		<counter name="Destroyer/#trk 1">29327976</counter>
+		<counter name="Destroyer/#trk 2">0</counter>
+		<counter name="Destroyer/#trk 2/trk 1">0</counter>
+		<counter name="CounterSummarySvc/handled">432523</counter>
+	</counters>
+	<lumiCounters />
+</summary>

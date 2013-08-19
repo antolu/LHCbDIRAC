@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<success>True</success>
+	<step>finalize</step>
+	<usage>
+		<stat unit="KB" useOf="MemoryMaximum">3357068.0</stat>
+	</usage>
+	<input>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000359_1.fmdst" status="full">160602</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000337_1.fmdst" status="full">134528</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000328_1.fmdst" status="full">160963</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000355_1.fmdst" status="full">159755</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000354_1.fmdst" status="full">134269</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000353_1.fmdst" status="full">160732</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000347_1.fmdst" status="full">161333</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000333_1.fmdst" status="full">160315</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000339_1.fmdst" status="full">161530</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000365_1.fmdst" status="full">161538</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000363_1.fmdst" status="full">134212</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000335_1.fmdst" status="full">161673</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000358_1.fmdst" status="full">135235</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000362_1.fmdst" status="full">161188</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000336_1.fmdst" status="full">161230</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000331_1.fmdst" status="full">159654</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000341_1.fmdst" status="full">161303</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000346_1.fmdst" status="full">134381</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000368_1.fmdst" status="full">133888</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000348_1.fmdst" status="full">161361</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000351_1.fmdst" status="full">135973</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000360_1.fmdst" status="full">160886</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000361_1.fmdst" status="full">160664</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000329_1.fmdst" status="full">161561</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000345_1.fmdst" status="full">160863</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000332_1.fmdst" status="full">160921</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000338_1.fmdst" status="full">161389</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000356_1.fmdst" status="full">132229</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000340_1.fmdst" status="full">160747</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000357_1.fmdst" status="full">161575</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000343_1.fmdst" status="full">161560</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000344_1.fmdst" status="full">160957</file>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/FMDST/00012463/0000/00012463_00000334_1.fmdst" status="full">161376</file>
+	</input>
+	<output>
+		<file GUID="CCC33808-32ED-E011-B863-003048F17C08" name="PFN:00012464_00000002_1.fmdst" status="full">5100391</file>
+	</output>
+	<counters>
+		<counter name="CounterSummarySvc/handled">10200849</counter>
+	</counters>
+	<lumiCounters />
+</summary>

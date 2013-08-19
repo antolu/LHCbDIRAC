@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<success>False</success>
+	<step>execute</step>
+	<usage>
+		<stat unit="KB" useOf="MemoryMaximum">1536000.0</stat>
+	</usage>
+	<input>
+		<file GUID="" name="LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/102901/102901_0000000060.raw" status="part">1908</file>
+	</input>
+	<output>
+		<file GUID="C85BBC23-C0EF-E011-9172-003048CFAEAC" name="PFN:00012448_00014591_1.sdst" status="fail">1462</file>
+	</output>
+	<counters />
+	<lumiCounters />
+</summary>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<success>True</success>
+	<step>finalize</step>
+	<usage>
+		<stat unit="KB" useOf="MemoryMaximum">728552.0</stat>
+	</usage>
+	<input>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000023_1.Semileptonic.dst" status="full">844</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000021_1.Semileptonic.dst" status="full">796</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000014_1.Semileptonic.dst" status="full">856</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000035_1.Semileptonic.dst" status="full">695</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000044_1.Semileptonic.dst" status="full">682</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000009_1.Semileptonic.dst" status="full">742</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000018_1.Semileptonic.dst" status="full">820</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000058_1.Semileptonic.dst" status="full">639</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000040_1.Semileptonic.dst" status="full">782</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000056_1.Semileptonic.dst" status="full">805</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000045_1.Semileptonic.dst" status="full">805</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000032_1.Semileptonic.dst" status="full">855</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000028_1.Semileptonic.dst" status="full">842</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000052_1.Semileptonic.dst" status="full">874</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000025_1.Semileptonic.dst" status="full">805</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000051_1.Semileptonic.dst" status="full">807</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000047_1.Semileptonic.dst" status="full">824</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000057_1.Semileptonic.dst" status="full">770</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000049_1.Semileptonic.dst" status="full">836</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000031_1.Semileptonic.dst" status="full">854</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000037_1.Semileptonic.dst" status="full">710</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000016_1.Semileptonic.dst" status="full">771</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000010_1.Semileptonic.dst" status="full">783</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000008_1.Semileptonic.dst" status="full">816</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000054_1.Semileptonic.dst" status="full">791</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000030_1.Semileptonic.dst" status="full">808</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000015_1.Semileptonic.dst" status="full">847</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000029_1.Semileptonic.dst" status="full">620</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000026_1.Semileptonic.dst" status="full">826</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000013_1.Semileptonic.dst" status="full">775</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000053_1.Semileptonic.dst" status="full">819</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000017_1.Semileptonic.dst" status="full">776</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000020_1.Semileptonic.dst" status="full">857</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000048_1.Semileptonic.dst" status="full">820</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000007_1.Semileptonic.dst" status="full">838</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000041_1.Semileptonic.dst" status="full">840</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000050_1.Semileptonic.dst" status="full">662</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000024_1.Semileptonic.dst" status="full">855</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000022_1.Semileptonic.dst" status="full">835</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000019_1.Semileptonic.dst" status="full">839</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000027_1.Semileptonic.dst" status="full">796</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000046_1.Semileptonic.dst" status="full">811</file>
+	</input>
+	<output>
+		<file GUID="02346134-05ED-E011-AEC7-0025B3E063FA" name="PFN:00012476_00000002_1.semileptonic.dst" status="full">33428</file>
+	</output>
+	<counters>
+		<counter name="DaVinciInitAlg/Events">33428</counter>
+		<counter name="CounterSummarySvc/handled">66941</counter>
+	</counters>
+	<lumiCounters />
+</summary>
