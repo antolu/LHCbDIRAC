@@ -81,7 +81,7 @@ class TransformationClient( DIRACTransformationClient ):
 
     return DIRACTransformationClient.setTransformationParameter( self, transID, 'Status', status )
 
-  def _applyProductionFilesStateMachine( self, tsFilesAsDict, dictOfProposedLFNsStatus, force ):
+  def _applyTransformationFilesStateMachine( self, tsFilesAsDict, dictOfProposedLFNsStatus, force ):
     """ Apply LHCb state machine for transformation files
     """
     newStatuses = dict()
