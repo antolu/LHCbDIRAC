@@ -50,6 +50,7 @@ class XMLSummary:
     self.success = self.__getSuccess()
     self.step = self.__getStep()
     self.memory = self.__getMemory()
+    self.inputStatus = self.__getInputStatus()
     self.inputFileStats = self.__getInputFileStats()
     self.inputEventsTotal, self.inputsEvents = self.__getInputEvents()
     self.outputFileStats = self.__getOutputFileStats()
@@ -64,8 +65,10 @@ class XMLSummary:
       self.log.warn( "part status for input files is considered OK" )
     if self.success == 'True' and self.step == 'finalize' and self._inputsOK( inputsOnPartOK ) and self._outputsOK():
       self.log.info( "XML Summary OK" )
+      return True
     else:
       self.log.error( "XML Summary reports errors" )
+      return False
 
 ################################################################################
 
@@ -178,8 +181,6 @@ class XMLSummary:
        - fail : failure while reading the file
     """
 
-    res = self.__getInputStatus()
-
     fileCounter = {
                    'full'  : 0,
                    'part'  : 0,
@@ -188,7 +189,7 @@ class XMLSummary:
                    'other' : 0
                    }
 
-    for fileIn, status in res:
+    for fileIn, status in self.inputStatus:
 
       if status == 'fail':
         self.log.error( 'Input File %s is on status %s.' % ( fileIn, status ) )
