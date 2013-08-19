@@ -10,7 +10,7 @@ from DIRAC.Core.Utilities.List                                  import sortList
 
 from DIRAC.DataManagementSystem.Client.FailoverTransfer         import FailoverTransfer
 from DIRAC.DataManagementSystem.Client.ReplicaManager           import ReplicaManager
-from DIRAC.RequestManagementSystem.Client.RequestContainer      import RequestContainer
+from DIRAC.RequestManagementSystem.Client.Request               import Request
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
@@ -1066,9 +1066,12 @@ def _upLoadOutputData( localpath, localfilename, lfn, xMLBookkeepingReport, logD
   os.chdir( localpath )
 
   bkClient = BookkeepingClient()
-  request = RequestContainer()
-  request.setRequestName( xMLBookkeepingReport )
-  failoverTransfer = FailoverTransfer( request )
+
+  oRequest = Request()
+  oRequest.RequestName = xMLBookkeepingReport
+  oRequest.SourceComponent = 'MergeForDQ'
+
+  failoverTransfer = FailoverTransfer( oRequest )
   performBKRegistration = []
   registrationFailure = False
 
