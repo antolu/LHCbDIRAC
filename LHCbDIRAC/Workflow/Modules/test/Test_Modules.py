@@ -283,7 +283,7 @@ class ModulesTestCase( unittest.TestCase ):
   def tearDown( self ):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst', 'bar.py', 'aLongLog.log', 'aLongLog.log.gz'
                      'ccc.charm.mdst', 'prova.txt', 'aLog.log', 'BAR.txt', 'FooBAR.ext.txt', 'foo_1.txt', 'bar_2.py', 'bar.txt',
-                     'ErrorLogging_Step1_coredump.log', '123_00000456_request.xml', 'lfn1', 'lfn2',
+                     'ErrorLogging_Step1_coredump.log', '123_00000456_request.xml', 'lfn1', 'lfn2', 'XMLSummaryFile',
                      'aaa.bhadron.dst', 'bbb.calibration.dst', 'ProductionOutputData', 'data.py', '123_00000456_request.json',
                      '00000123_00000456.tar', 'someOtherDir', 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK',
                      ]:
@@ -819,21 +819,27 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     logAnalyser = Mock()
 
     logAnalyser.return_value = {'OK':True, 'Value':''}
+    self.axlf.logAnalyser = logAnalyser
+    self.axlf.XMLSummary_o = self.xf_o_mock
+    self.axlf.nc = self.nc_mock
+    open( 'XMLSummaryFile', 'w' )
+    self.XMLSummary = 'XMLSummaryFile'
 
-    # no errors, no input data
+    # no errors, no input data -> it fails because the XML summary is empty!
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
-        self.assertTrue( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+        self.assertFalse( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                             self.workflowStatus, self.stepStatus,
                                             wf_commons, step_commons,
-                                            self.step_number, self.step_id,
-                                            self.nc_mock, logAnalyser, self.xf_o_mock )['OK'] )
+                                            self.step_number, self.step_id )['OK'] )
 
 
     # logAnalyser gives errors
     self.axlf.jobType = 'reco'
 
     logAnalyser.return_value = {'OK':False, 'Message':'a mess'}
+    self.axlf.logAnalyser = logAnalyser
+    self.axlf.XMLSummary_o = self.xf_o_mock
 
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
@@ -842,8 +848,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
         self.assertFalse( self.axlf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                             self.workflowStatus, self.stepStatus,
                                             wf_commons, step_commons,
-                                            self.step_number, self.step_id,
-                                            self.nc_mock, logAnalyser, self.xf_o_mock )['OK'] )
+                                            self.step_number, self.step_id )['OK'] )
 
 #############################################################################
 # AnalyseLogFile.py

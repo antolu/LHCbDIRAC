@@ -1,4 +1,4 @@
-""" Analyse log file(s) module
+""" Analyse XMLSummary module
 """
 
 __RCSID__ = "$Id$"
@@ -29,6 +29,8 @@ class AnalyseXMLSummary( ModuleBase ):
 
     self.version = __RCSID__
     self.site = DIRAC.siteName()
+    self.nc = NotificationClient()
+    self.XMLSummary = ''
 
   def _resolveInputVariables( self ):
     """ By convention any workflow parameters are resolved here.
@@ -37,11 +39,13 @@ class AnalyseXMLSummary( ModuleBase ):
     super( AnalyseXMLSummary, self )._resolveInputVariables()
     super( AnalyseXMLSummary, self )._resolveInputStep()
 
+    self.logAnalyser = analyseXMLSummary
+    self.XMLSummary_o = XMLSummary( self.XMLSummary, log = self.log )
+
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None,
-               nc = None, logAnalyser = None, xf_o = None ):
+               step_number = None, step_id = None ):
     """ Main execution method.
     """
 
@@ -54,35 +58,24 @@ class AnalyseXMLSummary( ModuleBase ):
 
       self._resolveInputVariables()
 
-      if self.workflow_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
-        self.log.info( 'AnalyseLogFile has already run for this workflow and finalized with sending an error email' )
-        return S_OK()
-
       self.log.info( "Performing XML summary analysis for %s" % ( self.XMLSummary ) )
       # Resolve the step and job input data
 
-      if not xf_o:
-        self.XMLSummary_o = XMLSummary( self.XMLSummary, log = self.log )
-      else:
-        self.XMLSummary_o = xf_o
       self.step_commons['XMLSummary_o'] = self.XMLSummary_o
 
-      if not logAnalyser:
-        if self.numberOfEvents == '-1':
-          analyseXMLSummaryResult = analyseXMLSummary( xf_o = self.XMLSummary_o, log = self.log )
-        else:
-          analyseXMLSummaryResult = analyseXMLSummary( xf_o = self.XMLSummary_o, log = self.log, inputsOnPartOK = True )
+      if self.numberOfEvents == '-1':
+        analyseXMLSummaryResult = self.logAnalyser( xf_o = self.XMLSummary_o, log = self.log )
       else:
-        if self.numberOfEvents == '-1':
-          analyseXMLSummaryResult = logAnalyser( xf_o = self.XMLSummary_o, log = self.log )
-        else:
-          analyseXMLSummaryResult = logAnalyser( xf_o = self.XMLSummary_o, log = self.log, inputsOnPartOK = True )
+        analyseXMLSummaryResult = self.logAnalyser( xf_o = self.XMLSummary_o, log = self.log, inputsOnPartOK = True )
 
       if not analyseXMLSummaryResult['OK']:
-        self.log.error( analyseXMLSummaryResult['Message'] )
-        self._finalizeWithErrors( analyseXMLSummaryResult['Message'], nc )
+        if self.workflow_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
+          self.log.info( 'AnalyseLogFile has already run for this workflow and finalized with sending an error email' )
+          return S_OK()
 
-#        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), self.fileReport )
+        self.log.error( analyseXMLSummaryResult['Message'] )
+        self._finalizeWithErrors( analyseXMLSummaryResult['Message'] )
+
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']:
           return S_OK()
@@ -91,15 +84,12 @@ class AnalyseXMLSummary( ModuleBase ):
 
       # if the log looks ok but the step already failed, preserve the previous error
       elif not self.stepStatus['OK']:
-#        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), self.fileReport )
         return S_OK()
 
       else:
         # If the job was successful Update the status of the files to processed
         self.log.info( 'XML summary %s, %s' % ( self.XMLSummary, analyseXMLSummaryResult['Value'] ) )
         self.setApplicationStatus( '%s Step OK' % self.applicationName )
-
-#        self._updateFileStatus( dictOfInputData, "Processed", int( self.production_id ), self.fileReport )
 
         return S_OK()
 
@@ -116,7 +106,7 @@ class AnalyseXMLSummary( ModuleBase ):
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def _finalizeWithErrors( self, subj, nc ):
+  def _finalizeWithErrors( self, subj ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
 
@@ -191,9 +181,7 @@ class AnalyseXMLSummary( ModuleBase ):
       mailAddress = self.opsH.getValue( 'EMail/JobFailures', 'lhcb-datacrash@cern.ch' )
       self.log.info( 'Sending crash mail for job to %s' % ( mailAddress ) )
 
-      if not nc:
-        nc = NotificationClient()
-      res = nc.sendMail( mailAddress, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
+      res = self.nc.sendMail( mailAddress, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
       if not res['OK']:
         self.log.warn( "The mail could not be sent" )
 
