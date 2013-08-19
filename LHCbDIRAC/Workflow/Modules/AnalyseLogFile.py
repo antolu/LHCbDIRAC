@@ -82,8 +82,8 @@ class AnalyseLogFile( ModuleBase ):
 
       else:
         # If the job was successful Update the status of the files to processed
-        self.log.info( 'Log file %s, %s' % ( self.applicationLog, analyseLogResult['Value'] ) )
-        self.setApplicationStatus( '%s Step OK' % self.applicationName )
+        self.log.info( "Log file %s OK" % self.applicationLog )
+        self.setApplicationStatus( "%s Step OK" % self.applicationName )
 
         return S_OK()
 

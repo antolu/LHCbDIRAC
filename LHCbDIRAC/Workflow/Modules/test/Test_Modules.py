@@ -862,10 +862,10 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
 
     self.alf.stepInputData = ['some.sdst', '00012345_00006789_1.sdst']
     self.alf.jobType = 'merge'
-    self.alf.nc = self.nc_mock,
+    self.alf.nc = self.nc_mock
 
     logAnalyser = Mock()
-    logAnalyser.return_value = {'OK':True, 'Value':''}
+    logAnalyser.return_value = True
     self.alf.logAnalyser = logAnalyser
 #    no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
@@ -879,7 +879,7 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
     self.alf.jobType = 'reco'
 
     # logAnalyser gives errors
-    logAnalyser.return_value = {'OK':False, 'Message':'a mess'}
+    logAnalyser.return_value = False
     self.alf.logAnalyser = logAnalyser
 
     for wf_commons in copy.deepcopy( self.wf_commons ):
@@ -892,16 +892,21 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
                                           self.step_number, self.step_id )['OK'] )
 
     # there's a core dump
-    logAnalyser.return_value = {'OK':True, 'Message':''}
+    logAnalyser.return_value = False
     self.alf.logAnalyser = logAnalyser
     open( 'ErrorLogging_Step1_coredump.log', 'w' ).close()
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
-        self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                          self.workflowStatus, self.stepStatus,
-                                          wf_commons, step_commons,
-                                          self.step_number, self.step_id )['OK'] )
-
+        if not wf_commons.has_key('AnalyseLogFilePreviouslyFinalized'):
+          self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                            self.workflowStatus, self.stepStatus,
+                                            wf_commons, step_commons,
+                                            self.step_number, self.step_id )['OK'] )
+        else:
+          self.assertTrue( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                            self.workflowStatus, self.stepStatus,
+                                            wf_commons, step_commons,
+                                            self.step_number, self.step_id )['OK'] )
 #############################################################################
 # BookkeepingReport.py
 #############################################################################
