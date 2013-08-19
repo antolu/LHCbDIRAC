@@ -1,5 +1,5 @@
-''' An agent to extend MC productions based on the remaning events to produce.
-'''
+""" An agent to extend MC productions based on the remaning events to produce.
+"""
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.TransformationSystem.Agent.MCExtensionAgent import MCExtensionAgent as DIRACMCExtensionAgent
@@ -14,8 +14,8 @@ import math
 AGENT_NAME = 'Transformation/MCExtensionAgent'
 
 class MCExtensionAgent( DIRACMCExtensionAgent ):
-  ''' MCExtensionAgent
-  '''
+  """ MCExtensionAgent
+  """
 
   def __init__( self, agentName, loadName, baseAgentName, properties = {} ):
     DIRACMCExtensionAgent.__init__( self, agentName, loadName, baseAgentName, properties )
@@ -31,8 +31,8 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
   #############################################################################
   def initialize( self ):
-    ''' Logs some parameters
-    '''
+    """ Logs some parameters
+    """
 
     self.log.info( 'Will consider the following transformation types: %s' % str( self.transformationTypes ) )
     self.log.info( 'Will create a maximum of %s tasks per iteration' % self.maxIterationTasks )
@@ -41,8 +41,8 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
   #############################################################################
   def execute( self ):
-    ''' The MCExtensionAgent execution method.
-    '''
+    """ The MCExtensionAgent execution method.
+    """
 
     self.enableFlag = self.am_getOption( 'EnableFlag', 'True' )
     if not self.enableFlag == 'True':
@@ -71,9 +71,9 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
   #############################################################################
 
   def _getCPUParameters( self ):
-    ''' Get the CPUTimeAvg and CPUNormalizationFactorAvg from config,
+    """ Get the CPUTimeAvg and CPUNormalizationFactorAvg from config,
         or as a fail-over, from ProductionRequest defaults.
-    '''
+    """
 
     productionRequest = ProductionRequest()
 
@@ -92,8 +92,8 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
   #############################################################################
   def _checkProductionRequest( self, productionRequestID, productionRequestSummary ):
-    ''' Check if a production request need to be extended and do it if needed
-    '''
+    """ Check if a production request need to be extended and do it if needed
+    """
 
     # check if enough events have been produced
     missingEvents = productionRequestSummary['reqTotal'] - productionRequestSummary['bkTotal']
@@ -158,8 +158,8 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
   #############################################################################
   def _extendProduction( self, production, extensionFactor, eventsNeeded ):
-    ''' Extend a production to produce eventsNeeded*extensionFactor more events.
-    '''
+    """ Extend a production to produce eventsNeeded*extensionFactor more events.
+    """
 
     productionID = production['TransformationID']
     eventsToProduce = eventsNeeded * extensionFactor
@@ -183,10 +183,9 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       message = 'Successfully extended transformation %d by %d tasks' % ( productionID, numberOfTasks )
       self.log.info( message )
 
-      originalStatus = production.get( 'Status', '' )
-      res = self.transClient.setStatus( productionID, 'Active', originalStatus )
+      res = self.transClient.setTransformationParameter( productionID, 'Status', 'Active' )
       if not res['OK']:
-        message = 'Failed to set transformation %d to Active (from %s)' % ( productionID, originalStatus )
+        message = 'Failed to set transformation %d to Active' % productionID
         self.log.error( message )
         return S_ERROR( message )
 

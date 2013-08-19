@@ -20,6 +20,8 @@ class ClientTestCase( unittest.TestCase ):
 
     self.l_wft = LHCbWorkflowTasks( tcMock, submissionClient = sc, jobMonitoringClient = jmc )
     self.tc = TransformationClient()
+    self.tc.opsH = Mock()
+    self.tc.opsH.getValue.return_value = ['MCSimulation', 'DataReconstruction']
 
   def tearDown( self ):
     pass
@@ -104,6 +106,53 @@ class TransformationClientSuccess( ClientTestCase ):
     dictOfNewLFNsStatus = {'foo':'Unused', 'bar':'Unused'}
     res = self.tc._applyTransformationFilesStateMachine( tsFiles, dictOfNewLFNsStatus, True )
     self.assertEqual( res, {'foo':'Unused', 'bar':'Unused'} )
+
+  def test__applyTransformationStatusStateMachine( self ):
+    transIDAsDict = {123:['Active', 'MCSimulation']}
+    dictOfProposedstatus = {123:'Stopped'}
+    res = self.tc._applyTransformationStatusStateMachine( transIDAsDict, dictOfProposedstatus, False )
+    self.assertEqual( res, 'Stopped' )
+
+    transIDAsDict = {123:['New', 'MCSimulation']}
+    dictOfProposedstatus = {123:'Active'}
+    res = self.tc._applyTransformationStatusStateMachine( transIDAsDict, dictOfProposedstatus, False )
+    self.assertEqual( res, 'Active' )
+
+    transIDAsDict = {123:['New', 'MCSimulation']}
+    dictOfProposedstatus = {123:'New'}
+    res = self.tc._applyTransformationStatusStateMachine( transIDAsDict, dictOfProposedstatus, False )
+    self.assertEqual( res, 'New' )
+
+    transIDAsDict = {123:['New', 'MCSimulation']}
+    dictOfProposedstatus = {123:'Stopped'}
+    res = self.tc._applyTransformationStatusStateMachine( transIDAsDict, dictOfProposedstatus, False )
+    self.assertEqual( res, 'New' )
+
+    transIDAsDict = {123:['New', 'MCSimulation']}
+    dictOfProposedstatus = {123:'Stopped'}
+    res = self.tc._applyTransformationStatusStateMachine( transIDAsDict, dictOfProposedstatus, True )
+    self.assertEqual( res, 'Stopped' )
+
+    transIDAsDict = {123:['New', 'MCSimulation']}
+    dictOfProposedstatus = {123:'Idle'}
+    res = self.tc._applyTransformationStatusStateMachine( transIDAsDict, dictOfProposedstatus, False )
+    self.assertEqual( res, 'New' )
+
+    transIDAsDict = {123:['Active', 'MCSimulation']}
+    dictOfProposedstatus = {123:'Idle'}
+    res = self.tc._applyTransformationStatusStateMachine( transIDAsDict, dictOfProposedstatus, False )
+    self.assertEqual( res, 'Idle' )
+
+    transIDAsDict = {123:['Active', 'MCSimulation']}
+    dictOfProposedstatus = {123:'Completed'}
+    res = self.tc._applyTransformationStatusStateMachine( transIDAsDict, dictOfProposedstatus, False )
+    self.assertEqual( res, 'Flush' )
+
+    transIDAsDict = {123:['Active', 'MCSimulation']}
+    dictOfProposedstatus = {123:'Complete'}
+    res = self.tc._applyTransformationStatusStateMachine( transIDAsDict, dictOfProposedstatus, False )
+    self.assertEqual( res, 'Active' )
+
 
 
 

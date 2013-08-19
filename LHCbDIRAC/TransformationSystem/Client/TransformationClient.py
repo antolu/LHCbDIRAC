@@ -52,34 +52,24 @@ class TransformationClient( DIRACTransformationClient ):
         gLogger.error( "Failed to publish BKQuery for transformation", "%s %s" % ( transID, res['Message'] ) )
     return S_OK( transID )
 
-  def setTransformationParameter( self, transID, paramName, paramValue ):
-    """ just invokes the state machine check when needed
-    """
-    if paramName.lower() == 'status':
-      return self.setStatus( transID, paramValue )
-    else:
-      return DIRACTransformationClient.setTransformationParameter( self, transID, paramName, paramValue )
-
-  def setStatus( self, transID, status, originalStatus = '' ):
+  def _applyTransformationStatusStateMachine( self, transIDAsDict, dictOfProposedstatus, force ):
     """ Performs a state machine check for productions when asked to change the status
     """
-    if not originalStatus:
-      originalStatus = DIRACTransformationClient.getTransformationParameters( transID, 'Status' )
-      if not originalStatus['OK']:
-        return originalStatus
-      originalStatus = originalStatus['Value']
+    originalStatus = transIDAsDict.values()[0][0]
+    transformationType = transIDAsDict.values()[0][1]
+    proposedStatus = dictOfProposedstatus.values()[0]
+    if force:
+      return proposedStatus
+    else:
+      if transformationType in self.opsH.getValue( 'Transformations/DataProcessing', [] ):
+        stateChange = ProductionsStateMachine( originalStatus ).setState( proposedStatus )
+        if not stateChange['OK']:
+          return originalStatus
+        else:
+          return stateChange['Value']
+      else:
+        return proposedStatus
 
-    transformation = DIRACTransformationClient.getTransformation( self, transID )
-    if not transformation['OK']:
-      return transformation
-    transformationType = transformation['Value']['Status']
-    if transformationType in self.opsH.getValue( 'Transformations/DataProcessing', [] ):
-      psm = ProductionsStateMachine( originalStatus )
-      stateChange = psm.setState( status )
-      if not stateChange['OK']:
-        return stateChange
-
-    return DIRACTransformationClient.setTransformationParameter( self, transID, 'Status', status )
 
   def _applyTransformationFilesStateMachine( self, tsFilesAsDict, dictOfProposedLFNsStatus, force ):
     """ Apply LHCb state machine for transformation files

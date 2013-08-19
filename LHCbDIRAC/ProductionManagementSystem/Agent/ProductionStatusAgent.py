@@ -384,20 +384,9 @@ class ProductionStatusAgent( AgentModule ):
         iteration of the agent.  Most importantly this method only allows status
         transitions based on what the original status should be.
     """
-    result = self.dProd.getProduction( long( prodID ) )
-    if not result['OK']:
-      self.log.error( 'Could not update production status for %s to %s:\n%s' % ( prodID, status, result ) )
+    self.log.verbose( 'Changing status for prod %s to %s' % ( prodID, status ) )
+    res = self.transClient.setTransformationParameter( prodID, 'Status', status )
+    if not res['OK']:
+      self.log.error( "Failed to update status of production %s from %s to %s" % ( prodID, origStatus, status ) )
     else:
-      currentStatus = result['Value']['Status']
-      if currentStatus.lower() == origStatus.lower():
-        self.log.verbose( 'Changing status for prod %s from %s to %s' % ( prodID, currentStatus, origStatus ) )
-        res = self.transClient.setStatus( prodID, status, origStatus )
-        if not res['OK']:
-          self.log.error( "Failed to update status of production %s from %s to %s" % ( prodID, origStatus, status ) )
-        else:
-          updatedProductions[prodID] = {'to':status, 'from':origStatus}
-      elif currentStatus.lower() == status.lower():
-        pass
-      else:
-        self.log.verbose( 'Production %s not updated to %s as it is currently in status %s' % ( prodID, status,
-                                                                                                currentStatus ) )
+      updatedProductions[prodID] = {'to':status, 'from':origStatus}

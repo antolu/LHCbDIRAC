@@ -50,26 +50,27 @@ class ProductionsStateMachine( LHCbStateMachine ):
     # Current states
     self.states = {
                    'Cleaned'              : State( 15 ),  # final state
-                   'Cleaning'             : State( 14, ['Cleaned'] ),
-                   'Completing'           : State( 13, ['Validating', 'Cleaning'], defState = 'Validating' ),
-                   'Stopped'              : State( 12, ['Active', 'Flush', 'Cleaning'], defState = 'Active' ),
+                   'Cleaning'             : State( 14, ['Cleaned'], defState = 'Cleaning' ),
+                   'Completing'           : State( 13, ['Validating', 'Cleaning'], defState = 'Completing' ),
+                   'Stopped'              : State( 12, ['Active', 'Flush', 'Cleaning'], defState = 'Stopped' ),
                    'TransformationCleaned': State( 16, ['Archived', 'Cleaned'], defState = 'Archived' ),
                    'Archived'             : State( 11 ),  # final state
-                   'Completed'            : State( 10, ['Archived'] ),
-                   'WaitingIntegrity'     : State( 9, ['ValidatedOutput'] ),
-                   'ValidatedOutput'      : State( 7, ['Active', 'Completed', 'Cleaning'], defState = 'Completed' ),
-                   'ValidatingOutput'     : State( 7, ['Active', 'ValidatedOutput',
-                                                       'WaitingIntegrity'], defState = 'ValidatedOutput' ),
-                   'RemovedFiles'         : State( 6, ['Completed'] ),
-                   'RemovingFiles'        : State( 5, ['RemovedFiles'] ),
-                   'ValidatingInput'      : State( 4, ['Active', 'RemovingFiles', 'Cleaning'], defState = 'Active' ),
+                   'Completed'            : State( 10, ['Archived'], defState = 'Completed' ),
+                   'WaitingIntegrity'     : State( 9, ['ValidatedOutput'], defState = 'WaitingIntegrity'),
+                   'ValidatedOutput'      : State( 7, ['Active', 'Completed', 'Cleaning'], defState = 'ValidatedOutput' ),
+                   'ValidatingOutput'     : State( 7, ['Active', 'ValidatedOutput', 'WaitingIntegrity'], 
+                                                   defState = 'ValidatedOutput' ),
+                   'RemovedFiles'         : State( 6, ['Completed'], defState = 'RemovedFiles'),
+                   'RemovingFiles'        : State( 5, ['RemovedFiles'], defState = 'RemovingFiles' ),
+                   'ValidatingInput'      : State( 4, ['Active', 'RemovingFiles', 'Cleaning'], 
+                                                   defState = 'ValidatingInput' ),
                    'Flush'                : State( 3, ['Active', 'Cleaning'], defState = 'Active' ),
-                   'Idle'                 : State( 2, ['Active', 'ValidatingInput',
-                                                       'ValidatingOutput'], defState = 'Active' ),
+                   'Idle'                 : State( 2, ['Active', 'ValidatingInput', 'ValidatingOutput'], 
+                                                   defState = 'Idle' ),
                    'Active'               : State( 1, ['Flush', 'Idle', 'Stopped', 'Completing', 'ValidatingInput',
-                                                       'ValidatingOutput', 'Cleaning', 'TransformationCleane'],
+                                                       'ValidatingOutput', 'Cleaning', 'TransformationCleaned'],
                                                   defState = 'Flush' ),
-                   'New'                  : State( 0, ['Active', 'Cleaning'], defState = 'Active' )  # initial state
+                   'New'                  : State( 0, ['Active', 'Cleaning'], defState = 'New' )  # initial state
                   }
 
     # NEW states proposal
