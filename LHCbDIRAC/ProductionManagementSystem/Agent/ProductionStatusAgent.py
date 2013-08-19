@@ -54,7 +54,7 @@ class ProductionStatusAgent( AgentModule ):
     self.dProd = DiracProduction()
     self.dirac = Dirac()
     self.reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
-    self.productionsClient = TransformationClient()
+    self.transClient = TransformationClient()
     self.simulationTypes = Operations().getValue( 'Transformations/ExtendableTransfTypes', ['MCSimulation', 'Simulation'] )
 
   #############################################################################
@@ -169,7 +169,7 @@ class ProductionStatusAgent( AgentModule ):
       prods = self._getTransformations( 'Active' )
       if prods:
         for prod in prods:
-          prodInfo = self.productionsClient.getTransformation( prod )
+          prodInfo = self.transClient.getTransformation( prod )
           if prodInfo.get( 'Type', None ) in self.simulationTypes:
             # simulation : go to Idle if
             #     only failed and done jobs
@@ -215,7 +215,7 @@ class ProductionStatusAgent( AgentModule ):
     """ dev function. Get the transformations (print info in the meanwhile)
     """
 
-    res = self.productionsClient.getTransformationWithStatus( status )
+    res = self.transClient.getTransformationWithStatus( status )
     if not res['OK']:
       self.log.error( "Failed to get %s productions: %s" % ( status, res['Message'] ) )
       raise RuntimeError, "Failed to get %s productions: %s" % ( status, res['Message'] )
@@ -251,7 +251,7 @@ class ProductionStatusAgent( AgentModule ):
     """ get the stats for a transformation tasks (number of tasks in each status)
     """
 
-    result = self.productionsClient.getTransformationTaskStats( transformationID )
+    result = self.transClient.getTransformationTaskStats( transformationID )
     if not result['OK']:
       self.log.error( 'Could not retrieve transformation tasks stats: %s' % result['Message'] )
       transformationStats = {}
@@ -264,7 +264,7 @@ class ProductionStatusAgent( AgentModule ):
     """ get the stats for a transformation files (number of files in each status)
     """
 
-    result = self.productionsClient.getTransformationStats( transformationID )
+    result = self.transClient.getTransformationStats( transformationID )
     if not result['OK']:
       self.log.error( 'Could not retrieve transformation files stats: %s' % result['Message'] )
       transformationStats = {}
@@ -391,7 +391,7 @@ class ProductionStatusAgent( AgentModule ):
       currentStatus = result['Value']['Status']
       if currentStatus.lower() == origStatus.lower():
         self.log.verbose( 'Changing status for prod %s from %s to %s' % ( prodID, currentStatus, origStatus ) )
-        res = self.productionsClient.setStatus( prodID, status, origStatus )
+        res = self.transClient.setStatus( prodID, status, origStatus )
         if not res['OK']:
           self.log.error( "Failed to update status of production %s from %s to %s" % ( prodID, origStatus, status ) )
         else:
