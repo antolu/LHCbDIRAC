@@ -2,7 +2,7 @@
 """
 
 import os
-from DIRAC import S_OK, S_ERROR
+from DIRAC import gLogger
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
 
 
@@ -28,7 +28,6 @@ class XMLSummary:
     """
 
     if not log:
-      from DIRAC import gLogger
       self.log = gLogger.getSubLogger( 'XMLSummary' )
     else:
       self.log = log
@@ -36,10 +35,10 @@ class XMLSummary:
     self.xmlFileName = xmlFileName
 
     if not os.path.exists( self.xmlFileName ):
-      raise XMLSummaryError, 'XML Summary %s Not Available' % self.xmlFileName
+      raise XMLSummaryError, "XML Summary %s Not Available" % self.xmlFileName
 
     if os.stat( self.xmlFileName )[6] == 0:
-      raise XMLSummaryError, 'Requested XML summary file "%s" is empty' % self.xmlFileName
+      raise XMLSummaryError, "Requested XML summary file '%s' is empty" % self.xmlFileName
 
     summary = XMLTreeParser()
 
@@ -59,15 +58,14 @@ class XMLSummary:
 ################################################################################
 
   def analyse( self, inputsOnPartOK = False ):
-    """ analyse the XML summary
+    """ analyse the XML summary: this is a 'standard' analysis.
     """
     if inputsOnPartOK:
-      self.log.warn( 'part status for input files is considered OK' )
-    if self.success == 'True' and self.step == 'finalize' \
-    and self._inputsOK( inputsOnPartOK ) and self._outputsOK():
-      return S_OK( 'XML Summary OK' )
+      self.log.warn( "part status for input files is considered OK" )
+    if self.success == 'True' and self.step == 'finalize' and self._inputsOK( inputsOnPartOK ) and self._outputsOK():
+      self.log.info( "XML Summary OK" )
     else:
-      return S_ERROR( 'XML Summary reports errors' )
+      self.log.error( "XML Summary reports errors" )
 
 ################################################################################
 
@@ -205,8 +203,8 @@ class XMLSummary:
         fileCounter[ 'part' ] += 1
 
       elif status == 'full':
-        #If it is Ok, we do not print anything
-        #self.log.error( 'File %s is on status %s.' % ( file, status ) )
+        # If it is Ok, we do not print anything
+        # self.log.error( 'File %s is on status %s.' % ( file, status ) )
         fileCounter[ 'full' ] += 1
 
       # This should never happen, but just in case
@@ -332,8 +330,8 @@ class XMLSummary:
         fileCounter[ 'part' ] += 1
 
       elif status == 'full':
-        #If it is Ok, we do not print anything
-        #self.log.error( 'File %s is on status %s.' % ( filename, status ) )
+        # If it is Ok, we do not print anything
+        # self.log.error( 'File %s is on status %s.' % ( filename, status ) )
         fileCounter[ 'full' ] += 1
 
       # This should never happen, but just in case
@@ -353,13 +351,8 @@ def analyseXMLSummary( xmlFileName = None, xf_o = None, log = None, inputsOnPart
   """ Analyse a XML summary file
   """
 
-  try:
+  if not xf_o:
+    xf_o = XMLSummary( xmlFileName, log = log )
+  return xf_o.analyse( inputsOnPartOK )
 
-    if not xf_o:
-      xf_o = XMLSummary( xmlFileName, log = log )
-    return xf_o.analyse( inputsOnPartOK )
-
-  except XMLSummaryError, e:
-    return S_ERROR ( str( e ) )
-
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
