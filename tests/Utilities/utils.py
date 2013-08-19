@@ -4,7 +4,7 @@ def cleanTestDir():
   for fileIn in os.listdir( '.' ):
     if 'Local' in fileIn:
       shutil.rmtree( fileIn )
-    for fileToRemove in ['std.out', 'std.err']:
+    for fileToRemove in ['std.out', 'std.err', 'aLogFileForTest.txt', 'exe-script.py.log', 'ls.log']:
       try:
         os.remove( fileToRemove )
       except OSError:
