@@ -37,17 +37,17 @@ for switch in Script.getUnprocessedSwitches():
 exitCode = 0
 try:
   result = analyseLogFile( logFile, projectName )
-except Exception, x:
-  gLogger.exception( 'Log file analysis failed with exception: "%s"' % x )
+except LogError, e:
+  gLogger.exception( 'Log file analysis failed with exception: "%s"' % e )
   exitCode = 2
   DIRAC.exit( exitCode )
 
-if not result['OK']:
+if not result:
   gLogger.warn( result )
-  gLogger.error( 'Problem found with log file %s: "%s"' % ( logFile, result['Message'] ) )
+  gLogger.error( "Problem found with log file %s" % logFile )
   exitCode = 2
 else:
   gLogger.verbose( result )
-  gLogger.info( 'Log file %s, %s' % ( logFile, result['Value'] ) )
+  gLogger.info( "Log file %s" % logFile )
 
 DIRAC.exit( exitCode )

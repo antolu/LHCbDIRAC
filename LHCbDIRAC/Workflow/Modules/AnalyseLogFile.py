@@ -67,16 +67,14 @@ class AnalyseLogFile( ModuleBase ):
                                            prod = self.production_id,
                                            job = self.prod_job_id,
                                            log = self.log )
-      if not analyseLogResult['OK']:
-        self.log.error( analyseLogResult['Message'] )
-
-        self._finalizeWithErrors( analyseLogResult['Message'] )
+      if not analyseLogResult:
+        self._finalizeWithErrors( "Log reports ERROR" )
 
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']:
           return S_OK()
-        self.setApplicationStatus( analyseLogResult['Message'] )
-        return analyseLogResult
+        self.setApplicationStatus( "Log reports ERROR" )
+        return S_ERROR( "Log reports ERROR" )
 
       # if the log looks ok but the step already failed, preserve the previous error
       elif not self.stepStatus['OK']:

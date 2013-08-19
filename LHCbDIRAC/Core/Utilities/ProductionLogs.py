@@ -1,10 +1,8 @@
-''' Utilities to check the application log files (for production jobs)
-'''
-
-__RCSID__ = "$Id$"
+""" Utilities to check the application log files (for production jobs)
+"""
 
 import re, os
-from DIRAC import S_OK, S_ERROR
+from DIRAC import gLogger
 
 class LogError( Exception ):
 
@@ -19,19 +17,19 @@ class LogError( Exception ):
 ################################################################################
 
 class ProductionLog:
-  ''' Encapsulate production log info
-  '''
+  """ Encapsulate production log info
+  """
 
   def __init__( self, fileName, applicationName = '',
                 prodName = '', jobName = '', stepName = '',
                 log = None ):
 
-    ''' Well known application Errors '''
+    """ Well known application Errors """
     self.__APPLICATION_ERRORS__ = {
       'Terminating event processing loop due to errors' : 'Event Loop Not Terminated'
     }
 
-    ''' Well known Gaudi Errors '''
+    """ Well known Gaudi Errors """
     self.__GAUDI_ERRORS__ = {
       'Cannot connect to database'                                     : 'error database connection',
       'Could not connect'                                              : 'CASTOR error connection',
@@ -52,7 +50,6 @@ class ProductionLog:
 
 
     if not log:
-      from DIRAC import gLogger
       self.log = gLogger.getSubLogger( 'ProductionLogs' )
     else:
       self.log = log
@@ -78,24 +75,25 @@ class ProductionLog:
 ################################################################################
 
   def analyse( self ):
-    ''' analyse the log
-    '''
+    """ analyse the log
+    """
     try:
       self.__checkErrors()
       self.__checkFinish()
       self.__checkLogEnd()
-      return S_OK( 'Logs OK' )
+      self.log.info( 'Logs OK' )
+      return True
     except LogError, e:
       self.log.error( "Found error in " + self.fileName + ": " + str( e ) )
-      return S_ERROR( e )
+      return False
 
 ################################################################################
 
   def _guessStepID( self ):
-    ''' This is a horrible practice, and if the syntax changes, this will crash.
+    """ This is a horrible practice, and if the syntax changes, this will crash.
         We know that the log file names look like this:
         <AppName>_<prodName>_<jobName>_<stepName>.log
-    '''
+    """
 
     guess = self.fileName
     guess = guess.replace( '.log', '' )
@@ -130,13 +128,13 @@ class ProductionLog:
 ################################################################################
 
   def __checkLogEnd( self ):
-    ''' This method uses Gaudi strings that are well known and determines
+    """ This method uses Gaudi strings that are well known and determines
         success / failure based on conventions.
-    '''
+    """
     # Check if the application finish successfully
     toFind = 'Application Manager Finalized successfully'
     if self.applicationName.lower() == 'moore':
-      #toFind = 'Service finalized successfully'
+      # toFind = 'Service finalized successfully'
       toFind = ''
 
     if toFind:
@@ -147,8 +145,8 @@ class ProductionLog:
 ################################################################################
 
   def __guessAppName( self ):
-    ''' Given a log file (in a string), look for the application
-    '''
+    """ Given a log file (in a string), look for the application
+    """
 
     for line in self.fileString.split( '\n' ):
       if ( re.search( 'Welcome to', line ) and re.search( 'version', line ) ) or \
@@ -169,14 +167,11 @@ class ProductionLog:
 
 def analyseLogFile( fileName, applicationName = '', prod = '', job = '',
                     stepName = '', log = None, lf_o = None ):
-  ''' Analyse a log file
-  '''
+  """ Analyse a log file
+  """
 
-  try:
-    if not lf_o:
-      lf_o = ProductionLog( fileName, applicationName, prod, job, stepName, log = log )
-    return lf_o.analyse()
-  except LogError, e:
-    return S_ERROR ( str( e ) )
+  if not lf_o:
+    lf_o = ProductionLog( fileName, applicationName, prod, job, stepName, log = log )
+  return lf_o.analyse()
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
