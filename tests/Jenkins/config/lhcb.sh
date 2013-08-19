@@ -59,7 +59,7 @@ lhcbdirac_branch_changelog(){
   cd $WORKSPACE
 
   mkdir $WORKSPACE/changelog
-  python Jenkins/config/changelog.py $WORKSPACE/xmlFile.xml $WORKSPACE/changelog newVersion
+  python Jenkins/config/changelog.py $WORKSPACE/xmlFile.xml $WORKSPACE/changelog newVersion $prevRev $SVN_REVISION
 
 }
 

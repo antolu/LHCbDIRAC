@@ -50,7 +50,7 @@ def __getPaths( parent ):
   
   return paths
 
-def generateChangeLog( xmlFile, logDirPath, version ):
+def generateChangeLog( xmlFile, logDirPath, version, prevRevision, thisRevision ):
 
 
   versionDir = os.path.join( logDirPath, version )
@@ -66,7 +66,7 @@ def generateChangeLog( xmlFile, logDirPath, version ):
   revisions.sort()
   revisions.reverse()
 
-  __writeIndex( versionDir, parsedXML, revisions, version )
+  __writeIndex( versionDir, parsedXML, revisions, version, prevRevision, thisRevision )
   
   
   changelog = os.path.join( versionDir, 'changelog.html' )
@@ -80,19 +80,22 @@ def generateChangeLog( xmlFile, logDirPath, version ):
     
   
 
-def __writeIndex( logDir, parsedXML, sortedRevisions, version ):
+def __writeIndex( logDir, parsedXML, sortedRevisions, version, prevRevision, thisRevision ):
 
   indexPath = os.path.join( logDir, 'index.html' )
 
   indexFile = open( indexPath, 'w' )
   indexFile.write( '<html><body>' )
   indexFile.write( '<h1>ChangeLog %s </h1>\n' % version )
+  indexFile.write( '<h3>changes between %s:%s</h3>\n' % ( prevRevision, thisRevision ) )
   
   files   = set()
   authors = set()
   for revDict in parsedXML.itervalues():
     files.update( [ p[ 0 ] for p in revDict[ 'paths' ] ] ) 
     authors.update( revDict[ 'author' ] ) 
+  
+  print authors
   
   indexFile.write( '<p>%s (different) files changed in %s commits by %s authors ( <a href="changelog.html">full log</a> )</p>' % ( len( files ), len( parsedXML ), len( authors ) ) )
     
