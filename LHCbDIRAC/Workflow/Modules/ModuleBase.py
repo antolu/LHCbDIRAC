@@ -9,6 +9,7 @@ from DIRAC.Core.Utilities.Adler                               import fileAdler
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
 from DIRAC.Resources.Catalog.PoolXMLFile                      import getGUID
 from DIRAC.WorkloadManagementSystem.Client.JobReport          import JobReport
+from DIRAC.TransformationSystem.Client.FileReport             import FileReport
 from DIRAC.RequestManagementSystem.Client.Request             import Request
 from DIRAC.RequestManagementSystem.Client.Operation           import Operation
 from DIRAC.RequestManagementSystem.Client.File                import File
@@ -17,7 +18,6 @@ from DIRAC.DataManagementSystem.Client.ReplicaManager         import ReplicaMana
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
 from LHCbDIRAC.Core.Utilities.ProductionData                  import getLogPath, constructProductionLFNs
-from LHCbDIRAC.TransformationSystem.Client.FileReport         import FileReport
 
 class ModuleBase( object ):
   """ Base class for Modules - works only within DIRAC workflows
@@ -210,6 +210,8 @@ class ModuleBase( object ):
 
     if self.InputData == ';':
       self.InputData = ''
+
+    self.inputDataList = [lfn.strip( 'LFN:' ) for lfn in self.InputData.split( ';' ) if lfn]
 
     # only required until the stripping is the same for MC / data
     if self.workflow_commons.has_key( 'configName' ):
@@ -467,18 +469,6 @@ class ModuleBase( object ):
       request = Request()
       self.workflow_commons['Request'] = request
       return request
-
-  #############################################################################
-
-  def setFileStatus( self, production, lfn, status, fileReport = None ):
-    """ set the file status for the given production in the Production Database
-    """
-    self.log.verbose( 'setFileStatus(%s,%s,%s)' % ( production, lfn, status ) )
-
-    if not fileReport:
-      fileReport = self._getFileReporter()
-
-    fileReport.setFileStatus( production, lfn, status )
 
   #############################################################################
 

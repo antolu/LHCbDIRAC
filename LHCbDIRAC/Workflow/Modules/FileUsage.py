@@ -31,26 +31,19 @@ class FileUsage( ModuleBase ):
     '''
     super( FileUsage, self )._resolveInputVariables()
 
-    inputDataList = ''
-    if self.InputData:
-      inputDataList = copy.deepcopy( self.InputData )
-      if type( inputDataList ) != type( [] ):
-        inputDataList = inputDataList.split( ';' )
-
     dirDict = {}
-    if inputDataList:
-      for inputFile in inputDataList:
-        if inputFile:
-          baseName = os.path.basename( inputFile )
-          in_f = copy.deepcopy( inputFile )
-          strippedDir = in_f[0:in_f.find( baseName )].strip( 'LFN:' )
-          if not strippedDir:
-            self.log.error( 'Dataset unknown for file %s, probably file specified without path! ' % ( in_f ) )
+    if self.inputDataList:
+      for inputFile in self.inputDataList:
+        baseName = os.path.basename( inputFile )
+        in_f = copy.deepcopy( inputFile )
+        strippedDir = in_f[0:in_f.find( baseName )]
+        if not strippedDir:
+          self.log.error( 'Dataset unknown for file %s, probably file specified without path! ' % ( in_f ) )
+        else:
+          if strippedDir in dirDict:
+            dirDict[strippedDir] += 1
           else:
-            if strippedDir in dirDict:
-              dirDict[strippedDir] += 1
-            else:
-              dirDict[strippedDir] = 1
+            dirDict[strippedDir] = 1
     else:
       self.log.info( 'No input data specified for this job' )
 
@@ -117,7 +110,7 @@ class FileUsage( ModuleBase ):
     self.log.verbose( 'Reporting input file usage:' )
     for entry in dirDict:
       self.log.verbose( '%s:%s' % ( entry, dirDict[entry] ) )
-    #dataUsageClient = RPCClient( 'DataManagement/DataUsage', timeout = 120 )
+    # dataUsageClient = RPCClient( 'DataManagement/DataUsage', timeout = 120 )
     localSEList = gConfig.getValue( '/LocalSite/LocalSE', '' )
     if not localSEList:
       self.log.error( 'FileUsage._reportFileUsage: Could not get value from CS for option /LocalSite/LocalSE' )
@@ -147,4 +140,4 @@ class FileUsage( ModuleBase ):
 
     return S_OK()
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

@@ -33,11 +33,6 @@ class RemoveInputData( ModuleBase ):
 
     super( RemoveInputData, self )._resolveInputVariables()
 
-    # Get job input data files to be removed if previous modules were successful
-    if self.InputData:
-      self.inputDataList = self.InputData.split( ';' )
-    self.inputDataList = [x.replace( 'LFN:', '' ) for x in self.inputDataList]
-
   #############################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,

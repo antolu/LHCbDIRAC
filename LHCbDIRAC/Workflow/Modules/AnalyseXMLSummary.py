@@ -30,7 +30,12 @@ class AnalyseXMLSummary( ModuleBase ):
     self.version = __RCSID__
     self.site = DIRAC.siteName()
 
-################################################################################
+  def _resolveInputVariables( self ):
+    """ By convention any workflow parameters are resolved here.
+    """
+
+    super( AnalyseXMLSummary, self )._resolveInputVariables()
+    super( AnalyseXMLSummary, self )._resolveInputStep()
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
@@ -47,7 +52,7 @@ class AnalyseXMLSummary( ModuleBase ):
                                                 wf_commons, step_commons,
                                                 step_number, step_id )
 
-      dictOfInputData = self._resolveInputVariables()
+      self._resolveInputVariables()
 
       if self.workflow_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
         self.log.info( 'AnalyseLogFile has already run for this workflow and finalized with sending an error email' )
@@ -77,7 +82,7 @@ class AnalyseXMLSummary( ModuleBase ):
         self.log.error( analyseXMLSummaryResult['Message'] )
         self._finalizeWithErrors( analyseXMLSummaryResult['Message'], nc )
 
-        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), self.fileReport )
+#        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), self.fileReport )
         # return S_OK if the Step already failed to avoid overwriting the error
         if not self.stepStatus['OK']:
           return S_OK()
@@ -86,7 +91,7 @@ class AnalyseXMLSummary( ModuleBase ):
 
       # if the log looks ok but the step already failed, preserve the previous error
       elif not self.stepStatus['OK']:
-        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), self.fileReport )
+#        self._updateFileStatus( dictOfInputData, "Unused", int( self.production_id ), self.fileReport )
         return S_OK()
 
       else:
@@ -94,7 +99,7 @@ class AnalyseXMLSummary( ModuleBase ):
         self.log.info( 'XML summary %s, %s' % ( self.XMLSummary, analyseXMLSummaryResult['Value'] ) )
         self.setApplicationStatus( '%s Step OK' % self.applicationName )
 
-        self._updateFileStatus( dictOfInputData, "Processed", int( self.production_id ), self.fileReport )
+#        self._updateFileStatus( dictOfInputData, "Processed", int( self.production_id ), self.fileReport )
 
         return S_OK()
 
@@ -111,54 +116,13 @@ class AnalyseXMLSummary( ModuleBase ):
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def _resolveInputVariables( self ):
-    """ By convention any workflow parameters are resolved here.
-    """
-
-    super( AnalyseXMLSummary, self )._resolveInputVariables()
-    super( AnalyseXMLSummary, self )._resolveInputStep()
-
-    dictOfInputData = {}
-    inputDataList = []
-    if self.InputData:
-      self.log.info( 'All input data for workflow taken from JDL parameter' )
-      if type( self.InputData ) != type( [] ):
-        inputDataList = self.InputData.split( ';' )
-      jobStatusDict = {}
-      #clumsy but now make this a dictionary with default "OK" status for all input data
-      for lfn in inputDataList:
-        jobStatusDict[lfn.replace( 'LFN:', '' )] = 'OK'
-      dictOfInputData = jobStatusDict
-    else:
-      self.log.verbose( 'Job has no input data requirement' )
-
-    return dictOfInputData
-
-################################################################################
-
-  def _updateFileStatus( self, inputs, defaultStatus, prod_id, fr ):
-    """ Allows to update file status to a given default, important statuses are
-        not overwritten.
-    """
-    for fileName in inputs.keys():
-      stat = inputs[fileName]
-      if stat == 'Unused':
-        self.log.info( "%s will be updated to status '%s'" % ( fileName, stat ) )
-      else:
-        stat = defaultStatus
-        self.log.info( "%s will be updated to default status '%s'" % ( fileName, defaultStatus ) )
-      self.setFileStatus( prod_id, lfn = fileName, status = stat, fileReport = fr )
-
-
-################################################################################
-
   def _finalizeWithErrors( self, subj, nc ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
 
-    #Have to check that the output list is defined in the workflow commons, this is
-    #done by the first BK report module that executes at the end of a step but in 
-    #this case the current step 'listoutput' must be added.
+    # Have to check that the output list is defined in the workflow commons, this is
+    # done by the first BK report module that executes at the end of a step but in
+    # this case the current step 'listoutput' must be added.
     if self.workflow_commons.has_key( 'outputList' ):
       for outputItem in self.step_commons['listoutput']:
         if outputItem not in self.workflow_commons['outputList']:
@@ -239,4 +203,4 @@ class AnalyseXMLSummary( ModuleBase ):
 # END AUXILIAR FUNCTIONS
 ################################################################################
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

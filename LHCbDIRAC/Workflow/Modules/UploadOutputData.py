@@ -75,15 +75,6 @@ class UploadOutputData( ModuleBase ):
         return result
       self.prodOutputLFNs = result['Value']['ProductionOutputData']
 
-    inputDataList = []
-    if self.InputData:
-      if type( self.InputData ) != type( [] ):
-        inputDataList = self.InputData.split( ';' )
-      else:
-        inputDataList = copy.deepcopy( self.InputData )
-
-    return inputDataList
-
   #############################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
@@ -100,7 +91,7 @@ class UploadOutputData( ModuleBase ):
                                                workflowStatus, stepStatus,
                                                wf_commons, step_commons, step_number, step_id )
 
-      inputDataList = self._resolveInputVariables()
+      self._resolveInputVariables()
 
       if not self._checkWFAndStepStatus():
         return S_OK( 'No output data upload attempted' )
@@ -141,11 +132,11 @@ class UploadOutputData( ModuleBase ):
       # Prior to uploading any files must check (for productions with input data) that no descendent files
       # already exist with replica flag in the BK.
 
-      if inputDataList:
+      if self.inputDataList:
         if fileDescendants != None:
           result = fileDescendants
         else:
-          result = getFileDescendants( self.production_id, inputDataList, rm = self.rm, bkClient = self.bkClient )
+          result = getFileDescendants( self.production_id, self.inputDataList, rm = self.rm, bkClient = self.bkClient )
         if not result:
           self.log.info( "No descendants found, outputs can be uploaded" )
         else:
@@ -239,11 +230,11 @@ class UploadOutputData( ModuleBase ):
         return S_ERROR( 'Failed to upload output data' )
 
       # Now double-check prior to final BK replica flag setting that the input files are still not processed
-      if inputDataList:
+      if self.inputDataList:
         if fileDescendants != None:
           result = fileDescendants
         else:
-          result = getFileDescendants( self.production_id, inputDataList, rm = self.rm, bkClient = self.bkClient )
+          result = getFileDescendants( self.production_id, self.inputDataList, rm = self.rm, bkClient = self.bkClient )
         if not result:
           self.log.info( "No descendants found, outputs can be uploaded" )
         else:

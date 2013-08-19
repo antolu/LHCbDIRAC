@@ -51,11 +51,10 @@ class CreateDataFile( ModuleBase ):
                              xmlcatalog_file = self.poolXMLCatName,
                              log = self.log )
 
-      lfnList = [lfn.strip( 'LFN:' ) for lfn in self.InputData.split( ';' ) if lfn]
-      if not lfnList:
+      if not self.inputDataList:
         return S_OK( 'No data file generated, because no inputs set' )
 
-      gdf.generateDataFile( lfnList, persistency = self.persistency )
+      gdf.generateDataFile( self.inputDataList, persistency = self.persistency )
 
       return S_OK()
 
