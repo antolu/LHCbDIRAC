@@ -5,7 +5,7 @@
   
 '''
 
-from DIRAC                                                import S_OK
+from DIRAC                                                import S_OK, gLogger
 from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
 
 from LHCbDIRAC.AccountingSystem.Client.Types.SpaceToken import SpaceToken
@@ -43,12 +43,14 @@ class SpaceTokenPlotter( BaseReporter ):
     if groupingFields:
       reportRequest[ 'groupingFields' ] = ( '%s, %s', reportRequest[ 'groupingFields' ][ 1 ] )
     
+    gLogger.warn( reportRequest )
+    
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
                                  selectFields,
                                  reportRequest[ 'condDict' ],
                                  reportRequest[ 'groupingFields' ],
-                                 { 'convertToGranularity' : 'average', 'checkNone' : True } )
+                                 { 'convertToGranularity' : 'sum', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
     
