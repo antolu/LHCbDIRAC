@@ -13,7 +13,6 @@ from LHCbDIRAC.AccountingSystem.Client.Types.SpaceToken import SpaceToken
 __RCSID__ = '$Id$'
 
 #FIXME: refactor _reportMethods
-#FIXME: refactor _plotMethods
 
 class SpaceTokenPlotter( BaseReporter ):
   '''
@@ -22,16 +21,18 @@ class SpaceTokenPlotter( BaseReporter ):
   
   _typeName          = "SpaceToken"
   _typeKeyFields     = [ dF[0] for dF in SpaceToken().definitionKeyFields ]
-  #FIXME: WTF is this ????, here includes StorageElement !!!
-  _noSEtypeKeyFields = [ dF[0] for dF in SpaceToken().definitionKeyFields ]
-  _noSEGrouping      = ( ", ".join( "%s" for f in _noSEtypeKeyFields ), _noSEtypeKeyFields )
 
   #.............................................................................
-  # data Usage
-  
-  #_reportSpaceName = "Space Usage"
-  def _reportSpace( self, reportRequest ):
+  # Generic Reporter
+
+  def reporter( self, reportRequest, spaceType, groupingFields = False ):
     
+    reportRequest[ 'condDict' ][ 'SpaceType' ] = spaceType
+    if groupingFields:
+      reportRequest[ 'condDict' ][ 'grouping' ]  = [ 'SpaceType' ]
+      reportRequest[ 'groupingFields' ]          = ( [ '%s','%s' ], 
+                                                     reportRequest[ 'groupingFields' ][1] + [ 'SpaceType' ] )
+      
     selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields  = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
                       reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
@@ -39,11 +40,14 @@ class SpaceTokenPlotter( BaseReporter ):
                                                              ]
                     )
     
+    if groupingFields:
+      reportRequest[ 'groupingFields' ] = ( '%s, %s', reportRequest[ 'groupingFields' ][ 1 ] )
+    
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
                                  selectFields,
                                  reportRequest[ 'condDict' ],
-                                 SpaceTokenPlotter._noSEGrouping,
+                                 reportRequest[ 'groupingFields' ],
                                  { 'convertToGranularity' : 'average', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
@@ -63,7 +67,11 @@ class SpaceTokenPlotter( BaseReporter ):
                    'unit'          : unitName 
                   } )
 
-  def _plotSpace( self, reportRequest, plotInfo, filename ):
+
+  #.............................................................................
+  # Generic Plotter
+
+  def plotter( self, reportRequest, plotInfo, filename ):
     
     startEpoch  = reportRequest[ 'startTime' ]
     endEpoch    = reportRequest[ 'endTime' ]
@@ -80,212 +88,87 @@ class SpaceTokenPlotter( BaseReporter ):
     
     dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
+  
+  #.............................................................................
+    
+  _plotFreeUsedSpace       = plotter
+  _reportFreeUsedSpaceName = "Free and Used Space"
+  def _reportFreeUsedSpace( self, reportRequest ):
+    
+    return self.reporter( reportRequest, [ 'Free', 'Used' ], groupingFields = True )
+    
+#    reportRequest[ 'condDict' ][ 'SpaceType' ] = [ 'Free', 'Used' ]
+#    reportRequest[ 'condDict' ][ 'grouping' ]  = [ 'SpaceType' ]
+#
+#    reportRequest[ 'groupingFields' ] = ( [ '%s','%s' ], reportRequest[ 'groupingFields' ][1] + [ 'SpaceType' ] )
+#
+#    
+#    selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
+#    selectFields  = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
+#                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
+#                                                               'Space', 'entriesInBucket'
+#                                                             ]
+#                    )
+#    
+#    retVal = self._getTimedData( reportRequest[ 'startTime' ],
+#                                 reportRequest[ 'endTime' ],
+#                                 selectFields,
+#                                 reportRequest[ 'condDict' ],
+#                                 ( '%s, %s', reportRequest[ 'groupingFields' ][ 1 ] ), 
+#                                 { 'convertToGranularity' : 'average', 'checkNone' : True } )
+#    if not retVal[ 'OK' ]:
+#      return retVal
+#    
+#    dataDict, granularity = retVal[ 'Value' ]
+#    self.stripDataField( dataDict, 0 )
+#    
+#    accumMaxValue = self._getAccumulationMaxValue( dataDict )
+#    suitableUnits = self._findSuitableUnit( dataDict, accumMaxValue, "bytes" )
+#    
+#    #3rd value, maxValue is not used
+#    baseDataDict, graphDataDict, __, unitName = suitableUnits
+#     
+#    return S_OK( { 'data'          : baseDataDict, 
+#                   'graphDataDict' : graphDataDict,
+#                   'granularity'   : granularity, 
+#                   'unit'          : unitName 
+#                  } )
 
-#  _reportFreeSpaceName = "Free Space"
-#  def _reportFreeSpace( self, reportRequest ):
-#    '''
-#    Reports the data usage, from the Accounting DB.
-#    
-#    :param reportRequest: <dict>
-#      { 'groupingFields' : ( '%s', [ 'EventType' ] ),
-#        'startTime'      : 1355663249.0,
-#        'endTime'        : 1355749690.0,
-#        'condDict'       : { 'EventType' : '90000000' } 
-#      }
-#      
-#    returns S_OK / S_ERROR
-#      { 'graphDataDict' : { '90000000' : { 1355616000L : 123.456789, 
-#                                           1355702400L : 78.901234500000001 }
-#                                         }, 
-#        'data'          : { '90000000' : { 1355616000L : 123456.789, 
-#                                           1355702400L : 78901.234500000006 } 
-#                                         }, 
-#        'unit'          : 'kfiles', 
-#        'granularity'   : 86400
-#      }  
-#    '''
-#    
-#    selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-#    selectFields  = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
-#                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-#                                                               'FreeSpace', 'entriesInBucket'
-#                                                             ]
-#                    )
-#    
-#    retVal = self._getTimedData( reportRequest[ 'startTime' ],
-#                                 reportRequest[ 'endTime' ],
-#                                 selectFields,
-#                                 reportRequest[ 'condDict' ],
-#                                 SpaceTokenPlotter._noSEGrouping,
-#                                 { 'convertToGranularity' : 'sum', 'checkNone' : True } )
-#    if not retVal[ 'OK' ]:
-#      return retVal
-#    
-#    dataDict, granularity = retVal[ 'Value' ]
-#    self.stripDataField( dataDict, 0 )
-#    
-#    accumMaxValue = self._getAccumulationMaxValue( dataDict )
-#    suitableUnits = self._findSuitableUnit( dataDict, accumMaxValue, "bytes" )
-#    
-#    #3rd value, maxValue is not used
-#    baseDataDict, graphDataDict, __, unitName = suitableUnits
-#     
-#    return S_OK( { 'data'          : baseDataDict, 
-#                   'graphDataDict' : graphDataDict,
-#                   'granularity'   : granularity, 
-#                   'unit'          : unitName 
-#                  } )
-#
-#  def _plotFreeSpace( self, reportRequest, plotInfo, filename ):
-#    '''
-#    Creates <filename>.png file containing information regarding the data usage.
-#    
-#    :param reportRequest: <dict>
-#       { 'grouping'       : 'EventType',
-#         'groupingFields' : ( '%s', [ 'EventType' ] ),
-#         'startTime'      : 1355663249.0,
-#         'endTime'        : 1355749690.0,
-#         'condDict'       : { 'StorageElement' : 'CERN' } 
-#       }
-#    :param plotInfo: <dict> ( output of _reportDataUsage )
-#       { 'graphDataDict' : { '90000001' : { 1355616000L : 223.45678899999999, 
-#                                            1355702400L : 148.90123449999999 }, 
-#                             '90000000' : { 1355616000L : 123.456789, 
-#                                            1355702400L : 78.901234500000001 }
-#                            }, 
-#         'data'          : { '90000001' : { 1355616000L : 223456.78899999999, 
-#                                            1355702400L : 148901.23449999999 }, 
-#                             '90000000' : { 1355616000L : 123456.789, 
-#                                            1355702400L : 78901.234500000006 } 
-#                            }, 
-#         'unit'          : 'kfiles', 
-#         'granularity': 86400 
-#        }    
-#    :param filename: <str>
-#      '_plotDataUsage'
-#      
-#    returns S_OK / S_ERROR
-#       { 'plot': True, 'thumbnail': False }  
-#    '''
-#    
-#    startEpoch  = reportRequest[ 'startTime' ]
-#    endEpoch    = reportRequest[ 'endTime' ]
-#    granularity = plotInfo[ 'granularity' ]
-#    dataDict    = plotInfo[ 'graphDataDict' ]
-#    
-#    metadata = {
-#                 'title'     : "Free Space grouped by %s" % reportRequest[ 'grouping' ],
-#                 'starttime' : startEpoch,
-#                 'endtime'   : endEpoch,
-#                 'span'      : granularity,
-#                 'ylabel'    : plotInfo[ 'unit' ] 
-#                }
-#    
-#    dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
-#    return self._generateStackedLinePlot( filename, dataDict, metadata )
-#
-#  _reportTotalSpaceName = "Total Space"
-#  def _reportTotalSpace( self, reportRequest ):
-#    '''
-#    Reports the data usage, from the Accounting DB.
-#    
-#    :param reportRequest: <dict>
-#      { 'groupingFields' : ( '%s', [ 'EventType' ] ),
-#        'startTime'      : 1355663249.0,
-#        'endTime'        : 1355749690.0,
-#        'condDict'       : { 'EventType' : '90000000' } 
-#      }
-#      
-#    returns S_OK / S_ERROR
-#      { 'graphDataDict' : { '90000000' : { 1355616000L : 123.456789, 
-#                                           1355702400L : 78.901234500000001 }
-#                                         }, 
-#        'data'          : { '90000000' : { 1355616000L : 123456.789, 
-#                                           1355702400L : 78901.234500000006 } 
-#                                         }, 
-#        'unit'          : 'kfiles', 
-#        'granularity'   : 86400
-#      }  
-#    '''
-#    
-#    selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-#    selectFields  = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
-#                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-#                                                               'TotalSpace', 'entriesInBucket'
-#                                                             ]
-#                    )
-#    
-#    retVal = self._getTimedData( reportRequest[ 'startTime' ],
-#                                 reportRequest[ 'endTime' ],
-#                                 selectFields,
-#                                 reportRequest[ 'condDict' ],
-#                                 SpaceTokenPlotter._noSEGrouping,
-#                                 { 'convertToGranularity' : 'sum', 'checkNone' : True } )
-#    if not retVal[ 'OK' ]:
-#      return retVal
-#    
-#    dataDict, granularity = retVal[ 'Value' ]
-#    self.stripDataField( dataDict, 0 )
-#    
-#    accumMaxValue = self._getAccumulationMaxValue( dataDict )
-#    suitableUnits = self._findSuitableUnit( dataDict, accumMaxValue, "bytes" )
-#    
-#    #3rd value, maxValue is not used
-#    baseDataDict, graphDataDict, __, unitName = suitableUnits
-#     
-#    return S_OK( { 'data'          : baseDataDict, 
-#                   'graphDataDict' : graphDataDict,
-#                   'granularity'   : granularity, 
-#                   'unit'          : unitName 
-#                  } )
-#
-#  def _plotTotalSpace( self, reportRequest, plotInfo, filename ):
-#    '''
-#    Creates <filename>.png file containing information regarding the data usage.
-#    
-#    :param reportRequest: <dict>
-#       { 'grouping'       : 'EventType',
-#         'groupingFields' : ( '%s', [ 'EventType' ] ),
-#         'startTime'      : 1355663249.0,
-#         'endTime'        : 1355749690.0,
-#         'condDict'       : { 'StorageElement' : 'CERN' } 
-#       }
-#    :param plotInfo: <dict> ( output of _reportDataUsage )
-#       { 'graphDataDict' : { '90000001' : { 1355616000L : 223.45678899999999, 
-#                                            1355702400L : 148.90123449999999 }, 
-#                             '90000000' : { 1355616000L : 123.456789, 
-#                                            1355702400L : 78.901234500000001 }
-#                            }, 
-#         'data'          : { '90000001' : { 1355616000L : 223456.78899999999, 
-#                                            1355702400L : 148901.23449999999 }, 
-#                             '90000000' : { 1355616000L : 123456.789, 
-#                                            1355702400L : 78901.234500000006 } 
-#                            }, 
-#         'unit'          : 'kfiles', 
-#         'granularity': 86400 
-#        }    
-#    :param filename: <str>
-#      '_plotDataUsage'
-#      
-#    returns S_OK / S_ERROR
-#       { 'plot': True, 'thumbnail': False }  
-#    '''
-#    
-#    startEpoch  = reportRequest[ 'startTime' ]
-#    endEpoch    = reportRequest[ 'endTime' ]
-#    granularity = plotInfo[ 'granularity' ]
-#    dataDict    = plotInfo[ 'graphDataDict' ]
-#    
-#    metadata = {
-#                 'title'     : "Total Space grouped by %s" % reportRequest[ 'grouping' ],
-#                 'starttime' : startEpoch,
-#                 'endtime'   : endEpoch,
-#                 'span'      : granularity,
-#                 'ylabel'    : plotInfo[ 'unit' ] 
-#                }
-#    
-#    dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
-#    return self._generateStackedLinePlot( filename, dataDict, metadata )
+  #.............................................................................
+
+  _plotTotalSpace       = plotter
+  _reportTotalSpaceName = "Total Space"
+  def _reportTotalSpace( self, reportRequest ):
+    
+    return self.reporter( reportRequest, [ 'Total' ] )
+
+
+  #.............................................................................
+
+  _plotGuaranteedSpace       = plotter
+  _reportGuaranteedSpaceName = "Guaranteed Space"
+  def _reportGuaranteedSpace( self, reportRequest ):
+    
+    return self.reporter( reportRequest, [ 'Guaranteed' ] )
+
+
+  #.............................................................................
+
+  _plotFreeSpace       = plotter
+  _reportFreeSpaceName = "Free Space"
+  def _reportFreeSpace( self, reportRequest ):
+    
+    return self.reporter( reportRequest, [ 'Free' ] )
+
+
+  #.............................................................................
+
+  _plotUsedSpace       = plotter
+  _reportUsedSpaceName = "Used Space"
+  def _reportUsedSpace( self, reportRequest ):   
+
+    return self.reporter( reportRequest, [ 'Used' ] )
+
 
 #...............................................................................
 #EOF

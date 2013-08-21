@@ -25,11 +25,11 @@ class SpaceToken( BaseAccountingType ):
     self.definitionAccountingFields = [ ( 'Space', 'BIGINT UNSIGNED' )
                                       ]
 
-    self.bucketsLength = [ ( 86400 * 2     , 3600   ), #<2d = 1h
-                           ( 86400 * 10    , 9000   ), #<10d = 2.5h
-                           ( 86400 * 35    , 18000  ), #<35d = 5h
-                           ( 86400 * 30 * 6, 86400  ), #>5d <6m = 1d
-                           ( 86400 * 600   , 604800 ), #>6m = 1w
+    self.bucketsLength = [ ( 86400 * 2     , 3600    ), #<2d  = 1h
+                           ( 86400 * 10    , 3600*6  ), #<10d = 6h
+                           ( 86400 * 40    , 3600*12 ), #<40d = 12h
+                           ( 86400 * 30 * 6, 86400*2 ), #<6m  = 2d
+                           ( 86400 * 600   , 86400*7 ), #>6m  = 1w
                          ]
     
     self.checkType()
