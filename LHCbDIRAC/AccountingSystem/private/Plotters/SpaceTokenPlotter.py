@@ -34,7 +34,7 @@ class SpaceTokenPlotter( BaseReporter ):
                                                      reportRequest[ 'groupingFields' ][1] + [ 'SpaceType' ] )
       
     selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields  = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
+    selectFields  = ( selectString + ", %s, %s, SUM(%s/%s)",
                       reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                                                'Space', 'entriesInBucket'
                                                              ]
