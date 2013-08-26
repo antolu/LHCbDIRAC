@@ -3,6 +3,7 @@ __RCSID__ = "$Id:  $"
 import unittest, itertools, os
 
 from mock import Mock
+from DIRAC import S_OK
 
 from LHCbDIRAC.Core.Utilities.ProductionData import _makeProductionLFN, constructProductionLFNs, _getLFNRoot, _applyMask, getLogPath
 from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
@@ -10,6 +11,7 @@ from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectCommand
 from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import _getAreas, _getApp
 from LHCbDIRAC.Core.Utilities.GangaDataFile import GangaDataFile
+from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
 
 
 class UtilitiesTestCase( unittest.TestCase ):
@@ -512,6 +514,34 @@ class CombinedSoftwareInstallationSuccess( UtilitiesTestCase ):
     n, v = _getApp( ( 'name', 'version' ) )
     self.assertEqual( 'version', v )
     self.assertEqual( 'name', n )
+    
+class NagiosConnectorSuccess( UtilitiesTestCase ):
+  
+  def test_readConfig(self):
+    
+    nagConn = NagiosConnector()
+    nagConn.readConfig()
+    msg = "Configuration Value missing!"
+    self.assertIsNotNone(nagConn.config['MsgPort'], msg)
+    self.assertIsNotNone(nagConn.config['MsgBroker'], msg)
+    self.assertIsNotNone(nagConn.config['MsgQueue'], msg)
+    self.assertIsNotNone(nagConn.config['NagiosName'], msg)
+    msg = "Message Port is not an integer!"
+    self.assertIsInstance(nagConn.config['MsgPort'], int, msg)
+
+  def test_failedConnection( self ):
+    
+    nagConn = NagiosConnector()
+    nagConn.readConfig()
+    nagConn.config['NagiosName'] = 'lhcb-Dirac.Unittest'
+    nagConn.useDebugMessage()
+    self.assertEquals( nagConn.initializeConnection(), 
+                       S_OK( 'Connection to Broker established' ),
+                       'Connection not correctly initialized' )
+    self.assertEquals( nagConn.sendMessage(),
+                       S_OK('Message sent to Broker.'),
+                       'Sending unsuccessful!' )
+    
 
 #############################################################################
 # Test Suite run
@@ -524,6 +554,7 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionEnvironmentSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( InputDataResolutionSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( CombinedSoftwareInstallationSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( NagiosConnectorSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

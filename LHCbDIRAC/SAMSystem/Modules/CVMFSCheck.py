@@ -45,6 +45,8 @@ class CVMFSCheck( ModuleBase ):
       self.log.info( 'Checking presence of CVMFS' )
   
       if not 'VO_LHCB_SW_DIR' in os.environ:
+        self.workflow_commons.setdefault( 'SAMResults', {})[ 'CVMFS' ]  = 'CRITICAL'
+        self.workflow_commons.setdefault( 'SAMDetails', {})[ 'CVMFS' ] = 'Environment variable VO_LHCB_SW_DIR not found'
         self.setApplicationStatus( 'CVMFS KO' )
         self.log.error( 'Environment variable VO_LHCB_SW_DIR not found' )
         return S_ERROR( 'Environment variable VO_LHCB_SW_DIR not found' )
@@ -52,6 +54,9 @@ class CVMFSCheck( ModuleBase ):
       swDir = os.environ[ 'VO_LHCB_SW_DIR' ]
   
       if not swDir:
+        self.workflow_commons.setdefault( 'SAMResults', {})[ 'CVMFS' ]  = 'CRITICAL'
+        self.workflow_commons.setdefault( 'SAMDetails', {})[ 'CVMFS' ] = \
+                               'Environment variable VO_LHCB_SW_DIR is empty'
         self.setApplicationStatus( 'CVMFS KO' )
         self.log.error( 'Environment variable VO_LHCB_SW_DIR is empty' )
         return S_ERROR( 'Environment variable VO_LHCB_SW_DIR is empty' )
@@ -62,15 +67,22 @@ class CVMFSCheck( ModuleBase ):
       self.log.info( 'CVMFS file path "%s"' % cvmfsFilePath )
   
       if not os.path.exists( cvmfsFilePath ):
+        self.workflow_commons.setdefault( 'SAMResults', {})[ 'CVMFS' ]  = 'CRITICAL'
+        self.workflow_commons.setdefault( 'SAMDetails', {})[ 'CVMFS' ]  = \
+             'CVMFS file path "%s" does not exist' % cvmfsFilePath
         self.setApplicationStatus( 'CVMFS KO' )
         self.log.error( 'CVMFS file path "%s" does not exist' % cvmfsFilePath )
         return S_ERROR( 'CVMFS file path "%s" does not exist' % cvmfsFilePath )
   
+      self.workflow_commons.setdefault( 'SAMResults', {})[ 'CVMFS' ]  = 'OK'
+      self.workflow_commons.setdefault( 'SAMDetails', {})[ 'CVMFS' ] = 'CVMFS is present. '  
       self.setApplicationStatus( 'CVMFS OK' )
       self.log.info( 'CVMFS is present' )
       return S_OK( 'CVMFS is present' )
 
     except Exception, e:
+      self.workflow_commons.setdefault( 'SAMResults', {})[ 'CVMFS' ] = 'CRITICAL'
+      self.workflow_commons.setdefault( 'SAMDetails', {})[ 'CVMFS' ] = e 
       self.log.exception( e )
       self.setApplicationStatus( e )
       return S_ERROR( e )

@@ -12,6 +12,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
 
 __RCSID__ = '$Id$'
 
@@ -37,6 +38,7 @@ class UploadSAMLogs( ModuleBase ):
 
     self.logSE = 'LogSE'
     self.logURL = 'http://lhcb-logs.cern.ch/storage/'
+    self.nagiosConnector = NagiosConnector()
 
     self.version = __RCSID__
 
@@ -119,6 +121,12 @@ class UploadSAMLogs( ModuleBase ):
       return S_ERROR( e )
 
     finally:
+      self.nagiosConnector.readConfig()
+      self.nagiosConnector.initializeConnection()
+      self.nagiosConnector.assembleMessage(self.workflow_commons)
+      self.nagiosConnector.sendMessage()
+      self.nagiosConnector.endConnection()
+      
       super( UploadSAMLogs, self ).finalize( self.version )
 
 
