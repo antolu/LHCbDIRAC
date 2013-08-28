@@ -16,9 +16,9 @@ from DIRAC                                                        import gLogger
 from DIRAC.Core.Workflow.Workflow                                 import Workflow, fromXMLString
 from DIRAC.Core.Utilities.List                                    import removeEmptyElements, uniqueElements
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations          import Operations
+from DIRAC.Workflow.Utilities.Utils                               import getStepDefinition
 
 from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubmissionLFNs
-from LHCbDIRAC.Workflow.Utilities.Utils                           import getStepDefinition
 from LHCbDIRAC.Interfaces.API.LHCbJob                             import LHCbJob
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
