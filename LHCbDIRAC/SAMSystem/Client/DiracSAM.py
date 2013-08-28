@@ -6,10 +6,10 @@
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteCEMapping                  import getCESiteMapping
 from DIRAC.Interfaces.API.Dirac                          import Dirac, S_OK, S_ERROR
+from DIRAC.Workflow.Utilities.Utils                      import getStepDefinition, addStepToWorkflow
 
 from LHCbDIRAC.Core.Utilities.DetectOS     import NativeMachine
 from LHCbDIRAC.Interfaces.API.LHCbJob      import LHCbJob
-from LHCbDIRAC.Workflow.Utilities.Utils    import getStepDefinition, addStepToWorkflow
 
 COMPONENT_NAME = 'DiracSAMAPI'
 __RCSID__      = '$Id$'

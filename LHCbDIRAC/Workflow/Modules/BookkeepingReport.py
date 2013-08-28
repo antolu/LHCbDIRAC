@@ -12,12 +12,12 @@ import DIRAC
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
+from DIRAC.Workflow.Utilities.Utils import getStepCPUTimes
 
 from LHCbDIRAC.Resources.Catalog.PoolXMLFile import getOutputType
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary, XMLSummaryError
-from LHCbDIRAC.Workflow.Utilities.Utils import getStepCPUTimes
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import addChildNode
 
 class BookkeepingReport( ModuleBase ):

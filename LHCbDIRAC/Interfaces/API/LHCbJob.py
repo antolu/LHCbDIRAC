@@ -102,8 +102,8 @@ from DIRAC.Interfaces.API.Job                             import Job
 from DIRAC.Core.Utilities.File                            import makeGuid
 from DIRAC.Core.Utilities.List                            import uniqueElements
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations  import Operations
+from DIRAC.Workflow.Utilities.Utils                       import getStepDefinition, addStepToWorkflow
 
-from LHCbDIRAC.Workflow.Utilities.Utils                   import getStepDefinition, addStepToWorkflow
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.Interfaces.API.DiracLHCb                   import DiracLHCb
 
