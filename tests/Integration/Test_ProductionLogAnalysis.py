@@ -1,28 +1,29 @@
 import os, unittest
 
-from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile
+from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile, LogError
 
 class ProductionLogAnalysisTestCase( unittest.TestCase ):
   """ Base class for the ProductionLogAnalysis test cases
   """
   def setUp( self ):
-    self.workdir = '/tmp/ProductionXMLLogAnalysis'
-    #self.workdir = os.getcwd() + '/ProductionXMLLogAnalysis'
+    self.workdir = 'ProductionXMLLogAnalysis'
 
-  def generalTest( self, workdir, status, app ):
+  def generalTest( self, workdir, directory, app ):
 
-    result = status == 'ok'
-
-    workdir = '%s/%s' % ( workdir, status )
+    workdir = '%s/%s' % ( workdir, directory )
 
     for filename in os.listdir( workdir ):
       if filename.startswith( app ) and 'log' in filename:
         print "filename = ", filename
-        res = analyseLogFile( '%s/%s' % ( workdir, filename ) )
-        if res[ 'OK' ] != result:
-          print '   %s' % filename
-          print res[ 'Message' ]
-        self.assertEqual( res[ 'OK' ], result )
+        if directory == 'ok':
+          res = analyseLogFile( '%s/%s' % ( workdir, filename ) )
+          self.assertEqual( res, True )
+        elif directory == 'nok':
+          res = analyseLogFile( '%s/%s' % ( workdir, filename ) )
+          self.assertEqual( res, False )
+        else:
+          self.assertRaises( LogError, analyseLogFile, '%s/%s' % ( workdir, filename ) )
+
 
 class ProductionLogAnalysisDataReconstruction( ProductionLogAnalysisTestCase ):
 
@@ -37,8 +38,8 @@ class ProductionLogAnalysisDataReconstruction( ProductionLogAnalysisTestCase ):
 
   def test_brunel_nok( self ):
     self.generalTest( self.workdir, 'nok', 'Brunel' )
-#  def test_daVinci_nok( self ):  
-#    self.generalTest( self.workdir, 'nok', 'DaVinci' )  
+#  def test_daVinci_nok( self ):
+#    self.generalTest( self.workdir, 'nok', 'DaVinci' )
 
 class ProductionLogAnalysisDataReprocessing( ProductionLogAnalysisTestCase ):
 
@@ -53,8 +54,8 @@ class ProductionLogAnalysisDataReprocessing( ProductionLogAnalysisTestCase ):
 
   def test_brunel_nok( self ):
     self.generalTest( self.workdir, 'nok', 'Brunel' )
-#  def test_daVinci_nok( self ):  
-#    self.generalTest( self.workdir, 'nok', 'DaVinci' )  
+#  def test_daVinci_nok( self ):
+#    self.generalTest( self.workdir, 'nok', 'DaVinci' )
 
 class ProductionLogAnalysisDataStripping( ProductionLogAnalysisTestCase ):
 
@@ -92,13 +93,14 @@ class ProductionLogAnalysisMCSimulation( ProductionLogAnalysisTestCase ):
     self.generalTest( self.workdir, 'ok', 'Boole' )
   def test_gauss_ok( self ):
     self.generalTest( self.workdir, 'ok', 'Gauss' )
-#  def test_daVinci_ok( self ):  
+#  def test_daVinci_ok( self ):
 #    self.generalTest( self.workdir, 'ok', 'DaVinci' )
 
   def test_brunel_nok( self ):
     self.generalTest( self.workdir, 'nok', 'Brunel' )
-#  def test_daVinci_nok( self ):  
-#    self.generalTest( self.workdir, 'nok', 'DaVinci' )  
+
+  def test_brunel_fail( self ):
+    self.generalTest( self.workdir, 'fail', 'Brunel' )
 
 class ProductionLogAnalysisMerge( ProductionLogAnalysisTestCase ):
 
@@ -106,11 +108,11 @@ class ProductionLogAnalysisMerge( ProductionLogAnalysisTestCase ):
     super( ProductionLogAnalysisMerge, self ).setUp()
     self.workdir += '/Merge'
 
-#  def test_brunel_ok( self ):  
-#    self.generalTest( self.workdir, 'ok', 'Brunel' )     
-#  def test_boole_ok( self ):  
+#  def test_brunel_ok( self ):
+#    self.generalTest( self.workdir, 'ok', 'Brunel' )
+#  def test_boole_ok( self ):
 #    self.generalTest( self.workdir, 'ok', 'Boole' )
-#  def test_gauss_ok( self ):  
+#  def test_gauss_ok( self ):
 #    self.generalTest( self.workdir, 'ok', 'Gauss' )
   def test_daVinci_ok( self ):
     self.generalTest( self.workdir, 'ok', 'DaVinci' )
@@ -145,4 +147,4 @@ if __name__ == '__main__':
   run()
 
 ################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
