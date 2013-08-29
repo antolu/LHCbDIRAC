@@ -661,6 +661,7 @@ def __checkJobs( jobsForLfn, byFiles = False ):
     print ' '.join( allJobs )
     prevStatus = None
     allStatus[sys.maxint] = ''
+    jobs = []
     for job in sorted( allStatus ):
       status = allStatus[job]
       if status == prevStatus:
