@@ -1,10 +1,7 @@
-# $Id$
 """
 ProductionRequestHandler is the implementation of
 the Production Request service
 """
-__RCSID__ = "$Revision$"
-
 import DIRAC
 import os
 import re

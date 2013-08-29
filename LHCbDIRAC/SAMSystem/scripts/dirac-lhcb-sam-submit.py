@@ -23,10 +23,10 @@ subLogger = None
 switchDict = {}
 
 def registerSwitches():
-  '''
+  """
     Registers all switches that can be used while calling the script from the
     command line interface.
-  '''
+  """
 
   switches = ( 
     ( 'ce=', 'Computing Element to submit to (must be in DIRAC CS) or all' ),
@@ -38,9 +38,9 @@ def registerSwitches():
   Script.setUsageMessage( __doc__ )
 
 def parseSwitches():
-  '''
+  """
     Parses the arguments passed by the user
-  '''
+  """
 
   Script.parseCommandLine( ignoreErrors = True )
   args = Script.getPositionalArgs()
@@ -64,9 +64,9 @@ def parseSwitches():
 ################################################################################
 
 def getCEs():
-  '''
+  """
     Gets all CEs of the non-banned sites if the user sets the ce as "all".
-  '''
+  """
 
   ces = switchDict[ 'ce' ]
 
@@ -88,10 +88,10 @@ def getCEs():
   return ces
 
 def getNumber():
-  '''
+  """
     Checks whether the user knows he is sending a number of jobs different that
     1 to the system.
-  '''
+  """
 
   number = switchDict[ 'number' ]
   try:
@@ -109,10 +109,10 @@ def getNumber():
   return number
 
 def submit( ces, number ):
-  '''
+  """
     Submit <number> of jobs to each ce in <ces>. Also passing switches as
     keyword arguments to diracSAM.
-  '''
+  """
 
   # If local is in switchDict, we run jobs locally 
   runLocal = 'local' in switchDict
@@ -135,10 +135,10 @@ def submit( ces, number ):
       subLogger.verbose( '  JobID: %s' % result[ 'Value' ] )
 
 def run():
-  '''
+  """
     Gets the eligible Computing Elements, the number of submissions per CE and
     submits the SAM jobs.
-  '''
+  """
 
   jobsNumber = getNumber()
   subLogger.debug( jobsNumber )
