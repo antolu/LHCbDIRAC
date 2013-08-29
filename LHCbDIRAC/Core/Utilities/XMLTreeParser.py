@@ -2,8 +2,6 @@
    pythonic style. A tree ox XMLNodes.
 """
 
-__RCSID__ = "$Id$"
-
 import xml.dom.minidom
 
 ################################################################################
@@ -106,7 +104,7 @@ Utilies for XML Report
 """
 
 def addChildNode( parentNode, tag, returnChildren, args ):
-  '''
+  """
   Params
     :parentNode:
       node where the new node is going to be appended
@@ -116,7 +114,7 @@ def addChildNode( parentNode, tag, returnChildren, args ):
       flag to return or not the children node, used to avoid unused variables
     :*args:
       possible attributes of the element
-  '''
+  """
 
   allowedTags = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile',
                    'Parameter', 'Replica', 'SimulationCondition' ]
