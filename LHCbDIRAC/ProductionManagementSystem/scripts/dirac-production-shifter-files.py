@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' dirac-production-shifter 
+""" dirac-production-shifter
  
   Script for the production shifter. 
 
@@ -18,23 +18,24 @@
   - sort          : sort requests using the keywords [RequestID,RequestState,RequestType,
                     SimCondition,ProPath,EventType]
   
-'''
+"""
 
 import sys
 
-from datetime                   import datetime
+from datetime            import datetime
 
-from DIRAC                      import exit as DIRACExit
-from DIRAC.Core.Base            import Script
-from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC               import exit as DIRACExit
+from DIRAC.Core.Base     import Script
+
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 __RCSID__  = "$Id$"
 
 def doParse():
-  '''
+  """
   Function that contains all the switches definition and isolates the rest of the
   module from parseCommandLine.
-  '''
+  """
   
   # Switch description
   Script.registerSwitch( 'i:', 'requestID='    , 'ID of the request' )
@@ -97,9 +98,9 @@ def doParse():
   return params, sortKey, silent
   
 def getRequests( parsedInput, sortKey ):
-  '''
+  """
   Gets the requests from the database using the filters given by the user.  
-  '''
+  """
     
   reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
   
@@ -131,14 +132,14 @@ def getRequests( parsedInput, sortKey ):
                              'proPath'      : request[ 'ProPath' ],
                              'simCondition' : request[ 'SimCondition' ],
                              'eventType'    : request[ 'EventType' ]                                 
-                                                }
+                             }
                           )
   return parsedRequests
   
 def getTransformations( transClient, requestID, silent ):
-  '''
+  """
     Given a requestID, returns all its transformations.
-  '''
+  """
     
   transformations = transClient.getTransformations( { 'TransformationFamily' : requestID } )
   if not transformations[ 'OK' ]:
@@ -176,9 +177,9 @@ def getTransformations( transClient, requestID, silent ):
   return parsedTransformations
  
 def getFiles( transClient, transformationID ):
-  '''
+  """
     Given a transformationID, returns the status of their files.
-  '''
+  """
   
   filesDict = { 
                 'Total'     : 0,
@@ -219,10 +220,10 @@ def getFiles( transClient, transformationID ):
   return filesDict, badFiles 
 
 def getTasks( transClient, transformationID ):
-  '''
+  """
     Given a transformation, get all tasks. Will be used to find which jobs belong
     to a file.
-  '''
+  """
 
   tasks = {}
 
@@ -248,10 +249,10 @@ def getTasks( transClient, transformationID ):
   return tasks
 
 def getJobs( transClient, transformationID, fileID, tasks ):
-  '''
+  """
     Gets all jobs for a file in a transformation. In fact, it gets the tasks
     which are mapped to jobs later on.
-  '''
+  """
   
   jobs = []
   _jobs = transClient.getTableDistinctAttributeValues( 'TransformationFileTasks',
@@ -272,10 +273,10 @@ def getJobs( transClient, transformationID, fileID, tasks ):
   return jobs     
   
 def printSelection( parsedInput, sortKey ):
-  '''
+  """
     Prints header with selection parameters used to filter requests, plus some 
     extra options to narrow summary.
-  '''
+  """
   
   if parsedInput[ 'RequestID' ] is not None:
     parsedInput = { 'RequestID' : parsedInput[ 'RequestID' ] }   
@@ -299,12 +300,12 @@ def printSelection( parsedInput, sortKey ):
   printNow()
   
 def printResults( request ):  
-  '''
+  """
     Given a dictionary with requests, it prints the content on a human readable way.
     If mergeAction is given and different than None, it can omit all merge
     transformations from the summary or group all them together in one line if 
     the value is group.
-  '''
+  """
   
   #for request in requests.items():
  
@@ -364,18 +365,18 @@ def printResults( request ):
   printNow()
 
 def printRequestsInfo( requests ):
-  '''
+  """
     Prints the number of requests 
-  '''
+  """
   
   print ' found %s requests \n' % len( requests )
   printNow()
 
 def printNow():  
-  '''
+  """
     Flush stdout, otherwhise we have to wait until the end of the script to have
     if flushed.
-  '''
+  """
   
   sys.stdout.flush()                
                                         
@@ -398,7 +399,7 @@ if __name__ == "__main__":
   printRequestsInfo( _requests )
   
   # Initialized here to avoid multiple initializations due to the for-loop
-  transformationClient = RPCClient( 'Transformation/TransformationManager' )
+  transformationClient = TransformationClient()
   
   # Print summary per request
   for _request in _requests:
