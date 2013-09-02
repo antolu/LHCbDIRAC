@@ -107,8 +107,8 @@ class Transformation( DIRACTransformation ):
   #############################################################################
 
   def addTransformation( self, addFiles = True, printOutput = False ):
-    ''' Add a transformation, using TransformationClient()
-    '''
+    """ Add a transformation, using TransformationClient()
+    """
     res = self._checkCreation()
     if not res['OK']:
       return self._errorReport( res, 'Failed transformation sanity check' )
