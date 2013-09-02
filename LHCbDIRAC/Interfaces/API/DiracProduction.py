@@ -590,24 +590,6 @@ class DiracProduction( DiracLHCb ):
     return S_OK( 'Production %s status updated' % productionID )
 
   #############################################################################
-  def deleteProduction( self, productionID, printOutput = False ):
-    """ Deletes a production from the production management system ONLY. To be
-        used with extreme care after BK replica flags / LFC entries / Logs are
-        cleaned up.
-    """
-    if type( productionID ) == type( 2 ):
-      productionID = long( productionID )
-    if not type( productionID ) == type( long( 1 ) ):
-      if not type( productionID ) == type( " " ):
-        return self._errorReport( 'Expected string, long or int for production ID' )
-
-    result = self.transformationClient.deleteTransformation( productionID )
-    if result['OK'] and printOutput:
-      print 'Production %s is deleted from the production management system' % productionID
-
-    return result
-
-  #############################################################################
   def productionFileSummary( self, productionID, selectStatus = None, outputFile = None,
                              orderOutput = True, printSummary = False, printOutput = False ):
     """ Allows to investigate the input files for a given production transformation
