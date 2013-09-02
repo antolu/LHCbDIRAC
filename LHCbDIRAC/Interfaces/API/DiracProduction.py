@@ -60,37 +60,6 @@ class DiracProduction( DiracLHCb ):
                      'validated':['ValidatedOutput', 'Manual'],
                      'removed':['RemovedFiles', 'Manual']}
 
-
-  #############################################################################
-  def getAllProductions( self, printOutput = False ):
-    """Returns a dictionary of production IDs and metadata. If printOutput is
-       specified, a high-level summary of the productions is printed.
-    """
-    result = self.transformationClient.getTransformationSummary()
-    if not result['OK']:
-      return result
-
-    if not printOutput:
-      return result
-
-    adj = self.prodAdj
-    headers = self.prodHeaders.values()
-    prodDict = result['Value']
-    top = ''
-    for i in headers:
-      top += i.ljust( adj )
-    message = ['ProductionID'.ljust( adj ) + top + '\n']
-    for prodID, params in prodDict.items():
-      line = str( prodID ).ljust( adj )
-      for key, _name in self.prodHeaders.items():
-        for n, v in params.items():
-          if n == key:
-            line += str( v ).ljust( adj )
-      message.append( line )
-
-    print '\n'.join( message )
-    return result
-
   #############################################################################
   def getProduction( self, productionID, printOutput = False ):
     """Returns the metadata associated with a given production ID. Protects against
@@ -124,29 +93,7 @@ class DiracProduction( DiracLHCb ):
     return S_OK( result['Value'] )
 
   #############################################################################
-  def getActiveProductions( self, printOutput = False ):
-    """Returns a dictionary of active production IDs and their status, e.g. automatic, manual.
-    """
-    result = self.transformationClient.getTransformations()
-    if not result['OK']:
-      return result
-    prodList = result['Value']
-    currentProductions = {}
-    for prodDict in prodList:
-      self.log.debug( prodDict )
-      if prodDict.has_key( 'AgentType' ) and prodDict.has_key( 'TransformationID' ):
-        prodID = prodDict['TransformationID']
-        status = prodDict['AgentType']
-        currentProductions[prodID] = status
-        if status.lower() == 'automatic':
-          self.log.verbose( 'Found active production %s eligible to submit jobs' % prodID )
 
-    if printOutput:
-      self._prettyPrint( currentProductions )
-
-    return S_OK( currentProductions )
-
-  #############################################################################
   def getProductionLoggingInfo( self, productionID, printOutput = False ):
     """The logging information for the given production is returned.  This includes
        the operation performed, any messages associated with the operation and the
