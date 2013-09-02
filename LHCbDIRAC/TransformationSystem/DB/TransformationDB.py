@@ -166,26 +166,13 @@ class TransformationDB( DIRACTransformationDB ):
       if not res['OK']:
         return res
 
+    res = DIRACTransformationDB.cleanTransformation( self, transName, connection = connection )
+    if not res['OK']:
+      return res
+
     res = self.__cleanTransformationRuns( transID, connection = connection )
     if not res['OK']:
       return res
-
-
-    # delete files, tasks, taskinputs and parameters as for base DIRAC class
-    res = self.__deleteTransformationFiles( transID, connection = connection )
-    if not res['OK']:
-      return res
-    res = self.__deleteTransformationTasks( transID, connection = connection )
-    if not res['OK']:
-      return res
-    res = self.__deleteTransformationTaskInputs( transID, connection = connection )
-    if not res['OK']:
-      return res
-    res = self.setTransformationParameter( transID, 'Status', 'Cleaned', author = author, connection = connection )
-    if not res['OK']:
-      return res
-    message = "Transformation Cleaned"
-    self.__updateTransformationLogging( transID, message, author, connection = connection )
     return S_OK( transID )
 
 
