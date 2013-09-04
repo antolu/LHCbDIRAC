@@ -45,7 +45,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     self.params = {}
     self.workDirectory = None
-    self.pluginCallback = None
+    self.pluginCallback = self.voidMethod
     self.startTime = time.time()
     self.transReplicas = {}
     self.transFiles = []
@@ -55,6 +55,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                                  self.rmClient, self.resourceStatus, debug,
                                  transInThread if transInThread else {} )
     self.setDebug( self.util.getPluginParam( 'Debug', False ) )
+
+  def voidMethod( self, id, invalidateCache = False ):
+    return
 
   def setInputData( self, data ):
     """
@@ -1086,8 +1089,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ This plugin considers files and checks whether they were processed for a list of processing passes
         For files that were processed, it sets replica removal tasks from a set of SEs
     """
-    listSEs = self.util.getPluginParam( 'FromSEs', [] )
     keepSEs = self.util.getPluginParam( 'KeepSEs', [] )
+    listSEs = list( set( self.util.getPluginParam( 'FromSEs', [] ) ) - set( keepSEs ) )
+    if not listSEs:
+      self.util.logError( 'No SEs where to delete from, check overlap with %s' % keepSEs )
+      return S_OK( [] )
     processingPasses = self.util.getPluginParam( 'ProcessingPasses', [] )
     period = self.util.getPluginParam( 'Period', 6 )
     cacheLifeTime = self.util.getPluginParam( 'CacheLifeTime', 24 )
@@ -1095,11 +1101,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     transStatus = self.params['Status']
     self.util.readCacheFile( self.workDirectory )
 
-    if not listSEs:
-      self.util.logInfo( "No SEs selected" )
-      return S_OK( [] )
     if not processingPasses:
-      self.util.logInfo( "No processing pass(es)" )
+      self.util.logWarn( "No processing pass(es)" )
       return S_OK( [] )
     skip = False
     try:
@@ -1180,10 +1183,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       newGroups = {}
       for replicaSEs, lfns in replicaGroups.items():
         replicaSE = replicaSEs.split( ',' )
-        if [se for se in replicaSE if se in keepSEs]:
-          self.util.logInfo( "%d files found in %s, not deleted... Delete them first from there" % ( len( lfns ),
-                                                                                                     str( keepSEs ) ) )
-          continue
         targetSEs = [se for se in listSEs if se in replicaSE]
         if not targetSEs:
           self.util.logInfo( "%d files are not in required list (only at %s)" % ( len( lfns ), replicaSE ) )
