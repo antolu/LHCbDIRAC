@@ -216,8 +216,7 @@ def __checkFilesMissingInFC( transFilesList, status, fixIt ):
         if not kickRequests:
           print "%d files are %s but indeed are in the LFC - Use --KickRequests to reset them Unused" % ( notMissing, status )
         else:
-          filesToReset = [lfn for lfn in lfns if lfn in replicas]
-          res = transClient.setFileStatusForTransformation( transID, 'Unused', filesToReset, force = True )
+          res = transClient.setFileStatusForTransformation( transID, 'Unused', [lfn for lfn in lfns if lfn in replicas] )
           if res['OK']:
             print "%d files were %s but indeed are in the LFC - Reset to Unused" % ( notMissing, status )
       else:
@@ -285,7 +284,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     if kickRequests:
       res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnsInTask )
       if res['OK']:
-        print "Task is failed: not all the %d files were reset Unused" % len( lfnsInTask )
+        print "Task is failed: %d files reset Unused" % len( lfnsInTask )
     else:
       print "Task is failed: %d files could be reset Unused: use --KickRequests option" % len( lfnsInTask )
   if taskCompleted and ( task['ExternalStatus'] != 'Done' or status == 'Assigned' ):
@@ -352,19 +351,28 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
 def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas, failedFiles, fixIt ):
   print "\nStatistics for Problematic files in FC:"
   existingReplicas = {}
-  lfns = []
-  lfnsInFC = []
+  lfns = set()
+  lfnsInFC = set()
   for n in sorted( nbReplicasProblematic ):
     print "   %d replicas in FC: %d files" % ( n, nbReplicasProblematic[n] )
   gLogger.setLevel( 'FATAL' )
+  lfnCheckSum = {}
+  badChecksum = {}
   for se in problematicReplicas:
-    lfns += [lfn for lfn in problematicReplicas[se] if lfn not in lfns]
+    lfns.update( problematicReplicas[se] )
     if se:
-      lfnsInFC += [lfn for lfn in problematicReplicas[se] if lfn not in lfnsInFC]
+      lfnsInFC.update( problematicReplicas[se] )
+      res = rm.getCatalogFileMetadata( [lfn for lfn in problematicReplicas[se] if lfn not in lfnCheckSum] )
+      if res['OK']:
+        success = res['Value']['Successful']
+        lfnCheckSum.update( dict( [( lfn, success[lfn]['Checksum'] ) for lfn in success] ) )
       res = rm.getReplicaMetadata( problematicReplicas[se], se )
       if res['OK']:
         for lfn in res['Value']['Successful']:
           existingReplicas.setdefault( lfn, [] ).append( se )
+          # Compare checksums
+          if res['Value']['Successful'][lfn]['Checksum'] != lfnCheckSum[lfn]:
+            badChecksum.setdefault( lfn, [] ).append( se )
   nbProblematic = len( lfns ) - len( existingReplicas )
   nbExistingReplicas = {}
   for lfn in existingReplicas:
@@ -372,16 +380,16 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
     nbExistingReplicas[nbReplicas] = nbExistingReplicas.setdefault( nbReplicas, 0 ) + 1
   nonExistingReplicas = {}
   if nbProblematic == len( lfns ):
-      print "None of the %d problematic files actually have a replica" % len( lfns )
+      print "None of the %d problematic files actually have an active replica" % len( lfns )
   else:
     strMsg = "Out of %d problematic files" % len( lfns )
     if nbProblematic:
-      strMsg += ", only %d do not have a physical replica" % nbProblematic
+      strMsg += ", only %d have an active replica" % ( len( lfns ) - nbProblematic )
     else:
-      strMsg += ", all have a physical replica"
+      strMsg += ", all have an active replica"
     print strMsg
     for n in sorted( nbExistingReplicas ):
-      print "   %d physical replicas: %d files" % ( n, nbExistingReplicas[n] )
+      print "   %d active replicas: %d files" % ( n, nbExistingReplicas[n] )
     for se in problematicReplicas:
       lfns = [lfn for lfn in problematicReplicas[se] if lfn not in existingReplicas or se not in existingReplicas[lfn]]
       str2Msg = ''
@@ -409,7 +417,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
           if res['OK']:
             prString += " - %d files reset Unused" % len( lfns )
       print prString
-  filesInFCNotExisting = [lfn for lfn in lfnsInFC if lfn not in existingReplicas]
+  filesInFCNotExisting = list( lfnsInFC - set( existingReplicas ) )
   if filesInFCNotExisting:
     prString = '%d files are in the FC but are not physically existing. ' % len( filesInFCNotExisting )
     if fixIt:
@@ -418,14 +426,41 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
       prString += 'Use --FixIt to remove them'
     print prString
     if fixIt:
-      res = rm.removeFile( filesInFCNotExisting )
-      if res['OK']:
-        print "Successfully removed %d files from FC" % len( filesInFCNotExisting )
-        nRemoved, transRemoved = __removeFilesFromTS( filesInFCNotExisting )
-        if nRemoved:
-          print 'Successfully removed %d files from transformations %s' % ( nRemoved, ','.join( transRemoved ) )
+      __removeFiles( filesInFCNotExisting )
+  if badChecksum:
+    prString = '%d files have a checksum mismatch.' % len( badChecksum )
+    replicasToRemove = {}
+    filesToRemove = []
+    for lfn in badChecksum:
+      if badChecksum[lfn] == existingReplicas[lfn]:
+        filesToRemove.append( lfn )
       else:
-        print "ERROR when removing files from FC:", res['Message']
+        replicasToRemove[lfn] = badChecksum[lfn]
+    if filesToRemove:
+      prString += ' %d files have no correct replica.' % len( filesToRemove )
+    if replicasToRemove:
+      prString += ' %d files have no correct replica' % len( replicasToRemove )
+    if not fixIt:
+      prString += ' Use --FixIt to remove them'
+    else:
+      prString += ' Removing them now...'
+    print prString
+    if fixIt:
+      if filesToRemove:
+        __removeFiles( filesToRemove )
+      if replicasToRemove:
+        seFiles = {}
+        for lfn in replicasToRemove:
+          for se in replicasToRemove[lfn]:
+            seFiles.setdefault( se, [] ).append( lfn )
+        for se in seFiles:
+          res = rm.removeReplica( se, seFiles[se] )
+          if not res['OK']:
+            print 'ERROR: error removing replicas', res['Message']
+          else:
+            print "Successfully removed %d replicas from %s" % ( len( seFiles[se], se ) )
+  elif existingReplicas:
+    print "All existing replicas have a good checksum"
   if fixIt and nonExistingReplicas:
     nRemoved = 0
     failures = {}
@@ -472,8 +507,17 @@ def __removeFilesFromTS( lfns ):
       print 'Error setting %d files Removed' % len( lfns ), res['Message']
     else:
       removed += len( lfns )
-  return removed, transFiles.keys()
+  return removed, [str( tr ) for tr in transFiles]
 
+def __removeFiles( lfns ):
+  res = rm.removeFile( lfns )
+  if res['OK']:
+    print "Successfully removed %d files from FC" % len( lfns )
+    nRemoved, transRemoved = __removeFilesFromTS( lfns )
+    if nRemoved:
+      print 'Successfully removed %d files from transformations %s' % ( nRemoved, ','.join( transRemoved ) )
+  else:
+    print "ERROR when removing files from FC:", res['Message']
 
 def __checkReplicasForProblematic( lfns, replicas ):
   for lfn in lfns:
@@ -716,6 +760,7 @@ def __checkJobs( jobsForLfn, byFiles = False ):
           if res['OK']:
             logURL = res['Value']['Log URL'].split( '"' )[1] + '/'
             lfns = __checkXMLSummary( lastJob, logURL )
+            lfns = dict( [( lfn, lfns[lfn] ) for lfn in set( lfns ) & set( lfnList )] )
             if lfns:
               badLfns.update( {lastJob: lfns} )
           # break
@@ -737,7 +782,7 @@ def __checkJobs( jobsForLfn, byFiles = False ):
       print "ERROR ==> %s was %s during processing from jobs %s: " % ( lfn, reason, jobs )
   print ''
 
-def __checkRunsToFlush( pluginUtils, runID, transFilesList, runStatus, evtType = 90000000 ):
+def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
   """
   Check whether the run is flushed and if not, why it was not
   """
@@ -994,7 +1039,7 @@ if __name__ == "__main__":
 
       if checkFlush or ( ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in transPlugin and runStatus != 'Flush' ):
         # Check if the run should be flushed
-        __checkRunsToFlush( pluginUtil, runID, transFilesList, runStatus )
+        __checkRunsToFlush( runID, transFilesList, runStatus )
 
       prString = "%d files found" % len( transFilesList )
       if status:
@@ -1052,7 +1097,8 @@ if __name__ == "__main__":
         if not task: continue
         if byJobs and taskType == 'Job':
           job = task['ExternalID']
-          jobsForLfn.setdefault( ','.join( taskDict.get( taskID, [''] ) ), [] ).append( job )
+          lfns = set( lfnsInTask if lfnsInTask else [''] ) & set( [fileDict['LFN'] for fileDict in transFilesList] )
+          jobsForLfn.setdefault( ','.join( sorted( lfns ) ), [] ).append( job )
           if job not in jobList:
             jobList.append( job )
           if not byFiles and not byTasks:

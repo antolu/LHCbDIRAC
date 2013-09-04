@@ -46,6 +46,8 @@ class fakeClient:
     return DIRAC.S_OK( counters )
 
   def getBookkeepingQueryForTransformation ( self, transID ):
+    if transID == self.transID and self.asIfProd:
+      return self.transClient.getBookkeepingQueryForTransformation( asIfProd )
     return self.trans.getBkQuery()
 
   def getTransformationRuns( self, condDict ) :
@@ -222,7 +224,7 @@ if __name__ == "__main__":
   gLogger.setLevel( 'INFO' )
   # Create the transformation
   transformation = Transformation()
-  transType = None
+  transType = ''
   if plugin == "DestroyDatasetWhenProcessed":
     plugin = "DeleteReplicasWhenProcessed"
   if plugin in getRemovalPlugins():
