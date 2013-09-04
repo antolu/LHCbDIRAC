@@ -23,6 +23,7 @@ if __name__ == '__main__':
   Script.registerSwitch( '', 'Runs=', 'Specify the run range' )
   Script.registerSwitch( '', 'ActiveRunsProduction=', 'Specify the production from which the runs should be derived' )
   Script.registerSwitch( '', 'FileType=', 'Specify the descendants file type' )
+  Script.registerSwitch( '', 'NoLFC', '   Trust the BK replica flag, no LFC check' )
   Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
   Script.registerSwitch( '', 'Verbose', 'Print full list of files with error' )
   Script.parseCommandLine( ignoreErrors = True )
@@ -31,6 +32,7 @@ if __name__ == '__main__':
   fixIt = False
   fromProd = None
   verbose = False
+  noLFC = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
       runsList = switch[1].split( ',' )
@@ -40,6 +42,8 @@ if __name__ == '__main__':
       fileType = switch[1].split( ',' )
     elif switch[0] == 'FixIt':
       fixIt = True
+    elif switch[0] == 'NoLFC':
+      noLFC = True
     elif switch[0] == 'ActiveRunsProduction':
       try:
         fromProd = int( switch[1] )
@@ -71,6 +75,7 @@ if __name__ == '__main__':
     cc = ConsistencyChecks()
     cc.lfns = lfnList
     cc.prod = id
+    cc.noLFC = noLFC
     startTime = time.time()
     gLogger.always( "Processing %s production %d" % ( cc.transType, cc.prod ) )
     if not fileType:
