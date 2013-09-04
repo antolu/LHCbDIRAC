@@ -9,7 +9,7 @@ Remove replicas of a (list of) LFNs at a list of sites. It is possible to reques
 __RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-from DIRAC import gConfig, gLogger, exit as DIRACExit
+from DIRAC import gConfig, gLogger
 
 def __checkSEs( args ):
   """ Extract SE names from a list of arguments """
@@ -30,6 +30,7 @@ def execute():
   from DIRAC.Core.Utilities.List                        import breakListIntoChunks, randomize
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+  import DIRAC
   rm = ReplicaManager()
   bk = BookkeepingClient()
 
@@ -66,7 +67,7 @@ def execute():
           seList = dmScript.getOption( 'SEs', [] )
       except:
         print "Invalid number of replicas:", switch[1]
-        DIRACExit( 1 )
+        DIRAC.exit( 1 )
 
   # This should be improved, with disk SEs first...
   if not seList:
@@ -199,7 +200,7 @@ def execute():
       res = rm.getReplicas( lfnChunk )
       if not res['OK']:
         gLogger.fatal( "Failed to get replicas", res['Message'] )
-        DIRACExit( -2 )
+        DIRAC.exit( -2 )
       if res['Value']['Failed']:
         lfnChunk = list( set( lfnChunk ) - set( res['Value']['Failed'] ) )
       seReps = {}
@@ -225,7 +226,7 @@ def execute():
           res = rm.removeReplica( seName, lfns )
           if not res['OK']:
             gLogger.fatal( "Failed to remove replica", res['Message'] )
-            DIRACExit( -2 )
+            DIRAC.exit( -2 )
           for lfn, reason in res['Value']['Failed'].items():
             reason = str( reason )
             if 'No such file or directory' in reason:
@@ -269,7 +270,7 @@ def execute():
       gLogger.always( "Failed to remove %d replicas from %s with error: %s" % ( len( lfns ), se, reason ) )
   if not successfullyRemoved and not errorReasons and not checkFC:
     gLogger.always( "Replicas were found at no SE in %s" % str( seList ) )
-  DIRACExit( 0 )
+  DIRAC.exit( 0 )
 
 if __name__ == "__main__":
   dmScript = DMScript()

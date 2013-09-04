@@ -76,6 +76,9 @@ if __name__ == "__main__":
   else:
     if not lfns:
       bkQuery = dmScript.getBKQuery()
+      if not set( bkQuery.getQueryDict() ) - set( ['Visible', 'ReplicaFlag'] ):
+        print "Invalid BK query:", bkQuery
+        DIRAC.exit( 2 )
       print "Executing BK query:", bkQuery
       lfns = bkQuery.getLFNs()
     if lfns:

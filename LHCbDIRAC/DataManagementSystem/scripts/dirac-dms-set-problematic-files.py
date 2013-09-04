@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
   from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
   rm = ReplicaManager()
-  from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
+  from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
   tr = TransformationClient()
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
@@ -127,7 +127,7 @@ if __name__ == "__main__":
   if bkToggle:
     chunkSize = 100
     sys.stdout.write( 'Checking with Transformation system (chunks of %d): ' % chunkSize )
-    transStatusOK = { True:( 'Problematic', 'MissingLFC', 'MissingInFC', 'ProblInFC', 'MaxReset' ), False:( 'Unused', 'MaxReset', 'Assigned' )}
+    transStatusOK = { True:( 'Problematic', 'MissingLFC', 'MissingInFC', 'ProbInFC', 'MaxReset' ), False:( 'Unused', 'MaxReset', 'Assigned' )}
     for chunk in breakListIntoChunks( bkToggle, chunkSize ):
       sys.stdout.write( '.' )
       sys.stdout.flush()

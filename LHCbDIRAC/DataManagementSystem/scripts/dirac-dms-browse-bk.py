@@ -53,11 +53,14 @@ def isDatasetInTree( dataset, tree ):
   configuration, condition, processingPass, eventTypes = dataset.split( '|' )
   eventTypes = [int( eventType ) for eventType in eventTypes.split( ',' )]
   for conf in tree:
-    if conf != configuration: continue
+    if conf != configuration:
+      continue
     for cond in tree[conf]:
-      if cond != condition: continue
+      if cond != condition:
+        continue
       for pPass in tree[conf][cond]:
-        if pPass != processingPass: continue
+        if pPass != processingPass:
+          continue
         for eventType in tree[conf][cond][pPass]:
           if eventType in eventTypes:
             return True
@@ -88,25 +91,7 @@ def commonDatasetsInTrees( tree, cmpTree ):
 def absentDatasetsInTree( tree, cmpTree ):
   return sorted( [dataset for dataset in datasetsFromTree( tree ) if not isDatasetInTree( dataset, cmpTree )] )
 
-if __name__ == "__main__":
-  import time
-  startTime = time.time()
-  dmScript = DMScript()
-  dmScript.registerBKSwitches()
-
-  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
-                                       'Usage:',
-                                       '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
-
-  Script.registerSwitch( "", "ToKeep=", "   File containing the twiki source of the retention table" )
-  Script.registerSwitch( "", "PrintBKPath", "   Print the BKPaths of datasets (that can be removed if --ToKeep)" )
-  Script.registerSwitch( "", "PrintProductions", "   Print the list of productions" )
-  Script.registerSwitch( "", "Verbose", "   Print the current BK tree and the trees from the retention table" )
-  Script.registerSwitch( "", "NoEventType", "   Stops printing the tree at Processing Pass level" )
-
-  Script.parseCommandLine( ignoreErrors = True )
-  # print "Start time: %.3f seconds" % (time.time() - startTime)
-
+def execute():
   toKeepFile = None
   printBKPath = False
   printProductions = False
@@ -162,7 +147,8 @@ if __name__ == "__main__":
         else:
           tree = toKeepTree
         conditions = []
-        for cond in [cond.replace( '2.5', '2,5' ) for cond in l[1].replace( '2,5', '2.5' ).replace( '!', '' ).strip().split( ',' )]:
+        for cond in [cond.replace( '2.5', '2,5' ) \
+                     for cond in l[1].replace( '2,5', '2.5' ).replace( '!', '' ).strip().split( ',' )]:
           if 'Mag*' in cond:
             conditions.extend( [cond.replace( '*', 'Down' ), cond.replace( '*', 'Up' )] )
           else:
@@ -230,6 +216,24 @@ if __name__ == "__main__":
     if printProductions:
       print '\nProductions in %s:' % bkQuery.getPath()
       print ','.join( [str( pr ) for pr in sorted( productions )] )
+
+if __name__ == "__main__":
+  import time
+  dmScript = DMScript()
+  dmScript.registerBKSwitches()
+
+  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' ) +
+                                       'Usage:',
+                                       '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
+
+  Script.registerSwitch( "", "ToKeep=", "   File containing the twiki source of the retention table" )
+  Script.registerSwitch( "", "PrintBKPath", "   Print the BKPaths of datasets (that can be removed if --ToKeep)" )
+  Script.registerSwitch( "", "PrintProductions", "   Print the list of productions" )
+  Script.registerSwitch( "", "Verbose", "   Print the current BK tree and the trees from the retention table" )
+  Script.registerSwitch( "", "NoEventType", "   Stops printing the tree at Processing Pass level" )
+
+  Script.parseCommandLine( ignoreErrors = True )
+  execute()
 
 
 

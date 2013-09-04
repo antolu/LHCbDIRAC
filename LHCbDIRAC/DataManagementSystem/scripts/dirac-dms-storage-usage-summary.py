@@ -281,7 +281,10 @@ def execute( unit, minimum ):
   if users:
     dirs += ['/lhcb/user/%s/%s' % ( user[0], user ) for user in users]
   prods = None
-  fileTypes = dmScript.getOption( 'FileType' )
+  bkQuery = dmScript.getBKQuery()
+  # print bkQuery
+  fileTypes = bkQuery.getFileTypeList()
+  # print fileTypes
   if type( fileTypes ) != type( [] ):
     fileTypes = [fileTypes]
   if not dirs:
