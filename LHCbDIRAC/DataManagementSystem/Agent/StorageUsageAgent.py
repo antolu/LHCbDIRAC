@@ -253,16 +253,21 @@ class StorageUsageAgent( AgentModule ):
     ''' calculate nb of files and size of :dirPath:, remove it if it's empty '''
     subDirs = directoryMetadata['SubDirs']
     closedDirs = directoryMetadata['ClosedDirs']
+    ##############################
+    # FIXME: Until we understand while closed dirs are not working...
+    ##############################
+    closedDirs = []
     prStr = "%s: found %s sub-directories" % ( dirPath, len( subDirs ) if subDirs else 'no' )
     if closedDirs:
       prStr += ", %s are closed (ignored)" % len( closedDirs )
-      subDirs = list( set( subDirs ) - set( closedDirs ) )
+      for closedDir in closedDirs:
+        subDirs.pop( closedDir, None )
     numberOfFiles = long( directoryMetadata['Files'] )
     totalSize = long( directoryMetadata['TotalSize'] )
     if numberOfFiles:
-      prStr += "and %s files( %s bytes )" % ( numberOfFiles, totalSize )
+      prStr += " and %s files (%s bytes)" % ( numberOfFiles, totalSize )
     else:
-      prStr += "and no files"
+      prStr += " and no files"
     self.log.notice( prStr )
     if closedDirs:
       self.log.verbose( "Closed dirs:\n %s" % '\n'.join( closedDirs ) )
