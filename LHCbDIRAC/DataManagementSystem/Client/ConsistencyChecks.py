@@ -52,6 +52,7 @@ class ConsistencyChecks( object ):
     self._fileType = []
     self._fileTypesExcluded = []
     self._lfns = []
+    self.noLFC = False
     self.directories = []
 
     # Accessory elements
@@ -80,6 +81,10 @@ class ConsistencyChecks( object ):
     self.inBKNotInFC = []
     self.inFCNotInBK = []
     self.removedFiles = []
+
+    self.commonAncestors = {}
+    self.multipleDescendants = {}
+    self.ancestors = {}
 
   ################################################################################
 
@@ -343,6 +348,87 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
+  def checkAncestors( self ):
+    ''' Check if a set of files don't share a common ancestor
+    '''
+    if self.lfns:
+      files = self.lfns
+      bkQuery = None
+      fileType = []
+    else:
+      try:
+        bkQuery = self.__getBKQuery()
+      except ValueError, e:
+        return S_ERROR( e )
+      gLogger.always( "Getting files for BK query: %s" % bkQuery )
+      fileType = bkQuery.getFileTypeList()
+      files = self._getBKFiles( bkQuery )
+
+    if len( fileType ) == 1:
+      fileTypes = { fileType[0]: set( files )}
+      getFileType = False
+    else:
+      fileTypes = {}
+      getFileType = True
+
+    chunkSize = 100
+    ancestors = {}
+    listAncestors = []
+    self.__write( 'Getting ancestors for %d files (chunks of %d)' % ( len( files ), chunkSize ) )
+    for lfnChunk in breakListIntoChunks( files, chunkSize ):
+      self.__write( '.' )
+      if getFileType:
+        res = self.bkClient.getFileMetadata( lfnChunk )
+        if not res['OK']:
+          gLogger.fatal( 'Error getting files metadata', res['Message'] )
+          DIRAC.exit( 2 )
+        for lfn, metadata in res['Value']['Successful'].items():
+          fileType = metadata['FileType']
+          fileTypes.setdefault( fileType, set() ).add( lfn )
+      res = self.bkClient.getFileAncestors( lfnChunk, depth = 10 )
+      if not res['OK']:
+        gLogger.fatal( 'Error getting file ancestors', res['Message'] )
+        DIRAC.exit( 2 )
+      for lfn, anc in res['Value']['Successful'].items():
+        ancestors[lfn] = sorted( [ancDict['FileName'] for ancDict in anc] )
+        if not getFileType:
+          listAncestors += ancestors[lfn]
+    self.__write( '\n' )
+
+    self.ancestors = ancestors.copy()
+    self.commonAncestors = {}
+    self.multipleDescendants = {}
+    if not getFileType and len( listAncestors ) == len( set( listAncestors ) ):
+      gLogger.info( 'Found %d ancestors, no common one' % len( listAncestors ) )
+      return
+
+    gLogger.info( 'Found files with %d file types' % len( fileTypes ) )
+    for fileType in fileTypes:
+      lfns = fileTypes[fileType] & set( ancestors )
+      gLogger.info( 'File type %s, checking %d files' % ( fileType, len( lfns ) ) )
+      listAncestors = []
+      for lfn in lfns:
+        listAncestors += ancestors[lfn]
+      setAncestors = set( listAncestors )
+      if len( listAncestors ) == len( setAncestors ):
+        gLogger.info( 'Found %d ancestors for file type %s, no common one' % ( len( listAncestors ), fileType ) )
+        continue
+      # There are common ancestors
+      descendants = {}
+      # Reverse the list of ancestors
+      for lfn in lfns:
+        for anc in ancestors[lfn]:
+          descendants.setdefault( anc, [] ).append( lfn )
+      # Check if ancestor has more than one descendant
+      for anc in sorted( descendants ):
+        if len( descendants[anc] ) > 1:
+          desc = sorted( descendants[anc] )
+          gLogger.info( 'For ancestor %s, found %d descendants: %s' % ( anc, len( desc ), desc ) )
+          self.multipleDescendants[anc] = desc
+          self.commonAncestors.setdefault( ','.join( sorted( desc ) ), [] ).append( anc )
+
+  ################################################################################
+
   def _getTSFiles( self ):
     ''' Helper function - get files from the TS
     '''
@@ -451,29 +537,31 @@ class ConsistencyChecks( object ):
     chunkSize = 100 if self.transType == 'DataStripping' and len( self.fileType ) > 1 else 500
     if filesWithDescendants:
       # First check in LFC the presence of daughters
-      present, notPresent = self.getReplicasPresenceFromDirectoryScan( allDaughters ) \
-                              if len( allDaughters ) > 10 * chunkSize and \
-                                 len( inBK ) < len( allDaughters ) / 2 else \
-                            self.getReplicasPresence( allDaughters )
+      if not self.noLFC:
+        present, notPresent = self.getReplicasPresenceFromDirectoryScan( allDaughters ) \
+                                if len( allDaughters ) > 10 * chunkSize and \
+                                   len( inBK ) < len( allDaughters ) / 2 else \
+                              self.getReplicasPresence( allDaughters )
+        setPresent = set( present )
+        setNotPresent = set( notPresent )
+      else:
+        setPresent = inBK
+        setNotPresent = setAllDaughters - inBK
 
-      setPresent = set( present )
       setRealDaughters = setPresent
-      setNotPresent = set( notPresent )
-      # Get list of unique daughters
-      notPresent = list( setNotPresent )
       # Now check consistency between BK and FC for daughters
       inBKNotInFC = list( inBK & setNotPresent )
       inFCNotInBK = list( setPresent - inBK )
 
       # Now check whether the daughters without replica have a descendant
-      if notPresent:
+      if setNotPresent:
         chunkSize = 500
         startTime = time.time()
         self.__write( "Now checking descendants from %d daughters without replicas (chunks of %d) "
-                      % ( len( notPresent ), chunkSize ) )
+                      % ( len( setNotPresent ), chunkSize ) )
         # Get existing descendants of notPresent daughters
         setDaughtersWithDesc = set()
-        for lfnChunk in breakListIntoChunks( notPresent, chunkSize ):
+        for lfnChunk in breakListIntoChunks( list( setNotPresent ), chunkSize ):
           self.__write( '.' )
           while True:
             res = self.bkClient.getFileDescendants( lfnChunk, depth = 99, checkreplica = True )
@@ -891,4 +979,3 @@ class ConsistencyChecks( object ):
     """ Getter """
     return self._lfns
   lfns = property( get_lfns, set_lfns )
-
