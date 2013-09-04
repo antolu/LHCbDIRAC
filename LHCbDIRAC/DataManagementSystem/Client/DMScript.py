@@ -62,7 +62,7 @@ def convertSEs( ses ):
     seConfig = gConfig.getValue( '/Resources/StorageElementGroups/%s' % se, se )
     if seConfig != se:
       seList += [se.strip() for se in seConfig.split( ',' )]
-      #print seList
+      # print seList
     else:
       seList.append( se )
     res = gConfig.getSections( '/Resources/StorageElements' )
@@ -114,6 +114,7 @@ class DMScript():
     Script.registerSwitch( '', "StartDate=", "   Start date for the BK query", self.setStartDate )
     Script.registerSwitch( '', "EndDate=", "   End date for the BK query", self.setEndDate )
     Script.registerSwitch( '', "Visibility=", "   Set visibility (Yes, No, All) [Yes]", self.setVisibility )
+    Script.registerSwitch( '', 'ReplicaFlag=', '   Set visibility (Yes, No, All) [Yes]', self.setReplicaFlag )
 
 
   def registerNamespaceSwitches( self, action = 'search [ALL]' ):
@@ -178,7 +179,7 @@ class DMScript():
       for ( i, j ) in items:
         try:
           j = int( j )
-        except ValueError:
+        except:
           pass
         if i in self.bkFields + self.extraBKitems and j:
           self.bkQueryDict[i] = j
@@ -202,6 +203,14 @@ class DMScript():
       self.options['Visibility'] = arg
     else:
       gLogger.error( 'Unknown visibility flag: %s' % arg )
+      return DIRAC.exit( 1 )
+    return DIRAC.S_OK()
+
+  def setReplicaFlag( self, arg ):
+    if arg.lower() in ( 'yes', 'no', 'all' ):
+      self.options['ReplicaFlag'] = arg
+    else:
+      gLogger.error( 'Unknown replica flag: %s' % arg )
       return DIRAC.exit( 1 )
     return DIRAC.S_OK()
 
@@ -291,6 +300,8 @@ class DMScript():
       self.bkQuery.setOption( 'StartDate', self.options['StartDate'] )
     if 'EndDate' in self.options:
       self.bkQuery.setOption( 'EndDate', self.options['EndDate'] )
+    if 'ReplicaFlag' in self.options:
+      self.bkQuery.setOption( 'ReplicaFlag', self.options['ReplicaFlag'] )
     return self.bkQuery
 
   def getRequestID( self, prod = None ):
