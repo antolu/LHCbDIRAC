@@ -12,7 +12,7 @@ from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
 
 if __name__ == "__main__":
-  site = 'DIRAC.BOINC.ch'
+  site = 'BOINC.World.org'
   status = ["Running"]
   workerNode = None
   since = None
@@ -32,9 +32,12 @@ if __name__ == "__main__":
     if switch[0] == 'Site':
       site = switch[1]
     elif switch[0] == 'Status':
-      status = switch[1].split( ',' )
+      if switch[1].lower() == 'all':
+        status = [None]
+      else:
+        status = switch[1].split( ',' )
     elif switch[0] == 'WorkerNode':
-      workerNode = switch[1]
+      workerNode = switch[1].split( ',' )
     elif switch[0] == 'Full':
       full = True
     elif switch[0] == 'Since':
@@ -71,7 +74,7 @@ if __name__ == "__main__":
   for stat in status:
     res = dirac.selectJobs( site = site, date = since, status = stat )
     if not res['OK']:
-      gLogger.error( 'Error selectin jobs', res['Message'] )
+      gLogger.error( 'Error selecting jobs', res['Message'] )
       DIRAC.exit( 1 )
     jobs += [int( job ) for job in res['Value']]
   if not jobs:
@@ -87,14 +90,16 @@ if __name__ == "__main__":
   for job in jobs:
     res = monitoring.getJobParameter( job, 'HostName' )
     if res['OK']:
-        node = res['Value'].get( 'HostName', 'Unknown' )
-        if workerNode:
-          if workerNode != node:
-            continue
-          allJobs.append( job )
-        result.setdefault( job, {} )['Status'] = stat
-        result[job]['Node'] = node
-        wnJobs[node] = wnJobs.setdefault( node, 0 ) + 1
+      node = res['Value'].get( 'HostName', 'Unknown' )
+      if workerNode:
+        if node not in workerNode:
+          continue
+        allJobs.append( job )
+      if full:
+        allJobs.append( job )
+      result.setdefault( job, {} )['Status'] = stat
+      result[job]['Node'] = node
+      wnJobs[node] = wnJobs.setdefault( node, 0 ) + 1
 
   # If necessary get jobs' status
   if allJobs:
@@ -115,7 +120,7 @@ if __name__ == "__main__":
                  jobMinorStatus.get( job, {} ).get( 'MinorStatus', 'Unknown' ) + '; ' + \
                  jobApplicationStatus.get( job, {} ).get( 'ApplicationStatus', 'Unknown' )
         result[job]['Status'] = status
-  else:
+  elif not workerNode:
     allJobs = jobs
 
   # Print out result
@@ -128,10 +133,10 @@ if __name__ == "__main__":
                                                for node in sorted( wnJobs,
                                                                    cmp = ( lambda n1, n2: ( wnJobs[n2] - wnJobs[n1] ) ) )] ) )
   if full:
-    for job in sorted( allJobs, reverse = True ):
+    for job in [job for job in sorted( allJobs, reverse = True )]:
       status = result[job]['Status']
-      if workerNode:
-        gLogger.always( '%s %s' % ( job, status ) )
+      node = result[job]['Node']
+      if not workerNode or len( workerNode ) > 1:
+        gLogger.always( '%s: %s - %s' % ( node, job, status ) )
       else:
-        node = result[job]['Node']
-        gLogger.always( '%s %s at %s' % ( job, status, node ) )
+        gLogger.always( '%s - %s' % ( job, status ) )
