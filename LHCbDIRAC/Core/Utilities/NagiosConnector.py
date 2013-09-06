@@ -80,7 +80,7 @@ EOT"""
       message += "serviceURI: %s\n" % msginfos['GridRequiredCEs']
       message += "metricStatus: %s\n" % status
       message += "summaryData: Job_ID: %s. Logfile: %s Details: %s \n" % (msginfos[ 'JOB_ID' ], 
-                        msginfos['logURL'], details)
+                        msginfos.setdefault('logURL',"could not find logURL"), details)
       currentTime = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
       message += "timestamp: %s\n" % currentTime
       message += "nagiosName: %s\n" % self.config[ 'NagiosName']

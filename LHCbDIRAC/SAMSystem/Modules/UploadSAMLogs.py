@@ -95,7 +95,7 @@ class UploadSAMLogs( ModuleBase ):
       lfnPath = '/lhcb/test/sam/%s/%s/%d' % ( ce, date, self.jobID )
 
       self.log.verbose( 'lfnPath: %s' % lfnPath )
-
+      self.workflow_commons['logURL'] =  self.logURL + lfnPath[1:]
       if not self._enableModule():
         return S_OK( 'No logs to upload' )
 
