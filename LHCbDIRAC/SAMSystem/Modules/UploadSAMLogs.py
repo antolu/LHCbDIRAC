@@ -113,6 +113,26 @@ class UploadSAMLogs( ModuleBase ):
       self.log.info( res )
 
       self.finalize( self.__class__.__name__ )
+      
+      # publish information to SAM-Nagios
+      self.nagiosConnector.readConfig()
+      self.nagiosConnector.initializeConnection()
+      self.nagiosConnector.assembleMessage(
+                            serviceURI=self.workflow_commons[ 'GridRequiredCEs' ],
+                            # if one step fails, set the status to 'CRITICAL'
+                            # in a SAMJob only OK (False) and CRITICAL (True)  are used
+                            # this function will also accept appropriate strings or numbers 0-3
+                            status='CRITICAL' not in self.workflow_commons[ 'SAMResults' ].values(),
+                            details ="Job_ID: %s. Logfile: %s Details: %s \n" % (
+                                        self.workflow_commons[ 'JOB_ID' ], 
+                                        self.workflow_commons[ 'logURL' ], 
+                                        " \n ".join(self.workflow_commons['SAMDetails'].values())
+                                        ),
+                            nagiosName='org.lhcb.DiracTest-lhcb'
+                            )                      
+      self.nagiosConnector.sendMessage()
+      self.nagiosConnector.endConnection()
+    
 
       return S_OK( 'Logs uploaded' )
 
@@ -121,12 +141,7 @@ class UploadSAMLogs( ModuleBase ):
       return S_ERROR( e )
 
     finally:
-      self.nagiosConnector.readConfig()
-      self.nagiosConnector.initializeConnection()
-      self.nagiosConnector.assembleMessage(self.workflow_commons)
-      self.nagiosConnector.sendMessage()
-      self.nagiosConnector.endConnection()
-      
+
       super( UploadSAMLogs, self ).finalize( self.version )
 
 
