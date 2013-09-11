@@ -122,7 +122,7 @@ class UploadSAMLogs( ModuleBase ):
                             # if one step fails, set the status to 'CRITICAL'
                             # in a SAMJob only OK (False) and CRITICAL (True)  are used
                             # this function will also accept appropriate strings or numbers 0-3
-                            status='CRITICAL' not in self.workflow_commons[ 'SAMResults' ].values(),
+                            status='CRITICAL' in self.workflow_commons[ 'SAMResults' ].values(),
                             details ="Job_ID: %s. Logfile: %s Details: %s \n" % (
                                         self.workflow_commons[ 'JOB_ID' ], 
                                         self.workflow_commons[ 'logURL' ], 
