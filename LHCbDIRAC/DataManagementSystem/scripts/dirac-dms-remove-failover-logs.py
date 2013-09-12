@@ -14,7 +14,7 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] <transList>' % Script.scriptName, ] ) )
 
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors=False )
+  Script.parseCommandLine( ignoreErrors = False )
 
   args = Script.getPositionalArgs()
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     def __init( self ):
       ReplicaManager.__init__( self )
 
-    def removeDirectory( self, dir, seList=[] ):
+    def removeDirectory( self, dir, seList = [] ):
       if not seList:
         seList = gConfig.getValue( 'Resources/StorageElementGroups/SE_Cleaning_List', [] )
       failed = []
@@ -68,7 +68,7 @@ if __name__ == "__main__":
           failed.append( se )
       if failed:
         return DIRAC.S_ERROR( "Failed to remove directory at %s" % failed )
-      res = self.removeCatalogDirectory( dir, recursive=True, singleFile=True )
+      res = self.removeCatalogDirectory( dir, recursive = True, singleFile = True )
       if not res['OK']:
         return res
       return DIRAC.S_OK()
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     def __removePhysicalReplica( self, storageElementName, pfnsToRemove ):
       gLogger.verbose( "ReplicaManager.__removePhysicalReplica: Attempting to remove %s pfns at %s." % ( len( pfnsToRemove ),
                                                                                                          storageElementName ) )
-      storageElement = StorageElement( storageElementName, overwride=True )
+      storageElement = StorageElement( storageElementName )
       res = storageElement.isValid()
       if not res['OK']:
         errStr = "ReplicaManager.__removePhysicalReplica: The storage element is not currently valid."
@@ -120,10 +120,10 @@ if __name__ == "__main__":
         return S_ERROR( errStr )
       oDataOperation = self.__initialiseAccountingObject( 'removePhysicalReplica', storageElementName, len( pfnsToRemove ) )
       oDataOperation.setStartTime()
-      start = time.time()
+      startTime = time.time()
       res = storageElement.removeFile( pfnsToRemove )
       oDataOperation.setEndTime()
-      oDataOperation.setValueByKey( 'TransferTime', time.time() - start )
+      oDataOperation.setValueByKey( 'TransferTime', time.time() - startTime )
       if not res['OK']:
         oDataOperation.setValueByKey( 'TransferOK', 0 )
         oDataOperation.setValueByKey( 'FinalStatus', 'Failed' )
@@ -137,7 +137,7 @@ if __name__ == "__main__":
         infoStr = "ReplicaManager.__removePhysicalReplica: Successfully issued accounting removal request."
         gLogger.info( infoStr )
         for surl, value in res['Value']['Successful'].items():
-          ret = storageElement.getPfnForProtocol( surl, self.registrationProtocol, withPort=False )
+          ret = storageElement.getPfnForProtocol( surl, self.registrationProtocol, withPort = False )
           if not ret['OK']:
             res['Value']['Successful'][surl] = surl
           else:
@@ -215,7 +215,7 @@ if __name__ == "__main__":
         return S_ERROR( 'Failed to obtain directory PFN from LFNs' )
       storageDirectory = res['Value']['Successful'].values()[0]
       print storageDirectory, storageElement
-      res = self.getStorageFileExists( storageDirectory, storageElement, singleFile=True )
+      res = self.getStorageFileExists( storageDirectory, storageElement, singleFile = True )
       if not res['OK']:
         gLogger.error( "Failed to obtain existance of directory", res['Message'] )
         return res
@@ -223,7 +223,7 @@ if __name__ == "__main__":
       if not exists:
         gLogger.info( "The directory %s does not exist at %s " % ( directory, storageElement ) )
         return S_OK()
-      res = self.removeStorageDirectory( storageDirectory, storageElement, recursive=True, singleDirectory=True )
+      res = self.removeStorageDirectory( storageDirectory, storageElement, recursive = True, singleDirectory = True )
       if not res['OK']:
         gLogger.error( "Failed to remove storage directory", res['Message'] )
         return res
@@ -283,7 +283,7 @@ if __name__ == "__main__":
         sys.stdout.write( '-' )
         sys.stdout.flush()
         res = rm.removePhysicalReplica( se, lfns )
-        #print se, lfns, res['Value']
+        # print se, lfns, res['Value']
         if not res['OK']:
           print "\nError removing %d files from %s" % ( len( lfns ), se ), res['Message']
           notOKFiles += [f for f in lfns if f not in notOKFiles]
@@ -293,7 +293,7 @@ if __name__ == "__main__":
           for f in res['Value']['Successful']:
             pfn = replicas[f][se]
             replicaDict[f] = {'SE':se, 'PFN':pfn}
-          #print replicaDict
+          # print replicaDict
           res = rm.fileCatalogue.removeReplica( replicaDict )
           if not res['OK']:
             print '\nError removing %d replicas from catalog' % len( replicaDict ), res['Message']
@@ -301,21 +301,21 @@ if __name__ == "__main__":
             notOKFiles += [f for f in replicaDict if f in res['Value']['Failed']]
 
       okFiles = [f for f in files if f not in notOKFiles]
-      #print okFiles
+      # print okFiles
       removedFiles += len( okFiles )
       failedFiles += len( notOKFiles )
       # Now remove the files from catalog
       res = rm.fileCatalogue.removeFile( okFiles )
-      #print res
+      # print res
       if not res['OK']:
         print "\nError removing %d files from catalog:" % len( okFiles ), res['Message']
       else:
         filesInDir -= len( okFiles )
-    #print filesInDir, 'files remaining in', dir
+    # print filesInDir, 'files remaining in', dir
     if filesInDir == 0:
       sys.stdout.write( '_' )
       sys.stdout.flush()
-      #res = rm.removeDirectory( dir, ses )
+      # res = rm.removeDirectory( dir, ses )
       res = rm.cleanLogicalDirectory( dir )
       if not res['OK']:
         print "\nError removing directory %s" % dir, res['Message']
