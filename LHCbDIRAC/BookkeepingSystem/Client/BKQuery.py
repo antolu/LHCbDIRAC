@@ -25,8 +25,9 @@ class BKQuery():
     self.__bkClient = BookkeepingClient()
     bkPath = ''
     bkQueryDict = {}
-    self.__bkFileTypes = []
-    self.__exceptFileTypes = []
+    self.__bkFileTypes = set()
+    self.__exceptFileTypes = set()
+    self.__fakeAllDST = 'ZZZZZZZZALL.DST'
     if isinstance( bkQuery, BKQuery ):
       bkQueryDict = bkQuery.getQueryDict().copy()
     elif type( bkQuery ) == type( {} ):
@@ -60,7 +61,7 @@ class BKQuery():
                                                                                          str( fileTypes ),
                                                                                          visible ) )
     self.__bkQueryDict = {}
-    if not bkPath and not prods and not runs and not bkQueryDict:
+    if not bkPath and not prods and not runs and not bkQueryDict and not fileTypes:
       return {}
     if bkQueryDict:
       bkQuery = bkQueryDict.copy()
@@ -166,13 +167,13 @@ class BKQuery():
             runRange = run.split( ':' )
             if len( runRange ) == 2 and runRange[0].isdigit() and runRange[1].isdigit():
               runList += range( int( runRange[0] ), int( runRange[1] ) + 1 )
-          bkQuery['RunNumber'] = runList
+        bkQuery['RunNumber'] = runList
       else:
         runs = runs[0].split( ':' )
         if len( runs ) == 1:
           runs = runs[0].split( '-' )
           if len( runs ) == 1:
-            runs.append( runs[0] )
+            bkQuery['RunNumber'] = int( runs[0] )
       if 'RunNumber' not in bkQuery:
         try:
           if runs[0] and runs[1] and int( runs[0] ) > int( runs[1] ):
@@ -329,7 +330,7 @@ class BKQuery():
     """
     if type( fileTypes ) != type( [] ):
       fileTypes = [fileTypes]
-    self.__exceptFileTypes += fileTypes
+    self.__exceptFileTypes.update( fileTypes )
     self.setFileType( [t for t in self.getFileTypeList() if t not in fileTypes] )
 
   def getQueryDict( self ):
@@ -409,49 +410,52 @@ class BKQuery():
       bkTypes = self.getBKFileTypes()
       gLogger.verbose( 'BKQuery.__fileType: bkTypes %s' % str( bkTypes ) )
       if bkTypes:
-        fileTypes = [t for t in bkTypes if t not in self.__exceptFileTypes]
+        fileTypes = list( set( bkTypes ) - self.__exceptFileTypes )
       else:
         fileTypes = []
-    expandedTypes = []
+    expandedTypes = set()
     # print "Requested", fileTypes
     for fileType in fileTypes:
       if fileType.lower() == 'all.hist':
         allRequested = False
-        expandedTypes += [t for t in self.__exceptFileTypes + self.__bkFileTypes if t.endswith( 'HIST' )]
+        expandedTypes.update( [t for t in self.__exceptFileTypes.union( self.__bkFileTypes )
+                              if t.endswith( 'HIST' )] )
       elif fileType.lower().find( "all." ) == 0:
         ext = '.' + fileType.split( '.' )[1]
         fileType = []
         if allRequested == None:
           allRequested = True
-        expandedTypes += [t for t in self.getBKFileTypes() if t.endswith( ext ) and t not in self.__exceptFileTypes]
+        expandedTypes.update( [t for t in set( self.getBKFileTypes() ) - self.__exceptFileTypes
+                              if t.endswith( ext )] )
       else:
-        expandedTypes.append( fileType )
+        expandedTypes.add( fileType )
     # Remove __exceptFileTypes only if not explicitly required
     # print "Obtained", fileTypes, expandedTypes
     gLogger.verbose( "BKQuery.__fileType: requested %s, expanded %s, except %s" % ( allRequested,
                                                                                     expandedTypes,
                                                                                     self.__exceptFileTypes ) )
-    if allRequested or not [t for t in self.__exceptFileTypes if t in expandedTypes]:
-      expandedTypes = [t for t in expandedTypes if t not in self.__exceptFileTypes and t in self.__bkFileTypes]
-    gLogger.verbose( "BKQuery.__fileType: result %s" % str( expandedTypes ) )
+    if allRequested or not expandedTypes & self.__exceptFileTypes :
+      expandedTypes = ( expandedTypes & self.__bkFileTypes ) - self.__exceptFileTypes
+    gLogger.verbose( "BKQuery.__fileType: result %s" % sorted( expandedTypes ) )
     if len( expandedTypes ) == 1 and not returnList:
-      return expandedTypes[0]
+      return list( expandedTypes )[0]
     else:
-      return expandedTypes
+      return list( expandedTypes )
 
   def __getAllBKFileTypes( self ):
     """
     Returns the file types from the bookkeeping database
     """
     if not self.__bkFileTypes:
+      self.__bkFileTypes = set( [self.__fakeAllDST] )
       res = self.__bkClient.getAvailableFileTypes()
       if res['OK']:
         dbresult = res['Value']
         for record in dbresult['Records']:
           if record[0].endswith( 'HIST' ) or record[0].endswith( 'ETC' ) or record[0] == 'LOG' or record[0].endswith( 'ROOT' ):
-            self.__exceptFileTypes.append( record[0] )
+            self.__exceptFileTypes.add( record[0] )
           else:
-            self.__bkFileTypes.append( record[0] )
+            self.__bkFileTypes.add( record[0] )
 
   def getLFNsAndSize( self ):
     """
@@ -465,7 +469,7 @@ class BKQuery():
       print "***** ERROR ***** Error getting dataset from BK for %s:" % self.__bkQueryDict, res['Message']
     else:
       lfns = res['Value']
-      exceptFiles = self.__exceptFileTypes
+      exceptFiles = list( self.__exceptFileTypes )
       if exceptFiles and not self.__bkQueryDict.get( 'FileType' ):
         res = self.__bkClient.getFiles( BKQuery( self.__bkQueryDict ).setOption( 'FileType', exceptFiles ) )
         if res['OK']:
@@ -728,7 +732,17 @@ class BKQuery():
           res = res['Value']
           ind = res['ParameterNames'].index( 'FileTypes' )
           fileTypes = [rec[ind] for rec in res['Records'] if rec[ind] not in self.__exceptFileTypes]
-    return self.__fileType( fileTypes, returnList = True )
+    if 'ALL.DST' in fileTypes:
+      fileTypes.remove( 'ALL.DST' )
+      fileTypes.append( self.__fakeAllDST )
+    # print 'FileTypes1', fileTypes
+    fileTypes = self.__fileType( fileTypes, returnList = True )
+    # print 'FileTypes2', fileTypes
+    if self.__fakeAllDST in fileTypes:
+      fileTypes.remove( self.__fakeAllDST )
+      fileTypes.append( 'ALL.DST' )
+    # print 'FileTypes3', fileTypes
+    return fileTypes
 
   def getBKProcessingPasses( self, queryDict = None ):
     """
