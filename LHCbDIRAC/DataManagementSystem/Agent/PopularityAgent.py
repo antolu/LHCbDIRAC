@@ -3,28 +3,29 @@
 ########################################################################
 """ :mod: PopularityAgent
     =====================
- 
+
     .. module: PopularityAgent
     :synopsis: The Popularity Agent creates reports about per LFC directory data usage.
 
-    The Popularity Agent creates reports about per LFC directory data usage, based on the 
-    StorageUsageDB/Popularity table. Then it creates an accounting record for each directory, 
+    The Popularity Agent creates reports about per LFC directory data usage, based on the
+    StorageUsageDB/Popularity table. Then it creates an accounting record for each directory,
     adding all the relevant directory metadata, obtained from the StorageUsageDB/DirMetadata table.
     The accounting records are stored in the AccountingDB and then displayed via the web portal.
 """
 # imports
 import os
 from datetime import datetime, timedelta
-## from DIRAC
+# # from DIRAC
 from DIRAC  import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities import Time
 from LHCbDIRAC.AccountingSystem.Client.Types.Popularity import Popularity
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 from DIRAC.Core.DISET.RPCClient import RPCClient
-## from LHCbDIRAC
+# # from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient import DataUsageClient
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 
 __RCSID__ = "$Id$"
 
@@ -33,17 +34,17 @@ AGENT_NAME = "DataManagement/PopularityAgent"
 class PopularityAgent( AgentModule ):
   """
   .. class:: PopularityAgent
-  
+
   """
-  ## DataUsageClient
+  # # DataUsageClient
   __dataUsageClient = None
-  ## StorageUsageDB instance or DMS/DataUsage RPS client 
+  # # StorageUsageDB instance or DMS/DataUsage RPS client
   __stDB = None
-  ## BKK Client
+  # # BKK Client
   __bkClient = None
-  ## work directory
+  # # work directory
   __workDirectory = None
-  ## counter for records to be sent to the accouting
+  # # counter for records to be sent to the accouting
   numPopRows = None
 
   def initialize( self ):
@@ -51,138 +52,143 @@ class PopularityAgent( AgentModule ):
     self.am_setOption( 'PollingTime', 43200 )
     if self.am_getOption( 'DirectDB', False ):
       self.__stDB = StorageUsageDB()
-      #self.bkClient = BookkeepingClient()#the necessary method is still not available in Bookk. client
+      # self.bkClient = BookkeepingClient()#the necessary method is still not available in Bookk. client
     else:
       self.__stDB = RPCClient( 'DataManagement/DataUsage' )
       timeout = 600
-      self.__bkClient = RPCClient('Bookkeeping/BookkeepingManager', timeout=timeout)
+    self.__bkClient = BookkeepingClient()
     self.__dataUsageClient = DataUsageClient()
-    self.__workDirectory =  self.am_getOption( "WorkDirectory" )
+    self.__workDirectory = self.am_getOption( "WorkDirectory" )
     if not os.path.isdir( self.__workDirectory ):
       os.makedirs( self.__workDirectory )
-    gLogger.info( "Working directory is %s" % self.__workDirectory )
-    self.timeIntervalForPopularityRecords = self.am_getOption( 'timeIntervalForPopularityRecords', 1 ) # by default, collects raw records from Popularity table inserted in the last day
-    
+    self.log.info( "Working directory is %s" % self.__workDirectory )
+    self.timeInterval = self.am_getOption( 'timeIntervalForPopularityRecords', 1 )  # by default, collects raw records from Popularity table inserted in the last day
+    self.queryTimeout = self.am_getOption( 'queryTimeout', 3600 )
+    self.cacheMetadata = {}
+    self.limitForCommit = self.am_getOption( "LimitForCommit", 1000 )
+
     return S_OK()
 
-#.........................................................................................
+# .........................................................................................
 
   def execute( self ):
     """ Main loop of Popularity agent """
-   
+
     now = datetime.now()
-    endTime = datetime(now.year, now.month, now.day, 0, 0, 0)
-    startTime = endTime - timedelta(days=self.timeIntervalForPopularityRecords)
+    endTime = datetime( now.year, now.month, now.day, 0, 0, 0 )
+    startTime = endTime - timedelta( days = self.timeInterval )
     endTimeQuery = endTime.isoformat()
     startTimeQuery = startTime.isoformat()
     # query all traces in popularity in the time rage startTime,endTime and status =new
-    # the condition to get th etraces is the AND of the time range and the status new 
-    gLogger.info("Querying Pop db to retrieve entries in time range %s - %s " % ( startTimeQuery, endTimeQuery ) )
+    # the condition to get th etraces is the AND of the time range and the status new
+    self.log.info( "Querying Pop db to retrieve entries in time range %s - %s " %
+                  ( startTimeQuery, endTimeQuery ) )
     status = 'New'
-    res = self.__dataUsageClient.getDataUsageSummary( startTimeQuery, endTimeQuery, status )
+    res = self.__dataUsageClient.getDataUsageSummary( startTimeQuery, endTimeQuery, status,
+                                                      timeout = self.queryTimeout )
     if not res['OK']:
-      gLogger.error("Error querying Popularity table.. %s" % res['Message'] )
+      self.log.error( "Error querying Popularity table.. %s" % res['Message'] )
       return S_ERROR( res['Message'] )
     val = res[ 'Value' ]
-    self.log.verbose("val %s " % (val,) )
-    gLogger.info("Retrieved %d entries from Pop table" % len( val ))
+    self.log.verbose( "val %s " % ( val, ) )
+    self.log.info( "Retrieved %d entries from Pop table" % len( val ) )
     # Build popularity report, and store the Ids in a  list:
-    idList = []  
+    idList = set()
     traceDict = {}
     for row in val:
-      self.log.verbose("row: %s" % (row,) )
+      self.log.verbose( "row: %s" % str( row ) )
       rowId, dirLfn, site, count, insertTime = row
       if rowId not in idList:
-        idList.append( rowId )
+        idList.add( rowId )
       else:
-        gLogger.error("Same Id found twice! %d " % rowId )
+        self.log.error( "Same Id found twice! %d " % rowId )
+        continue
+      if dirLfn.startswith( '/lhcb/user/' ):
+        self.log.verbose( "Private user directory. No metadata stored in Bkk %s " % dirLfn )
         continue
       # get the day (to do )
-      dayBin = self.computeDayBin( startTime, insertTime )
-      if dayBin not in traceDict.keys():
-        traceDict[ dayBin ] = {}
-      if dirLfn not in traceDict[ dayBin ].keys():
-        traceDict[ dayBin ][ dirLfn ] = {}
-      if site not in  traceDict[ dayBin ][ dirLfn ].keys():
-        traceDict[ dayBin ][ dirLfn ][ site ] = 0
-      traceDict[ dayBin ][ dirLfn ][ site ] += count
+      dayBin = ( insertTime - startTime ).days
+      traceDict[ dayBin ][ dirLfn ][ site ] = \
+        traceDict.setdefault( dayBin, {} ).setdefault( dirLfn, {} ). setdefault( site, 0 ) + count
 
     # print a summary
-    dayList = traceDict.keys()
-    dayList.sort()
-    for day in dayList: 
-      gLogger.info( " ###### day %s (starting from %s ) " % (day, startTimeQuery) )
-      for lfn in traceDict[ day ].keys():
-        gLogger.info( " ---- lfn %s " % lfn )
-        for site in traceDict[ day ][ lfn ].keys():
-          gLogger.info( " -------- site  %s  count: %d " %( site , traceDict[ day ][ lfn ][ site ] ))
-    
-    
+    dayList = sorted( traceDict )
+    for day in dayList:
+      self.log.info( " ###### day %s (starting from %s ) " % ( day, startTimeQuery ) )
+      self.log.info( "---- %d directories touched:" % len( traceDict[day] ) )
+      for lfn in traceDict[ day ]:
+        self.log.verbose( " ---- lfn %s " % lfn )
+        for site in traceDict[ day ][ lfn ]:
+          self.log.verbose( " -------- site  %s  count: %d " % ( site , traceDict[ day ][ lfn ][ site ] ) )
 
-    gLogger.info( "Retrieve meta-data information for each directory " )
+
+
+    self.log.info( "Retrieve meta-data information for each directory " )
     now = Time.dateTime()
-    self.numPopRows = 0 # keep a counter of the records to send to accounting data-store
-    for day in traceDict.keys():
+    self.numPopRows = 0  # keep a counter of the records to send to accounting data-store
+    for day in traceDict:
       timeForAccounting = self.computeTimeForAccounting( startTime, day )
-      gLogger.info( "Processing day %s - time for accounting %s " % (day, timeForAccounting ) )
-      for dirLfn in traceDict[ day ].keys():
-      #did = configName = configVersion = conditions = processingPass = eventType = fileType = production = "na"
+      self.log.info( "Processing day %s - time for accounting %s " % ( day, timeForAccounting ) )
+      for dirLfn in traceDict[ day ]:
+      # did = configName = configVersion = conditions = processingPass = eventType = fileType = production = "na"
       # retrieve the directory meta-data from the DirMetadata table
-        gLogger.info( "Processing dir %s " % dirLfn )
-        if dirLfn.startswith('/lhcb/user/'):
-          gLogger.info("Private user directory. No metadata stored in Bkk %s " % dirLfn )
-          continue
+        self.log.info( "Processing dir %s " % dirLfn )
 
-        dirList = [ dirLfn ]
-        # this could be done in a bulk query for a list of directories... TBD
-        res = self.__dataUsageClient.getDirMetadata( dirList ) 
-        if not res[ 'OK' ]:
-          gLogger.error("Error retrieving directory meta-data %s " % res['Message'] )
-          continue
-        if not res['Value']:
-          self.log.warn( "No result returned for directory %s from the getDirMetadata method" % dirList )
-          gLogger.info( "Query Bookkeeping to retrieve '%s' folder metadata and store them in the cache" % dirList ) 
-          res = self.__bkClient.getDirectoryMetadata( dirLfn )
+        metaForDir = self.cacheMetadata.get( dirLfn )
+        if not metaForDir:
+          dirList = [ dirLfn ]
+          # this could be done in a bulk query for a list of directories... TBD
+          res = self.__dataUsageClient.getDirMetadata( dirList )
           if not res[ 'OK' ]:
-            gLogger.error( "Failed to query Bookkeeping %s" %res[ 'Message' ] )
+            self.log.error( "Error retrieving directory meta-data %s " % res['Message'] )
             continue
-          gLogger.info( "Successfully queried Bookkeeping, result: %s " % res )
-          if not res['Value']:
-            self.log.warn( "Directory is not registered in Bookkeeping! %s " % dirLfn )
-            configName = configVersion = conditions = processingPass = eventType = fileType = production = "na" 
-          else:
-            metadata = res['Value'][ 0 ]
-            configName = metadata[ 'ConfigName' ]
-            configVersion = metadata[ 'ConfigVersion' ]
-            conditions = metadata[ 'ConditionDescription' ]
-            processingPass = metadata[ 'ProcessingPass' ]
-            eventType = metadata[ 'EventType' ]
-            fileType = metadata[ 'FileType' ]
-            production = metadata[ 'Production' ]
-        
-            gLogger.info( "Cache this entry in DirMetadata table.." )
-            dirMetadataDict = {}
-            dirMetadataDict[ dirLfn ] = metadata
-            res = self.__dataUsageClient.insertToDirMetadata( dirMetadataDict )
+          if not res['Value'] or not res['Value'].get( dirLfn ):
+            self.log.info( "Cache missed: query BK to retrieve '%s' metadata and store  cache" % dirList )
+            res = self.__bkClient.getDirectoryMetadata( dirList )
             if not res[ 'OK' ]:
-              gLogger.error( "Failed to insert metadata in DirMetadata table! %s " % res[ 'Message' ] )
+              self.log.error( "Failed to query Bookkeeping %s" % res[ 'Message' ] )
+              metadata = None
             else:
-              gLogger.info( "Successfully inserted metadata for directory %s in DirMetadata table " % dirMetadataDict )
-              gLogger.verbose( "result: %s " % res )
-  
+              self.log.info( "Successfully queried Bookkeeping, result: %s " % res )
+              metadata = res['Value'].get( 'Successful', {} ).get( dirLfn, [{}] )[0]
+            if not metadata:
+              self.log.warn( "Directory is not registered in Bookkeeping! %s " % dirLfn )
+              configName = configVersion = conditions = processingPass = eventType = fileType = production = "na"
+            else:
+              configName = metadata[ 'ConfigName' ]
+              configVersion = metadata[ 'ConfigVersion' ]
+              conditions = metadata[ 'ConditionDescription' ]
+              processingPass = metadata[ 'ProcessingPass' ]
+              eventType = metadata[ 'EventType' ]
+              fileType = metadata[ 'FileType' ]
+              production = metadata[ 'Production' ]
+
+              self.log.info( "Cache this entry in DirMetadata table.." )
+              res = self.__dataUsageClient.insertToDirMetadata( { dirLfn : metadata} )
+              if not res[ 'OK' ]:
+                self.log.error( "Failed to insert metadata in DirMetadata table! %s " % res[ 'Message' ] )
+              else:
+                self.log.info( "Successfully inserted metadata for directory %s in DirMetadata table " % dirLfn )
+                self.log.verbose( "result: %s " % res )
+
+          else:
+            self.log.info( "Directory %s was cached in DirMetadata table" % dirLfn )
+            try:
+              __did, configName, configVersion, conditions, \
+                processingPass, eventType, fileType, production = res['Value'][dirLfn]
+            except:
+              self.log.error( "Error decoding directory cached information", res['Value'][dirLfn] )
+          self.cacheMetadata[dirLfn] = ( configName, configVersion, conditions, processingPass, eventType, fileType, production )
         else:
-          gLogger.info( "Directory %s was cached in DirMetadata table" % dirLfn )     
-          for row in res['Value']:
-            did, configName, configVersion, conditions, processingPass, eventType, fileType, production = row
-        
+          configName, configVersion, conditions, processingPass, eventType, fileType, production = metaForDir
+
         for site in traceDict[ day ][ dirLfn ]:
           usage = traceDict[ day ][ dirLfn ][ site ]
-          gLogger.info("%s %s %d" %( dirLfn, site, usage ))
           # compute the normalized usage, dividing by the number of files in the directory:
-          normUsage = usage # to be done! after we have decided how to normalize
+          normUsage = usage  # to be done! after we have decided how to normalize
           # Build record for the accounting
           popRecord = Popularity()
-          popRecord.setStartTime( timeForAccounting ) 
+          popRecord.setStartTime( timeForAccounting )
           popRecord.setEndTime( timeForAccounting )
           popRecord.setValueByKey( "DataType", configName )
           popRecord.setValueByKey( "Activity", configVersion )
@@ -196,50 +202,42 @@ class PopularityAgent( AgentModule ):
           popRecord.setValueByKey( "NormalizedUsage", normUsage )
           res = gDataStoreClient.addRegister( popRecord )
           if not res[ 'OK']:
-            gLogger.error( "ERROR: addRegister returned: %s" % res['Message'] )
+            self.log.error( "ERROR: addRegister returned: %s" % res['Message'] )
             continue
           self.numPopRows += 1
-          gLogger.info(">>> Sending record to accounting for: %s %s %s %s %s %s %s %s %s %d %d " % (timeForAccounting, configName, configVersion, fileType, production, processingPass, conditions, eventType, site, usage, normUsage ) )
-    gLogger.info(" %d records to be sent to Popularity accounting" %self.numPopRows )        
-    res = gDataStoreClient.commit()
-    if not res[ 'OK' ]:
-      gLogger.error( "ERROR: committing Popularity records: %s " % res )
-      return S_ERROR( res )
-    else:
-      gLogger.info( "%s records for Popularity type successfully committed" %self.numPopRows )
-      # then set the status to Used
-      gLogger.info("Set the status to Used for %d entries" % len( idList ) )
-      res = self.__dataUsageClient.updatePopEntryStatus( idList, 'Used' )
-
+          self.log.info( ">>> Sending record to accounting for: %s %s %s %s %s %s %s %s %s %d %d " % \
+                        ( timeForAccounting, configName, configVersion, fileType,
+                          production, processingPass, conditions, eventType, site, usage, normUsage ) )
+          if self.numPopRows > self.limitForCommit:
+            self.log.info( " %d records being sent to Popularity accounting" % self.numPopRows )
+            res = gDataStoreClient.commit()
+            if not res[ 'OK' ]:
+              self.log.error( "ERROR: committing Popularity records", res['Message'] )
+              return S_ERROR( res )
+            else:
+              self.log.info( "%s records for Popularity type successfully committed" % self.numPopRows )
+              self.numPopRows = 0
+    # then set the status to Used
+    self.log.info( "Set the status to Used for %d entries" % len( idList ) )
+    from DIRAC.Core.Utilities.List import breakListIntoChunks
+    for idChunk in breakListIntoChunks( list( idList ), 1000 ):
+      res = self.__dataUsageClient.updatePopEntryStatus( list( idChunk ), 'Used', timeout = self.queryTimeout )
       if not res['OK']:
-        gLogger.error("Error to update status in  Popularity table.. %s" % res['Message'] )
+        self.log.error( "Error to update status in  Popularity table.. %s" % res['Message'] )
         return S_ERROR( res['Message'] )
-      else:
-        gLogger.info("Status updated to Used correctly for %s entries " % res[ 'Value' ] )
-  
+    self.log.info( "Status updated to Used correctly for %s entries " % len( idList ) )
+
     return S_OK()
- 
 
-#.........................................................................................
-
-  def computeDayBin( self, queryStartTime , creationTime):
-    """ compute the time bin for the record, from 0 to the interval time of the query 
-    """
-    gLogger.verbose( "find day bin for: %s %s " % ( queryStartTime, creationTime ) ) 
-    day = creationTime - queryStartTime
-    dayBin = day.days
-    gLogger.verbose( "day bin %s " % dayBin )
-    return dayBin
-
-#.........................................................................................
+# .........................................................................................
 
   def computeTimeForAccounting( self, startTime, day ):
-    """ Compute the time for the accounting record, starting from the start time of the query and the day bin 
-    """ 
-    gLogger.info( "find time for accounting for startTime: %s + day %s " % ( startTime, day ) )
-    daysToAdd = timedelta(days= day, hours=12 ) # add 12h just to put the value in the middle of time bin
-    gLogger.info( "timedelta to add: %s " % daysToAdd )
+    """ Compute the time for the accounting record, starting from the start time of the query and the day bin
+    """
+    self.log.verbose( "find time for accounting for startTime: %s + day %s " % ( startTime, day ) )
+    daysToAdd = timedelta( days = day, hours = 12 )  # add 12h just to put the value in the middle of time bin
+    self.log.verbose( "timedelta to add: %s " % daysToAdd )
     accTime = startTime + daysToAdd
-    gLogger.info( "accTime = %s " % accTime )
+    self.log.verbose( "accTime = %s " % accTime )
     return accTime
-    
+
