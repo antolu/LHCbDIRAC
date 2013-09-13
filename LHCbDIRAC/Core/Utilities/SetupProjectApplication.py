@@ -23,7 +23,7 @@ from DIRAC                           import gConfig, gLogger, S_ERROR, S_OK
 from DIRAC.Core.Utilities.Subprocess import shellCall       
 
 # LHCbDIRAC
-from LHCbDIRAC.Core.Utilities.DetectOS     import NativeMachine
+from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
 
 
 __RCSID__ = "$Id: $"
