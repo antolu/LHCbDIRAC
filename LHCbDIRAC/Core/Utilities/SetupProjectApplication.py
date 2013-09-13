@@ -20,11 +20,10 @@ import os
 
 # DIRAC
 from DIRAC                           import gConfig, gLogger, S_ERROR, S_OK
-from DIRAC.Core.Utilities.Subprocess import systemCall       
+from DIRAC.Core.Utilities.Subprocess import shellCall       
 
 # LHCbDIRAC
 from LHCbDIRAC.Core.Utilities.DetectOS     import NativeMachine
-from LHCbDIRAC.Core.Utilities.SoftwareArea import getLocalArea, getSharedArea
 
 
 __RCSID__ = "$Id: $"
@@ -128,15 +127,12 @@ class SetupProjectApplication( object ):
       return S_ERROR( 'Requested architecture not supported by CE' )
 
     # Check applications
-
-    siteRoot = self.getMySiteRoot()
-
+    # FIXME: do we need this ?
     self.log.info( 'CMTCONFIG  = %s' % self.sysConfig )
-    self.log.info( 'MYSITEROOT = %s' % siteRoot )
 
     for app in self.apps:
       
-      result = self.checkApplication( app, siteRoot )
+      result = self.checkApplication( app )
       
       if not result:
         return S_ERROR( '%s not Installed' % app )
@@ -144,7 +140,7 @@ class SetupProjectApplication( object ):
     return S_OK()
 
 
-  def checkApplication( self, app, siteRoot ):
+  def checkApplication( self, app ):
     """ checkApplication
   
     Method that makes use of SetupProject to check whether the software is
@@ -155,39 +151,28 @@ class SetupProjectApplication( object ):
     self.log.info( 'Searching: %s' % app )
       
     cmtEnv = os.environ
-    cmtEnv[ 'MYSITEROOT' ] = siteRoot
+    #cmtEnv[ 'MYSITEROOT' ] = siteRoot
     cmtEnv[ 'CMTCONFIG' ]  = self.sysConfig
 
     appName, appVersion = self.splitApp( app )
-    cmdTuple = [ 'SetupProject', '--silent', appName, appVersion ]   
+    cmdString = ' '.join( [ 'SetupProject.sh', appName, appVersion ] )   
     
-    self.log.info( 'Executing %s' % ' '.join( cmdTuple ) )   
-    ret = systemCall( 1800, cmdTuple, env = cmtEnv )
-   
+    self.log.info( 'Executing %s' % cmdString )   
+    ret = shellCall( 1800, cmdString, env = cmtEnv )
+    
     if not ret[ 'OK' ]:
       self.log.error( 'Software checking failed', '%s %s' % ( appName, appVersion ) )
+      self.log.error( ret[ 'Message' ] )
       return False
     if ret[ 'Value' ][ 0 ]:  # != 0
       self.log.error( 'Software checking failed with non-zero status', '%s %s' % ( appName, appVersion ) )
+      self.log.error( ret[ 'Value' ] )
       return False
 
     self.log.info( 'Found: %s' % app ) 
+    self.log.verbose( ret[ 'Value' ] )
     
     return True
-
-
-  @staticmethod 
-  def getMySiteRoot():
-    """ getMySiteRoot
-    
-    Concatenates local and shared area such that MYSITEROOT=localArea:sharedArea
-    
-    """
-    
-    localArea  = getLocalArea()
-    sharedArea = getSharedArea()
-
-    return '%s:%s' % ( localArea, sharedArea )
 
 
   @staticmethod
