@@ -85,15 +85,15 @@ def informPeople( rec, oldstate, state, author, inform ):
       if x:
         if x.find( "@" ) > 0:
           eMail = x
-        else:
-          eMail = getUserOption( author, 'Email' )
-      if eMail:
-        notification = NotificationClient()
-        res = notification.sendMail( eMail, subj,
-                                    body + footer + 'lhcb_user' + ppath,
-                                    fromAddress, True )
-        if not res['OK']:
-          gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
+        else
+          eMail = getUserOption( x, 'Email' )
+        if eMail:
+          notification = NotificationClient()
+          res = notification.sendMail( eMail, subj,
+                                       body + footer + 'lhcb_user' + ppath,
+                                       fromAddress, True )
+          if not res['OK']:
+            gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
 
   if state == 'Accepted':
     subj = "DIRAC: the Production Request %s is accepted." % reqId
