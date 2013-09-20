@@ -123,10 +123,10 @@ class UploadSAMLogs( ModuleBase ):
                             # in a SAMJob only OK (False) and CRITICAL (True)  are used
                             # this function will also accept appropriate strings or numbers 0-3
                             status='CRITICAL' in self.workflow_commons[ 'SAMResults' ].values(),
-                            details ="Job_ID: %s. Logfile: %s Details: %s \n" % (
-                                        self.workflow_commons[ 'JOB_ID' ], 
+                            details ="Job_ID: %s. Logfile: %s Details: %s " % (
+                                        self.workflow_commons[ 'logURL' ].split('/')[-1], 
                                         self.workflow_commons[ 'logURL' ], 
-                                        " \n ".join(self.workflow_commons['SAMDetails'].values())
+                                        ". ".join(self.workflow_commons['SAMDetails'].values())
                                         ),
                             nagiosName='org.lhcb.DiracTest-lhcb'
                             )                      
