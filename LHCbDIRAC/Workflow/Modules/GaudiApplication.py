@@ -133,6 +133,8 @@ class GaudiApplication( ModuleBase ):
       if self.optionsLine or self.jobType.lower() in ['user', 'sam']:
         self.log.debug( "Won't get any step outputs (USER jobs)" )
         stepOutputs = []
+        stepOutputTypes = []
+        histogram = False
       else:
         self.log.debug( "Getting the step outputs" )
         stepOutputs, stepOutputTypes, histogram = self._determineOutputs()
