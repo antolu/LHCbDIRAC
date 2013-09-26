@@ -1,7 +1,7 @@
-''' LHCb SAM Dirac Class
+""" LHCb SAM Dirac Class
 
    The Dirac SAM class inherits generic VO functionality from the Dirac API base class.
-'''
+"""
 
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteCEMapping                  import getCESiteMapping
@@ -12,21 +12,20 @@ from LHCbDIRAC.Core.Utilities.DetectOS     import NativeMachine
 from LHCbDIRAC.Interfaces.API.LHCbJob      import LHCbJob
 
 COMPONENT_NAME = 'DiracSAMAPI'
-__RCSID__      = '$Id$'
 
 class DiracSAM( Dirac ):
-  '''
+  """
     DiracSAM: extension of Dirac Interface for SAM jobs
     
     It provides the following methods:
     - getSuitableCEs
     - submitSAMJob
-  '''
+  """
 
   def __init__( self ):
-    '''
+    """
        Instantiates the Workflow object and some default parameters.
-    '''
+    """
     Dirac.__init__( self )
     
     self.opsH = Operations()
@@ -35,9 +34,9 @@ class DiracSAM( Dirac ):
     self.bannedSites = self.opsH.getValue( 'SAM/BannedSites', [] )
 
   def getSuitableCEs( self ):
-    '''
+    """
       Gets all CEs ( excluding the ones of banned sites )
-    '''
+    """
     
     self.log.info( 'Banned SAM sites are: %s' % ( ', '.join( self.bannedSites ) ) )
     
@@ -55,7 +54,7 @@ class DiracSAM( Dirac ):
     return S_OK( validCEs )
 
   def defineSAMJob( self, ce ):
-    '''
+    """
       Defines an LHCbJob which is going to be submitted to a given ce, which the
       following properties ( defaults ):
       - logLevel      : verbose
@@ -70,7 +69,7 @@ class DiracSAM( Dirac ):
       Steps:
       - GaudiApplication x 4 [ Gauss, Boole, Brunel, DaVinci ]
       - UploadSAMLogs
-    '''
+    """
 
     #Get Job properties
     appTests          = self.opsH.getValue( 'SAM/ApplicationTests', [] )
@@ -149,10 +148,10 @@ class DiracSAM( Dirac ):
     return S_OK( samJob )
   
   def submitNewSAMJob( self, ce, runLocal = False ):
-    '''
+    """
       Method that generates a NewStyle SAM Job and submits it to the given ce
       if mode is wms. If mode is local, it will be run locally
-    '''
+    """
     
     mode = ( runLocal and 'local' ) or 'wms'
     
@@ -165,10 +164,10 @@ class DiracSAM( Dirac ):
 #...............................................................................  
     
 def setInputFile( appName ):
-  '''
+  """
     Given an application, returns the extension of the files that the previous
     step generated ( only applies to SAM jobs ).
-  '''
+  """
   
   inputTypes = {
                 'Boole'   : 'SIM',
@@ -179,11 +178,11 @@ def setInputFile( appName ):
   return inputTypes.get( appName, '' )  
   
 def setOutputFile( appName, outputFilePrefix ):
-  '''
+  """
     Given an application, returns a dictionary with its formatted output.
     Note that outputDataSE is a dummy value ( this method only applies to
     SAM Jobs ). 
-  '''
+  """
 
   outputType = { 
                 'Gauss'  : 'sim', 
@@ -199,11 +198,11 @@ def setOutputFile( appName, outputFilePrefix ):
   return fileTypesOut
      
 def setSAMJobApplicationStep( samJob, appName, appOptions ):
-  '''
+  """
     Given a SAM job, sets an step ( GaudiApplication ) for the given app name.
     It also adds to the step the options passed on the appOptions dictionary
     if they apply. 
-  '''
+  """
 
   #StepDefinition
  

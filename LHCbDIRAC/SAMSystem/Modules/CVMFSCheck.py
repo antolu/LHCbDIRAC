@@ -48,8 +48,8 @@ class CVMFSCheck( ModuleBase ):
         self.workflow_commons.setdefault( 'SAMResults', {})[ 'CVMFS' ]  = 'CRITICAL'
         self.workflow_commons.setdefault( 'SAMDetails', {})[ 'CVMFS' ] = 'Environment variable VO_LHCB_SW_DIR not found'
         self.setApplicationStatus( 'CVMFS KO' )
-        self.log.error( 'Environment variable VO_LHCB_SW_DIR not found' )
-        return S_ERROR( 'Environment variable VO_LHCB_SW_DIR not found' )
+        self.log.error( "Environment variable VO_LHCB_SW_DIR not found" )
+        return S_ERROR( "Environment variable VO_LHCB_SW_DIR not found" )
   
       swDir = os.environ[ 'VO_LHCB_SW_DIR' ]
   
@@ -72,7 +72,7 @@ class CVMFSCheck( ModuleBase ):
              "CVMFS file path '%s' does not exist" % cvmfsFilePath
         self.setApplicationStatus( 'CVMFS KO' )
         self.log.error( "CVMFS file path '%s' does not exist" % cvmfsFilePath )
-        return S_ERROR( "CVMFS file path does not exist" % cvmfsFilePath )
+        return S_ERROR( "CVMFS file path does not exist" )
   
       self.workflow_commons.setdefault( 'SAMResults', {})[ 'CVMFS' ]  = 'OK'
       self.workflow_commons.setdefault( 'SAMDetails', {})[ 'CVMFS' ] = 'CVMFS is present. '  
