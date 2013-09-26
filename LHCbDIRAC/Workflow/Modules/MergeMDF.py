@@ -88,10 +88,7 @@ class MergeMDF( ModuleBase ):
         return S_ERROR( 'Problem Executing Application' )
 
       self.log.info( "Going to manage %s output" % self.applicationName )
-      try:
-        self._manageAppOutput( stepOutputs )
-      except IOError, e:
-        return S_ERROR( e )
+      self._manageAppOutput( stepOutputs )
 
       # Still have to set the application status e.g. user job case.
       self.setApplicationStatus( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )

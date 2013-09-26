@@ -130,10 +130,16 @@ class GaudiApplication( ModuleBase ):
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( eventsMax ) * ( int( self.prod_job_id ) - 1 ) + 1
 
-      if self.optionsLine or self.jobType.lower() == 'user':
-
+      if self.optionsLine or self.jobType.lower() in ['user', 'sam']:
         self.log.debug( "Won't get any step outputs (USER jobs)" )
         stepOutputs = []
+      else:
+        self.log.debug( "Getting the step outputs" )
+        stepOutputs, stepOutputTypes, histogram = self._determineOutputs()
+
+
+      if self.optionsLine or self.jobType.lower() == 'user':
+
         # Prepare standard project run time options
         generatedOpts = 'gaudi_extra_options.py'
         if os.path.exists( generatedOpts ):
@@ -156,10 +162,6 @@ class GaudiApplication( ModuleBase ):
         options.close()
 
       else:
-
-        self.log.debug( "Getting the step outputs" )
-        stepOutputs, stepOutputTypes, histogram = self._determineOutputs()
-
         # Creating ProdConf file
         prodConfFileName = 'prodConf_%s_%s_%s_%s.py' % ( self.applicationName,
                                                          self.production_id,
@@ -330,10 +332,7 @@ class GaudiApplication( ModuleBase ):
         self.log.info( "%s execution completed succesfully" % self.applicationName )
 
       self.log.info( "Going to manage %s output" % self.applicationName )
-      try:
-        self._manageAppOutput( stepOutputs )
-      except IOError, e:
-        return S_ERROR( e )
+      self._manageAppOutput( stepOutputs )
 
       # Still have to set the application status e.g. user job case.
       self.setApplicationStatus( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )

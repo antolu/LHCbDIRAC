@@ -687,8 +687,7 @@ class ModuleBase( object ):
     self.log.info( 'Attempting to recreate the production output LFNs...' )
     result = constructProductionLFNs( self.workflow_commons, self.bkClient )
     if not result['OK']:
-      self.log.error( 'Could not create production LFNs', result['Message'] )
-      return result
+      raise IOError, "Could not create production LFNs: %s" % result['Message']
     self.workflow_commons['BookkeepingLFNs'] = result['Value']['BookkeepingLFNs']
     self.workflow_commons['LogFilePath'] = result['Value']['LogFilePath']
     self.workflow_commons['ProductionOutputData'] = result['Value']['ProductionOutputData']
