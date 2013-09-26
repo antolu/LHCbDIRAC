@@ -72,7 +72,6 @@ class ModulesTestCase( unittest.TestCase ):
     self.ft_mock = Mock()
     self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': {'uploadedSE':''}}
     self.ft_mock.transferAndRegisterFileFailover.return_value = {'OK': True, 'Value': {}}
-    self.ft_mock.getRequestObject.return_value = {'OK': True, 'Value': request_mock}
 
     self.bkc_mock = Mock()
     self.bkc_mock.sendBookkeeping.return_value = {'OK': True, 'Value': ''}
@@ -1235,7 +1234,6 @@ class UploadLogFileSuccess( ModulesTestCase ):
     request_mock.setSubRequestFiles.return_value = {'OK': True, 'Value': ''}
     request_mock.getNumSubRequests.return_value = {'OK': True, 'Value': ''}
     request_mock._getLastOrder.return_value = 1
-    ft_mock.getRequestObject.return_value = {'OK': True, 'Value': request_mock}
     self.ulf.failoverTransfer = ft_mock
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:

@@ -4,7 +4,7 @@
 
 __RCSID__ = "$Id$"
 
-import os, random, time, glob, copy
+import os, random, time, glob
 import DIRAC
 
 from DIRAC                                                    import S_OK, S_ERROR, gLogger, gConfig
@@ -45,6 +45,8 @@ class UploadOutputData( ModuleBase ):
     self.outputDataStep = ''
     self.request = None
     self.failoverTransfer = None
+    
+    self.fileCatalog = 'LcgFileCatalogCombined'
 
   #############################################################################
   def _resolveInputVariables( self ):
@@ -155,7 +157,7 @@ class UploadOutputData( ModuleBase ):
 
       # Track which files are successfully uploaded (not to failover) via
       performBKRegistration = []
-      # Failover replicas are always added to the BK when they become available
+      # Failover replicas are always added to the BK when they become available (actually, added to all the catalogs)
 
       # One by one upload the files with failover if necessary
       registrationFailure = False
@@ -175,24 +177,24 @@ class UploadOutputData( ModuleBase ):
                                                                 lfn = metadata['filedict']['LFN'],
                                                                 destinationSEList = targetSE,
                                                                 fileMetaDict = fileMetaDict,
-                                                                fileCatalog = 'LcgFileCatalogCombined' )
+                                                                fileCatalog = self.fileCatalog )
         if not result['OK']:
           self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
           failover[fileName] = metadata
         else:
           if result['Value'].has_key( 'registration' ):
-            self.log.info( 'File %s was put to the SE but the catalog registration \
-            will be set as an asynchronous request' % ( fileName ) )
+            self.log.info( "File %s put on %s, but the registration in %s will be done asynchronously" % ( fileName,
+                                                                                                           targetSE,
+                                                                                                   self.fileCatalog ) )
             registrationFailure = True
           else:
-            self.log.info( '%s uploaded successfully, will be registered in BK if \
-            all files uploaded for job' % ( fileName ) )
+            self.log.info( "%s uploaded, will be registered in BK if all files uploaded for job" % fileName )
 
           performBKRegistration.append( metadata )
 
       cleanUp = False
       for fileName, metadata in failover.items():
-        self.log.info( 'Setting default catalog for failover transfer to LcgFileCatalogCombined' )
+        self.log.info( "Setting default catalog for failover transfer registration to %s" % self.fileCatalog )
         random.shuffle( self.failoverSEs )
         targetSE = metadata['resolvedSE'][0]
         metadata['resolvedSE'] = self.failoverSEs
@@ -209,9 +211,9 @@ class UploadOutputData( ModuleBase ):
                                                                         targetSE = targetSE,
                                                                         failoverSEList = metadata['resolvedSE'],
                                                                         fileMetaDict = fileMetaDict,
-                                                                        fileCatalog = 'LcgFileCatalogCombined' )
+                                                                        fileCatalog = self.fileCatalog )
         if not result['OK']:
-          self.log.error( 'Could not transfer and register %s in failover with metadata:\n %s' % ( fileName,
+          self.log.error( "Could not transfer and register %s in failover with metadata:\n %s" % ( fileName,
                                                                                                    metadata ) )
           cleanUp = True
           break  # no point continuing if one completely fails

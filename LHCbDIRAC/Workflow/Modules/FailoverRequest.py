@@ -74,28 +74,26 @@ class FailoverRequest( ModuleBase ):
 
       result = self.fileReport.commit()
       if not result['OK']:
-        self.log.error( 'Failed to report file status to TransformationDB, populating request with file report info' )
+        self.log.error( "Failed to report file status to TransformationDB, populating request with file report info" )
         result = self.fileReport.generateForwardDISET()
         if not result['OK']:
-          self.log.warn( 'Could not generate Operation for file report with result:\n%s' % ( result['Value'] ) )
+          self.log.warn( "Could not generate Operation for file report with result:\n%s" % ( result['Value'] ) )
         else:
           if result['Value'] is None:
-            self.log.info( 'Files correctly reported to TransformationDB' )
+            self.log.info( "Files correctly reported to TransformationDB" )
           else:
             result = self.request.addOperation( result['Value'] )
       else:
-        self.log.info( 'Status of files have been properly updated in the TransformationDB' )
+        self.log.info( "Status of files have been properly updated in the TransformationDB" )
 
       # Must ensure that the local job report instance is used to report the final status
       # in case of failure and a subsequent failover operation
       if self.workflowStatus['OK'] and self.stepStatus['OK']:
-        self.setApplicationStatus( 'Job Finished Successfully' )
+        self.setApplicationStatus( "Job Finished Successfully" )
 
       self.generateFailoverFile()
 
-      res = self.finalize()
-
-      return res
+      return self.finalize()
 
     except Exception, e:
       self.log.exception( e )
@@ -111,13 +109,13 @@ class FailoverRequest( ModuleBase ):
     """ Finalize and report correct status for the workflow based on the workflow
         or step status.
     """
-    self.log.verbose( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
+    self.log.verbose( "Workflow status = %s, step status = %s" % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
     if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.warn( 'Workflow status is not ok, will not overwrite status' )
-      self.log.info( 'Workflow failed, end of FailoverRequest module execution.' )
-      return S_ERROR( 'Workflow failed, FailoverRequest module completed' )
+      self.log.warn( "Workflow status is not ok, will not overwrite status" )
+      self.log.info( "Workflow failed, end of FailoverRequest module execution." )
+      return S_ERROR( "Workflow failed, FailoverRequest module completed" )
 
-    self.log.info( 'Workflow successful, end of FailoverRequest module execution.' )
-    return S_OK( 'FailoverRequest module completed' )
+    self.log.info( "Workflow successful, end of FailoverRequest module execution." )
+    return S_OK( "FailoverRequest module completed" )
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
