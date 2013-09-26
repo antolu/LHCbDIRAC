@@ -131,7 +131,7 @@ class GaudiApplication( ModuleBase ):
         firstEventNumberGauss = int( eventsMax ) * ( int( self.prod_job_id ) - 1 ) + 1
 
       if self.optionsLine or self.jobType.lower() in ['user', 'sam']:
-        self.log.debug( "Won't get any step outputs (USER jobs)" )
+        self.log.debug( "Won't get any step outputs (USER or SAM jobs)" )
         stepOutputs = []
         stepOutputTypes = []
         histogram = False
@@ -315,16 +315,17 @@ class GaudiApplication( ModuleBase ):
                           callbackFunction = self.redirectLogOutput,
                           bufferLimit = 20971520 )
       if not result['OK']:
-        raise RuntimeError, 'Problem Executing Application'
+        raise RuntimeError, "Problem Executing Application"
 
       resultTuple = result['Value']
       status = resultTuple[0]
 
       self.log.info( "Status after the application execution is %s" % str( status ) )
       if status != 0:
-        self.workflow_commons.setdefault( 'SAMResults', {})[self.applicationName] = 'CRITICAL'
-        self.workflow_commons.setdefault( 'SAMDetails', {})[self.applicationName] = 'Error: %s %s %s.' % \
-                                  (self.applicationName, self.applicationVersion, self.stdError)
+        if self.jobType.lower() == 'sam':
+          self.workflow_commons.setdefault( 'SAMResults', {} )[self.applicationName] = 'CRITICAL'
+          self.workflow_commons.setdefault( 'SAMDetails', {} )[self.applicationName] = "Error: %s %s %s." % \
+                                                      ( self.applicationName, self.applicationVersion, self.stdError )
         self.log.error( "%s execution completed with errors" % self.applicationName )
         self.log.error( "==================================\n StdError:\n" )
         self.log.error( self.stdError )
@@ -339,17 +340,20 @@ class GaudiApplication( ModuleBase ):
       # Still have to set the application status e.g. user job case.
       self.setApplicationStatus( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
       
-      # extend workflow_commons for publishing to nagios
-      # try to catch the error of accessing second index if first is empty
-      self.workflow_commons.setdefault( 'SAMResults', {})[self.applicationName] = 'OK'
-      self.workflow_commons.setdefault( 'SAMDetails', {})[self.applicationName] = \
-                           '%s %s Successful' % (self.applicationName, self.applicationVersion)
-      return S_OK( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
+      if self.jobType.lower() == 'sam':
+        # extend workflow_commons for publishing to nagios
+        # try to catch the error of accessing second index if first is empty
+        self.workflow_commons.setdefault( 'SAMResults', {} )[self.applicationName] = 'OK'
+        self.workflow_commons.setdefault( 'SAMDetails', {} )[self.applicationName] = \
+                             "%s %s Successful" % ( self.applicationName, self.applicationVersion )
+
+      return S_OK( "%s %s Successful" % ( self.applicationName, self.applicationVersion ) )
 
     except Exception, e:
-      exceptionString = 'Exception: %s %s %s.' %    (self.applicationName, self.applicationVersion, e)
-      self.workflow_commons.setdefault( 'SAMResults', {})[self.applicationName] = 'CRITICAL'
-      self.workflow_commons.setdefault( 'SAMDetails', {})[self.applicationName] =  exceptionString              
+      exceptionString = "Exception: %s %s %s." % ( self.applicationName, self.applicationVersion, e )
+      if self.jobType.lower() == 'sam':
+        self.workflow_commons.setdefault( 'SAMResults', {})[self.applicationName] = 'CRITICAL'
+        self.workflow_commons.setdefault( 'SAMDetails', {})[self.applicationName] =  exceptionString              
       self.log.exception( e )
       self.setApplicationStatus( e )
       return S_ERROR( e )
