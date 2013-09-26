@@ -354,7 +354,7 @@ class DataRecoveryAgent( AgentModule ):
       if not res['OK']:
         self.log.error( 'Failed to get Status for Request', '%s:%s' % ( requestName, res['Message'] ) )
       else:
-        if res['Value']['RequestStatus'] == 'Done':
+        if res['Value'] == 'Done':
           continue
 
       # If we fail to get the Status or it is not Done, we must wait, so remove the job from the list.
