@@ -58,21 +58,21 @@ class CVMFSCheck( ModuleBase ):
         self.workflow_commons.setdefault( 'SAMDetails', {})[ 'CVMFS' ] = \
                                'Environment variable VO_LHCB_SW_DIR is empty'
         self.setApplicationStatus( 'CVMFS KO' )
-        self.log.error( 'Environment variable VO_LHCB_SW_DIR is empty' )
-        return S_ERROR( 'Environment variable VO_LHCB_SW_DIR is empty' )
+        self.log.error( "Environment variable VO_LHCB_SW_DIR is empty" )
+        return S_ERROR( "Environment variable VO_LHCB_SW_DIR is empty" )
   
-      self.log.info( 'VO_LHCB_SW_DIR: "%s"' % swDir )
+      self.log.info( "VO_LHCB_SW_DIR: '%s'" % swDir )
   
       cvmfsFilePath = os.path.join( swDir, 'lib/etc/cernvmfs' )
-      self.log.info( 'CVMFS file path "%s"' % cvmfsFilePath )
+      self.log.info( "CVMFS file path '%s'" % cvmfsFilePath )
   
       if not os.path.exists( cvmfsFilePath ):
         self.workflow_commons.setdefault( 'SAMResults', {})[ 'CVMFS' ]  = 'CRITICAL'
         self.workflow_commons.setdefault( 'SAMDetails', {})[ 'CVMFS' ]  = \
-             'CVMFS file path "%s" does not exist' % cvmfsFilePath
+             "CVMFS file path '%s' does not exist" % cvmfsFilePath
         self.setApplicationStatus( 'CVMFS KO' )
-        self.log.error( 'CVMFS file path "%s" does not exist' % cvmfsFilePath )
-        return S_ERROR( 'CVMFS file path "%s" does not exist' % cvmfsFilePath )
+        self.log.error( "CVMFS file path '%s' does not exist" % cvmfsFilePath )
+        return S_ERROR( "CVMFS file path does not exist" % cvmfsFilePath )
   
       self.workflow_commons.setdefault( 'SAMResults', {})[ 'CVMFS' ]  = 'OK'
       self.workflow_commons.setdefault( 'SAMDetails', {})[ 'CVMFS' ] = 'CVMFS is present. '  
