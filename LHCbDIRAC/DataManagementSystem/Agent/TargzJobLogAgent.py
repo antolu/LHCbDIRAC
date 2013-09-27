@@ -52,6 +52,9 @@ class TargzJobLogAgent( AgentModule ):
     self.logPath = self.am_getOption( 'LogPath', self.logPath )
     self.log.info( "LogPath", self.logPath )
 
+    self.actions = self.am_getOption( 'Actions', ['SubProductions','Jobs'] )
+    self.log.info( "Actions", self.actions )
+
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/SAMManager
     # the shifterProxy option in the Configuration can be used to change this default.
@@ -81,55 +84,59 @@ class TargzJobLogAgent( AgentModule ):
     logPathList = self.am_getOption( 'LogPathList', [] )
     self.log.info( "LogPathList", logPathList )
 
-    numberOfTared = 0
-    numberOfFailed = 0
+    if 'SubProductions' in self.actions:
 
-    for path in logPathList:
-      self.log.info( "LogPath", path )
-      for subprodpath in self._iFindOldSubProd( path, g1, g2, prodage ):
-        pathlist = subprodpath.split( "/" )
-        sub = pathlist[-1]
-        prod = pathlist[-2]
-        self.log.info( "Found Old Log", "Production %s, subProduction %s" % ( prod, sub ) )
-        res = self._tarSubProdDir( path, prod, sub )
-        if res['OK']:
-          numberOfTared += 1
-        else:
-          numberOfFailed += 1
+      numberOfTared = 0
+      numberOfFailed = 0
 
-    self.log.info( "Number of tared subproduction %d" % numberOfTared )
-    self.log.info( "Number of failed subproduction %d" % numberOfFailed )
+      for path in logPathList:
+        self.log.info( "LogPath", path )
+        for subprodpath in self._iFindOldSubProd( path, g1, g2, prodage ):
+          pathlist = subprodpath.split( "/" )
+          sub = pathlist[-1]
+          prod = pathlist[-2]
+          self.log.info( "Found Old Log", "Production %s, subProduction %s" % ( prod, sub ) )
+          res = self._tarSubProdDir( path, prod, sub )
+          if res['OK']:
+            numberOfTared += 1
+          else:
+            numberOfFailed += 1
 
-    numberOfTared = 0
-    numberOfFailed = 0
+      self.log.info( "Number of tared subproduction %d" % numberOfTared )
+      self.log.info( "Number of failed subproduction %d" % numberOfFailed )
 
-    for path in logPathList:
-      self.log.info( "LogPath", path )
-      for jobpath in self._iFindOldJob( path, g1, g2, g3, jobage ):
-        pathlist = jobpath.split( "/" )
-        job = pathlist[-1]
-        prod = pathlist[-3]
-        self.log.debug( "Found Old Log", "Production %s, Job %s" % ( prod, job ) )
+    if 'Jobs' in self.actions:
 
-        name = prod + "_" + job + ".tgz"
-        try:
-          lines = open( os.path.join( jobpath, 'index.html' ) ).read()
-          lines = lines.replace( '</title>', ' compressed</title>' )
-          lines = lines.replace( '</h3>', ' compressed</h3>', 1 )
-          lines = re.compile( '<a href.*</a><br>.*\n' ).sub( '', lines )
-          lines = lines.replace( 'compressed</h3>', 'compressed</h3>\n<br><a href="%s">%s</a><br>' % ( name, name ) )
+      numberOfTared = 0
+      numberOfFailed = 0
 
-          self._tarJobDir( path, prod, job )
-          indexHTML = open( os.path.join( jobpath, 'index.html' ), 'w' )
-          indexHTML.write( lines )
-          indexHTML.close()
-          numberOfTared += 1
-        except Exception, x:
-          self.log.warn( "Exception during taring %s" % x, "Production %s, Job %s" % ( prod, job ) )
-          numberOfFailed += 1
+      for path in logPathList:
+        self.log.info( "LogPath", path )
+        for jobpath in self._iFindOldJob( path, g1, g2, g3, jobage ):
+          pathlist = jobpath.split( "/" )
+          job = pathlist[-1]
+          prod = pathlist[-3]
+          self.log.debug( "Found Old Log", "Production %s, Job %s" % ( prod, job ) )
 
-    self.log.info( "Number of tared jobs %d" % numberOfTared )
-    self.log.info( "Number of failed jobs %d" % numberOfFailed )
+          name = prod + "_" + job + ".tgz"
+          try:
+            lines = open( os.path.join( jobpath, 'index.html' ) ).read()
+            lines = lines.replace( '</title>', ' compressed</title>' )
+            lines = lines.replace( '</h3>', ' compressed</h3>', 1 )
+            lines = re.compile( '<a href.*</a><br>.*\n' ).sub( '', lines )
+            lines = lines.replace( 'compressed</h3>', 'compressed</h3>\n<br><a href="%s">%s</a><br>' % ( name, name ) )
+
+            self._tarJobDir( path, prod, job )
+            indexHTML = open( os.path.join( jobpath, 'index.html' ), 'w' )
+            indexHTML.write( lines )
+            indexHTML.close()
+            numberOfTared += 1
+          except Exception, x:
+            self.log.warn( "Exception during taring %s " % x, "Production %s, Job %s" % ( prod, job ) )
+            numberOfFailed += 1
+
+      self.log.info( "Number of tared jobs %d" % numberOfTared )
+      self.log.info( "Number of failed jobs %d" % numberOfFailed )
 
     return S_OK()
 
