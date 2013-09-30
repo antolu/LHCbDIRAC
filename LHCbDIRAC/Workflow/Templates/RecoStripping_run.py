@@ -200,7 +200,7 @@ elif w2:
   pr.outputSEs = [strippDataSE, mergingDataSE]
   pr.stepsInProds = [range( 1, len( pr.stepsList ) ),
                      [len( pr.stepsList )]]
-  pr.removeInputsFlags = [False, mergingRemoveInputsFlag]
+  pr.removeInputsFlags = [False, mergeRemoveInputsFlag]
   pr.priorities = [strippPriority, mergingPriority]
   pr.cpus = [strippCPU, mergingCPU]
   pr.groupSizes = [strippFilesPerJob, mergingGroupSize]
@@ -217,7 +217,7 @@ elif w3:
   pr.outputSEs = [recoDataSE, mergingDataSE]
   pr.stepsInProds = [range( 1, len( pr.stepsList ) ),
                      [len( pr.stepsList )]]
-  pr.removeInputsFlags = [False, mergingRemoveInputsFlag]
+  pr.removeInputsFlags = [False, mergeRemoveInputsFlag]
   pr.priorities = [recoPriority, mergingPriority]
   pr.cpus = [recoCPU, mergingCPU]
   pr.groupSizes = [recoFilesPerJob, mergingGroupSize]
@@ -235,7 +235,7 @@ elif w4:
   pr.stepsInProds = [range( 1, len( pr.stepsList ) - 1 ),
                      range( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
                      [len( pr.stepsList )]]
-  pr.removeInputsFlags = [False, False, mergingRemoveInputsFlag]
+  pr.removeInputsFlags = [False, False, mergeRemoveInputsFlag]
   pr.priorities = [recoPriority, strippPriority, mergingPriority]
   pr.cpus = [recoCPU, strippCPU, mergingCPU]
   pr.groupSizes = [recoFilesPerJob, strippFilesPerJob, mergingGroupSize]
