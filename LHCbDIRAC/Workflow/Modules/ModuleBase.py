@@ -668,14 +668,13 @@ class ModuleBase( object ):
     """
 
     if not outputs:
-      self.log.warn( 'Step outputs are not defined (normal for SAM and user jobs. Not normal in productions)' )
+      self.log.warn( 'Step outputs are not defined (normal user jobs. Not normal in productions and SAM jobs)' )
       return
     else:
       finalOutputs, _bkFileTypes = self._findOutputs( outputs )
 
     self.log.info( 'Final step outputs are: %s' % ( finalOutputs ) )
     self.step_commons['listoutput'] = finalOutputs
-#    self.step_commons['outputData'] = finalOutputs[0]['outputDataName']
 
     if self.workflow_commons.has_key( 'outputList' ):
       for outFile in finalOutputs:

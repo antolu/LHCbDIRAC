@@ -130,8 +130,8 @@ class GaudiApplication( ModuleBase ):
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( eventsMax ) * ( int( self.prod_job_id ) - 1 ) + 1
 
-      if self.optionsLine or self.jobType.lower() in ['user', 'sam']:
-        self.log.debug( "Won't get any step outputs (USER or SAM jobs)" )
+      if self.optionsLine or self.jobType.lower() == 'user':
+        self.log.debug( "Won't get any step outputs (USER job)" )
         stepOutputs = []
         stepOutputTypes = []
         histogram = False
