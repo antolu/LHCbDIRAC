@@ -142,7 +142,7 @@ EOT"""
   def endConnection( self ):
     """Call disconnect() on the conn object."""
     self.conn.disconnect()
-    gLogger.verbose( 'Connection succesfully terminated' )
+    gLogger.verbose( 'Connection successfully terminated' )
   
 
 

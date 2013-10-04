@@ -332,7 +332,7 @@ class GaudiApplication( ModuleBase ):
         self.log.error( '%s Exited With Status %s' % ( self.applicationName, status ) )
         raise RuntimeError, '%s Exited With Status %s' % ( self.applicationName, status )
       else:
-        self.log.info( "%s execution completed succesfully" % self.applicationName )
+        self.log.info( "%s execution completed successfully" % self.applicationName )
 
       self.log.info( "Going to manage %s output" % self.applicationName )
       self._manageAppOutput( stepOutputs )

@@ -180,7 +180,7 @@ class RootApplication( ModuleBase ):
         self.log.info( "%s execution completed with application warning:" % self.rootScript )
         self.log.info( stdError )
       else:
-        self.log.info( "%s execution completed succesfully:" % self.rootScript )
+        self.log.info( "%s execution completed successfully:" % self.rootScript )
 
       if failed == True:
         self.log.error( "==================================\n StdError:\n" )

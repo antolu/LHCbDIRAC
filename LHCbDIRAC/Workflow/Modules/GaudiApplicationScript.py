@@ -164,7 +164,7 @@ class GaudiApplicationScript( ModuleBase ):
         self.log.info( "%s execution completed with application warning:" % os.path.basename( self.script ) )
         self.log.info( self.stdError )
       else:
-        self.log.info( "%s execution completed succesfully:" % os.path.basename( self.script ) )
+        self.log.info( "%s execution completed successfully:" % os.path.basename( self.script ) )
 
       if failed == True:
         self.log.error( "==================================\n StdError:\n" )
