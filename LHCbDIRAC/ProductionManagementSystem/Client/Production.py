@@ -616,12 +616,12 @@ class Production():
       # All other parameters
       groupDesc = self.LHCbJob.workflow.findParameter( 'groupDescription' ).getValue(),
       paramsDict = self.__getProductionParameters( prodID = prodID,
-                                                  prodXMLFile = fileName,
-                                                  groupDescription = groupDesc,
-                                                  bkPassInfo = bkSteps,
-                                                  bkInputQuery = self.inputBKSelection,
-                                                  reqID = requestID,
-                                                  derivedProd = self.ancestorProduction )
+                                                   prodXMLFile = fileName,
+                                                   groupDescription = groupDesc,
+                                                   bkPassInfo = bkSteps,
+                                                   bkInputQuery = self.inputBKSelection,
+                                                   reqID = requestID,
+                                                   derivedProd = self.ancestorProduction )
       for parName, parValue in paramsDict.items():
         result = getattr( self.transformation, 'set' + parName )( parValue )
 
@@ -651,17 +651,17 @@ class Production():
         inputPass = self.BKKClient.getProductionProcessingPass( queryProdID )
         if not inputPass['OK']:
           gLogger.error( inputPass )
-          gLogger.error( 'Production %s was created but BK processsing pass for %s was not found' % ( prodID,
-                                                                                                         queryProdID ) )
+          gLogger.error( 'Production %s was created but BK processing pass for %s was not found' % ( prodID,
+                                                                                                     queryProdID ) )
           return inputPass
         inputPass = inputPass['Value']
         gLogger.info( 'Setting %s as BK input production for %s with processing pass %s' % ( queryProdID,
-                                                                                                      prodID,
-                                                                                                      inputPass ) )
+                                                                                             prodID,
+                                                                                             inputPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = inputPass
       elif queryProcPass:
         gLogger.info( 'Adding input BK processing pass for production %s from input data query: %s' % ( prodID,
-                                                                                                       queryProcPass ) )
+                                                                                                        queryProcPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = queryProcPass
 
     stepList = []
@@ -692,12 +692,12 @@ class Production():
       result = reqClient.addProductionToRequest( reqDict )
       if not result['OK']:
         gLogger.error( 'Attempt to add production %s to request %s failed: %s ' % ( prodID, requestID,
-                                                                                           result['Message'] ) )
+                                                                                    result['Message'] ) )
         gLogger.error( 'Dictionary below:\n%s' % reqDict )
       else:
         gLogger.info( 'Successfully added production %s to request %s with flag set to %s' % ( prodID,
-                                                                                                        requestID,
-                                                                                                        reqUsed ) )
+                                                                                               requestID,
+                                                                                               reqUsed ) )
 
     return S_OK( prodID )
 
