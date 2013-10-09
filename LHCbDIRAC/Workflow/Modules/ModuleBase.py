@@ -683,13 +683,14 @@ class ModuleBase( object ):
     else:
       self.workflow_commons['outputList'] = finalOutputs
 
-    self.log.info( 'Attempting to recreate the production output LFNs...' )
-    result = constructProductionLFNs( self.workflow_commons, self.bkClient )
-    if not result['OK']:
-      raise IOError, "Could not create production LFNs: %s" % result['Message']
-    self.workflow_commons['BookkeepingLFNs'] = result['Value']['BookkeepingLFNs']
-    self.workflow_commons['LogFilePath'] = result['Value']['LogFilePath']
-    self.workflow_commons['ProductionOutputData'] = result['Value']['ProductionOutputData']
+    if 'PRODUCTION_ID' and 'JOB_ID' in self.workflow_commons:
+      self.log.info( 'Attempting to recreate the production output LFNs...' )
+      result = constructProductionLFNs( self.workflow_commons, self.bkClient )
+      if not result['OK']:
+        raise IOError, "Could not create production LFNs: %s" % result['Message']
+      self.workflow_commons['BookkeepingLFNs'] = result['Value']['BookkeepingLFNs']
+      self.workflow_commons['LogFilePath'] = result['Value']['LogFilePath']
+      self.workflow_commons['ProductionOutputData'] = result['Value']['ProductionOutputData']
 
   #############################################################################
 
