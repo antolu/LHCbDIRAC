@@ -683,7 +683,7 @@ class ModuleBase( object ):
     else:
       self.workflow_commons['outputList'] = finalOutputs
 
-    if 'PRODUCTION_ID' and 'JOB_ID' in self.workflow_commons:
+    if 'PRODUCTION_ID' and 'JOB_ID' and 'configVersion' and 'configName' in self.workflow_commons:
       self.log.info( 'Attempting to recreate the production output LFNs...' )
       result = constructProductionLFNs( self.workflow_commons, self.bkClient )
       if not result['OK']:
