@@ -434,7 +434,7 @@ class TransformationDB( DIRACTransformationDB ):
     candidates = False
     for ft in fileTuples:
       _lfn, originalID, fileID, status, taskID, targetSE, _usedSE, _errorCount, _lastUpdate, _insertTime, runNumber = ft[:11]
-      if status != 'Unused':
+      if status not in ( 'Unused', 'Removed' ):
         candidates = True
         if not re.search( '-', status ):
           status = "%s-%d" % ( status, originalID )
