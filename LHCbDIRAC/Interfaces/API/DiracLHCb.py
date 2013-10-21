@@ -58,7 +58,7 @@ class DiracLHCb( Dirac ):
                              'Production'               :     0,
                              'StartRun'                 :     0,
                              'EndRun'                   :     0,
-                             'DataQualityFlag'          : 'All',
+                             'DataQuality'              : 'All',
                              'Visible'                  : 'Yes'}
     self.bk = BookkeepingClient()  # to expose all BK client methods indirectly
     self.resourceStatus = ResourceStatus()
@@ -361,7 +361,7 @@ class DiracLHCb( Dirac ):
         if not check['OK']:
           return check
         dqFlag = check['Value']
-        query['DataQualityFlag'] = dqFlag
+        query['DataQuality'] = dqFlag
       result = self.bkQuery( query )
       self.log.verbose( result )
       if not result['OK']:
@@ -444,7 +444,7 @@ class DiracLHCb( Dirac ):
       if not check['OK']:
         return check
       dqFlag = check['Value']
-      query['DataQualityFlag'] = dqFlag
+      query['DataQuality'] = dqFlag
 
     result = self.bkQuery( query )
     self.log.verbose( result )
@@ -497,7 +497,7 @@ class DiracLHCb( Dirac ):
       if not check['OK']:
         return check
       dqFlag = check['Value']
-      query['DataQualityFlag'] = dqFlag
+      query['DataQuality'] = dqFlag
 
     result = self.bkQuery( query )
     self.log.verbose( result )
@@ -554,7 +554,7 @@ class DiracLHCb( Dirac ):
       if not check['OK']:
         return check
       dqFlag = check['Value']
-      query['DataQualityFlag'] = dqFlag
+      query['DataQuality'] = dqFlag
 
     # The problem here is that we don't know if it's a sim or data taking condition,
     # assume that if configName=MC this is simulation
@@ -570,7 +570,7 @@ class DiracLHCb( Dirac ):
   #############################################################################
   def bookkeepingQuery( self, SimulationConditions = 'All', DataTakingConditions = 'All',
                         ProcessingPass = 'All', FileType = 'All', EventType = 'All', ConfigName = 'All',
-                        ConfigVersion = 'All', ProductionID = 0, DataQualityFlag = 'ALL' ):
+                        ConfigVersion = 'All', ProductionID = 0, DataQuality = 'ALL' ):
     """ This function will create and perform a BK query using the supplied arguments
         and return a list of LFNs.
 
@@ -590,8 +590,8 @@ class DiracLHCb( Dirac ):
        @type ProcessingPass: string
        @param  ProductionID: BK ProductionID
        @type ProductionID: integer
-       @param  DataQualityFlag: BK DataQualityFlag
-       @type DataQualityFlag: string
+       @param  DataQuality: BK DataQuality
+       @type DataQuality: string
        @param  ConfigVersion: BK ConfigVersion
        @type ConfigVersion: string
        @param  DataTakingConditions: BK DataTakingConditions
@@ -609,7 +609,7 @@ class DiracLHCb( Dirac ):
     query['ConfigName'] = ConfigName
     query['ConfigVersion'] = ConfigVersion
     query['Production'] = ProductionID
-    query['DataQualityFlag'] = DataQualityFlag
+    query['DataQuality'] = DataQuality
     return self.bkQuery( query )
 
   #############################################################################
