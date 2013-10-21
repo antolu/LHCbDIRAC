@@ -113,6 +113,7 @@ class Production():
 
   #############################################################################
 
+  @staticmethod
   def __checkArguments( self, extraPackages, optionsFile ):
     """ Checks for typos in the structure of standard arguments to workflows.
         In case of any non-standard settings will raise an exception preventing
@@ -135,11 +136,11 @@ class Production():
         optionsFile = [optionsFile]
 
     for p in extraPackages:
-      gLogger.verbose( 'Checking extra package: %s' % ( p ) )
+      gLogger.verbose( "Checking extra package: %s" % ( p ) )
       if not re.search( '.', p ):
-        raise TypeError, 'Must have extra packages in the following format "Name.Version" not %s' % ( p )
+        raise TypeError( "Must have extra packages in the following format 'Name.Version' not %s" % ( p ) )
 
-    gLogger.verbose( 'Extra packages and event type options are correctly specified' )
+    gLogger.verbose( "Extra packages and event type options are correctly specified" )
     return S_OK()
 
   #############################################################################
@@ -183,7 +184,7 @@ class Production():
       if type( extraPackages ) == type( [] ):
         extraPackages = ';'.join( extraPackages )
       if type( extraPackages ) != type( '' ):
-        raise TypeError, 'extraPackages is not a string (nor a list)'
+        raise TypeError( "extraPackages is not a string (nor a list)" )
       if ',' in extraPackages:
         extraPackages = ';'.join( extraPackages.split( ',' ) )
       if 'ProdConf' not in extraPackages:
@@ -196,19 +197,19 @@ class Production():
 
     try:
       if not dddbOpt.lower() == 'global':
-        gLogger.verbose( 'Specific DDDBTag setting found for %s step, setting to: %s' % ( appName, dddbOpt ) )
+        gLogger.verbose( "Specific DDDBTag setting found for %s step, setting to: %s" % ( appName, dddbOpt ) )
         dddbOpt = dddbOpt.replace( ' ', '' )
     except AttributeError:
       pass
     try:
       if not conddbOpt.lower() == 'global':
-        gLogger.verbose( 'Specific CondDBTag setting found for %s step, setting to: %s' % ( appName, conddbOpt ) )
+        gLogger.verbose( "Specific CondDBTag setting found for %s step, setting to: %s" % ( appName, conddbOpt ) )
         conddbOpt = conddbOpt.replace( ' ', '' )
     except AttributeError:
       pass
     try:
       if not DQOpt.lower() == 'global':
-        gLogger.verbose( 'Specific DQTag setting found for %s step, setting to: %s' % ( appName, DQOpt ) )
+        gLogger.verbose( "Specific DQTag setting found for %s step, setting to: %s" % ( appName, DQOpt ) )
         DQOpt = DQOpt.replace( ' ', '' )
     except AttributeError:
       pass
@@ -771,7 +772,7 @@ class Production():
     """ Sets output mode for all jobs, this can be 'Local' or 'Any'.
     """
     if not outputMode.lower().capitalize() in ( 'Local', 'Any' ):
-      raise TypeError, 'Output mode must be Local or Any'
+      raise TypeError( "Output mode must be Local or Any" )
     self.setParameter( 'outputMode', 'string', outputMode.lower().capitalize(), 'SEResolutionPolicy' )
 
   #############################################################################
