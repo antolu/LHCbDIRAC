@@ -22,10 +22,11 @@
 
 import sys
 
-from datetime            import datetime
+from datetime import datetime
 
-from DIRAC               import exit as DIRACExit
-from DIRAC.Core.Base     import Script
+from DIRAC                      import exit as DIRACExit
+from DIRAC.Core.Base            import Script
+from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
