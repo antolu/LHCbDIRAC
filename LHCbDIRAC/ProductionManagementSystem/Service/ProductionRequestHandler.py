@@ -2,7 +2,6 @@
 ProductionRequestHandler is the implementation of
 the Production Request service
 """
-import DIRAC
 import os
 import re
 import tempfile
@@ -31,7 +30,7 @@ class ProductionRequestHandler( RequestHandler ):
     RequestHandler.__init__( self, *args, **kargs )
 
     self.database = productionRequestDB
-    self.lock     = threading.Lock()
+    self.lock = threading.Lock()
 
   def __clientCredentials( self ):
     creds = self.getRemoteCredentials()
@@ -40,7 +39,7 @@ class ProductionRequestHandler( RequestHandler ):
 #      cn = re.search('/CN=([^/]+)',creds['DN'])
 #      if cn:
 #        return { 'User':cn.group(1), 'Group':group }
-    return { 'User'  : creds.get( 'username' , 'Anonymous' ), 
+    return { 'User'  : creds.get( 'username' , 'Anonymous' ),
              'Group' : group }
 
   types_createProductionRequest = [ dict ]
@@ -55,10 +54,10 @@ class ProductionRequestHandler( RequestHandler ):
   types_getProductionRequest = [ list ]
   def export_getProductionRequest( self, requestIDList ):
     """ Get production request(s) specified by the list of requestIDs
-        AZ!!: not tested !! 
+        AZ!!: not tested !!
     """
     if not requestIDList:
-      return S_OK({})
+      return S_OK( {} )
     result = self.database.getProductionRequest( requestIDList )
     if not result['OK']:
       return result
@@ -66,17 +65,17 @@ class ProductionRequestHandler( RequestHandler ):
     for row in result['Value']['Rows']:
       iD = row['RequestID']
       rows[iD] = row
-    return S_OK(rows)
+    return S_OK( rows )
 
   types_getProductionRequestList_v2 = [ long, str, str, long, long, dict ]
   def export_getProductionRequestList_v2( self, subrequestFor, sortBy, sortOrder,
-                                          offset, limit, filter ):
+                                          offset, limit, rFilter ):
     """ Get production requests in list format (for portal grid)
     """
     return self.database.getProductionRequest( [], subrequestFor, sortBy, sortOrder,
-                                               offset, limit, filter )
+                                               offset, limit, rFilter )
 
-  types_getProductionRequestList = [ long, str, str, long,long ]
+  types_getProductionRequestList = [ long, str, str, long, long ]
   def export_getProductionRequestList( self, subrequestFor, sortBy, sortOrder, offset, limit ):
     """ Get production requests in list format (compat version)
     """
@@ -173,11 +172,11 @@ class ProductionRequestHandler( RequestHandler ):
     return self.database.updateTrackedInput( update )
 
   types_getAllSubRequestSummary = []
-  def export_getAllSubRequestSummary( self, status='', type='' ):
+  def export_getAllSubRequestSummary( self, status = '', rType = '' ):
     """ Return a summary for each subrequest
     """
-    return self.database.getAllSubRequestSummary( status, type )
-  
+    return self.database.getAllSubRequestSummary( status, rType )
+
   types_getAllProductionProgress = []
   def export_getAllProductionProgress( self ):
     """ Return all the production progress
@@ -185,45 +184,45 @@ class ProductionRequestHandler( RequestHandler ):
     return self.database.getAllProductionProgress()
 
   def __getTplFolder( self, tt ):
-    
+
     csS = PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
     if not csS:
-      return S_ERROR("No ProductionRequest parameters in CS")
+      return S_ERROR( "No ProductionRequest parameters in CS" )
     if tt == 'template':
-      tplFolder = gConfig.getValue('%s/templateFolder' % csS, '')
+      tplFolder = gConfig.getValue( '%s/templateFolder' % csS, '' )
       if not tplFolder:
-        return S_ERROR("No templateFolder in ProductionRequest parameters in CS")
+        return S_ERROR( "No templateFolder in ProductionRequest parameters in CS" )
     else:
-      tplFolder = gConfig.getValue('%s/testFolder' % csS, '')
+      tplFolder = gConfig.getValue( '%s/testFolder' % csS, '' )
       if not tplFolder:
-        return S_ERROR("No testFolder in ProductionRequest parameters in CS")
-    if not os.path.exists(tplFolder) or not os.path.isdir(tplFolder):
-      return S_ERROR("Template Folder %s doesn't exist" % tplFolder)
-    return S_OK(tplFolder)
+        return S_ERROR( "No testFolder in ProductionRequest parameters in CS" )
+    if not os.path.exists( tplFolder ) or not os.path.isdir( tplFolder ):
+      return S_ERROR( "Template Folder %s doesn't exist" % tplFolder )
+    return S_OK( tplFolder )
 
   def __getTemplate( self, tt, name ):
     ret = self.__getTplFolder( tt )
     if not ret['OK']:
       return ret
     tplFolder = ret['Value']
-    if not os.path.exists(os.path.join(tplFolder, name)):
-      return S_ERROR("Template %s doesn't exist" % name)
+    if not os.path.exists( os.path.join( tplFolder, name ) ):
+      return S_ERROR( "Template %s doesn't exist" % name )
     try:
-      f = open(os.path.join(tplFolder, name))
+      f = open( os.path.join( tplFolder, name ) )
       body = f.read()
       f.close()
     except Exception, e:
-      return S_ERROR("Can't read template (%s)" % str(e))
-    return S_OK(body)
+      return S_ERROR( "Can't read template (%s)" % str( e ) )
+    return S_OK( body )
 
   def __productionTemplateList( self, tt ):
     """ Return production template list (file based) """
-    ret = self.__getTplFolder(tt)
+    ret = self.__getTplFolder( tt )
     if not ret['OK']:
       return ret
     tplFolder = ret['Value']
-    tpls = [x for x in os.listdir(tplFolder) \
-            if os.path.isfile(os.path.join(tplFolder,x))]
+    tpls = [x for x in os.listdir( tplFolder ) \
+            if os.path.isfile( os.path.join( tplFolder, x ) )]
     results = []
     for t in tpls:
       if t[-1] == '~':
@@ -237,21 +236,21 @@ class ProductionRequestHandler( RequestHandler ):
       author = ''
       ver = ''
       if m:
-        m = re.match( "[^ ]+ ([^ ]+) ([^ ]+ [^ ]+) ([^ ]+)", m.group(1) )
+        m = re.match( "[^ ]+ ([^ ]+) ([^ ]+ [^ ]+) ([^ ]+)", m.group( 1 ) )
         if m:
-          ptime = m.group(2)
-          author = m.group(3)
-          ver = m.group(1)
-          tpl = { "AuthorGroup"     : '', 
-                  "Author"          : author, 
+          ptime = m.group( 2 )
+          author = m.group( 3 )
+          ver = m.group( 1 )
+          tpl = { "AuthorGroup"     : '',
+                  "Author"          : author,
                   "PublishingTime"  : ptime,
-                  "LongDescription" : '', 
-                  "WFName"          : t, 
+                  "LongDescription" : '',
+                  "WFName"          : t,
                   "AuthorDN"        : '',
-                  "WFParent"        : '', 
+                  "WFParent"        : '',
                   "Description"     : ver }
-          results.append(tpl)
-    return S_OK(results)
+          results.append( tpl )
+    return S_OK( results )
 
   types_getProductionTemplateList = []
   def export_getProductionTemplateList( self ):
@@ -259,9 +258,9 @@ class ProductionRequestHandler( RequestHandler ):
     return self.__productionTemplateList( 'template' )
 
   types_getProductionTestList = []
-  def export_getProductionTestList(self):
+  def export_getProductionTestList( self ):
     """ Return production tests list (file based) """
-    return self.__productionTemplateList('test')
+    return self.__productionTemplateList( 'test' )
 
   types_getProductionTemplate = [ str ]
   def export_getProductionTemplate( self, name ):
@@ -275,39 +274,39 @@ class ProductionRequestHandler( RequestHandler ):
   def export_execProductionScript( self, script, workflow ):
     creds = self.__clientCredentials()
     if creds['Group'] != 'lhcb_prmgr':
-      return S_ERROR("You have to be production manager")
-    res = getShifterProxy("ProductionManager")
+      return S_ERROR( "You have to be production manager" )
+    res = getShifterProxy( "ProductionManager" )
     if not res['OK']:
       return res
     proxyFile = res['Value']['proxyFile']
     try:
       f = tempfile.mkstemp()
-      os.write(f[0], workflow)
-      os.close(f[0])
+      os.write( f[0], workflow )
+      os.close( f[0] )
       fs = tempfile.mkstemp()
-      os.write(fs[0], script)
-      os.close(fs[0])
+      os.write( fs[0], script )
+      os.close( fs[0] )
     except Exception, msg:
-      gLogger.error("In temporary files createion: "+str(msg))
-      os.remove(proxyFile)
-      return S_ERROR(str(msg))
+      gLogger.error( "In temporary files createion: " + str( msg ) )
+      os.remove( proxyFile )
+      return S_ERROR( str( msg ) )
     setenv = "source /opt/dirac/bashrc"
     proxy = "X509_USER_PROXY=%s" % proxyFile
-    cmd = "python %s %s" % (fs[1], f[1])
+    cmd = "python %s %s" % ( fs[1], f[1] )
     try:
-      res = shellCall(1800, [ "/bin/bash -c '%s;%s %s'" \
-                                   % (setenv,proxy,cmd) ])
+      res = shellCall( 1800, [ "/bin/bash -c '%s;%s %s'" \
+                                   % ( setenv, proxy, cmd ) ] )
       if res['OK']:
-        result = S_OK(str(res['Value'][1])+str(res['Value'][2]))
+        result = S_OK( str( res['Value'][1] ) + str( res['Value'][2] ) )
       else:
-        gLogger.error(res['Message'])
+        gLogger.error( res['Message'] )
         result = res
     except Exception, msg:
-      gLogger.error("During execution: "+str(msg))
-      result = S_ERROR("Failed to execute: %s" % str(msg))
-    os.remove(f[1])
-    os.remove(fs[1])
-    os.remove(proxyFile)
+      gLogger.error( "During execution: " + str( msg ) )
+      result = S_ERROR( "Failed to execute: %s" % str( msg ) )
+    os.remove( f[1] )
+    os.remove( fs[1] )
+    os.remove( proxyFile )
     return result
 
   types_execWizardScript = [ str, dict ]
@@ -315,42 +314,42 @@ class ProductionRequestHandler( RequestHandler ):
     """ Execure wizard with parameters """
     creds = self.__clientCredentials()
     if creds['Group'] != 'lhcb_prmgr':
-      #return S_ERROR("You have to be production manager")
+      # return S_ERROR("You have to be production manager")
       if 'Generate' in wizpar:
         del wizpar['Generate']
-    res = getShifterProxy("ProductionManager")
+    res = getShifterProxy( "ProductionManager" )
     if not res['OK']:
       return res
     proxyFile = res['Value']['proxyFile']
     try:
       f = tempfile.mkstemp()
-      os.write(f[0], "wizardParameters = {\n")
+      os.write( f[0], "wizardParameters = {\n" )
       for name, value in wizpar.items():
-        os.write(f[0], "  \""+str(name)+"\": \"\"\""+str(value)+"\"\"\",\n")
-      os.write(f[0], "}\n")
-      os.write(f[0], wizard)
-      os.close(f[0])
+        os.write( f[0], "  \"" + str( name ) + "\": \"\"\"" + str( value ) + "\"\"\",\n" )
+      os.write( f[0], "}\n" )
+      os.write( f[0], wizard )
+      os.close( f[0] )
     except Exception, msg:
-      gLogger.error("In temporary files createion: "+str(msg))
-      os.remove(proxyFile)
-      return S_ERROR(str(msg))
+      gLogger.error( "In temporary files createion: " + str( msg ) )
+      os.remove( proxyFile )
+      return S_ERROR( str( msg ) )
     setenv = "source /opt/dirac/bashrc"
-    ##proxy = "X509_USER_PROXY=xxx"
+    # #proxy = "X509_USER_PROXY=xxx"
     proxy = "X509_USER_PROXY=%s" % proxyFile
-    cmd = "python %s" % (f[1])
+    cmd = "python %s" % ( f[1] )
     try:
-      res = shellCall(1800, [ "/bin/bash -c '%s;%s %s'" \
-                                   % (setenv,proxy,cmd) ])
+      res = shellCall( 1800, [ "/bin/bash -c '%s;%s %s'" \
+                                   % ( setenv, proxy, cmd ) ] )
       if res['OK']:
-        result = S_OK(str(res['Value'][1])+str(res['Value'][2]))
+        result = S_OK( str( res['Value'][1] ) + str( res['Value'][2] ) )
       else:
-        gLogger.error(res['Message'])
+        gLogger.error( res['Message'] )
         result = res
     except Exception, msg:
-      gLogger.error("During execution: "+str(msg))
-      result = S_ERROR("Failed to execute: %s" % str(msg))
-    os.remove(f[1])
-    os.remove(proxyFile)
+      gLogger.error( "During execution: " + str( msg ) )
+      result = S_ERROR( "Failed to execute: %s" % str( msg ) )
+    os.remove( f[1] )
+    os.remove( proxyFile )
     return result
 
   types_getProductionList = [ long ]
@@ -358,13 +357,13 @@ class ProductionRequestHandler( RequestHandler ):
     """ Return the list of productions associated with request and
         its subrequests
     """
-    return self.database.getProductionList(requestID)
+    return self.database.getProductionList( requestID )
 
   types_getProductionRequestSummary = [ str, str ]
   def export_getProductionRequestSummary( self, status, requestType ):
     """ Method to retrieve the production / request relations for a given request status.
     """
-    reqList = self.database.getProductionRequest( [], long(0), '', '', long(0), long(0) )
+    reqList = self.database.getProductionRequest( [], long( 0 ), '', '', long( 0 ), long( 0 ) )
     if not reqList['OK']:
       return reqList
 
@@ -374,59 +373,59 @@ class ProductionRequestHandler( RequestHandler ):
     selectStatus = [status]
 
     for req in requests['Rows']:
-      iD = int(req['RequestID'])
+      iD = int( req['RequestID'] )
       if not req['RequestType'] in reqTypes:
-        gLogger.verbose('Skipping %s request ID %s...' %(req['RequestType'], iD))
+        gLogger.verbose( 'Skipping %s request ID %s...' % ( req['RequestType'], iD ) )
         continue
       if not req['RequestState'] in selectStatus:
-        gLogger.verbose('Skipping request ID %s in state %s' %(iD, req['RequestState']))
+        gLogger.verbose( 'Skipping request ID %s in state %s' % ( iD, req['RequestState'] ) )
         continue
       if req['HasSubrequest']:
-        gLogger.verbose('Simulation request %s is a parent, getting subrequests...' %iD)
-        subReq = self.database.getProductionRequest([], long(iD), '', '', long(0), long(0))
+        gLogger.verbose( 'Simulation request %s is a parent, getting subrequests...' % iD )
+        subReq = self.database.getProductionRequest( [], long( iD ), '', '', long( 0 ), long( 0 ) )
         if not subReq['OK']:
-          gLogger.error('Could not get production request for %s' %iD)
+          gLogger.error( 'Could not get production request for %s' % iD )
           return subReq
         for sreq in subReq['Value']['Rows']:
-          sid = int(sreq['RequestID'])
+          sid = int( sreq['RequestID'] )
           resultDict[sid] = { 'reqTotal' : sreq['rqTotal'],
                               'bkTotal'  : sreq['bkTotal'],
                               'master'   : iD }
       else:
-        gLogger.verbose('Simulation request %s is a single request' %iD)
+        gLogger.verbose( 'Simulation request %s is a single request' % iD )
         resultDict[iD] = { 'reqTotal' : req['rqTotal'],
                            'bkTotal'  : req['bkTotal'],
                            'master'   : 0}
 
-    return S_OK(resultDict)
+    return S_OK( resultDict )
 
   types_getFilterOptions = []
-  def export_getFilterOptions(self):
+  def export_getFilterOptions( self ):
     """ Return the dictionary with possible values for filter
     """
     return self.database.getFilterOptions()
 
   types_getTestList = [ long ]
-  def export_getTestList(self, requestID):
+  def export_getTestList( self, requestID ):
     """ Get production requests in list format (for portal grid)
     """
-    return self.database.getTestList(requestID)
+    return self.database.getTestList( requestID )
 
   types_submitTest = [ dict, dict, str, str ]
-  def export_submitTest(self, input, pars, script, tpl):
+  def export_submitTest( self, tInput, pars, script, tpl ):
     """ Save the test request in the database
     """
     creds = self.__clientCredentials()
-    return self.database.submitTest(creds, input, pars, script, tpl)
+    return self.database.submitTest( creds, tInput, pars, script, tpl )
 
   types_getTests = [ str ]
-  def export_getTests(self, state):
+  def export_getTests( self, state ):
     """ Return the list of tests in specified state
     """
-    return self.database.getTests(state)
+    return self.database.getTests( state )
 
   types_setTestResult = [ long, str, str ]
-  def export_setTestResult(self, requestID, state, link):
+  def export_setTestResult( self, requestID, state, link ):
     """ Set test result (to be called by test agent) """
-    creds = self.__clientCredentials()
-    return self.database.setTestResult(requestID, state, link)
+    _creds = self.__clientCredentials()
+    return self.database.setTestResult( requestID, state, link )
