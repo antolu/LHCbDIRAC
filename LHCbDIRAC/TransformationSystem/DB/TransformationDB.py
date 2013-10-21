@@ -449,7 +449,7 @@ class TransformationDB( DIRACTransformationDB ):
                                                                     targetSE, runNumber )
       req = req.rstrip( "," )
       if not candidates:
-        return S_OK()
+        continue
       res = self._update( req, connection )
       if not res['OK']:
         return res

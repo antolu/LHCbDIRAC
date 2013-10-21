@@ -245,8 +245,8 @@ class TransformationManagerHandler( TManagerBase ):
     """
     return database.deleteRunsMetadata( runID )
 
-  types_getRunsInCache = []
-  def export_getRunsInCache( self, condDict = None ):
+  types_getRunsInCache = [DictType]
+  def export_getRunsInCache( self, condDict ):
     """ gets what's in
     """
     return database.getRunsInCache( condDict )
