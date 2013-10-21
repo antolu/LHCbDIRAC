@@ -18,6 +18,8 @@ __RCSID__ = "$Id$"
 
 import os, shutil, sys, urllib, re, copy
 import DIRAC
+from DIRAC.Core.Utilities.Subprocess import systemCall
+
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
 
@@ -212,7 +214,7 @@ def checkApplication( app, config, area ):
     cmdTuple += [ appVersion ]
 
   DIRAC.gLogger.info( 'Executing %s' % ' '.join( cmdTuple ) )
-  ret = DIRAC.systemCall( 1800, cmdTuple, env = cmtEnv, callbackFunction = log )
+  ret = systemCall( 1800, cmdTuple, env = cmtEnv, callbackFunction = log )
   os.chdir( curDir )
   if not ret['OK']:
     DIRAC.gLogger.error( 'Software checking failed', '%s %s' % ( appName, appVersion ) )
@@ -285,7 +287,7 @@ def installApplication( app, config, area ):
   DIRAC.gLogger.info( 'Executing %s' % ' '.join( cmdTuple ) )
   DIRAC.gLogger.info( ' at %s' % os.getcwd() )
 
-  ret = DIRAC.systemCall( 1800, cmdTuple, env = cmtEnv, callbackFunction = log )
+  ret = systemCall( 1800, cmdTuple, env = cmtEnv, callbackFunction = log )
   os.chdir( curDir )
   if not ret['OK']:
     DIRAC.gLogger.warn( 'Failed to install software:', '_'.join( app ) )
