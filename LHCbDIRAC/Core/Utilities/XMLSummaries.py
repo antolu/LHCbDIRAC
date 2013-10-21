@@ -35,17 +35,17 @@ class XMLSummary:
     self.xmlFileName = xmlFileName
 
     if not os.path.exists( self.xmlFileName ):
-      raise XMLSummaryError, "XML Summary %s Not Available" % self.xmlFileName
+      raise XMLSummaryError( "XML Summary %s Not Available" % self.xmlFileName )
 
     if os.stat( self.xmlFileName )[6] == 0:
-      raise XMLSummaryError, "Requested XML summary file '%s' is empty" % self.xmlFileName
+      raise XMLSummaryError( "Requested XML summary file '%s' is empty" % self.xmlFileName )
 
     summary = XMLTreeParser()
 
     try:
       self.xmlTree = summary.parse( self.xmlFileName )
     except Exception, e:
-      raise XMLSummaryError, 'Error parsing xml summary: %s' % str( e )
+      raise XMLSummaryError( 'Error parsing xml summary: %s' % str( e ) )
 
     self.success = self.__getSuccess()
     self.step = self.__getStep()
@@ -110,7 +110,7 @@ class XMLSummary:
 
     successXML = summary.childrens( 'success' )
     if len( successXML ) != 1:
-      raise XMLSummaryError, 'XMLSummary bad formatted: Nr of success items != 1'
+      raise XMLSummaryError( "XMLSummary bad formatted: Nr of success items != 1" )
 
     return successXML[ 0 ].value
 
@@ -124,7 +124,7 @@ class XMLSummary:
 
     stepXML = summary.childrens( 'step' )
     if len( stepXML ) != 1:
-      raise XMLSummaryError, 'XMLSummary bad formatted: Nr of step items != 1'
+      raise XMLSummaryError( "XMLSummary bad formatted: Nr of step items != 1" )
 
     return stepXML[ 0 ].value
 
@@ -138,7 +138,7 @@ class XMLSummary:
 
     statXML = summary.childrens( 'usage' )
     if len( statXML ) != 1:
-      raise XMLSummaryError, 'XMLSummary bad formatted: Nr of step items != 1'
+      raise XMLSummaryError( "XMLSummary bad formatted: Nr of step items != 1" )
 
     statXML = statXML[0].childrens( 'stat' )
 
@@ -166,7 +166,7 @@ class XMLSummary:
         try:
           files.append( ( filename.attributes[ 'name' ], filename.attributes[ 'status' ] ) )
         except Exception:
-          raise XMLSummaryError, 'Bad formatted file keys'
+          raise XMLSummaryError( "Bad formatted file keys" )
 
     return files
 
@@ -266,7 +266,7 @@ class XMLSummary:
         try:
           files.append( ( fileIn.attributes[ 'name' ], fileIn.attributes[ 'status' ] ) )
         except Exception:
-          raise XMLSummaryError, 'Bad formatted file keys. %s'
+          raise XMLSummaryError( "Bad formatted file keys. %s" )
 
     return files
 

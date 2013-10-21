@@ -4,7 +4,7 @@
 """
 
 from DIRAC                                          import gLogger
-from DIRAC.Interfaces.API.Job                       import Job
+from LHCbDIRAC.Interfaces.API.LHCbJob               import LHCbJob
 from LHCbDIRAC.Core.Utilities.ProductionData        import preSubmissionLFNs
 
 class OutputDataPolicy:
@@ -20,9 +20,9 @@ class OutputDataPolicy:
     prodID = self.paramDict['TransformationID']
     jobID = self.paramDict['TaskID']
 
-    job = Job( jobDescription )
-    result = preSubmissionLFNs( job._getParameters(), job.createCode(),
-                               productionID = prodID, jobID = jobID )
+    job = LHCbJob( jobDescription )
+    result = preSubmissionLFNs( job._getParameters(), job.workflow.createCode(),
+                                productionID = prodID, jobID = jobID )
     if not result['OK']:
       gLogger.error( result )
     return result

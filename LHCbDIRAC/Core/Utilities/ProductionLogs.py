@@ -58,10 +58,10 @@ class ProductionLog:
 
     self.log.info( "Attempting to open log file: %s" % fileName )
     if not os.path.exists( fileName ):
-      raise LogError, 'Log File Not Available'
+      raise LogError( 'Log File Not Available' )
 
     if os.stat( fileName )[6] == 0:
-      raise LogError, 'Log File Is Empty'
+      raise LogError( 'Log File Is Empty' )
 
     fopen = open( fileName, 'r' )
     self.fileString = fopen.read()
@@ -100,7 +100,7 @@ class ProductionLog:
     guess = guess.split( '_' )
 
     if len( guess ) != 4:
-      raise LogError, 'Could not guess production, job and step from %s' % self.fileName
+      raise LogError( 'Could not guess production, job and step from %s' % self.fileName )
 
     self.prodName = guess[ 1 ]
     self.jobName = guess[ 2 ]
@@ -113,7 +113,7 @@ class ProductionLog:
     for errString in self.__GAUDI_ERRORS__.keys():
       found = re.findall( errString, self.fileString )
       if found:
-        raise LogError, errString
+        raise LogError( errString )
 
 ################################################################################
 
@@ -123,7 +123,7 @@ class ProductionLog:
   #    self.log.info( 'Checking for "%s" meaning job would fail with "%s"' % ( errString, description ) )
       found = re.findall( errString, self.fileString )
       if found:
-        raise LogError, errString
+        raise LogError( errString )
 
 ################################################################################
 
@@ -140,7 +140,7 @@ class ProductionLog:
     if toFind:
       okay = re.findall( toFind, self.fileString )
       if not okay:
-        raise LogError, '"%s" was not found in the log' % toFind
+        raise LogError( '"%s" was not found in the log' % toFind )
 
 ################################################################################
 
@@ -158,7 +158,7 @@ class ProductionLog:
       self.applicationName = 'LHCb'
 
     if not self.applicationName:
-      raise LogError, "Could not guess the app name"
+      raise LogError( "Could not guess the app name" )
 
     return self.applicationName
 

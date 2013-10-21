@@ -17,7 +17,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC import gLogger
-from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile
+from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile, LogError
 
 args = Script.getPositionalArgs()
 

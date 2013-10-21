@@ -11,8 +11,8 @@ from DIRAC import S_OK, S_ERROR
 import shutil, os
 
 # They should not be here, but I do not know their effect in terms of load.
-from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC.Interfaces.API.Job   import Job
+from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
+from LHCbDIRAC.Interfaces.API.LHCbJob   import LHCbJob
 
 def makeProductionLFN( jobid, prodid, config, fname, ftype ):
   """ Constructs the logical file name according to LHCb conventions.
@@ -50,7 +50,7 @@ class JobInfoFromXML:
       self.message = 'Input parameter is not integer'
       return
 
-    dirac = Dirac()
+    dirac = DiracLHCb()
 
     result = dirac.getInputSandbox( job )
     if not result['OK']:
@@ -64,7 +64,7 @@ class JobInfoFromXML:
       return
     shutil.rmtree( 'InputSandbox%s' % job )
 
-    self.j = Job( xml )
+    self.j = LHCbJob( xml )
     self.jobid = None
     self.prodid = None
     self.jobname = None
@@ -117,7 +117,7 @@ class JobInfoFromXML:
     if self.message:
       return S_ERROR( self.message )
 
-    code = self.j.createCode()
+    code = self.j.workflow.createCode()
     listoutput = []
     for line in code.split( "\n" ):
       if line.count( "listoutput" ):
