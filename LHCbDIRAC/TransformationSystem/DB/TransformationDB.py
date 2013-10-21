@@ -10,7 +10,7 @@ import re
 
 from DIRAC                                              import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.DB.TransformationDB     import TransformationDB as DIRACTransformationDB
-from DIRAC.Core.Utilities.List                          import intListToString
+from DIRAC.Core.Utilities.List                          import intListToString, breakListIntoChunks
 from LHCbDIRAC.Workflow.Utilities.Utils                 import makeRunList
 import threading, copy
 from types import IntType, LongType, FloatType, ListType, TupleType, StringTypes
@@ -39,21 +39,21 @@ class TransformationDB( DIRACTransformationDB ):
 
   def _generateTables( self ):
     """ _generateTables
-    
+
     Extension of TransformationDB ( DIRAC ) adding tables BkQueries, TransformationRuns
     and RunsMetadata. It is also modifying TransformationFiles and TransformationTasks.
     """
-    
+
     tables = DIRACTransformationDB._generateTables( self )
     if not tables[ 'OK' ]:
       return tables
     tables = tables[ 'Value' ]
-    
+
     # Add a column to TransformationFiles table
     if 'TransformationFiles' in tables:
       tables['TransformationFiles' ][ 'Fields' ][ 'RunNumber' ] = 'INT(11) DEFAULT 0'
-      
-    # Add a column to TransformationTasks table  
+
+    # Add a column to TransformationTasks table
     if 'TransformationTasks' in tables:
       tables['TransformationTasks' ][ 'Fields' ][ 'RunNumber' ] = 'INT(11) DEFAULT 0'
 
@@ -77,7 +77,7 @@ class TransformationDB( DIRACTransformationDB ):
                                        'TCK'                  : 'VARCHAR(512) NOT NULL DEFAULT "All"',
                                        'Visible'              : 'VARCHAR(8) NOT NULL DEFAULT "All"'
                                       },
-                       'Indexes'    : { 
+                       'Indexes'    : {
                                        'SimulationConditions' : [ 'SimulationConditions' ],
                                        'DataTakingConditions' : [ 'DataTakingConditions' ],
                                        'ProcessingPass'       : [ 'ProcessingPass' ],
@@ -96,7 +96,7 @@ class TransformationDB( DIRACTransformationDB ):
                        'Engine'     : 'MyISAM'
                       }
       tables[ 'BkQueries' ] = _bkQueries
-    
+
     # Creates new table TransformationRuns
     if 'TransformationRuns' not in tables:
       _transformationRuns = {
@@ -107,14 +107,14 @@ class TransformationDB( DIRACTransformationDB ):
                                              'Status'           : 'CHAR(32) DEFAULT "Active"',
                                              'LastUpdate'       : 'DATETIME'
                                              },
-                             'Indexes'    : { 
+                             'Indexes'    : {
                                              'TransformationID': [ 'TransformationID' ],
-                                             'RunNumber'       : [ 'RunNumber' ] 
+                                             'RunNumber'       : [ 'RunNumber' ]
                                             },
                              'PrimaryKey' : [ 'TransformationID', 'RunNumber' ],
                              'Engine'     : 'MyISAM'
                             }
-      tables[ 'TransformationRuns' ] = _transformationRuns    
+      tables[ 'TransformationRuns' ] = _transformationRuns
 
     # Creates new table RunsMetadata
     if 'RunsMetadata' not in tables:
@@ -124,14 +124,14 @@ class TransformationDB( DIRACTransformationDB ):
                                        'Name'      : 'VARCHAR(256) NOT NULL',
                                        'Value'     : 'VARCHAR(256) NOT NULL'
                                       },
-                       'Indexes'    : { 
-                                       'RunNumber' : [ 'RunNumber' ] 
+                       'Indexes'    : {
+                                       'RunNumber' : [ 'RunNumber' ]
                                       },
                        'PrimaryKey' : [ 'RunNumber', 'Name' ],
                        'Engine'     : 'MyISAM'
                       }
       tables[ 'RunsMetadata' ] = _runsMetadata
-    
+
     return S_OK( tables )
 
   def cleanTransformation( self, transName, author = '', connection = False ):
@@ -425,27 +425,36 @@ class TransformationDB( DIRACTransformationDB ):
     else:
       return S_OK( resultDict )
 
-  #
-  # extends DIRAC.__insertExistingTransformationFiles
-  # Does not add userSE and adds runNumber
-  #
-  def __insertExistingTransformationFiles( self, transID, fileTuples, connection = False ):
+  def __insertExistingTransformationFiles( self, transID, fileTuplesList, connection = False ):
+    """ extends DIRAC.__insertExistingTransformationFiles
+        Does not add userSE and adds runNumber
+    """
     req = "INSERT INTO TransformationFiles (TransformationID,Status,TaskID,FileID,TargetSE,LastUpdate,RunNumber) VALUES"
     candidates = False
-    for ft in fileTuples:
-      _lfn, originalID, fileID, status, taskID, targetSE, _usedSE, _errorCount, _lastUpdate, _insertTime, runNumber = ft[:11]
-      if status not in ( 'Unused', 'Removed' ):
-        candidates = True
-        if not re.search( '-', status ):
-          status = "%s-%d" % ( status, originalID )
-          if taskID:
-            taskID = str( int( originalID ) ).zfill( 8 ) + '_' + str( int( taskID ) ).zfill( 8 )
-        req = "%s (%d,'%s','%s',%d,'%s',UTC_TIMESTAMP(),%d)," % ( req, transID, status, taskID, fileID,
-                                                                  targetSE, runNumber )
-    req = req.rstrip( "," )
-    if not candidates:
-      return S_OK()
-    return self._update( req, connection )
+
+    gLogger.info( "Inserting %d files in TransformationFiles" % len( fileTuplesList ) )
+    # splitting in various chunks, in case it is too big
+    for fileTuples in breakListIntoChunks( fileTuplesList, 10000 ):
+      gLogger.verbose( "Adding first %d files in TransformationFiles (out of %d)" % ( len( fileTuples ),
+                                                                                      len( fileTuplesList ) ) )
+      for ft in fileTuples:
+        _lfn, originalID, fileID, status, taskID, targetSE, _usedSE, _errorCount, _lastUpdate, _insertTime, runNumber = ft[:11]
+        if status not in ( 'Unused', 'Removed' ):
+          candidates = True
+          if not re.search( '-', status ):
+            status = "%s-%d" % ( status, originalID )
+            if taskID:
+              taskID = str( int( originalID ) ).zfill( 8 ) + '_' + str( int( taskID ) ).zfill( 8 )
+          req = "%s (%d,'%s','%s',%d,'%s',UTC_TIMESTAMP(),%d)," % ( req, transID, status, taskID, fileID,
+                                                                    targetSE, runNumber )
+      req = req.rstrip( "," )
+      if not candidates:
+        return S_OK()
+      res = self._update( req, connection )
+      if not res['OK']:
+        return res
+
+    return S_OK()
 
   #############################################################################
   #
