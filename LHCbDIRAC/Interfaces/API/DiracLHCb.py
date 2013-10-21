@@ -444,7 +444,7 @@ class DiracLHCb( Dirac ):
       if not check['OK']:
         return check
       dqFlag = check['Value']
-      query['DataQuality'] = dqFlag
+      query['DataQualityFlag'] = dqFlag
 
     result = self.bkQuery( query )
     self.log.verbose( result )
