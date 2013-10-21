@@ -9,7 +9,7 @@
 
 __RCSID__ = "$Id$"
 
-import os, types
+import os
 
 from DIRAC                                                        import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient                                   import RPCClient
@@ -500,7 +500,7 @@ class DiracProduction( DiracLHCb ):
           return self._errorReport( 'Expected string, long or int for production ID' )
 
     if not productionID:
-      result = self.getActiveProductions()
+      result = self._getActiveProductions()
       if not result['OK']:
         return result
       productionID = result['Value'].keys()
@@ -533,6 +533,30 @@ class DiracProduction( DiracLHCb ):
     return result
 
   #############################################################################
+
+  def _getActiveProductions( self, printOutput = False ):
+    """Returns a dictionary of active production IDs and their status, e.g. automatic, manual.
+    """
+    result = self.transformationClient.getTransformations()
+    if not result['OK']:
+      return result
+    prodList = result['Value']
+    currentProductions = {}
+    for prodDict in prodList:
+      self.log.debug( prodDict )
+      if prodDict.has_key( 'AgentType' ) and prodDict.has_key( 'TransformationID' ):
+        prodID = prodDict['TransformationID']
+        status = prodDict['AgentType']
+        currentProductions[prodID] = status
+        if status.lower() == 'automatic':
+          self.log.verbose( 'Found active production %s eligible to submit jobs' % prodID )
+
+    if printOutput:
+      self._prettyPrint( currentProductions )
+
+    return S_OK( currentProductions )
+
+  #############################################################################
   def getProductionCommands( self ):
     """ Returns the list of possible commands and their meaning.
     """
@@ -542,7 +566,7 @@ class DiracProduction( DiracLHCb ):
     return S_OK( prodCommands )
 
   #############################################################################
-  def production( self, productionID, command, printOutput = False, disableCheck = True ):
+  def production( self, productionID, command, disableCheck = True ):
     """Allows basic production management by supporting the following commands:
        - start : set production status to Active, job submission possible
        - stop : set production status to Stopped, no job submissions
