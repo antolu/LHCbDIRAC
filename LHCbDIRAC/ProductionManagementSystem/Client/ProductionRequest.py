@@ -104,7 +104,7 @@ class ProductionRequest( object ):
     for stepID in self.stepsList:
       stepDict = self.bkkClient.getAvailableSteps( {'StepId':stepID} )
       if not stepDict['OK']:
-        raise ValueError, stepDict['Message']
+        raise ValueError( stepDict['Message'] )
       else:
         stepDict = stepDict['Value']
 
@@ -118,14 +118,14 @@ class ProductionRequest( object ):
 
       s_in = self.bkkClient.getStepInputFiles( stepID )
       if not s_in['OK']:
-        raise ValueError, s_in['Message']
+        raise ValueError( s_in['Message'] )
       else:
         fileTypesList = [fileType[0].strip() for fileType in s_in['Value']['Records']]
         stepsListDictItem['fileTypesIn'] = fileTypesList
 
       s_out = self.bkkClient.getStepOutputFiles( stepID )
       if not s_out['OK']:
-        raise ValueError, s_out['Message']
+        raise ValueError( s_out['Message'] )
       else:
         fileTypesList = [fileType[0].strip() for fileType in s_out['Value']['Records']]
         stepsListDictItem['fileTypesOut'] = fileTypesList
@@ -215,7 +215,7 @@ class ProductionRequest( object ):
                                                    extend = extend,
                                                    tracking = prodDict['tracking'] )
       if not res['OK']:
-        raise RuntimeError, res['Message']
+        raise RuntimeError( res['Message'] )
 
       prodID = res['Value']
       prodsLaunched.append( prodID )
@@ -614,12 +614,12 @@ class ProductionRequest( object ):
         bkQuery['DataQualityFlag'] = self.dqFlag.replace( ',', ';;;' ).replace( ' ', '' )
 
       if self.startRun and self.runsList or self.endRun and self.runsList:
-        raise ValueError, 'Please don\'t mix runs list with start/end run'
+        raise ValueError( "Please don't mix runs list with start/end run" )
 
       if self.endRun and self.startRun:
         if self.endRun < self.startRun:
-          gLogger.error( 'Your end run "%d" should be more than your start run "%d"!' % ( self.endRun, self.startRun ) )
-          raise ValueError, 'Error setting start or end run'
+          gLogger.error( "Your end run '%d' should be more than your start run '%d'!" % ( self.endRun, self.startRun ) )
+          raise ValueError( "Error setting start or end run" )
 
       if self.startRun:
         bkQuery['StartRun'] = self.startRun
@@ -670,7 +670,7 @@ class ProductionRequest( object ):
     if type( value ) == type( '' ):
       value = float( value )
     if value < 0.0:
-      raise ValueError, 'eventsToProduce can not be negative'
+      raise ValueError( "eventsToProduce can not be negative" )
     self._eventsToProduce = value
   def get_eventsToProduce( self ):
     return self._eventsToProduce
@@ -697,7 +697,7 @@ class ProductionRequest( object ):
       value = list( value )
     for x in value:
       if x < 0.0:
-        raise ValueError, 'CPUe can not be negative'
+        raise ValueError( "CPUe can not be negative" )
     self._CPUeList = value
   def get_CPUeList( self ):
     return self._CPUeList
@@ -707,7 +707,7 @@ class ProductionRequest( object ):
     if type( value ) == type( '' ):
       value = float( value )
     if value < 0.0:
-      raise ValueError, 'CPUTimeAvg can not be negative'
+      raise ValueError( "CPUTimeAvg can not be negative" )
     self._CPUTimeAvg = value
   def get_CPUTimeAvg( self ):
     return self._CPUTimeAvg
@@ -717,7 +717,7 @@ class ProductionRequest( object ):
     if type( value ) == type( '' ):
       value = float( value )
     if value < 0.0:
-      raise ValueError, 'CPUNormalizationFactorAvg can not be negative'
+      raise ValueError( "CPUNormalizationFactorAvg can not be negative" )
     self._CPUNormalizationFactorAvg = value
   def get_CPUNormalizationFactorAvg( self ):
     return self._CPUNormalizationFactorAvg
@@ -742,8 +742,8 @@ def _splitIntoProductionSteps( step ):
     prodSteps.append( step )
   else:
     if set( step['fileTypesOut'] ) > set( step['fileTypesIn'] ):
-      raise ValueError, "Step outputs %s are not part of the inputs %s...?" % ( str( step['fileTypesOut'] ),
-                                                                                str( step['fileTypesIn'] ) )
+      raise ValueError( "Step outputs %s are not part of the inputs %s...?" % ( str( step['fileTypesOut'] ),
+                                                                                str( step['fileTypesIn'] ) ) )
     for outputTypes in step['fileTypesOut']:
       prodStep = copy.deepcopy( step )
       prodStep['fileTypesIn'] = [outputTypes]
