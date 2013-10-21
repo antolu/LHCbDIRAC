@@ -55,7 +55,8 @@ class ProductionStatusAgent( AgentModule ):
     self.dirac = Dirac()
     self.reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
     self.transClient = TransformationClient()
-    self.simulationTypes = Operations().getValue( 'Transformations/ExtendableTransfTypes', ['MCSimulation', 'Simulation'] )
+    self.simulationTypes = Operations().getValue( 'Transformations/ExtendableTransfTypes', ['MCSimulation',
+                                                                                            'Simulation'] )
 
   #############################################################################
   def initialize( self ):
@@ -176,7 +177,8 @@ class ProductionStatusAgent( AgentModule ):
             # AND number of created == number of submited
             prodStats = self._getTransformationTaskStats( prod )
             isIdle = ( prodStats.get( 'Created', 0 ) == prodStats.get( 'Submitted', 0 ) ) \
-            and all( [prodStats.get( status, 0 ) == 0 for status in ['Matched', 'Checking', 'Waiting', 'Staging', 'Rescheduled', 'Running', 'Completed']] )
+            and all( [prodStats.get( status, 0 ) == 0 for status in ['Matched', 'Checking', 'Waiting', 'Staging',
+                                                                     'Rescheduled', 'Running', 'Completed']] )
           else:
             # other production type : go to Idle if
             #     0 unused, 0 assigned files

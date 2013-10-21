@@ -79,7 +79,10 @@ class ProductionStatusSuccess( AgentTestCase ):
     tasksStats = {1L : {'Created' : 100, 'Submitted' : 100, 'Done' : 90, 'Failed' : 10},  # idle
                   2L : {'Created' : 100, 'Submitted' : 50, 'Done' : 50},  # not idle
                   3L : {'Created' : 100, 'Submitted' : 100, 'Done' : 50, 'Failed' : 10, 'Running' : 40}}  # not idle
-    filesStats = {4L : {'Processed' : 100},  # idle
+    filesStats = {1L : {'Processed' : 100},  # idle
+                  2L : {'Processes' : 0, 'Unused' : 100},  # not idle
+                  3L : {'Processed' : 50, 'Unused' : 25, 'Assigned' : 25},  # not idle
+                  4L : {'Processed' : 100},  # idle
                   5L : {'Processes' : 0, 'Unused' : 100},  # not idle
                   6L : {'Processed' : 50, 'Unused' : 25, 'Assigned' : 25}}  # not idle
 

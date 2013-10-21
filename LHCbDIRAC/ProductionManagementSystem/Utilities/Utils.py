@@ -85,7 +85,7 @@ def informPeople( rec, oldstate, state, author, inform ):
       if x:
         if x.find( "@" ) > 0:
           eMail = x
-        else
+        else:
           eMail = getUserOption( x, 'Email' )
         if eMail:
           notification = NotificationClient()
