@@ -11,7 +11,8 @@ __RCSID__ = "$Id$"
 
 import re, os, sys
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig, shellCall
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC.Core.Utilities.Subprocess import shellCall
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment, addCommandDefaults, createDebugScript
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
