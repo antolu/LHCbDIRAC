@@ -5,8 +5,10 @@
   
 '''
 
+from DIRAC import S_ERROR, S_OK, gLogger
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import \
      ResourceManagementClient as DIRACResourceManagementClient
+from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
 __RCSID__ = '$Id$'
 
@@ -493,6 +495,74 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     # pylint: disable-msg=W0613      
     meta = { 'onlyUniqueKeys' : True } 
     return self._query( 'addOrModify', 'EnvironmentCache', locals() )
+
+  #.............................................................................
+  # 
+
+  def getSLSStorage( self, site = None, token = None,
+                     availability = None, refreshPeriod = None,
+                     validityDuration = None, totalSpace = None,
+                     guaranteedSpace = None, freeSpace = None, meta = None ):
+    
+    # Deprecation warning
+    gLogger.warn( "RSS.getSLSStorage will be soon deprecated by getSEStorageSpace ( not ready yet )" )
+    return self._query( 'select', 'SLSStorage', locals() )
+
+  def getSEStorageSpace( self, seName ):
+    """ getSEStorageSpace
+    
+    Given a SE, returns a dictionary with the Total, Free and Guaranteed Space. 
+    This last one, is still unclear what represents ( so far, is equal to Total 
+    space, but that might change ).
+    
+    This new method returns a similar dictionary to getSLSStorage. However, some
+    of the keys in the dictionary have different values. Check them carefully !.
+        
+    >>> res = self.getSLSStorage( site = 'CERN', token = 'LHCb-Tape' )
+    >>> dict( zip( res['Columns'], res['Value'][0] ) )
+    >>> { 'FreeSpace'        : 60L, 
+          'RefreshPeriod'    : 'PT27M', 
+          'TotalSpace'       : 465L, 
+          'TimeStamp'        : datetime.datetime(2013, 10, 24, 12, 53, 27), 
+          'GuaranteedSpace'  : 465L, 
+          'Site'             : 'CERN', 
+          'Token'            : 'LHCb-Tape', 
+          'ValidityDuration' : 'PT13H', 
+          'Availability'     : 100
+        }
+    
+    This is how this new method should be used, and also what it returns ( returns
+    a dictionary, so there is no need to generate it - dict( zip ( ... ) ) ).
+    
+    >>> res = self.getSEStorageSpace( 'CERN-RAW' )
+    >>> { 'Endpoint'      : 'httpg://srm-lhcb.cern.ch:8443/srm/managerv2', 
+          'LastCheckTime' : datetime.datetime(2013, 10, 24, 12, 2, 17), 
+          'Guaranteed'    : 465L, 
+          'Free'          : 60L, 
+          'Token'         : 'LHCb-Tape', 
+          'Total'         : 465L
+         }
+        
+    """
+    
+    # Given a SE, we need to find its endpoint
+    endpoint = CSHelpers.getStorageElementEndpoint( seName )
+    if not endpoint[ 'OK' ]:
+      return endpoint
+    endpoint = endpoint[ 'Value' ]
+    
+    spaceToken = CSHelpers.getStorageElementSpaceToken( seName )
+    if not spaceToken[ 'OK' ]:
+      return spaceToken
+    spaceToken = spaceToken[ 'Value']    
+    
+    res = self.selectSpaceTokenOccupancyCache( endpoint, spaceToken )
+    if not res[ 'OK' ]:
+      return res
+    if not res[ 'Value' ]:
+      return S_ERROR( "Empty result" )
+    
+    return S_OK( dict( zip( res[ 'Columns' ], res[ 'Value' ][ 0 ] ) ) )
 
   ##############################################################################
   # HAMMERCLOUD TEST METHODS
