@@ -1,29 +1,40 @@
 # $HeadURL:  $
-''' SpaceTokenOccupancyCommand
+""" SpaceTokenOccupancyCommand
   
   LHCbDIRAC extension adding records to the accounting
   
-'''
+"""
 
+#DIRAC
 from DIRAC                                                         import S_OK, gLogger
 from DIRAC.AccountingSystem.Client.DataStoreClient                 import gDataStoreClient
 from DIRAC.Core.Utilities.SiteSEMapping                            import getSitesForSE
 from DIRAC.ResourceStatusSystem.Command.SpaceTokenOccupancyCommand import SpaceTokenOccupancyCommand as STOC
 from DIRAC.ResourceStatusSystem.Utilities                          import CSHelpers
 
+#LHCbDIRAC
 from LHCbDIRAC.AccountingSystem.Client.Types.SpaceToken            import SpaceToken
+
 
 __RCSID__ = '$Id:  $'
 
+
 class SpaceTokenOccupancyCommand( STOC ):
-  '''
-  Uses lcg_util to query status of endpoint for a given token.
-  ''' 
+  """SpaceTokenOccupancyCommand
+  
+  Extension of DIRAC.ResourceStatusSystem.Command.SpaceTokenOccupancyCommand
+  to add entries to accounting. To be considered to move up to DIRAC repository.
+  
+  """ 
 
 
-  def getSiteNameFromEndpoint( self, endpoint ):
+  @staticmethod
+  def getSiteNameFromEndpoint( endpoint ):
+    """ getSiteNameFromEndpoint
     
-    endpointSE = ''
+    Given a StorageElement endpoint, returns a site where it belongs.
+    
+    """
     
     ses = CSHelpers.getStorageElements()
     if not ses[ 'OK' ]:
@@ -39,22 +50,23 @@ class SpaceTokenOccupancyCommand( STOC ):
         continue
       
       if endpoint == res[ 'Value' ]:
-        endpointSE = se
-        break
-    
-    if not endpointSE:
-      return ''
-    
-    site = getSitesForSE( endpointSE, 'LCG' )
-    try:
-      return site[ 'Value' ][ 0 ]
-    except:
-      return ''
+        
+        site = getSitesForSE( se, 'LCG' )
+        if not site[ 'OK' ]:
+          continue
+        for siteName in site[ 'Value' ]:
+          if siteName.split( '.' )[ 1 ] in se:
+            return siteName
+        
+    return ''
+
 
   def _storeCommand( self, results ):
-    '''
-      Stores the results of doNew method on the database.
-    '''
+    """ _storeCommand
+    
+    Copy of original method adding records to accounting.
+    
+    """
     
     for result in results:
       
