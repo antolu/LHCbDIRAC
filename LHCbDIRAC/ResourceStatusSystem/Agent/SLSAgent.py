@@ -184,13 +184,17 @@ class SpaceTokenOccupancyTest( TestBase ):
       # Ugly, ugly, ugly.. waiting for DIRAC v7r0 to do it properly
       if ( not '-' in se ) or ( '_' in se ):
         continue
-      
+
       res = CSHelpers.getStorageElementEndpoint( se )
       if not res[ 'OK' ]:
         continue
-      
+
       if endpoint == res[ 'Value' ]:
-        site = se.split( '-', 1 )[ 0 ] 
+        # HACK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if 'RAL-HEP' in se:
+          site = 'RAL-HEP'
+        else:
+          site = se.split( '-', 1 )[ 0 ]
         break
     
     if not site:
