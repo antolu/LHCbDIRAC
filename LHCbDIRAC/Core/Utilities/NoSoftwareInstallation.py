@@ -144,4 +144,77 @@ class NoSoftwareInstallation( object ):
 
 
 #...............................................................................
+# TODO: get this out of here !
+
+import os
+import DIRAC
+
+def mySiteRoot():
+  """Returns the mySiteRoot for the current local and / or shared areas.
+  """
+  localmySiteRoot = ''
+  localArea = getLocalArea()
+  if not localArea:
+    DIRAC.gLogger.error( 'Failed to determine Local SW Area' )
+    return localmySiteRoot
+  sharedArea = getSharedArea()
+  if not sharedArea:
+    DIRAC.gLogger.error( 'Failed to determine Shared SW Area' )
+    return localArea
+  localmySiteRoot = '%s:%s' % ( localArea, sharedArea )
+  return localmySiteRoot
+
+def getSharedArea():
+  """
+   Discover location of Shared SW area
+   This area is populated by a tool independent of the DIRAC jobs
+  """
+  sharedArea = ''
+  if os.environ.has_key( 'VO_LHCB_SW_DIR' ):
+    sharedArea = os.path.join( os.environ['VO_LHCB_SW_DIR'], 'lib' )
+    DIRAC.gLogger.debug( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
+    if os.environ['VO_LHCB_SW_DIR'] == '.':
+      if not os.path.isdir( 'lib' ):
+        os.mkdir( 'lib' )
+  elif DIRAC.gConfig.getValue( '/LocalSite/SharedArea', '' ):
+    sharedArea = DIRAC.gConfig.getValue( '/LocalSite/SharedArea' )
+    DIRAC.gLogger.debug( 'Using CE SharedArea at "%s"' % sharedArea )
+
+  if sharedArea:
+    # if defined, check that it really exists
+    if not os.path.isdir( sharedArea ):
+      DIRAC.gLogger.error( 'Missing Shared Area Directory:', sharedArea )
+      sharedArea = ''
+
+  return sharedArea
+
+def getLocalArea():
+  """
+   Discover Location of Local SW Area.
+   This area is populated by DIRAC job Agent for jobs needing SW not present
+   in the Shared Area.
+  """
+  if DIRAC.gConfig.getValue( '/LocalSite/LocalArea', '' ):
+    localArea = DIRAC.gConfig.getValue( '/LocalSite/LocalArea' )
+  else:
+    localArea = os.path.join( DIRAC.rootPath, 'LocalArea' )
+
+  # check if already existing directory
+  if not os.path.isdir( localArea ):
+    # check if we can create it
+    if os.path.exists( localArea ):
+      try:
+        os.remove( localArea )
+      except OSError, msg:
+        DIRAC.gLogger.error( 'Cannot remove: %s %s' % ( localArea, msg ) )
+        localArea = ''
+    else:
+      try:
+        os.mkdir( localArea )
+      except OSError, msg:
+        DIRAC.gLogger.error( 'Cannot create: %s %s' % ( localArea, msg ) )
+        localArea = ''
+  return localArea
+
+#...............................................................................
 #EOF
