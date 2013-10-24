@@ -12,6 +12,8 @@ class TransformationFilesStateMachine( LHCbStateMachine ):
     super( TransformationFilesStateMachine, self ).__init__( state )
 
     self.states = {
+                   'MaxReset-inherited'   : State( 11 ),  # final state
+                   'Processed-inherited'  : State( 10 ),  # final state
                    'Moved'        : State( 9 ),  # final state
                    'Removed'      : State( 8 ),  # final state
                    'MissingInFC'  : State( 7 ),  # final state

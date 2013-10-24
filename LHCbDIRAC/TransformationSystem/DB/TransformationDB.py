@@ -429,27 +429,28 @@ class TransformationDB( DIRACTransformationDB ):
     """ extends DIRAC.__insertExistingTransformationFiles
         Does not add userSE and adds runNumber
     """
-    req = "INSERT INTO TransformationFiles (TransformationID,Status,TaskID,FileID,TargetSE,LastUpdate,RunNumber) VALUES"
-    candidates = False
 
     gLogger.info( "Inserting %d files in TransformationFiles" % len( fileTuplesList ) )
     # splitting in various chunks, in case it is too big
     for fileTuples in breakListIntoChunks( fileTuplesList, 10000 ):
       gLogger.verbose( "Adding first %d files in TransformationFiles (out of %d)" % ( len( fileTuples ),
                                                                                       len( fileTuplesList ) ) )
+      req = "INSERT INTO TransformationFiles (TransformationID,Status,TaskID,FileID,TargetSE,LastUpdate,RunNumber) VALUES"
+      candidates = False
+
       for ft in fileTuples:
         _lfn, originalID, fileID, status, taskID, targetSE, _usedSE, _errorCount, _lastUpdate, _insertTime, runNumber = ft[:11]
         if status not in ( 'Unused', 'Removed' ):
           candidates = True
           if not re.search( '-', status ):
-            status = "%s-%d" % ( status, originalID )
+            status = "%s-inherited" % status
             if taskID:
               taskID = str( int( originalID ) ).zfill( 8 ) + '_' + str( int( taskID ) ).zfill( 8 )
           req = "%s (%d,'%s','%s',%d,'%s',UTC_TIMESTAMP(),%d)," % ( req, transID, status, taskID, fileID,
                                                                     targetSE, runNumber )
-      req = req.rstrip( "," )
       if not candidates:
         continue
+      req = req.rstrip( "," )
       res = self._update( req, connection )
       if not res['OK']:
         return res
