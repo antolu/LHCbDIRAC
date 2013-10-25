@@ -826,6 +826,20 @@ class DiracLHCb( Dirac ):
     return result
 
   #############################################################################
+
+  def lhcbProxyInit( self, *args ):
+    """ just calling the lhcb-proxy-init script
+    """
+    os.system( "dirac-proxy-init -o LogLevel=NOTICE -t '%s'" % "' '".join( args ) )
+
+  #############################################################################
+
+  def lhcbProxyInfo( self, *args ):
+    """ just calling the lhcb-proxy-info script
+    """
+    os.system( "dirac-proxy-info -o LogLevel=NOTICE -t '%s'" % "' '".join( args ) )
+
+  #############################################################################
   def gridWeather( self, printOutput = False ):
     """This method gives a snapshot of the current Grid weather from the perspective
        of the DIRAC site and SE masks.  Tier-1 sites are returned with more detailed
