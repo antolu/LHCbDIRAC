@@ -1,6 +1,6 @@
-''' Module to upload specified job output files according to the parameters
+""" Module to upload specified job output files according to the parameters
     defined in the user workflow.
-'''
+"""
 
 __RCSID__ = "$Id$"
 
@@ -17,8 +17,8 @@ class FileUsage( ModuleBase ):
   #############################################################################
 
   def __init__( self, bkClient = None, rm = None ):
-    '''Module initialization.
-    '''
+    """Module initialization.
+    """
     self.log = gLogger.getSubLogger( "FileUsage" )
     super( FileUsage, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
     self.version = __RCSID__
@@ -27,8 +27,8 @@ class FileUsage( ModuleBase ):
   #############################################################################
 
   def _resolveInputVariables( self ):
-    ''' By convention the module parameters are resolved here.
-    '''
+    """ By convention the module parameters are resolved here.
+    """
     super( FileUsage, self )._resolveInputVariables()
 
     dirDict = {}
@@ -57,8 +57,8 @@ class FileUsage( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_id = None, step_number = None ):
-    ''' Main execution function.
-    '''
+    """ Main execution function.
+    """
 
     try:
 
@@ -102,10 +102,10 @@ class FileUsage( ModuleBase ):
   #############################################################################
 
   def _reportFileUsage( self, dirDict ):
-    '''Send the data usage report (SE,dirDict) where dirDict = {'Dataset':NumberOfHits}
+    """Send the data usage report (SE,dirDict) where dirDict = {'Dataset':NumberOfHits}
     example: {'/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/': 1,
     '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/': 2}
-    '''
+    """
     self.log.verbose( 'FileUsage._reportFileUsage' )
     self.log.verbose( 'Reporting input file usage:' )
     for entry in dirDict:

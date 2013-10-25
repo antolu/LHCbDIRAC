@@ -261,7 +261,7 @@ class ModuleBase( object ):
       result = getLogPath( self.workflow_commons, self.bkClient )
       if not result['OK']:
         self.log.error( 'Could not create LogFilePath', result['Message'] )
-        raise RuntimeError, result['Message']
+        raise RuntimeError( result['Message'] )
       self.logFilePath = result['Value']['LogFilePath'][0]
 
     # for newer productions this is found in the step parameter
@@ -386,7 +386,7 @@ class ModuleBase( object ):
     if self.jobType.lower() == 'merge':
       res = self.bkClient.getFileMetadata( self.stepInputData )
       if not res['OK']:
-        raise RuntimeError, res['Message']
+        raise RuntimeError( res['Message'] )
 
       outputTypes = []
       if len( res['Value']['Successful'] ) != len( self.stepInputData ):
@@ -401,7 +401,7 @@ class ModuleBase( object ):
             outputTypes.append( mdDict['FileType'] )
 
       if len( outputTypes ) > 1:
-        raise ValueError, "Not all input files have the same type"
+        raise ValueError( "Not all input files have the same type" )
       outputType = outputTypes[0].lower()
       stepOutTypes = [outputType.lower()]
       stepOutputs = [{'outputDataName': self.step_id + '.' + outputType.lower(),
@@ -527,7 +527,7 @@ class ModuleBase( object ):
 
     if notPresentFiles:
       self.log.error( 'Output data file list %s does not exist locally' % notPresentFiles )
-      raise os.error, "Output data not found"
+      raise os.error( "Output data not found" )
 
   #############################################################################
 
@@ -580,7 +580,7 @@ class ModuleBase( object ):
     if notPresentKeys:
       for fileName_keys in notPresentKeys:
         self.log.error( "File %s has missing %s" % ( fileName_keys[0], fileName_keys[1] ) )
-      raise ValueError, "Missing requested fileName keys"
+      raise ValueError( "Missing requested fileName keys" )
 
   #############################################################################
 
@@ -634,7 +634,7 @@ class ModuleBase( object ):
     for fileName, metadata in final.items():
       for key in mandatoryKeys:
         if not metadata.has_key( key ):
-          return RuntimeError, 'File %s has missing %s' % ( fileName, key )
+          raise RuntimeError( "File %s has missing %s" % ( fileName, key ) )
 
     return final
 
@@ -653,7 +653,7 @@ class ModuleBase( object ):
           if outputF['stepName'] == previousStep and outputF['outputBKType'].lower() == self.inputDataType.lower():
             stepInputData.append( outputF['outputDataName'] )
         except KeyError:
-          raise RuntimeError, 'Can\'t find output of step %s' % previousStep
+          raise RuntimeError( "Can't find output of step %s" % previousStep )
 
       return stepInputData
 
@@ -687,7 +687,7 @@ class ModuleBase( object ):
       self.log.info( 'Attempting to recreate the production output LFNs...' )
       result = constructProductionLFNs( self.workflow_commons, self.bkClient )
       if not result['OK']:
-        raise IOError, "Could not create production LFNs: %s" % result['Message']
+        raise IOError( "Could not create production LFNs: %s" % result['Message'] )
       self.workflow_commons['BookkeepingLFNs'] = result['Value']['BookkeepingLFNs']
       self.workflow_commons['LogFilePath'] = result['Value']['LogFilePath']
       self.workflow_commons['ProductionOutputData'] = result['Value']['ProductionOutputData']
@@ -726,7 +726,7 @@ class ModuleBase( object ):
         filesFound.append( output )
       else:
         self.log.error( '%s not found' % output['outputDataName'] )
-        raise IOError, 'OutputData not found'
+        raise IOError( "OutputData not found" )
 
     for fileFound in filesFound:
       bkFileTypes.append( fileFound['outputDataType'].upper() )
@@ -799,7 +799,7 @@ class ModuleBase( object ):
     if len( self.request ):
       isValid = gRequestValidator.validate( self.request )
       if not isValid['OK']:
-        raise RuntimeError, "Failover request is not valid: %s" % isValid['Message']
+        raise RuntimeError( "Failover request is not valid: %s" % isValid['Message'] )
       else:
         requestJSON = self.request.toJSON()
         if requestJSON['OK']:
@@ -818,7 +818,7 @@ class ModuleBase( object ):
           else:
             self.log.error( "No digest? That's not sooo important, anyway: %s" % result['Message'] )
         else:
-          raise RuntimeError, requestJSON['Message']
+          raise RuntimeError( requestJSON['Message'] )
 
   #############################################################################
 
@@ -847,7 +847,7 @@ class ModuleBase( object ):
     regFile.addFile( bkFile )
     res = self.request.addOperation( regFile )
     if not res['OK']:
-      raise RuntimeError, res['Message']
+      raise RuntimeError( res['Message'] )
 
   #############################################################################
 

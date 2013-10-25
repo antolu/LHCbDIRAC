@@ -336,10 +336,10 @@ class UserJobFinalization( ModuleBase ):
     if not result['OK']:
       if not self._enableModule():
         return 'testUser'
-      raise RuntimeError, 'Could not obtain proxy information'
+      raise RuntimeError( 'Could not obtain proxy information' )
 
     if not result['Value'].has_key( 'username' ):
-      raise RuntimeError, 'Could not get username from proxy'
+      raise RuntimeError( 'Could not get username from proxy' )
 
     return result['Value']['username']
 

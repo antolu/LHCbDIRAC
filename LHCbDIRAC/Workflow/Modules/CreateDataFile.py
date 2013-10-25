@@ -6,6 +6,7 @@ __RCSID__ = "$Id$"
 from DIRAC import S_OK, S_ERROR, gLogger
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+from LHCbDIRAC.Core.Utilities.GangaDataFile import GangaDataFile
 
 class CreateDataFile( ModuleBase ):
   """ CreateDataFile class
@@ -46,7 +47,6 @@ class CreateDataFile( ModuleBase ):
       self._resolveInputVariables()
 
       if not gdf:
-        from LHCbDIRAC.Core.Utilities.GangaDataFile import GangaDataFile
         gdf = GangaDataFile( fileName = self.gangaFileName,
                              xmlcatalog_file = self.poolXMLCatName,
                              log = self.log )

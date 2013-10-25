@@ -23,7 +23,7 @@ class MergeMDF( ModuleBase ):
     self.version = __RCSID__
 
     self.outputLFN = ''
-    #List all input parameters here
+    # List all input parameters here
     self.stepInputData = []
     self.poolXMLCatName = 'pool_xml_catalog.xml'
     self.applicationName = 'cat'
@@ -33,10 +33,8 @@ class MergeMDF( ModuleBase ):
     """ By convention the module parameters are resolved here.
     """
 
-
     super( MergeMDF, self )._resolveInputVariables()
     super( MergeMDF, self )._resolveInputStep()
-    self.log.debug( "Getting the step outputs" )
 
   #############################################################################
 
@@ -113,4 +111,4 @@ class MergeMDF( ModuleBase ):
     finally:
       super( MergeMDF, self ).finalize( self.version )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

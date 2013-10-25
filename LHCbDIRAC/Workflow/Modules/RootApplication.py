@@ -6,7 +6,6 @@ import os, sys, fnmatch
 
 from DIRAC                                            import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess                  import shellCall
-from DIRAC.Core.DISET.RPCClient                       import RPCClient
 
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment   import getProjectEnvironment
 from LHCbDIRAC.Workflow.Modules.ModuleBase            import ModuleBase

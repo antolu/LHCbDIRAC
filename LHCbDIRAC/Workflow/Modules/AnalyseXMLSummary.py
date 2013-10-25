@@ -150,11 +150,11 @@ class AnalyseXMLSummary( ModuleBase ):
 
     if not result['OK']:
       self.log.error( 'Could not create production LFNs with message "%s"' % ( result['Message'] ) )
-      raise Exception, result['Message']
+      raise Exception( result['Message'] )
 
     if not result['Value'].has_key( 'DebugLFNs' ):
       self.log.error( 'No debug LFNs found after creating production LFNs, result was:%s' % result )
-      raise Exception, 'DebugLFNs Not Found'
+      raise Exception( 'DebugLFNs Not Found' )
 
     debugLFNs = result['Value']['DebugLFNs']
 

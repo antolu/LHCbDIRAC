@@ -118,12 +118,12 @@ class AnalyseLogFile( ModuleBase ):
     result = constructProductionLFNs( self.workflow_commons, self.bkClient )
 
     if not result['OK']:
-      self.log.error( 'Could not create production LFNs with message "%s"' % ( result['Message'] ) )
-      raise Exception, result['Message']
+      self.log.error( "Could not create production LFNs with message '%s'" % ( result['Message'] ) )
+      raise Exception( result['Message'] )
 
     if not result['Value'].has_key( 'DebugLFNs' ):
-      self.log.error( 'No debug LFNs found after creating production LFNs, result was:%s' % result )
-      raise Exception, 'DebugLFNs Not Found'
+      self.log.error( "No debug LFNs found after creating production LFNs, result was:%s" % result )
+      raise Exception ( "DebugLFNs Not Found" )
 
     debugLFNs = result['Value']['DebugLFNs']
 

@@ -131,7 +131,7 @@ class BookkeepingReport( ModuleBase ):
       result = constructProductionLFNs( self.workflow_commons, self.bkClient )
       if not result['OK']:
         self.log.error( 'Could not create production LFNs', result['Message'] )
-        raise ValueError, result['Message']
+        raise ValueError( result['Message'] )
 
       bkLFNs = result['Value']['BookkeepingLFNs']
       logFilePath = result['Value']['LogFilePath'][0]
@@ -339,7 +339,7 @@ class BookkeepingReport( ModuleBase ):
       if self.jobType.lower() == 'merge':
         res = self.bkClient.getFileMetadata( self.stepInputData )
         if not res['OK']:
-          raise AttributeError, "Can't get the BKK file metadata"
+          raise AttributeError( "Can't get the BKK file metadata" )
         self.eventsN = sum( [fileMeta['EventStat'] for fileMeta in res['Value']['Successful'].values()] )
         typedParams.append( ( "EventInputStat", self.eventsN ) )
         typedParams.append( ( "NumberOfEvents", self.eventsN ) )
@@ -429,7 +429,7 @@ class BookkeepingReport( ModuleBase ):
             self.log.warn( 'HIST file %s not found in XML summary, event stats set to "Unknown"' % output )
             fileStats = 'Unknown'
           else:
-            raise KeyError, e
+            raise KeyError( e )
         except AttributeError:
           if self.jobType.lower() == 'merge':
             fileStats = self.eventsN
@@ -480,7 +480,7 @@ class BookkeepingReport( ModuleBase ):
         guid = self.step_commons[ 'guid' ][ output ]
 
       if not guid:
-        raise NameError, 'No GUID found for %s' % output
+        raise NameError( 'No GUID found for %s' % output )
 
       # find the constructed lfn
       lfn = ''
@@ -490,7 +490,7 @@ class BookkeepingReport( ModuleBase ):
             lfn = outputLFN
         if not lfn:
           self.log.error( 'Could not find LFN for %s' % output )
-          raise NameError, 'Could not find LFN of output file'
+          raise NameError( 'Could not find LFN of output file' )
       else:
         lfn = '%s/%s' % ( logFilePath, self.applicationLog )
 

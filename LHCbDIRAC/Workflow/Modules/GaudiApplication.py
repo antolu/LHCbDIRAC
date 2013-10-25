@@ -315,7 +315,7 @@ class GaudiApplication( ModuleBase ):
                           callbackFunction = self.redirectLogOutput,
                           bufferLimit = 20971520 )
       if not result['OK']:
-        raise RuntimeError, "Problem Executing Application"
+        raise RuntimeError( "Problem Executing Application" )
 
       resultTuple = result['Value']
       status = resultTuple[0]
@@ -330,7 +330,7 @@ class GaudiApplication( ModuleBase ):
         self.log.error( "==================================\n StdError:\n" )
         self.log.error( self.stdError )
         self.log.error( '%s Exited With Status %s' % ( self.applicationName, status ) )
-        raise RuntimeError, '%s Exited With Status %s' % ( self.applicationName, status )
+        raise RuntimeError( "%s Exited With Status %s" % ( self.applicationName, status ) )
       else:
         self.log.info( "%s execution completed successfully" % self.applicationName )
 
