@@ -118,6 +118,7 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                       },
                       'PrimaryKey' : [ 'Name' ]                                            
                                 }
+
   
   #_tablesLike  = DIRACResourceManagementDB._tablesLike
   #_likeToTable = DIRACResourceManagementDB._likeToTable
