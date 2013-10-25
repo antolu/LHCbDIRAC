@@ -99,7 +99,7 @@ class RootApplication( ModuleBase ):
       if not self.result['OK']:
         return self.result
 
-      self.__report( 'Initializing RootApplication module' )
+      self.setApplicationStatus( 'Initializing RootApplication module' )
 
       self.log.debug( self.version )
       self.log.info( "Executing application Root %s" % ( self.rootVersion ) )
@@ -113,11 +113,11 @@ class RootApplication( ModuleBase ):
 
       self.log.info( 'Application Found:', result['Value'] )
 
-      #Now obtain the project environment for execution
+      # Now obtain the project environment for execution
       result = getProjectEnvironment( self.systemConfig, application, version )
       if not result['OK']:
         self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
-        return result # this will distinguish between LbLogin / SetupProject / actual application failures
+        return result  # this will distinguish between LbLogin / SetupProject / actual application failures
 
       projectEnvironment = result['Value']
 
@@ -158,7 +158,7 @@ class RootApplication( ModuleBase ):
         os.remove( self.applicationLog )
 
       self.log.info( 'Running:', ' '.join( rootCmd ) )
-      self.__report( 'Running ROOT %s' % ( self.rootVersion ) )
+      self.setApplicationStatus( 'Running ROOT' % self.rootVersion )
 
       ret = shellCall( 0, ' '.join( rootCmd ), env = projectEnvironment, callbackFunction = self.redirectLogOutput )
       if not ret['OK']:
@@ -185,12 +185,12 @@ class RootApplication( ModuleBase ):
       if failed == True:
         self.log.error( "==================================\n StdError:\n" )
         self.log.error( stdError )
-        self.__report( '%s Exited With Status %s' % ( self.rootScript, status ) )
+        self.setApplicationStatus( '%s Exited With Status %s' % ( self.rootScript, status ) )
         self.result = S_ERROR( "Script execution completed with errors" )
         return self.result
 
       # Return OK assuming that subsequent module will spot problems
-      self.__report( '%s (Root %s) Successful' % ( self.rootScript, self.rootVersion ) )
+      self.setApplicationStatus( '%s (Root) Successful' % self.rootScript )
       self.result = S_OK()
       return self.result
 
@@ -217,22 +217,6 @@ class RootApplication( ModuleBase ):
 
   #############################################################################
 
-  def __report( self, status ):
-    """Wraps around setJobApplicationStatus of state update client
-    """
-    if not self.jobID:
-      return S_OK( 'JobID not defined' ) # e.g. running locally prior to submission
-
-    self.log.verbose( 'setJobApplicationStatus(%d,%s,%s)' % ( self.jobID, status, 'RootApplication' ) )
-    jobReport = RPCClient( 'WorkloadManagement/JobStateUpdate', timeout = 120 )
-    jobStatus = jobReport.setJobApplicationStatus( self.jobID, status, 'RootApplication' )
-    if not jobStatus['OK']:
-      self.log.warn( jobStatus['Message'] )
-
-    return jobStatus
-
-  #############################################################################
-
   def getPythonFromRoot( self, rootsys ):
     """Locate the external python version that root was built with.
     """
@@ -256,4 +240,4 @@ class RootApplication( ModuleBase ):
     return S_OK( pythondir )
 
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

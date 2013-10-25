@@ -173,13 +173,9 @@ class GaudiApplicationScript( ModuleBase ):
         return S_ERROR( '%s Exited With Status %s' % ( os.path.basename( self.script ), status ) )
 
       #Above can't be removed as it is the last notification for user jobs
-      self.setApplicationStatus( '%s (%s %s) Successful' % ( os.path.basename( self.script ),
-                                                             self.applicationName,
-                                                             self.applicationVersion ) )
+      self.setApplicationStatus( '%s Successful' % os.path.basename( self.script ) )
 
-      return S_OK( '%s (%s %s) Successful' % ( os.path.basename( self.script ),
-                                               self.applicationName,
-                                               self.applicationVersion ) )
+      return S_OK( '%s Successful' % os.path.basename( self.script ) )
 
     except Exception, e:
       self.log.exception( e )
