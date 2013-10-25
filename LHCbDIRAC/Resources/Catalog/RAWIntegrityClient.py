@@ -1,6 +1,6 @@
 """ Client plug-in for the RAWIntegrity catalogue.
     This exposes a single method to add files to the RAW IntegrityDB.
-    
+
     USED at OnLine
 """
 
@@ -10,8 +10,9 @@ from DIRAC                                     import S_OK, S_ERROR, gLogger
 from DIRAC.Core.DISET.RPCClient                import RPCClient
 from DIRAC.ConfigurationSystem.Client          import PathFinder
 from DIRAC.Resources.Catalog.FileCatalogueBase import FileCatalogueBase
+from DIRAC.Resources.Utilities.Utils           import checkArgumentFormat
 
-__RCSID__  = '$Id$'
+__RCSID__ = '$Id$'
 
 class RAWIntegrityClient( FileCatalogueBase ):
 
@@ -33,7 +34,7 @@ class RAWIntegrityClient( FileCatalogueBase ):
   def exists( self, lfn ):
     """ LFN may be a string or list of strings
     """
-    res = self.__checkArgumentFormat( lfn )
+    res = checkArgumentFormat( lfn )
     if not res['OK']:
       return res
     lfns = res['Value']
@@ -41,26 +42,26 @@ class RAWIntegrityClient( FileCatalogueBase ):
     failed = {}
     for lfn in lfns.keys():
       successful[lfn] = False
-    resDict = { 
+    resDict = {
                'Failed'     : failed,
                'Successful' : successful
                }
     return S_OK( resDict )
 
   def addFile( self, lfn ):
-    res = self.__checkArgumentFormat( lfn )
+    res = checkArgumentFormat( lfn )
     if not res['OK']:
       return res
     failed = {}
     successful = {}
     for lfn, info in res['Value'].items():
-      server = RPCClient( self.url, timeout=120 )
-      pfn      = str(info['PFN'])
-      size     = int(info['Size'])
-      se       = str(info['SE'])
-      guid     = str(info['GUID'])
-      checksum = str(info['Checksum'])      
-      res      = server.addFile( lfn, pfn, size, se, guid, checksum )
+      server = RPCClient( self.url, timeout = 120 )
+      pfn = str( info['PFN'] )
+      size = int( info['Size'] )
+      se = str( info['SE'] )
+      guid = str( info['GUID'] )
+      checksum = str( info['Checksum'] )
+      res = server.addFile( lfn, pfn, size, se, guid, checksum )
       if not res['OK']:
         failed[lfn] = res['Message']
       else:
@@ -69,31 +70,12 @@ class RAWIntegrityClient( FileCatalogueBase ):
                'Failed'     : failed,
                'Successful' : successful
                }
-    return S_OK(resDict)
+    return S_OK( resDict )
 
-  @staticmethod
-  def __checkArgumentFormat( path ):
-    '''
-      If argument given is a string, returns false. If it is a list, all them
-      are converted into dictionary keys with false value. If a dictionary,
-      it returns it.
-    '''     
-    if type(path) in types.StringTypes:
-      urls = {path:False}
-    elif type(path) == types.ListType:
-      urls = {}
-      for url in path:
-        urls[url] = False
-    elif type(path) == types.DictType:
-      urls = path
-    else:
-      return S_ERROR("RAWIntegrityClient.__checkArgumentFormat: Supplied path is not of the correct format.")
-    return S_OK(urls)
-  
   def getPathPermissions( self, path ):
     """ Determine the VOMs based ACL information for a supplied path
     """
-    res = self.__checkArgumentFormat( path )
+    res = checkArgumentFormat( path )
     if not res['OK']:
       return res
     lfns = res['Value']
@@ -105,4 +87,4 @@ class RAWIntegrityClient( FileCatalogueBase ):
     return S_OK( resDict )
 
 ################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
