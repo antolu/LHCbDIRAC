@@ -22,7 +22,7 @@ Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
 from DIRAC.Interfaces.API.Dirac import Dirac
-from LHCbDIRAC.Core.Utilities.ClientTools  import getRootFileGUID
+from LHCbDIRAC.Core.Utilities.File import makeGuid
 
 from DIRAC import gLogger
 
@@ -103,7 +103,7 @@ if not oldGUID['OK'] or oldGUID['Value']['Failed']:
 oldGUID = oldGUID['Value']['Successful'][oldLFN]['GUID']
 gLogger.verbose( 'Existing GUID is %s' % oldGUID )
 
-#retrieve original file
+# retrieve original file
 if not os.path.exists( os.path.basename( oldLFN ) ):
   download = dirac.getFile( oldLFN )
   if not download['OK'] or download['Value']['Failed']:
@@ -113,13 +113,7 @@ if not os.path.exists( os.path.basename( oldLFN ) ):
 else:
   gLogger.verbose( 'Found file %s in local directory, will not redownload' % oldLFN )
 
-newGUID = getRootFileGUID( os.path.basename( oldLFN ) )
-if not newGUID['OK']:
-  print 'ERROR: could not obtain GUID from existing file %s' % oldLFN
-  os.chdir( start )
-  DIRAC.exit( exitCode )
-
-newGUID = newGUID['Value']
+newGUID = makeGuid( os.path.basename( oldLFN ) )[oldLFN]
 
 if newGUID == oldGUID:
   gLogger.info( 'Old and new GUIDs have the same value (%s), exiting without changes' % oldGUID )

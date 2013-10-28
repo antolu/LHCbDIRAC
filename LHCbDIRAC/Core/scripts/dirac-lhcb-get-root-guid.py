@@ -10,7 +10,7 @@ localFiles = Script.getPositionalArgs()
 import DIRAC
 from DIRAC                                                import gLogger
 from DIRAC.Core.Utilities.List                            import sortList
-from LHCbDIRAC.Core.Utilities.ClientTools                 import getRootFilesGUIDs
+from LHCbDIRAC.Core.Utilities.ClientTools                 import makeGuid
 import os
 
 if not localFiles:
@@ -25,14 +25,8 @@ for localFile in localFiles:
     existFiles.append( os.path.realpath( localFile ) )
   else:
     gLogger.info( "The supplied file %s does not exist" % localFile )
-res = getRootFilesGUIDs( existFiles )
-if not res['OK']:
-  gLogger.error( "Failed to obtain file GUIDs", res['Message'] )
-  DIRAC.exit( -1 )
-fileGUIDs = res['Value']
-for filename in sortList( fileGUIDs.keys() ):
-  if fileGUIDs[file]:
-    gLogger.info( "%s GUID: %s" % ( filename, fileGUIDs[filename] ) )
-  else:
-    gLogger.info( "%s GUID: Failed to get GUID" % filename )
+fileGUIDs = makeGuid( existFiles )
+for filename in sortList( fileGUIDs ):
+  gLogger.info( "%s GUID: %s" % ( filename, fileGUIDs[filename] ) )
+
 DIRAC.exit( 0 )

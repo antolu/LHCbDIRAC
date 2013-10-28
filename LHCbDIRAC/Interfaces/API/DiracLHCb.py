@@ -15,7 +15,8 @@ from DIRAC.Interfaces.API.Dirac                          import Dirac
 from DIRAC.Interfaces.API.DiracAdmin                     import DiracAdmin
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
 
-from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles, getRootFileGUID
+from LHCbDIRAC.Core.Utilities.File                        import makeGuid
+from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
 __RCSID__ = "$Id$"
@@ -83,11 +84,12 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    res = getRootFileGUID( fullPath )
-    if not res['OK']:
-      return self._errorReport( res['Message'], "Failed to obtain root file GUID." )
-    res = self.addFile( lfn, fullPath, diracSE, fileGuid = res['Value'], printOutput = printOutput )
-    return res
+    return self.addFile( lfn, fullPath, diracSE, fileGuid = makeGuid( fullPath )[lfn], printOutput = printOutput )
+
+  def addFile( self, lfn, fullPath, diracSE, printOutput = False ):
+    """ Copy of addRootFile
+    """
+    return self.addFile( lfn, fullPath, diracSE, fileGuid = makeGuid( fullPath )[lfn], printOutput = printOutput )
 
   #############################################################################
   def rootMergeRepository( self, outputFileName, inputFileMask = '*.root',

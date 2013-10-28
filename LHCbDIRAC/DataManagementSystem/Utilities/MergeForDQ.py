@@ -5,16 +5,17 @@ import glob, os, re, subprocess, time
 
 import DIRAC
 from DIRAC                                                      import gLogger, S_OK
-from DIRAC.Core.Utilities.File                                  import getSize, getMD5ForFiles, makeGuid
+from DIRAC.Core.Utilities.File                                  import getSize, getMD5ForFiles
 from DIRAC.Core.Utilities.List                                  import sortList
 
 from DIRAC.DataManagementSystem.Client.FailoverTransfer         import FailoverTransfer
 from DIRAC.DataManagementSystem.Client.ReplicaManager           import ReplicaManager
 from DIRAC.RequestManagementSystem.Client.Request               import Request
 
+from LHCbDIRAC.Core.Utilities.File                              import makeGuid
+from LHCbDIRAC.Core.Utilities.XMLTreeParser                     import addChildNode
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from LHCbDIRAC.Core.Utilities.XMLTreeParser                     import addChildNode
 
 # Libraries needed for XML report
 from xml.dom.minidom import Document, DocumentType
@@ -994,7 +995,7 @@ def _makeBookkeepingXML( output, outputlfn, logFilelfn, inputData, run, configNa
     if os.path.exists( output[ lfn ][ 'Filename' ] ):
       output[ lfn ][ 'FileSize' ] = str( getSize( output[ lfn ][ 'Filename' ] ) )
       output[ lfn ][ 'MD5Sum' ] = getMD5ForFiles( [ output[ lfn ][ 'Filename' ] ] )
-      output[ lfn ][ 'Guid' ] = makeGuid( output[ lfn][ 'Filename' ] )
+      output[ lfn ][ 'Guid' ] = makeGuid( output[ lfn][ 'Filename' ] )[lfn]
     else:
       gLogger.error( 'File %s not found. Cannot write bookkeeping XML summary' % output[ lfn ][ 'Filename' ] )
       DIRAC.exit( 2 )
