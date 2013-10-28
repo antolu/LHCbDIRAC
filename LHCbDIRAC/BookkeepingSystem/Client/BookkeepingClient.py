@@ -1003,6 +1003,13 @@ class BookkeepingClient:
     server = self.__getServer()
     return server.getProductionSummaryFromView(in_dict)
 
+  #############################################################################
+  def getJobInputOutputFiles(self, diracjobids):
+    """It returns the input and output files for a given DIRAC jobid"""
+    if type( diracjobids ) in [ types.LongType, types.IntType]:
+      diracjobids = [diracjobids]
+    server = self.__getServer()
+    return server.getJobInputOutputFiles(diracjobids)
 
   # The following method names are changed in the Bookkeeping client.
 

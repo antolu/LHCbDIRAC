@@ -1923,3 +1923,9 @@ class BookkeepingManagerHandler(RequestHandler):
   def export_getProductionSummaryFromView(in_dict):
     """it returns a summary for a given condition."""
     return dataMGMT_.getProductionSummaryFromView(in_dict)
+
+  types_getJobInputOutputFiles = [ListType]
+  @staticmethod
+  def export_getJobInputOutputFiles(diracjobids):
+    """It returns the input and output files for a given DIRAC jobid"""
+    return dataMGMT_.getJobInputOutputFiles(diracjobids)

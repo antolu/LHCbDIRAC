@@ -703,3 +703,8 @@ class IBookkeepingDatabaseClient(object):
   def getProductionSummaryFromView(self, in_dict):
     "more info in the BookkeepingClient.py"
     return self.getManager().getProductionSummaryFromView(in_dict)
+
+  #############################################################################
+  def getJobInputOutputFiles(self, diracjobids):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().getJobInputOutputFiles(diracjobids)
