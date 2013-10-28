@@ -512,45 +512,51 @@ class OracleBookkeepingDB:
       values = ',filetypesARRAY('
       selection += ',InputFileTypes'
       for i in inFileTypes:
-        values += "ftype('%s', '%s')," % (i.get('FileType', None), i.get('Visible', None))
+        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', None ).strip() if i.get( 'FileType', None )
+                                           else i.get( 'FileType', None ) ),
+                                          ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
+                                           else i.get( 'Visible', None ) ) )
       values = values[:-1]
       values += ')'
 
-    outFileTypes = in_dict.get('OutputFileTypes', default)
+    outFileTypes = in_dict.get( 'OutputFileTypes', default )
     if outFileTypes != default:
-      outFileTypes = sorted(outFileTypes, key=lambda k: k['FileType'])
+      outFileTypes = sorted( outFileTypes, key = lambda k: k['FileType'] )
       values += ' , filetypesARRAY('
       selection += ',OutputFileTypes'
       for i in outFileTypes:
-        values += "ftype('%s', '%s')," % (i.get('FileType', None), i.get('Visible', None))
+        values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', None ).strip() if i.get( 'FileType', None )
+                                           else i.get( 'FileType', None ) ),
+                                          ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
+                                           else i.get( 'Visible', None ) ) )
       values = values[:-1]
       values += ')'
 
-    step = in_dict.get('Step', default)
+    step = in_dict.get( 'Step', default )
     if step != default:
-      command = selection + ")values(%d" % (sid)
-      command += ",'%s'" % (step.get('StepName', 'NULL'))
-      command += ",'%s'" % (step.get('ApplicationName', 'NULL'))
-      command += ",'%s'" % (step.get('ApplicationVersion', 'NULL'))
-      command += ",'%s'" % (step.get('OptionFiles', 'NULL'))
-      command += ",'%s'" % (step.get('DDDB', 'NULL'))
-      command += ",'%s'" % (step.get('CONDDB', 'NULL'))
-      command += ",'%s'" % (step.get('ExtraPackages', 'NULL'))
-      command += ",'%s'" % (step.get('Visible', 'NULL'))
-      command += ",'%s'" % (step.get('ProcessingPass', 'NULL'))
-      command += ",'%s'" % (step.get('Usable', 'Not ready'))
-      command += ",'%s'" % (step.get('DQTag', ''))
-      command += ",'%s'" % (step.get('OptionsFormat', ''))
-      command += ",'%s'" % (step.get('isMulticore', 'N'))
-      command += ",'%s'" % (step.get('SystemConfig', 'NULL'))
+      command = selection + ")values(%d" % ( sid )
+      command += ",'%s'" % ( step.get( 'StepName', 'NULL' ) )
+      command += ",'%s'" % ( step.get( 'ApplicationName', 'NULL' ) )
+      command += ",'%s'" % ( step.get( 'ApplicationVersion', 'NULL' ) )
+      command += ",'%s'" % ( step.get( 'OptionFiles', 'NULL' ) )
+      command += ",'%s'" % ( step.get( 'DDDB', 'NULL' ) )
+      command += ",'%s'" % ( step.get( 'CONDDB', 'NULL' ) )
+      command += ",'%s'" % ( step.get( 'ExtraPackages', 'NULL' ) )
+      command += ",'%s'" % ( step.get( 'Visible', 'NULL' ) )
+      command += ",'%s'" % ( step.get( 'ProcessingPass', 'NULL' ) )
+      command += ",'%s'" % ( step.get( 'Usable', 'Not ready' ) )
+      command += ",'%s'" % ( step.get( 'DQTag', '' ) )
+      command += ",'%s'" % ( step.get( 'OptionsFormat', '' ) )
+      command += ",'%s'" % ( step.get( 'isMulticore', 'N' ) )
+      command += ",'%s'" % ( step.get( 'SystemConfig', 'NULL' ) )
       command += values + ")"
-      retVal = self.dbW_.query(command)
+      retVal = self.dbW_.query( command )
       if retVal['OK']:
-        r_project = in_dict.get('RuntimeProjects', step.get('RuntimeProjects', default))
+        r_project = in_dict.get( 'RuntimeProjects', step.get( 'RuntimeProjects', default ) )
         if r_project != default:
           for i in r_project:
             rid = i['StepId']
-            retVal = self.insertRuntimeProject(sid, rid)
+            retVal = self.insertRuntimeProject( sid, rid )
             if not retVal['OK']:
               result = retVal
             else:
@@ -4853,4 +4859,29 @@ and files.qualityid= dataquality.qualityid'
       i['ConditionDescription'] = record[len(parameterNames)] if record[len(parameterNames)] != None \
                                                               else record[len(parameterNames)-1]
       rows += [i]
-    return S_OK(rows)
+    return S_OK( rows )
+
+  #############################################################################
+  def getJobInputOutputFiles( self, diracjobids ):
+    """it returns the input and output files for jobs by a given list of DIRAC jobid"""
+    result = {'Failed':{}, 'Successful': {}}
+    for diracJobid in diracjobids:
+      command = "select j.jobid, f.filename from inputfiles i, files f, jobs j where f.fileid=i.fileid and \
+      i.jobid=j.jobid and j.diracjobid=%d order by j.jobid, f.filename" % int( diracJobid )
+      retVal = self.dbR_.query( command )
+      if not retVal['OK']:
+        result['Failed'][diracJobid] = retVal["Message"]
+      result['Successful'][diracJobid] = {}
+      result['Successful'][diracJobid]['InputFiles'] = []
+      for i in retVal['Value']:
+        result['Successful'][diracJobid]['InputFiles'] += [i[1]]
+
+      command = "select j.jobid, f.filename  from jobs j, files f where j.jobid=f.jobid and \
+      diracjobid=%d order by j.jobid, f.filename" % int( diracJobid )
+      retVal = self.dbR_.query( command )
+      if not retVal['OK']:
+        result['Failed'][diracJobid] = retVal["Message"]
+      result['Successful'][diracJobid]['OutputFiles'] = []
+      for i in retVal['Value']:
+        result['Successful'][diracJobid]['OutputFiles'] += [i[1]]
+    return S_OK( result )
