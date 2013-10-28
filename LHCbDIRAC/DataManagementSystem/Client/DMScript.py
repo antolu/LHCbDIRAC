@@ -132,6 +132,13 @@ class DMScript():
     Script.registerSwitch( "l:", "LFNs=", "List of LFNs (comma separated)", self.setLFNs )
     Script.registerSwitch( "", "Terminal", "LFNs are entered from stdin (--File /dev/stdin)", self.setLFNsFromTerm )
 
+  def registerJobsSwitches( self ):
+    ''' File switches '''
+    Script.registerSwitch( "", "File=", "File containing list of DIRAC jobIds", self.setJobidsFromFile )
+    Script.registerSwitch( "j:", "DIRACJobids=", "List of DIRAC Jobids (comma separated)", self.setJobids )
+    Script.registerSwitch( "", "Terminal",
+                           "DIRAC Jobids are entered from stdin (--File /dev/stdin)", self.setJobidsFromTerm )
+
   def setProductions( self, arg ):
     prods = []
     if arg.upper() == "ALL":
@@ -253,6 +260,17 @@ class DMScript():
     lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
     return sorted( [lfn for lfn in set( lfnList ) if lfn] )
 
+  @staticmethod
+  def getJobIDsFromList( jobids ):
+    """it returns a list of jobids using a string"""
+    jobidsList = []
+    if type( jobids ) == type( '' ):
+      jobidsList = jobids.split( ',' )
+    elif type( jobids ) == type( [] ):
+      jobidsList = [lfn for lfn1 in jobids for lfn in lfn1.split( ',' )]
+    jobidsList = [ jobid for jobid in jobidsList if jobid != '']
+    return jobidsList
+
   def setLFNsFromFile( self, arg ):
     try:
       import sys
@@ -320,3 +338,28 @@ class DMScript():
         requestID = int( res['Value']['TransformationFamily'] )
     return requestID
 
+  def setJobidsFromFile( self, arg ):
+    """It fill a list with DIRAC jobids read from a file
+    NOTE: The file format is equivalent to the file format when the content is
+    a list of LFNs."""
+    try:
+      import sys
+      in_file = open( arg, 'r' ) if arg else sys.stdin
+      jobids = self.getJobIDsFromList( in_file.read().splitlines() )
+      if arg:
+        in_file.close()
+    except IOError, error:
+      gLogger.exception( 'Reading jobids from a file is failed with exception: "%s"' % error )
+      jobids = self.getJobIDsFromList( arg )
+    self.options.setdefault( 'JobIDs', set() ).update( jobids )
+    return DIRAC.S_OK()
+
+  def setJobids( self, arg ):
+    """It fill a list with DIRAC Jobids."""
+    if arg:
+      self.options.setdefault( 'JobIDs', set() ).update( self.getJobIDsFromList( arg ) )
+    return DIRAC.S_OK()
+
+  def setJobidsFromTerm( self ):
+    """It is used to fill a list with jobids"""
+    return self.setJobidsFromFile( None )
