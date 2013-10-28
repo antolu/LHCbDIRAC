@@ -45,10 +45,6 @@ if __name__ == "__main__":
   from DIRAC import S_OK, S_ERROR, gLogger, gConfig
   from DIRAC.AccountingSystem.Client.Types.DataOperation import DataOperation
   from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
-  from DIRAC.Core.Utilities.File import makeGuid, getSize
-  from DIRAC.Core.Utilities.Adler import fileAdler, compareAdler
-  from DIRAC.Core.Utilities.List import sortList, randomize
-  from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite, isSameSiteSE, getSEsForCountry
   from DIRAC.Resources.Storage.StorageElement import StorageElement
   from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
   import time
