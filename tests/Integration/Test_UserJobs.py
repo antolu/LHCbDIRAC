@@ -1,5 +1,5 @@
-# from DIRAC.Core.Base.Script import parseCommandLine
-# parseCommandLine()
+from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
 
 import unittest, os
 
@@ -55,7 +55,7 @@ class HelloWorldSuccessOutput( UserJobTestCase ):
 
     lhcbJob.setName( "helloWorld-test" )
     lhcbJob.setExecutable( self.exeScriptLocation )
-    lhcbJob.setOutputData( "Script1_exe-script.py.log" )
+    lhcbJob.setOutputData( "applicationLog.txt" )
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
@@ -68,7 +68,7 @@ class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
 
     lhcbJob.setName( "helloWorld-test" )
     lhcbJob.setExecutable( self.exeScriptLocation )
-    lhcbJob.setOutputData( "Script1_exe-script.py.log" )
+    lhcbJob.setOutputData( "applicationLog.txt" )
     res = lhcbJob.runLocal( self.dLHCb )  # Can't upload, so it will fail
     self.assertFalse( res['OK'] )
 
@@ -230,5 +230,5 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutputWithJobID ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudirunSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiScriptSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FailingUserJobTestCase ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UserJobsFailingLocalSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )

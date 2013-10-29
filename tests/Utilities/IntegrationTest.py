@@ -15,6 +15,7 @@ class IntegrationTest( unittest.TestCase ):
 
   def tearDown( self ):
     cleanTestDir()
+#    pass
 
 
 class FailingUserJobTestCase( IntegrationTest ):
