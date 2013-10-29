@@ -1351,7 +1351,7 @@ class OracleBookkeepingDB:
     if ftype != default:
       condition += " and filetypes.name='%s'" % ( ftype )
 
-    command = "select files.filename, files.gotreplica, files.filesize,files.guid, \
+    command = "select /*+ INDEX(files FILES_JOB_EVENT_FILETYPE) */ files.filename, files.gotreplica, files.filesize,files.guid, \
     filetypes.name, files.inserttimestamp, files.visibilityflag from jobs,files,filetypes where\
     jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid and jobs.production=%d %s" % ( prod, condition )
 
@@ -3416,8 +3416,8 @@ and files.qualityid= dataquality.qualityid'
     if endRunID != None:
       condition += ' and j.runnumber<=' + str( endRunID )
 
-    command = " select distinct f.filename, f.eventstat, j.eventinputstat, j.runnumber, \
-    j.fillnumber, f.filesize, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck from %s where\
+    command = " select /*+ INDEX(f FILES_JOB_EVENT_FILETYPE) */ distinct f.filename, f.eventstat, j.eventinputstat, \
+     j.runnumber, j.fillnumber, f.filesize, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck from %s where\
      f.jobid= j.jobid and f.visibilityflag='Y'  and f.gotreplica='Yes' %s " % ( tables, condition )
 
     res = self.dbR_.query( command )
