@@ -257,12 +257,13 @@ class ModuleBase( object ):
       if type( self.logFilePath ) == type( [] ):
         self.logFilePath = self.logFilePath[0]
     else:
-      self.log.info( 'LogFilePath parameter not found, creating on the fly' )
-      result = getLogPath( self.workflow_commons, self.bkClient )
-      if not result['OK']:
-        self.log.error( 'Could not create LogFilePath', result['Message'] )
-        raise RuntimeError( result['Message'] )
-      self.logFilePath = result['Value']['LogFilePath'][0]
+      if 'PRODUCTION_ID' and 'JOB_ID' and 'configVersion' and 'configName' in self.workflow_commons:
+        self.log.info( 'LogFilePath parameter not found, creating on the fly' )
+        result = getLogPath( self.workflow_commons, self.bkClient )
+        if not result['OK']:
+          self.log.error( 'Could not create LogFilePath', result['Message'] )
+          raise RuntimeError( result['Message'] )
+        self.logFilePath = result['Value']['LogFilePath'][0]
 
     # for newer productions this is found in the step parameter
     if self.workflow_commons.has_key( 'SystemConfig' ):
