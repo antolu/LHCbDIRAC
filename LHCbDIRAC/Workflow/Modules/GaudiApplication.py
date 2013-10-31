@@ -126,7 +126,10 @@ class GaudiApplication( ModuleBase ):
         if self.jobType.lower() == 'user':
           eventsMax = self.numberOfEvents
         else:
-          eventsMax = self.maxNumberOfEvents
+          try:
+            eventsMax = self.maxNumberOfEvents
+          except AttributeError:
+            eventsMax = self.numberOfEvents
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = int( eventsMax ) * ( int( self.prod_job_id ) - 1 ) + 1
 
@@ -222,11 +225,14 @@ class GaudiApplication( ModuleBase ):
           optionsDict['DQTag'] = self.DQTag
         
         if self.applicationName.lower() == 'gauss':
-          eventsToProduce = getEventsToProduce( self.CPUe )
-          self.log.verbose( "We can produce %d events" % eventsToProduce )
-          if eventsToProduce > self.maxNumberOfEvents:
-            eventsToProduce = self.maxNumberOfEvents
-          self.log.info( "We will produce %d events" % eventsToProduce )
+          try:
+            eventsToProduce = getEventsToProduce( self.CPUe )
+            self.log.verbose( "We can produce %d events" % eventsToProduce )
+            if eventsToProduce > self.maxNumberOfEvents:
+              eventsToProduce = self.maxNumberOfEvents
+            self.log.info( "We will produce %d events" % eventsToProduce )
+          except AttributeError:
+            eventsToProduce = self.numberOfEvents
         else:
           eventsToProduce = self.numberOfEvents
         optionsDict['NOfEvents'] = eventsToProduce
