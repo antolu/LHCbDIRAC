@@ -220,12 +220,16 @@ class GaudiApplication( ModuleBase ):
 
         if self.DQTag:
           optionsDict['DQTag'] = self.DQTag
-
-        eventsToProduce = getEventsToProduce( self.CPUe )
-        if eventsToProduce > self.maxNumberOfEvents:
-          eventsToProduce = self.maxNumberOfEvents
+        
+        if self.applicationName.lower() == 'gauss':
+          eventsToProduce = getEventsToProduce( self.CPUe )
+          self.log.verbose( "We can produce %d events" % eventsToProduce )
+          if eventsToProduce > self.maxNumberOfEvents:
+            eventsToProduce = self.maxNumberOfEvents
+          self.log.info( "We will produce %d events" % eventsToProduce )
+        else:
+          eventsToProduce = self.numberOfEvents
         optionsDict['NOfEvents'] = eventsToProduce
-        self.log.debug( 'We can produce %d events' % eventsToProduce )
 
         if runNumberGauss:
           optionsDict['RunNumber'] = runNumberGauss

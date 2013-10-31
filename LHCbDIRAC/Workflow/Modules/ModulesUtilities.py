@@ -3,7 +3,7 @@
 
 import os, tarfile, math
 
-from DIRAC import S_OK, S_ERROR, gConfig
+from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers import Resources
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
 
@@ -61,10 +61,12 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
   """
 
   if CPUTime is None:
-    CPUTime = gConfig.getValue( '/LocalSite/CPUTime', 0.0 )
+    CPUTime = gConfig.getValue( '/LocalSite/CPUTime', 50000 )
 
   if CPUNormalizationFactor is None:
     CPUNormalizationFactor = gConfig.getValue( '/LocalSite/CPUNormalizationFactor', 0.0 )
+
+  gLogger.verbose( "CPUTime = %d, CPUNormalizationFactor = %d, CPUe = %f" % ( CPUTime, CPUNormalizationFactor, CPUe ) )
 
   eventsToProduce = int( math.floor( ( CPUTime * CPUNormalizationFactor ) / CPUe ) )
 
@@ -99,7 +101,7 @@ def getCPUNormalizationFactorAvg():
         for queue in ce['Queues'].values():
           if 'SI00' in queue:
             # convert from SI00 to HS06
-            factorsSum += float ( queue['SI00'] ) * 250
+            factorsSum += float ( queue['SI00'] ) / 250
             nQueues += 1
 
   if nQueues == 0:

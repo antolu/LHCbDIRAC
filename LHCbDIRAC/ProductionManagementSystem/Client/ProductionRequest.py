@@ -463,7 +463,7 @@ class ProductionRequest( object ):
                         derivedProdID = 0,
                         transformationFamily = 0,
                         events = -1,
-                        CPUe = 1.0,
+                        CPUe = 100.0,
                         multicore = 'True' ):
     """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object

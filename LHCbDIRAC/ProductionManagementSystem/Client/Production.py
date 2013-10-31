@@ -114,7 +114,7 @@ class Production():
   #############################################################################
 
   @staticmethod
-  def __checkArguments( self, extraPackages, optionsFile ):
+  def __checkArguments( extraPackages, optionsFile ):
     """ Checks for typos in the structure of standard arguments to workflows.
         In case of any non-standard settings will raise an exception preventing
         creation of the production. Must be called after setting the first event type
