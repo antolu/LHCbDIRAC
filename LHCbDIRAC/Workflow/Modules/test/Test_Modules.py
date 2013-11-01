@@ -752,9 +752,8 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
           'SubmissionMode': 'Direct',
           'architecture': 'x86_64',
           'wnTmpDir': '.'}}} )
-        outExp = 250000
         out = getCPUNormalizationFactorAvg()
-        self.assertEqual( out, outExp )
+        self.assertEqual( out, 4.0 )
 
   #################################################
 

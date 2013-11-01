@@ -365,6 +365,9 @@ class ModuleBase( object ):
     if self.step_commons.has_key( 'SystemConfig' ):
       self.systemConfig = self.step_commons['SystemConfig']
 
+    if self.step_commons.has_key( 'mcTCK' ):
+      self.mcTCK = self.step_commons['mcTCK']
+
     # for older productions these are found in the workflow parameters
     if self.step_commons.has_key( 'DDDBTag' ):
       self.DDDBTag = self.step_commons['DDDBTag']

@@ -137,6 +137,12 @@ class ProductionRequest( object ):
 
       if not stepsListDictItem.has_key( 'isMulticore' ):
         stepsListDictItem['isMulticore'] = 'N'
+        
+      if not stepsListDictItem.has_key( 'SystemConfig' ):
+        stepsListDictItem['SystemConfig'] = ''
+
+      if not stepsListDictItem.has_key( 'mcTCK' ):
+        stepsListDictItem['mcTCK'] = ''
 
       self.stepsListDict.append( stepsListDictItem )
 

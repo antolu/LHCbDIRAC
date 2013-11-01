@@ -57,6 +57,7 @@ class GaudiApplication( ModuleBase ):
     self.outputFilePrefix = ''
     self.runNumber = 0
     self.TCK = ''
+    self.mcTCK = ''
     self.multicoreJob = 'True'
     self.multicoreStep = 'N'
     self.processingPass = ''
@@ -247,8 +248,11 @@ class GaudiApplication( ModuleBase ):
         if firstEventNumberGauss:
           optionsDict['FirstEventNumber'] = firstEventNumberGauss
 
-        if self.TCK:
-          optionsDict['TCK'] = self.TCK
+        # TCK: can't have both set!
+        if self.TCK and self.mcTCK:
+          raise RuntimeError( "%s step: TCK set in step, and should't be!" % self.applicationName )
+        if self.TCK or self.mcTCK:
+          optionsDict['TCK'] = self.TCK if self.TCK else self.mcTCK
 
         if self.processingPass:
           optionsDict['ProcessingPass'] = self.processingPass

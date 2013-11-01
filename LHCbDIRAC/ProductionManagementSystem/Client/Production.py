@@ -154,6 +154,7 @@ class Production():
         'ProcessingPass': 'Merging', 'Visible': 'N', 'OptionsFormat': '',
         'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py',
         'DDDB': 'head-20110302', 'CONDDB': 'head-20110407', 'DQTag': '',
+        'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '',
         'fileTypesIn': ['SDST'],
         'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
 
@@ -179,6 +180,7 @@ class Production():
     sysConfig = stepDict['SystemConfig']
     if sysConfig == 'None' or not sysConfig:
       sysConfig = 'ANY'
+    mcTCK = stepDict['mcTCK']
 
     if extraPackages:
       if type( extraPackages ) == type( [] ):
@@ -251,7 +253,8 @@ class Production():
                         ['DDDBTag', 'string', '', 'DetDescTag' ],
                         ['DQTag', 'string', '', 'DataQualityTag'],
                         ['multiCore', 'string', '', 'MultiCore Flag'],
-                        ['SystemConfig', 'string', '', 'system config']
+                        ['SystemConfig', 'string', '', 'system config'],
+                        ['mcTCK', 'string', '', 'TCK to be simulated']
                         ]
 
       gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
@@ -280,7 +283,8 @@ class Production():
                    ['DDDBTag', dddbOpt],
                    ['DQTag', DQOpt],
                    ['multiCore', multicore],
-                   ['SystemConfig', sysConfig]
+                   ['SystemConfig', sysConfig],
+                   ['mcTCK', mcTCK]
                    ]
 
     if fileTypesIn:
