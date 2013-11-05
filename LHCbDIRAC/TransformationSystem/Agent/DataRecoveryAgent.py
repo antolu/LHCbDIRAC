@@ -27,7 +27,6 @@ from DIRAC.Core.Utilities.List                                   import uniqueEl
 from DIRAC.Core.Utilities.Time                                   import dateTime
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations         import Operations
 from DIRAC.DataManagementSystem.Client.ReplicaManager            import ReplicaManager
-from DIRAC.RequestManagementSystem.Client.RequestClient          import RequestClient
 from DIRAC.RequestManagementSystem.Client.ReqClient              import ReqClient
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient        import BookkeepingClient
@@ -48,10 +47,6 @@ class DataRecoveryAgent( AgentModule ):
     self.replicaManager = ReplicaManager()
     self.transClient = TransformationClient()
     self.bkClient = BookkeepingClient()
-
-    # FIXME: This is the "old" RMS
-    self.requestClient = RequestClient()
-    # FIXME: This is the "new" RMS
     self.reqClient = ReqClient()
 
     self.cc = ConsistencyChecks( interactive = False, transClient = self.transClient,
@@ -110,7 +105,6 @@ class DataRecoveryAgent( AgentModule ):
     for transformation, typeName in transformationDict.items():
 
       self.log.info( '=' * len( 'Looking at transformation %s type %s:' % ( transformation, typeName ) ) )
-      self.log.info( 'Looking at transformation %s:' % ( transformation ) )
 
       result = self._selectTransformationFiles( transformation, fileSelectionStatus )
       if not result['OK']:
@@ -141,18 +135,12 @@ class DataRecoveryAgent( AgentModule ):
         fileCount += len( lfnList )
 
       if not fileCount:
-        self.log.info( 'No files were selected for transformation %s after examining WMS jobs.' % transformation )
+        self.log.verbose( 'No files were selected for transformation %s after examining WMS jobs.' % transformation )
         continue
 
       self.log.info( '%s files are selected after examining related WMS jobs' % ( fileCount ) )
 
-      # FIXME: This is for the old system
-      result = self._checkOutstandingRequests( jobFileDict )
-      if not result['OK']:
-        self.log.error( result )
-        continue
-      # FIXME: This is for the new system
-      resultNew = self._checkOutstandingRequestsNew( jobFileDict )
+      resultNew = self._checkOutstandingRequests( jobFileDict )
       if not resultNew['OK']:
         self.log.error( resultNew )
         continue
@@ -225,7 +213,7 @@ class DataRecoveryAgent( AgentModule ):
     resDict = {}
     for fileDict in res['Value']:
       if not fileDict.has_key( 'LFN' ) or not fileDict.has_key( 'TaskID' ) or not fileDict.has_key( 'LastUpdate' ):
-        self.log.info( 'LFN, %s and LastUpdate are mandatory, >=1 are missing for:\n%s' % ( 'TaskID', fileDict ) )
+        self.log.verbose( 'LFN, %s and LastUpdate are mandatory, >=1 are missing for:\n%s' % ( 'TaskID', fileDict ) )
         continue
       lfn = fileDict['LFN']
       jobID = fileDict['TaskID']
@@ -245,7 +233,7 @@ class DataRecoveryAgent( AgentModule ):
         for example) that will not be touched.
     """
     prodJobIDs = uniqueElements( fileDict.values() )
-    self.log.info( 'The following %s production jobIDs apply to the selected files:\n%s' % ( len( prodJobIDs ),
+    self.log.verbose( 'The following %s production jobIDs apply to the selected files:\n%s' % ( len( prodJobIDs ),
                                                                                              prodJobIDs ) )
 
     jobFileDict = {}
@@ -282,7 +270,7 @@ class DataRecoveryAgent( AgentModule ):
       jobInputData = [lfn.replace( 'LFN:', '' ) for lfn in jobInputData.split( ';' )]
 
       if not int( wmsID ):
-        self.log.info( 'Prod job %s status is %s (ID = %s) so will not recheck with WMS' % ( job, wmsStatus, wmsID ) )
+        self.log.verbose( 'Prod job %s status is %s (ID = %s) so will not recheck with WMS' % ( job, wmsStatus, wmsID ) )
         continue
 
       self.log.info( 'Job %s, prod job %s last update %s, production management system status %s' % ( wmsID,
@@ -291,7 +279,7 @@ class DataRecoveryAgent( AgentModule ):
                                                                                                       wmsStatus ) )
       # Exclude jobs not having appropriate WMS status - have to trust that production management status is correct
       if not wmsStatus in wmsStatusList:
-        self.log.info( 'Job %s is in status %s, not %s so will be ignored' % ( wmsID, wmsStatus,
+        self.log.verbose( 'Job %s is in status %s, not %s so will be ignored' % ( wmsID, wmsStatus,
                                                                                ', '.join( wmsStatusList ) ) )
         continue
 
@@ -307,35 +295,8 @@ class DataRecoveryAgent( AgentModule ):
     return S_OK( jobFileDict )
 
   #############################################################################
+
   def _checkOutstandingRequests( self, jobFileDict ):
-    """ Before doing anything check that no outstanding requests are pending
-        for the set of WMS jobIDs.
-    """
-    jobs = jobFileDict.keys()
-    result = self.requestClient.getRequestForJobs( jobs )
-    if not result['OK']:
-      return result
-
-    if not result['Value']:
-      self.log.info( 'None of the jobs have pending requests (in the old RMS)' )
-      return S_OK( jobFileDict )
-
-    for jobID, requestName in result['Value'].items():
-      res = self.requestClient.getRequestStatus( requestName )
-      if not res['OK']:
-        self.log.error( 'Failed to get Status for Request', '%s:%s' % ( requestName, res['Message'] ) )
-      else:
-        if res['Value']['RequestStatus'] == 'Done' and res['Value']['SubRequestStatus'] == 'Done':
-          continue
-
-      # If we fail to get the Status or it is not Done, we must wait, so remove the job from the list.
-      del jobFileDict[str( jobID )]
-      self.log.info( 'Removing jobID %s from consideration until requests are completed' % ( jobID ) )
-
-    return S_OK( jobFileDict )
-
-  # FIXME: This is the "new" RMS (this only should remain)
-  def _checkOutstandingRequestsNew( self, jobFileDict ):
     """ Before doing anything check that no outstanding requests are pending
         for the set of WMS jobIDs. (this one differs because it uses the new RMS)
     """
@@ -346,7 +307,7 @@ class DataRecoveryAgent( AgentModule ):
       return result
 
     if not result['Value']['Successful']:
-      self.log.info( 'None of the jobs have pending requests (in the new RMS)' )
+      self.log.verbose( 'None of the jobs have pending requests (in the new RMS)' )
       return S_OK( jobFileDict )
 
     for jobID, requestName in result['Value']['Successful'].items():
@@ -359,7 +320,7 @@ class DataRecoveryAgent( AgentModule ):
 
       # If we fail to get the Status or it is not Done, we must wait, so remove the job from the list.
       del jobFileDict[str( jobID )]
-      self.log.info( 'Removing jobID %s from consideration until requests are completed' % ( jobID ) )
+      self.log.verbose( 'Removing jobID %s from consideration until requests are completed' % ( jobID ) )
 
     return S_OK( jobFileDict )
 
@@ -389,7 +350,7 @@ class DataRecoveryAgent( AgentModule ):
     """ Update file list to specified status.
     """
     if not self.enableFlag:
-      self.log.info( "Enable flag is False, would have updated %d files to '%s' status for %s" % ( len( fileList ),
+      self.log.verbose( "Enable flag is False, would have updated %d files to '%s' status for %s" % ( len( fileList ),
                                                                                                    fileStatus,
                                                                                                    transformation ) )
       return S_OK()
