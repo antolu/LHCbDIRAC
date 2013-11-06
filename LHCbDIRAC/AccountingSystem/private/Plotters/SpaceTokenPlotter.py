@@ -58,7 +58,7 @@ class SpaceTokenPlotter( BaseReporter ):
                                  selectFields,
                                  reportRequest[ 'condDict' ],
                                  reportRequest[ 'groupingFields' ],
-                                 { 'convertToGranularity' : 'sum', 'checkNone' : True } )
+                                 { 'convertToGranularity' : 'average', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
     
