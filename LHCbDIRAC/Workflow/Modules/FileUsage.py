@@ -106,26 +106,19 @@ class FileUsage( ModuleBase ):
     example: {'/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/': 1,
     '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/': 2}
     """
-    self.log.verbose( 'FileUsage._reportFileUsage' )
     self.log.verbose( 'Reporting input file usage:' )
     for entry in dirDict:
       self.log.verbose( '%s:%s' % ( entry, dirDict[entry] ) )
     # dataUsageClient = RPCClient( 'DataManagement/DataUsage', timeout = 120 )
-    localSEList = gConfig.getValue( '/LocalSite/LocalSE', '' )
-    if not localSEList:
-      self.log.error( 'FileUsage._reportFileUsage: Could not get value from CS for option /LocalSite/LocalSE' )
-      localSEList = "UNKNOWN"
-    self.log.verbose( 'Using /LocalSite/LocalSE: %s' % ( localSEList ) )
-    # example LocalSEList = 'SARA-RAW, SARA-RDST, SARA-ARCHIVE, SARA-DST, SARA_M-DST, SARA-USER'
-
-    # we only care about the site, so strip the SE list
-    localSE = localSEList
-    cutoff = min( localSEList.find( '_' ), localSEList.find( '-' ) )
-    if cutoff != -1:
-      localSE = localSE[0:cutoff]
+    localSite = gConfig.getValue( '/LocalSite/Site', 'UNKNOWN' )
+    try:
+      localSite = localSite.split( '.' )[1]
+    except:
+      pass
+    self.log.verbose( 'Using Site Name: %s' % ( localSite ) )
 
     if self._enableModule():
-      usageStatus = self.dataUsageClient.sendDataUsageReport( localSE, dirDict )
+      usageStatus = self.dataUsageClient.sendDataUsageReport( localSite, dirDict )
       if not usageStatus['OK']:
         self.log.error( 'Could not send data usage report, preparing a DISET failover request object' )
         self.log.verbose( usageStatus['rpcStub'] )
@@ -135,7 +128,7 @@ class FileUsage( ModuleBase ):
         self.request.addOperation( forwardDISETOp )
         self.workflow_commons['Request'] = self.request
     else:
-      self.log.info( 'Would have attempted to report %s at %s' % ( dirDict, localSE ) )
+      self.log.info( 'Would have attempted to report %s at %s' % ( dirDict, localSite ) )
       return S_OK()
 
     return S_OK()
