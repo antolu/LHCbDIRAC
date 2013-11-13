@@ -222,15 +222,16 @@ class RecoSuccessMultiCore( ProductionJobTestCase ):
 
 class StrippSuccess( ProductionJobTestCase ):
   def test_execute( self ):
-    lfns = ['/lhcb/LHCb/Collision12/FULL.DST/00020330/0004/00020330_00047632_1.full.dst']
-    # From request 8891
-    stepsInProd = [{'StepId': 123715, 'StepName': 'Stripping20', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2p1',
-                    'ExtraPackages': 'AppConfig.v3r151', 'ProcessingPass': 'Stripping20', 'Visible': 'Y', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120929', 'DQTag': '', 'OptionsFormat': 'Stripping',
-                    'OptionFiles': '$APPCONFIGOPTS/DaVinci/DV-Stripping20-Stripping.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/InputType-DST.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
-                    'isMulticore': 'N', 'SystemConfig': '',
-                    'fileTypesIn':['SDST'],
-                    'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'CHARMTOBESWUM.DST', 'DIMUON.DST', 'EW.DST', 'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST']},
+    lfns = ['/lhcb/LHCb/Collision11/FULL.DST/00022719/0009/00022719_00095865_1.full.dst',
+            '/lhcb/LHCb/Collision11/FULL.DST/00022719/0010/00022719_00102702_1.full.dst']
+    # From request 17452
+    stepsInProd = [{'StepId': 125625, 'StepName': 'Stripping20r1p2', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2p11',
+                    'ExtraPackages': 'AppConfig.v3r178;SQLDDDB.v7r9', 'ProcessingPass': 'Stripping20r1p2', 'Visible': 'Y', 'Usable': 'Yes',
+                    'DDDB': 'dddb-20130111', 'CONDDB': 'cond-20130114', 'DQTag': '', 'OptionsFormat': 'Stripping',
+                    'OptionFiles': '$APPCONFIGOPTS/DaVinci/DV-Stripping20r1p2-Stripping.py;$APPCONFIGOPTS/DaVinci/DataType-2011.py;$APPCONFIGOPTS/DaVinci/InputType-DST.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
+                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt',
+                    'fileTypesIn':['FULL.DST'],
+                    'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST', 'DIMUON.DST', 'EW.DST', 'LEPTONIC.MDST', 'SEMILEPTONIC.DST']},
                    ]
 
     prod = self.pr._buildProduction( 'Stripping', stepsInProd, '', 'Tier1-BUFFER', 0, 100,
@@ -308,6 +309,35 @@ class MergeMDFSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
+class SwimmingSuccess( ProductionJobTestCase ):
+  def test_execute( self ):
+    lfns = ['/lhcb/LHCb/Collision11/CHARMCOMPLETEEVENT.DST/00022717/0000/00022717_00001252_1.CharmCompleteEvent.dst']
+    # From request 17492
+    stepsInProd = [{'StepId': 125693, 'StepName': 'WG-CharmConfig-Swimming-D02KSKK', 'ApplicationName': 'Moore',
+                    'ApplicationVersion': 'v12r9p5',
+                    'ExtraPackages': 'CharmConfig.v2r21', 'ProcessingPass': 'WG-CharmConfig-Swimming-D02KSKK',
+                    'Visible': 'N', 'Usable': 'Yes',
+                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'Swimming2011',
+                    'OptionFiles': '$APPCONFIGOPTS/EnableCustomMainLoop.py;$CHARMCONFIGROOT/scripts/SwimTriggerD2KSkk.py',
+                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc46-opt',
+                    'fileTypesIn':['CHARMCOMPLETEEVENT.DST'],
+                    'fileTypesOut':['SWIMTRIGGERD02KSKK.DST']},
+                   {'StepId': 125694, 'StepName': 'WG-CharmConfig-Swimming-D02KSKK', 'ApplicationName': 'DaVinci',
+                    'ApplicationVersion': 'v29r2p6',
+                    'ExtraPackages': 'CharmConfig.v2r21', 'ProcessingPass': 'WG-CharmConfig-Swimming-D02KSKK',
+                    'Visible': 'N', 'Usable': 'Yes',
+                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'Swimming2011',
+                    'OptionFiles': '$APPCONFIGOPTS/EnableCustomMainLoop.py;$CHARMCONFIGROOT/scripts/SwimStrippingD2KSkk.py',
+                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc46-opt',
+                    'fileTypesIn':['SWIMTRIGGERD02KSKK.DST'],
+                    'fileTypesOut':['SWIMSTRIPPINGD02KSKK.MDST']}
+                   ]
+    prod = self.pr._buildProduction( 'Swimming', stepsInProd, '', 'Tier1-DST', 0, 100,
+                                      inputDataPolicy = 'protocol', inputDataList = lfns )
+    res = self.diracProduction.launchProduction( prod, False, True, 0 )
+    self.assertTrue( res['OK'] )
+
+
 #############################################################################
 # Test Suite run
 #############################################################################
@@ -323,4 +353,5 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SwimmingSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
