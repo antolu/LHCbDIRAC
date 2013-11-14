@@ -312,7 +312,7 @@ class SwimmingSuccess( ProductionJobTestCase ):
                     'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'Swimming2011',
                     'OptionFiles': '$APPCONFIGOPTS/EnableCustomMainLoop.py;$CHARMCONFIGROOT/scripts/SwimTriggerD2KSkk.py',
-                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc46-opt',
+                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt',
                     'fileTypesIn':['CHARMCOMPLETEEVENT.DST'],
                     'fileTypesOut':['SWIMTRIGGERD02KSKK.DST']},
                    {'StepId': 125694, 'StepName': 'WG-CharmConfig-Swimming-D02KSKK', 'ApplicationName': 'DaVinci',
@@ -321,12 +321,13 @@ class SwimmingSuccess( ProductionJobTestCase ):
                     'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': 'Swimming2011',
                     'OptionFiles': '$APPCONFIGOPTS/EnableCustomMainLoop.py;$CHARMCONFIGROOT/scripts/SwimStrippingD2KSkk.py',
-                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc46-opt',
+                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt',
                     'fileTypesIn':['SWIMTRIGGERD02KSKK.DST'],
                     'fileTypesOut':['SWIMSTRIPPINGD02KSKK.MDST']}
                    ]
     prod = self.pr._buildProduction( 'Swimming', stepsInProd, '', 'Tier1-DST', 0, 100,
                                       inputDataPolicy = 'protocol', inputDataList = lfns, events = 10 )
+    prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 104262, 'Input Run number' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
