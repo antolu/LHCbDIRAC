@@ -84,12 +84,16 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    return self.addFile( lfn, fullPath, diracSE, fileGuid = makeGuid( fullPath )[lfn], printOutput = printOutput )
+    return super( DiracLHCb, self ).addFile( lfn, fullPath, diracSE,
+                                             fileGuid = makeGuid( fullPath )[lfn],
+                                             printOutput = printOutput )
 
   def addFile( self, lfn, fullPath, diracSE, printOutput = False ):
     """ Copy of addRootFile
     """
-    return self.addFile( lfn, fullPath, diracSE, fileGuid = makeGuid( fullPath )[lfn], printOutput = printOutput )
+    return super( DiracLHCb, self ).addFile( lfn, fullPath, diracSE,
+                                             fileGuid = makeGuid( fullPath )[lfn],
+                                             printOutput = printOutput )
 
   #############################################################################
   def rootMergeRepository( self, outputFileName, inputFileMask = '*.root',
