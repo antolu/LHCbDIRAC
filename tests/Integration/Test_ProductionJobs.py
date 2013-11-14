@@ -193,22 +193,15 @@ class RecoSuccess( ProductionJobTestCase ):
 
 class RecoSuccessMultiCore( ProductionJobTestCase ):
   def test_execute( self ):
-    lfns = ['/lhcb/data/2012/RAW/FULL/LHCb/COLLISION12/114753/114753_0000000296.raw']
-    # From request 8772
-    stepsInProd = [{'StepId': 38427, 'StepName': 'Reco14', 'ApplicationName': 'Brunel', 'ApplicationVersion': 'v43r2p2',
-                    'ExtraPackages': 'AppConfig.v3r149', 'ProcessingPass': 'Reco14', 'Visible': 'Y', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': '',
-                    'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2012.py',
+    lfns = ['/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/103681/103681_0000000005.raw']
+    # From request 15630 - no DQ
+    stepsInProd = [{'StepId': 125574, 'StepName': 'Reco14', 'ApplicationName': 'Brunel', 'ApplicationVersion': 'v44r5',
+                    'ExtraPackages': 'AppConfig.v3r158', 'ProcessingPass': 'Reco14', 'Visible': 'Y', 'Usable': 'Yes',
+                    'DDDB': 'dddb-20130111', 'CONDDB': 'cond-20130114', 'DQTag': '', 'OptionsFormat': '',
+                    'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2011.py',
                     'isMulticore': 'Y', 'SystemConfig': '',
                     'fileTypesIn':['RAW'],
-                    'fileTypesOut':['BRUNELHIST', 'FULL.DST']},
-                   {'StepId': 38510, 'StepName': 'DataQuality-FULL', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v32r2',
-                    'ExtraPackages': 'AppConfig.v3r149', 'ProcessingPass': 'DataQuality-FULL', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': 'dddb-20120831', 'CONDDB': 'cond-20120831', 'DQTag': '', 'OptionsFormat': 'DQ',
-                    'OptionFiles': '$APPCONFIGOPTS/DaVinci/DVMonitor-RealData.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/DaVinci-InputType-SDST.py',
-                    'isMulticore': 'Y', 'SystemConfig': '',
-                    'fileTypesIn':['FULL.DST'],
-                    'fileTypesOut':['DAVINCIHIST']}
+                    'fileTypesOut':['BRUNELHIST', 'FULL.DST']}
                    ]
 
     prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, '', 'Tier1-BUFFER', 0, 100,
@@ -333,7 +326,7 @@ class SwimmingSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['SWIMSTRIPPINGD02KSKK.MDST']}
                    ]
     prod = self.pr._buildProduction( 'Swimming', stepsInProd, '', 'Tier1-DST', 0, 100,
-                                      inputDataPolicy = 'protocol', inputDataList = lfns )
+                                      inputDataPolicy = 'protocol', inputDataList = lfns, events = 10 )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 

@@ -3,7 +3,7 @@
 
 from os import system, environ, pathsep, getcwd
 import sys
-
+from Configurables import LHCbApp
 
 # Main
 if __name__ == '__main__':
@@ -16,5 +16,5 @@ if __name__ == '__main__':
   optPConf = "prodConf_Gauss_00012345_00067890_1.py"
 
   options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-
+  LHCbApp().EvtMax = 2
   sys.exit( system( '''gaudirun.py -T %s''' % options ) / 256 )
