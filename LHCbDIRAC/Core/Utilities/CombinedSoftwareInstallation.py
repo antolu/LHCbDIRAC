@@ -19,9 +19,10 @@ __RCSID__ = "$Id$"
 import os, shutil, sys, urllib, re, copy
 import DIRAC
 from DIRAC.Core.Utilities.Subprocess import systemCall
-
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+
 from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
+from LHCbDIRAC.Core.Utilities.SoftwareArea import getSharedArea, getLocalArea
 
 opsH = Operations()
 installProjectFile = 'install_project.py'
@@ -145,23 +146,6 @@ class CombinedSoftwareInstallation:
 
 def log( n, line ):
   DIRAC.gLogger.verbose( line )
-
-#############################################################################
-
-def mySiteRoot():
-  """Returns the mySiteRoot for the current local and / or shared areas.
-  """
-  localmySiteRoot = ''
-  localArea = getLocalArea()
-  if not localArea:
-    DIRAC.gLogger.error( 'Failed to determine Local SW Area' )
-    return localmySiteRoot
-  sharedArea = getSharedArea()
-  if not sharedArea:
-    DIRAC.gLogger.error( 'Failed to determine Shared SW Area' )
-    return localArea
-  localmySiteRoot = '%s:%s' % ( localArea, sharedArea )
-  return localmySiteRoot
 
 #############################################################################
 
@@ -322,94 +306,36 @@ def _getApp( app ):
 
   return appName, appVersion
 
-#############################################################################
+# FIXME: seems useless
+# def createSharedArea():
+#  """
+#   Method to be used by SAM jobs to make sure the proper directory structure is created
+#   if it does not exists
+#  """
+#  if not os.environ.has_key( 'VO_LHCB_SW_DIR' ):
+#    DIRAC.gLogger.info( 'VO_LHCB_SW_DIR not defined.' )
+#    return False
+#
+#  sharedArea = os.environ['VO_LHCB_SW_DIR']
+#  if sharedArea == '.':
+#    DIRAC.gLogger.info( 'VO_LHCB_SW_DIR points to "."' )
+#    return False
+#
+#  if not os.path.isdir( sharedArea ):
+#    DIRAC.gLogger.error( 'VO_LHCB_SW_DIR="%s" is not a directory' % sharedArea )
+#    return False
+#
+#  sharedArea = os.path.join( sharedArea, 'lib' )
+#  try:
+#    if os.path.isdir( sharedArea ) and not os.path.islink( sharedArea ) :
+#      return True
+#    if not os.path.exists( sharedArea ):
+#      os.mkdir( sharedArea )
+#      return True
+#    os.remove( sharedArea )
+#    os.mkdir( sharedArea )
+#    return True
+#  except OSError, msg:
+#    DIRAC.gLogger.error( 'Problem trying to create shared area', str( msg ) )
+#    return False
 
-def getSharedArea():
-  """
-   Discover location of Shared SW area
-   This area is populated by a tool independent of the DIRAC jobs
-  """
-  sharedArea = ''
-  if os.environ.has_key( 'VO_LHCB_SW_DIR' ):
-    sharedArea = os.path.join( os.environ['VO_LHCB_SW_DIR'], 'lib' )
-    DIRAC.gLogger.debug( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
-    if os.environ['VO_LHCB_SW_DIR'] == '.':
-      if not os.path.isdir( 'lib' ):
-        os.mkdir( 'lib' )
-  elif DIRAC.gConfig.getValue( '/LocalSite/SharedArea', '' ):
-    sharedArea = DIRAC.gConfig.getValue( '/LocalSite/SharedArea' )
-    DIRAC.gLogger.debug( 'Using CE SharedArea at "%s"' % sharedArea )
-
-  if sharedArea:
-    # if defined, check that it really exists
-    if not os.path.isdir( sharedArea ):
-      DIRAC.gLogger.error( 'Missing Shared Area Directory:', sharedArea )
-      sharedArea = ''
-
-  return sharedArea
-
-#############################################################################
-
-def createSharedArea():
-  """
-   Method to be used by SAM jobs to make sure the proper directory structure is created
-   if it does not exists
-  """
-  if not os.environ.has_key( 'VO_LHCB_SW_DIR' ):
-    DIRAC.gLogger.info( 'VO_LHCB_SW_DIR not defined.' )
-    return False
-
-  sharedArea = os.environ['VO_LHCB_SW_DIR']
-  if sharedArea == '.':
-    DIRAC.gLogger.info( 'VO_LHCB_SW_DIR points to "."' )
-    return False
-
-  if not os.path.isdir( sharedArea ):
-    DIRAC.gLogger.error( 'VO_LHCB_SW_DIR="%s" is not a directory' % sharedArea )
-    return False
-
-  sharedArea = os.path.join( sharedArea, 'lib' )
-  try:
-    if os.path.isdir( sharedArea ) and not os.path.islink( sharedArea ) :
-      return True
-    if not os.path.exists( sharedArea ):
-      os.mkdir( sharedArea )
-      return True
-    os.remove( sharedArea )
-    os.mkdir( sharedArea )
-    return True
-  except OSError, msg:
-    DIRAC.gLogger.error( 'Problem trying to create shared area', str( msg ) )
-    return False
-
-#############################################################################
-
-def getLocalArea():
-  """
-   Discover Location of Local SW Area.
-   This area is populated by DIRAC job Agent for jobs needing SW not present
-   in the Shared Area.
-  """
-  if DIRAC.gConfig.getValue( '/LocalSite/LocalArea', '' ):
-    localArea = DIRAC.gConfig.getValue( '/LocalSite/LocalArea' )
-  else:
-    localArea = os.path.join( DIRAC.rootPath, 'LocalArea' )
-
-  # check if already existing directory
-  if not os.path.isdir( localArea ):
-    # check if we can create it
-    if os.path.exists( localArea ):
-      try:
-        os.remove( localArea )
-      except OSError, msg:
-        DIRAC.gLogger.error( 'Cannot remove: %s %s' % ( localArea, msg ) )
-        localArea = ''
-    else:
-      try:
-        os.mkdir( localArea )
-      except OSError, msg:
-        DIRAC.gLogger.error( 'Cannot create: %s %s' % ( localArea, msg ) )
-        localArea = ''
-  return localArea
-
-#############################################################################

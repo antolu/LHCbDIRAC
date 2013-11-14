@@ -12,7 +12,7 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.Os import sourceEnv
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import mySiteRoot
+from LHCbDIRAC.Core.Utilities.SoftwareArea  import mySiteRoot
 
 
 gLogger = gLogger.getSubLogger( 'ProductionEnvironment' )

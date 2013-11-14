@@ -28,7 +28,7 @@ from DIRAC import gLogger, S_OK
 
 args = Script.getPositionalArgs()
 
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation  import getSharedArea
+from LHCbDIRAC.Core.Utilities.SoftwareArea  import getSharedArea
 
 #Constants (some can be overidden, some are messy)
 

@@ -1,5 +1,5 @@
-""" NoSoftwareInstallation 
-  
+""" NoSoftwareInstallation
+
   The NoSoftwareInstallation module is used by the DIRAC JobAgent to check
   the presence on the shared areas of the necessary software. An instance of
   this module is created by the ModuleFactory.
@@ -16,7 +16,7 @@
 """
 
 # DIRAC
-from DIRAC import gConfig, gLogger, S_ERROR, S_OK     
+from DIRAC import gConfig, gLogger, S_ERROR, S_OK
 
 # LHCbDIRAC
 from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
@@ -26,27 +26,27 @@ __RCSID__ = "$Id: $"
 
 
 class NoSoftwareInstallation( object ):
-  """NoSoftwareInstallation 
-  
+  """NoSoftwareInstallation
+
   This class is a temporary solution until a proper fix is set at the level
   of DIRAC. It's main objective is to replace the class CombinedSoftwareInstallation.
   At the moment, it is set on the CS. However, if we clear that entry on the CS
   the JobAgent will crash as it is expecting something. That something is this class.
-  
+
   """
-    
+
 
   def __init__( self, argumentsDict ):
     """ Constructor
-    
+
     """
-    
+
     self.log = gLogger.getSubLogger( self.__class__.__name__ )
 
-    ce  = argumentsDict.get( 'CE',  {} )    
-    job = argumentsDict.get( 'Job', {} )     
-    
-    # self.apps ................................................................    
+    ce = argumentsDict.get( 'CE', {} )
+    job = argumentsDict.get( 'Job', {} )
+
+    # self.apps ................................................................
     apps = job.get( 'SoftwarePackages', [] )
     if type( apps ) == str:
       apps = [ apps ]
@@ -73,17 +73,17 @@ class NoSoftwareInstallation( object ):
 
   def execute( self ):
     """ execute
-    
+
     Main method of the class executed by DIRAC JobAgent. It checks the parameters
     in case there is a missconfiguration and returns S_OK / S_ERROR.
-    
+
     """
-    
+
     if not self.apps:
       # There is nothing to do
       self.log.info( 'There are no Applications defined on SoftwarePackages' )
       return S_OK()
-    
+
     if not self.sysConfig:
       # As there is no architecture, there is no way to know which software we
       # have to load.
@@ -91,13 +91,13 @@ class NoSoftwareInstallation( object ):
       return S_ERROR( 'No architecture requested' )
 
     if self.sysConfig.lower() == 'any':
-      # If there is no architecture specified on the Job ( with other words, 
-      # SystemConfig == ANY in the JobDescription, it means we actually do not 
-      # care which one. So, we take the architecture that is defined as 
+      # If there is no architecture specified on the Job ( with other words,
+      # SystemConfig == ANY in the JobDescription, it means we actually do not
+      # care which one. So, we take the architecture that is defined as
       # local on the worker node.
-            
+
       self.log.info( 'SystemConfig set to "ANY"' )
-      
+
       self.sysConfig = self.localArch
       self.platforms = [ self.localArch ]
       if not self.sysConfig:
@@ -106,21 +106,21 @@ class NoSoftwareInstallation( object ):
     if not self.platforms:
       self.log.info( 'There are no CompatiblePlatforms defined' )
       return S_OK()
-    
+
     self.log.info( 'CE supported platforms are: %s' % ( ', '.join( self.platforms ) ) )
 
-    # Either we set SystemConfig == ANY, of it happened that SystemConfig is the 
+    # Either we set SystemConfig == ANY, of it happened that SystemConfig is the
     # same as our LocalArchitecture. Either way, we make sure that if there is
     # OSCompatibility, the config is added to platforms ( CompatiblePlatforms )
-    if self.sysConfig == self.localArch:  
-      
+    if self.sysConfig == self.localArch:
+
       self.log.info( 'Job SystemConfiguration is set to /LocalSite/Architecture' )
       self.log.info( 'Checking compatible platforms' )
       compatibleArchs = gConfig.getValue( '/Resources/Computing/OSCompatibility/%s' % self.sysConfig, [] )
       if not compatibleArchs:
         self.log.error( '%s OSCompatibility not found' % self.sysConfig )
         return S_ERROR( '%s OSCompatibility not found' % self.sysConfig )
-      
+
       self.sysConfig = compatibleArchs[ 0 ]
       if not self.sysConfig in self.platforms:
         self.log.info( 'Setting SystemConfig as CompatiblePlatform %s' % self.sysConfig )
@@ -141,80 +141,3 @@ class NoSoftwareInstallation( object ):
       self.log.info( app )
 
     return S_OK()
-
-
-#...............................................................................
-# TODO: get this out of here !
-
-import os
-import DIRAC
-
-def mySiteRoot():
-  """Returns the mySiteRoot for the current local and / or shared areas.
-  """
-  localmySiteRoot = ''
-  localArea = getLocalArea()
-  if not localArea:
-    DIRAC.gLogger.error( 'Failed to determine Local SW Area' )
-    return localmySiteRoot
-  sharedArea = getSharedArea()
-  if not sharedArea:
-    DIRAC.gLogger.error( 'Failed to determine Shared SW Area' )
-    return localArea
-  localmySiteRoot = '%s:%s' % ( localArea, sharedArea )
-  return localmySiteRoot
-
-def getSharedArea():
-  """
-   Discover location of Shared SW area
-   This area is populated by a tool independent of the DIRAC jobs
-  """
-  sharedArea = ''
-  if os.environ.has_key( 'VO_LHCB_SW_DIR' ):
-    sharedArea = os.path.join( os.environ['VO_LHCB_SW_DIR'], 'lib' )
-    DIRAC.gLogger.debug( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
-    if os.environ['VO_LHCB_SW_DIR'] == '.':
-      if not os.path.isdir( 'lib' ):
-        os.mkdir( 'lib' )
-  elif DIRAC.gConfig.getValue( '/LocalSite/SharedArea', '' ):
-    sharedArea = DIRAC.gConfig.getValue( '/LocalSite/SharedArea' )
-    DIRAC.gLogger.debug( 'Using CE SharedArea at "%s"' % sharedArea )
-
-  if sharedArea:
-    # if defined, check that it really exists
-    if not os.path.isdir( sharedArea ):
-      DIRAC.gLogger.error( 'Missing Shared Area Directory:', sharedArea )
-      sharedArea = ''
-
-  return sharedArea
-
-def getLocalArea():
-  """
-   Discover Location of Local SW Area.
-   This area is populated by DIRAC job Agent for jobs needing SW not present
-   in the Shared Area.
-  """
-  if DIRAC.gConfig.getValue( '/LocalSite/LocalArea', '' ):
-    localArea = DIRAC.gConfig.getValue( '/LocalSite/LocalArea' )
-  else:
-    localArea = os.path.join( DIRAC.rootPath, 'LocalArea' )
-
-  # check if already existing directory
-  if not os.path.isdir( localArea ):
-    # check if we can create it
-    if os.path.exists( localArea ):
-      try:
-        os.remove( localArea )
-      except OSError, msg:
-        DIRAC.gLogger.error( 'Cannot remove: %s %s' % ( localArea, msg ) )
-        localArea = ''
-    else:
-      try:
-        os.mkdir( localArea )
-      except OSError, msg:
-        DIRAC.gLogger.error( 'Cannot create: %s %s' % ( localArea, msg ) )
-        localArea = ''
-  return localArea
-
-#...............................................................................
-#EOF
