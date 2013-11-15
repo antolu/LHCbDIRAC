@@ -83,7 +83,9 @@ class ProductionStatusAgent( AgentModule ):
     self.log.info( "******************************" )
 
     try:
-      prodsList = self._getTransformations( 'Completed' )
+      prodsListCompleted = self._getTransformations( 'Completed' )
+      prodsListArchived  = self._getTransformations( 'Archived'  )
+      prodsList = prodsListCompleted + prodsListArchived
       if prodsList:
         reqsMap = self._getReqsMap( prodReqSummary, progressSummary )
         for masterReq, reqs in reqsMap.iteritems():
