@@ -38,7 +38,7 @@ class LHCbStateMachine( StateMachine ):
 
 
 class ProductionsStateMachine( LHCbStateMachine ):
-  """ PMS implementation of the state machine
+  """ PMS (Production Management System, not what google thinks!) implementation of the state machine
   """
   def __init__( self, state ):
     """ c'tor
@@ -52,7 +52,7 @@ class ProductionsStateMachine( LHCbStateMachine ):
                    'Cleaned'              : State( 15 ),  # final state
                    'Cleaning'             : State( 14, ['Cleaned'], defState = 'Cleaning' ),
                    'Completing'           : State( 13, ['Validating', 'Cleaning'], defState = 'Completing' ),
-                   'Stopped'              : State( 12, ['Active', 'Flush', 'Cleaning'], defState = 'Stopped' ),
+                   'Stopped'              : State( 12, ['Active', 'Cleaning'], defState = 'Stopped' ),
                    'TransformationCleaned': State( 16, ['Archived', 'Cleaned'], defState = 'Archived' ),
                    'Archived'             : State( 11 ),  # final state
                    'Completed'            : State( 10, ['Archived'], defState = 'Completed' ),
