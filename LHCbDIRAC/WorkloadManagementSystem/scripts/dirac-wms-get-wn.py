@@ -95,13 +95,14 @@ if __name__ == "__main__":
         if node not in workerNode:
           continue
         allJobs.append( job )
-      if full:
+      if full or status == [None]:
         allJobs.append( job )
-      result.setdefault( job, {} )['Status'] = stat
+      result.setdefault( job, {} )['Status'] = status
       result[job]['Node'] = node
       wnJobs[node] = wnJobs.setdefault( node, 0 ) + 1
 
   # If necessary get jobs' status
+  statusCounters = {}
   if allJobs:
     res = monitoring.getJobsStatus( allJobs )
     if res['OK']:
@@ -116,10 +117,11 @@ if __name__ == "__main__":
       gLogger.error( 'Error getting job parameter', res['Message'] )
     else:
       for job in allJobs:
-        status = jobStatus.get( job, {} ).get( 'Status', 'Unknown' ) + '; ' + \
+        stat = jobStatus.get( job, {} ).get( 'Status', 'Unknown' ) + '; ' + \
                  jobMinorStatus.get( job, {} ).get( 'MinorStatus', 'Unknown' ) + '; ' + \
                  jobApplicationStatus.get( job, {} ).get( 'ApplicationStatus', 'Unknown' )
-        result[job]['Status'] = status
+        result[job]['Status'] = stat
+        statusCounters[stat] = statusCounters.setdefault( stat, 0 ) + 1
   elif not workerNode:
     allJobs = jobs
 
@@ -128,7 +130,12 @@ if __name__ == "__main__":
     gLogger.always( 'Found %d jobs at %s, WN %s (since %s):' % ( len( allJobs ), site, workerNode, date ) )
     gLogger.always( 'List of jobs:', ','.join( [str( job ) for job in allJobs] ) )
   else:
-    gLogger.always( 'Found %d jobs %s at %s (since %s):' % ( len( allJobs ), status, site, date ) )
+    if status == [None]:
+      gLogger.always( 'Found %d jobs at %s (since %s):' % ( len( allJobs ), site, date ) )
+      for stat in sorted( statusCounters ):
+        gLogger.always( '%d jobs %s' % ( statusCounters[stat], stat ) )
+    else:
+      gLogger.always( 'Found %d jobs %s at %s (since %s):' % ( len( allJobs ), status, site, date ) )
     gLogger.always( 'List of WNs:', ','.join( ['%s (%d)' % ( node, wnJobs[node] )
                                                for node in sorted( wnJobs,
                                                                    cmp = ( lambda n1, n2: ( wnJobs[n2] - wnJobs[n1] ) ) )] ) )
