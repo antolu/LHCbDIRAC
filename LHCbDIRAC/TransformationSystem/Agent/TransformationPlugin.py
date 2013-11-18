@@ -495,10 +495,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     zeroRunDict = runDict.pop( 0, None )
     if zeroRunDict:
       self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
-      for param, zeroRun in zeroRunDict.items():
+      for paramValue, zeroRun in zeroRunDict.items():
         newRuns = self.util.setRunForFiles( zeroRun )
         for newRun, runLFNs in newRuns.items():
-          runDict.setdefault( newRun, {} ).setdefault( param, [] ).extend( runLFNs )
+          runDict.setdefault( newRun, {} ).setdefault( paramValue, [] ).extend( runLFNs )
     transStatus = self.params['Status']
     startTime = time.time()
     res = self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runDict.keys()} )
@@ -770,7 +770,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Update the status of the already done files
     if alreadyCompleted:
       self.util.logInfo( "Found %s files that are already completed" % len( alreadyCompleted ) )
-      self.transClient.setFileStatusForTransformation( self.transID, 'Processed', alreadyCompleted, force = True )
+      self.transClient.setFileStatusForTransformation( self.transID, 'Processed', alreadyCompleted )
 
     # Now group all of the files by their target SEs
     storageElementGroups = {}
@@ -802,12 +802,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for lfns in breakListIntoChunks( lfnGroup, 100 ):
 
         stringTargetSEs = self.util.setTargetSEs( numberOfCopies, archive1SEs, archive2SEs,
-                                                  mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = True )
+                                               mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = True )
         if stringTargetSEs:
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
         else:
           self.util.logInfo( "Found %d files that are already completed" % len( lfns ) )
-          self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns, force = True )
+          self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
 
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
@@ -866,7 +866,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       # If a FromSEs parameter is given, only keep the files that are at one of those SEs, mark the others NotProcessed
       if fromSEs:
         if not [se for se in existingSEs if se in fromSEs]:
-          res = self.transClient.setFileStatusForTransformation( self.transID, 'NotProcessed', lfnGroup, force = True )
+          res = self.transClient.setFileStatusForTransformation( self.transID, 'NotProcessed', lfnGroup )
           if not res['OK']:
             self.util.logError( 'Error setting files NotProcessed', res['Message'] )
           else:
@@ -915,7 +915,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Update the status of the already done files
     if alreadyCompleted:
       self.util.logInfo( "Found %s files that are already completed" % len( alreadyCompleted ) )
-      self.transClient.setFileStatusForTransformation( self.transID, 'Processed', alreadyCompleted, force = True )
+      self.transClient.setFileStatusForTransformation( self.transID, 'Processed', alreadyCompleted )
 
     # Now group all of the files by their target SEs
     storageElementGroups = {}
@@ -956,7 +956,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       else:
         processedFiles = []
         self.util.logVerbose( "Out of %d files, %d occurrences were found in transformations" % ( len( lfns ),
-                                                                                                 len( res['Value'] ) ) )
+                                                                                                  len( res['Value'] ) ) )
         transDict = {}
         runList = []
         for fileDict in res['Value']:
@@ -978,7 +978,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         for trans, lfns in transDict.items():
           if self.transID > 0:
             # Do not actually take action for a fake transformation (dirac-test-plugin)
-            res = self.transClient.setFileStatusForTransformation( trans, 'Removed', lfns, force = True )
+            res = self.transClient.setFileStatusForTransformation( trans, 'Removed', lfns )
             action = 'set'
           else:
             res = {'OK':True}
@@ -1077,11 +1077,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.util.logVerbose( "%d files to be removed at %s" % ( len( lfns ), stringTargetSEs ) )
       else:
         self.util.logInfo( "Found %s files that don't need any replica deletion" % len( lfns ) )
-        self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns, force = True )
+        self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
 
     if notInKeepSEs:
       self.util.logInfo( "Found %d files not in at least one keepSE, no removal done, set Problematic" % len( notInKeepSEs ) )
-      self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', notInKeepSEs, force = True )
+      self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', notInKeepSEs )
 
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
@@ -1253,7 +1253,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         continue
       if [se for se in replicaSE if se in destSEs]:
         self.util.logInfo( "Found %d files that are already present in the destination SEs (status set)" % len( lfns ) )
-        res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns, force = True )
+        res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
         if not res['OK']:
           self.util.logError( "Can't set %d files of transformation %s to 'Processed: %s'" % ( len( lfns ),
                                                                                             str( self.transID ),
@@ -1285,7 +1285,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       replicaSE = [se for se in replicaSE.split( ',' ) if not isFailover( se ) and not isArchive( se )]
       if not replicaSE:
         self.util.logInfo( "Found %d files that don't have a suitable source replica. Set Problematic" % len( lfns ) )
-        res = self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns, force = True )
+        res = self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
         continue
       # get other replicas
       res = self.rm.getCatalogReplicas( lfns, allStatus = True )
@@ -1303,7 +1303,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           noMissingSE.append( lfn )
       if noMissingSE:
         self.util.logInfo( "Found %d files that are already present in the destination SEs (set Processed)" % len( noMissingSE ) )
-        res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', noMissingSE, force = True )
+        res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', noMissingSE )
         if not res['OK']:
           self.util.logError( "Can't set %d files of transformation %s to 'Processed: %s'" % ( len( noMissingSE ),
                                                                                                str( self.transID ),
