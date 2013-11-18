@@ -284,7 +284,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     if kickRequests:
       res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnsInTask )
       if res['OK']:
-        print "Task is failed: %d files reset Unused" % len( lfnsInTask )
+        print "Task is failed: not all the %d files were reset Unused" % len( lfnsInTask )
     else:
       print "Task is failed: %d files could be reset Unused: use --KickRequests option" % len( lfnsInTask )
   if taskCompleted and ( task['ExternalStatus'] != 'Done' or status == 'Assigned' ):
@@ -349,6 +349,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
   return toBeKicked
 
 def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas, failedFiles, fixIt ):
+  from DIRAC.Core.Utilities.Adler import compareAdler
   print "\nStatistics for Problematic files in FC:"
   existingReplicas = {}
   lfns = set()
@@ -371,7 +372,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
         for lfn in res['Value']['Successful']:
           existingReplicas.setdefault( lfn, [] ).append( se )
           # Compare checksums
-          if res['Value']['Successful'][lfn]['Checksum'] != lfnCheckSum[lfn]:
+          if not compareAdler( res['Value']['Successful'][lfn]['Checksum'], lfnCheckSum[lfn] ):
             badChecksum.setdefault( lfn, [] ).append( se )
   nbProblematic = len( lfns ) - len( existingReplicas )
   nbExistingReplicas = {}
@@ -827,6 +828,33 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
       toFlush = True
     elif ancestorRawFiles > rawFiles:
       flushError = True
+
+  # Missing ancestors, find out which ones
+  if not toFlush and not flushError:
+    print "Run %s flushed: %s while %d RAW files" \
+      % ( 'should not be' if runStatus == 'Flush' else 'not', prStr, rawFiles )
+    # Find out which ones are missing
+    res = bkClient.getRunFiles( int( runID ) )
+    if not res['OK']:
+      print "Error getting run files", res['Message']
+    else:
+      res = bkClient.getFileMetadata( sorted( res['Value'] ) )
+      if not res['OK']:
+        print "Error getting files metadata", res['Message']
+      else:
+        metadata = res['Value']['Successful']
+        runRAWFiles = set( [lfn for lfn, meta in metadata.items() if meta['EventType'] == 90000000 and meta['GotReplica'] == 'Yes'] )
+        # print len( runRAWFiles ), 'RAW files'
+        missingFiles = set()
+        for paramValue in paramValues:
+          ancFiles = set( pluginUtil.getRAWAncestorsForRun( runID, param, paramValue, getFiles = True ) )
+          # print paramValue, len( ancFiles )
+          missingFiles.update( runRAWFiles - ancFiles )
+        if missingFiles:
+          print "Missing RAW files:\n\t%s" % '\n\t'.join( sorted( missingFiles ) )
+        else:
+          rawFiles = len( runRAWFiles )
+          toFlush = True
   if toFlush:
     print "Run %s flushed: %d RAW files and ancestors found" % ( 'correctly' if runStatus == 'Flush' else 'should be', rawFiles )
     if runStatus != 'Flush':
@@ -841,9 +869,6 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
   if flushError:
     print "More ancestors than RAW files (%d) for run %d ==> Problem!\n\t%s" \
       % ( rawFiles, runID, prStr.replace( '; ', '\n\t' ) )
-  if not toFlush and not flushError:
-    print "Run %s flushed: %s while %d RAW files" \
-      % ( 'should not be' if runStatus == 'Flush' else 'not', prStr, rawFiles )
 
 
 #====================================
