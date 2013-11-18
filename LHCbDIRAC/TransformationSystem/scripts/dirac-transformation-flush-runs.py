@@ -10,7 +10,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'NoAction', '   No action taken, just give stats' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
-                                       '  %s [option|cfgfile] <TransID> <Status>' % Script.scriptName, ] ) )
+                                       '  %s [option|cfgfile] <TransID>[,<TransID2>...]' % Script.scriptName, ] ) )
   Script.parseCommandLine()
 
   args = Script.getPositionalArgs()
