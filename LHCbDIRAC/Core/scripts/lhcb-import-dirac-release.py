@@ -99,6 +99,7 @@ if __name__ == "__main__":
     localreleaseCFG[release].setOption( 'Resources', release )
     localreleaseCFG[release].setOption( 'StorageManagementSystem', release )
     localreleaseCFG[release].setOption( 'WorkloadManagementSystem', release )
+    localreleaseCFG[release].setOption( 'Workflow', release )
     localreleaseCFG[release].setOption( 'TransformationSystem', release )
     localCFG.writeToFile( 'versions-new.cfg' )
     mergedCFG = localCFG.mergeWith( buildCFG )
