@@ -585,7 +585,7 @@ class PluginUtilities:
     from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import getFileDescendants
     return getFileDescendants( self.transID, lfns, transClient = self.transClient, rm = self.rm, bkClient = self.bkClient )
 
-  def getRAWAncestorsForRun( self, runID, param = '', paramValue = '' ):
+  def getRAWAncestorsForRun( self, runID, param = '', paramValue = '', getFiles = False ):
     """ Determine from BK how many ancestors files from a given runs do have
         This is used for deciding when to flush a run (when all RAW files have been processed)
     """
@@ -622,7 +622,7 @@ class PluginUtilities:
     # Get number of ancestors for known files
     cachedLFNs = self.cachedLFNAncestors.get( runID, {} )
     hitLFNs = [lfn for lfn in lfns if lfn in cachedLFNs]
-    if hitLFNs:
+    if hitLFNs and not getFiles:
       self.logVerbose( "Ancestors cache hit for run %d: %d files cached" % \
                        ( runID, len( hitLFNs ) ) )
       for lfn in hitLFNs:
@@ -630,6 +630,7 @@ class PluginUtilities:
       lfns = [lfn for lfn in lfns if lfn not in hitLFNs]
 
     # If some files are unknown, get the ancestors from BK
+    ancestorFiles = []
     if lfns:
       startTime = time.time()
       res = self.bkClient.getFileAncestors( lfns, depth = 10 )
@@ -641,10 +642,14 @@ class PluginUtilities:
         self.logError( "Error getting ancestors: %s" % res['Message'] )
         ancestorDict = {}
       for lfn in ancestorDict:
-        n = len( [f for f in ancestorDict[lfn] if f['FileType'] == 'RAW'] )
+        ancFiles = [f['FileName'] for f in ancestorDict[lfn] if f['FileType'] == 'RAW']
+        ancestorFiles += ancFiles
+        n = len( ancFiles )
         self.cachedLFNAncestors.setdefault( runID, {} )[lfn] = n
         ancestors += n
 
+    if getFiles:
+      return ancestorFiles
     # If needed, add NotProcessed files in the Reconstruction production
     if runID not in self.notProcessed and lfnToCheck:
       res = self.bkClient.getFileMetadata( lfnToCheck )
