@@ -10,7 +10,7 @@ localFiles = Script.getPositionalArgs()
 import DIRAC
 from DIRAC                                                import gLogger
 from DIRAC.Core.Utilities.List                            import sortList
-from LHCbDIRAC.Core.Utilities.ClientTools                 import makeGuid
+from LHCbDIRAC.Core.Utilities.File                        import makeGuid
 import os
 
 if not localFiles:
