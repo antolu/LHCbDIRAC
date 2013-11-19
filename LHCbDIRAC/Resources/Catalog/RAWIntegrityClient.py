@@ -4,9 +4,7 @@
     USED at OnLine
 """
 
-import types
-
-from DIRAC                                     import S_OK, S_ERROR, gLogger
+from DIRAC                                     import S_OK, gLogger
 from DIRAC.Core.DISET.RPCClient                import RPCClient
 from DIRAC.ConfigurationSystem.Client          import PathFinder
 from DIRAC.Resources.Catalog.FileCatalogueBase import FileCatalogueBase
@@ -26,9 +24,9 @@ class RAWIntegrityClient( FileCatalogueBase ):
       self.valid = False
 
   def isOK( self ):
-    '''
+    """
       Returns valid
-    '''
+    """
     return self.valid
 
   def exists( self, lfn ):
@@ -54,18 +52,20 @@ class RAWIntegrityClient( FileCatalogueBase ):
       return res
     failed = {}
     successful = {}
-    for lfn, info in res['Value'].items():
-      server = RPCClient( self.url, timeout = 120 )
-      pfn = str( info['PFN'] )
-      size = int( info['Size'] )
-      se = str( info['SE'] )
-      guid = str( info['GUID'] )
-      checksum = str( info['Checksum'] )
-      res = server.addFile( lfn, pfn, size, se, guid, checksum )
-      if not res['OK']:
-        failed[lfn] = res['Message']
-      else:
-        successful[lfn] = True
+    for lfn, _info in res['Value'].items():
+      pass
+      # FIXME
+#      server = RPCClient( self.url, timeout = 120 )
+#      pfn = str( info['PFN'] )
+#      size = int( info['Size'] )
+#      se = str( info['SE'] )
+#      guid = str( info['GUID'] )
+#      checksum = str( info['Checksum'] )
+#      res = server.addFile( lfn, pfn, size, se, guid, checksum )
+#      if not res['OK']:
+#        failed[lfn] = res['Message']
+#      else:
+#        successful[lfn] = True
     resDict = {
                'Failed'     : failed,
                'Successful' : successful

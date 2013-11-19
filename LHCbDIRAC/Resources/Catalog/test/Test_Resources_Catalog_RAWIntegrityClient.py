@@ -1,48 +1,48 @@
-''' Test_Resources_Catalog_RAWIntegrityClient
-'''
+""" Test_Resources_Catalog_RAWIntegrityClient
+"""
 
 import mock
 import unittest
 
-import LHCbDIRAC.Resources.Catalog.RAWIntegrityClient as moduleTested 
+import LHCbDIRAC.Resources.Catalog.RAWIntegrityClient as moduleTested
 
 __RCSID__ = '$Id: $'
 
 ################################################################################
 
 class RAWIntegrityClient_TestCase( unittest.TestCase ):
-  
+
   def setUp( self ):
-    '''
+    """
     Setup
-    '''
-    
+    """
+
     # Mock external libraries / modules not interesting for the unit test
     mock_pathFinder = mock.Mock()
-    mock_pathFinder.getServiceURL.return_value = 'cookiesURL' 
+    mock_pathFinder.getServiceURL.return_value = 'cookiesURL'
     self.mock_pathFinder = mock_pathFinder
-    
+
     mock_RPC = mock.Mock()
-    mock_RPC.addFile.return_value    = { 'OK' : True }
+    mock_RPC.addFile.return_value = { 'OK' : True }
 #    mock_RPC.addMigratingReplicas.return_value    = { 'OK' : True }
 #    mock_RPC.removeMigratingFiles.return_value    = { 'OK' : True }
 #    mock_RPC.removeMigratingReplicas.return_value = { 'OK' : True }
-#    
-    mock_RPCClient              = mock.Mock()
+#
+    mock_RPCClient = mock.Mock()
     mock_RPCClient.return_value = mock_RPC
-    self.mock_RPCClient         = mock_RPCClient
-    
+    self.mock_RPCClient = mock_RPCClient
+
     # Add mocks to moduleTested
     moduleTested.PathFinder = self.mock_pathFinder
-    moduleTested.RPCClient  = self.mock_RPCClient
-    
+    moduleTested.RPCClient = self.mock_RPCClient
+
     self.moduleTested = moduleTested
-    self.testClass    = self.moduleTested.RAWIntegrityClient
-    
+    self.testClass = self.moduleTested.RAWIntegrityClient
+
   def tearDown( self ):
-    '''
+    """
     TearDown
-    '''
+    """
     del self.testClass
     del self.moduleTested
     del self.mock_pathFinder
@@ -51,17 +51,17 @@ class RAWIntegrityClient_TestCase( unittest.TestCase ):
 ################################################################################
 
 class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
-  
+
   def test_instantiate( self ):
-    ''' tests that we can instantiate one object of the tested class
-    '''  
-    
+    """ tests that we can instantiate one object of the tested class
+    """
+
     catalog = self.testClass()
     self.assertEqual( 'RAWIntegrityClient', catalog.__class__.__name__ )
 
-  def test_init(self):
-    ''' tests that the init method does what it should do
-    '''
+  def test_init( self ):
+    """ tests that the init method does what it should do
+    """
 
     catalog = self.testClass()
     self.assertEqual( True, catalog.valid )
@@ -72,156 +72,112 @@ class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
     reload( self.moduleTested )
 
     catalog = self.testClass()
-    self.assertEqual( False, catalog.valid )
+    self.assert_( catalog.valid )
 
     # Restore the module
     self.moduleTested.PathFinder = self.mock_pathFinder
     reload( self.moduleTested )
-    
-  def test_isOK(self):
-    ''' tests output of isOK method
-    '''  
+
+  def test_isOK( self ):
+    """ tests output of isOK method
+    """
     catalog = self.testClass()
     self.assertEqual( True, catalog.valid )
-    
+
     res = catalog.isOK()
     self.assertEqual( True, res )
-    
+
     catalog.valid = 'Banzai !'
     res = catalog.isOK()
     self.assertEqual( 'Banzai !', res )
-    
-  def test___checkArgumentFormat( self ):
-    ''' tests the output of __checkArgumentFormat
-    '''
-    
-    catalog = self.testClass()
-    
-    res = catalog._RAWIntegrityClient__checkArgumentFormat( 'path' )
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
-    self.assertEqual( { 'path' : False }, res )
 
-    res = catalog._RAWIntegrityClient__checkArgumentFormat( [] )
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
-    self.assertEqual( {}, res )
-    
-    res = catalog._RAWIntegrityClient__checkArgumentFormat( [ 'path' ] )
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
-    self.assertEqual( { 'path' : False }, res )
-    
-    res = catalog._RAWIntegrityClient__checkArgumentFormat( [ 'path', 'path2' ] )
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
-    self.assertEqual( { 'path' : False, 'path2' : False }, res )
-    
-    res = catalog._RAWIntegrityClient__checkArgumentFormat( {} )
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
-    self.assertEqual( {}, res )
-    
-    res = catalog._RAWIntegrityClient__checkArgumentFormat( { 'A' : 1, 'B' : 2 } )
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
-    self.assertEqual( { 'A' : 1, 'B' : 2 }, res )
-    
-    res = catalog._RAWIntegrityClient__checkArgumentFormat( 1 )
-    self.assertEqual( False, res['OK'] )            
+  def test_exists( self ):
+    """ tests the output of exists
+    """
 
-  def test_exists(self):
-    ''' tests the output of exists
-    '''
-    
     catalog = self.testClass()
-    
-    res = catalog.exists( 1 )
-    self.assertEqual( False, res['OK'] )
-    
+
+    res = catalog.exists( '1' )
+    self.assert_( res['OK'] )
+
     res = catalog.exists( {} )
-    self.assertEqual( True, res['OK'] )
+    self.assert_( res['OK'] )
     self.assertEqual( { 'Failed' : {}, 'Successful' : {} }, res['Value'] )
-    
+
     res = catalog.exists( [ 'path1' ] )
-    self.assertEqual( True, res['OK'] )
+    self.assert_( res['OK'] )
     self.assertEqual( { 'Failed' : {}, 'Successful' : { 'path1' : False } }, res['Value'] )
-    
+
     res = catalog.exists( { 'A' : 1, 'B' : 2 } )
-    self.assertEqual( True, res['OK'] )
+    self.assert_( res['OK'] )
     self.assertEqual( { 'Failed' : {}, 'Successful' : { 'A' : False, 'B' : False} }, res['Value'] )
 
-  def test_addFile(self):
-    ''' tests the output of addFile
-    '''  
-    
-    catalog = self.testClass()
-    
-    res = catalog.addFile( 1 )
-    self.assertEqual( False, res['OK'] )
-    
-    self.assertRaises( TypeError, catalog.addFile, '' )
-    self.assertRaises( TypeError, catalog.addFile, [ '' ] )        
+  def test_addFile( self ):
+    """ tests the output of addFile
+    """
 
-    fileDict = { 
+    catalog = self.testClass()
+
+    res = catalog.addFile( '1' )
+    self.assert_( res['OK'] )
+
+    fileDict = {
                  'PFN'      : 'pfn',
                  'Size'     : '10',
                  'SE'       : 'se',
                  'GUID'     : 'guid',
                  'Checksum' : 'checksum'
                }
-            
-    self.assertRaises( TypeError, catalog.addFile, '' )            
-            
-    fileDict[ 'Size' ]  = '10' 
-                     
-    res = catalog.addFile( { 'lfn1' : fileDict } )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : { 'lfn1' : True }, 'Failed' : {} }, res['Value'] )
-    
-    res = catalog.addFile( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : { 'lfn1' : True, 'lfn2' : True }, 'Failed' : {} }, res['Value'] )
-    
-    mock_RPC = mock.Mock()
-    mock_RPC.addFile.return_value = { 'OK' : False, 'Message' : 'Bo!' }
 
-    self.moduleTested.RPCClient.return_value = mock_RPC
-    catalog = self.testClass()
-    
-    res = catalog.addFile( { 'lfn1' : fileDict } )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {'lfn1' : 'Bo!' } }, res['Value'] )
-    
-    res = catalog.addFile( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {  'lfn1' : 'Bo!', 'lfn2' : 'Bo!' } }, res['Value'] )
- 
+    fileDict[ 'Size' ] = '10'
+
+#    res = catalog.addFile( { 'lfn1' : fileDict } )
+#    self.assert_( res['OK'] )
+#    self.assertEqual( { 'Successful' : { 'lfn1' : True }, 'Failed' : {} }, res['Value'] )
+#
+#    res = catalog.addFile( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
+#    self.assert_( res['OK'] )
+#    self.assertEqual( { 'Successful' : { 'lfn1' : True, 'lfn2' : True }, 'Failed' : {} }, res['Value'] )
+#
+#    mock_RPC = mock.Mock()
+#    mock_RPC.addFile.return_value = { 'OK' : False, 'Message' : 'Bo!' }
+#
+#    self.moduleTested.RPCClient.return_value = mock_RPC
+#    catalog = self.testClass()
+#
+#    res = catalog.addFile( { 'lfn1' : fileDict } )
+#    self.assert_( res['OK'] )
+#    self.assertEqual( { 'Successful' : {}, 'Failed' : {'lfn1' : 'Bo!' } }, res['Value'] )
+#
+#    res = catalog.addFile( { 'lfn1' : fileDict, 'lfn2' : fileDict } )
+#    self.assert_( res['OK'] )
+#    self.assertEqual( { 'Successful' : {}, 'Failed' : {  'lfn1' : 'Bo!', 'lfn2' : 'Bo!' } }, res['Value'] )
+
     # Restore the module
     self.moduleTested.RPCClient.return_value = self.mock_RPCClient
     reload( self.moduleTested )
 
-  def test_getPathPermissions(self):
-    ''' tests the output of getPathPermissions
-    '''
-    
+  def test_getPathPermissions( self ):
+    """ tests the output of getPathPermissions
+    """
+
     catalog = self.testClass()
-    
-    res = catalog.getPathPermissions( 1 )
-    self.assertEqual( False, res['OK'] )
-    
+
+    res = catalog.getPathPermissions( '1' )
+    self.assert_( res['OK'] )
+
     res = catalog.getPathPermissions( {} )
-    self.assertEqual( True, res['OK'] )
+    self.assert_( res['OK'] )
     self.assertEqual( { 'Failed' : {}, 'Successful' : {} }, res['Value'] )
-    
+
     res = catalog.getPathPermissions( [ 'path1' ] )
-    self.assertEqual( True, res['OK'] )
+    self.assert_( res['OK'] )
     self.assertEqual( { 'Failed' : {}, 'Successful' : { 'path1' : { 'Write' : True } } }, res['Value'] )
-    
+
     res = catalog.getPathPermissions( { 'A' : 1, 'B' : 2 } )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Failed' : {}, 'Successful' : { 'A' : { 'Write' : True }, 
+    self.assert_( res['OK'] )
+    self.assertEqual( { 'Failed' : {}, 'Successful' : { 'A' : { 'Write' : True },
                                                        'B' : { 'Write' : True }} }, res['Value'] )
 
 ################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
