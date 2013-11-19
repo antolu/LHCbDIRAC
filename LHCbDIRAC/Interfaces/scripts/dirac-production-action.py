@@ -64,7 +64,7 @@ elif stop:
 
 for prodID in args:
 
-  result = diracProd.production( prodID, action, printOutput=True, disableCheck=False )
+  result = diracProd.production( prodID, action, disableCheck = False )
   if result.has_key( 'Message' ):
     errorList.append( ( prodID, result[ 'Message' ] ) )
     exitCode = 2

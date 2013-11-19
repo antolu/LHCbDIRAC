@@ -44,7 +44,7 @@ command = args[0]
 
 for prodID in args[1:]:
 
-  result = diracProd.production( prodID, command, printOutput = True, disableCheck = disableChecks )
+  result = diracProd.production( prodID, command, disableCheck = disableChecks )
   if result.has_key('Message'):
     errorList.append( (prodID, result['Message']) )
     exitCode = 2
