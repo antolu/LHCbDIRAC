@@ -864,10 +864,10 @@ class DiracProduction( DiracLHCb ):
         msg += ', extended by %s jobs' % extend
 
       if testFlag:
-        self.production( prodID, 'manual', printOutput = True )
+        self.production( prodID, 'manual' )
         msg = msg + 'and started in manual mode.'
       else:
-        self.production( prodID, 'automatic', printOutput = True )
+        self.production( prodID, 'automatic' )
         msg = msg + 'and started in automatic mode.'
       gLogger.info( msg )
 
