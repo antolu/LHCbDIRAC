@@ -258,6 +258,7 @@ class Production():
                         ]
 
       gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
+                                        importLine = 'LHCbDIRAC.Workflow.Modules',
                                         parametersList = parametersList )
       self.LHCbJob.workflow.addStep( gaudiStepDef )
 
