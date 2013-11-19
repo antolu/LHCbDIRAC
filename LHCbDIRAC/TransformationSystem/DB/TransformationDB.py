@@ -27,7 +27,6 @@ class TransformationDB( DIRACTransformationDB ):
     """
     DIRACTransformationDB.__init__( self, dbname, dbconfig, maxQueueSize, dbIn )
     self.lock = threading.Lock()
-    self.dbname = dbname
     self.queryFields = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType',
                         'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag',
                          'StartRun', 'EndRun', 'Visible', 'RunNumbers', 'TCK']
@@ -37,102 +36,99 @@ class TransformationDB( DIRACTransformationDB ):
     self.TRANSFILEPARAMS.append( "RunNumber" )
     self.TASKSPARAMS.append( "RunNumber" )
 
-  def _generateTables( self ):
-    """ _generateTables
-
-    Extension of TransformationDB ( DIRAC ) adding tables BkQueries, TransformationRuns
-    and RunsMetadata. It is also modifying TransformationFiles and TransformationTasks.
-    """
-
-    tables = DIRACTransformationDB._generateTables( self )
-    if not tables[ 'OK' ]:
-      return tables
-    tables = tables[ 'Value' ]
-
-    # Add a column to TransformationFiles table
-    if 'TransformationFiles' in tables:
-      tables['TransformationFiles' ][ 'Fields' ][ 'RunNumber' ] = 'INT(11) DEFAULT 0'
-
-    # Add a column to TransformationTasks table
-    if 'TransformationTasks' in tables:
-      tables['TransformationTasks' ][ 'Fields' ][ 'RunNumber' ] = 'INT(11) DEFAULT 0'
-
-    # Creates new table BkQueries
-    if 'BkQueries' not in tables:
-      _bkQueries = {
-                       'Fields'     : {
-                                       'BkQueryID'            : 'INT(11) NOT NULL AUTO_INCREMENT',
-                                       'SimulationConditions' : 'VARCHAR(512) NOT NULL DEFAULT "All"',
-                                       'DataTakingConditions' : 'VARCHAR(512) NOT NULL DEFAULT "All"',
-                                       'ProcessingPass'       : 'VARCHAR(512) NOT NULL DEFAULT "All"',
-                                       'FileType'             : 'VARCHAR(512) NOT NULL DEFAULT "All"',
-                                       'EventType'            : 'VARCHAR(512) NOT NULL DEFAULT "All"',
-                                       'ConfigName'           : 'VARCHAR(512) NOT NULL DEFAULT "All"',
-                                       'ConfigVersion'        : 'VARCHAR(512) NOT NULL DEFAULT "All"',
-                                       'ProductionID'         : 'VARCHAR(512) NOT NULL DEFAULT "All"',
-                                       'DataQualityFlag'      : 'VARCHAR(512) NOT NULL DEFAULT "All"',
-                                       'StartRun'             : 'INT(11) NOT NULL DEFAULT 0',
-                                       'EndRun'               : 'INT(11) NOT NULL DEFAULT 0',
-                                       'RunNumbers'           : 'BLOB NOT NULL DEFAULT "All"',
-                                       'TCK'                  : 'VARCHAR(512) NOT NULL DEFAULT "All"',
-                                       'Visible'              : 'VARCHAR(8) NOT NULL DEFAULT "All"'
-                                      },
-                       'Indexes'    : {
-                                       'SimulationConditions' : [ 'SimulationConditions' ],
-                                       'DataTakingConditions' : [ 'DataTakingConditions' ],
-                                       'ProcessingPass'       : [ 'ProcessingPass' ],
-                                       'FileType'             : [ 'FileType' ],
-                                       'EventType'            : [ 'EventType' ],
-                                       'ConfigName'           : [ 'ConfigName' ],
-                                       'ConfigVersion'        : [ 'ConfigVersion' ],
-                                       'ProductionID'         : [ 'ProductionID' ],
-                                       'DataQualityFlag'      : [ 'DataQualityFlag' ],
-                                       'StartRun'             : [ 'StartRun' ],
-                                       'EndRun'               : [ 'EndRun' ],
-                                       'RunNumbers'           : [ 'RunNumbers' ],
-                                       'TCK'                  : [ 'TCK' ]
-                                      },
-                       'PrimaryKey' : [ 'BkQueryID' ],
-                       'Engine'     : 'MyISAM'
-                      }
-      tables[ 'BkQueries' ] = _bkQueries
-
-    # Creates new table TransformationRuns
-    if 'TransformationRuns' not in tables:
-      _transformationRuns = {
-                             'Fields'     : {
-                                             'TransformationID' : 'INTEGER NOT NULL',
-                                             'RunNumber'        : 'INT(11) NOT NULL',
-                                             'SelectedSite'     : 'VARCHAR(256) DEFAULT ""',
-                                             'Status'           : 'CHAR(32) DEFAULT "Active"',
-                                             'LastUpdate'       : 'DATETIME'
-                                             },
-                             'Indexes'    : {
-                                             'TransformationID': [ 'TransformationID' ],
-                                             'RunNumber'       : [ 'RunNumber' ]
-                                            },
-                             'PrimaryKey' : [ 'TransformationID', 'RunNumber' ],
-                             'Engine'     : 'MyISAM'
-                            }
-      tables[ 'TransformationRuns' ] = _transformationRuns
-
-    # Creates new table RunsMetadata
-    if 'RunsMetadata' not in tables:
-      _runsMetadata = {
-                       'Fields'     : {
-                                       'RunNumber' : 'INT(11) NOT NULL',
-                                       'Name'      : 'VARCHAR(256) NOT NULL',
-                                       'Value'     : 'VARCHAR(256) NOT NULL'
-                                      },
-                       'Indexes'    : {
-                                       'RunNumber' : [ 'RunNumber' ]
-                                      },
-                       'PrimaryKey' : [ 'RunNumber', 'Name' ],
-                       'Engine'     : 'MyISAM'
-                      }
-      tables[ 'RunsMetadata' ] = _runsMetadata
-
-    return S_OK( tables )
+# FIXME: not compatible with DIRAC v6r10, but will be compatible with DIRAC v7r0
+#  def _generateTables( self ):
+#    """ _generateTables
+#
+#    Extension of TransformationDB ( DIRAC ) adding tables BkQueries, TransformationRuns
+#    and RunsMetadata. It is also modifying TransformationFiles and TransformationTasks.
+#    """
+#
+#    tables = DIRACTransformationDB._generateTables( self )
+#    if not tables[ 'OK' ]:
+#      return tables
+#    tables = tables[ 'Value' ]
+#
+#    # Add a column to TransformationFiles table
+#    if 'TransformationFiles' in tables:
+#      tables['TransformationFiles' ][ 'Fields' ][ 'RunNumber' ] = 'INT(11) DEFAULT 0'
+#
+#    # Add a column to TransformationTasks table
+#    if 'TransformationTasks' in tables:
+#      tables['TransformationTasks' ][ 'Fields' ][ 'RunNumber' ] = 'INT(11) DEFAULT 0'
+#
+#    # Creates new table BkQueries
+#    if 'BkQueries' not in tables:
+#      _bkQueries = {
+#                       'Fields'     : {
+#                                       'BkQueryID'            : 'INT(11) NOT NULL AUTO_INCREMENT',
+#                                       'SimulationConditions' : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
+#                                       'DataTakingConditions' : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
+#                                       'ProcessingPass'       : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
+#                                       'FileType'             : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
+#                                       'EventType'            : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
+#                                       'ConfigName'           : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
+#                                       'ConfigVersion'        : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
+#                                       'ProductionID'         : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
+#                                       'DataQualityFlag'      : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
+#                                       'StartRun'             : 'INT(11) NOT NULL DEFAULT 0',
+#                                       'EndRun'               : 'INT(11) NOT NULL DEFAULT 0',
+#                                       'RunNumbers'           : 'VARCHAR(2048) NOT NULL DEFAULT "All"',
+#                                       'TCK'                  : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
+#                                       'Visible'              : 'VARCHAR(8) NOT NULL DEFAULT "All"'
+#                                      },
+#                       'Indexes'    : {
+#                                       'SimulationConditions' : [ 'SimulationConditions' ],
+#                                       'DataTakingConditions' : [ 'DataTakingConditions' ],
+#                                       'ProcessingPass'       : [ 'ProcessingPass' ],
+#                                       'FileType'             : [ 'FileType' ],
+#                                       'EventType'            : [ 'EventType' ],
+#                                       'ConfigName'           : [ 'ConfigName' ],
+#                                       'ConfigVersion'        : [ 'ConfigVersion' ],
+#                                       'ProductionID'         : [ 'ProductionID' ],
+#                                       'DataQualityFlag'      : [ 'DataQualityFlag' ],
+#                                      },
+#                       'PrimaryKey' : [ 'BkQueryID' ],
+#                       'Engine'     : 'InnoDB'
+#                      }
+#      tables[ 'BkQueries' ] = _bkQueries
+#
+#    # Creates new table TransformationRuns
+#    if 'TransformationRuns' not in tables:
+#      _transformationRuns = {
+#                             'Fields'     : {
+#                                             'TransformationID' : 'INTEGER NOT NULL',
+#                                             'RunNumber'        : 'INT(11) NOT NULL',
+#                                             'SelectedSite'     : 'VARCHAR(256) DEFAULT ""',
+#                                             'Status'           : 'CHAR(32) DEFAULT "Active"',
+#                                             'LastUpdate'       : 'DATETIME'
+#                                             },
+#                             'Indexes'    : {
+#                                             'TransformationID': [ 'TransformationID' ],
+#                                             'RunNumber'       : [ 'RunNumber' ]
+#                                            },
+#                             'PrimaryKey' : [ 'TransformationID', 'RunNumber' ],
+#                             'Engine'     : 'InnoDB'
+#                            }
+#      tables[ 'TransformationRuns' ] = _transformationRuns
+#
+#    # Creates new table RunsMetadata
+#    if 'RunsMetadata' not in tables:
+#      _runsMetadata = {
+#                       'Fields'     : {
+#                                       'RunNumber' : 'INT(11) NOT NULL',
+#                                       'Name'      : 'VARCHAR(256) NOT NULL',
+#                                       'Value'     : 'VARCHAR(256) NOT NULL'
+#                                      },
+#                       'Indexes'    : {
+#                                       'RunNumber' : [ 'RunNumber' ]
+#                                      },
+#                       'PrimaryKey' : [ 'RunNumber', 'Name' ],
+#                       'Engine'     : 'InnoDB'
+#                      }
+#      tables[ 'RunsMetadata' ] = _runsMetadata
+#
+#    return S_OK( tables )
 
   def cleanTransformation( self, transName, author = '', connection = False ):
     """ Clean the transformation specified by name or id
