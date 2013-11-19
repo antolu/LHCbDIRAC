@@ -1,7 +1,7 @@
 from ProdConf import ProdConf
 
 ProdConf(
-  NOfEvents=2,
+  NOfEvents=-1,
   DDDBTag='Sim08-20130503-1',
   CondDBTag='Sim08-20130503-1-vc-mu100',
   AppVersion='v26r3',
