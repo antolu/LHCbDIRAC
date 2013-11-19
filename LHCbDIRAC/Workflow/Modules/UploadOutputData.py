@@ -45,7 +45,7 @@ class UploadOutputData( ModuleBase ):
     self.outputDataStep = ''
     self.request = None
     self.failoverTransfer = None
-    
+
     self.fileCatalog = 'LcgFileCatalogCombined'
 
   #############################################################################
@@ -159,8 +159,6 @@ class UploadOutputData( ModuleBase ):
       performBKRegistration = []
       # Failover replicas are always added to the BK when they become available (actually, added to all the catalogs)
 
-      # One by one upload the files with failover if necessary
-      registrationFailure = False
       failover = {}
       for fileName, metadata in final.items():
         targetSE = metadata['resolvedSE']
@@ -182,14 +180,10 @@ class UploadOutputData( ModuleBase ):
           self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
           failover[fileName] = metadata
         else:
-          if result['Value'].has_key( 'registration' ):
-            self.log.info( "File %s put on %s, but the registration in %s will be done asynchronously" % ( fileName,
-                                                                                                           targetSE,
-                                                                                                   self.fileCatalog ) )
-            registrationFailure = True
-          else:
-            self.log.info( "%s uploaded, will be registered in BK if all files uploaded for job" % fileName )
+          self.log.info( "%s uploaded, will be registered in BK if all files uploaded for job" % fileName )
 
+          # if the files are uploaded in the SE, independently if the registration in the FC is done,
+          # then we have to register all of them in the BKK
           performBKRegistration.append( metadata )
 
       cleanUp = False
@@ -267,39 +261,34 @@ class UploadOutputData( ModuleBase ):
         result = self.bkClient.sendXMLBookkeepingReport( bkXML )
         self.log.verbose( result )
         if result['OK']:
-          self.log.info( 'Bookkeeping report sent for %s' % bkFile )
+          self.log.info( "Bookkeeping report sent for %s" % bkFile )
         else:
           self.log.error( "Could not send Bookkeeping XML file to server: %s" % result['Message'] )
           self.log.info( "Preparing DISET request for", bkFile )
           bkDISETReq = Operation()
-          bkDISETReq.Type = "ForwardDISET"
+          bkDISETReq.Type = 'ForwardDISET'
           bkDISETReq.Arguments = DEncode.encode( result['rpcStub'] )
           self.request.addOperation( bkDISETReq )
           self.workflow_commons['Request'] = self.request  # update each time, just in case
 
       # Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
       if not performBKRegistration:
-        self.log.info( 'There are no files to perform the BK registration for, all could be saved to failover' )
+        self.log.info( "There are no files to perform the BK registration for, all are in failover" )
       else:
-        if registrationFailure:
-          self.log.info( 'Catalog registration failures when upload files: preparing BK registration requests' )
-          for lfnMetadata in performBKRegistration:
-            self.setBKRegistrationRequest( lfnMetadata['lfn'], metaData = lfnMetadata['filedict'] )
-        else:
-          result = self.rm.addCatalogFile( [lfnMeta['lfn'] for lfnMeta in performBKRegistration],
-                                           catalogs = ['BookkeepingDB'] )
-          self.log.verbose( result )
-          if not result['OK']:
-            self.log.error( result )
-            return S_ERROR( 'Could Not Perform BK Registration' )
-          if result['Value']['Failed']:
-            for lfn, error in result['Value']['Failed'].items():
-              lfnMetadata = {}
-              for lfnMD in performBKRegistration:
-                if lfnMD['lfn'] == lfn:
-                  lfnMetadata = lfnMD['filedict']
-                  break
-              self.setBKRegistrationRequest( lfn, error = error, metaData = lfnMetadata )
+        result = self.rm.addCatalogFile( [lfnMeta['lfn'] for lfnMeta in performBKRegistration],
+                                         catalogs = ['BookkeepingDB'] )
+        self.log.verbose( result )
+        if not result['OK']:
+          self.log.error( result )
+          return S_ERROR( 'Could Not Perform BK Registration' )
+        if result['Value']['Failed']:
+          for lfn, error in result['Value']['Failed'].items():
+            lfnMetadata = {}
+            for lfnMD in performBKRegistration:
+              if lfnMD['lfn'] == lfn:
+                lfnMetadata = lfnMD['filedict']
+                break
+            self.setBKRegistrationRequest( lfn, error = error, metaData = lfnMetadata )
 
       self.workflow_commons['Request'] = self.request
 
