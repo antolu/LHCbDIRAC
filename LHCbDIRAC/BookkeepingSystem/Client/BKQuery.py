@@ -653,8 +653,8 @@ class BKQuery():
     if self.getProcessingPass().replace( '/', '' ) != 'Real Data':
       fileTypes = self.getFileTypeList()
       prodList = [prod for p in res['Value']['Records'] for prod in p
-                  if self.__getProdStatus( prod ) not in ( 'Cleaned', 'Deleted' )]
-      # print '\n', self.__bkQueryDict, '\nVisible:', visible, prodList
+                  if self.__getProdStatus( prod ) not in ( 'Deleted' )]
+      # print '\n', self.__bkQueryDict, res['Value']['Records'], '\nVisible:', visible, prodList
       pList = []
       if fileTypes:
         for prod in prodList:
