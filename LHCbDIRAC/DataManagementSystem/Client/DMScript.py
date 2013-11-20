@@ -40,13 +40,13 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
     elif type( value ) != type( {} ):
       print '%s : %s' % ( key.rjust( center ), str( value ) )
 
-def printDMResult( result, shift = 4, empty = "Empty directory", script = None, depth = 999 ):
+def printDMResult( result, shift = 4, empty = "Empty directory", script = None, depth = 999, offset = 0 ):
   """ Printing results returned with 'Successful' and 'Failed' items """
   if not script:
     script = Script.scriptName
   try:
     if result['OK']:
-      __printDictionary( result['Value'], shift = shift, empty = empty, depth = depth )
+      __printDictionary( result['Value'], offset = offset, shift = shift, empty = empty, depth = depth )
       return 0
     else:
       print "Error in", script, ":", result['Message']
@@ -133,7 +133,7 @@ class DMScript():
     Script.registerSwitch( "", "Terminal", "LFNs are entered from stdin (--File /dev/stdin)", self.setLFNsFromTerm )
 
   def registerJobsSwitches( self ):
-    ''' File switches '''
+    ''' Job switches '''
     Script.registerSwitch( "", "File=", "File containing list of DIRAC jobIds", self.setJobidsFromFile )
     Script.registerSwitch( "j:", "DIRACJobids=", "List of DIRAC Jobids (comma separated)", self.setJobids )
     Script.registerSwitch( "", "Terminal",
