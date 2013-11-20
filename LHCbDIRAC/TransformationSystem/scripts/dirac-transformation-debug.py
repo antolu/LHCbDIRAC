@@ -41,7 +41,7 @@ def __filesProcessed( transID, runID ):
       processed += 1
   return ( files, processed )
 
-def __getRuns( transID, runList, byRuns, seList, status = None ):
+def __getRuns( transID, runList = None, byRuns = True, seList = None, status = None ):
   runs = []
   if status and byRuns and not runList:
     files = __getFilesForRun( transID, status = status )
@@ -162,12 +162,15 @@ def __getTransformationInfo( transID, transSep ):
   print ""
   return transID, transType, taskType, queryProduction, transPlugin
 
-def __fixRunZero( filesWithRunZero, fixRun ):
+def __fixRunNumber( filesToFix, fixRun, noTable = False ):
   if not fixRun:
-    print '%d files have run number 0, use --FixRun to get this fixed' % len( filesWithRunZero )
+    if noTable:
+      print '%d files have run number not in run table, use --FixRun to get this fixed' % len( filesToFix )
+    else:
+      print '%d files have run number 0, use --FixRun to get this fixed' % len( filesToFix )
   else:
     fixedFiles = 0
-    res = bkClient.getFileMetadata( filesWithRunZero )
+    res = bkClient.getFileMetadata( filesToFix )
     if res['OK']:
       runFiles = {}
       for lfn, metadata in res['Value']['Successful'].items():
@@ -187,7 +190,7 @@ def __fixRunZero( filesWithRunZero, fixRun ):
       else:
         print "There were no files for which to fix the run number"
     else:
-      print "***ERROR*** getting metadata for %d files: %s" % ( len( filesWithRunZero ), res['Message'] )
+      print "***ERROR*** getting metadata for %d files: %s" % ( len( filesToFix ), res['Message'] )
 
 def __getTransformations( args ):
   if not len( args ):
@@ -1034,6 +1037,7 @@ if __name__ == "__main__":
     jobList = []
 
     # Loop over all requested runs or just all in one go (runID == None)
+    runsInTable = {}
     for runDict in runsDictList:
       runID = runDict['RunNumber']
       SEs = runDict.get( 'SelectedSite', 'None' ).split( ',' )
@@ -1075,6 +1079,7 @@ if __name__ == "__main__":
 
       # Extract task list
       filesWithRunZero = []
+      filesWithNoRunTable = []
       problematicFiles = []
       taskDict = {}
       for fileDict in transFilesList:
@@ -1090,14 +1095,25 @@ if __name__ == "__main__":
           else:
             for taskID in res['Value']['TaskID']:
               taskDict.setdefault( taskID, [] ).append( fileDict['LFN'] )
+        fileRun = fileDict['RunNumber']
+        fileLfn = fileDict['LFN']
         if byFiles and not taskList:
-            print fileDict['LFN'], "- Run:", fileDict['RunNumber'], "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
-        if not fileDict['RunNumber'] and '/MC' not in fileDict['LFN']:
-          filesWithRunZero.append( fileDict['LFN'] )
+            print fileLfn, "- Run:", fileRun, "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
+        if not fileRun and '/MC' not in fileLfn:
+          filesWithRunZero.append( fileLfn )
+        if fileRun:
+          runInTable = runsInTable.get( fileRun )
+          if not runInTable:
+            runInTable = __getRuns( transID, [str( fileRun )], True )[0].get( 'RunNumber' )
+            runsInTable[fileRun] = runInTable
+          if not runInTable:
+            filesWithNoRunTable.append( fileLfn )
 
       # Files with run# == 0
       if filesWithRunZero and transType != 'Removal':
-        __fixRunZero( filesWithRunZero, fixRun )
+        __fixRunNumber( filesWithRunZero, fixRun )
+      if filesWithNoRunTable and transType != 'Removal':
+        __fixRunNumber( filesWithNoRunTable, fixRun, noTable = True )
 
       # Problematic files
       if problematicFiles:
