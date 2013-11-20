@@ -602,7 +602,7 @@ class PluginUtilities:
       excludedStatuses = ( 'Removed', 'MissingLFC', 'MissingInFC', 'Problematic' )
       lfns = [fileDict['LFN'] for fileDict in res['Value'] if fileDict['Status'] not in excludedStatuses]
       self.transRunFiles[runID] = lfns
-      self.logVerbose( 'Obtained %d input files' % len( lfns ) )
+      self.logVerbose( 'Obtained %d input files for run %d' % ( len( lfns ), runID ) )
 
     # Restrict to files with the required parameter
     if param:
