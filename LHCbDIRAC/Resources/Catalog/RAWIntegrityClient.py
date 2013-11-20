@@ -71,6 +71,7 @@ class RAWIntegrityClient( FileCatalogueBase ):
                }
     return S_OK( resDict )
 
+  @staticmethod
   def getPathPermissions( self, path ):
     """ Determine the VOMs based ACL information for a supplied path
     """
