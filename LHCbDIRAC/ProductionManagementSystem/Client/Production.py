@@ -399,6 +399,7 @@ class Production():
 
       if not modulesList:
         modulesList = self.opsHelper.getValue( 'Productions/FinalizationStep_Modules',
+                                               importLine = 'LHCbDIRAC.Workflow.Modules',
                                                [ 'UploadOutputData', 'UploadLogFile', 'FailoverRequest' ] )
 
       jobFinalizationStepDef = getStepDefinition( 'Job_Finalization', modulesNameList = modulesList )
