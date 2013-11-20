@@ -242,8 +242,8 @@ procedure getStepsForSpecificIfiles(iftypes ifileslist , a_Cursor out udt_RefCur
 result BOOLEAN;
 begin
 if iftypes.COUNT = 0 then
-insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, 
-                            r.stepid, r.stepname, r.ApplicationName, r.ApplicationVersion, r.OptionFiles, r.DDDb, r.condDb, r.extrapackages, r.visible, r.processingpass, r.usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig
+insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mTCK, 
+                            r.stepid, r.stepname, r.ApplicationName, r.ApplicationVersion, r.OptionFiles, r.DDDb, r.condDb, r.extrapackages, r.visible, r.processingpass, r.usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig, r.mTCK
 FROM steps s, steps r, runtimeprojects rr  where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.inputfiletypes is null;
 else
 --iftypes:=inputfileslist('Charm.DST','SDST');
@@ -255,8 +255,8 @@ else
     EXIT WHEN not result;
   end loop;
   if result and iftypes.COUNT=c.inputfiletypes.LAST then
-    insert into stepsTMP select  s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, 
-                                 r.stepid, r.stepname, r.ApplicationName, r.ApplicationVersion, r.OptionFiles, r.DDDb, r.condDb, r.extrapackages, r.visible, r.processingpass, r.usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig
+    insert into stepsTMP select  s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mTCK, 
+                                 r.stepid, r.stepname, r.ApplicationName, r.ApplicationVersion, r.OptionFiles, r.DDDb, r.condDb, r.extrapackages, r.visible, r.processingpass, r.usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig, r.mTCK
     FROM steps s,  steps r, runtimeprojects rr where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.stepid=c.stepid;
     DBMS_OUTPUT.PUT_LINE('      COOL: '||c.stepid);
   end if;
@@ -282,12 +282,12 @@ input BOOLEAN;
 output BOOLEAN;
 BEGIN
 IF iftypes.COUNT = 0 and oftypes.COUNT = 0 THEN
-  FOR cur in (select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag,s.optionsformat, s.isMulticore, s.systemconfig,
+  FOR cur in (select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag,s.optionsformat, s.isMulticore, s.systemconfig,s.mTCK,
                      r.stepid as rid, r.stepname as rsname, r.ApplicationName as rappname, r.ApplicationVersion as rappver, r.OptionFiles as roptsf, r.DDDb as rdddb, r.condDb as rcondb, r.extrapackages as rextra, 
-                     r.visible as rvisi, r.processingpass as rproc, r.usable as rusab, r.dqtag as rdq,r.optionsformat as ropff, r.isMulticore as rmulticore, r.systemconfig as rsystemconfig
+                     r.visible as rvisi, r.processingpass as rproc, r.usable as rusab, r.dqtag as rdq,r.optionsformat as ropff, r.isMulticore as rmulticore, r.systemconfig as rsystemconfig, r.mTCK as rmtck
   FROM steps s, steps r, runtimeprojects rr  where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.inputfiletypes is null and s.usable !='Obsolete') LOOP
-  pipe row(stepobj(cur.stepid,cur.stepname,cur.ApplicationName, cur.ApplicationVersion, cur.OptionFiles, cur.DDDb, cur.condDb, cur.extrapackages, cur.visible, cur.processingpass, cur.usable, cur.dqtag, cur.optionsformat, cur.isMulticore, cur.systemconfig, 
-            cur.rid, cur.rsname, cur.rappname, cur.rappver, cur.roptsf, cur.rdddb, cur.rcondb, cur.rextra, cur.rvisi, cur.rproc, cur.rusab,cur.rdq,cur.ropff, cur.rmulticore, cur.systemconfig));
+  pipe row(stepobj(cur.stepid,cur.stepname,cur.ApplicationName, cur.ApplicationVersion, cur.OptionFiles, cur.DDDb, cur.condDb, cur.extrapackages, cur.visible, cur.processingpass, cur.usable, cur.dqtag, cur.optionsformat, cur.isMulticore, cur.systemconfig, cur.mTCK,
+            cur.rid, cur.rsname, cur.rappname, cur.rappver, cur.roptsf, cur.rdddb, cur.rcondb, cur.rextra, cur.rvisi, cur.rproc, cur.rusab,cur.rdq,cur.ropff, cur.rmulticore, cur.rsystemconfig, cur.rmtck));
   END LOOP;
 ELSE
 IF iftypes.COUNT>0 THEN
@@ -356,12 +356,12 @@ IF iftypes.COUNT>0 THEN
        END IF;
     IF input and output THEN
       DBMS_OUTPUT.PUT_LINE('Insert1: '||c.stepid);
-      FOR cur in (select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag,s.optionsformat, s.isMulticore, s.systemconfig,
+      FOR cur in (select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag,s.optionsformat, s.isMulticore, s.systemconfig,s.mTCK,
                   r.stepid as rid, r.stepname as rsname, r.ApplicationName as rappname, r.ApplicationVersion as rappver, r.OptionFiles as roptsf, r.DDDb as rdddb, r.condDb as rcondb, r.extrapackages as rextra, r.visible as rvisi, 
-                  r.processingpass as rproc, r.usable as rusab, r.dqtag as rdq,r.optionsformat as ropff, r.isMulticore as rmulticore, r.systemconfig as rsysconfig
+                  r.processingpass as rproc, r.usable as rusab, r.dqtag as rdq,r.optionsformat as ropff, r.isMulticore as rmulticore, r.systemconfig as rsysconfig, r.mtck as rmtck
         FROM steps s, steps r, runtimeprojects rr  where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.stepid=c.stepid and s.usable!='Obsolete' ) LOOP
-      pipe row(stepobj(cur.stepid,cur.stepname,cur.ApplicationName, cur.ApplicationVersion, cur.OptionFiles, cur.DDDb, cur.condDb, cur.extrapackages, cur.visible, cur.processingpass, cur.usable, cur.dqtag, cur.optionsformat, cur.isMulticore, cur.systemconfig,
-               cur.rid, cur.rsname, cur.rappname, cur.rappver, cur.roptsf, cur.rdddb, cur.rcondb, cur.rextra, cur.rvisi, cur.rproc, cur.rusab,cur.rdq,cur.ropff, cur.rmulticore, cur.rsysconfig));
+      pipe row(stepobj(cur.stepid,cur.stepname,cur.ApplicationName, cur.ApplicationVersion, cur.OptionFiles, cur.DDDb, cur.condDb, cur.extrapackages, cur.visible, cur.processingpass, cur.usable, cur.dqtag, cur.optionsformat, cur.isMulticore, cur.systemconfig, cur.mtck,
+               cur.rid, cur.rsname, cur.rappname, cur.rappver, cur.roptsf, cur.rdddb, cur.rcondb, cur.rextra, cur.rvisi, cur.rproc, cur.rusab,cur.rdq,cur.ropff, cur.rmulticore, cur.rsysconfig, cur.mtck));
       END LOOP;
     END IF;
   END IF;
@@ -430,12 +430,12 @@ ELSE
        END IF;
     IF input and output THEN
       DBMS_OUTPUT.PUT_LINE('Insert2: '||c.stepid);
-      FOR cur2 in (select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag,s.optionsformat, s.isMulticore, s.systemconfig,
+      FOR cur2 in (select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion, s.OptionFiles, s.DDDb, s.condDb, s.extrapackages, s.visible, s.processingpass, s.usable, s.dqtag,s.optionsformat, s.isMulticore, s.systemconfig,s.mtck,
                           r.stepid as rid, r.stepname as rsname, r.ApplicationName as rappname, r.ApplicationVersion as rappver, r.OptionFiles as roptsf, r.DDDb as rdddb, r.condDb as rcondb, r.extrapackages as rextra, r.visible as rvisi, 
-                          r.processingpass as rproc, r.usable as rusab, r.dqtag as rdq,r.optionsformat as ropff, r.isMulticore as rmulticore, r.systemconfig as rsysconfig
+                          r.processingpass as rproc, r.usable as rusab, r.dqtag as rdq,r.optionsformat as ropff, r.isMulticore as rmulticore, r.systemconfig as rsysconfig, r.mtck as rmtck
         FROM steps s, steps r, runtimeprojects rr  where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.stepid=c.stepid and s.usable!='Obsolete') LOOP
-        pipe row(stepobj(cur2.stepid,cur2.stepname,cur2.ApplicationName, cur2.ApplicationVersion, cur2.OptionFiles, cur2.DDDb, cur2.condDb, cur2.extrapackages, cur2.visible, cur2.processingpass, cur2.usable, cur2.dqtag, cur2.optionsformat, cur2.isMulticore, cur2.systemconfig,
-                          cur2.rid, cur2.rsname, cur2.rappname, cur2.rappver, cur2.roptsf, cur2.rdddb, cur2.rcondb, cur2.rextra, cur2.rvisi, cur2.rproc, cur2.rusab,cur2.rdq,cur2.ropff, cur2.rmulticore, cur2.rsysconfig));
+        pipe row(stepobj(cur2.stepid,cur2.stepname,cur2.ApplicationName, cur2.ApplicationVersion, cur2.OptionFiles, cur2.DDDb, cur2.condDb, cur2.extrapackages, cur2.visible, cur2.processingpass, cur2.usable, cur2.dqtag, cur2.optionsformat, cur2.isMulticore, cur2.systemconfig,cur2.mtck,
+                          cur2.rid, cur2.rsname, cur2.rappname, cur2.rappver, cur2.roptsf, cur2.rdddb, cur2.rcondb, cur2.rextra, cur2.rvisi, cur2.rproc, cur2.rusab,cur2.rdq,cur2.ropff, cur2.rmulticore, cur2.rsysconfig, cur2.rmtck));
       END LOOP;
     END IF;
   END IF;
@@ -448,8 +448,8 @@ procedure getStepsForSpecificOfiles(oftypes ifileslist, a_Cursor out udt_RefCurs
 result BOOLEAN;
 begin
 if oftypes.COUNT = 0 then
-insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion,s.OptionFiles,s.DDDb, s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig,
-     r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig
+insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion,s.OptionFiles,s.DDDb, s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig,s.mtck,
+     r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig, r.mtck
     FROM steps s, steps r, runtimeprojects rr where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.outputfiletypes is null;
 else
  for c IN (select s.stepid, s.outputfiletypes from steps s, table(s.outputfiletypes) i where i.name=oftypes(1)) LOOP
@@ -458,8 +458,8 @@ else
     EXIT WHEN not result;
   end loop;
   if result and oftypes.COUNT=c.outputfiletypes.LAST then
-    insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion,s.OptionFiles,s.DDDb, s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig,
-     r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig 
+    insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion,s.OptionFiles,s.DDDb, s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mtck,
+     r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig , r.mtck
     FROM steps s, steps r, runtimeprojects rr where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.stepid=c.stepid;
   end if;
 end loop;
@@ -473,8 +473,8 @@ procedure getStepsForIfiles(iftypes ifileslist , a_Cursor out udt_RefCursor)is
 result BOOLEAN;
 begin
 if iftypes.COUNT = 0 then
-insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion,s.OptionFiles,s.DDDb, s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig,
-     r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig  
+insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName, s.ApplicationVersion,s.OptionFiles,s.DDDb, s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mtck,
+     r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig, r.mtck  
      FROM steps s,steps r, runtimeprojects rr
      where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.inputfiletypes is null;
 else
@@ -487,8 +487,8 @@ else
     end LOOP;
   end loop;
   if result then
-    insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, 
-    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig 
+    insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mtck,
+    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig, r.mtck 
        FROM steps s, steps r, runtimeprojects rr
      where s.stepid=c.stepid and s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid;
   end if;
@@ -502,8 +502,8 @@ procedure getStepsForOfiles(oftypes ifileslist, a_Cursor out udt_RefCursor) is
 result BOOLEAN;
 BEGIN
 IF oftypes.COUNT = 0 THEN
-  insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig,
-    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig 
+  insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mtck,
+    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig, r.mtck 
      from steps s, steps r, runtimeprojects rr  where
  s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.outputfiletypes is null;
 ELSE
@@ -516,8 +516,8 @@ ELSE
       END LOOP;
     END LOOP;
     IF result THEN
-      INSERT INTO stepsTMP SELECT s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, 
-    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig 
+      INSERT INTO stepsTMP SELECT s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mtck, 
+    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig, r.mtck 
     FROM steps s, steps r, runtimeprojects rr where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.stepid=c.stepid;
     END IF;
   END LOOP;
@@ -530,8 +530,8 @@ procedure getAvailebleSteps(iftypes ifileslist, a_Cursor out udt_RefCursor)is
 result BOOLEAN;
 begin
 if iftypes.COUNT = 0 then
-insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable,s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig,
-    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig 
+insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable,s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mtck,
+    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig, r.mtck 
       FROM steps s, steps r, runtimeprojects rr where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.inputfiletypes is null;
 else
 --iftypes:=inputfileslist('Charm.DST','SDST');
@@ -543,8 +543,8 @@ else
     EXIT WHEN not result;
   end loop;
   if result and iftypes.COUNT=c.inputfiletypes.LAST then
-    insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig,
-    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig
+    insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mtck,
+    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig, r.mtck
     FROM steps s, steps r, runtimeprojects rr where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.stepid=c.stepid;
     DBMS_OUTPUT.PUT_LINE('      COOL: '||c.stepid);
   end if;
@@ -568,8 +568,8 @@ procedure  getAvailebleStepsRealAndMC(iftypes ifileslist , a_Cursor out udt_RefC
 result BOOLEAN;
 begin
 if iftypes.COUNT = 0 then
-insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig,
-    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig
+insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mtck,
+    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig, r.mtck
     FROM steps s, steps r, runtimeprojects rr where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.inputfiletypes is null;
 else
  for c IN (select s.stepid, s.inputfiletypes from steps s, table(s.inputfiletypes)) LOOP
@@ -581,8 +581,8 @@ else
     end LOOP;
   end loop;
   if result then
-    insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig,
-    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig
+    insert into stepsTMP select s.stepid, s.stepname, s.ApplicationName,s.ApplicationVersion,s.OptionFiles,s.DDDb,s.condDb,s.extrapackages,s.visible, s.processingpass, s.usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mtck,
+    r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.isMulticore, r.systemconfig, r.mtck
     FROM steps s, steps r, runtimeprojects rr where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid and s.stepid=c.stepid;
   end if;
 end loop;
