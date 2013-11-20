@@ -9,8 +9,8 @@ Script.parseCommandLine( ignoreErrors = True )
 localFiles = Script.getPositionalArgs()
 import DIRAC
 from DIRAC                                                import gLogger
-from DIRAC.Core.Utilities.List                            import sortList
-from LHCbDIRAC.Core.Utilities.File                        import makeGuid
+from LHCbDIRAC.Core.Utilities.File                        import getRootFileGUIDs
+from LHCbDIRAC.DataManagementSystem.Client.DMScript       import printDMResult
 import os
 
 if not localFiles:
@@ -23,10 +23,11 @@ existFiles = []
 for localFile in localFiles:
   if os.path.exists( localFile ):
     existFiles.append( os.path.realpath( localFile ) )
-  else:
-    gLogger.info( "The supplied file %s does not exist" % localFile )
-fileGUIDs = makeGuid( existFiles )
-for filename in sortList( fileGUIDs ):
-  gLogger.info( "%s GUID: %s" % ( filename, fileGUIDs[filename] ) )
+
+fileGUIDs = getRootFileGUIDs( existFiles )
+nonExisting = sorted( set( localFiles ) - set( existFiles ) )
+if nonExisting:
+  fileGUIDs['Value']['Failed'].update( dict.fromkeys( nonExisting, 'Non existing file' ) )
+printDMResult( fileGUIDs )
 
 DIRAC.exit( 0 )

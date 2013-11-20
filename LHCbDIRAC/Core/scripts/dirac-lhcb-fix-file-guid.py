@@ -22,7 +22,7 @@ Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
 from DIRAC.Interfaces.API.Dirac import Dirac
-from LHCbDIRAC.Core.Utilities.File import makeGuid
+from LHCbDIRAC.Core.Utilities.File                        import getRootFileGUID
 
 from DIRAC import gLogger
 

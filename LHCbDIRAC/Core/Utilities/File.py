@@ -1,16 +1,60 @@
 """ File utilities module (e.g. make GUIDs)
 """
 
-import os
 
-from DIRAC import gLogger
-from DIRAC.Core.Utilities.Subprocess        import systemCall
+from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.File              import makeGuid as DIRACMakeGUID
 
 from LHCbDIRAC.Core.Utilities.ClientTools   import setupProjectEnvironment
 
+def getRootFileGUIDs( fileList ):
+  guids = {'Successful':{}, 'Failed':{}}
+  for fileName in fileList:
+    res = getRootFileGUID( fileName )
+    if res['OK']:
+      guids['Successful'][fileName] = res['Value']
+    else:
+      guids['Failed'][fileName] = res['Message']
+  return S_OK( guids )
 
-def makeGuid( fileNames, cleanUp = True ):
+def getRootFileGUID( fileName, env = None ):
+  """ Function to retrieve a file GUID using Root.
+  """
+  # Setup the root enviroment
+  try:
+    import ROOT
+  except Exception:
+    if not env:
+      res = setupProjectEnvironment( 'DaVinci' )
+      if not res['OK']:
+        gLogger.error( res['Message'] + ": Failed to setup the ROOT environment" )
+        return res
+      env = res['Value']
+    pythonPath = end.get('PYTHONPATH')
+    if 
+      
+  from ctypes import create_string_buffer
+  try:
+    ROOT.gErrorIgnoreLevel = 2001
+    f = ROOT.TFile.Open( fileName )
+    b = f.Get( 'Refs' ).GetBranch( 'Params' )
+    text = create_string_buffer( 100 )
+    b.SetAddress( text )
+    for i in range( b.GetEntries() ):
+      b.GetEvent( i )
+      x = text.value
+      if x.startswith( 'FID=' ):
+        guid = x.split( '=' )[1]
+        return S_OK( guid )
+    return S_ERROR( 'GUID not found' )
+  except:
+    errStr = "Error extracting GUID"
+    gLogger.exception( errStr )
+    return S_ERROR( errStr )
+  finally:
+    f.Close()
+
+def makeGuid( fileNames ):
   """ Function to retrieve a file GUID using Root.
   """
   if type( fileNames ) == str:
@@ -26,54 +70,11 @@ def makeGuid( fileNames, cleanUp = True ):
 
   fileGUIDs = {}
   for fileName in fileNames:
-
-    # Write the script to be executed
-    fopen = open( 'tmpRootScript.py', 'w' )
-    fopen.write( 'from ROOT import TFile\n' )
-    fopen.write( "l=TFile.Open('%s')\n" % fileName )
-    fopen.write( "if not( not( l.Get('##Params') ) ): #if the structure is '##Params'\n" )
-    fopen.write( "  t=l.Get(\'##Params\')\n" )
-    fopen.write( '  t.Show(0)\n' )
-    fopen.write( '  leaves=t.GetListOfLeaves()\n' )
-    fopen.write( '  leaf=leaves.UncheckedAt(0)\n' )
-    fopen.write( '  val=leaf.GetValueString()\n' )
-    fopen.write( "  fid=val.split('=')[2].split(']')[0]\n" )
-    fopen.write( "  print 'GUID%sGUID' %fid\n" )
-    fopen.write( "elif  not( not( l.Get('Refs') ) ):#if the structure is 'Refs/Params'\n" )
-    fopen.write( "  t_ref = l.Get('Refs')\n" )
-    fopen.write( "  b_param = t_ref.GetBranch('Params')\n" )
-    fopen.write( "  for i in range(b_param.GetEntries()):\n" )
-    fopen.write( "    b_param.GetEntry(i)\n" )
-    fopen.write( "    leaves=b_param.GetListOfLeaves()\n" )
-    fopen.write( "    leaf=leaves.UncheckedAt(0)\n" )
-    fopen.write( "    val=leaf.GetValueString()\n" )
-    fopen.write( "    if 'FID' in val:\n" )
-    fopen.write( "      fid=val.split('=')[1]\n" )
-    fopen.write( "      print 'GUID%sGUID' %fid\n" )
-    fopen.write( "      break\n" )
-    fopen.write( "else:\n" )
-    fopen.write( "  # the structure is not recognised print empty string\n" )
-    fopen.write( "  # that will raise an exception later.\n" )
-    fopen.write( "  print ''\n" )
-    fopen.write( 'l.Close()\n' )
-    fopen.close()
-    # Execute the root script
-    cmd = ['python']
-    cmd.append( 'tmpRootScript.py' )
-    gLogger.debug( cmd )
-    ret = systemCall( 1800, cmd, env = rootEnv )
-    if not ret['OK']:
-      gLogger.error( 'Problem using root\n%s' % ret )
-      gLogger.error( 'Could not obtain GUID from file through Gaudi, using standard DIRAC method' )
-      fileGUIDs[fileName] = DIRACMakeGUID( fileName )
-    if cleanUp:
-      os.remove( 'tmpRootScript.py' )
-    stdout = ret['Value'][1]
-    try:
-      guid = stdout.split( 'GUID' )[1]
+    guid = getRootFileGUID( fileName, rootEnv )
+    if guid['OK']:
       gLogger.verbose( 'GUID found to be %s' % guid )
-      fileGUIDs[fileName] = guid
-    except Exception:
+      fileGUIDs[fileName] = guid['Value']
+    else:
       gLogger.error( 'Could not obtain GUID from file through Gaudi, using standard DIRAC method' )
       fileGUIDs[fileName] = DIRACMakeGUID( fileName )
 

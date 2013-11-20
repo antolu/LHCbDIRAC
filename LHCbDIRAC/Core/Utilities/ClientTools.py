@@ -108,29 +108,40 @@ def mergeRootFiles( outputFile, inputFiles, daVinciVersion = '', cleanUp = True 
     return _errorReport( res['Message'], "Failed to setup the ROOT environment" )
   rootEnv = res['Value']
   # Perform the merging
-  lists = breakListIntoChunks( inputFiles, 20 )
-  tempFiles = []
-  for filelist in lists:
-    tempOutputFile = tempfile.mktemp()
-    res = _mergeRootFiles( tempOutputFile, filelist, rootEnv )
+  # Perform the merging
+  chunkSize = 20
+  if len( inputFiles ) > chunkSize:
+    lists = breakListIntoChunks( inputFiles, chunkSize )
+    tempFiles = []
+    try:
+      for filelist in lists:
+        tempOutputFile = tempfile.mktemp()
+        tempFiles.append( tempOutputFile )
+        res = _mergeRootFiles( tempOutputFile, filelist, rootEnv )
+        if not res['OK']:
+          return _errorReport( res['Message'], "Failed to perform ROOT merger" )
+      res = _mergeRootFiles( outputFile, tempFiles, rootEnv )
+      if not res['OK']:
+        return _errorReport( res['Message'], "Failed to perform final ROOT merger" )
+    except Exception:
+      errStr = 'Exception while merging files'
+      gLogger.exception( errStr )
+      return S_ERROR( errStr )
+    finally:
+      if cleanup:
+        for filename in tempFiles:
+          if os.path.exists( filename ):
+            os.remove( filename )
+  else:
+    res = _mergeRootFiles( outputFile, inputFiles, rootEnv )
     if not res['OK']:
       return _errorReport( res['Message'], "Failed to perform ROOT merger" )
-    tempFiles.append( tempOutputFile )
-  res = _mergeRootFiles( outputFile, tempFiles, rootEnv )
-  if not res['OK']:
-    return _errorReport( res['Message'], "Failed to perform final ROOT merger" )
-  if cleanUp:
-    for filename in tempFiles:
-      if os.path.exists( filename ):
-        os.remove( filename )
   return S_OK( outputFile )
 
 #############################################################################
 def _mergeRootFiles( outputFile, inputFiles, rootEnv ):
   """ Merge ROOT files """
-  cmd = "hadd -f %s" % outputFile
-  for filename in inputFiles:
-    cmd = "%s %s" % ( cmd, filename )
+  cmd = "hadd -f %s " % outputFile + ' '.join( inputFiles )
   res = shellCall( 1800, cmd, env = rootEnv )
   if not res['OK']:
     return res
