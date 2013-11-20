@@ -64,7 +64,7 @@ class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
     """
 
     catalog = self.testClass()
-    self.assertEqual( True, catalog.valid )
+    self.assert_( catalog.valid )
     self.assertEqual( 'cookiesURL', catalog.url )
 
     # We are altering one of the module members, we have to reload the whole module..
@@ -72,7 +72,7 @@ class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
     reload( self.moduleTested )
 
     catalog = self.testClass()
-    self.assert_( catalog.valid )
+    self.assertRaises( Exception, catalog.valid )
 
     # Restore the module
     self.moduleTested.PathFinder = self.mock_pathFinder

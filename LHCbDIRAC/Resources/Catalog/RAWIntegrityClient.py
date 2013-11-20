@@ -5,7 +5,6 @@
 """
 
 from DIRAC                                     import S_OK, gLogger
-from DIRAC.Core.DISET.RPCClient                import RPCClient
 from DIRAC.ConfigurationSystem.Client          import PathFinder
 from DIRAC.Resources.Catalog.FileCatalogueBase import FileCatalogueBase
 from DIRAC.Resources.Utilities.Utils           import checkArgumentFormat
