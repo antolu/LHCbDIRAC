@@ -820,7 +820,7 @@ class ModuleBase( object ):
           if result['OK']:
             self.log.info( "Digest of the request: %s" % result['Value'] )
           else:
-            self.log.error( "No digest? That's not sooo important, anyway: %s" % result['Message'] )
+            self.log.warn( "No digest? That's not sooo important, anyway: %s" % result['Message'] )
         else:
           raise RuntimeError( requestJSON['Message'] )
 
