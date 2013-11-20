@@ -399,10 +399,11 @@ class Production():
 
       if not modulesList:
         modulesList = self.opsHelper.getValue( 'Productions/FinalizationStep_Modules',
-                                               importLine = 'LHCbDIRAC.Workflow.Modules',
                                                [ 'UploadOutputData', 'UploadLogFile', 'FailoverRequest' ] )
 
-      jobFinalizationStepDef = getStepDefinition( 'Job_Finalization', modulesNameList = modulesList )
+      jobFinalizationStepDef = getStepDefinition( 'Job_Finalization',
+                                                  importLine = 'LHCbDIRAC.Workflow.Modules',
+                                                  modulesNameList = modulesList )
       self.LHCbJob.workflow.addStep( jobFinalizationStepDef )
 
     # create the step instance add it to the wf
