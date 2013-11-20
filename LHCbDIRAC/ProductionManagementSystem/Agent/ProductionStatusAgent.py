@@ -222,7 +222,7 @@ class ProductionStatusAgent( AgentModule ):
     res = self.transClient.getTransformationWithStatus( status )
     if not res['OK']:
       self.log.error( "Failed to get %s productions: %s" % ( status, res['Message'] ) )
-      raise RuntimeError, "Failed to get %s productions: %s" % ( status, res['Message'] )
+      raise RuntimeError( "Failed to get %s productions: %s" % ( status, res['Message'] ) )
     if not res['Value']:
       self.log.info( 'No productions in %s status' % status )
       return []

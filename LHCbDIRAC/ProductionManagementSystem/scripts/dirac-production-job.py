@@ -21,7 +21,7 @@
 """
 
 from DIRAC.Core.Base import Script
-from DIRAC           import gLogger, exit as DiracExit, S_OK
+from DIRAC           import gLogger, exit as DiracExit
 
 
 __RCSID__ = '$Id$'
@@ -37,10 +37,10 @@ switchDict     = {}
 
 
 def registerSwitches():
-  '''
+  """
     Registers all switches that can be used while calling the script from the
     command line interface.
-  '''
+  """
 
   switches = ( 
      ( 'jobid=', 'Job id(s) on csv format' ),
@@ -59,9 +59,9 @@ def registerSwitches():
 
 
 def parseSwitches():
-  '''
+  """
     Parses the arguments passed by the user
-  '''
+  """
 
   Script.parseCommandLine( ignoreErrors = True )
   args = Script.getPositionalArgs()
@@ -83,10 +83,10 @@ def parseSwitches():
 #...............................................................................
 
 def getJobs():
-  '''
+  """
     Given a dictionary with the switches, either gets the jobs directly from the
     switch jobid, or gets them with the help of the other switches.
-  '''
+  """
 
   if 'jobid' in switchDict:
     subLogger.verbose( "Found jobid key, ignoring the rest of the switches", switchDict )
@@ -123,7 +123,7 @@ def getJobs():
 
 
 def processJobs( jobs ):
-  '''
+  """
     Iterates over the jobs, getting the output LFNS and the input LFNS.
 
     For the output, it checks the ReplicaManager, to see that all LFNS are
@@ -133,7 +133,7 @@ def processJobs( jobs ):
     For the input, it checks ProductionDB.
 
     Depending on the logger, more or less information is printed.
-  '''
+  """
 
   for job in jobs:
 
@@ -158,14 +158,14 @@ def processJobs( jobs ):
 
 def processInput( jobinfo ):
   
-  input  = jobinfo.getInputLFN()
-  if not input[ 'OK' ]:
-    subLogger.error( input[ 'Message' ] )
+  jInput = jobinfo.getInputLFN()
+  if not jInput[ 'OK' ]:
+    subLogger.error( jInput[ 'Message' ] )
     return
   
   subLogger.info( '\ninput' )
-  if input[ 'Value' ]:
-    inputFiles = input[ 'Value' ][ 0 ].split( ';' )
+  if jInput[ 'Value' ]:
+    inputFiles = jInput[ 'Value' ][ 0 ].split( ';' )
   
     fileStatus = transClient.getFileSummary( inputFiles )
     if not fileStatus[ 'OK' ]:
@@ -185,9 +185,9 @@ def processInput( jobinfo ):
 
 
 def run():
-  '''
+  """
     Main script method
-  '''
+  """
 
   subLogger.verbose( "Running main method" )
 
