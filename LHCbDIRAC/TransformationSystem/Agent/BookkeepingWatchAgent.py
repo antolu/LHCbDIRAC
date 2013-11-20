@@ -98,7 +98,11 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
       except ValueError, e:
         self._logError( "fail to close %s: %s" % ( self.pickleFile, e ) )
       finally:
-        pf.close()
+        try:
+          pf.close()
+        except UnboundLocalError:
+          pass
+
 
 ################################################################################
   def execute( self ):
