@@ -45,14 +45,24 @@ def printSEUsage( totalUsage, grandTotal, scaleFactor ):
       form = '%.3f'
       break
   svcClass = ''
+  sumFiles = 0
+  sumSize = 0.
   for se in orderSEs( totalUsage.keys() ):
     newSvcClass = seSvcClass( se )
     if newSvcClass != svcClass:
+      if svcClass:
+        print "%s %s %s" % ( ( 'Total (%s)' % svcClass ).ljust( 20 ),
+                             ( form % ( sumSize ) ).ljust( 20 ),
+                             str( sumFiles ).ljust( 20 ) )
+        sumFiles = 0
+        sumSize = 0.
       print line
     svcClass = newSvcClass
     usageDict = totalUsage[se]
     files = usageDict['Files']
     size = usageDict['Size'] / scaleFactor
+    sumFiles += files
+    sumSize += size
     print "%s %s %s" % ( se.ljust( 20 ), ( form % ( size ) ).ljust( 20 ), str( files ).ljust( 20 ) )
   if grandTotal:
     size = grandTotal['Size'] / scaleFactor

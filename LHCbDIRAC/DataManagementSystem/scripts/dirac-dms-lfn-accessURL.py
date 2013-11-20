@@ -22,7 +22,7 @@ def __checkSEs( args ):
     for ses in list( args ):
       sel = [se for se in ses.split( ',' ) if se in res['Value']]
       if sel :
-        seList.append( ','.join( sel ) )
+        seList += sel
         args.remove( ses )
   return seList, args
 
@@ -63,18 +63,22 @@ def execute():
   if len( seList ) > 1:
     gLogger.info( "Using the following list of SEs: %s" % str( seList ) )
   rm = ReplicaManager()
-  gLogger.setLevel( "FATAL" )
+  # gLogger.setLevel( "FATAL" )
+  notFoundLfns = set( lfnList )
+  results = {'OK':True, 'Value':{'Successful':{}, 'Failed':{}}}
+  level = gLogger.getLevel()
+  gLogger.setLevel( 'FATAL' )
   for se in seList:
     res = rm.getReplicaAccessUrl( lfnList, se )
-    if res['OK']:
-      printDMResult( res, empty = "File not at SE" )
-      lfnList = res['Value']['Failed']
-      if not lfnList:
-        break
+    if res['OK'] and res['Value']['Successful']:
+      notFoundLfns -= set( res['Value']['Successful'] )
+      results['Value']['Successful'].setdefault( se, {} ).update( res['Value']['Successful'] )
+  gLogger.setLevel( level )
 
-  if not res['OK']:
-    gLogger.fatal( "Error getting accessURL for %s at %s" % ( lfnList, str( seList ) ) )
-    printDMResult( res, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
+  if notFoundLfns:
+    results['Value']['Failed'] = dict.fromkeys( sorted( notFoundLfns ), 'File not found in required SEs' )
+
+  printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
 
 if __name__ == "__main__":
 

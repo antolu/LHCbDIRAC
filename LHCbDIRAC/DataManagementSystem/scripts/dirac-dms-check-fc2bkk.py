@@ -44,17 +44,17 @@ def doCheck():
   else:
     gLogger.always( "No files in FC with replica = NO in BK -> OK!" )
 
-  if cc.existingLFNsNotInBK:
-    if len( cc.existingLFNsNotInBK ) > maxFiles:
+  if cc.existLFNsNotInBK:
+    if len( cc.existLFNsNotInBK ) > maxFiles:
       prStr = ' (first %d)' % maxFiles
     else:
       prStr = ''
     gLogger.error( "%d files are in the FC but are NOT in BK%s:\n%s" %
-                   ( len( cc.existingLFNsNotInBK ), prStr,
-                     '\n'.join( sorted( cc.existingLFNsNotInBK[0:maxFiles] ) ) ) )
+                   ( len( cc.existLFNsNotInBK ), prStr,
+                     '\n'.join( sorted( cc.existLFNsNotInBK[0:maxFiles] ) ) ) )
     if fixIt:
       gLogger.always( "Going to fix them, by removing from the FC and storage" )
-      res = rm.removeFile( cc.existingLFNsNotInBK )
+      res = rm.removeFile( cc.existLFNsNotInBK )
       if res['OK']:
         success = len( res['Value']['Successful'] )
         failures = 0
@@ -107,7 +107,7 @@ if __name__ == '__main__':
 
   cc = ConsistencyChecks( rm = rm, bkClient = bk )
   cc.directories = dmScript.getOption( 'Directory', [] )
-  cc.lfns = dmScript.getOption( 'LFNs', [] )
+  cc.lfns = dmScript.getOption( 'LFNs', [] ) + [lfn for arg in Script.getPositionalArgs() for lfn in arg.split( ',' )]
   productions = dmScript.getOption( 'Productions', [] )
 
   if productions:

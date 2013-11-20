@@ -45,6 +45,7 @@ def execute():
         Script.showHelp()
       seList.extend( res['Value']['SE'].replace( ' ', '' ).split( ',' ) )
   args = Script.getPositionalArgs()
+  args = [aa for arg in args for aa in arg.split( ',' )]
   if not seList:
     seList, args = __checkSEs( args )
 

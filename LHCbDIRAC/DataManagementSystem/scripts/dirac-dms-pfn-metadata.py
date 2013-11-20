@@ -75,6 +75,7 @@ if __name__ == "__main__":
 
   from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
   from DIRAC import S_OK, S_ERROR
+  from DIRAC.Core.Utilities.Adler import compareAdler
   if len( seList ) > 1:
     gLogger.always( "Using the following list of SEs: %s" % str( seList ) )
   rm = ReplicaManager()
@@ -121,6 +122,8 @@ if __name__ == "__main__":
               diff = 'False -'
               for field in ( 'Checksum', 'Size' ):
                 if lfnMetadata[field] != pfnMetadata[field]:
+                  if field == 'Checksum' and compareAdler( lfnMetadata[field], pfnMetadata[field] ):
+                    continue
                   ok = False
                   diff += ' %s: (LFN %s, PFN %s)' % ( field, lfnMetadata[field], pfnMetadata[field] )
               if len( seList ) > 1:
