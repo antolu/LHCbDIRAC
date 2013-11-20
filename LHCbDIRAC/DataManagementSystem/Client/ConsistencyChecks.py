@@ -9,7 +9,7 @@
 import os, copy, ast, time, sys
 
 import DIRAC
-from DIRAC import gLogger, S_ERROR
+from DIRAC import gLogger, S_ERROR, S_OK
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
@@ -18,6 +18,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.Core.Utilities.Adler import compareAdler
 
 # FIXME: this is quite dirty, what should be checked is exactly what it is done
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction' )
@@ -60,13 +61,14 @@ class ConsistencyChecks( object ):
     self.runStatus = None
     self.fromProd = None
     self.transType = ''
+    self.cachedReplicas = {}
 
     # Results of the checks
     self.existLFNsBKRepNo = {}
     self.absentLFNsBKRepNo = []
     self.existLFNsBKRepYes = []
     self.absentLFNsBKRepYes = []
-    self.existingLFNsNotInBK = []
+    self.existLFNsNotInBK = []
     self.absentLFNsNotInBK = []
     self.filesInBKNotInTS = []
 
@@ -82,6 +84,10 @@ class ConsistencyChecks( object ):
     self.inFCNotInBK = []
     self.removedFiles = []
 
+    self.existLFNsNoSE = {}
+    self.existLFNsBadReplicas = {}
+    self.existLFNsBadFiles = {}
+
     self.commonAncestors = {}
     self.multipleDescendants = {}
     self.ancestors = {}
@@ -96,7 +102,7 @@ class ConsistencyChecks( object ):
 
     if self.lfns:
       lfnsNotInBK, lfnsReplicaNo, lfnsReplicaYes = self._getBKMetadata( self.lfns )
-      lfnsReplicaNo += lfnsNotInBK
+      lfnsReplicaNo = lfnsReplicaNo.keys() + lfnsNotInBK
     else:
       try:
         bkQuery = self.__getBKQuery()
@@ -209,6 +215,7 @@ class ConsistencyChecks( object ):
         res = self.rm.getReplicas( chunk )
         if res['OK']:
           present.update( res['Value']['Successful'] )
+          self.cachedReplicas.update( res['Value']['Successful'] )
           notPresent.update( res['Value']['Failed'] )
           break
         else:
@@ -725,12 +732,12 @@ class ConsistencyChecks( object ):
       gLogger.always( 'Out of %d files, %d are in the FC, %d are not' \
                       % ( len( self.lfns ), len( present ), len( notPresent ) ) )
       if not present:
-        gLogger.always( 'No files are in the FC, no check in the BK. Use dirac-dms-check-BK2fc instead' )
+        gLogger.always( 'No files are in the FC, no check in the BK. Use dirac-dms-check-bkk2fc instead' )
         return
       prStr = ''
 
     res = self._getBKMetadata( present )
-    self.existingLFNsNotInBK = res[0]
+    self.existLFNsNotInBK = res[0]
     self.existLFNsBKRepNo = res[1]
     self.existLFNsBKRepYes = res[2]
     msg = ''
@@ -739,8 +746,8 @@ class ConsistencyChecks( object ):
     if self.existLFNsBKRepNo:
       gLogger.warn( "%s %d files%s have replica = NO in BK" % ( msg, len( self.existLFNsBKRepNo ),
                                                                  prStr ) )
-    if self.existingLFNsNotInBK:
-      gLogger.warn( "%s %d files%s not in BK" % ( msg, len( self.existingLFNsNotInBK ), prStr ) )
+    if self.existLFNsNotInBK:
+      gLogger.warn( "%s %d files%s not in BK" % ( msg, len( self.existLFNsNotInBK ), prStr ) )
 
   ################################################################################
 
@@ -822,101 +829,126 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
+  def checkFC2SE( self ):
+    self.checkFC2BK()
+    if self.existLFNsBKRepYes or self.existLFNsBKRepNo:
+      repDict = self.compareChecksum( self.existLFNsBKRepYes + self.existLFNsBKRepNo.keys() )
+      if not repDict['OK']:
+        gLogger.error( "Error when comparing checksum", repDict['Message'] )
+        return
+      repDict = repDict['Value']
+      self.existLFNsNoSE = repDict['MissingPFN']
+      self.existLFNsBadReplicas = repDict['SomeReplicasCorrupted']
+      self.existLFNsBadFiles = repDict['AllReplicasCorrupted']
+
   def compareChecksum( self, lfns ):
     '''compare the checksum of the file in the FC and the checksum of the physical replicas.
        Returns a dictionary containing 3 sub-dictionaries: one with files with missing PFN, one with
        files with all replicas corrupted, and one with files with some replicas corrupted and at least
        one good replica
     '''
-    retDict = {}
+    retDict = {'AllReplicasCorrupted' : {}, 'SomeReplicasCorrupted': {}, 'MissingPFN':{}, 'NoReplicas':{}}
 
-    retDict['AllReplicasCorrupted'] = {}
-    retDict['SomeReplicasCorrupted'] = {}
 
-    gLogger.info( "Get lfn meta-data for files to be checked.." )
-    res = self.dirac.getMetadata( lfns )
+    replicas = {}
+    for lfn in lfns:
+      if lfn in self.cachedReplicas:
+        replicas[lfn] = self.cachedReplicas[lfn]
+    lfnsLeft = list( set( lfns ) - set( replicas ) )
+    if lfnsLeft:
+      gLogger.always( "Get replicas for %d files" % len( lfnsLeft ) )
+      replicasRes = self.dirac.getAllReplicas( lfnsLeft )
+      if not replicasRes[ 'OK' ]:
+        gLogger.error( "error:  %s" % replicasRes['Message'] )
+        return replicasRes
+      replicasRes = replicasRes['Value']
+      if replicasRes['Failed']:
+        retDict['NoReplicas'] = replicasRes['Failed'].copy()
+      replicas.update( replicasRes['Successful'] )
+
+    startTime = time.time()
+    chunkSize = 1000
+    gLogger.always( "Get FC metadata for %d files to be checked" % len( lfns ) )
+    res = self.dirac.getMetadata( replicas.keys() )
     if not res['OK']:
       gLogger.error( "error %s" % res['Message'] )
       return res
+    metadata = res['Value']['Successful']
+    gLogger.always( "Obtained replicas and metadata in %.1f seconds" % ( time.time() - startTime ) )
 
-    gLogger.info( "Get all replicas.." )
-    replicasRes = self.dirac.getAllReplicas( lfns )
-    if not replicasRes[ 'OK' ]:
-      gLogger.error( "error:  %s" % res['Message'] )
-      return res
-
-    gLogger.info( "compare checksum file by file ..." )
+    gLogger.info( "Check existence and compare checksum file by file ..." )
     csDict = {}
-    checkSumMismatch = []
-    pfnNotAvailable = []
-    val = res['Value']
-    for lfn in lfns:
-    # get the lfn checksum from the LFC
-      if lfn in val['Failed']:
-        gLogger.info( "Failed request for LFN %s: %s" % ( lfn, val['Failed'][lfn] ) )
-        continue
-      elif lfn in val['Successful']:
-        if lfn not in csDict:
-          csDict[ lfn ] = {}
-        csDict[ lfn ][ 'LFCChecksum' ] = val['Successful'][lfn][ 'Checksum']
-      else:
-        gLogger.error( "LFN not in return values! %s " % lfn )
-        continue
+    pfnNotAvailable = {}
+    seFiles = {}
+    surlLfn = {}
+    startTime = time.time()
+    # Reverse the LFN->SE dictionnary
+    for lfn in replicas:
+      csDict.setdefault( lfn, {} )[ 'LFCChecksum' ] = metadata.get( lfn, {} ).get( 'Checksum' )
+      replicaDict = replicas[ lfn ]
+      for se in replicaDict:
+        surl = replicaDict[ se ]
+        surlLfn[surl] = lfn
+        seFiles.setdefault( se, [] ).append( surl )
 
-      if lfn not in replicasRes['Value']['Successful']:
-        gLogger.error( "did not get replicas for this LFN: %s " % lfn )
-        continue
-      replicaDict = replicasRes['Value']['Successful'][ lfn ]
+    checkSum = {}
+    self.__write( 'Getting checksum of %d replicas (chunks of %d) .' % ( len( surlLfn ), chunkSize ) )
+    i = 1
+    for se in seFiles:
+      for surlChunk in breakListIntoChunks( seFiles[se], chunkSize ):
+        i += len( surlChunk )
+        if i > chunkSize:
+          self.__write( '.' )
+          i = 1
+        surlRes = self.rm.getStorageFileMetadata( surlChunk, se )
+        if not surlRes[ 'OK' ]:
+          gLogger.error( "error replicaManager.getStorageFileMetadata returns %s" % ( surlRes['Message'] ) )
+          return surlRes
+        surlRes = surlRes['Value']
+        for surl in surlRes['Failed']:
+          lfn = surlLfn[surl]
+          gLogger.info( "SURL was not found at %s! %s " % ( se, surl ) )
+          pfnNotAvailable.setdefault( lfn, [] ).append( se )
+        for surl in surlRes['Successful']:
+          lfn = surlLfn[surl]
+          checkSum.setdefault( lfn, {} )[se] = surlRes['Successful'][ surl ]['Checksum']
+    self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
+    retDict[ 'MissingPFN'] = pfnNotAvailable.copy()
+
+    startTime = time.time()
+    self.__write( 'Verifying checksum of %d files (chunks of %d) ' % ( len( replicas ), chunkSize ) )
+    i = 0
+    for lfn in replicas:
+      # get the lfn checksum from the LFC
+      if i % chunkSize == 0:
+        self.__write( '.' )
+      i += 1
+
+      replicaDict = replicas[ lfn ]
+      oneGoodReplica = False
+      allGoodReplicas = True
       for se in replicaDict:
         surl = replicaDict[ se ]
         # get the surls metadata and compare the checksum
-        surlRes = self.rm.getStorageFileMetadata( surl, se )
-        if not surlRes[ 'OK' ]:
-          gLogger.error( "error replicaManager.getStorageFileMetadata returns %s" % ( surlRes['Message'] ) )
-          continue
-        if surl not in surlRes['Value']['Successful']:
-          gLogger.error( "SURL was not in the return value! %s " % surl )
-          pfnNotAvailable.append( surl )
-          continue
-        surlChecksum = surlRes['Value']['Successful'][ surl ]['Checksum']
-        csDict[ lfn ][ surl ] = {}
-        csDict[ lfn ][ surl ]['PFNChecksum'] = surlChecksum
+        surlChecksum = checkSum.get( lfn, {} ).get( se, '' )
         lfcChecksum = csDict[ lfn ][ 'LFCChecksum' ]
-        if lfcChecksum != surlChecksum:
-          gLogger.info( "Check if the difference is just leading zeros" )
-          # if lfcChecksum not in surlChecksum and surlChecksum not in lfcChecksum:
-          if lfcChecksum.lstrip( '0' ) != surlChecksum.lstrip( '0' ):
-            gLogger.error( "ERROR!! checksum mismatch at %s for LFN \
-            %s:  LFC checksum: %s , PFN checksum : %s " % ( se, lfn, csDict[ lfn ][ 'LFCChecksum' ], surlChecksum ) )
-            if lfn not in checkSumMismatch:
-              checkSumMismatch.append( lfn )
-          else:
-            gLogger.info( "Checksums differ only for leading zeros: LFC Checksum: %s PFN Checksum %s " %
-                          ( lfcChecksum, surlChecksum ) )
-
-    for lfn in checkSumMismatch:
-      oneGoodReplica = False
-      gLogger.info( "LFN: %s, LFC Checksum: %s " % ( lfn, csDict[ lfn ][ 'LFCChecksum'] ) )
-      lfcChecksum = csDict[ lfn ][ 'LFCChecksum' ]
-      for k in csDict[ lfn ]:
-        if k == 'LFCChecksum':
-          continue
-        for kk in csDict[ lfn ][ k ]:
-          if 'PFNChecksum' == kk:
-            pfnChecksum = csDict[ lfn ][ k ]['PFNChecksum']
-            pfn = k
-            gLogger.info( "%s %s " % ( pfn, pfnChecksum ) )
-            if pfnChecksum == lfcChecksum:
-              oneGoodReplica = True
-      if oneGoodReplica:
-        gLogger.info( "=> At least one replica with good Checksum" )
-        retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ]
-      else:
+        if not compareAdler( lfcChecksum , surlChecksum ):
+          # if lfcChecksum does not match surlChecksum
+          csDict[ lfn ][ se ] = {'SURL':surl, 'PFNChecksum': surlChecksum}
+          gLogger.info( "ERROR!! checksum mismatch at %s for LFN %s:  LFC checksum: %s , PFN checksum : %s "
+                        % ( se, lfn, lfcChecksum, surlChecksum ) )
+          allGoodReplicas = False
+        else:
+          oneGoodReplica = True
+      if not oneGoodReplica and lfn not in pfnNotAvailable:
         gLogger.info( "=> All replicas have bad checksum" )
-        retDict['AllReplicasCorrupted'][ lfn ] = csDict[ lfn ]
-    retDict[ 'MissingPFN'] = pfnNotAvailable
+        retDict['AllReplicasCorrupted'][ lfn ] = csDict[ lfn ].copy()
+      elif not allGoodReplicas:
+        gLogger.info( "=> At least one replica with good Checksum" )
+        retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ].copy()
 
-    return retDict
+    self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
+    return S_OK( retDict )
 
   ################################################################################
   # properties
