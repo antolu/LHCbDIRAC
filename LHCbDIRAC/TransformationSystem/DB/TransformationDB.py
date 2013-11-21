@@ -104,12 +104,13 @@ class TransformationDB( DIRACTransformationDB ):
 #                                             'LastUpdate'       : 'DATETIME'
 #                                             },
 #                             'Indexes'    : {
-#                                             'TransformationID': [ 'TransformationID' ],
+#  LT would drop this line, PK is enough      'TransformationID': [ 'TransformationID' ],
 #                                             'RunNumber'       : [ 'RunNumber' ]
 #                                            },
 #                             'PrimaryKey' : [ 'TransformationID', 'RunNumber' ],
 #                             'Engine'     : 'InnoDB'
 #                            }
+# To be added: FOREIGN KEY (TransformationID) REFERENCES Transformations (TransformationID)
 #      tables[ 'TransformationRuns' ] = _transformationRuns
 #
 #    # Creates new table RunsMetadata
@@ -121,7 +122,7 @@ class TransformationDB( DIRACTransformationDB ):
 #                                       'Value'     : 'VARCHAR(256) NOT NULL'
 #                                      },
 #                       'Indexes'    : {
-#                                       'RunNumber' : [ 'RunNumber' ]
+#  LT would drop this line, PK is enough 'RunNumber' : [ 'RunNumber' ]
 #                                      },
 #                       'PrimaryKey' : [ 'RunNumber', 'Name' ],
 #                       'Engine'     : 'InnoDB'
@@ -498,7 +499,12 @@ class TransformationDB( DIRACTransformationDB ):
       self.lock.release()
       gLogger.error( "Failed to publish task for transformation", res['Message'] )
       return res
-    res = self._query( "SELECT LAST_INSERT_ID();", connection )
+    # res = self._query( "SELECT LAST_INSERT_ID();", connection )
+    # previous command is ok for the MyISAM schema, doesn't work with InnoDB schema.
+    # With InnoDB, TaskID is computed by a trigger, which sets the local variable @last (per connection)
+    # @last is the last insert TaskID. With multi-row inserts, will be the first new TaskID inserted.
+    # The trigger TaskID_Generator must be present with the InnoDB schema (defined in TransformationDB.sql)
+    res = self._query( "SELECT @last;", connection )
     self.lock.release()
     if not res['OK']:
       return res

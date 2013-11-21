@@ -6,37 +6,39 @@
 
 SOURCE DIRAC/TransformationSystem/DB/TransformationDB.sql
 
--------------------------------------------------------------------------------
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- -----------------------------------------------------------------------------
 DROP TABLE IF EXISTS BkQueries;
 CREATE TABLE BkQueries (
   BkQueryID INT(11) NOT NULL AUTO_INCREMENT,
   SimulationConditions VARCHAR(1024) NOT NULL DEFAULT 'All',
-  INDEX (SimulationConditions),
   DataTakingConditions VARCHAR(1024) NOT NULL DEFAULT 'All',
-  INDEX (DataTakingConditions),
   ProcessingPass VARCHAR(1024) NOT NULL DEFAULT 'All',
-  INDEX (ProcessingPass),
   FileType VARCHAR(1024) NOT NULL DEFAULT 'All',
-  INDEX (FileType),
   EventType VARCHAR(1024) NOT NULL DEFAULT 'All',
-  INDEX (EventType),
   ConfigName VARCHAR(1024) NOT NULL DEFAULT 'All',
-  INDEX (ConfigName),
   ConfigVersion VARCHAR(1024) NOT NULL DEFAULT 'All',
-  INDEX (ConfigVersion),
   ProductionID VARCHAR(1024) NOT NULL DEFAULT 'All',
-  INDEX (ProductionID),
   DataQualityFlag VARCHAR(1024) NOT NULL DEFAULT 'All',
-  INDEX (DataQualityFlag),
   StartRun INT(11) NOT NULL DEFAULT 0,
-  INDEX (StartRun),
   EndRun INT(11) NOT NULL DEFAULT 0,
-  INDEX (EndRun),
   RunNumbers VARCHAR(2048) NOT NULL DEFAULT 'All',
   TCK VARCHAR(1024) NOT NULL DEFAULT 'All',
   Visible VARCHAR(8) NOT NULL DEFAULT 'All',
-  PRIMARY KEY  (`BkQueryID`)
-) ENGINE=InnoDB;
+  PRIMARY KEY  (BkQueryID),
+  INDEX (SimulationConditions),
+  INDEX (DataTakingConditions),
+  INDEX (ProcessingPass),
+  INDEX (FileType),
+  INDEX (EventType),
+  INDEX (ConfigName),
+  INDEX (ConfigVersion),
+  INDEX (ProductionID),
+  INDEX (DataQualityFlag),
+  INDEX (StartRun),
+  INDEX (EndRun)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 ALTER TABLE TransformationFiles ADD COLUMN RunNumber INT(11) DEFAULT 0;
 ALTER TABLE TransformationTasks ADD COLUMN RunNumber INT(11) DEFAULT 0;
@@ -44,21 +46,21 @@ ALTER TABLE TransformationTasks ADD COLUMN RunNumber INT(11) DEFAULT 0;
 DROP TABLE IF EXISTS TransformationRuns;
 CREATE TABLE TransformationRuns(
   TransformationID INTEGER NOT NULL,
-  INDEX (TransformationID),
   RunNumber INT(11) NOT NULL,
-  INDEX (RunNumber),
-  SelectedSite VARCHAR(256) DEFAULT '',
+  SelectedSite VARCHAR(255) DEFAULT '',
   Status CHAR(32) DEFAULT 'Active',
   LastUpdate DATETIME,
-  PRIMARY KEY (TransformationID,RunNumber)
-) ENGINE=InnoDB;
+  PRIMARY KEY (TransformationID,RunNumber),
+  INDEX (RunNumber),
+  FOREIGN KEY (TransformationID) REFERENCES Transformations (TransformationID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS RunsMetadata;
 CREATE TABLE RunsMetadata(
   RunNumber INT(11) NOT NULL,
-  INDEX (RunNumber),
-  Name VARCHAR(256) NOT NULL,
-  Value VARCHAR(256) NOT NULL,
+  Name VARCHAR(255) NOT NULL,
+  Value VARCHAR(255) NOT NULL,
   PRIMARY KEY (RunNumber, Name)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+SET FOREIGN_KEY_CHECKS = 1;
