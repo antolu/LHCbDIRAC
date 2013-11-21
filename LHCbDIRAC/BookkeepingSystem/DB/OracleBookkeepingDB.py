@@ -499,7 +499,7 @@ class OracleBookkeepingDB:
     'Visible': 'Y', 'DDDB': '', 'OptionFiles': '', 'CONDDB': ''},
     'OutputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.MDST'}],
     'InputFileTypes': [{'Visible': 'Y', 'FileType': 'CHARM.DST'}],
-    'RuntimeProjects':[{StepId:13878}]}"""
+    'RuntimeProjects':[{'StepId':13878}]}"""
     result = S_ERROR()
     values = ''
     command = "SELECT applications_index_seq.nextval from dual"
