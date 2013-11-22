@@ -103,10 +103,14 @@ def readFileEvents( turl, appVersion ):
 def mergeRootFiles( outputFile, inputFiles, daVinciVersion = '', cleanUp = True ):
   """ merge several ROOT files """
   # Setup the root enviroment
-  res = setupProjectEnvironment( 'DaVinci', version = daVinciVersion )
-  if not res['OK']:
-    return _errorReport( res['Message'], "Failed to setup the ROOT environment" )
-  rootEnv = res['Value']
+  try:
+    rootEnv = None
+    import ROOT
+  except:
+    res = setupProjectEnvironment( 'DaVinci', version = daVinciVersion )
+    if not res['OK']:
+      return _errorReport( res['Message'], "Failed to setup the ROOT environment" )
+    rootEnv = res['Value']
   # Perform the merging
   # Perform the merging
   chunkSize = 20
@@ -128,7 +132,7 @@ def mergeRootFiles( outputFile, inputFiles, daVinciVersion = '', cleanUp = True 
       gLogger.exception( errStr )
       return S_ERROR( errStr )
     finally:
-      if cleanup:
+      if cleanUp:
         for filename in tempFiles:
           if os.path.exists( filename ):
             os.remove( filename )

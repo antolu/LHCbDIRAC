@@ -17,22 +17,16 @@ def getRootFileGUIDs( fileList ):
       guids['Failed'][fileName] = res['Message']
   return S_OK( guids )
 
-def getRootFileGUID( fileName, env = None ):
+def getRootFileGUID( fileName ):
   """ Function to retrieve a file GUID using Root.
   """
-  # Setup the root enviroment
+  # Setup the root environment
+  import sys, os
   try:
     import ROOT
   except Exception:
-    if not env:
-      res = setupProjectEnvironment( 'DaVinci' )
-      if not res['OK']:
-        gLogger.error( res['Message'] + ": Failed to setup the ROOT environment" )
-        return res
-      env = res['Value']
-    pythonPath = end.get('PYTHONPATH')
-    if 
-      
+    return S_ERROR( "ROOT environment not set up: use 'SetupProject LHCbDirac ROOT'" )
+
   from ctypes import create_string_buffer
   try:
     ROOT.gErrorIgnoreLevel = 2001
@@ -48,11 +42,10 @@ def getRootFileGUID( fileName, env = None ):
         return S_OK( guid )
     return S_ERROR( 'GUID not found' )
   except:
-    errStr = "Error extracting GUID"
-    gLogger.exception( errStr )
-    return S_ERROR( errStr )
+    return S_ERROR( "Error extracting GUID" )
   finally:
-    f.Close()
+    if f:
+      f.Close()
 
 def makeGuid( fileNames ):
   """ Function to retrieve a file GUID using Root.
@@ -60,17 +53,9 @@ def makeGuid( fileNames ):
   if type( fileNames ) == str:
     fileNames = [fileNames]
 
-  # Setup the root enviroment
-  res = setupProjectEnvironment( 'DaVinci' )
-  if not res['OK']:
-    gLogger.error( res['Message'] + ": Failed to setup the ROOT environment" )
-    return res
-  rootEnv = res['Value']
-
-
   fileGUIDs = {}
   for fileName in fileNames:
-    guid = getRootFileGUID( fileName, rootEnv )
+    guid = getRootFileGUID( fileName )
     if guid['OK']:
       gLogger.verbose( 'GUID found to be %s' % guid )
       fileGUIDs[fileName] = guid['Value']

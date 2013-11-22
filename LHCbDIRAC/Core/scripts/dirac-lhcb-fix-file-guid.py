@@ -22,7 +22,7 @@ Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
 from DIRAC.Interfaces.API.Dirac import Dirac
-from LHCbDIRAC.Core.Utilities.File                        import getRootFileGUID
+from LHCbDIRAC.Core.Utilities.File                        import makeGuid
 
 from DIRAC import gLogger
 
@@ -113,20 +113,21 @@ if not os.path.exists( os.path.basename( oldLFN ) ):
 else:
   gLogger.verbose( 'Found file %s in local directory, will not redownload' % oldLFN )
 
-newGUID = makeGuid( os.path.basename( oldLFN ) )[oldLFN]
+localFile = os.path.basename( oldLFN )
+newGUID = makeGuid( localFile )[localFile]
 
 if newGUID == oldGUID:
-  gLogger.info( 'Old and new GUIDs have the same value (%s), exiting without changes' % oldGUID )
+  gLogger.always( 'Old and new GUIDs have the same value (%s), exiting without changes' % oldGUID )
   os.chdir( start )
   DIRAC.exit( 0 )
 
 if safe:
-  gLogger.info( 'Safe mode - found file GUID = %s and existing GUID = %s, exiting without changes' % ( newGUID, oldGUID ) )
+  gLogger.always( 'Safe mode - found file GUID = %s and existing GUID = %s, exiting without changes' % ( newGUID, oldGUID ) )
   DIRAC.exit( 0 )
 
-gLogger.verbose( 'Will set old GUID to %s from %s' % ( newGUID, oldGUID ) )
+gLogger.always( 'Will set old GUID to %s from %s' % ( newGUID, oldGUID ) )
 if newLFN == oldLFN:
-  gLogger.info( 'Removing old LFN from storages before adding new LFN' )
+  gLogger.always( 'Removing old LFN from storages before adding new LFN' )
   result = dirac.removeFile( oldLFN )
   if not result['OK']:
     print result
@@ -134,7 +135,7 @@ if newLFN == oldLFN:
     os.chdir( start )
     DIRAC.exit( exitCode )
 
-gLogger.info( 'Uploading %s as LFN:%s with replica at %s and GUID = %s' % ( os.path.basename( oldLFN ), newLFN, storageElements[0], newGUID ) )
+gLogger.always( 'Uploading %s as LFN:%s with replica at %s and GUID = %s' % ( os.path.basename( oldLFN ), newLFN, storageElements[0], newGUID ) )
 result = dirac.addFile( newLFN, os.path.basename( oldLFN ), storageElements[0], fileGuid = newGUID, printOutput = False )
 if not result['OK']:
   print result
