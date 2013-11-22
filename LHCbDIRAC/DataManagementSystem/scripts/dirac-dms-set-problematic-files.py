@@ -200,7 +200,7 @@ if __name__ == "__main__":
     status = 'Unused' if reset else 'Problematic'
     gLogger.always( "\n%d files were set %s in the transformation system" % ( n, status ) )
     for transID in sorted( transDict ):
-      lfns = transDict[transID]
+      lfns = sorted( transDict[transID] )
       res = tr.setFileStatusForTransformation( transID, status, lfns, force = True ) if action else {'OK':True}
       if not res['OK']:
         gLogger.error( "\tError setting %d files %s for transformation %s" % ( len( lfns ), status, transID ), res['Message'] )
