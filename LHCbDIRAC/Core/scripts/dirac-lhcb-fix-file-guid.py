@@ -125,7 +125,7 @@ if safe:
   gLogger.always( 'Safe mode - found file GUID = %s and existing GUID = %s, exiting without changes' % ( newGUID, oldGUID ) )
   DIRAC.exit( 0 )
 
-gLogger.always( 'Will set old GUID to %s from %s' % ( newGUID, oldGUID ) )
+gLogger.verbose( 'Will set old GUID to %s from %s' % ( newGUID, oldGUID ) )
 if newLFN == oldLFN:
   gLogger.always( 'Removing old LFN from storages before adding new LFN' )
   result = dirac.removeFile( oldLFN )
