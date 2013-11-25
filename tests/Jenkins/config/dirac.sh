@@ -179,7 +179,7 @@ dirac_externals(){
     python `which easy_install` -U docutils
     python `which easy_install` PIL
     python `which easy_install` pyqt
-    python `which easy_install` stomp
+    python `which easy_install` stomp.py
 
     if [[ "$JOB_NAME" == dirac* ]]
     then
