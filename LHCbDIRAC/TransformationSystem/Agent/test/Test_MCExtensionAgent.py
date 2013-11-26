@@ -196,7 +196,7 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
     agent.transformationTypes = ['MCSimulation', 'Simulation']
     agent.transClient = Mock()
     agent.transClient.extendTransformation.return_value = S_OK()
-    agent.transClient.setStatus.return_value = S_OK()
+    agent.transClient.setTransformationParameter.return_value = S_OK()
 
     agent.cpuTimeAvg = 1000000.0
     agent.cpuNormalizationFactorAvg = 1.0
@@ -242,4 +242,3 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
     ret = agent._extendProduction( production, extensionFactor, eventsNeeded )
     self.assertTrue( ret['OK'] )
     agent.transClient.extendTransformation.assert_called_once_with( productionIDExp, numberOfTasksExp )
-    agent.transClient.setStatus.assert_called_once_with( productionIDExp, 'Active', 'Idle' )
