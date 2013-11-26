@@ -76,8 +76,10 @@ class TransformationManagerHandler( TManagerBase ):
     res = database.getTransformationRuns( condDict = condDict, orderAttribute = orderAttribute, limit = limit )
     return self._parseRes( res )
 
-  types_getTransformationRunStats = [ListType]
+  types_getTransformationRunStats = [[LongType, ListType]]
   def export_getTransformationRunStats( self, transIDs ):
+    if type( transIDs ) == long:
+      transIDs = [transIDs]
     res = database.getTransformationRunStats( transIDs )
     return self._parseRes( res )
 
