@@ -40,7 +40,7 @@ class TransformationClient( DIRACTransformationClient ):
                          url = '',
                          timeout = 120 ):
     rpcClient = self._getRPC( rpc = rpc, url = url, timeout = timeout )
-    res = DIRACTransformationClient.addTransformation( transName, description, longDescription, transfType, plugin,
+    res = DIRACTransformationClient.addTransformation( self, transName, description, longDescription, transfType, plugin,
                                                        agentType, fileMask, transformationGroup, groupSize,
                                                        inheritedFrom, body, maxTasks, eventsPerTask, addFiles,
                                                        rpc = rpcClient )
