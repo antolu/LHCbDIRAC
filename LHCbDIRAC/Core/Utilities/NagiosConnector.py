@@ -37,8 +37,11 @@ class NagiosConnector():
         gLogger.verbose('Required Configuration Value is empty: %s' % item)
       else:
         gLogger.verbose( 'Read Config Values for %s: %s' % (item, self.config[item] ) )
-                     
-    self.config['MsgPort'] = int( self.config['MsgPort']  )
+
+    try:
+      self.config['MsgPort'] = int( self.config['MsgPort'] )
+    except TypeError:
+      self.config['MsgPort'] = 6163
 
   def useDebugMessage( self ):
     """Load a sample message for debugging""" 
