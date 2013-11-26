@@ -522,7 +522,7 @@ class NagiosConnectorSuccess( UtilitiesTestCase ):
     nagConn = NagiosConnector()
     nagConn.readConfig()
     msg = "Configuration Value missing!"
-    self.assertIsNotNone( nagConn.config['MsgPort'], msg )
+    self.assert_( nagConn.config['MsgPort'] )
     self.assertIsNone( nagConn.config['MsgBroker'], msg )
     self.assertIsNone( nagConn.config['MsgQueue'], msg )
 
