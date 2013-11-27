@@ -176,7 +176,7 @@ class DataRecoveryAgent( AgentModule ):
       if filesToUpdate:
         result = self._updateFileStatus( transformation, filesToUpdate, updateStatus )
         if not result['OK']:
-          self.log.error( 'Recoverable files were not updated with result:\n%s' % ( result ) )
+          self.log.error( 'Recoverable files were not updated with result:\n%s' % ( result['Message'] ) )
           continue
 
       if filesWithdescendantsInBK:
@@ -363,15 +363,4 @@ class DataRecoveryAgent( AgentModule ):
                                                               fileList,
                                                               force = False )
     self.log.debug( result )
-    if not result['OK']:
-      self.log.error( result )
-      return result
-    if result['Value']['Failed']:
-      self.log.warn( result['Value']['Failed'] )
-      return result
-
-    msg = result['Value']['Successful']
-    for lfn, message in msg.items():
-      self.log.info( '%s => %s' % ( lfn, message ) )
-
-    return S_OK()
+    return result

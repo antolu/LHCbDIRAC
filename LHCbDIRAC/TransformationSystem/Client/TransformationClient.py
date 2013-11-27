@@ -91,8 +91,10 @@ class TransformationClient( DIRACTransformationClient ):
 
           stateChange = tfsm.setState( status )
           if not stateChange['OK']:
-            newStatuses[lfn] = status
+            if tsFilesAsDict[lfn][0] != status:
+              newStatuses[lfn] = status
           else:
-            newStatuses[lfn] = stateChange['Value']
+            if tsFilesAsDict[lfn][0] != stateChange['Value']:
+              newStatuses[lfn] = stateChange['Value']
 
     return newStatuses
