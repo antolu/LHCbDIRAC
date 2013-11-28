@@ -20,81 +20,91 @@ FLUSH PRIVILEGES;
 USE ProductionRequestDB;
 -- -----------------------------------------------------------------------------
 
+SET FOREIGN_KEY_CHECKS = 0;
+
 DROP TABLE IF EXISTS ProductionRequests;
 CREATE TABLE ProductionRequests (
-    RequestID INTEGER NOT NULL AUTO_INCREMENT,
-    ParentID INTEGER,
-    INDEX(ParentID),
-    MasterID INTEGER,
-    INDEX(MasterID),
-    RequestName VARCHAR(128) DEFAULT "",
-    INDEX(RequestName),
-    RequestType VARCHAR(32) DEFAULT "",
-    INDEX(RequestType),
-    RequestState VARCHAR(32) DEFAULT "",
-    INDEX(RequestState),
-    RequestPriority VARCHAR(32) DEFAULT "",
-    INDEX(RequestPriority),
-    RequestAuthor VARCHAR(128) DEFAULT "",
-    INDEX(RequestAuthor),
-    RequestPDG VARCHAR(128) DEFAULT "",
-
-    SimCondition VARCHAR(128) DEFAULT "",
-    INDEX(SimCondition),
-    SimCondID INTEGER,
-    SimCondDetail BLOB,
-    
-    ProPath VARCHAR(128) DEFAULT "",
-    INDEX(ProPath),
-    ProID   INTEGER,
-    ProDetail BLOB,
-    
-    EventType VARCHAR(128) DEFAULT "",
-    INDEX(EventType),
-    NumberOfEvents INTEGER DEFAULT 0,
-    INDEX(NumberOfEvents),
-    Description BLOB,
-    Comments BLOB,
-    Inform   BLOB,
-    RealNumberOfEvents BIGINT DEFAULT 0,
-    IsModel BOOL DEFAULT 0,
-    INDEX(IsModel),
-    Extra BLOB,
-    PRIMARY KEY(RequestID)
-);
+  RequestID int(11) NOT NULL AUTO_INCREMENT,
+  ParentID int(11) DEFAULT NULL,
+  MasterID int(11) DEFAULT NULL,
+  RequestName varchar(128) CHARACTER SET latin1 DEFAULT '',
+  RequestType varchar(32) CHARACTER SET latin1 DEFAULT '',
+  RequestState varchar(32) CHARACTER SET latin1 DEFAULT '',
+  RequestPriority varchar(32) CHARACTER SET latin1 DEFAULT '',
+  RequestAuthor varchar(128) CHARACTER SET latin1 DEFAULT '',
+  RequestPDG varchar(128) CHARACTER SET latin1 DEFAULT '',
+  SimCondition varchar(128) CHARACTER SET latin1 DEFAULT '',
+  SimCondID int(11) DEFAULT NULL,
+  SimCondDetail blob,
+  ProPath varchar(128) CHARACTER SET latin1 DEFAULT '',
+  ProID int(11) DEFAULT NULL,
+  ProDetail blob,
+  EventType varchar(128) CHARACTER SET latin1 DEFAULT '',
+  NumberOfEvents int(11) DEFAULT '0',
+  Description blob,
+  Comments blob,
+  Inform blob,
+  RealNumberOfEvents bigint(20) DEFAULT '0',
+  Extra blob,
+  IsModel tinyint(1) DEFAULT '0',
+  PRIMARY KEY (RequestID),
+  KEY ParentID (ParentID),
+  KEY MasterID (MasterID),
+  KEY RequestName (RequestName),
+  KEY RequestType (RequestType),
+  KEY RequestState (RequestState),
+  KEY RequestPriority (RequestPriority),
+  KEY RequestAuthor (RequestAuthor),
+  KEY SimCondition (SimCondition),
+  KEY ProPath (ProPath),
+  KEY EventType (EventType),
+  KEY NumberOfEvents (NumberOfEvents),
+  KEY IsModel (IsModel),
+  FOREIGN KEY (MasterID) REFERENCES ProductionRequests (RequestID),
+  FOREIGN KEY (ParentID) REFERENCES ProductionRequests (RequestID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS ProductionProgress;
 CREATE TABLE ProductionProgress (
-    ProductionID INTEGER NOT NULL,
-    RequestID INTEGER,
-    INDEX(RequestID),
-    Used TINYINT(1) DEFAULT 1, 
-    INDEX(Used),
-    BkEvents INTEGER,
-    PRIMARY KEY(ProductionID)
-);
+  ProductionID int(11) NOT NULL,
+  RequestID int(11) DEFAULT NULL,
+  Used tinyint(1) DEFAULT '1',
+  BkEvents int(11) DEFAULT NULL,
+  PRIMARY KEY (ProductionID),
+  KEY RequestID (RequestID),
+  KEY Used (Used),
+  FOREIGN KEY (RequestID) REFERENCES ProductionRequests (RequestID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS RequestHistory;
 CREATE TABLE RequestHistory (
-    RequestID INTEGER NOT NULL,
-    INDEX(RequestID),
-    RequestState VARCHAR(32)  DEFAULT "",
-    RequestUser  VARCHAR(128) DEFAULT "",
-    TimeStamp    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX(TimeStamp)
-);
+  recid int(11) NOT NULL AUTO_INCREMENT,
+  RequestID int(11) NOT NULL,
+  RequestState varchar(32) DEFAULT '',
+  RequestUser varchar(128) DEFAULT '',
+  TimeStamp timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (recid),
+  KEY RequestID (RequestID),
+  KEY TimeStamp (TimeStamp),
+  FOREIGN KEY (RequestID) REFERENCES ProductionRequests (RequestID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS RequestTest;
 CREATE TABLE RequestTest (
-    RequestID INTEGER NOT NULL,
-    INDEX(RequestID),
-    State VARCHAR(32) DEFAULT "",
-    INDEX(State),
-    Actual  INTEGER DEFAULT 0,
-    Link  VARCHAR(128) DEFAULT "",
-    Time  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    Input BLOB,
-    Params BLOB,
-    Script BLOB,
-    Template BLOB
-);
+  recid int(11) NOT NULL AUTO_INCREMENT,
+  RequestID int(11) NOT NULL,
+  State varchar(32) DEFAULT '',
+  Actual int(11) DEFAULT '0',
+  Link varchar(128) DEFAULT '',
+  Time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  Input blob,
+  Params blob,
+  Script blob,
+  Template blob,
+  PRIMARY KEY (recid),
+  KEY RequestID (RequestID),
+  KEY State (State),
+  FOREIGN KEY (RequestID) REFERENCES ProductionRequests (RequestID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+SET FOREIGN_KEY_CHECKS = 1;
