@@ -112,11 +112,13 @@ diracInstall(){
   ./dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
 
   mkdir -p etc/grid-security
+  cd etc/grid-security
   openssl genrsa -out hostkey.pem 2048
   cp $WORKSPACE/LHCbTestDirac/Jenkins/openssl_config openssl_config
   fqdn=`hostname --fqdn`
   sed -i "s/#hostname#/$fqdn/g" openssl_config
   openssl req -new -x509 -key hostkey.pem -out hostcert.pem -days 1 -config openssl_config
+  cd -
   /etc/init.d/cvmfs probe
   ln -s /cvmfs/grid.cern.ch/etc/grid-security/certificates/ etc/grid-security/certificates
 
