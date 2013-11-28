@@ -153,7 +153,11 @@ diracConfigure(){
 
   cp -s $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/install.cfg
   hostdn=`openssl x509 -noout -in etc/grid-security/hostcert.pem -subject | sed 's/subject= //g'`
-  sed -i "s/#hostdn#/$hostdn/g" etc/install.cfg
+  #
+  # TRICK ALERT: we are using colons instead of forward slashes
+  # otherwise, we cannot scape the / in the DN 
+  #
+  sed -i "s:#hostdn#:$hostdn:/g" etc/install.cfg
 
   dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG
   echo "=======================================================================" 
