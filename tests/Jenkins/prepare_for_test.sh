@@ -118,6 +118,8 @@ diracInstall(){
   fqdn=`hostname --fqdn`
   sed -i "s/#hostname#/$fqdn/g" openssl_config
   openssl req -new -x509 -key hostkey.pem -out hostcert.pem -days 1 -config openssl_config
+  
+  
   cd -
   /etc/init.d/cvmfs probe
   ln -s /cvmfs/grid.cern.ch/etc/grid-security/certificates/ etc/grid-security/certificates
@@ -149,7 +151,9 @@ diracConfigure(){
   echo $randomRoot > rootMySQL
   echo $randomUser > userMySQL
 
-  ln -s $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/install.cfg
+  cp -s $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/install.cfg
+  hostdn=`openssl x509 -noout -in etc/hostcert.pem -subject | sed 's/subject= //g'`
+  sed -i "s/#hostdn#/$hostdn/g" etc/install.cfg
 
   dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG
   echo "=======================================================================" 
