@@ -152,7 +152,7 @@ diracConfigure(){
   echo $randomUser > userMySQL
 
   cp -s $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/install.cfg
-  hostdn=`openssl x509 -noout -in etc/hostcert.pem -subject | sed 's/subject= //g'`
+  hostdn=`openssl x509 -noout -in etc/grid-security/hostcert.pem -subject | sed 's/subject= //g'`
   sed -i "s/#hostdn#/$hostdn/g" etc/install.cfg
 
   dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG
