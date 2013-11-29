@@ -233,8 +233,20 @@ diracKillRunit(){
 
 diracCredentials(){
   
+  mkdir $WORKSPACE/user
+  cd $WORKSPACE/user
+  
+  certDir=$WORKSPACE/etc/grid-security/certificates
+  
+  cp $WORKSPACE/LHCbTestDirac/Jenkins/openssl_config openssl_config
+  sed -i 's/#hostname#/lhcbci/g' openssl_config
+  openssl req -key client.key -new -out client.req -config openssl_config
+  echo 00 > file.srl
+  openssl x509 -req -in client.req -CA $certDir/hostcert.pem -CAkey $certDir/hostkey.pem -CAserial file.srl -out client.pem
+  cd -
+  
   sed -i 's/commitNewData = CSAdministrator/commitNewData = authenticated/g' etc/Configuration_Server.cfg
-  dirac-proxy-init -g dirac_admin $DEBUG
+  dirac-proxy-init -g dirac_admin $DEBUG -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key 
   sed -i 's/commitNewData = authenticated/commitNewData = CSAdministrator/g' etc/Configuration_Server.cfg
   
 }
