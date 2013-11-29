@@ -117,6 +117,9 @@ diracInstall(){
   cp $WORKSPACE/LHCbTestDirac/Jenkins/openssl_config openssl_config
   fqdn=`hostname --fqdn`
   sed -i "s/#hostname#/$fqdn/g" openssl_config
+  #
+  # http://www.openssl.org/docs/apps/req.html
+  #
   openssl req -new -x509 -key hostkey.pem -out hostcert.pem -days 1 -config openssl_config
   
   cp host{cert,key}.pem certificates/ 
@@ -265,7 +268,7 @@ diracCredentials(){
 diracMySQL(){
   
   diracKillMySQL    
-  dirac-install-mysql $DEBUG
+  dirac-install-mysql -ddd
   
 }  
 
