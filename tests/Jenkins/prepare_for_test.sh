@@ -242,7 +242,7 @@ diracCredentials(){
   certDir=$WORKSPACE/etc/grid-security/certificates
   
   cp $WORKSPACE/LHCbTestDirac/Jenkins/openssl_config openssl_config
-  sed -i 's/#hostname#/lhcbci/g' openssl_config
+  sed -i 's/#hostname#/lhcbciuser/g' openssl_config
   openssl genrsa -out client.key 1024
   openssl req -key client.key -new -out client.req -config openssl_config
   echo 00 > file.srl
