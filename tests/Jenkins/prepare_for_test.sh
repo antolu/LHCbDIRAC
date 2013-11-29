@@ -158,6 +158,9 @@ diracConfigure(){
   # otherwise, we cannot scape the / in the DN 
   #
   sed -i "s:#hostdn#:$hostdn:g" etc/install.cfg
+  
+  fqdn=`hostname --fqdn`
+  sed -i "s/#hostname#/$fqdn/g" etc/install.cfg
 
   dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG
   echo "=======================================================================" 
