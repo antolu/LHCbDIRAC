@@ -14,5 +14,5 @@ emailAddress           = lhcb-dirac-ci@cern.ch
 
 [ v3_ca ]
 subjectKeyIdentifier   = hash
-authorityKeyIdentifier = keyid:always,issuer:always
+authorityKeyIdentifier = keyid:always
 basicConstraints       = CA:true
