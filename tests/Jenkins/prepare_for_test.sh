@@ -232,6 +232,9 @@ diracKillRunit(){
 #-------------------------------------------------------------------------------
 
 diracCredentials(){
+  #
+  # Read here http://acs.lbl.gov/~boverhof/openssl_certs.html
+  #
   
   mkdir $WORKSPACE/user
   cd $WORKSPACE/user
@@ -240,6 +243,7 @@ diracCredentials(){
   
   cp $WORKSPACE/LHCbTestDirac/Jenkins/openssl_config openssl_config
   sed -i 's/#hostname#/lhcbci/g' openssl_config
+  openssl genrsa -out client.key 1024
   openssl req -key client.key -new -out client.req -config openssl_config
   echo 00 > file.srl
   openssl x509 -req -in client.req -CA $certDir/hostcert.pem -CAkey $certDir/hostkey.pem -CAserial file.srl -out client.pem
