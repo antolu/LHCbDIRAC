@@ -72,7 +72,7 @@ if __name__ == "__main__":
       resetFiles = 0
       failed = {}
       for lfnChunk in breakListIntoChunks( lfns, 10000 ):
-        res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnChunk, 
+        res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnChunk,
                                                           force = ( status == 'MaxReset' or status == 'Processed' ) or lfnsExplicit )
         if res['OK']:
           resetFiles += len( res['Value']['Successful'] )
@@ -84,5 +84,5 @@ if __name__ == "__main__":
       print "%d files were reset Unused in transformation %s" % ( resetFiles, transID )
       if failed:
         for reason in failed:
-          print 'Failed for %d files: %s' % ( len( failed[reason], reason ) )
+          print 'Failed for %d files: %s' % ( len( failed[reason] ), reason )
   DIRAC.exit( 0 )
