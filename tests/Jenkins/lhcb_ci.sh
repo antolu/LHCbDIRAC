@@ -361,7 +361,7 @@ findServices(){
   #
   #.............................................................................
 
-  funtion diracMySQL(){
+  function diracMySQL(){
   
     # Kills MySQL daemon if running
     killMySQL
