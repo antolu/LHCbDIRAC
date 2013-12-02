@@ -218,6 +218,10 @@ class BKQuery():
       if type( bkQuery[i] ) == type( '' ) and bkQuery[i].upper() == 'ALL':
         bkQuery.pop( i )
 
+    # If there is only one production, make it faster with a single value rather than a list
+    prodList = bkQuery.get( 'Production' )
+    if type( prodList ) == type( [] ) and len( prodList ) == 1:
+      bkQuery['Production'] = prodList[0]
     self.__bkQueryDict = bkQuery.copy()
     self.setVisible( visible )
 
