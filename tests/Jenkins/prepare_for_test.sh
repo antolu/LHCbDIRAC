@@ -268,8 +268,8 @@ diracCredentials(){
 diracMySQL(){
   
   diracKillMySQL    
-  dirac-install-mysql -ddd
-  dirac-fix-mysql-script
+  #dirac-install-mysql -ddd
+  #dirac-fix-mysql-script
   
 }  
 
