@@ -275,7 +275,7 @@ diracMySQL(){
   
   basedir=$WORKSPACE/mysql
   
-  sed -i "s:basedir=:$basedir:g" $WORKSPACE/mysql/share/mysql/mysql.server
+  sed -i "s:basedir=:basedir=$basedir:g" $WORKSPACE/mysql/share/mysql/mysql.server
   
   dirac-install-mysql -ddd
   dirac-fix-mysql-script
