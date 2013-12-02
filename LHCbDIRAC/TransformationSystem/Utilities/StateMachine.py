@@ -22,7 +22,9 @@ class TransformationFilesStateMachine( LHCbStateMachine ):
                    'MaxReset'     : State( 4, ['Removed'], defState = 'MaxReset' ),
                    'Problematic'  : State( 3 ),  # final state
                    'Processed'    : State( 2 ),  # final state
-                   'Assigned'     : State( 1, ['Unused', 'Processed', 'MaxReset'], defState = 'Processed' ),
-                   'Unused'       : State( 0, ['Assigned', 'MissingInFC', 'ProbInFC', 'Removed', 'NotProcessed'],
+                   'Assigned'     : State( 1, ['Unused', 'Processed', 'MaxReset', 'Problematic'],
+                                           defState = 'Processed' ),
+                   'Unused'       : State( 0, ['Assigned', 'MissingInFC', 'ProbInFC', 'Problematic',
+                                               'Removed', 'NotProcessed', 'Processed'],
                                            defState = 'Assigned' )
                    }
