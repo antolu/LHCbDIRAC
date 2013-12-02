@@ -76,18 +76,18 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
     versions=`sed -n "$start,$end p" releases.cfg`
 
     # Extract DIRAC version
-    dirac=`echo $versions | tr ' ' '\n' | grep ^DIRAC:v*[^,] | sed 's/,//g' | cut -d ':' -f2`
+    diracVersion=`echo $versions | tr ' ' '\n' | grep ^DIRAC:v*[^,] | sed 's/,//g' | cut -d ':' -f2`
     # Extract LHCbDIRAC version
-    lhcbdirac=`echo $versions | tr ' ' '\n' | grep ^LHCbDIRAC:v* | sed 's/,//g' | cut -d ':' -f2`
+    lhcbdiracVersion=`echo $versions | tr ' ' '\n' | grep ^LHCbDIRAC:v* | sed 's/,//g' | cut -d ':' -f2`
   
     # Back to $WORKSPACE and clean tmp_dir
     cd $WORKSPACE
     rm -r $tmp_dir
     
     # PrintOuts
-    echo PROJECT:$project && echo $project > project.version
-    echo DIRAC:$dirac && echo $dirac > dirac.version
-    echo LHCbDIRAC:$lhcbdirac && echo $lhcbdirac > lhcbdirac.version
+    echo PROJECT:$projectVersion     && echo $projectVersion   > project.version
+    echo DIRAC:$diracVersion         && echo $diracVersion     > dirac.version
+    echo LHCbDIRAC:$lhcbdiracVersion && echo $lhcbdiracVersion > lhcbdirac.version
 
   }
 
