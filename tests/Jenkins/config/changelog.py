@@ -87,7 +87,7 @@ def __writeIndex( logDir, parsedXML, sortedRevisions, version, prevRevision, thi
   indexFile = open( indexPath, 'w' )
   indexFile.write( '<html><body>' )
   indexFile.write( '<h1>ChangeLog %s </h1>\n' % version )
-  indexFile.write( '<h3>changes between %s:%s</h3>\n' % ( prevRevision, thisRevision ) )
+  indexFile.write( '<p>changes between %s:%s</p>\n' % ( prevRevision, thisRevision ) )
   
   files   = set()
   authors = set()
