@@ -72,6 +72,7 @@ test_agent = {
     'RequestExecutingAgent'                        
                           
                           ],
+              
   'test_agents_install_drop' : [
     # To be deleted from code
     'NagiosConsumerAgent',
