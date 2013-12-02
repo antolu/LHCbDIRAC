@@ -160,14 +160,16 @@ test_service = {
     'OptimizationMind',
     'Server',
     'TransformationManager',
-    'TransferDBMonitoring' ],
+    'TransferDBMonitoring',
+    'FTSManager' ],
                   
   'test_service_ports' : [            
     'LcgFileCatalogProxy', 
     'RunDBInterface', 
     'Future', 
     'MigrationMonitoring', 
-    'ProductionRequest', ],
+    'ProductionRequest',
+    'TransferDBMonitoring' ],
                 
   'test_configure_services' : [
     # ProductionRequest : Can not find Services/ProductionRequest in template                          
