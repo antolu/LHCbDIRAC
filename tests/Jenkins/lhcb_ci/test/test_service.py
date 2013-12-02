@@ -87,10 +87,10 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         serviceName = '%s/%s' % ( system, service )
       
         if self.isException( service ):
-          try:
-            ports[ 'xxxx' ].append( serviceName )
-          except KeyError:
-            ports[ 'xxxx' ] = [ serviceName ]  
+          if not 'xxxx' in ports:
+            ports[ 'xxxx' ] = [ serviceName ]
+          else:
+            ports[ 'xxxx' ].append( serviceName )              
           continue  
       
         port = lhcb_ci.service.getServicePort( system, service )
