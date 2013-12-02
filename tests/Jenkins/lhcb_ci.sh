@@ -574,7 +574,7 @@ function prepareTestExternals(){
 }
 
 
-funtion runTest(){
+function runTest(){
 
   if [ -z "$TEST_MODE" ]
   then
