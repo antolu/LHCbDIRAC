@@ -170,7 +170,8 @@ test_service = {
     'Future', 
     'MigrationMonitoring', 
     'ProductionRequest',
-    'TransferDBMonitoring' ],
+    'TransferDBMonitoring',
+    'RAWIntegrity' ],
                 
   'test_configure_services' : [
     # ProductionRequest : Can not find Services/ProductionRequest in template                          
