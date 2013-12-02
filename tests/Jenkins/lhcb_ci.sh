@@ -514,11 +514,14 @@ dumpDBs(){
 }
 
 
-#
 #-------------------------------------------------------------------------------
-# Here are where the real functions start
+# Here is where the real functions start
 #-------------------------------------------------------------------------------
 #
+# o prepareDIRAC
+# o prepareTestExternals
+# o runTest
+# o mergeTests
 
 
 #...............................................................................
@@ -573,6 +576,14 @@ function prepareTestExternals(){
 
 }
 
+#...............................................................................
+#
+# runTest:
+#
+#   given a TEST_MODE ( configure, install ) runs all tests tagged with the 
+#   TEST_MODE and stores their results together.  
+#
+#...............................................................................
 
 function runTest(){
 
@@ -599,6 +610,25 @@ function runTest(){
   mv .coverage .coverage.${TEST_MODE}
 
   set -o errexit
+
+}
+
+
+#...............................................................................
+#
+# mergeTests:
+#
+#   merges the individual results of all the tests run. 
+#     
+#
+#...............................................................................
+
+function mergeTests(){
+
+  source $WORKSPACE/bashrc
+
+  coverage combine
+  coverage xml --include="*DIRAC/*"
 
 }
 
