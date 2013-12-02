@@ -67,11 +67,13 @@ if __name__ == "__main__":
       gLogger.fatal( "Failed to remove data", res['Message'] )
       DIRAC.exit( -2 )
     for lfn, reason in res['Value']['Failed'].items():
-      reason = str( reason )
-      if 'No such file or directory' in reason or 'File does not exist' in reason:
+      reasonStr = str( reason )
+      if type( reason ) == type( {} ) and reason == {'BookkeepingDB': 'File does not exist'}:
+        pass
+      elif 'No such file or directory' in reasonStr or 'File does not exist' in reasonStr:
         notExisting.append( lfn )
       else:
-        errorReasons.setdefault( reason, [] ).append( lfn )
+        errorReasons.setdefault( reasonStr, [] ).append( lfn )
     successfullyRemoved += res['Value']['Successful'].keys()
   if verbose:
     print ''
