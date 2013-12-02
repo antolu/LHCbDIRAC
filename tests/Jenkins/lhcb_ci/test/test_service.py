@@ -275,6 +275,9 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
       
       for service in services:
         self.log.debug( "%s %s" % ( system, service ) )
+
+        if self.isException( service ):
+          continue
        
         res = lhcb_ci.service.setupService( system, service )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )

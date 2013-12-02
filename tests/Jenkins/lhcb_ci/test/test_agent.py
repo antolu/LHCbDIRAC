@@ -73,6 +73,9 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
       
       for agent in agents:
         
+        if self.isException( agent ):
+          continue
+        
         self.log.debug( "%s %s" % ( system, agent ) )
        
         res = lhcb_ci.agent.setupAgent( system, agent )      
