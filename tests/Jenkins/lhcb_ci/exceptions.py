@@ -159,7 +159,8 @@ test_service = {
     'Future', 
     'OptimizationMind',
     'Server',
-    'TransformationManager', ],
+    'TransformationManager',
+    'TransferDBMonitoring' ],
                   
   'test_service_ports' : [            
     'LcgFileCatalogProxy', 
