@@ -1,6 +1,6 @@
 #!/bin/sh 
 #-------------------------------------------------------------------------------
-# prepare_for_test
+# lhcb_ci
 #  
 # : prepares installs DIRAC, installs MySQL
 # : assumes ./project.version exists
@@ -11,7 +11,9 @@
 # 26/VI/2013
 #-------------------------------------------------------------------------------
 
-#set -o errexit
+
+LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
+
 
 #-------------------------------------------------------------------------------
 # findRelease:
@@ -114,7 +116,7 @@ diracInstall(){
   mkdir -p etc/grid-security/certificates
   cd etc/grid-security
   openssl genrsa -out hostkey.pem 2048
-  cp $WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci/openssl_config openssl_config
+  cp $LHCb_CI_CONFIG/openssl_config openssl_config
   fqdn=`hostname --fqdn`
   sed -i "s/#hostname#/$fqdn/g" openssl_config
   #
@@ -154,7 +156,7 @@ diracConfigure(){
   echo $randomRoot > rootMySQL
   echo $randomUser > userMySQL
 
-  cp -s $WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci/install.cfg etc/install.cfg
+  cp -s $LHCb_CI_CONFIG/install.cfg etc/install.cfg
   hostdn=`openssl x509 -noout -in etc/grid-security/hostcert.pem -subject | sed 's/subject= //g'`
   #
   # TRICK ALERT: we are using colons instead of forward slashes
@@ -244,7 +246,7 @@ diracCredentials(){
   
   certDir=$WORKSPACE/etc/grid-security/certificates
   
-  cp $WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci/openssl_config openssl_config
+  cp $LHCb_CI_CONFIG/openssl_config openssl_config
   sed -i 's/#hostname#/lhcbciuser/g' openssl_config
   openssl genrsa -out client.key 1024
   openssl req -key client.key -new -out client.req -config openssl_config
@@ -345,6 +347,36 @@ dumpDBs(){
   echo "$sqlStatements" | gawk '{print "drop database " $1 ";select sleep(0.1);"}' | mysql -u root -p$rootPass 
 
 }
+
+
+#
+#-------------------------------------------------------------------------------
+# Here are where the real functions start
+#-------------------------------------------------------------------------------
+#
+
+
+function prepareTest(){
+
+  findRelease
+  #preReleaseMode
+
+  # Hack to avoid v6r9 series
+  # echo v7r13p30 &gt; project.version
+
+  diracInstall
+  . bashrc
+  diracKillRunit
+
+  findSystems
+  findDatabases
+
+  diracConfigure
+  diracCredentials
+  diracMySQL
+
+}
+
 
 #-------------------------------------------------------------------------------
 #EOF
