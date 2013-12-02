@@ -110,8 +110,9 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
   
   function findSystems(){
     echo '[findSystems]'
-
-    find $WORKSPACE/*DIRAC/ -name *System  | cut -d '/' -f 2 | sort | uniq > systems
+   
+    cd $WORKSPACE
+    find *DIRAC/ -name *System  | cut -d '/' -f 2 | sort | uniq > systems
 
     echo found `wc -l systems`
 
@@ -129,13 +130,14 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
 
   function findDatabases(){
     echo '[findDatabases]'
-
+    
+    cd $WORKSPACE
     #
     # HACK ALERT:
     #
     #   We are avoiding TransferDB, which will be deprecated soon.. 
     #
-    find $WORKSPACE/*DIRAC -name *DB.sql | grep -v TransferDB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
+    find *DIRAC -name *DB.sql | grep -v TransferDB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
 
     echo found `wc -l databases`
 
@@ -204,6 +206,44 @@ findServices(){
   
   }
 
+  
+  #.............................................................................
+  #
+  # generateUserCredentials:
+  #
+  #   Given we know the "CA" certificates, we can use them to sign a randomly 
+  #   generated key / host certificate. This function is very similar to
+  #   generateCertificates. User credentials will be stored at:
+  #     $WORKSPACE/user 
+  #   The user will be called "lhcbciuser". Do not confuse with the admin user,
+  #   which is "lhcbci".
+  #
+  #   Additional info:
+  #     http://acs.lbl.gov/~boverhof/openssl_certs.html
+  #
+  #.............................................................................
+
+  function generateUserCredentials(){
+    echo '[generateUserCreedentials]'
+  
+    # Generate directory where to store credentials
+    mkdir $WORKSPACE/user
+    
+    cd $WORKSPACE/user    
+    
+    cp $LHCb_CI_CONFIG/openssl_config openssl_config
+    sed -i 's/#hostname#/lhcbciuser/g' openssl_config
+    openssl genrsa -out client.key 1024
+    openssl req -key client.key -new -out client.req -config openssl_config
+    echo 00 > file.srl
+    
+    CA=$WORKSPACE/etc/grid-security/certificates
+    
+    openssl x509 -req -in client.req -CA $CA/hostcert.pem -CAkey $CA/hostkey.pem -CAserial file.srl -out client.pem
+  
+  
+  }
+
 
 #-------------------------------------------------------------------------------
 # DIRAC scripts... well, not really - built on top of DIRAC scripts.
@@ -247,6 +287,8 @@ findServices(){
 
   function diracConfigure(){
     echo '[diracConfigure]'
+    
+    cd $WORKSPACE
 
     # Find architecture platform
     arch=`dirac-architecture`
@@ -266,12 +308,12 @@ findServices(){
     # Sets all systems on Jenkins setup
     setups=`cat systems | sed 's/System//' | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/'` 
 
-    cp -s $LHCb_CI_CONFIG/install.cfg etc/install.cfg
-    hostdn=`openssl x509 -noout -in etc/grid-security/hostcert.pem -subject | sed 's/subject= //g'`
+    cp $LHCb_CI_CONFIG/install.cfg etc/install.cfg
     
     # Set HostDN in install.cfg
     # We use colons instead of forward slashes in sed, otherwise we cannot scape
-    # the '/' characters in the DN 
+    # the '/' characters in the DN
+    hostdn=`openssl x509 -noout -in etc/grid-security/hostcert.pem -subject | sed 's/subject= //g'` 
     sed -i "s:#hostdn#:$hostdn:g" etc/install.cfg
   
     # Set FQDN in install.cfg
@@ -282,6 +324,38 @@ findServices(){
     dirac-setup-site $DEBUG
   
   }  
+
+
+  #-------------------------------------------------------------------------------
+  # diracCredentials:
+  #
+  #   hacks CS service to create a first dirac_admin proxy that will be used
+  #   to install and play around
+  #-------------------------------------------------------------------------------
+
+  diracCredentials(){
+    #
+    # Read here http://acs.lbl.gov/~boverhof/openssl_certs.html
+    #
+  
+    mkdir $WORKSPACE/user
+    cd $WORKSPACE/user
+  
+    certDir=$WORKSPACE/etc/grid-security/certificates
+  
+    cp $LHCb_CI_CONFIG/openssl_config openssl_config
+    sed -i 's/#hostname#/lhcbciuser/g' openssl_config
+    openssl genrsa -out client.key 1024
+    openssl req -key client.key -new -out client.req -config openssl_config
+    echo 00 > file.srl
+    openssl x509 -req -in client.req -CA $certDir/hostcert.pem -CAkey $certDir/hostkey.pem -CAserial file.srl -out client.pem
+    cd -
+  
+    sed -i 's/commitNewData = CSAdministrator/commitNewData = authenticated/g' etc/Configuration_Server.cfg
+    dirac-proxy-init -g dirac_admin $DEBUG -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+    sed -i 's/commitNewData = authenticated/commitNewData = CSAdministrator/g' etc/Configuration_Server.cfg
+  
+  }
 
 
 #-------------------------------------------------------------------------------
@@ -349,37 +423,6 @@ diracKillMySQL(){
     killall mysqld
   fi   
    
-}
-
-#-------------------------------------------------------------------------------
-# diracCredentials:
-#
-#   hacks CS service to create a first dirac_admin proxy that will be used
-#   to install and play around
-#-------------------------------------------------------------------------------
-
-diracCredentials(){
-  #
-  # Read here http://acs.lbl.gov/~boverhof/openssl_certs.html
-  #
-  
-  mkdir $WORKSPACE/user
-  cd $WORKSPACE/user
-  
-  certDir=$WORKSPACE/etc/grid-security/certificates
-  
-  cp $LHCb_CI_CONFIG/openssl_config openssl_config
-  sed -i 's/#hostname#/lhcbciuser/g' openssl_config
-  openssl genrsa -out client.key 1024
-  openssl req -key client.key -new -out client.req -config openssl_config
-  echo 00 > file.srl
-  openssl x509 -req -in client.req -CA $certDir/hostcert.pem -CAkey $certDir/hostkey.pem -CAserial file.srl -out client.pem
-  cd -
-  
-  sed -i 's/commitNewData = CSAdministrator/commitNewData = authenticated/g' etc/Configuration_Server.cfg
-  dirac-proxy-init -g dirac_admin $DEBUG -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
-  sed -i 's/commitNewData = authenticated/commitNewData = CSAdministrator/g' etc/Configuration_Server.cfg
-  
 }
 
 
@@ -495,7 +538,7 @@ function prepareTest(){
   source $WORKSPACE/bashrc
 
   diracConfigure
-#  diracCredentials
+  diracCredentials
 #  diracMySQL
 
 }
