@@ -521,6 +521,15 @@ dumpDBs(){
 #
 
 
+#...............................................................................
+#
+# prepareDIRAC:
+#
+#   installs DIRAC, MySQL, (DIRAC) Externals, creates credentials, etc...
+#   IT is THE function. 
+#
+#...............................................................................
+
 function prepareDIRAC(){
   
   [ "$DEBUG" ] && 'Running in DEBUG mode' && DEBUG='-ddd'
@@ -547,10 +556,45 @@ function prepareDIRAC(){
 }
 
 
+#...............................................................................
+#
+# prepareTestExternals:
+#
+#   installs all externals we need to run the test:
+#   o nose 
+#
+#...............................................................................
+
+
 function prepareTestExternals(){
 
   source $WORKSPACE/bashrc
   python `which easy_install` nose
+
+}
+
+
+funtion runTest(){
+
+  if [ -z "$TEST_MODE" ]
+  then
+    exit "TEST_MODE not found"
+  fi
+  
+  mkdir -p $WORKSPACE/testLogs
+
+  source $WORKSPACE/bashrc
+
+  export PYTHONPATH=$PYTHONPATH:$WORKSPACE/LHCbTestDirac/Jenkins
+  export LHCB_CI_DEBUG=$WORKSPACE/testLogs/$BUILD_NUMBER.${TEST_MODE}.log
+
+  echo "########################################################"
+  echo "$TEST_MODE TESTS"
+  echo "log file: $LHCB_CI_DEBUG"
+  echo "########################################################"
+
+  nosetests -a $TEST_MODE --with-xunit LHCbTestDirac/Jenkins/lhcb_ci/test -v --with-coverage --cover-package=DIRAC,LHCbDIRAC --xunit-file=nosetests_${TEST_MODE}.xml
+  mv .coverage .coverage.${TEST_MODE}
 
 }
 
