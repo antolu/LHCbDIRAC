@@ -31,7 +31,7 @@ reports   = os.path.join( workspace, 'lhcb_ci' )
 def _init_once():
   """ _init_once
   
-  Utility function that is ran once on Library import.
+  Utility function that is run once on Library import.
 
   This checks for the LHCB_CI_DEBUG environment variable, which if it exists
   is where we will log debug information.
