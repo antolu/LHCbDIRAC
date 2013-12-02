@@ -267,9 +267,18 @@ diracCredentials(){
 
 diracMySQL(){
   
-  diracKillMySQL    
-  #dirac-install-mysql -ddd
-  #dirac-fix-mysql-script
+  diracKillMySQL
+  
+  #
+  # HACK HACK HACK
+  #
+  
+  basedir=$WORKSPACE/mysql
+  
+  sed -i "s:basedir=:$basedir:g" $WORKSPACE/mysql/share/mysql/mysql.server
+  
+  dirac-install-mysql -ddd
+  dirac-fix-mysql-script
   
 }  
 
