@@ -118,17 +118,24 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
   }
 
 
-  #-------------------------------------------------------------------------------
+  #.............................................................................
+  #
   # findDatabases:
   #
   #   gets all database names from *DIRAC code and writes them to a file
   #   named databases.
   #
-  #-------------------------------------------------------------------------------
+  #.............................................................................
 
   function findDatabases(){
+    echo '[findDatabases]'
 
-    find *DIRAC -name *DB.sql | grep -v TransferDB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
+    #
+    # HACK ALERT:
+    #
+    #   We are avoiding TransferDB, which will be deprecated soon.. 
+    #
+    find $WORKSPACE/*DIRAC -name *DB.sql | grep -v TransferDB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
 
     echo found `wc -l databases`
 
@@ -180,7 +187,7 @@ findServices(){
     cd $WORKSPACE/etc/grid-security
     
     # Generate private RSA key
-    openssl genrsa -out hostkey.pem 2048
+    openssl genrsa -out hostkey.pem 2048 >> /dev/null
     
     # Prepare OpenSSL config file, it contains extensions to put into place,
     # DN configuration, etc..
@@ -223,51 +230,58 @@ findServices(){
 
   }
 
-#-------------------------------------------------------------------------------
-# diracConfigure:
-# 
-#   writes dirac.cfg file 
-#
-#   o /LocalSite/Architecture
-#   o /LocalInstallation/Database/RootPwd
-#   o /LocalInstallation/Database/Password
-#-------------------------------------------------------------------------------
 
-diracConfigure(){
-
-  arch=`dirac-architecture`
-  # Randomly generated
-  randomRoot=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
-  rootPass=/LocalInstallation/Database/RootPwd=$randomRoot
-  # Randomly generated
-  randomUser=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
-  userPass=/LocalInstallation/Database/Password=$randomUser
-  # Setups
-  setups=`cat systems | sed 's/System//' | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/'` 
- 
-  echo $randomRoot > rootMySQL
-  echo $randomUser > userMySQL
-
-  cp -s $LHCb_CI_CONFIG/install.cfg etc/install.cfg
-  hostdn=`openssl x509 -noout -in etc/grid-security/hostcert.pem -subject | sed 's/subject= //g'`
+  #.............................................................................
   #
-  # TRICK ALERT: we are using colons instead of forward slashes
-  # otherwise, we cannot scape the / in the DN 
+  # diracConfigure:
+  # 
+  #   in short, it writes dirac.cfg file. More on detail, it sets: 
   #
-  sed -i "s:#hostdn#:$hostdn:g" etc/install.cfg
-  
-  fqdn=`hostname --fqdn`
-  sed -i "s/#hostname#/$fqdn/g" etc/install.cfg
+  #   o /LocalSite/Architecture
+  #   o /LocalInstallation/Database/RootPwd
+  #   o /LocalInstallation/Database/Password
+  #   o /LocalInstallation/HostDN
+  #   o /LocalInstallation/Host
+  #
+  #.............................................................................
 
-  dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG
-  echo "=======================================================================" 
-  dirac-setup-site $DEBUG
+  function diracConfigure(){
+    echo '[diracConfigure]'
+
+    # Find architecture platform
+    arch=`dirac-architecture`
+    
+    # Randomly generated passwords
+    # DB root
+    randomRoot=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
+    rootPass=/LocalInstallation/Database/RootPwd=$randomRoot
+    # DB user
+    randomUser=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
+    userPass=/LocalInstallation/Database/Password=$randomUser
+    
+    # Stores passwords on files for latter usage
+    echo $randomRoot > rootMySQL
+    echo $randomUser > userMySQL
+    
+    # Sets all systems on Jenkins setup
+    setups=`cat systems | sed 's/System//' | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/'` 
+
+    cp -s $LHCb_CI_CONFIG/install.cfg etc/install.cfg
+    hostdn=`openssl x509 -noout -in etc/grid-security/hostcert.pem -subject | sed 's/subject= //g'`
+    
+    # Set HostDN in install.cfg
+    # We use colons instead of forward slashes in sed, otherwise we cannot scape
+    # the '/' characters in the DN 
+    sed -i "s:#hostdn#:$hostdn:g" etc/install.cfg
   
-  # Do not use Server Certificate
-  #sed -i '107i\    UseServerCertificate = yes' etc/dirac.cfg
-  #sed -i '125i\    UseServerCertificate = yes' etc/dirac.cfg
+    # Set FQDN in install.cfg
+    fqdn=`hostname --fqdn`
+    sed -i "s/#hostname#/$fqdn/g" etc/install.cfg
+
+    dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG
+    dirac-setup-site $DEBUG
   
-}  
+  }  
 
 
 #-------------------------------------------------------------------------------
@@ -480,7 +494,7 @@ function prepareTest(){
 
   source $WORKSPACE/bashrc
 
-#  diracConfigure
+  diracConfigure
 #  diracCredentials
 #  diracMySQL
 
