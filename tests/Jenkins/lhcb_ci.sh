@@ -547,7 +547,7 @@ function prepareDIRAC(){
 }
 
 
-funtion prepareTestExternals(){
+function prepareTestExternals(){
 
   source $WORKSPACE/bashrc
   python `which easy_install` nose
