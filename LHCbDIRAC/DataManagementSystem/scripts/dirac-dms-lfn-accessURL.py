@@ -59,10 +59,12 @@ def execute():
     DIRAC.exit( 0 )
 
   from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
+  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   from DIRAC import gLogger
   if len( seList ) > 1:
     gLogger.info( "Using the following list of SEs: %s" % str( seList ) )
   rm = ReplicaManager()
+  bk = BookkeepingClient()
   # gLogger.setLevel( "FATAL" )
   notFoundLfns = set( lfnList )
   results = {'OK':True, 'Value':{'Successful':{}, 'Failed':{}}}
@@ -70,9 +72,15 @@ def execute():
   gLogger.setLevel( 'FATAL' )
   for se in seList:
     res = rm.getReplicaAccessUrl( lfnList, se )
-    if res['OK'] and res['Value']['Successful']:
-      notFoundLfns -= set( res['Value']['Successful'] )
-      results['Value']['Successful'].setdefault( se, {} ).update( res['Value']['Successful'] )
+    success = res['Value']['Successful']
+    if res['OK'] and success:
+      bkRes = bk.getFileTypeVersion( success.keys() )
+      if bkRes['OK']:
+        for lfn in bkRes['Value']:
+          if bkRes['Value'][lfn] == 'MDF':
+            success[lfn] = 'mdf:' + success[lfn]
+      notFoundLfns -= set( success )
+      results['Value']['Successful'].setdefault( se, {} ).update( success )
   gLogger.setLevel( level )
 
   if notFoundLfns:
