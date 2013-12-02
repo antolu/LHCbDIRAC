@@ -149,7 +149,9 @@ test_service = {
     # DataStore : Can not connect to DB AccountingDB
     'DataStore',
     # TransformationManager : Can not connect to DB TransformationDB
-    'TransformationManager', ],
+    'TransformationManager',
+    # No shifter User defined for DataManager
+    'FTSManager' ],
 
   'test_service_authorization' : [ 
     'BookkeepingManager', 
@@ -188,8 +190,12 @@ test_service = {
     # Future : Can not find Services/Future in template
     'Future',
     # Can not find Services/TransferDBMonitoring in template
-    'TransferDBMonitoring' ]
-               
+    'TransferDBMonitoring' ],
+
+  'test_services_install_drop' : [
+    'BookkeepingManager'
+                                  ]
+
 }   
     
 
