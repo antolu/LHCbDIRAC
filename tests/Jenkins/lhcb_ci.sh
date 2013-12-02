@@ -12,6 +12,9 @@
 #-------------------------------------------------------------------------------
 
 
+# Exit on error. If something goes wrong, we terminate execution
+set -o errexit
+
 # URL where to get dirac-install script
 DIRAC_INSTALL='https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py'
 
@@ -35,8 +38,8 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
   #   which is written to {project,dirac,lhcbdirac}.version
   #
   #.............................................................................
+  
   function findRelease(){
-
     echo '[findRelease]'
 
     PRE='p[[:digit:]]*'
@@ -95,21 +98,42 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
 
   }
 
-#-------------------------------------------------------------------------------
-# findDatabases:
-#
-#   gets all database names from *DIRAC code and writes them to a file
-#   named databases.
-#
-#-------------------------------------------------------------------------------
 
-findDatabases(){
+  #.............................................................................
+  #
+  # findSystems:
+  #
+  #   gets all system names from *DIRAC code and writes them to a file
+  #   named systems.
+  #
+  #.............................................................................
+  
+  function findSystems(){
+    echo '[findSystems]'
 
-  find *DIRAC -name *DB.sql | grep -v TransferDB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
+    find $WORKSPACE/*DIRAC/ -name *System  | cut -d '/' -f 2 | sort | uniq > systems
 
-  echo found `wc -l databases`
+    echo found `wc -l systems`
 
-}
+  }
+
+
+  #-------------------------------------------------------------------------------
+  # findDatabases:
+  #
+  #   gets all database names from *DIRAC code and writes them to a file
+  #   named databases.
+  #
+  #-------------------------------------------------------------------------------
+
+  function findDatabases(){
+
+    find *DIRAC -name *DB.sql | grep -v TransferDB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
+
+    echo found `wc -l databases`
+
+  }
+
 
 #-------------------------------------------------------------------------------
 # findServices:
@@ -127,43 +151,48 @@ findServices(){
 
 }
 
-#-------------------------------------------------------------------------------
-# findSystems:
-#
-#   gets all system names from *DIRAC code and writes them to a file
-#   named systems.
-#
-#-------------------------------------------------------------------------------
-
-findSystems(){
-
-  find *DIRAC/ -name *System  | cut -d '/' -f 2 | sort | uniq > systems
-
-  echo found `wc -l systems`
-
-}
-
 
 #-------------------------------------------------------------------------------
 # OPEN SSL... let's create a fake CA and certificates
 #-------------------------------------------------------------------------------
 
+  
+  #.............................................................................
+  #
+  # function generateCertificates
+  #
+  #   This function generates a random host certificate ( certificate and key ), 
+  #   which will be stored on etc/grid-security. As we need a CA to validate it,
+  #   we simply copy it to the directory where the CA certificates are supposed
+  #   to be stored etc/grid-security/certificates. In real, we'd copy them from 
+  #   CVMFS:
+  #     /cvmfs/grid.cern.ch/etc/grid-security/certificates    
+  #
+  #   Additional info:
+  #     http://www.openssl.org/docs/apps/req.html
+  #
+  #.............................................................................
+  
   function generateCertificates(){
-
     echo '[generateCertificates]'
 
     mkdir -p $WORKSPACE/etc/grid-security/certificates
     cd $WORKSPACE/etc/grid-security
-
+    
+    # Generate private RSA key
     openssl genrsa -out hostkey.pem 2048
+    
+    # Prepare OpenSSL config file, it contains extensions to put into place,
+    # DN configuration, etc..
     cp $LHCb_CI_CONFIG/openssl_config openssl_config
     fqdn=`hostname --fqdn`
     sed -i "s/#hostname#/$fqdn/g" openssl_config
-    #
-    # http://www.openssl.org/docs/apps/req.html
-    #
+   
+    # Generate X509 Certificate based on the private key and the OpenSSL configuration
+    # file, valid for one day.
     openssl req -new -x509 -key hostkey.pem -out hostcert.pem -days 1 -config openssl_config
   
+    # Copy hostcert, hostkey to certificates ( CA dir )
     cp host{cert,key}.pem certificates/
   
   }
@@ -178,33 +207,19 @@ findSystems(){
   #
   # diracInstall:
   #
-  #   gets `project.version` code from the repository and copies certificates
+  #   This function gets the DIRAC install script defined on $DIRAC_INSTAll and
+  #   runs it with some hardcoded options. The only option that varies is the 
+  #   project version, in this case LHCb project version, obtained from the file
+  #   'project.version'.
   #
   #.............................................................................
 
   function diracInstall(){
-
     echo '[diracInstall]'
 
     wget --no-check-certificate -O dirac-install $DIRAC_INSTALL --quiet
     chmod +x dirac-install
     ./dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
-
-    generateCertificates
-    
-    #cd etc/grid-security
-    #openssl genrsa -out hostkey.pem 2048
-    #cp $LHCb_CI_CONFIG/openssl_config openssl_config
-    #fqdn=`hostname --fqdn`
-    #sed -i "s/#hostname#/$fqdn/g" openssl_config
-    #
-    # http://www.openssl.org/docs/apps/req.html
-    #
-    #openssl req -new -x509 -key hostkey.pem -out hostcert.pem -days 1 -config openssl_config
-  
-    #cp host{cert,key}.pem certificates/ 
-    #/etc/init.d/cvmfs probe
-    #ln -s /cvmfs/grid.cern.ch/etc/grid-security/certificates/ etc/grid-security/certificates
 
   }
 
@@ -254,6 +269,53 @@ diracConfigure(){
   
 }  
 
+
+#-------------------------------------------------------------------------------
+# Kill scripts. Used to clean environment before getting into trouble
+#-------------------------------------------------------------------------------
+
+
+  #.............................................................................
+  #
+  # killRunsv:
+  #
+  #   it makes sure there are no runsv processes running. If it finds any, it
+  #   terminates it. This means, no more than one Job running this kind of test
+  #   on the same machine at the same time ( executors =< 1 ). Indeed, it cleans
+  #   two particular processes, 'runsvdir' and 'runsv'. 
+  #
+  #.............................................................................
+
+  function killRunsv(){
+    echo '[killRunsv]'
+
+    # Bear in mind that we run with 'errexit' mode. This call, if finds nothing
+    # will return an error, which will make the whole script exit. However, if 
+    # finds nothing we are good, it means there are not leftover processes from
+    # other runs. So, we disable 'errexit' mode for this call.
+    
+    set +o errexit
+    runsvdir=`ps aux | grep 'runsvdir ' | grep -v 'grep'`
+    set -o errexit
+  
+    if [ ! -z "$runsvdir" ]
+    then
+      killall runsvdir
+    fi   
+
+    # Same as before
+    set +o errexit
+    runsv=`ps aux | grep 'runsv ' | grep -v 'grep'`
+    set -o errexit
+  
+    if [ ! -z "$runsv" ]
+    then
+      killall runsv
+    fi   
+   
+  }
+
+
 #-------------------------------------------------------------------------------
 # diracKillMySQL:
 #
@@ -271,37 +333,6 @@ diracKillMySQL(){
   if [ ! -z "$mysqlRunning" ]
   then
     killall mysqld
-  fi   
-   
-}
-
-#-------------------------------------------------------------------------------
-# diracKillRunit:
-#
-#   stops scripts running on startup
-#
-#-------------------------------------------------------------------------------
-
-diracKillRunit(){
-
-  set +o errexit
-  runsvdirRunning=`ps aux | grep 'runsvdir ' | grep -v 'grep'`
-  set -o errexit
-
-  # It happens that if ps does not find anything, spits a return code 1 !  
-  if [ ! -z "$runsvdirRunning" ]
-  then
-    killall runsvdir
-  fi   
-
-  set +o errexit
-  runsvRunning=`ps aux | grep 'runsv ' | grep -v 'grep'`
-  set -o errexit
-
-  # It happens that if ps does not find anything, spits a return code 1 !  
-  if [ ! -z "$runsvRunning" ]
-  then
-    killall runsv
   fi   
    
 }
@@ -437,14 +468,17 @@ function prepareTest(){
   
   [ "$DEBUG" ] && 'Running in DEBUG mode' && DEBUG='-ddd'
   
+  killRunsv
+  
   findRelease
-
+  
   diracInstall
-  source $WORKSPACE/bashrc
-#  diracKillRunit
+  generateCertificates
+  
+  findSystems
+  findDatabases
 
-#  findSystems
-#  findDatabases
+  source $WORKSPACE/bashrc
 
 #  diracConfigure
 #  diracCredentials
