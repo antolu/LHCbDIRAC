@@ -1,13 +1,13 @@
 """ File utilities module (e.g. make GUIDs)
 """
-
+__RCSID__ = "$Id: File.py 42387 2011-09-07 13:53:37Z phicharp $"
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.File              import makeGuid as DIRACMakeGUID
 
-from LHCbDIRAC.Core.Utilities.ClientTools   import setupProjectEnvironment
-
 def getRootFileGUIDs( fileList ):
+  """ Retrieve a list of GUIDs for a list of files
+  """
   guids = {'Successful':{}, 'Failed':{}}
   for fileName in fileList:
     res = getRootFileGUID( fileName )
@@ -21,21 +21,20 @@ def getRootFileGUID( fileName ):
   """ Function to retrieve a file GUID using Root.
   """
   # Setup the root environment
-  import sys, os
   try:
     import ROOT
-  except Exception:
+  except ImportError:
     return S_ERROR( "ROOT environment not set up: use 'SetupProject LHCbDirac ROOT'" )
 
   from ctypes import create_string_buffer
   try:
     ROOT.gErrorIgnoreLevel = 2001
-    f = ROOT.TFile.Open( fileName )
-    b = f.Get( 'Refs' ).GetBranch( 'Params' )
+    fr = ROOT.TFile.Open( fileName )
+    branch = fr.Get( 'Refs' ).GetBranch( 'Params' )
     text = create_string_buffer( 100 )
-    b.SetAddress( text )
-    for i in range( b.GetEntries() ):
-      b.GetEvent( i )
+    branch.SetAddress( text )
+    for i in range( branch.GetEntries() ):
+      branch.GetEvent( i )
       x = text.value
       if x.startswith( 'FID=' ):
         guid = x.split( '=' )[1]
@@ -44,8 +43,8 @@ def getRootFileGUID( fileName ):
   except:
     return S_ERROR( "Error extracting GUID" )
   finally:
-    if f:
-      f.Close()
+    if fr:
+      fr.Close()
 
 def makeGuid( fileNames ):
   """ Function to retrieve a file GUID using Root.

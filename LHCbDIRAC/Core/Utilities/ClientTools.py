@@ -1,6 +1,7 @@
 """  The ClientTools module provides additional functions for use by users
      of the DIRAC client in the LHCb environment.
 """
+__RCSID__ = "$Id$"
 
 import os, tempfile, time
 
