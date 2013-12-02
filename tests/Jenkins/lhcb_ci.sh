@@ -168,7 +168,7 @@ diracInstall(){
   cp host{cert,key}.pem certificates/ 
   #/etc/init.d/cvmfs probe
   #ln -s /cvmfs/grid.cern.ch/etc/grid-security/certificates/ etc/grid-security/certificates
-  cd -
+  cd $WORKSPACE
 
 }
 
