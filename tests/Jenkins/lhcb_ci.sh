@@ -350,6 +350,34 @@ findServices(){
   }
 
 
+  #.............................................................................
+  #
+  # diracMySQL:
+  #
+  #   installs MySQL. If it was running before, kills it before proceeding with
+  #   the installation. It seems the installation procedure is not complete,
+  #   which means we have to introduce a little hack on mysql.server file such
+  #   that the basedir points to our Linux external binaries.
+  #
+  #.............................................................................
+
+  funtion diracMySQL(){
+  
+    # Kills MySQL daemon if running
+    killMySQL
+    
+    # Hacks a bit mysql.server file
+    linuxDir=`ls $WORKSPACE | grep Linux`
+    basedir=$WORKSPACE/$linuxDir
+    sed -i "s:basedir=:basedir=$basedir:g" $WORKSPACE/mysql/share/mysql/mysql.server
+  
+    # Install MySQL using DIRAC scripts
+    dirac-install-mysql $DEBUG
+    dirac-fix-mysql-script $DEBUG
+  
+  }
+
+
 #-------------------------------------------------------------------------------
 # Kill scripts. Used to clean environment before getting into trouble
 #-------------------------------------------------------------------------------
@@ -396,51 +424,31 @@ findServices(){
   }
 
 
-#-------------------------------------------------------------------------------
-# diracKillMySQL:
-#
-#   if MySQL is running, it stops it. If not running, returns exit code 1
-#
-#-------------------------------------------------------------------------------
-
-diracKillMySQL(){
-
-  # It happens that if ps does not find anything, spits a return code 1 !
-  set +o errexit
-  mysqlRunning=`ps aux | grep mysql | grep -v grep`
-  set -o errexit
-   
-  if [ ! -z "$mysqlRunning" ]
-  then
-    killall mysqld
-  fi   
-   
-}
-
-
-#-------------------------------------------------------------------------------
-# diracMySQL:
-#
-#   installs MySQL. If it was running before, it returns an error.
-#-------------------------------------------------------------------------------
-
-diracMySQL(){
-  
-  diracKillMySQL
-  
+  #.............................................................................
   #
-  # HACK HACK HACK
+  # killMySQL:
   #
-  
-  linuxDir=`ls $WORKSPACE | grep Linux`
-  basedir=$WORKSPACE/$linuxDir
-  
-  sed -i "s:basedir=:basedir=$basedir:g" $WORKSPACE/mysql/share/mysql/mysql.server
-  
-  dirac-install-mysql $DEBUG
-  dirac-fix-mysql-script $DEBUG
-  
-}  
+  #   if MySQL is running, it stops it.
+  #
+  #.............................................................................
+
+  function killMySQL(){
+
+    # Bear in mind that we run with 'errexit' mode. This call, if finds nothing
+    # will return an error, which will make the whole script exit. However, if 
+    # finds nothing we are good, it means there are not leftover processes from
+    # other runs. So, we disable 'errexit' mode for this call.
+    
+    set +o errexit
+    mysql=`ps aux | grep mysql | grep -v grep`
+    set -o errexit
+   
+    if [ ! -z "$mysql" ]
+    then
+      killall mysqld
+    fi   
+   
+  }  
 
 #-------------------------------------------------------------------------------
 # finalCleanup:
@@ -533,7 +541,8 @@ function prepareTest(){
   
   generateUserCredentials
   diracCredentials
-#  diracMySQL
+
+  diracMySQL
 
 }
 
