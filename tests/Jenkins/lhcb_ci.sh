@@ -521,7 +521,7 @@ dumpDBs(){
 #
 
 
-function prepareTest(){
+function prepareDIRAC(){
   
   [ "$DEBUG" ] && 'Running in DEBUG mode' && DEBUG='-ddd'
   
@@ -543,6 +543,14 @@ function prepareTest(){
   diracCredentials
 
   diracMySQL
+
+}
+
+
+funtion prepareTestExternals(){
+
+  source $WORKSPACE/bashrc
+  python `which easy_install` nose
 
 }
 
