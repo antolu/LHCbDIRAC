@@ -140,6 +140,7 @@ class ProductionRequestDB( DB ):
     ''' Create new Production Request
         TODO: Complete check of content
     '''
+
     if creds['Group'] == 'hosts':
       return S_ERROR( 'Authorization required' )
 
@@ -175,6 +176,7 @@ class ProductionRequestDB( DB ):
     if 'Comments' in rec:
       rec['Comments'] = self.__prefixComments( rec['Comments'], '', creds['User'] )
     rec['IsModel'] = 0
+
 
     recl = [ rec[x] for x in self.requestFields[1:-9] ]
     result = self._fixedEscapeValues( recl )
@@ -765,6 +767,7 @@ class ProductionRequestDB( DB ):
     if creds['Group'] != 'diracAdmin':
       if requestAuthor != creds['User']:
         self.lock.release()
+        gLogger.error( "%s can't remove %s request" % ( creds['User'], requestAuthor ) )
         return S_ERROR( 'Only author can remove a request' )
       if requestState != 'New' and requestState != 'Rejected':
         self.lock.release()
