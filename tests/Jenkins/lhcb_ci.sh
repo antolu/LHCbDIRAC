@@ -242,7 +242,7 @@ findServices(){
     
     CA=$WORKSPACE/etc/grid-security/certificates
     
-    openssl x509 -req -in client.req -CA $CA/hostcert.pem -CAkey $CA/hostkey.pem -CAserial file.srl -out client.pem 2&>1 /dev/null
+    openssl x509 -req -in client.req -CA $CA/hostcert.pem -CAkey $CA/hostkey.pem -CAserial file.srl -out client.pem
   
   }
 
