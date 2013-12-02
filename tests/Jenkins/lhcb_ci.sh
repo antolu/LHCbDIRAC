@@ -42,6 +42,8 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
   function findRelease(){
     echo '[findRelease]'
 
+    cd $WORKSPACE
+
     PRE='p[[:digit:]]*'
 
     if [ ! -z "$PRERELEASE" ]
@@ -233,14 +235,14 @@ findServices(){
     
     cp $LHCb_CI_CONFIG/openssl_config openssl_config
     sed -i 's/#hostname#/lhcbciuser/g' openssl_config
-    openssl genrsa -out client.key 1024
+    openssl genrsa -out client.key 1024 >> /dev/null
     openssl req -key client.key -new -out client.req -config openssl_config
+    # This is a little hack to make OpenSSL happy...
     echo 00 > file.srl
     
     CA=$WORKSPACE/etc/grid-security/certificates
     
     openssl x509 -req -in client.req -CA $CA/hostcert.pem -CAkey $CA/hostkey.pem -CAserial file.srl -out client.pem
-  
   
   }
 
@@ -263,6 +265,8 @@ findServices(){
 
   function diracInstall(){
     echo '[diracInstall]'
+
+    cd $WORKSPACE
 
     wget --no-check-certificate -O dirac-install $DIRAC_INSTALL --quiet
     chmod +x dirac-install
@@ -326,33 +330,21 @@ findServices(){
   }  
 
 
-  #-------------------------------------------------------------------------------
+  #.............................................................................
+  #
   # diracCredentials:
   #
   #   hacks CS service to create a first dirac_admin proxy that will be used
-  #   to install and play around
-  #-------------------------------------------------------------------------------
+  #   to install the components and run the test ( some of them ).
+  #
+  #.............................................................................
 
-  diracCredentials(){
-    #
-    # Read here http://acs.lbl.gov/~boverhof/openssl_certs.html
-    #
+  function diracCredentials(){
   
-    mkdir $WORKSPACE/user
-    cd $WORKSPACE/user
-  
-    certDir=$WORKSPACE/etc/grid-security/certificates
-  
-    cp $LHCb_CI_CONFIG/openssl_config openssl_config
-    sed -i 's/#hostname#/lhcbciuser/g' openssl_config
-    openssl genrsa -out client.key 1024
-    openssl req -key client.key -new -out client.req -config openssl_config
-    echo 00 > file.srl
-    openssl x509 -req -in client.req -CA $certDir/hostcert.pem -CAkey $certDir/hostkey.pem -CAserial file.srl -out client.pem
-    cd -
+    cd $WORKSPACE
   
     sed -i 's/commitNewData = CSAdministrator/commitNewData = authenticated/g' etc/Configuration_Server.cfg
-    dirac-proxy-init -g dirac_admin $DEBUG -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+    dirac-proxy-init -g dirac_admin -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
     sed -i 's/commitNewData = authenticated/commitNewData = CSAdministrator/g' etc/Configuration_Server.cfg
   
   }
@@ -538,6 +530,8 @@ function prepareTest(){
   source $WORKSPACE/bashrc
 
   diracConfigure
+  
+  generateUserCredentials
   diracCredentials
 #  diracMySQL
 
