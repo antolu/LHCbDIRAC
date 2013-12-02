@@ -35,13 +35,14 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
 
     echo '[findRelease]'
 
+    PRE='p[[:digit:]]*'
+
     if [ ! -z "$PRERELEASE" ]
     then
       echo 'Running on PRERELEASE mode'
       PRE='-pre'
     else
       echo 'Running on REGULAR mode'
-      PRE='p[[:digit:]]*'
     fi  
   
     # Create temporary directory where to store releases.cfg ( will be deleted at
