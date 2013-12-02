@@ -398,6 +398,7 @@ dumpDBs(){
 
 function prepareTest(){
   
+  cd $WORKSPACE
   [ "$DEBUG" ] && 'Running in DEBUG mode' && DEBUG='-ddd'
   
   findRelease
