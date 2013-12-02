@@ -403,15 +403,15 @@ function prepareTest(){
   findRelease
 
   diracInstall
-  . $WORKSPACE/bashrc
-  diracKillRunit
+  source $WORKSPACE/bashrc
+#  diracKillRunit
 
-  findSystems
-  findDatabases
+#  findSystems
+#  findDatabases
 
-  diracConfigure
-  diracCredentials
-  diracMySQL
+#  diracConfigure
+#  diracCredentials
+#  diracMySQL
 
 }
 
