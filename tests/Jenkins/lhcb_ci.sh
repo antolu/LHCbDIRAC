@@ -12,6 +12,10 @@
 #-------------------------------------------------------------------------------
 
 
+# URL where to get dirac-install script
+DIRAC_INSTALL='https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py'
+
+# Path to lhcb_ci config files
 LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
 
 
@@ -31,7 +35,7 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
   #   which is written to {project,dirac,lhcbdirac}.version
   #
   #.............................................................................
-  findRelease(){
+  function findRelease(){
 
     echo '[findRelease]'
 
@@ -139,37 +143,70 @@ findSystems(){
 
 }
 
+
 #-------------------------------------------------------------------------------
-# diracInstall:
-#
-#   gets `project.version` code from the repository and copies certificates
-#
+# OPEN SSL... let's create a fake CA and certificates
 #-------------------------------------------------------------------------------
 
-diracInstall(){
+  function generateCertificates(){
 
-  echo '[diracInstall]'
+    echo '[generateCertificates]'
 
-  wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
-  chmod +x dirac-install
-  ./dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
+    mkdir -p $WORKSPACE/etc/grid-security/certificates
+    cd $WORKSPACE/etc/grid-security
 
-  mkdir -p etc/grid-security/certificates
-  cd etc/grid-security
-  openssl genrsa -out hostkey.pem 2048
-  cp $LHCb_CI_CONFIG/openssl_config openssl_config
-  fqdn=`hostname --fqdn`
-  sed -i "s/#hostname#/$fqdn/g" openssl_config
-  #
-  # http://www.openssl.org/docs/apps/req.html
-  #
-  openssl req -new -x509 -key hostkey.pem -out hostcert.pem -days 1 -config openssl_config
+    openssl genrsa -out hostkey.pem 2048
+    cp $LHCb_CI_CONFIG/openssl_config openssl_config
+    fqdn=`hostname --fqdn`
+    sed -i "s/#hostname#/$fqdn/g" openssl_config
+    #
+    # http://www.openssl.org/docs/apps/req.html
+    #
+    openssl req -new -x509 -key hostkey.pem -out hostcert.pem -days 1 -config openssl_config
   
-  cp host{cert,key}.pem certificates/ 
-  #/etc/init.d/cvmfs probe
-  #ln -s /cvmfs/grid.cern.ch/etc/grid-security/certificates/ etc/grid-security/certificates
+    cp host{cert,key}.pem certificates/
+  
+  }
 
-}
+
+#-------------------------------------------------------------------------------
+# DIRAC scripts... well, not really - built on top of DIRAC scripts.
+#-------------------------------------------------------------------------------
+
+
+  #.............................................................................
+  #
+  # diracInstall:
+  #
+  #   gets `project.version` code from the repository and copies certificates
+  #
+  #.............................................................................
+
+  function diracInstall(){
+
+    echo '[diracInstall]'
+
+    wget --no-check-certificate -O dirac-install $DIRAC_INSTALL --quiet
+    chmod +x dirac-install
+    ./dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
+
+    generateCertificates
+    
+    #cd etc/grid-security
+    #openssl genrsa -out hostkey.pem 2048
+    #cp $LHCb_CI_CONFIG/openssl_config openssl_config
+    #fqdn=`hostname --fqdn`
+    #sed -i "s/#hostname#/$fqdn/g" openssl_config
+    #
+    # http://www.openssl.org/docs/apps/req.html
+    #
+    #openssl req -new -x509 -key hostkey.pem -out hostcert.pem -days 1 -config openssl_config
+  
+    #cp host{cert,key}.pem certificates/ 
+    #/etc/init.d/cvmfs probe
+    #ln -s /cvmfs/grid.cern.ch/etc/grid-security/certificates/ etc/grid-security/certificates
+
+  }
 
 #-------------------------------------------------------------------------------
 # diracConfigure:
