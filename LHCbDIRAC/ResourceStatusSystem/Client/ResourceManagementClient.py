@@ -564,6 +564,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     
     return S_OK( dict( zip( res[ 'Columns' ], res[ 'Value' ][ 0 ] ) ) )
 
+
   ##############################################################################
   # HAMMERCLOUD TEST METHODS
 
@@ -762,4 +763,4 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #    return self._query( 'addOrModify', 'HammerCloudTest', locals() )
 
 #...............................................................................
-#EOF
+#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
