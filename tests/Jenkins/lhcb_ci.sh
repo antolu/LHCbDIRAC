@@ -16,41 +16,79 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
 
 
 #-------------------------------------------------------------------------------
-# findRelease:
-#
-#   If any parameter is passed, we assume we are on pre-release mode, otherwise, 
-#   we assume production. It reads from releases.cfg and picks the latest version
-#   which is written to {project,dirac,lhcbdirac}.version
-#
+# Finders... functions devoted to find DBs, Services, versions, etc..
 #-------------------------------------------------------------------------------
-findRelease(){
 
-  [ $1 ] && PRE='-pre' || PRE='p[[:digit:]]*'  
+
+  #.............................................................................
+  #
+  # findRelease:
+  #
+  #   If the environment variable "PRERELEASE" exists, we use a LHCb prerelease
+  #   instead of a regular release ( production-like ).
+  #   If any parameter is passed, we assume we are on pre-release mode, otherwise, 
+  #   we assume production. It reads from releases.cfg and picks the latest version
+  #   which is written to {project,dirac,lhcbdirac}.version
+  #
+  #.............................................................................
+  findRelease(){
+
+    echo '[findRelease]'
+
+    if [ ! -z "$PRERELEASE" ]
+    then
+      echo 'Running on PRERELEASE mode'
+      PRE='-pre'
+    else
+      echo 'Running on REGULAR mode'
+      PRE='p[[:digit:]]*'
+    fi  
   
-  tmp_dir=`mktemp -d -q`
+    # Create temporary directory where to store releases.cfg ( will be deleted at
+    # the end of the function )
+    tmp_dir=`mktemp -d -q`
+    cd $tmp_dir
+    wget http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC/releases.cfg --quiet
+
+    # Match project ( LHCbDIRAC, soon BeautyDirac ) version from releases.cfg
+    # Example releases.cfg
+    # v7r15-pre2
+    # {
+    #   Modules = LHCbDIRAC:v7r15-pre2, LHCbWebDIRAC:v3r3p5
+    #   Depends = DIRAC:v6r10-pre12
+    #   LcgVer = 2013-09-24
+    # }
+    
+    # projectVersion := v7r15-pre2 ( if we are in PRERELEASE mode )
+    projectVersion=`cat releases.cfg | grep [^:]v[[:digit:]]r[[:digit:]]*$PRE | head -1 | sed 's/ //g'`
+
+    # projectVersionLine : line number where v7r15-pre2 is
+    projectVersionLine=`cat releases.cfg | grep -n $project | cut -d ':' -f 1 | head -1`
+    # start := line number after "{"  
+    start=$(($projectVersionLine+2))
+    # end   := line number after "}"
+    end=$(($start+2))
+    # versions :=
+    #   Modules = LHCbDIRAC:v7r15-pre2, LHCbWebDIRAC:v3r3p5
+    #   Depends = DIRAC:v6r10-pre12
+    #   LcgVer = 2013-09-24    
+    versions=`sed -n "$start,$end p" releases.cfg`
+
+    # Extract DIRAC version
+    dirac=`echo $versions | tr ' ' '\n' | grep ^DIRAC:v*[^,] | sed 's/,//g' | cut -d ':' -f2`
+    # Extract LHCbDIRAC version
+    lhcbdirac=`echo $versions | tr ' ' '\n' | grep ^LHCbDIRAC:v* | sed 's/,//g' | cut -d ':' -f2`
   
-  cd $tmp_dir
+    # Back to $WORKSPACE
+    cd $WORKSPACE 
+    rm -r $tmp_dir
+    
+    # PrintOuts
+    echo PROJECT:$project && echo $project > project.version
+    echo DIRAC:$dirac && echo $dirac > dirac.version
+    echo LHCbDIRAC:$lhcbdirac && echo $lhcbdirac > lhcbdirac.version
 
-  wget http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC/releases.cfg --quiet
-
-  project=`cat releases.cfg | grep [^:]v[[:digit:]]r[[:digit:]]*$PRE | head -1 | sed 's/ //g'`
-
-  s=`cat releases.cfg | grep -n $project | cut -d ':' -f 1 | head -1`  
-  s=$(($s+2))
-  e=$(($s+3))
-  versions=`sed -n "$s,$e p" releases.cfg`
-
-  dirac=`echo $versions | tr ' ' '\n' | grep ^DIRAC:v*[^,] | sed 's/,//g' | cut -d ':' -f2`
-  lhcbdirac=`echo $versions | tr ' ' '\n' | grep ^LHCbDIRAC:v* | sed 's/,//g' | cut -d ':' -f2`
-  
-  cd - >> /dev/null 
-  rm -r $tmp_dir
-
-  echo PROJECT:$project && echo $project > project.version
-  echo DIRAC:$dirac && echo $dirac > dirac.version
-  echo LHCbDIRAC:$lhcbdirac && echo $lhcbdirac > lhcbdirac.version
-
-}
+  }
 
 #-------------------------------------------------------------------------------
 # findDatabases:
@@ -108,6 +146,8 @@ findSystems(){
 #-------------------------------------------------------------------------------
 
 diracInstall(){
+
+  echo '[diracInstall]'
 
   wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
   chmod +x dirac-install
@@ -255,7 +295,7 @@ diracCredentials(){
   cd -
   
   sed -i 's/commitNewData = CSAdministrator/commitNewData = authenticated/g' etc/Configuration_Server.cfg
-  dirac-proxy-init -g dirac_admin $DEBUG -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key 
+  dirac-proxy-init -g dirac_admin $DEBUG -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
   sed -i 's/commitNewData = authenticated/commitNewData = CSAdministrator/g' etc/Configuration_Server.cfg
   
 }
@@ -280,8 +320,8 @@ diracMySQL(){
   
   sed -i "s:basedir=:basedir=$basedir:g" $WORKSPACE/mysql/share/mysql/mysql.server
   
-  dirac-install-mysql -ddd
-  dirac-fix-mysql-script
+  dirac-install-mysql $DEBUG
+  dirac-fix-mysql-script $DEBUG
   
 }  
 
@@ -357,12 +397,10 @@ dumpDBs(){
 
 
 function prepareTest(){
-
+  
+  [ "$DEBUG" ] && 'Running in DEBUG mode' && DEBUG='-ddd'
+  
   findRelease
-  #preReleaseMode
-
-  # Hack to avoid v6r9 series
-  # echo v7r13p30 &gt; project.version
 
   diracInstall
   . bashrc
