@@ -191,7 +191,7 @@ findServices(){
     cd $WORKSPACE/etc/grid-security
     
     # Generate private RSA key
-    openssl genrsa -out hostkey.pem 2048 >> /dev/null
+    openssl genrsa -out hostkey.pem 2048 2&>1 /dev/null
     
     # Prepare OpenSSL config file, it contains extensions to put into place,
     # DN configuration, etc..
@@ -235,14 +235,14 @@ findServices(){
     
     cp $LHCb_CI_CONFIG/openssl_config openssl_config
     sed -i 's/#hostname#/lhcbciuser/g' openssl_config
-    openssl genrsa -out client.key 1024 >> /dev/null
+    openssl genrsa -out client.key 1024 2&>1 /dev/null
     openssl req -key client.key -new -out client.req -config openssl_config
     # This is a little hack to make OpenSSL happy...
     echo 00 > file.srl
     
     CA=$WORKSPACE/etc/grid-security/certificates
     
-    openssl x509 -req -in client.req -CA $CA/hostcert.pem -CAkey $CA/hostkey.pem -CAserial file.srl -out client.pem
+    openssl x509 -req -in client.req -CA $CA/hostcert.pem -CAkey $CA/hostkey.pem -CAserial file.srl -out client.pem 2&>1 /dev/null
   
   }
 
