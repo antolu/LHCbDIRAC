@@ -67,9 +67,15 @@ test_agent = {
     # invalid syntax (FTSRequest.py, line 894)
     'FTSSubmitAgent',
     # __init__() takes at least 4 arguments (3 given)
-    'MCExtensionAgent'                        
+    'MCExtensionAgent',
+    # OperationHandlers section not found in CS under
+    'RequestExecutingAgent'                        
                           
-                          ]                                                                   
+                          ],
+  'test_agents_install_drop' : [
+    # To be deleted from code
+    'NagiosConsumerAgent',
+                          ],                                                              
                   
 }
 
@@ -86,7 +92,8 @@ test_db = {
     'RequestDB', ],
                       
   'test_install_tables' : [
-    'SystemLoggingDB', ]                      
+    'SystemLoggingDB',
+    'ReqDB' ]                      
                       
 }
 
