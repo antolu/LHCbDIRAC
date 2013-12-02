@@ -80,8 +80,8 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
     # Extract LHCbDIRAC version
     lhcbdirac=`echo $versions | tr ' ' '\n' | grep ^LHCbDIRAC:v* | sed 's/,//g' | cut -d ':' -f2`
   
-    # Back to $WORKSPACE
-    cd $WORKSPACE 
+    # Back to $WORKSPACE and clean tmp_dir
+    cd $WORKSPACE
     rm -r $tmp_dir
     
     # PrintOuts
@@ -168,7 +168,6 @@ diracInstall(){
   cp host{cert,key}.pem certificates/ 
   #/etc/init.d/cvmfs probe
   #ln -s /cvmfs/grid.cern.ch/etc/grid-security/certificates/ etc/grid-security/certificates
-  cd $WORKSPACE
 
 }
 
@@ -399,13 +398,12 @@ dumpDBs(){
 
 function prepareTest(){
   
-  cd $WORKSPACE
   [ "$DEBUG" ] && 'Running in DEBUG mode' && DEBUG='-ddd'
   
   findRelease
 
   diracInstall
-  . bashrc
+  . $WORKSPACE/bashrc
   diracKillRunit
 
   findSystems
