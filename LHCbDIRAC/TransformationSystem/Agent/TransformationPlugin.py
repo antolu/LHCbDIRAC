@@ -1127,7 +1127,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if not transProcPass:
           self.util.logError( 'Unable to find processing pass for transformation nor for %s' % lfn )
         self.util.logVerbose( "BKQuery reconstructed: %s" % bkQuery )
-      processingPasses = [os.path.join( transProcPass, procPass ) for procPass in processingPasses]
+      processingPasses = set( [os.path.join( transProcPass, procPass ) if not transProcPass.endswith( procPass ) else transProcPass for procPass in processingPasses] )
+      acceptMerge = transProcPass in processingPasses
 
       now = datetime.datetime.utcnow()
       cacheOK = False
@@ -1165,7 +1166,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           archivedProds[procPass] = []
           for prod in prods:
             res = self.transClient.getTransformation( prod )
-            if res['OK'] and res['Value']['Type'] != 'Merge':
+            if not res['OK']:
+              self.util.logError( "Error getting transformation %s" % prod, res['Message'] )
+            elif ( acceptMerge and res['Value']['Type'] == 'Merge' ) or ( not acceptMerge and res['Value']['Type'] != 'Merge' ):
               status = res['Value']['Status']
               if status == 'Archived':
                 archivedProds[procPass].append( int( prod ) )
