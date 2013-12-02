@@ -114,7 +114,7 @@ diracInstall(){
   mkdir -p etc/grid-security/certificates
   cd etc/grid-security
   openssl genrsa -out hostkey.pem 2048
-  cp $WORKSPACE/LHCbTestDirac/Jenkins/openssl_config openssl_config
+  cp $WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci/openssl_config openssl_config
   fqdn=`hostname --fqdn`
   sed -i "s/#hostname#/$fqdn/g" openssl_config
   #
@@ -154,7 +154,7 @@ diracConfigure(){
   echo $randomRoot > rootMySQL
   echo $randomUser > userMySQL
 
-  cp -s $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg etc/install.cfg
+  cp -s $WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci/install.cfg etc/install.cfg
   hostdn=`openssl x509 -noout -in etc/grid-security/hostcert.pem -subject | sed 's/subject= //g'`
   #
   # TRICK ALERT: we are using colons instead of forward slashes
@@ -244,7 +244,7 @@ diracCredentials(){
   
   certDir=$WORKSPACE/etc/grid-security/certificates
   
-  cp $WORKSPACE/LHCbTestDirac/Jenkins/openssl_config openssl_config
+  cp $WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci/openssl_config openssl_config
   sed -i 's/#hostname#/lhcbciuser/g' openssl_config
   openssl genrsa -out client.key 1024
   openssl req -key client.key -new -out client.req -config openssl_config
