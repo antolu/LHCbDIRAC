@@ -273,7 +273,8 @@ diracMySQL(){
   # HACK HACK HACK
   #
   
-  basedir=$WORKSPACE/mysql
+  linuxDir=`ls $WORKSPACE | grep Linux`
+  basedir=$WORKSPACE/linuxDir
   
   sed -i "s:basedir=:basedir=$basedir:g" $WORKSPACE/mysql/share/mysql/mysql.server
   
