@@ -269,6 +269,7 @@ diracMySQL(){
   
   diracKillMySQL    
   dirac-install-mysql -ddd
+  dirac-fix-mysql-script
   
 }  
 
