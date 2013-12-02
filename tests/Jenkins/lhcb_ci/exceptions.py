@@ -161,7 +161,8 @@ test_service = {
     'Server',
     'TransformationManager',
     'TransferDBMonitoring',
-    'FTSManager' ],
+    'FTSManager',
+    'SystemLogging' ],
                   
   'test_service_ports' : [            
     'LcgFileCatalogProxy', 
@@ -177,7 +178,9 @@ test_service = {
     # RunDBInterface : Can not find Services/RunDBInterface in template
     'RunDBInterface', 
     # Future : Can not find Services/Future in template
-    'Future', ]
+    'Future',
+    # Can not find Services/TransferDBMonitoring in template
+    'TransferDBMonitoring' ]
                
 }   
     
