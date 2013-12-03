@@ -86,11 +86,6 @@ test_agent = {
 
 
 test_db = {
-
-  'test_databases_voimport' : [
-    'TransformationDB', 
-    'RAWIntegrityDB', 
-    'RequestDB', ],
                       
   'test_install_tables' : [
     'SystemLoggingDB',
@@ -152,7 +147,10 @@ test_service = {
     # TransformationManager : Can not connect to DB TransformationDB
     'TransformationManager',
     # No shifter User defined for DataManager
-    'FTSManager' ],
+    'FTSManager',
+    # retVal = self.__listeningConnections[ svcName ][ 'transport' ].acceptConnection()
+    # Cannot clean threads properly
+    'SecurityLogging' ],
 
   'test_service_authorization' : [ 
     'BookkeepingManager', 
