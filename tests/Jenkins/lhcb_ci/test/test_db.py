@@ -144,41 +144,6 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         del db
         res = lhcb_ci.db.dropDB( dbName )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
-
-
-  def test_databases_voimport( self ):
-    """ test_databases_voimport
-    
-    Tries to import the DB modules and create a class Object. Iterating over all
-    databases found in the code, tries to import their modules and instantiate
-    one class object.
-    
-    """
-    
-    self.logTestName()
-   
-    for diracSystem, systemDBs in self.databases.iteritems():
-      
-      for dbName in systemDBs:
-
-        if self.isException( dbName ):
-          continue
-          
-        # Import DIRAC module and get object
-        dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
-        self.log.debug( 'VO Importing %s' % dbPath )
-        
-        dbMod = lhcb_ci.extensions.import_( dbPath )
-        self.assertEquals( hasattr( dbMod, dbName ), True )
-        
-        dbClass = getattr( dbMod, dbName )
-        
-        try:
-          dbInstance = dbClass()
-          del dbInstance
-          self.fail( 'Created instance of %s should have failed' % dbPath )
-        except RuntimeError, e:          
-          self.assertEquals( str( e ).startswith( 'Can not connect to DB' ), True )
     
 
   def test_install_tables( self ):
@@ -261,10 +226,6 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
   # test_databases_reachable
   test_databases_common_import.install = 1
   test_databases_common_import.db      = 1
-  
-  # test_databases_import
-  test_databases_voimport.install = 1
-  test_databases_voimport.db      = 1
   
   # test_install_tables
   test_install_tables.install = 1
