@@ -278,6 +278,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
 
         if self.isException( service ):
           continue
+
+        currentThreads, activeThreads = lhcb_ci.commons.trackThreads()        
        
         res = lhcb_ci.service.setupService( system, service )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )
@@ -285,6 +287,11 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         
         res = lhcb_ci.service.uninstallService( system, service )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )
+
+        # Clean leftovers         
+        threadsAfterPurge = lhcb_ci.commons.killThreads( currentThreads )
+        # We make sure that there are no leftovers on the threading
+        self.assertEquals( activeThreads, threadsAfterPurge )  
     
 
   #.............................................................................    
