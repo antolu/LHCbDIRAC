@@ -334,7 +334,7 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
     unknown number of daemonized and non daemonized threads started by each
     service ( it happens that every developer likes different solutions ). In this
     respect, all threads created by the ServiceReactor and childs, are stopped
-    to avoid problems. Once the service is running on a paralell thread, it is 
+    to avoid problems. Once the service is running on a parallel thread, it is 
     pinged to check it is working.
     
     """
