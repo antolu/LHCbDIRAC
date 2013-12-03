@@ -47,8 +47,8 @@ class ConfigureTest( lhcb_ci.basecase.Agent_TestCase ):
   #.............................................................................
   # Nosetests attrs
   
-  test_configure_agents.configure = 1
-  test_configure_agents.agent     = 1  
+  test_configure_agents.configure = 0
+  test_configure_agents.agent     = 0  
   
 
 class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
@@ -136,8 +136,8 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
   test_agents_install_drop.install = 0
   test_agents_install_drop.agent   = 0
   
-  test_agents_voimport.install = 1
-  test_agents_voimport.agent   = 1
+  test_agents_voimport.install = 0
+  test_agents_voimport.agent   = 0
 
 
 class SmokeTest( lhcb_ci.basecase.Agent_TestCase ):
