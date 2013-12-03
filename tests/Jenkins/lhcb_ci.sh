@@ -643,9 +643,6 @@ function prepareDIRAC(){
 
   diracMySQL
 
-  stopRunsv
-  stopMySQL
-
 }
 
 
@@ -677,9 +674,6 @@ function prepareTestExternals(){
 
 function runTest(){
 
-  startMySQL
-  startRunsv
-
   set +o errexit
 
   if [ -z "$TEST_MODE" ]
@@ -703,9 +697,6 @@ function runTest(){
   #mv .coverage .coverage.${TEST_MODE}
 
   set -o errexit
-
-  stopRunsv
-  stopMySQL
 
 }
 
