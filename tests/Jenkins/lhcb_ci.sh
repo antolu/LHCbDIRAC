@@ -432,6 +432,7 @@ findServices(){
   #.............................................................................
 
   function stopRunsv(){
+    echo '[stopRunsv]'
 
     # Let's try to be a bit more delicated than the function above
 
@@ -454,7 +455,8 @@ findServices(){
   #.............................................................................
 
   function startRunsv(){
-
+    echo '[startRunsv]'
+    
     # Let's try to be a bit more delicated than the function above
 
     source $WORKSPACE/bashrc
@@ -473,6 +475,7 @@ findServices(){
   #.............................................................................
 
   function killMySQL(){
+    echo '[killMySQL]'
 
     # Bear in mind that we run with 'errexit' mode. This call, if finds nothing
     # will return an error, which will make the whole script exit. However, if 
@@ -499,6 +502,7 @@ findServices(){
   #.............................................................................
 
   function stopMySQL(){
+    echo '[stopMySQL]'
 
     # Let's try to be a bit more delicated than the function above
 
@@ -519,6 +523,7 @@ findServices(){
   #.............................................................................
 
   function startMySQL(){
+    echo '[startMySQL]'
 
     $WORKSPACE/mysql/share/mysql/mysql.server start
         
