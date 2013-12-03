@@ -192,7 +192,8 @@ test_service = {
     'TransferDBMonitoring' ],
 
   'test_services_install_drop' : [
-    'BookkeepingManager'
+    'BookkeepingManager',
+    'Gateway'
                                   ]
 
 }   

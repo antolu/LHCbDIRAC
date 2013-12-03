@@ -298,8 +298,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
   test_service_authorization.configure = 1
   test_service_authorization.service   = 1
 
-  test_services_common_import.install = 1
-  test_services_common_import.service = 1
+  test_services_common_import.install = 0
+  test_services_common_import.service = 0
 
   #FIXME: thread leak
   #test_services_voimport.install = 1
@@ -391,8 +391,8 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
 
 
   # test_run_services
-  test_run_services.install = 1
-  test_run_services.service = 1
+  test_run_services.install = 0
+  test_run_services.service = 0
   
 
 #...............................................................................
