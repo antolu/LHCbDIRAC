@@ -693,7 +693,7 @@ function runTest(){
   echo "log file: $LHCB_CI_DEBUG"
   echo "########################################################"
 
-  nosetests -a $TEST_MODE --with-xunit LHCbTestDirac/Jenkins/lhcb_ci/test -v --with-coverage --cover-package=DIRAC,LHCbDIRAC --xunit-file=nosetests_${TEST_MODE}.xml
+  nosetests -a $TEST_MODE --with-xunit LHCbTestDirac/Jenkins/lhcb_ci/test -v --xunit-file=nosetests_${TEST_MODE}.xml# --with-coverage --cover-package=DIRAC,LHCbDIRAC
   #mv .coverage .coverage.${TEST_MODE}
 
   set -o errexit
