@@ -78,12 +78,22 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
         
         self.log.debug( "%s %s" % ( system, agent ) )
        
+        # Repeat with me : we do not trust agents,
+        #                  we do not like their structure,
+        #                  we will kill their threads
+        currentThreads, activeThreads = lhcb_ci.commons.trackThreads()       
+       
         res = lhcb_ci.agent.setupAgent( system, agent )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         self.assertEquals( res[ 'Value' ][ 'RunitStatus' ], 'Run' )
         
         res = lhcb_ci.agent.uninstallAgent( system, agent )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )  
+
+        # Clean leftovers         
+        threadsAfterPurge = lhcb_ci.commons.killThreads( currentThreads )
+        # We make sure that there are no leftovers on the threading
+        self.assertEquals( activeThreads, threadsAfterPurge )
 
 
   def test_agents_voimport( self ):
@@ -132,8 +142,8 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
   # Nosetests attrs
   
   
-  test_agents_install_drop.install = 0
-  test_agents_install_drop.agent   = 0
+  test_agents_install_drop.install = 1
+  test_agents_install_drop.agent   = 1
   
   test_agents_voimport.install = 1
   test_agents_voimport.agent   = 1
