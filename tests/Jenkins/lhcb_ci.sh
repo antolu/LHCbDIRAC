@@ -461,7 +461,14 @@ findServices(){
 
     source $WORKSPACE/bashrc
     runsvdir -P $WORKSPACE/startup &
+    
+    # Gives some time to the components to start
+    sleep 10
+    # Just in case 10 secs are not enough, we disable exit on error for this call.
+    set +o errexit
     runsvctrl u $WORKSPACE/startup/*
+    set -o errexit
+    
     runsvstat $WORKSPACE/startup/*
    
   }
