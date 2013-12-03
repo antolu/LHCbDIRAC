@@ -14,8 +14,11 @@
 '''
 __RCSID__ = "$Id: dirac-dms-check-fc2se.py 69455 2013-08-14 08:42:29Z phicharp $"
 
-# Code
 def __removeFile( lfns ):
+  if type( lfns ) == type( {} ):
+    lfns = lfns.keys()
+  elif type( lfns ) == type( '' ):
+    lfns = [lfns]
   res = rm.removeFile( lfns )
   if res['OK']:
     success = len( res['Value']['Successful'] )
@@ -30,20 +33,25 @@ def __removeFile( lfns ):
     for reason in errors:
       gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
 
-def __removeReplica( lfns, se ):
-  res = rm.removeReplica( lfns, se )
-  if res['OK']:
-    success = len( res['Value']['Successful'] )
-    failures = 0
-    errors = {}
-    for reason in res['Value']['Failed'].values():
-      reason = str( reason )
-      if reason != "{'BookkeepingDB': 'File does not exist'}":
-        errors[reason] = errors.setdefault( reason, 0 ) + 1
-        failures += 1
-    gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if failures else '' ) )
-    for reason in errors:
-      gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
+def __removeReplica( lfnDict ):
+  seLFNs = {}
+  for lfn in lfnDict:
+    for se in lfnDict[lfn]:
+      seLFNs.setdefault( se, [] ).append( lfn )
+  for se, lfns in seLFNs.items():
+    res = rm.removeReplica( se, lfns )
+    if res['OK']:
+      success = len( res['Value']['Successful'] )
+      failures = 0
+      errors = {}
+      for reason in res['Value']['Failed'].values():
+        reason = str( reason )
+        if reason != "{'BookkeepingDB': 'File does not exist'}":
+          errors[reason] = errors.setdefault( reason, 0 ) + 1
+          failures += 1
+      gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if failures else '' ) )
+      for reason in errors:
+        gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
 
 
 def doCheck():
@@ -111,7 +119,7 @@ def doCheck():
       gLogger.always( "Going to fix them, removing from catalogs and storage" )
       __removeFile( cc.existLFNsBadFiles )
     else:
-      gLogger.always( "Use --FixIt to fix it (remove from BK and FC)" )
+      gLogger.always( "Use --FixIt to fix it (remove from SE, BK and FC)" )
 
   if cc.existLFNsBadReplicas:
     seOK = False
@@ -120,7 +128,7 @@ def doCheck():
       gLogger.always( "Going to fix them, removing from catalogs and storage" )
       __removeReplica( cc.existLFNsBadReplicas )
     else:
-      gLogger.always( "Use --FixIt to fix it (remove from BK and FC)" )
+      gLogger.always( "Use --FixIt to fix it (remove from SE and FC)" )
 
   if seOK:
     gLogger.always( "All files exist and have a correct checksum -> OK!" )

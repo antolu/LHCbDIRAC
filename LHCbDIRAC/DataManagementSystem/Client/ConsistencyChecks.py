@@ -927,12 +927,12 @@ class ConsistencyChecks( object ):
       replicaDict = replicas[ lfn ]
       oneGoodReplica = False
       allGoodReplicas = True
+      lfcChecksum = csDict[ lfn ].pop( 'LFCChecksum' )
       for se in replicaDict:
         surl = replicaDict[ se ]
         # get the surls metadata and compare the checksum
         surlChecksum = checkSum.get( lfn, {} ).get( se, '' )
-        lfcChecksum = csDict[ lfn ][ 'LFCChecksum' ]
-        if not compareAdler( lfcChecksum , surlChecksum ):
+        if not surlChecksum or not compareAdler( lfcChecksum , surlChecksum ):
           # if lfcChecksum does not match surlChecksum
           csDict[ lfn ][ se ] = {'SURL':surl, 'PFNChecksum': surlChecksum}
           gLogger.info( "ERROR!! checksum mismatch at %s for LFN %s:  LFC checksum: %s , PFN checksum : %s "
