@@ -110,8 +110,7 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
         
         # This also includes the _limbo threads..
         # Protection measure against out-of-control __init__ methods on Agents
-        threadsToBeAvoided = threading.enumerate() 
-        activeThreads      = threading.active_count()      
+        currentThreads, activeThreads = lhcb_ci.commons.trackThreads()
         
         agentMod = lhcb_ci.extensions.import_( agentPath )
         self.assertEquals( hasattr( agentMod, agent ), True )
@@ -122,11 +121,11 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
         del agentInstance 
 
         # Clean leftovers         
-        lhcb_ci.commons.killThreads( threadsToBeAvoided )
+        lhcb_ci.commons.killThreads( currentThreads )
         
-        currentActiveThreads = threading.active_count()
+        threadsAfterPurge = threading.active_count()
         # We make sure that there are no leftovers on the threading
-        self.assertEquals( activeThreads, currentActiveThreads )
+        self.assertEquals( activeThreads, threadsAfterPurge )
     
 
   #.............................................................................
@@ -136,8 +135,8 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
   test_agents_install_drop.install = 0
   test_agents_install_drop.agent   = 0
   
-  test_agents_voimport.install = 0
-  test_agents_voimport.agent   = 0
+  test_agents_voimport.install = 1
+  test_agents_voimport.agent   = 1
 
 
 class SmokeTest( lhcb_ci.basecase.Agent_TestCase ):
