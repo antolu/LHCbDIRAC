@@ -373,7 +373,7 @@ findServices(){
   
     # Install MySQL using DIRAC scripts
     dirac-install-mysql $DEBUG
-    dirac-fix-mysql-script $DEBUG
+    #dirac-fix-mysql-script $DEBUG
   
   }
 
