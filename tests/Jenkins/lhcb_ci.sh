@@ -373,13 +373,12 @@ findServices(){
   
     # Install MySQL using DIRAC scripts
     dirac-install-mysql $DEBUG
-    #dirac-fix-mysql-script $DEBUG
   
   }
 
 
 #-------------------------------------------------------------------------------
-# Kill scripts. Used to clean environment before getting into trouble
+# Kill, Stop and Start scripts. Used to clean environment.
 #-------------------------------------------------------------------------------
 
 
@@ -426,6 +425,43 @@ findServices(){
 
   #.............................................................................
   #
+  # stopRunsv:
+  #
+  #   if runsv is running, it stops it.
+  #
+  #.............................................................................
+
+  function stopRunsv(){
+
+    # Let's try to be a bit more delicated than the function above
+
+    source $WORKSPACE/bashrc
+    runsvctrl d $WORKSPACE/startup/*
+    runsvstat $WORKSPACE/startup/*
+   
+  }
+
+
+  #.............................................................................
+  #
+  # startRunsv:
+  #
+  #   starts runsv processes
+  #
+  #.............................................................................
+
+  function startRunsv(){
+
+    # Let's try to be a bit more delicated than the function above
+
+    source $WORKSPACE/bashrc
+    runsvctrl u $WORKSPACE/startup/*
+    runsvstat $WORKSPACE/startup/*
+   
+  }
+
+  #.............................................................................
+  #
   # killMySQL:
   #
   #   if MySQL is running, it stops it.
@@ -449,6 +485,38 @@ findServices(){
     fi   
    
   }  
+
+  #.............................................................................
+  #
+  # stopMySQL:
+  #
+  #   if MySQL is running, it stops it.
+  #
+  #.............................................................................
+
+  function stopMySQL(){
+
+    # Let's try to be a bit more delicated than the function above
+
+    $WORKSPACE/mysql/share/mysql/mysql.server stop
+        
+  }
+
+
+  #.............................................................................
+  #
+  # startMySQL:
+  #
+  #   if MySQL is not running, it starts it.
+  #
+  #.............................................................................
+
+  function startMySQL(){
+
+    $WORKSPACE/mysql/share/mysql/mysql.server start
+        
+  }
+
 
 #-------------------------------------------------------------------------------
 # finalCleanup:
@@ -556,6 +624,9 @@ function prepareDIRAC(){
 
   diracMySQL
 
+  stopRunsv
+  stopMySQL
+
 }
 
 
@@ -587,6 +658,9 @@ function prepareTestExternals(){
 
 function runTest(){
 
+  startMySQL
+  startRunsv
+
   set +o errexit
 
   if [ -z "$TEST_MODE" ]
@@ -610,6 +684,9 @@ function runTest(){
   #mv .coverage .coverage.${TEST_MODE}
 
   set -o errexit
+
+  stopRunsv
+  stopMySQL
 
 }
 
