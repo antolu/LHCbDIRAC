@@ -130,14 +130,6 @@ def uninstallService( system, service ):
   """
 
   logger.debug( 'uninstallService for %s/%s' % ( system, service ) )
-  
-  # The following two lines prevent this:
-  # runsv system_service: warning: unable to open supervise/stat.new: file does not exist
-  # runsv system_service: warning: unable to open log/supervise/stat.new: file does not exist
-  # runsv system_service: warning: unable to open log/supervise/pid.new: file does not exist
-  InstallTools.runsvctrlComponent( system, service, 'd' )
-  # Give it few seconds to terminate
-  sleep( 5 )
     
   return InstallTools.uninstallComponent( system, service )
 
