@@ -197,7 +197,7 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         # Keep track of threads to wash them
         currentThreads, activeThreads = lhcb_ci.commons.trackThreads()
         
-        # Tries to connect to the Service using the Service DIRAC module
+        # Tries to get a Service DIRAC object
         self.log.debug( 'Service %s' % serviceName )
         service = lhcb_ci.service.getService( serviceName )
         
@@ -306,8 +306,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
   #test_services_voimport.service = 1
 
   # test_services_install_drop
-  test_services_install_drop.install = 0
-  test_services_install_drop.service = 0
+  test_services_install_drop.install = 1
+  test_services_install_drop.service = 1
   
     
 
