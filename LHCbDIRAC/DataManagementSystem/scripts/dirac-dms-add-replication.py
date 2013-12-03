@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
  Create a new replication or removal transformation according to plugin
 """
@@ -151,7 +150,7 @@ if __name__ == "__main__":
       # Set the polling period to 0 if not defined
       pluginParams.setdefault( 'Period', 0 )
     else:
-      transBody = "removal;replicaRemoval"
+      transBody = "removal;RemoveReplica"
     transformation.setBody( transBody )
 
   if pluginParams:
