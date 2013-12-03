@@ -438,6 +438,9 @@ findServices(){
     source $WORKSPACE/bashrc
     runsvctrl d $WORKSPACE/startup/*
     runsvstat $WORKSPACE/startup/*
+    
+    # If does not work, let's kill it.
+    killRunsv
    
   }
 
@@ -455,6 +458,7 @@ findServices(){
     # Let's try to be a bit more delicated than the function above
 
     source $WORKSPACE/bashrc
+    runsvdir -P $WORKSPACE/startup &
     runsvctrl u $WORKSPACE/startup/*
     runsvstat $WORKSPACE/startup/*
    
@@ -499,6 +503,9 @@ findServices(){
     # Let's try to be a bit more delicated than the function above
 
     $WORKSPACE/mysql/share/mysql/mysql.server stop
+    
+    # If does not work, we kill it
+    killMySQL
         
   }
 
