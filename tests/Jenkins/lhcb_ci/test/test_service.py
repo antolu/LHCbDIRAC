@@ -306,8 +306,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
   #test_services_voimport.service = 1
 
   # test_services_install_drop
-  test_services_install_drop.install = 1
-  test_services_install_drop.service = 1
+  test_services_install_drop.install = 0
+  test_services_install_drop.service = 0
   
     
 
