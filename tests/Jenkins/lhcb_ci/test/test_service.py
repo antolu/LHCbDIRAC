@@ -398,7 +398,7 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
 
 
   # test_run_services
-  test_run_services.install = 1
+  test_run_services.smoke   = 1
   test_run_services.service = 1
   
 
