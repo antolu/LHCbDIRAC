@@ -131,9 +131,7 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
         del agentInstance 
 
         # Clean leftovers         
-        lhcb_ci.commons.killThreads( currentThreads )
-        
-        threadsAfterPurge = threading.active_count()
+        threadsAfterPurge = lhcb_ci.commons.killThreads( currentThreads )
         # We make sure that there are no leftovers on the threading
         self.assertEquals( activeThreads, threadsAfterPurge )
     
