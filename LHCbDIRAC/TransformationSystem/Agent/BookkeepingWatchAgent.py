@@ -111,7 +111,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
     gMonitor.addMark( 'Iteration', 1 )
     # Get all the transformations
-    result = self.transClient.getTransformations( condDict = {'Status':'Active'}, extraParams = True )
+    result = self.transClient.getTransformations( condDict = {'Status':['Active', 'Idle']}, extraParams = True )
     if not result['OK']:
       self._logError( "Failed to get transformations.", result['Message'] )
       return S_OK()

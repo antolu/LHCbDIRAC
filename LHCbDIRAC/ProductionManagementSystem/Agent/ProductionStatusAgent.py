@@ -57,12 +57,14 @@ class ProductionStatusAgent( AgentModule ):
     self.transClient = TransformationClient()
     self.simulationTypes = Operations().getValue( 'Transformations/ExtendableTransfTypes', ['MCSimulation',
                                                                                             'Simulation'] )
+    self.notify = True
 
   #############################################################################
   def initialize( self ):
     """Sets default values.
     """
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
+    self.notify = eval( self.am_getOption( 'NotifyProdManager', 'True' ) )
 
     return S_OK()
 
@@ -84,7 +86,7 @@ class ProductionStatusAgent( AgentModule ):
 
     try:
       prodsListCompleted = self._getTransformations( 'Completed' )
-      prodsListArchived  = self._getTransformations( 'Archived'  )
+      prodsListArchived = self._getTransformations( 'Archived' )
       prodsList = prodsListCompleted + prodsListArchived
       if prodsList:
         reqsMap = self._getReqsMap( prodReqSummary, progressSummary )
@@ -172,12 +174,14 @@ class ProductionStatusAgent( AgentModule ):
       prods = self._getTransformations( 'Active' )
       if prods:
         for prod in prods:
-          prodInfo = self.transClient.getTransformation( prod )
+          self.log.verbose( "Checking production %d" % prod )
+          prodInfo = self.transClient.getTransformation( prod )['Value']
           if prodInfo.get( 'Type', None ) in self.simulationTypes:
             # simulation : go to Idle if
             #     only failed and done jobs
-            # AND number of created == number of submited
+            # AND number of created == number of submitted
             prodStats = self._getTransformationTaskStats( prod )
+            self.log.debug( "Stats: %s" % str( prodStats ) )
             isIdle = ( prodStats.get( 'Created', 0 ) == prodStats.get( 'Submitted', 0 ) ) \
             and all( [prodStats.get( status, 0 ) == 0 for status in ['Matched', 'Checking', 'Waiting', 'Staging',
                                                                      'Rescheduled', 'Running', 'Completed']] )
@@ -186,6 +190,7 @@ class ProductionStatusAgent( AgentModule ):
             #     0 unused, 0 assigned files
             # AND > 0 processed files
             prodStats = self._getTransformationFilesStats( prod )
+            self.log.debug( "Stats: %s" % str( prodStats ) )
             isIdle = ( prodStats.get( 'Processed', 0 ) > 0 ) \
             and all( [prodStats.get( status, 0 ) == 0 for status in ['Unused', 'Assigned']] )
 
@@ -335,22 +340,21 @@ class ProductionStatusAgent( AgentModule ):
     """
     if not updatedProductions and not updatedRequests:
       self.log.info( 'No changes this cycle, mail will not be sent' )
-      return S_OK()
 
-    notify = NotificationClient()
-    subject = 'Production Status Updates ( %s )' % ( time.asctime() )
-    msg = ['Productions updated this cycle:\n']
-    for prod, val in updatedProductions.iteritems():
-      msg.append( 'Production %s: %s => %s' % ( prod, val['from'], val['to'] ) )
-    msg.append( '\nRequests updated to Done status this cycle:\n' )
-    msg.append( ', '.join( [str( i ) for i in updatedRequests] ) )
-    res = notify.sendMail( 'vladimir.romanovsky@cern.ch', subject, '\n'.join( msg ),
-                           'vladimir.romanovsky@cern.ch', localAttempt = False )
-    if not res['OK']:
-      self.log.error( res )
-    else:
-      self.log.info( 'Mail summary sent to production manager' )
-    return S_OK()
+    if self.notify:
+      notify = NotificationClient()
+      subject = 'Production Status Updates ( %s )' % ( time.asctime() )
+      msg = ['Productions updated this cycle:\n']
+      for prod, val in updatedProductions.iteritems():
+        msg.append( 'Production %s: %s => %s' % ( prod, val['from'], val['to'] ) )
+      msg.append( '\nRequests updated to Done status this cycle:\n' )
+      msg.append( ', '.join( [str( i ) for i in updatedRequests] ) )
+      res = notify.sendMail( 'vladimir.romanovsky@cern.ch', subject, '\n'.join( msg ),
+                             'vladimir.romanovsky@cern.ch', localAttempt = False )
+      if not res['OK']:
+        self.log.error( res )
+      else:
+        self.log.info( 'Mail summary sent to production manager' )
 
   def _updateRequestStatus( self, reqID, status, updatedRequests ):
     """ This method updates the request status.

@@ -47,7 +47,7 @@ class AgentTestCase( unittest.TestCase ):
 class ProductionStatusSuccess( AgentTestCase ):
 
   def test__checkActiveToIdle( self ):
-    self.psa.productionsClient = mock.Mock()
+    self.psa.transClient = mock.Mock()
     self.psa._getTransformations = mock.Mock()
     self.psa._getTransformationTaskStats = mock.Mock()
     self.psa._getTransformationFilesStats = mock.Mock()
@@ -70,12 +70,12 @@ class ProductionStatusSuccess( AgentTestCase ):
 
     updatedProductions = []
     prods = [1L, 2L, 3L, 4L]
-    prodsInfo = {1L : {'Type' : 'MCSimulation'},
-                 2L : {'Type' : 'MCSimulation'},
-                 3L : {'Type' : 'MCSimulation'},
-                 4L : {'Type' : 'Merge'},
-                 5L : {'Type' : 'Merge'},
-                 6L : {'Type' : 'Merge'}}
+    prodsInfo = {1L : {'Value': {'Type' : 'MCSimulation'}},
+                 2L : {'Value': {'Type' : 'MCSimulation'}},
+                 3L : {'Value': {'Type' : 'MCSimulation'}},
+                 4L : {'Value': {'Type' : 'Merge'}},
+                 5L : {'Value': {'Type' : 'Merge'}},
+                 6L : {'Value': {'Type' : 'Merge'}}}
     tasksStats = {1L : {'Created' : 100, 'Submitted' : 100, 'Done' : 90, 'Failed' : 10},  # idle
                   2L : {'Created' : 100, 'Submitted' : 50, 'Done' : 50},  # not idle
                   3L : {'Created' : 100, 'Submitted' : 100, 'Done' : 50, 'Failed' : 10, 'Running' : 40}}  # not idle
@@ -89,7 +89,7 @@ class ProductionStatusSuccess( AgentTestCase ):
     callsExp = [ mock.call( 1L, 'Active', 'Idle', updatedProductions ), mock.call( 4L, 'Active', 'Idle', updatedProductions ) ]
 
     self.psa._getTransformations.return_value = prods
-    self.psa.productionsClient.getTransformation.side_effect = lambda prod : prodsInfo[prod]
+    self.psa.transClient.getTransformation.side_effect = lambda prod : prodsInfo[prod]
     self.psa._getTransformationTaskStats.side_effect = lambda prod : tasksStats[prod]
     self.psa._getTransformationFilesStats.side_effect = lambda prod : filesStats[prod]
 
