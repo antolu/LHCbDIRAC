@@ -314,7 +314,7 @@ class OracleBookkeepingDB:
     s.rstepid rsstepid ,s.rstepname rsname, s.rapplicationname rsapplicationname,\
     s.rapplicationversion rsapplicationversion, s.roptionfiles rsoptionfiles,\
     s.rDDDB rsdddb,s.rCONDDB rsconddb, s.rextrapackages rsextrapackages,s.rVisible rsvisible , s.rProcessingPass rsprocessingpass,\
-     s.rUsable rsusable, s.rdqtag rdqtag, s.roptionsFormat roptsf, s.risMulticore rmulti, s.rsystemconfig rsysconfig, r.mcTCK rmcTck \
+     s.rUsable rsusable, s.rdqtag rdqtag, s.roptionsFormat roptsf, s.risMulticore rmulti, s.rsystemconfig rsysconfig, s.mcTCK rmcTck \
     from %s where s.stepid=s.stepid %s \
      ) where rownum <=%d ) where r >%d" % ( fileTypefilter, condition, maximum, start )
         else:
