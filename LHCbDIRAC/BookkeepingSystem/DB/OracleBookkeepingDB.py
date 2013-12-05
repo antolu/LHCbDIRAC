@@ -310,11 +310,11 @@ class OracleBookkeepingDB:
     s.applicationversion sapplicationversion, s.optionfiles soptionfiles,\
     s.DDDB sdddb,s.CONDDB sconddb, s.extrapackages sextrapackages,s.Visible svisible ,\
     s.ProcessingPass sprocessingpass, s.Usable susable, s.dqtag sdqtag, s.optionsFormat soptsf,\
-     s.isMulticore smulti, s.systemconfig ssysconfig, s.mTCK smcTck, \
+     s.isMulticore smulti, s.systemconfig ssysconfig, s.mcTCK smcTck, \
     s.rstepid rsstepid ,s.rstepname rsname, s.rapplicationname rsapplicationname,\
     s.rapplicationversion rsapplicationversion, s.roptionfiles rsoptionfiles,\
     s.rDDDB rsdddb,s.rCONDDB rsconddb, s.rextrapackages rsextrapackages,s.rVisible rsvisible , s.rProcessingPass rsprocessingpass,\
-     s.rUsable rsusable, s.rdqtag rdqtag, s.roptionsFormat roptsf, s.risMulticore rmulti, s.rsystemconfig rsysconfig, r.mTCK rmcTck \
+     s.rUsable rsusable, s.rdqtag rdqtag, s.roptionsFormat roptsf, s.risMulticore rmulti, s.rsystemconfig rsysconfig, r.mcTCK rmcTck \
     from %s where s.stepid=s.stepid %s \
      ) where rownum <=%d ) where r >%d" % ( fileTypefilter, condition, maximum, start )
         else:
@@ -334,36 +334,36 @@ class OracleBookkeepingDB:
     s.applicationversion sapplicationversion, s.optionfiles soptionfiles,\
     s.DDDB sdddb,s.CONDDB sconddb, s.extrapackages sextrapackages,s.Visible svisible ,\
     s.ProcessingPass sprocessingpass, s.Usable susable, s.dqtag sdqtag, s.optionsFormat soptsf,\
-     s.isMulticore smulti, s.systemconfig ssysconfig, s.mTCK smcTck, \
+     s.isMulticore smulti, s.systemconfig ssysconfig, s.mcTCK smcTck, \
     r.stepid rsstepid ,r.stepname rsname, r.applicationname rsapplicationname,\
     r.applicationversion rsapplicationversion, r.optionfiles rsoptionfiles,\
     r.DDDB rsdddb,r.CONDDB rsconddb, r.extrapackages rsextrapackages,r.Visible rsvisible , r.ProcessingPass rsprocessingpass,\
-     r.Usable rsusable, r.dqtag rdqtag, r.optionsFormat roptsf, r.isMulticore rmulti, r.systemconfig rsysconfig, r.mTCK rmcTck \
+     r.Usable rsusable, r.dqtag rdqtag, r.optionsFormat roptsf, r.isMulticore rmulti, r.systemconfig rsysconfig, r.mcTCK rmcTck \
     from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid %s \
      ) where rownum <=%d ) where r >%d" % ( tables, condition, maximum, start )
 
       else:
         command = 'select s.stepid,s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB,\
-         s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat, s.ismulticore, s.systemconfig, s.mTCK, \
+         s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat, s.ismulticore, s.systemconfig, s.mcTCK, \
         r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,\
-        r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.ismulticore, r.systemconfig, r.mTCK \
+        r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.ismulticore, r.systemconfig, r.mcTCK \
         from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid  %s ' % ( tables, condition )
       retVal = self.dbR_.query( command )
     else:
       command = 'select s.stepid, s.stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,s.CONDDB, \
-      s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mTCK,\
+      s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.dqtag, s.optionsformat, s.isMulticore, s.systemconfig, s.mcTCK,\
       r.stepid, r.stepname, r.applicationname,r.applicationversion,r.optionfiles,r.DDDB,r.CONDDB, r.extrapackages,\
-      r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.ismulticore, r.systemconfig, r.mTCK \
+      r.Visible, r.ProcessingPass, r.Usable, r.dqtag, r.optionsformat, r.ismulticore, r.systemconfig, r.mcTCK \
       from %s where s.stepid=rr.stepid(+) and r.stepid(+)=rr.runtimeprojectid ' % ( tables )
       retVal = self.dbR_.query( command )
 
     if retVal['OK']:
       parameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB',
                     'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat',
-                    'isMulticore', 'SystemConfig','mTCK', 'RuntimeProjects']
+                    'isMulticore', 'SystemConfig','mcTCK', 'RuntimeProjects']
       rParameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles',
                      'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag',
-                     'OptionsFormat', 'isMulticore', 'SystemConfig','mTCK']
+                     'OptionsFormat', 'isMulticore', 'SystemConfig','mcTCK']
       records = []
       for record in retVal['Value']:
         step = list( record[0:16] )
@@ -393,7 +393,7 @@ class OracleBookkeepingDB:
     result = S_ERROR()
     condition = ''
     selection = 's.stepid,stepname, s.applicationname,s.applicationversion,s.optionfiles,s.DDDB,CONDDB,\
-     s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.DQTag, s.optionsformat, s.ismulticore, s.systemconfig, s.mTCK'
+     s.extrapackages,s.Visible, s.ProcessingPass, s.Usable, s.DQTag, s.optionsformat, s.ismulticore, s.systemconfig, s.mcTCK'
     tables = 'steps s, runtimeprojects rp'
     stepId = in_dict.get( 'StepId', default )
     if stepId != default:
@@ -403,7 +403,7 @@ class OracleBookkeepingDB:
       if retVal['OK']:
         parameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles',
                       'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag',
-                      'OptionsFormat', 'isMulticore', 'SystemConfig','mTCK']
+                      'OptionsFormat', 'isMulticore', 'SystemConfig','mcTCK']
         records = []
         for record in retVal['Value']:
           records += [list( record )]
@@ -511,7 +511,7 @@ class OracleBookkeepingDB:
       sid = retVal['Value'][0][0]
 
     selection = 'insert into steps(stepid,stepname,applicationname,applicationversion,OptionFiles,dddb,conddb,\
-    extrapackages,visible, processingpass, usable, DQTag, optionsformat,isMulticore, SystemConfig, mTCK'
+    extrapackages,visible, processingpass, usable, DQTag, optionsformat,isMulticore, SystemConfig, mcTCK'
     inFileTypes = in_dict.get( 'InputFileTypes', default )
     if inFileTypes != default:
       inFileTypes = sorted( inFileTypes, key = lambda k: k['FileType'] )
@@ -555,7 +555,7 @@ class OracleBookkeepingDB:
       command += ",'%s'" % ( step.get( 'OptionsFormat', '' ) )
       command += ",'%s'" % ( step.get( 'isMulticore', 'N' ) )
       command += ",'%s'" % ( step.get( 'SystemConfig', 'NULL' ) )
-      command += ",'%s'" % ( step.get( 'mTCK', 'NULL' ) )
+      command += ",'%s'" % ( step.get( 'mcTCK', 'NULL' ) )
       command += values + ")"
       retVal = self.dbW_.query( command )
       if retVal['OK']:
