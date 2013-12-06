@@ -12,7 +12,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import Bookkeepi
 COMPONENT_NAME = 'Transformation'
 
 class Transformation( DIRACTransformation ):
-  """ class - mostly for DM prods
+  """ Class for dealing with Transformation objects
   """
 
   #############################################################################
@@ -27,7 +27,7 @@ class Transformation( DIRACTransformation ):
     else:
       self.transClient = transClientIn
 
-    DIRACTransformation.__init__( self, transID = transID, transClient = self.transClient )
+    super( Transformation, self ).__init__( transID = transID, transClient = self.transClient )
 
     if not  self.paramValues.has_key( 'BkQuery' ):
       self.paramValues['BkQuery'] = {}
@@ -109,61 +109,29 @@ class Transformation( DIRACTransformation ):
   def addTransformation( self, addFiles = True, printOutput = False ):
     """ Add a transformation, using TransformationClient()
     """
-    res = self._checkCreation()
-    if not res['OK']:
-      return self._errorReport( res, 'Failed transformation sanity check' )
-    if printOutput:
-      gLogger.info( "Will attempt to create transformation with the following parameters" )
-      self._prettyPrint( self.paramValues )
+
+    res = super( Transformation, self ).addTransformation( addFiles, printOutput )
+    if res['OK']:
+      transID = res['Value']
+    else:
+      return res
 
     bkQuery = self.paramValues['BkQuery']
     if bkQuery:
       res = self.setBkQuery( bkQuery )
       if not res['OK']:
-        return self._errorReport( res, 'Failed BK query sanity check' )
-
-    res = self.transClient.addTransformation( self.paramValues['TransformationName'],
-                                              self.paramValues['Description'],
-                                              self.paramValues['LongDescription'],
-                                              self.paramValues['Type'],
-                                              self.paramValues['Plugin'],
-                                              self.paramValues['AgentType'],
-                                              self.paramValues['FileMask'],
-                                              transformationGroup = self.paramValues['TransformationGroup'],
-                                              groupSize = self.paramValues['GroupSize'],
-                                              inheritedFrom = self.paramValues['InheritedFrom'],
-                                              body = self.paramValues['Body'],
-                                              maxTasks = self.paramValues['MaxNumberOfTasks'],
-                                              eventsPerTask = self.paramValues['EventsPerTask'],
-                                              addFiles = addFiles,
-                                              bkQuery = self.paramValues['BkQuery'] )
-    if not res['OK']:
-      if printOutput:
-        self._prettyPrint( res )
-      return res
-    transID = res['Value']
-    if self.paramValues['BkQuery']:
+        return self._errorReport( res, "Failed to set BK query" )
       res = self.transClient.getTransformationParameters( transID, ['BkQueryID'] )
       if not res['OK']:
         if printOutput:
           self._prettyPrint( res )
         return res
       self.setBkQueryID( res['Value'] )
-    self.exists = True
-    self.setTransformationID( transID )
-    gLogger.info( "Created transformation %d" % transID )
-    for paramName, paramValue in self.paramValues.items():
-      if not self.paramTypes.has_key( paramName ):
-        if not paramName in ['BkQueryID', 'BkQuery']:
-          # print paramName, type( paramValue ), paramValue
-          # Use str(paramValue) as a temporary fix???
-          res = self.transClient.setTransformationParameter( transID, paramName, str( paramValue ) )
-          if not res['OK']:
-            gLogger.error( "Failed to add parameter", "%s %s" % ( paramName, res['Message'] ) )
-            gLogger.info( "To add this parameter later please execute the following." )
-            gLogger.info( "oTransformation = Transformation(%d)" % transID )
-            gLogger.info( "oTransformation.set%s(...)" % paramName )
-    return S_OK()
+    else:
+      self.transClient.deleteTransformationParameter( transID, 'BkQuery' )
+      self.transClient.deleteTransformationParameter( transID, 'BkQueryID' )
+
+    return S_OK( transID )
 
   def setSEParam( self, key, seList ):
     return self.__setSE( key, seList )

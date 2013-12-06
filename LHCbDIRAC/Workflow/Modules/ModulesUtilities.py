@@ -66,9 +66,11 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
   if CPUNormalizationFactor is None:
     CPUNormalizationFactor = gConfig.getValue( '/LocalSite/CPUNormalizationFactor', 0.0 )
 
-  gLogger.verbose( "CPUTime = %d, CPUNormalizationFactor = %d, CPUe = %f" % ( CPUTime, CPUNormalizationFactor, CPUe ) )
+  gLogger.verbose( "CPUTime = %d, CPUNormalizationFactor = %d, CPUe = %f" % ( int( CPUTime ),
+                                                                              int( CPUNormalizationFactor ),
+                                                                              float( CPUe ) ) )
 
-  eventsToProduce = int( math.floor( ( CPUTime * CPUNormalizationFactor ) / CPUe ) )
+  eventsToProduce = int( math.floor( ( int( CPUTime ) * int( CPUNormalizationFactor ) ) / float( CPUe ) ) )
 
   return eventsToProduce
 

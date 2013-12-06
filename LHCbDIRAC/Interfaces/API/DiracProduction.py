@@ -847,7 +847,7 @@ class DiracProduction( DiracLHCb ):
         return S_ERROR( 'Something wrong with execution!' )
 
     result = prod.create( publish = publishFlag,
-                          requestID = int( requestID ),
+                          requestID = requestID,
                           reqUsed = tracking
                           )
 

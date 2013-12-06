@@ -4,10 +4,12 @@
 import itertools, copy
 from DIRAC import gLogger, S_OK
 
+from DIRAC.Core.DISET.RPCClient                               import RPCClient
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
+
 from LHCbDIRAC.Interfaces.API.DiracProduction                 import DiracProduction
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
 from LHCbDIRAC.ProductionManagementSystem.Client.Production   import Production
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
 
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities              import getEventsToProduce, getCPUNormalizationFactorAvg
 
@@ -43,15 +45,14 @@ class ProductionRequest( object ):
     self.prodsToLaunch = []  # productions to launch
     self.stepsListDict = []  # list of dict of steps
     self.stepsInProds = []  # a list of lists
-    self.eventsToProduce = 0
     # parameters of the input data
     self.processingPass = ''
     self.dataTakingConditions = ''
     self.eventType = ''
     self.bkFileType = []
     self.dqFlag = ''
-    self.startRun = 0
-    self.endRun = 0
+    self.startRun = 1
+    self.endRun = 2
     self.runsList = ''
     self.configName = 'test'
     self.configVersion = 'certification'
@@ -137,7 +138,7 @@ class ProductionRequest( object ):
 
       if not stepsListDictItem.has_key( 'isMulticore' ):
         stepsListDictItem['isMulticore'] = 'N'
-        
+
       if not stepsListDictItem.has_key( 'SystemConfig' ):
         stepsListDictItem['SystemConfig'] = ''
 
@@ -208,11 +209,20 @@ class ProductionRequest( object ):
                                     multicore = prodDict['multicore'] )
 
       # check if we have to extend on multiple jobs
-      max_e = getEventsToProduce( prodDict['CPUe'], self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
-      if max_e == 0:
-        extend = 0
+      if prodDict['productionType'] in ['Simulation', 'MCSimulation']:
+        max_e = getEventsToProduce( prodDict['CPUe'], self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
+        if max_e == 0:
+          extend = 0
+        else:
+          # getting the events to produce
+          rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
+          res = rpcProductionRequest.getProductionRequestSummary( 'Accepted', 'Simulation' )
+          if not res['OK']:
+            return res
+          eventsToProduceForRequest = res['Value'][self.requestID]['reqTotal']
+          extend = eventsToProduceForRequest / max_e
       else:
-        extend = self.eventsToProduce / max_e
+        extend = 0
 
       res = self.diracProduction.launchProduction( prod = prod,
                                                    publishFlag = self.publishFlag,
@@ -227,7 +237,7 @@ class ProductionRequest( object ):
       prodsLaunched.append( prodID )
 
       if self.publishFlag:
-        self.logger.info( 'For request %s, submitted Production %d, of type %s, ID = %s' % ( str( self.requestID ),
+        self.logger.info( 'For request %d, submitted Production %d, of type %s, ID = %s' % ( self.requestID,
                                                                                              prodIndex,
                                                                                              prodDict['productionType'],
                                                                                              str( prodID ) ) )
@@ -482,7 +492,7 @@ class ProductionRequest( object ):
       fTypeIn = [ft.upper() for ft in stepsInProd[0]['fileTypesIn']]
     except IndexError:
       fTypeIn = []
-    prod.LHCbJob.workflow.setName( 'Request_%s_%s_%s_EventType_%s_%s_%s' % ( self.requestID, prodType,
+    prod.LHCbJob.workflow.setName( 'Request_%d_%s_%s_EventType_%s_%s_%s' % ( self.requestID, prodType,
                                                                              self.prodGroup, self.eventType,
                                                                         ''.join( [x.split( '.' )[0] for x in fTypeIn] ),
                                                                              self.appendName ) )
@@ -512,6 +522,7 @@ class ProductionRequest( object ):
     prod.setParameter( 'multicore', 'string', multicore, 'Flag for enabling gaudi parallel' )
     prod.prodGroup = self.prodGroup
     prod.priority = priority
+    prod.LHCbJob.workflow.setDescrShort( 'prodDescription' )
     prod.LHCbJob.workflow.setDescription( 'prodDescription' )
     prod.setJobParameters( { 'CPUTime': cpu } )
     prod.plugin = plugin
@@ -672,19 +683,11 @@ class ProductionRequest( object ):
     return self._stepsList
   stepsList = property( get_stepsList, set_stepsList )
 
-  def set_eventsToProduce( self, value ):
-    if type( value ) == type( '' ):
-      value = float( value )
-    if value < 0.0:
-      raise ValueError( "eventsToProduce can not be negative" )
-    self._eventsToProduce = value
-  def get_eventsToProduce( self ):
-    return self._eventsToProduce
-  eventsToProduce = property( get_eventsToProduce, set_eventsToProduce )
-
   def set_startRun( self, value ):
     if type( value ) == type( '' ):
       value = int( value )
+    if value < 1:
+      raise ValueError( "startRun can not be negative" )
     self._startRun = value
   def get_startRun( self ):
     return self._startRun
@@ -693,10 +696,36 @@ class ProductionRequest( object ):
   def set_endRun( self, value ):
     if type( value ) == type( '' ):
       value = int( value )
+    if value < 2:
+      raise ValueError( "endRun can not be negative" )
     self._endRun = value
   def get_endRun( self ):
     return self._endRun
   endRun = property( get_endRun, set_endRun )
+
+  def set_requestID( self, value ):
+    if value == '':
+      value = 0
+    if type( value ) == type( '' ):
+      value = int( value )
+    if value < 0:
+      raise ValueError( "requestID can not be negative" )
+    self._requestID = value
+  def get_requestID( self ):
+    return self._requestID
+  requestID = property( get_requestID, set_requestID )
+
+  def set_parentRequestID( self, value ):
+    if value == '':
+      value = 0
+    if type( value ) == type( '' ):
+      value = int( value )
+    if value < 0:
+      raise ValueError( "parentRequestID can not be negative" )
+    self._parentRequestID = value
+  def get_parentRequestID( self ):
+    return self._parentRequestID
+  parentRequestID = property( get_parentRequestID, set_parentRequestID )
 
   def set_CPUeList( self, value ):
     if type( value ) != type( [] ):

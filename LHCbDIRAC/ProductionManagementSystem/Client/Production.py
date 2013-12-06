@@ -439,8 +439,7 @@ class Production():
   #############################################################################
 
   def __getProductionParameters( self, prodXMLFile, prodID, groupDescription = '',
-                                bkPassInfo = {}, bkInputQuery = {},
-                                derivedProd = 0, reqID = 0 ):
+                                bkPassInfo = {}, derivedProd = 0, reqID = 0 ):
     """ This method will publish production parameters.
     """
 
@@ -476,7 +475,6 @@ class Production():
 
     parameters['BKCondition'] = prodWorkflow.findParameter( 'conditions' ).getValue()
     parameters['BKProcessingPass'] = bkPassInfo
-    parameters['BKInputQuery'] = bkInputQuery
     parameters['groupDescription'] = groupDescription
     parameters['RequestID'] = reqID
     parameters['DerivedProduction'] = derivedProd
@@ -512,10 +510,13 @@ class Production():
       if bkPassInfo[step]['ExtraPackages']:
         info.append( 'ExtraPackages: %s' % ( bkPassInfo[step]['ExtraPackages'] ) )
 
-    if parameters['BKInputQuery']:
-      info.append( '\nBK Input Data Query:' )
-      for n, v in parameters['BKInputQuery'].items():
-        info.append( '%s= %s' % ( n, v ) )
+    try:
+      if parameters['BkQuery']:
+        info.append( '\nBK Input Data Query:' )
+        for n, v in parameters['BkQuery'].items():
+          info.append( '%s= %s' % ( n, v ) )
+    except KeyError:
+      pass
 
     # BK output directories (very useful)
     bkPaths = []
@@ -627,7 +628,6 @@ class Production():
                                                    prodXMLFile = fileName,
                                                    groupDescription = groupDesc,
                                                    bkPassInfo = bkSteps,
-                                                   bkInputQuery = self.inputBKSelection,
                                                    reqID = requestID,
                                                    derivedProd = self.ancestorProduction )
       for parName, parValue in paramsDict.items():
@@ -794,3 +794,13 @@ class Production():
     self.setParameter( 'simDescription', 'string', conditions, 'SimDescription' )
 
   #############################################################################
+  # properties
+
+  def set_transformationFamily( self, value ):
+    if type( value ) == type( 1 ):
+      value = str( value )
+    self._transformationFamily = value
+  def get_transformationFamily( self ):
+    return self._transformationFamily
+  startRun = property( get_transformationFamily, set_transformationFamily )
+

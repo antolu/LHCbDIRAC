@@ -64,9 +64,8 @@ extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:
 CPUe = '{{MCCPUperEvent#GENERAL: CPU time per event#1.0}}'
 
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2}}'
-MCCpu = '{{MCMaxCPUTime#PROD-1:MC: Max CPU time in secs#1000000}}'
+MCCpu = '{{MCMinCPUTime#PROD-1:MC: Min CPU time requested in secs#50000}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
-pr.extend = '{{MCExtend#PROD-1:MC: extend production by this many jobs#100}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
 
 selectionPlugin = '{{selectionPlugin#PROD-2:Selection: plugin e.g. Standard, BySize#BySize}}'
@@ -74,7 +73,6 @@ selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total s
 selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 by default#6}}'
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
-selSysConfig = '{{selSystemConfig#PROD-2:Selection System config e.g. x86_64-slc5-gcc43-opt, ANY#x86_64-slc5-gcc46-opt}}'
 selmulticoreFlag = '{{selMulticoreFLag#PROD-2: multicore flag#True}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
