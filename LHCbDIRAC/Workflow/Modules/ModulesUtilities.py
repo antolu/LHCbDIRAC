@@ -64,13 +64,13 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
     CPUTime = gConfig.getValue( '/LocalSite/CPUTime', 50000 )
 
   if CPUNormalizationFactor is None:
-    CPUNormalizationFactor = gConfig.getValue( '/LocalSite/CPUNormalizationFactor', 0.0 )
+    CPUNormalizationFactor = gConfig.getValue( '/LocalSite/CPUNormalizationFactor', 1.0 )
 
-  gLogger.verbose( "CPUTime = %d, CPUNormalizationFactor = %d, CPUe = %f" % ( int( CPUTime ),
-                                                                              int( CPUNormalizationFactor ),
-                                                                              float( CPUe ) ) )
+  gLogger.verbose( "CPUTime = %d, CPUNormalizationFactor = %f, CPUe = %d" % ( CPUTime,
+                                                                              CPUNormalizationFactor,
+                                                                              CPUe ) )
 
-  eventsToProduce = int( math.floor( ( int( CPUTime ) * int( CPUNormalizationFactor ) ) / float( CPUe ) ) )
+  eventsToProduce = int( math.floor( CPUTime * CPUNormalizationFactor ) / float( CPUe ) )
 
   return eventsToProduce
 
@@ -109,7 +109,7 @@ def getCPUNormalizationFactorAvg():
   if nQueues == 0:
     raise RuntimeError( "No queues to get CPU normalization factor from" )
   else:
-    CPUNormalizationFactorAvg = factorsSum / nQueues
+    CPUNormalizationFactorAvg = float( factorsSum / nQueues )
 
   return CPUNormalizationFactorAvg
 

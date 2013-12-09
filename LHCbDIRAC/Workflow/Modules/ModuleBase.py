@@ -244,7 +244,7 @@ class ModuleBase( object ):
       self.gaudiSteps = self.workflow_commons['gaudiSteps']
 
     if self.workflow_commons.has_key( 'CPUe' ):
-      self.CPUe = float( self.workflow_commons['CPUe'] )
+      self.CPUe = int( self.workflow_commons['CPUe'] )
 
     if self.workflow_commons.has_key( 'multicore' ):
       self.multicoreJob = self.workflow_commons['multicore']

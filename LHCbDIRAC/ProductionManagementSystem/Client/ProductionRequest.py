@@ -71,7 +71,7 @@ class ProductionRequest( object ):
                         'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
     # used to compute the maximum number of events to produce
     # default values
-    self.CPUTimeAvg = 1000000.0
+    self.CPUTimeAvg = 1000000
     self.CPUNormalizationFactorAvg = 1.0
 
     # parameters of each production (the length of each list has to be the same as the number of productions
@@ -210,7 +210,7 @@ class ProductionRequest( object ):
 
       # check if we have to extend on multiple jobs
       if prodDict['productionType'] in ['Simulation', 'MCSimulation']:
-        max_e = getEventsToProduce( prodDict['CPUe'], self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
+        max_e = getEventsToProduce( prodDict['CPUe'], self.CPUTimeAvg, 1.0 )
         if max_e == 0:
           extend = 0
         else:
@@ -258,7 +258,7 @@ class ProductionRequest( object ):
       self.events += ['-1'] * ( len( self.prodsTypeList ) - len( self.events ) )
 
     if len( self.CPUeList ) != len( self.prodsTypeList ):
-      self.CPUeList += ['1.0'] * ( len( self.prodsTypeList ) - len( self.CPUeList ) )
+      self.CPUeList += [1] * ( len( self.prodsTypeList ) - len( self.CPUeList ) )
 
     if not self.removeInputsFlags:
       removeInputsFlags = []
@@ -479,7 +479,7 @@ class ProductionRequest( object ):
                         derivedProdID = 0,
                         transformationFamily = 0,
                         events = -1,
-                        CPUe = 100.0,
+                        CPUe = 100,
                         multicore = 'True' ):
     """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object
@@ -729,9 +729,9 @@ class ProductionRequest( object ):
 
   def set_CPUeList( self, value ):
     if type( value ) != type( [] ):
-      value = list( value )
+      value = [int( v ) for v in value]
     for x in value:
-      if x < 0.0:
+      if x < 0:
         raise ValueError( "CPUe can not be negative" )
     self._CPUeList = value
   def get_CPUeList( self ):

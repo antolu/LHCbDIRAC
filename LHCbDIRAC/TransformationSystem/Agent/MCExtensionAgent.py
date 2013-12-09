@@ -25,8 +25,8 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     self.enableFlag = True
 
     # default values
-    self.cpuE = 1.0
-    self.cpuTimeAvg = 1000000.0
+    self.cpuE = 1
+    self.cpuTimeAvg = 1000000
     self.cpuNormalizationFactorAvg = 1.0
 
   #############################################################################
@@ -164,7 +164,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     productionID = production['TransformationID']
     eventsToProduce = eventsNeeded * extensionFactor
 
-    cpuE = float( getProductionParameterValue( production['Body'], 'CPUe' ) )
+    cpuE = int( getProductionParameterValue( production['Body'], 'CPUe' ) )
     if cpuE is None:
       self.log.info( 'Could not get CPUe from production, defaulting to %d' % self.cpuE )
       cpuE = self.cpuE
