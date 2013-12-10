@@ -104,14 +104,14 @@ class UserJobFinalization( ModuleBase ):
       if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
         self.log.verbose( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'],
                                                                        self.stepStatus['OK'] ) )
-        self.log.error( 'Workflow status is not ok, will not overwrite application status.' )
-        return S_ERROR( 'Workflow failed, UserJobFinalization module completed' )
+        self.log.error( "Workflow status is not ok, will not overwrite application status." )
+        return S_ERROR( "Workflow failed, UserJobFinalization module completed" )
 
       if not self.userOutputData:
-        self.log.info( 'No user output data is specified for this job, nothing to do' )
-        return S_OK( 'No output data to upload' )
+        self.log.info( "No user output data is specified for this job, nothing to do" )
+        return S_OK( "No output data to upload" )
 
-      self.log.info( 'User specified output file list is: %s' % ( ', '.join( self.userOutputData ) ) )
+      self.log.info( "User specified output file list is: %s" % ( ', '.join( self.userOutputData ) ) )
 
       globList = []
       for i in self.userOutputData:
@@ -129,9 +129,9 @@ class UserJobFinalization( ModuleBase ):
           extra files to upload are: %s' % ( ', '.join( globbedOutputList ) ) )
           self.userOutputData += globbedOutputList
         else:
-          self.log.info( 'No files were found on the local disk for the following patterns: %s' % ( ', '.join( globList ) ) )
+          self.log.info( "No files were found on the local disk for the following patterns: %s" % ( ', '.join( globList ) ) )
 
-      self.log.info( 'Final list of files to upload are: %s' % ( ', '.join( self.userOutputData ) ) )
+      self.log.info( "Final list of files to upload are: %s" % ( ', '.join( self.userOutputData ) ) )
 
       # Determine the final list of possible output files for the
       # workflow and all the parameters needed to upload them.
@@ -143,13 +143,13 @@ class UserJobFinalization( ModuleBase ):
 
       userOutputLFNs = []
       if self.userOutputData:
-        self.log.info( 'Constructing user output LFN(s) for %s' % ( ', '.join( self.userOutputData ) ) )
+        self.log.info( "Constructing user output LFN(s) for %s" % ( ', '.join( self.userOutputData ) ) )
 
         owner = self.getCurrentOwner()
 
         userOutputLFNs = constructUserLFNs( self.jobID, owner, self.userOutputData, self.userOutputPath )
 
-      self.log.verbose( 'Calling getCandidateFiles( %s, %s, %s)' % ( outputList, userOutputLFNs,
+      self.log.verbose( "Calling getCandidateFiles( %s, %s, %s)" % ( outputList, userOutputLFNs,
                                                                      self.outputDataFileMask ) )
       try:
         fileDict = self.getCandidateFiles( outputList, userOutputLFNs, self.outputDataFileMask )
@@ -164,13 +164,13 @@ class UserJobFinalization( ModuleBase ):
         return S_OK()
 
       if not fileMetadata:
-        self.log.info( 'No output data files were determined to be uploaded for this workflow' )
+        self.log.info( "No output data files were determined to be uploaded for this workflow" )
         self.setApplicationStatus( 'No Output Data Files To Upload' )
         return S_OK()
 
       # First get the local (or assigned) SE to try first for upload and others in random fashion
       localSE = getDestinationSEList( 'Tier1-USER', DIRAC.siteName(), outputmode = 'local' )
-      self.log.verbose( 'Site Local SE for user outputs is: %s' % ( localSE ) )
+      self.log.verbose( "Site Local SE for user outputs is: %s" % ( localSE ) )
       orderedSEs = self.defaultOutputSE
       for se in localSE:
         if se in orderedSEs:
@@ -187,7 +187,7 @@ class UserJobFinalization( ModuleBase ):
             prependSEs.append( userSE )
         orderedSEs = prependSEs + orderedSEs
 
-      self.log.info( 'Ordered list of output SEs is: %s' % ( ', '.join( orderedSEs ) ) )
+      self.log.info( "Ordered list of output SEs is: %s" % ( ', '.join( orderedSEs ) ) )
       final = {}
       for fileName, metadata in fileMetadata.items():
         final[fileName] = metadata
@@ -195,7 +195,7 @@ class UserJobFinalization( ModuleBase ):
 
       # At this point can exit and see exactly what the module will upload
       if not self._enableModule():
-        self.log.info( 'Module disabled would have attempted to upload the files %s' % ', '.join( final.keys() ) )
+        self.log.info( "Module disabled would have attempted to upload the files %s" % ', '.join( final.keys() ) )
         for fileName, metadata in final.items():
           self.log.info( '--------%s--------' % fileName )
           for n, v in metadata.items():
@@ -204,7 +204,7 @@ class UserJobFinalization( ModuleBase ):
         return S_OK( 'Module is disabled by control flag' )
 
       # Disable the watchdog check in case the file uploading takes a long time
-      self.log.info( 'Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog prior to upload' )
+      self.log.info( "Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog prior to upload" )
       fopen = open( 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'w' )
       fopen.write( '%s' % time.asctime() )
       fopen.close()
@@ -219,18 +219,18 @@ class UserJobFinalization( ModuleBase ):
       uploaded = []
       for fileName, metadata in final.items():
         self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName,
-                                                                                     ', '.join( metadata['resolvedSE'] ) ) )
-        fileMetaDict = { "Size": metadata['filedict']['Size'],
-                         "LFN" : metadata['filedict']['LFN'],
+                                                                                ', '.join( metadata['resolvedSE'] ) ) )
+        fileMetaDict = { 'Size': metadata['filedict']['Size'],
+                         'LFN' : metadata['filedict']['LFN'],
                          'GUID' : metadata['filedict']['GUID'] }
         result = self.failoverTransfer.transferAndRegisterFile( fileName = fileName,
-                                             localPath = metadata['localpath'],
-                                             lfn = metadata['filedict']['LFN'],
-                                             destinationSEList = metadata['resolvedSE'],
-                                             fileMetaDict = fileMetaDict,
-                                             fileCatalog = self.userFileCatalog )
+                                                                localPath = metadata['localpath'],
+                                                                lfn = metadata['filedict']['LFN'],
+                                                                destinationSEList = metadata['resolvedSE'],
+                                                                fileMetaDict = fileMetaDict,
+                                                                fileCatalog = self.userFileCatalog )
         if not result['OK']:
-          self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
+          self.log.error( "Could not transfer and register %s with metadata:\n %s" % ( fileName, metadata ) )
           failover[fileName] = metadata
         else:
           # Only attempt replication after successful upload
@@ -246,7 +246,7 @@ class UserJobFinalization( ModuleBase ):
                 break
 
           if replicateSE and lfn:
-            self.log.info( 'Will attempt to replicate %s to %s' % ( lfn, replicateSE ) )
+            self.log.info( "Will attempt to replicate %s to %s" % ( lfn, replicateSE ) )
             replication[lfn] = replicateSE
 
       cleanUp = False
@@ -254,16 +254,16 @@ class UserJobFinalization( ModuleBase ):
         random.shuffle( self.failoverSEs )
         targetSE = metadata['resolvedSE'][0]
         metadata['resolvedSE'] = self.failoverSEs
-        fileMetaDict = { "Size": metadata['filedict']['Size'],
-                         "LFN" : metadata['filedict']['LFN'],
+        fileMetaDict = { 'Size': metadata['filedict']['Size'],
+                         'LFN' : metadata['filedict']['LFN'],
                          'GUID' : metadata['filedict']['GUID'] }
         result = self.failoverTransfer.transferAndRegisterFileFailover( fileName,
-                                                     metadata['localpath'],
-                                                     metadata['lfn'],
-                                                     targetSE,
-                                                     metadata['resolvedSE'],
-                                                     fileMetaDict = fileMetaDict,
-                                                     fileCatalog = self.userFileCatalog )
+                                                                        metadata['localpath'],
+                                                                        metadata['lfn'],
+                                                                        targetSE,
+                                                                        metadata['resolvedSE'],
+                                                                        fileMetaDict = fileMetaDict,
+                                                                        fileCatalog = self.userFileCatalog )
         if not result['OK']:
           self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
           cleanUp = True
@@ -271,6 +271,7 @@ class UserJobFinalization( ModuleBase ):
         else:
           lfn = metadata['lfn']
           uploaded.append( lfn )
+          uploadedSE = result['Value']['uploadedSE']
 
       # For files correctly uploaded must report LFNs to job parameters
       if uploaded:
@@ -290,25 +291,12 @@ class UserJobFinalization( ModuleBase ):
       # If there is now at least one replica for uploaded files can trigger replication
       self.log.info( 'Sleeping for 10 seconds before attempting replication of recently uploaded files' )
       time.sleep( 10 )
-      self.log.verbose( 'Setting all non-CERN LFC mirrors to "InActive" before replication' )
-      cfgRoot = '/Resources/FileCatalogs/LcgFileCatalogCombined'
-      result = gConfig.getSections( cfgRoot )
-      if not result['OK']:
-        self.log.info( 'Could not get %s section to turn off mirrors' )
-      else:
-        for tier in result['Value']:
-          # FIXME: really this check?
-          if not tier == 'LCG.CERN.ch':
-            tierCfg = '%s/%s/Status' % ( cfgRoot, tier )
-            self.log.verbose( 'Setting "%s" to "InActive" in local configuration' % tierCfg )
-            gConfig.setOptionValue( tierCfg, 'InActive' )
-
       for lfn, repSE in replication.items():
         result = self.rm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
         if not result['OK']:
-          # FIXME: shouldn't we set a replication request here?
-          self.log.info( 'Replication failed with below error\
-           but file already exists in Grid storage with at least one replica:\n%s' % ( result['Message'] ) )
+          self.log.info( "Replication failed: %s. Now adding request" % ( result['Message'] ) )
+          self.failoverTransfer._setFileReplicationRequest( lfn, repSE, fileMetaDict, uploadedSE )
+          self.request = self.failoverTransfer.request
 
       self.workflow_commons['Request'] = self.request
 
