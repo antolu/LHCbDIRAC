@@ -153,6 +153,11 @@ class SpaceTokenOccupancyTest( TestBase ):
     self.xmlPath = rootPath + "/" + self.getAgentOption( "webRoot" ) + self.getTestOption( "dir" )
     
     self.rmClient = ResourceManagementClient()
+    try:
+      os.makedirs( self.xmlPath )
+    except OSError:
+      pass # The dir exist already, or cannot be created: do nothing
+
 
     self.generate_xml_and_dashboard()
 
