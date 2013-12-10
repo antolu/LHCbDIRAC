@@ -61,7 +61,7 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
   """
 
   if CPUTime is None:
-    CPUTime = gConfig.getValue( '/LocalSite/CPUTime', 50000 )
+    CPUTime = gConfig.getValue( '/LocalSite/CPUTime', 10000 )
 
   if CPUNormalizationFactor is None:
     CPUNormalizationFactor = gConfig.getValue( '/LocalSite/CPUNormalizationFactor', 1.0 )
