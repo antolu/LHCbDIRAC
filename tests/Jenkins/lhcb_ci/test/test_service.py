@@ -279,6 +279,9 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         if self.isException( service ):
           continue
 
+        if not 'Transformation' in service:
+          continue
+
         currentThreads, activeThreads = lhcb_ci.commons.trackThreads()        
        
         res = lhcb_ci.service.setupService( system, service )      

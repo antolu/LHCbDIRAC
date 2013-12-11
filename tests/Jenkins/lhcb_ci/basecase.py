@@ -29,9 +29,12 @@ def time_test( test ):
     result = test( *args, **kwargs )
     end = datetime.datetime.utcnow()
     
-    print test.__name__
-    print 'start : %s' % start
-    print 'end   : %s' % end
+    timmings = os.path.join( lhcb_ci.reports, 'timmings.txt' )
+    tFile    = open( timmings, 'a' )
+    tFile.write( test.__name__ )
+    tFile.write( '\n start %s' % start )
+    tFile.write( '\n end   %s\n' % end )
+    tFile.close()
     
     return result
     
