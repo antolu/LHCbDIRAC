@@ -199,7 +199,7 @@ class DB_TestCase( Base_TestCase ):
     if res[ 'Value' ]:
       self.log.error( 'setUp' )
       self.fail( 'DBs still installed: %s' % res[ 'Value' ] )  
-
+      
     
   def tearDown( self ):
     """ tearDown
@@ -210,6 +210,7 @@ class DB_TestCase( Base_TestCase ):
     
     super( DB_TestCase, self ).tearDown()
     
+    #FIXME: apart from failing, we should wipe them out 
     res = lhcb_ci.db.getInstalledDBs()
     if not res[ 'OK' ]:
       self.log.error( 'tearDown' )
