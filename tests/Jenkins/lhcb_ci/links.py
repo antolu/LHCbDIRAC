@@ -47,6 +47,8 @@ class Link( object ):
   
   def __init__( self, sut ):
     
+    lhcb_ci.logger.debug( sut )
+    
     self.system, self.component, self.name = sut.split( '.' )
   
   
@@ -62,7 +64,10 @@ class Link( object ):
     if not isinstance( descendants, list ):
       descendants = [ descendants ]  
   
+    lhcb_ci.logger.debug( str( descendants ) )
+  
     for descendant in descendants:
+      lhcb_ci.logger.debug( descendant )
       Link( descendant ).build()
     
     return self.load()
@@ -80,7 +85,7 @@ class Link( object ):
     try:
       return LINKS[ self.component ][ self.name ]
     except KeyError:
-      pass       
+      pass
     
     if self.component == 'Client':
       nextComponent = 'Service'
@@ -89,16 +94,17 @@ class Link( object ):
       nextComponent = 'DB'
       replacement   = ( 'Manager', 'DB' )
     else:
-      raise Exception( 'Unknown' )
+      
+      raise Exception( 'Unknown %s' % self.component )
     
     guessName = self.name.replace( *replacement )
     
     try:
-      _ = self.components[ self.component ][ guessName ]
+      _ = self.components[ self.component ][ self.system ][ guessName ]
       guessName = [ guessName ]
     except KeyError:
       try:
-        guessName = self.components[ nextComponent ]
+        guessName = self.components[ nextComponent ][ self.system ]
       except KeyError:
         guessName = []    
     
