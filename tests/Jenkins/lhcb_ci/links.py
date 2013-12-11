@@ -45,12 +45,16 @@ class Link( object ):
   
   chain = []
   
-  def __init__( self, system, component, name ):
+  def __init__( self, sut ):
     
-    self.component = component
-    self.system    = system
-    self.name      = name
+    self.component, self.system, self.name = sut.split( '.' )
   
+  
+  def reset( self, dbs, services ):
+    
+    self.components[ 'DB'  ]     = dbs
+    self.components[ 'Service' ] = services
+    self.chain = []
     
   def build( self ):
     
