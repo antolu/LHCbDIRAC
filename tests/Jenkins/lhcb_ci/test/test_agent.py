@@ -143,8 +143,8 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
   test_agents_install_drop.install = 1
   test_agents_install_drop.agent   = 1
   
-  test_agents_voimport.install = 1
-  test_agents_voimport.agent   = 1
+  test_agents_voimport.install = 0
+  test_agents_voimport.agent   = 0
 
 
 class SmokeTest( lhcb_ci.basecase.Agent_TestCase ):
