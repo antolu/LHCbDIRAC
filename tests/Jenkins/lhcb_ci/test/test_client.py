@@ -17,6 +17,7 @@ class TransformationClientTest( lhcb_ci.basecase.Client_TestCase ):
   
   SUT = 'TransformationSystem.Client.TransformationClient'
   
+  @lhcb_ci.basecase.time_test
   def test_demo( self ):
     
     raise NameError( 'DONE' )  

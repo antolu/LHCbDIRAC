@@ -6,19 +6,37 @@
   
 """
 
-
+import datetime
 import inspect
 import os
 import unittest
 
+
 import lhcb_ci.agent
-#import lhcb_ci.chains
 import lhcb_ci.db
 import lhcb_ci.exceptions
+import lhcb_ci.links
 import lhcb_ci.service
 
 
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
+
+def time_test( test ):
+  
+  def wrapper( *args, **kwargs ):
+    
+    start = datetime.datetime.utcnow()
+    result = test( *args, **kwargs )
+    end = datetime.datetime.utcnow()
+    
+    print test.__name__
+    print 'start : %s' % start
+    print 'end   : %s' % end
+    
+    return result
+    
+  return wrapper  
+    
 
 
 class Base_TestCase( unittest.TestCase ):
