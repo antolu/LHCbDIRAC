@@ -22,8 +22,6 @@ class DataStoragePlotter( BaseReporter ):
 
   _typeName          = "DataStorage"
   _typeKeyFields     = [ dF[0] for dF in DataStorage().definitionKeyFields ]
-  _noSEtypeKeyFields = [ dF[0] for dF in DataStorage().definitionKeyFields if dF[0] != 'StorageElement' ]
-  _noSEGrouping      = ( ", ".join( "%s" for f in _noSEtypeKeyFields ), _noSEtypeKeyFields )
 
   #.............................................................................
   # Catalog Space
@@ -32,68 +30,68 @@ class DataStoragePlotter( BaseReporter ):
   def _reportCatalogSpace( self, reportRequest ):
     '''
     Reports about the LFN size and the catalog space from the accounting.
-    
+
     :param reportRequest: <dict>
       { 'grouping'       : 'EventType',
         'groupingFields' : ( '%s', [ 'EventType' ] ),
         'startTime'      : 1355663249.0,
         'endTime'        : 1355749690.0,
-        'condDict'       : { 'EventType' : 'Full stream' } 
+        'condDict'       : { 'EventType' : 'Full stream' }
       }
-      
+
     returns S_OK / S_ERROR
-      { 'graphDataDict': { 'Full stream': { 1355616000L: 935.38852424691629, 
+      { 'graphDataDict': { 'Full stream': { 1355616000L: 935.38852424691629,
                                             1355702400L: 843.84448707482204 }
-                         }, 
-        'data'         : { 'Full stream': { 1355616000L: 935388.52424691629, 
+                         },
+        'data'         : { 'Full stream': { 1355616000L: 935388.52424691629,
                                             1355702400L: 843844.48707482207 }
-                         }, 
-        'unit'         : 'GB', 
+                         },
+        'unit'         : 'GB',
         'granularity'  : 86400
-      }  
+      }
     '''
-    
+
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
-    
+
     selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    
+
     selectFields = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
-                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength', 
-                                                             'LogicalSize', 'entriesInBucket' 
+                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
+                                                             'LogicalSize', 'entriesInBucket'
                                                              ]
                    )
-    
+
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
                                  selectFields,
                                  reportRequest[ 'condDict' ],
-                                 DataStoragePlotter._noSEGrouping,
+                                 reportRequest[ 'groupingFields' ],
                                  { 'convertToGranularity' : 'sum', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
-    
+
     dataDict, granularity = retVal[ 'Value' ]
     self.stripDataField( dataDict, 0 )
-    
+
     accumMaxValue = self._getAccumulationMaxValue( dataDict )
     suitableUnits = self._findSuitableUnit( dataDict, accumMaxValue, "bytes" )
-     
-    #3rd variable unused ( maxValue ) 
+
+    #3rd variable unused ( maxValue )
     baseDataDict, graphDataDict, __, unitName = suitableUnits
-     
-    return S_OK( { 
-                   'data'          : baseDataDict, 
+
+    return S_OK( {
+                   'data'          : baseDataDict,
                    'graphDataDict' : graphDataDict,
-                   'granularity'   : granularity, 
-                   'unit'          : unitName 
+                   'granularity'   : granularity,
+                   'unit'          : unitName
                    } )
 
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
     '''
-    Creates <filename>.png file containing information regarding the LFN size and 
+    Creates <filename>.png file containing information regarding the LFN size and
     the catalog space.
-    
+
     :param reportRequest: <dict>
        { 'grouping'       : 'EventType',
          'groupingFields' : ( '%s', [ 'EventType' ] ),
@@ -102,69 +100,69 @@ class DataStoragePlotter( BaseReporter ):
          'condDict'       : { 'EventType' : 'Full stream' }
        }
     :param plotInfo: <dict> ( output of _reportCatalogSpace )
-       { 'graphDataDict' : { 'Full stream' : { 1355616000L: 4.9003546130956819, 
+       { 'graphDataDict' : { 'Full stream' : { 1355616000L: 4.9003546130956819,
                                                1355702400L: 4.9050379437065059 }
-                           }, 
-         'data'          : { 'Full stream' : { 1355616000L: 4900354613.0956821, 
+                           },
+         'data'          : { 'Full stream' : { 1355616000L: 4900354613.0956821,
                                                1355702400L: 4905037943.7065058 }
-                           }, 
-         'unit'          : 'PB', 
+                           },
+         'unit'          : 'PB',
          'granularity'   : 86400
-        }    
+        }
     :param filename: <str>
       '_plotCatalogSpace'
-      
+
     returns S_OK / S_ERROR
-       { 'plot': True, 'thumbnail': False }  
+       { 'plot': True, 'thumbnail': False }
     '''
-    
+
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
     dataDict  = plotInfo[ 'graphDataDict' ]
-    
-    metadata = { 
+
+    metadata = {
                 'title'     : "LFN space usage grouped by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ] 
+                'ylabel'    : plotInfo[ 'unit' ]
                }
-    
+
     dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
 
   #.............................................................................
-  # Catalog Files 
-  
+  # Catalog Files
+
   _reportCatalogFilesName = "LFN files"
   def _reportCatalogFiles( self, reportRequest ):
     '''
     Reports about the LFN files and the catalog files from the accounting.
-    
+
     :param reportRequest: <dict>
       { 'grouping'       : 'EventType',
         'groupingFields' : ( '%s', [ 'EventType' ] ),
         'startTime'      : 1355663249.0,
         'endTime'        : 1355749690.0,
-        'condDict'       : { 'EventType' : 'Full stream' } 
+        'condDict'       : { 'EventType' : 'Full stream' }
       }
-    
+
     returns S_OK / S_ERROR
-      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 420.47885754501203, 
+      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 420.47885754501203,
                                               1355702400L : 380.35170637810842 }
-                                            }, 
-        'data'          : { 'Full stream' : { 1355616000L : 420.47885754501203, 
+                                            },
+        'data'          : { 'Full stream' : { 1355616000L : 420.47885754501203,
                                               1355702400L : 380.35170637810842 }
-                                            }, 
-        'unit'          : 'files', 
-        'granularity'   : 86400 
-      }  
+                                            },
+        'unit'          : 'files',
+        'granularity'   : 86400
+      }
     '''
-    
+
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
-    
+
     selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
@@ -175,69 +173,69 @@ class DataStoragePlotter( BaseReporter ):
                                  reportRequest[ 'endTime' ],
                                  selectFields,
                                  reportRequest[ 'condDict' ],
-                                 DataStoragePlotter._noSEGrouping,
+                                 reportRequest[ 'groupingFields' ],
                                  { 'convertToGranularity' : 'sum', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
-    
+
     dataDict, granularity = retVal[ 'Value' ]
     self.stripDataField( dataDict, 0 )
-    
+
     accumMaxValue = self._getAccumulationMaxValue( dataDict )
     suitableUnits = self._findSuitableUnit( dataDict, accumMaxValue, "files" )
-    
+
     #3rd variable unused ( maxValue )
     baseDataDict, graphDataDict, __, unitName = suitableUnits
-    
-    return S_OK( { 
-                   'data'          : baseDataDict, 
+
+    return S_OK( {
+                   'data'          : baseDataDict,
                    'graphDataDict' : graphDataDict,
-                   'granularity'   : granularity, 
-                   'unit'          : unitName 
+                   'granularity'   : granularity,
+                   'unit'          : unitName
                    } )
 
   def _plotCatalogFiles( self, reportRequest, plotInfo, filename ):
     '''
-    Creates <filename>.png file containing information regarding the LFN files 
+    Creates <filename>.png file containing information regarding the LFN files
     and the catalog files.
-    
+
     :param reportRequest: <dict>
       { 'grouping'       : 'EventType',
         'groupingFields' : ( '%s', [ 'EventType' ] ),
         'startTime'      : 1355663249.0,
         'endTime'        : 1355749690.0,
-        'condDict'       : { 'EventType' : 'Full stream' } 
+        'condDict'       : { 'EventType' : 'Full stream' }
       }
     :param plotInfo: <dict> ( output of _reportCatalogFiles )
-      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 420.47885754501203, 
+      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 420.47885754501203,
                                               1355702400L : 380.35170637810842 }
-                          }, 
-        'data'          : { 'Full stream' : { 1355616000L : 420.47885754501203, 
+                          },
+        'data'          : { 'Full stream' : { 1355616000L : 420.47885754501203,
                                               1355702400L : 380.35170637810842 }
-                          }, 
-        'unit'          : 'files', 
-        'granularity'   : 86400 
+                          },
+        'unit'          : 'files',
+        'granularity'   : 86400
       }
     :param filename: <str>
       '_plotCatalogFiles'
-    
+
     returns S_OK / S_ERROR
-       { 'plot': True, 'thumbnail': False }    
+       { 'plot': True, 'thumbnail': False }
     '''
-    
+
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
     dataDict  = plotInfo[ 'graphDataDict' ]
-    
-    metadata = { 
+
+    metadata = {
                 'title'     : "Number of LFNs by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ] 
+                'ylabel'    : plotInfo[ 'unit' ]
                }
-    
+
     dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
 
@@ -248,27 +246,27 @@ class DataStoragePlotter( BaseReporter ):
   def _reportPhysicalSpace( self, reportRequest ):
     '''
     Reports about the PFN size and the physical space from the accounting.
-    
+
     :param reportRequest: <dict>
       { 'grouping'       : 'EventType',
         'groupingFields' : ( '%s', [ 'EventType' ] ),
         'startTime'      : 1355663249.0,
         'endTime'        : 1355749690.0,
-        'condDict'       : { 'EventType' : 'Full stream' } 
+        'condDict'       : { 'EventType' : 'Full stream' }
       }
-    
+
     returns S_OK / S_ERROR
-      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 14.754501202, 
+      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 14.754501202,
                                               1355702400L : 15.237810842 }
-                          }, 
-        'data'          : { 'Full stream' : { 1355616000L : 14.754501202, 
+                          },
+        'data'          : { 'Full stream' : { 1355616000L : 14.754501202,
                                               1355702400L : 15.237810842 }
-                          }, 
-        'unit'          : 'MB', 
-        'granularity'   : 86400 
+                          },
+        'unit'          : 'MB',
+        'granularity'   : 86400
       }
     '''
-    
+
     selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( selectString + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
@@ -283,26 +281,26 @@ class DataStoragePlotter( BaseReporter ):
                                  { 'convertToGranularity' : 'average', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
-    
+
     dataDict, granularity = retVal[ 'Value' ]
     self.stripDataField( dataDict, 0 )
-    
+
     accumMaxValue = self._getAccumulationMaxValue( dataDict )
     suitableUnits = self._findSuitableUnit( dataDict, accumMaxValue, "bytes" )
-    
+
     #3rd variable unused ( maxValue )
     baseDataDict, graphDataDict, __, unitName = suitableUnits
-    
-    return S_OK( { 
-                  'data'          : baseDataDict, 
+
+    return S_OK( {
+                  'data'          : baseDataDict,
                   'graphDataDict' : graphDataDict,
-                  'granularity'   : granularity, 
-                  'unit'          : unitName 
+                  'granularity'   : granularity,
+                  'unit'          : unitName
                   } )
 
   def _plotPhysicalSpace( self, reportRequest, plotInfo, filename ):
     '''
-    Creates <filename>.png file containing information regarding the PFN size and 
+    Creates <filename>.png file containing information regarding the PFN size and
     the physical space.
 
     :param reportRequest: <dict>
@@ -310,69 +308,69 @@ class DataStoragePlotter( BaseReporter ):
         'groupingFields' : ( '%s', [ 'EventType' ] ),
         'startTime'      : 1355663249.0,
         'endTime'        : 1355749690.0,
-        'condDict'       : { 'EventType' : 'Full stream' } 
+        'condDict'       : { 'EventType' : 'Full stream' }
       }
     :param plotInfo: <dict> ( output of _reportPhysicalSpace )
-      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 14.754501202, 
+      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 14.754501202,
                                               1355702400L : 15.237810842 }
-                          }, 
-        'data'          : { 'Full stream' : { 1355616000L : 14.754501202, 
+                          },
+        'data'          : { 'Full stream' : { 1355616000L : 14.754501202,
                                               1355702400L : 15.237810842 }
-                          }, 
-        'unit'          : 'MB', 
-        'granularity'   : 86400 
+                          },
+        'unit'          : 'MB',
+        'granularity'   : 86400
       }
     :param filename: <str>
       '_plotPhysicalSpace'
-    
+
     returns S_OK / S_ERROR
-       { 'plot': True, 'thumbnail': False }      
+       { 'plot': True, 'thumbnail': False }
     '''
-    
+
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
-    dataDict  = plotInfo[ 'graphDataDict' ]  
-    
-    metadata = { 
+    dataDict  = plotInfo[ 'graphDataDict' ]
+
+    metadata = {
                 'title'     : "PFN space usage by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ] 
+                'ylabel'    : plotInfo[ 'unit' ]
                 }
-    
+
     dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
 
   #.............................................................................
-  # Physical Files 
+  # Physical Files
 
   _reportPhysicalFilesName = "PFN files"
   def _reportPhysicalFiles( self, reportRequest ):
     '''
     Reports about the PFN files and the physical files from the accounting.
-    
+
     :param reportRequest: <dict>
        { 'grouping'       : 'EventType',
          'groupingFields' : ( '%s', [ 'EventType' ] ),
          'startTime'      : 1355663249.0,
          'endTime'        : 1355749690.0,
-         'condDict'       : { 'EventType' : 'Full stream' } 
+         'condDict'       : { 'EventType' : 'Full stream' }
        }
-    
+
     returns S_OK / S_ERROR
-      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 42.47885754501203, 
+      { 'graphDataDict' : { 'Full stream' : { 1355616000L : 42.47885754501203,
                                               1355702400L : 38.35170637810842 }
-                          }, 
-        'data'          : { 'Full stream' : { 1355616000L : 42.47885754501203, 
+                          },
+        'data'          : { 'Full stream' : { 1355616000L : 42.47885754501203,
                                               1355702400L : 38.35170637810842 }
-                          }, 
-        'unit'          : 'files', 
-        'granularity'   : 86400 
+                          },
+        'unit'          : 'files',
+        'granularity'   : 86400
       }
     '''
-    
+
     selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( selectString + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
@@ -389,62 +387,62 @@ class DataStoragePlotter( BaseReporter ):
       return retVal
     dataDict, granularity = retVal[ 'Value' ]
     self.stripDataField( dataDict, 0 )
-    
+
     accumMaxValue = self._getAccumulationMaxValue( dataDict )
     suitableUnits = self._findSuitableUnit( dataDict, accumMaxValue, "files" )
-    
+
     #3rd variable unused ( maxValue )
     baseDataDict, graphDataDict, __, unitName = suitableUnits
-    
-    return S_OK( { 
-                   'data'          : baseDataDict, 
+
+    return S_OK( {
+                   'data'          : baseDataDict,
                    'graphDataDict' : graphDataDict,
-                   'granularity'   : granularity, 
-                   'unit'          : unitName 
+                   'granularity'   : granularity,
+                   'unit'          : unitName
                   } )
 
   def _plotPhysicalFiles( self, reportRequest, plotInfo, filename ):
     '''
-    Creates <filename>.png file containing information regarding the PFN files and 
+    Creates <filename>.png file containing information regarding the PFN files and
     the physical files.
-    
+
     :param reportRequest: <dict>
        { 'grouping'       : 'EventType',
          'groupingFields' : ( '%s', [ 'EventType' ] ),
          'startTime'      : 1355663249.0,
          'endTime'        : 1355749690.0,
-         'condDict'       : { 'EventType' : 'Full stream' } 
+         'condDict'       : { 'EventType' : 'Full stream' }
        }
     :param plotInfo: <dict> ( output of _reportPhysicalFiles )
-      { 'graphDataDict' : { 'Full stream' : { 1355616000L: 4.9003546130956819, 
+      { 'graphDataDict' : { 'Full stream' : { 1355616000L: 4.9003546130956819,
                                               1355702400L: 4.9050379437065059 }
-                          }, 
-        'data'          : { 'Full stream' : { 1355616000L: 4900354613.0956821, 
+                          },
+        'data'          : { 'Full stream' : { 1355616000L: 4900354613.0956821,
                                               1355702400L: 4905037943.7065058 }
-                          }, 
-        'unit'          : 'PB', 
+                          },
+        'unit'          : 'PB',
         'granularity'   : 86400
       }
     :param filename: <str>
       '_plotPhysicalFiles'
-      
+
     return S_OK / S_ERROR
-       { 'plot': True, 'thumbnail': False }      
+       { 'plot': True, 'thumbnail': False }
     '''
 
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
-    dataDict  = plotInfo[ 'graphDataDict' ]  
-    
-    metadata = { 
+    dataDict  = plotInfo[ 'graphDataDict' ]
+
+    metadata = {
                 'title'     : "Number of PFNs by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ] 
+                'ylabel'    : plotInfo[ 'unit' ]
                }
-    
+
     dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
 
