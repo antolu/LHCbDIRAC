@@ -92,8 +92,9 @@ class Link( object ):
     elif self.component == 'Service':
       nextComponent = 'DB'
       replacement   = ( 'Manager', 'DB' )
+    elif self.component == 'DB':
+      return []  
     else:
-      
       raise Exception( 'Unknown %s' % self.component )
     
     guessName = self.name.replace( *replacement )
