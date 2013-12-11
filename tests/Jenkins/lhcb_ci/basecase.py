@@ -105,6 +105,7 @@ class Base_TestCase( unittest.TestCase ):
 
     self.currentThreads_, self.activeThreads_ = lhcb_ci.commons.trackThreads()
 
+
   def tearDown( self ):
     """ tearDown
     
@@ -335,52 +336,54 @@ class Agent_TestCase( Service_TestCase ):
       self.fail( 'Agents still installed: %s' % installedAgents )
   
 
-#class Chain_TestCase( Agent_TestCase ): 
-#  """ Chain_TestCase
-#  
-#  TestCase for client-service-db related tests. It discovers the client modules 
-#  in the code from a quick inspection of *Client.py
-#  
-#  """
-# 
-#
-#  @classmethod
-#  def setUpClass( cls ):
-#    """ setUpClass
-#    
-#    Prints a little header and discovers tests.
-#    
-#    """
-#
-#    super( Chain_TestCase, cls ).setUpClass()
-#    cls.log.info( '::: Chain_TestCase setUpClass :::' )
-#
-#
-#  def setUp( self ):
-#    """ setUp
-#    
-#    Makes sure there is nothing installed before starting the test.
-#    
-#    """
-#    
-#    super( Chain_TestCase, self ).setUp()
-#    
-#    #clientName = self.__class__.__name__.replace( 'Test', '' )
-#    
-#    self.chain = lhcb_ci.chains.Chain( self.SUT )
-#    self.chain.load()
-#    
-#    
-#  def tearDown( self ):
-#    """ tearDown
-#    
-#    Makes sure there is nothing installed after the test.
-#    
-#    """
-#    
-#    self.chain.unload()
-#    
-#    super( Chain_TestCase, self ).tearDown()
+class Client_TestCase( Agent_TestCase ): 
+  """ Chain_TestCase
+  
+  TestCase for client-service-db related tests. It discovers the client modules 
+  in the code from a quick inspection of *Client.py
+  
+  """
+ 
+ 
+  SUT = ''
+  
+
+  @classmethod
+  def setUpClass( cls ):
+    """ setUpClass
+    
+    Prints a little header and discovers tests.
+    
+    """
+
+    super( Client_TestCase, cls ).setUpClass()
+    cls.log.info( '::: Client_TestCase setUpClass :::' )
+
+
+  def setUp( self ):
+    """ setUp
+    
+    Makes sure there is nothing installed before starting the test.
+    
+    """
+    
+    super( Client_TestCase, self ).setUp()
+    
+    self.chain = lhcb_ci.links.Link( self.SUT )
+    self.chain.reset( self.databases, self.swServices )
+    self.chain.load()
+    
+    
+  def tearDown( self ):
+    """ tearDown
+    
+    Makes sure there is nothing installed after the test.
+    
+    """
+    
+    self.chain.destroy()
+    
+    super( Client_TestCase, self ).tearDown()
     
     
 #...............................................................................
