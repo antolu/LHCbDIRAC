@@ -40,7 +40,7 @@ def getSoftwareServices():
   serviceDict = res[ 'Value' ][ 'Services' ]
   # The method is a bit buggy, so we have to fix it here.
   for systemName, serviceList in serviceDict.items():
-    serviceDict[ systemName ] = list( set( serviceList ) )
+    serviceDict[ systemName + 'System' ] = list( set( serviceList ) )
   
   return serviceDict  
 

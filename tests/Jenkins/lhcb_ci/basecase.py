@@ -392,9 +392,6 @@ class Client_TestCase( Agent_TestCase ):
     
     self.chain = lhcb_ci.links.Link( self.SUT )
     
-    self.log.info( str( self.databases ) )
-    self.log.info( str( self.swServices ) )
-    
     self.chain.reset( self.databases, self.swServices )
     self.chain.build()
     

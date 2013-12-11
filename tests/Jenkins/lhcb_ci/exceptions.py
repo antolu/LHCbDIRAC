@@ -3,6 +3,10 @@
   LHCb Continuous Integration system libraries.
 
   @author: mario.ubeda.garcia@cern.ch
+
+  Ideally, this module should be empty. That would mean that we have no exceptions,
+  we follow patterns, code is not buggy... At the moment, we are far from that 
+  point.
   
 """
 

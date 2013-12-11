@@ -105,7 +105,7 @@ class Link( object ):
       try:
         guessName = self.components[ nextComponent ][ self.system ]
       except KeyError:
-        guessName = []    
+        guessName = []
     
     return [ '%s.%s.%s' % ( self.system, nextComponent, name ) for name in guessName ]
     

@@ -39,6 +39,8 @@ class ConfigureTest( lhcb_ci.basecase.Service_TestCase ):
 
     for systemName, services in self.swServices.iteritems():
       
+      systemName = systemName.replace( 'System', '' )
+      
       # Master Configuration is already on place.
       if systemName == 'Configuration':
         self.log.debug( 'Skipping Master Configuration' )
@@ -81,6 +83,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
     ports = {}
     
     for system, services in self.swServices.iteritems():
+      
+      system = system.replace( 'System', '' )
       
       for service in services:
       
@@ -127,6 +131,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
     authRules = collections.defaultdict( dict )
     
     for system, services in self.swServices.iteritems():
+      
+      system = system.replace( 'System', '' )
       
       for service in services:
         
@@ -187,6 +193,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
    
     for diracSystem, services in self.swServices.iteritems():
       
+      diracSystem = diracSystem.replace( 'System', '' )
+      
       for service in services:
 
         serviceName = '%s/%s' % ( diracSystem, service )
@@ -222,6 +230,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
     self.logTestName()
    
     for diracSystem, services in self.swServices.iteritems():
+      
+      diracSystem = diracSystem.replace( 'System', '' )
       
       for service in services:
 
@@ -268,6 +278,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
     self.logTestName()
             
     for system, services in self.swServices.iteritems():
+      
+      system = system.replace( 'System', '' )
       
       if system == 'Configuration':
         self.log.debug( 'Skipping Master Configuration' )
@@ -345,6 +357,8 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
     self.logTestName()
     
     for system, services in self.swServices.iteritems():
+      
+      system = system.replace( 'System', '' )
       
       if system == 'Configuration':
         self.log.debug( 'Skipping Master Configuration' )
