@@ -686,7 +686,7 @@ function runTest(){
   source $WORKSPACE/bashrc
 
   export PYTHONPATH=$PYTHONPATH:$WORKSPACE/LHCbTestDirac/Jenkins
-  export LHCB_CI_DEBUG=$WORKSPACE/testLogs/$BUILD_NUMBER.${TEST_MODE}.log
+  export LHCB_CI_DEBUG=$WORKSPACE/testLogs/${TEST_MODE}.log
 
   echo "########################################################"
   echo "$TEST_MODE TESTS"
