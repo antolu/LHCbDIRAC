@@ -47,7 +47,7 @@ class Link( object ):
   
   def __init__( self, sut ):
     
-    self.component, self.system, self.name = sut.split( '.' )
+    self.system, self.component, self.name = sut.split( '.' )
   
   
   def reset( self, dbs, services ):
@@ -60,10 +60,10 @@ class Link( object ):
     
     descendants = self.getDescendants()
     if not isinstance( descendants, list ):
-      descendants = list( descendants )  
+      descendants = [ descendants ]  
   
     for descendant in descendants:
-      Link( *descendant ).build()
+      Link( descendant ).build()
     
     return self.load()
   
@@ -78,7 +78,7 @@ class Link( object ):
   def getDescendants( self ):
     
     try:
-      return self.name in LINKS[ self.component ][ self.name ]
+      return LINKS[ self.component ][ self.name ]
     except KeyError:
       pass       
     
@@ -95,7 +95,7 @@ class Link( object ):
     
     try:
       _ = self.components[ self.component ][ guessName ]
-      guessName = list( guessName )
+      guessName = [ guessName ]
     except KeyError:
       try:
         guessName = self.components[ nextComponent ]
