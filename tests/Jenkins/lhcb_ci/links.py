@@ -127,7 +127,7 @@ class Link( object ):
     if self.component == 'DB':
       lhcb_ci.db.installDB( self.name )
     elif self.component == 'Service':
-      lhcb_ci.service.initializeServiceReactor( self.system, self.name )
+      lhcb_ci.service.initializeServiceReactor( self.system.replace( 'System', '' ), self.name )
   
     self.chain.append( self )
   
