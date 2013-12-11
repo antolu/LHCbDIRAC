@@ -47,7 +47,7 @@ class Link( object ):
   
   def __init__( self, sut ):
     
-    lhcb_ci.logger.debug( sut )
+    lhcb_ci.logger.debug( 'NEW %s' % sut )
     
     self.system, self.component, self.name = sut.split( '.' )
   
@@ -67,7 +67,6 @@ class Link( object ):
     lhcb_ci.logger.debug( str( descendants ) )
   
     for descendant in descendants:
-      lhcb_ci.logger.debug( descendant )
       Link( descendant ).build()
     
     return self.load()
@@ -90,7 +89,7 @@ class Link( object ):
     if self.component == 'Client':
       nextComponent = 'Service'
       replacement   = ( 'Client', 'Manager' )
-    elif self.component == 'DB':
+    elif self.component == 'Service':
       nextComponent = 'DB'
       replacement   = ( 'Manager', 'DB' )
     else:
