@@ -69,7 +69,9 @@ test_agent = {
     # __init__() takes at least 4 arguments (3 given)
     'MCExtensionAgent',
     # OperationHandlers section not found in CS under
-    'RequestExecutingAgent'                        
+    'RequestExecutingAgent',
+    # unindent does not match any outer indentation level (StorageManagementDB.py, line 1110)
+    'RequestFinalizationAgent'                        
                           
                           ],
               
@@ -196,11 +198,12 @@ test_service = {
 
   'test_services_install_drop' : [
     'BookkeepingManager',
-    'Gateway'
-                                  ]
+    'Gateway',
+    'StorageManager'
+                                      ]
 
-}   
-    
+}
+
 
 #...............................................................................
 #EOF
