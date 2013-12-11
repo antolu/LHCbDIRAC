@@ -199,7 +199,8 @@ test_service = {
   'test_services_install_drop' : [
     'BookkeepingManager',
     'Gateway',
-    'StorageManager'
+    'StorageManager',
+    'MigrationMonitoring',
                                       ]
 
 }
