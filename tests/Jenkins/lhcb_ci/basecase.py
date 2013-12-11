@@ -12,6 +12,7 @@ import os
 import unittest
 
 import lhcb_ci.agent
+import lhcb_ci.chains
 import lhcb_ci.db
 import lhcb_ci.exceptions
 import lhcb_ci.service
@@ -320,10 +321,53 @@ class Agent_TestCase( Service_TestCase ):
       self.fail( 'Agents still installed: %s' % installedAgents )
   
 
-class DIRAC_TestCase( Agent_TestCase ): 
-  #FIXME: implement it !
-  pass
+class Chain_TestCase( Agent_TestCase ): 
+  """ Chain_TestCase
+  
+  TestCase for client-service-db related tests. It discovers the client modules 
+  in the code from a quick inspection of *Client.py
+  
+  """
+ 
+
+  @classmethod
+  def setUpClass( cls ):
+    """ setUpClass
+    
+    Prints a little header and discovers tests.
+    
+    """
+
+    super( Chain_TestCase, cls ).setUpClass()
+    cls.log.info( '::: Chain_TestCase setUpClass :::' )
 
 
+  def setUp( self ):
+    """ setUp
+    
+    Makes sure there is nothing installed before starting the test.
+    
+    """
+    
+    super( Chain_TestCase, self ).setUp()
+    
+    clientName = self.__class__.__name__.replace( 'Test', '' )
+    
+    self.chain = lhcb_ci.chains.Chain( clientName )
+    self.chain.load()
+    
+    
+  def tearDown( self ):
+    """ tearDown
+    
+    Makes sure there is nothing installed after the test.
+    
+    """
+    
+    self.chain.unload()
+    
+    super( Chain_TestCase, self ).tearDown()
+    
+    
 #...............................................................................
 #EOF
