@@ -325,24 +325,6 @@ class ServiceComponent( Component ):
     rpcClient = RPCClient( url )  
     
     return rpcClient.ping()
-  
-  
-  
-#  def run( self ):
-#    
-#    systemName = self.system.replace( 'System', '' )
-#    sReactor = lhcb_ci.service.initializeServiceReactor( systemName , self.name )
-#    if not sReactor[ 'OK' ]:
-#      return sReactor
-#    sReactor = sReactor[ 'Value' ]
-#    
-#    # Extract the initialized ServiceReactor        
-#    self.server, self.serviceName, self.service = lhcb_ci.service.serve( sReactor )
-#
-#    
-#  def stop( self ):
-#    
-#    return lhcb_ci.service.unserve( self.server )  
        
 
 #...............................................................................

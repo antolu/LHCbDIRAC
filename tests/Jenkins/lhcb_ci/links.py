@@ -206,13 +206,17 @@ class Link( object ):
     self.currentThreads, self.activeThreads = lhcb_ci.commons.trackThreads()
     
     if self.component == 'DB':
-      db = lhcb_ci.component.Component( self.system, 'DB', self.name )
-      db.install()
+      self.db = lhcb_ci.component.Component( self.system, 'DB', self.name )
+      self.db.install()
       #lhcb_ci.db.installDB( self.name )
     elif self.component == 'Service':
-      sReactor = lhcb_ci.service.initializeServiceReactor( self.system.replace( 'System', '' ), self.name )
+      
+      self.service = lhcb_ci.component.Component( self.system, 'Service', self.name )
+      self.service.run()
+      
+      #sReactor = lhcb_ci.service.initializeServiceReactor( self.system.replace( 'System', '' ), self.name )
       # Extract the initialized ServiceReactor        
-      self.server, self.serviceName, self.service = lhcb_ci.service.serve( sReactor[ 'Value' ] )
+      #self.server, self.serviceName, self.service = lhcb_ci.service.serve( sReactor[ 'Value' ] )
 
     lhcb_ci.logger.debug( 'CHAIN %s' % self.name )
     lhcb_ci.logger.debug( str( [ c.name for c in self.chain() ] ) )    
@@ -230,10 +234,11 @@ class Link( object ):
     lhcb_ci.logger.debug( 'UNLOADED %s' % self.name )
     
     if self.component == 'DB':
-      db = lhcb_ci.component.Component( self.system, 'DB', self.name )
-      db.uninstall()
+      #db = lhcb_ci.component.Component( self.system, 'DB', self.name )
+      self.db.uninstall()
     elif self.component == 'Service':
-      lhcb_ci.service.unserve( self.server )
+      self.db.stop()
+      #lhcb_ci.service.unserve( self.server )
     
     threadsAfterPurge = lhcb_ci.commons.killThreads( self.currentThreads )
     

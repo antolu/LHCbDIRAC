@@ -90,77 +90,77 @@ def initializeServiceClass( serviceClass, serviceName ):
                                      msgBroker, None )
 
 
-def initializeServiceReactor( system, service ):
-  """ initializeServiceReactor
-  
-  Initializes the ServiceReactor for a given system/service
-  """
-  
-  logger.debug( 'initializeServiceReactor for %s/%s' % ( system, service ) )
-  
-  sReactor = ServiceReactor()
-  
-  res = sReactor.initialize( [ '%s/%s' % ( system, service ) ] )
-  if res[ 'OK' ]:
-    res[ 'Value' ] = sReactor
-    
-  return res
+#def initializeServiceReactor( system, service ):
+#  """ initializeServiceReactor
+#  
+#  Initializes the ServiceReactor for a given system/service
+#  """
+#  
+#  logger.debug( 'initializeServiceReactor for %s/%s' % ( system, service ) )
+#  
+#  sReactor = ServiceReactor()
+#  
+#  res = sReactor.initialize( [ '%s/%s' % ( system, service ) ] )
+#  if res[ 'OK' ]:
+#    res[ 'Value' ] = sReactor
+#    
+#  return res
 
 
-def serve( sReactor ):
-  
-  server = ServiceThread( sReactor = sReactor )  
-  server.start()
-  
-  sleep( 2 )
-  
-  serviceName = sReactor._ServiceReactor__services.keys()[ 0 ]
-  service     = sReactor._ServiceReactor__services[ serviceName ]
+#def serve( sReactor ):
+#  
+#  server = ServiceThread( sReactor = sReactor )  
+#  server.start()
+#  
+#  sleep( 2 )
+#  
+#  serviceName = sReactor._ServiceReactor__services.keys()[ 0 ]
+#  service     = sReactor._ServiceReactor__services[ serviceName ]
+#
+#  return server, serviceName, service
+#
+#def unserve( server ):
+#
+#  # Stop while True
+#  server.sReactor._ServiceReactor__alive = False
+#  server.sReactor.closeListeningConnections()
+#  
+##  # And delete Service object from dictionary
+##  #FIXME: maybe we do not need to do this
+##  del sReactor._ServiceReactor__services[ serviceName ]
+#    
+#  server.join( 60 )
+#  if server.isAlive():
+#    logger.exception( 'EXCEPTION: server thread is alive' )
+#    return False
+#  
+#  return True
 
-  return server, serviceName, service
 
-def unserve( server ):
-
-  # Stop while True
-  server.sReactor._ServiceReactor__alive = False
-  server.sReactor.closeListeningConnections()
-  
-#  # And delete Service object from dictionary
-#  #FIXME: maybe we do not need to do this
-#  del sReactor._ServiceReactor__services[ serviceName ]
-    
-  server.join( 60 )
-  if server.isAlive():
-    logger.exception( 'EXCEPTION: server thread is alive' )
-    return False
-  
-  return True
-
-
-def serveAndPing( sReactor ):
-  """ serveAndPing
-  
-  Serve Service from ServiceReactor and ping it
-  """
-  
-  logger.debug( 'serveAndPing' )
-  
-  server, serviceName, service = serve( sReactor )    
-  logger.debug( 'Connecting to %s' % serviceName )
-  
-  #FIXME: somehow it does not read the url properly    
-  url = service._url
-  rss = RPCClient( url )
-      
-  logger.debug( 'Requesting ping to %s' % serviceName )
-  actionResult = rss.ping()
-      
-  logger.debug( 'Cleanup %s' % serviceName )
-  
-  if not unserve( server ):
-    actionResult = { 'OK' : False, 'Message' : 'server thread is alive' }
-  
-  return actionResult
+#def serveAndPing( sReactor ):
+#  """ serveAndPing
+#  
+#  Serve Service from ServiceReactor and ping it
+#  """
+#  
+#  logger.debug( 'serveAndPing' )
+#  
+#  server, serviceName, service = serve( sReactor )    
+#  logger.debug( 'Connecting to %s' % serviceName )
+#  
+#  #FIXME: somehow it does not read the url properly    
+#  url = service._url
+#  rss = RPCClient( url )
+#      
+#  logger.debug( 'Requesting ping to %s' % serviceName )
+#  actionResult = rss.ping()
+#      
+#  logger.debug( 'Cleanup %s' % serviceName )
+#  
+#  if not unserve( server ):
+#    actionResult = { 'OK' : False, 'Message' : 'server thread is alive' }
+#  
+#  return actionResult
   
 
 class ServiceThread( Thread ):

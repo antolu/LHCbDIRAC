@@ -392,13 +392,11 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
         for dbName in dbNames:
           db  = lhcb_ci.component.Component( system, 'DB', dbName )
           res = db.install()
-          self.assertDIRACEquals( db[ 'OK' ], True, db )
+          self.assertDIRACEquals( res[ 'OK' ], True, res )
         
         service = lhcb_ci.component.Component( system, 'Service', serviceName  )
         res     = service.run()  
         self.assertDIRACEquals( res[ 'OK' ], True, res )
-        
-        res     = service.ping()
           
         #res = lhcb_ci.service.initializeServiceReactor( system, serviceName )
         
@@ -406,6 +404,7 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
         #sReactor = res[ 'Value' ]
         
         #res = lhcb_ci.service.serveAndPing( sReactor )
+        res = service.ping()
         self.log.debug( str( res ) )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
