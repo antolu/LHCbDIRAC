@@ -362,7 +362,13 @@ class ServiceComponent( Component ):
 
 
 class AgentComponent( Component ):
-  pass
+  
+  def configure( self ):
+    
+    super( AgentComponent, self ).configure()
+    
+    return InstallTools.addDefaultOptionsToCS( gConfig, 'agent', self._systemName(), 
+                                               self.name, self.extensions )
 
 #...............................................................................
 

@@ -40,7 +40,10 @@ class ConfigureTest( lhcb_ci.basecase.Agent_TestCase ):
         if self.isException( agentName ):
           continue
       
-        res = lhcb_ci.agent.configureAgent( systemName, agentName )
+        agent = lhcb_ci.component.Component( systemName, 'Agent', agentName )
+        res   = agent.configure()
+      
+      #  res = lhcb_ci.agent.configureAgent( systemName, agentName )
         self.assertDIRACEquals( res[ 'OK' ], True, res )    
 
 

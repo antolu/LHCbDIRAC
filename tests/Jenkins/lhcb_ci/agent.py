@@ -34,15 +34,15 @@ def getSoftwareAgents():
   return agentDict  
 
 
-def configureAgent( systemName, agentName ):
-  """ configureAgent
-  
-  Configures systemName/agentName in the CS
-  """
-  
-  logger.debug( 'Configuring Agent %s/%s' % ( systemName, agentName ) )
-  return InstallTools.addDefaultOptionsToCS( gConfig, 'agent', systemName, 
-                                             agentName, getCSExtensions() )
+#def configureAgent( systemName, agentName ):
+#  """ configureAgent
+#  
+#  Configures systemName/agentName in the CS
+#  """
+#  
+#  logger.debug( 'Configuring Agent %s/%s' % ( systemName, agentName ) )
+#  return InstallTools.addDefaultOptionsToCS( gConfig, 'agent', systemName, 
+#                                             agentName, getCSExtensions() )
 
 
 def setupAgent( system, agent ):
