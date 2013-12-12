@@ -86,7 +86,7 @@ class Link( object ):
     for link in self.chain():
       link.unload()
     
-    return self.unload()    
+    self.unload()    
   
   
   def getDescendants( self ):
@@ -149,6 +149,8 @@ class Link( object ):
   
   def unload( self ):
     
+    lhcb_ci.logger.debug( 'UNLOADED %s' % self.name )
+    
     if self.component == 'DB':
       lhcb_ci.db.dropDB( self.name )
     elif self.component == 'Service':
@@ -156,7 +158,8 @@ class Link( object ):
     
     threadsAfterPurge = lhcb_ci.commons.killThreads( self.currentThreads )
     
-    return threadsAfterPurge == self.activeThreads
+    if not threadsAfterPurge == self.activeThreads:
+      lhcb_ci.logger.exception( 'Different number of threads !' )
 
 #...............................................................................
 #EOF
