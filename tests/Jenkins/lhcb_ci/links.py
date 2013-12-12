@@ -24,8 +24,6 @@
 
 
 import lhcb_ci.commons
-import lhcb_ci.db
-import lhcb_ci.service
 
 
 # Chains........................................................................
@@ -205,18 +203,8 @@ class Link( object ):
 
     self.currentThreads, self.activeThreads = lhcb_ci.commons.trackThreads()
     
-    if self.component == 'DB':
-      self.db = lhcb_ci.component.Component( self.system, 'DB', self.name )
-      self.db.install()
-      #lhcb_ci.db.installDB( self.name )
-    elif self.component == 'Service':
-      
-      self.service = lhcb_ci.component.Component( self.system, 'Service', self.name )
-      self.service.run()
-      
-      #sReactor = lhcb_ci.service.initializeServiceReactor( self.system.replace( 'System', '' ), self.name )
-      # Extract the initialized ServiceReactor        
-      #self.server, self.serviceName, self.service = lhcb_ci.service.serve( sReactor[ 'Value' ] )
+    self.componentObj = lhcb_ci.component.Component( self.system, self.component, self.name ) 
+    self.componentObj.run()
 
     lhcb_ci.logger.debug( 'CHAIN %s' % self.name )
     lhcb_ci.logger.debug( str( [ c.name for c in self.chain() ] ) )    
@@ -233,12 +221,7 @@ class Link( object ):
     
     lhcb_ci.logger.debug( 'UNLOADED %s' % self.name )
     
-    if self.component == 'DB':
-      #db = lhcb_ci.component.Component( self.system, 'DB', self.name )
-      self.db.uninstall()
-    elif self.component == 'Service':
-      self.db.stop()
-      #lhcb_ci.service.unserve( self.server )
+    self.componentObj.stop()
     
     threadsAfterPurge = lhcb_ci.commons.killThreads( self.currentThreads )
     

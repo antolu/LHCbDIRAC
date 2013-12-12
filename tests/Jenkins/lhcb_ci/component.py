@@ -154,7 +154,10 @@ class DBComponent( Component ):
     InstallTools.getMySQLPasswords()
     
     return InstallTools.installDatabase( self.name )
-  
+
+  # Run method in DBComponent does not make much sense. For completeness, we 
+  # link it to install.  
+  run = install
   
   def uninstall( self ):
     """ uninstall
@@ -168,6 +171,10 @@ class DBComponent( Component ):
     # parametrics... 
     query = "drop database %s" % self.name
     return lhcb_ci.db.execute( query )
+
+  # Stop method in DBComponent does not make much sense. For completeness, we 
+  # link it to uninstall.
+  stop = uninstall
 
 
   #.............................................................................
@@ -325,7 +332,6 @@ class ServiceComponent( Component ):
     rpcClient = RPCClient( url )  
     
     return rpcClient.ping()
-       
 
 #...............................................................................
 
