@@ -46,7 +46,8 @@ class Component( object ):
 
   
   def configure( self ):
-    pass
+    
+    lhcb_ci.logger.debug( 'Configure %s: %s/%s' % ( self.component, self.systemName(), self.name ) )
 
   
   def install( self ):
@@ -72,8 +73,9 @@ class DBComponent( Component ):
   
     Configures dbName in the CS
     """
+    
+    super( DBComponent, self ).configure()
   
-    lhcb_ci.logger.debug( 'Configuring DB %s/%s' % ( self.systemName(), self.name ) )
     return InstallTools.addDatabaseOptionsToCS( gConfig, self.systemName(), self.name )
     
   
