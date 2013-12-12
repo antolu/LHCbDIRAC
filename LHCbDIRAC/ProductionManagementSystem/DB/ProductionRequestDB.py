@@ -1238,7 +1238,8 @@ class ProductionRequestDB( DB ):
     ''' return the list of state changes for the requests
         requestID must be Long and already checked
     '''
-    req = "SELECT * FROM RequestHistory WHERE RequestID=%s " % requestID
+    req = "SELECT "+','.join( self.historyFields )
+    req += " FROM RequestHistory WHERE RequestID=%s " % requestID
     req += "ORDER BY TimeStamp"
     result = self._query( req )
     if not result['OK']:
