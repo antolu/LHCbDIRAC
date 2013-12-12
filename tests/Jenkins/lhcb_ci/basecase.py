@@ -26,7 +26,6 @@ import lhcb_ci.service
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
 
 
-
 def timeDecorator( test ):
   """ timeDecorator
   
@@ -37,18 +36,26 @@ def timeDecorator( test ):
   
   @functools.wraps( test )
   def wrapper( *args, **kwargs ):
+    """ wrapper
     
-    start = datetime.datetime.utcnow()
+    Standard wrapper function. Note that is decorated by functools.wraps to be
+    used with unittest. Otherwise, the decorated test method loses its name
+    and is not run by nose.
+    """
+    
+    start  = datetime.datetime.utcnow()
     result = test( *args, **kwargs )
-    end = datetime.datetime.utcnow()
+    end    = datetime.datetime.utcnow()
     
-    seconds = ( end - start ).total_seconds()
+    tdelta = end - start
+    # Python2.6 has no total_seconds, need to do it on the old way
+    seconds = tdelta.days * 24 * 3600 + tdelta.seconds
     
     timmings = os.path.join( lhcb_ci.reports, 'timmings.txt' )
-    tFile    = open( timmings, 'a' )
-    tFile.write( test.__name__ )
-    tFile.write( '\n %s\n' % seconds )
-    tFile.close()
+    
+    with open( timmings, 'a' ) as tFile:
+      tFile.write( test.__name__ )
+      tFile.write( '\n %s\n' % seconds )
     
     return result
     
@@ -56,7 +63,7 @@ def timeDecorator( test ):
     
 
 
-class Base_TestCase( unittest.TestCase ):
+class BaseTestCase( unittest.TestCase ):
   """ Base_TestCase
   
   BaseCase extending unittests used by lhcb_ci tests. It sets a logger with two
@@ -191,9 +198,9 @@ class Base_TestCase( unittest.TestCase ):
         
     return False    
     
-    
-class DB_TestCase( Base_TestCase ):
-  """ DB_TestCase
+
+class DBTestCase( BaseTestCase ):
+  """ DBTestCase
   
   TestCase for database related tests. It parses databases file and transforms it
   into a dictionary ( databases ). Similarly, MySQL passwords are parsed from files. 
@@ -210,8 +217,8 @@ class DB_TestCase( Base_TestCase ):
     
     """
 
-    super( DB_TestCase, cls ).setUpClass()
-    cls.log.debug( '::: DB_TestCase setUpClass :::' )
+    super( DBTestCase, cls ).setUpClass()
+    cls.log.debug( '::: DBTestCase setUpClass :::' )
     
     cls.databases = lhcb_ci.db.getDatabases()         
     cls.rootPass  = lhcb_ci.db.getRootPass()
@@ -225,7 +232,7 @@ class DB_TestCase( Base_TestCase ):
     
     """
     
-    super( DB_TestCase, self ).setUp()
+    super( DBTestCase, self ).setUp()
     
     res = lhcb_ci.db.getInstalledDBs()  
     if not res[ 'OK' ]:
@@ -244,7 +251,7 @@ class DB_TestCase( Base_TestCase ):
     
     """
     
-    super( DB_TestCase, self ).tearDown()
+    super( DBTestCase, self ).tearDown()
     
     #FIXME: apart from failing, we should wipe them out 
     res = lhcb_ci.db.getInstalledDBs()
@@ -257,8 +264,8 @@ class DB_TestCase( Base_TestCase ):
       self.fail( 'DBs still installed: %s' % res[ 'Value' ] )
 
 
-class Service_TestCase( DB_TestCase ):
-  """ Service_TestCase
+class ServiceTestCase( DBTestCase ):
+  """ ServiceTestCase
   
   TestCase for service related tests. It discovers the service modules in the
   code from a quick inspection of *Handler.py
@@ -273,8 +280,8 @@ class Service_TestCase( DB_TestCase ):
     
     """
 
-    super( Service_TestCase, cls ).setUpClass()
-    cls.log.info( '::: Service_TestCase setUpClass :::' )
+    super( ServiceTestCase, cls ).setUpClass()
+    cls.log.info( '::: ServiceTestCase setUpClass :::' )
     
     cls.swServices = lhcb_ci.service.getSoftwareServices()
     
@@ -286,7 +293,7 @@ class Service_TestCase( DB_TestCase ):
     
     """
     
-    super( Service_TestCase, self ).setUp()
+    super( ServiceTestCase, self ).setUp()
     
     installedServices = lhcb_ci.service.getInstalledServices()  
     
@@ -305,7 +312,7 @@ class Service_TestCase( DB_TestCase ):
     
     """
     
-    super( Service_TestCase, self ).tearDown()
+    super( ServiceTestCase, self ).tearDown()
     
     installedServices = lhcb_ci.service.getInstalledServices()
    
@@ -317,8 +324,8 @@ class Service_TestCase( DB_TestCase ):
       self.fail( 'Services still installed: %s' % installedServices )
 
 
-class Agent_TestCase( Service_TestCase ):
-  """ Agent_TestCase
+class AgentTestCase( ServiceTestCase ):
+  """ AgentTestCase
   
   TestCase for agent related tests. It discovers the agent modules in the
   code from a quick inspection of *Agent.py
@@ -333,8 +340,8 @@ class Agent_TestCase( Service_TestCase ):
     
     """
 
-    super( Agent_TestCase, cls ).setUpClass()
-    cls.log.info( '::: Agent_TestCase setUpClass :::' )
+    super( AgentTestCase, cls ).setUpClass()
+    cls.log.info( '::: AgentTestCase setUpClass :::' )
     
     cls.swAgents = lhcb_ci.agent.getSoftwareAgents()  
 
@@ -346,7 +353,7 @@ class Agent_TestCase( Service_TestCase ):
     
     """
     
-    super( Agent_TestCase, self ).setUp()
+    super( AgentTestCase, self ).setUp()
     
     installedAgents = lhcb_ci.agent.getInstalledAgents()  
       
@@ -362,7 +369,7 @@ class Agent_TestCase( Service_TestCase ):
     
     """
     
-    super( Agent_TestCase, self ).tearDown()
+    super( AgentTestCase, self ).tearDown()
     
     installedAgents = lhcb_ci.agent.getInstalledAgents()
    
@@ -371,8 +378,8 @@ class Agent_TestCase( Service_TestCase ):
       self.fail( 'Agents still installed: %s' % installedAgents )
   
 
-class Client_TestCase( Agent_TestCase ): 
-  """ Chain_TestCase
+class ClientTestCase( AgentTestCase ): 
+  """ ClientTestCase
   
   TestCase for client-service-db related tests. It discovers the client modules 
   in the code from a quick inspection of *Client.py
@@ -391,8 +398,8 @@ class Client_TestCase( Agent_TestCase ):
     
     """
 
-    super( Client_TestCase, cls ).setUpClass()
-    cls.log.info( '::: Client_TestCase setUpClass :::' )
+    super( ClientTestCase, cls ).setUpClass()
+    cls.log.info( '::: ClientTestCase setUpClass :::' )
 
 
   def setUp( self ):
@@ -402,7 +409,7 @@ class Client_TestCase( Agent_TestCase ):
     
     """
     
-    super( Client_TestCase, self ).setUp()
+    super( ClientTestCase, self ).setUp()
     
     self.chain = lhcb_ci.links.Link( self.SUT )
     
@@ -428,7 +435,7 @@ class Client_TestCase( Agent_TestCase ):
     
     self.chain.destroy()
     
-    super( Client_TestCase, self ).tearDown()
+    super( ClientTestCase, self ).tearDown()
     
     
 #...............................................................................
