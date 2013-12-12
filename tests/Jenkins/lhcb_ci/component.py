@@ -21,6 +21,7 @@ from DIRAC.ConfigurationSystem.Client              import PathFinder
 from DIRAC.Core.Base.DB                            import DB
 from DIRAC.Core.DISET.private.Service              import Service
 from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
+from DIRAC.Core.DISET.RPCClient                    import RPCClient
 from DIRAC.Core.DISET.ServiceReactor               import ServiceReactor
 from DIRAC.Core.Utilities                          import InstallTools
 
@@ -97,10 +98,19 @@ class Component( object ):
 
   
   def run( self ):
-    pass
-  
+    """ run
+    
+    EXTEND ME PLEASE.
+    """  
+    self._log( 'run' )
+
+
   def stop( self ):
-    pass
+    """ stop
+    
+    EXTEND ME PLEASE.
+    """  
+    self._log( 'stop' )
 
 
 #...............................................................................
@@ -265,10 +275,14 @@ class ServiceComponent( Component ):
     #  del sReactor._ServiceReactor__services[ serviceName ]
     
     server.join( 60 )
-    if server.isAlive():
-      return { 'OK' : False, 'Message' : '%s Server thread is alive' % self.composeServiceName() }
   
-    return { 'OK' : True, 'Value' : None }    
+    msg = { 'OK' : True, 'Value' : None } 
+    if server.isAlive():
+      msg = { 'OK' : False, 'Message' : '%s Server thread is alive' % self.composeServiceName() }
+   
+    del server.sReactor
+  
+    return msg     
   
   
   #.............................................................................
@@ -302,6 +316,15 @@ class ServiceComponent( Component ):
     servicePath = PathFinder.getServiceSection( self.composeServiceName() )
 
     return gConfig.getOptionsDict( '%s/Authorization' % servicePath )
+ 
+  def ping( self ):
+    
+    self._log( 'ping' )
+    
+    url       = self.params[ 'service' ]._url
+    rpcClient = RPCClient( url )  
+    
+    return rpcClient.ping()
   
   
   

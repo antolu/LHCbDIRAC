@@ -366,48 +366,57 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
     
     for system, services in self.swServices.iteritems():
       
-      system = system.replace( 'System', '' )
+      #system = system.replace( 'System', '' )
       
-      if system == 'Configuration':
+      if system == 'ConfigurationSystem':
         self.log.debug( 'Skipping Master Configuration' )
         continue 
 
-      for service in services:
+      for serviceName in services:
 
-        if self.isException( service ):
+        if self.isException( serviceName ):
           continue
 
-        self.log.debug( "%s %s" % ( system, service ) )
+        self.log.debug( "%s %s" % ( system, serviceName ) )
         
         # Keep track of threads to wash them
         currentThreads, activeThreads = lhcb_ci.commons.trackThreads()
         
         # Tries to find on the same system a database to be installed. If it fails,
         # installs all databases on the system.      
-        dbNames = self.databases.get( '%sSystem' % system, [] )
-        if '%sDB' % service in dbNames:
-          self.log.debug( 'Found database for %s' % service )
-          dbNames = [ '%sDB' % service ]        
+        dbNames = self.databases.get( system, [] )
+        if '%sDB' % serviceName in dbNames:
+          self.log.debug( 'Found database for %s' % serviceName )
+          dbNames = [ '%sDB' % serviceName ]        
         
         for dbName in dbNames:
-          db  = lhcb_ci.component.Component( '%sSystem' % system, 'DB', dbName )
+          db  = lhcb_ci.component.Component( system, 'DB', dbName )
           res = db.install()
           self.assertDIRACEquals( db[ 'OK' ], True, db )
-          
-        res = lhcb_ci.service.initializeServiceReactor( system, service )
-        self.assertDIRACEquals( res[ 'OK' ], True, res )
-        # Extract the initialized ServiceReactor
-        sReactor = res[ 'Value' ]
         
-        res = lhcb_ci.service.serveAndPing( sReactor )
+        service = lhcb_ci.component.Component( system, 'Service', serviceName  )
+        res     = service.run()  
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
+        
+        res     = service.ping()
+          
+        #res = lhcb_ci.service.initializeServiceReactor( system, serviceName )
+        
+        # Extract the initialized ServiceReactor
+        #sReactor = res[ 'Value' ]
+        
+        #res = lhcb_ci.service.serveAndPing( sReactor )
         self.log.debug( str( res ) )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
-        self.assertEquals( res[ 'Value' ][ 'name' ], '%s/%s' % ( system, service ) )
+        self.assertEquals( res[ 'Value' ][ 'name' ], service.composeServiceName() )
         # If everything is OK, the ping should be done within the first 10 seconds
         self.assertEquals( res[ 'Value' ][ 'service uptime' ] < 10, True )
+        
+        res = service.stop()
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
                 
-        del sReactor
+        #del sReactor
 
         for dbName in dbNames:          
           res = db.uninstall()
@@ -424,8 +433,8 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
 
 
   # test_run_services
-  test_run_services.smoke   = 0
-  test_run_services.service = 0
+  test_run_services.smoke   = 1
+  test_run_services.service = 1
   
 
 #...............................................................................
