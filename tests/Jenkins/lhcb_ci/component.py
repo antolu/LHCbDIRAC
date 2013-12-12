@@ -370,6 +370,23 @@ class AgentComponent( Component ):
     return InstallTools.addDefaultOptionsToCS( gConfig, 'agent', self._systemName(), 
                                                self.name, self.extensions )
 
+  def install( self ):
+
+    super( AgentComponent, self ).install()
+    
+    return InstallTools.setupComponent( 'agent', self._systemName(), self.name, self.extensions )
+
+  # FIXME: implement proper method
+  run = install
+
+  def uninstall( self ):
+
+    super( AgentComponent, self ).uninstall()
+    return InstallTools.uninstallComponent( self._systemName(), self.name )
+
+  # FIXME: implement proper method
+  stop = uninstall
+
 #...............................................................................
 
 class ClientComponent( Component ):

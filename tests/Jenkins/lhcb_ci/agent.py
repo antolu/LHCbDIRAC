@@ -31,42 +31,31 @@ def getSoftwareAgents():
   for systemName, serviceList in agentDict.items():
     agentDict[ systemName ] = list( set( serviceList ) )
   
-  return agentDict  
+  return agentDict
 
 
-#def configureAgent( systemName, agentName ):
-#  """ configureAgent
+#def setupAgent( system, agent ):
+#  """ setupAgent
 #  
-#  Configures systemName/agentName in the CS
+#  Setups agent and runs it
+#  """  
+#
+#  logger.debug( 'setupAgent' )
+#  
+#  extensions = getCSExtensions()
+#  
+#  return InstallTools.setupComponent( 'agent', system, agent, extensions )
+
+
+#def uninstallAgent( system, agent ):
+#  """ uninstallAgent
+#  
+#  Stops the agent.
 #  """
+#
+#  logger.debug( 'uninstallAgent for %s/%s' % ( system, agent ) )
 #  
-#  logger.debug( 'Configuring Agent %s/%s' % ( systemName, agentName ) )
-#  return InstallTools.addDefaultOptionsToCS( gConfig, 'agent', systemName, 
-#                                             agentName, getCSExtensions() )
-
-
-def setupAgent( system, agent ):
-  """ setupAgent
-  
-  Setups agent and runs it
-  """  
-
-  logger.debug( 'setupAgent' )
-  
-  extensions = getCSExtensions()
-  
-  return InstallTools.setupComponent( 'agent', system, agent, extensions )
-
-
-def uninstallAgent( system, agent ):
-  """ uninstallAgent
-  
-  Stops the agent.
-  """
-
-  logger.debug( 'uninstallAgent for %s/%s' % ( system, agent ) )
-  
-  return InstallTools.uninstallComponent( system, agent )
+#  return InstallTools.uninstallComponent( system, agent )
 
 
 def getInstalledAgents():

@@ -42,8 +42,6 @@ class ConfigureTest( lhcb_ci.basecase.Agent_TestCase ):
       
         agent = lhcb_ci.component.Component( systemName, 'Agent', agentName )
         res   = agent.configure()
-      
-      #  res = lhcb_ci.agent.configureAgent( systemName, agentName )
         self.assertDIRACEquals( res[ 'OK' ], True, res )    
 
 
@@ -74,23 +72,27 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
             
     for system, agents in self.swAgents.iteritems():
       
-      for agent in agents:
+      for agentName in agents:
         
-        if self.isException( agent ):
+        if self.isException( agentName ):
           continue
         
-        self.log.debug( "%s %s" % ( system, agent ) )
+        self.log.debug( "%s %s" % ( system, agentName ) )
        
         # Repeat with me : we do not trust agents,
         #                  we do not like their structure,
         #                  we will kill their threads
         currentThreads, activeThreads = lhcb_ci.commons.trackThreads()       
        
-        res = lhcb_ci.agent.setupAgent( system, agent )      
+        agent = lhcb_ci.component.Component( system, 'Agent', agentName )
+        res   = agent.install()
+       
+        #res = lhcb_ci.agent.setupAgent( system, agentName )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         self.assertEquals( res[ 'Value' ][ 'RunitStatus' ], 'Run' )
         
-        res = lhcb_ci.agent.uninstallAgent( system, agent )      
+        res = agent.uninstall()
+        #res = lhcb_ci.agent.uninstallAgent( system, agentName )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )  
 
         # Clean leftovers         
