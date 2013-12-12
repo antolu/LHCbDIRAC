@@ -231,12 +231,12 @@ class InstallationTest( lhcb_ci.basecase.DBTestCase ):
   test_databases_install_drop.db      = 1  
   
   # test_databases_reachable
-  test_databases_common_import.install = 0
-  test_databases_common_import.db      = 0
+  test_databases_common_import.install = 1
+  test_databases_common_import.db      = 1
   
   # test_install_tables
-  test_install_tables.install = 0
-  test_install_tables.db      = 0
+  test_install_tables.install = 1
+  test_install_tables.db      = 1
 
 
 class SmokeTest( lhcb_ci.basecase.DBTestCase ):
