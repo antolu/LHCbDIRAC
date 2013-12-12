@@ -6,6 +6,7 @@
   
 """
 
+#pylint: disable=C0121
 
 import logging
 import os
