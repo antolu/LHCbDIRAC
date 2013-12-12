@@ -12,7 +12,6 @@ import collections
 import lhcb_ci.basecase
 import lhcb_ci.commons
 import lhcb_ci.component
-#import lhcb_ci.db
 import lhcb_ci.service
 
 
@@ -29,6 +28,7 @@ class ConfigureTest( lhcb_ci.basecase.Service_TestCase ):
   
   """
 
+  @lhcb_ci.basecase.timeDecorator
   def test_configure_services( self ):
     """ test_configure_services
     
@@ -72,7 +72,7 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
   
   """
 
-
+  @lhcb_ci.basecase.timeDecorator
   def test_service_ports( self ):
     """ test_service_ports
     
@@ -117,7 +117,7 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
       for port in sortedPorts:
         servFile.write( '%s : %s\n' % ( port, ports[ port ] ) )  
 
-
+  @lhcb_ci.basecase.timeDecorator
   def test_service_authorization( self ):
     """ test_service_authorization
     
@@ -184,7 +184,7 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         for method, secProp in authRule.iteritems():
           servFile.write( '  %s : %s\n' % ( method.ljust( 40 ), secProp ) )
 
-
+  @lhcb_ci.basecase.timeDecorator
   def test_services_common_import( self ):
     """ test_services_common_import
     
@@ -220,7 +220,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         self.assertEquals( activeThreads, threadsAfterPurge )        
             
             
-  # FIXME: this test method has a thread leak   
+  # FIXME: this test method has a thread leak
+  @lhcb_ci.basecase.timeDecorator  
   def test_services_voimport( self ):
     """ test_services_voimport
     
@@ -267,6 +268,7 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         self.assertEquals( activeThreads, threadsAfterPurge )
 
 
+  @lhcb_ci.basecase.timeDecorator
   def test_services_install_drop( self ):
     """ test_services_install_drop
     
@@ -348,7 +350,7 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
   
   """
   
-
+  @lhcb_ci.basecase.timeDecorator
   def test_run_services( self ):
     """ test_run_services
     

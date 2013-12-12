@@ -7,9 +7,6 @@
 """
 
 
-import threading
-
-import lhcb_ci.agent
 import lhcb_ci.basecase
 import lhcb_ci.commons
 
@@ -27,6 +24,7 @@ class ConfigureTest( lhcb_ci.basecase.Agent_TestCase ):
   
   """
   
+  @lhcb_ci.basecase.timeDecorator
   def test_configure_agents( self ):
     """ test_configure_agents
     """
@@ -59,6 +57,7 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
   
   """
 
+  @lhcb_ci.basecase.timeDecorator
   def test_agents_install_drop( self ):
     """ test_agents_install_drop
     
@@ -100,7 +99,7 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
         # We make sure that there are no leftovers on the threading
         self.assertEquals( activeThreads, threadsAfterPurge )
 
-
+  @lhcb_ci.basecase.timeDecorator
   def test_agents_voimport( self ):
     """ test_agents_voimport
     

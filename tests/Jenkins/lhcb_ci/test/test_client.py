@@ -19,7 +19,7 @@ class TransformationClientTest( lhcb_ci.basecase.Client_TestCase ):
   SUT = 'TransformationSystem.Client.TransformationClient'
 
 
-  #@lhcb_ci.basecase.time_test
+  @lhcb_ci.basecase.timeDecorator
   def test_addAndRemove( self ):
     
     client = self.sutCls()

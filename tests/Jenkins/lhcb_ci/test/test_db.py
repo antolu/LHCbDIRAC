@@ -46,7 +46,7 @@ class ConfigureTest( lhcb_ci.basecase.DB_TestCase ):
     self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
     self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )       
   
-  
+  @lhcb_ci.basecase.timeDecorator
   def test_configure_dbs( self ):
     """ test_configure_dbs
     
@@ -85,7 +85,8 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
   """ 
   
 
-  #FIXME: this test is redundant and should be deleted.        
+  #FIXME: this test is redundant and should be deleted.
+  @lhcb_ci.basecase.timeDecorator      
   def test_databases_install_drop( self ):
     """ test_databases_install_drop
     
@@ -107,7 +108,7 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         res = db.uninstall()
         self.assertDIRACEquals( res[ 'OK' ], True, res )  
   
-  
+  @lhcb_ci.basecase.timeDecorator
   def test_databases_common_import( self ):
     """ test_databases_common_import
     
@@ -150,7 +151,7 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         res = db.uninstall()
         self.assertDIRACEquals( res[ 'OK' ], True, res )
     
-
+  @lhcb_ci.basecase.timeDecorator
   def test_install_tables( self ):
     """ test_install_tables
     
