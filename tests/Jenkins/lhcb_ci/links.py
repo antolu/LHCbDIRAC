@@ -23,7 +23,6 @@
 """
 
 
-import lhcb_ci.commons
 import lhcb_ci.component
 
 
@@ -123,9 +122,12 @@ class Link( object ):
   
     for descendant in descendants:
       link = Link( descendant )
-      link.build()
+      res = link.build()
+      if not res[ 'OK' ]:
+        return res
     
-    self.__load()
+    return self.__load()
+  
   
   def destroy( self ):
     """ destroy
@@ -137,9 +139,11 @@ class Link( object ):
     lhcb_ci.logger.debug( 'DESTROY %s' % self.name )
   
     for link in self.chain():
-      link.__unload()
+      res = link.__unload()
+      if not res[ 'OK' ]:
+        return res 
     
-    self.__unload()    
+    return self.__unload()  
   
   
   #.............................................................................
@@ -201,16 +205,12 @@ class Link( object ):
       return
 
     lhcb_ci.logger.debug( 'LOADED %s' % self.name )
-
-    self.currentThreads, self.activeThreads = lhcb_ci.commons.trackThreads()
     
     self.componentObj = lhcb_ci.component.Component( self.system, self.component, self.name ) 
-    self.componentObj.run()
+    res = self.componentObj.run()
 
-    lhcb_ci.logger.debug( 'CHAIN %s' % self.name )
-    lhcb_ci.logger.debug( str( [ c.name for c in self.chain() ] ) )    
     self.chain().append( self )
-    lhcb_ci.logger.debug( str( [ c.name for c in self.chain() ] ) )
+    return res
     
   
   def __unload( self ):
@@ -222,12 +222,7 @@ class Link( object ):
     
     lhcb_ci.logger.debug( 'UNLOADED %s' % self.name )
     
-    self.componentObj.stop()
-    
-    threadsAfterPurge = lhcb_ci.commons.killThreads( self.currentThreads )
-    
-    if not threadsAfterPurge == self.activeThreads:
-      lhcb_ci.logger.exception( 'Different number of threads !' )
+    return self.componentObj.stop()
 
 
 #...............................................................................

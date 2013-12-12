@@ -11,6 +11,7 @@ import time
 
 
 # lhcb_ci imports
+import lhcb_ci.commons
 import lhcb_ci.db
 import lhcb_ci.extensions
 
@@ -49,8 +50,10 @@ class Component( object ):
     self.component = component
     self.name      = name
     
-    self.extensions = lhcb_ci.extensions.getCSExtensions()
-    self.params     = {}
+    self.extensions     = lhcb_ci.extensions.getCSExtensions()
+    self.params         = {}
+    self.activeThreads  = []
+    self.currentThreads = []
 
   def __repr__( self ):
     
@@ -59,6 +62,7 @@ class Component( object ):
   
   def _systemName( self ):
     return self.system.replace( 'System', '' )
+
 
   def _log( self, method ):
     
@@ -107,6 +111,7 @@ class Component( object ):
     EXTEND ME PLEASE.
     """  
     self._log( 'run' )
+    self.currentThreads, self.activeThreads = lhcb_ci.commons.trackThreads()
 
 
   def stop( self ):
@@ -248,6 +253,8 @@ class ServiceComponent( Component ):
   
   def run( self ):
     
+    super( ServiceComponent, self ).run()
+    
     sReactor = ServiceReactor()
   
     res = sReactor.initialize( [ self.composeServiceName() ] )
@@ -272,6 +279,8 @@ class ServiceComponent( Component ):
 
   def stop( self ):
     
+    super( ServiceComponent, self ).stop()
+    
     if not 'server' in self.params:
       return { 'OK' : False, 'Message' : 'No server to be stopped' }
     
@@ -292,6 +301,11 @@ class ServiceComponent( Component ):
       msg = { 'OK' : False, 'Message' : '%s Server thread is alive' % self.composeServiceName() }
    
     del server.sReactor
+  
+    threadsAfterPurge = lhcb_ci.commons.killThreads( self.currentThreads )
+
+    if not threadsAfterPurge == self.activeThreads:
+      msg = { 'OK' : False, 'Message' : 'Different number of threads !' }
   
     return msg     
   
@@ -343,6 +357,10 @@ class ServiceComponent( Component ):
 class AgentComponent( Component ):
   pass
 
+#...............................................................................
+
+class ClientComopnent( Component ):
+  pass
 
 #...............................................................................
 #EOF
