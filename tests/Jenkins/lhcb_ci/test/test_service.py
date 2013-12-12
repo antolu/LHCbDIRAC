@@ -366,8 +366,6 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
     
     for system, services in self.swServices.iteritems():
       
-      #system = system.replace( 'System', '' )
-      
       if system == 'ConfigurationSystem':
         self.log.debug( 'Skipping Master Configuration' )
         continue 
@@ -385,6 +383,7 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
         # Tries to find on the same system a database to be installed. If it fails,
         # installs all databases on the system.      
         dbNames = self.databases.get( system, [] )
+        
         if '%sDB' % serviceName in dbNames:
           self.log.debug( 'Found database for %s' % serviceName )
           dbNames = [ '%sDB' % serviceName ]        
@@ -398,12 +397,6 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
         res     = service.run()  
         self.assertDIRACEquals( res[ 'OK' ], True, res )
           
-        #res = lhcb_ci.service.initializeServiceReactor( system, serviceName )
-        
-        # Extract the initialized ServiceReactor
-        #sReactor = res[ 'Value' ]
-        
-        #res = lhcb_ci.service.serveAndPing( sReactor )
         res = service.ping()
         self.log.debug( str( res ) )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
@@ -414,10 +407,9 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
         
         res = service.stop()
         self.assertDIRACEquals( res[ 'OK' ], True, res )
-                
-        #del sReactor
 
-        for dbName in dbNames:          
+        for dbName in dbNames:
+          db  = lhcb_ci.component.Component( system, 'DB', dbName )
           res = db.uninstall()
           self.assertDIRACEquals( res[ 'OK' ], True, res )
         
