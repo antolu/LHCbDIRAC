@@ -114,6 +114,7 @@ class Component( object ):
     """  
     self._log( 'run' )
     self.currentThreads, self.activeThreads = lhcb_ci.commons.trackThreads()
+    return { 'OK' : True }
 
 
   def stop( self ):
@@ -122,6 +123,7 @@ class Component( object ):
     EXTEND ME PLEASE.
     """  
     self._log( 'stop' )
+    return { 'OK' : True }
 
 
 #...............................................................................
