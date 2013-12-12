@@ -8,6 +8,7 @@
 
 
 import lhcb_ci.basecase
+import lhcb_ci.component
 import lhcb_ci.db
 import lhcb_ci.extensions
 
@@ -59,7 +60,8 @@ class ConfigureTest( lhcb_ci.basecase.DB_TestCase ):
       
       for dbName in systemDBs:
         
-        res = lhcb_ci.db.configureDB( systemName, dbName )
+        db  = lhcb_ci.component.Component( systemName, 'DB', dbName )
+        res = db.configure()
         self.assertDIRACEquals( res[ 'OK' ], True, res ) 
 
 

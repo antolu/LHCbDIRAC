@@ -41,22 +41,24 @@ class Component( object ):
     self.name      = name
 
   
-  def systemName( self ):
+  def _systemName( self ):
     return self.system.replace( 'System', '' )
 
+  #.............................................................................
   
   def configure( self ):
     
-    lhcb_ci.logger.debug( 'Configure %s: %s/%s' % ( self.component, self.systemName(), self.name ) )
-
+    lhcb_ci.logger.debug( 'configure %s: %s/%s' % ( self.component, self._systemName(), self.name ) )
   
   def install( self ):
-    pass
+    
+    lhcb_ci.logger.debug( 'install %s: %s/%s' % ( self.component, self._systemName(), self.name ) )
 
+  def uninstall( self ):
+    pass
   
   def run( self ):
     pass
-
   
   def stop( self ):
     pass
@@ -69,15 +71,27 @@ class DBComponent( Component ):
 
   
   def configure( self ):
-    """ configureDB
+    """ configure
   
-    Configures dbName in the CS
+    This method configures the database in the CS.
+      
     """
     
     super( DBComponent, self ).configure()
   
-    return InstallTools.addDatabaseOptionsToCS( gConfig, self.systemName(), self.name )
+    return InstallTools.addDatabaseOptionsToCS( gConfig, self._systemName(), self.name )
     
+    
+  def install( self ):
+    """ install
+    
+    """
+
+    # Makes sure InstallTools is aware of the MySQLPasswords
+    InstallTools.getMySQLPasswords()
+    
+    return InstallTools.installDatabase( self.name )
+  
   
   def run( self ):
     
