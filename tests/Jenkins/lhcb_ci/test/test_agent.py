@@ -46,8 +46,8 @@ class ConfigureTest( lhcb_ci.basecase.AgentTestCase ):
   #.............................................................................
   # Nosetests attrs
   
-  test_configure_agents.configure = 1
-  test_configure_agents.agent     = 1  
+  test_configure_agents.configure = 0
+  test_configure_agents.agent     = 0  
   
 
 class InstallationTest( lhcb_ci.basecase.AgentTestCase ):
