@@ -6,6 +6,7 @@
   
 """
 
+# general libraries
 import datetime
 import functools
 import inspect
@@ -13,6 +14,7 @@ import os
 import unittest
 
 
+# lhcb_ci libraries
 import lhcb_ci.agent
 import lhcb_ci.db
 import lhcb_ci.exceptions
@@ -20,9 +22,18 @@ import lhcb_ci.links
 import lhcb_ci.service
 
 
+# DIRAC libraries
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
 
+
+
 def timeDecorator( test ):
+  """ timeDecorator
+  
+  Use this decorator on top of your test method and it will write into 
+  $WORKSPACE/lhcb_ci/timmings.txt the time taken by this test.
+  
+  """
   
   @functools.wraps( test )
   def wrapper( *args, **kwargs ):
@@ -31,11 +42,12 @@ def timeDecorator( test ):
     result = test( *args, **kwargs )
     end = datetime.datetime.utcnow()
     
+    seconds = ( end - start ).total_seconds()
+    
     timmings = os.path.join( lhcb_ci.reports, 'timmings.txt' )
     tFile    = open( timmings, 'a' )
     tFile.write( test.__name__ )
-    tFile.write( '\n start %s' % start )
-    tFile.write( '\n end   %s\n' % end )
+    tFile.write( '\n %s\n' % seconds )
     tFile.close()
     
     return result
