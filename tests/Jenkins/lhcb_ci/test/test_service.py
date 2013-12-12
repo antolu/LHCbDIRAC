@@ -90,23 +90,23 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
       
         service = lhcb_ci.component.Component( system, 'Service', serviceName )
         
-        fullServiceName = service.composeServiceName()
+        #fullServiceName = service.composeServiceName()
       
-        if self.isException( fullServiceName ):
+        if self.isException( serviceName ):
           if not 'xxxx' in ports:
-            ports[ 'xxxx' ] = [ fullServiceName ]
+            ports[ 'xxxx' ] = [ serviceName ]
           else:
-            ports[ 'xxxx' ].append( fullServiceName )              
+            ports[ 'xxxx' ].append( serviceName )              
           continue  
         
         port = service.getServicePort()
         
-        _msg = '%s:%s already taken by %s' % ( fullServiceName, port, ports.get( port,'' ) )
+        _msg = '%s:%s already taken by %s' % ( serviceName, port, ports.get( port,'' ) )
         
         # If false, it raises. 
         self.assertTrue( port not in ports, _msg )
         
-        ports[ port ] = fullServiceName
+        ports[ port ] = serviceName
 
     # Sort port numbers
     sortedPorts = ports.keys()
