@@ -73,6 +73,9 @@ class Link( object ):
   
   def destroy( self ):
   
+    lhcb_ci.logger.debug( 'DESTROY %s' % self.name )
+    lhcb_ci.logger.debug( str( self.chain ) )
+  
     for link in self.chain:
       link.unload()
     
