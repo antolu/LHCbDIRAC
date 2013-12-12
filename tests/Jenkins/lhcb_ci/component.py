@@ -191,21 +191,29 @@ class ServiceComponent( Component ):
     return InstallTools.setupComponent( 'service', self._systemName(), self.name, self.extensions )
   
   
-  def run( self ):
+  def uninstall( self ):
     
-    systemName = self.system.replace( 'System', '' )
-    sReactor = lhcb_ci.service.initializeServiceReactor( systemName , self.name )
-    if not sReactor[ 'OK' ]:
-      return sReactor
-    sReactor = sReactor[ 'Value' ]
+    super( ServiceComponent, self ).uninstall()
     
-    # Extract the initialized ServiceReactor        
-    self.server, self.serviceName, self.service = lhcb_ci.service.serve( sReactor )
-
-    
-  def stop( self ):
-    
-    return lhcb_ci.service.unserve( self.server )  
+    return InstallTools.uninstallComponent( self._systemName(), self.name )
+  
+  
+  
+#  def run( self ):
+#    
+#    systemName = self.system.replace( 'System', '' )
+#    sReactor = lhcb_ci.service.initializeServiceReactor( systemName , self.name )
+#    if not sReactor[ 'OK' ]:
+#      return sReactor
+#    sReactor = sReactor[ 'Value' ]
+#    
+#    # Extract the initialized ServiceReactor        
+#    self.server, self.serviceName, self.service = lhcb_ci.service.serve( sReactor )
+#
+#    
+#  def stop( self ):
+#    
+#    return lhcb_ci.service.unserve( self.server )  
        
 
 #...............................................................................

@@ -306,7 +306,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         self.assertEquals( res[ 'Value' ][ 'RunitStatus' ], 'Run' )
         
-        res = lhcb_ci.service.uninstallService( systemName.replace( 'System', '' ), service )      
+        res     = service.uninstall()
+        #res = lhcb_ci.service.uninstallService( systemName.replace( 'System', '' ), service )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )
 
         # Clean leftovers         

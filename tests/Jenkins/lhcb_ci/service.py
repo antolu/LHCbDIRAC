@@ -124,15 +124,15 @@ def getSecurityProperties():
 #  return InstallTools.setupComponent( 'service', system, service, extensions )
 
 
-def uninstallService( system, service ):
-  """ uninstallService
-  
-  Stops the service.
-  """
-
-  logger.debug( 'uninstallService for %s/%s' % ( system, service ) )
-    
-  return InstallTools.uninstallComponent( system, service )
+#def uninstallService( system, service ):
+#  """ uninstallService
+#  
+#  Stops the service.
+#  """
+#
+#  logger.debug( 'uninstallService for %s/%s' % ( system, service ) )
+#    
+#  return InstallTools.uninstallComponent( system, service )
 
 
 def initializeServiceClass( serviceClass, serviceName ):
