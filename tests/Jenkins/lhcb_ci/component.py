@@ -52,6 +52,10 @@ class Component( object ):
     self.extensions = lhcb_ci.extensions.getCSExtensions()
     self.params     = {}
 
+  def __repr__( self ):
+    
+    return '%s: %s/%s/%s' % ( self.__class__.__name__, self.system, self.component, self.name )
+
   
   def _systemName( self ):
     return self.system.replace( 'System', '' )

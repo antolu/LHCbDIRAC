@@ -24,6 +24,7 @@
 
 
 import lhcb_ci.commons
+import lhcb_ci.component
 
 
 # Chains........................................................................
