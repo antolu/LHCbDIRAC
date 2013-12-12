@@ -67,7 +67,10 @@ class Link( object ):
     lhcb_ci.logger.debug( str( descendants ) )
   
     for descendant in descendants:
-      Link( descendant ).build()
+      link = Link( descendant )
+      link.build()
+    
+    lhcb_ci.logger.debug( str( self.chain ) )
     
     self.load()
   
@@ -132,14 +135,12 @@ class Link( object ):
       lhcb_ci.db.installDB( self.name )
     elif self.component == 'Service':
       lhcb_ci.service.initializeServiceReactor( self.system.replace( 'System', '' ), self.name )
-    else:
-      pass
-  
+
     lhcb_ci.logger.debug( 'CHAIN %s' % self.name )
-    lhcb_ci.logger.debug( str( [ c.name for c in self.chain ] ) )
+    lhcb_ci.logger.debug( str( [ c.name for c in self.chain ] ) )    
     self.chain.append( self )
     lhcb_ci.logger.debug( str( [ c.name for c in self.chain ] ) )
-  
+    
   
   def unload( self ):
     
