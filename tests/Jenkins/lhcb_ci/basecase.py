@@ -398,8 +398,11 @@ class Client_TestCase( Agent_TestCase ):
     self.chain.reset( self.databases, self.swServices )
     self.chain.build()
     
-    sutMod      =  lhcb_ci.extensions.import_( 'DIRAC.' + self.SUT )
+    lhcb_ci.logger.debug( 'DIRAC.%s' % self.SUT )
+    sutMod      =  lhcb_ci.extensions.import_( 'DIRAC.%s' % self.SUT )
+    
     self.sutCls = getattr( sutMod, self.SUT.split( '.' )[ -1 ] )
+    lhcb_ci.logger.debug( self.sutCls )
     
     
   def tearDown( self ):
