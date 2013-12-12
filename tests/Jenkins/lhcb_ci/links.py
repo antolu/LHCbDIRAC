@@ -43,7 +43,7 @@ class Link( object ):
                  'Service' : {},
                  }
   
-  chain = []
+  __chain = []
   
   def __init__( self, sut ):
     
@@ -51,12 +51,15 @@ class Link( object ):
     
     self.system, self.component, self.name = sut.split( '.' )
   
+  @classmethod
+  def chain( cls ):
+    return cls.__chain
   
   def reset( self, dbs, services ):
     
     self.components[ 'DB'  ]     = dbs
     self.components[ 'Service' ] = services
-    self.__class__.chain = []
+    self.__class__.__chain = []
     
   def build( self ):
     
@@ -70,17 +73,17 @@ class Link( object ):
       link = Link( descendant )
       link.build()
     
-    lhcb_ci.logger.debug( str( self.__class__.chain ) )
+    lhcb_ci.logger.debug( str( self.chain() ) )
     
     self.load()
   
   def destroy( self ):
   
     lhcb_ci.logger.debug( 'DESTROY %s' % self.name )
-    lhcb_ci.logger.debug( str( self.__class__.chain ) )
-    lhcb_ci.logger.debug( str( self.__class__.chain[0].name ) )
+    lhcb_ci.logger.debug( str( self.chain() ) )
+    lhcb_ci.logger.debug( str( self.chain()[0].name ) )
   
-    for link in self.__class__.chain:
+    for link in self.chain():
       link.unload()
     
     return self.unload()    
@@ -120,7 +123,7 @@ class Link( object ):
 
   def load( self ):
 
-    if self in self.__class__.chain:
+    if self in self.chain():
       lhcb_ci.logger.warn( '%s already loaded' % self.name )
       return
 
@@ -137,9 +140,9 @@ class Link( object ):
       lhcb_ci.service.initializeServiceReactor( self.system.replace( 'System', '' ), self.name )
 
     lhcb_ci.logger.debug( 'CHAIN %s' % self.name )
-    lhcb_ci.logger.debug( str( [ c.name for c in self.__class__.chain ] ) )    
-    self.__class__.chain.append( self )
-    lhcb_ci.logger.debug( str( [ c.name for c in self.__class__.chain ] ) )
+    lhcb_ci.logger.debug( str( [ c.name for c in self.chain() ] ) )    
+    self.chain().append( self )
+    lhcb_ci.logger.debug( str( [ c.name for c in self.chain() ] ) )
     
   
   def unload( self ):
