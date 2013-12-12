@@ -402,8 +402,8 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
         del sReactor
 
         for dbName in dbNames:          
-          db = lhcb_ci.db.dropDB( dbName )
-          self.assertDIRACEquals( db[ 'OK' ], True, db )
+          res = db.uninstall()
+          self.assertDIRACEquals( res[ 'OK' ], True, res )
         
         # Clean leftovers         
         threadsAfterPurge = lhcb_ci.commons.killThreads( currentThreads )

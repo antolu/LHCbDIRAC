@@ -206,7 +206,7 @@ class Link( object ):
     self.currentThreads, self.activeThreads = lhcb_ci.commons.trackThreads()
     
     if self.component == 'DB':
-      db  = lhcb_ci.component.Component( self.system, 'DB', self.name )
+      db = lhcb_ci.component.Component( self.system, 'DB', self.name )
       db.install()
       #lhcb_ci.db.installDB( self.name )
     elif self.component == 'Service':
@@ -230,7 +230,8 @@ class Link( object ):
     lhcb_ci.logger.debug( 'UNLOADED %s' % self.name )
     
     if self.component == 'DB':
-      lhcb_ci.db.dropDB( self.name )
+      db = lhcb_ci.component.Component( self.system, 'DB', self.name )
+      db.uninstall()
     elif self.component == 'Service':
       lhcb_ci.service.unserve( self.server )
     

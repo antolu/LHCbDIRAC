@@ -103,7 +103,7 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         res = db.install()
         self.assertDIRACEquals( res[ 'OK' ], True, res )
                 
-        res = lhcb_ci.db.dropDB( dbName )
+        res = db.uninstall()
         self.assertDIRACEquals( res[ 'OK' ], True, res )  
   
   
@@ -145,7 +145,7 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         
         # Cleanup
         del dbObj
-        res = lhcb_ci.db.dropDB( dbName )
+        res = db.uninstall()
         self.assertDIRACEquals( res[ 'OK' ], True, res )
     
 
@@ -178,7 +178,7 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         if tables[ 'Value' ]:
           self.log.exception( 'Tables found for %s/%s' % ( systemName, dbName ) )
           self.log.exception( tables[ 'Value' ] )
-          res = lhcb_ci.db.dropDB( dbName )
+          res = db.uninstall()
           self.assertDIRACEquals( res[ 'OK' ], True, res )
           continue
         
@@ -199,7 +199,7 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         
         if not hasattr( dbInstance, '_checkTable' ):
           self.log.exception( 'EXCEPTION: %s NOT FOLLOWING STANDARDS' % dbName )
-          res = lhcb_ci.db.dropDB( dbName )
+          res = db.uninstall()
           self.assertDIRACEquals( res[ 'OK' ], True, res )
           del dbMod
           del dbClass
@@ -216,7 +216,7 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         del dbMod
         del dbClass
         del dbInstance    
-        res = lhcb_ci.db.dropDB( dbName )
+        res = db.uninstall()
         self.assertDIRACEquals( res[ 'OK' ], True, res )
 
 

@@ -47,6 +47,10 @@ class Component( object ):
   #.............................................................................
   
   
+  def getObj( self ):
+    pass
+  
+  
   def configure( self ):
     """ configure
     
@@ -105,6 +109,19 @@ class DBComponent( Component ):
     InstallTools.getMySQLPasswords()
     
     return InstallTools.installDatabase( self.name )
+  
+  
+  def uninstall( self ):
+    """ uninstall
+    
+    This method physically removes the database from the MySQL server.
+    
+    """
+  
+    # I know... it is unsafe, but the current version does not work with
+    # parametrics... 
+    query = "drop database %s" % self.name
+    return lhcb_ci.db.execute( query )
   
   
   def run( self ):

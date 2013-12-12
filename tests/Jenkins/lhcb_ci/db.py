@@ -87,7 +87,7 @@ def dropDB( dbName ):
   # parametrics... 
   query = "drop database %s" % dbName
   
-  return _execute( query )
+  return execute( query )
 
 
 def getDB( dbname, fullname, maxQueueSize ):
@@ -108,7 +108,7 @@ def getInstalledDBs():
 
   logger.debug( "getInstalledDBs" )
   
-  dbs = _execute( "show databases" )
+  dbs = execute( "show databases" )
   if not dbs[ 'OK' ] or not dbs[ 'Value' ]:
     return dbs
 
@@ -130,7 +130,7 @@ def getTables( dbName ):
 
   logger.debug( "getTables %s" % dbName )
   
-  tables = _execute( "show tables", dbName )
+  tables = execute( "show tables", dbName )
   
   if not tables[ 'OK' ] or not tables[ 'Value' ]:
     return tables
@@ -141,7 +141,7 @@ def getTables( dbName ):
 #...............................................................................
 
 
-def _execute( query, dbName = '' ):
+def execute( query, dbName = '' ):
   """ _execute
   
   Given a query and a dbName ( if not given it will not connect to any DB in
