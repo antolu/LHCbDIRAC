@@ -89,6 +89,7 @@ class Component( object ):
     EXTEND ME PLEASE.
     """
     self._log( 'configure' )
+    return { 'OK' : True }
   
   
   def install( self ):
@@ -97,6 +98,7 @@ class Component( object ):
     EXTEND ME PLEASE.
     """  
     self._log( 'install' )
+    return { 'OK' : True }
 
 
   def uninstall( self ):
@@ -105,6 +107,7 @@ class Component( object ):
     EXTEND ME PLEASE.
     """  
     self._log( 'uninstall' )
+    return { 'OK' : True }
 
   
   def run( self ):
