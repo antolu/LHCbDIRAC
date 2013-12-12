@@ -41,6 +41,8 @@ class Component( object ):
     self.system    = system
     self.component = component
     self.name      = name
+    
+    self.extensions = lhcb_ci.extensions.getCSExtensions()
 
   
   def _systemName( self ):
@@ -179,7 +181,15 @@ class ServiceComponent( Component ):
     super( ServiceComponent, self ).configure()
     
     return InstallTools.addDefaultOptionsToCS( gConfig, 'service', self._systemName(), 
-                                               self.name, lhcb_ci.extensions.getCSExtensions() )
+                                               self.name, self.extensions )
+  
+  
+  def install( self ):
+    
+    super( ServiceComponent, self ).install()
+  
+    return InstallTools.setupComponent( 'service', self._systemName(), self.name, self.extensions )
+  
   
   def run( self ):
     

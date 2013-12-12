@@ -111,17 +111,17 @@ def getSecurityProperties():
   return properties          
 
 
-def setupService( system, service ):
-  """ setupService
-  
-  Setups service and runs it
-  """  
-
-  logger.debug( 'setupService' )
-  
-  extensions = getCSExtensions()
-  
-  return InstallTools.setupComponent( 'service', system, service, extensions )
+#def setupService( system, service ):
+#  """ setupService
+#  
+#  Setups service and runs it
+#  """  
+#
+#  logger.debug( 'setupService' )
+#  
+#  extensions = getCSExtensions()
+#  
+#  return InstallTools.setupComponent( 'service', system, service, extensions )
 
 
 def uninstallService( system, service ):

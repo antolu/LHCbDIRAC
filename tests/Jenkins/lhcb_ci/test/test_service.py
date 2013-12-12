@@ -279,30 +279,34 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
     
     self.logTestName()
             
-    for system, services in self.swServices.iteritems():
+    for systemName, services in self.swServices.iteritems():
       
-      system = system.replace( 'System', '' )
+      #system = system.replace( 'System', '' )
       
-      if system == 'Configuration':
+      if systemName == 'ConfigurationSystem':
         self.log.debug( 'Skipping Master Configuration' )
         continue 
       
       for service in services:
-        self.log.debug( "%s %s" % ( system, service ) )
+        self.log.debug( "%s %s" % ( systemName, service ) )
 
         if self.isException( service ):
           continue
 
+        # FIXME: hack to speedup tests
         if not 'Transformation' in service:
           continue
 
         currentThreads, activeThreads = lhcb_ci.commons.trackThreads()        
+
+        service = lhcb_ci.component.Component( systemName, 'Service', service )
+        res     = service.install()
        
-        res = lhcb_ci.service.setupService( system, service )      
+        #res = lhcb_ci.service.setupService( system, service )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         self.assertEquals( res[ 'Value' ][ 'RunitStatus' ], 'Run' )
         
-        res = lhcb_ci.service.uninstallService( system, service )      
+        res = lhcb_ci.service.uninstallService( systemName.replace( 'System', '' ), service )      
         self.assertDIRACEquals( res[ 'OK' ], True, res )
 
         # Clean leftovers         
