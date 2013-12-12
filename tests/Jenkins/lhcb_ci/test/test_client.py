@@ -20,7 +20,7 @@ class TransformationClientTest( lhcb_ci.basecase.Client_TestCase ):
   #@lhcb_ci.basecase.time_test
   def test_addAndRemove( self ):
     
-    client = self.sutCls() 
+    client = self.sutCls()
     lhcb_ci.logger.debug( client )
     
     res = client.addTransformation( 'transName', 'description', 'longDescription', 

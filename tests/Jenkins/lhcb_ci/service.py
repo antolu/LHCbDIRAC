@@ -175,6 +175,36 @@ def initializeServiceReactor( system, service ):
   return res
 
 
+def serve( sReactor ):
+  
+  server = ServiceThread( sReactor = sReactor )  
+  server.start()
+  
+  sleep( 2 )
+  
+  serviceName = sReactor._ServiceReactor__services.keys()[ 0 ]
+  service     = sReactor._ServiceReactor__services[ serviceName ]
+
+  return server, serviceName, service
+
+def unserve( server ):
+
+  # Stop while True
+  server.sReactor._ServiceReactor__alive = False
+  server.sReactor.closeListeningConnections()
+  
+#  # And delete Service object from dictionary
+#  #FIXME: maybe we do not need to do this
+#  del sReactor._ServiceReactor__services[ serviceName ]
+    
+  server.join( 60 )
+  if server.isAlive():
+    logger.exception( 'EXCEPTION: server thread is alive' )
+    return False
+  
+  return True
+
+
 def serveAndPing( sReactor ):
   """ serveAndPing
   

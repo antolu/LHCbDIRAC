@@ -137,7 +137,9 @@ class Link( object ):
     if self.component == 'DB':
       lhcb_ci.db.installDB( self.name )
     elif self.component == 'Service':
-      lhcb_ci.service.initializeServiceReactor( self.system.replace( 'System', '' ), self.name )
+      sReactor = lhcb_ci.service.initializeServiceReactor( self.system.replace( 'System', '' ), self.name )
+      # Extract the initialized ServiceReactor        
+      self.server, self.serviceName, self.service = lhcb_ci.service.serve( sReactor[ 'Value' ] )
 
     lhcb_ci.logger.debug( 'CHAIN %s' % self.name )
     lhcb_ci.logger.debug( str( [ c.name for c in self.chain() ] ) )    
@@ -149,6 +151,8 @@ class Link( object ):
     
     if self.component == 'DB':
       lhcb_ci.db.dropDB( self.name )
+    elif self.component == 'Service':
+      lhcb_ci.service.unserve( self.server )
     
     threadsAfterPurge = lhcb_ci.commons.killThreads( self.currentThreads )
     
