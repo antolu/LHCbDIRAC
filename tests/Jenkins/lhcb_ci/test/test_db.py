@@ -133,7 +133,8 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         # Tries to connect to the DB using the DB DIRAC module
         try:
           self.log.debug( 'Reaching %s/%s' % ( diracSystem, dbName ) )
-          dbObj = lhcb_ci.db.getDB( dbName, '%s/%s' % ( diracSystem, dbName ), 10 )
+          #dbObj = lhcb_ci.db.getDB( dbName, '%s/%s' % ( diracSystem, dbName ), 10 )
+          dbObj = db.rawObj()
         except RuntimeError, msg:
           self.log.error( 'Error importing %s/%s' % ( diracSystem, dbName ) )
           self.log.error( msg )

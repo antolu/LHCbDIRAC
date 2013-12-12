@@ -14,6 +14,7 @@ import lhcb_ci.service
 
 # DIRAC imports
 from DIRAC                import gConfig
+from DIRAC.Core.Base.DB   import DB
 from DIRAC.Core.Utilities import InstallTools
 
 
@@ -47,7 +48,7 @@ class Component( object ):
   #.............................................................................
   
   
-  def getObj( self ):
+  def rawObj( self ):
     pass
   
   
@@ -83,6 +84,15 @@ class Component( object ):
 
 
 class DBComponent( Component ):
+
+  def rawObj( self ):
+    """ rawObj
+    
+    This method returns a RAW DB Object.
+    
+    """
+
+    return DB( self.name, '%s/%s' % ( self._systemName(), self.name ), 10 )
 
   
   def configure( self ):
@@ -126,12 +136,12 @@ class DBComponent( Component ):
   
   def run( self ):
     
-    return self.install( self.name )
+    return self.install()
 
   
   def stop( self ):
     
-    return lhcb_ci.db.dropDB( self.name )
+    return self.uninstall()
 
   
 #...............................................................................

@@ -13,7 +13,7 @@ import os
 
 # DIRAC
 #from DIRAC                import gConfig
-from DIRAC.Core.Base.DB   import DB 
+#from DIRAC.Core.Base.DB   import DB 
 from DIRAC.Core.Utilities import InstallTools
 
 # lhcb_ci
@@ -76,27 +76,27 @@ def getUserPass():
 #  return result
   
   
-def dropDB( dbName ):
-  """ dropDB
-  
-  Drops database connecting directly to MySQL server.
-  """  
+#def dropDB( dbName ):
+#  """ dropDB
+#  
+#  Drops database connecting directly to MySQL server.
+#  """  
+#
+#  logger.debug( "dropDB %s" % dbName )
+#  # I know... it is unsafe, but the current version does not work with
+#  # parametrics... 
+#  query = "drop database %s" % dbName
+#  
+#  return execute( query )
 
-  logger.debug( "dropDB %s" % dbName )
-  # I know... it is unsafe, but the current version does not work with
-  # parametrics... 
-  query = "drop database %s" % dbName
-  
-  return execute( query )
 
-
-def getDB( dbname, fullname, maxQueueSize ):
-  """ getDB
-  
-  Returns a database object.
-  """
-
-  return DB( dbname, fullname, maxQueueSize )
+#def getDB( dbname, fullname, maxQueueSize ):
+#  """ getDB
+#  
+#  Returns a database object.
+#  """
+#
+#  return DB( dbname, fullname, maxQueueSize )
 
 def getInstalledDBs():
   """ getInstalledDBs
