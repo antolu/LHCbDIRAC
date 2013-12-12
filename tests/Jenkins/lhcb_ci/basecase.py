@@ -253,7 +253,6 @@ class DBTestCase( BaseTestCase ):
     
     super( DBTestCase, self ).tearDown()
     
-    #FIXME: apart from failing, we should wipe them out 
     res = lhcb_ci.db.getInstalledDBs()
     if not res[ 'OK' ]:
       self.log.error( 'tearDown' )
