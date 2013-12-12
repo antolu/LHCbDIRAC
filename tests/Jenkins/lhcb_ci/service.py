@@ -83,15 +83,15 @@ def getServiceAuthorization( system, service ):
   return gConfig.getOptionsDict( '%s/Authorization' % servicePath )
 
 
-def configureService( systemName, serviceName ):
-  """ configureDB
-  
-  Configures systemName/serviceName in the CS
-  """
-  
-  logger.debug( 'Configuring Service %s/%s' % ( systemName, serviceName ) )
-  return InstallTools.addDefaultOptionsToCS( gConfig, 'service', systemName, 
-                                             serviceName, getCSExtensions() )
+#def configureService( systemName, serviceName ):
+#  """ configureDB
+#  
+#  Configures systemName/serviceName in the CS
+#  """
+#  
+#  logger.debug( 'Configuring Service %s/%s' % ( systemName, serviceName ) )
+#  return InstallTools.addDefaultOptionsToCS( gConfig, 'service', systemName, 
+#                                             serviceName, getCSExtensions() )
 
 
 def getSecurityProperties():

@@ -9,6 +9,7 @@
 
 # lhcb_ci imports
 import lhcb_ci.db
+import lhcb_ci.extensions
 import lhcb_ci.service
 
 
@@ -49,15 +50,18 @@ class Component( object ):
   
   
   def rawObj( self ):
-    pass
-  
+    """ rawObj
+    
+    EXTEND ME PLEASE.
+    """  
+    lhcb_ci.logger.debug( 'rawObj %s: %s/%s' % ( self.component, self._systemName(), self.name ) )
+
   
   def configure( self ):
     """ configure
     
     EXTEND ME PLEASE.
     """
-    
     lhcb_ci.logger.debug( 'configure %s: %s/%s' % ( self.component, self._systemName(), self.name ) )
   
   
@@ -65,13 +69,17 @@ class Component( object ):
     """ install
     
     EXTEND ME PLEASE.
-    """
-    
+    """  
     lhcb_ci.logger.debug( 'install %s: %s/%s' % ( self.component, self._systemName(), self.name ) )
 
 
   def uninstall( self ):
-    pass
+    """ uninstall
+    
+    EXTEND ME PLEASE.
+    """  
+    lhcb_ci.logger.debug( 'uninstall %s: %s/%s' % ( self.component, self._systemName(), self.name ) )
+
   
   def run( self ):
     pass
@@ -85,12 +93,14 @@ class Component( object ):
 
 class DBComponent( Component ):
 
+
   def rawObj( self ):
     """ rawObj
     
     This method returns a RAW DB Object.
     
     """
+    super( DBComponent, self ).rawObj()
 
     return DB( self.name, '%s/%s' % ( self._systemName(), self.name ), 10 )
 
@@ -101,7 +111,6 @@ class DBComponent( Component ):
     This method configures the database in the CS.
       
     """
-    
     super( DBComponent, self ).configure()
   
     return InstallTools.addDatabaseOptionsToCS( gConfig, self._systemName(), self.name )
@@ -114,7 +123,8 @@ class DBComponent( Component ):
     sure it has the MySQL passwords ).
     
     """
-
+    super( DBComponent, self ).install()
+    
     # Makes sure InstallTools is aware of the MySQLPasswords
     InstallTools.getMySQLPasswords()
     
@@ -127,21 +137,12 @@ class DBComponent( Component ):
     This method physically removes the database from the MySQL server.
     
     """
+    super( DBComponent, self ).uninstall()
   
     # I know... it is unsafe, but the current version does not work with
     # parametrics... 
     query = "drop database %s" % self.name
     return lhcb_ci.db.execute( query )
-  
-  
-  def run( self ):
-    
-    return self.install()
-
-  
-  def stop( self ):
-    
-    return self.uninstall()
 
 
   #.............................................................................
@@ -172,6 +173,13 @@ class ServiceComponent( Component ):
     self.serviceName = None
     self.service     = None
 
+  
+  def configure( self ):
+    
+    super( ServiceComponent, self ).configure()
+    
+    return InstallTools.addDefaultOptionsToCS( gConfig, 'service', self._systemName(), 
+                                               self.name, lhcb_ci.extensions.getCSExtensions() )
   
   def run( self ):
     

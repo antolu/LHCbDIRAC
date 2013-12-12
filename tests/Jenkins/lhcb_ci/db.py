@@ -61,41 +61,6 @@ def getUserPass():
   return __readPass( 'userMySQL' )
 
 
-#def installDB( dbName ):
-#  """ installDB
-#  
-#  Installs Database using DIRAC standard tools.
-#  """
-#
-#  InstallTools.getMySQLPasswords()
-#  logger.debug( "install database %s" % dbName )
-#  result = InstallTools.installDatabase( dbName )
-#  logger.debug( "result: %s" % result )
-#  return result
-  
-  
-#def dropDB( dbName ):
-#  """ dropDB
-#  
-#  Drops database connecting directly to MySQL server.
-#  """  
-#
-#  logger.debug( "dropDB %s" % dbName )
-#  # I know... it is unsafe, but the current version does not work with
-#  # parametrics... 
-#  query = "drop database %s" % dbName
-#  
-#  return execute( query )
-
-
-#def getDB( dbname, fullname, maxQueueSize ):
-#  """ getDB
-#  
-#  Returns a database object.
-#  """
-#
-#  return DB( dbname, fullname, maxQueueSize )
-
 def getInstalledDBs():
   """ getInstalledDBs
   
@@ -118,22 +83,6 @@ def getInstalledDBs():
     result.append( db[ 0 ] )
 
   return { 'OK' : True, 'Value' : result }  
-  
-
-#def getTables( dbName ):
-#  """ getTables
-#  
-#  Given a dbName, returns all its tables ( installed ).
-#  """
-#
-#  logger.debug( "getTables %s" % dbName )
-#  
-#  tables = execute( "show tables", dbName )
-#  
-#  if not tables[ 'OK' ] or not tables[ 'Value' ]:
-#    return tables
-#    
-#  return { 'OK' : True, 'Value' : [ t[0] for t in tables[ 'Value' ] ] } 
 
 
 #...............................................................................

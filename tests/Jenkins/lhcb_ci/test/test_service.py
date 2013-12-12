@@ -12,7 +12,7 @@ import collections
 import lhcb_ci.basecase
 import lhcb_ci.commons
 import lhcb_ci.component
-import lhcb_ci.db
+#import lhcb_ci.db
 import lhcb_ci.service
 
 
@@ -39,10 +39,10 @@ class ConfigureTest( lhcb_ci.basecase.Service_TestCase ):
 
     for systemName, services in self.swServices.iteritems():
       
-      systemName = systemName.replace( 'System', '' )
+      #systemName = systemName.replace( 'System', '' )
       
       # Master Configuration is already on place.
-      if systemName == 'Configuration':
+      if systemName == 'ConfigurationSystem':
         self.log.debug( 'Skipping Master Configuration' )
         continue 
       
@@ -51,7 +51,9 @@ class ConfigureTest( lhcb_ci.basecase.Service_TestCase ):
         if self.isException( serviceName ):
           continue
       
-        res = lhcb_ci.service.configureService( systemName, serviceName )
+        service = lhcb_ci.component.Component( systemName, 'Service', serviceName )
+        res     = service.configure()
+        #res = lhcb_ci.service.configureService( systemName, serviceName )
         self.assertDIRACEquals( res[ 'OK' ], True, res )         
 
 
