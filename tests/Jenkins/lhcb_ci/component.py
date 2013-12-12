@@ -6,12 +6,19 @@
   
 """
 
+
+# lhcb_ci imports
 import lhcb_ci.db
 import lhcb_ci.service
 
-#TODO: implement it. Implements an interface for all components
+
+# DIRAC imports
+from DIRAC                import gConfig
+from DIRAC.Core.Utilities import InstallTools
+
 
 class Component( object ):
+
   
   def __new__( cls, system, component, name ):
     
@@ -25,40 +32,66 @@ class Component( object ):
       else:
         raise NotImplementedError( 'No component implementation for %s' % component )
     return super( Component, cls ).__new__( cls )
+
   
   def __init__( self, system, component, name ):
     
     self.system    = system
     self.component = component
     self.name      = name
+
+  
+  def systemName( self ):
+    return self.system.replace( 'System', '' )
+
   
   def configure( self ):
     pass
+
   
   def install( self ):
     pass
+
   
   def run( self ):
     pass
+
   
   def stop( self ):
     pass
 
+
 #...............................................................................
 
+
 class DBComponent( Component ):
+
+  
+  def configure( self ):
+    """ configureDB
+  
+    Configures dbName in the CS
+    """
+  
+    lhcb_ci.logger.debug( 'Configuring DB %s/%s' % ( self.systemName(), self.name ) )
+    return InstallTools.addDatabaseOptionsToCS( gConfig, self.systemName(), self.name )
+    
   
   def run( self ):
     
     return lhcb_ci.db.installDB( self.name )
+
   
   def stop( self ):
     
     return lhcb_ci.db.dropDB( self.name )
+
   
 #...............................................................................
 
+
 class ServiceComponent( Component ):
+
   
   def __init__( self, *args ):
     
@@ -66,6 +99,7 @@ class ServiceComponent( Component ):
     self.server      = None
     self.serviceName = None
     self.service     = None
+
   
   def run( self ):
     
@@ -77,6 +111,7 @@ class ServiceComponent( Component ):
     
     # Extract the initialized ServiceReactor        
     self.server, self.serviceName, self.service = lhcb_ci.service.serve( sReactor )
+
     
   def stop( self ):
     
@@ -88,6 +123,7 @@ class ServiceComponent( Component ):
 
 class AgentComponent( Component ):
   pass
+
 
 #...............................................................................
 #EOF
