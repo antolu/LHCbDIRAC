@@ -26,6 +26,7 @@ class ConfigureTest( lhcb_ci.basecase.DB_TestCase ):
   
   """
   
+  @lhcb_ci.basecase.timeDecorator
   def test_configure_mysql_passwords( self ):
     """ test_configure_mysql_passwords
     

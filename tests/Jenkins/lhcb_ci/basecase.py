@@ -7,6 +7,7 @@
 """
 
 import datetime
+import functools
 import inspect
 import os
 import unittest
@@ -21,8 +22,9 @@ import lhcb_ci.service
 
 from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
 
-def time_test( test ):
+def timeDecorator( test ):
   
+  @functools.wraps( test )
   def wrapper( *args, **kwargs ):
     
     start = datetime.datetime.utcnow()

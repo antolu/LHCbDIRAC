@@ -49,4 +49,47 @@ def killThreads( threadsToBeAvoided = [] ):
   return threading.active_count()         
 
 #...............................................................................
+
+#class Singleton( type ):
+#  """ simple singleton pattern using metaclass
+#      Copied from DIRAC/Core/Utilities/DIRACSingleton
+#      
+#  """
+#  def __init__( cls, name, bases, dic ):
+#    """ Constructor
+# 
+#    """
+#    super( Singleton, cls ).__init__( name, bases, dic )
+#    cls.instance = None
+#
+#  def __call__( cls, *args, **kwargs ):
+#    """ get the only one instance of cls
+#    
+#    :param cls: class def
+#    :param list args: anon args list
+#    :param dict kwargs: named args dict
+#    """
+#    if cls.instance is None:
+#      cls.instance = super( Singleton, cls ).__call__( *args, **kwargs )
+#    return cls.instance
+#
+##...............................................................................
+#
+#class Counter( object ):
+#  
+#  __metaclass__ = Singleton
+#  
+#  def __init__( self ):
+#    
+#    self.methods    = {}
+#    self.components = {}
+#
+#  def reset( self ):
+#    
+#    self.counter = {}
+#
+#  def add( self, system, name, components, method ):
+#    pass
+
+#...............................................................................
 #EOF
