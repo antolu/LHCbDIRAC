@@ -71,16 +71,16 @@ def getInstalledServices():
 #  return servConf.getPort()
 
 
-def getServiceAuthorization( system, service ):
-  """ getServiceAuthorization
-  
-  Given a system and a service, returns its configured Authorization rules.
-  """
-
-  serviceName = '%s/%s' % ( system.replace( 'System', '' ), service )
-  servicePath = PathFinder.getServiceSection( serviceName )
-
-  return gConfig.getOptionsDict( '%s/Authorization' % servicePath )
+#def getServiceAuthorization( system, service ):
+#  """ getServiceAuthorization
+#  
+#  Given a system and a service, returns its configured Authorization rules.
+#  """
+#
+#  serviceName = '%s/%s' % ( system.replace( 'System', '' ), service )
+#  servicePath = PathFinder.getServiceSection( serviceName )
+#
+#  return gConfig.getOptionsDict( '%s/Authorization' % servicePath )
 
 
 #def configureService( systemName, serviceName ):

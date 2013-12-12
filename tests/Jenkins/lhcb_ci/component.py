@@ -14,6 +14,7 @@ import lhcb_ci.extensions
 
 # DIRAC imports
 from DIRAC                                         import gConfig
+from DIRAC.ConfigurationSystem.Client              import PathFinder
 from DIRAC.Core.Base.DB                            import DB
 from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
 from DIRAC.Core.Utilities                          import InstallTools
@@ -212,6 +213,16 @@ class ServiceComponent( Component ):
 
     servConf = ServiceConfiguration( [ self.composeServiceName() ] )
     return servConf.getPort()
+
+  def getServiceAuthorization( self ):
+    """ getServiceAuthorization
+  
+    Given a system and a service, returns its configured Authorization rules.
+    """
+
+    servicePath = PathFinder.getServiceSection( self.composeServiceName() )
+
+    return gConfig.getOptionsDict( '%s/Authorization' % servicePath )
   
   
   

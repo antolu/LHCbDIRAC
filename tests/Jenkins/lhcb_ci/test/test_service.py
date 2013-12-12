@@ -89,7 +89,7 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
       for serviceName in services:
       
         service = lhcb_ci.component.Component( system, 'Service', serviceName )
-      
+        
         fullServiceName = service.composeServiceName()
       
         if self.isException( fullServiceName ):
@@ -99,10 +99,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
             ports[ 'xxxx' ].append( fullServiceName )              
           continue  
         
-        #service = lhcb_ci.component.Component( system, 'Service', serviceName )
-        port    = service.getServicePort()
-              
-        #port = lhcb_ci.service.getServicePort( system, serviceName )
+        port = service.getServicePort()
+        
         _msg = '%s:%s already taken by %s' % ( fullServiceName, port, ports.get( port,'' ) )
         
         # If false, it raises. 
@@ -137,28 +135,30 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
     
     for system, services in self.swServices.iteritems():
       
-      system = system.replace( 'System', '' )
+      #system = system.replace( 'System', '' )
       
-      for service in services:
+      for serviceName in services:
         
-        serviceName = '%s/%s' % ( system, service )
+        service = lhcb_ci.component.Component( system, 'Service', serviceName )
         
-        if self.isException( service ):
-          authRules[ serviceName ] = { 'xxxx' : 'skipped' }
+        fullServiceName = service.composeServiceName()
+        
+        if self.isException( serviceName ):
+          authRules[ fullServiceName ] = { 'xxxx' : 'skipped' }
           continue
         
         
-        self.log.debug( '%s authorization rules' % serviceName )
+        self.log.debug( '%s authorization rules' % fullServiceName )
         
-        res = lhcb_ci.service.getServiceAuthorization( system, service )
+        res = service.getServiceAuthorization()
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         authorization = res[ 'Value' ]
         
-        self.assertTrue( authorization, 'Empty authorization rules not allowed %s' % serviceName )
+        self.assertTrue( authorization, 'Empty authorization rules not allowed %s' % fullServiceName )
         for method, secProp in authorization.iteritems():
           
           if not isinstance( secProp, str ):
-            self.log.debug( 'Found non str authorization rule for %s.%s' % ( serviceName, method ) )
+            self.log.debug( 'Found non str authorization rule for %s.%s' % ( fullServiceName, method ) )
             continue
           
           # lower case, just in case
@@ -166,15 +166,15 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
           secProp = set( secProp.lower().replace( ' ','' ).split( ',' ) )
           
           if method == 'default':
-            self.assertFalse( 'all' in secProp, 'Default : All authorization rule is FORBIDDEN %s' % serviceName )
-            self.assertFalse( 'any' in secProp, 'Default : Any authorization rule is FORBIDDEN %s' % serviceName )
+            self.assertFalse( 'all' in secProp, 'Default : All authorization rule is FORBIDDEN %s' % fullServiceName )
+            self.assertFalse( 'any' in secProp, 'Default : Any authorization rule is FORBIDDEN %s' % fullServiceName )
           
           if not ( secProp & set( [ 'all', 'any', 'authenticated' ] ) ):
-            self.assertTrue( secProp <= securityProperties, '%s is an invalid SecProp %s' % ( secProp, serviceName ) )
+            self.assertTrue( secProp <= securityProperties, '%s is an invalid SecProp %s' % ( secProp, fullServiceName ) )
           elif secProp & set( [ 'all', 'any' ] ):
-            self.log.warning( '%s.%s has all/any no SecurityProperty' % ( serviceName, method ) )
+            self.log.warning( '%s.%s has all/any no SecurityProperty' % ( fullServiceName, method ) )
 
-          authRules[ serviceName ][ method ] = ', '.join([ sp for sp in secProp ])
+          authRules[ fullServiceName ][ method ] = ', '.join([ sp for sp in secProp ])
             
            
     # Write authorization report
