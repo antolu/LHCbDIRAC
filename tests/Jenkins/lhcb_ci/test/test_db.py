@@ -175,7 +175,7 @@ class InstallationTest( lhcb_ci.basecase.DBTestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
         # Gets tables of the DB ( if sql schema provided, this if is positive )
-        tables = db.getTables()
+        tables = db.getTables() #pylint: disable=E1101
         self.assertDIRACEquals( tables[ 'OK' ], True, tables )
         
         if tables[ 'Value' ]:

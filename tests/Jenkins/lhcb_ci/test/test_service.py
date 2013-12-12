@@ -99,7 +99,7 @@ class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
             ports[ 'xxxx' ].append( serviceName )              
           continue  
         
-        port = service.getServicePort()
+        port = service.getServicePort() #pylint: disable=E1101
         
         _msg = '%s:%s already taken by %s' % ( serviceName, port, ports.get( port,'' ) )
         
@@ -141,7 +141,7 @@ class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
         
         service = lhcb_ci.component.Component( system, 'Service', serviceName )
         
-        fullServiceName = service.composeServiceName()
+        fullServiceName = service.composeServiceName() #pylint: disable=E1101
         
         if self.isException( serviceName ):
           authRules[ fullServiceName ] = { 'xxxx' : 'skipped' }
@@ -150,7 +150,7 @@ class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
         
         self.log.debug( '%s authorization rules' % fullServiceName )
         
-        res = service.getServiceAuthorization()
+        res = service.getServiceAuthorization()        #pylint: disable=E1101
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         authorization = res[ 'Value' ]
         
@@ -399,11 +399,11 @@ class SmokeTest( lhcb_ci.basecase.ServiceTestCase ):
         res     = service.run()  
         self.assertDIRACEquals( res[ 'OK' ], True, res )
           
-        res = service.ping()
+        res = service.ping()                                                        #pylint: disable=E1101
         self.log.debug( str( res ) )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
-        self.assertEquals( res[ 'Value' ][ 'name' ], service.composeServiceName() )
+        self.assertEquals( res[ 'Value' ][ 'name' ], service.composeServiceName() ) #pylint: disable=E1101
         # If everything is OK, the ping should be done within the first 10 seconds
         self.assertEquals( res[ 'Value' ][ 'service uptime' ] < 10, True )
         
