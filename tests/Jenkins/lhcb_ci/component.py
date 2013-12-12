@@ -274,8 +274,9 @@ class ServiceComponent( Component ):
     # Let's give two seconds to the thread to wake up a bit..  
     time.sleep( 2 )
   
-    serviceName = sReactor._ServiceReactor__services.keys()[ 0 ]
-    service     = sReactor._ServiceReactor__services[ serviceName ]
+    
+    serviceName = sReactor._ServiceReactor__services.keys()[ 0 ]    #pylint: disable=E1101
+    service     = sReactor._ServiceReactor__services[ serviceName ] #pylint: disable=E1101
 
     #FIXME: explain in detail what is going on here
     self.params = { 'server'      : server, 
