@@ -134,6 +134,8 @@ class Link( object ):
       lhcb_ci.service.initializeServiceReactor( self.system.replace( 'System', '' ), self.name )
   
     self.chain.append( self )
+    lhcb_ci.logger.debug( 'CHAIN %s' % self.name )
+    lhcb_ci.logger.debug( str( [ c.name for c in self.chain ] ) )
   
   
   def unload( self ):
