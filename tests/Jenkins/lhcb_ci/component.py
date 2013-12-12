@@ -143,6 +143,21 @@ class DBComponent( Component ):
     
     return self.uninstall()
 
+
+  #.............................................................................
+  # DBComponent particular methods
+
+
+  def getTables( self ):
+
+    query  = "show tables"
+    tables = lhcb_ci.db.execute( query, self.name )
+  
+    if not tables[ 'OK' ] or not tables[ 'Value' ]:
+      return tables
+    
+    return { 'OK' : True, 'Value' : [ table[0] for table in tables[ 'Value' ] ] }     
+    
   
 #...............................................................................
 

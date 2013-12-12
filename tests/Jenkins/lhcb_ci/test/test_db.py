@@ -173,7 +173,7 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
         # Gets tables of the DB ( if sql schema provided, this if is positive )
-        tables = lhcb_ci.db.getTables( dbName )
+        tables = db.getTables()
         self.assertDIRACEquals( tables[ 'OK' ], True, tables )
         
         if tables[ 'Value' ]:

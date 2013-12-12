@@ -12,8 +12,6 @@ import MySQLdb
 import os
 
 # DIRAC
-#from DIRAC                import gConfig
-#from DIRAC.Core.Base.DB   import DB 
 from DIRAC.Core.Utilities import InstallTools
 
 # lhcb_ci
@@ -122,20 +120,20 @@ def getInstalledDBs():
   return { 'OK' : True, 'Value' : result }  
   
 
-def getTables( dbName ):
-  """ getTables
-  
-  Given a dbName, returns all its tables ( installed ).
-  """
-
-  logger.debug( "getTables %s" % dbName )
-  
-  tables = execute( "show tables", dbName )
-  
-  if not tables[ 'OK' ] or not tables[ 'Value' ]:
-    return tables
-    
-  return { 'OK' : True, 'Value' : [ t[0] for t in tables[ 'Value' ] ] } 
+#def getTables( dbName ):
+#  """ getTables
+#  
+#  Given a dbName, returns all its tables ( installed ).
+#  """
+#
+#  logger.debug( "getTables %s" % dbName )
+#  
+#  tables = execute( "show tables", dbName )
+#  
+#  if not tables[ 'OK' ] or not tables[ 'Value' ]:
+#    return tables
+#    
+#  return { 'OK' : True, 'Value' : [ t[0] for t in tables[ 'Value' ] ] } 
 
 
 #...............................................................................
