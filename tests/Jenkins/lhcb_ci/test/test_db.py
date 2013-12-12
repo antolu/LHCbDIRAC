@@ -13,7 +13,7 @@ import lhcb_ci.db
 import lhcb_ci.extensions
 
 
-class ConfigureTest( lhcb_ci.basecase.DB_TestCase ):
+class ConfigureTest( lhcb_ci.basecase.DBTestCase ):
   """ ConfigureTest
   
   This class contains dirty & sticky tests. The configuration steps have been
@@ -77,7 +77,7 @@ class ConfigureTest( lhcb_ci.basecase.DB_TestCase ):
   test_configure_dbs.db        = 1   
 
 
-class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
+class InstallationTest( lhcb_ci.basecase.DBTestCase ):
   """ InstallationTest
   
   Tests performing operations related with the DBs installation.
@@ -239,7 +239,7 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
   test_install_tables.db      = 0
 
 
-class SmokeTest( lhcb_ci.basecase.DB_TestCase ):
+class SmokeTest( lhcb_ci.basecase.DBTestCase ):
   """ SmokeTest
   
   Tests performing basic common operations on the databases.

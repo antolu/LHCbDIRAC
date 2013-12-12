@@ -11,7 +11,7 @@ import lhcb_ci.basecase
 import lhcb_ci.commons
 
 
-class ConfigureTest( lhcb_ci.basecase.Agent_TestCase ):
+class ConfigureTest( lhcb_ci.basecase.AgentTestCase ):
   """ ConfigureTest
   
   This class contains dirty & sticky tests. The configuration steps have been
@@ -50,7 +50,7 @@ class ConfigureTest( lhcb_ci.basecase.Agent_TestCase ):
   test_configure_agents.agent     = 1  
   
 
-class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
+class InstallationTest( lhcb_ci.basecase.AgentTestCase ):
   """ InstallationTest
   
   Tests performing operations related with the Agents installation.
@@ -151,7 +151,7 @@ class InstallationTest( lhcb_ci.basecase.Agent_TestCase ):
   test_agents_voimport.agent   = 0
 
 
-class SmokeTest( lhcb_ci.basecase.Agent_TestCase ):
+class SmokeTest( lhcb_ci.basecase.AgentTestCase ):
   """ SmokeTest
   
   Tests performing basic common operations on the agents.

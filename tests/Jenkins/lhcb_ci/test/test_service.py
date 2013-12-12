@@ -15,7 +15,7 @@ import lhcb_ci.component
 import lhcb_ci.service
 
 
-class ConfigureTest( lhcb_ci.basecase.Service_TestCase ):
+class ConfigureTest( lhcb_ci.basecase.ServiceTestCase ):
   """ ConfigureTest
   
   This class contains dirty & sticky tests. The configuration steps have been
@@ -65,7 +65,7 @@ class ConfigureTest( lhcb_ci.basecase.Service_TestCase ):
   test_configure_services.service   = 0
 
 
-class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
+class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
   """ InstallationTest
   
   Tests performing operations related with the Services installation.
@@ -343,7 +343,7 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
   
     
 
-class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
+class SmokeTest( lhcb_ci.basecase.ServiceTestCase ):
   """ SmokeTest
   
   Tests performing basic common operations on the services.

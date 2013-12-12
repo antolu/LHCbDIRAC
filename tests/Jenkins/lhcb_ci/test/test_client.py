@@ -13,7 +13,7 @@
 import lhcb_ci.basecase
 
 
-class TransformationClientTest( lhcb_ci.basecase.Client_TestCase ):
+class TransformationClientTest( lhcb_ci.basecase.ClientTestCase ):
 
   
   SUT = 'TransformationSystem.Client.TransformationClient'
