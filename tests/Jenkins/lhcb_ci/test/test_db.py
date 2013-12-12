@@ -56,8 +56,6 @@ class ConfigureTest( lhcb_ci.basecase.DB_TestCase ):
   
     for systemName, systemDBs in self.databases.iteritems():   
       
-      systemName = systemName.replace( 'System', '' )
-      
       for dbName in systemDBs:
         
         db  = lhcb_ci.component.Component( systemName, 'DB', dbName )
@@ -97,11 +95,12 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
    
     self.logTestName()
 
-    for systemDBs in self.databases.itervalues():   
+    for systemName, dbNames in self.databases.iteritems():   
     
-      for dbName in systemDBs:
+      for dbName in dbNames:
 
-        res = lhcb_ci.db.installDB( dbName )         
+        db  = lhcb_ci.component.Component( systemName, 'DB', dbName )
+        res = db.install()
         self.assertDIRACEquals( res[ 'OK' ], True, res )
                 
         res = lhcb_ci.db.dropDB( dbName )
@@ -119,31 +118,33 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
   
     self.logTestName()
   
-    for diracSystem, systemDBs in self.databases.iteritems():   
+    for systemName, systemDBs in self.databases.iteritems():   
       
-      diracSystem = diracSystem.replace( 'System', '' )
+      diracSystem = systemName.replace( 'System', '' )
       
       for dbName in systemDBs:
         
         # First installs database on  server
-        res = lhcb_ci.db.installDB( dbName )
-        self.assertDIRACEquals( res[ 'OK' ], True, res )  
+        db  = lhcb_ci.component.Component( systemName, 'DB', dbName )
+        res = db.install()
+        self.assertDIRACEquals( res[ 'OK' ], True, res )
+          
         
         # Tries to connect to the DB using the DB DIRAC module
         try:
           self.log.debug( 'Reaching %s/%s' % ( diracSystem, dbName ) )
-          db = lhcb_ci.db.getDB( dbName, '%s/%s' % ( diracSystem, dbName ), 10 )
+          dbObj = lhcb_ci.db.getDB( dbName, '%s/%s' % ( diracSystem, dbName ), 10 )
         except RuntimeError, msg:
           self.log.error( 'Error importing %s/%s' % ( diracSystem, dbName ) )
           self.log.error( msg )
           self.fail( msg )   
         
         # If the DB is installed, we make a simple query
-        res = db._query( "show status" )
+        res = dbObj._query( "show status" )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
         # Cleanup
-        del db
+        del dbObj
         res = lhcb_ci.db.dropDB( dbName )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
     
@@ -158,7 +159,7 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
     
     self.logTestName()
     
-    for diracSystem, systemDBs in self.databases.iteritems():
+    for systemName, systemDBs in self.databases.iteritems():
       
       for dbName in systemDBs:
     
@@ -166,7 +167,8 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
           continue
 
         # Installs DB
-        res = lhcb_ci.db.installDB( dbName )
+        db  = lhcb_ci.component.Component( systemName, 'DB', dbName )
+        res = db.install()
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
         # Gets tables of the DB ( if sql schema provided, this if is positive )
@@ -174,17 +176,17 @@ class InstallationTest( lhcb_ci.basecase.DB_TestCase ):
         self.assertDIRACEquals( tables[ 'OK' ], True, tables )
         
         if tables[ 'Value' ]:
-          self.log.exception( 'Tables found for %s/%s' % ( diracSystem, dbName ) )
+          self.log.exception( 'Tables found for %s/%s' % ( systemName, dbName ) )
           self.log.exception( tables[ 'Value' ] )
           res = lhcb_ci.db.dropDB( dbName )
           self.assertDIRACEquals( res[ 'OK' ], True, res )
           continue
         
         # Import DIRAC module and get object
-        dbPath = 'DIRAC.%s.DB.%s' % ( diracSystem, dbName )
+        dbPath = 'DIRAC.%s.DB.%s' % ( systemName, dbName )
         self.log.debug( 'VO Importing %s' % dbPath )
         
-        dbMod = lhcb_ci.extensions.import_( 'DIRAC.%s.DB.%s' % ( diracSystem, dbName ) )
+        dbMod = lhcb_ci.extensions.import_( 'DIRAC.%s.DB.%s' % ( systemName, dbName ) )
         self.assertEquals( hasattr( dbMod, dbName ), True )
         
         dbClass = getattr( dbMod, dbName )

@@ -206,7 +206,9 @@ class Link( object ):
     self.currentThreads, self.activeThreads = lhcb_ci.commons.trackThreads()
     
     if self.component == 'DB':
-      lhcb_ci.db.installDB( self.name )
+      db  = lhcb_ci.component.Component( self.system, 'DB', self.name )
+      db.install()
+      #lhcb_ci.db.installDB( self.name )
     elif self.component == 'Service':
       sReactor = lhcb_ci.service.initializeServiceReactor( self.system.replace( 'System', '' ), self.name )
       # Extract the initialized ServiceReactor        

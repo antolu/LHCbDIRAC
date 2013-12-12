@@ -46,13 +46,24 @@ class Component( object ):
 
   #.............................................................................
   
+  
   def configure( self ):
+    """ configure
+    
+    EXTEND ME PLEASE.
+    """
     
     lhcb_ci.logger.debug( 'configure %s: %s/%s' % ( self.component, self._systemName(), self.name ) )
   
+  
   def install( self ):
+    """ install
+    
+    EXTEND ME PLEASE.
+    """
     
     lhcb_ci.logger.debug( 'install %s: %s/%s' % ( self.component, self._systemName(), self.name ) )
+
 
   def uninstall( self ):
     pass
@@ -85,6 +96,9 @@ class DBComponent( Component ):
   def install( self ):
     """ install
     
+    This method installs database using DIRAC standard tools ( first needs to make
+    sure it has the MySQL passwords ).
+    
     """
 
     # Makes sure InstallTools is aware of the MySQLPasswords
@@ -95,7 +109,7 @@ class DBComponent( Component ):
   
   def run( self ):
     
-    return lhcb_ci.db.installDB( self.name )
+    return self.install( self.name )
 
   
   def stop( self ):

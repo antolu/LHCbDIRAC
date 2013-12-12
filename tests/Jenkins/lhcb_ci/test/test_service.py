@@ -8,10 +8,10 @@
 
 
 import collections
-import threading
 
 import lhcb_ci.basecase
 import lhcb_ci.commons
+import lhcb_ci.component
 import lhcb_ci.db
 import lhcb_ci.service
 
@@ -381,8 +381,9 @@ class SmokeTest( lhcb_ci.basecase.Service_TestCase ):
           self.log.debug( 'Found database for %s' % service )
           dbNames = [ '%sDB' % service ]        
         
-        for dbName in dbNames:          
-          db = lhcb_ci.db.installDB( dbName )
+        for dbName in dbNames:
+          db  = lhcb_ci.component.Component( '%sSystem' % system, 'DB', dbName )
+          res = db.install()
           self.assertDIRACEquals( db[ 'OK' ], True, db )
           
         res = lhcb_ci.service.initializeServiceReactor( system, service )

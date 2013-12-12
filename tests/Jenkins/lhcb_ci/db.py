@@ -12,7 +12,7 @@ import MySQLdb
 import os
 
 # DIRAC
-from DIRAC                import gConfig
+#from DIRAC                import gConfig
 from DIRAC.Core.Base.DB   import DB 
 from DIRAC.Core.Utilities import InstallTools
 
@@ -63,17 +63,17 @@ def getUserPass():
   return __readPass( 'userMySQL' )
 
 
-def installDB( dbName ):
-  """ installDB
-  
-  Installs Database using DIRAC standard tools.
-  """
-
-  InstallTools.getMySQLPasswords()
-  logger.debug( "install database %s" % dbName )
-  result = InstallTools.installDatabase( dbName )
-  logger.debug( "result: %s" % result )
-  return result
+#def installDB( dbName ):
+#  """ installDB
+#  
+#  Installs Database using DIRAC standard tools.
+#  """
+#
+#  InstallTools.getMySQLPasswords()
+#  logger.debug( "install database %s" % dbName )
+#  result = InstallTools.installDatabase( dbName )
+#  logger.debug( "result: %s" % result )
+#  return result
   
   
 def dropDB( dbName ):
