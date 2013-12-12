@@ -19,8 +19,9 @@ class TransformationClientTest( lhcb_ci.basecase.Client_TestCase ):
   
   #@lhcb_ci.basecase.time_test
   def test_demo( self ):
-    pass
-    #raise NameError( 'DONE' )  
+    
+    client = self.sutCls() 
+    lhcb_ci.logger.debug( client )  
   
   test_demo.smoke  = 1
   test_demo.client = 1
