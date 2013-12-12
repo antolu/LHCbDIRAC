@@ -16,6 +16,7 @@ import lhcb_ci.extensions
 from DIRAC                                         import gConfig
 from DIRAC.ConfigurationSystem.Client              import PathFinder
 from DIRAC.Core.Base.DB                            import DB
+from DIRAC.Core.DISET.private.Service              import Service
 from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
 from DIRAC.Core.Utilities                          import InstallTools
 
@@ -49,6 +50,12 @@ class Component( object ):
   def _systemName( self ):
     return self.system.replace( 'System', '' )
 
+  def _log( self, method ):
+    
+    #TODO: what about counting the number of times this method is called...
+    
+    lhcb_ci.logger.debug( '%s %s: %s/%s' % ( method, self.component, self._systemName(), self.name ) )
+    
   #.............................................................................
   
   
@@ -57,7 +64,7 @@ class Component( object ):
     
     EXTEND ME PLEASE.
     """  
-    lhcb_ci.logger.debug( 'rawObj %s: %s/%s' % ( self.component, self._systemName(), self.name ) )
+    self._log( 'rawObj' )
 
   
   def configure( self ):
@@ -65,7 +72,7 @@ class Component( object ):
     
     EXTEND ME PLEASE.
     """
-    lhcb_ci.logger.debug( 'configure %s: %s/%s' % ( self.component, self._systemName(), self.name ) )
+    self._log( 'configure' )
   
   
   def install( self ):
@@ -73,7 +80,7 @@ class Component( object ):
     
     EXTEND ME PLEASE.
     """  
-    lhcb_ci.logger.debug( 'install %s: %s/%s' % ( self.component, self._systemName(), self.name ) )
+    self._log( 'install' )
 
 
   def uninstall( self ):
@@ -81,7 +88,7 @@ class Component( object ):
     
     EXTEND ME PLEASE.
     """  
-    lhcb_ci.logger.debug( 'uninstall %s: %s/%s' % ( self.component, self._systemName(), self.name ) )
+    self._log( 'uninstall' )
 
   
   def run( self ):
@@ -154,6 +161,8 @@ class DBComponent( Component ):
 
   def getTables( self ):
 
+    self._log( 'getTables' )
+
     query  = "show tables"
     tables = lhcb_ci.db.execute( query, self.name )
   
@@ -176,6 +185,19 @@ class ServiceComponent( Component ):
     self.serviceName = None
     self.service     = None
 
+
+  def rawObj( self ):
+    """ rawObj
+    
+    This method returns a RAW DB Object.
+    
+    """
+    super( ServiceComponent, self ).rawObj()
+
+    return Service( { 'loadName'   : self.composeServiceName(), 
+                      'modName'    : self.composeServiceName(), 
+                      'standalone' : False } )
+  
   
   def configure( self ):
     
@@ -203,6 +225,8 @@ class ServiceComponent( Component ):
   
   def composeServiceName( self ):
     
+    self._log( 'composeServiceName' )
+    
     return '%s/%s' % ( self._systemName(), self.name )
   
   def getServicePort( self ):
@@ -210,6 +234,8 @@ class ServiceComponent( Component ):
   
     Given a system and a service, returns its configured port.
     """
+
+    self._log( 'getServicePort' )
 
     servConf = ServiceConfiguration( [ self.composeServiceName() ] )
     return servConf.getPort()
@@ -219,6 +245,8 @@ class ServiceComponent( Component ):
   
     Given a system and a service, returns its configured Authorization rules.
     """
+
+    self._log( 'getServiceAuthorization' )
 
     servicePath = PathFinder.getServiceSection( self.composeServiceName() )
 

@@ -196,15 +196,13 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
 
     self.logTestName()
    
-    for diracSystem, services in self.swServices.iteritems():
+    for system, services in self.swServices.iteritems():
       
-      diracSystem = diracSystem.replace( 'System', '' )
-      
-      for service in services:
+      for serviceName in services:
 
-        serviceName = '%s/%s' % ( diracSystem, service )
-          
-        if self.isException( service ):
+        service = lhcb_ci.component.Component( system, 'Service', serviceName )
+                 
+        if self.isException( serviceName ):
           continue
 
         # Keep track of threads to wash them
@@ -212,10 +210,10 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         
         # Tries to get a Service DIRAC object
         self.log.debug( 'Service %s' % serviceName )
-        service = lhcb_ci.service.getService( serviceName )
+        serviceObj = service.rawObj()
         
         # Cleanup
-        del service       
+        del serviceObj       
         # Clean leftovers         
         threadsAfterPurge = lhcb_ci.commons.killThreads( currentThreads )
         # We make sure that there are no leftovers on the threading
