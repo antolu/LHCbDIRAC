@@ -173,22 +173,24 @@ class Link( object ):
       guessName = self.name.replace( 'Client', 'Manager' )
     elif self.component == 'Service':
       nextComponent = 'DB'
-      guessName = self.name + 'DB'
+      # Let's remove Manager from the Service name to avoid having to hardcode
+      # tons of exceptions in LINKS
+      # FIXME: hardcode the exceptions and slowly change names in code.
+      guessName = self.name.replace( 'Manager', '' ) + 'DB'
     elif self.component == 'DB':
       return []  
     else:
       raise Exception( 'Unknown %s' % self.component )
     
     try:
-      _ = self.components[ self.component ][ self.system ][ guessName ]
-      guessName = [ guessName ]
+      if guessName in self.components[ self.component ][ self.system ]:
+        guessComponents = [ guessName ]
+      else:
+        guessComponents = self.components[ nextComponent ][ self.system ]
     except KeyError:
-      try:
-        guessName = self.components[ nextComponent ][ self.system ]
-      except KeyError:
-        guessName = []
-    
-    return [ '%s.%s.%s' % ( self.system, nextComponent, name ) for name in guessName ]
+      guessComponents = []
+
+    return [ '%s.%s.%s' % ( self.system, nextComponent, name ) for name in guessComponents ]
     
 
   def __load( self ):
