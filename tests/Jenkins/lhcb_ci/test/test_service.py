@@ -61,8 +61,8 @@ class ConfigureTest( lhcb_ci.basecase.Service_TestCase ):
   # Nosetests attrs
 
   # test_configure_service
-  test_configure_services.configure = 1
-  test_configure_services.service   = 1
+  test_configure_services.configure = 0
+  test_configure_services.service   = 0
 
 
 class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
@@ -321,12 +321,12 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
   # Nosetests attrs
 
   # test_configured_service_ports
-  test_service_ports.configure = 1
-  test_service_ports.service   = 1
+  test_service_ports.configure = 0
+  test_service_ports.service   = 0
   
   # test_configured_service_authorization
-  test_service_authorization.configure = 1
-  test_service_authorization.service   = 1
+  test_service_authorization.configure = 0
+  test_service_authorization.service   = 0
 
   test_services_common_import.install = 0
   test_services_common_import.service = 0
@@ -336,8 +336,8 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
   test_services_voimport.service = 0
 
   # test_services_install_drop
-  test_services_install_drop.install = 1
-  test_services_install_drop.service = 1
+  test_services_install_drop.install = 0
+  test_services_install_drop.service = 0
   
     
 

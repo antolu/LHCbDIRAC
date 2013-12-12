@@ -53,8 +53,8 @@ class TransformationClientTest( lhcb_ci.basecase.Client_TestCase ):
     
       
   
-  test_addAndRemove.smoke  = 1
-  test_addAndRemove.client = 1
+  test_addAndRemove.smoke  = 0
+  test_addAndRemove.client = 0
 
 
 #...............................................................................
