@@ -681,12 +681,12 @@ function runTest(){
     exit "TEST_MODE not found"
   fi
   
-  mkdir -p $WORKSPACE/testLogs
+  mkdir -p $WORKSPACE/lhcb_ci
 
   source $WORKSPACE/bashrc
 
   export PYTHONPATH=$PYTHONPATH:$WORKSPACE/LHCbTestDirac/Jenkins
-  export LHCB_CI_DEBUG=$WORKSPACE/testLogs/${TEST_MODE}.log
+  export LHCB_CI_DEBUG=$WORKSPACE/lhcb_ci/${TEST_MODE}.log
 
   echo "########################################################"
   echo "$TEST_MODE TESTS"
