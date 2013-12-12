@@ -10,13 +10,13 @@
 # lhcb_ci imports
 import lhcb_ci.db
 import lhcb_ci.extensions
-import lhcb_ci.service
 
 
 # DIRAC imports
-from DIRAC                import gConfig
-from DIRAC.Core.Base.DB   import DB
-from DIRAC.Core.Utilities import InstallTools
+from DIRAC                                         import gConfig
+from DIRAC.Core.Base.DB                            import DB
+from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
+from DIRAC.Core.Utilities                          import InstallTools
 
 
 class Component( object ):
@@ -196,6 +196,22 @@ class ServiceComponent( Component ):
     super( ServiceComponent, self ).uninstall()
     
     return InstallTools.uninstallComponent( self._systemName(), self.name )
+  
+  #.............................................................................
+  # ServiceComponent particular methods 
+  
+  def composeServiceName( self ):
+    
+    return '%s/%s' % ( self._systemName(), self.name )
+  
+  def getServicePort( self ):
+    """ getServicePort
+  
+    Given a system and a service, returns its configured port.
+    """
+
+    servConf = ServiceConfiguration( [ self.composeServiceName() ] )
+    return servConf.getPort()
   
   
   

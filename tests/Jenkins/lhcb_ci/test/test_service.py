@@ -86,26 +86,29 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
     
     for system, services in self.swServices.iteritems():
       
-      system = system.replace( 'System', '' )
+      for serviceName in services:
       
-      for service in services:
+        service = lhcb_ci.component.Component( system, 'Service', serviceName )
       
-        serviceName = '%s/%s' % ( system, service )
+        fullServiceName = service.composeServiceName()
       
-        if self.isException( service ):
+        if self.isException( fullServiceName ):
           if not 'xxxx' in ports:
-            ports[ 'xxxx' ] = [ serviceName ]
+            ports[ 'xxxx' ] = [ fullServiceName ]
           else:
-            ports[ 'xxxx' ].append( serviceName )              
+            ports[ 'xxxx' ].append( fullServiceName )              
           continue  
-      
-        port = lhcb_ci.service.getServicePort( system, service )
-        _msg = '%s:%s already taken by %s' % ( serviceName, port, ports.get( port,'' ) )
+        
+        #service = lhcb_ci.component.Component( system, 'Service', serviceName )
+        port    = service.getServicePort()
+              
+        #port = lhcb_ci.service.getServicePort( system, serviceName )
+        _msg = '%s:%s already taken by %s' % ( fullServiceName, port, ports.get( port,'' ) )
         
         # If false, it raises. 
         self.assertTrue( port not in ports, _msg )
         
-        ports[ port ] = serviceName
+        ports[ port ] = fullServiceName
 
     # Sort port numbers
     sortedPorts = ports.keys()
@@ -287,19 +290,19 @@ class InstallationTest( lhcb_ci.basecase.Service_TestCase ):
         self.log.debug( 'Skipping Master Configuration' )
         continue 
       
-      for service in services:
-        self.log.debug( "%s %s" % ( systemName, service ) )
+      for serviceName in services:
+        self.log.debug( "%s %s" % ( systemName, serviceName ) )
 
-        if self.isException( service ):
+        if self.isException( serviceName ):
           continue
 
         # FIXME: hack to speedup tests
-        if not 'Transformation' in service:
+        if not 'Transformation' in serviceName:
           continue
 
         currentThreads, activeThreads = lhcb_ci.commons.trackThreads()        
 
-        service = lhcb_ci.component.Component( systemName, 'Service', service )
+        service = lhcb_ci.component.Component( systemName, 'Service', serviceName )
         res     = service.install()
        
         #res = lhcb_ci.service.setupService( system, service )      

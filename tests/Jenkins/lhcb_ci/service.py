@@ -15,7 +15,7 @@ from DIRAC                                         import gConfig
 from DIRAC.ConfigurationSystem.Client              import PathFinder
 from DIRAC.Core.DISET.private.MessageBroker        import MessageBroker
 from DIRAC.Core.DISET.private.Service              import Service
-from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
+#from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
 from DIRAC.Core.DISET.RPCClient                    import RPCClient
 from DIRAC.Core.DISET.ServiceReactor               import ServiceReactor
 from DIRAC.Core.Security                           import Properties
@@ -59,16 +59,16 @@ def getInstalledServices():
   return res[ 'Value' ][ 'Services' ]
 
 
-def getServicePort( system, service ):
-  """ getServicePort
-  
-  Given a system and a service, returns its configured port.
-  """
-
-  serviceName = '%s/%s' % ( system.replace( 'System', '' ), service )
-
-  servConf = ServiceConfiguration( [ serviceName ] )
-  return servConf.getPort()
+#def getServicePort( system, service ):
+#  """ getServicePort
+#  
+#  Given a system and a service, returns its configured port.
+#  """
+#
+#  serviceName = '%s/%s' % ( system.replace( 'System', '' ), service )
+#
+#  servConf = ServiceConfiguration( [ serviceName ] )
+#  return servConf.getPort()
 
 
 def getServiceAuthorization( system, service ):
