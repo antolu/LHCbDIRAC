@@ -38,7 +38,9 @@ class Component( object ):
       elif component == 'Service':
         cls = ServiceComponent
       elif component == 'Agent':
-        cls = AgentComponent  
+        cls = AgentComponent
+      elif component == 'Client':
+        cls = ClientComponent    
       else:
         raise NotImplementedError( 'No component implementation for %s' % component )
     return super( Component, cls ).__new__( cls )
@@ -359,7 +361,7 @@ class AgentComponent( Component ):
 
 #...............................................................................
 
-class ClientComopnent( Component ):
+class ClientComponent( Component ):
   pass
 
 #...............................................................................
