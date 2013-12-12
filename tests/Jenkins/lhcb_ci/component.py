@@ -6,6 +6,9 @@
   
 """
 
+# libraries
+import time
+
 
 # lhcb_ci imports
 import lhcb_ci.db
@@ -18,6 +21,7 @@ from DIRAC.ConfigurationSystem.Client              import PathFinder
 from DIRAC.Core.Base.DB                            import DB
 from DIRAC.Core.DISET.private.Service              import Service
 from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
+from DIRAC.Core.DISET.ServiceReactor               import ServiceReactor
 from DIRAC.Core.Utilities                          import InstallTools
 
 
@@ -45,6 +49,7 @@ class Component( object ):
     self.name      = name
     
     self.extensions = lhcb_ci.extensions.getCSExtensions()
+    self.params     = {}
 
   
   def _systemName( self ):
@@ -184,7 +189,7 @@ class ServiceComponent( Component ):
     self.server      = None
     self.serviceName = None
     self.service     = None
-
+    
 
   def rawObj( self ):
     """ rawObj
@@ -219,6 +224,52 @@ class ServiceComponent( Component ):
     super( ServiceComponent, self ).uninstall()
     
     return InstallTools.uninstallComponent( self._systemName(), self.name )
+  
+  def run( self ):
+    
+    sReactor = ServiceReactor()
+  
+    res = sReactor.initialize( [ self.composeServiceName() ] )
+    if not res[ 'OK' ]:
+      return res
+  
+    server = lhcb_ci.service.ServiceThread( sReactor = sReactor )  
+    server.start()
+
+    # Let's give two seconds to the thread to wake up a bit..  
+    time.sleep( 2 )
+  
+    serviceName = sReactor._ServiceReactor__services.keys()[ 0 ]
+    service     = sReactor._ServiceReactor__services[ serviceName ]
+
+    #FIXME: explain in detail what is going on here
+    self.params = { 'server'      : server, 
+                    'serviceName' : serviceName,
+                    'service'     : service }
+    
+    return res
+
+  def stop( self ):
+    
+    if not 'server' in self.params:
+      return { 'OK' : False, 'Message' : 'No server to be stopped' }
+    
+    server = self.params[ 'server' ]
+    
+    # Stop while True
+    server.sReactor._ServiceReactor__alive = False
+    server.sReactor.closeListeningConnections()
+  
+    # And delete Service object from dictionary
+    #FIXME: maybe we do not need to do this
+    #  del sReactor._ServiceReactor__services[ serviceName ]
+    
+    server.join( 60 )
+    if server.isAlive():
+      return { 'OK' : False, 'Message' : '%s Server thread is alive' % self.composeServiceName() }
+  
+    return { 'OK' : True, 'Value' : None }    
+  
   
   #.............................................................................
   # ServiceComponent particular methods 

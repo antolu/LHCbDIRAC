@@ -59,41 +59,6 @@ def getInstalledServices():
   return res[ 'Value' ][ 'Services' ]
 
 
-#def getServicePort( system, service ):
-#  """ getServicePort
-#  
-#  Given a system and a service, returns its configured port.
-#  """
-#
-#  serviceName = '%s/%s' % ( system.replace( 'System', '' ), service )
-#
-#  servConf = ServiceConfiguration( [ serviceName ] )
-#  return servConf.getPort()
-
-
-#def getServiceAuthorization( system, service ):
-#  """ getServiceAuthorization
-#  
-#  Given a system and a service, returns its configured Authorization rules.
-#  """
-#
-#  serviceName = '%s/%s' % ( system.replace( 'System', '' ), service )
-#  servicePath = PathFinder.getServiceSection( serviceName )
-#
-#  return gConfig.getOptionsDict( '%s/Authorization' % servicePath )
-
-
-#def configureService( systemName, serviceName ):
-#  """ configureDB
-#  
-#  Configures systemName/serviceName in the CS
-#  """
-#  
-#  logger.debug( 'Configuring Service %s/%s' % ( systemName, serviceName ) )
-#  return InstallTools.addDefaultOptionsToCS( gConfig, 'service', systemName, 
-#                                             serviceName, getCSExtensions() )
-
-
 def getSecurityProperties():
   """ getProperties
 
@@ -111,30 +76,6 @@ def getSecurityProperties():
   return properties          
 
 
-#def setupService( system, service ):
-#  """ setupService
-#  
-#  Setups service and runs it
-#  """  
-#
-#  logger.debug( 'setupService' )
-#  
-#  extensions = getCSExtensions()
-#  
-#  return InstallTools.setupComponent( 'service', system, service, extensions )
-
-
-#def uninstallService( system, service ):
-#  """ uninstallService
-#  
-#  Stops the service.
-#  """
-#
-#  logger.debug( 'uninstallService for %s/%s' % ( system, service ) )
-#    
-#  return InstallTools.uninstallComponent( system, service )
-
-
 def initializeServiceClass( serviceClass, serviceName ):
   """ initializeServiceClass
   
@@ -147,15 +88,6 @@ def initializeServiceClass( serviceClass, serviceName ):
   msgBroker = MessageBroker( serviceName )
   serviceClass._rh__initializeClass( { 'serviceName' : serviceName }, None, 
                                      msgBroker, None )
-
-
-#def getService( serviceName ):
-#  """ getService
-#  
-#  Returns a Service object, give a serviceName of the form system/service.
-#  """
-#
-#  return Service( { 'loadName' : serviceName, 'modName' : serviceName, 'standalone' : False } )
 
 
 def initializeServiceReactor( system, service ):
