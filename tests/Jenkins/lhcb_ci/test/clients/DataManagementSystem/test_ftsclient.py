@@ -107,15 +107,59 @@ class FTSClientTest( lhcb_ci.basecase.ClientTestCase ):
 
 
   @lhcb_ci.basecase.timeDecorator
-  def test_demo( self ):    
+  def test_addAndRemoveJobs( self ):    
     
     client = self.sutCls()
     client.replicaManager = self.replicaManager
-      
-    pass
+    
+    for ftsJob in self.ftsJobs:
+      res = client.putFTSJob( ftsJob )
+      self.assertDIRACEquals( res[ 'OK' ], True, res )
+
+    res = client.getFTSJobIDs( self.statuses )
+    self.assertDIRACEquals( res[ 'OK' ], True, res )
+    self.assertEqual( len( res[ 'Value' ] ), self.numberOfJobs )
+    FTSjobIDs = res['Value']
+
+    res = client.getFTSJobList( self.statuses, self.numberOfJobs )
+    self.assertDIRACEquals( res[ 'OK' ], True, res )
+    self.assertEqual( len( res[ 'Value' ] ), self.numberOfJobs )
+
+    for i in FTSjobIDs:
+      res = client.peekFTSJob( i )
+      self.assertDIRACEquals( res[ 'OK' ], True, res )
+      self.assertEqual( len( res[ 'Value' ][ 'FTSFiles' ] ), 1 )
+
+    for i in FTSjobIDs:
+      res = client.getFTSJob( i )
+      self.assertDIRACEquals( res[ 'OK' ], True, res )
+      self.assertEqual( len( res[ 'Value' ][ 'FTSFiles' ] ), 1 )
+
+    res = client.getFTSFileIDs()
+    self.assertDIRACEquals( res[ 'OK' ], True, res )
+    FTSfileIDs = res[ 'Value' ]
+
+    res = client.getFTSFileList()
+    self.assertDIRACEquals( res[ 'OK' ], True, res )
+
+    for i in FTSfileIDs:
+      res = client.peekFTSFile( i )
+      self.assertDIRACEquals( res[ 'OK' ], True, res )
+
+    for i in FTSfileIDs:
+      res = client.getFTSFile( i )
+      self.assertDIRACEquals( res[ 'OK' ], True, res )
+
+    for i in FTSjobIDs:
+      res = client.deleteFTSJob( i )
+      self.assertDIRACEquals( res[ 'OK' ], True, res )
+
+    for i in self.opIDs:
+      res = client.deleteFTSFiles( i )
+      self.assertDIRACEquals( res[ 'OK' ], True, res )
   
-  test_demo.smoke  = 1
-  test_demo.client = 1
+  test_addAndRemoveJobs.smoke  = 1
+  test_addAndRemoveJobs.client = 1
 
 
 #...............................................................................

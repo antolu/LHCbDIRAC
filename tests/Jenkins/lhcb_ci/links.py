@@ -26,21 +26,30 @@
 import lhcb_ci.component
 
 
-# Chains........................................................................
+# LINKS.........................................................................
+# we need to keep a list of the imports that are not standard.. ideally, we should
+# infer this from the code, but is not easy given that each developer has its own
+# way of doing things...
+
 
 LINKS = {
 
   'Client' :
     {
+     #DataManagementSystem
      'FTSClient'            : [ 'DataManagementSystem.Service.FTSManager', 
                                 'RequestManagementSystem.Service.RequestManager' ],
+     #TransformationSystem
      'TransformationClient' : 'TransformationSystem.Service.TransformationManager'
      },
 
   'Service' :
     {
+     #DataManagementSystem
+     'FTSManager'            : 'DataManagementSystem.DB.FTSDB',
+     #TransformationSystem
      'TransformationManager' : 'TransformationSystem.DB.TransformationDB',
-     'FTSManager'            : 'DataManagementSystem.DB.FTSDB' 
+      
      }
 
 }
