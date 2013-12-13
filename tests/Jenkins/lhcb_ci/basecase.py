@@ -239,7 +239,8 @@ class DBTestCase( BaseTestCase ):
       self.log.error( 'setUp' )
       self.fail( res[ 'Message' ] )
       
-    if res[ 'Value' ]:
+    # We keep ProxyDB installed
+    if res[ 'Value' ] != [ 'ProxyDB' ]:
       self.log.error( 'setUp' )
       self.fail( 'DBs still installed: %s' % res[ 'Value' ] )  
       
