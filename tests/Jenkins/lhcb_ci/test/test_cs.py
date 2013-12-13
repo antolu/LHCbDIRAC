@@ -15,10 +15,26 @@ import lhcb_ci.commons
 from DIRAC.ConfigurationSystem.Client.CSAPI import CSAPI
 
 class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
+  """ ConfigureTest
   
-  def test_shifterProxy( self ):   
+  This class contains dirty & sticky tests. The configuration steps have been
+  transformed into simple unittests, which are run here. Dirty & sticky because
+  the tests will alter the CS structure, adding the necessary configuration 
+  parameters to be able to run the rest of the tests. 
+  
+  """
+
+  
+  def test_shifterProxy( self ):
+    """ test_shifterProxy
     
-    currentThreads_, activeThreads_ = lhcb_ci.commons.trackThreads()
+    Let's try to set a new ShifterProxy in the CS.
+    
+    """   
+    
+    #CSAPI object leaves few threads in background... need to make sure all are
+    #gone once the method is done.
+    currentThreads, _activeThreads = lhcb_ci.commons.trackThreads()
     
     csapi = CSAPI()
     
@@ -32,13 +48,23 @@ class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
     res = csapi.commit()
     self.assertDIRACEquals( res[ 'OK' ], True, res )
     
+    #CSAPI object leaves few threads in background... need to make sure all are
+    #gone once the method is done.
     del csapi
-    lhcb_ci.commons.killThreads( currentThreads_ )
+    lhcb_ci.commons.killThreads( currentThreads )
     
   def test_resources( self ):
+    """ test_resources
+    
+    Creates /Resources/Sites section, completely empty ! Lot of work to be done
+    here in v7r0 !.
+    
+    """  
   
-    currentThreads_, activeThreads_ = lhcb_ci.commons.trackThreads()
-  
+    #CSAPI object leaves few threads in background... need to make sure all are
+    #gone once the method is done.
+    currentThreads, _activeThreads = lhcb_ci.commons.trackThreads()
+    
     csapi = CSAPI()
     
     res = csapi.createSection( '/Resources/Sites' )
@@ -47,8 +73,10 @@ class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
     res = csapi.commit()
     self.assertDIRACEquals( res[ 'OK' ], True, res )
 
+    #CSAPI object leaves few threads in background... need to make sure all are
+    #gone once the method is done.
     del csapi
-    lhcb_ci.commons.killThreads( currentThreads_ )
+    lhcb_ci.commons.killThreads( currentThreads )
   
   
   test_shifterProxy.configure = 1

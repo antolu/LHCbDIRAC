@@ -19,10 +19,7 @@ class ConfigureTest( lhcb_ci.basecase.DBTestCase ):
   This class contains dirty & sticky tests. The configuration steps have been
   transformed into simple unittests, which are run here. Dirty & sticky because
   the tests will alter the CS structure, adding the necessary configuration 
-  parameters to be able to run the rest of the tests. 
-  
-  Disclaimer: do not change the name of the tests, as some of them need to
-  run in order.
+  parameters to be able to run the rest of the tests.
   
   """
   
