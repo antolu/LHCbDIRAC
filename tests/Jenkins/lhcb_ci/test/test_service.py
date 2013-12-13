@@ -286,11 +286,16 @@ class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
       
       #system = system.replace( 'System', '' )
       
-      if systemName == 'ConfigurationSystem':
-        self.log.debug( 'Skipping Master Configuration' )
-        continue 
+#      if systemName == 'ConfigurationSystem':
+#        self.log.debug( 'Skipping Master Configuration' )
+#        continue 
       
       for serviceName in services:
+        
+        if serviceName in [ 'Configuration', 'ProxyManager' ]:
+          self.log.debug( 'Skipping %s' % serviceName )
+          continue 
+        
         self.log.debug( "%s %s" % ( systemName, serviceName ) )
 
         if self.isException( serviceName ):
@@ -368,11 +373,15 @@ class SmokeTest( lhcb_ci.basecase.ServiceTestCase ):
     
     for system, services in self.swServices.iteritems():
       
-      if system == 'ConfigurationSystem':
-        self.log.debug( 'Skipping Master Configuration' )
-        continue 
+#      if system == 'ConfigurationSystem':
+#        self.log.debug( 'Skipping Master Configuration' )
+#        continue 
 
       for serviceName in services:
+
+        if serviceName in [ 'Configuration', 'ProxyManager' ]:
+          self.log.debug( 'Skipping %s' % serviceName )
+          continue 
 
         if self.isException( serviceName ):
           continue
