@@ -37,9 +37,9 @@ LINKS = {
   'Client' :
     {
      #DataManagementSystem
-     'FTSClient'            : [ 'DataManagementSystem.Service.FTSManager', 
-                                'RequestManagementSystem.Service.RequestManager',
-                                'FrameworkSystem.Service.ProxyManager' ],
+     'FTSClient'            : [ 'FrameworkSystem.Service.ProxyManager',
+                                'DataManagementSystem.Service.FTSManager', 
+                                'RequestManagementSystem.Service.RequestManager' ],
      #TransformationSystem
      'TransformationClient' : 'TransformationSystem.Service.TransformationManager'
      },
