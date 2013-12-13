@@ -300,7 +300,7 @@ class ServiceTestCase( DBTestCase ):
     
     # Configuration Service is ALWAYS installed ( Master ! )
     del installedServices[ 'Configuration' ]
-    del installedServices[ 'ProxyManager' ]
+    print installedServices
       
     if installedServices:
       self.log.error( 'setUp' )
@@ -320,7 +320,7 @@ class ServiceTestCase( DBTestCase ):
    
     # Configuration Service is ALWAYS installed ( Master ! )
     del installedServices[ 'Configuration' ]
-    del installedServices[ 'ProxyManager' ]
+    print installedServices
     
     if installedServices:
       self.log.error( 'tearDown' )
