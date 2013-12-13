@@ -19,9 +19,9 @@ class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
     
     csapi = CSAPI()
     
-    csapi.createSection( '/Operations/Shifter/DataManager' )
-    csapi.setOption( '/Operations/Shifter/DataManager/User' , 'lhcbciuser' )
-    csapi.setOption( '/Operations/Shifter/DataManager/Group', 'user' )
+    csapi.createSection( '/Operations/Defaults/Shifter/DataManager' )
+    csapi.setOption( '/Operations/Defaults/Shifter/DataManager/User' , 'lhcbciuser' )
+    csapi.setOption( '/Operations/Defaults/Shifter/DataManager/Group', 'user' )
     
     csapi.commit()
     
