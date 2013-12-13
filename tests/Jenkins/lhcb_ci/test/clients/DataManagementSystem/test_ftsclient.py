@@ -26,7 +26,7 @@ class FTSClientTest( lhcb_ci.basecase.ClientTestCase ):
 
   def setUp( self ):
     
-    #super( FTSClientTest, self ).setUp()
+    super( FTSClientTest, self ).setUp()
     
     ftsSites = [ FTSSite( ftsServer = 'https://fts22-t0-export.cern.ch:8443/glite-data-transfer-fts/services/FileTransfer', name = 'CERN.ch' ),
                  FTSSite( ftsServer = 'https://fts.pic.es:8443/glite-data-transfer-fts/services/FileTransfer', name = 'PIC.es' ),
@@ -206,8 +206,8 @@ class FTSClientTest( lhcb_ci.basecase.ClientTestCase ):
 
 
   
-  test_addAndRemoveJobs.smoke  = 0
-  test_addAndRemoveJobs.client = 0
+  test_addAndRemoveJobs.smoke  = 1
+  test_addAndRemoveJobs.client = 1
   
 #  test_mix.smoke  = 0
 #  test_mix.client = 0
