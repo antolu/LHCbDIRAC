@@ -56,6 +56,10 @@ class ConfigureTest( lhcb_ci.basecase.DBTestCase ):
       
       for dbName in systemDBs:
         
+        if dbName == 'ProxyDB':
+          self.log.debug( 'Skipping ProxyDB' )
+          continue 
+        
         db  = lhcb_ci.component.Component( systemName, 'DB', dbName )
         res = db.configure()
         self.assertDIRACEquals( res[ 'OK' ], True, res ) 
@@ -98,6 +102,10 @@ class InstallationTest( lhcb_ci.basecase.DBTestCase ):
     
       for dbName in dbNames:
 
+        if dbName == 'ProxyDB':
+          self.log.debug( 'Skipping ProxyDB' )
+          continue 
+
         db  = lhcb_ci.component.Component( systemName, 'DB', dbName )
         res = db.install()
         self.assertDIRACEquals( res[ 'OK' ], True, res )
@@ -122,6 +130,10 @@ class InstallationTest( lhcb_ci.basecase.DBTestCase ):
       diracSystem = systemName.replace( 'System', '' )
       
       for dbName in systemDBs:
+
+        if dbName == 'ProxyDB':
+          self.log.debug( 'Skipping ProxyDB' )
+          continue
         
         # First installs database on  server
         db  = lhcb_ci.component.Component( systemName, 'DB', dbName )
@@ -162,6 +174,10 @@ class InstallationTest( lhcb_ci.basecase.DBTestCase ):
     for systemName, systemDBs in self.databases.iteritems():
       
       for dbName in systemDBs:
+
+        if dbName == 'ProxyDB':
+          self.log.debug( 'Skipping ProxyDB' )
+          continue
     
         if self.isException( dbName ):
           continue
