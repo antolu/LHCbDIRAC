@@ -43,7 +43,7 @@ def informPeople( rec, oldstate, state, author, inform ):
 
   footer = "\n\nNOTE: it is an automated notification."
   footer += " Don't reply please.\n"
-  footer += "DIRAC Web portal: https://lhcbweb.pic.es/DIRAC/%s/" % \
+  footer += "DIRAC Web portal: https://lhcb-web-dirac.cern.ch/DIRAC/%s/" % \
            PathFinder.getDIRACSetup()
   ppath = '/Production/ProductionRequest/display\n\n'
 
@@ -60,13 +60,13 @@ def informPeople( rec, oldstate, state, author, inform ):
     if not state in ['BK Check', 'Submitted']:
       if state == 'BK OK':
         subj = 'DIRAC: please resign your Production Request %s' % reqId
-        body = '\n'.join( 
+        body = '\n'.join(
           ['Customized Simulation Conditions in your request was registered.',
            'Since Bookkeeping expert could make changes in your request,',
            'you are asked to confirm it.'] )
       else:
         subj = "DIRAC: the state of Production Request %s is changed to '%s'" % ( reqId, state )
-        body = '\n'.join( 
+        body = '\n'.join(
           ['The state of your request is changed.',
            'This mail is for information only.'] )
       notification = NotificationClient()
@@ -78,7 +78,7 @@ def informPeople( rec, oldstate, state, author, inform ):
 
   if inform:
     subj = "DIRAC: the state of %s Production Request %s is changed to '%s'" % ( rec['RequestType'], reqId, state )
-    body = '\n'.join( 
+    body = '\n'.join(
       ['You have received this mail because you are'
        'in the subscription list for this request'] )
     for x in inform.replace( " ", "," ).split( "," ):
