@@ -6,7 +6,6 @@ __RCSID__ = "$Id$"
 
 import os, sys
 from DIRAC import gLogger
-from DIRAC.Core.Utilities.List import sortList
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
@@ -349,6 +348,22 @@ class BKQuery():
     """
     return self.__bkPath
 
+  def makePath( self ):
+    """
+    Builds a path from the dictionary
+    """
+    bk = self.__bkQueryDict
+    path = os.path.join( '/',
+                         bk.get( 'ConfigName', '' ), bk.get( 'ConfigVersion', '' ),
+                         bk.get( 'Conditions', '.' ), bk.get( 'ProcessingPass', '.' )[1:],
+                         str( bk.get( 'EventType', '.' ) ).replace( '90000000', '' ),
+                         bk.get( 'FileType', '.' ) ).replace( '.', '' )
+    while True:
+      if path.endswith( '/' ):
+        path = path[:-1]
+      else:
+        return path
+
   def getFileTypeList( self ):
     """
     Returns the file types
@@ -648,7 +663,10 @@ class BKQuery():
     if prodList:
       if type( prodList ) != type( [] ):
         prodList = [prodList]
-      return sortList( prodList )
+      return sorted( prodList )
+    if not self.getProcessingPass():
+      gLogger.fatal( 'Impossible to get a list of productions without the Processing Pass' )
+      return []
     res = self.__bkClient.getProductions( BKQuery( self.__bkQueryDict ).setVisible( visible ) )
     if not res['OK']:
       gLogger.error( 'Error getting productions from BK', res['Message'] )
@@ -657,7 +675,7 @@ class BKQuery():
     if self.getProcessingPass().replace( '/', '' ) != 'Real Data':
       fileTypes = self.getFileTypeList()
       prodList = [prod for p in res['Value']['Records'] for prod in p
-                  if self.__getProdStatus( prod ) not in ( 'Deleted' )]
+                  if self.__getProdStatus( prod ) != 'Deleted']
       # print '\n', self.__bkQueryDict, res['Value']['Records'], '\nVisible:', visible, prodList
       pList = []
       if fileTypes:
@@ -697,7 +715,7 @@ class BKQuery():
       if i['Records']:
         conditions += [p[ind] for p in i['Records']]
         break
-    return sortList( conditions )
+    return sorted( conditions )
 
   def getBKEventTypes( self ):
     """
@@ -708,7 +726,7 @@ class BKQuery():
       return eventType
     res = self.__bkClient.getEventTypes( self.__bkQueryDict )['Value']
     ind = res['ParameterNames'].index( 'EventType' )
-    eventTypes = sortList( [rec[ind] for rec in res['Records']] )
+    eventTypes = sorted( [rec[ind] for rec in res['Records']] )
     return eventTypes
 
   def getBKFileTypes( self, bkDict = None ):
@@ -787,7 +805,7 @@ class BKQuery():
     for pName in ( '/Real Data', '/' ):
       if pName in processingPasses:
         processingPasses.pop( pName )
-    # print "End", initialPP, [( key, processingPasses[key] ) for key in sortList( processingPasses.keys() )]
+    # print "End", initialPP, [( key, processingPasses[key] ) for key in sorted( processingPasses.keys() )]
     return processingPasses
 
   def browseBK( self ):
