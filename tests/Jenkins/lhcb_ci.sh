@@ -642,7 +642,7 @@ function prepareDIRAC(){
   diracCredentials
 
   diracMySQL
-
+  dirac-install-db Framework/ProxyDB
 }
 
 
