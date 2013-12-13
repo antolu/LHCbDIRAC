@@ -11,11 +11,12 @@
 
 import lhcb_ci.basecase
 
+from DIRAC.ConfigurationSystem.Client.CSAPI import CSAPI
+
 class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
   
-  def test_shifterProxy( self ):
+  def test_shifterProxy( self ):   
     
-    from DIRAC.ConfigurationSystem.Client.CSAPI import CSAPI
     csapi = CSAPI()
     
     csapi.createSection( '/Operations/Shifter/DataManager' )
@@ -24,9 +25,23 @@ class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
     
     csapi.commit()
     
+    
+  def test_resources( self ):
+  
+    csapi = CSAPI()
+    
+    csapi.createSection( '/Resources/Sites' )
+    #csapi.setOption( '/Operations/Shifter/DataManager/User' , 'lhcbciuser' )
+    #csapi.setOption( '/Operations/Shifter/DataManager/Group', 'user' )
+    
+    csapi.commit()
+  
   
   test_shifterProxy.configure = 1
   test_shifterProxy.cs        = 1
+  
+  test_resources.configure = 1
+  test_resources.cs        = 1
     
 
 #...............................................................................

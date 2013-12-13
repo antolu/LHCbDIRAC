@@ -28,9 +28,9 @@ class FTSClientTest( lhcb_ci.basecase.ClientTestCase ):
     
     super( FTSClientTest, self ).setUp()
     
-    self.ftsSites = [ FTSSite( ftsServer = 'https://fts22-t0-export.cern.ch:8443/glite-data-transfer-fts/services/FileTransfer', name = 'CERN.ch' ),
-                      FTSSite( ftsServer = 'https://fts.pic.es:8443/glite-data-transfer-fts/services/FileTransfer', name = 'PIC.es' ),
-                      FTSSite( ftsServer = 'https://lcgfts.gridpp.rl.ac.uk:8443/glite-data-transfer-fts/services/FileTransfer', name = 'RAL.uk' ),
+    ftsSites = [ FTSSite( ftsServer = 'https://fts22-t0-export.cern.ch:8443/glite-data-transfer-fts/services/FileTransfer', name = 'CERN.ch' ),
+                 FTSSite( ftsServer = 'https://fts.pic.es:8443/glite-data-transfer-fts/services/FileTransfer', name = 'PIC.es' ),
+                 FTSSite( ftsServer = 'https://lcgfts.gridpp.rl.ac.uk:8443/glite-data-transfer-fts/services/FileTransfer', name = 'RAL.uk' ),
                     ]
 
     self.ses      = [ 'CERN-USER', 'RAL-USER' ]
@@ -47,32 +47,32 @@ class FTSClientTest( lhcb_ci.basecase.ClientTestCase ):
       if opID not in self.opIDs:
         self.opIDs.append( opID )
 
-      ftsJob = FTSJob()
-      ftsJob.FTSGUID = str( uuid.uuid4() )
-      ftsJob.FTSServer = self.ftsSites[0].FTSServer
-      ftsJob.Status = self.statuses[ i % len( self.statuses ) ]
+      ftsJob             = FTSJob()
+      ftsJob.FTSGUID     = str( uuid.uuid4() )
+      ftsJob.FTSServer   = ftsSites[0].FTSServer
+      ftsJob.Status      = self.statuses[ i % len( self.statuses ) ]
       ftsJob.OperationID = opID
       if ftsJob.Status in FTSJob.FINALSTATES:
         ftsJob.Completeness = 100
       if ftsJob.Status == 'Active':
         ftsJob.Completeness = 90
-      ftsJob.SourceSE = self.ses[ i % len( self.ses ) ]
-      ftsJob.TargetSE = 'PIC-USER'
+      ftsJob.SourceSE  = self.ses[ i % len( self.ses ) ]
+      ftsJob.TargetSE  = 'PIC-USER'
       ftsJob.RequestID = 12345
 
-      ftsFile = FTSFile()
-      ftsFile.FileID = i + 1
-      ftsFile.OperationID = i + 1
-      ftsFile.LFN = '/a/b/c/%d' % i
-      ftsFile.Size = 1000000
-      ftsFile.OperationID = opID
-      ftsFile.SourceSE = ftsJob.SourceSE
-      ftsFile.TargetSE = ftsJob.TargetSE
-      ftsFile.SourceSURL = 'foo://source.bar.baz/%s' % ftsFile.LFN
-      ftsFile.TargetSURL = 'foo://target.bar.baz/%s' % ftsFile.LFN
-      ftsFile.Status = 'Waiting' if ftsJob.Status != 'FinishedDirty' else 'Failed'
-      ftsFile.RequestID = 12345
-      ftsFile.Checksum = 'addler'
+      ftsFile              = FTSFile()
+      ftsFile.FileID       = i + 1
+      ftsFile.OperationID  = i + 1
+      ftsFile.LFN          = '/a/b/c/%d' % i
+      ftsFile.Size         = 1000000
+      ftsFile.OperationID  = opID
+      ftsFile.SourceSE     = ftsJob.SourceSE
+      ftsFile.TargetSE     = ftsJob.TargetSE
+      ftsFile.SourceSURL   = 'foo://source.bar.baz/%s' % ftsFile.LFN
+      ftsFile.TargetSURL   = 'foo://target.bar.baz/%s' % ftsFile.LFN
+      ftsFile.Status       = 'Waiting' if ftsJob.Status != 'FinishedDirty' else 'Failed'
+      ftsFile.RequestID    = 12345
+      ftsFile.Checksum     = 'addler'
       ftsFile.ChecksumType = 'adler32'
 
       ftsFile.FTSGUID = ftsJob.FTSGUID
@@ -119,47 +119,98 @@ class FTSClientTest( lhcb_ci.basecase.ClientTestCase ):
     res = client.getFTSJobIDs( self.statuses )
     self.assertDIRACEquals( res[ 'OK' ], True, res )
     self.assertEqual( len( res[ 'Value' ] ), self.numberOfJobs )
-    FTSjobIDs = res['Value']
+    ftsJobIDs = res['Value']
 
     res = client.getFTSJobList( self.statuses, self.numberOfJobs )
     self.assertDIRACEquals( res[ 'OK' ], True, res )
     self.assertEqual( len( res[ 'Value' ] ), self.numberOfJobs )
 
-    for i in FTSjobIDs:
+    for i in ftsJobIDs:
       res = client.peekFTSJob( i )
       self.assertDIRACEquals( res[ 'OK' ], True, res )
       self.assertEqual( len( res[ 'Value' ][ 'FTSFiles' ] ), 1 )
 
-    for i in FTSjobIDs:
+    for i in ftsJobIDs:
       res = client.getFTSJob( i )
       self.assertDIRACEquals( res[ 'OK' ], True, res )
       self.assertEqual( len( res[ 'Value' ][ 'FTSFiles' ] ), 1 )
 
     res = client.getFTSFileIDs()
     self.assertDIRACEquals( res[ 'OK' ], True, res )
-    FTSfileIDs = res[ 'Value' ]
+    ftsFileIDs = res[ 'Value' ]
 
     res = client.getFTSFileList()
     self.assertDIRACEquals( res[ 'OK' ], True, res )
 
-    for i in FTSfileIDs:
+    for i in ftsFileIDs:
       res = client.peekFTSFile( i )
       self.assertDIRACEquals( res[ 'OK' ], True, res )
 
-    for i in FTSfileIDs:
+    for i in ftsFileIDs:
       res = client.getFTSFile( i )
       self.assertDIRACEquals( res[ 'OK' ], True, res )
 
-    for i in FTSjobIDs:
+    for i in ftsJobIDs:
       res = client.deleteFTSJob( i )
       self.assertDIRACEquals( res[ 'OK' ], True, res )
 
     for i in self.opIDs:
       res = client.deleteFTSFiles( i )
       self.assertDIRACEquals( res[ 'OK' ], True, res )
+
+
+#  @lhcb_ci.basecase.timeDecorator
+#  def test_mix( self ):
+#    """ all the other tests"""
+#
+#    client = self.sutCls()
+#    client.replicaManager = self.replicaManager
+#
+##    opFileList = []
+##    for ftsJob in self.ftsJobs:
+##      res = client.putFTSJob( ftsJob )
+##      self.assertDIRACEquals( res[ 'OK' ], True, res )
+##      opFileList.append( ( ftsJob[0].toJSON()[ "Value" ], self.ses, self.ses ) )
+#
+## ftsSchedule can't work since the FTSStrategy object is refreshed in the service so it can't be mocked
+## for opID in self.opIDs:
+## res = self.ftsClient.ftsSchedule( 12345, opID, opFileList )
+## self.assert_( res['OK'] )
+#
+#    for operationID in self.opIDs:
+#      for sourceSE in self.ses:
+#        res = client.setFTSFilesWaiting( operationID, sourceSE )
+#        self.assertDIRACEquals( res[ 'OK' ], True, res )
+#
+#    res = client.getFTSHistory()
+#    self.assertDIRACEquals( res[ 'OK' ], True, res )
+#    self.assert_( type( res['Value'] ) == type( [] ) )
+#
+#    res = client.getFTSJobsForRequest( 12345 )
+#    self.assertDIRACEquals( res[ 'OK' ], True, res )
+#
+#    res = client.getFTSFilesForRequest( 12345 )
+#    self.assertDIRACEquals( res[ 'OK' ], True, res )
+#
+#    res = client.getDBSummary()
+#    self.assertDIRACEquals( res[ 'OK' ], True, res )
+#
+#    ftsJobIDs = client.getFTSJobIDs( self.statuses )['Value']
+#    for i in ftsJobIDs:
+#      res = client.deleteFTSJob( i )
+#      self.assertDIRACEquals( res[ 'OK' ], True, res )
+#
+#    for i in self.opIDs:
+#      res = client.deleteFTSFiles( i )
+#      self.assertDIRACEquals( res[ 'OK' ], True, res )
+
+
   
   test_addAndRemoveJobs.smoke  = 1
   test_addAndRemoveJobs.client = 1
+  
+#  test_mix.smoke  = 0
+#  test_mix.client = 0
 
 
 #...............................................................................
