@@ -32,12 +32,15 @@ LINKS = {
 
   'Client' :
     {
+     'FTSClient'            : [ 'DataManagementSystem.Service.FTSManager', 
+                                'RequestManagementSystem.Service.RequestManager' ],
      'TransformationClient' : 'TransformationSystem.Service.TransformationManager'
      },
 
   'Service' :
     {
-     'TransformationManager' : 'TransformationSystem.DB.TransformationDB'
+     'TransformationManager' : 'TransformationSystem.DB.TransformationDB',
+     'FTSManager'            : 'DataManagementSystem.DB.FTSDB' 
      }
 
 }

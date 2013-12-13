@@ -24,8 +24,8 @@ class FTSClientTest( lhcb_ci.basecase.ClientTestCase ):
       
     pass
   
-  test_demo.smoke  = 0
-  test_demo.client = 0
+  test_demo.smoke  = 1
+  test_demo.client = 1
 
 
 #...............................................................................

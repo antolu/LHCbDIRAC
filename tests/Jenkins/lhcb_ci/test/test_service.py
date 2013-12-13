@@ -330,16 +330,16 @@ class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
   test_service_authorization.configure = 1
   test_service_authorization.service   = 1
 
-  test_services_common_import.install = 1
-  test_services_common_import.service = 1
+  test_services_common_import.install = 0#1
+  test_services_common_import.service = 0#1
 
   #FIXME: thread leak
   test_services_voimport.install = 0
   test_services_voimport.service = 0
 
   # test_services_install_drop
-  test_services_install_drop.install = 1
-  test_services_install_drop.service = 1
+  test_services_install_drop.install = 0#1
+  test_services_install_drop.service = 0#1
   
     
 
