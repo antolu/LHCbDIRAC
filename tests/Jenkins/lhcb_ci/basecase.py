@@ -299,7 +299,8 @@ class ServiceTestCase( DBTestCase ):
     installedServices = lhcb_ci.service.getInstalledServices()  
     
     # Configuration Service is ALWAYS installed ( Master ! )
-    installedServices[ 'Configuration' ].remove( 'Configuration' )
+    print installedServices
+    installedServices[ 'Configuration' ].remove( 'Server' )
     installedServices[ 'Framework' ].remove( 'ProxyManager' )
       
     if installedServices:
@@ -320,7 +321,7 @@ class ServiceTestCase( DBTestCase ):
    
     # Configuration Service is ALWAYS installed ( Master ! )
     #del installedServices[ 'Configuration' ]
-    installedServices[ 'Configuration' ].remove( 'Configuration' )
+    installedServices[ 'Configuration' ].remove( 'Server' )
     installedServices[ 'Framework' ].remove( 'ProxyManager' )
     
     if installedServices:
