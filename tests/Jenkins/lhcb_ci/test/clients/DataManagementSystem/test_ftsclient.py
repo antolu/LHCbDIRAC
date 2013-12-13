@@ -206,8 +206,8 @@ class FTSClientTest( lhcb_ci.basecase.ClientTestCase ):
 
 
   
-  test_addAndRemoveJobs.smoke  = 1
-  test_addAndRemoveJobs.client = 1
+  test_addAndRemoveJobs.smoke  = 0
+  test_addAndRemoveJobs.client = 0
   
 #  test_mix.smoke  = 0
 #  test_mix.client = 0

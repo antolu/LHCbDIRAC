@@ -156,7 +156,7 @@ test_service = {
     # TransformationManager : Can not connect to DB TransformationDB
     'TransformationManager',
     # No shifter User defined for DataManager
-    'FTSManager',
+    #'FTSManager',
     # retVal = self.__listeningConnections[ svcName ][ 'transport' ].acceptConnection()
     # Cannot clean threads properly
     'SecurityLogging' ],
