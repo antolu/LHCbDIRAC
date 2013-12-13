@@ -242,7 +242,8 @@ class ServiceComponent( Component ):
     super( ServiceComponent, self ).configure()
     
     return InstallTools.addDefaultOptionsToCS( gConfig, 'service', self._systemName(), 
-                                               self.name, self.extensions )
+                                               self.name, self.extensions, 
+                                               specialOptions = { 'LogBackend' : 'file' } )
   
   
   def install( self ):
