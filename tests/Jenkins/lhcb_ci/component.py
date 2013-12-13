@@ -262,8 +262,8 @@ class ServiceComponent( Component ):
     super( ServiceComponent, self ).uninstall()
     
     # We do not want to delete Configuration
-    if self.name == 'Configuration':
-      return { 'OK' : True, 'Value' : 'We keep Configuration' }
+    if self.name in [ 'Configuration', 'ProxyManager' ]:
+      return { 'OK' : True, 'Value' : 'We keep %s' % self.name }
     
     return InstallTools.uninstallComponent( self._systemName(), self.name )
   
@@ -298,8 +298,8 @@ class ServiceComponent( Component ):
     
     super( ServiceComponent, self ).stop()
     # We do not want to delete Configuration
-    if self.name == 'Configuration':
-      return { 'OK' : True, 'Value' : 'We keep Configuration' }
+    if self.name in [ 'Configuration', 'ProxyManager' ]:
+      return { 'OK' : True, 'Value' : 'We keep %s' % self.name }
     
     if not 'server' in self.params:
       return { 'OK' : False, 'Message' : 'No server to be stopped' }
