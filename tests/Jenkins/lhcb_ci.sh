@@ -643,8 +643,8 @@ function prepareDIRAC(){
 
   diracMySQL
   
-  dirac-install-db ProxyDB -ddd
-  dorac-install-service Framework/ProxyManager -ddd
+  dirac-install-db ProxyDB $DEBUG
+  dirac-install-service Framework/ProxyManager $DEBUG
   
   #dirac-proxy-init -g dirac_admin -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
 }
