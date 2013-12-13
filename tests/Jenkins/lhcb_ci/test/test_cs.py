@@ -18,9 +18,9 @@ class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
     from DIRAC.ConfigurationSystem.Client.CSAPI import CSAPI
     csapi = CSAPI()
     
-    csapi.createSection( '/Operations/Shifter/DataManagement' )
-    csapi.setOption( '/Operations/Shifter/DataManagement/User' , 'lhcbciuser' )
-    csapi.setOption( '/Operations/Shifter/DataManagement/Group', 'user' )
+    csapi.createSection( '/Operations/Shifter/DataManager' )
+    csapi.setOption( '/Operations/Shifter/DataManager/User' , 'lhcbciuser' )
+    csapi.setOption( '/Operations/Shifter/DataManager/Group', 'user' )
     
     csapi.commit()
     
