@@ -18,7 +18,7 @@ class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
   
   def test_shifterProxy( self ):   
     
-    self.currentThreads_, self.activeThreads_ = lhcb_ci.commons.trackThreads()
+    currentThreads_, activeThreads_ = lhcb_ci.commons.trackThreads()
     
     csapi = CSAPI()
     
@@ -33,11 +33,11 @@ class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
     self.assertDIRACEquals( res[ 'OK' ], True, res )
     
     del csapi
-    lhcb_ci.commons.killThreads( self.currentThreads_ )
+    lhcb_ci.commons.killThreads( currentThreads_ )
     
   def test_resources( self ):
   
-    self.currentThreads_, self.activeThreads_ = lhcb_ci.commons.trackThreads()
+    currentThreads_, activeThreads_ = lhcb_ci.commons.trackThreads()
   
     csapi = CSAPI()
     
@@ -48,7 +48,7 @@ class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
     self.assertDIRACEquals( res[ 'OK' ], True, res )
 
     del csapi
-    lhcb_ci.commons.killThreads( self.currentThreads_ )
+    lhcb_ci.commons.killThreads( currentThreads_ )
   
   
   test_shifterProxy.configure = 1
