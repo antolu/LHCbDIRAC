@@ -143,6 +143,9 @@ class BaseTestCase( unittest.TestCase ):
     self.log.debug( self.__class__.__name__ )  
     self.log.debug( '-' * 80 )
 
+    print self.__class__.__name__
+    print self.__module__
+
     self.exceptions = getattr( lhcb_ci.exceptions, self.__module__, {} )
 
     self.currentThreads_, self.activeThreads_ = lhcb_ci.commons.trackThreads()
@@ -188,10 +191,6 @@ class BaseTestCase( unittest.TestCase ):
     it is an exception or not.
     
     """
-    
-    print value
-    print self.__testMethod()
-    print self.exceptions
     
     try:
       if value in self.exceptions[ self.__testMethod() ]:
