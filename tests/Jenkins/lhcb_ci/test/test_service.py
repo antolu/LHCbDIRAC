@@ -61,8 +61,8 @@ class ConfigureTest( lhcb_ci.basecase.ServiceTestCase ):
   # Nosetests attrs
 
   # test_configure_service
-  test_configure_services.configure = 0
-  test_configure_services.service   = 0
+  test_configure_services.configure = 1
+  test_configure_services.service   = 1
 
 
 class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
@@ -323,8 +323,8 @@ class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
   # Nosetests attrs
 
   # test_configured_service_ports
-  test_service_ports.configure = 0
-  test_service_ports.service   = 0
+  test_service_ports.configure = 1
+  test_service_ports.service   = 1
   
   # test_configured_service_authorization
   test_service_authorization.configure = 0
