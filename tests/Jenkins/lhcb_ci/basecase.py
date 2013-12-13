@@ -96,6 +96,8 @@ class BaseTestCase( unittest.TestCase ):
     
     """
     
+    print inspect.stack()
+    
     return inspect.stack()[2][3]
     
     
