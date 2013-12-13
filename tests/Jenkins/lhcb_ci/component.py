@@ -182,6 +182,10 @@ class DBComponent( Component ):
     
     """
     super( DBComponent, self ).uninstall()
+   
+    # We do not want to delete ProxyDB
+    if self.name == 'ProxyDB':
+      return { 'OK' : True, 'Value' : 'We keep ProxyDB' }
   
     # I know... it is unsafe, but the current version does not work with
     # parametrics... 
@@ -257,6 +261,10 @@ class ServiceComponent( Component ):
     
     super( ServiceComponent, self ).uninstall()
     
+    # We do not want to delete Configuration
+    if self.name == 'Configuration':
+      return { 'OK' : True, 'Value' : 'We keep Configuration' }
+    
     return InstallTools.uninstallComponent( self._systemName(), self.name )
   
   def run( self ):
@@ -289,6 +297,9 @@ class ServiceComponent( Component ):
   def stop( self ):
     
     super( ServiceComponent, self ).stop()
+    # We do not want to delete Configuration
+    if self.name == 'Configuration':
+      return { 'OK' : True, 'Value' : 'We keep Configuration' }
     
     if not 'server' in self.params:
       return { 'OK' : False, 'Message' : 'No server to be stopped' }
