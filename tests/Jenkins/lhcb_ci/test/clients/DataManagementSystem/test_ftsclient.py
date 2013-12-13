@@ -158,8 +158,8 @@ class FTSClientTest( lhcb_ci.basecase.ClientTestCase ):
       res = client.deleteFTSFiles( i )
       self.assertDIRACEquals( res[ 'OK' ], True, res )
   
-  test_addAndRemoveJobs.smoke  = 1
-  test_addAndRemoveJobs.client = 1
+  test_addAndRemoveJobs.smoke  = 0
+  test_addAndRemoveJobs.client = 0
 
 
 #...............................................................................
