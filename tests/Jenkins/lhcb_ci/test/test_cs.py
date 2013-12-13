@@ -10,12 +10,15 @@
 """
 
 import lhcb_ci.basecase
+import lhcb_ci.commons
 
 from DIRAC.ConfigurationSystem.Client.CSAPI import CSAPI
 
 class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
   
   def test_shifterProxy( self ):   
+    
+    self.currentThreads_, self.activeThreads_ = lhcb_ci.commons.trackThreads()
     
     csapi = CSAPI()
     
@@ -29,8 +32,12 @@ class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
     res = csapi.commit()
     self.assertDIRACEquals( res[ 'OK' ], True, res )
     
+    del csapi
+    lhcb_ci.commons.killThreads( self.currentThreads_ )
     
   def test_resources( self ):
+  
+    self.currentThreads_, self.activeThreads_ = lhcb_ci.commons.trackThreads()
   
     csapi = CSAPI()
     
@@ -39,6 +46,9 @@ class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
     
     res = csapi.commit()
     self.assertDIRACEquals( res[ 'OK' ], True, res )
+
+    del csapi
+    lhcb_ci.commons.killThreads( self.currentThreads_ )
   
   
   test_shifterProxy.configure = 1
