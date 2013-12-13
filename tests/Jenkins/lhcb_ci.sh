@@ -648,8 +648,8 @@ function prepareDIRAC(){
   ln -s $WORKSPACE/runit/Framework/ProxyManager $WORKSPACE/startup/Framework_ProxyManager
   
   # Make sure there are a proxies in the database
-  dirac-proxy-init -U -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
-  dirac-proxy-init -U -g dirac_admin -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+  #dirac-proxy-init -U -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+  dirac-proxy-init -g dirac_admin -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
 }
 
 
