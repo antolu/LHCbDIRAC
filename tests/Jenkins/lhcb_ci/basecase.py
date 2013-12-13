@@ -96,8 +96,6 @@ class BaseTestCase( unittest.TestCase ):
     
     """
     
-    print inspect.stack()
-    
     return inspect.stack()[2][3]
     
     
@@ -190,6 +188,10 @@ class BaseTestCase( unittest.TestCase ):
     it is an exception or not.
     
     """
+    
+    print value
+    print self.__testMethod()
+    print self.exceptions
     
     try:
       if value in self.exceptions[ self.__testMethod() ]:
