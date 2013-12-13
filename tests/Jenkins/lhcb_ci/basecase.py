@@ -299,9 +299,18 @@ class ServiceTestCase( DBTestCase ):
     installedServices = lhcb_ci.service.getInstalledServices()  
     
     # Configuration Service is ALWAYS installed ( Master ! )
-    print installedServices
-    installedServices[ 'Configuration' ].remove( 'Server' )
-    installedServices[ 'Framework' ].remove( 'ProxyManager' )
+    
+    try:
+      installedServices[ 'Configuration' ].remove( 'Server' )
+      del installedServices[ 'Configuration' ]
+    except KeyError:
+      pass   
+    
+    try:
+      installedServices[ 'Framework' ].remove( 'ProxyManager' )
+      del installedServices[ 'Framework' ]
+    except KeyError:
+      pass    
       
     if installedServices:
       self.log.error( 'setUp' )
@@ -320,9 +329,17 @@ class ServiceTestCase( DBTestCase ):
     installedServices = lhcb_ci.service.getInstalledServices()
    
     # Configuration Service is ALWAYS installed ( Master ! )
-    #del installedServices[ 'Configuration' ]
-    installedServices[ 'Configuration' ].remove( 'Server' )
-    installedServices[ 'Framework' ].remove( 'ProxyManager' )
+    try:
+      installedServices[ 'Configuration' ].remove( 'Server' )
+      del installedServices[ 'Configuration' ]
+    except KeyError:
+      pass   
+    
+    try:
+      installedServices[ 'Framework' ].remove( 'ProxyManager' )
+      del installedServices[ 'Framework' ]
+    except KeyError:
+      pass
     
     if installedServices:
       self.log.error( 'tearDown' )
