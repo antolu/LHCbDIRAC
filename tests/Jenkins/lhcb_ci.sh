@@ -646,7 +646,9 @@ function prepareDIRAC(){
   dirac-install-db ProxyDB $DEBUG
   dirac-install-service Framework/ProxyManager $DEBUG
   
-  #dirac-proxy-init -g dirac_admin -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+  # Make sure there are a proxies in the database
+  dirac-proxy-init -U -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+  dirac-proxy-init -U -g dirac_admin -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
 }
 
 
