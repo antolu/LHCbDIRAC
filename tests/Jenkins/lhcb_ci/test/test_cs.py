@@ -19,22 +19,26 @@ class ConfigureTest( lhcb_ci.basecase.BaseTestCase ):
     
     csapi = CSAPI()
     
-    csapi.createSection( '/Operations/Defaults/Shifter/DataManager' )
-    csapi.setOption( '/Operations/Defaults/Shifter/DataManager/User' , 'lhcbciuser' )
-    csapi.setOption( '/Operations/Defaults/Shifter/DataManager/Group', 'user' )
+    res = csapi.createSection( '/Operations/Defaults/Shifter/DataManager' )
+    self.assertDIRACEquals( res[ 'OK' ], True, res )
+    res = csapi.setOption( '/Operations/Defaults/Shifter/DataManager/User' , 'lhcbciuser' )
+    self.assertDIRACEquals( res[ 'OK' ], True, res )
+    res = csapi.setOption( '/Operations/Defaults/Shifter/DataManager/Group', 'user' )
+    self.assertDIRACEquals( res[ 'OK' ], True, res )
     
-    csapi.commit()
+    res = csapi.commit()
+    self.assertDIRACEquals( res[ 'OK' ], True, res )
     
     
   def test_resources( self ):
   
     csapi = CSAPI()
     
-    csapi.createSection( '/Resources/Sites' )
-    #csapi.setOption( '/Operations/Shifter/DataManager/User' , 'lhcbciuser' )
-    #csapi.setOption( '/Operations/Shifter/DataManager/Group', 'user' )
+    res = csapi.createSection( '/Resources/Sites' )
+    self.assertDIRACEquals( res[ 'OK' ], True, res )
     
-    csapi.commit()
+    res = csapi.commit()
+    self.assertDIRACEquals( res[ 'OK' ], True, res )
   
   
   test_shifterProxy.configure = 1
