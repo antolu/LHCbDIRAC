@@ -143,10 +143,7 @@ class BaseTestCase( unittest.TestCase ):
     self.log.debug( self.__class__.__name__ )  
     self.log.debug( '-' * 80 )
 
-    print self.__class__.__name__
-    print self.__module__
-
-    self.exceptions = getattr( lhcb_ci.exceptions, self.__module__, {} )
+    self.exceptions = getattr( lhcb_ci.exceptions, self.__module__.split( '.' )[ -1 ], {} )
 
     self.currentThreads_, self.activeThreads_ = lhcb_ci.commons.trackThreads()
 
