@@ -435,8 +435,8 @@ class SmokeTest( lhcb_ci.basecase.ServiceTestCase ):
 
 
   # test_run_services
-  test_run_services.smoke   = 0
-  test_run_services.service = 0
+  test_run_services.smoke   = 1
+  test_run_services.service = 1
   
 
 #...............................................................................
