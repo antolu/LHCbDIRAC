@@ -86,31 +86,31 @@ class FTSClientTest( lhcb_ci.basecase.ClientTestCase ):
     self.submitted = len( [ i for i in self.ftsJobs if i.Status == 'Submitted' ] )
 
     #self.ftsClient = FTSClient()
-    self.replicaManager = mock.Mock()
-    self.replicaManager.getActiveReplicas.return_value = { 'OK'    : True,
-                                                           'Value' : {
-                                                                       'Successful' : 
-                                                                          { '/a/b/c/1':
-                                                                            { 'CERN-USER':'/aa/a/b/c/1d',
-                                                                              'RAL-USER':'/bb/a/b/c/1d' },
-                                                                            '/a/b/c/2':
-                                                                            { 'CERN-USER':'/aa/a/b/c/2d',
-                                                                              'RAL-USER':'/bb/a/b/c/2d'},
-                                                                            '/a/b/c/3':
-                                                                            { 'CERN-USER':'/aa/a/b/c/3d',
-                                                                              'RAL-USER':'/bb/a/b/c/3d'}
-                                                                          },
-                                                                        'Failed': {'/a/b/c/4':'/aa/a/b/c/4d',
-                                                                                   '/a/b/c/5':'/aa/a/b/c/5d'}
-                                                                              }
-                                                                    }    
+#    self.replicaManager = mock.Mock()
+#    self.replicaManager.getActiveReplicas.return_value = { 'OK'    : True,
+#                                                           'Value' : {
+#                                                                       'Successful' : 
+#                                                                          { '/a/b/c/1':
+#                                                                            { 'CERN-USER':'/aa/a/b/c/1d',
+#                                                                              'RAL-USER':'/bb/a/b/c/1d' },
+#                                                                            '/a/b/c/2':
+#                                                                            { 'CERN-USER':'/aa/a/b/c/2d',
+#                                                                              'RAL-USER':'/bb/a/b/c/2d'},
+#                                                                            '/a/b/c/3':
+#                                                                            { 'CERN-USER':'/aa/a/b/c/3d',
+#                                                                              'RAL-USER':'/bb/a/b/c/3d'}
+#                                                                          },
+#                                                                        'Failed': {'/a/b/c/4':'/aa/a/b/c/4d',
+#                                                                                   '/a/b/c/5':'/aa/a/b/c/5d'}
+#                                                                              }
+#                                                                    }    
 
 
   @lhcb_ci.basecase.timeDecorator
   def test_addAndRemoveJobs( self ):    
     
     client = self.sutCls()
-    client.replicaManager = self.replicaManager
+    #client.replicaManager = self.replicaManager
     
     for ftsJob in self.ftsJobs:
       res = client.putFTSJob( ftsJob )
