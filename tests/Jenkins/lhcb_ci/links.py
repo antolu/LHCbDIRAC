@@ -222,7 +222,8 @@ class Link( object ):
     lhcb_ci.logger.debug( 'LOADED %s' % self.name )
     
     self.componentObj = lhcb_ci.component.Component( self.system, self.component, self.name ) 
-    res = self.componentObj.run()
+    #res = self.componentObj.run()
+    res = self.componentObj.install()
 
     self.chain().append( self )
     return res
@@ -237,7 +238,8 @@ class Link( object ):
     
     lhcb_ci.logger.debug( 'UNLOADED %s' % self.name )
     
-    return self.componentObj.stop()
+    return self.componentObj.uninstall()
+    #return self.componentObj.stop()
 
 
 #...............................................................................

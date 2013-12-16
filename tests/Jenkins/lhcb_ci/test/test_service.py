@@ -302,8 +302,8 @@ class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
           continue
 
         # FIXME: hack to speedup tests
-        if not 'Transformation' in serviceName:
-          continue
+#        if not 'Transformation' in serviceName:
+#          continue
 
         currentThreads, activeThreads = lhcb_ci.commons.trackThreads()        
 
