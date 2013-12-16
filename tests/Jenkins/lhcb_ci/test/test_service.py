@@ -292,7 +292,7 @@ class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
       
       for serviceName in services:
         
-        if serviceName in [ 'Configuration', 'ProxyManager' ]:
+        if serviceName in [ 'Server', 'ProxyManager' ]:
           self.log.debug( 'Skipping %s' % serviceName )
           continue 
         
@@ -379,7 +379,7 @@ class SmokeTest( lhcb_ci.basecase.ServiceTestCase ):
 
       for serviceName in services:
 
-        if serviceName in [ 'Configuration', 'ProxyManager' ]:
+        if serviceName in [ 'Server', 'ProxyManager' ]:
           self.log.debug( 'Skipping %s' % serviceName )
           continue 
 
