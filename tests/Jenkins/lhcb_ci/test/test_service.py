@@ -373,9 +373,9 @@ class SmokeTest( lhcb_ci.basecase.ServiceTestCase ):
     
     for system, services in self.swServices.iteritems():
       
-#      if system == 'ConfigurationSystem':
-#        self.log.debug( 'Skipping Master Configuration' )
-#        continue 
+      if system in [ 'ConfigurationSystem', 'FrameworkSystem' ]:
+        self.log.debug( 'Skipping %s' % system )
+        continue 
 
       for serviceName in services:
 
