@@ -336,6 +336,7 @@ if __name__ == "__main__":
         print "Additional parameters:", pluginParams
       if requestID:
         print "RequestID:", requestID
+      break
     if errMsg:
       print errMsg
 
