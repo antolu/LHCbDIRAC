@@ -746,7 +746,7 @@ class TransformationDB( DIRACTransformationDB ):
       runIDs = [runIDs]
     runIDs = [str( x ) for x in runIDs]
     runIDs = ', '.join( runIDs )
-    req = "SELECT * FROM RunsMetadata WHERE RunNumber IN (%s)" % runIDs
+    req = "SELECT RunNumber, Name, Value FROM RunsMetadata WHERE RunNumber IN (%s)" % runIDs
     res = self._query( req, connection )
     if not res['OK']:
       gLogger.error( "Failure executing %s" % str( req ) )
