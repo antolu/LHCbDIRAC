@@ -222,7 +222,7 @@ if __name__ == "__main__":
   dmScript = DMScript()
   dmScript.registerBKSwitches()
 
-  Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' ) +
+  Script.setUsageMessage( '\n'.join( __doc__.split( '\n' ) + [
                                        'Usage:',
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
