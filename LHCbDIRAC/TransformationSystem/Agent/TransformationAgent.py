@@ -60,7 +60,8 @@ class TransformationAgent( DIRACTransformationAgent ):
                                                                transClient = clients['TransformationClient'],
                                                                bkkClient = clients['BookkeepingClient'],
                                                                rmClient = clients['ResourceManagementClient'],
-                                                               rss = clients['ResourceStatus'] )
+                                                               rss = clients['ResourceStatus'],
+                                                               transInThread = self.transInThread )
     except Exception, x:
       gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ), '', x )
       return S_ERROR()
