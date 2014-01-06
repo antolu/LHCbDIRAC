@@ -216,8 +216,12 @@ if __name__ == "__main__":
     status = "Unused" if reset else "Problematic"
     gLogger.always( "\n%d files could not be set %s a they were not in an acceptable status:" % ( n, status ) )
     for status in sorted( transNotSet ):
-      gLogger.verbose( "\t%d files were in status %s" % ( len( transNotSet[status] ), status ) )
+      transDict = {}
       for lfn, transID in transNotSet[status]:
-        gLogger.verbose( '\t\t%s (%s)' % ( lfn, transID ) )
+        transDict.setdefault( transID, [] ).append( lfn )
+      for transID in transDict:
+        gLogger.always( "\t%d files were in status %s in transformation %s" % ( len( transDict[transID] ), status, str( transID ) ) )
+        for lfn in transDict[transID]:
+          gLogger.verbose( '\t\t%s' % lfn )
 
   gLogger.always( "Execution completed in %.2f seconds" % ( time.time() - startTime ) )
