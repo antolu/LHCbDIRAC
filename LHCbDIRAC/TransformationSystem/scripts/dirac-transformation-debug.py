@@ -970,7 +970,6 @@ if __name__ == "__main__":
     elif opt == 'FixRun':
       fixRun = True
       runList = ['0']
-      status = 'Unused'
 
   lfnList = dmScript.getOption( 'LFNs', [] )
   if lfnList:
@@ -982,6 +981,8 @@ if __name__ == "__main__":
   if byJobs:
     allTasks = True
     byTasks = False
+  if fixRun and not status:
+    status = 'Unused'
 
   transList = __getTransformations( Script.getPositionalArgs() )
 
@@ -1006,10 +1007,10 @@ if __name__ == "__main__":
   gLogger.setLevel( 'INFO' )
 
   transSep = ''
-  problematicReplicas = {}
-  nbReplicasProblematic = {}
-  failedFiles = []
   for transID in transList:
+    problematicReplicas = {}
+    failedFiles = []
+    nbReplicasProblematic = {}
     transID, transType, taskType, queryProduction, transPlugin = __getTransformationInfo( transID, transSep )
     transSep = '==============================\n'
     dmFileStatusComment = {"Replication":"missing", "Removal":"remaining"}.get( transType, "absent" )
@@ -1178,7 +1179,7 @@ if __name__ == "__main__":
           print ""
       if byJobs and jobsForLfn:
         __checkJobs( jobsForLfn, byFiles )
-    if status == 'Problematic':
+    if status == 'Problematic' and nbReplicasProblematic:
       __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas, failedFiles, fixIt )
     if toBeKicked:
       if kickRequests:

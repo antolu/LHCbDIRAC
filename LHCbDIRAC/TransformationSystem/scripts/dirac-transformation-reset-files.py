@@ -15,10 +15,22 @@ if __name__ == "__main__":
 
   dmScript = DMScript()
   dmScript.registerFileSwitches()
+  statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset", "Processed", "NotProcessed", "Removed", 'ProbInFC' )
+  Script.registerSwitch( '', 'Status=', "Select files with a given status from %s" % str( statusList ) )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] <TransID> <Status>' % Script.scriptName, ] ) )
   Script.parseCommandLine()
+
+  switches = Script.getUnprocessedSwitches()
+  status = None
+  for opt, val in switches:
+    if opt == 'Status':
+      if val not in statusList:
+        print "Unknown status %s... Select in %s" % ( val, str( statusList ) )
+        Script.showHelp()
+        DIRAC.exit( 1 )
+      status = val
 
   args = Script.getPositionalArgs()
 
@@ -42,7 +54,7 @@ if __name__ == "__main__":
 
   if len( args ) == 2:
     status = args[1]
-  else:
+  elif not status:
     status = 'Unknown'
   lfnsExplicit = dmScript.getOption( 'LFNs' )
 
@@ -72,8 +84,7 @@ if __name__ == "__main__":
       resetFiles = 0
       failed = {}
       for lfnChunk in breakListIntoChunks( lfns, 10000 ):
-        res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnChunk,
-                                                          force = ( status == 'MaxReset' or status == 'Processed' ) or lfnsExplicit )
+        res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnChunk, force = ( status == 'MaxReset' or status == 'Processed' ) or lfnsExplicit )
         if res['OK']:
           resetFiles += len( res['Value']['Successful'] )
           for lfn, reason in res['Value']['Failed'].items():
