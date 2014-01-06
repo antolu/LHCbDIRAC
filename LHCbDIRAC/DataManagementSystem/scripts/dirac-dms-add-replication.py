@@ -60,8 +60,6 @@ if __name__ == "__main__":
     elif opt == "unique":
       unique = True
 
-  if test:
-    unique = False
   plugin = pluginScript.getOption( 'Plugin' )
   if not plugin:
     print "ERROR: No plugin supplied..."
@@ -94,14 +92,12 @@ if __name__ == "__main__":
   tr = TransformationClient()
 
   if plugin in ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ) or prods:
-    visible = 'All'
+    # visible = 'All'
     lfcCheck = False
-  else:
-    visible = 'Yes'
 
   processingPass = [None]
   if not requestedLFNs:
-    bkQuery = pluginScript.getBKQuery( visible = visible )
+    bkQuery = pluginScript.getBKQuery()
     transBKQuery = bkQuery.getQueryDict()
     if transBKQuery.keys() in ( [], ['Visible'] ):
       print "No BK query was given..."
@@ -136,8 +132,9 @@ if __name__ == "__main__":
 
     # In case there is a loop on processing passes
     try:
-      bkQuery.setProcessingPass( processingPass )
-      transBKQuery['ProcessingPass'] = processingPass
+      if processingPass:
+        bkQuery.setProcessingPass( processingPass )
+        transBKQuery['ProcessingPass'] = processingPass
     except:
       pass
     if requestedLFNs:
@@ -233,7 +230,7 @@ if __name__ == "__main__":
     elif transBKQuery:
       print "Executing the BK query:", bkQuery
       startTime = time.time()
-      lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), printOutput = False )
+      lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), printOutput = test )
       bkTime = time.time() - startTime
       nfiles = len( lfns )
       print "Found %d files in %.3f seconds" % ( nfiles, bkTime )
