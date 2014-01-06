@@ -32,7 +32,8 @@ if __name__ == "__main__":
   dmScript.registerFileSwitches()
   dmScript.registerSiteSwitches()
   Script.registerSwitch( '', 'Check', '   Checks the PFN metadata vs LFN metadata' )
-  Script.registerSwitch( '', 'Exists', '   Only reports if the file exists' )
+  Script.registerSwitch( '', 'Exists', '   Only reports if the file exists (and checks the checksum)' )
+  Script.registerSwitch( '', 'Summary', '   Only prints a summary on existing files' )
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
                                        '  %s [option|cfgfile] ... [URL[,URL2[,URL3...]]] SE[ SE2...]' % Script.scriptName,
@@ -42,10 +43,16 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = True )
   check = False
   exists = False
+  summary = False
   for opt, val in Script.getUnprocessedSwitches():
     if opt == 'Check':
       check = True
-    if opt == 'Exists':
+    elif opt == 'Exists':
+      exists = True
+      check = True
+    elif opt == 'Summary':
+      summary = True
+      check = True
       exists = True
 
 
@@ -96,7 +103,7 @@ if __name__ == "__main__":
         urlList.remove( lfn )
     for lfn in res['Value']['Failed']:
       metadata['Failed'][lfn] = 'FC: ' + res['Value']['Failed'][lfn]
-    metadata['Failed'].update( dict.fromkeys( [url for url in urlList if url not in replicas and url not in metadata['Failed']], 'No active replicas' ) )
+    metadata['Failed'].update( dict.fromkeys( [url for url in urlList if url not in replicas and url not in metadata['Failed']], 'FC: No active replicas' ) )
   result = None
   if not seList:
     # take all SEs in replicas and add a fake '' to printout the SE name
@@ -140,5 +147,37 @@ if __name__ == "__main__":
         for url in fileList:
           metadata['Failed'][url] = res['Message'] + ' at %s' % se
 
-  printDMResult( S_OK( metadata ), empty = "File not at SE" )
+  if not summary:
+    printDMResult( S_OK( metadata ), empty = "File not at SE" )
+  else:
+    nFiles = 0
+    counterKeys = ['Not in FC', 'No active replicas', 'Not existing', 'Exists', 'Checksum OK', 'Checksum bad']
+    counters = dict.fromkeys( counterKeys, 0 )
+    for lfn, reason in metadata['Failed'].items():
+      nFiles += 1
+      if type( reason ) == type( '' ):
+        if reason == 'FC: No active replicas':
+          counters['No active replicas'] += 1
+        elif reason.startswith( 'FC:' ):
+          counters['Not in FC'] += 1
+        else:
+          counters['Not existing'] += 1
+      elif type( reason ) == type( {} ):
+        for se in reason:
+          if reason[se]['Exists']:
+            counters['Exists'] += 1
+          else:
+            counters['Not existing'] += 1
+    for lfn, seDict in metadata['Successful'].items():
+      nFiles += 1
+      for se in seDict:
+        if seDict[se]['MatchLFN'] == True:
+          counters['Checksum OK'] += 1
+        else:
+          counters['Checksum bad'] += 1
+    print 'For %d files:' % nFiles
+    for key in counterKeys:
+      if counters[key]:
+        print '%s: %d' % ( key.rjust( 20 ), counters[key] )
+
   DIRAC.exit( 0 )
