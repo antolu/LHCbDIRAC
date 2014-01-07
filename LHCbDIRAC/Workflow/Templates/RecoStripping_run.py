@@ -96,7 +96,7 @@ mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data f
 mergeMulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
 
 pr.requestID = '{{ID}}'
-pr.prodGroup = '{{pDsc}}'
+pr.prodGroup = '{{inProPass}}' + '/' + '{{pDsc}}'
 # used in case of a test e.g. certification etc.
 pr.configName = '{{configName}}'
 pr.configVersion = '{{configVersion}}'

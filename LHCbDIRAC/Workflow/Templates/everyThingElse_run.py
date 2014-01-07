@@ -114,7 +114,7 @@ if not parentReq:
 else:
   pr.requestID = parentReq
 
-pr.prodGroup = '{{pDsc}}'
+pr.prodGroup = '{{inProPass}}' + '/' + '{{pDsc}}'
 # used in case of a test e.g. certification etc.
 pr.configName = '{{configName}}'
 pr.configVersion = '{{configVersion}}'
@@ -128,6 +128,7 @@ if p1[0] == 1 and pr.prodsTypeList[0].lower() != 'mcsimulation':
   pr.bkQueries = ['Full']
 elif p1[0] == 1 and pr.prodsTypeList[0].lower() == 'mcsimulation':
   pr.bkQueries = ['']
+  pr.prodGroup = '{{pDsc}}'
 elif p1[0] != 1 and pr.prodsTypeList[0].lower() != 'mcsimulation':
   pr.bkQueries = ['fromPreviousProd']
   if not pr.previousProdID:
