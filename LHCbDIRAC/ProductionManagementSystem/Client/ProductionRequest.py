@@ -729,7 +729,8 @@ class ProductionRequest( object ):
 
   def set_CPUeList( self, value ):
     if type( value ) != type( [] ):
-      value = [int( v ) for v in value]
+      value = [value]
+    value = [int( float( v ) ) for v in value]
     for x in value:
       if x < 0:
         raise ValueError( "CPUe can not be negative" )
