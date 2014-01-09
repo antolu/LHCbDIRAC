@@ -4,8 +4,9 @@
 import os, tarfile, math
 
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
-from DIRAC.ConfigurationSystem.Client.Helpers import Resources
-from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
+from DIRAC.ConfigurationSystem.Client.Helpers   import Resources
+from DIRAC.Core.Utilities.SiteCEMapping         import getQueueInfo
+from LHCbDIRAC.Core.Utilities.XMLTreeParser     import XMLTreeParser
 
 def tarFiles( outputFile, files = [], compression = '', deleteInput = False ):
   """ just make a tar
@@ -54,14 +55,13 @@ def lowerExtension():
 #############################################################################
 
 def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
-  """
-    Returns the number of events to produce considering the CPU time available.
-    CPUTime and CPUNormalizationFactor are taken from the LocalSite configuration if not provided.
-    No checks are made on the values passed !
+  """ Returns the number of events to produce considering the CPU time available.
+      CPUTime and CPUNormalizationFactor are taken from the LocalSite configuration if not provided.
+      No checks are made on the values passed !
   """
 
   if CPUTime is None:
-    CPUTime = gConfig.getValue( '/LocalSite/CPUTime', 10000 )
+    CPUTime = _getCPUTime()
 
   if CPUNormalizationFactor is None:
     CPUNormalizationFactor = gConfig.getValue( '/LocalSite/CPUNormalizationFactor', 1.0 )
@@ -73,6 +73,25 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
   eventsToProduce = int( math.floor( CPUTime * CPUNormalizationFactor ) / float( CPUe ) )
 
   return eventsToProduce
+
+#############################################################################
+
+def _getCPUTime():
+  """ trying to get CPUTime (in seconds) from the CS. The default is a (low) 10000s
+  """
+  CPUTime = gConfig.getValue( '/LocalSite/CPUTime' )
+  if not CPUTime:
+    gridCE = gConfig.getValue( '/LocalSite/GridCE' )
+    CEQueue = gConfig.getValue( '/LocalSite/CEQueue' )
+    queueInfo = getQueueInfo( '%s/%s' % ( gridCE, CEQueue ) )
+    if not queueInfo['OK'] or not queueInfo['Value']:
+      gLogger.warn( "Can't find a CE queue, defaulting CPUTime to 10000" )
+      CPUTime = 10000
+    queueCSSection = queueInfo['Value']['QueueCSSection']
+    cpuTimeInMinutes = gConfig.getValue( '%s/maxCPUTime' % queueCSSection )
+    CPUTime = int( cpuTimeInMinutes ) * 60
+
+  return CPUTime
 
 #############################################################################
 
