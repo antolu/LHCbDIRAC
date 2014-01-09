@@ -71,7 +71,7 @@ class ProductionRequest( object ):
                         'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
     # used to compute the maximum number of events to produce
     # default values
-    self.CPUTimeAvg = 1000000
+    self.CPUTimeAvg = 200000
     self.CPUNormalizationFactorAvg = 1.0
 
     # parameters of each production (the length of each list has to be the same as the number of productions
