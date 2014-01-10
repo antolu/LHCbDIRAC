@@ -834,16 +834,16 @@ class DiracLHCb( Dirac ):
   #############################################################################
 
   def lhcbProxyInit( self, *args ):
-    """ just calling the lhcb-proxy-init script
+    """ just calling the dirac-proxy-init script
     """
-    os.system( "dirac-proxy-init -o LogLevel=NOTICE -t '%s'" % "' '".join( args ) )
+    os.system( "dirac-proxy-init -o LogLevel=NOTICE -t %s" % "' '".join( args ) )
 
   #############################################################################
 
   def lhcbProxyInfo( self, *args ):
-    """ just calling the lhcb-proxy-info script
+    """ just calling the dirac-proxy-info script
     """
-    os.system( "dirac-proxy-info -o LogLevel=NOTICE -t '%s'" % "' '".join( args ) )
+    os.system( "dirac-proxy-info -o LogLevel=NOTICE %s" % "' '".join( args ) )
 
   #############################################################################
   def gridWeather( self, printOutput = False ):
