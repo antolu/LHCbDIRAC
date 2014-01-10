@@ -3112,6 +3112,10 @@ and files.qualityid= dataquality.qualityid'
       retVal = self.dbR_.query( command )
       if not retVal['OK']:
         return retVal
+
+      if len(retVal['Value']) < 1:
+        return S_ERROR('No file found! Processing pass is missing!')
+
       pro = '('
       for i in retVal['Value']:
         pro += "%s," % ( str( i[0] ) )
@@ -3216,7 +3220,7 @@ and files.qualityid= dataquality.qualityid'
           if not res['OK']:
             gLogger.error( 'Data quality problem:', res['Message'] )
           elif len( res['Value'] ) == 0:
-            return S_ERROR( 'Dataquality is missing!' )
+            return S_ERROR( 'No file found! Dataquality is missing!' )
           else:
             quality = res['Value'][0][0]
           conds += ' f.qualityid=' + str( quality ) + ' or'
@@ -3228,7 +3232,7 @@ and files.qualityid= dataquality.qualityid'
         if not res['OK']:
           gLogger.error( 'Data quality problem:', res['Message'] )
         elif len( res['Value'] ) == 0:
-          return S_ERROR( 'Dataquality is missing!' )
+          return S_ERROR( 'No file found! Dataquality is missing!' )
         else:
           quality = res['Value'][0][0]
 
