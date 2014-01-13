@@ -135,6 +135,13 @@ if $status != 0 then
    exit 0
 endif
 
+echo "==== dirac-dms-add-replication --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --Test"
+dirac-dms-add-replication --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --Test
+if $status != 0 then
+   exit 0
+endif
+
+
 echo " "
 echo "======  dirac-bookkeeping-run-files 81789"
 dirac-bookkeeping-run-files 81789
