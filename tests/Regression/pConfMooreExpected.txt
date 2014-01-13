@@ -2,9 +2,9 @@ from ProdConf import ProdConf
 
 ProdConf(
   NOfEvents=2,
-  DDDBTag='MC2011-20120727',
-  CondDBTag='MC2011-20120727-vc-mu100',
-  AppVersion='v12r8g1',
+  DDDBTag='dddb-20130929',
+  CondDBTag='sim-20130522-vc-md100',
+  AppVersion='v12r8g3',
   XMLSummaryFile='summaryMoore_00012345_00006789_3.xml',
   Application='Moore',
   OutputFilePrefix='00012345_00006789_3',
