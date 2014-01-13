@@ -28,6 +28,8 @@ class ControlerProcessingPassDialog(ControlerAbstract):
       self.__handleShowProcessingpass(message)
     elif message.action() == 'list':
       self.__handleList(message)
+    elif message.action() == 'deatiledList':
+      self.__handleDetailedList(message)
     else:
       print 'Unknown message!', message.action()
 
@@ -80,14 +82,35 @@ class ControlerProcessingPassDialog(ControlerAbstract):
   #############################################################################
   def __handleList(self, message):
     """
-    It sents a messeage to its parent controller in order to retrieve the processing pass informations.
+    It sends a message to its parent controller in order to retrieve the processing pass informations.
     """
     item = message['items']
     message = Message({'action':'procDescription', 'groupdesc':item['name']})
     feedback = self.getParent().messageFromChild(self, message)
+    self.__fillWidget(feedback, item['name'])
+
+  #############################################################################
+  def __handleDetailedList(self, message):
+    """
+    It sends a message to its parent controller in order to retrieve a detailed processing pass informations.
+    """
+    item = message['items']
+
+    bkDict = item['selection']
+    bkDict['FileType'] = item['name']
+    message = Message({'action':'detailedProcessingPassDescription', 'bkDict':bkDict})
+    feedback = self.getParent().messageFromChild(self, message)
+
+    self.__fillWidget(feedback, bkDict['ProcessingPass'])
+
+  #############################################################################
+  def __fillWidget(self, feedback, processingPass):
+    """
+    It creates the widgets used to show the processing pass
+    """
     if feedback != None:
       widget = self.getWidget()
-      widget.setTotalProccesingPass(item['name'])
+      widget.setTotalProccesingPass(processingPass)
       tabwidget = widget.getTabWidget()
       tabwidget.clear()# cleaning, I have to delete the existing tabs
       records = feedback['Records']
@@ -110,4 +133,3 @@ class ControlerProcessingPassDialog(ControlerAbstract):
           main.addTab(tab, i)
           mainWidget[desc] = main
       self.getWidget().show()
-

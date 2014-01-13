@@ -144,3 +144,7 @@ class LHCB_BKKDBClient(BaseESClient):
     """set data qualities"""
     self.getManager().setDataQualities(values)
 
+  #############################################################################
+  def getStepsMetadata(self, bkDict):
+    """returns detailed step metadata """
+    return self.getManager().getStepsMetadata(bkDict)

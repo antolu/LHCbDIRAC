@@ -301,10 +301,15 @@ class ControlerTree(ControlerAbstract):
 
     controlers = self.getChildren()
     ct = controlers['InfoDialog']
+
     if node != None:
-      if node.has_key('level') and node['level'] == 'Processing Pass':
+      if 'level' in node and node['level'] == 'Processing Pass':
         ctproc = controlers['ProcessingPassDialog']
         message = Message({'action':'list', 'items':node})
+        ctproc.messageFromParent(message)
+      elif 'level' in node and node['level'] == 'FileTypes':
+        ctproc = controlers['ProcessingPassDialog']
+        message = Message({'action':'deatiledList', 'items':node})
         ctproc.messageFromParent(message)
       elif node.has_key('level') and node['level'] == 'Production(s)/Run(s)':
         message = Message({'action':'ProductionInformations', 'production':node['name']})

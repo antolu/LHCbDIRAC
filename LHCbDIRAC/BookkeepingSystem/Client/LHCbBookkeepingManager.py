@@ -1962,3 +1962,9 @@ class LHCbBookkeepingManager(BaseESManager):
         res += [i]
     return res
 
+  #############################################################################
+  def getStepsMetadata(self, bkDict):
+    """
+    It is a wrapper to the bookkeeping client
+    """
+    return self.db_.getStepsMetadata(bkDict)

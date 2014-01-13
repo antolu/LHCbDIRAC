@@ -192,6 +192,9 @@ class ControlerMain(ControlerAbstract):
     elif message.action() == 'BookmarksPrefices':
       result = self.__getBookmarksPrefix()
 
+    elif message.action() == "detailedProcessingPassDescription":
+      result = self.__getDetailedProcessingPass(message)
+
     else:
       message = "Unknown message sent by %s. Message:%s" % (str(sender.__class__), str(message))
       gLogger.error(message)
@@ -368,6 +371,18 @@ class ControlerMain(ControlerAbstract):
     """
     desc = message['groupdesc']
     retVal = self.__bkClient.getProcessingPassSteps({'StepName':desc})
+    if not retVal['OK']:
+      gLogger.error(retVal['Message'])
+      return None
+    else:
+      return retVal['Value']
+  #############################################################################
+  def __getDetailedProcessingPass(self, message):
+    """
+    It returns the corresponding steps created by the productions
+    """
+    bkDict = message['bkDict']
+    retVal = self.__bkClient.getStepsMetadata(bkDict)
     if not retVal['OK']:
       gLogger.error(retVal['Message'])
       return None
