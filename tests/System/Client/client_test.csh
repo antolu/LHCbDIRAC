@@ -113,6 +113,12 @@ dirac-dms-replica-stats  --BKQuery=/LHCb/Collision12//RealData/Reco13a/Stripping
 if $status != 0 then
    exit 0
 endif
+echo " "
+echo "===== dirac-dms-create-replication-request CNAF_MC-DST /lhcb/certification/test/ALLSTREAMS.DST/00000751/0000/00000751_00000014_1.allstreams.dst"
+dirac-dms-create-replication-request CNAF_MC-DST /lhcb/certification/test/ALLSTREAMS.DST/00000751/0000/00000751_00000014_1.allstreams.dst
+if $status != 0 then
+   exit 0
+endif
 
 echo " "
 echo "======  dirac-bookkeeping-run-files 81789"
