@@ -2,9 +2,9 @@ from ProdConf import ProdConf
 
 ProdConf(
   NOfEvents=500,
-  DDDBTag='dddb-20120831',
-  CondDBTag='cond-20120929',
-  AppVersion='v32r2p1',
+  DDDBTag='dddb-20130111',
+  CondDBTag='cond-20130114',
+  AppVersion='v32r2p11',
   OptionFormat='Stripping',
   XMLSummaryFile='summaryDaVinci_00012345_00006789_1.xml',
   Application='DaVinci',

@@ -91,9 +91,6 @@ class SwimmingSuccess( RegressionTestCase ):
     res = self.j_swimming_31057.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
-    for found, expected in getOutput( 'MergeM' ):
-      self.assertEqual( found, expected )
-
 
 #############################################################################
 # Test Suite run
