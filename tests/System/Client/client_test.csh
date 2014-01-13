@@ -115,7 +115,22 @@ if $status != 0 then
 endif
 echo " "
 echo "===== dirac-dms-create-replication-request CNAF_MC-DST /lhcb/certification/test/ALLSTREAMS.DST/00000751/0000/00000751_00000014_1.allstreams.dst"
-dirac-dms-create-replication-request CNAF_MC-DST /lhcb/certification/test/ALLSTREAMS.DST/00000751/0000/00000751_00000014_1.allstreams.dst
+set result=`dirac-dms-create-replication-request CNAF_MC-DST /lhcb/certification/test/ALLSTREAMS.DST/00000751/0000/00000751_00000014_1.allstreams.dst`
+if $status != 0 then
+   echo $result
+   exit 0
+else
+   echo $result
+   set reqID=`echo $result | awk -F ' ' '{print $2}'`
+   echo "===== dirac-rms-show-request $reqID"
+   dirac-rms-show-request $reqID
+   if $status != 0 then
+     exit 0
+   endif   
+endif
+
+echo "===== dirac-dms-create-removal-request CNAF_MC-DST /lhcb/certification/test/ALLSTREAMS.DST/00000751/0000/00000751_00000014_1.allstreams.dst"
+dirac-dms-create-removal-request CNAF_MC-DST /lhcb/certification/test/ALLSTREAMS.DST/00000751/0000/00000751_00000014_1.allstreams.dst
 if $status != 0 then
    exit 0
 endif
