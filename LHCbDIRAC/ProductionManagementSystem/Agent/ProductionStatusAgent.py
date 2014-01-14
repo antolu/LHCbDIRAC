@@ -148,11 +148,16 @@ class ProductionStatusAgent( AgentModule ):
     except RuntimeError, error:
       self.log.error( error )
 
-    self.log.info( "*******************************************************************" )
+    self.log.info( "*****************************************************************" )
     self.log.info( "Checking for Idle -> ValidatingInput and Idle -> ValidatingOutput" )
-    self.log.info( "*******************************************************************" )
+    self.log.info( "*****************************************************************" )
 
     self._checkIdleToValidatingInputAndValidatingOutput( doneAndUsed, doneAndNotUsed, updatedProductions )
+
+    self.log.info( "***************************" )
+    self.log.info( "Checking for Idle -> Active" )
+    self.log.info( "***************************" )
+    self._checkIdleToActive( updatedProductions )
 
     self.log.info( "*********" )
     self.log.info( "Reporting" )
@@ -174,31 +179,51 @@ class ProductionStatusAgent( AgentModule ):
       prods = self._getTransformations( 'Active' )
       if prods:
         for prod in prods:
-          self.log.verbose( "Checking production %d" % prod )
-          prodInfo = self.transClient.getTransformation( prod )['Value']
-          if prodInfo.get( 'Type', None ) in self.simulationTypes:
-            # simulation : go to Idle if
-            #     only failed and done jobs
-            # AND number of created == number of submitted
-            prodStats = self._getTransformationTaskStats( prod )
-            self.log.debug( "Stats: %s" % str( prodStats ) )
-            isIdle = ( prodStats.get( 'Created', 0 ) == prodStats.get( 'Submitted', 0 ) ) \
-            and all( [prodStats.get( status, 0 ) == 0 for status in ['Matched', 'Checking', 'Waiting', 'Staging',
-                                                                     'Rescheduled', 'Running', 'Completed']] )
-          else:
-            # other production type : go to Idle if
-            #     0 unused, 0 assigned files
-            # AND > 0 processed files
-            prodStats = self._getTransformationFilesStats( prod )
-            self.log.debug( "Stats: %s" % str( prodStats ) )
-            isIdle = ( prodStats.get( 'Processed', 0 ) > 0 ) \
-            and all( [prodStats.get( status, 0 ) == 0 for status in ['Unused', 'Assigned']] )
-
+          isIdle = self.__isIdle( prod )
           if isIdle:
             self.log.info( 'Production %d is put in Idle status' % prod )
             self._updateProductionStatus( prod, 'Active', 'Idle', updatedProductions )
     except RuntimeError, error:
       self.log.error( error )
+
+  def _checkIdleToActive( self, updatedProductions ):
+    """ Inverse of _checkActiveToIdle
+    """
+    try:
+      prods = self._getTransformations( 'Idle' )
+      if prods:
+        for prod in prods:
+          isIdle = self.__isIdle( prod )
+          if not isIdle:
+            self.log.info( 'Production %d is put in Active status' % prod )
+            self._updateProductionStatus( prod, 'Idle', 'Active', updatedProductions )
+    except RuntimeError, error:
+      self.log.error( error )
+
+  def __isIdle( self, prod ):
+    """ Cheks if a production is idle
+    """
+    self.log.verbose( "Checking production %d" % prod )
+    prodInfo = self.transClient.getTransformation( prod )['Value']
+    if prodInfo.get( 'Type', None ) in self.simulationTypes:
+      # simulation : go to Idle if
+      #     only failed and done jobs
+      # AND number of created == number of submitted
+      prodStats = self._getTransformationTaskStats( prod )
+      self.log.debug( "Stats: %s" % str( prodStats ) )
+      isIdle = ( prodStats.get( 'Created', 0 ) == prodStats.get( 'Submitted', 0 ) ) \
+      and all( [prodStats.get( status, 0 ) == 0 for status in ['Matched', 'Checking', 'Waiting', 'Staging',
+                                                               'Rescheduled', 'Running', 'Completed']] )
+    else:
+      # other production type : go to Idle if
+      #     0 unused, 0 assigned files
+      # AND > 0 processed files
+      prodStats = self._getTransformationFilesStats( prod )
+      self.log.debug( "Stats: %s" % str( prodStats ) )
+      isIdle = ( prodStats.get( 'Processed', 0 ) > 0 ) \
+      and all( [prodStats.get( status, 0 ) == 0 for status in ['Unused', 'Assigned']] )
+
+    return isIdle
 
   def _checkIdleToValidatingInputAndValidatingOutput( self, doneAndUsed, doneAndNotUsed, updatedProductions ):
     try:
