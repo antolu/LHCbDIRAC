@@ -56,7 +56,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     productionRequests = self.rpcProductionRequest.getProductionRequestSummary( 'Active', 'Simulation' )
     if productionRequests['OK']:
       productionRequests = productionRequests['Value']
-      self.log.info( "productionRequests considered: %s" % str( productionRequests ) )
+      self.log.info( "Requests considered: %s" % ', '.join( [str( prod ) for prod in productionRequests.keys()] ) )
     else:
       message = "RPC call to ProductionRequest service failed : %s" % productionRequests['Message']
       self.log.error( message )
