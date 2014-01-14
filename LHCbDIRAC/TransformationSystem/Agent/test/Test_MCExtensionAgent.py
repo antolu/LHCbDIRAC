@@ -198,7 +198,7 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
     agent.transClient.extendTransformation.return_value = S_OK()
     agent.transClient.setTransformationParameter.return_value = S_OK()
 
-    agent.cpuTimeAvg = 1000000.0
+    agent.cpuTimeAvg = 1000000
     agent.cpuNormalizationFactorAvg = 1.0
 
     production = {'AgentType': 'Automatic',
@@ -213,7 +213,7 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
           <type></type>
           <name>Request_12416_MCSimulation_Sim08a/Digi13/Trig0x40760037/Reco14a/Stripping20r1NoPrescalingFlagged_EventType_13296003__1</name>
           <Parameter name="CPUe" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="CPU time per event">
-            <value><![CDATA[10.0]]></value>
+            <value><![CDATA[10]]></value>
           </Parameter>
         </Workflow>
       ''',

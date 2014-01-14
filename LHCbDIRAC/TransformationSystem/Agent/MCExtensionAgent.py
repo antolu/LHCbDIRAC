@@ -56,8 +56,9 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     productionRequests = self.rpcProductionRequest.getProductionRequestSummary( 'Active', 'Simulation' )
     if productionRequests['OK']:
       productionRequests = productionRequests['Value']
+      self.log.info( "productionRequests considered: %s" % str( productionRequests ) )
     else:
-      message = 'RPC call to ProductionRequest service failed : %s' % productionRequests['Message']
+      message = "RPC call to ProductionRequest service failed : %s" % productionRequests['Message']
       self.log.error( message )
       return S_ERROR( message )
 
@@ -81,15 +82,18 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     self.cpuTimeAvg = op.getValue( 'Transformations/cpuTimeAvg' )
     if self.cpuTimeAvg is None:
       self.cpuTimeAvg = productionRequest.CPUTimeAvg
-      self.log.info( 'Could not get cpuTimeAvg from config, defaulting to %d' % self.cpuTimeAvg )
+      self.log.info( "Could not get cpuTimeAvg from config, defaulting to %d" % self.cpuTimeAvg )
+    else:
+      self.log.verbose( "cpuTimeAvg = %d" % self.cpuTimeAvg )
 
     try:
       self.cpuNormalizationFactorAvg = getCPUNormalizationFactorAvg()
+      self.log.verbose( "cpuTimeAvg = %d" % self.cpuTimeAvg )
     except RuntimeError:
       self.cpuNormalizationFactorAvg = productionRequest.CPUNormalizationFactorAvg
-      self.log.info( 'Could not get CPUNormalizationFactorAvg from config, defaulting to %d'
+      self.log.info( "Could not get CPUNormalizationFactorAvg from config, defaulting to %d"
                      % self.cpuNormalizationFactorAvg )
-
+ 
   #############################################################################
   def _checkProductionRequest( self, productionRequestID, productionRequestSummary ):
     """ Check if a production request need to be extended and do it if needed
@@ -97,8 +101,9 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
     # check if enough events have been produced
     missingEvents = productionRequestSummary['reqTotal'] - productionRequestSummary['bkTotal']
+    self.log.info( "Missing events for production request %d: %d" % ( productionRequestID, missingEvents ) )
     if productionRequestSummary['bkTotal'] > 0 and missingEvents <= 0:
-      message = 'Enough events produced for production request %d' % productionRequestID
+      message = "Enough events produced for production request %d" % productionRequestID
       self.log.verbose( message )
       return S_OK( message )
 
@@ -111,6 +116,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       self.log.error( message )
       return S_ERROR( message )
     productionsProgress = productionsProgress['Rows']
+    self.log.verbose( "Progress for production request %d: %s" % ( productionRequestID, str( productionsProgress ) ) )
 
     # get the informations for the productions/transformations
     productions = []
@@ -132,6 +138,9 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
         for productionProgress in productionsProgress:
           if productionProgress['ProductionID'] == simulationID:
             simulationProgress = productionProgress
+            self.log.info( "Progress for the simulation production %d of request %d: %s" % ( simulationID,
+                                                                                            productionRequestID,
+                                                                                            str( simulationProgress ) ) )
 
     if simulation == None:
       message = 'Failed to get simulation production for request %d' % productionRequestID
@@ -139,8 +148,8 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       return S_ERROR( message )
 
     if simulation['Status'].lower() != 'idle':
-      # the simulation is still producting events
-      message = 'Simulation for production request %d is not Idle (%s)' % ( productionRequestID, simulation['Status'] )
+      # the simulation is still producing events
+      message = "Simulation for production request %d is not Idle (%s)" % ( productionRequestID, simulation['Status'] )
       self.log.verbose( message )
       return S_OK( message )
 
@@ -160,8 +169,11 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
   def _extendProduction( self, production, extensionFactor, eventsNeeded ):
     """ Extend a production to produce eventsNeeded*extensionFactor more events.
     """
-
     productionID = production['TransformationID']
+    self.log.info( "Extending prod %d, that is still missing %d events. Extension factor = %d" % ( productionID,
+                                                                                                   eventsNeeded,
+                                                                                                   extensionFactor ) )
+
     eventsToProduce = eventsNeeded * extensionFactor
 
     cpuE = int( getProductionParameterValue( production['Body'], 'CPUe' ) )
@@ -172,6 +184,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     max_e = getEventsToProduce( cpuE, self.cpuTimeAvg, self.cpuNormalizationFactorAvg )
 
     numberOfTasks = int( math.ceil( float( eventsToProduce ) / float( max_e ) ) )
+    self.log.info( "Extending prod %d by %d tasks" % ( productionID, numberOfTasks ) )
 
     # extend the transformation by the determined number of tasks
     res = self.transClient.extendTransformation( productionID, numberOfTasks )
@@ -180,7 +193,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       self.log.error( message )
       return S_ERROR( message )
     else:
-      message = 'Successfully extended transformation %d by %d tasks' % ( productionID, numberOfTasks )
+      message = "Successfully extended transformation %d by %d tasks" % ( productionID, numberOfTasks )
       self.log.info( message )
 
       res = self.transClient.setTransformationParameter( productionID, 'Status', 'Active' )

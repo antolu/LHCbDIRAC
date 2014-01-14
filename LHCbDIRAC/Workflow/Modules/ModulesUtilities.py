@@ -135,8 +135,8 @@ def getCPUNormalizationFactorAvg():
 ###############################################################################
 
 def getProductionParameterValue( productionXML, parameterName ):
-  ''' Get a parameter value from a production XML description
-  '''
+  """ Get a parameter value from a production XML description
+  """
 
   # lets assume no parameters are different only by case, as it would be a bad idea
   parameterName = parameterName.lower()
