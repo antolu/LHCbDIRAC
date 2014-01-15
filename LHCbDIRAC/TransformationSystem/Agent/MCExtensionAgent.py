@@ -1,15 +1,17 @@
 """ An agent to extend MC productions based on the remaning events to produce.
 """
 
-from DIRAC import S_OK, S_ERROR
-from DIRAC.TransformationSystem.Agent.MCExtensionAgent import MCExtensionAgent as DIRACMCExtensionAgent
-from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getCPUNormalizationFactorAvg, getEventsToProduce, getProductionParameterValue
-
 import math
+
+from DIRAC import S_OK, S_ERROR
+from DIRAC.Core.DISET.RPCClient                                       import RPCClient
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations              import Operations
+from DIRAC.TransformationSystem.Agent.MCExtensionAgent                import MCExtensionAgent as DIRACMCExtensionAgent
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient       import TransformationClient
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest    import ProductionRequest
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities                      import getCPUNormalizationFactorAvg, getEventsToProduce, getProductionParameterValue
+
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'Transformation/MCExtensionAgent'
 
