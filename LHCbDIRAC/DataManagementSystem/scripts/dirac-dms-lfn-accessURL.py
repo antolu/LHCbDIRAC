@@ -72,7 +72,7 @@ def execute():
   gLogger.setLevel( 'FATAL' )
   for se in seList:
     res = rm.getReplicaAccessUrl( lfnList, se )
-    success = res['Value']['Successful']
+    success = res.get( 'Value', {} ).get( 'Successful' )
     if res['OK'] and success:
       bkRes = bk.getFileTypeVersion( success.keys() )
       if bkRes['OK']:
