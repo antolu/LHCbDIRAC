@@ -1,9 +1,9 @@
-''' LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient
+""" LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient
 
    ResourceManagementClient.__bases__:
      DIRAC.ResourceStatusSystem.Client.ResourceManagementClient.ResourceManagementClient
   
-'''
+"""
 
 from DIRAC import S_ERROR, S_OK, gLogger
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import \
@@ -49,7 +49,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #  def insertMonitoringTest( self, metricName, serviceURI, siteName, serviceFlavour, 
 #                            metricStatus, summaryData, timestamp, lastCheckTime, 
 #                            meta = None ):
-#    '''
+#    """
 #    Inserts on MonitoringTest a new row with the arguments given.
 #    
 #    :Parameters:
@@ -74,14 +74,14 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #       `table` key and the proper table name.
 #
 #    :return: S_OK() || S_ERROR()
-#    '''
+#    """
 #    # Unused argument
-#    # pylint: disable-msg=W0613    
 #    return self._query( 'insert', 'MonitoringTest', locals() )
+
 #  def updateMonitoringTest( self, metricName, serviceURI, siteName, serviceFlavour, 
 #                            metricStatus, summaryData, timestamp, lastCheckTime, 
 #                            meta = None ):
-#    '''
+#    """
 #    Updates on MonitoringTest a new row with the arguments given.
 #    
 #    :Parameters:
@@ -106,15 +106,15 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #       `table` key and the proper table name.
 #
 #    :return: S_OK() || S_ERROR()
-#    '''
+#    """
 #    # Unused argument
-#    # pylint: disable-msg=W0613       
 #    return self._query( 'update', 'MonitoringTest', locals() )
+
   def selectMonitoringTest( self, metricName = None, serviceURI = None, 
                             siteName = None, serviceFlavour = None,
                             metricStatus = None, summaryData = None,
                             timestamp = None, lastCheckTime = None, meta = None ):
-    '''
+    """
     Gets from MonitoringTest all rows that match the parameters given.
     
     :Parameters:
@@ -139,15 +139,15 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
        `table` key and the proper table name.
 
     :return: S_OK() || S_ERROR()
-    '''
+    """
     # Unused argument
-    # pylint: disable-msg=W0613       
     return self._query( 'select', 'MonitoringTest', locals() )
+
   def deleteMonitoringTest( self, metricName = None, serviceURI = None,
                             siteName = None, serviceFlavour = None, 
                             metricStatus = None, summaryData = None,
                             timestamp = None, lastCheckTime = None, meta = None ):
-    '''
+    """
     Deletes from MonitoringTest all rows that match the parameters given.
     
     :Parameters:
@@ -172,15 +172,14 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
        `table` key and the proper table name.
 
     :return: S_OK() || S_ERROR()
-    '''
+    """
     # Unused argument
-    # pylint: disable-msg=W0613       
     return self._query( 'delete', 'MonitoringTest', locals() )
 
   def addOrModifyMonitoringTest( self, metricName, serviceURI, siteName,
                                  serviceFlavour, metricStatus, summaryData,
                                  timestamp, lastCheckTime ):
-    '''
+    """
     Using `metricName` and `serviceURI` to query the database, decides whether 
     to insert or update the table.
     
@@ -203,9 +202,8 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
         last time it was cheched    
 
     :return: S_OK() || S_ERROR()
-    '''
+    """
     # Unused argument
-    # pylint: disable-msg=W0613      
     meta = { 'onlyUniqueKeys' : True } 
     return self._query( 'addOrModify', 'MonitoringTest', locals() )
 
@@ -216,7 +214,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
                                 done = None, failed = None, killed = None, 
                                 matched = None, running = None, stalled = None,
                                 lastCheckTime = None, meta = None ):
-    '''
+    """
     Selects from JobAccountingCach all rows that match the parameters given.
     
     :Parameters:
@@ -245,14 +243,14 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
        `table` key and the proper table name.
 
     :return: S_OK() || S_ERROR()
-    '''                                 
+    """
 
     return self._query( 'select', 'JobAccountingCache', locals() )
   def deleteJobAccountingCache( self, name = None, checking = None, completed = None,
                                 done = None, failed = None, killed = None, 
                                 matched = None, running = None, stalled = None,
                                 lastCheckTime = None, meta = None ):
-    '''
+    """
     Deletes from JobAccountingCach all rows that match the parameters given.
     
     :Parameters:
@@ -281,13 +279,13 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
        `table` key and the proper table name.
 
     :return: S_OK() || S_ERROR()
-    '''                                                
+    """
     return self._query( 'delete', 'JobAccountingCache', locals() )
   def addOrModifyJobAccountingCache( self, name = None, checking = None, completed = None,
                                      done = None, failed = None, killed = None, 
                                      matched = None, running = None, stalled = None,
                                      lastCheckTime = None, meta = None ):
-    '''
+    """
     Using `name` to query the database, decides whether to insert or update the t
     table.
     
@@ -317,7 +315,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
        `table` key and the proper table name.
 
     :return: S_OK() || S_ERROR()
-    '''
+    """
     
     meta = { 'onlyUniqueKeys' : True }
     return self._query( 'addOrModify', 'JobAccountingCache', locals() )     
@@ -328,7 +326,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   def selectPilotAccountingCache( self, name = None, aborted = None, deleted = None, 
                                   done = None, failed = None, lastCheckTime = None, 
                                   meta = None ):
-    '''
+    """
     Selects from PilotAccountingCache all rows that match the parameters given.
     
     :Parameters:
@@ -349,13 +347,13 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
        `table` key and the proper table name.
 
     :return: S_OK() || S_ERROR()
-    '''                                 
+    """
 
     return self._query( 'select', 'PilotAccountingCache', locals() )
   def deletePilotAccountingCache( self, name = None, aborted = None, deleted = None, 
                                   done = None, failed = None, lastCheckTime = None, 
                                   meta = None ):
-    '''
+    """
     Deletes from PilotAccountingCache all rows that match the parameters given.
     
     :Parameters:
@@ -376,12 +374,12 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
        `table` key and the proper table name.
 
     :return: S_OK() || S_ERROR()
-    '''                                                
+    """
     return self._query( 'delete', 'PilotAccountingCache', locals() )
   def addOrModifyPilotAccountingCache( self, name = None, aborted = None, deleted = None, 
                                        done = None, failed = None, lastCheckTime = None, 
                                        meta = None ):
-    '''
+    """
     Using `name` to query the database, decides whether to insert or update the t
     table.
     
@@ -403,7 +401,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
        `table` key and the proper table name.
 
     :return: S_OK() || S_ERROR()
-    '''
+    """
     
     meta = { 'onlyUniqueKeys' : True }
     return self._query( 'addOrModify', 'PilotAccountingCache', locals() )     
@@ -415,7 +413,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
                               siteName = None, arguments = None,
                               dateEffective = None, lastCheckTime = None, 
                               meta = None ):
-    '''
+    """
     Gets from EnvironmentCache all rows that match the parameters given.
     
     :Parameters:
@@ -436,15 +434,15 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
        `table` key and the proper table name.
 
     :return: S_OK() || S_ERROR()
-    '''
+    """
     # Unused argument
-    # pylint: disable-msg=W0613       
     return self._query( 'select', 'EnvironmentCache', locals() )
+
   def deleteEnvironmentCache( self, hashKey = None, environment = None, 
                               siteName = None, arguments = None,
                               dateEffective = None, lastCheckTime = None, 
                               meta = None ):
-    '''
+    """
     Deletes from EnvironmentCache all rows that match the parameters given.
     
     :Parameters:
@@ -465,13 +463,13 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
        `table` key and the proper table name.
 
     :return: S_OK() || S_ERROR()
-    '''
+    """
     # Unused argument
-    # pylint: disable-msg=W0613       
     return self._query( 'delete', 'EnvironmentCache', locals() )
+
   def addOrModifyEnvironmentCache( self, hashKey, environment, siteName, 
                                    arguments, dateEffective, lastCheckTime ):
-    '''
+    """
     Using `hashKey` to query the database, decides whether to insert or update 
     the table.
     
@@ -490,9 +488,8 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
         last time it was cheched      
 
     :return: S_OK() || S_ERROR()
-    '''
+    """
     # Unused argument
-    # pylint: disable-msg=W0613      
     meta = { 'onlyUniqueKeys' : True } 
     return self._query( 'addOrModify', 'EnvironmentCache', locals() )
 
@@ -571,7 +568,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #  def insertHammerCloudTest( self, testID, siteName, resourceName, testStatus,
 #                             submissionTime, startTime, endTime, counterTime,
 #                             agentStatus, formerAgentStatus, counter, meta = None ):
-#    '''
+#    """
 #    Inserts on HammerCloud a new row with the arguments given.
 #    
 #    :Parameters:
@@ -602,14 +599,13 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #       `table` key and the proper table name.
 #
 #    :return: S_OK() || S_ERROR()
-#    '''
+#    """
 #    # Unused argument
-#    # pylint: disable-msg=W0613      
 #    return self._query( 'insert', 'HammerCloudTest', locals() )
 #  def updateHammerCloudTest( self, testID, siteName, resourceName, testStatus,
 #                             submissionTime, startTime, endTime, counterTime,
 #                             agentStatus, formerAgentStatus, counter, meta = None ):
-#    '''
+#    """
 #    Updates on HammerCloud a new row with the arguments given.
 #    
 #    :Parameters:
@@ -640,15 +636,15 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #       `table` key and the proper table name.
 #
 #    :return: S_OK() || S_ERROR()
-#    '''
+#    """
 #    # Unused argument
-#    # pylint: disable-msg=W0613    
 #    return self._query( 'update', 'HammerCloudTest', locals() )
+
 #  def selectHammerCloudTest( self, testID = None, siteName = None, resourceName = None, 
 #                             testStatus = None, submissionTime = None, startTime = None,
 #                             endTime = None, counterTime = None, agentStatus = None, 
 #                             formerAgentStatus = None, counter = None, meta = None ):
-#    '''
+#    """
 #    Gets from HammerCloud all rows that match the parameters given.
 #    
 #    :Parameters:
@@ -679,15 +675,15 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #       `table` key and the proper table name.
 #
 #    :return: S_OK() || S_ERROR()
-#    '''
+#    """
 #    # Unused argument
-#    # pylint: disable-msg=W0613        
 #    return self._query( 'select', 'HammerCloudTest', locals() )
+
 #  def deleteHammerCloudTest( self, testID = None, siteName = None, resourceName = None, 
 #                             testStatus = None, submissionTime = None, startTime = None,
 #                             endTime = None, counterTime = None, agentStatus = None, 
 #                             formerAgentStatus = None, counter = None, meta = None ):
-#    '''
+#    """
 #    Deletes from HammerCloud all rows that match the parameters given.
 #    
 #    :Parameters:
@@ -718,16 +714,15 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #       `table` key and the proper table name.
 #
 #    :return: S_OK() || S_ERROR()
-#    '''
+#    """
 #    # Unused argument
-#    # pylint: disable-msg=W0613     
 #    return self._query( 'delete', 'HammerCloudTest', locals() )
 #
 #  def addOrModifyHammerCloudTest( self, testID, siteName, resourceName,
 #                                  testStatus, submissionTime, startTime,
 #                                  endTime, counterTime, agentStatus,
 #                                  formerAgentStatus, counter ):
-#    '''
+#    """
 #    Using `submissionTime` to query the database, decides whether 
 #    to insert or update the table.
 #    
@@ -756,9 +751,8 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #        counter assigned by the agent                   
 #
 #    :return: S_OK() || S_ERROR()
-#    '''
+#    """
 #    # Unused argument
-#    # pylint: disable-msg=W0613   
 #    meta = { 'onlyUniqueKeys' : True }   
 #    return self._query( 'addOrModify', 'HammerCloudTest', locals() )
 
