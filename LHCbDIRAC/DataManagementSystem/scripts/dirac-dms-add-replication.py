@@ -116,6 +116,7 @@ if __name__ == "__main__":
       processingPasses = [processingPass]
   else:
     transBKQuery = {}
+    processingPasses = [None]
 
   reqID = pluginScript.getRequestID()
   if not requestID and reqID:
