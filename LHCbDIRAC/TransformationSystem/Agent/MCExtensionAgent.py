@@ -17,8 +17,8 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
   """ MCExtensionAgent
   """
 
-  def __init__( self, agentName, loadName, baseAgentName, properties = {} ):
-    DIRACMCExtensionAgent.__init__( self, agentName, loadName, baseAgentName, properties )
+  def __init__( self, *args, **kwargs ):
+    DIRACMCExtensionAgent.__init__( self, *args, **kwargs )
 
     self.rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
     self.transClient = TransformationClient()
