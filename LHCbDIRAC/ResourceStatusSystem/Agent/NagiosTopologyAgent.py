@@ -1,10 +1,10 @@
-''' LHCbDIRAC.ResourceStatusSystem.Agent.NagiosTopologyAgent
+""" LHCbDIRAC.ResourceStatusSystem.Agent.NagiosTopologyAgent
 
    NagiosTopologyAgent.__bases__:
      DIRAC.Core.Base.AgentModule.AgentModule
    xml_append
 
-'''
+"""
 
 import os
 import time
@@ -17,7 +17,7 @@ __RCSID__ = '$Id$'
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
 
 class NagiosTopologyAgent( AgentModule ):
-  '''
+  """
   This agent loops over the Dirac CS and extracts the necessary
   information to create a "topology map" which is used by the IT
   provided Nagios system to test Grid sites. The topology information
@@ -25,7 +25,7 @@ class NagiosTopologyAgent( AgentModule ):
 
   NagiosTopologyAgent, writes the xml topology consumed by Nagios to run
   the tests.
-  '''
+  """
 
   def __init__( self, *args, **kwargs ):
 
@@ -34,9 +34,9 @@ class NagiosTopologyAgent( AgentModule ):
     self.xmlPath = None
 
   def initialize( self ):
-    '''
+    """
     Initialize the agent.
-    '''
+    """
 
     self.xmlPath = rootPath + '/' + self.am_getOption( 'webRoot' )
 
@@ -48,9 +48,9 @@ class NagiosTopologyAgent( AgentModule ):
     return S_OK()
 
   def execute( self ):
-    '''
+    """
     Let's generate the xml file with the topology.
-    '''
+    """
 
     # instantiate xml doc
     xml_impl = xml.dom.minidom.getDOMImplementation()
@@ -138,9 +138,9 @@ class NagiosTopologyAgent( AgentModule ):
 
   @staticmethod
   def __writeHeaderInfo( xml_doc, xml_root ):
-    '''
+    """
       Writes XML document header.
-    '''
+    """
 
     xml_append( xml_doc, xml_root, 'title', 'LHCb Topology Information for ATP' )
     xml_append( xml_doc, xml_root, 'description',
@@ -154,9 +154,9 @@ class NagiosTopologyAgent( AgentModule ):
 
   @staticmethod
   def __writeCEInfo( xml_doc, xml_site, site, ces ):
-    '''
+    """
       Writes CE information in the XML Document
-    '''
+    """
 
     has_grid_elem = False
 
@@ -187,9 +187,9 @@ class NagiosTopologyAgent( AgentModule ):
 
   @staticmethod
   def __writeSEInfo( xml_doc, xml_site, site ):
-    '''
+    """
       Writes SE information in the XML Document
-    '''
+    """
     has_grid_elem = True
 
     splittedSite = site.split( "." )[ 1 ]
@@ -220,9 +220,9 @@ class NagiosTopologyAgent( AgentModule ):
 
   @staticmethod
   def __writeFileCatalogInfo( xml_doc, xml_site, site ):
-    '''
+    """
       Writes FileCatalog information in the XML Document
-    '''
+    """
 
     has_grid_elem = True
 
@@ -247,9 +247,9 @@ class NagiosTopologyAgent( AgentModule ):
 ################################################################################
 
 def xml_append( doc, base, elem, cdata = None, **attrs ):
-  '''
+  """
     Given a Document, we append to it an element.
-  '''
+  """
 
   new_elem = doc.createElement( elem )
   for attr in attrs:

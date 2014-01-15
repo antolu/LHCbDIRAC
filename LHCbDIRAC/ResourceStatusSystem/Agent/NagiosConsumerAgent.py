@@ -30,18 +30,18 @@
 #################################################################################
 #
 #class CustomStompListener( stomp.listener.ConnectionListener ):
-#  '''
+#  """
 #  Class CustomStompListener, an extension of ConnectionListener.
 #
 #  The extension overwrites the following methods:
 #
 #  - on_message
-#  '''
+#  """
 #
 #################################################################################
 #
 #  def on_message( self, headers, message ):
-#    '''
+#    """
 #    Overwrites the method on_message of ConnectionListener to parse the
 #    messages into a dictionary.
 #
@@ -49,7 +49,7 @@
 #      :attr: `headers` : string - message headers
 #
 #      :attr: `message` : string - message content
-#    '''
+#    """
 #
 #    message = message.replace( 'EOT\n','' )
 #    message = message.split( '\n' )
@@ -72,7 +72,7 @@
 #################################################################################
 #
 #class NagiosConsumerAgent( AgentModule ):
-#  '''
+#  """
 #  Class NagiosConsumerAgent. This agent is in charge of connecting to ActiveMQ
 #  making use of the stomp protocol, and feed the table MonitoringTests of the
 #  ResourceManagementDB database with the selected data.
@@ -89,10 +89,9 @@
 #  And adds the auxiliar method:
 #
 #  - __checkParams
-#  '''
+#  """
 #
 #  # Too many public methods
-#  # pylint: disable-msg=R0904
 #
 #  # Default Stomp values to connect to ActiveMQ ( development )
 #  __STOMP__ = {
@@ -105,15 +104,14 @@
 #################################################################################
 #
 #  def initialize( self ):
-#    '''
+#    """
 #    Method executed when the agent is launched.
 #    It connects to ActiveMQ using the given or by default parameters, and starts
 #    the listener - CustomStompListener -, that will run on a separate process
 #    populating the queue __MsgQueue with the incoming messages.
-#    '''
+#    """
 #
 #    # Attribute defined outside __init__  
-#    # pylint: disable-msg=W0201
 #
 #    self.log.info( 'NagiosConsumerAgent' )
 #
@@ -164,14 +162,14 @@
 #################################################################################
 #
 #  def execute( self ):
-#    '''
+#    """
 #    At every execution this method will take an aproximate length of the
 #    queue - L, and will get L messages from the queue. If there are messages left,
 #    them will be processed on next round.
 #
 #    Processing messages is understood as taking getting them from que queue to
 #    either be added or updated on the MonitoringTest table on the ResouceManagementDB.
-#    '''
+#    """
 #
 #    try:
 #
@@ -202,11 +200,11 @@
 #################################################################################
 #
 #  def finalize( self ):
-#    '''
+#    """
 #    If the agent is about to expire, we ensure we kill the connection.
 #    The new agent will pick all the messages stored on the queue on
 #    the mean time.
-#    '''
+#    """
 #
 #    try:
 #
@@ -229,14 +227,14 @@
 #################################################################################
 #
 #  def __checkParams( self, msg ):
-#    '''
+#    """
 #    Given a SAM/Nagios message,
 #    returns a dictionary with the interesting parameters.
 #    Otherwise, prints error and returns {}
 #
 #    :params:
 #      :attr: `msg` : dictionary - message on dictionary format ( key, value )
-#    '''
+#    """
 #
 #    # Parameters we want to extract from the message
 #    __PARAMS__ = [ 'siteName', 'timestamp', 'metricName', 'metricStatus',
