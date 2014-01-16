@@ -178,8 +178,8 @@ class Production():
     DQOpt = stepDict['DQTag']
     multicore = stepDict['isMulticore']
     sysConfig = stepDict['SystemConfig']
-    if sysConfig == 'None' or not sysConfig:
-      sysConfig = 'ANY'
+    if sysConfig == 'None' or sysConfig == 'NULL' or not sysConfig or sysConfig is None:
+      sysConfig = 'x86_64-slc5-gcc46-opt'
     mcTCK = stepDict['mcTCK']
 
     if extraPackages:
