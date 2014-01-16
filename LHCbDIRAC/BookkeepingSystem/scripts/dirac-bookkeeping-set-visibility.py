@@ -3,7 +3,7 @@
    Set the visibility flag to a dataset
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id: dirac-bookkeeping-set-visibility.py 69359 2013-08-08 13:57:13Z phicharp $"
 
 import DIRAC
 from DIRAC.Core.Base import Script
