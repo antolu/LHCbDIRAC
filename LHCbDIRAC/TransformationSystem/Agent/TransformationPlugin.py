@@ -1083,6 +1083,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logInfo( "Found %d files not in at least one keepSE, no removal done, set Problematic" % len( notInKeepSEs ) )
       self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', notInKeepSEs )
 
+    if self.pluginCallback:
+      self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
   def _DeleteReplicasWhenProcessed( self ):
