@@ -212,8 +212,9 @@ class ProductionStatusAgent( AgentModule ):
       prodStats = self._getTransformationTaskStats( prod )
       self.log.debug( "Stats: %s" % str( prodStats ) )
       isIdle = ( prodStats.get( 'TotalCreated', 0 ) == prodStats.get( 'Submitted', 0 ) ) \
-      and all( [prodStats.get( status, 0 ) == 0 for status in ['Created', 'Matched', 'Checking', 'Waiting', 'Staging',
-                                                               'Rescheduled', 'Running', 'Completed']] )
+      and all( [prodStats.get( status, 0 ) == 0 for status in ['Checking', 'Completed', 'Created', 'Matched',
+                                                               'Received', 'Reserved', 'Rescheduled', 'Running',
+                                                               'Waiting' ]] )
     else:
       # other production type : go to Idle if
       # 0 unused, 0 assigned files
