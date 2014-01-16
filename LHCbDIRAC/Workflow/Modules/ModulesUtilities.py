@@ -61,7 +61,7 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
   """
 
   if CPUTime is None:
-    CPUTime = _getCPUTime()
+    CPUTime = getCPUTime()
 
   if CPUNormalizationFactor is None:
     CPUNormalizationFactor = gConfig.getValue( '/LocalSite/CPUNormalizationFactor', 1.0 )
@@ -76,7 +76,7 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
 
 #############################################################################
 
-def _getCPUTime():
+def getCPUTime():
   """ trying to get CPUTime (in seconds) from the CS. The default is a (low) 10000s
   """
   CPUTime = gConfig.getValue( '/LocalSite/CPUTime' )
@@ -91,7 +91,7 @@ def _getCPUTime():
     cpuTimeInMinutes = gConfig.getValue( '%s/maxCPUTime' % queueCSSection )
     CPUTime = int( cpuTimeInMinutes ) * 60
 
-  return CPUTime
+  return int( CPUTime )
 
 #############################################################################
 

@@ -61,7 +61,7 @@ pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 pr.configVersion = '{{mcConfigVersion#GENERAL: BK configuration version, e.g. MC10#2012}}'
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 
-CPUe = '{{MCCPUperEvent#GENERAL: CPU time per event#1.0}}'
+CPUe = '{{MCCPUperEvent#GENERAL: CPU time per event#500}}'
 
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2}}'
 MCCpu = '{{MCMinCPUTime#PROD-1:MC: Min CPU time requested in secs#50000}}'
@@ -155,7 +155,7 @@ if w1:
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
   pr.inputDataPolicies = ['', 'download', 'download']
-  pr.CPUeList = [CPUe, '1.0', '1.0']
+  pr.CPUeList = [CPUe, 1, 1]
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
 
@@ -183,7 +183,7 @@ elif w2:
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
   pr.inputDataPolicies = ['', 'download', 'download']
-  pr.CPUeList = [CPUe, '1.0', '1.0']
+  pr.CPUeList = [CPUe, 1, 1]
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
 
@@ -213,7 +213,7 @@ elif w3:
   pr.groupSizes = [1, selectionGroupSize]
   pr.plugins = ['', selectionPlugin]
   pr.inputDataPolicies = ['', 'download']
-  pr.CPUeList = [CPUe, '1.0']
+  pr.CPUeList = [CPUe, 1]
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
 
@@ -230,7 +230,7 @@ elif w4:
   pr.groupSizes = [1, mergingGroupSize]
   pr.plugins = ['', mergingPlugin]
   pr.inputDataPolicies = ['', 'download']
-  pr.CPUeList = [CPUe, '1.0']
+  pr.CPUeList = [CPUe, 1]
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, mergemulticoreFlag]
 
