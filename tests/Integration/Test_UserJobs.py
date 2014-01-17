@@ -154,7 +154,7 @@ class UserJobsFailingLocalSuccess( FailingUserJobTestCase ):
     os.environ['JOBID'] = '12345'
 
     gaudirunJob = createJob()
-    result = self.dirac.submit( gaudirunJob, mode = 'Local' )
+    result = DiracLHCb().submit( gaudirunJob, mode = 'Local' )
     self.assertTrue( result['OK'] )
 
     del os.environ['JOBID']
@@ -164,8 +164,8 @@ def createJob():
   gaudirunJob = LHCbJob()
 
   gaudirunJob.setName( "gaudirun-Gauss-test" )
-  gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0],
-                                find_all( 'wrongConfig.cfg', '.', 'GridTestSubmission' )[0]] )
+  gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', 'GridTestSubmission' )[0],
+                                find_all( 'wrongConfig.cfg', '..', 'GridTestSubmission' )[0]] )
   gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
 
   optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;"
@@ -173,7 +173,7 @@ def createJob():
   optPythia = "$LBPYTHIA8ROOT/options/Pythia8.py;"
   optOpts = " $APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
   optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
-  optPConf = "prodConf_Gauss_00012345_00067890_1.py"
+  optPConf = "prodConf_Gauss_00012345_00067890_1.py;"
   options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
   gaudirunJob.addPackage( 'AppConfig', 'v3r171' )
   gaudirunJob.addPackage( 'ProdConf', 'v1r9' )
@@ -231,5 +231,8 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutputWithJobID ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudirunSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiScriptSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UserJobsFailingLocalSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
+
+  suiteFailures = unittest.defaultTestLoader.loadTestsFromTestCase( FailingUserJobTestCase )
+  suiteFailures.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UserJobsFailingLocalSuccess ) )
+  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suiteFailures )

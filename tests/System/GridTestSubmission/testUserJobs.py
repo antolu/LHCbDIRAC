@@ -57,18 +57,19 @@ gaudirunJob.setName( "gaudirun-Gauss-test" )
 gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
 gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
 
-optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;"
-optDec = "$DECFILESROOT/options/11102400.py;"
-optPythia = "$LBPYTHIA8ROOT/options/Pythia8.py;"
-optOpts = " $APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
-optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
+optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam3500GeV-md100-2011-nu2.py;"
+optDec = "$DECFILESROOT/options/34112104.py;"
+optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
+optOpts = "$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
+optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py"
 optPConf = "prodConf_Gauss_00012345_00067890_1.py"
 options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-gaudirunJob.addPackage( 'AppConfig', 'v3r171' )
+gaudirunJob.addPackage( 'AppConfig', 'v3r179' )
+gaudirunJob.addPackage( 'DecFiles', 'v27r14p1' )
 gaudirunJob.addPackage( 'ProdConf', 'v1r9' )
-gaudirunJob.setApplication( 'Gauss', 'v45r3', options, extraPackages = 'AppConfig.v3r171;ProdConf.v1r9' )
+gaudirunJob.setApplication( 'Gauss', 'v45r5', options, extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9' )
 
-gaudirunJob.setSystemConfig( 'ANY' )
+gaudirunJob.setSystemConfig( 'x86_64-slc5-gcc43-opt' )
 gaudirunJob.setCPUTime( 172800 )
 
 result = dirac.submit( gaudirunJob )
@@ -85,18 +86,18 @@ gaudirunJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py',
 gaudirunJob.setOutputSandbox( '00012345_00067890_1.digi' )
 
 opts = "$APPCONFIGOPTS/Boole/Default.py;"
-optDT = "$APPCONFIGOPTS/Boole/DataType-2012.py;"
-optTCK = "$APPCONFIGOPTS/L0/L0TCK-0x0042.py;"
+optDT = "$APPCONFIGOPTS/Boole/DataType-2011.py;"
+optTCK = "$APPCONFIGOPTS/Boole/Boole-SiG4EnergyDeposit.py;"
 optComp = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
 optPConf = "prodConf_Boole_00012345_00067890_1.py"
 options = opts + optDT + optTCK + optComp + optPConf
 
-gaudirunJob.addPackage( 'AppConfig', 'v3r155' )
-gaudirunJob.setApplication( 'Boole', 'v24r0', options,
+gaudirunJob.addPackage( 'AppConfig', 'v3r171' )
+gaudirunJob.setApplication( 'Boole', 'v26r3', options,
                             inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
-                            extraPackages = 'AppConfig.v3r155;ProdConf.v1r9' )
+                            extraPackages = 'AppConfig.v3r171;ProdConf.v1r9' )
 
-gaudirunJob.setSystemConfig( 'ANY' )
+gaudirunJob.setSystemConfig( 'x86_64-slc5-gcc43-opt' )
 gaudirunJob.setCPUTime( 172800 )
 
 result = dirac.submit( gaudirunJob )
