@@ -54,33 +54,52 @@ def lowerExtension():
 
 #############################################################################
 
-def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None ):
+def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
+                        maxNumberOfEvents = None, maxCPUTime = None ):
   """ Returns the number of events to produce considering the CPU time available.
       CPUTime and CPUNormalizationFactor are taken from the LocalSite configuration if not provided.
       No checks are made on the values passed !
-  """
 
-  if CPUTime is None:
-    CPUTime = getCPUTime()
+      Limits can be set.
+  """
 
   if CPUNormalizationFactor is None:
     CPUNormalizationFactor = gConfig.getValue( '/LocalSite/CPUNormalizationFactor', 1.0 )
+
+  if CPUTime is None:
+    CPUTime = getCPUTime( CPUNormalizationFactor )
+  if maxCPUTime:
+    gLogger.verbose( "CPUTimeLeft for the queue is %d, MaxCPUTime (in seconds) is set to %d" % ( CPUTime, maxCPUTime ) )
+    CPUTime = min( CPUTime, maxCPUTime )
 
   gLogger.verbose( "CPUTime = %d, CPUNormalizationFactor = %f, CPUe = %d" % ( CPUTime,
                                                                               CPUNormalizationFactor,
                                                                               CPUe ) )
 
   eventsToProduce = int( math.floor( CPUTime * CPUNormalizationFactor ) / float( CPUe ) )
+  gLogger.verbose( "Without limits, we can produce %d events" % eventsToProduce )
 
-  return eventsToProduce
+  gLogger.info( "We can produce %d events" % eventsToProduce )
+  willProduce = eventsToProduce * 0.8
+  gLogger.info( "But we take a conservative approach, so 80%% of those: %d" % willProduce )
+
+  if maxNumberOfEvents:
+    gLogger.verbose( "Limit for MaxNumberOfEvents: %d" % maxNumberOfEvents )
+    willProduce = min( willProduce, maxNumberOfEvents )
+
+  return willProduce
 
 #############################################################################
 
-def getCPUTime():
-  """ trying to get CPUTime (in seconds) from the CS. The default is a (low) 10000s
+def getCPUTime( CPUNormalizationFactor ):
+  """ Trying to get CPUTime (in seconds) from the CS. The default is a (low) 10000s
   """
-  CPUTime = gConfig.getValue( '/LocalSite/CPUTime' )
-  if not CPUTime:
+  # This is in HS06sseconds
+  CPUTime = gConfig.getValue( '/LocalSite/CPUTimeLeft', 0 )
+  if CPUTime:
+    # We need to convert in real seconds
+    CPUTime = CPUTime / int( CPUNormalizationFactor )
+  else:
     gridCE = gConfig.getValue( '/LocalSite/GridCE' )
     CEQueue = gConfig.getValue( '/LocalSite/CEQueue' )
     queueInfo = getQueueInfo( '%s/%s' % ( gridCE, CEQueue ) )
@@ -88,10 +107,11 @@ def getCPUTime():
       gLogger.warn( "Can't find a CE queue, defaulting CPUTime to 10000" )
       CPUTime = 10000
     queueCSSection = queueInfo['Value']['QueueCSSection']
+    # These are (real, wall clock) minutes - damn BDII!
     cpuTimeInMinutes = gConfig.getValue( '%s/maxCPUTime' % queueCSSection )
     CPUTime = int( cpuTimeInMinutes ) * 60
 
-  return int( CPUTime )
+  return CPUTime
 
 #############################################################################
 

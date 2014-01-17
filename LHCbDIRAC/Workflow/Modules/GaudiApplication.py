@@ -224,14 +224,13 @@ class GaudiApplication( ModuleBase ):
 
         if self.DQTag:
           optionsDict['DQTag'] = self.DQTag
-        
+
         if self.applicationName.lower() == 'gauss':
           try:
-            eventsToProduce = getEventsToProduce( self.CPUe )
-            self.log.verbose( "We can produce %d events" % eventsToProduce )
-            if eventsToProduce > self.maxNumberOfEvents:
-              eventsToProduce = self.maxNumberOfEvents
-            self.log.info( "We will produce %d events" % eventsToProduce )
+            # Here we set maxCPUTime to 1 day, which seems reasonable
+            eventsToProduce = getEventsToProduce( self.CPUe, 
+                                                  maxNumberOfEvents = self.maxNumberOfEvents, 
+                                                  maxCPUTime = 86400 )
           except AttributeError:
             eventsToProduce = self.numberOfEvents
         else:
@@ -353,7 +352,7 @@ class GaudiApplication( ModuleBase ):
 
       # Still have to set the application status e.g. user job case.
       self.setApplicationStatus( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
-      
+
       if self.jobType.lower() == 'sam':
         # extend workflow_commons for publishing to nagios
         # try to catch the error of accessing second index if first is empty
@@ -366,8 +365,8 @@ class GaudiApplication( ModuleBase ):
     except Exception, e:
       exceptionString = "Exception: %s %s %s." % ( self.applicationName, self.applicationVersion, e )
       if self.jobType.lower() == 'sam':
-        self.workflow_commons.setdefault( 'SAMResults', {})[self.applicationName] = 'CRITICAL'
-        self.workflow_commons.setdefault( 'SAMDetails', {})[self.applicationName] =  exceptionString              
+        self.workflow_commons.setdefault( 'SAMResults', {} )[self.applicationName] = 'CRITICAL'
+        self.workflow_commons.setdefault( 'SAMDetails', {} )[self.applicationName] = exceptionString
       self.log.exception( e )
       self.setApplicationStatus( e )
       return S_ERROR( e )

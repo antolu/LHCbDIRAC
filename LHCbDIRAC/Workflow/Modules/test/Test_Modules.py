@@ -694,8 +694,19 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
     CPUNormalizationFactor = 0.5
 
     out = getEventsToProduce( CPUe, CPUTime, CPUNormalizationFactor )
-    outExp = 250000
+    outExp = 200000
+    self.assertEqual( out, outExp )
 
+    out = getEventsToProduce( CPUe, CPUTime, CPUNormalizationFactor, maxNumberOfEvents = 1000 )
+    outExp = 1000
+    self.assertEqual( out, outExp )
+
+    out = getEventsToProduce( CPUe, CPUTime, CPUNormalizationFactor, maxCPUTime = 100000 )
+    outExp = 20000
+    self.assertEqual( out, outExp )
+
+    out = getEventsToProduce( CPUe, CPUTime, CPUNormalizationFactor, maxNumberOfEvents = 1000, maxCPUTime = 100000 )
+    outExp = 1000
     self.assertEqual( out, outExp )
 
   #################################################
