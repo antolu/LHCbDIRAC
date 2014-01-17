@@ -865,15 +865,15 @@ class DiracProduction( DiracLHCb ):
 
       if testFlag:
         self.production( prodID, 'manual' )
-        msg = msg + 'and started in manual mode.'
+        msg = msg + ' and started in manual mode.'
       else:
         self.production( prodID, 'automatic' )
-        msg = msg + 'and started in automatic mode.'
-      gLogger.info( msg )
+        msg = msg + ' and started in automatic mode.'
+      gLogger.notice( msg )
 
     else:
       prodID = 1
-      gLogger.info( 'Production creation completed but not published (publishFlag was %s). \
+      gLogger.notice( 'Production creation completed but not published (publishFlag was %s). \
       Setting ID = %s (useless, just for the test)' % ( publishFlag, prodID ) )
 
     return S_OK( prodID )

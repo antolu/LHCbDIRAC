@@ -28,7 +28,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
     # default values
     self.cpuE = 1
-    self.cpuTimeAvg = 1000000
+    self.cpuTimeAvg = 200000
     self.cpuNormalizationFactorAvg = 1.0
 
   #############################################################################

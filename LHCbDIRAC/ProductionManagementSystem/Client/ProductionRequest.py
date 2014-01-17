@@ -210,7 +210,7 @@ class ProductionRequest( object ):
 
       # check if we have to extend on multiple jobs
       if prodDict['productionType'] in ['Simulation', 'MCSimulation']:
-        max_e = getEventsToProduce( prodDict['CPUe'], self.CPUTimeAvg, 1.0 )
+        max_e = getEventsToProduce( prodDict['CPUe'], 1000000, 1.0 )
         if max_e == 0:
           extend = 0
         else:
@@ -220,7 +220,7 @@ class ProductionRequest( object ):
           if not res['OK']:
             return res
           eventsToProduceForRequest = res['Value'][self.requestID]['reqTotal']
-          extend = eventsToProduceForRequest / max_e
+          extend = int( eventsToProduceForRequest / max_e )
       else:
         extend = 0
 
@@ -237,7 +237,7 @@ class ProductionRequest( object ):
       prodsLaunched.append( prodID )
 
       if self.publishFlag:
-        self.logger.info( 'For request %d, submitted Production %d, of type %s, ID = %s' % ( self.requestID,
+        self.logger.notice( 'For request %d, submitted Production %d, of type %s, ID = %s' % ( self.requestID,
                                                                                              prodIndex,
                                                                                              prodDict['productionType'],
                                                                                              str( prodID ) ) )
@@ -741,8 +741,8 @@ class ProductionRequest( object ):
 
   def set_CPUTimeAvg( self, value ):
     if type( value ) == type( '' ):
-      value = float( value )
-    if value < 0.0:
+      value = int( value )
+    if value < 0:
       raise ValueError( "CPUTimeAvg can not be negative" )
     self._CPUTimeAvg = value
   def get_CPUTimeAvg( self ):
