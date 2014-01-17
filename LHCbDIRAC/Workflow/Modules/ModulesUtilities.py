@@ -94,9 +94,14 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
 def getCPUTime( CPUNormalizationFactor ):
   """ Trying to get CPUTime (in seconds) from the CS. The default is a (low) 10000s
   """
-  # This is in HS06sseconds
+
+  # FIXME: which one?
   CPUTime = gConfig.getValue( '/LocalSite/CPUTimeLeft', 0 )
+  if not CPUTime:
+    CPUTime = gConfig.getValue( '/LocalSite/MaxCPUTime', 0 )
+
   if CPUTime:
+    # This is in HS06sseconds
     # We need to convert in real seconds
     CPUTime = CPUTime / int( CPUNormalizationFactor )
   else:
