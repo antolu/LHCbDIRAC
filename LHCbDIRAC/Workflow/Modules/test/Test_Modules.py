@@ -904,7 +904,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':1, 'fail':0, 'other':0}
     axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'full' ), ( 'aa/2.txt', 'part' )]
     axlf.inputDataList = ['aa/1.txt', 'aa/2.txt']
-    axlf.numberOfEvents = '-1'
+    axlf.numberOfEvents = -1
     axlf.fileReport = FileReport()
     axlf.production_id = '123'
     axlf._basicSuccess()
@@ -913,7 +913,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':0, 'fail':1, 'other':0}
     axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'fail' ), ( 'aa/2.txt', 'full' )]
     axlf.inputDataList = ['aa/1.txt', 'aa/2.txt']
-    axlf.numberOfEvents = '-1'
+    axlf.numberOfEvents = -1
     axlf.fileReport = FileReport()
     axlf.production_id = '123'
     axlf._basicSuccess()
@@ -922,7 +922,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':0, 'fail':1, 'other':0}
     axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'fail' ), ( 'aa/2.txt', 'full' )]
     axlf.inputDataList = ['aa/3.txt']
-    axlf.numberOfEvents = '-1'
+    axlf.numberOfEvents = -1
     axlf.fileReport = FileReport()
     axlf.production_id = '123'
     axlf._basicSuccess()
@@ -931,7 +931,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':1, 'fail':1, 'other':0}
     axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'fail' ), ( 'aa/2.txt', 'part' )]
     axlf.inputDataList = ['aa/1.txt', 'aa/2.txt']
-    axlf.numberOfEvents = '-1'
+    axlf.numberOfEvents = -1
     axlf.fileReport = FileReport()
     axlf.production_id = '123'
     axlf._basicSuccess()
