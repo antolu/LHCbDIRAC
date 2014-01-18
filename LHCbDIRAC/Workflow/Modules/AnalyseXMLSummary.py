@@ -112,7 +112,7 @@ class AnalyseXMLSummary( ModuleBase ):
     """ Treat basic success
     """
     if self.XMLSummary_o.inputFileStats['part']:
-      if self.numberOfEvents != '-1':
+      if self.numberOfEvents != -1:
         self.log.info( "Input on part is ok, since we are not processing all" )
         # this is not an error
         pass

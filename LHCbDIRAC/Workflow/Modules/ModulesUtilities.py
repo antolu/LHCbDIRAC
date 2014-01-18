@@ -55,7 +55,7 @@ def lowerExtension():
 #############################################################################
 
 def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
-                        maxNumberOfEvents = None, maxCPUTime = None ):
+                          maxNumberOfEvents = None, maxCPUTime = None ):
   """ Returns the number of events to produce considering the CPU time available.
       CPUTime and CPUNormalizationFactor are taken from the LocalSite configuration if not provided.
       No checks are made on the values passed !

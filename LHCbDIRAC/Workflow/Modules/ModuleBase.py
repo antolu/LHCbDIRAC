@@ -274,10 +274,10 @@ class ModuleBase( object ):
       self.eventType = self.workflow_commons['eventType']
 
     if self.workflow_commons.has_key( 'numberOfEvents' ):
-      self.numberOfEvents = self.workflow_commons['numberOfEvents']
+      self.numberOfEvents = int( self.workflow_commons['numberOfEvents'] )
 
     if self.workflow_commons.has_key( 'maxNumberOfEvents' ):
-      self.maxNumberOfEvents = self.workflow_commons['maxNumberOfEvents']
+      self.maxNumberOfEvents = int( self.workflow_commons['maxNumberOfEvents'] )
 
   #############################################################################
 

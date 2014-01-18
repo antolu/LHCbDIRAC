@@ -132,7 +132,7 @@ class GaudiApplication( ModuleBase ):
           except AttributeError:
             eventsMax = self.numberOfEvents
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
-        firstEventNumberGauss = int( eventsMax ) * ( int( self.prod_job_id ) - 1 ) + 1
+        firstEventNumberGauss = eventsMax * ( int( self.prod_job_id ) - 1 ) + 1
 
       if self.optionsLine or self.jobType.lower() == 'user':
         self.log.debug( "Won't get any step outputs (USER job)" )

@@ -42,7 +42,7 @@ def getModuleOptions( applicationName, numberOfEvents, inputDataOptions, extraOp
     optionsLines.append( "GaussGen.FirstEventNumber = %s" % ( firstEventNumber ) )
 
   if numberOfEvents != 0:
-    optionsLines.append( "ApplicationMgr().EvtMax = %s" % ( numberOfEvents ) )
+    optionsLines.append( "ApplicationMgr().EvtMax = %d" % ( numberOfEvents ) )
 
   finalLines = '\n'.join( optionsLines ) + '\n'
   return S_OK( finalLines )
