@@ -85,8 +85,9 @@ class TransformationClient( DIRACTransformationClient ):
         else:
           tfsm = TransformationFilesStateMachine( tsFilesAsDict[lfn][0] )
 
+          # Special case for Assigned -> Unused
           if tfsm.state.lower() == 'assigned' and status.lower() == 'unused':
-            if ( tsFilesAsDict[lfn][1] % self.maxResetCounter ) == 0:
+            if tsFilesAsDict[lfn][1] and ( ( tsFilesAsDict[lfn][1] % self.maxResetCounter ) == 0 ):
               status = 'MaxReset'
 
           stateChange = tfsm.setState( status )
