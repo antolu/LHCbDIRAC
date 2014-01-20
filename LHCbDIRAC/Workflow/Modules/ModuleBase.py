@@ -265,6 +265,9 @@ class ModuleBase( object ):
           raise RuntimeError( result['Message'] )
         self.logFilePath = result['Value']['LogFilePath'][0]
 
+    if self.workflow_commons.has_key( 'maxNumberOfEvents' ):
+      self.maxNumberOfEvents = int( self.workflow_commons['maxNumberOfEvents'] )
+
     # for newer productions this is found in the step parameter
     if self.workflow_commons.has_key( 'SystemConfig' ):
       self.systemConfig = self.workflow_commons['SystemConfig']
@@ -275,9 +278,6 @@ class ModuleBase( object ):
 
     if self.workflow_commons.has_key( 'numberOfEvents' ):
       self.numberOfEvents = int( self.workflow_commons['numberOfEvents'] )
-
-    if self.workflow_commons.has_key( 'maxNumberOfEvents' ):
-      self.maxNumberOfEvents = int( self.workflow_commons['maxNumberOfEvents'] )
 
   #############################################################################
 
@@ -313,7 +313,7 @@ class ModuleBase( object ):
       self.outputFilePrefix = self.step_commons['outputFilePrefix']
 
     if self.step_commons.has_key( 'numberOfEvents' ):
-      self.numberOfEvents = self.step_commons['numberOfEvents']
+      self.numberOfEvents = int( self.step_commons['numberOfEvents'] )
 
     if self.step_commons.has_key( 'eventType' ):
       self.eventType = self.step_commons['eventType']
