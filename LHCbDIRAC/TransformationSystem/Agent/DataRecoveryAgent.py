@@ -140,18 +140,16 @@ class DataRecoveryAgent( AgentModule ):
 
       self.log.info( '%s files are selected after examining related WMS jobs' % ( fileCount ) )
 
-      resultNew = self._checkOutstandingRequests( jobFileDict )
-      if not resultNew['OK']:
-        self.log.error( resultNew )
+      result = self._checkOutstandingRequests( jobFileDict )
+      if not result['OK']:
+        self.log.error( result )
         continue
 
-      if not result['Value'] and not resultNew['Value']['Successful']:
+      if not result['Value']['Successful']:
         self.log.info( 'No WMS jobs without pending requests to process.' )
         continue
 
-      # FIXME: Sum of old and new
       jobFileNoRequestsDict = result['Value']
-      jobFileNoRequestsDict.update( resultNew['Value'] )
       fileCount = 0
       for job, lfnList in jobFileNoRequestsDict.items():
         fileCount += len( lfnList )
