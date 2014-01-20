@@ -87,6 +87,9 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
     gLogger.verbose( "Limit for MaxNumberOfEvents: %d" % maxNumberOfEvents )
     willProduce = min( willProduce, maxNumberOfEvents )
 
+  if willProduce < 1:
+    raise RuntimeError, "No time left to produce events"
+
   return willProduce
 
 #############################################################################
