@@ -1,7 +1,7 @@
 """ An agent to extend MC productions based on the remaning events to produce.
 """
 
-import math
+import math, datetime
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient                                       import RPCClient
@@ -153,6 +153,15 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       # the simulation is still producing events
       message = "Simulation for production request %d is not Idle (%s)" % ( productionRequestID, simulation['Status'] )
       self.log.verbose( message )
+      return S_OK( message )
+
+    # Checking how long ago this production became 'Idle'
+    res = self.transClient.getTransformationLogging( simulationID )
+    if not res['OK']:
+      return res
+    lastLoggingEntry = res['Value'][-1]
+    if ( 'idle' in lastLoggingEntry['Message'].lower() ) and ( ( datetime.datetime.utcnow() - lastLoggingEntry['MessageDate'] ).seconds < 600 ):
+      self.log.verbose( "Prod %d is in 'Idle' for less than 10 minutes, waiting a bit" % simulationID )
       return S_OK( message )
 
     if simulationProgress['BkEvents'] < productionRequestSummary['reqTotal']:
