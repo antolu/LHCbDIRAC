@@ -686,7 +686,7 @@ class ProductionRequest( object ):
   def set_startRun( self, value ):
     if type( value ) == type( '' ):
       value = int( value )
-    if value < 1:
+    if value < 0:
       raise ValueError( "startRun can not be negative" )
     self._startRun = value
   def get_startRun( self ):
@@ -696,7 +696,7 @@ class ProductionRequest( object ):
   def set_endRun( self, value ):
     if type( value ) == type( '' ):
       value = int( value )
-    if value < 2:
+    if value < 0:
       raise ValueError( "endRun can not be negative" )
     self._endRun = value
   def get_endRun( self ):
