@@ -145,7 +145,7 @@ class DataRecoveryAgent( AgentModule ):
         self.log.error( result )
         continue
 
-      if not result['Value']['Successful']:
+      if not result['Value']:
         self.log.info( 'No WMS jobs without pending requests to process.' )
         continue
 
