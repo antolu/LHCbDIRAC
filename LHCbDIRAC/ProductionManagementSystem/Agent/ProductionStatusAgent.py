@@ -211,7 +211,7 @@ class ProductionStatusAgent( AgentModule ):
       # AND number of tasks created in total == number of tasks submitted
       prodStats = self._getTransformationTaskStats( prod )
       self.log.debug( "Tasks Stats: %s" % str( prodStats ) )
-      isIdle = ( ( prodStats.get( 'TotalCreated', 0 ) == prodStats.get( 'Submitted', 0 ) ) \
+      isIdle = ( ( prodStats.get( 'TotalCreated', 0 ) > 0 ) \
                   and \
                   all( [prodStats.get( status, 0 ) == 0 for status in ['Checking', 'Completed', 'Created', 'Matched',
                                                                      'Received', 'Reserved', 'Rescheduled', 'Running',
@@ -375,6 +375,7 @@ class ProductionStatusAgent( AgentModule ):
     """
     if not updatedProductions and not updatedRequests:
       self.log.info( 'No changes this cycle, mail will not be sent' )
+      return
 
     if self.notify:
       notify = NotificationClient()
