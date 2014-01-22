@@ -371,7 +371,10 @@ class ProductionRequestHandler( RequestHandler ):
     requests = reqList['Value']
     resultDict = {}
     reqTypes = [requestType]
-    selectStatus = [status]
+    if type( status ) == type( '' ):
+      selectStatus = [status]
+    elif type( status ) == type( [] ):
+      selectStatus = status
 
     for req in requests['Rows']:
       iD = int( req['RequestID'] )

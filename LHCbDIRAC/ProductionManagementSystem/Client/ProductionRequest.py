@@ -216,7 +216,8 @@ class ProductionRequest( object ):
         else:
           # getting the events to produce
           rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
-          res = rpcProductionRequest.getProductionRequestSummary( 'Accepted', 'Simulation' )
+          res = rpcProductionRequest.getProductionRequestSummary( ['Accepted', 'Submitted', 'New', 'PPG OK', 'Tech OK'],
+                                                                  'Simulation' )
           if not res['OK']:
             return res
           eventsToProduceForRequest = res['Value'][self.requestID]['reqTotal']
