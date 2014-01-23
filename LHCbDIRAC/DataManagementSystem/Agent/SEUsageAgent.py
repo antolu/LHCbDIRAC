@@ -815,7 +815,11 @@ class SEUsageAgent( AgentModule ):
     # Extract
     cwd = os.getcwd()
     os.chdir( targetPath )
-    tf = tarfile.open( tarPath, "r" )
+    try:
+      tf = tarfile.open( tarPath, "r" )
+    except Exception, e:
+      self.log.error( "Cannot open file %s: %s" % ( tarPath, str( e ) ) )
+      return S_ERROR( "Cannot open file" )
     for member in tf.getmembers():
       tf.extract( member )
     os.chdir( cwd )
