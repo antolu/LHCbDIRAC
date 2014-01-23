@@ -157,7 +157,7 @@ class RootApplication( ModuleBase ):
         os.remove( self.applicationLog )
 
       self.log.info( 'Running:', ' '.join( rootCmd ) )
-      self.setApplicationStatus( 'Running ROOT' % self.rootVersion )
+      self.setApplicationStatus( 'Running ROOT %s' % self.rootVersion )
 
       ret = shellCall( 0, ' '.join( rootCmd ), env = projectEnvironment, callbackFunction = self.redirectLogOutput )
       if not ret['OK']:
