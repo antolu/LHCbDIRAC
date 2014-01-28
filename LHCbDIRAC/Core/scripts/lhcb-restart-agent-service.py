@@ -39,7 +39,10 @@ if os.path.isdir( os.path.join( diracroot, 'runit' ) ) and os.path.isdir( os.pat
       fd = open( filename_stop, 'w' )
       fd.close()
     else:
-      print 'Restart Service ' + os.path.join( diracstartup, link )
-      os.system( 'runsvctrl t ' + os.path.join( diracstartup, link ) )
+      if re.search( 'Framework_SystemAdministrator', link ):
+        print 'Skip Framework_SystemAdministrator'
+      else:
+        print 'Restart Service ' + os.path.join( diracstartup, link )
+        os.system( 'runsvctrl t ' + os.path.join( diracstartup, link ) )
 
 sys.exit( 0 )
