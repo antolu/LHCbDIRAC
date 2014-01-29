@@ -162,7 +162,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     lastLoggingEntry = res['Value'][-1]
     if ( 'idle' in lastLoggingEntry['Message'].lower() ) and ( ( datetime.datetime.utcnow() - lastLoggingEntry['MessageDate'] ).seconds < 600 ):
       self.log.verbose( "Prod %d is in 'Idle' for less than 10 minutes, waiting a bit" % simulationID )
-      return S_OK( message )
+      return S_OK( "Prod %d is in 'Idle' for less than 10 minutes, waiting a bit" % simulationID )
 
     if simulationProgress['BkEvents'] < productionRequestSummary['reqTotal']:
       # the number of events produced by the simulation is of the order of the number of events requested
@@ -175,6 +175,8 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       if all( production['Status'].lower() == 'idle' for production in productions ):
         extensionFactor = float( simulationProgress['BkEvents'] ) / float( productionRequestSummary['bkTotal'] )
         return self._extendProduction( simulation, extensionFactor, missingEvents )
+      else:
+        return S_OK()
 
   #############################################################################
   def _extendProduction( self, production, extensionFactor, eventsNeeded ):
