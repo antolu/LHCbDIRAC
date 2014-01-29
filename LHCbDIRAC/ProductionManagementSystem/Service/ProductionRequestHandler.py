@@ -1,12 +1,13 @@
+""" ProductionRequestHandler is the implementation of the Production Request service
 """
-ProductionRequestHandler is the implementation of
-the Production Request service
-"""
+
+__RCSID__ = "$Id$"
+
 import os
 import re
 import tempfile
 import threading
-from types import IntType, LongType, StringTypes, DictType, ListType, BooleanType
+from types import IntType, LongType, StringTypes, DictType, ListType, BooleanType, StringType
 
 from DIRAC                            import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client import PathFinder
@@ -360,21 +361,26 @@ class ProductionRequestHandler( RequestHandler ):
     """
     return self.database.getProductionList( requestID )
 
-  types_getProductionRequestSummary = [ StringTypes, StringTypes ]
+  types_getProductionRequestSummary = [ [StringTypes, StringType, ListType], [StringTypes, StringType, ListType] ]
   def export_getProductionRequestSummary( self, status, requestType ):
     """ Method to retrieve the production / request relations for a given request status.
     """
+    if type( requestType ) == type( '' ):
+      reqTypes = [requestType]
+    elif type( requestType ) == type( [] ):
+      reqTypes = requestType
+
+    if type( status ) == type( '' ):
+      selectStatus = [status]
+    elif type( status ) == type( [] ):
+      selectStatus = status
+
     reqList = self.database.getProductionRequest( [], long( 0 ), '', '', long( 0 ), long( 0 ) )
     if not reqList['OK']:
       return reqList
 
     requests = reqList['Value']
     resultDict = {}
-    reqTypes = [requestType]
-    if type( status ) == type( '' ):
-      selectStatus = [status]
-    elif type( status ) == type( [] ):
-      selectStatus = status
 
     for req in requests['Rows']:
       iD = int( req['RequestID'] )
