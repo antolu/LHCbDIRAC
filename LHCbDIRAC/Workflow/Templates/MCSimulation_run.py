@@ -64,7 +64,6 @@ extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:
 CPUe = '{{MCCPUperEvent#GENERAL: CPU time per event#500}}'
 
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2}}'
-MCCpu = '{{MCMinCPUTime#PROD-1:MC: Min CPU time requested in secs#50000}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
 
@@ -118,6 +117,8 @@ if certificationFlag or localTestFlag:
     pr.prodsToLaunch = [1]
 
 pr.outConfigName = pr.configName
+
+MCCpu = str( 25 * int( float( CPUe ) ) )
 
 # In case we want just to test, we publish in the certification/test part of the BKK
 if pr.testFlag:
