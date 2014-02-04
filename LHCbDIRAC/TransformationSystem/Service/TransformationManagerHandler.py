@@ -27,40 +27,45 @@ class TransformationManagerHandler( TManagerBase ):
   # Managing the BkQueries table
   #
 
+
   types_createTransformationQuery = [ [LongType, IntType, StringType], DictType ]
-  def export_createTransformationQuery( self, transName, queryDict ):
+  def export_createTransformationQuery( self, transID, queryDict ):
     credDict = self.getRemoteCredentials()
     authorDN = credDict[ 'DN' ]
-    res = database.createTransformationQuery( transName, queryDict, author = authorDN )
+    res = database.createTransformationQuery( transID, queryDict, author = authorDN )
+    print res
     return self._parseRes( res )
 
-  types_deleteTransformationBookkeepingQuery = [ [LongType, IntType, StringType] ]
-  def export_deleteTransformationBookkeepingQuery( self, transName ):
-    credDict = self.getRemoteCredentials()
-    authorDN = credDict[ 'DN' ]
-    res = database.deleteTransformationBookkeepingQuery( transName, author = authorDN )
-    return self._parseRes( res )
+
+  # not needed anymore
+  # types_deleteTransformationBookkeepingQuery = [ [LongType, IntType, StringType] ]
+  # def export_deleteTransformationBookkeepingQuery( self, transName ):
+
 
   types_deleteBookkeepingQuery = [ [LongType, IntType] ]
-  def export_deleteBookkeepingQuery( self, queryID ):
-    res = database.deleteBookkeepingQuery( queryID )
+  def export_deleteBookkeepingQuery( self, transID ):
+    res = database.deleteBookkeepingQuery( transID )
     return self._parseRes( res )
 
+# it takes the transID NOW
   types_getBookkeepingQueryForTransformation = [ [LongType, IntType, StringType] ]
-  def export_getBookkeepingQueryForTransformation( self, transName ):
-    res = database.getBookkeepingQueryForTransformation( transName )
+  def export_getBookkeepingQueryForTransformation( self, transID ):
+    res = database.getBookkeepingQueryForTransformation( transID )
     return self._parseRes( res )
 
+  
   types_setBookkeepingQueryEndRunForTransformation = [ [LongType, IntType, StringType] , [LongType, IntType]]
   def export_setBookkeepingQueryEndRunForTransformation( self, transName, runNumber ):
     res = database.setBookkeepingQueryEndRunForTransformation( transName, runNumber )
     return self._parseRes( res )
 
+  
   types_setBookkeepingQueryStartRunForTransformation = [ [LongType, IntType, StringType] , [LongType, IntType]]
   def export_setBookkeepingQueryStartRunForTransformation( self, transName, runNumber ):
     res = database.setBookkeepingQueryStartRunForTransformation( transName, runNumber )
     return self._parseRes( res )
 
+  
   types_addBookkeepingQueryRunListTransformation = [ [LongType, IntType, StringType] , [StringType]]
   def export_addBookkeepingQueryRunListTransformation( self, transName, runList ):
     res = database.addBookkeepingQueryRunListTransformation( transName, runList )
