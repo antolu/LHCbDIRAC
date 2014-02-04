@@ -179,7 +179,7 @@ class Production():
     multicore = stepDict['isMulticore']
     sysConfig = stepDict['SystemConfig']
     if sysConfig == 'None' or sysConfig == 'NULL' or not sysConfig or sysConfig is None:
-      sysConfig = 'x86_64-slc5-gcc46-opt'
+      sysConfig = 'ANY'
     mcTCK = stepDict['mcTCK']
 
     if extraPackages:
