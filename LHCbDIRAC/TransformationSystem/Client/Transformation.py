@@ -29,10 +29,10 @@ class Transformation( DIRACTransformation ):
 
     super( Transformation, self ).__init__( transID = transID, transClient = self.transClient )
 
-    if not  self.paramValues.has_key( 'BkQuery' ):
-      self.paramValues['BkQuery'] = {}
-    if not self.paramValues.has_key( 'BkQueryID' ):
-      self.paramValues['BkQueryID'] = 0
+    # if not  self.paramValues.has_key( 'BkQuery' ):
+      # self.paramValues['BkQuery'] = {}
+    # if not self.paramValues.has_key( 'BkQueryID' ):
+      # self.paramValues['BkQueryID'] = 0
 
   #############################################################################
 
@@ -53,6 +53,7 @@ class Transformation( DIRACTransformation ):
 
   #############################################################################
 
+
   def setBkQuery( self, queryDict, test = False ):
     """ set a BKK Query
     """
@@ -65,8 +66,8 @@ class Transformation( DIRACTransformation ):
       res = self.transClient.createTransformationQuery( transID, queryDict )
       if not res['OK']:
         return res
-      self.item_called = 'BkQueryID'
-      self.paramValues[self.item_called] = res['Value']
+      # self.item_called = 'BkQueryID'
+      # self.paramValues[self.item_called] = res['Value']
     self.item_called = 'BkQuery'
     self.paramValues[self.item_called] = queryDict
     return S_OK()
@@ -90,16 +91,16 @@ class Transformation( DIRACTransformation ):
   def deleteTransformationBkQuery( self ):
     """ delete a BKK Query
     """
-    if not self.paramValues['BkQueryID']:
-      gLogger.info( "The BK Query is not defined" )
-      return S_OK()
+    # if not self.paramValues['BkQueryID']:
+      # gLogger.info( "The BK Query is not defined" )
+      # return S_OK()
     transID = self.paramValues['TransformationID']
     if self.exists and transID:
       res = self.transClient.deleteTransformationBookkeepingQuery( transID )
       if not res['OK']:
         return res
-    self.item_called = 'BkQueryID'
-    self.paramValues[self.item_called] = 0
+    # self.item_called = 'BkQueryID'
+    # self.paramValues[self.item_called] = 0
     self.item_called = 'BkQuery'
     self.paramValues[self.item_called] = {}
     return S_OK()
@@ -109,7 +110,6 @@ class Transformation( DIRACTransformation ):
   def addTransformation( self, addFiles = True, printOutput = False ):
     """ Add a transformation, using TransformationClient()
     """
-
     res = super( Transformation, self ).addTransformation( addFiles, printOutput )
     if res['OK']:
       transID = res['Value']
@@ -121,15 +121,15 @@ class Transformation( DIRACTransformation ):
       res = self.setBkQuery( bkQuery )
       if not res['OK']:
         return self._errorReport( res, "Failed to set BK query" )
-      res = self.transClient.getTransformationParameters( transID, ['BkQueryID'] )
-      if not res['OK']:
-        if printOutput:
-          self._prettyPrint( res )
-        return res
-      self.setBkQueryID( res['Value'] )
+      # res = self.transClient.getTransformationParameters( transID, ['BkQueryID'] )
+      # if not res['OK']:
+        # if printOutput:
+          # self._prettyPrint( res )
+        # return res
+      # self.setBkQueryID( res['Value'] )
     else:
       self.transClient.deleteTransformationParameter( transID, 'BkQuery' )
-      self.transClient.deleteTransformationParameter( transID, 'BkQueryID' )
+      # self.transClient.deleteTransformationParameter( transID, 'BkQueryID' )
 
     return S_OK( transID )
 
