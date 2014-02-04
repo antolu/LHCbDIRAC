@@ -130,14 +130,10 @@ class NoSoftwareInstallation( object ):
       self.log.error( 'Requested architecture not supported by CE' )
       return S_ERROR( 'Requested architecture not supported by CE' )
 
-    # Check applications
-    # FIXME: do we need this ?
     self.log.info( 'CMTCONFIG  = %s' % self.sysConfig )
 
     self.log.info( 'LIST OF APPLICATIONS' )
-
     for app in self.apps:
-
       self.log.info( app )
 
     return S_OK()
