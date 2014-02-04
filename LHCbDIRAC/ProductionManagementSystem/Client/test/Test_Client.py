@@ -62,6 +62,56 @@ class ClientTestCase( unittest.TestCase ):
 
 class ProductionRequestSuccess( ClientTestCase ):
 
+  def test__getJobsSystemConfigs( self ):
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.stepsListDict = [{'StepId': 123, 'SystemConfig':''},
+                        {'StepId': 456, 'SystemConfig':'x86'}]
+    pr.stepsInProds = [[1, 2]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['x86'] )
+
+    pr.stepsInProds = [[1], [2]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['ANY', 'x86'] )
+
+    pr.stepsListDict = [{'StepId': 123, 'SystemConfig':''},
+                        {'StepId': 456, 'SystemConfig':'x86'},
+                        {'StepId': 789, 'SystemConfig':'x86'}]
+    pr.stepsInProds = [[1, 2, 3]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['x86'] )
+
+    pr.stepsInProds = [[1], [2], [3]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['ANY', 'x86', 'x86'] )
+
+    pr.stepsInProds = [[1, 2], [3]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['x86', 'x86'] )
+
+    pr.stepsInProds = [[1], [2, 3]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['ANY', 'x86'] )
+
+    pr.stepsListDict = [{'StepId': 123, 'SystemConfig':''},
+                        {'StepId': 456, 'SystemConfig':'ANY'},
+                        {'StepId': 789, 'SystemConfig':'x86'}]
+    pr.stepsInProds = [[1, 2, 3]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['x86'] )
+
+    pr.stepsInProds = [[1], [2], [3]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['ANY', 'ANY', 'x86'] )
+
+    pr.stepsInProds = [[1, 2], [3]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['ANY', 'x86'] )
+
+    pr.stepsInProds = [[1], [2, 3]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['ANY', 'x86'] )
+
   def test_resolveStepsSuccess( self ):
 
 
@@ -145,39 +195,39 @@ class ProductionRequestSuccess( ClientTestCase ):
   def test__applyOptionalCorrections( self ):
 
     stepMC = {'ApplicationName': 'Gauss', 'Usable': 'Yes', 'StepId': 246, 'ApplicationVersion': 'v28r3p1',
-              'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+              'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
               'ProcessingPass': 'MC', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
               'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
               'fileTypesIn': [],
               'fileTypesOut': ['ALLSTREAMS.DST']}
     stepStripp = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 123, 'ApplicationVersion': 'v28r3p1',
-                  'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                  'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
                   'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
                   'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
                   'fileTypesIn': ['SDST'],
                   'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
     mergeStep = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
-                 'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                 'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
                  'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
                  'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
                  'fileTypesIn': ['BHADRON.DST', 'CALIBRATION.DST', 'PID.MDST'],
                  'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'PID.MDST']}
     mergeStepBHADRON = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
-                        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
                         'prodStepID': "456['BHADRON.DST']",
                         'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
                         'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
                         'fileTypesIn': ['BHADRON.DST'],
                         'fileTypesOut': ['BHADRON.DST']}
     mergeStepCALIBRA = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
-                        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
                         'prodStepID': "456['CALIBRATION.DST']",
                         'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
                         'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
                         'fileTypesIn': ['CALIBRATION.DST'],
                         'fileTypesOut': ['CALIBRATION.DST']}
     mergeStepPIDMDST = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
-                        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+                        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
                         'prodStepID': "456['PID.MDST']",
                         'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
                         'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
@@ -779,6 +829,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.CPUeList = [1.0, 1.0, 1.0]
     pr.multicore = ['False', 'False', 'True']
     pr.outputModes = ['Any', 'Local', 'Any']
+    pr.systemConfigs = ['ANY', 'x86-slc6', 'ANY']
 
     pr.stepsListDict = [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
@@ -837,7 +888,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'events':-1,
                       'CPUe' : 1.0,
                       'multicore': 'False',
-                      'outputMode': 'Any'
+                      'outputMode': 'Any',
+                      'systemConfig': 'ANY'
                      },
 
                    2:{
@@ -863,7 +915,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'events':-1,
                       'CPUe' : 1.0,
                       'multicore': 'False',
-                      'outputMode': 'Local'
+                      'outputMode': 'Local',
+                      'systemConfig': 'x86-slc6'
                       },
 
                    3:{
@@ -889,7 +942,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'events':-1,
                       'CPUe' : 1.0,
                       'multicore': 'True',
-                      'outputMode': 'Any'
+                      'outputMode': 'Any',
+                      'systemConfig': 'ANY'
                       }
                    }
     self.maxDiff = None
