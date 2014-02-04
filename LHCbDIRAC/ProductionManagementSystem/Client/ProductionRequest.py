@@ -397,13 +397,17 @@ class ProductionRequest( object ):
       stepsSystemConfigs = []
       for _x in range( ssp ):
         ver = listOfStepsSystemConfigs.pop( 0 )
-        if ver:
+        if ver and ver.lower() != 'any':
           stepsSystemConfigs.append( ver )
         else:
-          stepsSystemConfigs.append( 'ANY' )
+          stepsSystemConfigs.append( 'zzz' )  # just for comparison... yes, it's a hack! due to this damn "ANY"
 
-      stepsSystemConfigs.sort( key = LooseVersion, reverse = True )
-      jobsSysConfig.append( stepsSystemConfigs[0] )
+      stepsSystemConfigs.sort( key = LooseVersion )
+      if stepsSystemConfigs[0] == 'zzz':
+        jsc = 'ANY'
+      else:
+        jsc = stepsSystemConfigs[0]
+      jobsSysConfig.append( jsc )
 
     return jobsSysConfig
 

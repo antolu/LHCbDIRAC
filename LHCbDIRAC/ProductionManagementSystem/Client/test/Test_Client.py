@@ -112,6 +112,25 @@ class ProductionRequestSuccess( ClientTestCase ):
     res = pr._getJobsSystemConfigs()
     self.assertEqual( res, ['ANY', 'x86'] )
 
+    pr.stepsListDict = [{'StepId': 123, 'SystemConfig':''},
+                        {'StepId': 456, 'SystemConfig':'x86-slc6'},
+                        {'StepId': 789, 'SystemConfig':'x86-slc5'}]
+    pr.stepsInProds = [[1, 2, 3]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['x86-slc5'] )
+
+    pr.stepsInProds = [[1], [2], [3]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['ANY', 'x86-slc6', 'x86-slc5'] )
+
+    pr.stepsInProds = [[1, 2], [3]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['x86-slc6', 'x86-slc5'] )
+
+    pr.stepsInProds = [[1], [2, 3]]
+    res = pr._getJobsSystemConfigs()
+    self.assertEqual( res, ['ANY', 'x86-slc5'] )
+
   def test_resolveStepsSuccess( self ):
 
 
