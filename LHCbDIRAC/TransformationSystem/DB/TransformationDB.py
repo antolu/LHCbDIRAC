@@ -207,59 +207,46 @@ class TransformationDB( DIRACTransformationDB ):
   #############################################################################
   #
   # Managing the BkQueries table
-  #
 
-  def deleteBookkeepingQuery( self, bkQueryID, connection = False ):
+
+  def deleteBookkeepingQuery( self, transID, connection = False ):
     """ Delete the specified query from the database
     """
     connection = self.__getConnection( connection )
-    req = "SELECT COUNT(*) FROM AdditionalParameters WHERE ParameterName = 'BkQueryID' AND ParameterValue = %d" % bkQueryID
-    res = self._query( req )
+
+    res = self.__getBookkeepingQuery( transID )
+    print res
+    # req = "SELECT COUNT(*) FROM BkQueriesNew WHERE TransformationID=%d" % int( transID )
+    # res = self._query( req )
     if not res['OK']:
       return res
-    count = res['Value'][0][0]
-    if count != 0:
-      return S_OK()
-    req = 'DELETE FROM BkQueries WHERE BkQueryID=%d' % int( bkQueryID )
+    # count = res['Value']
+    # if count != 0:
+    req = 'DELETE FROM BkQueriesNew WHERE TransformationID=%d' % int( transID )
     return self._update( req, connection )
 
-  def createTransformationQuery( self, transName, queryDict, author = '', connection = False ):
-    """ Create the supplied BK query and associate it to the transformation """
+
+  # old version receive the transName
+  def createTransformationQuery( self, transID, queryDict, author = '', connection = False ):
+    """ Create the supplied BK query """
+
     connection = self.__getConnection( connection )
-    res = self.__addBookkeepingQuery( queryDict, connection = connection )
-    if not res['OK']:
-      print "not res ", res  # canc
-      return res
-    bkQueryID = res['Value']
-    res = self.__setTransformationQuery( transName, bkQueryID, author = author, connection = connection )
+    # old version receive only the queryDict because BkQueryID it was an auto-increment field
+    res = self.__addBookkeepingQuery( transID, queryDict, connection = connection )
+    # setTransformationQuery not needed anymore
     if not res['OK']:
       return res
-    return S_OK( bkQueryID )
+    return S_OK( transID )
 
-  def deleteTransformationBookkeepingQuery( self, transName, author = '', connection = False ):
-    """ Delete the transformation BkQuery additional parameters and delete the BkQuery if not used elsewhere """
-    res = self._getConnectionTransID( connection, transName )
-    if not res['OK']:
-      return res
-    connection = res['Value']['Connection']
-    transID = res['Value']['TransformationID']
-    res = self.__getTransformationBkQueryID( transID, connection = connection )
-    if not res['OK']:
-      print "Esce qui"
-      return res
-    bkQueryID = res['Value']
-    res = self.deleteTransformationParameter( transID, 'BkQueryID', author = author, connection = connection )
-    if not res['OK']:
-      return res
-    return self.deleteBookkeepingQuery( bkQueryID, connection = connection )
+  # not needed anymore,  we can call deleteBookipingQuery directly
+  # def deleteTransformationBookkeepingQuery( self, transName, author = '', connection = False ):
 
-  def getBookkeepingQueryForTransformation( self, transName, connection = False ):
+
+  # it was receiving the transName - can we use getBookkeepingQuery directly?
+  def getBookkeepingQueryForTransformation( self, transID, connection = False ):
     """ Get the BK query associated to the transformation """
     connection = self.__getConnection( connection )
-    res = self.__getTransformationBkQueryID( transName, connection = connection )
-    if not res['OK']:
-      return res
-    return self.__getBookkeepingQuery( res['Value'], connection = connection )
+    return self.__getBookkeepingQuery( transID, connection = connection )
 
 
   def setBookkeepingQueryEndRunForTransformation( self, transName, runNumber, connection = False ):
@@ -269,11 +256,7 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
-    res = self.__getTransformationBkQueryID( transID, connection = connection )
-    if not res['OK']:
-      return res
-    bkQueryID = res['Value']
-    res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
+    res = self.__getBookkeepingQuery( transID, connection = connection )
     if not res['OK']:
       return res
     startRun = res['Value'].get( 'StartRun' )
@@ -282,8 +265,9 @@ class TransformationDB( DIRACTransformationDB ):
       return S_ERROR( "EndRun can not be reduced!" )
     if startRun and startRun > runNumber:
       return S_ERROR( "EndRun is before StartRun!" )
-    req = "UPDATE BkQueries SET EndRun = %d WHERE BkQueryID = %d" % ( runNumber, bkQueryID )
+    req = "UPDATE BkQueriesNew SET ParameterValue=%d WHERE TransformationID = %d AND ParameterName='EndRun'" % ( runNumber, transID )
     return self._update( req, connection )
+
 
   def setBookkeepingQueryStartRunForTransformation( self, transName, runNumber, connection = False ):
     """ Set the StartRun for the supplied transformation """
@@ -292,11 +276,7 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
-    res = self.__getTransformationBkQueryID( transID, connection = connection )
-    if not res['OK']:
-      return res
-    bkQueryID = res['Value']
-    res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
+    res = self.__getBookkeepingQuery( transID, connection = connection )
     if not res['OK']:
       return res
     endRun = res['Value'].get( 'EndRun' )
@@ -305,8 +285,9 @@ class TransformationDB( DIRACTransformationDB ):
       return S_ERROR( "StartRun can not be increased!" )
     if endRun and runNumber > endRun:
       return S_ERROR( "StartRun cannot be after EndRun!" )
-    req = "UPDATE BkQueries SET StartRun = %d WHERE BkQueryID = %d" % ( runNumber, bkQueryID )
+    req = "UPDATE BkQueriesNew SET ParameterValue = %d WHERE TransformationID = %d and ParameterName='StartRun'" % ( runNumber, transID )
     return self._update( req, connection )
+
 
   def addBookkeepingQueryRunListTransformation( self, transName, runList, connection = False ):
     """ Adds the list of runs
@@ -316,11 +297,7 @@ class TransformationDB( DIRACTransformationDB ):
       return S_ERROR( "Failed to get Connection to TransformationDB" )
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
-    res = self.__getTransformationBkQueryID( transID, connection = connection )
-    if not res['OK']:
-      return S_ERROR( "Cannot retrieve BkQueryID" )
-    bkQueryID = res['Value']
-    res = self.__getBookkeepingQuery( bkQueryID, connection = connection )
+    res = self.__getBookkeepingQuery( transID, connection = connection )
     if not res['OK']:
       return S_ERROR( "Cannot retrieve BkQuery" )
     if isinstance( res['Value']['RunNumbers'], str ):
@@ -336,25 +313,24 @@ class TransformationDB( DIRACTransformationDB ):
     if len( runInQuery ) > 999:
       return S_ERROR( "RunList bigger the 1000 not allowed because of Oracle limitations!!!" )
     value = ';;;'.join( runInQuery )
-    req = "UPDATE BkQueries SET RunNumbers = '%s' WHERE BkQueryID = %d" % ( value, bkQueryID )
+    req = "UPDATE BkQueriesNew SET ParameterValue='%s' WHERE TransformationID = %d AND ParameterName='RunNumbers'" % ( value, transID )
     self._update( req, connection )
     return S_OK()
 
-  def __getTransformationBkQueryID( self, transName, connection = False ):
-    res = self.getTransformationParameters( transName, ['BkQueryID'], connection = connection )
-    if not res['OK']:
-      return res
-    bkQueryID = int( res['Value'] )
-    return S_OK( bkQueryID )
-
-  def __setTransformationQuery( self, transName, bkQueryID, author = '', connection = False ):
-    """ Set the bookkeeping query ID of the transformation specified by transID
-    """
-    return self.setTransformationParameter( transName, 'BkQueryID', bkQueryID, author = author,
-                                            connection = connection )
+  # BkQueryID does not exist anymore
+  # def __getTransformationBkQueryID( self, transName, connection = False ):
 
 
-  def __addBookkeepingQuery( self, queryDict, connection = False ):
+  #is not needed anymore
+  #def __setTransformationQuery( self, transName, bkQueryID, author = '', connection = False ):
+  #  """ Set the bookkeeping query ID of the transformation specified by transID
+  #  """
+  #  return self.setTransformationParameter( transName, 'BkQueryID', bkQueryID, author = author,
+  #                                          connection = connection )
+
+
+  # it was receiving only the queryDict, now transID or transName are needed
+  def __addBookkeepingQuery( self, transID, queryDict, connection = False ):
     """ Add a new Bookkeeping query specification
     """
     connection = self.__getConnection( connection )
@@ -377,50 +353,58 @@ class TransformationDB( DIRACTransformationDB ):
 
     # Insert the new bk query
     values = ["'%s'" % x for x in values]
-    req = "INSERT INTO BkQueries (%s) VALUES (%s)" % ( ','.join( self.queryFields ), ','.join( values ) )
+    req = "INSERT INTO BkQueriesNew (TransformationID, ParameterName,ParameterValue) VALUES (%d,'%s',%s),\
+    (%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),\
+    (%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s)" % ( transID, self.queryFields[0], values[0], transID, \
+                                                       self.queryFields[1], values[1], transID,
+                                                       self.queryFields[2], values[2], transID,
+                                                       self.queryFields[3], values[3], transID,
+                                                       self.queryFields[4], values[4], transID,
+                                                       self.queryFields[5], values[5], transID,
+                                                       self.queryFields[6], values[6], transID,
+                                                       self.queryFields[7], values[7], transID,
+                                                       self.queryFields[8], values[8], transID,
+                                                       self.queryFields[9], values[9], transID,
+                                                       self.queryFields[10], values[10], transID,
+                                                       self.queryFields[11], values[11], transID,
+                                                       self.queryFields[12], values[12], transID,
+                                                       self.queryFields[13], values[13] )
     res = self._update( req, connection )
     if not res['OK']:
       return res
-    queryID = res['lastRowId']
-    return S_OK( queryID )
+    return S_OK( transID )
 
-  def __getBookkeepingQuery( self, bkQueryID = 0, connection = False ):
-    """ Get the bookkeeping query parameters, if bkQueyID is 0 then get all the queries
+    
+  def __getBookkeepingQuery( self, transID, connection = False ):
+    """ Get the bookkeeping query parameters, if transID is 0 then get all the queries :WHY???
     """
     connection = self.__getConnection( connection )
-    fieldsString = ','.join( self.queryFields )
-    if bkQueryID:
-      req = "SELECT BkQueryID,%s FROM BkQueries WHERE BkQueryID=%d" % ( fieldsString, int( bkQueryID ) )
-    else:
-      req = "SELECT BkQueryID,%s FROM BkQueries" % ( fieldsString )
-
-    result = self._query( req, connection )
-    if not result['OK']:
-      return result
-    if not result['Value']:
-      return S_ERROR( 'BkQuery %d not found' % int( bkQueryID ) )
-    resultDict = {}
-    for row in result['Value']:
-      bkDict = {}
-      for parameter, value in zip( ['BkQueryID'] + self.queryFields, row ):
-        if parameter == 'BkQueryID':
-          rowQueryID = value
-        elif value != 'All':
-          if re.search( ';;;', str( value ) ):
-            value = value.split( ';;;' )
-          if parameter in self.intFields:
-            if type( value ) in StringTypes:
-              value = long( value )
-            if type( value ) == ListType:
-              value = [int( x ) for x in value]
-            if not value:
-              continue
-          bkDict[parameter] = value
-      resultDict[rowQueryID] = bkDict
-    if bkQueryID:
-      return S_OK( bkDict )
-    else:
-      return S_OK( resultDict )
+    # fieldsString = ','.join( self.queryFields )
+    # if transID:
+    req = "SELECT * FROM BkQueriesNew WHERE TransformationID=%d" % ( int( transID ) )
+    # else:
+    #  req = "SELECT * FROM BkQueriesNew"
+    res = self._query( req, connection )
+    if not res['OK']:
+      return res
+    if not res['Value']:
+      return S_ERROR( 'BkQuery %d not found' % int( transID ) )
+    bkDict = {}
+    for row in res['Value']:
+      parameter = row[1]
+      value = row[2]
+      if value != 'All':
+        if re.search( ';;;', str( value ) ):
+          value = value.split( ';;;' )
+        if parameter in self.intFields:
+          if type( value ) in StringTypes:
+            value = long( value )
+          if type( value ) == ListType:
+            value = [int( x ) for x in value]
+          if not value:
+            continue
+      bkDict[parameter] = value
+    return S_OK( bkDict )
 
   def __insertExistingTransformationFiles( self, transID, fileTuplesList, connection = False ):
     """ extends DIRAC.__insertExistingTransformationFiles
