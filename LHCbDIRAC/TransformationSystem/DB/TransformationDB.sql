@@ -40,6 +40,16 @@ CREATE TABLE BkQueries (
   INDEX (EndRun)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS BkQueriesNew;
+CREATE TABLE BkQueriesNew (
+    TransformationID INTEGER NOT NULL,
+    ParameterName VARCHAR(32) NOT NULL,
+    ParameterValue LONGBLOB NOT NULL,
+    PRIMARY KEY(TransformationID,ParameterName),
+    FOREIGN KEY (TransformationID) REFERENCES Transformations(TransformationID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
 ALTER TABLE TransformationFiles ADD COLUMN RunNumber INT(11) DEFAULT 0;
 ALTER TABLE TransformationTasks ADD COLUMN RunNumber INT(11) DEFAULT 0;
  
