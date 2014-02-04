@@ -17,6 +17,7 @@
 
 # DIRAC
 from DIRAC import gConfig, gLogger, S_ERROR, S_OK
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getCompatiblePlatforms
 
 # LHCbDIRAC
 from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
@@ -116,12 +117,12 @@ class NoSoftwareInstallation( object ):
 
       self.log.info( 'Job SystemConfiguration is set to /LocalSite/Architecture' )
       self.log.info( 'Checking compatible platforms' )
-      compatibleArchs = gConfig.getValue( '/Resources/Computing/OSCompatibility/%s' % self.sysConfig, [] )
-      if not compatibleArchs:
-        self.log.error( '%s OSCompatibility not found' % self.sysConfig )
-        return S_ERROR( '%s OSCompatibility not found' % self.sysConfig )
 
-      self.sysConfig = compatibleArchs[ 0 ]
+      compatibleArchs = getCompatiblePlatforms( self.sysConfig )
+      if not compatibleArchs['OK']:
+        return compatibleArchs
+
+      self.sysConfig = compatibleArchs['Value'][ 0 ]
       if not self.sysConfig in self.platforms:
         self.log.info( 'Setting SystemConfig as CompatiblePlatform %s' % self.sysConfig )
         self.platforms.append( self.sysConfig )

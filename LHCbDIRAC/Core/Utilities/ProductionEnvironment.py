@@ -10,6 +10,7 @@ import re, os, shutil
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getCompatiblePlatforms
 from DIRAC.Core.Utilities.Os import sourceEnv
 
 from LHCbDIRAC.Core.Utilities.SoftwareArea  import mySiteRoot
@@ -45,7 +46,7 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
   setupProjectLocation = result['Value'][projectEnv]
   mySiteRoot = result['Value']['MYSITEROOT']
 
-  result = setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, systemConfiguration,
+  result = setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot,
                                   directory, poolXMLCatalogName, env )
   if not result['OK']:
     return result
@@ -59,14 +60,21 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
 
   setupProject = result['Value']
 
-  result = runEnvironmentScripts( [lbLogin, setupProject], environment )
-  if not result['OK']:
-    return result
+  compatiblePlatforms = getCMTConfig( systemConfiguration )
+  if not compatiblePlatforms['OK']:
+    return compatiblePlatforms
+  for compatibleCMTConfig in compatiblePlatforms['Value']:
+    gLogger.verbose( "Using %s for setup" % compatibleCMTConfig )
+    environment['CMTCONFIG'] = compatibleCMTConfig
+    result = runEnvironmentScripts( [lbLogin, setupProject], environment )
+    if result['OK']:
+      break
+    gLogger.warn( "Can't setup using %s, trying the next, if any" % compatibleCMTConfig )
 
   environment = result['Value']
 
   # Have to repeat this with the resulting environment since LbLogin / SetupProject overwrite any changes...
-  return setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, systemConfiguration,
+  return setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot,
                                 directory, poolXMLCatalogName, environment )
 
 #############################################################################
@@ -170,7 +178,7 @@ def runEnvironmentScripts( commandsList, env = None ):
   return S_OK( env )
 
 #############################################################################
-def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, systemConfig, directory = '',
+def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, directory = '',
                            poolXMLCatalogName = defaultCatalogName, env = None ):
   """ Sets default environment variables for project execution, will use the
       environment passed or the current os.environ if not provided.  The
@@ -216,21 +224,6 @@ def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, syst
   gLogger.info( 'Setting MYSITEROOT to %s' % ( mySiteRoot ) )
   env['MYSITEROOT'] = mySiteRoot
 
-  if systemConfig.lower() == 'any':
-    systemConfig = gConfig.getValue( '/LocalSite/Architecture', '' )
-    if not systemConfig:
-      gLogger.error( '/LocalSite/Architecture is not defined' )
-      return S_ERROR( 'SystemConfig Not Found' )
-    compatibleArchs = gConfig.getValue( '/Resources/Computing/OSCompatibility/%s' % systemConfig, [] )
-    if not compatibleArchs:
-      gLogger.error( 'Could not find matching section for %s in /Resources/Computing/OSCompatibility/' % systemConfig )
-      return S_ERROR( 'SystemConfig Not Found' )
-    systemConfig = compatibleArchs[0]
-    gLogger.verbose( 'Setting SystemConfig to compatible platform %s since it was set to "ANY"' % systemConfig )
-
-  gLogger.info( 'Setting CMTCONFIG to %s' % ( systemConfig ) )
-  env['CMTCONFIG'] = systemConfig
-
   # miscellaneous vars
   env['CSEC_TRACE'] = '1'
   env['CSEC_TRACEFILE'] = "csec.log"
@@ -261,6 +254,22 @@ def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, syst
     shutil.copy( os.path.join( directory, 'lib', 'requirements' ), os.path.join( package, 'cmttemp', 'v1', 'cmt' ) )
 
   return S_OK( env )
+
+#############################################################################
+def getCMTConfig( systemConfig ):
+  """ get an ordered list of compatible CMT configs
+  """
+
+  if systemConfig.lower() == 'any':
+    systemConfig = gConfig.getValue( '/LocalSite/Architecture', '' )
+    if not systemConfig:
+      gLogger.error( '/LocalSite/Architecture is not defined' )
+      return S_ERROR( 'SystemConfig Not Found' )
+
+    gLogger.verbose( 'Setting SystemConfig to compatible platform %s since it was set to "ANY"' % systemConfig )
+    return getCompatiblePlatforms( systemConfig )
+  else:
+    return [systemConfig]
 
 #############################################################################
 def getProjectCommand( location, applicationName, applicationVersion, extraPackages = [], site = '',
