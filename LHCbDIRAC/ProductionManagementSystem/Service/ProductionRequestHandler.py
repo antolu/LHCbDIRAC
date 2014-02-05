@@ -105,7 +105,7 @@ class ProductionRequestHandler( RequestHandler ):
     creds = self.__clientCredentials()
     return self.database.duplicateProductionRequest( requestID, creds, False )
 
-  types_deleteProductionRequest = [ [int, [IntType, LongType]] ]
+  types_deleteProductionRequest = [ [IntType, LongType] ]
   def export_deleteProductionRequest( self, requestID ):
     """ Delete production request specified by requestID
     """
