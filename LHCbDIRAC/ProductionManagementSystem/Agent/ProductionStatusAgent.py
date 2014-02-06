@@ -214,8 +214,8 @@ class ProductionStatusAgent( AgentModule ):
       isIdle = ( ( prodStats.get( 'TotalCreated', 0 ) > 0 ) \
                   and \
                   all( [prodStats.get( status, 0 ) == 0 for status in ['Checking', 'Completed', 'Created', 'Matched',
-                                                                     'Received', 'Reserved', 'Rescheduled', 'Running',
-                                                                     'Waiting' ]] ) )
+                                                                       'Received', 'Reserved', 'Rescheduled', 'Running',
+                                                                       'Submitted', 'Waiting' ]] ) )
     else:
       # other production type : go to Idle if
       # 0 unused, 0 assigned files
@@ -231,7 +231,7 @@ class ProductionStatusAgent( AgentModule ):
                  and \
                  all( [prodStats.get( status, 0 ) == 0 for status in ['Checking', 'Completed', 'Created', 'Matched',
                                                                       'Received', 'Reserved', 'Rescheduled', 'Running',
-                                                                      'Waiting' ]] ) )
+                                                                      'Submitted', 'Waiting' ]] ) )
 
     return isIdle
 
