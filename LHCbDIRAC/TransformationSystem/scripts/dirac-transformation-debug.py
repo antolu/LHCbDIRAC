@@ -287,11 +287,11 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     if kickRequests:
       res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnsInTask )
       if res['OK']:
-        print "Task is failed: not all the %d files were reset Unused" % len( lfnsInTask )
+        print "\tTask is failed: not all the %d files were reset Unused" % len( lfnsInTask )
     else:
-      print "Task is failed: %d files could be reset Unused: use --KickRequests option" % len( lfnsInTask )
+      print "\tTask is failed: %d files could be reset Unused: use --KickRequests option" % len( lfnsInTask )
   if taskCompleted and ( task['ExternalStatus'] != 'Done' or status == 'Assigned' ):
-    prString = "Task %s is completed: no %s replicas" % ( requestName, dmFileStatusComment )
+    prString = "\tTask %s is completed: no %s replicas" % ( requestName, dmFileStatusComment )
     if kickRequests:
       if requestName:
         res = reqClient.setRequestStatus( requestName, 'Done' )
@@ -307,48 +307,45 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     else:
         prString += " - To mark them done, use option --KickRequests"
     print prString
+  res = reqClient.peekRequest( requestName )
+  if res['OK']:
+    request = res['Value']
+  else:
+    request = None
   res = reqClient.getRequestFileStatus( requestID, lfnsInTask )
   if res['OK']:
     reqFiles = res['Value']
     statFiles = {}
     for lfn, stat in reqFiles.items():
       statFiles[stat] = statFiles.setdefault( stat, 0 ) + 1
-    stats = statFiles.keys()
-    stats.sort()
+    stats = sorted( statFiles )
     for stat in stats:
-      print "%s: %d files" % ( stat, statFiles[stat] )
+      print "\t%s: %d files" % ( stat, statFiles[stat] )
     if 'Failed' in stats and statFiles['Failed'] == len( reqFiles ):
-      prString = "All transfers failed for that request"
+      prString = "\tAll transfers failed for that request"
       if not kickRequests:
         prString += ": it should be marked as Failed, use --KickRequests"
       else:
         failedFiles += reqFiles.keys()
-        res = reqClient.setRequestStatus( requestName, 'Failed' )
+        request.Status = 'Failed'
+        res = reqClient.putRequest( request )
         if res['OK']:
           prString += ": request set to Failed"
+        else:
+          prString += ": error setting to Failed: %s" % res['Message']
       print prString
-  selectDict = { 'RequestID':requestID}
   toBeKicked = 0
-  res = reqClient.getRequestSummaryWeb( selectDict, [], 0, 100000 )
-  if res['OK']:
-    params = res['Value']['ParameterNames']
-    records = res['Value']['Records']
-    for rec in records:
-      subReqDict = {}
-      subReqStr = ''
-      conj = ''
-      for i in range( len( params ) ):
-        subReqDict.update( { params[i]:rec[i] } )
-        subReqStr += conj + params[i] + ': ' + rec[i]
-        conj = ', '
-
-      if subReqDict['Status'] == 'Assigned' and subReqDict['LastUpdateTime'] < str( assignedReqLimit ):
-        print subReqStr
-        toBeKicked += 1
-        if kickRequests:
-          res = reqClient.setRequestStatus( subReqDict['RequestName'], 'Waiting' )
-          if res['OK']:
-            print 'Request %d reset Waiting' % requestID
+  if request:
+    if request.Status == 'Assigned' and request.LastUpdate < str( assignedReqLimit ):
+      print request.RequestName, 'Submitted', request.SubmitTime, 'Updated', request.LastUpdate
+      toBeKicked += 1
+      if kickRequests:
+        request.Status = 'Waiting'
+        res = reqClient.putRequest( request )
+        if res['OK']:
+          print '\tRequest %d reset Waiting' % requestID
+        else:
+          print '\tError resetting request', res['Message']
   return toBeKicked
 
 def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas, failedFiles, fixIt ):
@@ -987,7 +984,7 @@ if __name__ == "__main__":
   transList = __getTransformations( Script.getPositionalArgs() )
 
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-  from DIRAC.RequestManagementSystem.Client.RequestClient           import RequestClient
+  from DIRAC.RequestManagementSystem.Client.ReqClient           import ReqClient
   from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   from LHCbDIRAC.TransformationSystem.Client.Utilities import PluginUtilities
@@ -998,7 +995,7 @@ if __name__ == "__main__":
 
   bkClient = BookkeepingClient()
   transClient = TransformationClient()
-  reqClient = RequestClient()
+  reqClient = ReqClient()
   rm = ReplicaManager()
   dmTransTypes = ( "Replication", "Removal" )
   assignedReqLimit = datetime.datetime.utcnow() - datetime.timedelta( hours = 2 )
