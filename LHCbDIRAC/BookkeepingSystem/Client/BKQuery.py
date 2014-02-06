@@ -485,7 +485,7 @@ class BKQuery():
     lfns = []
     lfnSize = 0
     if not res['OK']:
-      print "***** ERROR ***** Error getting dataset from BK for %s:" % self.__bkQueryDict, res['Message']
+      print "Error from BK for %s:" % self.__bkQueryDict, res['Message']
     else:
       lfns = res['Value']
       exceptFiles = list( self.__exceptFileTypes )
