@@ -82,7 +82,7 @@ class LogUpload( OperationHandlerBase ):
       gMonitor.addMark( "LogUploadAtt", 1 )
 
       destination = '/'.join( lfn.split( '/' )[0:-1] ) + '/' + ( os.path.basename( lfn ) ).split( '_' )[1].split( '.' )[0]
-      logUpload = self.replicaManager().replicate( lfn, targetSE, destPath = destination )
+      logUpload = self.dm.replicate( lfn, targetSE, destPath = destination )
       if not logUpload["OK"]:
         gMonitor.addMark( "LogUploadFail", 1 )
         self.dataLoggingClient().addFileRecord( lfn, "LogUploadFail", targetSE, "", "LogUpload" )

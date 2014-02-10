@@ -12,7 +12,8 @@ import DIRAC
 from DIRAC import gLogger, S_ERROR, S_OK
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+from DIRAC.Resources.Storage.StorageElement import StorageElement
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -23,8 +24,8 @@ from DIRAC.Core.Utilities.Adler import compareAdler
 # FIXME: this is quite dirty, what should be checked is exactly what it is done
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction' )
 
-def getFileDescendants( transID, lfns, transClient = None, rm = None, bkClient = None ):
-  cc = ConsistencyChecks( interactive = False, transClient = transClient, rm = rm, bkClient = bkClient )
+def getFileDescendants( transID, lfns, transClient = None, dm = None, bkClient = None ):
+  cc = ConsistencyChecks( interactive = False, transClient = transClient, dm = dm, bkClient = bkClient )
   cc.prod = transID
   cc.fileType = []
   cc.fileTypesExcluded = Operations().getValue( 'DataConsistency/IgnoreDescendantsOfType', [] )
@@ -35,14 +36,14 @@ class ConsistencyChecks( object ):
   """ A class for handling some consistency check
   """
 
-  def __init__( self, interactive = True, transClient = None, rm = None, bkClient = None ):
+  def __init__( self, interactive = True, transClient = None, dm = None, bkClient = None ):
     ''' c'tor
 
         One object for every production/BkQuery/directoriesList...
     '''
     self.interactive = interactive
     self.transClient = TransformationClient() if transClient is None else transClient
-    self.rm = ReplicaManager() if rm is None else rm
+    self.dm = DataManager() if dm is None else dm
     self.bkClient = BookkeepingClient() if bkClient is None else bkClient
 
     self.dirac = Dirac()
@@ -198,7 +199,7 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def getReplicasPresence( self, lfns ):
-    ''' get the replicas using the standard ReplicaManager.getReplicas()
+    ''' get the replicas using the standard DataManager.getReplicas()
     '''
     present = set()
     notPresent = set()
@@ -212,7 +213,7 @@ class ConsistencyChecks( object ):
       if printProgress:
         self.__write( '.' )
       while True:
-        res = self.rm.getReplicas( chunk )
+        res = self.dm.getReplicas( chunk )
         if res['OK']:
           present.update( res['Value']['Successful'] )
           self.cachedReplicas.update( res['Value']['Successful'] )
@@ -287,12 +288,12 @@ class ConsistencyChecks( object ):
     return present, notPresent
 
   def _getFilesFromDirectoryScan( self, dirs ):
-    ''' calls rm.getFilesFromDirectory
+    ''' calls dm.getFilesFromDirectory
     '''
 
     level = gLogger.getLevel()
     gLogger.setLevel( 'FATAL' )
-    res = self.rm.getFilesFromDirectory( dirs )
+    res = self.dm.getFilesFromDirectory( dirs )
     gLogger.setLevel( level )
     if not res['OK']:
       if 'No such file or directory' not in res['Message']:
@@ -895,14 +896,15 @@ class ConsistencyChecks( object ):
     self.__write( 'Getting checksum of %d replicas (chunks of %d) .' % ( len( surlLfn ), chunkSize ) )
     i = 1
     for se in seFiles:
+      oSe = StorageElement( se )
       for surlChunk in breakListIntoChunks( seFiles[se], chunkSize ):
         i += len( surlChunk )
         if i > chunkSize:
           self.__write( '.' )
           i = 1
-        surlRes = self.rm.getStorageFileMetadata( surlChunk, se )
+        surlRes = oSe.getFileMetadata( surlChunk )
         if not surlRes[ 'OK' ]:
-          gLogger.error( "error replicaManager.getStorageFileMetadata returns %s" % ( surlRes['Message'] ) )
+          gLogger.error( "error StorageElement.getFileMetadata returns %s" % ( surlRes['Message'] ) )
           return surlRes
         surlRes = surlRes['Value']
         for surl in surlRes['Failed']:

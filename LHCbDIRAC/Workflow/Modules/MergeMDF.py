@@ -1,7 +1,7 @@
 """ Simple merging module for MDF files.
 """
 
-__RCSID__ = "$Id: MergeMDF.py 57931 2012-10-23 17:00:11Z fstagni $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                               import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities.Subprocess                     import shellCall
@@ -14,11 +14,11 @@ class MergeMDF( ModuleBase ):
   """
 
   #############################################################################
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     """Module initialization.
     """
     self.log = gLogger.getSubLogger( "MergeMDF" )
-    super( MergeMDF, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( MergeMDF, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
 

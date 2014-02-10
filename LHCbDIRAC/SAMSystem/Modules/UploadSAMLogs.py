@@ -9,7 +9,8 @@ import time
 
 from DIRAC                                               import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
+from DIRAC.Resources.Storage.StorageElement              import StorageElement
+from DIRAC.Resources.Utilities                           import Utils
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
@@ -34,12 +35,12 @@ class UploadSAMLogs( ModuleBase ):
     super( UploadSAMLogs, self ).__init__( loggerIn = logger )
 
     self.opsH = Operations()
-    self.rManager = ReplicaManager()
 
     self.logSE = 'LogSE'
     self.logURL = 'http://lhcb-logs.cern.ch/storage/'
     self.nagiosConnector = NagiosConnector()
 
+    self.storageElement = StorageElement( self.logSE )
     self.version = __RCSID__
 
   def _resolveInputVariables( self ):
@@ -99,8 +100,7 @@ class UploadSAMLogs( ModuleBase ):
       if not self._enableModule():
         return S_OK( 'No logs to upload' )
 
-      result = self.rManager.putStorageDirectory( { lfnPath : os.path.realpath( logDir ) },
-                                                   self.logSE, singleDirectory = True )
+      result = Utils.executeSingleFileOrDirWrapper( self.storageElement.putDirectory( { lfnPath : os.path.realpath( logDir ) } ) )
 
       self.log.verbose( result )
       if not result[ 'OK' ]:

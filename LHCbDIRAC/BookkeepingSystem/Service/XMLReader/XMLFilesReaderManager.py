@@ -12,7 +12,7 @@ from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.JobReader                    
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.ReplicaReader                        import ReplicaReader
 from DIRAC                                                                              import gLogger, S_OK, S_ERROR
 from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                           import BookkeepingDatabaseClient
-from DIRAC.DataManagementSystem.Client.ReplicaManager                             import ReplicaManager
+from DIRAC.DataManagementSystem.Client.DataManager                             import DataManager
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.FileParam                  import FileParam
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.JobParameters              import JobParameters
 from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter                import  BeamEnergyCondition, \
@@ -49,7 +49,7 @@ class XMLFilesReaderManager:
     self.replicaReader_ = ReplicaReader()
 
     #self.dataManager_ = BookkeepingDatabaseClient()
-    self.replicaManager_ = ReplicaManager()
+    self.dm_ = DataManager()
     self.fileTypeCache = {}
 
 
@@ -601,7 +601,7 @@ class XMLFilesReaderManager:
         gLogger.info(fileID)
 
       if delete:
-        result = self.replicaManager_.getReplicas(replicaFileName)
+        result = self.dm_.getReplicas( replicaFileName )
         replicaList = result['Value']['Successful']
         if len(replicaList) == 0:
           result = dataManager_.updateReplicaRow(fileID, "No")

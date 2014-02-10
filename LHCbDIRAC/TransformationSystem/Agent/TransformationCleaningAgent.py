@@ -8,6 +8,7 @@
 # # from DIRAC
 from DIRAC                                                        import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Utilities.List                                    import sortList
+from DIRAC.Resources.Catalog.FileCatalog                          import FileCatalog
 from DIRAC.TransformationSystem.Agent.TransformationCleaningAgent import TransformationCleaningAgent as DiracTCAgent
 # # from LHCbDIRAC
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
@@ -58,7 +59,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
         if metadata['GotReplica'] == 'Yes':
           yesReplica.append( lfn )
     self.log.info( "Attempting to remove %d possible remnants from the catalog and storage" % len( fileToRemove ) )
-    res = self.replicaManager.removeFile( fileToRemove )
+    res = self.dm.removeFile( fileToRemove )
     if not res['OK']:
       return res
     for lfn, reason in res['Value']['Failed'].items():
@@ -67,7 +68,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
       return S_ERROR( "Failed to remove all files found in the BK" )
     if yesReplica:
       self.log.info( "Ensuring that %d files are removed from the BK" % ( len( yesReplica ) ) )
-      res = self.replicaManager.removeCatalogFile( yesReplica, catalogs = ['BookkeepingDB'] )
+      res = FileCatalog( catalogs = ['BookkeepingDB'] ).removeFile( yesReplica )
       if not res['OK']:
         return res
       for lfn, reason in res['Value']['Failed'].items():

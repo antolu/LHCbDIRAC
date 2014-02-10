@@ -132,16 +132,18 @@ class PluginScript( DMScript ):
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 
 class PluginUtilities:
   """
   Utility class used by plugins
   """
-  def __init__( self, plugin, transClient, replicaManager, bkClient, rmClient, resourceStatus, debug, transInThread, transID = None ):
+  def __init__( self, plugin, transClient, dataManager, bkClient, rmClient, resourceStatus, debug, transInThread, transID = None ):
     self.plugin = plugin
     self.transClient = transClient
     self.bkClient = bkClient
-    self.rm = replicaManager
+    self.dm = dataManager
+    self.fc = FileCatalog()
     self.rmClient = rmClient
     self.resourceStatus = resourceStatus
     self.freeSpace = {}
@@ -583,7 +585,7 @@ class PluginUtilities:
     Check which files have been processed by a given production, i.e. have a meaningful descendant
     """
     from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import getFileDescendants
-    return getFileDescendants( self.transID, lfns, transClient = self.transClient, rm = self.rm, bkClient = self.bkClient )
+    return getFileDescendants( self.transID, lfns, transClient = self.transClient, dm = self.dm, bkClient = self.bkClient )
 
   def getRAWAncestorsForRun( self, runID, param = '', paramValue = '', getFiles = False ):
     """ Determine from BK how many ancestors files from a given runs do have
@@ -932,7 +934,7 @@ class PluginUtilities:
     lfns = [lfn for lfn in lfns if lfn not in self.cachedLFNSize]
     if lfns:
       startTime = time.time()
-      res = self.rm.getCatalogFileSize( lfns )
+      res = self.fc.getFileSize( lfns )
       if not res['OK']:
         return S_ERROR( "Failed to get sizes for all files: " % res['Message'] )
       if res['Value']['Failed']:

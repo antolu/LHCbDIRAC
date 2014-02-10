@@ -43,8 +43,9 @@ if __name__ == "__main__":
       setProcessed = True
 
   from DIRAC.Core.Utilities.List import sortList, breakListIntoChunks
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-  rm = ReplicaManager()
+  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+  from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+  dm = DataManager()
   if fixTrans:
     from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
     transClient = TransformationClient()
@@ -62,7 +63,7 @@ if __name__ == "__main__":
     if verbose:
       sys.stdout.write( '.' )
       sys.stdout.flush()
-    res = rm.removeFile( lfnChunk )
+    res = dm.removeFile( lfnChunk )
     if not res['OK']:
       gLogger.fatal( "Failed to remove data", res['Message'] )
       DIRAC.exit( -2 )
@@ -116,7 +117,7 @@ if __name__ == "__main__":
       if verbose:
         sys.stdout.write( '.' )
         sys.stdout.flush()
-      res = rm.getReplicas( lfnChunk )
+      res = dm.getReplicas( lfnChunk )
       if not res['OK']:
         gLogger.error( "Error getting replicas of %d non-existing files" % len( lfnChunk ), res['Message'] )
         errorReasons.setdefault( str( res['Message'] ), [] ).extend( lfnChunk )
@@ -127,7 +128,7 @@ if __name__ == "__main__":
         replicas = res['Value']['Successful']
         for lfn in replicas:
           for se in replicas[lfn]:
-            res = rm.removeCatalogReplica( {lfn:{'SE':se, 'PFN':replicas[lfn][se]}} )
+            res = fc.removeReplica( {lfn:{'SE':se, 'PFN':replicas[lfn][se]}} )
             if not res['OK']:
               gLogger.error( 'Error removing replica in the FC for a non-existing file', res['Message'] )
               errorReasons.setdefault( str( res['Message'] ), [] ).append( lfn )
@@ -136,7 +137,7 @@ if __name__ == "__main__":
                 errorReasons.setdefault( str( reason ), [] ).append( lfn )
                 lfnChunk.remove( lfn )
         if lfnChunk:
-          res = rm.removeCatalogFile( lfnChunk )
+          res = fc.removeFile( lfnChunk )
           if not res['OK']:
             gLogger.error( "Error removing %d non-existing files from the FC" % len( lfnChunk ), res['Message'] )
             errorReasons.setdefault( str( res['Message'] ), [] ).extend( lfnChunk )

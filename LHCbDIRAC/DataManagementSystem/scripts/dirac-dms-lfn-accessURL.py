@@ -58,12 +58,12 @@ def execute():
     Script.showHelp()
     DIRAC.exit( 0 )
 
-  from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
+  from DIRAC.DataManagementSystem.Client.DataManager         import DataManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   from DIRAC import gLogger
   if len( seList ) > 1:
     gLogger.info( "Using the following list of SEs: %s" % str( seList ) )
-  rm = ReplicaManager()
+  dm = DataManager()
   bk = BookkeepingClient()
   # gLogger.setLevel( "FATAL" )
   notFoundLfns = set( lfnList )
@@ -71,7 +71,7 @@ def execute():
   level = gLogger.getLevel()
   gLogger.setLevel( 'FATAL' )
   for se in seList:
-    res = rm.getReplicaAccessUrl( lfnList, se )
+    res = dm.getReplicaAccessUrl( lfnList, se )
     success = res.get( 'Value', {} ).get( 'Successful' )
     if res['OK'] and success:
       bkRes = bk.getFileTypeVersion( success.keys() )

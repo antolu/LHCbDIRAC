@@ -80,7 +80,8 @@ if __name__ == "__main__":
     Script.showHelp()
     DIRAC.exit( 0 )
 
-  from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
+  from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+  from DIRAC.Resources.Storage.StorageElement import StorageElement
   from DIRAC import S_OK, S_ERROR
   from DIRAC.Core.Utilities.Adler import compareAdler
   from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -88,13 +89,15 @@ if __name__ == "__main__":
     gLogger.always( "Using the following list of SEs: %s" % str( seList ) )
   if len( urlList ) > 100:
     gLogger.always( "Getting metadata for %d files, be patient" % len( urlList ) )
-  rm = ReplicaManager()
+
+  fc = FileCatalog()
+
   gLogger.setLevel( "FATAL" )
   metadata = {'Successful':{}, 'Failed':{}}
   replicas = {}
   # restrict SEs to those where the replicas are
   for lfnChunk in breakListIntoChunks( urlList, 100 ):
-    res = rm.getCatalogReplicas( lfnChunk, allStatus = True )
+    res = fc.getReplicas( lfnChunk, allStatus = True )
     if not res['OK']:
       gLogger.fatal( 'Error getting replicas for %d files' % len( lfnChunk ), res['Message'] )
       DIRAC.exit( 2 )
@@ -117,8 +120,9 @@ if __name__ == "__main__":
       fileList = [url for url in urlList if se in replicas.get( url, [] )]
       if not fileList:
         continue
+      oSe = StorageElement( se )
       for fileChunk in breakListIntoChunks( fileList, 100 ):
-        res = rm.getStorageFileMetadata( fileChunk, se )
+        res = oSe.getFileMetadata( fileChunk )
         if res['OK']:
           seMetadata = res['Value']
           for url in seMetadata['Successful']:
@@ -127,7 +131,7 @@ if __name__ == "__main__":
             if exists and not pfnMetadata.get( 'Size' ):
               metadata['Successful'][url][se].update( {'Exists':'Zero size'} )
             if check:
-              res1 = rm.getCatalogFileMetadata( url )
+              res1 = fc.getFileMetadata( url )
               if res1['OK']:
                 lfnMetadata = res1['Value']['Successful'][url]
                 ok = True

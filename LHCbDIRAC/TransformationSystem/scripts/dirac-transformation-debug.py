@@ -211,7 +211,7 @@ def __getTransformations( args ):
 def __checkFilesMissingInFC( transFilesList, status, fixIt ):
   if 'MissingLFC' in status or 'MissingInFC' in status:
     lfns = [fileDict['LFN'] for fileDict in transFilesList]
-    res = rm.getReplicas( lfns )
+    res = dm.getReplicas( lfns )
     if res['OK']:
       replicas = res['Value']['Successful']
       notMissing = len( [lfn for lfn in lfns if lfn in replicas] )
@@ -246,7 +246,7 @@ def __getReplicas( transType, lfns ):
   replicas = {}
   if transType in dmTransTypes:
     for lfnChunk in breakListIntoChunks( lfns, 200 ):
-      res = rm.getReplicas( lfnChunk )
+      res = dm.getReplicas( lfnChunk )
       if res['OK']:
         replicas.update( res['Value']['Successful'] )
   return replicas
@@ -363,11 +363,11 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
     lfns.update( problematicReplicas[se] )
     if se:
       lfnsInFC.update( problematicReplicas[se] )
-      res = rm.getCatalogFileMetadata( [lfn for lfn in problematicReplicas[se] if lfn not in lfnCheckSum] )
+      res = fc.getFileMetadata( [lfn for lfn in problematicReplicas[se] if lfn not in lfnCheckSum] )
       if res['OK']:
         success = res['Value']['Successful']
         lfnCheckSum.update( dict( [( lfn, success[lfn]['Checksum'] ) for lfn in success] ) )
-      res = rm.getReplicaMetadata( problematicReplicas[se], se )
+      res = dm.getReplicaMetadata( problematicReplicas[se], se )
       if res['OK']:
         for lfn in res['Value']['Successful']:
           existingReplicas.setdefault( lfn, [] ).append( se )
@@ -455,7 +455,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
           for se in replicasToRemove[lfn]:
             seFiles.setdefault( se, [] ).append( lfn )
         for se in seFiles:
-          res = rm.removeReplica( se, seFiles[se] )
+          res = dm.removeReplica( se, seFiles[se] )
           if not res['OK']:
             print 'ERROR: error removing replicas', res['Message']
           else:
@@ -474,7 +474,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
         print 'Successfully removed %d files from transformations %s' % ( nRemoved, ','.join( transRemoved ) )
     for se in nonExistingReplicas:
       lfns = [lfn for lfn in nonExistingReplicas[se] if lfn not in filesInFCNotExisting]
-      res = rm.removeReplica( se, lfns )
+      res = dm.removeReplica( se, lfns )
       if not res['OK']:
         print "ERROR when removing replicas from FC at %s" % se, res['Message']
       else:
@@ -511,7 +511,7 @@ def __removeFilesFromTS( lfns ):
   return removed, [str( tr ) for tr in transFiles]
 
 def __removeFiles( lfns ):
-  res = rm.removeFile( lfns )
+  res = dm.removeFile( lfns )
   if res['OK']:
     print "Successfully removed %d files from FC" % len( lfns )
     nRemoved, transRemoved = __removeFilesFromTS( lfns )
@@ -985,7 +985,8 @@ if __name__ == "__main__":
 
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
   from DIRAC.RequestManagementSystem.Client.ReqClient           import ReqClient
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+  from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   from LHCbDIRAC.TransformationSystem.Client.Utilities import PluginUtilities
   from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
@@ -996,7 +997,8 @@ if __name__ == "__main__":
   bkClient = BookkeepingClient()
   transClient = TransformationClient()
   reqClient = ReqClient()
-  rm = ReplicaManager()
+  dm = DataManager()
+  fc = FileCatalog()
   dmTransTypes = ( "Replication", "Removal" )
   assignedReqLimit = datetime.datetime.utcnow() - datetime.timedelta( hours = 2 )
   improperJobs = []

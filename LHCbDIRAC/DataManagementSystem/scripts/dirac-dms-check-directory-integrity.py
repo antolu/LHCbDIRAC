@@ -17,11 +17,11 @@ if __name__ == "__main__":
 
   import DIRAC
   from DIRAC                                                          import gLogger
-  from DIRAC.DataManagementSystem.Client.ReplicaManager               import ReplicaManager
+  from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
   from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient      import DataIntegrityClient
   import sys
 
-  rm = ReplicaManager()
+  fc = FileCatalog()
   integrity = DataIntegrityClient()
   gLogger.setLevel( 'INFO' )
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
   #
   # This check performs Catalog->BK and Catalog->SE for possible output directories
   #
-  res = rm.getCatalogExists( directories )
+  res = fc.exists( directories )
   if not res['OK']:
     gLogger.error( res['Message'] )
     DIRAC.exit( -2 )

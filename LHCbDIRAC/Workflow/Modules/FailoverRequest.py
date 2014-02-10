@@ -15,12 +15,12 @@ class FailoverRequest( ModuleBase ):
 
   #############################################################################
 
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     """Module initialization.
     """
 
     self.log = gLogger.getSubLogger( "FailoverRequest" )
-    super( FailoverRequest, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( FailoverRequest, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
 

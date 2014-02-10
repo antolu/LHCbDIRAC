@@ -14,8 +14,8 @@ class fakeClient:
     self.transClient = TransformationClient()
     from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
     self.bk = BookkeepingClient()
-    from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-    self.rm = ReplicaManager()
+    from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+    self.dm = DataManager()
     self.asIfProd = asIfProd
 
     ( self.files, self.replicas ) = self.prepareForPlugin( lfns )
@@ -151,9 +151,9 @@ class fakeClient:
     for lfnChunk in breakListIntoChunks( lfns, 200 ):
       # print lfnChunk
       if type.lower() in ( "replication", "removal" ):
-        res = self.rm.getReplicas( lfnChunk )
+        res = self.dm.getReplicas( lfnChunk )
       else:
-        res = self.rm.getActiveReplicas( lfnChunk )
+        res = self.dm.getActiveReplicas( lfnChunk )
       # print res
       if res['OK']:
         for lfn, ses in res['Value']['Successful'].items():
@@ -315,8 +315,8 @@ if __name__ == "__main__":
   # Create a fake transformation client
   fakeClient = fakeClient( transformation, transID, lfns, asIfProd )
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
-  oplugin = TransformationPlugin( plugin, transClient = fakeClient, replicaManager = ReplicaManager(), bkkClient = BookkeepingClient() )
+  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+  oplugin = TransformationPlugin( plugin, transClient = fakeClient, dataManager = DataManager(), bkkClient = BookkeepingClient() )
   pluginParams['TransformationID'] = transID
   oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()

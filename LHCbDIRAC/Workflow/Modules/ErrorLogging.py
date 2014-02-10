@@ -21,12 +21,12 @@ class ErrorLogging( ModuleBase ):
 
   #############################################################################
 
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     """ c'tor
     """
 
     self.log = gLogger.getSubLogger( "ErrorLogging" )
-    super( ErrorLogging, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( ErrorLogging, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
     # Step parameters

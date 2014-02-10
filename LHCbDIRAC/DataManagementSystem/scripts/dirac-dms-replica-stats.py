@@ -52,12 +52,13 @@ if __name__ == "__main__":
 
 
   from DIRAC.Core.Utilities.List                        import sortList, breakListIntoChunks
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+  from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
   from DIRAC.Core.DISET.RPCClient import RPCClient
   from DIRAC.Core.Utilities.SiteSEMapping                                import getSitesForSE, getSEsForSite
   from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient  import StorageUsageClient
 
-  rm = ReplicaManager()
+  dm = DataManager()
 
   repStats = {}
   noReplicas = {}
@@ -68,7 +69,7 @@ if __name__ == "__main__":
   directories = dmScript.getOption( 'Directory' )
   if directories:
     for directory in directories:
-      res = rm.getReplicasFromDirectory( directory )
+      res = dm.getReplicasFromDirectory( directory )
       if not res['OK']:
         print res['Message']
         continue
@@ -82,7 +83,7 @@ if __name__ == "__main__":
       print "Executing BK query:", bkQuery
       lfns = bkQuery.getLFNs()
     if lfns:
-      res = rm.getReplicas( lfns )
+      res = dm.getReplicas( lfns )
       if not res['OK']:
         print res['Message']
         DIRAC.exit( 2 )
@@ -114,7 +115,7 @@ if __name__ == "__main__":
       left -= len( lfns )
       sys.stdout.write( "... getting size for %d LFNs (%d left), be patient...    \r" % ( len( lfns ), left ) )
       sys.stdout.flush()
-      r = rm.getCatalogFileSize( lfns )
+      r = FileCatalog().getFileSize( lfns )
       if r['OK']:
         lfnSize.update( r['Value']['Successful'] )
     for lfn, size in lfnSize.items():

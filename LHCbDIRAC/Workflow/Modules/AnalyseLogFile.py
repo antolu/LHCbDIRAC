@@ -9,21 +9,23 @@ import DIRAC
 from DIRAC                                            import S_OK, S_ERROR, gLogger
 from DIRAC.Resources.Catalog.PoolXMLFile              import getGUID
 from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
+from DIRAC.DataManagementSystem.Client.DataManager    import DataManager
 
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase   import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile
 
+
 class AnalyseLogFile( ModuleBase ):
   """ Analyse not only the XML summary, also the log file is inspected
   """
 
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     """Module initialization.
     """
 
     self.log = gLogger.getSubLogger( 'AnalyseLogFile' )
-    super( AnalyseLogFile, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( AnalyseLogFile, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
     self.site = DIRAC.siteName()
@@ -143,10 +145,9 @@ class AnalyseLogFile( ModuleBase ):
           coreLFN = lfn
       if self._WMSJob():
         if coreLFN:
-          self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","catalog="LcgFileCatalogCombined"'
+          self.log.info( 'Attempting: dm.putAndRegister("%s","%s","CERN-DEBUG") on catalog "LcgFileCatalogCombined"'
                          % ( coreLFN, self.coreFile ) )
-          result = self.rm.putAndRegister( coreLFN, self.coreFile, 'CERN-DEBUG',
-                                           catalog = 'LcgFileCatalogCombined' )
+          result = DataManager( catalogs = ['LcgFileCatalogCombined'] ).putAndRegister( coreLFN, self.coreFile, 'CERN-DEBUG' )
           self.log.info( result )
           if not result['OK']:
             self.log.error( 'Could not save core dump file', result['Message'] )
@@ -178,10 +179,10 @@ class AnalyseLogFile( ModuleBase ):
         guidInput = guidResult['Value'][fname]
 
       if self._WMSJob():
-        self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","%s","catalog="LcgFileCatalogCombined"'
+        self.log.info( 'Attempting: dm.putAndRegister("%s","%s","CERN-DEBUG","%s") on catalog "LcgFileCatalogCombined"'
                        % ( fname, lfn, guidInput ) )
-        result = self.rm.putAndRegister( lfn, fname, 'CERN-DEBUG',
-                                         guidInput, catalog = 'LcgFileCatalogCombined' )
+        result = DataManager( catalogs = ['LcgFileCatalogCombined'] ).putAndRegister( lfn, fname, 'CERN-DEBUG',
+                                         guidInput )
         self.log.info( result )
         if not result['OK']:
           self.log.error( 'Could not save INPUT data file with result', str( result ) )

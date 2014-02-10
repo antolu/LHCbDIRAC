@@ -19,7 +19,8 @@ from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.Utilities.DirectoryExplorer import DirectoryExplorer
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
-from DIRAC.DataManagementSystem.Client.ReplicaManager import CatalogDirectory
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+from DIRAC.Resources.Utilities import Utils
 from DIRAC.Core.Utilities import List
 from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 from DIRAC.Core.Utilities.DictCache import DictCache
@@ -36,7 +37,7 @@ class StorageUsageAgent( AgentModule ):
   ''' .. class:: StorageUsageAgent
 
 
-  :param CatalogDirectory catalog: CatalogDIrectory instance
+  :param FileCatalog catalog: FileCatalog instance
   :parma mixed storageUsage: StorageUsageDB instance or its rpc client
   :param int pollingTime: polling time
   :param int activePeriod: active period on weeks
@@ -57,7 +58,7 @@ class StorageUsageAgent( AgentModule ):
     '''
     AgentModule.__init__( self, *args, **kwargs )
 
-    self.catalog = CatalogDirectory()
+    self.catalog = FileCatalog()
     if self.am_getOption( 'DirectDB', False ):
       self.storageUsage = StorageUsageDB()
     else:
@@ -86,7 +87,7 @@ class StorageUsageAgent( AgentModule ):
     self.replicaListLock.acquire()
     try:
       self.log.info( "Dumping replicas for %s dirs" % len( dirPathList ) )
-      result = self.catalog.getCatalogDirectoryReplicas( dirPathList )
+      result = self.catalog.getDirectoryReplicas( dirPathList )
       if not result[ 'OK' ]:
         self.log.error( "Could not get directory replicas", "%s -> %s" % ( dirPathList, result[ 'Message' ] ) )
         return result
@@ -239,7 +240,7 @@ class StorageUsageAgent( AgentModule ):
   def __exploreDirList( self, dirList ):
     ''' collect directory size for directory in :dirList: '''
     self.log.notice( "Retrieving info for %s dirs" % len( dirList ) )
-    res = self.catalog.getCatalogDirectorySize( dirList )
+    res = self.catalog.getDirectorySize( dirList )
     if not res['OK']:
       self.log.error( "Completely failed to get usage.", "%s %s" % ( dirList, res['Message'] ) )
       return
@@ -305,7 +306,7 @@ class StorageUsageAgent( AgentModule ):
   def __getOwnerProxy( self, dirPath ):
     ''' get owner creds for :dirPath: '''
     self.log.verbose( "Retrieving dir metadata..." )
-    result = self.catalog.getCatalogDirectoryMetadata( dirPath, singleFile = True )
+    result = Utils.executeSingleFileOrDirWrapper( self.catalog.getDirectoryMetadata( dirPath ) )
     if not result[ 'OK' ]:
       self.log.error( "Could not get metadata info", result[ 'Message' ] )
       return result
@@ -360,7 +361,7 @@ class StorageUsageAgent( AgentModule ):
     prevProxyEnv = os.environ[ 'X509_USER_PROXY' ]
     os.environ[ 'X509_USER_PROXY' ] = upFile
     try:
-      res = self.catalog.removeCatalogDirectory( dirPath )
+      res = self.catalog.removeDirectory( dirPath )
       if not res['OK']:
         self.log.error( "Failed to remove empty directory from File Catalog.", res[ 'Message' ] )
       elif dirPath in res['Value']['Failed']:

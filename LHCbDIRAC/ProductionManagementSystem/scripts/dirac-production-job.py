@@ -126,7 +126,7 @@ def processJobs( jobs ):
   """
     Iterates over the jobs, getting the output LFNS and the input LFNS.
 
-    For the output, it checks the ReplicaManager, to see that all LFNS are
+    For the output, it checks the DataManager, to see that all LFNS are
     Suscesfully replicated. With Bookkeeping checks that files are properly
     registered.
 

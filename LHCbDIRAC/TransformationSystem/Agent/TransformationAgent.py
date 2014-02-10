@@ -56,7 +56,7 @@ class TransformationAgent( DIRACTransformationAgent ):
       return S_ERROR()
     try:
       oPlugin = getattr( plugModule, 'TransformationPlugin' )( '%s' % plugin,
-                                                               replicaManager = clients['ReplicaManager'],
+                                                               dataManager = clients['DataManager'],
                                                                transClient = clients['TransformationClient'],
                                                                bkkClient = clients['BookkeepingClient'],
                                                                rmClient = clients['ResourceManagementClient'],

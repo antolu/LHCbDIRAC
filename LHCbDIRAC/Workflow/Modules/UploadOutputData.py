@@ -12,6 +12,7 @@ from DIRAC.Core.Utilities                                     import DEncode
 from DIRAC.DataManagementSystem.Client.FailoverTransfer       import FailoverTransfer
 from DIRAC.RequestManagementSystem.Client.Operation           import Operation
 from DIRAC.RequestManagementSystem.Client.File                import File
+from DIRAC.Resources.Catalog.FileCatalog                      import FileCatalog
 
 from LHCbDIRAC.Core.Utilities.ResolveSE                       import getDestinationSEList
 from LHCbDIRAC.Core.Utilities.ProductionData                  import constructProductionLFNs
@@ -22,12 +23,12 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase                    import ModuleBase
 class UploadOutputData( ModuleBase ):
 
   #############################################################################
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     """Module initialization.
     """
 
     self.log = gLogger.getSubLogger( "UploadOutputData" )
-    super( UploadOutputData, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( UploadOutputData, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
     self.commandTimeOut = 10 * 60
@@ -138,7 +139,7 @@ class UploadOutputData( ModuleBase ):
         if fileDescendants != None:
           result = fileDescendants
         else:
-          result = getFileDescendants( self.production_id, self.inputDataList, rm = self.rm, bkClient = self.bkClient )
+          result = getFileDescendants( self.production_id, self.inputDataList, dm = self.dm, bkClient = self.bkClient )
         if not result:
           self.log.info( "No descendants found, outputs can be uploaded" )
         else:
@@ -230,7 +231,7 @@ class UploadOutputData( ModuleBase ):
         if fileDescendants != None:
           result = fileDescendants
         else:
-          result = getFileDescendants( self.production_id, self.inputDataList, rm = self.rm, bkClient = self.bkClient )
+          result = getFileDescendants( self.production_id, self.inputDataList, dm = self.dm, bkClient = self.bkClient )
         if not result:
           self.log.info( "No descendants found, outputs can be uploaded" )
         else:
@@ -275,8 +276,7 @@ class UploadOutputData( ModuleBase ):
       if not performBKRegistration:
         self.log.info( "There are no files to perform the BK registration for, all are in failover" )
       else:
-        result = self.rm.addCatalogFile( [lfnMeta['lfn'] for lfnMeta in performBKRegistration],
-                                         catalogs = ['BookkeepingDB'] )
+        result = FileCatalog( catalogs = ['BookkeepingDB'] ).addFile( [lfnMeta['lfn'] for lfnMeta in performBKRegistration] )
         self.log.verbose( result )
         if not result['OK']:
           self.log.error( result )

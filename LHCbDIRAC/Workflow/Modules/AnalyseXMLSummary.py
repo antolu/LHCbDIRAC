@@ -10,6 +10,7 @@ from DIRAC import S_OK, S_ERROR, gLogger
 
 from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
@@ -20,12 +21,12 @@ class AnalyseXMLSummary( ModuleBase ):
   """ Analysing the XML summary
   """
 
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     """Module initialization.
     """
 
     self.log = gLogger.getSubLogger( 'AnalyseXMLSummary' )
-    super( AnalyseXMLSummary, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( AnalyseXMLSummary, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
     self.site = DIRAC.siteName()
@@ -187,10 +188,10 @@ class AnalyseXMLSummary( ModuleBase ):
         guidInput = guidResult['Value'][fname]
 
       if self._WMSJob():
-        self.log.info( 'Attempting: rm.putAndRegister("%s","%s","CERN-DEBUG","%s","catalog="LcgFileCatalogCombined"'
+        self.log.info( 'Attempting: dm.putAndRegister("%s","%s","CERN-DEBUG","%s") on catalog "LcgFileCatalogCombined"'
                        % ( fname, lfn, guidInput ) )
-        result = self.rm.putAndRegister( lfn, fname, 'CERN-DEBUG',
-                                         guidInput, catalog = 'LcgFileCatalogCombined' )
+        result = DataManager( catalog = ['LcgFileCatalogCombined'] ).putAndRegister( lfn, fname, 'CERN-DEBUG',
+                                         guidInput )
         self.log.info( result )
         if not result['OK']:
           self.log.error( 'Could not save INPUT data file with result', str( result['Message'] ) )

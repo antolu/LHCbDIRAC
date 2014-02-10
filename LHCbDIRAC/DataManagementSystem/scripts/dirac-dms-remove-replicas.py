@@ -28,10 +28,11 @@ def execute():
   minReplicas = 1
 
   from DIRAC.Core.Utilities.List                        import breakListIntoChunks, randomize
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+  from DIRAC.Resources.Catalog.FileCatalog           import FileCatalog
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   import DIRAC
-  rm = ReplicaManager()
+  dm = DataManager()
   bk = BookkeepingClient()
 
   seList = dmScript.getOption( 'SEs', [] )
@@ -103,7 +104,7 @@ def execute():
       if showProgress:
         sys.stdout.write( '.' )
         sys.stdout.flush()
-      res = rm.getReplicas( lfnChunk )
+      res = dm.getReplicas( lfnChunk )
       if res['OK'] and res['Value']['Failed']:
         bkToRemove = res['Value']['Failed'].keys()
         notInFC += bkToRemove
@@ -143,7 +144,7 @@ def execute():
         toCheck = list( lfnChunk - notInFC )
         if toCheck:
           gLogger.setLevel( 'FATAL' )
-          res = rm.getReplicaIsFile( toCheck, seName )
+          res = dm.getReplicaIsFile( toCheck, seName )
           gLogger.setLevel( 'ERROR' )
           if not res['OK']:
             lfnsToRemove += toCheck
@@ -179,7 +180,7 @@ def execute():
         if not res['OK']:
           gLogger.error( 'ERROR removing storage file: ', res['Message'] )
         else:
-          gLogger.verbose( "ReplicaManager.removeStorageFile returned: ", res )
+          gLogger.verbose( "StorageElement.removeFile returned: ", res )
           failed = res['Value']['Failed']
           for pfn, reason in failed.items():
             lfn = pfnsToRemove[pfn]
@@ -198,7 +199,7 @@ def execute():
     gLogger.setLevel( 'FATAL' )
     seList = set( seList )
     for lfnChunk in breakListIntoChunks( sorted( lfnList ), 500 ):
-      res = rm.getReplicas( lfnChunk )
+      res = dm.getReplicas( lfnChunk )
       if not res['OK']:
         gLogger.fatal( "Failed to get replicas", res['Message'] )
         DIRAC.exit( -2 )
@@ -224,7 +225,7 @@ def execute():
           # Not enough replicas outside seList, remove only part, otherwisae remove all
           removeSEs = randomize( removeSEs )[0:remaining - minReplicas]
         for seName in sorted( removeSEs ):
-          res = rm.removeReplica( seName, lfns )
+          res = dm.removeReplica( seName, lfns )
           if not res['OK']:
             gLogger.fatal( "Failed to remove replica", res['Message'] )
             DIRAC.exit( -2 )
@@ -238,7 +239,7 @@ def execute():
 
     gLogger.setLevel( 'ERROR' )
     if notExisting:
-      res = rm.getReplicas( notExisting.keys() )
+      res = dm.getReplicas( notExisting.keys() )
       if not res['OK']:
         gLogger.error( "Error getting replicas of %d non-existing files" % len( notExisting ), res['Message'] )
         errorReasons.setdefault( str( res['Message'] ), {} ).setdefault( 'getReplicas', [] ).extend( notExisting.keys() )
@@ -249,7 +250,7 @@ def execute():
         replicas = res['Value']['Successful']
         for lfn in notExisting:
           for se in [se for se in notExisting[lfn] if se in replicas.get( lfn, [] )]:
-            res = rm.removeCatalogReplica( {lfn:{'SE':se, 'PFN':replicas[lfn][se]}} )
+            res = FileCatalog().removeReplica( {lfn:{'SE':se, 'PFN':replicas[lfn][se]}} )
             if not res['OK']:
               gLogger.error( 'Error removing replica in the FC for a non-existing replica', res['Message'] )
               errorReasons.setdefault( str( res['Message'] ), {} ).setdefault( se, [] ).append( lfn )

@@ -33,11 +33,10 @@ if __name__ == "__main__":
     Script.showHelp()
     DIRAC.exit( 0 )
 
-  from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
+  from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
   from DIRAC import gLogger
-  rm = ReplicaManager()
   gLogger.setLevel( "FATAL" )
-  res = rm.getCatalogFileMetadata( lfnList )
+  res = FileCatalog().getFileMetadata( lfnList )
   if res['OK']:
     printDMResult( res, empty = "File not in FC" )
   else:

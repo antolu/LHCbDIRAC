@@ -12,7 +12,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BaseESManager                        imp
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                    import BookkeepingClient
 from LHCbDIRAC.BookkeepingSystem.Client                                      import objects
 from LHCbDIRAC.BookkeepingSystem.Client.Help                                 import Help
-from DIRAC.DataManagementSystem.Client.ReplicaManager                           import ReplicaManager
+from DIRAC.Resources.Catalog.FileCatalog                                     import FileCatalog
 import os
 import types
 import time
@@ -79,7 +79,7 @@ class LHCbBookkeepingManager(BaseESManager):
     self._BaseESManager___fileSeparator = INTERNAL_PATH_SEPARATOR
     #self.__pathSeparator = INTERNAL_PATH_SEPARATOR
     self.db_ = BookkeepingClient(rpcClinet)
-    self.rm_ = ReplicaManager()
+    self.fc = FileCatalog()
     self.helper_ = Help()
 
     self.__entityCache = {'/':(objects.Entity({'name':'/', 'fullpath':'/', 'expandable':True}), 0)}
@@ -173,7 +173,7 @@ class LHCbBookkeepingManager(BaseESManager):
   def getFilesPFN(self):
     """pfn"""
     lfns = self.files_
-    res = self.rm_.getCatalogReplicas(lfns)
+    res = self.fc.getReplicas( lfns )
     return res
 
   #############################################################################

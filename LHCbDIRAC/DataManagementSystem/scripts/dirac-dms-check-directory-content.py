@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-  For a given LFN directory, check the files that are registered in the LFC and checks that they exist on the SE (using ReplicaManager), and in Bookkeeping, with the  correct ReplicaFlag """
+  For a given LFN directory, check the files that are registered in the LFC and checks that they exist on the SE, and in Bookkeeping, with the  correct ReplicaFlag """
 
 __RCSID__ = "$Id$"
 
@@ -25,7 +25,8 @@ Script.scriptName, ] ) )
 
 Script.parseCommandLine( ignoreErrors = False )
 
-from DIRAC.DataManagementSystem.Client.ReplicaManager     import ReplicaManager
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.Core.DISET.RPCClient import RPCClient
 #from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient               import BookkeepingClient
 bkClient = RPCClient( 'Bookkeeping/BookkeepingManager' )
@@ -58,10 +59,10 @@ scaleDict = { 'MB' : 1000 * 1000.0,
 if not unit in scaleDict.keys():
   Script.showHelp()
 scaleFactor = scaleDict[unit]
-rm = ReplicaManager()
+
 currentDir = dir
 print 'Obtaining the catalog contents for %s directory' % currentDir
-res = rm.getCatalogListDirectory( currentDir )
+res = FileCatalog().listDirectory( currentDir )
 if not res['OK']:
   print 'ERROR: Cannot get directory content'
   DIRAC.exit( -1 )
@@ -126,7 +127,7 @@ for lfn, lfnDict in allFiles.items():
     replicasPerSE[ se ].append( pfn )
     if verbose:
       fp.write("Checking on storage PFN, SE: %s %s\n" % ( pfn, se ) )
-    res = rm.getStorageFileMetadata( pfn, se )
+    res = StorageElement( se ).getFileMetadata( pfn )
     if not res['OK']:
       fp.write("ERROR: could not get storage file metadata! %s - %s \n" %(pfn, se))
       if lfn not in problematicFiles.keys():

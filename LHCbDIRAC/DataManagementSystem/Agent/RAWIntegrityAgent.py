@@ -18,7 +18,8 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC.ConfigurationSystem.Client import PathFinder
 ## from DMS
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.DataManagementSystem.Client.DataLoggingClient import DataLoggingClient
 from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB import RAWIntegrityDB
 ## from RMS
@@ -32,7 +33,7 @@ class RAWIntegrityAgent( AgentModule ):
   """
   .. class:: RAWIntegirtyAgent
 
-  :param ReplicaManager replicaManager: ReplicaManager instance
+  :param DataManager dataManager: DataManager instance
   :param RAWIntegrityDB rawIntegrityDB: RAWIntegrityDB instance
   :param DataLoggingClient dataLoggingClient: DataLoggingClient instance
   :param str gatewayUrl: URL to online RequestClient
@@ -46,7 +47,7 @@ class RAWIntegrityAgent( AgentModule ):
   
     self.dataLoggingClient = None
     self.rawIntegrityDB    = None
-    self.replicaManager    = None
+    self.dataManager = None
     self.onlineRequestMgr  = None
     
     
@@ -55,7 +56,7 @@ class RAWIntegrityAgent( AgentModule ):
 
     self.dataLoggingClient = DataLoggingClient()
     self.rawIntegrityDB    = RAWIntegrityDB()
-    self.replicaManager    = ReplicaManager()   
+    self.dataManager = DataManager()
 
     gatewayUrl = PathFinder.getServiceURL( 'RequestManagement/onlineGateway' )
     self.onlineRequestMgr = RPCClient( gatewayUrl )
@@ -139,7 +140,7 @@ class RAWIntegrityAgent( AgentModule ):
       sePfns[se].append( pfn )
     pfnMetadata = { 'Successful':{}, 'Failed':{} }
     for se, pfnList in sePfns.items():
-      res = self.replicaManager.getStorageFileMetadata( pfnList, se )
+      res = StorageElement( se ).getMetadata( pfnList )
       if not res['OK']:
         errStr = "Failed to obtain physical file metadata."
         self.log.error( errStr, res['Message'] )
@@ -228,7 +229,7 @@ class RAWIntegrityAgent( AgentModule ):
         guid = activeFiles[lfn]['GUID']
         checksum = activeFiles[lfn]['Checksum']
         fileTuple = ( lfn, pfn, size, se, guid, checksum )
-        res = self.replicaManager.registerFile( fileTuple )
+        res = self.dataManager.registerFile( fileTuple )
         if not res['OK']:
           self.dataLoggingClient.addFileRecord( lfn, 'RegisterFailed', se, '', 'RAWIntegrityAgent' )
           self.log.error( "Completely failed to register successfully migrated file.", res['Message'] )
@@ -283,7 +284,7 @@ class RAWIntegrityAgent( AgentModule ):
         size = activeFiles[lfn]['Size']
         se = activeFiles[lfn]['SE']
         guid = activeFiles[lfn]['GUID']
-        res = self.replicaManager.removeStorageFile( pfn, se )
+        res = StorageElement( se ).removeFile( pfn )
         if not res['OK']:
           self.dataLoggingClient.addFileRecord( lfn, 'RemoveReplicaFailed', se, '', 'RAWIntegrityAgent' )
           self.log.error( "Completely failed to remove pfn from the storage element.", res['Message'] )

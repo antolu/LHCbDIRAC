@@ -20,10 +20,10 @@ class GaudiApplicationScript( ModuleBase ):
 
   #############################################################################
 
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     self.version = __RCSID__
     self.log = gLogger.getSubLogger( "GaudiApplicationScript" )
-    super( GaudiApplicationScript, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( GaudiApplicationScript, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.result = S_ERROR()
 

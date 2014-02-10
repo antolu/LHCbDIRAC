@@ -12,6 +12,8 @@ from DIRAC.Core.Utilities.Subprocess                    import shellCall
 from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 from DIRAC.RequestManagementSystem.Client.Operation     import Operation
 from DIRAC.RequestManagementSystem.Client.File          import File
+from DIRAC.Resources.Storage.StorageElement             import StorageElement
+from DIRAC.Resources.Utilities                          import Utils
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase              import ModuleBase
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities        import tarFiles
@@ -23,12 +25,12 @@ class UploadLogFile( ModuleBase ):
 
   #############################################################################
 
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     """Module initialization.
     """
 
     self.log = gLogger.getSubLogger( "UploadLogFile" )
-    super( UploadLogFile, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( UploadLogFile, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
 
@@ -144,11 +146,9 @@ class UploadLogFile( ModuleBase ):
       res = S_ERROR()
       logURL = '<a href="http://lhcb-logs.cern.ch/storage%s">Log file directory</a>' % self.logFilePath
       self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
-      self.log.info( 'PutDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
+      self.log.info( 'putDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
 
-      res = self.rm.putStorageDirectory( storageDirectory = {self.logFilePath:os.path.realpath( self.logdir )},
-                                         storageElementName = self.logSE,
-                                         singleDirectory = True )
+      res = Utils.executeSingleFileOrDirWrapper( StorageElement( self.logSE ).putDirectory( storageDirectory = {self.logFilePath:os.path.realpath( self.logdir )} ) )
       self.log.verbose( res )
       self.setJobParameter( 'Log URL', logURL )
       if res['OK']:

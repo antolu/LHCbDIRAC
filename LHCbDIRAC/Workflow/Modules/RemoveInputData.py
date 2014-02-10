@@ -13,12 +13,12 @@ class RemoveInputData( ModuleBase ):
 
   #############################################################################
 
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     """Module initialization.
     """
 
     self.log = gLogger.getSubLogger( "RemoveInputData" )
-    super( RemoveInputData, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( RemoveInputData, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
 
@@ -58,8 +58,8 @@ class RemoveInputData( ModuleBase ):
 
       # Try to remove the file list with failover if necessary
       failover = []
-      self.log.info( 'Attempting rm.removeFile("%s")' % ( self.inputDataList ) )
-      result = self.rm.removeFile( self.inputDataList )
+      self.log.info( 'Attempting dm.removeFile("%s")' % ( self.inputDataList ) )
+      result = self.dm.removeFile( self.inputDataList )
       self.log.verbose( result )
       if not result['OK']:
         self.log.error( 'Could not remove files with message:\n"%s"\n\

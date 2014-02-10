@@ -26,7 +26,7 @@ from DIRAC.Core.Base.AgentModule                                 import AgentMod
 from DIRAC.Core.Utilities.List                                   import uniqueElements
 from DIRAC.Core.Utilities.Time                                   import dateTime
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations         import Operations
-from DIRAC.DataManagementSystem.Client.ReplicaManager            import ReplicaManager
+from DIRAC.DataManagementSystem.Client.DataManager               import DataManager
 from DIRAC.RequestManagementSystem.Client.ReqClient              import ReqClient
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient        import BookkeepingClient
@@ -44,13 +44,13 @@ class DataRecoveryAgent( AgentModule ):
     """
     AgentModule.__init__( self, *args, **kwargs )
 
-    self.replicaManager = ReplicaManager()
+    self.dataManager = DataManager()
     self.transClient = TransformationClient()
     self.bkClient = BookkeepingClient()
     self.reqClient = ReqClient()
 
     self.cc = ConsistencyChecks( interactive = False, transClient = self.transClient,
-                                 rm = self.replicaManager, bkClient = self.bkClient )
+                                 dm = self.dataManager, bkClient = self.bkClient )
 
     self.transformationTypes = Operations().getValue( 'Transformations/DataProcessing', [] )
     self.transformationTypes = list( set( self.transformationTypes ) - set( ['MCSimulation', 'Simulation'] ) )

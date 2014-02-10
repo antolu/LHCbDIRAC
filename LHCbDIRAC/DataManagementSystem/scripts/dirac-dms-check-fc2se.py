@@ -19,7 +19,7 @@ def __removeFile( lfns ):
     lfns = lfns.keys()
   elif type( lfns ) == type( '' ):
     lfns = [lfns]
-  res = rm.removeFile( lfns )
+  res = dm.removeFile( lfns )
   if res['OK']:
     success = len( res['Value']['Successful'] )
     failures = 0
@@ -39,7 +39,7 @@ def __removeReplica( lfnDict ):
     for se in lfnDict[lfn]:
       seLFNs.setdefault( se, [] ).append( lfn )
   for se, lfns in seLFNs.items():
-    res = rm.removeReplica( se, lfns )
+    res = dm.removeReplica( se, lfns )
     if res['OK']:
       success = len( res['Value']['Successful'] )
       failures = 0
@@ -153,7 +153,7 @@ if __name__ == '__main__':
 
   # imports
   from DIRAC import gLogger
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
@@ -162,10 +162,10 @@ if __name__ == '__main__':
     if switch[0] == 'FixIt':
       fixIt = True
 
-  rm = ReplicaManager()
+  dm = DataManager()
   bk = BookkeepingClient()
 
-  cc = ConsistencyChecks( rm = rm, bkClient = bk )
+  cc = ConsistencyChecks( dm = dm, bkClient = bk )
   cc.directories = dmScript.getOption( 'Directory', [] )
   cc.lfns = dmScript.getOption( 'LFNs', [] ) + [lfn for arg in Script.getPositionalArgs() for lfn in arg.split( ',' )]
   productions = dmScript.getOption( 'Productions', [] )

@@ -92,15 +92,15 @@ if __name__ == '__main__':
       checkAll = True
 
   # imports
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
   gLogger.setLevel( 'INFO' )
-  rm = ReplicaManager()
+  dm = DataManager()
   bk = BookkeepingClient()
 
-  cc = ConsistencyChecks( rm = rm, bkClient = bk )
+  cc = ConsistencyChecks( dm = dm, bkClient = bk )
   bkQuery = dmScript.getBKQuery( visible = 'All' )
   cc.bkQuery = bkQuery
   cc.lfns = dmScript.getOption( 'LFNs', [] )

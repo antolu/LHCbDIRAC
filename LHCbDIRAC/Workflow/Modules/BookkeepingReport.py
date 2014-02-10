@@ -24,13 +24,13 @@ class BookkeepingReport( ModuleBase ):
   """ BookkeepingReport class
   """
 
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     """ Usual c'tor
     """
 
     self.log = gLogger.getSubLogger( "BookkeepingReport" )
 
-    super( BookkeepingReport, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( BookkeepingReport, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
 

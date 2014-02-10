@@ -9,7 +9,10 @@ from DIRAC.Core.Utilities.File                                  import getSize, 
 from DIRAC.Core.Utilities.List                                  import sortList
 
 from DIRAC.DataManagementSystem.Client.FailoverTransfer         import FailoverTransfer
-from DIRAC.DataManagementSystem.Client.ReplicaManager           import ReplicaManager
+from DIRAC.DataManagementSystem.Client.DataManager              import DataManager
+from DIRAC.Resources.Catalog.FileCatalog                        import FileCatalog
+from DIRAC.Resources.Utilities                                  import Utils
+from DIRAC.Resources.Storage.StorageElement                     import StorageElement
 from DIRAC.RequestManagementSystem.Client.Request               import Request
 
 from LHCbDIRAC.Core.Utilities.File                              import makeGuid
@@ -135,7 +138,7 @@ def mergeRun( bkDict, res_0, res_1, run, bkClient, transClient, homeDir, prodId 
   results = {}
   results[ 'Merged' ] = False
 
-  rm = ReplicaManager()
+  dm = DataManager()
 
   procPass = bkDict[ 'ProcessingPass' ]
   dqFlag = bkDict[ 'DataQualityFlag' ]
@@ -210,7 +213,7 @@ def mergeRun( bkDict, res_0, res_1, run, bkClient, transClient, homeDir, prodId 
       retry = 1
       while retry < 6  and ( ( not res[ 'OK' ] ) or ( not res[ 'Value' ][ 'Successful' ] ) ):
         gLogger.info( "Trying to download %s time" % retry )
-        res = rm.getFile( lfn, homeDir )
+        res = dm.getFile( lfn, homeDir )
         retry = retry + 1
       if res[ 'OK' ] and res[ 'Value' ][ 'Successful' ].has_key( lfn ):
         brunelLocal.append( res[ 'Value' ][ 'Successful' ][ lfn ] )
@@ -230,7 +233,7 @@ def mergeRun( bkDict, res_0, res_1, run, bkClient, transClient, homeDir, prodId 
       retry = 1
       while retry < 6  and ( ( not res[ 'OK' ] ) or ( not res[ 'Value' ][ 'Successful' ] ) ):
         gLogger.info( "Trying to download %s time" % retry )
-        res = rm.getFile( lfn, homeDir )
+        res = dm.getFile( lfn, homeDir )
         retry = retry + 1
       if res[ 'OK' ] and res[ 'Value' ][ 'Successful' ].has_key( lfn ):
         davinciLocal.append( res[ 'Value' ][ 'Successful' ][ lfn ] )
@@ -794,7 +797,7 @@ def finalization( homeDir, logDir, lfns, outputFileName, logFileName, inputData,
    2 - Perform failoverTransfer.transferAndRegisterFile (LFC Upload and Registration)
    3 - From the Bookkeeping XML report previously created a request object is created.
    4 - If the registration in the BK is possible than the file is added to the calalog.
-   5 - For the log file all the directory is Uploaded with the replicamanager putStorageDirectory.
+   5 - For the log file all the directory is Uploaded with the storageElement putDirectory.
 
   Output is a dictionary of dictionaries with first key the LFN of the file. The structure is:
   {'/lhcb/LHCb/Collision11/HIST/00010822/0000/Brunel_TEST_0.root':
@@ -1129,8 +1132,7 @@ def _upLoadOutputData( localpath, localfilename, lfn, xMLBookkeepingReport, logD
         return result
 
   else:
-    rm = ReplicaManager()
-    result = rm.addCatalogFile( performBKRegistration, catalogs = ['BookkeepingDB'] )
+    result = FileCatalog( catalogs = ['BookkeepingDB'] ).addFile( performBKRegistration )
     log.verbose( result )
     if not result['OK']:
       log.err( 'Could Not Perform BK Registration' )
@@ -1146,8 +1148,8 @@ def _upLoadOutputData( localpath, localfilename, lfn, xMLBookkeepingReport, logD
       log.verbose( "LogUpload results" )
       log.verbose( {logDict['logFilePath']:os.path.realpath( logDict['logdir'] )} )
       log.verbose( str( logDict['logSE'] ) )
-      res = rm.putStorageDirectory( { logDict['logFilePath'] : os.path.realpath( logDict['logdir'] ) },
-                                    logDict['logSE'], singleDirectory = True )
+      res = Utils.executeSingleFileOrDirWrapper( StorageElement( logDict['logSE'] ).putDirectory( { logDict['logFilePath'] : os.path.realpath( logDict['logdir'] ) } ) )
+
       log.verbose( str( res ) )
 
   return result

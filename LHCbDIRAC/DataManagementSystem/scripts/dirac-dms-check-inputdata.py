@@ -13,7 +13,7 @@ def inaccessibleReplicas( lfn, se ):
     seList = se
   failed = {}
   for se in seList:
-    res = rm.getReplicaMetadata( lfn, se )
+    res = dm.getReplicaMetadata( lfn, se )
     if not res['OK']:
       gLogger.always( 'Error getting metadata of %s at %s' % ( lfn, se ), res['Message'] )
       continue
@@ -65,10 +65,10 @@ if __name__ == "__main__":
   else:
     jobs = []
 
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
-  rm = ReplicaManager()
+  dm = DataManager()
   bk = BookkeepingClient()
 
   monitoring = RPCClient( 'WorkloadManagement/JobMonitoring' )
@@ -175,7 +175,7 @@ if __name__ == "__main__":
         gLogger.always( 'For %s, SEs: %s' % ( site, str( seList ) ) )
       pbFound = False
 
-      res = rm.getReplicas( inputData )
+      res = dm.getReplicas( inputData )
       if not res['OK']:
         gLogger.always( "Error getting replicas for %d files" % len( inputData ), res['Message'] )
         continue

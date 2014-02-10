@@ -14,11 +14,9 @@ import DIRAC
 from DIRAC                                                import gLogger
 from DIRAC.Core.Security.Misc                        import getProxyInfo
 from LHCbDIRAC.Interfaces.API.DiracLHCb                   import DiracLHCb
-from DIRAC.DataManagementSystem.Client.ReplicaManager     import ReplicaManager
 import re, os
 
 lhcb = DiracLHCb()
-replicaManager = ReplicaManager()
 
 res = getProxyInfo( False, False )
 if not res['OK']:

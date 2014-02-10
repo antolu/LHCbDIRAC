@@ -14,7 +14,7 @@ import time
 from DIRAC                                               import S_OK
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Base.AgentModule                         import AgentModule
-from DIRAC.DataManagementSystem.Client.ReplicaManager    import ReplicaManager
+from DIRAC.DataManagementSystem.Client.DataManager       import DataManager
 from DIRAC.WorkloadManagementSystem.DB.JobDB             import JobDB
 from DIRAC.Core.Utilities                                import Time
 
@@ -257,8 +257,8 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
     fd, fName = tempfile.mkstemp()
     os.write( fd, fileData )
     os.close( fd )
-    rm = ReplicaManager()
-    result = rm.put( "/lhcb/monitoring/lhcb.siteWMSmonitoring.csv", fName, 'LogSE' )
+    dm = DataManager()
+    result = dm.put( "/lhcb/monitoring/lhcb.siteWMSmonitoring.csv", fName, 'LogSE' )
     try:
       os.unlink( fName )
     except Exception, e:

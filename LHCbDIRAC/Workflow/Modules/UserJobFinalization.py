@@ -21,12 +21,12 @@ from LHCbDIRAC.Core.Utilities.ResolveSE                       import getDestinat
 class UserJobFinalization( ModuleBase ):
 
   #############################################################################
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     """Module initialization.
     """
 
     self.log = gLogger.getSubLogger( "UserJobFinalization" )
-    super( UserJobFinalization, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( UserJobFinalization, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
     self.enable = True
@@ -292,7 +292,7 @@ class UserJobFinalization( ModuleBase ):
       self.log.info( 'Sleeping for 10 seconds before attempting replication of recently uploaded files' )
       time.sleep( 10 )
       for lfn, repSE in replication.items():
-        result = self.rm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
+        result = self.dm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
         if not result['OK']:
           self.log.info( "Replication failed: %s. Now adding request" % ( result['Message'] ) )
           self.failoverTransfer._setFileReplicationRequest( lfn, repSE, fileMetaDict, uploadedSE )

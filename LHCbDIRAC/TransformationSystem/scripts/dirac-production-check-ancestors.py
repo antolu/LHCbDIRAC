@@ -17,7 +17,7 @@ def removeFile( lfns ):
   else:
     gLogger.always( 'Error making files invisible in BK', res['Message'] )
   gLogger.always( 'Removing %d files from disk' % len( lfns ) )
-  res = rm.getReplicas( lfns )
+  res = dm.getReplicas( lfns )
   success = res.get( 'Value', {} ).get( 'Successful', [] )
   failed = res.get( 'Value', {} ).get( 'Failed', lfns )
   if res['OK'] and success:
@@ -33,7 +33,7 @@ def removeFile( lfns ):
             removeFiles.remove( lfn )
     if removeFiles:
       gLogger.always( 'Removing completely %d files' % len( removeFiles ) )
-      res = rm.removeFile( removeFiles )
+      res = dm.removeFile( removeFiles )
       if not res['OK']:
         gLogger.fatal( 'Error removing %d files' % len( removeFiles ), res['Message'] )
       else:
@@ -50,7 +50,7 @@ def removeFile( lfns ):
     for se, replicas in seLfns.items():
       replicas = [lfn for lfn in replicas if lfn not in removeFiles]
       if replicas:
-        res = rm.removeReplica( se, replicas )
+        res = dm.removeReplica( se, replicas )
         if not res['OK']:
           gLogger.fatal( 'Error removing replicas', res['Message'] )
         else:
@@ -156,14 +156,14 @@ if __name__ == '__main__':
   lfnList = dmScript.getOption( 'LFNs', [] )
 
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-  rm = ReplicaManager()
+  dm = DataManager()
   bkClient = BookkeepingClient()
   transClient = TransformationClient()
 
-  cc = ConsistencyChecks( transClient = transClient, rm = rm, bkClient = bkClient )
+  cc = ConsistencyChecks( transClient = transClient, dm = dm, bkClient = bkClient )
   cc.bkQuery = dmScript.getBKQuery()
   cc.lfns = lfnList
   startTime = time.time()

@@ -54,7 +54,7 @@ def doCheck():
                      '\n'.join( sorted( cc.existLFNsNotInBK[0:maxFiles] ) ) ) )
     if fixIt:
       gLogger.always( "Going to fix them, by removing from the FC and storage" )
-      res = rm.removeFile( cc.existLFNsNotInBK )
+      res = dm.removeFile( cc.existLFNsNotInBK )
       if res['OK']:
         success = len( res['Value']['Successful'] )
         failures = 0
@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
   # imports
   from DIRAC import gLogger
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
@@ -102,10 +102,10 @@ if __name__ == '__main__':
     if switch[0] == 'FixIt':
       fixIt = True
 
-  rm = ReplicaManager()
+  dm = DataManager()
   bk = BookkeepingClient()
 
-  cc = ConsistencyChecks( rm = rm, bkClient = bk )
+  cc = ConsistencyChecks( dm = dm, bkClient = bk )
   cc.directories = dmScript.getOption( 'Directory', [] )
   cc.lfns = dmScript.getOption( 'LFNs', [] ) + [lfn for arg in Script.getPositionalArgs() for lfn in arg.split( ',' )]
   productions = dmScript.getOption( 'Productions', [] )

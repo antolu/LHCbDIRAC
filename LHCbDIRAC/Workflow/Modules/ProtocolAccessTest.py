@@ -11,6 +11,7 @@ from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.Utilities.ModuleFactory import ModuleFactory
 from DIRAC.Core.Utilities.List import sortList
 from DIRAC.Core.Utilities.Statistics import getMean, getMedian, getVariance, getStandardDeviation
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ClientTools import readFileEvents
@@ -23,11 +24,11 @@ class ProtocolAccessTest( ModuleBase ):
   """
 
   #############################################################################
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     """ Standard constructor """
 
     self.log = gLogger.getSubLogger( "ProtocolAccessTest" )
-    super( ProtocolAccessTest, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( ProtocolAccessTest, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
     self.stepInputData = []
@@ -84,7 +85,7 @@ class ProtocolAccessTest( ModuleBase ):
 
       self.log.info( 'Attempting to get replica and metadata information for:\n%s' % ( '\n'.join( self.stepInputData ) ) )
 
-      replicaRes = self.rm.getReplicas( self.stepInputData )
+      replicaRes = self.dm.getReplicas( self.stepInputData )
       if not replicaRes['OK']:
         self.log.error( replicaRes )
         return S_ERROR( 'Could not obtain replica information' )
@@ -92,7 +93,7 @@ class ProtocolAccessTest( ModuleBase ):
         self.log.error( replicaRes )
         return S_ERROR( 'Could not obtain replica information' )
 
-      metadataRes = self.rm.getCatalogFileMetadata( self.stepInputData )
+      metadataRes = FileCatalog().getFileMetadata( self.stepInputData )
       if not metadataRes['OK']:
         self.log.error( metadataRes )
         return S_ERROR( 'Could not obtain metadata information' )

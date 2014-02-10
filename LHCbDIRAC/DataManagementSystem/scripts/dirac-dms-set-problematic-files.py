@@ -69,8 +69,9 @@ if __name__ == "__main__":
     if i >= 0:
       lfns.append( lfn[i:] )
 
-  from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
-  rm = ReplicaManager()
+
+  from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+  fc = FileCatalog()
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
   tr = TransformationClient()
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
@@ -87,7 +88,7 @@ if __name__ == "__main__":
   for chunk in breakListIntoChunks( lfns, chunkSize ):
     sys.stdout.write( '.' )
     sys.stdout.flush()
-    res = rm.getCatalogReplicas( chunk, allStatus = True )
+    res = fc.getReplicas( chunk, allStatus = True )
     if not res['OK']:
       gLogger.error( "Error getting file replicas:", res['Message'] )
       DIRAC.exit( 1 )
@@ -159,7 +160,7 @@ if __name__ == "__main__":
 
   status = '-' if reset else 'P'
   if repsDict:
-    res = rm.setCatalogReplicaStatus( repsDict ) if action else {'OK':True}
+    res = fc.setReplicaStatus( repsDict ) if action else {'OK':True}
     if not res['OK']:
       gLogger.error( "\nError setting replica status to %s in FC for %d files" % ( status, len( repsDict ) ), res['Message'] )
     else:
@@ -170,7 +171,7 @@ if __name__ == "__main__":
     nbReps = 0
     for lfn in repsMultDict:
       for repDict in repsMultDict[lfn]:
-        res = rm.setCatalogReplicaStatus( {lfn:repDict} ) if action else {'OK':True}
+        res = fc.setReplicaStatus( {lfn:repDict} ) if action else {'OK':True}
         if not res['OK']:
           gLogger.error( "\nError setting replica status to %s in FC for %d files" % ( status, len( repsDict ) ), res['Message'] )
         else:

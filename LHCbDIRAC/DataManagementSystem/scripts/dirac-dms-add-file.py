@@ -64,12 +64,12 @@ if __name__ == "__main__":
   else:
     lfns.append( getDict( args ) )
 
-  from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+  from DIRAC.DataManagementSystem.Client.DataM import DataManager
   from DIRAC import gLogger
   import DIRAC
   exitCode = 0
 
-  rm = ReplicaManager()
+  dm = DataManager()
   logLevel = gLogger.getLevel()
   for lfnDict in lfns:
     localFile = lfnDict['localfile']
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     lfn = lfnDict['lfn']
     gLogger.notice( "\nUploading %s as %s" % ( localFile, lfn ) )
     gLogger.setLevel( 'FATAL' )
-    res = rm.putAndRegister( lfn, localFile, lfnDict['SE'], lfnDict['guid'] )
+    res = dm.putAndRegister( lfn, localFile, lfnDict['SE'], lfnDict['guid'] )
     gLogger.setLevel( logLevel )
     if not res['OK']:
       exitCode = 3

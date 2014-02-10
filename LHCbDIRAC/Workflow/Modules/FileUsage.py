@@ -16,11 +16,11 @@ class FileUsage( ModuleBase ):
 
   #############################################################################
 
-  def __init__( self, bkClient = None, rm = None ):
+  def __init__( self, bkClient = None, dm = None ):
     """Module initialization.
     """
     self.log = gLogger.getSubLogger( "FileUsage" )
-    super( FileUsage, self ).__init__( self.log, bkClientIn = bkClient, rm = rm )
+    super( FileUsage, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
     self.version = __RCSID__
     self.dataUsageClient = DataUsageClient()
 

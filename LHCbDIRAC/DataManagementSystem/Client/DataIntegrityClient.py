@@ -7,6 +7,9 @@
 from DIRAC.DataManagementSystem.Client.DataIntegrityClient  import DataIntegrityClient as DIRACDataIntegrityClient
 from DIRAC                                                  import S_OK, S_ERROR, gLogger
 import re, types
+from DIRAC.Resources.Catalog.FileCatalog                    import FileCatalog
+from DIRAC.Resources.Storage.StorageElement                 import StorageElement
+from DIRAC.Resources.Utilities                              import Utils
 
 __RCSID__ = "$Id$"
 
@@ -51,7 +54,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     ''' checks the catalog existence for given files '''
     gLogger.info( 'Checking the catalog existence of %s files' % len( lfns ) )
 
-    res = self.rm.getCatalogFileMetadata( lfns )
+    res = self.fc.getFileMetadata( lfns )
     if not res['OK']:
       gLogger.error( 'Failed to get catalog metadata', res['Message'] )
       return res
@@ -160,7 +163,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     """
     gLogger.info( 'Checking the bookkeeping existence of %s files' % len( catalogMetadata ) )
 
-    res = self.rm.getCatalogFileMetadata( catalogMetadata.keys(), catalogs = ['BookkeepingDB'] )
+    res = FileCatalog( catalogs = ['BookkeepingDB'] ).getFileMetadata( catalogMetadata.keys() )
     if not res['OK']:
       gLogger.error( 'Failed to get bookkeeping metadata', res['Message'] )
       return res
@@ -207,7 +210,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     lfn = problematicDict['LFN']
     fileID = problematicDict['FileID']
 
-    res = self.rm.getCatalogExists( lfn, singleFile = True )
+    res = Utils.executeSingleFileOrDirWrapper( self.fc.exists( lfn ) )
     if not res['OK']:
       return self.__returnProblematicError( fileID, res )
     removeBKFile = False
@@ -218,13 +221,13 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     else:
       gLogger.info( "BKReplicaYes file (%d) found to exist in the catalog" % fileID )
       # If the file has no replicas in the catalog
-      res = self.rm.getCatalogReplicas( lfn, singleFile = True )
+      res = Utils.executeSingleFileOrDirWrapper( self.fc.getReplicas( lfn ) )
       if ( not res['OK'] ) and ( res['Message'] == 'File has zero replicas' ):
         gLogger.info( "BKReplicaYes file (%d) found to exist without replicas. Removing..." % fileID )
         removeBKFile = True
     if removeBKFile:
       # Remove the file from the BK because it does not exist
-      res = self.rm.removeCatalogFile( lfn, singleFile = True, catalogs = ['BookkeepingDB'] )
+      res = Utils.executeSingleFileOrDirWrapper( FileCatalog( catalogs = ['BookkeepingDB'] ).removeFile( lfn ) )
       if not res['OK']:
         return self.__returnProblematicError( fileID, res )
       gLogger.info( "BKReplicaYes file (%d) removed from bookkeeping" % fileID )
@@ -236,7 +239,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     lfn = problematicDict['LFN']
     fileID = problematicDict['FileID']
 
-    res = self.rm.getCatalogExists( lfn, singleFile = True )
+    res = Utils.executeSingleFileOrDirWrapper( self.fc.exists( lfn ) )
     if not res['OK']:
       return self.__returnProblematicError( fileID, res )
     # If the file exists in the catalog
@@ -244,14 +247,14 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
       return self.__updateCompletedFiles( 'BKReplicaNo', fileID )
     gLogger.info( "BKReplicaNo file (%d) found to exist in the catalog" % fileID )
     # and has available replicas
-    res = self.rm.getCatalogReplicas( lfn, singleFile = True )
+    res = Utils.executeSingleFileOrDirWrapper( self.fc.getCatalogReplicas( lfn ) )
     if not res['OK']:
       return self.__returnProblematicError( fileID, res )
     if not res['Value']:
       gLogger.info( "BKReplicaNo file (%d) found to have no replicas" % fileID )
       return self.changeProblematicPrognosis( fileID, 'LFNZeroReplicas' )
     gLogger.info( "BKReplicaNo file (%d) found to have replicas" % fileID )
-    res = self.rm.addCatalogFile( lfn, singleFile = True, catalogs = ['BookkeepingDB'] )
+    res = Utils.executeSingleFileOrDirWrapper( FileCatalog( catalogs = ['BookkeepingDB'] ).addFile( lfn ) )
     if not res['OK']:
       return self.__returnProblematicError( fileID, res )
     return self.__updateCompletedFiles( 'BKReplicaNo', fileID )
@@ -316,7 +319,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     """
     gLogger.info( 'Checking the integrity of %s physical files at %s' % ( len( pfnLfns ), se ) )
 
-    res = self.rm.getStorageFileMetadata( pfnLfns.keys(), se )
+    res = StorageElement( se ).getFileMetadata( pfnLfns.keys() )
     if not res['OK']:
       gLogger.error( 'Failed to get metadata for pfns.', res['Message'] )
       return res
@@ -379,7 +382,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     allFiles = {}
     while len( activeDirs ) > 0:
       currentDir = activeDirs[0]
-      res = self.rm.getCatalogListDirectory( currentDir, verbose = True )
+      res = self.fc.listDirectory( currentDir, verbose = True )
       activeDirs.remove( currentDir )
       if not res['OK']:
         gLogger.error( 'Failed to get directory contents', res['Message'] )

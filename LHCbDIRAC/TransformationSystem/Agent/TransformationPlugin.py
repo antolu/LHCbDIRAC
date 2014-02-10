@@ -21,12 +21,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   """
 
   def __init__( self, plugin,
-                transClient = None, replicaManager = None,
+                transClient = None, dataManager = None,
                 bkkClient = None, rmClient = None, rss = None,
                 debug = False, transInThread = None ):
     """ The clients can be passed in.
     """
-    DIRACTransformationPlugin.__init__( self, plugin, transClient = transClient, replicaManager = replicaManager )
+    DIRACTransformationPlugin.__init__( self, plugin, transClient = transClient, dataManager = dataManager )
 
     if not bkkClient:
       self.bkClient = BookkeepingClient()
@@ -51,7 +51,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.transFiles = []
     self.transID = None
     self.debug = debug
-    self.util = PluginUtilities( plugin, self.transClient, self.rm, self.bkClient,
+    self.util = PluginUtilities( plugin, self.transClient, self.dm, self.bkClient,
                                  self.rmClient, self.resourceStatus, debug,
                                  transInThread if transInThread else {} )
     self.setDebug( self.util.getPluginParam( 'Debug', False ) )
@@ -1293,7 +1293,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
         continue
       # get other replicas
-      res = self.rm.getCatalogReplicas( lfns, allStatus = True )
+      res = self.fc.getReplicas( lfns, allStatus = True )
       if not res['OK']:
         self.util.logError( 'Error getting catalog replicas', res['Message'] )
         continue

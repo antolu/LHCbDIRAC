@@ -40,12 +40,13 @@ if __name__ == "__main__":
   # from DIRAC.Interfaces.API.Dirac                         import Dirac
   # dirac = Dirac()
 
-  from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
+  from DIRAC.DataManagementSystem.Client.DataManager                  import DataManager
+  from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
   from DIRAC import gLogger
-  rm = ReplicaManager()
-
+  dm = DataManager()
+  fc = FileCatalog()
   while True:
-    res = rm.getActiveReplicas( lfnList ) if active else rm.getReplicas( lfnList )
+    res = dm.getActiveReplicas( lfnList ) if active else dm.getReplicas( lfnList )
     if not res['OK']:
       break
     if active and not res['Value']['Successful'] and not res['Value']['Failed']:
@@ -54,7 +55,7 @@ if __name__ == "__main__":
       break
   if res['OK']:
     if active:
-      res = rm.checkActiveReplicas( res['Value'] )
+      res = dm.checkActiveReplicas( res['Value'] )
       value = res['Value']
     else:
       lfns = []
@@ -62,7 +63,7 @@ if __name__ == "__main__":
       value = {'Failed': res['Value']['Failed'], 'Successful' : {}}
       for lfn in sorted( replicas ):
         for se in sorted( replicas[lfn] ):
-          res = rm.getCatalogReplicaStatus( {lfn:se} )
+          res = fc.getReplicaStatus( {lfn:se} )
           if not res['OK']:
             value['Failed'][lfn] = "Can't get replica status"
           else:

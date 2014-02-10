@@ -3,7 +3,7 @@
 
 from DIRAC                                                    import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities.List                                import sortList
-from DIRAC.DataManagementSystem.Client.ReplicaManager         import ReplicaManager
+from DIRAC.Resources.Catalog.FileCatalog                      import FileCatalog
 from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
 
 from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient       import StorageUsageClient
@@ -24,7 +24,7 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
     DIRACValidateOutputDataAgent.__init__( self, *args, **kwargs )
 
     self.integrityClient = DataIntegrityClient()
-    self.replicaManager = ReplicaManager()
+    self.fileCatalog = FileCatalog()
     self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
 
@@ -64,7 +64,7 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
     #
     # This check performs Catalog->BK and Catalog->SE for possible output directories
     #
-    res = self.replicaManager.getCatalogExists( directories )
+    res = self.fileCatalog.exists( directories )
     if not res['OK']:
       gLogger.error( res['Message'] )
       return res

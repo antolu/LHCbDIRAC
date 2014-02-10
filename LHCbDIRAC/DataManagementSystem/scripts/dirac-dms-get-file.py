@@ -34,8 +34,8 @@ if __name__ == "__main__":
     gLogger.always( "Not allowed to specify more than one destination directory" )
     DIRAC.exit( 2 )
 
-  from DIRAC.DataManagementSystem.Client.ReplicaManager                  import ReplicaManager
-  rm = ReplicaManager()
-  res = rm.getFile( lfnList, destinationDir = dirList[0] )
+  from DIRAC.DataManagementSystem.Client.DataManager                  import DataManager
+  dm = DataManager()
+  res = dm.getFile( lfnList, destinationDir = dirList[0] )
   DIRAC.exit( printDMResult( res,
                              empty = "No allowed replica found", script = "dirac-dms-get-file" ) )

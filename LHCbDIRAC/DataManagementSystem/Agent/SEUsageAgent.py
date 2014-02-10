@@ -17,7 +17,7 @@ from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.Interfaces.API.Dirac import Dirac
 # # from LHCbDIRAC
@@ -37,7 +37,7 @@ class SEUsageAgent( AgentModule ):
   ''' ..class:: SEUsageAgent
 
   :param mixed storageUsage: StorageUsageDB or StorageUsage client
-  :param ReplicaManager replicaManager: ReplicaManager instance
+  :param DataManager dataManager: DataManager instance
   :param Operations opHelper: operations helper
   :param int maximumDelaySinceSD: max delay after SE dump creation
   :param list activeSites: active sites
@@ -52,7 +52,7 @@ class SEUsageAgent( AgentModule ):
     else:
       self.storageUsage = RPCClient( 'DataManagement/StorageUsage' )
     # # replica mgr
-    self.replicaManager = ReplicaManager()
+    self.dataManager = DataManager()
     # # operations helper
     self.opHelper = Operations()
     # # Dirac API
@@ -995,9 +995,9 @@ class SEUsageAgent( AgentModule ):
       self.log.info( "No file to be checked in the FC for site %s " % site )
       return S_OK()
     if active:
-      repsResult = self.replicaManager.getActiveReplicas( filesInProblematicDirs )
+      repsResult = self.dataManager.getActiveReplicas( filesInProblematicDirs )
     else:
-      repsResult = self.replicaManager.getReplicas( filesInProblematicDirs )
+      repsResult = self.dataManager.getReplicas( filesInProblematicDirs )
     timing = time.time() - start
     self.log.info( '%d replicas Lookup Time: %.2f s -> %.2f s/replica' % ( len( filesInProblematicDirs ), timing,
                                                                            float( timing ) / len( filesInProblematicDirs ) ) )
@@ -1119,14 +1119,14 @@ class SEUsageAgent( AgentModule ):
         continue
       surl = res[ 'Value']
       self.log.verbose( "checking existance for %s - %s" % ( surl, seName ) )
-      res = self.replicaManager.getStorageFileExists( surl, seName )
+      res = storageElement.exists( surl )
       self.log.verbose( "result of getStorageFileExists: %s " % res )
       if not res['OK']:
-        self.log.error( "error executing replicaManager.getStorageFileExists %s " % res['Message'] )
+        self.log.error( "error executing StorageElement.exists %s " % res['Message'] )
         storageFileExist = -1
         continue
       if res['Value']['Failed']:
-        self.log.error( "error executing replicaManager.getStorageFileExists %s " % res )
+        self.log.error( "error executing StorageElement.exists %s " % res )
         storageFileExist = -1
         continue
       elif res['Value']['Successful']:
