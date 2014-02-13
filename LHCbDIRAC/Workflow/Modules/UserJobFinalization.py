@@ -169,23 +169,21 @@ class UserJobFinalization( ModuleBase ):
         return S_OK()
 
       # First get the local (or assigned) SE to try first for upload and others in random fashion
-      localSE = getDestinationSEList( 'Tier1-USER', DIRAC.siteName(), outputmode = 'local' )
-      self.log.verbose( "Site Local SE for user outputs is: %s" % ( localSE ) )
-      orderedSEs = self.defaultOutputSE
-      for se in localSE:
-        if se in orderedSEs:
-          orderedSEs.remove( se )
-      for se in self.userOutputSE:
-        if se in orderedSEs:
-          orderedSEs.remove( se )
-
-      orderedSEs = localSE + List.randomize( orderedSEs )
-      if self.userOutputSE:
-        prependSEs = []
-        for userSE in self.userOutputSE:
-          if not userSE in orderedSEs:
-            prependSEs.append( userSE )
-        orderedSEs = prependSEs + orderedSEs
+      localSEs = set( getDestinationSEList( 'Tier1-USER', DIRAC.siteName(), outputmode = 'local' ) )
+      self.log.verbose( "Site Local SE for user outputs is: %s" % ( localSEs ) )
+      userSEs = set( self.userOutputSE )
+      otherSEs = set( self.defaultOutputSE ) - localSEs - userSEs
+      # If a user SE is  local set it first
+      topSEs = userSEs & localSEs
+      # reordered user SEs, setting local first
+      userSEs = list( topSEs ) + list( userSEs - topSEs )
+      localSEs = list( localSEs - topSEs )
+      if len( userSEs ) < 2 and localSEs:
+        # Set a local SE first
+        orderedSEs = localSEs[0] + userSEs + localSEs[1:]
+      else:
+        orderedSEs = userSEs + localSEs
+      orderedSEs += List.randomize( list( otherSEs ) )
 
       self.log.info( "Ordered list of output SEs is: %s" % ( ', '.join( orderedSEs ) ) )
       final = {}
@@ -238,8 +236,8 @@ class UserJobFinalization( ModuleBase ):
           uploaded.append( lfn )
           seList = metadata['resolvedSE']
           replicateSE = ''
-          if result['Value'].has_key( 'uploadedSE' ):
-            uploadedSE = result['Value']['uploadedSE']
+          uploadedSE = result['Value'].get( 'uploadedSE', '' )
+          if uploadedSE:
             for se in seList:
               if not se == uploadedSE:
                 replicateSE = se
@@ -247,12 +245,16 @@ class UserJobFinalization( ModuleBase ):
 
           if replicateSE and lfn:
             self.log.info( "Will attempt to replicate %s to %s" % ( lfn, replicateSE ) )
-            replication[lfn] = replicateSE
+            replication[lfn] = ( uploadedSE, replicateSE )
 
       cleanUp = False
       for fileName, metadata in failover.items():
         random.shuffle( self.failoverSEs )
         targetSE = metadata['resolvedSE'][0]
+        if len( metadata['resolvedSE'] ) > 1:
+          replicateSE = metadata['resolvedSE'][1]
+        else:
+          replicateSE = ''
         metadata['resolvedSE'] = self.failoverSEs
         fileMetaDict = { 'Size': metadata['filedict']['Size'],
                          'LFN' : metadata['filedict']['LFN'],
@@ -271,7 +273,9 @@ class UserJobFinalization( ModuleBase ):
         else:
           lfn = metadata['lfn']
           uploaded.append( lfn )
-          uploadedSE = result['Value']['uploadedSE']
+          # Even when using Failover, one needs to replicate to a second SE
+          if replicateSE:
+            replication[lfn] = ( targetSE, replicateSE )
 
       # For files correctly uploaded must report LFNs to job parameters
       if uploaded:
@@ -291,8 +295,9 @@ class UserJobFinalization( ModuleBase ):
       # If there is now at least one replica for uploaded files can trigger replication
       self.log.info( 'Sleeping for 10 seconds before attempting replication of recently uploaded files' )
       time.sleep( 10 )
-      for lfn, repSE in replication.items():
-        result = self.dm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
+      for lfn in replication:
+        uploadedSE , repSE = replication[lfn]
+        result = self.rm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
         if not result['OK']:
           self.log.info( "Replication failed: %s. Now adding request" % ( result['Message'] ) )
           self.failoverTransfer._setFileReplicationRequest( lfn, repSE, fileMetaDict, uploadedSE )
