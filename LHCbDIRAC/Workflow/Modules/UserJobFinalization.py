@@ -180,7 +180,7 @@ class UserJobFinalization( ModuleBase ):
       localSEs = list( localSEs - topSEs )
       if len( userSEs ) < 2 and localSEs:
         # Set a local SE first
-        orderedSEs = localSEs[0] + userSEs + localSEs[1:]
+        orderedSEs = localSEs[0:1] + userSEs + localSEs[1:]
       else:
         orderedSEs = userSEs + localSEs
       orderedSEs += List.randomize( list( otherSEs ) )
