@@ -247,8 +247,6 @@ class LHCbJob( Job ):
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
-    self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
-
     logPrefix = 'Step%s_' % ( self.stepCount )
     logName = '%s%s' % ( logPrefix, logName )
     self.addToOutputSandbox.append( logName )
@@ -380,8 +378,6 @@ class LHCbJob( Job ):
     stepName = '%sStep%s' % ( appName, self.stepCount )
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
-
-    self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
 
     logPrefix = 'Step%s_' % ( self.stepCount )
     logName = '%s%s' % ( logPrefix, logName )
@@ -608,8 +604,6 @@ class LHCbJob( Job ):
     stepName = '%sStep%s' % ( rootName, self.stepCount )
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
-
-    self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
 
     logPrefix = 'Step%s_' % ( self.stepCount )
     logName = '%s%s' % ( logPrefix, logName )
@@ -891,8 +885,6 @@ class LHCbJob( Job ):
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
-    self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
-
     stepName = 'RunScriptStep%s' % ( self.stepCount )
     logPrefix = 'Script%s_' % ( self.stepCount )
     logName = '%s%s' % ( logPrefix, logName )
@@ -990,8 +982,6 @@ class LHCbJob( Job ):
     stepName = 'ProtocolTestStep%s' % ( self.stepCount )
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
-
-    self._addParameter( self.workflow, 'TotalSteps', 'String', self.stepCount, 'Total number of steps' )
 
     stepName = 'RunProtocolTestStep%s' % ( self.stepCount )
 

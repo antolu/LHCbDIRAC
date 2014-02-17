@@ -35,7 +35,6 @@ class UserJobFinalization( ModuleBase ):
     # List all parameters here
     self.userFileCatalog = 'LcgFileCatalogCombined'
     self.request = None
-    self.lastStep = False
     # Always allow any files specified by users
     self.outputDataFileMask = ''
     self.userOutputData = []
@@ -85,15 +84,6 @@ class UserJobFinalization( ModuleBase ):
                                                   workflowStatus, stepStatus,
                                                   wf_commons, step_commons, step_number, step_id )
 
-      if int( self.step_number ) == int( self.workflow_commons['TotalSteps'] ):
-        self.lastStep = True
-      else:
-        self.log.debug( 'Current step = %s, total steps of workflow = %s, \
-        UserJobFinalization will enable itself only at the last workflow step.' % ( self.step_number,
-                                                                                    self.workflow_commons['TotalSteps'] ) )
-      if not self.lastStep:
-        return S_OK()
-
       self._resolveInputVariables()
 
       # Earlier modules may have populated the report objects
@@ -101,10 +91,7 @@ class UserJobFinalization( ModuleBase ):
       self.request.JobID = self.jobID
       self.request.SourceComponent = "Job_%d" % self.jobID
 
-      if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-        self.log.verbose( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'],
-                                                                       self.stepStatus['OK'] ) )
-        self.log.error( "Workflow status is not ok, will not overwrite application status." )
+      if not self._checkWFAndStepStatus():
         return S_ERROR( "Workflow failed, UserJobFinalization module completed" )
 
       if not self.userOutputData:
