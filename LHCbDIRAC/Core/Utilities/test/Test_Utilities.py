@@ -3,13 +3,11 @@ __RCSID__ = "$Id:  $"
 import unittest, itertools, os
 
 from mock import Mock
-from DIRAC import S_OK
 
 from LHCbDIRAC.Core.Utilities.ProductionData import _makeProductionLFN, constructProductionLFNs, _getLFNRoot, _applyMask, getLogPath
 from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
 from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectCommand
-from LHCbDIRAC.Core.Utilities.CombinedSoftwareInstallation import _getAreas, _getApp
 from LHCbDIRAC.Core.Utilities.GangaDataFile import GangaDataFile
 from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
 
@@ -498,23 +496,6 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
                                        'lfn3':{'pfntype':'ROOT', 'mdata':'mdata3'} }
                             } )
 
-class CombinedSoftwareInstallationSuccess( UtilitiesTestCase ):
-
-  def test__getAreas( self ):
-
-    l, s = _getAreas( 'local:shared' )
-    self.assertEqual( l, 'local' )
-    self.assertEqual( s, 'shared' )
-
-  def test__getApp( self ):
-
-    n, v = _getApp( ( 'name', ) )
-    self.assertEqual( '', v )
-    self.assertEqual( 'name', n )
-    n, v = _getApp( ( 'name', 'version' ) )
-    self.assertEqual( 'version', v )
-    self.assertEqual( 'name', n )
-
 class NagiosConnectorSuccess( UtilitiesTestCase ):
 
   def test_readConfig( self ):
@@ -549,7 +530,6 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProdConfSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionEnvironmentSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( InputDataResolutionSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( CombinedSoftwareInstallationSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( NagiosConnectorSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
