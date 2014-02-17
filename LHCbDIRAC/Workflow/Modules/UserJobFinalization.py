@@ -276,18 +276,10 @@ class UserJobFinalization( ModuleBase ):
         # do not try to replicate any files.
         return S_ERROR( 'Failed To Upload Output Data' )
 
-      # If there is now at least one replica for uploaded files can trigger replication
-      self.log.info( 'Sleeping for 10 seconds before attempting replication of recently uploaded files' )
-      time.sleep( 10 )
-      for lfn in replication:
-        uploadedSE , repSE = replication[lfn]
-        result = self.dm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
-        if not result['OK']:
-          self.log.info( "Replication failed: %s. Now adding request" % ( result['Message'] ) )
-          self.failoverTransfer._setFileReplicationRequest( lfn, repSE, fileMetaDict, uploadedSE )
-          self.request = self.failoverTransfer.request
+      for lfn, ( uploadedSE, repSE ) in replication.items():
+        self.failoverTransfer._setFileReplicationRequest( lfn, repSE, fileMetaDict, uploadedSE )
 
-      self.workflow_commons['Request'] = self.request
+      self.workflow_commons['Request'] = self.failoverTransfer.request
 
       self.generateFailoverFile()
 
