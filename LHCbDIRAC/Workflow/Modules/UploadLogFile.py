@@ -171,7 +171,6 @@ class UploadLogFile( ModuleBase ):
           return S_OK()
         self._uploadLogToFailoverSE( tarFileName )
 
-
       self.workflow_commons['Request'] = self.request
 
       return S_OK( "Log Files uploaded" )
@@ -211,17 +210,17 @@ class UploadLogFile( ModuleBase ):
                                                             fileCatalog = 'LcgFileCatalogCombined' )
 
     if not result['OK']:
-      self.log.error( 'Failed to upload logs to all failover destinations (the job will not fail for this reason' )
+      self.log.error( "Failed to upload logs to all failover destinations (the job will not fail for this reason" )
       self.setApplicationStatus( 'Failed To Upload Logs' )
     else:
       uploadedSE = result['Value']['uploadedSE']
-      self.log.info( 'Uploaded logs to failover SE %s' % uploadedSE )
+      self.log.info( "Uploaded logs to failover SE %s" % uploadedSE )
+
+      self.request = self.failoverTransfer.request
 
       self.__createLogUploadRequest( self.logSE, self.logLFNPath, uploadedSE )
-      self.log.info( 'Successfully created failover request' )
+      self.log.info( "Successfully created failover request" )
 
-      # Now after all operations, retrieve potentially modified request object
-      self.request = self.failoverTransfer.request
 
   def _determineRelevantFiles( self ):
     """ The files which are below a configurable size will be stored in the logs.
@@ -319,10 +318,6 @@ class UploadLogFile( ModuleBase ):
     logRemoval = Operation()
     logRemoval.Type = 'RemoveFile'
     logRemoval.TargetSE = uploadedSE
-
-
-    logFile = File()
-    logFile.LFN = logFileLFN
 
     logRemoval.addFile( logFile )
     self.request.addOperation( logRemoval )
