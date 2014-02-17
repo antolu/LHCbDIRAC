@@ -297,7 +297,7 @@ class UserJobFinalization( ModuleBase ):
       time.sleep( 10 )
       for lfn in replication:
         uploadedSE , repSE = replication[lfn]
-        result = self.rm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
+        result = self.dm.replicateAndRegister( lfn, repSE, catalog = self.userFileCatalog )
         if not result['OK']:
           self.log.info( "Replication failed: %s. Now adding request" % ( result['Message'] ) )
           self.failoverTransfer._setFileReplicationRequest( lfn, repSE, fileMetaDict, uploadedSE )
