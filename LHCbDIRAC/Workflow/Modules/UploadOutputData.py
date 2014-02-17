@@ -129,7 +129,7 @@ class UploadOutputData( ModuleBase ):
 
       # At this point can exit and see exactly what the module would have uploaded
       if not self._enableModule():
-        self.log.info( 'Would have attempted to upload the following files %s' % ', '.join( final.keys() ) )
+        self.log.info( "Would have attempted to upload the following files %s" % ', '.join( final.keys() ) )
         return S_OK()
 
       # Prior to uploading any files must check (for productions with input data) that no descendent files
@@ -144,10 +144,11 @@ class UploadOutputData( ModuleBase ):
           self.log.info( "No descendants found, outputs can be uploaded" )
         else:
           self.log.error( "Found descendants!!! Outputs won't be uploaded" )
-          return S_ERROR( 'Input Data Already Processed' )
+          self.log.info( "Files with descendants: %s" ', '.join( result ) )
+          return S_ERROR( "Input Data Already Processed" )
 
       # Disable the watchdog check in case the file uploading takes a long time
-      self.log.info( 'Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog prior to upload' )
+      self.log.info( "Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog prior to upload" )
       fopen = open( 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'w' )
       fopen.write( '%s' % time.asctime() )
       fopen.close()
