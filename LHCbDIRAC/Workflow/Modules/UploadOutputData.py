@@ -71,10 +71,10 @@ class UploadOutputData( ModuleBase ):
       if not type( self.prodOutputLFNs ) == type( [] ):
         self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )]
     else:
-      self.log.info( 'ProductionOutputData parameter not found, creating on the fly' )
+      self.log.info( "ProductionOutputData parameter not found, creating on the fly" )
       result = constructProductionLFNs( self.workflow_commons, self.bkClient )
       if not result['OK']:
-        self.log.error( 'Could not create production LFNs', result['Message'] )
+        self.log.error( "Could not create production LFNs", result['Message'] )
         return result
       self.prodOutputLFNs = result['Value']['ProductionOutputData']
 
@@ -97,17 +97,17 @@ class UploadOutputData( ModuleBase ):
       self._resolveInputVariables()
 
       if not self._checkWFAndStepStatus():
-        return S_OK( 'No output data upload attempted' )
+        return S_OK( "No output data upload attempted" )
 
       # Determine the final list of possible output files for the workflow and all the parameters needed to upload them.
-      self.log.verbose( 'Getting the list of candidate files' )
+      self.log.verbose( "Getting the list of candidate files" )
       fileDict = self.getCandidateFiles( self.outputList, self.prodOutputLFNs,
                                        self.outputDataFileMask, self.outputDataStep )
 
       fileMetadata = self.getFileMetadata( fileDict )
 
       if not fileMetadata:
-        self.log.info( 'No output data files were determined to be uploaded for this workflow' )
+        self.log.info( "No output data files were determined to be uploaded for this workflow" )
         return S_OK()
 
       # Get final, resolved SE list for files
@@ -121,7 +121,7 @@ class UploadOutputData( ModuleBase ):
         final[fileName] = metadata
         final[fileName]['resolvedSE'] = resolvedSE
 
-      self.log.info( 'The following files will be uploaded: %s' % ( ', '.join( final.keys() ) ) )
+      self.log.info( "The following files will be uploaded: %s" % ( ', '.join( final.keys() ) ) )
       for fileName, metadata in final.items():
         self.log.info( '--------%s--------' % fileName )
         for n, v in metadata.items():
