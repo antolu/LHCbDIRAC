@@ -2,7 +2,7 @@
     common utility methods
 """
 
-import os, copy
+import os, copy, time
 
 from DIRAC                                                    import gLogger
 from DIRAC.Core.Utilities.Adler                               import fileAdler
@@ -775,6 +775,16 @@ class ModuleBase( object ):
       return False
     else:
       return True
+
+  #############################################################################
+
+  def _disableWatchdogCPUCheck( self ):
+    """ just writes a file to disable the watchdog
+    """
+    self.log.info( "Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog" )
+    fopen = open( 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'w' )
+    fopen.write( '%s' % time.asctime() )
+    fopen.close()
 
   #############################################################################
 

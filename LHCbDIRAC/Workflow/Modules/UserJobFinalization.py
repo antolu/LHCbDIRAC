@@ -189,10 +189,7 @@ class UserJobFinalization( ModuleBase ):
         return S_OK( 'Module is disabled by control flag' )
 
       # Disable the watchdog check in case the file uploading takes a long time
-      self.log.info( "Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog prior to upload" )
-      fopen = open( 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'w' )
-      fopen.write( '%s' % time.asctime() )
-      fopen.close()
+      self._disableWatchdogCPUCheck()
 
       # Instantiate the failover transfer client with the global request object
       if not self.failoverTransfer:

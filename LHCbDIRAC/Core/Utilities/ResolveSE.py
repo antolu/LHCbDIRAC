@@ -2,6 +2,8 @@
     of destination storage elements for uploading an output file.
 """
 
+# FIXME: this might go/use the Resources CS helper once it becomes a class (v7r0...)
+
 from DIRAC                              import gLogger, gConfig
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.Core.Utilities.List          import uniqueElements

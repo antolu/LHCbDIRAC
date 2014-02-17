@@ -99,12 +99,7 @@ class GaudiApplication( ModuleBase ):
                                                                                         os.getcwd() ) ) )
 
       if self.jobType.lower() == 'merge':
-        # Disable the watchdog check in case the file uploading takes a long time
-        self.log.info( 'Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to \
-        disable the Watchdog for Merge production' )
-        fopen = open( 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'w' )
-        fopen.write( '%s' % time.asctime() )
-        fopen.close()
+        self._disableWatchdogCPUCheck()
 
       # Resolve options files
       if self.optionsFile and not self.optionsFile == "None":
