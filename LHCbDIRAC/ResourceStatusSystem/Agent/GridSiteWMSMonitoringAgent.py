@@ -21,7 +21,7 @@ from DIRAC.Core.Utilities                                import Time
 MC_JOB_TYPES   = [ 'normal', '^MC' ]
 DATA_JOB_TYPES = [ '^Data' ]
 USER_JOB_TYPES = [ 'user' ]
-SAM_JOB_TYPES  = [ 'sam' ]
+SAM_JOB_TYPES = [ 'sam', 'test' ]
 
 __RCSID__  = '$Id$'
 AGENT_NAME = 'ResourceStatusSystem/GridSiteWMSMonitoringAgent'

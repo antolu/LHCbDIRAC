@@ -12,7 +12,7 @@
         --applicationStatus   Job application status e.g. "unknown"
         --site                Site where the job runs e.g. "LCG.CERN.ch"
         --owner               DIRAC username that owns the job
-        --jobGroup            JobGroup the job belongs to e.g. "SAM"
+        --jobGroup            JobGroup the job belongs to e.g. "Test"
         --date                Date on yyyy-mm-dd format e.g. "2012-12-21"
 
     Verbosity:

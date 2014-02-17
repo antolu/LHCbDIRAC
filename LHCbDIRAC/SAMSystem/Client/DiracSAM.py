@@ -72,14 +72,14 @@ class DiracSAM( Dirac ):
     """
 
     #Get Job properties
-    appTests          = self.opsH.getValue( 'SAM/ApplicationTests', [] )
-    samLogLevel       = self.opsH.getValue( 'SAM/LogLevel', 'verbose' )
+    appTests = self.opsH.getValue( 'SAM/ApplicationTests', [] )
+    samLogLevel = self.opsH.getValue( 'SAM/LogLevel', 'verbose' )
     samDefaultCPUTime = self.opsH.getValue( 'SAM/CPUTime', 50000 )
-#    samPlatform       = self.opsH.getValue( 'SAM/Platform', 'gLite-SAM' )
-    samOutputFiles    = self.opsH.getValue( 'SAM/OutputSandbox', ['*.log'] )
-    samGroup          = self.opsH.getValue( 'SAM/JobGroup', 'SAM' )
-    samType           = self.opsH.getValue( 'SAM/JobType', 'SAM' )
-    samPriority       = self.opsH.getValue( 'SAM/Priority', 1 )
+#    samPlatform = self.opsH.getValue( 'SAM/Platform', 'gLite-SAM' )
+    samOutputFiles = self.opsH.getValue( 'SAM/OutputSandbox', ['*.log'] )
+    samGroup = self.opsH.getValue( 'SAM/JobGroup', 'Test' )
+    samType = self.opsH.getValue( 'SAM/JobType', 'Test' )
+    samPriority = self.opsH.getValue( 'SAM/Priority', 1 )
     if not isinstance( samPriority, int ):
       try:
         samPriority = int( samPriority )
@@ -119,7 +119,7 @@ class DiracSAM( Dirac ):
       return res
     
     samJob._addParameter( samJob.workflow, 'Priority', 'JDL', samPriority, 'User Job Priority' )
-    samJob._addJDLParameter( 'SubmitPools', 'SAM' )
+    samJob._addJDLParameter( 'SubmitPools', 'Test' )
     
     # CVMFS step definition
     stepName = 'CVMFSCheck'

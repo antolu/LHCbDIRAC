@@ -56,9 +56,9 @@ class TargzJobLogAgent( AgentModule ):
     self.log.info( "Actions", self.actions )
 
     # This sets the Default Proxy to used as that defined under
-    # /Operations/Shifter/SAMManager
+    # /Operations/Shifter/TestManager
     # the shifterProxy option in the Configuration can be used to change this default.
-    self.am_setOption( 'shifterProxy', 'SAMManager' )
+    self.am_setOption( 'shifterProxy', 'TestManager' )
     
     return S_OK()
 

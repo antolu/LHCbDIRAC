@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-  Remove software version from the list of packages to be maintained by SAM jobs
+  Remove software version from the list of packages to be maintained
 """
 
 __RCSID__ = "$Id$"

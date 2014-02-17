@@ -31,7 +31,7 @@ class SAMAgent( AgentModule ):
     
     self.days = self.am_getOption( 'days', self.days )
 
-    self.am_setOption( 'shifterProxy', 'SAMManager' )
+    self.am_setOption( 'shifterProxy', 'TestManager' )
 
 #    _operation = self.monitor.OP_SUM
 #    _bucket    = 3600 * 2
@@ -113,7 +113,7 @@ class SAMAgent( AgentModule ):
 
     allces     = []
     jobIDs     = []
-    conditions = { 'JobGroup' : 'SAM' }
+    conditions = { 'JobGroup' : 'Test' }
     
     sites = gConfig.getSections( '/Resources/Sites/LCG' )
     if not sites[ 'OK' ]:

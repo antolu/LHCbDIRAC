@@ -304,37 +304,3 @@ def _getApp( app ):
     appVersion = ''
 
   return appName, appVersion
-
-# FIXME: seems useless
-# def createSharedArea():
-#  """
-#   Method to be used by SAM jobs to make sure the proper directory structure is created
-#   if it does not exists
-#  """
-#  if not os.environ.has_key( 'VO_LHCB_SW_DIR' ):
-#    gLogger.info( 'VO_LHCB_SW_DIR not defined.' )
-#    return False
-#
-#  sharedArea = os.environ['VO_LHCB_SW_DIR']
-#  if sharedArea == '.':
-#    gLogger.info( 'VO_LHCB_SW_DIR points to "."' )
-#    return False
-#
-#  if not os.path.isdir( sharedArea ):
-#    gLogger.error( 'VO_LHCB_SW_DIR="%s" is not a directory' % sharedArea )
-#    return False
-#
-#  sharedArea = os.path.join( sharedArea, 'lib' )
-#  try:
-#    if os.path.isdir( sharedArea ) and not os.path.islink( sharedArea ) :
-#      return True
-#    if not os.path.exists( sharedArea ):
-#      os.mkdir( sharedArea )
-#      return True
-#    os.remove( sharedArea )
-#    os.mkdir( sharedArea )
-#    return True
-#  except OSError, msg:
-#    gLogger.error( 'Problem trying to create shared area', str( msg ) )
-#    return False
-
