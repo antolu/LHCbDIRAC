@@ -85,13 +85,8 @@ class FileUsage( ModuleBase ):
       else:
         self.log.info( "No input data usage to report!" )
 
-      if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-        self.log.verbose( 'Workflow status = %s, step status = %s' % ( self.workflowStatus['OK'],
-                                                                       self.stepStatus['OK'] ) )
-        self.log.error( 'Workflow status is not ok, will not overwrite application status.' )
-        return S_ERROR( 'Workflow failed, FileUsage module completed' )
-
       return S_OK( 'File Usage reported successfully' )
+
     except Exception, e:
       self.log.exception( e )
       return S_ERROR( e )

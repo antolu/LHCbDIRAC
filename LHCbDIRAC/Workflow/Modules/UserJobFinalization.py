@@ -92,7 +92,7 @@ class UserJobFinalization( ModuleBase ):
       self.request.SourceComponent = "Job_%d" % self.jobID
 
       if not self._checkWFAndStepStatus():
-        return S_ERROR( "Workflow failed, UserJobFinalization module completed" )
+        return S_OK()
 
       if not self.userOutputData:
         self.log.info( "No user output data is specified for this job, nothing to do" )

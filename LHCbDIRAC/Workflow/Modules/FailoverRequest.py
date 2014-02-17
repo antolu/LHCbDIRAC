@@ -93,8 +93,6 @@ class FailoverRequest( ModuleBase ):
 
       self.generateFailoverFile()
 
-      return self.finalize()
-
     except Exception, e:
       self.log.exception( e )
       self.setApplicationStatus( e )
@@ -102,20 +100,5 @@ class FailoverRequest( ModuleBase ):
 
     finally:
       super( FailoverRequest, self ).finalize( self.version )
-
-  #############################################################################
-
-  def finalize( self ):
-    """ Finalize and report correct status for the workflow based on the workflow
-        or step status.
-    """
-    self.log.verbose( "Workflow status = %s, step status = %s" % ( self.workflowStatus['OK'], self.stepStatus['OK'] ) )
-    if not self.workflowStatus['OK'] or not self.stepStatus['OK']:
-      self.log.warn( "Workflow status is not ok, will not overwrite status" )
-      self.log.info( "Workflow failed, end of FailoverRequest module execution." )
-      return S_ERROR( "Workflow failed, FailoverRequest module completed" )
-
-    self.log.info( "Workflow successful, end of FailoverRequest module execution." )
-    return S_OK( "FailoverRequest module completed" )
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
