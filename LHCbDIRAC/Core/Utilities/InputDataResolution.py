@@ -8,19 +8,21 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py 56344 2012-09-14 13:18:10Z fstagni $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC                                                          import S_OK, S_ERROR, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations            import Operations
 from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
+from DIRAC.WorkloadManagementSystem.Client.InputDataResolution      import InputDataResolution as DIRACInputDataResolution
 
 import types
 
 COMPONENT_NAME = 'LHCbInputDataResolution'
+CREATE_CATALOG = False
 
-class InputDataResolution:
+class InputDataResolution ( DIRACInputDataResolution ):
   """ Define the Input Data Policy
   """
 
@@ -43,54 +45,31 @@ class InputDataResolution:
     """Given the arguments from the Job Wrapper, this function calls existing
        utilities in DIRAC to resolve input data according to LHCb VO policy.
     """
-    result = self.__resolveInputData()
-    if not result['OK']:
-      self.log.error( 'InputData resolution failed with result:\n%s' % ( result ) )
-
-    #For local running of this module we can expose an option to ignore missing files
-    ignoreMissing = False
-    if self.arguments.has_key( 'IgnoreMissing' ):
-      ignoreMissing = self.arguments['IgnoreMissing']
-
-    #For LHCb original policy was as long as one TURL exists, this can be conveyed to the application
-    #this breaks due to the stripping so the policy has been changed.
-    if result.has_key( 'Failed' ):
-      failedReplicas = result['Failed']
-      if failedReplicas and not ignoreMissing:
-        self.log.error( 'Failed to obtain access to the following files:\n%s' % ( '\n'.join( failedReplicas ) ) )
-        return S_ERROR( 'Failed to access all of requested input data' )
-
-    if not result.has_key( 'Successful' ):
-      return result
-
-    if not result['Successful']:
-      return S_ERROR( 'Could not access any requested input data' )
-
-    resolvedData = result['Successful']
+    resolvedData = DIRACInputDataResolution.execute()
+    if not resolvedData['OK'] or 'Successful' not in resolvedData['Value']:
+      return resolvedData
+    resolvedData = resolvedData['Successful']
 
     resolvedData = self._addPfnType( resolvedData )
     if not resolvedData['OK']:
       return resolvedData
     resolvedData = resolvedData['Value']
 
-    #TODO: Below is temporary behaviour to prepend root: to resolved TURL(s) for case when not a ROOT file
-    #This instructs the Gaudi applications to use root to access different file types e.g. for MDF.
-    #In the longer term this should be derived from file catalog metadata information.
-    #24/08/2010 - updated hack to use "mdf:" after udpates from Markus
-    tmpDict = {}
-    for lfn, mdata in resolvedData.items():
-      tmpDict[lfn] = mdata
-      if tmpDict[lfn]['pfntype'] == 'MDF':
-        tmpDict[lfn].update( {'turl':'mdf:%s' % ( resolvedData[lfn]['turl'] )} )
-        self.log.info( 'Prepending mdf: to TURL for %s' % lfn )
+    # TODO: Below is temporary behaviour to prepend mdf: to resolved TURL(s) for case when not a ROOT file
+    # This instructs the Gaudi applications to use root to access different file types e.g. for MDF.
+    # In the longer term this should be derived from file catalog metadata information.
+    # 24/08/2010 - updated hack to use "mdf:" after udpates from Markus
+    for lfn, mdataList in resolvedData.items():
+      if type( mdataList ) != types.ListType:
+        mdataList = [mdataList]
+      for mdata in mdataList:
+        if mdata['pfntype'] == 'MDF':
+          mdata['turl'] = 'mdf:' + mdata['turl']
+          self.log.info( 'Prepending mdf: to TURL for %s' % lfn )
 
-    resolvedData = tmpDict
-    catalogName = 'pool_xml_catalog.xml'
-    if self.arguments['Configuration'].has_key( 'CatalogName' ):
-      catalogName = self.arguments['Configuration']['CatalogName']
+    catalogName = self.arguments['Configuration'].get( 'CatalogName', 'pool_xml_catalog.xml' )
 
     self.log.verbose( 'Catalog name will be: %s' % catalogName )
-    resolvedData = tmpDict
     appCatalog = PoolXMLSlice( catalogName )
     check = appCatalog.execute( resolvedData )
     if not check['OK']:
@@ -103,114 +82,28 @@ class InputDataResolution:
     """ Add the pfn type to the lfn list in input
     """
 
-    tmpDict = {}
-
-    for lfn, mdata in resolvedData.items():
-      tmpDict[lfn] = mdata
-
-    lfnList = resolvedData.keys()
-    typeVersions = self.bkkClient.getFileTypeVersion( lfnList )
+    typeVersions = self.bkkClient.getFileTypeVersion( resolvedData.keys() )
     if not typeVersions['OK']:
       return typeVersions
-
     typeVersions = typeVersions['Value']
 
-    for lfn in tmpDict.keys():
-      if lfn not in typeVersions.keys():
+    for lfn, mdataList in resolveData.items():
+      if type( mdataList ) != types.ListType:
+        mdataList = [mdataList]
+      if lfn not in typeVersions:
         self.log.warn( 'The file %s do not exist in the BKK, assuming ROOT, unless it is a RAW (MDF)' % lfn )
         if lfn.split( '.' )[-1].lower() == 'raw':
-          tmpDict[lfn]['pfntype'] = 'MDF'
+          lfnType = 'MDF'
         else:
-          tmpDict[lfn]['pfntype'] = 'ROOT'
+          lfnType = 'ROOT'
+      else:
+        self.log.verbose( 'Adding PFN file type %s for %s' % ( typeVersions[lfn], lfn ) )
+        lfnType = typeVersions[lfn]
+      for mdata in mdataList:
+        mdata['pfntype'] = lfnType
 
-    else:
-      self.log.verbose( 'Adding PFN file types %s for LFNs: %s' % ( typeVersions.values(), typeVersions.keys() ) )
-
-      for lfn in typeVersions.keys():
-        tmpDict[lfn]['pfntype'] = typeVersions[lfn]
-
-    return S_OK( tmpDict )
+    return S_OK( resolveData )
 
   #############################################################################
 
-  def __resolveInputData( self ):
-    """This method controls the execution of the DIRAC input data modules according
-       to the LHCb VO policy defined in the configuration service.
-    """
-    if self.arguments['Configuration'].has_key( 'SiteName' ):
-      site = self.arguments['Configuration']['SiteName']
-    else:
-      site = DIRAC.siteName()
-
-    policy = []
-    if not self.arguments.has_key( 'Job' ):
-      self.arguments['Job'] = {}
-
-    if self.arguments['Job'].has_key( 'InputDataPolicy' ):
-      policy = self.arguments['Job']['InputDataPolicy']
-      #In principle this can be a list of modules with the first taking precedence
-      if type( policy ) in types.StringTypes:
-        policy = [policy]
-      self.log.info( 'Job has a specific policy setting: %s' % ( ', '.join( policy ) ) )
-    else:
-      self.log.verbose( 'Attempting to resolve input data policy for site %s' % site )
-      inputDataPolicy = Operations().getOptionsDict( 'InputDataPolicy' )
-      if not inputDataPolicy['OK']:
-        return S_ERROR( 'Could not resolve InputDataPolicy from /Operations/InputDataPolicy' )
-
-      options = inputDataPolicy['Value']
-      if options.has_key( site ):
-        policy = options[site]
-        policy = [x.strip() for x in policy.split( ',' )]
-        self.log.info( 'Found specific input data policy for site %s:\n%s' % ( site, ',\n'.join( policy ) ) )
-      elif options.has_key( 'Default' ):
-        policy = options['Default']
-        policy = [x.strip() for x in policy.split( ',' )]
-        self.log.info( 'Applying default input data policy for site %s:\n%s' % ( site, ',\n'.join( policy ) ) )
-
-    dataToResolve = None #if none, all supplied input data is resolved
-    allDataResolved = False
-    successful = {}
-    failedReplicas = []
-    for modulePath in policy:
-      if not allDataResolved:
-        result = self.__runModule( modulePath, dataToResolve )
-        if not result['OK']:
-          self.log.warn( 'Problem during %s execution' % modulePath )
-          return result
-
-        if result.has_key( 'Failed' ):
-          failedReplicas = result['Failed']
-
-        if failedReplicas:
-          self.log.info( '%s failed for the following files:\n%s' % ( modulePath, '\n'.join( failedReplicas ) ) )
-          dataToResolve = failedReplicas
-        else:
-          self.log.info( 'All replicas resolved after %s execution' % ( modulePath ) )
-          allDataResolved = True
-
-        successful.update( result['Successful'] )
-        self.log.verbose( successful )
-
-    result = S_OK()
-    result['Successful'] = successful
-    result['Failed'] = failedReplicas
-    return result
-
-  #############################################################################
-  def __runModule( self, modulePath, remainingReplicas ):
-    """This method provides a way to run the modules specified by the VO that
-       govern the input data access policy for the current site.  For LHCb the
-       standard WMS modules are applied in a different order depending on the site.
-    """
-    self.log.info( 'Attempting to run %s' % ( modulePath ) )
-    moduleFactory = ModuleFactory()
-    moduleInstance = moduleFactory.getModule( modulePath, self.arguments )
-    if not moduleInstance['OK']:
-      return moduleInstance
-
-    module = moduleInstance['Value']
-    result = module.execute( remainingReplicas )
-    return result
-
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
