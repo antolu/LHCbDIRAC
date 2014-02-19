@@ -30,6 +30,7 @@ class InputDataResolution ( DIRACInputDataResolution ):
     """ Standard constructor
     """
     self.arguments = argumentsDict
+    self.arguments.setdefault( 'Configuration', {} )['AllReplicas'] = True
     self.name = COMPONENT_NAME
     self.log = gLogger.getSubLogger( self.name )
 
@@ -45,10 +46,10 @@ class InputDataResolution ( DIRACInputDataResolution ):
     """Given the arguments from the Job Wrapper, this function calls existing
        utilities in DIRAC to resolve input data according to LHCb VO policy.
     """
-    resolvedData = DIRACInputDataResolution.execute()
-    if not resolvedData['OK'] or 'Successful' not in resolvedData['Value']:
-      return resolvedData
-    resolvedData = resolvedData['Successful']
+    result = DIRACInputDataResolution.execute( self )
+    if not result['OK'] or not result['Value'].get( 'Successful', {} ):
+      return result
+    resolvedData = result['Value']['Successful']
 
     resolvedData = self._addPfnType( resolvedData )
     if not resolvedData['OK']:
@@ -86,8 +87,10 @@ class InputDataResolution ( DIRACInputDataResolution ):
     if not typeVersions['OK']:
       return typeVersions
     typeVersions = typeVersions['Value']
+    print resolvedData
 
-    for lfn, mdataList in resolveData.items():
+    for lfn, mdataList in resolvedData.items():
+      print type( mdataList )
       if type( mdataList ) != types.ListType:
         mdataList = [mdataList]
       if lfn not in typeVersions:
@@ -99,10 +102,11 @@ class InputDataResolution ( DIRACInputDataResolution ):
       else:
         self.log.verbose( 'Adding PFN file type %s for %s' % ( typeVersions[lfn], lfn ) )
         lfnType = typeVersions[lfn]
+      print mdataList
       for mdata in mdataList:
         mdata['pfntype'] = lfnType
 
-    return S_OK( resolveData )
+    return S_OK( resolvedData )
 
   #############################################################################
 
