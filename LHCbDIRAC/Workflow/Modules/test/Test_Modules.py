@@ -1237,7 +1237,7 @@ class UploadLogFileSuccess( ModulesTestCase ):
     self.ulf.failoverTransfer = ft_mock
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
-        self.assertTrue( self.ulf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+        self.assertTrue( self.ulf.execute( self.prod_id, self.prod_job_id, 0,
                                            self.workflowStatus, self.stepStatus,
                                            wf_commons, step_commons,
                                            self.step_number, self.step_id )['OK'] )

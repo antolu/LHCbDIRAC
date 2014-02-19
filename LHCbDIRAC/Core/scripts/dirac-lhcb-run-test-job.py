@@ -28,9 +28,9 @@ from DIRAC import gLogger, S_OK
 
 args = Script.getPositionalArgs()
 
-from LHCbDIRAC.Core.Utilities.SoftwareArea  import getSharedArea
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment  import getSharedArea
 
-#Constants (some can be overidden, some are messy)
+# Constants (some can be overridden, some are messy)
 
 nbEvents = 2
 systemConfig = 'x86_64-slc5-gcc43-opt'
