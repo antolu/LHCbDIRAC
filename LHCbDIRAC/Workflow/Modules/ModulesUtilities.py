@@ -1,6 +1,8 @@
 """ Just a module with some utilities
 """
 
+__RCSID__ = "$Id"
+
 import os, tarfile, math
 
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
@@ -8,7 +10,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers   import Resources
 from DIRAC.Core.Utilities.SiteCEMapping         import getQueueInfo
 from LHCbDIRAC.Core.Utilities.XMLTreeParser     import XMLTreeParser
 
-def tarFiles( outputFile, files = [], compression = '', deleteInput = False ):
+def tarFiles( outputFile, files = [], compression = 'gz', deleteInput = False ):
   """ just make a tar
   """
 
@@ -88,7 +90,7 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
     willProduce = min( willProduce, maxNumberOfEvents )
 
   if willProduce < 1:
-    raise RuntimeError, "No time left to produce events"
+    raise RuntimeError( "No time left to produce events" )
 
   return willProduce
 
@@ -97,10 +99,7 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
 def getCPUTime( CPUNormalizationFactor ):
   """ Trying to get CPUTime (in seconds) from the CS. The default is a (low) 10000s
   """
-  # FIXME: which one?
   CPUTime = gConfig.getValue( '/LocalSite/CPUTimeLeft', 0 )
-  if not CPUTime:
-    CPUTime = gConfig.getValue( '/LocalSite/MaxCPUTime', 0 )
 
   if CPUTime:
     # This is in HS06sseconds
@@ -118,7 +117,7 @@ def getCPUTime( CPUNormalizationFactor ):
       queueSection = '/Resources/Sites/%s/%s/CEs/%s/Queues' % ( siteName.split( '.' )[0], siteName, gridCE )
       res = gConfig.getSections( queueSection )
       if not res['OK']:
-        raise RuntimeError, res['Message']
+        raise RuntimeError( res['Message'] )
       queues = res['Value']
       CPUTimes = []
       for queue in queues:
