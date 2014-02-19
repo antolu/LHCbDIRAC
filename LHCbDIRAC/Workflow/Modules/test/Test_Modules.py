@@ -46,32 +46,27 @@ class ModulesTestCase( unittest.TestCase ):
     ar_mock = Mock()
     ar_mock.commit.return_value = {'OK': True, 'Value': ''}
 
-    self.rm_mock = Mock()
-    self.rm_mock.getReplicas.return_value = {'OK': True, 'Value':{'Successful':{'pippo':'metadataPippo'},
+    self.dm_mock = Mock()
+    self.dm_mock.getReplicas.return_value = {'OK': True, 'Value':{'Successful':{'pippo':'metadataPippo'},
                                                                   'Failed':None}}
-    self.rm_mock.getCatalogFileMetadata.return_value = {'OK': True, 'Value':{'Successful':{'pippo':'metadataPippo'},
+    self.dm_mock.getCatalogFileMetadata.return_value = {'OK': True, 'Value':{'Successful':{'pippo':'metadataPippo'},
                                                                              'Failed':None}}
-    self.rm_mock.removeFile.return_value = {'OK': True, 'Value': {'Failed':False}}
-    self.rm_mock.putStorageDirectory.return_value = {'OK': True, 'Value': {'Failed':False}}
-    self.rm_mock.addCatalogFile.return_value = {'OK': True, 'Value': {'Failed':False}}
-    self.rm_mock.putAndRegister.return_value = {'OK': True, 'Value': {'Failed':False}}
-    self.rm_mock.getFile.return_value = {'OK': True, 'Value': {'Failed':False}}
+    self.dm_mock.removeFile.return_value = {'OK': True, 'Value': {'Failed':False}}
+    self.dm_mock.putStorageDirectory.return_value = {'OK': True, 'Value': {'Failed':False}}
+    self.dm_mock.addCatalogFile.return_value = {'OK': True, 'Value': {'Failed':False}}
+    self.dm_mock.putAndRegister.return_value = {'OK': True, 'Value': {'Failed':False}}
+    self.dm_mock.getFile.return_value = {'OK': True, 'Value': {'Failed':False}}
 
     self.jsu_mock = Mock()
     self.jsu_mock.setJobApplicationStatus.return_value = {'OK': True, 'Value': ''}
 
     self.jsu_mock = Mock()
     self.jsu_mock.setJobApplicationStatus.return_value = {'OK': True, 'Value': ''}
-
-    request_mock = Mock()
-    request_mock.addSubRequest.return_value = {'OK': True, 'Value': ''}
-    request_mock.setSubRequestFiles.return_value = {'OK': True, 'Value': ''}
-    request_mock.getNumSubRequests.return_value = {'OK': True, 'Value': ''}
-    request_mock._getLastOrder.return_value = 1
 
     self.ft_mock = Mock()
     self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': {'uploadedSE':''}}
     self.ft_mock.transferAndRegisterFileFailover.return_value = {'OK': True, 'Value': {}}
+    self.ft_mock.request = rc_mock
 
     self.bkc_mock = Mock()
     self.bkc_mock.sendBookkeeping.return_value = {'OK': True, 'Value': ''}
@@ -221,63 +216,63 @@ class ModulesTestCase( unittest.TestCase ):
 
 
     from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-    self.mb = ModuleBase( bkClientIn = self.bkc_mock, rm = self.rm_mock )
+    self.mb = ModuleBase( bkClientIn = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.AnalyseLogFile import AnalyseLogFile
-    self.alf = AnalyseLogFile( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.alf = AnalyseLogFile( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.AnalyseXMLSummary import AnalyseXMLSummary
-    self.axlf = AnalyseXMLSummary( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.axlf = AnalyseXMLSummary( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.GaudiApplication import GaudiApplication
-    self.ga = GaudiApplication( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.ga = GaudiApplication( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.GaudiApplicationScript import GaudiApplicationScript
-    self.gas = GaudiApplicationScript( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.gas = GaudiApplicationScript( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.BookkeepingReport import BookkeepingReport
-    self.bkr = BookkeepingReport( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.bkr = BookkeepingReport( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.ErrorLogging import ErrorLogging
-    self.el = ErrorLogging( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.el = ErrorLogging( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.FailoverRequest import FailoverRequest
-    self.fr = FailoverRequest( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.fr = FailoverRequest( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.MergeMDF import MergeMDF
-    self.mm = MergeMDF( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.mm = MergeMDF( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.ProtocolAccessTest import ProtocolAccessTest
-    self.pat = ProtocolAccessTest( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.pat = ProtocolAccessTest( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.RemoveInputData import RemoveInputData
-    self.rid = RemoveInputData( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.rid = RemoveInputData( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.SendBookkeeping import SendBookkeeping
-    self.sb = SendBookkeeping( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.sb = SendBookkeeping( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.UploadOutputData import UploadOutputData
-    self.uod = UploadOutputData( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.uod = UploadOutputData( bkClient = self.bkc_mock, dm = self.dm_mock )
     self.uod.failoverTransfer = self.ft_mock
 
     from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
-    self.ujf = UserJobFinalization( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.ujf = UserJobFinalization( bkClient = self.bkc_mock, dm = self.dm_mock )
     self.ujf.bkClient = self.bkc_mock
     self.ujf.failoverTransfer = self.ft_mock
 
     from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
-    self.sa = StepAccounting( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.sa = StepAccounting( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
-    self.ulf = UploadLogFile( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.ulf = UploadLogFile( bkClient = self.bkc_mock, dm = self.dm_mock )
     self.ulf.failoverTransfer = self.ft_mock
     self.ulf.request = Request()
 
     from LHCbDIRAC.Workflow.Modules.FileUsage import FileUsage
-    self.fu = FileUsage( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.fu = FileUsage( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.CreateDataFile import CreateDataFile
-    self.cdf = CreateDataFile( bkClient = self.bkc_mock, rm = self.rm_mock )
+    self.cdf = CreateDataFile( bkClient = self.bkc_mock, dm = self.dm_mock )
 
   def tearDown( self ):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst', 'bar.py', 'aLongLog.log', 'aLongLog.log.gz'
@@ -878,7 +873,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
     from DIRAC.TransformationSystem.Client.FileReport import FileReport
 
-    axlf = AnalyseXMLSummary( bkClient = self.bkc_mock, rm = self.rm_mock )
+    axlf = AnalyseXMLSummary( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     f = open( 'XMLSummaryFile', 'w' )
     f.write( """<?xml version="1.0" encoding="UTF-8"?>
@@ -1101,7 +1096,7 @@ class FailoverRequestSuccess( ModulesTestCase ):
 #                                        self.workflowStatus, self.stepStatus,
 #                                        wf_commons, self.step_commons,
 #                                        self.step_number, self.step_id,
-#                                        self.rm_mock )['OK'] )
+#                                        self.dm_mock )['OK'] )
 #      wf_commons['InputData'] = ['lfn1', 'lfn2']
 #      open( 'lfn1', 'w' ).close()
 #      open( 'lfn2', 'w' ).close()
@@ -1109,32 +1104,32 @@ class FailoverRequestSuccess( ModulesTestCase ):
 #                                        self.workflowStatus, self.stepStatus,
 #                                        wf_commons, self.step_commons,
 #                                        self.step_number, self.step_id,
-#                                        self.rm_mock )['OK'] )
+#                                        self.dm_mock )['OK'] )
 
 ##############################################################################
 # # ProtocolAccessTest.py
 ##############################################################################
 
-class ProtocolAccessTestSuccess( ModulesTestCase ):
-
-  #################################################
-
-  def test_execute( self ):
-
-    step_commons = copy.deepcopy( self.step_commons )
-    # no errors, no input data
-    for wf_commons in copy.deepcopy( self.wf_commons ):
-      for step_commons_1 in step_commons:
-        self.assertFalse( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                          self.workflowStatus, self.stepStatus,
-                                          wf_commons, step_commons_1,
-                                          self.step_number, self.step_id )['OK'] )
-      step_commons_1['protocols'] = ['pr1', 'pr2']
-      self.assertFalse( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                          self.workflowStatus, self.stepStatus,
-                                          wf_commons, step_commons_1,
-                                          self.step_number, self.step_id )['OK'] )
-      step_commons_1['applicationVersion'] = 'v1'
+# class ProtocolAccessTestSuccess( ModulesTestCase ):
+#
+#   ################################################
+#
+#   def test_execute( self ):
+#
+#     step_commons = copy.deepcopy( self.step_commons )
+#      no errors, no input data
+#     for wf_commons in copy.deepcopy( self.wf_commons ):
+#       for step_commons_1 in step_commons:
+#         self.assertFalse( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+#                                           self.workflowStatus, self.stepStatus,
+#                                           wf_commons, step_commons_1,
+#                                           self.step_number, self.step_id )['OK'] )
+#       step_commons_1['protocols'] = ['pr1', 'pr2']
+#       self.assertFalse( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+#                                           self.workflowStatus, self.stepStatus,
+#                                           wf_commons, step_commons_1,
+#                                           self.step_number, self.step_id )['OK'] )
+#       step_commons_1['applicationVersion'] = 'v1'
 #      wf_commons['InputData'] = ['lfn1', 'lfn2']
 #      self.assertTrue( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
 #                                          self.workflowStatus, self.stepStatus,
@@ -1231,19 +1226,14 @@ class UploadLogFileSuccess( ModulesTestCase ):
 #                                           self.workflowStatus, self.stepStatus,
 #                                           wf_commons, step_commons,
 #                                           self.step_number, self.step_id,
-#                                           self.rm_mock, self.ft_mock,
+#                                           self.dm_mock, self.ft_mock,
 #                                           self.bkc_mock )['OK'] )
 
     # putStorageDirectory returns False
 
-    rm_mock = copy.deepcopy( self.rm_mock )
+    rm_mock = copy.deepcopy( self.dm_mock )
     rm_mock.putStorageDirectory.return_value = {'OK':False, 'Message':'bih'}
     ft_mock = copy.deepcopy( self.ft_mock )
-    request_mock = Mock()
-    request_mock.addSubRequest.return_value = {'OK': True, 'Value': ''}
-    request_mock.setSubRequestFiles.return_value = {'OK': True, 'Value': ''}
-    request_mock.getNumSubRequests.return_value = {'OK': True, 'Value': ''}
-    request_mock._getLastOrder.return_value = 1
     self.ulf.failoverTransfer = ft_mock
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
@@ -1466,10 +1456,10 @@ class FileUsageSuccess( ModulesTestCase ):
     for wf_commons in wfC:  # copy.deepcopy( self.wf_commons ):
       self.workflowStatus = {'OK':False, 'Message':'Mess'}
       for step_commons in self.step_commons:
-        self.assertFalse( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                           self.workflowStatus, self.stepStatus,
-                                           wf_commons, step_commons,
-                                           self.step_number, self.step_id )['OK'] )
+        self.assertTrue( self.fu.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, step_commons,
+                                          self.step_number, self.step_id )['OK'] )
 
 
 #############################################################################
@@ -1509,7 +1499,7 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ErrorLoggingSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FailoverRequestSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProtocolAccessTestSuccess ) )
+#   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProtocolAccessTestSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RemoveInputDataSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SendBookkeepingSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StepAccountingSuccess ) )

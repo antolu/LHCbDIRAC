@@ -93,6 +93,8 @@ class FailoverRequest( ModuleBase ):
 
       self.generateFailoverFile()
 
+      return S_OK()
+
     except Exception, e:
       self.log.exception( e )
       self.setApplicationStatus( e )

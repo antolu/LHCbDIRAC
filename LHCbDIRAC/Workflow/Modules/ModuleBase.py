@@ -808,7 +808,7 @@ class ModuleBase( object ):
       result = accountingReport.commit()
       if not result['OK']:
         self.log.error( "!!! Both accounting and RequestDB are down? !!!" )
-        return result
+        raise RuntimeError
 
     if len( self.request ):
       isValid = gRequestValidator.validate( self.request )
