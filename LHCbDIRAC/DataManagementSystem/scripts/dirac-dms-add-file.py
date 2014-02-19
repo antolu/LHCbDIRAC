@@ -64,7 +64,7 @@ if __name__ == "__main__":
   else:
     lfns.append( getDict( args ) )
 
-  from DIRAC.DataManagementSystem.Client.DataM import DataManager
+  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from DIRAC import gLogger
   import DIRAC
   exitCode = 0
@@ -95,7 +95,8 @@ if __name__ == "__main__":
       gLogger.error( 'Error: failed to upload %s to %s' % ( localFile, lfnDict['SE'] ), res['Message'] )
     else:
       if lfn in res['Value']['Successful']:
-        gLogger.notice( 'Successfully uploaded %s to %s (%.1f seconds)' % ( localFile, lfnDict['SE'], res['Value']['Successful'][lfn]['put'] ) )
+        gLogger.notice( 'Successfully uploaded %s to %s (%.1f seconds)' % ( localFile, lfnDict['SE'],
+                                                                            res['Value']['Successful'][lfn]['put'] ) )
       else:
         gLogger.error( 'Error: failed to upload %s to %s' % ( lfn, lfnDict['SE'] ), res['Value']['Failed'][lfn] )
 

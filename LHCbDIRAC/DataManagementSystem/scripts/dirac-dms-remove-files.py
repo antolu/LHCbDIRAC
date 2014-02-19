@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
   Script.parseCommandLine()
 
-  import sys, os
+  import sys
   import DIRAC
   from DIRAC import gLogger
 
@@ -42,10 +42,13 @@ if __name__ == "__main__":
     if switch[0] == 'SetProcessed':
       setProcessed = True
 
-  from DIRAC.Core.Utilities.List import sortList, breakListIntoChunks
+  from DIRAC.Core.Utilities.List import breakListIntoChunks
   from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+
   dm = DataManager()
+  fc = FileCatalog()
+
   if fixTrans:
     from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
     transClient = TransformationClient()
