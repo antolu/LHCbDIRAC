@@ -97,7 +97,6 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
 def getCPUTime( CPUNormalizationFactor ):
   """ Trying to get CPUTime (in seconds) from the CS. The default is a (low) 10000s
   """
-
   # FIXME: which one?
   CPUTime = gConfig.getValue( '/LocalSite/CPUTimeLeft', 0 )
   if not CPUTime:
@@ -108,17 +107,35 @@ def getCPUTime( CPUNormalizationFactor ):
     # We need to convert in real seconds
     CPUTime = CPUTime / int( CPUNormalizationFactor )
   else:
+    # now we know that we have to find the CPUTimeLeft by looking in the CS
     gridCE = gConfig.getValue( '/LocalSite/GridCE' )
     CEQueue = gConfig.getValue( '/LocalSite/CEQueue' )
-    queueInfo = getQueueInfo( '%s/%s' % ( gridCE, CEQueue ) )
-    if not queueInfo['OK'] or not queueInfo['Value']:
-      gLogger.warn( "Can't find a CE queue, defaulting CPUTime to 10000" )
-      CPUTime = 10000
-    else:
-      queueCSSection = queueInfo['Value']['QueueCSSection']
+    if not CEQueue:
+      # we have to look for a CEQueue in the CS
+      # FIXME: quite hacky. We should better profit from something generic
+      gLogger.warn( "No CEQueue in local configuration, looking to find one in CS" )
+      siteName = gConfig.getValue( '/LocalSite/Site' )
+      queueSection = '/Resources/Sites/%s/%s/CEs/%s/Queues' % ( siteName.split( '.' )[0], siteName, gridCE )
+      res = gConfig.getSections( queueSection )
+      if not res['OK']:
+        raise RuntimeError, res['Message']
+      queues = res['Value']
+      CPUTimes = []
+      for queue in queues:
+        CPUTimes.append( gConfig.getValue( queueSection + '/' + queue + '/maxCPUTime', 10000 ) )
+      cpuTimeInMinutes = min( CPUTimes )
       # These are (real, wall clock) minutes - damn BDII!
-      cpuTimeInMinutes = gConfig.getValue( '%s/maxCPUTime' % queueCSSection )
       CPUTime = int( cpuTimeInMinutes ) * 60
+    else:
+      queueInfo = getQueueInfo( '%s/%s' % ( gridCE, CEQueue ) )
+      if not queueInfo['OK'] or not queueInfo['Value']:
+        gLogger.warn( "Can't find a CE/queue, defaulting CPUTime to 10000" )
+        CPUTime = 10000
+      else:
+        queueCSSection = queueInfo['Value']['QueueCSSection']
+        # These are (real, wall clock) minutes - damn BDII!
+        cpuTimeInMinutes = gConfig.getValue( '%s/maxCPUTime' % queueCSSection )
+        CPUTime = int( cpuTimeInMinutes ) * 60
 
   return CPUTime
 
