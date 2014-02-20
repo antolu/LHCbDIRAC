@@ -188,10 +188,10 @@ if __name__ == "__main__":
     transBody = None
     if transType == "Removal":
       if plugin == "DestroyDataset":
-        transBody = "removal;removeFile"
+        transBody = "removal;RemoveFile"
       elif plugin == "DestroyDatasetWhenProcessed":
         plugin = "DeleteReplicasWhenProcessed"
-        transBody = "removal;removeFile"
+        transBody = "removal;RemoveFile"
         # Set the polling period to 0 if not defined
         pluginParams.setdefault( 'Period', 0 )
       else:
@@ -252,13 +252,13 @@ if __name__ == "__main__":
 
     # If the transformation is a removal transformation, check all files are in the LFC. If not, remove their replica flag
     if lfcCheck and transType == 'Removal':
-      from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
-      fc = FileCatalog()
+      from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+      rm = ReplicaManager()
       success = 0
       missingLFNs = []
       startTime = time.time()
       for chunk in breakListIntoChunks( lfns, 500 ):
-        res = fc.exists( chunk )
+        res = rm.getCatalogExists( chunk )
         if res['OK']:
           success += len ( [lfn for lfn in chunk if lfn in res['Value']['Successful'] and  res['Value']['Successful'][lfn]] )
           missingLFNs += [lfn for lfn in chunk if lfn in res['Value']['Failed']] + [lfn for lfn in chunk if lfn in res['Value']['Successful'] and not res['Value']['Successful'][lfn]]
