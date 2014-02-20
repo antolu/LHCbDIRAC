@@ -140,7 +140,7 @@ class RAWIntegrityAgent( AgentModule ):
       sePfns[se].append( pfn )
     pfnMetadata = { 'Successful':{}, 'Failed':{} }
     for se, pfnList in sePfns.items():
-      res = StorageElement( se ).getMetadata( pfnList )
+      res = StorageElement( se ).getFileMetadata( pfnList )
       if not res['OK']:
         errStr = "Failed to obtain physical file metadata."
         self.log.error( errStr, res['Message'] )
@@ -254,9 +254,15 @@ class RAWIntegrityAgent( AgentModule ):
           fileToRemove.PFN = pfn
           physRemoval.addFile( fileToRemove )
           oRequest.addOperation( physRemoval )
+          # # dump to json
+          requestJSON = oRequest.toJSON()
+          if not requestJSON["OK"]:
+            self.log.error( "Failed to serialize request to JSON.", res['Message'] )
+            continue
+          requestJSON = requestJSON["Value"]
           
           self.log.info( "Attempting to put %s to gateway requestDB." % oRequest.RequestName )
-          res = self.onlineRequestMgr.putRequest( oRequest )
+          res = self.onlineRequestMgr.putRequest( requestJSON )
           if not res['OK']:
             self.log.error( "Failed to set removal request to gateway requestDB.", res['Message'] )
           else:
@@ -314,8 +320,15 @@ class RAWIntegrityAgent( AgentModule ):
           reTransfer.addFile( reTransferFile )
           oRequest.addOperation( reTransfer )
 
+          # # dump to json
+          requestJSON = oRequest.toJSON()
+          if not requestJSON["OK"]:
+            self.log.error( "Failed to serialize request to JSON.", res['Message'] )
+            continue
+          requestJSON = requestJSON["Value"]
+
           self.log.info( "Attempting to put %s to gateway requestDB." % oRequest.RequestName )
-          res = self.onlineRequestMgr.putRequest( oRequest )
+          res = self.onlineRequestMgr.putRequest( requestJSON )
           if not res['OK']:
             self.log.error( "Failed to set removal request to gateway requestDB.", res['Message'] )
           else:

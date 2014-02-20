@@ -148,7 +148,7 @@ class UploadLogFile( ModuleBase ):
       self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
       self.log.info( 'putDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
 
-      res = Utils.executeSingleFileOrDirWrapper( StorageElement( self.logSE ).putDirectory( storageDirectory = {self.logFilePath:os.path.realpath( self.logdir )} ) )
+      res = Utils.executeSingleFileOrDirWrapper( StorageElement( self.logSE ).putDirectory( {self.logFilePath:os.path.realpath( self.logdir )} ) )
       self.log.verbose( res )
       self.setJobParameter( 'Log URL', logURL )
       if res['OK']:
