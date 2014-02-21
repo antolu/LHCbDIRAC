@@ -169,7 +169,7 @@ dirac_externals(){
   
   wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
   #python dirac-install -X -l DIRAC -r `cat $WORKSPACE/new_tag.txt` -t server -p 'Linux_x86_64_glibc-2.5'
-  python dirac-install -X -l DIRAC -r v6r9 -t server -p 'Linux_x86_64_glibc-2.5'
+  python dirac-install -X -l DIRAC -r v6r10 -t server -p 'Linux_x86_64_glibc-2.5'
   ( 
     cd $WORKSPACE
     sed -i 's/`$DIRACSCRIPTS\/dirac-platform`/Linux_x86_64_glibc-2.5/g' bashrc
@@ -181,20 +181,14 @@ dirac_externals(){
     python `which easy_install` pyqt
     python `which easy_install` stomp.py
 
-    if [[ "$JOB_NAME" == dirac* ]]
-    then
-      python `which easy_install` nose
-      python `which easy_install` pylint
-    else
-      python `which easy_install` --upgrade nose
-      python `which easy_install` --upgrade pylint  
-      # little hack to get right version  of logilab-common
-      wget http://download.logilab.org/pub/common/logilab-common-0.60.0.tar.gz
-      tar xfv logilab-common-0.60.0.tar.gz
-      cd logilab-common-0.60.0
-      python setup.py install
-      cd -
-    fi  
+    python `which easy_install` --upgrade nose
+    python `which easy_install` --upgrade pylint  
+    # little hack to get right version  of logilab-common
+    wget http://download.logilab.org/pub/common/logilab-common-0.60.0.tar.gz
+    tar xfv logilab-common-0.60.0.tar.gz
+    cd logilab-common-0.60.0
+    python setup.py install
+    cd -
   )
   
 }
