@@ -297,6 +297,8 @@ class XMLFilesReaderManager:
 
     inputfiles = job.getJobInputFiles()
 
+    sumEventInputStat = 0
+    sumEvtStat = 0
     sumLuminosity = 0
 
     if job.exists('JobType'):
@@ -306,13 +308,39 @@ class XMLFilesReaderManager:
     ### It is not urgent as we do not have a huge load on the database
     for i in inputfiles:
       fname = i.getFileName()
+      res = dataManager_.getJobInfo(fname)
+
+      if res['OK']:
+        value = res["Value"]
+        if len(value) > 0 and value[0][2] != None:
+          sumEventInputStat += value[0][2]
+      else:
+        return S_ERROR(res['Message'])
       res = dataManager_.getFileMetadata([fname])
       if res['OK']:
         value = res['Value']
+        if value[fname]['EventStat'] != None:
+          sumEvtStat += value[fname]['EventStat']
         if value[fname]['Luminosity'] != None:
           sumLuminosity += value[fname]['Luminosity']
         if dqvalue == None and value[fname].has_key('DQFlag'):
           dqvalue = value[fname]['DQFlag']
+
+    evtinput = 0
+    if long(sumEvtStat) > long(sumEventInputStat):
+      evtinput = sumEvtStat
+    else:
+      evtinput = sumEventInputStat
+
+    if len(inputfiles) > 0:
+      if not job.exists('EventInputStat'):
+        newJobParams = JobParameters()
+        newJobParams.setName('EventInputStat')
+        newJobParams.setValue(str(evtinput))
+        job.addJobParams(newJobParams)
+      else:
+        currentEventInputStat = job.getParam('EventInputStat')
+        currentEventInputStat.setValue(evtinput)
 
     gLogger.debug('Luminosity: '+ str(sumLuminosity))
     outputFiles = job.getJobOutputFiles()
