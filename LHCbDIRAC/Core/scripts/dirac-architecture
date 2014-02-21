@@ -1,141 +1,120 @@
 #!/usr/bin/env python
 #######################
-#$Header: /local/reps/dirac/DIRAC3/scripts/dirac-architecture,v 1.22 2009/09/28 15:38:55 joel Exp $
+# $Header:$
 #######################
-#  to return the architecture tag to be used for CMTCONFIG or architecture
-#
 
-__RCSID__="$Id: dirac-architecture,v 1.22 2009/09/28 15:38:55 joel Exp $"
+""" Returns the architecture tag to be used for CMTCONFIG or architecture
+"""
 
-import sys, os, string, re
 
-# History:
-# ap, 11-aug-2004 : initial version
-# ap, 18-aug-2004 : check gcc version also on mac (Darwin)
-# jc, 9-mar-2007  : adapted for LHCb
+__RCSID__ = "$Id"
 
+import sys, os, string, re, platform
 
 def guessHWArch() :
 
-    hwArch = "ia64" # set some default to make it work ...
+  hwArch = "ia64"  # set some default to make it work ...
 
-    arch = os.uname()[-1]
+  arch = os.uname()[-1]
 
-    if re.compile( 'x86_64').match(arch) : hwArch = "amd64"
-    if re.compile(   'ia64').match(arch) : hwArch = "ia64"
-    if re.compile('power mac', re.I).match(arch) : hwArch = "ppc"
+  if re.compile( 'x86_64' ).match( arch ):
+    hwArch = "amd64"
+  if re.compile( 'ia64' ).match( arch ):
+    hwArch = "ia64"
+  if re.compile( 'power mac', re.I ).match( arch ):
+    hwArch = "ppc"
 
-    return hwArch
+  return hwArch
 
 
 def guessPlatform() :
-    opSys = None
+  opSys = None
 
-    # simple guesser ...
-    if ( os.uname()[0] == "Darwin" ) :
-        kernelVers = os.uname()[2]
-        if kernelVers[0] == '13' :
-            opSys = "osx109" + guessHWArch()
-        elif kernelVers[0] == '12' :
-            opSys = "osx108_" + guessHWArch()
-        elif kernelVers[0] == '11' :
-            opSys = "osx107_" + guessHWArch()
-        elif kernelVers[0] == '10' :
-            opSys = "osx106_" + guessHWArch()
+  # simple guesser ...
 
-    elif ( os.uname()[0] == "Linux" ) :
-        try:
-            # first try /etc/redhat-release:
-            issue = open("/etc/redhat-release", 'r')
-        except IOError:  # if it's not there, fall back to /etc/issue (which is used for announcements on lxslc3)
-            issue = open("/etc/issue", 'r')
-        except:
-            raise
-        lines = string.join(issue.readlines())
-        issue.close()
+  if ( os.uname()[0] == "Darwin" ) :
+    kernelVers = os.uname()[2]
+    if kernelVers[0] == '13' :
+      opSys = "osx109" + guessHWArch()
+    elif kernelVers[0] == '12' :
+      opSys = "osx108_" + guessHWArch()
+    elif kernelVers[0] == '11' :
+      opSys = "osx107_" + guessHWArch()
+    elif kernelVers[0] == '10' :
+      opSys = "osx106_" + guessHWArch()
 
-        # should do this based on some libgcc/libstdc++ versions to determine compatibility
+  elif ( os.uname()[0] == "Linux" ) :
+    try:
+      # first try /etc/redhat-release:
+      issue = open( "/etc/redhat-release", 'r' )
+    except IOError:  # if it's not there, fall back to /etc/issue (which is used for announcements on lxslc3)
+      issue = open( "/etc/issue", 'r' )
+    lines = string.join( issue.readlines() )
+    issue.close()
 
-        osRe = re.compile('.*Scientific Linux CERN SLC release (\d)\.(\d) .*')
-        osMat = osRe.match(lines)
-        if osMat:
-           opSys = os.uname()[-1]+"-slc"+osMat.group(1)
+    # should do this based on some libgcc/libstdc++ versions to determine compatibility
 
-        if not opSys:
-            if ( string.find(lines, "CentOS") != -1 and
-                 string.find(lines, " 5") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc5"
-            elif ( string.find(lines, "CentOS") != -1 and
-                 string.find(lines, " 6") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc6"
-            elif ( string.find(lines, "CentOS") != -1 and
-                 string.find(lines, " 7") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc7"
-            elif ( string.find(lines, "Red Hat Enterprise") != -1 and
-                 string.find(lines, " 5") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc5"
-            elif ( string.find(lines, "Red Hat Enterprise") != -1 and
-                 string.find(lines, " 6") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc6"
-            elif ( string.find(lines, "Red Hat Enterprise") != -1 and
-                 string.find(lines, " 7") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc7"
-            elif ( string.find(lines, "Redhat Enterprise") != -1 and
-                 string.find(lines, " 5") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc5"
-            elif ( string.find(lines, "Redhat Enterprise") != -1 and
-                 string.find(lines, " 6") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc6"
-            elif ( string.find(lines, "Redhat Enterprise") != -1 and
-                 string.find(lines, " 7") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc7"
-            elif ( string.find(lines, "Scientific Linux") != -1 and
-                 string.find(lines, " 5") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc5"
-            elif ( string.find(lines, "Scientific Linux") != -1 and
-                 string.find(lines, " 6") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc6"
-            elif ( string.find(lines, "Scientific Linux") != -1 and
-                 string.find(lines, " 7") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc7"
-            elif ( string.find(lines, "Ubuntu" ) != -1 and
-                 string.find(lines, "9.") != -1 ) :
-                    opSys = os.uname()[-1] + "-slc5"
-            elif ( string.find(lines, "SUSE") != -1 and
-                 string.find(lines, "10.1") != -1 ) : opSys = "suse101"  # not compatible
-            elif ( string.find(lines, "SUSE") != -1 and
-                 string.find(lines, "10.2") != -1 ) : opSys = "suse102"  # not compatible
-            elif ( string.find(lines, "SUSE") != -1 and
-                 string.find(lines, "11.") != -1 ) : opSys = "suse11"  # not compatible
-            elif ( string.find(lines, "Mandriva Linux") != -1 and
-                 string.find(lines, "2007.0") != -1 ) : opSys = "slc3"  # not compatible
+    osRe = re.compile( '.*Scientific Linux CERN SLC release (\d)\.(\d) .*' )
+    osMat = osRe.match( lines )
+    if osMat:
+      opSys = os.uname()[-1] + "-slc" + osMat.group( 1 )
 
-        if not opSys :
-            # errLog = open(".guessPlatf-os.err",'w')
-            # errLog.write("\nUnknown operating system found, please report:\n" + lines + "\n")
-            # errLog.close()
-            sys.stderr.write("\nERROR:\n")
-            sys.stderr.write("\tOperating system version '" + lines + "' is not supported, sorry.\n")
-            sys.stderr.write("\tFor information on supported platforms mailto:lhcb-dirac@cern.ch \n\n")
-#            sys.exit(-1)
-            opSys = "ERROR"
+    if not opSys:
+      if ( string.find( lines, "CentOS" ) != -1 and string.find( lines, " 5" ) != -1 ):
+        opSys = os.uname()[-1] + "-slc5"
+      elif ( string.find( lines, "CentOS" ) != -1 and string.find( lines, " 6" ) != -1 ):
+        opSys = os.uname()[-1] + "-slc6"
+      elif ( string.find( lines, "CentOS" ) != -1 and string.find( lines, " 7" ) != -1 ):
+        opSys = os.uname()[-1] + "-slc7"
+      elif ( string.find( lines, "Red Hat Enterprise" ) != -1 and string.find( lines, " 5" ) != -1 ):
+        opSys = os.uname()[-1] + "-slc5"
+      elif ( string.find( lines, "Red Hat Enterprise" ) != -1 and string.find( lines, " 6" ) != -1 ):
+        opSys = os.uname()[-1] + "-slc6"
+      elif ( string.find( lines, "Red Hat Enterprise" ) != -1 and string.find( lines, " 7" ) != -1 ):
+        opSys = os.uname()[-1] + "-slc7"
+      elif ( string.find( lines, "Redhat Enterprise" ) != -1 and string.find( lines, " 5" ) != -1 ):
+        opSys = os.uname()[-1] + "-slc5"
+      elif ( string.find( lines, "Redhat Enterprise" ) != -1 and string.find( lines, " 6" ) != -1 ):
+        opSys = os.uname()[-1] + "-slc6"
+      elif ( string.find( lines, "Redhat Enterprise" ) != -1 and string.find( lines, " 7" ) != -1 ):
+        opSys = os.uname()[-1] + "-slc7"
+      elif ( string.find( lines, "Scientific Linux" ) != -1 and string.find( lines, " 5" ) != -1 ):
+        opSys = os.uname()[-1] + "-slc5"
+      elif ( string.find( lines, "Scientific Linux" ) != -1 and string.find( lines, " 6" ) != -1 ):
+        opSys = os.uname()[-1] + "-slc6"
+      elif ( string.find( lines, "Scientific Linux" ) != -1 and string.find( lines, " 7" ) != -1 ):
+        opSys = os.uname()[-1] + "-slc7"
+      elif ( string.find( lines, "Ubuntu" ) != -1 and string.find( lines, "9." ) != -1 ):
+        opSys = os.uname()[-1] + "-slc5"
+      elif ( string.find( lines, "SUSE" ) != -1 and string.find( lines, "10.1" ) != -1 ):
+        opSys = "suse101"  # not compatible
+      elif ( string.find( lines, "SUSE" ) != -1 and string.find( lines, "10.2" ) != -1 ):
+        opSys = "suse102"  # not compatible
+      elif ( string.find( lines, "SUSE" ) != -1 and string.find( lines, "11." ) != -1 ):
+        opSys = "suse11"  # not compatible
+      elif ( string.find( lines, "Mandriva Linux" ) != -1 and string.find( lines, "2007.0" ) != -1 ):
+        opSys = "slc3"  # not compatible
 
+    if not opSys :
+      # errLog = open(".guessPlatf-os.err",'w')
+      # errLog.write("\nUnknown operating system found, please report:\n" + lines + "\n")
+      # errLog.close()
+      sys.stderr.write( "\nERROR:\n" )
+      sys.stderr.write( "\tOperating system version '" + lines + "' is not supported, sorry.\n" )
+      sys.stderr.write( "\tFor information on supported platforms mailto:lhcb-dirac@cern.ch \n\n" )
+#       sys.exit( -1 )
+      opSys = "ERROR"
 
-    return (opSys)
+  return ( opSys )
+
 
 if __name__ == "__main__" :
-    osStr = guessPlatform()
-    if osStr == "ERROR":
-        print "ERROR"
+  osStr = guessPlatform()
+  if osStr == "ERROR":
+    print "ERROR"
+  else:
+    if len( sys.argv ) > 1:
+      if sys.argv[1] == 'python':
+        print sys.executable
     else:
-    	arch = osStr
-    	if len(sys.argv) > 1:
-    		if sys.argv[1] == 'python':
-    		 	baseDir = os.path.realpath( os.path.dirname( __file__ ) + "/../%s/bin/" % arch  )
-    		 	for pyStr in ( 'python2.7', 'python2.5', 'python2.6', 'python' ):
-    		 		pythonLocation = '%s/%s' % ( baseDir, pyStr )
-    		 		if os.path.isfile( pythonLocation ):
-    		 			print pythonLocation
-    		 			break
-    	else:
-        	print arch
+      print osStr
