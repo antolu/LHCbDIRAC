@@ -131,15 +131,14 @@ class TransformationDB( DIRACTransformationDB ):
 #
 #    return S_OK( tables )
 
-  def cleanTransformation( self, transName, author = '', connection = False ):
+  def cleanTransformation( self, transID, author = '', connection = False ):
     """ Clean the transformation specified by name or id
         Extends DIRAC one for deleting the unused runs metadata
     """
-    res = self._getConnectionTransID( connection, transName )
+    res = self._getConnectionTransID( connection, transID )
     if not res['OK']:
       return res
     connection = res['Value']['Connection']
-    transID = res['Value']['TransformationID']
 
     # deleting runs metadata
     req = "SELECT DISTINCT RunNumber FROM TransformationRuns WHERE TransformationID = %s" % transID
@@ -163,7 +162,7 @@ class TransformationDB( DIRACTransformationDB ):
       if not res['OK']:
         return res
 
-    res = DIRACTransformationDB.cleanTransformation( self, transName, connection = connection )
+    res = DIRACTransformationDB.cleanTransformation( self, transID, connection = connection )
     if not res['OK']:
       return res
 
@@ -173,11 +172,11 @@ class TransformationDB( DIRACTransformationDB ):
     return S_OK( transID )
 
 
-  def getTasksForSubmission( self, transName, numTasks = 1, site = "", statusList = ['Created'],
+  def getTasksForSubmission( self, transID, numTasks = 1, site = "", statusList = ['Created'],
                              older = None, newer = None, connection = False ):
     """ extends base class including the run metadata
     """
-    tasksDict = DIRACTransformationDB.getTasksForSubmission( self, transName, numTasks, site, statusList,
+    tasksDict = DIRACTransformationDB.getTasksForSubmission( self, transID, numTasks, site, statusList,
                                                              older, newer, connection )
     if not tasksDict['OK']:
       return tasksDict
@@ -215,14 +214,13 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     return self._update( "DELETE FROM BkQueriesNew WHERE TransformationID=%d" % int( transID ), connection )
 
-  def setBookkeepingQueryEndRunForTransformation( self, transName, runNumber, connection = False ):
+  def setBookkeepingQueryEndRunForTransformation( self, transID, runNumber, connection = False ):
     """ Set the EndRun for the supplied transformation
     """
-    res = self._getConnectionTransID( connection, transName )
+    res = self._getConnectionTransID( connection, transID )
     if not res['OK']:
       return res
     connection = res['Value']['Connection']
-    transID = res['Value']['TransformationID']
     res = self.getBookkeepingQuery( transID, connection = connection )
     if not res['OK']:
       return res
@@ -236,14 +234,13 @@ class TransformationDB( DIRACTransformationDB ):
     return self._update( req, connection )
 
 
-  def setBookkeepingQueryStartRunForTransformation( self, transName, runNumber, connection = False ):
+  def setBookkeepingQueryStartRunForTransformation( self, transID, runNumber, connection = False ):
     """ Set the StartRun for the supplied transformation
     """
-    res = self._getConnectionTransID( connection, transName )
+    res = self._getConnectionTransID( connection, transID )
     if not res['OK']:
       return res
     connection = res['Value']['Connection']
-    transID = res['Value']['TransformationID']
     res = self.getBookkeepingQuery( transID, connection = connection )
     if not res['OK']:
       return res
@@ -257,14 +254,13 @@ class TransformationDB( DIRACTransformationDB ):
     return self._update( req, connection )
 
 
-  def addBookkeepingQueryRunListTransformation( self, transName, runList, connection = False ):
+  def addBookkeepingQueryRunListTransformation( self, transID, runList, connection = False ):
     """ Adds the list of runs
     """
-    res = self._getConnectionTransID( connection, transName )
+    res = self._getConnectionTransID( connection, transID )
     if not res['OK']:
       return S_ERROR( "Failed to get Connection to TransformationDB" )
     connection = res['Value']['Connection']
-    transID = res['Value']['TransformationID']
     res = self.getBookkeepingQuery( transID, connection = connection )
     if not res['OK']:
       return S_ERROR( "Cannot retrieve BkQuery" )
@@ -389,7 +385,6 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return res
     connection = res['Value']['Connection']
-    transID = res['Value']['TransformationID']
     # Be sure the all the supplied LFNs are known to the database for the supplied transformation
     fileIDs = []
     runID = 0
@@ -515,16 +510,15 @@ class TransformationDB( DIRACTransformationDB ):
       transRunStatusDict[transID][runID][status] = count
     return S_OK( transRunStatusDict )
 
-  def addTransformationRunFiles( self, transName, runID, lfns, connection = False ):
+  def addTransformationRunFiles( self, transID, runID, lfns, connection = False ):
     """ Adds the RunID to the TransformationFiles table
     """
     if not lfns:
       return S_ERROR( 'Zero length LFN list' )
-    res = self._getConnectionTransID( connection, transName )
+    res = self._getConnectionTransID( connection, transID )
     if not res['OK']:
       return res
     connection = res['Value']['Connection']
-    transID = res['Value']['TransformationID']
     res = self.__getFileIDsForLfns( lfns, connection = connection )
     if not res['OK']:
       return res
@@ -553,18 +547,17 @@ class TransformationDB( DIRACTransformationDB ):
     resDict = {'Successful':successful, 'Failed':failed}
     return S_OK( resDict )
 
-  def setTransformationRunStatus( self, transName, runIDs, status, connection = False ):
+  def setTransformationRunStatus( self, transID, runIDs, status, connection = False ):
     """ Sets a status in the TransformationRuns table
     """
     if not runIDs:
       return S_OK()
     if type( runIDs ) != ListType:
       runIDs = [runIDs]
-    res = self._getConnectionTransID( connection, transName )
+    res = self._getConnectionTransID( connection, transID )
     if not res['OK']:
       return res
     connection = res['Value']['Connection']
-    transID = res['Value']['TransformationID']
     req = "UPDATE TransformationRuns SET Status = '%s', LastUpdate = UTC_TIMESTAMP() \
     WHERE TransformationID = %d and RunNumber in (%s)" % ( status, transID, intListToString( runIDs ) )
     res = self._update( req, connection )
@@ -572,14 +565,13 @@ class TransformationDB( DIRACTransformationDB ):
       gLogger.error( "Failed to update TransformationRuns table with Status", res['Message'] )
     return res
 
-  def setTransformationRunsSite( self, transName, runID, selectedSite, connection = False ):
+  def setTransformationRunsSite( self, transID, runID, selectedSite, connection = False ):
     """ Sets the site for Transformation Runs
     """
-    res = self._getConnectionTransID( connection, transName )
+    res = self._getConnectionTransID( connection, transID )
     if not res['OK']:
       return res
     connection = res['Value']['Connection']
-    transID = res['Value']['TransformationID']
     req = "UPDATE TransformationRuns SET SelectedSite = '%s', LastUpdate = UTC_TIMESTAMP() \
     WHERE TransformationID = %d and RunNumber = %d" % ( selectedSite, transID, runID )
     res = self._update( req, connection )
