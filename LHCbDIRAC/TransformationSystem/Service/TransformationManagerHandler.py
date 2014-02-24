@@ -36,12 +36,6 @@ class TransformationManagerHandler( TManagerBase ):
     print res
     return self._parseRes( res )
 
-
-  # not needed anymore
-  # types_deleteTransformationBookkeepingQuery = [ [LongType, IntType, StringType] ]
-  # def export_deleteTransformationBookkeepingQuery( self, transName ):
-
-
   types_deleteBookkeepingQuery = [ [LongType, IntType] ]
   def export_deleteBookkeepingQuery( self, transID ):
     res = database.deleteBookkeepingQuery( transID )
@@ -87,12 +81,6 @@ class TransformationManagerHandler( TManagerBase ):
       transIDs = [transIDs]
     res = database.getTransformationRunStats( transIDs )
     return self._parseRes( res )
-
-#  types_getTransformationRunsSummaryWeb = [DictType, ListType, IntType, IntType]
-#  def export_getTransformationRunsSummaryWeb(self,selectDict,sortList,startItem,maxItems):
-#    return self.__getTableSummaryWeb('TransformationRuns',selectDict,sortList,startItem,maxItems,
-#                                     selectColumns=['TransformationID','RunNumber','SelectedSite','Status'],
-#                                     timeStamp='LastUpdate',statusColumn='Status')
 
   types_addTransformationRunFiles = [[LongType, IntType, StringType], [LongType, IntType], ListType]
   def export_addTransformationRunFiles( self, transName, runID, lfns ):

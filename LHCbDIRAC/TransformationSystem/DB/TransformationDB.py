@@ -216,15 +216,10 @@ class TransformationDB( DIRACTransformationDB ):
 
     res = self.__getBookkeepingQuery( transID )
     print res
-    # req = "SELECT COUNT(*) FROM BkQueriesNew WHERE TransformationID=%d" % int( transID )
-    # res = self._query( req )
     if not res['OK']:
       return res
-    # count = res['Value']
-    # if count != 0:
     req = 'DELETE FROM BkQueriesNew WHERE TransformationID=%d' % int( transID )
     return self._update( req, connection )
-
 
   # old version receive the transName
   def createTransformationQuery( self, transID, queryDict, author = '', connection = False ):
@@ -237,10 +232,6 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return res
     return S_OK( transID )
-
-  # not needed anymore,  we can call deleteBookipingQuery directly
-  # def deleteTransformationBookkeepingQuery( self, transName, author = '', connection = False ):
-
 
   # it was receiving the transName - can we use getBookkeepingQuery directly?
   def getBookkeepingQueryForTransformation( self, transID, connection = False ):
@@ -317,18 +308,6 @@ class TransformationDB( DIRACTransformationDB ):
     self._update( req, connection )
     return S_OK()
 
-  # BkQueryID does not exist anymore
-  # def __getTransformationBkQueryID( self, transName, connection = False ):
-
-
-  #is not needed anymore
-  #def __setTransformationQuery( self, transName, bkQueryID, author = '', connection = False ):
-  #  """ Set the bookkeeping query ID of the transformation specified by transID
-  #  """
-  #  return self.setTransformationParameter( transName, 'BkQueryID', bkQueryID, author = author,
-  #                                          connection = connection )
-
-
   # it was receiving only the queryDict, now transID or transName are needed
   def __addBookkeepingQuery( self, transID, queryDict, connection = False ):
     """ Add a new Bookkeeping query specification
@@ -379,11 +358,7 @@ class TransformationDB( DIRACTransformationDB ):
     """ Get the bookkeeping query parameters, if transID is 0 then get all the queries :WHY???
     """
     connection = self.__getConnection( connection )
-    # fieldsString = ','.join( self.queryFields )
-    # if transID:
     req = "SELECT * FROM BkQueriesNew WHERE TransformationID=%d" % ( int( transID ) )
-    # else:
-    #  req = "SELECT * FROM BkQueriesNew"
     res = self._query( req, connection )
     if not res['OK']:
       return res
