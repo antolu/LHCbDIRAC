@@ -15,15 +15,12 @@
 
 """
 
-# DIRAC
-from DIRAC import gConfig, gLogger, S_ERROR, S_OK
-from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getCompatiblePlatforms
-
-# LHCbDIRAC
-from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
-
-
 __RCSID__ = "$Id: $"
+
+
+from DIRAC import gConfig, gLogger, S_ERROR, S_OK
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getCompatiblePlatforms
+from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
 
 
 class NoSoftwareInstallation( object ):

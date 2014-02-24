@@ -9,8 +9,8 @@ __RCSID__ = "$Id$"
 import os, shutil
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getCompatiblePlatforms
 from DIRAC.Core.Utilities.Os import sourceEnv
 
 gLogger = gLogger.getSubLogger( 'ProductionEnvironment' )
@@ -408,6 +408,33 @@ def getSharedArea():
 
   return sharedArea
 
+
+def getCompatiblePlatforms( originalPlatforms ):
+  """ Get a list of platforms compatible with the given list
+      Looks into operation section PlatformsToConfigs
+  """
+  if type( originalPlatforms ) == type( ' ' ):
+    platforms = [originalPlatforms]
+  else:
+    platforms = list( originalPlatforms )
+
+  result = opsH.getOptionsDict( 'PlatformsToConfigs' )
+  if result['OK'] and result['Value']:
+    platformsDict = dict( [( k, v.replace( ' ', '' ).split( ',' ) ) for k, v in result['Value'].iteritems()] )
+    resultList = list()
+  else:
+    return S_ERROR( "PlatformsToConfigs info not found" )
+
+  for p in platforms:
+    tmpList = platformsDict.get( p, [] )
+    for pp in platformsDict:
+      if p in platformsDict[pp]:
+        tmpList.append( pp )
+        tmpList += platformsDict[pp]
+    if tmpList:
+      resultList += tmpList
+
+  return S_OK( uniqueElements( resultList ) )
 
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
