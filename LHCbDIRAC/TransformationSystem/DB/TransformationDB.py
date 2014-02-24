@@ -213,41 +213,17 @@ class TransformationDB( DIRACTransformationDB ):
     """ Delete the specified query from the database
     """
     connection = self.__getConnection( connection )
-
-    res = self.__getBookkeepingQuery( transID )
-    print res
-    if not res['OK']:
-      return res
-    req = 'DELETE FROM BkQueriesNew WHERE TransformationID=%d' % int( transID )
-    return self._update( req, connection )
-
-  # old version receive the transName
-  def createTransformationQuery( self, transID, queryDict, author = '', connection = False ):
-    """ Create the supplied BK query """
-
-    connection = self.__getConnection( connection )
-    # old version receive only the queryDict because BkQueryID it was an auto-increment field
-    res = self.__addBookkeepingQuery( transID, queryDict, connection = connection )
-    # setTransformationQuery not needed anymore
-    if not res['OK']:
-      return res
-    return S_OK( transID )
-
-  # it was receiving the transName - can we use getBookkeepingQuery directly?
-  def getBookkeepingQueryForTransformation( self, transID, connection = False ):
-    """ Get the BK query associated to the transformation """
-    connection = self.__getConnection( connection )
-    return self.__getBookkeepingQuery( transID, connection = connection )
-
+    return self._update( "DELETE FROM BkQueriesNew WHERE TransformationID=%d" % int( transID ), connection )
 
   def setBookkeepingQueryEndRunForTransformation( self, transName, runNumber, connection = False ):
-    """ Set the EndRun for the supplied transformation """
+    """ Set the EndRun for the supplied transformation
+    """
     res = self._getConnectionTransID( connection, transName )
     if not res['OK']:
       return res
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
-    res = self.__getBookkeepingQuery( transID, connection = connection )
+    res = self.getBookkeepingQuery( transID, connection = connection )
     if not res['OK']:
       return res
     startRun = res['Value'].get( 'StartRun' )
@@ -261,13 +237,14 @@ class TransformationDB( DIRACTransformationDB ):
 
 
   def setBookkeepingQueryStartRunForTransformation( self, transName, runNumber, connection = False ):
-    """ Set the StartRun for the supplied transformation """
+    """ Set the StartRun for the supplied transformation
+    """
     res = self._getConnectionTransID( connection, transName )
     if not res['OK']:
       return res
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
-    res = self.__getBookkeepingQuery( transID, connection = connection )
+    res = self.getBookkeepingQuery( transID, connection = connection )
     if not res['OK']:
       return res
     endRun = res['Value'].get( 'EndRun' )
@@ -288,7 +265,7 @@ class TransformationDB( DIRACTransformationDB ):
       return S_ERROR( "Failed to get Connection to TransformationDB" )
     connection = res['Value']['Connection']
     transID = res['Value']['TransformationID']
-    res = self.__getBookkeepingQuery( transID, connection = connection )
+    res = self.getBookkeepingQuery( transID, connection = connection )
     if not res['OK']:
       return S_ERROR( "Cannot retrieve BkQuery" )
     if isinstance( res['Value']['RunNumbers'], str ):
@@ -308,8 +285,7 @@ class TransformationDB( DIRACTransformationDB ):
     self._update( req, connection )
     return S_OK()
 
-  # it was receiving only the queryDict, now transID or transName are needed
-  def __addBookkeepingQuery( self, transID, queryDict, connection = False ):
+  def addBookkeepingQuery( self, transID, queryDict, connection = False ):
     """ Add a new Bookkeeping query specification
     """
     connection = self.__getConnection( connection )
@@ -332,29 +308,17 @@ class TransformationDB( DIRACTransformationDB ):
 
     # Insert the new bk query
     values = ["'%s'" % x for x in values]
-    req = "INSERT INTO BkQueriesNew (TransformationID, ParameterName,ParameterValue) VALUES (%d,'%s',%s),\
-    (%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),\
-    (%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s),(%d,'%s',%s)" % ( transID, self.queryFields[0], values[0], transID, \
-                                                       self.queryFields[1], values[1], transID,
-                                                       self.queryFields[2], values[2], transID,
-                                                       self.queryFields[3], values[3], transID,
-                                                       self.queryFields[4], values[4], transID,
-                                                       self.queryFields[5], values[5], transID,
-                                                       self.queryFields[6], values[6], transID,
-                                                       self.queryFields[7], values[7], transID,
-                                                       self.queryFields[8], values[8], transID,
-                                                       self.queryFields[9], values[9], transID,
-                                                       self.queryFields[10], values[10], transID,
-                                                       self.queryFields[11], values[11], transID,
-                                                       self.queryFields[12], values[12], transID,
-                                                       self.queryFields[13], values[13] )
+    req = "INSERT INTO BkQueriesNew (TransformationID, ParameterName,ParameterValue) VALUES "
+    for i in range ( len( self.queryFields ) ):
+      req = req + "(%d,`%s`,%s), " % ( transID, self.queryFields[i], values[i] )
+    req = req.strip().rstrip( ',' )
+    
     res = self._update( req, connection )
     if not res['OK']:
       return res
     return S_OK( transID )
-
     
-  def __getBookkeepingQuery( self, transID, connection = False ):
+  def getBookkeepingQuery( self, transID, connection = False ):
     """ Get the bookkeeping query parameters, if transID is 0 then get all the queries :WHY???
     """
     connection = self.__getConnection( connection )

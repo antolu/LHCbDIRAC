@@ -28,11 +28,11 @@ class TransformationManagerHandler( TManagerBase ):
   #
 
 
-  types_createTransformationQuery = [ [LongType, IntType, StringType], DictType ]
-  def export_createTransformationQuery( self, transID, queryDict ):
+  types_addBookkepingQuery = [ [LongType, IntType, StringType], DictType ]
+  def export_addBookkepingQuery( self, transID, queryDict ):
     credDict = self.getRemoteCredentials()
     authorDN = credDict[ 'DN' ]
-    res = database.createTransformationQuery( transID, queryDict, author = authorDN )
+    res = database.addBookkepingQuery( transID, queryDict, author = authorDN )
     print res
     return self._parseRes( res )
 
@@ -41,10 +41,9 @@ class TransformationManagerHandler( TManagerBase ):
     res = database.deleteBookkeepingQuery( transID )
     return self._parseRes( res )
 
-# it takes the transID NOW
-  types_getBookkeepingQueryForTransformation = [ [LongType, IntType, StringType] ]
-  def export_getBookkeepingQueryForTransformation( self, transID ):
-    res = database.getBookkeepingQueryForTransformation( transID )
+  types_getBookkeepingQuery = [ [LongType, IntType] ]
+  def export_getBookkeepingQuery( self, transID ):
+    res = database.getBookkeepingQuery( transID )
     return self._parseRes( res )
 
   

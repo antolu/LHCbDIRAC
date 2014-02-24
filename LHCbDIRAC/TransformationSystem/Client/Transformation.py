@@ -58,7 +58,7 @@ class Transformation( DIRACTransformation ):
         return res
     transID = self.paramValues['TransformationID']
     if self.exists and transID:
-      res = self.transClient.createTransformationQuery( transID, queryDict )
+      res = self.transClient.addBookkeepingQuery( transID, queryDict )
       if not res['OK']:
         return res
     self.item_called = 'BkQuery'
@@ -72,7 +72,7 @@ class Transformation( DIRACTransformation ):
     """
     if self.paramValues['BkQuery']:
       return S_OK( self.paramValues['BkQuery'] )
-    res = self.__executeOperation( 'getBookkeepingQueryForTransformation', printOutput = printOutput )
+    res = self.__executeOperation( 'getBookkeepingQuery', printOutput = printOutput )
     if not res['OK']:
       return res
     self.item_called = 'BkQuery'

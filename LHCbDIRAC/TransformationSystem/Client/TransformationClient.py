@@ -19,8 +19,8 @@ class TransformationClient( DIRACTransformationClient ):
       BK query manipulation
           deleteBookkeepingQuery(queryID)
           deleteTransformationBookkeepingQuery(transName)
-          createTransformationQuery(transName,queryDict)
-          getBookkeepingQueryForTransformation(transName)
+          addBookkeepingQuery(transID,queryDict)
+          getBookkeepingQuery(transName)
   """
 
   def __init__( self, **kwargs ):
@@ -48,7 +48,7 @@ class TransformationClient( DIRACTransformationClient ):
       return res
     transID = res['Value']
     if bkQuery:
-      res = rpcClient.createTransformationQuery( transID, bkQuery )
+      res = rpcClient.addBookkeepingQuery( transID, bkQuery )
       if not res['OK']:
         gLogger.error( "Failed to publish BKQuery for transformation", "%s %s" % ( transID, res['Message'] ) )
     return S_OK( transID )

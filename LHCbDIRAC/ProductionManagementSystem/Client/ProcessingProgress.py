@@ -270,7 +270,7 @@ class ProcessingProgress:
     self.clearCache = clearCache
 
   def __getProdBkDict( self, prod ):
-    res = self.transClient.getBookkeepingQueryForTransformation( prod )
+    res = self.transClient.getBookkeepingQuery( prod )
     if not res['OK']:
       gLogger.error( "Couldn't get BK query on production %d" % prod )
       return {}

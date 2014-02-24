@@ -159,7 +159,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
         transType = res['Value']['Type']
         transPlugin = res['Value']['Plugin']
 
-        res = self.transClient.getBookkeepingQueryForTransformation( transID )
+        res = self.transClient.getBookkeepingQuery( transID )
         if not res['OK']:
           self._logError( "Failed to get BkQuery", res['Message'], transID = transID )
           continue

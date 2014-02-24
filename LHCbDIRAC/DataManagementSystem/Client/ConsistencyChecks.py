@@ -177,7 +177,7 @@ class ConsistencyChecks( object ):
     '''
     bkQuery = None
     if fromTS:
-      res = self.transClient.getBookkeepingQueryForTransformation( self.prod )
+      res = self.transClient.getBookkeepingQuery( self.prod )
       if not res['OK']:
         raise ValueError, res['Message']
       bkQuery = BKQuery( res['Value'] )

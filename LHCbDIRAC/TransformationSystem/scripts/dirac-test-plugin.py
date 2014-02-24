@@ -45,9 +45,9 @@ class fakeClient:
       counters.append( ( {'UsedSE':se}, 1 ) )
     return DIRAC.S_OK( counters )
 
-  def getBookkeepingQueryForTransformation ( self, transID ):
+  def getBookkeepingQuery( self, transID ):
     if transID == self.transID and self.asIfProd:
-      return self.transClient.getBookkeepingQueryForTransformation( asIfProd )
+      return self.transClient.getBookkeepingQuery( asIfProd )
     return self.trans.getBkQuery()
 
   def getTransformationRuns( self, condDict ) :

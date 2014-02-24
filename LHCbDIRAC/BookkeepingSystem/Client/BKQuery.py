@@ -680,7 +680,7 @@ class BKQuery():
       pList = []
       if fileTypes:
         for prod in prodList:
-          res = transClient.getBookkeepingQueryForTransformation( prod )
+          res = transClient.getBookkeepingQuery( prod )
           if res['OK'] and res['Value']['FileType'] in fileTypes:
             if type( prod ) != type( [] ):
               prod = [prod]

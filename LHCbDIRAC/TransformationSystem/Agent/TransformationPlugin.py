@@ -1108,7 +1108,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_OK( [] )
     skip = False
     try:
-      res = self.transClient.getBookkeepingQueryForTransformation( self.transID )
+      res = self.transClient.getBookkeepingQuery( self.transID )
       if not res['OK']:
         self.util.logError( "Failed to get BK query for transformation", res['Message'] )
         return S_OK( [] )

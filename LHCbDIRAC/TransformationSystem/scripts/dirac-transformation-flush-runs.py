@@ -38,7 +38,7 @@ if __name__ == "__main__":
   transClient = TransformationClient()
 
   for transID in idList:
-    res = transClient.getBookkeepingQueryForTransformation( transID )
+    res = transClient.getBookkeepingQuery( transID )
     if not res['OK']:
       print "Error getting BK query for transformation %s" % transID, res['Message']
       DIRAC.exit( 1 )

@@ -152,7 +152,7 @@ def __getTransformationInfo( transID, transSep ):
         transID, "(%s) :" % transStatus, transName, "of type", transType, "(plugin %s)" % strPlugin, "in", transGroup
   if transType == 'Removal':
     print "Transformation body:", transBody
-  res = transClient.getBookkeepingQueryForTransformation( transID )
+  res = transClient.getBookkeepingQuery( transID )
   if res['OK'] and res['Value']:
     print "BKQuery:", res['Value']
     queryProduction = res['Value'].get( 'ProductionID', res['Value'].get( 'Production' ) )

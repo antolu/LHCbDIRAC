@@ -73,7 +73,7 @@ if 'add' in settings and ( 'start' in settings or 'end' in settings ):
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 client = TransformationClient()
 try:
-  res = client.getBookkeepingQueryForTransformation( prodId )
+  res = client.getBookkeepingQuery( prodId )
   bkDict = res['Value']
 except:
   print "Error retrieving BKQuery for Production %s" % prodId
