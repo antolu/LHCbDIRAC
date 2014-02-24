@@ -37,7 +37,7 @@ class ProductionRequestDB( DB ):
 #################### Production Requests table ########################
   requestFields = [ 'RequestID', 'ParentID', 'MasterID', 'RequestAuthor',
                     'RequestName', 'RequestType', 'RequestState',
-                    'RequestPriority', 'RequestPDG',
+                    'RequestPriority', 'RequestPDG', 'RequestWG',
                     'SimCondition', 'SimCondID', 'SimCondDetail',
                     'ProPath', 'ProID', 'ProDetail',
                     'EventType', 'NumberOfEvents', 'Description', 'Comments',
@@ -537,7 +537,7 @@ class ProductionRequestDB( DB ):
     elif requestState == 'Submitted':
       if creds['Group'] == 'lhcb_ppg':
         for x in update:
-          if not x in ['RequestState', 'Comments', 'Inform', 'RequestPriority', 'Extra']:
+          if not x in ['RequestState', 'RequestWG', 'Comments', 'Inform', 'RequestPriority', 'Extra']:
             self.lock.release()
             return S_ERROR( "%s can't be modified during PPG signing" % x )
         if not 'RequestState' in update:
@@ -584,7 +584,7 @@ class ProductionRequestDB( DB ):
 #        return S_ERROR("Registered processing pass is required to sign for Tech OK")
     elif requestState == 'Tech OK':
       for x in update:
-        if not x in ['RequestState', 'Comments', 'Inform', 'RequestPriority', 'Extra']:
+        if not x in ['RequestState', 'RequestWG', 'Comments', 'Inform', 'RequestPriority', 'Extra']:
           self.lock.release()
           return S_ERROR( "%s can't be modified during PPG signing" % x )
       if not 'RequestState' in update:
@@ -1415,7 +1415,8 @@ class ProductionRequestDB( DB ):
     for key, value in [ ( 'State', 'RequestState' ),
                         ( 'Type', 'RequestType' ),
                         ( 'Author', 'RequestAuthor' ),
-                        ( 'EType', 'EventType' ) ]:
+                        ( 'EType', 'EventType' ),
+                        ( 'WG', 'RequestWG' )]:
 
       req = "SELECT DISTINCT %s FROM ProductionRequests " % value
       req += "WHERE %s IS NOT NULL " % value
