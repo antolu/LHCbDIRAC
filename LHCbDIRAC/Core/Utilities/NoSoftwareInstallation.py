@@ -109,7 +109,7 @@ class NoSoftwareInstallation( object ):
 
     # Either we set SystemConfig == ANY, of it happened that SystemConfig is the
     # same as our LocalArchitecture. Either way, we make sure that if there is
-    # OSCompatibility, the config is added to platforms ( CompatiblePlatforms )
+    # OS compatibility, the config is added to platforms ( CompatiblePlatforms )
     if self.sysConfig == self.localArch:
 
       self.log.info( 'Job SystemConfiguration is set to /LocalSite/Architecture' )

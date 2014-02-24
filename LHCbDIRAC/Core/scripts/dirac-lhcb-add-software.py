@@ -19,6 +19,7 @@ import DIRAC
 from DIRAC                            import gConfig
 from DIRAC.Interfaces.API.DiracAdmin  import DiracAdmin
 from DIRAC.Core.Utilities.PromptUser  import promptUser
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getDIRACPlatforms
 
 diracAdmin = DiracAdmin()
 modifiedCS = False
@@ -38,7 +39,6 @@ if len( args ) != 2:
 
 softwareSection = '/Operations/SoftwareDistribution'
 activeSection = '/Operations/SoftwareDistribution/Active'
-osSection = '/Resources/Computing/OSCompatibility'
 deprecatedSection = '/Operations/SoftwareDistribution/Deprecated'
 
 packageNameVersion = '%s.%s' % ( args[0], args[1] )
@@ -57,9 +57,9 @@ else:
   changeCS( activeSection, activeList )
 
 #Get the list of possible system configurations
-systemConfigs = gConfig.getOptions( osSection )
+systemConfigs = getDIRACPlatforms()
 if not systemConfigs['OK']:
-  print 'ERROR: Could not get value for %s with message %s' % ( osSection, systemConfigs['Message'] )
+  print 'ERROR: Could not get value for with message %s' % systemConfigs['Message']
   DIRAC.exit( 255 )
 
 #Prompt for system configurations to add the software for
