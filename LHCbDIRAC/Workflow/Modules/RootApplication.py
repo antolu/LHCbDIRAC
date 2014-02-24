@@ -29,7 +29,6 @@ class RootApplication( ModuleBase ):
     self.rootType = ''
     self.arguments = ''
     self.systemConfig = ''
-    self.rootSection = '/Operations/SoftwareDistribution/LHCbRoot'
 
   #############################################################################
   def _resolveInputVariables( self ):
@@ -104,16 +103,8 @@ class RootApplication( ModuleBase ):
       self.log.info( "Executing application Root %s" % ( self.rootVersion ) )
       self.log.info( "Platform for job is %s" % ( self.systemConfig ) )
 
-      result = gConfig.getOption( "/".join( [self.rootSection, self.rootVersion] ) )
-      if not result['OK']:
-        return self.log.error( 'Could not contact DIRAC Configuration Service for application for root ', __name__ )
-
-      application, version = result['Value'].split( '.' )
-
-      self.log.info( 'Application Found:', result['Value'] )
-
       # Now obtain the project environment for execution
-      result = getProjectEnvironment( self.systemConfig, application, version )
+      result = getProjectEnvironment( self.systemConfig, 'ROOT', self.rootVersion )
       if not result['OK']:
         self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
         return result  # this will distinguish between LbLogin / SetupProject / actual application failures

@@ -48,7 +48,6 @@ class DiracLHCb( Dirac ):
     else:
       self.opsH = operationsHelperIn
 
-    self.softwareSection = '/Operations/SoftwareDistribution'
     self.bkQueryTemplate = { 'SimulationConditions'     : 'All',
                              'DataTakingConditions'     : 'All',
                              'ProcessingPass'           : 'All',
@@ -148,92 +147,6 @@ class DiracLHCb( Dirac ):
     if not res['OK']:
       return self._errorReport( res['Message'], "Failed to perform final ROOT merger" )
     return S_OK()
-
-  #############################################################################
-  def getRootVersions( self, printOutput = False ):
-    """ Return the list of currently supported LHCb Root versions.
-
-        Example Usage:
-
-        >>> print dirac.getRootVersions()
-        {'OK': True, 'Value': {'5.26.00b': 'DaVinci.v25r1', '5.22.00d': 'DaVinci.v24r3p2',
-        '5.22.00c': 'DaVinci.v24r2p3', '5.22.00b': 'DaVinci.v23r2p1', '5.22.00a': 'DaVinci.v23r0p1',
-        '5.14.00h': 'DaVinci.v19r8', '5.14.00i': 'DaVinci.v19r9', '5.18.00d': 'DaVinci.v20r3',
-        '5.18.00f': 'DaVinci.v21r0', '5.24.00b': 'DaVinci.v24r7p3', '5.18.00a': 'DaVinci.v19r12',
-        '4.04.02': 'DaVinci.v14r5', '3.10.02': 'DaVinci.v12r18',
-        '5.18.00': 'DaVinci.v19r10', '5.14.00f': 'DaVinci.v19r5'}}
-
-       @param printOutput: Optional flag to print result
-       @type printOutput: boolean
-       @return: S_OK,S_ERROR
-    """
-    rootVersions = gConfig.getOptionsDict( self.softwareSection + '/LHCbRoot' )
-    if not rootVersions['OK']:
-      return self._errorReport( rootVersions,
-                                 'Could not contact DIRAC Configuration Service for supported ROOT version list' )
-
-    if printOutput:
-      rootList = []
-      rootDict = rootVersions['Value']
-      for r, d in rootDict.items():
-        rootList.append( '%s = %s' % ( r, d ) )
-      self.log.info( 'Supported versions of ROOT (and corresponding DaVinci versions) \
-      in LHCb are:\n%s' % ( '\n'.join( rootList ) ) )
-
-    return rootVersions
-
-  #############################################################################
-  def getSoftwareVersions( self, printOutput = False ):
-    """ Return and optionally print a list of all currently supported LHCb
-        software versions.  This includes all software packages that DIRAC
-        is asked to specifically install for given system configurations.
-
-        Example Usage:
-
-        >>> print dirac.getSoftwareVersions()
-        {'OK': True, 'Value': {'Compat': {'v1r3': ['slc4_ia32_gcc34', 'x86_64-slc5-gcc43-opt']},
-        'LHCbGrid': {'v1r7': ['slc4_amd64_gcc34', 'slc4_ia32_gcc34']}}
-
-       @param printOutput: Optional flag to print result
-       @type printOutput: boolean
-       @return: S_OK,S_ERROR
-    """
-    softwareDistribution = gConfig.getOptionsDict( self.softwareSection )
-    if not softwareDistribution['OK']:
-      return self._errorReport( 'Could not contact DIRAC Configuration Service for supported software version list' )
-
-    software = softwareDistribution['Value']
-    systemConfigs = software.keys()
-    systemConfigs.remove( 'Active' )
-    systemConfigs.remove( 'Deprecated' )
-
-    active = software['Active'].replace( ' ', '' ).split( ',' )
-    active.sort()
-    deprecated = software['Deprecated'].replace( ' ', '' ).split( ',' )
-    deprecated.sort()
-
-    if printOutput:
-      print '=========> Active LHCb Software For All System Configurations'
-
-    result = {}
-    for package in active:
-      packageArch = []
-      for systemConfig in systemConfigs:
-        if package in software[systemConfig]:
-          packageArch.append( systemConfig )
-      name = package.split( '.' )[0]
-      version = package.split( '.' )[1]
-      if packageArch:
-        adj = 30
-        if printOutput:
-          print name.ljust( adj ) + version.ljust( adj ) + ','.join( packageArch ).ljust( adj )
-        if name not in result:
-          result[name] = {}
-        result[name][version] = packageArch
-      else:
-        self.log.warn( '%s %s is not defined for any system configurations' % ( name, version ) )
-
-    return S_OK( result )
 
   #############################################################################
 

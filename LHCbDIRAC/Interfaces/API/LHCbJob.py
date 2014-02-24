@@ -119,7 +119,6 @@ class LHCbJob( Job ):
     super( LHCbJob, self ).__init__( script, stdout, stderr )
     self.stepCount = 0
     self.inputDataType = 'DATA'  # Default, other options are MDF, ETC
-    self.rootSection = 'SoftwareDistribution/LHCbRoot'
     self.importLocation = 'LHCbDIRAC.Workflow.Modules'
     self.opsHelper = Operations()
 
@@ -582,17 +581,6 @@ class LHCbJob( Job ):
       return self._reportError( 'ROOT Script %s must exist locally' % ( rootScript ), __name__, **kwargs )
 
     self.addToInputSandbox.append( rootScript )
-
-    # Must check if ROOT version in available versions and define appName appVersion...
-    rootVersions = gConfig.getOptionsDict( 'Operations/' + self.rootSection )
-    # rootVersions = self.opsHelper.getOptions( self.rootSection, [] )
-    if not rootVersions['OK']:
-      return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list', __name__, **kwargs )
-
-    rootList = rootVersions['Value']
-    if not rootVersion in rootList:
-      return self._reportError( 'Requested ROOT version %s is \
-      not in supported list: %s' % ( rootVersion, ', '.join( rootList ) ), __name__, **kwargs )
 
     rootName = os.path.basename( rootScript ).replace( '.', '' )
     if logFile:
