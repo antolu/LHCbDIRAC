@@ -86,7 +86,7 @@ class ProductionRequestDB( DB ):
         id must be checked before
         NOTE: it does self.lock.release() in case of errors
     '''
-    inFields = [ 'RequestState', 'ParentID', 'MasterID', 'RequestAuthor', 'Inform' ]
+    inFields = [ 'RequestState', 'ParentID', 'MasterID', 'RequestAuthor', 'Inform', 'IsModel' ]
     result = self._query( "SELECT %s " % ','.join( inFields ) +
                          "FROM ProductionRequests " +
                          "WHERE RequestID=%s;" % iD, connection )
@@ -108,12 +108,12 @@ class ProductionRequestDB( DB ):
       return result
     pinfo = result['Value']
     if not pinfo['MasterID']:
-      return S_OK( [pinfo['RequestState'], pinfo['RequestAuthor'], pinfo['Inform']] )
+      return S_OK( [pinfo['RequestState'], pinfo['RequestAuthor'], pinfo['Inform'], pinfo['IsModel']] )
     result = self.__getRequestInfo( pinfo['MasterID'], connection )
     if not result['OK']:
       return result
     pinfo = result['Value']
-    return S_OK( [pinfo['RequestState'], pinfo['RequestAuthor'], pinfo['Inform']] )
+    return S_OK( [pinfo['RequestState'], pinfo['RequestAuthor'], pinfo['Inform'], pinfo['IsModel']] )
 
   def __checkMaster( self, master, iD, connection ):
     ''' Return State of Master for id (or id's own if no parents)
@@ -211,11 +211,11 @@ class ProductionRequestDB( DB ):
       result = self.__getStateAndAuthor( masterID, connection )
       if not result['OK']:
         return result
-      requestState, requestAuthor, _requestInform = result['Value']
+      requestState, requestAuthor, _requestInform, isModel = result['Value']
       if requestState != 'New':
         self.lock.release()
         return S_ERROR( "Requests can't be modified after submission" )
-      if requestAuthor != creds['User']:
+      if requestAuthor != creds['User'] and not (isModel and creds['Group'] == 'lhcb_tech'):
         self.lock.release()
         return S_ERROR( "Only request author can add subrequests" )
     elif rec['ParentID']:
@@ -391,7 +391,7 @@ class ProductionRequestDB( DB ):
     result = self.__getStateAndAuthor( requestID, connection )
     if not result['OK']:
       return result
-    requestState, requestAuthor, requestInform = result['Value']
+    requestState, requestAuthor, requestInform, isModel = result['Value']
     rec = old.copy()
     rec.update( update )
     inform = { 'rec':rec, 'state':'', 'author': str( requestAuthor ),
@@ -431,7 +431,7 @@ class ProductionRequestDB( DB ):
     # Check that a person can update in general (that also means he can
     # change at least comments)
     if requestState in ['New', 'BK OK', 'Rejected']:
-      if requestAuthor != creds['User']:
+      if requestAuthor != creds['User'] and not (isModel and creds['Group'] == 'lhcb_tech'):
         self.lock.release()
         return S_ERROR( "Only author is allowed to modify unsubmitted request" )
     elif requestState == 'BK Check':
@@ -763,9 +763,9 @@ class ProductionRequestDB( DB ):
     result = self.__getStateAndAuthor( requestID, connection )
     if not result['OK']:
       return result
-    requestState, requestAuthor, _requestInform = result['Value']
+    requestState, requestAuthor, _requestInform, isModel = result['Value']
     if creds['Group'] != 'diracAdmin':
-      if requestAuthor != creds['User']:
+      if requestAuthor != creds['User'] and not (isModel and creds['Group'] == 'lhcb_tech'):
         self.lock.release()
         gLogger.error( "%s can't remove %s request" % ( creds['User'], requestAuthor ) )
         return S_ERROR( 'Only author can remove a request' )
@@ -993,8 +993,8 @@ class ProductionRequestDB( DB ):
       result = self.__getStateAndAuthor( requestID, connection )
       if not result['OK']:
         return result
-      requestState, requestAuthor, _requestInform = result['Value']
-      if requestState != 'New' or requestAuthor != creds['User']:
+      requestState, requestAuthor, _requestInform, isModel = result['Value']
+      if requestState != 'New' or (requestAuthor != creds['User'] and not (isModel and creds['Group'] == 'lhcb_tech')):
         self.lock.release()
         return S_ERROR( 'Can not duplicate subrequest of request in progress' )
 
@@ -1514,7 +1514,7 @@ class ProductionRequestDB( DB ):
     result = self.__getStateAndAuthor( iD, connection )
     if not result['OK']:
       return result
-    requestState, requestAuthor, _requestInform = result['Value']
+    requestState, requestAuthor, _requestInform, isModel = result['Value']
 
     if creds['Group'] == 'diracAdmin':
       return S_OK()
@@ -1522,7 +1522,7 @@ class ProductionRequestDB( DB ):
     # Check that a person can update in general (that also means he can
     # change at least comments)
     if requestState in ['New', 'BK OK', 'Rejected']:
-      if requestAuthor != creds['User']:
+      if requestAuthor != creds['User'] and not (isModel and creds['Group'] == 'lhcb_tech'):
         self.lock.release()
         return S_ERROR( "Only author is allowed to test unsubmitted request" )
     elif requestState == 'BK Check':
