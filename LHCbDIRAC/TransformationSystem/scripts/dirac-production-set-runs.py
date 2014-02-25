@@ -98,7 +98,7 @@ changed = False
 if 'start' in settings:
   changed = True
   runId = settings['start']
-  res = client.setBookkeepingQueryStartRunForTransformation( prodId, runId )
+  res = client.setBookkeepingQueryStartRun( prodId, runId )
   if res['OK']:
     print "Start run of production %d is now %d" % ( prodId, runId )
     startRun = runId
@@ -108,7 +108,7 @@ if 'start' in settings:
 if 'end' in settings:
   changed = True
   runId = settings['end']
-  res = client.setBookkeepingQueryEndRunForTransformation( prodId, runId )
+  res = client.setBookkeepingQueryEndRun( prodId, runId )
   if res['OK']:
     print "End run of production %d is now %d" % ( prodId, runId )
     endRun = runId
@@ -118,7 +118,7 @@ if 'end' in settings:
 if 'add' in settings:
   changed = True
   runList = [run for run in settings['add'] if run not in runNumbers]
-  res = client.addBookkeepingQueryRunListTransformation( prodId, runList )
+  res = client.addBookkeepingQueryRunList( prodId, runList )
   if res['OK']:
     print "Run list modified for production %d" % prodId
     runNumbers += runList

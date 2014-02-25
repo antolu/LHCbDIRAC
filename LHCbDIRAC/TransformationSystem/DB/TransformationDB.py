@@ -214,7 +214,7 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     return self._update( "DELETE FROM BkQueriesNew WHERE TransformationID=%d" % int( transID ), connection )
 
-  def setBookkeepingQueryEndRunForTransformation( self, transID, runNumber, connection = False ):
+  def setBookkeepingQueryEndRun( self, transID, runNumber, connection = False ):
     """ Set the EndRun for the supplied transformation
     """
     res = self._getConnectionTransID( connection, transID )
@@ -234,7 +234,7 @@ class TransformationDB( DIRACTransformationDB ):
     return self._update( req, connection )
 
 
-  def setBookkeepingQueryStartRunForTransformation( self, transID, runNumber, connection = False ):
+  def setBookkeepingQueryStartRun( self, transID, runNumber, connection = False ):
     """ Set the StartRun for the supplied transformation
     """
     res = self._getConnectionTransID( connection, transID )
@@ -254,7 +254,7 @@ class TransformationDB( DIRACTransformationDB ):
     return self._update( req, connection )
 
 
-  def addBookkeepingQueryRunListTransformation( self, transID, runList, connection = False ):
+  def addBookkeepingQueryRunList( self, transID, runList, connection = False ):
     """ Adds the list of runs
     """
     res = self._getConnectionTransID( connection, transID )
