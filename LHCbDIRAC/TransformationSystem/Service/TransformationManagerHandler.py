@@ -30,38 +30,30 @@ class TransformationManagerHandler( TManagerBase ):
 
   types_addBookkeepingQuery = [ [LongType, IntType], DictType ]
   def export_addBookkeepingQuery( self, transID, queryDict ):
-    credDict = self.getRemoteCredentials()
-    authorDN = credDict[ 'DN' ]
-    res = database.addBookkeepingQuery( transID, queryDict, author = authorDN )
-    return self._parseRes( res )
+    return database.addBookkeepingQuery( transID, queryDict )
 
   types_deleteBookkeepingQuery = [ [LongType, IntType] ]
   def export_deleteBookkeepingQuery( self, transID ):
-    res = database.deleteBookkeepingQuery( transID )
-    return self._parseRes( res )
+    return database.deleteBookkeepingQuery( transID )
 
   types_getBookkeepingQuery = [ [LongType, IntType] ]
   def export_getBookkeepingQuery( self, transID ):
-    res = database.getBookkeepingQuery( transID )
-    return self._parseRes( res )
+    return database.getBookkeepingQuery( transID )
 
   
   types_setBookkeepingQueryEndRun = [ [LongType, IntType] , [LongType, IntType]]
   def export_setBookkeepingQueryEndRun( self, transID, runNumber ):
-    res = database.setBookkeepingQueryEndRun( transID, runNumber )
-    return self._parseRes( res )
+    return database.setBookkeepingQueryEndRun( transID, runNumber )
 
   
   types_setBookkeepingQueryStartRun = [ [LongType, IntType] , [LongType, IntType]]
   def export_setBookkeepingQueryStartRun( self, transID, runNumber ):
-    res = database.setBookkeepingQueryStartRun( transID, runNumber )
-    return self._parseRes( res )
+    return database.setBookkeepingQueryStartRun( transID, runNumber )
 
   
   types_addBookkeepingQueryRunList = [ [LongType, IntType] , [StringType]]
   def export_addBookkeepingQueryRunList( self, transID, runList ):
-    res = database.addBookkeepingQueryRunList( transID, runList )
-    return self._parseRes( res )
+    return  database.addBookkeepingQueryRunList( transID, runList )
 
   #############################################################################
   #
@@ -70,15 +62,13 @@ class TransformationManagerHandler( TManagerBase ):
 
   types_getTransformationRuns = []
   def export_getTransformationRuns( self, condDict = {}, orderAttribute = None, limit = None ):
-    res = database.getTransformationRuns( condDict = condDict, orderAttribute = orderAttribute, limit = limit )
-    return self._parseRes( res )
+    return database.getTransformationRuns( condDict, orderAttribute = orderAttribute, limit = limit )
 
-  types_getTransformationRunStats = [[LongType, ListType]]
+  types_getTransformationRunStats = [[IntType, LongType, ListType]]
   def export_getTransformationRunStats( self, transIDs ):
-    if type( transIDs ) == long:
+    if type( transIDs ) in ( int, long ):
       transIDs = [transIDs]
-    res = database.getTransformationRunStats( transIDs )
-    return self._parseRes( res )
+    return database.getTransformationRunStats( transIDs )
 
   types_addTransformationRunFiles = [[LongType, IntType], [LongType, IntType], ListType]
   def export_addTransformationRunFiles( self, transID, runID, lfns ):
@@ -118,8 +108,7 @@ class TransformationManagerHandler( TManagerBase ):
     # Get the transformations that match the selection
     res = database.getTransformationRuns( condDict = selectDict, older = toDate,
                                           newer = fromDate, orderAttribute = orderAttribute )
-    if not res['OK']:
-      return self._parseRes( res )
+    self._parseRes( res )
 
     # Prepare the standard structure now within the resultDict dictionary
     resultDict = {}
