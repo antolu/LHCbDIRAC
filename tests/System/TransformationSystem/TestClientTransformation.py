@@ -30,21 +30,38 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     self.assert_( res['OK'] )
     transID = res['Value']
 
-    res = self.transClient.getBookkeepingQueryForTransformation( transID )
+    res = self.transClient.getBookkeepingQuery( transID )
     self.assert_( res['OK'] )
 
-    res = self.transClient.setBookkeepingQueryStartRunForTransformation( transID, 1 )
+    res = self.transClient.setBookkeepingQueryStartRun( transID, 1 )
     self.assert_( res['OK'] )
-    res = self.transClient.setBookkeepingQueryEndRunForTransformation( transID, 10 )
+    res = self.transClient.setBookkeepingQueryEndRun( transID, 10 )
     self.assert_( res['OK'] )
+    res = self.transClient.getBookkeepingQuery( transID )
+    self.assert_( res['OK'] )
+    self.assertEqual( res['Value'], {'TCK': 'All', 'StartRun': 1L, 'ConfigName': 'All', 'EndRun': 10L,
+                                     'EventType': 12345L, 'FileType': 'All', 'ProcessingPass': 'All',
+                                     'ProductionID': 'All', 'Visible': 'All', 'DataQualityFlag': 'All',
+                                     'RunNumbers': 'All', 'ConfigVersion': 'All',
+                                     'DataTakingConditions': 'DataTakingConditions', 'SimulationConditions': 'All'} )
 
+    res = self.transClient.addBookkeepingQueryRunList( transID, [2, 3, 4, 5] )
+    self.assert_( res['OK'] )
+    res = self.transClient.getBookkeepingQuery( transID )
+    self.assert_( res['OK'] )
+    self.assertEqual( res['Value'], {'TCK': 'All', 'StartRun': 1L, 'ConfigName': 'All', 'EndRun': 10L,
+                                     'EventType': 12345L, 'FileType': 'All', 'ProcessingPass': 'All',
+                                     'ProductionID': 'All', 'Visible': 'All', 'DataQualityFlag': 'All',
+                                     'RunNumbers': ['2', '3', '4', '5'], 'ConfigVersion': 'All',
+                                     'DataTakingConditions': 'DataTakingConditions', 'SimulationConditions': 'All'} )
+
+
+    # FIXME: first, I should add some...
     res = self.transClient.getTransformationRuns()
     self.assert_( res['OK'] )
 
     res = self.transClient.getTransformationRunStats( transID )
     self.assert_( res['OK'] )
-
-    # FIXME: there would be more to add...
 
     # clean
     res = self.transClient.cleanTransformation( transID )
