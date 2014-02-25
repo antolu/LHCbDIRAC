@@ -22,6 +22,10 @@ class TransformationManagerHandler( TManagerBase ):
     self.setDatabase( database )
     TManagerBase.__init__( self, *args, **kargs )
 
+  types_deleteTransformation = [[LongType, IntType]]
+  def export_deleteTransformation( self, transID ):
+    return database.deleteTransformation( transID, author = self.getRemoteCredentials()[ 'DN' ] )
+
   #############################################################################
   #
   # Managing the BkQueries table

@@ -131,6 +131,15 @@ class TransformationDB( DIRACTransformationDB ):
 #
 #    return S_OK( tables )
 
+  def deleteTransformation(self, transID, author = '', connection = False):
+    """ Small extension to not forget to delete the BkQueries
+    """
+    res = self.deleteBookkeepingQuery( transID, connection )
+    if not res['OK']:
+      return res
+
+    return DIRACTransformationDB.deleteTransformation( self, transID, author, connection )
+
   def cleanTransformation( self, transID, author = '', connection = False ):
     """ Clean the transformation specified by name or id
         Extends DIRAC one for deleting the unused runs metadata
@@ -306,7 +315,7 @@ class TransformationDB( DIRACTransformationDB ):
     values = ["'%s'" % x for x in values]
     req = "INSERT INTO BkQueriesNew (TransformationID, ParameterName,ParameterValue) VALUES "
     for i in range ( len( self.queryFields ) ):
-      req = req + "(%d,`%s`,%s), " % ( transID, self.queryFields[i], values[i] )
+      req = req + "(%d,'%s',%s), " % ( transID, self.queryFields[i], values[i] )
     req = req.strip().rstrip( ',' )
     
     res = self._update( req, connection )
