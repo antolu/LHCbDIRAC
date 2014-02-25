@@ -55,7 +55,7 @@ class TransformationManagerHandler( TManagerBase ):
     return database.setBookkeepingQueryStartRun( transID, runNumber )
 
   
-  types_addBookkeepingQueryRunList = [ [LongType, IntType] , [StringType]]
+  types_addBookkeepingQueryRunList = [ [LongType, IntType] , [ListType]]
   def export_addBookkeepingQueryRunList( self, transID, runList ):
     return  database.addBookkeepingQueryRunList( transID, runList )
 

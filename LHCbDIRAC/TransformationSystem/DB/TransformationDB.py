@@ -273,19 +273,17 @@ class TransformationDB( DIRACTransformationDB ):
     res = self.getBookkeepingQuery( transID, connection = connection )
     if not res['OK']:
       return S_ERROR( "Cannot retrieve BkQuery" )
-    if isinstance( res['Value']['RunNumbers'], str ):
-      runInQuery = [res['Value']['RunNumbers']]
+    if res['Value']['RunNumbers'] == 'All':
+      runsInQuery = []
     else:
-      runInQuery = res['Value']['RunNumbers']
-    res = makeRunList( str( runList ) )
-    runs = res['Value']
-    for run in runs:
-      if run not in runInQuery:
-        runInQuery.append( run )
-    runInQuery.sort()
-    if len( runInQuery ) > 999:
+      runsInQuery = [int( run ) for run in res['Value']['RunNumbers'].split( ';;;' )]
+    for run in runList:
+      if run not in runsInQuery:
+        runsInQuery.append( run )
+    runsInQuery.sort()
+    if len( runsInQuery ) > 999:
       return S_ERROR( "RunList bigger the 1000 not allowed because of Oracle limitations!!!" )
-    value = ';;;'.join( runInQuery )
+    value = ';;;'.join( [str( x ) for x in runsInQuery] )
     req = "UPDATE BkQueriesNew SET ParameterValue='%s' WHERE TransformationID = %d AND ParameterName='RunNumbers'" % ( value, transID )
     self._update( req, connection )
     return S_OK()

@@ -117,7 +117,7 @@ if 'end' in settings:
 
 if 'add' in settings:
   changed = True
-  runList = [run for run in settings['add'] if run not in runNumbers]
+  runList = [int( run ) for run in settings['add'] if run not in runNumbers]
   res = client.addBookkeepingQueryRunList( prodId, runList )
   if res['OK']:
     print "Run list modified for production %d" % prodId
