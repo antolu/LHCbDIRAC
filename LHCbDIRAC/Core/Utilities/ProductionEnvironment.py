@@ -258,13 +258,13 @@ def getCMTConfig( systemConfig ):
   """
 
   if systemConfig.lower() == 'any':
-    systemConfig = gConfig.getValue( '/LocalSite/Architecture', '' )
-    if not systemConfig:
-      gLogger.error( '/LocalSite/Architecture is not defined' )
-      return S_ERROR( 'SystemConfig Not Found' )
+    platform = gConfig.getValue( '/LocalSite/Architecture', '' )
+    if not platform:
+      gLogger.error( "/LocalSite/Architecture is not defined" )
+      return S_ERROR( "/LocalSite/Architecture is not defined" )
 
-    gLogger.verbose( 'Setting SystemConfig to compatible platform %s since it was set to "ANY"' % systemConfig )
-    return getCompatiblePlatforms( systemConfig )
+    gLogger.verbose( 'Setting SystemConfig to compatible platform %s since it was set to "ANY"' % platform )
+    return getCompatiblePlatforms( platform )
   else:
     return [systemConfig]
 
@@ -355,7 +355,7 @@ def getScriptsLocation():
       in a dictionary with the name as the key.
   """
   softwareArea = getSharedArea()
-  
+
   if softwareArea:
     gLogger.verbose( 'MYSITEROOT = %s' % softwareArea )
     if os.path.exists( os.path.join( softwareArea, groupLogin ) ):
@@ -388,7 +388,7 @@ def getSharedArea():
   """
       Discover location of Shared SW area. This area is populated by a tool independent from the DIRAC jobs
   """
-  
+
   sharedArea = ''
   if os.environ.has_key( 'VO_LHCB_SW_DIR' ):
     sharedArea = os.path.join( os.environ[ 'VO_LHCB_SW_DIR' ], 'lib' )
@@ -415,24 +415,15 @@ def getCompatiblePlatforms( originalPlatforms ):
   """
   if type( originalPlatforms ) == type( ' ' ):
     platforms = [originalPlatforms]
-  else:
-    platforms = list( originalPlatforms )
 
   result = opsH.getOptionsDict( 'PlatformsToConfigs' )
-  if result['OK'] and result['Value']:
-    platformsDict = dict( [( k, v.replace( ' ', '' ).split( ',' ) ) for k, v in result['Value'].iteritems()] )
-    resultList = list()
-  else:
+  if not result['OK'] or not result['Value']:
     return S_ERROR( "PlatformsToConfigs info not found" )
+  platformsDict = dict( [( k, v.replace( ' ', '' ).split( ',' ) ) for k, v in result['Value'].iteritems()] )
+  resultList = list()
 
-  for p in platforms:
-    tmpList = platformsDict.get( p, [] )
-    for pp in platformsDict:
-      if p in platformsDict[pp]:
-        tmpList.append( pp )
-        tmpList += platformsDict[pp]
-    if tmpList:
-      resultList += tmpList
+  for plat in platforms:
+    resultList += platformsDict.get( plat, [] )
 
   return S_OK( uniqueElements( resultList ) )
 

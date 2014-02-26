@@ -20,7 +20,6 @@ __RCSID__ = "$Id: $"
 
 from DIRAC import gConfig, gLogger, S_ERROR, S_OK
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getCompatiblePlatforms
-from LHCbDIRAC.Core.Utilities.DetectOS import NativeMachine
 
 
 class NoSoftwareInstallation( object ):
@@ -58,7 +57,7 @@ class NoSoftwareInstallation( object ):
     if 'SystemConfig' in job:
       self.sysConfig = job[ 'SystemConfig' ]
     else:
-      self.sysConfig = NativeMachine().CMTSupportedConfig()[0]
+      raise RuntimeError( "SystemConfig not specified" )
 
     # self.platforms ...........................................................
     self.platforms = ce.get( 'CompatiblePlatforms', self.sysConfig )
