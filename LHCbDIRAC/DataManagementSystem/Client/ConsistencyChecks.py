@@ -713,7 +713,7 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
-  def checkFC2BK( self ):
+  def checkFC2BK( self, bkCheck = True ):
     ''' check that files present in the FC are also in the BK
     '''
     if not self.lfns:
@@ -733,22 +733,26 @@ class ConsistencyChecks( object ):
       gLogger.always( 'Out of %d files, %d are in the FC, %d are not' \
                       % ( len( self.lfns ), len( present ), len( notPresent ) ) )
       if not present:
-        gLogger.always( 'No files are in the FC, no check in the BK. Use dirac-dms-check-bkk2fc instead' )
+        if bkCheck:
+          gLogger.always( 'No files are in the FC, no check in the BK. Use dirac-dms-check-bkk2fc instead' )
         return
       prStr = ''
 
-    res = self._getBKMetadata( present )
-    self.existLFNsNotInBK = res[0]
-    self.existLFNsBKRepNo = res[1]
-    self.existLFNsBKRepYes = res[2]
-    msg = ''
-    if self.transType:
-      msg = "For prod %s of type %s, " % ( self.prod, self.transType )
-    if self.existLFNsBKRepNo:
-      gLogger.warn( "%s %d files%s have replica = NO in BK" % ( msg, len( self.existLFNsBKRepNo ),
+    if bkCheck:
+      res = self._getBKMetadata( present )
+      self.existLFNsNotInBK = res[0]
+      self.existLFNsBKRepNo = res[1]
+      self.existLFNsBKRepYes = res[2]
+      msg = ''
+      if self.transType:
+        msg = "For prod %s of type %s, " % ( self.prod, self.transType )
+      if self.existLFNsBKRepNo:
+        gLogger.warn( "%s %d files%s have replica = NO in BK" % ( msg, len( self.existLFNsBKRepNo ),
                                                                  prStr ) )
-    if self.existLFNsNotInBK:
-      gLogger.warn( "%s %d files%s not in BK" % ( msg, len( self.existLFNsNotInBK ), prStr ) )
+      if self.existLFNsNotInBK:
+        gLogger.warn( "%s %d files%s not in BK" % ( msg, len( self.existLFNsNotInBK ), prStr ) )
+    else:
+      self.existLFNsBKRepYes = present
 
   ################################################################################
 
@@ -756,7 +760,23 @@ class ConsistencyChecks( object ):
     ''' get the directories where to look into (they are either given, or taken from the transformation ID
     '''
     if self.directories:
-      return self.directories
+      directories = []
+      printout = False
+      for directory in self.directories:
+        if not directory.endswith( '...' ):
+          directories.append( directory )
+        else:
+          printout = True
+          topDir = os.path.dirname( directory )
+          res = self.rm.getCatalogListDirectory( topDir )
+          if not res['OK']:
+            raise RuntimeError, res['Message']
+          else:
+            matchDir = directory.split( '...' )[0]
+            directories += [dir for dir in res['Value']['Successful'].get( topDir, {} ).get( 'SubDirs', [] ) if dir.startswith( matchDir )]
+      if printout:
+        gLogger.always( 'Expanded list of %d directories:\n%s' % ( len( directories ), '\n'.join( directories ) ) )
+      return directories
     elif self.prod:
       res = self.transClient.getTransformationParameters( self.prod, ['OutputDirectories'] )
       if not res['OK']:
@@ -830,8 +850,8 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
-  def checkFC2SE( self ):
-    self.checkFC2BK()
+  def checkFC2SE( self, bkCheck = True ):
+    self.checkFC2BK( bkCheck = bkCheck )
     if self.existLFNsBKRepYes or self.existLFNsBKRepNo:
       repDict = self.compareChecksum( self.existLFNsBKRepYes + self.existLFNsBKRepNo.keys() )
       if not repDict['OK']:
@@ -851,35 +871,41 @@ class ConsistencyChecks( object ):
     retDict = {'AllReplicasCorrupted' : {}, 'SomeReplicasCorrupted': {}, 'MissingPFN':{}, 'NoReplicas':{}}
 
 
-    replicas = {}
-    for lfn in lfns:
-      if lfn in self.cachedReplicas:
-        replicas[lfn] = self.cachedReplicas[lfn]
-    lfnsLeft = list( set( lfns ) - set( replicas ) )
-    if lfnsLeft:
-      gLogger.always( "Get replicas for %d files" % len( lfnsLeft ) )
-      replicasRes = self.dirac.getAllReplicas( lfnsLeft )
-      if not replicasRes[ 'OK' ]:
-        gLogger.error( "error:  %s" % replicasRes['Message'] )
-        return replicasRes
-      replicasRes = replicasRes['Value']
-      if replicasRes['Failed']:
-        retDict['NoReplicas'] = replicasRes['Failed'].copy()
-      replicas.update( replicasRes['Successful'] )
-
-    startTime = time.time()
     chunkSize = 1000
-    gLogger.always( "Get FC metadata for %d files to be checked" % len( lfns ) )
-    res = self.dirac.getMetadata( replicas.keys() )
-    if not res['OK']:
-      gLogger.error( "error %s" % res['Message'] )
-      return res
-    metadata = res['Value']['Successful']
-    gLogger.always( "Obtained replicas and metadata in %.1f seconds" % ( time.time() - startTime ) )
+    replicas = {}
+    setLfns = set( lfns )
+    cachedLfns = setLfns & set( self.cachedReplicas )
+    for lfn in cachedLfns:
+        replicas[lfn] = self.cachedReplicas[lfn]
+    lfnsLeft = list( setLfns - cachedLfns )
+    startTime = time.time()
+    if lfnsLeft:
+      self.__write( "Get replicas for %d files (chunks of %d): " % ( len( lfnsLeft ), chunkSize ) )
+      for lfnChunk in breakListIntoChunks( lfnsLeft, chunkSize ):
+        self.__write( '.' )
+        replicasRes = self.rm.getReplicas( lfnChunk )
+        if not replicasRes[ 'OK' ]:
+          gLogger.error( "error:  %s" % replicasRes['Message'] )
+          return replicasRes
+        replicasRes = replicasRes['Value']
+        if replicasRes['Failed']:
+          retDict['NoReplicas'].update( replicasRes['Failed'] )
+      replicas.update( replicasRes['Successful'] )
+      self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
 
-    gLogger.info( "Check existence and compare checksum file by file ..." )
+    self.__write( "Get FC metadata for %d files to be checked" % len( lfns ) )
+    metadata = {}
+    for lfnChunk in breakListIntoChunks( replicas.keys(), chunkSize ):
+      self.__write( '.' )
+      res = self.rm.getCatalogFileMetadata( lfnChunk )
+      if not res['OK']:
+        gLogger.error( "error %s" % res['Message'] )
+        return res
+      metadata.update( res['Value']['Successful'] )
+    self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
+
+    gLogger.always( "Check existence and compare checksum file by file ..." )
     csDict = {}
-    pfnNotAvailable = {}
     seFiles = {}
     surlLfn = {}
     startTime = time.time()
@@ -893,15 +919,15 @@ class ConsistencyChecks( object ):
         seFiles.setdefault( se, [] ).append( surl )
 
     checkSum = {}
-    self.__write( 'Getting checksum of %d replicas (chunks of %d) .' % ( len( surlLfn ), chunkSize ) )
-    i = 1
+    self.__write( 'Getting checksum of %d replicas (chunks of %d) ' % ( len( surlLfn ), chunkSize ) )
+    pfnNotAvailable = {}
+    logLevel = gLogger.getLevel()
+    gLogger.setLevel( 'FATAL' )
     for se in seFiles:
+      self.__write( '\nAt %s ' % se )
       oSe = StorageElement( se )
       for surlChunk in breakListIntoChunks( seFiles[se], chunkSize ):
-        i += len( surlChunk )
-        if i > chunkSize:
-          self.__write( '.' )
-          i = 1
+        self.__write( '.' )
         surlRes = oSe.getFileMetadata( surlChunk )
         if not surlRes[ 'OK' ]:
           gLogger.error( "error StorageElement.getFileMetadata returns %s" % ( surlRes['Message'] ) )
@@ -915,16 +941,14 @@ class ConsistencyChecks( object ):
           lfn = surlLfn[surl]
           checkSum.setdefault( lfn, {} )[se] = surlRes['Successful'][ surl ]['Checksum']
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
-    retDict[ 'MissingPFN'] = pfnNotAvailable.copy()
+    gLogger.setLevel( logLevel )
+    retDict[ 'MissingPFN'] = []
 
     startTime = time.time()
     self.__write( 'Verifying checksum of %d files (chunks of %d) ' % ( len( replicas ), chunkSize ) )
-    i = 0
     for lfn in replicas:
       # get the lfn checksum from the LFC
-      if i % chunkSize == 0:
-        self.__write( '.' )
-      i += 1
+      self.__write( '.' )
 
       replicaDict = replicas[ lfn ]
       oneGoodReplica = False
@@ -942,12 +966,16 @@ class ConsistencyChecks( object ):
           allGoodReplicas = False
         else:
           oneGoodReplica = True
-      if not oneGoodReplica and lfn not in pfnNotAvailable:
-        gLogger.info( "=> All replicas have bad checksum" )
-        retDict['AllReplicasCorrupted'][ lfn ] = csDict[ lfn ].copy()
+      if not oneGoodReplica:
+        if lfn not in pfnNotAvailable:
+          gLogger.info( "=> All replicas have bad checksum" )
+          retDict['AllReplicasCorrupted'][ lfn ] = csDict[ lfn ]
+        else:
+          gLogger.info( "=> All replicas are missing" )
+          retDict['MissingPFN'].append( lfn )
       elif not allGoodReplicas:
         gLogger.info( "=> At least one replica with good Checksum" )
-        retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ].copy()
+        retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ]
 
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
     return S_OK( retDict )
