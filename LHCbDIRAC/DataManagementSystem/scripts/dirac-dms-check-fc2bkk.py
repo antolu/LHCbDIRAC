@@ -29,9 +29,11 @@ def doCheck():
       prStr = ' (first %d)' % maxFiles
     else:
       prStr = ''
-    gLogger.error( "%d files are in the FC but have replica = NO in BK%s:\nAffected runs: %s\n%s" %
-                   ( len( cc.existLFNsBKRepNo ), prStr, ','.join( affectedRuns ),
+    gLogger.error( "%d files are in the FC but have replica = NO in BK%s:\n%s" %
+                   ( len( cc.existLFNsBKRepNo ), prStr,
                      '\n'.join( sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) ) )
+    if listAffectedRuns:
+      gLogger.always( 'Affected runs: %s' % ','.join( affectedRuns ) )
     if fixIt:
       gLogger.always( "Going to fix them, setting the replica flag" )
       res = bk.addFiles( cc.existLFNsBKRepNo.keys() )
@@ -64,7 +66,9 @@ def doCheck():
           if reason != "{'BookkeepingDB': 'File does not exist'}":
             errors[reason] = errors.setdefault( reason, 0 ) + 1
             failures += 1
-        gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if failures else '' ) )
+          else:
+            success += 1
+        gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if errors else '' ) )
         for reason in errors:
           gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
     else:
@@ -89,6 +93,7 @@ if __name__ == '__main__':
   Script.registerSwitch( "P:", "Productions=",
                          "   Production ID to search (comma separated list)", dmScript.setProductions )
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs' )
+  Script.registerSwitch( '', 'AffectedRuns', '   List the runs affected by the encountered problem' )
   Script.parseCommandLine( ignoreErrors = True )
 
   # imports
@@ -98,9 +103,12 @@ if __name__ == '__main__':
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
   fixIt = False
+  listAffectedRuns = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'FixIt':
       fixIt = True
+    elif switch[0] == 'AffectedRuns':
+      listAffectedRuns = True
 
   dm = DataManager()
   bk = BookkeepingClient()
