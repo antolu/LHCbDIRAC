@@ -19,16 +19,33 @@ def __removeFile( lfns ):
     lfns = lfns.keys()
   elif type( lfns ) == type( '' ):
     lfns = [lfns]
-  res = dm.removeFile( lfns )
-  if res['OK']:
-    success = len( res['Value']['Successful'] )
-    failures = 0
-    errors = {}
+  success = 0
+  failures = 0
+  errors = {}
+  chunkSize = 1000
+  from DIRAC.Core.Utilities.List import breakListIntoChunks
+  import sys
+  writeDots = len( lfns ) > 3 * chunkSize
+  if writeDots:
+    sys.stdout.write( "Removing %d files (chunks of %d): " % ( len( lfns ), chunkSize ) )
+  for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
+    if writeDots:
+      sys.stdout.write( '.' )
+      sys.stdout.flush()
+    res = dm.removeFile( lfnChunk )
+    if res['OK']:
+      success += len( res['Value']['Successful'] )
     for reason in res['Value']['Failed'].values():
       reason = str( reason )
       if reason != "{'BookkeepingDB': 'File does not exist'}":
         errors[reason] = errors.setdefault( reason, 0 ) + 1
         failures += 1
+    else:
+      failures += len( lfnChunk )
+      reason = res['Message']
+      errors[reason] = errors.setdefault( reason, 0 ) + len( lfnChunk )
+  if writeDots:
+    gLogger.always( '' )
     gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if failures else '' ) )
     for reason in errors:
       gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
@@ -54,12 +71,12 @@ def __removeReplica( lfnDict ):
         gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
 
 
-def doCheck():
+def doCheck( bkCheck ):
   """
   Method actually calling for the the check using ConsistencyChecks module
   It prints out results and calls corrective actions if required
   """
-  cc.checkFC2SE()
+  cc.checkFC2SE( bkCheck )
 
   maxFiles = 20
   if cc.existLFNsBKRepNo:
@@ -149,6 +166,7 @@ if __name__ == '__main__':
   Script.registerSwitch( "P:", "Productions=",
                          "   Production ID to search (comma separated list)", dmScript.setProductions )
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs and storage' )
+  Script.registerSwitch( '', 'NoBK', '   Do not check with BK' )
   Script.parseCommandLine( ignoreErrors = True )
 
   # imports
@@ -158,9 +176,12 @@ if __name__ == '__main__':
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
   fixIt = False
+  bkCheck = True
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'FixIt':
       fixIt = True
+    elif switch[0] == 'NoBK':
+      bkCheck = False
 
   dm = DataManager()
   bk = BookkeepingClient()
@@ -177,4 +198,4 @@ if __name__ == '__main__':
       doCheck()
       gLogger.always( "Processed production %d" % cc.prod )
   else:
-    doCheck()
+    doCheck( bkCheck )
