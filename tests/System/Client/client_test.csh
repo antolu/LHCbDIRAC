@@ -18,12 +18,6 @@ if $status != 0 then
    exit 0
 endif
 echo " "
-echo "======  dirac-lhcb-view-software"
-dirac-lhcb-view-software
-if $status != 0 then
-   exit 0
-endif
-echo " "
 echo "======  dirac-admin-get-banned-sites"
 dirac-admin-get-banned-sites
 if $status != 0 then
