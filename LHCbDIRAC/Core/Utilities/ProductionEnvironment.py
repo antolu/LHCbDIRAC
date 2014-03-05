@@ -266,7 +266,7 @@ def getCMTConfig( systemConfig ):
     gLogger.verbose( 'Setting SystemConfig to compatible platform %s since it was set to "ANY"' % platform )
     return getCompatiblePlatforms( platform )
   else:
-    return [systemConfig]
+    return S_OK( [systemConfig] )
 
 #############################################################################
 def getProjectCommand( location, applicationName, applicationVersion, extraPackages = [], site = '',
