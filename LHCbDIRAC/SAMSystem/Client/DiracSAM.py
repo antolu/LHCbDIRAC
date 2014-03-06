@@ -8,7 +8,6 @@ from DIRAC.Core.Utilities.SiteCEMapping                  import getCESiteMapping
 from DIRAC.Interfaces.API.Dirac                          import Dirac, S_OK, S_ERROR
 from DIRAC.Workflow.Utilities.Utils                      import getStepDefinition, addStepToWorkflow
 
-from LHCbDIRAC.Core.Utilities.DetectOS     import NativeMachine
 from LHCbDIRAC.Interfaces.API.LHCbJob      import LHCbJob
 
 COMPONENT_NAME = 'DiracSAMAPI'
@@ -85,7 +84,6 @@ class DiracSAM( Dirac ):
         samPriority = int( samPriority )
       except ValueError:
         return S_ERROR( 'Expected Integer for User priority' )
-    appSystemConfig   = NativeMachine().CMTSupportedConfig()[ 0 ]
     
     #LHCbJob definition
     samJob = LHCbJob( stdout = 'std.out', stderr =  'std.err' )
@@ -102,9 +100,9 @@ class DiracSAM( Dirac ):
     res = samJob.setCPUTime( samDefaultCPUTime )
     if not res[ 'OK' ]: 
       return res
-#    res = samJob.setPlatform( samPlatform )
-#    if not res[ 'OK' ]:
-#      return res
+#     res = samJob.setPlatform( samPlatform )
+#     if not res[ 'OK' ]:
+#       return res
     res = samJob.setOutputSandbox( samOutputFiles )
     if not res[ 'OK' ]:
       return res
@@ -112,9 +110,6 @@ class DiracSAM( Dirac ):
     if not res[ 'OK' ]:
       return res
     res = samJob.setType( samType )
-    if not res[ 'OK' ]:
-      return res
-    res = samJob.setSystemConfig( appSystemConfig )
     if not res[ 'OK' ]:
       return res
     
