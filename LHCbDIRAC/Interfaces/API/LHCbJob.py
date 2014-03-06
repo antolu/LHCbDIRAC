@@ -96,6 +96,7 @@
 """
 
 import os, types, re
+from distutils.version import LooseVersion
 
 from DIRAC                                                import S_OK, S_ERROR, gConfig
 from DIRAC.Interfaces.API.Job                             import Job
@@ -126,7 +127,7 @@ class LHCbJob( Job ):
 
   def setApplication( self, appName, appVersion, optionsFiles, inputData = '',
                       optionsLine = '', inputDataType = '', logFile = '', events = -1,
-                      extraPackages = '',
+                      extraPackages = '', systemConfig = 'ANY',
                       modulesNameList = ['CreateDataFile',
                                          'GaudiApplication',
                                          'FileUsage',
@@ -139,16 +140,15 @@ class LHCbJob( Job ):
                                         ( 'inputDataType', 'string', '', 'Input Data Type' ),
                                         ( 'inputData', 'string', '', 'Input Data' ),
                                         ( 'numberOfEvents', 'string', '', 'Events treated' ),
-                                        ( 'extraPackages', 'string', '', 'ExtraPackages' )]
+                                        ( 'extraPackages', 'string', '', 'ExtraPackages' ),
+                                        ( 'SystemConfig', 'string', '', 'CMT Config' )]
                      ):
-    """Helper function.
+    """Specifies gaudi application for DIRAC workflows, executed via gaudirun.
 
-       Specify application for DIRAC workflows.
-
-       For LHCb these could be e.g. Gauss, Boole, Brunel,DaVinci, Bender, etc.
+       For LHCb these could be e.g. Gauss, Boole, Brunel, DaVinci, LHCb, etc.
 
        The optionsFiles parameter can be the path to an options file or a list of paths to options files.
-       All options files are automatically appended to the job input sandbox but the first in the case of a
+       All options files are automatically appended to the job input sandBox but the first in the case of a
        list is assumed to be the 'master' options file.
 
        Input data for application script must be specified here, please note that if this is set at the job level,
@@ -163,28 +163,28 @@ class LHCbJob( Job ):
        >>> job.setApplication('DaVinci','v19r5',optionsFiles='MyDV.opts',
        inputData=['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'],logFile='dv.log')
 
-       @param appName: Application name
-       @type appName: string
-       @param appVersion: Application version
-       @type appVersion: string
-       @param optionsFiles: Path to options file(s) for application
-       @type optionsFiles: string or list
-       @param inputData: Input data for application (if a subset of the overall input data for a given job is required)
-       @type inputData: single LFN or list of LFNs
-       @param optionsLine: Additional options lines for application
-       @type optionsLine: string
-       @param inputDataType: Input data type for application (e.g. DATA, MDF, ETC)
-       @type inputDataType: string
-       @param logFile: Optional log file name
-       @type logFile: string
-       @param events: Optional number of events
-       @type events: integer
-       @param extraPackages: Optional extra packages
-       @type extraPackages: integer
-       @param modulesNameList: list of module names. The default is given.
-       @type modulesNameList: list
-       @param parametersList: list of parameters. The default is given.
-       @type parametersList: list
+       :param appName: Application name
+       :type appName: string
+       :param appVersion: Application version
+       :type appVersion: string
+       :param optionsFiles: Path to options file(s) for application
+       :type optionsFiles: string or list
+       :param inputData: Input data for application (if a subset of the overall input data for a given job is required)
+       :type inputData: single LFN or list of LFNs
+       :param optionsLine: Additional options lines for application
+       :type optionsLine: string
+       :param inputDataType: Input data type for application (e.g. DATA, MDF, ETC)
+       :type inputDataType: string
+       :param logFile: Optional log file name
+       :type logFile: string
+       :param events: Optional number of events
+       :type events: integer
+       :param extraPackages: Optional extra packages
+       :type extraPackages: integer
+       :param modulesNameList: list of module names. The default is given.
+       :type modulesNameList: list
+       :param parametersList: list of parameters. The default is given.
+       :type parametersList: list
     """
     kwargs = {'appName':appName, 'appVersion':appVersion, 'optionsFiles':optionsFiles,
               'inputData':inputData, 'optionsLine':optionsLine, 'inputDataType':inputDataType, 'logFile':logFile}
@@ -237,7 +237,7 @@ class LHCbJob( Job ):
         return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
       for i in xrange( len( inputData ) ):
         inputData[i] = inputData[i].replace( 'LFN:', '' )
-      inputData = map( lambda x: 'LFN:' + x, inputData )
+      inputData = ['LFN:' + x for x in inputData ]
       inputDataStr = ';'.join( inputData )
       self.addToInputData.append( inputDataStr )
 
@@ -265,6 +265,7 @@ class LHCbJob( Job ):
       stepInstance.setValue( 'inputData', ';'.join( inputData ) )
     stepInstance.setValue( 'numberOfEvents', str( events ) )
     stepInstance.setValue( 'extraPackages', extraPackages )
+    stepInstance.setValue( 'SystemConfig', systemConfig )
 
     res = self.addPackage( appName, appVersion )
     if not res['OK']:
@@ -276,7 +277,7 @@ class LHCbJob( Job ):
 
   def setApplicationScript( self, appName, appVersion, script, arguments = '', inputData = '',
                             inputDataType = '', poolXMLCatalog = 'pool_xml_catalog.xml', logFile = '',
-                            extraPackages = '',
+                            extraPackages = '', systemConfig = 'ANY',
                             modulesNameList = ['CreateDataFile',
                                                'GaudiApplicationScript',
                                                'FileUsage',
@@ -289,11 +290,10 @@ class LHCbJob( Job ):
                                               ( 'poolXMLCatName', 'string', '', 'POOL XML Catalog file name' ),
                                               ( 'inputDataType', 'string', '', 'Input Data Type' ),
                                               ( 'inputData', 'string', '', 'Input Data' ),
-                                              ( 'extraPackages', 'string', '', 'extraPackages' ), ]
+                                              ( 'extraPackages', 'string', '', 'extraPackages' ),
+                                              ( 'SystemConfig', 'string', '', 'CMT Config' )]
                            ):
-    """Helper function.
-
-       Specify application environment and script to be executed.
+    """Specifies application environment and script to be executed.
 
        For LHCb these could be e.g. Gauss, Boole, Brunel,
        DaVinci etc.
@@ -311,26 +311,26 @@ class LHCbJob( Job ):
        >>> job = LHCbJob()
        >>> job.setApplicationScript('DaVinci','v19r12','myScript.py')
 
-       @param appName: Application name
-       @type appName: string
-       @param appVersion: Application version
-       @type appVersion: string
-       @param script: Script to execute
-       @type script: string
-       @param arguments: Optional arguments for script
-       @type arguments: string
-       @param inputData: Input data for application
-       @type inputData: single LFN or list of LFNs
-       @param inputDataType: Input data type for application (e.g. DATA, MDF, ETC)
-       @type inputDataType: string
-       @param arguments: Optional POOL XML Catalog name for any input data files (default is pool_xml_catalog.xml)
-       @type arguments: string
-       @param logFile: Optional log file name
-       @type logFile: string
-       @param modulesNameList: list of module names. The default is given.
-       @type modulesNameList: list
-       @param parametersList: list of parameters. The default is given.
-       @type parametersList: list
+       :param appName: Application name
+       :type appName: string
+       :param appVersion: Application version
+       :type appVersion: string
+       :param script: Script to execute
+       :type script: string
+       :param arguments: Optional arguments for script
+       :type arguments: string
+       :param inputData: Input data for application
+       :type inputData: single LFN or list of LFNs
+       :param inputDataType: Input data type for application (e.g. DATA, MDF, ETC)
+       :type inputDataType: string
+       :param arguments: Optional POOL XML Catalog name for any input data files (default is pool_xml_catalog.xml)
+       :type arguments: string
+       :param logFile: Optional log file name
+       :type logFile: string
+       :param modulesNameList: list of module names. The default is given.
+       :type modulesNameList: list
+       :param parametersList: list of parameters. The default is given.
+       :type parametersList: list
     """
     kwargs = {'appName':appName, 'appVersion':appVersion, 'script':script, 'arguments':arguments,
               'inputData':inputData, 'inputDataType':inputDataType, 'poolXMLCatalog':poolXMLCatalog, 'logFile':logFile}
@@ -368,7 +368,7 @@ class LHCbJob( Job ):
         return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
       for i in xrange( len( inputData ) ):
         inputData[i] = inputData[i].replace( 'LFN:', '' )
-      inputData = map( lambda x: 'LFN:' + x, inputData )
+      inputData = ['LFN:' + x for x in inputData ]
       inputDataStr = ';'.join( inputData )
       self.addToInputData.append( inputDataStr )
 
@@ -397,6 +397,7 @@ class LHCbJob( Job ):
     if poolXMLCatalog:
       stepInstance.setValue( "poolXMLCatName", poolXMLCatalog )
     stepInstance.setValue( 'extraPackages', extraPackages )
+    stepInstance.setValue( 'SystemConfig', systemConfig )
 
     res = self.addPackage( appName, appVersion )
     if not res['OK']:
@@ -407,9 +408,7 @@ class LHCbJob( Job ):
   #############################################################################
 
   def setBenderModule( self, benderVersion, modulePath, inputData = '', numberOfEvents = -1 ):
-    """Helper function.
-
-       Specify Bender module to be executed.
+    """Specifies Bender module to be executed.
 
        Any additional files should be specified in the job input sandbox.  Input data for
        Bender should be specified here (can be string or list).
@@ -420,14 +419,14 @@ class LHCbJob( Job ):
        >>> job.setBenderModule('v8r3','BenderExample.PhiMC',
        inputData=['LFN:/lhcb/production/DC06/phys-v2-lumi2/00001758/DST/0000/00001758_00000001_5.dst'],numberOfEvents=100)
 
-       @param benderVersion: Bender Project Version
-       @type benderVersion: string
-       @param modulePath: Import path to module e.g. BenderExample.PhiMC
-       @type modulePath: string
-       @param inputData: Input data for application
-       @type inputData: single LFN or list of LFNs
-       @param numberOfEvents: Number of events to process e.g. -1
-       @type numberOfEvents: integer
+       :param benderVersion: Bender Project Version
+       :type benderVersion: string
+       :param modulePath: Import path to module e.g. BenderExample.PhiMC
+       :type modulePath: string
+       :param inputData: Input data for application
+       :type inputData: single LFN or list of LFNs
+       :param numberOfEvents: Number of events to process e.g. -1
+       :type numberOfEvents: integer
     """
     kwargs = {'benderVersion':benderVersion, 'modulePath':modulePath,
               'inputData':inputData, 'numberOfEvents':numberOfEvents}
@@ -475,10 +474,8 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setRootMacro( self, rootVersion, rootScript, arguments = '', logFile = '' ):
-    """Helper function.
-
-       Specify ROOT version and macro to be executed (e.g. root -b -f <rootScript>).
+  def setRootMacro( self, rootVersion, rootScript, arguments = '', logFile = '', systemConfig = 'ANY' ):
+    """Specifies ROOT version and macro to be executed (e.g. root -b -f <rootScript>).
 
        Can optionally specify arguments to the script and a name for the output log file.
 
@@ -487,24 +484,22 @@ class LHCbJob( Job ):
        >>> job = LHCbJob()
        >>> j.setRootMacro('5.18.00a','test.C')
 
-       @param rootVersion: LHCb supported ROOT version
-       @type rootVersion: string
-       @param rootScript: Path to ROOT macro script
-       @type rootScript: string
-       @param arguments: Optional arguments for macro
-       @type arguments: string or list
-       @param logFile: Optional log file name
-       @type logFile: string
+       :param rootVersion: LHCb supported ROOT version
+       :type rootVersion: string
+       :param rootScript: Path to ROOT macro script
+       :type rootScript: string
+       :param arguments: Optional arguments for macro
+       :type arguments: string or list
+       :param logFile: Optional log file name
+       :type logFile: string
     """
     rootType = 'c'
-    return self.__configureRootModule( rootVersion, rootScript, rootType, arguments, logFile )
+    return self.__configureRootModule( rootVersion, rootScript, rootType, arguments, logFile, systemConfig )
 
   #############################################################################
 
-  def setRootPythonScript( self, rootVersion, rootScript, arguments = '', logFile = '' ):
-    """Helper function.
-
-       Specify ROOT version and python script to be executed (e.g. python <rootScript>).
+  def setRootPythonScript( self, rootVersion, rootScript, arguments = '', logFile = '', systemConfig = 'ANY' ):
+    """Specifies ROOT version and python script to be executed (e.g. python <rootScript>).
 
        Can optionally specify arguments to the script and a name for the output log file.
 
@@ -513,24 +508,22 @@ class LHCbJob( Job ):
        >>> job = LHCbJob()
        >>> j.setRootPythonScript('5.18.00a','test.py')
 
-       @param rootVersion: LHCb supported ROOT version
-       @type rootVersion: string
-       @param rootScript: Path to ROOT python script
-       @type rootScript: string
-       @param arguments: Optional arguments for python script
-       @type arguments: string or list
-       @param logFile: Optional log file name
-       @type logFile: string
+       :param rootVersion: LHCb supported ROOT version
+       :type rootVersion: string
+       :param rootScript: Path to ROOT python script
+       :type rootScript: string
+       :param arguments: Optional arguments for python script
+       :type arguments: string or list
+       :param logFile: Optional log file name
+       :type logFile: string
     """
     rootType = 'py'
-    return self.__configureRootModule( rootVersion, rootScript, rootType, arguments, logFile )
+    return self.__configureRootModule( rootVersion, rootScript, rootType, arguments, logFile, systemConfig )
 
   #############################################################################
 
-  def setRootExecutable( self, rootVersion, rootScript, arguments = '', logFile = '' ):
-    """Helper function.
-
-       Specify ROOT version and executable (e.g. ./<rootScript>).
+  def setRootExecutable( self, rootVersion, rootScript, arguments = '', logFile = '', systemConfig = 'ANY' ):
+    """Specifies ROOT version and executable (e.g. ./<rootScript>).
 
        Can optionally specify arguments to the script and a name for the output log file.
 
@@ -539,21 +532,21 @@ class LHCbJob( Job ):
        >>> job = LHCbJob()
        >>> j.setRootExecutable('5.18.00a','minexam')
 
-       @param rootVersion: LHCb supported ROOT version
-       @type rootVersion: string
-       @param rootScript: Path to ROOT macro script
-       @type rootScript: string
-       @param arguments: Optional arguments for macro
-       @type arguments: string or list
-       @param logFile: Optional log file name
-       @type logFile: string
+       :param rootVersion: LHCb supported ROOT version
+       :type rootVersion: string
+       :param rootScript: Path to ROOT macro script
+       :type rootScript: string
+       :param arguments: Optional arguments for macro
+       :type arguments: string or list
+       :param logFile: Optional log file name
+       :type logFile: string
     """
     rootType = 'bin'
-    return self.__configureRootModule( rootVersion, rootScript, rootType, arguments, logFile )
+    return self.__configureRootModule( rootVersion, rootScript, rootType, arguments, logFile, systemConfig )
 
   #############################################################################
 
-  def __configureRootModule( self, rootVersion, rootScript, rootType, arguments, logFile,
+  def __configureRootModule( self, rootVersion, rootScript, rootType, arguments, logFile, systemConfig = 'ANY',
                              modulesNameList = ['CreateDataFile',
                                                 'RootApplication',
                                                 'FileUsage',
@@ -562,7 +555,8 @@ class LHCbJob( Job ):
                                               ( 'rootScript', 'string', '', 'Root script' ),
                                               ( 'rootType', 'string', '', 'Root type' ),
                                               ( 'arguments', 'list', [], 'Optional arguments for payload' ),
-                                              ( 'applicationLog', 'string', '', 'Log file name' ), ]
+                                              ( 'applicationLog', 'string', '', 'Log file name' ),
+                                              ( 'SystemConfig', 'string', '', 'CMT Config' )]
                             ):
     """ Internal function.
 
@@ -604,6 +598,7 @@ class LHCbJob( Job ):
     stepInstance.setValue( "rootType", rootType )
     stepInstance.setValue( "rootScript", os.path.basename( rootScript ) )
     stepInstance.setValue( "applicationLog", logName )
+    stepInstance.setValue( "SystemConfig", systemConfig )
     if arguments:
       stepInstance.setValue( "arguments", arguments )
 
@@ -635,10 +630,10 @@ class LHCbJob( Job ):
        >>> job = LHCbJob()
        >>> job.addPackage('DaVinci','v19r12')
 
-       @param appName: Package name
-       @type appName: string
-       @param appVersion: Package version
-       @type appVersion: Package version string
+       :param appName: Package name
+       :type appName: string
+       :param appVersion: Package version
+       :type appVersion: Package version string
 
     """
     kwargs = {'appName':appName, 'appVersion':appVersion}
@@ -674,8 +669,8 @@ class LHCbJob( Job ):
        >>> job = LHCbJob()
        >>> job.setAncestorDepth(2)
 
-       @param depth: Ancestor depth
-       @type depth: string or int
+       :param depth: Ancestor depth
+       :type depth: string or int
 
     """
     kwargs = {'depth':depth}
@@ -694,9 +689,7 @@ class LHCbJob( Job ):
   #############################################################################
 
   def setInputDataType( self, inputDataType ):
-    """Helper function.
-
-       Explicitly set the input data type to be conveyed to Gaudi Applications.
+    """Explicitly set the input data type to be conveyed to Gaudi Applications.
 
        Default is DATA, e.g. for DST / RDST files.  Other options include:
         - MDF, for .raw files
@@ -707,8 +700,8 @@ class LHCbJob( Job ):
        >>> job = LHCbJob()
        >>> job.setInputDataType('ETC')
 
-       @param inputDataType: Input Data Type
-       @type inputDataType: String
+       :param inputDataType: Input Data Type
+       :type inputDataType: String
 
     """
     description = 'User specified input data type'
@@ -736,8 +729,8 @@ class LHCbJob( Job ):
        >>> job = LHCbJob()
        >>> job.setCondDBTags({'DDDB':'DC06','LHCBCOND':'DC06'})
 
-       @param condDict: CondDB tags
-       @type condDict: Dict of DB, tag pairs
+       :param condDict: CondDB tags
+       :type condDict: Dict of DB, tag pairs
     """
     kwargs = {'condDict':condDict}
     if not type( condDict ) == type( {} ):
@@ -771,13 +764,13 @@ class LHCbJob( Job ):
        >>> job = Job()
        >>> job.setOutputData(['DVNtuple.root'])
 
-       @param lfns: Output data file or files
-       @type lfns: Single string or list of strings ['','']
-       @param OutputSE: Optional parameter to specify the Storage
-       @param OutputPath: Optional parameter to specify the Path in the Storage
+       :param lfns: Output data file or files
+       :type lfns: Single string or list of strings ['','']
+       :param OutputSE: Optional parameter to specify the Storage
+       :param OutputPath: Optional parameter to specify the Path in the Storage
        Element to store data or files, e.g. CERN-tape
-       @type OutputSE: string or list
-       @type OutputPath: string
+       :type OutputSE: string or list
+       :type OutputPath: string
     """
     kwargs = {'lfns':lfns, 'OutputSE':OutputSE, 'OutputPath':OutputPath}
     if type( lfns ) == list and len( lfns ):
@@ -811,10 +804,18 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setExecutable( self, executable, arguments = '', logFile = '' ):
-    """Helper function.
-
-       Specify executable script to run with optional arguments and log file
+  def setExecutable( self, executable, arguments = '', logFile = '', systemConfig = 'ANY',
+                     modulesNameList = ['CreateDataFile',
+                                        'Script',
+                                        'FileUsage',
+                                        'UserJobFinalization'],
+                     parametersList = [( 'name', 'string', '', 'Name of executable' ),
+                                       ( 'executable', 'string', '', 'Executable Script' ),
+                                       ( 'arguments', 'string', '', 'Arguments for executable Script' ),
+                                       ( 'logFile', 'string', '', 'Log file name' ),
+                                       ( 'SystemConfig', 'string', '', 'CMT Config' )]
+                    ):
+    """Specifies executable script to run with optional arguments and log file
        for standard output.
 
        These can be either:
@@ -828,12 +829,12 @@ class LHCbJob( Job ):
        >>> job = Job()
        >>> job.setExecutable('myScript.py')
 
-       @param executable: Executable
-       @type executable: string
-       @param arguments: Optional arguments to executable
-       @type arguments: string
-       @param logFile: Optional log file name
-       @type logFile: string
+       :param executable: Executable
+       :type executable: string
+       :param arguments: Optional arguments to executable
+       :type arguments: string
+       :param logFile: Optional log file name
+       :type logFile: string
     """
     kwargs = {'executable':executable, 'arguments':arguments, 'logFile':logFile}
     if not type( executable ) == type( ' ' ) or not type( arguments ) == type( ' ' ) or not type( logFile ) == type( ' ' ):
@@ -858,19 +859,6 @@ class LHCbJob( Job ):
     moduleName = moduleName.replace( '.', '' )
     stepName = 'ScriptStep%s' % ( self.stepCount )
 
-    modulesNameList = [
-                       'CreateDataFile',
-                       'Script',
-                       'FileUsage',
-                       'UserJobFinalization'
-                       ]
-    parametersList = [
-                      ( 'name', 'string', '', 'Name of executable' ),
-                      ( 'executable', 'string', '', 'Executable Script' ),
-                      ( 'arguments', 'string', '', 'Arguments for executable Script' ),
-                      ( 'logFile', 'string', '', 'Log file name' )
-                      ]
-
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
     stepName = 'RunScriptStep%s' % ( self.stepCount )
@@ -881,16 +869,37 @@ class LHCbJob( Job ):
     stepInstance = addStepToWorkflow( self.workflow, step, stepName )
 
 
-    stepInstance.setValue( "name", moduleName )
-    stepInstance.setValue( "logFile", logName )
-    stepInstance.setValue( "executable", executable )
+    stepInstance.setValue( 'name', moduleName )
+    stepInstance.setValue( 'logFile', logName )
+    stepInstance.setValue( 'executable', executable )
+    stepInstance.setValue( 'SystemConfig', systemConfig )
     if arguments:
-      stepInstance.setValue( "arguments", arguments )
+      stepInstance.setValue( 'arguments', arguments )
 
     return S_OK()
 
   #############################################################################
 
+  def setDIRACPlatform( self ):
+    """ Looks inside the steps definition to find list of CMTConfigs, then translates it in a DIRAC platform
+    """
+    listOfCMTConfigs = []
+    for step_instance in self.workflow.step_instances:
+      for parameter in step_instance.parameters:
+        if parameter.name.lower() == 'systemconfig':
+          if not parameter.value or parameter.value.lower() == 'any':
+            listOfCMTConfigs.append( 'zzz' )  # just for comparison... yes, it's a hack! due to this damn "ANY"
+          else:
+            listOfCMTConfigs.append( parameter.value )
+
+    listOfCMTConfigs = uniqueElements( listOfCMTConfigs )
+    listOfCMTConfigs.sort( key = LooseVersion )
+    if listOfCMTConfigs[0] == 'zzz':
+      return super( LHCbJob, self ).setPlatform( 'ANY' )
+    else:
+      return super( LHCbJob, self ).setPlatform( listOfCMTConfigs[0] )
+
+  #############################################################################
 
   def setProtocolAccessTest( self, protocols, rootVersion, inputData = '', logFile = '',
                              modulesNameList = ['ProtocolAccessTest'],
@@ -900,27 +909,26 @@ class LHCbJob( Job ):
                                                ( 'rootVersion', 'string', '', 'ROOT version' ),
                                                ( 'inputData', 'string', '', 'Input Data' ), ]
                             ):
-    """Helper function.
-
-       Perform a protocol access test at an optional site with the input data specified.
+    """Performs a protocol access test at an optional site with the input data specified.
 
        Example usage:
 
        >>> job = Job()
-       >>> job.setProtocolAccessTest(['xroot','root','rfio'],'5.22.00a',inputData='/lhcb/data/2009/DST/00005727/0000/00005727_00000001_1.dst')
+       >>> job.setProtocolAccessTest(['xroot','root','rfio'],'5.22.00a',
+                                      inputData='/lhcb/data/2009/DST/00005727/0000/00005727_00000001_1.dst')
 
-       @param protocols: data access protocols
-       @type protocols: string or list of protocols
-       @param rootVersion: ROOT version to use
-       @type rootVersion: string
-       @param inputData: Input data for application
-       @type inputData: single LFN string or list of LFNs
-       @param logFile: log file name
-       @type logFile: string
-       @param modulesList: Optional list of modules (to be used mostly when extending this method
-       @type modulesList: list
-       @param parameters: Optional list of parameters (to be used mostly when extending this method
-       @type parameters: list
+       :param protocols: data access protocols
+       :type protocols: string or list of protocols
+       :param rootVersion: ROOT version to use
+       :type rootVersion: string
+       :param inputData: Input data for application
+       :type inputData: single LFN string or list of LFNs
+       :param logFile: log file name
+       :type logFile: string
+       :param modulesList: Optional list of modules (to be used mostly when extending this method
+       :type modulesList: list
+       :param parameters: Optional list of parameters (to be used mostly when extending this method
+       :type parameters: list
     """
     kwargs = {'protocols':protocols, 'inputData':inputData, 'logFile':logFile, 'rootVersion':rootVersion}
     self.stepCount += 1
@@ -948,7 +956,7 @@ class LHCbJob( Job ):
         return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
       for i in xrange( len( inputData ) ):
         inputData[i] = inputData[i].replace( 'LFN:', '' )
-      inputData = map( lambda x: 'LFN:' + x, inputData )
+      inputData = ['LFN:' + x for x in inputData ]
       inputDataStr = ';'.join( inputData )
       self.addToInputData.append( inputDataStr )
 
