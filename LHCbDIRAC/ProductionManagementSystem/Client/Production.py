@@ -65,7 +65,7 @@ class Production():
                                                             ['std.out', 'std.err', '*.log'] ) )
     self.setJobParameters( {
                            'Type'         : 'MCSimulation',
-                           'SystemConfig' : 'ANY',
+                           'Platform'     : 'ANY',
                            'CPUTime'      : '1000000',
                            'LogLevel'     : 'verbose',
                            'JobGroup'     : '@{PRODUCTION_ID}'

@@ -2,7 +2,6 @@
 """
 
 import itertools, copy
-from distutils.version import LooseVersion
 
 from DIRAC import gLogger, S_OK
 
@@ -97,7 +96,6 @@ class ProductionRequest( object ):
     self.inputDataPolicies = []
     self.previousProds = [None]  # list of productions from which to take the inputs (the first is always None)
     self.multicore = []  # list of flags to override the multi core flags of the steps
-    self.systemConfigs = []  # used for the jobs matching
 
   #############################################################################
 
@@ -209,8 +207,7 @@ class ProductionRequest( object ):
                                     transformationFamily = prodDict['transformationFamily'],
                                     events = prodDict['events'],
                                     CPUe = prodDict['CPUe'],
-                                    multicore = prodDict['multicore'],
-                                    systemConfig = prodDict['systemConfig'] )
+                                    multicore = prodDict['multicore'] )
 
       # check if we have to extend on multiple jobs
       if prodDict['productionType'] in ['Simulation', 'MCSimulation']:
@@ -384,33 +381,6 @@ class ProductionRequest( object ):
 
     self.stepsInProds = correctedStepsInProds
 
-    self.systemConfigs = self._getJobsSystemConfigs()
-
-  #############################################################################
-
-  def _getJobsSystemConfigs( self ):
-
-    listOfStepsSystemConfigs = [sd['SystemConfig'] for sd in self.stepsListDict]
-
-    jobsSysConfig = []
-    for ssp in [len( ssp ) for ssp in self.stepsInProds]:
-      stepsSystemConfigs = []
-      for _x in range( ssp ):
-        ver = listOfStepsSystemConfigs.pop( 0 )
-        if ver and ver.lower() != 'any':
-          stepsSystemConfigs.append( ver )
-        else:
-          stepsSystemConfigs.append( 'zzz' )  # just for comparison... yes, it's a hack! due to this damn "ANY"
-
-      stepsSystemConfigs.sort( key = LooseVersion )
-      if stepsSystemConfigs[0] == 'zzz':
-        jsc = 'ANY'
-      else:
-        jsc = stepsSystemConfigs[0]
-      jobsSysConfig.append( jsc )
-
-    return jobsSysConfig
-
   #############################################################################
 
   def _getProdsDescriptionDict( self ):
@@ -423,27 +393,26 @@ class ProductionRequest( object ):
 
     for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
     cpu, inputD, outputMode, outFileMask, outFileStep, target, groupSize, plugin, idp, \
-    previousProd, events, CPUe, multicore, systemConfig in itertools.izip( self.prodsTypeList,
-                                                                           self.stepsInProds,
-                                                                           self.bkQueries,
-                                                                           self.removeInputsFlags,
-                                                                           self.outputSEs,
-                                                                           self.priorities,
-                                                                           self.cpus,
-                                                                           self.inputs,
-                                                                           self.outputModes,
-                                                                           self.outputFileMasks,
-                                                                           self.outputFileSteps,
-                                                                           self.targets,
-                                                                           self.groupSizes,
-                                                                           self.plugins,
-                                                                           self.inputDataPolicies,
-                                                                           self.previousProds,
-                                                                           self.events,
-                                                                           self.CPUeList,
-                                                                           self.multicore,
-                                                                           self.systemConfigs
-                                                                           ):
+    previousProd, events, CPUe, multicore in itertools.izip( self.prodsTypeList,
+                                                             self.stepsInProds,
+                                                             self.bkQueries,
+                                                             self.removeInputsFlags,
+                                                             self.outputSEs,
+                                                             self.priorities,
+                                                             self.cpus,
+                                                             self.inputs,
+                                                             self.outputModes,
+                                                             self.outputFileMasks,
+                                                             self.outputFileSteps,
+                                                             self.targets,
+                                                             self.groupSizes,
+                                                             self.plugins,
+                                                             self.inputDataPolicies,
+                                                             self.previousProds,
+                                                             self.events,
+                                                             self.CPUeList,
+                                                             self.multicore
+                                                             ):
 
       if not self.parentRequestID and self.requestID:
         transformationFamily = self.requestID
@@ -473,8 +442,7 @@ class ProductionRequest( object ):
                                  'stepsInProd-ProdName': [str( self.stepsList[index - 1] ) + str( self.stepsListDict[index - 1]['fileTypesIn'] ) for index in stepsInProd],
                                  'events': events,
                                  'CPUe' : CPUe,
-                                 'multicore': multicore,
-                                 'systemConfig': systemConfig
+                                 'multicore': multicore
                                  }
       prodNumber += 1
 
@@ -515,8 +483,7 @@ class ProductionRequest( object ):
                         transformationFamily = 0,
                         events = -1,
                         CPUe = 100,
-                        multicore = 'True',
-                        systemConfig = 'ANY' ):
+                        multicore = 'True' ):
     """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object
     """
@@ -560,7 +527,7 @@ class ProductionRequest( object ):
     prod.priority = priority
     prod.LHCbJob.workflow.setDescrShort( 'prodDescription' )
     prod.LHCbJob.workflow.setDescription( 'prodDescription' )
-    prod.setJobParameters( { 'CPUTime': cpu, 'SystemConfig': systemConfig } )
+    prod.LHCbJob.setCPUTime( cpu )
     prod.plugin = plugin
 
     # optional parameters
@@ -640,6 +607,8 @@ class ProductionRequest( object ):
       prod.addFinalizationStep( ['UploadOutputData',
                                  'UploadLogFile',
                                  'FailoverRequest'] )
+
+    prod.LHCbJob.setDIRACPlatform()
 
     return prod
 

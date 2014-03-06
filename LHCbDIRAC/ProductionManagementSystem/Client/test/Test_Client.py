@@ -62,75 +62,6 @@ class ClientTestCase( unittest.TestCase ):
 
 class ProductionRequestSuccess( ClientTestCase ):
 
-  def test__getJobsSystemConfigs( self ):
-    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-    pr.stepsListDict = [{'StepId': 123, 'SystemConfig':''},
-                        {'StepId': 456, 'SystemConfig':'x86'}]
-    pr.stepsInProds = [[1, 2]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['x86'] )
-
-    pr.stepsInProds = [[1], [2]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['ANY', 'x86'] )
-
-    pr.stepsListDict = [{'StepId': 123, 'SystemConfig':''},
-                        {'StepId': 456, 'SystemConfig':'x86'},
-                        {'StepId': 789, 'SystemConfig':'x86'}]
-    pr.stepsInProds = [[1, 2, 3]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['x86'] )
-
-    pr.stepsInProds = [[1], [2], [3]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['ANY', 'x86', 'x86'] )
-
-    pr.stepsInProds = [[1, 2], [3]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['x86', 'x86'] )
-
-    pr.stepsInProds = [[1], [2, 3]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['ANY', 'x86'] )
-
-    pr.stepsListDict = [{'StepId': 123, 'SystemConfig':''},
-                        {'StepId': 456, 'SystemConfig':'ANY'},
-                        {'StepId': 789, 'SystemConfig':'x86'}]
-    pr.stepsInProds = [[1, 2, 3]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['x86'] )
-
-    pr.stepsInProds = [[1], [2], [3]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['ANY', 'ANY', 'x86'] )
-
-    pr.stepsInProds = [[1, 2], [3]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['ANY', 'x86'] )
-
-    pr.stepsInProds = [[1], [2, 3]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['ANY', 'x86'] )
-
-    pr.stepsListDict = [{'StepId': 123, 'SystemConfig':''},
-                        {'StepId': 456, 'SystemConfig':'x86-slc6'},
-                        {'StepId': 789, 'SystemConfig':'x86-slc5'}]
-    pr.stepsInProds = [[1, 2, 3]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['x86-slc5'] )
-
-    pr.stepsInProds = [[1], [2], [3]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['ANY', 'x86-slc6', 'x86-slc5'] )
-
-    pr.stepsInProds = [[1, 2], [3]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['x86-slc6', 'x86-slc5'] )
-
-    pr.stepsInProds = [[1], [2, 3]]
-    res = pr._getJobsSystemConfigs()
-    self.assertEqual( res, ['ANY', 'x86-slc5'] )
-
   def test_resolveStepsSuccess( self ):
 
 
@@ -848,7 +779,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.CPUeList = [1.0, 1.0, 1.0]
     pr.multicore = ['False', 'False', 'True']
     pr.outputModes = ['Any', 'Local', 'Any']
-    pr.systemConfigs = ['ANY', 'x86-slc6', 'ANY']
 
     pr.stepsListDict = [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
@@ -907,8 +837,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'events':-1,
                       'CPUe' : 1.0,
                       'multicore': 'False',
-                      'outputMode': 'Any',
-                      'systemConfig': 'ANY'
+                      'outputMode': 'Any'
                      },
 
                    2:{
@@ -934,8 +863,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'events':-1,
                       'CPUe' : 1.0,
                       'multicore': 'False',
-                      'outputMode': 'Local',
-                      'systemConfig': 'x86-slc6'
+                      'outputMode': 'Local'
                       },
 
                    3:{
@@ -961,8 +889,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'events':-1,
                       'CPUe' : 1.0,
                       'multicore': 'True',
-                      'outputMode': 'Any',
-                      'systemConfig': 'ANY'
+                      'outputMode': 'Any'
                       }
                    }
     self.maxDiff = None
