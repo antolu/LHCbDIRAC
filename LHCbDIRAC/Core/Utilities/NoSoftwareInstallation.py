@@ -28,10 +28,14 @@ class NoSoftwareInstallation( object ):
     """
 
     self.log = gLogger.getSubLogger( self.__class__.__name__ )
+    self.job = argumentsDict.get( 'Job', {} )
 
-    job = argumentsDict.get( 'Job', {} )
+  def execute( self ):
+    """ Main method of the class executed by DIRAC JobAgent. It checks the parameters
+        in case there is a mis-configuration and returns S_OK / S_ERROR.
+    """
 
-    apps = job.get( 'SoftwarePackages', [] )
+    apps = self.job.get( 'SoftwarePackages', [] )
     if not apps:
       # There is nothing to do
       self.log.info( "There are no Applications defined on SoftwarePackages" )
@@ -43,11 +47,11 @@ class NoSoftwareInstallation( object ):
       self.log.info( 'Requested Package %s' % app )
 
     # self.platform ...........................................................
-    if 'SystemConfig' in job:
+    if 'SystemConfig' in self.job:
       # out-dated
-      self.platform = job['SystemConfig']
-    elif 'Platform' in job:
-      self.platform = job['Platform']
+      self.platform = self.job['SystemConfig']
+    elif 'Platform' in self.job:
+      self.platform = self.job['Platform']
     else:
       raise RuntimeError( "No platform defined" )
 
@@ -56,11 +60,6 @@ class NoSoftwareInstallation( object ):
     if not self.localArch:
       raise RuntimeError( "/LocalSite/Architecture is missing and must be specified" )
 
-
-  def execute( self ):
-    """ Main method of the class executed by DIRAC JobAgent. It checks the parameters
-        in case there is a mis-configuration and returns S_OK / S_ERROR.
-    """
 
     if self.platform.lower() == 'any':
       # If there is no architecture specified on the Job ( with other words,
@@ -79,7 +78,8 @@ class NoSoftwareInstallation( object ):
         self.log.error( "The platform request is different from the local one... something is very wrong!" )
         return S_ERROR( "The platform request is different from the local one... something is very wrong!" )
 
-    self._getSupportedCMTConfigs( self.localArch )
+    compatibleCMTConfigs = self._getSupportedCMTConfigs( self.localArch )
+    self.log.info( "This node supports the following CMT configs: %s" % ', '.join( compatibleCMTConfigs ) )
 
     return S_OK()
 
@@ -90,9 +90,8 @@ class NoSoftwareInstallation( object ):
     self.log.info( "Node supported platform is: %s" % platform )
     compatibleCMTConfigs = getCMTConfigsCompatibleWithPlatforms( platform )
     if not compatibleCMTConfigs['OK']:
-      return compatibleCMTConfigs
+      raise RuntimeError( compatibleCMTConfigs['Message'] )
     if not compatibleCMTConfigs['Value']:
       raise RuntimeError( "No CMT configs can be run here. Something is wrong in our configuration" )
-    self.log.info( "This node supports the following CMT configs: %s" % ', '.join( compatibleCMTConfigs['Value'] ) )
-    
+
     return compatibleCMTConfigs['Value']
