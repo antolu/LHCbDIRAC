@@ -116,6 +116,7 @@ class LHCbJob( Job ):
     self.stepCount = 0
     self.inputDataType = 'DATA'  # Default, other options are MDF, ETC
     self.importLocation = 'LHCbDIRAC.Workflow.Modules'
+    self.rootSection = 'SoftwareDistribution/LHCbRoot'
     self.opsHelper = Operations()
 
   #############################################################################
