@@ -768,7 +768,7 @@ class ConsistencyChecks( object ):
         else:
           printout = True
           topDir = os.path.dirname( directory )
-          res = self.rm.getCatalogListDirectory( topDir )
+          res = self.dm.getCatalogListDirectory( topDir )
           if not res['OK']:
             raise RuntimeError, res['Message']
           else:
@@ -883,7 +883,7 @@ class ConsistencyChecks( object ):
       self.__write( "Get replicas for %d files (chunks of %d): " % ( len( lfnsLeft ), chunkSize ) )
       for lfnChunk in breakListIntoChunks( lfnsLeft, chunkSize ):
         self.__write( '.' )
-        replicasRes = self.rm.getReplicas( lfnChunk )
+        replicasRes = self.dm.getReplicas( lfnChunk )
         if not replicasRes[ 'OK' ]:
           gLogger.error( "error:  %s" % replicasRes['Message'] )
           return replicasRes
@@ -897,7 +897,7 @@ class ConsistencyChecks( object ):
     metadata = {}
     for lfnChunk in breakListIntoChunks( replicas.keys(), chunkSize ):
       self.__write( '.' )
-      res = self.rm.getCatalogFileMetadata( lfnChunk )
+      res = self.dm.getCatalogFileMetadata( lfnChunk )
       if not res['OK']:
         gLogger.error( "error %s" % res['Message'] )
         return res
