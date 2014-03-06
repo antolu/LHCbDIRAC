@@ -7,6 +7,8 @@
 __RCSID__ = "$Id$"
 
 import os, shutil
+from distutils.version import LooseVersion
+
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.List import uniqueElements
@@ -30,10 +32,11 @@ if siteSpecificTimeout:
 def getProjectEnvironment( systemConfiguration, applicationName, applicationVersion = '', extraPackages = '',
                            runTimeProject = '', runTimeProjectVersion = '', site = '', directory = '',
                            poolXMLCatalogName = defaultCatalogName, env = None ):
-  """ This function uses all below methods to get the complete project environment
-      thus ensuring consistent behaviour from all modules.  The environment is
-      returned as a dictionary and can be passed directly to a shellCall as well
+  """ This function uses all below methods to get the complete project environment thus ensuring consistent behaviour
+      from all modules. The environment is returned as a dictionary and can be passed directly to a shellCall as well
       as saved to a debug script.
+
+      systemConfiguration has to be a CMTConfig
   """
   result = getScriptsLocation()
   if not result['OK']:
@@ -57,10 +60,11 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
 
   setupProject = result['Value']
 
-  compatiblePlatforms = getCMTConfig( systemConfiguration )
-  if not compatiblePlatforms['OK']:
-    return compatiblePlatforms
-  for compatibleCMTConfig in compatiblePlatforms['Value']:
+  compatibleCMTConfigs = getCMTConfig( systemConfiguration )
+  if not compatibleCMTConfigs['OK']:
+    return compatibleCMTConfigs
+  gLogger.debug( "Compatible CMT Configs list: %s" % ','.join( compatibleCMTConfigs['Value'] ) )
+  for compatibleCMTConfig in compatibleCMTConfigs['Value']:
     gLogger.verbose( "Using %s for setup" % compatibleCMTConfig )
     environment['CMTCONFIG'] = compatibleCMTConfig
     result = runEnvironmentScripts( [lbLogin, setupProject], environment )
@@ -76,9 +80,8 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
 
 #############################################################################
 def addCommandDefaults( command, postExecution = '', envDump = 'localEnv.log', coreDumpLog = 'Step' ):
-  """ Wrap the actual execution command with some defaults that are useful for
-      debugging. This is always executed by a shellCall so can use standard
-      commands.
+  """ Wrap the actual execution command with some defaults that are useful for debugging.
+      This is always executed by a shellCall so can use standard commands.
   """
   # First some preamble
   cmdList = []
@@ -144,8 +147,7 @@ def createDebugScript( name, command, env = None, postExecution = '', envLogFile
 #############################################################################
 def runEnvironmentScripts( commandsList, env = None ):
   """ Wrapper to run the provided commands using the specified initial environment
-      (defaults to the os.environ) and return the final resulting environment as
-      a dictionary.
+      (defaults to the os.environ) and return the final resulting environment as a dictionary.
   """
   if not env:
     env = dict( os.environ )
@@ -253,20 +255,20 @@ def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, dire
   return S_OK( env )
 
 #############################################################################
-def getCMTConfig( systemConfig ):
+def getCMTConfig( CMTConfig ):
   """ get an ordered list of compatible CMT configs
   """
-
-  if systemConfig.lower() == 'any':
+  if CMTConfig.lower() == 'any':
+    # I have to return what can be run on this node
     platform = gConfig.getValue( '/LocalSite/Architecture', '' )
     if not platform:
       gLogger.error( "/LocalSite/Architecture is not defined" )
       return S_ERROR( "/LocalSite/Architecture is not defined" )
 
-    gLogger.verbose( 'Setting SystemConfig to compatible platform %s since it was set to "ANY"' % platform )
-    return getCompatiblePlatforms( platform )
+    gLogger.verbose( 'Setting CMTConfig compatible to local platform %s since it was set to "ANY"' % platform )
+    return getCMTConfigsCompatibleWithPlatforms( platform )
   else:
-    return S_OK( [systemConfig] )
+    return S_OK( [CMTConfig] )
 
 #############################################################################
 def getProjectCommand( location, applicationName, applicationVersion, extraPackages = [], site = '',
@@ -409,23 +411,41 @@ def getSharedArea():
   return sharedArea
 
 
-def getCompatiblePlatforms( originalPlatforms ):
+def getPlatformsConfigsDict():
+  """ Just utility function
+  """
+  result = opsH.getOptionsDict( 'PlatformsToConfigs' )
+  if not result['OK'] or not result['Value']:
+    return S_ERROR( "PlatformsToConfigs info not found" )
+  return dict( [( k, v.replace( ' ', '' ).split( ',' ) ) for k, v in result['Value'].iteritems()] )
+
+def getCMTConfigsCompatibleWithPlatforms( originalPlatforms ):
   """ Get a list of platforms compatible with the given list
       Looks into operation section PlatformsToConfigs
   """
   if type( originalPlatforms ) == type( ' ' ):
     platforms = [originalPlatforms]
-
-  result = opsH.getOptionsDict( 'PlatformsToConfigs' )
-  if not result['OK'] or not result['Value']:
-    return S_ERROR( "PlatformsToConfigs info not found" )
-  platformsDict = dict( [( k, v.replace( ' ', '' ).split( ',' ) ) for k, v in result['Value'].iteritems()] )
-  resultList = list()
+  else:
+    platforms = originalPlatforms
+  platformsDict = getPlatformsConfigsDict()
+  CMTConfigsList = list()
 
   for plat in platforms:
-    resultList += platformsDict.get( plat, [] )
+    CMTConfigsList += platformsDict.get( plat, [] )
 
-  return S_OK( uniqueElements( resultList ) )
+  return S_OK( uniqueElements( CMTConfigsList ) )
 
+
+def getPlatformFromConfig( CMTConfig ):
+  """ Returns the DIRAC platform compatible with the given CMTConfig
+  """
+  platformsDict = getPlatformsConfigsDict()
+  platformsList = list()
+  for plat in platformsDict:
+    if CMTConfig in platformsDict[plat]:
+      platformsList.append( plat )
+
+  platformsList = platformsList.sort( key = LooseVersion )
+  return S_OK( uniqueElements( platformsList ) )
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
