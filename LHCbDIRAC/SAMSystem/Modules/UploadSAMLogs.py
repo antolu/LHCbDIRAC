@@ -130,7 +130,10 @@ class UploadSAMLogs( ModuleBase ):
                                         ),
                             nagiosName='org.lhcb.DiracTest-lhcb'
                             )                      
-      self.nagiosConnector.sendMessage()
+      try:
+        self.nagiosConnector.sendMessage()
+      except:
+        self.log.error( "Can't send to Nagios, won't failing the job because of that" )
       self.nagiosConnector.endConnection()
     
 
