@@ -46,22 +46,22 @@ class NoSoftwareInstallation( object ):
     for app in apps:
       self.log.info( 'Requested Package %s' % app )
 
-    # self.platform ...........................................................
+    # platform ...........................................................
     if 'SystemConfig' in self.job:
       # out-dated
-      self.platform = self.job['SystemConfig']
+      platform = self.job['SystemConfig']
     elif 'Platform' in self.job:
-      self.platform = self.job['Platform']
+      platform = self.job['Platform']
     else:
       raise RuntimeError( "No platform defined" )
 
-    # self.localArch ...........................................................
-    self.localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
-    if not self.localArch:
+    # localArch ...........................................................
+    localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
+    if not localArch:
       raise RuntimeError( "/LocalSite/Architecture is missing and must be specified" )
 
 
-    if self.platform.lower() == 'any':
+    if platform.lower() == 'any':
       # If there is no architecture specified on the Job ( with other words,
       # SystemConfig == ANY in the JobDescription, it means we actually do not care which one).
       # So, we take the architecture that is defined as local on the worker node.
@@ -72,13 +72,13 @@ class NoSoftwareInstallation( object ):
       # Either we set SystemConfig == ANY, of it happened that SystemConfig is the
       # same as our LocalArchitecture. Either way, we make sure that if there is
       # OS compatibility, the config is added to platforms ( CompatiblePlatforms )
-      self.log.info( "Platform requested by the job is set to '%s'" % self.platform )
+      self.log.info( "Platform requested by the job is set to '%s'" % platform )
       
-      if self.platform != self.localArch:
+      if platform != localArch:
         self.log.error( "The platform request is different from the local one... something is very wrong!" )
         return S_ERROR( "The platform request is different from the local one... something is very wrong!" )
 
-    compatibleCMTConfigs = self._getSupportedCMTConfigs( self.localArch )
+    compatibleCMTConfigs = self._getSupportedCMTConfigs( localArch )
     self.log.info( "This node supports the following CMT configs: %s" % ', '.join( compatibleCMTConfigs ) )
 
     return S_OK()
