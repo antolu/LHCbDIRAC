@@ -373,7 +373,7 @@ class UploadLogFile( ModuleBase ):
                                                                                         wmsJobID,
                                                                                         DIRAC.siteName() ) )
     fopen.write( "<h3>Parameter summary for job %s_%s</h3> \n" % ( prodJobID, productionID ) )
-    check = ['SystemConfig', 'SoftwarePackages', 'BannedSites', 'LogLevel', 'JobType', 'CPUTime',
+    check = ['SoftwarePackages', 'BannedSites', 'LogLevel', 'JobType', 'CPUTime',
              'ProductionOutputData', 'LogFilePath', 'InputData', 'InputSandbox']
     params = {}
     for n, v in self.workflow_commons.items():

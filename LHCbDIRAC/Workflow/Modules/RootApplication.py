@@ -21,7 +21,6 @@ class RootApplication( ModuleBase ):
     super( RootApplication, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
-    self.result = S_ERROR()
 
     self.applicationLog = ''
     self.rootVersion = ''
@@ -82,17 +81,16 @@ class RootApplication( ModuleBase ):
 
       self._resolveInputVariables()
 
-      self.result = S_OK()
       if not self.rootVersion:
-        self.result = S_ERROR( 'No Root Version defined' )
+        raise RuntimeError( 'No Root Version defined' )
       elif not self.systemConfig:
-        self.result = S_ERROR( 'No system configuration selected' )
+        raise RuntimeError( 'No system configuration selected' )
       elif not self.rootScript:
-        self.result = S_ERROR( 'No script defined' )
+        raise RuntimeError( 'No script defined' )
       elif not self.applicationLog:
         self.applicationLog = '%s.log' % self.rootScript
       elif not self.rootType.lower() in ( 'c', 'py', 'bin', 'exe' ):
-        self.result = S_ERROR( 'Wrong root type defined' )
+        raise RuntimeError( 'Wrong root type defined' )
 
       if not self.result['OK']:
         return self.result
@@ -100,8 +98,7 @@ class RootApplication( ModuleBase ):
       self.setApplicationStatus( 'Initializing RootApplication module' )
 
       self.log.debug( self.version )
-      self.log.info( "Executing application Root %s" % ( self.rootVersion ) )
-      self.log.info( "Platform for job is %s" % ( self.systemConfig ) )
+      self.log.info( "Executing application Root %s with CMT config %s " % ( self.rootVersion, self.systemConfig ) )
 
       # Now obtain the project environment for execution
       result = getProjectEnvironment( self.systemConfig, 'ROOT', self.rootVersion )

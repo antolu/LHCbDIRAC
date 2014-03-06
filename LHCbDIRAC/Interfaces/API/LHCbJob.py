@@ -15,7 +15,6 @@
 
      j = LHCbJob()
      j.setCPUTime(5000)
-     j.setSystemConfig('slc4_ia32_gcc34')
      j.setApplication('DaVinci','v19r12','DaVinciv19r12.opts',
      optionsLine='ApplicationMgr.EvtMax=1',
      inputData=['/lhcb/production/DC06/phys-v2-lumi2/00001650/DST/0000/00001650_00000054_5.dst'])
@@ -35,7 +34,6 @@
 
      j = LHCbJob()
      j.setCPUTime(5000)
-     j.setSystemConfig('slc4_ia32_gcc34')
      j.setApplicationScript('DaVinci','v19r11','myGaudiPythonScript.py',
      inputData=['/lhcb/production/DC06/phys-lumi2/00001501/DST/0000/00001501_00000320_5.dst'])
      j.setName('MyJobName')
@@ -52,7 +50,6 @@
 
      j = LHCbJob()
      j.setCPUTime(5000)
-     j.setSystemConfig('slc4_ia32_gcc34')
      j.setBenderModule('v8r3','BenderExample.PhiMC',
      inputData=['LFN:/lhcb/production/DC06/phys-v2-lumi2/00001758/DST/0000/00001758_00000001_5.dst'],numberOfEvents=100)
      j.setName('MyJobName')
@@ -68,7 +65,6 @@
 
      j = LHCbJob()
      j.setCPUTime(50000)
-     j.setSystemConfig('slc4_ia32_gcc34')
      j.setRootMacro('5.18.00a','test.C')
      j.setRootPythonScript('5.18.00a','test.py')
      j.setRootExecutable('5.18.00a','minexam')
@@ -84,7 +80,6 @@
 
      j = LHCbJob()
      j.setCPUTime(50000)
-     j.setSystemConfig('slc4_ia32_gcc34')
      j.setProtocolAccessTest(['xroot','root','rfio'],'5.22.00a',
      inputData='/lhcb/data/2009/DST/00005727/0000/00005727_00000001_1.dst')
      j.setLogLevel('verbose')

@@ -268,7 +268,7 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'maxNumberOfEvents' ):
       self.maxNumberOfEvents = int( self.workflow_commons['maxNumberOfEvents'] )
 
-    # for newer productions this is found in the step parameter
+    # FIXME: for newer productions and user jobs this is found in the step parameter
     if self.workflow_commons.has_key( 'SystemConfig' ):
       self.systemConfig = self.workflow_commons['SystemConfig']
 

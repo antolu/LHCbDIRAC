@@ -25,8 +25,6 @@ class GaudiApplicationScript( ModuleBase ):
     self.log = gLogger.getSubLogger( "GaudiApplicationScript" )
     super( GaudiApplicationScript, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
-    self.result = S_ERROR()
-
     #Set defaults for all workflow parameters here
     self.script = None
     self.arguments = ''
@@ -34,7 +32,6 @@ class GaudiApplicationScript( ModuleBase ):
     self.applicationLog = ''
     self.applicationName = ''
     self.applicationVersion = ''
-    self.systemConfig = ''
     self.poolXMLCatName = 'pool_xml_catalog.xml'
 
   #############################################################################
@@ -77,18 +74,14 @@ class GaudiApplicationScript( ModuleBase ):
 
       self._resolveInputVariables()
 
-      self.result = S_OK()
       if not self.applicationName or not self.applicationVersion:
-        self.result = S_ERROR( 'No Gaudi Application defined' )
+        raise  RuntimeError( 'No Gaudi Application defined' )
       elif not self.systemConfig:
-        self.result = S_ERROR( 'No LHCb system configuration selected' )
+        raise  RuntimeError( 'No CMT configuration selected' )
       elif not self.script:
-        self.result = S_ERROR( 'No script defined' )
+        raise  RuntimeError( 'No script defined' )
       elif not self.applicationLog:
         self.applicationLog = '%s.log' % ( os.path.basename( self.script ) )
-
-      if not self.result['OK']:
-        return self.result
 
       self.log.info( "Executing application %s %s for system configuration %s" % ( self.applicationName,
                                                                                    self.applicationVersion,
