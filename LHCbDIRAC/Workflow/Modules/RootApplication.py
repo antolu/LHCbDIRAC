@@ -4,7 +4,7 @@ __RCSID__ = "$Id$"
 
 import os, sys, fnmatch
 
-from DIRAC                                            import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC                                            import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities.Subprocess                  import shellCall
 
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment   import getProjectEnvironment
@@ -178,8 +178,7 @@ class RootApplication( ModuleBase ):
 
       # Return OK assuming that subsequent module will spot problems
       self.setApplicationStatus( '%s (Root) Successful' % self.rootScript )
-      self.result = S_OK()
-      return self.result
+      return S_OK()
 
     except Exception, e:
       self.log.exception( e )
