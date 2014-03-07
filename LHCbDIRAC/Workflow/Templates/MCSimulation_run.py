@@ -55,7 +55,7 @@ w5 = '{{w5#-WORKFLOW5: Simulation#False}}'
 
 certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
-validationFlag = '{{validationFlag#GENERAL: Set True for validation prod#False}}'
+validationFlag = '{{validationFlag#GENERAL: Set True for validation prod - will create histograms#False}}'
 
 pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 pr.configVersion = '{{mcConfigVersion#GENERAL: BK configuration version, e.g. MC10#2012}}'
@@ -119,18 +119,6 @@ if certificationFlag or localTestFlag:
 pr.outConfigName = pr.configName
 
 MCCpu = str( 25 * int( float( CPUe ) ) )
-
-# In case we want just to test, we publish in the certification/test part of the BKK
-if pr.testFlag:
-  pr.outConfigName = 'certification'
-  pr.configVersion = 'test'
-  pr.extend = '10'
-  mergingGroupSize = '1'
-  MCCpu = '50000'
-  pr.previousProdID = 0  # set this for, e.g., launching only merging
-
-if validationFlag:
-  pr.outConfigName = 'validation'
 
 w1 = eval( w1 )
 w2 = eval( w2 )
@@ -254,6 +242,24 @@ elif w5:
   pr.CPUeList = [CPUe]
   pr.bkQueries = ['']
   pr.multicore = [MCmulticoreFlag]
+
+# In case we want just to test, we publish in the certification/test part of the BKK
+if pr.testFlag:
+  pr.outConfigName = 'certification'
+  pr.configVersion = 'test'
+  pr.extend = '10'
+  mergingGroupSize = '1'
+  MCCpu = '50000'
+  pr.previousProdID = 0  # set this for, e.g., launching only merging
+
+# Validation implies few things, like saving all the outputs, and adding a GAUSSHIST
+if validationFlag:
+  pr.outConfigName = 'validation'
+  # Adding GAUSSHIST to the list of outputs to be produced (by the first step, which is Gauss)
+  if 'GAUSSHIST' not in pr.stepsListDict[0]['fileTypesOut']:
+    pr.stepsListDict[0]['fileTypesOut'].append( 'GAUSSHIST' )
+  pr.outputFileSteps = [''] * len( pr.prodsTypeList )
+
 
 res = pr.buildAndLaunchRequest()
 if not res['OK']:
