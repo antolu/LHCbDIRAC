@@ -37,10 +37,10 @@ class ConsistencyChecks( object ):
   """
 
   def __init__( self, interactive = True, transClient = None, dm = None, bkClient = None ):
-    ''' c'tor
+    """ c'tor
 
         One object for every production/BkQuery/directoriesList...
-    '''
+    """
     self.interactive = interactive
     self.transClient = TransformationClient() if transClient is None else transClient
     self.dm = DataManager() if dm is None else dm
@@ -96,10 +96,10 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def checkBK2FC( self, checkAll ):
-    ''' Starting from the BK, check if the FileCatalog has consistent information (BK -> FileCatalog)
+    """ Starting from the BK, check if the FileCatalog has consistent information (BK -> FileCatalog)
 
         Works either when the bkQuery is free, or when it is made using a transformation ID
-    '''
+    """
 
     if self.lfns:
       lfnsNotInBK, lfnsReplicaNo, lfnsReplicaYes = self._getBKMetadata( self.lfns )
@@ -154,8 +154,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def _getBKFiles( self, bkQuery, replicaFlag = 'Yes' ):
-    ''' Helper function - get files from BK, first constructing the bkQuery
-    '''
+    """ Helper function - get files from BK, first constructing the bkQuery
+    """
     visibility = bkQuery.isVisible()
     if self.transType:
       visibility = 'Yes' if self.transType not in prodsWithMerge else 'All'
@@ -173,13 +173,13 @@ class ConsistencyChecks( object ):
     return lfnsRes
 
   def __getBKQuery( self, fromTS = False ):
-    ''' get the bkQuery to be used
-    '''
+    """ get the bkQuery to be used
+    """
     bkQuery = None
     if fromTS:
       res = self.transClient.getBookkeepingQuery( self.prod )
       if not res['OK']:
-        raise ValueError, res['Message']
+        raise ValueError( res['Message'] )
       bkQuery = BKQuery( res['Value'] )
     else:
       if self.bkQuery:
@@ -199,8 +199,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def getReplicasPresence( self, lfns ):
-    ''' get the replicas using the standard DataManager.getReplicas()
-    '''
+    """ get the replicas using the standard DataManager.getReplicas()
+    """
     present = set()
     notPresent = set()
 
@@ -229,8 +229,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def getReplicasPresenceFromDirectoryScan( self, lfns ):
-    ''' Get replicas scanning the directories. Might be faster.
-    '''
+    """ Get replicas scanning the directories. Might be faster.
+    """
 
     dirs = {}
     present = []
@@ -269,8 +269,8 @@ class ConsistencyChecks( object ):
 
   @staticmethod
   def __compareLFNLists( lfns, lfnsFound ):
-    ''' return files in both lists and files in lfns and not in lfnsFound
-    '''
+    """ return files in both lists and files in lfns and not in lfnsFound
+    """
     present = []
     notPresent = lfns
     startTime = time.time()
@@ -288,8 +288,8 @@ class ConsistencyChecks( object ):
     return present, notPresent
 
   def _getFilesFromDirectoryScan( self, dirs ):
-    ''' calls dm.getFilesFromDirectory
-    '''
+    """ calls dm.getFilesFromDirectory
+    """
 
     level = gLogger.getLevel()
     gLogger.setLevel( 'FATAL' )
@@ -309,8 +309,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def checkTS2BK( self ):
-    ''' Check if lfns has descendants (TransformationFiles -> BK)
-    '''
+    """ Check if lfns has descendants (TransformationFiles -> BK)
+    """
     if not self.prod:
       return S_ERROR( "You need a transformationID" )
 
@@ -357,8 +357,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def checkAncestors( self ):
-    ''' Check if a set of files don't share a common ancestor
-    '''
+    """ Check if a set of files don't share a common ancestor
+    """
     if self.lfns:
       files = self.lfns
       bkQuery = None
@@ -438,8 +438,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def _getTSFiles( self ):
-    ''' Helper function - get files from the TS
-    '''
+    """ Helper function - get files from the TS
+    """
 
     selectDict = { 'TransformationID': self.prod}
     if self._lfns:
@@ -516,8 +516,8 @@ class ConsistencyChecks( object ):
     return daughtersBKInfo
 
   def getDescendants( self, lfns, status = '' ):
-    ''' get the descendants of a list of LFN (for the production)
-    '''
+    """ get the descendants of a list of LFN (for the production)
+    """
     if type( lfns ) == type( '' ):
       lfns = [lfns]
     elif type( lfns ) == type( {} ):
@@ -673,8 +673,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def _selectByFileType( self, lfnDict, fileTypes = None, fileTypesExcluded = None ):
-    ''' Select only those files from the values of lfnDict that have a certain type
-    '''
+    """ Select only those files from the values of lfnDict that have a certain type
+    """
     if not lfnDict:
       return {}
     if not fileTypes:
@@ -699,8 +699,8 @@ class ConsistencyChecks( object ):
 
   @staticmethod
   def _getFileTypesCount( lfnDict ):
-    ''' return file types count
-    '''
+    """ return file types count
+    """
     ft_dict = {}
     for ancestor in lfnDict:
       t_dict = {}
@@ -714,8 +714,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def checkFC2BK( self, bkCheck = True ):
-    ''' check that files present in the FC are also in the BK
-    '''
+    """ check that files present in the FC are also in the BK
+    """
     if not self.lfns:
       try:
         directories = []
@@ -757,8 +757,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def __getDirectories( self ):
-    ''' get the directories where to look into (they are either given, or taken from the transformation ID
-    '''
+    """ get the directories where to look into (they are either given, or taken from the transformation ID
+    """
     if self.directories:
       directories = []
       printout = False
@@ -770,17 +770,17 @@ class ConsistencyChecks( object ):
           topDir = os.path.dirname( directory )
           res = self.dm.getCatalogListDirectory( topDir )
           if not res['OK']:
-            raise RuntimeError, res['Message']
+            raise RuntimeError( res['Message'] )
           else:
             matchDir = directory.split( '...' )[0]
-            directories += [dir for dir in res['Value']['Successful'].get( topDir, {} ).get( 'SubDirs', [] ) if dir.startswith( matchDir )]
+            directories += [d for d in res['Value']['Successful'].get( topDir, {} ).get( 'SubDirs', [] ) if d.startswith( matchDir )]
       if printout:
         gLogger.always( 'Expanded list of %d directories:\n%s' % ( len( directories ), '\n'.join( directories ) ) )
       return directories
     elif self.prod:
       res = self.transClient.getTransformationParameters( self.prod, ['OutputDirectories'] )
       if not res['OK']:
-        raise RuntimeError, res['Message']
+        raise RuntimeError( res['Message'] )
       else:
         directories = []
         dirList = res['Value'].split( '\n' )
@@ -808,8 +808,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def _getBKMetadata( self, lfns ):
-    ''' get metadata (i.e. replica flag) of a list of LFNs
-    '''
+    """ get metadata (i.e. replica flag) of a list of LFNs
+    """
     missingLFNs = []
     noFlagLFNs = {}
     okLFNs = []
@@ -835,8 +835,8 @@ class ConsistencyChecks( object ):
   ################################################################################
 
   def checkBK2TS( self ):
-    ''' check that files present in the BK are also in the FC (re-check of BKWatchAgent)
-    '''
+    """ check that files present in the BK are also in the FC (re-check of BKWatchAgent)
+    """
     try:
       bkQuery = self.__getBKQuery( fromTS = True )
     except ValueError, e:
@@ -863,11 +863,11 @@ class ConsistencyChecks( object ):
       self.existLFNsBadFiles = repDict['AllReplicasCorrupted']
 
   def compareChecksum( self, lfns ):
-    '''compare the checksum of the file in the FC and the checksum of the physical replicas.
+    """compare the checksum of the file in the FC and the checksum of the physical replicas.
        Returns a dictionary containing 3 sub-dictionaries: one with files with missing PFN, one with
        files with all replicas corrupted, and one with files with some replicas corrupted and at least
        one good replica
-    '''
+    """
     retDict = {'AllReplicasCorrupted' : {}, 'SomeReplicasCorrupted': {}, 'MissingPFN':{}, 'NoReplicas':{}}
 
 
@@ -876,7 +876,7 @@ class ConsistencyChecks( object ):
     setLfns = set( lfns )
     cachedLfns = setLfns & set( self.cachedReplicas )
     for lfn in cachedLfns:
-        replicas[lfn] = self.cachedReplicas[lfn]
+      replicas[lfn] = self.cachedReplicas[lfn]
     lfnsLeft = list( setLfns - cachedLfns )
     startTime = time.time()
     if lfnsLeft:
@@ -909,7 +909,7 @@ class ConsistencyChecks( object ):
     seFiles = {}
     surlLfn = {}
     startTime = time.time()
-    # Reverse the LFN->SE dictionnary
+    # Reverse the LFN->SE dictionary
     for lfn in replicas:
       csDict.setdefault( lfn, {} )[ 'LFCChecksum' ] = metadata.get( lfn, {} ).get( 'Checksum' )
       replicaDict = replicas[ lfn ]
@@ -989,7 +989,7 @@ class ConsistencyChecks( object ):
       value = int( value )
       res = self.transClient.getTransformation( value, extraParams = False )
       if not res['OK']:
-        raise RuntimeError, "Couldn't find transformation %d: %s" % ( value, res['Message'] )
+        raise RuntimeError( "Couldn't find transformation %d: %s" % ( value, res['Message'] ) )
       else:
         self.transType = res['Value']['Type']
       if self.interactive:
