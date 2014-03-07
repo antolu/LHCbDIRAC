@@ -180,10 +180,10 @@ def createJob():
   gaudirunJob.addPackage( 'DecFiles', 'v27r14p1' )
   gaudirunJob.addPackage( 'ProdConf', 'v1r9' )
   gaudirunJob.setApplication( 'Gauss', 'v45r5', options, extraPackages = 'AppConfig.v3r171;DecFiles.v27r14p1;ProdConf.v1r9',
-                               modulesNameList = ['CreateDataFile',
+                              systemConfig = 'x86_64-slc5-gcc43-opt',
+                              modulesNameList = ['CreateDataFile',
                                                   'GaudiApplication',
                                                   'FileUsage',
-#                                                  'BookkeepingReport',
                                                   'UploadOutputData',
                                                   'UploadLogFile',
                                                   'FailoverRequest',
@@ -217,7 +217,7 @@ def createJob():
                       'outputDataType': 'SIM'}]
   gaudirunJob._addParameter( gaudirunJob.workflow.step_instances[0], 'listoutput', 'list', outputFilesDict, 'listoutput' )
 
-  gaudirunJob.setSystemConfig( 'x86_64-slc5-gcc43-opt' )
+  gaudirunJob.setDIRACPlatform()
   gaudirunJob.setConfigArgs( 'wrongConfig.cfg' )
 
   gaudirunJob.setCPUTime( 172800 )
