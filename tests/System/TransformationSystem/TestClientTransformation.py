@@ -55,6 +55,15 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
                                      'RunNumbers': ['2', '3', '4', '5'], 'ConfigVersion': 'All',
                                      'DataTakingConditions': 'DataTakingConditions', 'SimulationConditions': 'All'} )
 
+    res = self.transClient.getTransformationsWithBkQueries( [] )
+    self.assert_( res['OK'] )
+    self.assertEqual( res['Value'], [transID] )
+    res = self.transClient.getTransformationsWithBkQueries( [transID] )
+    self.assert_( res['OK'] )
+    self.assertEqual( res['Value'], [transID] )
+    res = self.transClient.getTransformationsWithBkQueries( [transID - 10] )
+    self.assert_( res['OK'] )
+    self.assertEqual( res['Value'], [] )
 
     # FIXME: first, I should add some...
     res = self.transClient.getTransformationRuns()
