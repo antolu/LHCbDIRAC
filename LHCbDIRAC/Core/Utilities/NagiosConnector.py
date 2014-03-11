@@ -11,7 +11,7 @@ LHCbDIRAC/Core/Utilities
 """
 
 
-from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+from DIRAC import gLogger, gConfig
 
 import datetime, stomp
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
@@ -146,8 +146,3 @@ EOT"""
     """Call disconnect() on the conn object."""
     self.conn.disconnect()
     gLogger.verbose( 'Connection successfully terminated' )
-  
-
-
-
-

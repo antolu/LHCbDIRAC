@@ -331,7 +331,17 @@ class BookkeepingReport( ModuleBase ):
 
     typedParams.append( ( "StatisticsRequested", self.numberOfEvents ) )
 
-    typedParams.append( ( "NumberOfEvents", self.xf_o.outputEventsTotal ) )
+    try:
+      typedParams.append( ( "NumberOfEvents", self.xf_o.outputEventsTotal ) )
+    except AttributeError:
+      if self.jobType.lower() == 'merge':
+        res = self.bkClient.getFileMetadata( self.stepInputData )
+        if not res['OK']:
+          raise AttributeError( "Can't get the BKK file metadata" )
+        self.eventsN = sum( [fileMeta['EventStat'] for fileMeta in res['Value']['Successful'].values()] )
+        typedParams.append( ( "NumberOfEvents", self.eventsN ) )
+      else:
+        raise XMLSummaryError
 
     # Add TypedParameters to the XML file
     for typedParam in typedParams:
