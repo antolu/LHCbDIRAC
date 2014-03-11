@@ -397,26 +397,26 @@ class PluginUtilities:
     # FIXME: Philippe, I do not know exactly how this method is used. I'm not sure
     # if 12 hours will make sense, or we need a longer / shorter period of time.
     CACHE_LIMIT = datetime.datetime.utcnow() - datetime.timedelta( hours = 12 )
-  
+
     if not ( se in self.freeSpace ) or self.freeSpace[ se ][ 'LastCheckTime' ] < CACHE_LIMIT:
       res = self.rmClient.getSEStorageSpace( se )
       if not res[ 'OK' ]:
         self.logError( 'Error when getting space for SE %s' % ( se, ), res[ 'Message' ] )
         return 0
-      
+
       self.freeSpace[ se ] = res[ 'Value' ]
-        
-    free  = self.freeSpace[ se ][ 'Free' ]
-    token = self.freeSpace[ se ][ 'Token' ]   
-    
+
+    free = self.freeSpace[ se ][ 'Free' ]
+    token = self.freeSpace[ se ][ 'Token' ]
+
     # ubeda: I do not fully understand this 'hack'
     if token == 'LHCb-Tape':
       self.logVerbose( 'Hardocoded LHCb-Tape space to 1000.' )
       free = 1000.
-        
+
     self.logVerbose( 'Free space for SE %s, token %s: %d' % ( se, token, free ) )
     return free
-        
+
   def rankSEs( self, candSEs ):
     """ Ranks the SEs according to their free space
     """
@@ -1121,17 +1121,21 @@ def getListFromString( strParam ):
 def closerSEs( existingSEs, targetSEs, local = False ):
   """ Order the targetSEs such that the first ones are closer to existingSEs. Keep all elements in targetSEs
   """
-  sameSEs = [se for se in targetSEs if se in existingSEs]
-  targetSEs = [ se for se in targetSEs if se not in existingSEs]
+  setTarget = set( targetSEs )
+  sameSEs = setTarget & set( existingSEs )
+  targetSEs = setTarget - set( existingSEs )
   if targetSEs:
     # Some SEs are left, look for sites
-    existingSites = [getSiteForSE( se )['Value'] for se in existingSEs if not isArchive( se )]
-    closeSEs = [se for se in targetSEs if getSiteForSE( se )['Value'] in existingSites]
-    otherSEs = [se for se in targetSEs if se not in closeSEs]
-    targetSEs = randomize( closeSEs )
+    existingSites = set( [site for se in existingSEs if not isArchive( se )
+                         for site in getSitesForSE( se ).get( 'Value', [] ) ] )
+    closeSEs = set( [se for se in targetSEs if set( getSitesForSE( se ).get( 'Value', [] ) ) & existingSites] )
+    otherSEs = targetSEs - closeSEs
+    targetSEs = randomize( list( closeSEs ) )
     if not local:
-      targetSEs += randomize( otherSEs )
-  return ( targetSEs + sameSEs ) if not local else targetSEs
+      targetSEs += randomize( list( otherSEs ) )
+  else:
+    targetSEs = []
+  return ( targetSEs + list( sameSEs ) ) if not local else targetSEs
 
 def addFilesToTransformation( transID, lfns, addRunInfo = True ):
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
