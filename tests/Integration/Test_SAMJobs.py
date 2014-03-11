@@ -10,8 +10,8 @@ from DIRAC import gLogger, gConfig
 from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
 
 class SAMJobTestCase( IntegrationTest ):
-  ''' Base class for the SAMJob test cases
-  '''
+  """ Base class for the SAMJob test cases
+  """
   def setUp( self ):
     super( IntegrationTest, self ).setUp()
 
