@@ -95,6 +95,7 @@ class GaudirunSuccess( UserJobTestCase ):
     lhcbJob.setApplication( 'Gauss', 'v45r3', options,
                             extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
                             events = '3' )
+    lhcbJob.setDIRACPlatform()
 
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
@@ -121,6 +122,7 @@ class GaudirunSuccess( UserJobTestCase ):
                             inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
                             extraPackages = 'AppConfig.v3r155;ProdConf.v1r9' )
 
+    lhcbJob.setDIRACPlatform()
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
@@ -141,6 +143,7 @@ class GaudiScriptSuccess( UserJobTestCase ):
     lhcbJob.setApplicationScript( 'Gauss', 'v45r3', script,
                                   extraPackages = 'AppConfig.v3r171;ProdConf.v1r9' )
 
+    lhcbJob.setDIRACPlatform()
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
