@@ -223,33 +223,33 @@ def setSAMJobApplicationStep( samJob, appName, appOptions ):
   stepInstance = addStepToWorkflow( samJob.workflow, step, stepName )
 
   #Step Parameters Passing  
-  appVersion     = appOptions.get( 'applicationVersion', '' )
+  appVersion = appOptions.get( 'applicationVersion', '' )
   numberOfEvents = 2
-  filePrefix     = samJob.systemConfig
-  optionsFile    = appOptions.get( 'optionFiles', '' )
-  extraPackages  = 'ProdConf'
+  filePrefix = samJob.stepName
+  optionsFile = appOptions.get( 'optionFiles', '' )
+  extraPackages = 'ProdConf'
     
-  dddbtag        = appOptions.get( 'DDDBTag', '' ) 
-  conddbtag      = appOptions.get( 'CondDBTag', '' )
+  dddbtag = appOptions.get( 'DDDBTag', '' )
+  conddbtag = appOptions.get( 'CondDBTag', '' )
     
   # Depends on the appName
   inputDataType  = setInputFile( appName )
   outputFiles    = setOutputFile( appName, filePrefix )
     
-  stepInstance.setValue( 'XMLSummary',         'summary@{applicationName}_@{STEP_ID}.xml' )
-  stepInstance.setValue( 'applicationName',    appName )
+  stepInstance.setValue( 'XMLSummary', 'summary@{applicationName}_@{STEP_ID}.xml' )
+  stepInstance.setValue( 'applicationName', appName )
   stepInstance.setValue( 'applicationVersion', appVersion )
-  stepInstance.setValue( 'applicationLog',     '%s.log' % appName )
-  stepInstance.setValue( 'numberOfEvents',     numberOfEvents )
-  stepInstance.setValue( 'outputFilePrefix',   filePrefix )
-  stepInstance.setValue( 'optionsFile',        optionsFile )
-  stepInstance.setValue( 'extraPackages',      extraPackages )
+  stepInstance.setValue( 'applicationLog', '%s.log' % appName )
+  stepInstance.setValue( 'numberOfEvents', numberOfEvents )
+  stepInstance.setValue( 'outputFilePrefix', filePrefix )
+  stepInstance.setValue( 'optionsFile', optionsFile )
+  stepInstance.setValue( 'extraPackages', extraPackages )
   if dddbtag:
-    stepInstance.setValue( 'DDDBTag',    dddbtag )
+    stepInstance.setValue( 'DDDBTag', dddbtag )
   if conddbtag:
-    stepInstance.setValue( 'CondDBTag',  conddbtag )  
+    stepInstance.setValue( 'CondDBTag', conddbtag )
   if inputDataType:
-    stepInstance.setValue( 'inputData',    'previousStep' )
+    stepInstance.setValue( 'inputData', 'previousStep' )
     stepInstance.setValue( 'inputDataType', inputDataType )
   if outputFiles:
     stepInstance.setValue( 'listoutput', [ outputFiles ] )
