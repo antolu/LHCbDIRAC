@@ -43,17 +43,18 @@ class TransformationManagerHandler( TManagerBase ):
   types_getBookkeepingQuery = [ [LongType, IntType] ]
   def export_getBookkeepingQuery( self, transID ):
     return database.getBookkeepingQuery( transID )
-
+  
+  types_getTransformationsWithBkQueries = [ ListType ]
+  def export_getTransformationsWithBkQueries(self, transIDs):
+    return database.getTransformationsWithBkQueries( transIDs )
   
   types_setBookkeepingQueryEndRun = [ [LongType, IntType] , [LongType, IntType]]
   def export_setBookkeepingQueryEndRun( self, transID, runNumber ):
     return database.setBookkeepingQueryEndRun( transID, runNumber )
-
   
   types_setBookkeepingQueryStartRun = [ [LongType, IntType] , [LongType, IntType]]
   def export_setBookkeepingQueryStartRun( self, transID, runNumber ):
     return database.setBookkeepingQueryStartRun( transID, runNumber )
-
   
   types_addBookkeepingQueryRunList = [ [LongType, IntType] , [ListType]]
   def export_addBookkeepingQueryRunList( self, transID, runList ):

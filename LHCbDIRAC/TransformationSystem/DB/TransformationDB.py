@@ -6,16 +6,13 @@
     databases
 """
 
-import re
+import threading, copy, re
+
+from types import IntType, LongType, FloatType, ListType, TupleType, StringTypes
 
 from DIRAC                                              import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.DB.TransformationDB     import TransformationDB as DIRACTransformationDB
 from DIRAC.Core.Utilities.List                          import intListToString, breakListIntoChunks
-from LHCbDIRAC.Workflow.Utilities.Utils                 import makeRunList
-import threading, copy
-from types import IntType, LongType, FloatType, ListType, TupleType, StringTypes
-
-MAX_ERROR_COUNT = 3
 
 class TransformationDB( DIRACTransformationDB ):
   """ Extension of the DIRAC Transformation DB
@@ -36,7 +33,8 @@ class TransformationDB( DIRACTransformationDB ):
     self.TRANSFILEPARAMS.append( "RunNumber" )
     self.TASKSPARAMS.append( "RunNumber" )
 
-# FIXME: not compatible with DIRAC v6r10, but will be compatible with DIRAC v7r0
+# FIXME: not compatible with DIRAC v6r11, but will be compatible with DIRAC v7r0
+# TODO: re-check, also DIRAC part, for missing Foreign keys, plus re-check whole definition of everything
 #  def _generateTables( self ):
 #    """ _generateTables
 #
@@ -57,41 +55,15 @@ class TransformationDB( DIRACTransformationDB ):
 #    if 'TransformationTasks' in tables:
 #      tables['TransformationTasks' ][ 'Fields' ][ 'RunNumber' ] = 'INT(11) DEFAULT 0'
 #
-#    # Creates new table BkQueries
-#    if 'BkQueries' not in tables:
-#      _bkQueries = {
-#                       'Fields'     : {
-#                                       'BkQueryID'            : 'INT(11) NOT NULL AUTO_INCREMENT',
-#                                       'SimulationConditions' : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
-#                                       'DataTakingConditions' : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
-#                                       'ProcessingPass'       : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
-#                                       'FileType'             : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
-#                                       'EventType'            : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
-#                                       'ConfigName'           : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
-#                                       'ConfigVersion'        : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
-#                                       'ProductionID'         : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
-#                                       'DataQualityFlag'      : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
-#                                       'StartRun'             : 'INT(11) NOT NULL DEFAULT 0',
-#                                       'EndRun'               : 'INT(11) NOT NULL DEFAULT 0',
-#                                       'RunNumbers'           : 'VARCHAR(2048) NOT NULL DEFAULT "All"',
-#                                       'TCK'                  : 'VARCHAR(1024) NOT NULL DEFAULT "All"',
-#                                       'Visible'              : 'VARCHAR(8) NOT NULL DEFAULT "All"'
-#                                      },
-#                       'Indexes'    : {
-#                                       'SimulationConditions' : [ 'SimulationConditions' ],
-#                                       'DataTakingConditions' : [ 'DataTakingConditions' ],
-#                                       'ProcessingPass'       : [ 'ProcessingPass' ],
-#                                       'FileType'             : [ 'FileType' ],
-#                                       'EventType'            : [ 'EventType' ],
-#                                       'ConfigName'           : [ 'ConfigName' ],
-#                                       'ConfigVersion'        : [ 'ConfigVersion' ],
-#                                       'ProductionID'         : [ 'ProductionID' ],
-#                                       'DataQualityFlag'      : [ 'DataQualityFlag' ],
-#                                      },
-#                       'PrimaryKey' : [ 'BkQueryID' ],
-#                       'Engine'     : 'InnoDB'
-#                      }
-#      tables[ 'BkQueries' ] = _bkQueries
+#    # Creates new table BkQueriesNew
+#     if 'BkQueriesNew' not in tables:
+#       tables[ 'BkQueriesNew' ] = {'Fields': {'TransformationID': 'INTEGER NOT NULL',
+#                                              'ParameterName': 'VARCHAR(32) NOT NULL',
+#                                              'ParameterValue': 'LONGBLOB NOT NULL',
+#                                              },
+#                                            'PrimaryKey': ['TransformationID', 'ParameterName'],
+#                                            'Engine': 'InnoDB'
+#                                            }
 #
 #    # Creates new table TransformationRuns
 #    if 'TransformationRuns' not in tables:
@@ -104,7 +76,6 @@ class TransformationDB( DIRACTransformationDB ):
 #                                             'LastUpdate'       : 'DATETIME'
 #                                             },
 #                             'Indexes'    : {
-#  LT would drop this line, PK is enough      'TransformationID': [ 'TransformationID' ],
 #                                             'RunNumber'       : [ 'RunNumber' ]
 #                                            },
 #                             'PrimaryKey' : [ 'TransformationID', 'RunNumber' ],
@@ -321,8 +292,20 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     return S_OK( transID )
     
+  def getTransformationsWithBkQueries( self, transIDs = [], connection = False ):
+    """ Get those Transformations that have a BkQuery
+    """
+    connection = self.__getConnection( connection )
+    req = "SELECT DISTINCT TransformationID FROM BkQueriesNew"
+    if transIDs:
+      req = req + " WHERE TransformationID IN (%s)" % ( ', '.join( [str( t ) for t in transIDs] ) )
+    res = self._query( req, connection )
+    if res['OK']:
+      res = S_OK( [tID[0] for tID in res['Value']] )
+    return res
+
   def getBookkeepingQuery( self, transID, connection = False ):
-    """ Get the bookkeeping query parameters, if transID is 0 then get all the queries :WHY???
+    """ Get the bookkeeping query parameters
     """
     connection = self.__getConnection( connection )
     req = "SELECT * FROM BkQueriesNew WHERE TransformationID=%d" % ( int( transID ) )

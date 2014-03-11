@@ -111,22 +111,22 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
     gMonitor.addMark( 'Iteration', 1 )
     # Get all the transformations
-    result = self.transClient.getTransformations( condDict = {'Status':['Active', 'Idle']}, extraParams = True )
+    result = self.transClient.getTransformations( condDict = {'Status':['Active', 'Idle']} )
     if not result['OK']:
       self._logError( "Failed to get transformations.", result['Message'] )
       return S_OK()
+    transIDsList = [long( transDict['TransformationID'] ) for transDict in result['Value']]
+    res = self.transClient.getTransformationsWithBkQueries( transIDsList )
+    if not res['OK']:
+      self._logError( "Failed to get transformations with Bk Queries.", res['Message'] )
+      return S_OK()
+    transIDsWithBkQueriesList = res['Message']
 
     _count = 0
     # Process each transformation
-    for transDict in result['Value']:
-      transID = long( transDict['TransformationID'] )
-
+    for transID in transIDsWithBkQueriesList:
       if transID in self.bkQueriesInCheck:
         continue
-      if 'BkQueryID' not in transDict:
-        self._logVerbose( "Transformation does not have associated BK query", transID = transID )
-        continue
-
       self.bkQueriesInCheck.append( transID )
       self.bkQueriesToBeChecked.put( transID )
       _count += 1
