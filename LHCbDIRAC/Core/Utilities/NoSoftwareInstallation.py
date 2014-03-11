@@ -60,7 +60,7 @@ class NoSoftwareInstallation( object ):
     elif 'Platform' in self.job:
       platform = [self.job['Platform']]
     else:
-      raise RuntimeError( "No platform defined" )
+      platform = ['ANY']
 
     # localArch ...........................................................
     localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
