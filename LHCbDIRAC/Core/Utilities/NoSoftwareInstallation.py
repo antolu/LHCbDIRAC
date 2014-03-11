@@ -13,7 +13,7 @@ __RCSID__ = "$Id: $"
 
 
 from DIRAC import gConfig, gLogger, S_ERROR, S_OK
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getCMTConfigsCompatibleWithPlatforms
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getCMTConfigsCompatibleWithPlatforms, getPlatformFromConfig
 
 
 class NoSoftwareInstallation( object ):
@@ -49,9 +49,16 @@ class NoSoftwareInstallation( object ):
     # platform ...........................................................
     if 'SystemConfig' in self.job:
       # out-dated
-      platform = self.job['SystemConfig']
+      systemConfig = self.job['SystemConfig']
+      if systemConfig.lower() == 'any':
+        platform = ['ANY']
+      else:
+        platform = getPlatformFromConfig( systemConfig )
+        if not platform['OK'] or not platform['Value']:
+          raise RuntimeError( "No platform detected" )
+        platform = platform['Value']
     elif 'Platform' in self.job:
-      platform = self.job['Platform']
+      platform = [self.job['Platform']]
     else:
       raise RuntimeError( "No platform defined" )
 
@@ -61,7 +68,7 @@ class NoSoftwareInstallation( object ):
       raise RuntimeError( "/LocalSite/Architecture is missing and must be specified" )
 
 
-    if platform.lower() == 'any':
+    if 'any' in [p.lower() for p in platform]:
       # If there is no architecture specified on the Job ( with other words,
       # SystemConfig == ANY in the JobDescription, it means we actually do not care which one).
       # So, we take the architecture that is defined as local on the worker node.
@@ -72,9 +79,9 @@ class NoSoftwareInstallation( object ):
       # Either we set SystemConfig == ANY, of it happened that SystemConfig is the
       # same as our LocalArchitecture. Either way, we make sure that if there is
       # OS compatibility, the config is added to platforms ( CompatiblePlatforms )
-      self.log.info( "Platform requested by the job is set to '%s'" % platform )
+      self.log.info( "Platform requested by the job is set to '%s'" % ', '.join( platform ) )
       
-      if platform != localArch:
+      if localArch not in [p.lower() for p in platform]:
         self.log.error( "The platform request is different from the local one... something is very wrong!" )
         return S_ERROR( "The platform request is different from the local one... something is very wrong!" )
 

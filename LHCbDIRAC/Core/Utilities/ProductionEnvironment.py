@@ -445,7 +445,7 @@ def getPlatformFromConfig( CMTConfig ):
     if CMTConfig in platformsDict[plat]:
       platformsList.append( plat )
 
-  platformsList = platformsList.sort( key = LooseVersion )
+  platformsList.sort( key = LooseVersion )
   return S_OK( uniqueElements( platformsList ) )
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
