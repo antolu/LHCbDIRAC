@@ -145,12 +145,12 @@ class Production():
 
   #############################################################################
 
-  def addApplicationStep( self, stepDict, outputSE, optionsLine, inputData = None,
+  def addApplicationStep( self, stepDict, outputSE, inputData = None,
                           modules = [ 'GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
                                      'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ] ):
     """ stepDict contains everything that is in the step, for this production, e.g.:
         {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
-        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
+        'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'ExtraOptions': '',
         'ProcessingPass': 'Merging', 'Visible': 'N', 'OptionsFormat': '',
         'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py',
         'DDDB': 'head-20110302', 'CONDDB': 'head-20110407', 'DQTag': '',
@@ -169,6 +169,7 @@ class Production():
     stepName = stepDict['StepName']
     stepVisible = stepDict['Visible']
     extraPackages = stepDict['ExtraPackages']
+    optionsLine = stepDict['ExtraOptions']
     fileTypesIn = stepDict['fileTypesIn']
     fileTypesOut = stepDict['fileTypesOut']
     stepPass = stepDict['ProcessingPass']

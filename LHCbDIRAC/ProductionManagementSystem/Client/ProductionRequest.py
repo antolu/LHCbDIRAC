@@ -134,6 +134,8 @@ class ProductionRequest( object ):
 
       if stepsListDictItem['StepId'] in self.extraOptions:
         stepsListDictItem['ExtraOptions'] = self.extraOptions['StepId']
+      else:
+        stepsListDictItem['ExtraOptions'] = ''
 
       stepsListDictItem['prodStepID'] = str( stepID ) + str( stepsListDictItem['fileTypesIn'] )
 
@@ -188,7 +190,6 @@ class ProductionRequest( object ):
 
       prod = self._buildProduction( prodType = prodDict['productionType'],
                                     stepsInProd = stepsInProd,
-                                    extraOptions = self.extraOptions,
                                     outputSE = prodDict['outputSE'],
                                     priority = prodDict['priority'],
                                     cpu = prodDict['cpu'],
@@ -465,9 +466,7 @@ class ProductionRequest( object ):
 
   #############################################################################
 
-  def _buildProduction( self, prodType, stepsInProd,
-                        extraOptions, outputSE,
-                        priority, cpu,
+  def _buildProduction( self, prodType, stepsInProd, outputSE, priority, cpu,
                         inputDataList = [],
                         outputMode = 'Any',
                         inputDataPolicy = 'download',
@@ -570,29 +569,15 @@ class ProductionRequest( object ):
 
     # Adding the application steps
     firstStep = stepsInProd.pop( 0 )
-    try:
-      ep = extraOptions[firstStep['StepId']]
-    except IndexError:
-      ep = ''
-    except KeyError:
-      ep = ''
     stepName = prod.addApplicationStep( stepDict = firstStep,
                                         outputSE = outputSE,
-                                        optionsLine = ep,
                                         inputData = '',
                                         modules = self.modulesList )
     prod.gaudiSteps.append( stepName )
 
     for step in stepsInProd:
-      try:
-        ep = extraOptions[step['StepId']]
-      except IndexError:
-        ep = ''
-      except KeyError:
-        ep = ''
       stepName = prod.addApplicationStep( stepDict = step,
                                           outputSE = outputSE,
-                                          optionsLine = ep,
                                           inputData = 'previousStep',
                                           modules = self.modulesList )
       prod.gaudiSteps.append( stepName )
