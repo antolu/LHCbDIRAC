@@ -101,6 +101,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations  import Operations
 from DIRAC.Workflow.Utilities.Utils                       import getStepDefinition, addStepToWorkflow
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment       import getPlatformFromConfig
 from LHCbDIRAC.Interfaces.API.DiracLHCb                   import DiracLHCb
 
 class LHCbJob( Job ):
@@ -893,7 +894,10 @@ class LHCbJob( Job ):
     if listOfCMTConfigs[0] == 'zzz':
       return super( LHCbJob, self ).setPlatform( 'ANY' )
     else:
-      return super( LHCbJob, self ).setPlatform( listOfCMTConfigs[0] )
+      res = getPlatformFromConfig( listOfCMTConfigs[0] )
+      if not res['OK']:
+        return res
+      return super( LHCbJob, self ).setPlatform( res['Value'][0] )
 
   #############################################################################
 

@@ -13,7 +13,7 @@ __RCSID__ = "$Id: $"
 
 
 from DIRAC import gConfig, gLogger, S_ERROR, S_OK
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getCMTConfigsCompatibleWithPlatforms, getPlatformFromConfig
+from LHCbDIRAC.Core.Utilities import ProductionEnvironment
 
 
 class NoSoftwareInstallation( object ):
@@ -51,16 +51,16 @@ class NoSoftwareInstallation( object ):
       # out-dated
       systemConfig = self.job['SystemConfig']
       if systemConfig.lower() == 'any':
-        platform = ['ANY']
+        platform = 'ANY'
       else:
-        platform = getPlatformFromConfig( systemConfig )
-        if not platform['OK'] or not platform['Value']:
+        platformsList = ProductionEnvironment.getPlatformFromConfig( systemConfig )
+        if not platformsList['OK'] or not platformsList['Value']:
           raise RuntimeError( "No platform detected" )
-        platform = platform['Value']
+        platform = platformsList['Value'][0]
     elif 'Platform' in self.job:
-      platform = [self.job['Platform']]
+      platform = self.job['Platform']
     else:
-      platform = ['ANY']
+      platform = 'ANY'
 
     # localArch ...........................................................
     localArch = gConfig.getValue( '/LocalSite/Architecture', '' )
@@ -68,20 +68,12 @@ class NoSoftwareInstallation( object ):
       raise RuntimeError( "/LocalSite/Architecture is missing and must be specified" )
 
 
-    if 'any' in [p.lower() for p in platform]:
-      # If there is no architecture specified on the Job ( with other words,
-      # SystemConfig == ANY in the JobDescription, it means we actually do not care which one).
-      # So, we take the architecture that is defined as local on the worker node.
-
+    if platform.lower() == 'any':
       self.log.info( "Platform requested by the job is set to 'ANY', using the local platform" )
 
     else:
-      # Either we set SystemConfig == ANY, of it happened that SystemConfig is the
-      # same as our LocalArchitecture. Either way, we make sure that if there is
-      # OS compatibility, the config is added to platforms ( CompatiblePlatforms )
-      self.log.info( "Platform requested by the job is set to '%s'" % ', '.join( platform ) )
-      
-      if localArch not in [p.lower() for p in platform]:
+      self.log.info( "Platform requested by the job is set to '%s'" % platform )
+      if not ProductionEnvironment.getPlatformsCompatibilities( platform, localArch ):
         self.log.error( "The platform request is different from the local one... something is very wrong!" )
         return S_ERROR( "The platform request is different from the local one... something is very wrong!" )
 
@@ -95,7 +87,7 @@ class NoSoftwareInstallation( object ):
     """ returns getCMTConfigsCompatibleWithPlatforms
     """
     self.log.info( "Node supported platform is: %s" % platform )
-    compatibleCMTConfigs = getCMTConfigsCompatibleWithPlatforms( platform )
+    compatibleCMTConfigs = ProductionEnvironment.getCMTConfigsCompatibleWithPlatforms( platform )
     if not compatibleCMTConfigs['OK']:
       raise RuntimeError( compatibleCMTConfigs['Message'] )
     if not compatibleCMTConfigs['Value']:
