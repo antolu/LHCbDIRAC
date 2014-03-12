@@ -59,7 +59,7 @@ validationFlag = '{{validationFlag#GENERAL: Set True for validation prod - will 
 
 pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 pr.configVersion = '{{mcConfigVersion#GENERAL: BK configuration version, e.g. MC10#2012}}'
-extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
+extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepID:options#}}'
 
 CPUe = '{{MCCPUperEvent#GENERAL: CPU time per event#500}}'
 
