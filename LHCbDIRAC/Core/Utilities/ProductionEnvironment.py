@@ -452,6 +452,6 @@ def getPlatformsCompatibilities( platform1, platform2 ):
   """ Is platform1 compatible with platform2? (e.g. can slc5 jobs run on a slc6 machine?)
   """
   platformsConfigsDict = getPlatformsConfigsDict()
-  return set( platformsConfigsDict[platform1] ) < set( platformsConfigsDict[platform2] )
+  return set( platformsConfigsDict[platform1] ) <= set( platformsConfigsDict[platform2] )
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
