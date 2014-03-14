@@ -201,6 +201,7 @@ def createJob():
                                                ( 'numberOfEvents', 'string', '', 'Events treated' ),
                                                ( 'extraPackages', 'string', '', 'ExtraPackages' ),
                                                ( 'listoutput', 'list', [], 'StepOutputList' ),
+                                               ( 'SystemConfig', 'string', '', 'CMT Config' ),
                                                ]
  )
 
