@@ -318,7 +318,7 @@ class TransformationDB( DIRACTransformationDB ):
     for row in res['Value']:
       parameter = row[1]
       value = row[2]
-      if value != 'All':
+      if value and value != 'All':
         if re.search( ';;;', str( value ) ):
           value = value.split( ';;;' )
         if parameter in self.intFields:
@@ -328,7 +328,7 @@ class TransformationDB( DIRACTransformationDB ):
             value = [int( x ) for x in value]
           if not value:
             continue
-      bkDict[parameter] = value
+        bkDict[parameter] = value
     return S_OK( bkDict )
 
   def __insertExistingTransformationFiles( self, transID, fileTuplesList, connection = False ):
