@@ -120,7 +120,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     if not res['OK']:
       self._logError( "Failed to get transformations with Bk Queries.", res['Message'] )
       return S_OK()
-    transIDsWithBkQueriesList = res['Message']
+    transIDsWithBkQueriesList = res['Value']
 
     _count = 0
     # Process each transformation
