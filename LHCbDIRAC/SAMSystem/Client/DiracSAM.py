@@ -200,7 +200,6 @@ def setSAMJobApplicationStep( samJob, appName, appOptions ):
   """
 
   #StepDefinition
- 
   modules    = [ 'GaudiApplication' ]
   paramsList = [ ( 'applicationName', 'string', '', 'Application Name' ), 
                  ( 'applicationVersion', 'string', '', 'Application Version' ), 
@@ -217,33 +216,28 @@ def setSAMJobApplicationStep( samJob, appName, appOptions ):
                  ( 'inputDataType','string','','iDataType' )
                 ]
     
-  stepName = appName
-
-  step = getStepDefinition( stepName, modulesNameList = modules, parametersList = paramsList )
-  stepInstance = addStepToWorkflow( samJob.workflow, step, stepName )
+  step = getStepDefinition( appName, modulesNameList = modules, parametersList = paramsList )
+  stepInstance = addStepToWorkflow( samJob.workflow, step, appName )
 
   #Step Parameters Passing  
   appVersion = appOptions.get( 'applicationVersion', '' )
-  numberOfEvents = 2
-  filePrefix = samJob.stepName
-  optionsFile = appOptions.get( 'optionFiles', '' )
-  extraPackages = 'ProdConf'
-    
+  filePrefix = appName + appVersion
+
   dddbtag = appOptions.get( 'DDDBTag', '' )
   conddbtag = appOptions.get( 'CondDBTag', '' )
-    
+
   # Depends on the appName
-  inputDataType  = setInputFile( appName )
-  outputFiles    = setOutputFile( appName, filePrefix )
+  inputDataType = setInputFile( appName )
+  outputFiles = setOutputFile( appName, filePrefix )
     
   stepInstance.setValue( 'XMLSummary', 'summary@{applicationName}_@{STEP_ID}.xml' )
   stepInstance.setValue( 'applicationName', appName )
   stepInstance.setValue( 'applicationVersion', appVersion )
   stepInstance.setValue( 'applicationLog', '%s.log' % appName )
-  stepInstance.setValue( 'numberOfEvents', numberOfEvents )
+  stepInstance.setValue( 'numberOfEvents', 2 )
   stepInstance.setValue( 'outputFilePrefix', filePrefix )
-  stepInstance.setValue( 'optionsFile', optionsFile )
-  stepInstance.setValue( 'extraPackages', extraPackages )
+  stepInstance.setValue( 'optionsFile', appOptions.get( 'optionFiles', '' ) )
+  stepInstance.setValue( 'extraPackages', 'ProdConf' )
   if dddbtag:
     stepInstance.setValue( 'DDDBTag', dddbtag )
   if conddbtag:
@@ -253,8 +247,8 @@ def setSAMJobApplicationStep( samJob, appName, appOptions ):
     stepInstance.setValue( 'inputDataType', inputDataType )
   if outputFiles:
     stepInstance.setValue( 'listoutput', [ outputFiles ] )
-      
+
   return stepInstance  
-      
+
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
