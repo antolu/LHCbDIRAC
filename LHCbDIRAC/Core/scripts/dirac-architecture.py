@@ -1,12 +1,11 @@
 #!/usr/bin/env python
-
 """ Returns the architecture tag to be used for CMTCONFIG or architecture
 """
 
 __RCSID__ = "$Id"
 
 from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
+parseCommandLine( ignoreErrors = True )
 
 import sys, platform
 from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getDIRACPlatform
@@ -25,7 +24,7 @@ if __name__ == "__main__" :
   res = getDIRACPlatform( '_'.join( [platform.machine(), OS] ) )
   if not res['OK']:
     print "ERROR: %s" % res['Message']
-  if not res['Value']:
+  elif not res['Value']:
     print "ERROR, %s not found" % '_'.join( [platform.machine(), OS] )
-
-  print res['Value'][0]
+  else:
+    print res['Value'][0]
