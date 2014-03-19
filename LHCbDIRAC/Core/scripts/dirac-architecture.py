@@ -36,12 +36,17 @@ if __name__ == "__main__" :
   
   if error:
     from DIRAC import gConfig
+    from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+    from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+
+    mailAddress = Operations().getValue( 'EMail/JobFailures', 'Vladimir.Romanovskiy@cern.ch' )
     site = gConfig.getValue( 'LocalSite/Site' )
     ce = gConfig.getValue( 'LocalSite/GridCE' )
     queue = gConfig.getValue( 'LocalSite/CEQueue' )
-    body = "*** THIS IS AN AUTOMATED MESSAGE" + '\n\n' + msg + '\n\n'
-    body = body + "At site %s, CE = %s, queue = %s" % ( site, ce, queue )
-    from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-    NotificationClient().sendMail('federico.stagni@cern.ch', 'Problem with DIRAC architecture', 
-                                  body, 'federico.stagni@cern.ch', localAttempt = False)
-    
+    body = "*** THIS IS AN AUTOMATED MESSAGE ***" + '\n\n' + msg + '\n\n'
+    body = body + "At site %s, CE = %s, queue = %s" % ( site, ce, queue ) + '\n\n'
+    body = body + "Consider inserting it in the OSCompatibility section of the CS"
+
+    for mA in mailAddress.replace( ' ', '' ).split( ',' ):
+      NotificationClient().sendMail( mailAddress, "Problem with DIRAC architecture",
+                                     body, 'federico.stagni@cern.ch', localAttempt = False )
