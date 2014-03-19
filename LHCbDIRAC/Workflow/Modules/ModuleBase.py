@@ -426,7 +426,7 @@ class ModuleBase( object ):
 
 
     histogram = False
-    for hist in ['HIST', 'BRUNELHIST', 'DAVINCIHIST', 'hist', 'brunelhist', 'davincihist']:
+    for hist in ['HIST', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'hist', 'brunelhist', 'davincihist', 'gausshist']:
       try:
         stepOutTypes.remove( hist )
         histogram = True
