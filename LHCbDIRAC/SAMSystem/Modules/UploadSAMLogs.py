@@ -132,10 +132,9 @@ class UploadSAMLogs( ModuleBase ):
                             )                      
       try:
         self.nagiosConnector.sendMessage()
+        self.nagiosConnector.endConnection()
       except:
         self.log.error( "Can't send to Nagios, won't failing the job because of that" )
-      self.nagiosConnector.endConnection()
-    
 
       return S_OK( 'Logs uploaded' )
 
