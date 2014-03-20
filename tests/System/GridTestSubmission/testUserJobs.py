@@ -49,6 +49,37 @@ gLogger.info( "Hello world job: ", result )
 
 ########################################################################################
 
+gLogger.info( "Submitting hello world job targeting slc6 machines" )
+
+helloJ = LHCbJob()
+dirac = DiracLHCb()
+
+helloJ.setName( "helloWorld-test-slc6" )
+helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
+
+helloJ.setCPUTime( 17800 )
+helloJ.setPlatform( 'x86_64-slc6' )
+result = dirac.submit( helloJ )
+gLogger.info( "Hello world job: ", result )
+
+########################################################################################
+
+gLogger.info( "Submitting hello world job targeting slc5 machines" )
+
+helloJ = LHCbJob()
+dirac = DiracLHCb()
+
+helloJ.setName( "helloWorld-test-slc6" )
+helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
+
+helloJ.setCPUTime( 17800 )
+helloJ.setPlatform( 'x86_64-slc5' )
+result = dirac.submit( helloJ )
+gLogger.info( "Hello world job: ", result )
+
+########################################################################################
 gLogger.info( "Submitting gaudiRun job (Gauss only)" )
 
 gaudirunJob = LHCbJob()
