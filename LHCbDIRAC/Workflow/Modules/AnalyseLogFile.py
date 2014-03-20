@@ -58,7 +58,7 @@ class AnalyseLogFile( ModuleBase ):
       self._resolveInputVariables()
 
       if self.workflow_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
-        self.log.info( 'AnalyseLogFile has already run for this workflow and finalized with sending an error email' )
+        self.log.info( "AnalyseLogFile has already run for this workflow and finalized with sending an error email" )
         return S_OK()
 
       self.log.info( "Performing log file analysis for %s" % ( self.applicationLog ) )
@@ -145,8 +145,7 @@ class AnalyseLogFile( ModuleBase ):
           coreLFN = lfn
       if self._WMSJob():
         if coreLFN:
-          self.log.info( 'Attempting: dm.putAndRegister("%s","%s","CERN-DEBUG") on catalog "LcgFileCatalogCombined"'
-                         % ( coreLFN, self.coreFile ) )
+          self.log.info( "Attempting: dm.putAndRegister('%s','%s','CERN-DEBUG') on catalog 'LcgFileCatalogCombined'" % ( coreLFN, self.coreFile ) )
           result = DataManager( catalogs = ['LcgFileCatalogCombined'] ).putAndRegister( coreLFN, self.coreFile, 'CERN-DEBUG' )
           self.log.info( result )
           if not result['OK']:
@@ -155,8 +154,8 @@ class AnalyseLogFile( ModuleBase ):
           else:
             msg += coreLFN + '\n'
       else:
-        self.log.info( 'JOBID is null, would have attempted to upload: LFN:%s, file %s to CERN-DEBUG' % ( coreLFN,
-                                                                                                      self.coreFile ) )
+        self.log.info( "JOBID is null, would have attempted to upload: LFN:%s, file %s to CERN-DEBUG" % ( coreLFN,
+                                                                                                       self.coreFile ) )
 
     toUpload = {}
     for lfn in debugLFNs:
@@ -171,7 +170,7 @@ class AnalyseLogFile( ModuleBase ):
 
       guidInput = ''
       if not guidResult['OK']:
-        self.log.error( 'Could not find GUID for %s with message' % ( fname ), guidResult['Message'] )
+        self.log.error( "Could not find GUID for %s with message" % ( fname ), guidResult['Message'] )
       elif guidResult['generated']:
         self.log.info( 'PoolXMLFile generated GUID(s) for the following files ', ', '.join( guidResult['generated'] ) )
         guidInput = guidResult['Value'][fname]
