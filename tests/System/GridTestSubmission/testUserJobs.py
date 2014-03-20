@@ -70,7 +70,7 @@ gLogger.info( "Submitting hello world job targeting slc5 machines" )
 helloJ = LHCbJob()
 dirac = DiracLHCb()
 
-helloJ.setName( "helloWorld-test-slc6" )
+helloJ.setName( "helloWorld-test-slc5" )
 helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
@@ -92,7 +92,7 @@ optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam3500GeV-md100-2011-nu2.py;"
 optDec = "$DECFILESROOT/options/34112104.py;"
 optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
 optOpts = "$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
-optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py"
+optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
 optPConf = "prodConf_Gauss_00012345_00067890_1.py"
 options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
 gaudirunJob.addPackage( 'AppConfig', 'v3r179' )
