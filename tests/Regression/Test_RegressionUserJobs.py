@@ -20,12 +20,18 @@ class RegressionTestCase( IntegrationTest ):
     self.bkkClient = BookkeepingClient()
 
     self.j_u_hello = LHCbJob( 'helloWorld.xml' )
+    self.j_u_helloPlus = LHCbJob( 'helloWorld-FewMoreStuff.xml' )
 #    self.j_u_collision12 = LHCbJob( 'collision12.xml' )
 #    self.j_u_rootMerger = LHCbJob( 'rootMerger.xml' )
 
 class HelloWorldSuccess( RegressionTestCase ):
   def test_execute( self ):
     res = self.j_u_hello.runLocal( self.diracLHCb, self.bkkClient )
+    self.assertTrue( res['OK'] )
+
+class HelloWorldPlusSuccess( RegressionTestCase ):
+  def test_execute( self ):
+    res = self.j_u_helloPlus.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 # class Collision12Success( RegressionTestCase ):
@@ -46,6 +52,7 @@ class HelloWorldSuccess( RegressionTestCase ):
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RegressionTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldPlusSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( Collision12Success ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergerSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
