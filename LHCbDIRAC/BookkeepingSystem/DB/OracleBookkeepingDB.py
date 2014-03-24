@@ -1125,7 +1125,7 @@ class OracleBookkeepingDB:
       elif filetype != default:
         condition += " and ftypes.name='%s' " % ( str( filetype ) )
 
-    command = "select /*+INDEX(f FILES_JOB_EVENT_FILETYPE) PARALLEL(bview)*/ distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, \
+    command = "select /*+PARALLEL(bview)*/ distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, \
     j.WorkerNode, ftypes.Name, j.runnumber, j.fillnumber, f.fullstat, d.dataqualityflag, \
     j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck from %s  where \
     j.jobid=f.jobid and \
@@ -1356,7 +1356,7 @@ class OracleBookkeepingDB:
     if ftype != default:
       condition += " and filetypes.name='%s'" % ( ftype )
 
-    command = "select /*+ INDEX(files FILES_JOB_EVENT_FILETYPE) */ files.filename, files.gotreplica, files.filesize,files.guid, \
+    command = "select files.filename, files.gotreplica, files.filesize,files.guid, \
     filetypes.name, files.inserttimestamp, files.visibilityflag from jobs,files,filetypes where\
     jobs.jobid=files.jobid and files.filetypeid=filetypes.filetypeid and jobs.production=%d %s" % ( prod, condition )
 
@@ -3425,7 +3425,7 @@ and files.qualityid= dataquality.qualityid'
     if endRunID != None:
       condition += ' and j.runnumber<=' + str( endRunID )
 
-    command = " select /*+ INDEX(f FILES_JOB_EVENT_FILETYPE) */ distinct f.filename, f.eventstat, j.eventinputstat, \
+    command = " select distinct f.filename, f.eventstat, j.eventinputstat, \
      j.runnumber, j.fillnumber, f.filesize, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck from %s where\
      f.jobid= j.jobid and f.visibilityflag='Y'  and f.gotreplica='Yes' %s " % ( tables, condition )
 
@@ -3591,7 +3591,7 @@ and files.qualityid= dataquality.qualityid'
                                %s %s %s \
                 )" % ( processing.split( '/' )[1], processing, tables2, fcond, econd, sim_dq_conditions )
 
-    command = "select /*+INDEX(f FILES_JOB_EVENT_FILETYPE) PARALLEL(bview)*/ count(*),\
+    command = "select /*+PARALLEL(bview)*/ count(*),\
     SUM(f.EventStat), SUM(f.FILESIZE), \
     SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
     j.jobid=f.jobid and \
@@ -3688,7 +3688,7 @@ and files.qualityid= dataquality.qualityid'
     jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst, jtck from \
               (select rownum r, fname, fstat, fsize, fcreation, jstat, jend, jnode, ftypen,\
                evttypeid, jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst, jtck from \
-                  (select /*+INDEX(f FILES_JOB_EVENT_FILETYPE) PARALLEL(bview)*/ ROWNUM r, f.FileName fname, f.EventStat fstat, f.FileSize fsize, \
+                  (select /*+PARALLEL(bview)*/ ROWNUM r, f.FileName fname, f.EventStat fstat, f.FileSize fsize, \
                   f.CreationDate fcreation, j.JobStart jstat, j.JobEnd jend, j.WorkerNode jnode, \
                   ftypes.Name ftypen, f.eventtypeid evttypeid, j.runnumber jrun, j.fillnumber jfill,\
                    f.fullstat ffull, d.dataqualityflag dflag,j.eventinputstat jevent, j.totalluminosity jtotal,\
