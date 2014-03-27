@@ -161,9 +161,16 @@ def execute():
         for lfn in lfnsToRemove:
           res = se.getPfnForLfn( lfn )
           if not res['OK']:
+            reason = res['Message']
+            errorReasons.setdefault( str( reason ), {} ).setdefault( seName, [] ).append( lfn )
             gLogger.error( 'ERROR getting LFN: %s' % lfn, res['Message'] )
           else:
-            pfnsToRemove[res['Value']] = lfn
+            pfn = res['Value']['Successful'].get( lfn )
+            if pfn:
+              pfnsToRemove[pfn] = lfn
+            else:
+              reason = res['Value']['Failed'].get( lfn, 'Unknown error' )
+              errorReasons.setdefault( str( reason ), {} ).setdefault( seName, [] ).append( lfn )
         if not pfnsToRemove:
           continue
         gLogger.verbose( "Removing surls: %s" % '\n'.join( pfnsToRemove ) )
