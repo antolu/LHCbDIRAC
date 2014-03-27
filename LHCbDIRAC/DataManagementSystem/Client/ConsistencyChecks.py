@@ -890,7 +890,7 @@ class ConsistencyChecks( object ):
         replicasRes = replicasRes['Value']
         if replicasRes['Failed']:
           retDict['NoReplicas'].update( replicasRes['Failed'] )
-      replicas.update( replicasRes['Successful'] )
+        replicas.update( replicasRes['Successful'] )
       self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
 
     self.__write( "Get FC metadata for %d files to be checked" % len( lfns ) )
@@ -942,7 +942,7 @@ class ConsistencyChecks( object ):
           checkSum.setdefault( lfn, {} )[se] = surlRes['Successful'][ surl ]['Checksum']
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
     gLogger.setLevel( logLevel )
-    retDict[ 'MissingPFN'] = []
+    retDict[ 'MissingPFN'] = {}
 
     startTime = time.time()
     self.__write( 'Verifying checksum of %d files (chunks of %d) ' % ( len( replicas ), chunkSize ) )
@@ -955,6 +955,10 @@ class ConsistencyChecks( object ):
       allGoodReplicas = True
       lfcChecksum = csDict[ lfn ].pop( 'LFCChecksum' )
       for se in replicaDict:
+        # If replica doesn't exist skip check
+        if se in pfnNotAvailable.get( lfn, [] ):
+          allGoodReplicas = False
+          continue
         surl = replicaDict[ se ]
         # get the surls metadata and compare the checksum
         surlChecksum = checkSum.get( lfn, {} ).get( se, '' )
@@ -967,15 +971,19 @@ class ConsistencyChecks( object ):
         else:
           oneGoodReplica = True
       if not oneGoodReplica:
-        if lfn not in pfnNotAvailable:
+        if lfn in pfnNotAvailable:
+          gLogger.info( "=> All replicas are missing" )
+          retDict['MissingPFN'][ lfn] = 'All'
+        else:
           gLogger.info( "=> All replicas have bad checksum" )
           retDict['AllReplicasCorrupted'][ lfn ] = csDict[ lfn ]
-        else:
-          gLogger.info( "=> All replicas are missing" )
-          retDict['MissingPFN'].append( lfn )
       elif not allGoodReplicas:
-        gLogger.info( "=> At least one replica with good Checksum" )
-        retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ]
+        if lfn in pfnNotAvailable:
+          gLogger.info( "=> At least one replica missing" )
+          retDict['MissingPFN'][lfn] = pfnNotAvailable[lfn]
+        else:
+          gLogger.info( "=> At least one replica with good Checksum" )
+          retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ]
 
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
     return S_OK( retDict )
