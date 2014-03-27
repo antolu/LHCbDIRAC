@@ -667,8 +667,7 @@ class ModuleBase( object ):
   #############################################################################
 
   def _manageAppOutput( self, outputs ):
-    """ Calls self._findOutputs to find what's produced,
-        then creates the LFNs
+    """ Calls self._findOutputs to find what's produced, then creates the LFNs
     """
 
     if not outputs:

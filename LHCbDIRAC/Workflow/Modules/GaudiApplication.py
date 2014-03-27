@@ -93,8 +93,8 @@ class GaudiApplication( ModuleBase ):
       self._resolveInputVariables()
 
       self.log.info( "Executing application %s %s for CMT configuration %s" % ( self.applicationName,
-                                                                                   self.applicationVersion,
-                                                                                   self.systemConfig ) )
+                                                                                self.applicationVersion,
+                                                                                self.systemConfig ) )
       self.log.verbose( "/LocalSite/Root directory for job is %s" % ( gConfig.getValue( '/LocalSite/Root',
                                                                                         os.getcwd() ) ) )
 
