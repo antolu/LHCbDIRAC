@@ -230,13 +230,12 @@ class LHCbJob( Job ):
     if inputData:
       if type( inputData ) in types.StringTypes:
         inputData = [inputData]
-      if not type( inputData ) == type( [] ):
-        return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
-      for i in xrange( len( inputData ) ):
-        inputData[i] = inputData[i].replace( 'LFN:', '' )
-      inputData = ['LFN:' + x for x in inputData ]
-      inputDataStr = ';'.join( inputData )
-      self.addToInputData.append( inputDataStr )
+      if inputData != ['previousStep']:
+        for i in xrange( len( inputData ) ):
+          inputData[i] = inputData[i].replace( 'LFN:', '' )
+        inputData = ['LFN:' + x for x in inputData ]
+        inputDataStr = ';'.join( inputData )
+        self.addToInputData.append( inputDataStr )
 
     self.stepCount += 1
     stepName = '%sStep%s' % ( appName, self.stepCount )
