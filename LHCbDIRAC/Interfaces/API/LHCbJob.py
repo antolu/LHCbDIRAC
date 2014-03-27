@@ -177,7 +177,7 @@ class LHCbJob( Job ):
        :param events: Optional number of events
        :type events: integer
        :param extraPackages: Optional extra packages
-       :type extraPackages: integer
+       :type extraPackages: string
        :param modulesNameList: list of module names. The default is given.
        :type modulesNameList: list
        :param parametersList: list of parameters. The default is given.
@@ -268,7 +268,7 @@ class LHCbJob( Job ):
     if not res['OK']:
       return res
 
-    return S_OK()
+    return S_OK( stepInstance )
 
   #############################################################################
 
@@ -400,7 +400,7 @@ class LHCbJob( Job ):
     if not res['OK']:
       return res
 
-    return S_OK()
+    return S_OK( stepInstance )
 
   #############################################################################
 
@@ -467,7 +467,7 @@ class LHCbJob( Job ):
     self.setInputData( inputData )
     self.setApplicationScript( 'Bender', benderVersion, '%s/BenderScript.py' % tmpdir,
                                logFile = 'Bender%s.log' % benderVersion )
-    return S_OK()
+    return S_OK( benderScript )
 
   #############################################################################
 
@@ -612,7 +612,7 @@ class LHCbJob( Job ):
     if not res['OK']:
       return res
 
-    return S_OK()
+    return S_OK( stepInstance )
 
   #############################################################################
 
