@@ -62,9 +62,6 @@ class LHCbJobSuccess( APITestCase ):
     self.assert_( res['OK'] )
     res = self.lj.setApplication( 'appName', 'v1r0', 'optionsFiles', systemConfig = 'x86_64-slc5-gcc-43-opt' )
     self.assert_( res['OK'] )
-    res = self.lj.setDIRACPlatform()
-    print res
-#     self.assert_( res['OK'] )
     os.remove( 'optionsFiles' )
 
 ################################################################################
