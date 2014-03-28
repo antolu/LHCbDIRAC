@@ -1114,10 +1114,10 @@ class SEUsageAgent( AgentModule ):
     for seName in seList:
       storageElement = StorageElement( seName )
       res = storageElement.getPfnForLfn( lfn )
-      if not res['OK']:
-        self.log.error( "Could not create storage element object %s " % res['Message'] )
+      if not res['OK'] or lfn not in res['Value']['Successful']:
+        self.log.error( "Could not create storage element object", res.get( 'Message', res.get( 'Value', {} ).get( 'Failed', {} ).get( lfn ) ) )
         continue
-      surl = res[ 'Value']
+      surl = res[ 'Value']['Successful'][lfn]
       self.log.verbose( "checking existance for %s - %s" % ( surl, seName ) )
       res = storageElement.exists( surl )
       self.log.verbose( "result of getStorageFileExists: %s " % res )

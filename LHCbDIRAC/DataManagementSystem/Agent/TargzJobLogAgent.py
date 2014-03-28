@@ -3,18 +3,18 @@
 ########################################################################
 """ :mod: TargzJobLogAgent
     ======================
- 
+
     .. module: TargzJobLogAgent
     :synopsis: Compress old jobs
 """
-## imports
+# # imports
 import os
 import shutil
 import glob
 import re
 from datetime import datetime, timedelta
 import tarfile
-## from DIRAC
+# # from DIRAC
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Resources.Storage.StorageElement import StorageElement
@@ -47,19 +47,19 @@ class TargzJobLogAgent( AgentModule ):
   def initialize( self ):
     """ agent initialisation """
 
-    self.log.info( "PollingTime %d hours" % ( int( self.pollingTime )/3600 ) )
+    self.log.info( "PollingTime %d hours" % ( int( self.pollingTime ) / 3600 ) )
 
     self.logPath = self.am_getOption( 'LogPath', self.logPath )
     self.log.info( "LogPath", self.logPath )
 
-    self.actions = self.am_getOption( 'Actions', ['SubProductions','Jobs'] )
+    self.actions = self.am_getOption( 'Actions', ['SubProductions', 'Jobs'] )
     self.log.info( "Actions", self.actions )
 
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/TestManager
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'TestManager' )
-    
+
     return S_OK()
 
   def execute( self ):
@@ -191,7 +191,7 @@ class TargzJobLogAgent( AgentModule ):
   def _iFindOldSubProd( path, g1, g2, agedays ):
     """ subprod directory generator """
 
-    c1 = re.compile( '^\d{8}$' )    
+    c1 = re.compile( '^\d{8}$' )
     c2 = re.compile( '^\d{4}$' )
 
     def iFindDir( path, gl, reobject ):
@@ -204,25 +204,25 @@ class TargzJobLogAgent( AgentModule ):
 
     for d1 in iFindDir( path, g1, c1 ):
       for d2 in iFindDir( d1, g2, c2 ):
-        mtime = os.path.getmtime( d2 ) # os.stat( d2 )[8]
+        mtime = os.path.getmtime( d2 )  # os.stat( d2 )[8]
         modified = datetime.fromtimestamp( mtime )
         if datetime.now() - modified > timedelta( days = agedays ):
           yield d2
-          
+
   def _tarSubProdDir( self, path, prod, sub ):
     """ create tar file for old prod directories """
     oldpath = os.getcwd()
 
-    date = str( datetime.now() ).split(" ")[0]
+    date = str( datetime.now() ).split( " " )[0]
 
     tarname = "/opt/dirac/tmp/" + prod + "_" + sub + ".tgz"
     destFile = self.destDirectory + "/" + prod + "_" + sub + "_" + date + ".tgz"
 
     res = self.storageElement.getPfnForLfn( destFile )
-    if res['OK']:
-      pfn = res["Value"]
+    if res['OK'] and destFile in res['Value']['Successful']:
+      pfn = res["Value"]['Successful'][destFile]
     else:
-      self.log.error( "getPfnForLfnfor file %s" % destFile, res['Message'] )
+      self.log.error( "getPfnForLfnfor file %s" % destFile, res.get( 'Message', res.get( 'Value', {} ).get( 'Failed', {} ).get( lfn ) ) )
       return S_ERROR()
 
     res = self.storageElement.exists( pfn, True )
