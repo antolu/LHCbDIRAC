@@ -243,6 +243,7 @@ def execute( unit, minimum ):
   users = None
   summary = False
   rank = False
+  ses = []
   for switch in Script.getUnprocessedSwitches():
     if switch[0].lower() == "u" or switch[0].lower() == "unit":
       unit = switch[1]
@@ -263,6 +264,8 @@ def execute( unit, minimum ):
       summary = True
     elif switch[0] == 'Minimum':
       minimum = float( switch[1] )
+    elif switch[0] == 'UnknownSE':
+      ses = switch[1].split( ',' )
 
   scaleDict = { 'MB' : 1000 * 1000.0,
                 'GB' : 1000 * 1000 * 1000.0,
@@ -272,7 +275,7 @@ def execute( unit, minimum ):
     Script.showHelp()
   scaleFactor = scaleDict[unit]
 
-  ses = dmScript.getOption( 'SEs', [] )
+  ses += dmScript.getOption( 'SEs', [] )
   sites = dmScript.getOption( 'Sites', [] )
   for site in sites:
     res = gConfig.getOptionsDict( '/Resources/Sites/LCG/%s' % site )
@@ -364,6 +367,10 @@ def execute( unit, minimum ):
       for dirName in dirs:
         if users:
           user = dirName.split( '/' )[-1]
+          userRegistry = gConfig.getOptions( '/Registry/Users/%s' % user )
+          if not userRegistry['OK']:
+            quota = 0
+          else:
           quota = gConfig.getValue( '/Registry/Users/%s/Quota' % user, 0 )
           if not quota:
             quota = gConfig.getValue( '/Registry/DefaultStorageQuota', 0 )
@@ -374,7 +381,7 @@ def execute( unit, minimum ):
             usersUsage[user] = ( spaceUsed, quota )
           else:
             print "Storage usage for user %s (quota: %.1f %s)%s" % \
-                   ( user, quota, unit, ' <== Over quota' if spaceUsed > quota else '' )
+                   ( user, quota, unit, ' <== User no longer registered' if not quota else ( ' <== Over quota' if spaceUsed > quota else '' ) )
             printSEUsage( totalUsage, grandTotal, scaleFactor )
         else:
           totalUsage, grandTotal = getStorageSummary( totalUsage, grandTotal, dirName, fileType, prodID, ses )
@@ -417,7 +424,7 @@ def execute( unit, minimum ):
       spaceUsed, quota = usersUsage[user]
       if spaceUsed > minimum:
         print "Storage usage for user %8s: %6.3f %s (quota: %4.1f %s)%s" % \
-              ( user, spaceUsed, unit, quota, unit, ' <== Over quota' if spaceUsed > quota else '' )
+              ( user, spaceUsed, unit, quota, unit, ' <== User no longer registered' if not quota else ( ' <== Over quota' if spaceUsed > quota else '' ) )
 
   DIRAC.exit( 0 )
 
@@ -438,6 +445,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', "Users=", "   Get storage usage for a (list of) user(s)" )
   Script.registerSwitch( '', 'Summary', '  Only print a summary for users' )
   Script.registerSwitch( '', 'Minimum=', "   Don't print usage for users below that usage (same units, default %.1f" % minimum )
+  Script.registerSwitch( '', 'UnknownSE=', "   Force using a non-existing SE name" )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
