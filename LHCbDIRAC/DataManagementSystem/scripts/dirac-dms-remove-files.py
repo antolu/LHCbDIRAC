@@ -66,7 +66,7 @@ if __name__ == "__main__":
     if verbose:
       sys.stdout.write( '.' )
       sys.stdout.flush()
-    res = dm.removeFile( lfnChunk )
+    res = dm.removeFile( lfnChunk, force = False )
     if not res['OK']:
       gLogger.fatal( "Failed to remove data", res['Message'] )
       DIRAC.exit( -2 )
@@ -125,9 +125,6 @@ if __name__ == "__main__":
         gLogger.error( "Error getting replicas of %d non-existing files" % len( lfnChunk ), res['Message'] )
         errorReasons.setdefault( str( res['Message'] ), [] ).extend( lfnChunk )
       else:
-        for lfn, reason in res['Value']['Failed'].items():
-          errorReasons.setdefault( str( reason ), [] ).append( lfn )
-          lfnChunk.remove( lfn )
         replicas = res['Value']['Successful']
         for lfn in replicas:
           for se in replicas[lfn]:
