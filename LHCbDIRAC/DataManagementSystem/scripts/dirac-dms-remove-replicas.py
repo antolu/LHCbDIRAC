@@ -160,8 +160,8 @@ def execute():
           % ( len( lfnsToRemove ), seName ) )
         for lfn in lfnsToRemove:
           res = se.getPfnForLfn( lfn )
-          if not res['OK']:
-            reason = res['Message']
+          if not res['OK'] or lfn not in res['Value']['Successful']:
+            reason = res.get( 'Message', res.get( 'Value', {} ).get( 'Failed', {} ).get( lfn ) )
             errorReasons.setdefault( str( reason ), {} ).setdefault( seName, [] ).append( lfn )
             gLogger.error( 'ERROR getting LFN: %s' % lfn, res['Message'] )
           else:
