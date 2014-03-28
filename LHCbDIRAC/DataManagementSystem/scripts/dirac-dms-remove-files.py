@@ -105,7 +105,7 @@ if __name__ == "__main__":
         lfnsToSet.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
       # If required, set files Removed in transformations
       for transID, lfns in lfnsToSet.items():
-        res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns, force = setProcessed )
+        res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns, force = True )
         if not res['OK']:
           gLogger.error( 'Error setting %d files to Removed' % len( lfns ), res['Message'] )
         else:
