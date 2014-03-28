@@ -15,7 +15,7 @@ cwd = os.path.realpath( '.' )
 
 ########################################################################################
 
-gLogger.info( "Submitting hello world job banning T1s" )
+gLogger.info( "\n Submitting hello world job banning T1s" )
 
 helloJ = LHCbJob()
 dirac = DiracLHCb()
@@ -33,7 +33,7 @@ gLogger.info( "Hello world job: ", result )
 
 ########################################################################################
 
-gLogger.info( "Submitting hello world job targeting LCG.CERN.ch" )
+gLogger.info( "\n Submitting hello world job targeting LCG.CERN.ch" )
 
 helloJ = LHCbJob()
 dirac = DiracLHCb()
@@ -49,7 +49,7 @@ gLogger.info( "Hello world job: ", result )
 
 ########################################################################################
 
-gLogger.info( "Submitting hello world job targeting slc6 machines" )
+gLogger.info( "\n Submitting hello world job targeting slc6 machines" )
 
 helloJ = LHCbJob()
 dirac = DiracLHCb()
@@ -65,7 +65,7 @@ gLogger.info( "Hello world job: ", result )
 
 ########################################################################################
 
-gLogger.info( "Submitting hello world job targeting slc5 machines" )
+gLogger.info( "\n Submitting hello world job targeting slc5 machines" )
 
 helloJ = LHCbJob()
 dirac = DiracLHCb()
@@ -80,7 +80,25 @@ result = dirac.submit( helloJ )
 gLogger.info( "Hello world job: ", result )
 
 ########################################################################################
-gLogger.info( "Submitting gaudiRun job (Gauss only)" )
+
+gLogger.info( "\n Submitting a job that uploads an output" )
+
+helloJ = LHCbJob()
+dirac = DiracLHCb()
+
+helloJ.setName( "upload-Output-test" )
+helloJ.setInputSandbox( [find_all( 'testFileReplication.txt', '.', 'GridTestSubmission' )[0]] )
+
+helloJ.setCPUTime( 17800 )
+
+helloJ.setOutputData( ['testFileReplication.txt'] )
+
+result = dirac.submit( helloJ )
+gLogger.info( "Hello world job: ", result )
+
+########################################################################################
+
+gLogger.info( "\n Submitting gaudiRun job (Gauss only)" )
 
 gaudirunJob = LHCbJob()
 
@@ -109,7 +127,7 @@ gLogger.info( 'Submission Result: ', result )
 
 ########################################################################################
 
-gLogger.info( "Submitting gaudiRun job (Boole only)" )
+gLogger.info( "\n Submitting gaudiRun job (Boole only)" )
 
 gaudirunJob = LHCbJob()
 
@@ -138,7 +156,7 @@ gLogger.info( 'Submission Result: ', result )
 
 ########################################################################################
 
-gLogger.info( "Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info" )
+gLogger.info( "\n Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info" )
 gLogger.info( "This will generate a job that should become Completed, use the failover, and only later it will be Done" )
 
 gaudirunJob = createJob()
