@@ -219,9 +219,11 @@ def __checkFilesMissingInFC( transFilesList, status, fixIt ):
         if not kickRequests:
           print "%d files are %s but indeed are in the LFC - Use --KickRequests to reset them Unused" % ( notMissing, status )
         else:
-          res = transClient.setFileStatusForTransformation( transID, 'Unused', [lfn for lfn in lfns if lfn in replicas] )
+          res = transClient.setFileStatusForTransformation( transID, 'Unused', [lfn for lfn in lfns if lfn in replicas], force = True )
           if res['OK']:
             print "%d files were %s but indeed are in the LFC - Reset to Unused" % ( notMissing, status )
+          else:
+            print "Error resetting %d files Unused" % notMissing, res['Message']
       else:
         res = bkClient.getFileMetadata( lfns )
         if not res['OK']:
