@@ -751,9 +751,7 @@ class LHCbJob( Job ):
   def setOutputData( self, lfns, OutputSE = [], OutputPath = '' ):
     """Helper function, used in preference to Job.setOutputData() for LHCb.
 
-       For specifying output data to be registered in Grid storage.  If a list
-       of OutputSEs are specified the job wrapper will try each in turn until
-       successful.
+       For specifying user output data to be registered in Grid storage.
 
        Example usage:
 
@@ -768,6 +766,9 @@ class LHCbJob( Job ):
        :type OutputSE: string or list
        :type OutputPath: string
     """
+    #FIXME: the output data as specified here will be treated by the UserJobFinalization module
+    # If we remove this method (which is totally similar to the Job() one, the output data will be 
+    # treated by the JobWrapper. So, can and maybe should be done, but have to pat attention
     kwargs = {'lfns':lfns, 'OutputSE':OutputSE, 'OutputPath':OutputPath}
     if type( lfns ) == list and len( lfns ):
       outputDataStr = ';'.join( lfns )

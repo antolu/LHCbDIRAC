@@ -74,9 +74,6 @@ class UserJobFinalization( ModuleBase ):
                step_number = None, step_id = None ):
     """ Main execution function.
     """
-    # Have to work out if the module is part of the last step i.e.
-    # user jobs can have any number of steps and we only want
-    # to run the finalization once.
 
     try:
 
