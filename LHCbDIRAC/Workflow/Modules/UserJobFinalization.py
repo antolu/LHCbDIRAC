@@ -66,6 +66,11 @@ class UserJobFinalization( ModuleBase ):
     if self.workflow_commons.has_key( 'UserOutputPath' ):
       self.userOutputPath = self.workflow_commons['UserOutputPath']
 
+    if self.workflow_commons.has_key( 'ReplicateUserOutputData' ) and self.workflow_commons['ReplicateUserOutputData']:
+      self.replicateUserOutputData = True
+    else:
+      self.replicateUserOutputData = False
+
   #############################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
@@ -224,7 +229,7 @@ class UserJobFinalization( ModuleBase ):
                 replicateSE = se
                 break
 
-          if replicateSE and lfn:
+          if replicateSE and lfn and self.replicateUserOutputData:
             self.log.info( "Will attempt to replicate %s to %s" % ( lfn, replicateSE ) )
             replication[lfn] = ( uploadedSE, replicateSE )
 
@@ -248,14 +253,14 @@ class UserJobFinalization( ModuleBase ):
                                                                         fileMetaDict = fileMetaDict,
                                                                         fileCatalog = self.userFileCatalog )
         if not result['OK']:
-          self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
+          self.log.error( "Could not transfer and register %s with metadata:\n %s" % ( fileName, metadata ) )
           cleanUp = True
           continue  # for users can continue even if one completely fails
         else:
           lfn = metadata['lfn']
           uploaded.append( lfn )
           # Even when using Failover, one needs to replicate to a second SE
-          if replicateSE:
+          if replicateSE and self.replicateUserOutputData:
             replication[lfn] = ( targetSE, replicateSE )
 
       # For files correctly uploaded must report LFNs to job parameters
@@ -271,7 +276,7 @@ class UserJobFinalization( ModuleBase ):
         self.workflow_commons['Request'] = self.request
         # Leave any uploaded files just in case it is useful for the user
         # do not try to replicate any files.
-        return S_ERROR( 'Failed To Upload Output Data' )
+        return S_ERROR( "Failed To Upload Output Data" )
 
       for lfn, ( uploadedSE, repSE ) in replication.items():
         self.failoverTransfer._setFileReplicationRequest( lfn, repSE, fileMetaDict, uploadedSE )
@@ -280,7 +285,7 @@ class UserJobFinalization( ModuleBase ):
 
       self.generateFailoverFile()
 
-      self.setApplicationStatus( 'Job Finished Successfully' )
+      self.setApplicationStatus( "Job Finished Successfully" )
 
       return S_OK( 'Output data uploaded' )
 

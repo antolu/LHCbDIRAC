@@ -748,7 +748,7 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setOutputData( self, lfns, OutputSE = [], OutputPath = '' ):
+  def setOutputData( self, lfns, OutputSE = [], OutputPath = '', replicate = '' ):
     """Helper function, used in preference to Job.setOutputData() for LHCb.
 
        For specifying user output data to be registered in Grid storage.
@@ -796,6 +796,8 @@ class LHCbJob( Job ):
       # Remove leading "/" that might cause problems with os.path.join
       while OutputPath[0] == '/': OutputPath = OutputPath[1:]
       self._addParameter( self.workflow, 'UserOutputPath', 'JDL', OutputPath, description )
+
+    self._addParameter( self.workflow, 'ReplicateUserOutputData', 'string', replicate, "Flag to replicate or not" )
 
     return S_OK()
 
