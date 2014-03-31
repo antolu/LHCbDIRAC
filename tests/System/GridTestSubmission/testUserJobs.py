@@ -88,6 +88,7 @@ dirac = DiracLHCb()
 
 helloJ.setName( "upload-Output-test" )
 helloJ.setInputSandbox( [find_all( 'testFileReplication.txt', '.', 'GridTestSubmission' )[0]] )
+helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
 
