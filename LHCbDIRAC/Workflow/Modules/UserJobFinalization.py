@@ -4,7 +4,7 @@
 
 __RCSID__ = "$Id$"
 
-import os, random, time, re
+import os, random, re
 
 import DIRAC
 from DIRAC                                                    import S_OK, S_ERROR, gLogger, gConfig
@@ -41,6 +41,7 @@ class UserJobFinalization( ModuleBase ):
     self.userOutputSE = ''
     self.userOutputPath = ''
     self.failoverTransfer = None
+    self.replicateUserOutputData = False
 
   #############################################################################
   def _resolveInputVariables( self ):
@@ -68,8 +69,6 @@ class UserJobFinalization( ModuleBase ):
 
     if self.workflow_commons.has_key( 'ReplicateUserOutputData' ) and self.workflow_commons['ReplicateUserOutputData']:
       self.replicateUserOutputData = True
-    else:
-      self.replicateUserOutputData = False
 
   #############################################################################
 
