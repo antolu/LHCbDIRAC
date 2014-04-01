@@ -371,9 +371,9 @@ def execute( unit, minimum ):
           if not userRegistry['OK']:
             quota = 0
           else:
-          quota = gConfig.getValue( '/Registry/Users/%s/Quota' % user, 0 )
-          if not quota:
-            quota = gConfig.getValue( '/Registry/DefaultStorageQuota', 0 )
+            quota = gConfig.getValue( '/Registry/Users/%s/Quota' % user, 0 )
+            if not quota:
+              quota = gConfig.getValue( '/Registry/DefaultStorageQuota', 0 )
           quota *= scaleDict['GB'] / scaleFactor
           totalUsage, grandTotal = getStorageSummary( 0, 0, dirName, fileType, prodID, ses )
           spaceUsed = grandTotal['Size'] / scaleFactor
