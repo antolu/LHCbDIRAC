@@ -95,7 +95,25 @@ helloJ.setCPUTime( 17800 )
 helloJ.setOutputData( ['testFileReplication.txt'] )
 
 result = dirac.submit( helloJ )
-gLogger.info( "Hello world job: ", result )
+gLogger.info( "Hello world with output: ", result )
+
+########################################################################################
+
+gLogger.info( "\n Submitting a job that uploads an output and replicates it" )
+
+helloJ = LHCbJob()
+dirac = DiracLHCb()
+
+helloJ.setName( "upload-Output-test-with-replication" )
+helloJ.setInputSandbox( [find_all( 'testFileReplication.txt', '.', 'GridTestSubmission' )[0]] )
+helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
+
+helloJ.setCPUTime( 17800 )
+
+helloJ.setOutputData( ['testFileReplication.txt'], replicate = 'True' )
+
+result = dirac.submit( helloJ )
+gLogger.info( "Hello world with output and replication: ", result )
 
 ########################################################################################
 
