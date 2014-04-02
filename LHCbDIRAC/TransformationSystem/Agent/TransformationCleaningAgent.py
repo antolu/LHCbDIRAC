@@ -5,6 +5,8 @@
     :synopsis: clean up of finalised transformations
 """
 
+__RCSID__ = "$Id$"
+
 # # from DIRAC
 from DIRAC                                                        import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Utilities.List                                    import sortList
@@ -38,14 +40,14 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
     storageElements = gConfig.getValue( '/Resources/StorageElementGroups/Tier1_MC_M-DST', [] )
     storageElements += ['CNAF_MC-DST', 'CNAF-RAW']
-    # # what about RSS???
+    # # FIXME: what about RSS???
     self.activeStorages = sortList( self.am_getOption( 'ActiveSEs', storageElements ) )
 
   #############################################################################
 
   def cleanMetadataCatalogFiles( self, transID ):
-    ''' clean the metadata using BKK and Replica Manager. Replace the one from base class
-    '''
+    """ clean the metadata using BKK and Replica Manager. Replace the one from base class
+    """
     res = self.bkClient.getProductionFiles( transID, 'ALL', 'Yes' )
     if not res['OK']:
       return res
@@ -58,23 +60,24 @@ class TransformationCleaningAgent( DiracTCAgent ):
         fileToRemove.append( lfn )
         if metadata['GotReplica'] == 'Yes':
           yesReplica.append( lfn )
-    self.log.info( "Attempting to remove %d possible remnants from the catalog and storage" % len( fileToRemove ) )
-    res = self.dm.removeFile( fileToRemove )
-    if not res['OK']:
-      return res
-    for lfn, reason in res['Value']['Failed'].items():
-      self.log.error( "Failed to remove file found in BK", "%s %s" % ( lfn, reason ) )
-    if res['Value']['Failed']:
-      return S_ERROR( "Failed to remove all files found in the BK" )
-    if yesReplica:
-      self.log.info( "Ensuring that %d files are removed from the BK" % ( len( yesReplica ) ) )
-      res = FileCatalog( catalogs = ['BookkeepingDB'] ).removeFile( yesReplica )
+    if fileToRemove:
+      self.log.info( "Attempting to remove %d possible remnants from the catalog and storage" % len( fileToRemove ) )
+      res = self.dm.removeFile( fileToRemove )
       if not res['OK']:
         return res
       for lfn, reason in res['Value']['Failed'].items():
-        self.log.error( "Failed to remove file from BK", "%s %s" % ( lfn, reason ) )
+        self.log.error( "Failed to remove file found in BK", "%s %s" % ( lfn, reason ) )
       if res['Value']['Failed']:
-        return S_ERROR( "Failed to remove all files from the BK" )
+        return S_ERROR( "Failed to remove all files found in the BK" )
+      if yesReplica:
+        self.log.info( "Ensuring that %d files are removed from the BK" % ( len( yesReplica ) ) )
+        res = FileCatalog( catalogs = ['BookkeepingDB'] ).removeFile( yesReplica )
+        if not res['OK']:
+          return res
+        for lfn, reason in res['Value']['Failed'].items():
+          self.log.error( "Failed to remove file from BK", "%s %s" % ( lfn, reason ) )
+        if res['Value']['Failed']:
+          return S_ERROR( "Failed to remove all files from the BK" )
     self.log.info( "Successfully removed all files found in the BK" )
     return S_OK()
 
