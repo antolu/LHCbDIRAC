@@ -92,7 +92,7 @@ helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
 
-helloJ.setOutputData( ['testFileReplication.txt'] )
+helloJ.setOutputData( ['testFileUpload.txt'] )
 
 result = dirac.submit( helloJ )
 gLogger.info( "Hello world with output: ", result )
