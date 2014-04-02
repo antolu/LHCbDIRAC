@@ -34,8 +34,7 @@ class NagiosTopologyAgent( AgentModule ):
     self.xmlPath = None
 
   def initialize( self ):
-    """
-    Initialize the agent.
+    """ Initialize the agent.
     """
 
     self.xmlPath = rootPath + '/' + self.am_getOption( 'webRoot' )
@@ -48,8 +47,7 @@ class NagiosTopologyAgent( AgentModule ):
     return S_OK()
 
   def execute( self ):
-    """
-    Let's generate the xml file with the topology.
+    """ Let's generate the xml file with the topology.
     """
 
     # instantiate xml doc
@@ -62,68 +60,69 @@ class NagiosTopologyAgent( AgentModule ):
 
     # loop over sites
 
-    sites = gConfig.getSections( 'Resources/Sites/LCG' )
-    if not sites[ 'OK' ]:
-      gLogger.error( sites[ 'Message' ] )
-      return sites
+    for middleware in ['LCG', 'ARC']:
 
-    for site in sites[ 'Value' ]:
+      sites = gConfig.getSections( 'Resources/Sites/%s' % middleware )
+      if not sites[ 'OK' ]:
+        gLogger.error( sites[ 'Message' ] )
+        return sites
 
-      # Site config
-      site_opts = gConfig.getOptionsDict( 'Resources/Sites/LCG/%s' % site )
-      if not site_opts[ 'OK' ]:
-        gLogger.error( site_opts[ 'Message' ] )
-        return site_opts
-      site_opts = site_opts[ 'Value' ]
+      for site in sites[ 'Value' ]:
 
-      site_name = site_opts.get( 'Name' )
-      site_tier = site_opts.get( 'MoUTierLevel', 'None' )
-      has_grid_elem = False
-      xml_site = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
+        # Site config
+        site_opts = gConfig.getOptionsDict( 'Resources/Sites/%s/%s' % ( middleware, site ) )
+        if not site_opts[ 'OK' ]:
+          gLogger.error( site_opts[ 'Message' ] )
+          return site_opts
+        site_opts = site_opts[ 'Value' ]
 
-      # CE info
-      ces = gConfig.getSections( 'Resources/Sites/LCG/%s/CEs' % site )
-      if ces[ 'OK' ]:
-        res = self.__writeCEInfo( xml_doc, xml_site, site, ces[ 'Value' ] )
-        # Update has_grid_elem
-        has_grid_elem = res or has_grid_elem
+        site_name = site_opts.get( 'Name' )
+        site_tier = site_opts.get( 'MoUTierLevel', 'None' )
+        has_grid_elem = False
+        xml_site = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
 
-      # SE info
-      if site_opts.has_key( 'SE' ) and site_tier in [ '0', '1' ]:
-        res = self.__writeSEInfo( xml_doc, xml_site, site )
-        # Update has_grid_elem
-        has_grid_elem = res or has_grid_elem
+        # CE info
+        ces = gConfig.getSections( 'Resources/Sites/%s/%s/CEs' % ( middleware, site ) )
+        if ces[ 'OK' ]:
+          res = self.__writeCEInfo( xml_doc, middleware, xml_site, site, ces[ 'Value' ] )
+          # Update has_grid_elem
+          has_grid_elem = res or has_grid_elem
 
-      # FileCatalog info
-      sites = gConfig.getSections( 'Resources/FileCatalogs/LcgFileCatalogCombined' )
-      if sites[ 'OK' ] and site in sites[ 'Value' ]:
-        res = self.__writeFileCatalogInfo( xml_doc, xml_site, site )
-        # Update has_grid_elem
-        has_grid_elem = res or has_grid_elem
+        # SE info
+        if site_opts.has_key( 'SE' ) and site_tier in [ '0', '1' ]:
+          res = self.__writeSEInfo( xml_doc, xml_site, site )
+          # Update has_grid_elem
+          has_grid_elem = res or has_grid_elem
 
-      # Site info will be put if we found at least one CE, SE or LFC element
-      if has_grid_elem:
-        xml_append( xml_doc, xml_site, 'group', name = 'Tier ' + site_tier,
-                         type = 'LHCb_Tier' )
-        xml_append( xml_doc, xml_site, 'group', name = site, type = 'LHCb_Site' )
-        xml_append( xml_doc, xml_site, 'group', name = site, type = 'All Sites' )
-        try:
-          if int( site_tier ) == 2:
-            xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2' )
+        # FileCatalog info
+        sites = gConfig.getSections( 'Resources/FileCatalogs/LcgFileCatalogCombined' )
+        if sites['OK'] and site in sites['Value']:
+          res = self.__writeFileCatalogInfo( xml_doc, xml_site, site )
+          # Update has_grid_elem
+          has_grid_elem = res or has_grid_elem
 
-          else:  # site_tier can be only 1 or 0, (see site_tier def above to convince yourself.)
-            # If site_type is None, then we go to the exception.
-            xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2' )
-            xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1' )
+        # Site info will be put if we found at least one CE, SE or LFC element
+        if has_grid_elem:
+          xml_append( xml_doc, xml_site, 'group', name = 'Tier ' + site_tier, type = 'LHCb_Tier' )
+          xml_append( xml_doc, xml_site, 'group', name = site, type = 'LHCb_Site' )
+          xml_append( xml_doc, xml_site, 'group', name = site, type = 'All Sites' )
+          try:
+            if int( site_tier ) == 2:
+              xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2' )
 
-        except ValueError:  # Site tier is None, do nothing
-          pass
+            else:  # site_tier can be only 1 or 0, (see site_tier def above to convince yourself.)
+              # If site_type is None, then we go to the exception.
+              xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2' )
+              xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1' )
 
-      else :
-        _msg = "Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml"
-        _msg = _msg % ( site, site_name )
-        self.log.warn( _msg )
-        xml_root.removeChild( xml_site )
+          except ValueError:  # Site tier is None, do nothing
+            pass
+
+        else :
+          _msg = "Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml"
+          _msg = _msg % ( site, site_name )
+          self.log.warn( _msg )
+          xml_root.removeChild( xml_site )
 
     # produce the xml
     xmlf = open( self.xmlPath + "lhcb_topology.xml", 'w' )
@@ -153,9 +152,8 @@ class NagiosTopologyAgent( AgentModule ):
     xml_append( xml_doc, xml_root, 'vo', 'lhcb' )
 
   @staticmethod
-  def __writeCEInfo( xml_doc, xml_site, site, ces ):
-    """
-      Writes CE information in the XML Document
+  def __writeCEInfo( xml_doc, middleware, xml_site, site, ces ):
+    """ Writes CE information in the XML Document
     """
 
     has_grid_elem = False
@@ -165,11 +163,11 @@ class NagiosTopologyAgent( AgentModule ):
 
       has_grid_elem = True
 
-      site_ce_opts = gConfig.getOptionsDict( 'Resources/Sites/LCG/%s/CEs/%s' % ( site, site_ce_name ) )
-      if not site_ce_opts[ 'OK' ]:
-        gLogger.error( site_ce_opts[ 'Message' ] )
+      site_ce_opts = gConfig.getOptionsDict( 'Resources/Sites/%s/%s/CEs/%s' % ( middleware, site, site_ce_name ) )
+      if not site_ce_opts['OK']:
+        gLogger.error( site_ce_opts['Message'] )
         continue
-      site_ce_opts = site_ce_opts[ 'Value' ]
+      site_ce_opts = site_ce_opts['Value']
 
       site_ce_type = site_ce_opts.get( 'CEType' )
 
@@ -177,6 +175,8 @@ class NagiosTopologyAgent( AgentModule ):
         site_ce_type = 'CE'
       elif site_ce_type == 'CREAM':
         site_ce_type = 'CREAM-CE'
+      elif site_ce_type == 'ARC':
+        site_ce_type = 'ARC-CE'
       elif not site_ce_type:
         site_ce_type = 'UNDEFINED'
 
@@ -187,8 +187,7 @@ class NagiosTopologyAgent( AgentModule ):
 
   @staticmethod
   def __writeSEInfo( xml_doc, xml_site, site ):
-    """
-      Writes SE information in the XML Document
+    """ Writes SE information in the XML Document
     """
     has_grid_elem = True
 
