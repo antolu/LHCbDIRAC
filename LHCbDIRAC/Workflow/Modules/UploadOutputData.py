@@ -4,12 +4,13 @@
 
 __RCSID__ = "$Id$"
 
-import os, random, time, glob
+import os, random, glob
 import DIRAC
 
 from DIRAC                                                    import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities                                     import DEncode
 from DIRAC.DataManagementSystem.Client.FailoverTransfer       import FailoverTransfer
+from DIRAC.RequestManagementSystem.Client.Request             import Request
 from DIRAC.RequestManagementSystem.Client.Operation           import Operation
 from DIRAC.RequestManagementSystem.Client.File                import File
 from DIRAC.Resources.Catalog.FileCatalog                      import FileCatalog
@@ -220,7 +221,7 @@ class UploadOutputData( ModuleBase ):
         for fileName, metadata in final.items():
           lfns.append( metadata['lfn'] )
 
-        self.__cleanUp( lfns )
+        self._cleanUp( lfns )
         self.workflow_commons['Request'] = self.request
         return S_ERROR( 'Failed to upload output data' )
 
@@ -234,7 +235,7 @@ class UploadOutputData( ModuleBase ):
           self.log.info( "No descendants found, outputs can be uploaded" )
         else:
           self.log.error( "Input files for this job were marked as processed during the upload. Cleaning up..." )
-          self.__cleanUp( lfns )
+          self._cleanUp( lfns )
           self.workflow_commons['Request'] = self.request
           return S_ERROR( 'Input Data Already Processed' )
 
@@ -303,16 +304,26 @@ class UploadOutputData( ModuleBase ):
 
   #############################################################################
 
-  def __cleanUp( self, lfnList ):
+  def _cleanUp( self, lfnList ):
     """ Clean up uploaded data for the LFNs in the list
     """
+    self.log.verbose( "Cleaning up the request, for LFNs: %s" % ', '.join( lfnList ) )
+
+    newRequest = Request()
+
     for op in self.request:
+      add = True
       if op.Type in ['PutAndRegister', 'ReplicateAndRegister', 'RegisterFile', 'RegisterReplica']:
         for files in op:
           if files.LFN in lfnList:
-            del op
+            add = False
+      if add:
+        newRequest.addOperation( op )
 
-    # Set removal requests just in case
+    self.request = newRequest
+
+    self.log.verbose( "And adding RemoveFile operation for LFNs: %s, just in case" % ', '.join( lfnList ) )
+
     removeFiles = Operation()
     removeFiles.Type = 'RemoveFile'
     for lfn in lfnList:
@@ -320,7 +331,5 @@ class UploadOutputData( ModuleBase ):
       removedFile.LFN = lfn
       removeFiles.addFile( removedFile )
     self.request.addOperation( removeFiles )
-
-    return S_OK()
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

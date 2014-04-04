@@ -1380,6 +1380,56 @@ class UploadOutputDataSuccess( ModulesTestCase ):
           os.remove( 'foo.txt' )
           os.remove( 'bar.txt' )
 
+  def test__cleanUp( self ):
+    f1 = File()
+    f1.LFN = '/a/1.txt'
+    f2 = File()
+    f2.LFN = '/a/2.txt'
+    f3 = File()
+    f3.LFN = '/a/3.txt'
+
+    o1 = Operation()
+    o1.Type = 'RegisterFile'
+    o1.addFile( f1 )
+    o2 = Operation()
+    o2.Type = 'RegisterFile'
+    o2.addFile( f2 )
+    o3 = Operation()
+    o3.Type = 'ForwardDISET'
+    o4 = Operation()
+    o4.Type = 'RegisterFile'
+    o4.addFile( f1 )
+    o4.addFile( f3 )
+
+    r = Request()
+    r.addOperation( o4 )
+    r.addOperation( o1 )
+    r.addOperation( o2 )
+    r.addOperation( o3 )
+
+    self.uod.request = r
+
+    expected = Request()
+    expected.addOperation( o3 )
+    removeOp = Operation()
+    removeOp.Type = 'RemoveFile'
+    fileRemove1 = File()
+    fileRemove1.LFN = '/a/1.txt'
+    fileRemove2 = File()
+    fileRemove2.LFN = '/a/2.txt'
+    fileRemove3 = File()
+    fileRemove3.LFN = '/a/notPresent.txt'
+    removeOp.addFile( fileRemove1 )
+    removeOp.addFile( fileRemove2 )
+    removeOp.addFile( fileRemove3 )
+    expected.addOperation( removeOp )
+
+    self.uod._cleanUp( ['/a/1.txt', '/a/2.txt', '/a/notPresent.txt' ] )
+
+    for opsR, opsE in itertools.izip( self.uod.request, expected ):
+      self.assertEqual( str( opsR ), str( opsE ) )
+
+
 ##############################################################################
 # # UserJobFinalization.py
 ##############################################################################
