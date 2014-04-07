@@ -29,7 +29,7 @@ class SpaceToken( BaseAccountingType ):
     
     self.definitionKeyFields = [
                                  ( 'Site' , 'VARCHAR(64)' ),
-                                 ( 'Endpoint' , 'VARCHAR(256)' ),
+                                 ( 'Endpoint' , 'VARCHAR(255)' ),
                                  ( 'SpaceToken', 'VARCHAR(64)' ),
                                  ( 'SpaceType' , 'VARCHAR(64)')
                                ]
