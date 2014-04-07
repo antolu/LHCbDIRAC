@@ -71,7 +71,7 @@ class TransformationDB( DIRACTransformationDB ):
 #                             'Fields'     : {
 #                                             'TransformationID' : 'INTEGER NOT NULL',
 #                                             'RunNumber'        : 'INT(11) NOT NULL',
-#                                             'SelectedSite'     : 'VARCHAR(256) DEFAULT ""',
+#                                             'SelectedSite'     : 'VARCHAR(255) DEFAULT ""',
 #                                             'Status'           : 'CHAR(32) DEFAULT "Active"',
 #                                             'LastUpdate'       : 'DATETIME'
 #                                             },
@@ -89,8 +89,8 @@ class TransformationDB( DIRACTransformationDB ):
 #      _runsMetadata = {
 #                       'Fields'     : {
 #                                       'RunNumber' : 'INT(11) NOT NULL',
-#                                       'Name'      : 'VARCHAR(256) NOT NULL',
-#                                       'Value'     : 'VARCHAR(256) NOT NULL'
+#                                       'Name'      : 'VARCHAR(255) NOT NULL',
+#                                       'Value'     : 'VARCHAR(255) NOT NULL'
 #                                      },
 #                       'Indexes'    : {
 #  LT would drop this line, PK is enough 'RunNumber' : [ 'RunNumber' ]
