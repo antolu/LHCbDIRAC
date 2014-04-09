@@ -146,6 +146,36 @@ gLogger.info( 'Submission Result: ', result )
 
 ########################################################################################
 
+gLogger.info( "\n Submitting gaudiRun job (Gauss only) that should use TAG to run on a multi-core queue" )
+
+gaudirunJob = LHCbJob()
+
+gaudirunJob.setName( "gaudirun-Gauss-test-TAG-multicore" )
+gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
+gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
+
+optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam3500GeV-md100-2011-nu2.py;"
+optDec = "$DECFILESROOT/options/34112104.py;"
+optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
+optOpts = "$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
+optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
+optPConf = "prodConf_Gauss_00012345_00067890_1.py"
+options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
+gaudirunJob.addPackage( 'AppConfig', 'v3r179' )
+gaudirunJob.addPackage( 'DecFiles', 'v27r14p1' )
+gaudirunJob.addPackage( 'ProdConf', 'v1r9' )
+gaudirunJob.setApplication( 'Gauss', 'v45r5', options, extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
+                            systemConfig = 'x86_64-slc5-gcc43-opt' )
+
+gaudirunJob.setDIRACPlatform()
+gaudirunJob.setCPUTime( 172800 )
+gaudirunJob.setTag( ['MultiCore'] )
+
+result = dirac.submit( gaudirunJob )
+gLogger.info( 'Submission Result: ', result )
+
+########################################################################################
+
 gLogger.info( "\n Submitting gaudiRun job (Boole only)" )
 
 gaudirunJob = LHCbJob()
