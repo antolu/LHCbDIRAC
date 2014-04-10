@@ -10,8 +10,9 @@
 __RCSID__ = "$Id:  $"
 
 from DIRAC.Core.Base import Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript,printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult
 import DIRAC
+import os
 
 if __name__ == "__main__":
 
@@ -28,14 +29,19 @@ if __name__ == "__main__":
 
   Script.parseCommandLine( ignoreErrors = True )
   args = Script.getPositionalArgs()
+  jobidList = []
   for jobid in args:
-    bkScript.setJobidsFromFile( jobid )
-  jobidList = bkScript.getOption( 'JobIDs', [] )
+    if os.path.exists( jobid ):
+      bkScript.setJobidsFromFile( jobid )
+    else:
+      jobidList.append( jobid )
+  jobidList += bkScript.getOption( 'JobIDs', [] )
   if not jobidList:
+    print "No jobID provided!"
     Script.showHelp()
     DIRAC.exit( 0 )
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-  retVal = BookkeepingClient().getJobInputOutputFiles( jobidList)
+  retVal = BookkeepingClient().getJobInputOutputFiles( jobidList )
   if retVal['OK']:
     printDMResult( retVal, empty = "File does not exists in the Bookkeeping" )
