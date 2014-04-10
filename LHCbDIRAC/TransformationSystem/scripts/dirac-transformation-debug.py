@@ -244,13 +244,14 @@ def __checkFilesMissingInFC( transFilesList, status, fixIt ):
           else:
             print "All files are really missing in LFC and BK"
 
-def __getReplicas( transType, lfns ):
+def __getReplicas( lfns ):
   replicas = {}
-  if transType in dmTransTypes:
-    for lfnChunk in breakListIntoChunks( lfns, 200 ):
-      res = dm.getReplicas( lfnChunk )
-      if res['OK']:
-        replicas.update( res['Value']['Successful'] )
+  for lfnChunk in breakListIntoChunks( lfns, 200 ):
+    res = rm.getReplicas( lfnChunk )
+    if res['OK']:
+      replicas.update( res['Value']['Successful'] )
+    else:
+      print "Error getting replicas", res['Message']
   return replicas
 
 def __getTask( transID, taskID ):
@@ -309,6 +310,12 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
   requestID = int( task['ExternalID'] )
   client, requestName = __getRequestClient( requestID )
   if not client:
+    if not kickRequests:
+      print "%d files can be reset Unused, use --KickRequest"
+    else:
+      res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnsInTask, force = True )
+      if res['OK']:
+        print "\tTask was not found: %d files were reset Unused" % len( lfnsInTask )
     return 0
   if isinstance( client, RequestClient ):
     if cleanOld:
@@ -359,6 +366,9 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
       requestStatus = request.Status if request.RequestName not in assignedRequests else 'Assigned'
       if requestStatus != task['ExternalStatus']:
         print '\tRequest status:', requestStatus, 'updated last', request.LastUpdate
+    else:
+      print "Failed to peek request:", res['Message']
+      requestStatus = 'Unknown'
   else:
     requestStatus = task['ExternalStatus']
     request = None
@@ -1289,7 +1299,7 @@ if __name__ == "__main__":
 
       # Problematic files
       if problematicFiles:
-        __checkReplicasForProblematic( problematicFiles, __getReplicas( transType, problematicFiles ) )
+        __checkReplicasForProblematic( problematicFiles, __getReplicas( problematicFiles ) )
 
       # Check files with missing LFC
       if status:
@@ -1318,7 +1328,10 @@ if __name__ == "__main__":
             continue
         nfiles = len( lfnsInTask )
         allFiles += lfnsInTask
-        replicas = __getReplicas( transType, lfnsInTask )
+        if transType in dmTransTypes:
+          replicas = __getReplicas( lfnsInTask )
+        else:
+          replicas = {}
         targetSE = task.get( 'TargetSE', None )
         # Accounting per SE
         listSEs = targetSE.split( ',' )
