@@ -33,6 +33,10 @@ __RCSID__ = "$Id$"
 
 AGENT_NAME = "DataManagement/StorageUsageAgent"
 
+def removeProxy( proxyFile ):
+  if os.path.exists( proxyFile ):
+    os.remove( proxyFile )
+
 class StorageUsageAgent( AgentModule ):
   ''' .. class:: StorageUsageAgent
 
@@ -67,7 +71,7 @@ class StorageUsageAgent( AgentModule ):
     self.activePeriod = self.am_getOption( 'ActivePeriod', self.activePeriod )
     self.dataLock = threading.Lock()
     self.replicaListLock = threading.Lock()
-    self.proxyCache = DictCache()
+    self.proxyCache = DictCache( removeProxy )
     self.__noProxy = set()
 
   def initialize( self ):
@@ -319,9 +323,9 @@ class StorageUsageAgent( AgentModule ):
     cacheKey = ( ownerDN, ownerRole )
     if cacheKey in self.__noProxy:
       return S_ERROR( "Proxy not available" )
-    userProxy = self.proxyCache.get( cacheKey, 3600 )
-    if userProxy:
-      return S_OK( userProxy )
+    upFile = self.proxyCache.get( cacheKey, 3600 )
+    if upFile and os.path.exists( upFile ):
+      return S_OK( upFile )
     downErrors = []
     for ownerGroup in Registry.getGroupsWithVOMSAttribute( ownerRole ):
       result = gProxyManager.downloadVOMSProxy( ownerDN, ownerGroup, limited = True,
@@ -331,18 +335,22 @@ class StorageUsageAgent( AgentModule ):
         continue
       userProxy = result[ 'Value' ]
       secsLeft = max( 0, userProxy.getRemainingSecs()[ 'Value' ] )
-      self.proxyCache.add( cacheKey, secsLeft, userProxy )
+      upFile = userProxy.dumpAllToFile()
+      if upFile['OK']:
+        upFile = upFile['Value']
+      else:
+        return result
+      self.proxyCache.add( cacheKey, secsLeft, upFile )
       self.log.verbose( "Got proxy for %s@%s [%s]" % ( ownerDN, ownerGroup, ownerRole ) )
-      return S_OK( userProxy )
+      return S_OK( upFile )
     self.__noProxy.add( cacheKey )
-    return S_ERROR( "Could not download user proxy:\n%s " % "\n ".join( downErrors ) )
+    return S_ERROR( "Could not download proxy for user (%s, %s):\n%s " % ( ownerDN, ownerRole, "\n ".join( downErrors ) ) )
 
   def removeEmptyDir( self, dirPath ):
     ''' unlink empty folder :dirPath: '''
     if len( List.fromChar( dirPath, "/" ) ) <= self.__keepDirLevels:
       return S_OK()
 
-    self.log.notice( "Deleting empty directory %s" % dirPath )
     res = self.storageUsage.removeDirectory( dirPath )
     if not res['OK']:
       self.log.error( "Failed to remove empty directory from Storage Usage database.", res[ 'Message' ] )
@@ -350,13 +358,11 @@ class StorageUsageAgent( AgentModule ):
 
     result = self.__getOwnerProxy( dirPath )
     if not result[ 'OK' ]:
-      self.log.error( result[ 'Message' ] )
+      if 'Proxy not available' not in result['Message']:
+        self.log.error( result[ 'Message' ] )
       return result
 
-    userProxy = result[ 'Value' ]
-    result = userProxy.dumpAllToFile()
-    if not result[ 'OK' ]:
-      return result
+    self.log.notice( "Deleting empty directory %s" % dirPath )
     upFile = result[ 'Value' ]
     prevProxyEnv = os.environ[ 'X509_USER_PROXY' ]
     os.environ[ 'X509_USER_PROXY' ] = upFile
@@ -371,7 +377,6 @@ class StorageUsageAgent( AgentModule ):
       return S_OK()
     finally:
       os.environ[ 'X509_USER_PROXY' ] = prevProxyEnv
-      os.unlink( upFile )
 
   def __addDirToPublishQueue( self, dirName, dirData ):
     ''' enqueue :dirName: and :dirData: for publishing '''
