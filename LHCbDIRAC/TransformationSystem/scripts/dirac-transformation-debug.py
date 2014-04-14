@@ -540,7 +540,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
     if filesToRemove:
       prString += ' %d files have no correct replica.' % len( filesToRemove )
     if replicasToRemove:
-      prString += ' %d files have no correct replica' % len( replicasToRemove )
+      prString += ' %d files have at least an incorrect replica' % len( replicasToRemove )
     if not fixIt:
       prString += ' Use --FixIt to remove them'
     else:
