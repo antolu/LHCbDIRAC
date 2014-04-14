@@ -840,6 +840,7 @@ function insertJobsRow (
   jid       number;
   configId  number;
   existInDB  number;
+  isRun number;
   ecode    Varchar2(256);
   begin
     configId := 0;
@@ -915,9 +916,16 @@ function insertJobsRow (
   EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
     jid:=0;
-    select j.jobid into jid from jobs j where j.runnumber=v_runNumber and j.production<0;
-    if jid = 0 then
-       ecode:= SQLERRM;
+    isRun:=0;
+    select count(*) into isRun from jobs j where j.runnumber=v_runNumber and j.production<0;
+    if isRun=1 then
+      select j.jobid into jid from jobs j where j.runnumber=v_runNumber and j.production<0;
+    ELSE 
+       select j.jobid into jid from jobs j where j.name=v_Name and j.production=v_Production;
+    END IF;
+   
+    if jid=0 THEN
+      ecode:= SQLERRM;
       raise_application_error(ecode, 'It is not a run!');
     else
        update jobs set ConfigurationId=configId,

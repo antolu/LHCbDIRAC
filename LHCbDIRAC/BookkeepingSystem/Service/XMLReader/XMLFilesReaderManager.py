@@ -118,12 +118,7 @@ class XMLFilesReaderManager:
     outputFiles = job.getJobOutputFiles()
     dqvalue = None
     for outputfile in outputFiles:
-      name = outputfile.getFileName()
-      result = dataManager_.checkfile(name)
-      if result['OK'] and not job.exists('RunNumber'):
-        errorMessage = "The file %s is already exists." % name
-        return S_OK(errorMessage)
-
+      
       typeName = outputfile.getFileType()
       typeVersion = outputfile.getFileVersion()
       cahedTypeNameVersion = typeName+'<<'+typeVersion
