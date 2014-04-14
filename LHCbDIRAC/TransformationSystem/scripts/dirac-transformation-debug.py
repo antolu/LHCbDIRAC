@@ -472,7 +472,8 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
         for lfn in res['Value']['Successful']:
           existingReplicas.setdefault( lfn, [] ).append( se )
           # Compare checksums
-          if not compareAdler( res['Value']['Successful'][lfn]['Checksum'], lfnCheckSum[lfn] ):
+          checkSum = res['Value']['Successful'][lfn]['Checksum']
+          if not checkSum or not compareAdler( checkSum, lfnCheckSum[lfn] ):
             badChecksum.setdefault( lfn, [] ).append( se )
   nbProblematic = len( lfns ) - len( existingReplicas )
   nbExistingReplicas = {}
