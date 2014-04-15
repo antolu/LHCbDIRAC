@@ -60,19 +60,19 @@ class SendBookkeeping( ModuleBase ):
 
       # Unfortunately we depend on the file names to order the BK records
       bkFiles.sort()
-      self.log.info( 'The following BK files will be sent: %s' % ( ', '.join( bkFiles ) ) )
+      self.log.info( "The following BK files will be sent: %s" % ( ', '.join( bkFiles ) ) )
 
       for bkFile in bkFiles:
         fopen = open( bkFile, 'r' )
         bkXML = fopen.read()
         fopen.close()
-        self.log.verbose( 'Sending BK record %s:\n%s' % ( bkFile, bkXML ) )
+        self.log.verbose( "Sending BK record %s:\n%s" % ( bkFile, bkXML ) )
         result = self.bkClient.sendXMLBookkeepingReport( bkXML )
         self.log.verbose( result )
         if result['OK']:
-          self.log.info( 'Bookkeeping report sent for %s' % bkFile )
+          self.log.info( "Bookkeeping report sent for %s" % bkFile )
         else:
-          self.log.error( 'Could not send Bookkeeping XML file to server, preparing DISET request for', bkFile )
+          self.log.error( "Could not send Bookkeeping XML file to server, preparing DISET request for", bkFile )
           self.setBKRegistrationRequest( bkFile )
           self.workflow_commons['Request'] = self.request
 

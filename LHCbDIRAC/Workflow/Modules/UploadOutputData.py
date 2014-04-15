@@ -177,7 +177,7 @@ class UploadOutputData( ModuleBase ):
                                                                 fileMetaDict = fileMetaDict,
                                                                 fileCatalog = self.fileCatalog )
         if not result['OK']:
-          self.log.error( 'Could not transfer and register %s with metadata:\n %s' % ( fileName, metadata ) )
+          self.log.error( "Could not transfer and register %s with metadata:\n %s" % ( fileName, metadata ) )
           failover[fileName] = metadata
         else:
           self.log.info( "%s uploaded, will be registered in BK if all files uploaded for job" % fileName )
@@ -237,27 +237,27 @@ class UploadOutputData( ModuleBase ):
           self.log.error( "Input files for this job were marked as processed during the upload. Cleaning up..." )
           self._cleanUp( lfns )
           self.workflow_commons['Request'] = self.request
-          return S_ERROR( 'Input Data Already Processed' )
+          return S_ERROR( "Input Data Already Processed" )
 
       # Finally can send the BK records for the steps of the job
       bkFileExtensions = ['bookkeeping*.xml']
       bkFiles = []
       for ext in bkFileExtensions:
-        self.log.debug( 'Looking at BK record wildcard: %s' % ext )
+        self.log.debug( "Looking at BK record wildcard: %s" % ext )
         globList = glob.glob( ext )
         for check in globList:
           if os.path.isfile( check ):
-            self.log.verbose( 'Found locally existing BK file record: %s' % check )
+            self.log.verbose( "Found locally existing BK file record: %s" % check )
             bkFiles.append( check )
 
       # Unfortunately we depend on the file names to order the BK records
       bkFiles.sort()
-      self.log.info( 'The following BK records will be sent: %s' % ( ', '.join( bkFiles ) ) )
+      self.log.info( "The following BK records will be sent: %s" % ( ', '.join( bkFiles ) ) )
       for bkFile in bkFiles:
         fopen = open( bkFile, 'r' )
         bkXML = fopen.read()
         fopen.close()
-        self.log.info( 'Sending BK record:\n%s' % ( bkXML ) )
+        self.log.info( "Sending BK record:\n%s" % ( bkXML ) )
         result = self.bkClient.sendXMLBookkeepingReport( bkXML )
         self.log.verbose( result )
         if result['OK']:
@@ -279,7 +279,7 @@ class UploadOutputData( ModuleBase ):
         self.log.verbose( result )
         if not result['OK']:
           self.log.error( result )
-          return S_ERROR( 'Could Not Perform BK Registration' )
+          return S_ERROR( "Could Not Perform BK Registration" )
         if result['Value']['Failed']:
           for lfn, error in result['Value']['Failed'].items():
             lfnMetadata = {}
@@ -291,7 +291,7 @@ class UploadOutputData( ModuleBase ):
 
       self.workflow_commons['Request'] = self.request
 
-      return S_OK( 'Output data uploaded' )
+      return S_OK( "Output data uploaded" )
 
     except Exception, e:
       self.log.exception( e )

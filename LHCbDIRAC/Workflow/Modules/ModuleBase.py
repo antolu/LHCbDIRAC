@@ -849,6 +849,7 @@ class ModuleBase( object ):
     regFile = Operation()
     regFile.Type = 'RegisterFile'
     regFile.Catalog = 'BookkeepingDB'
+
     bkFile = File()
     bkFile.LFN = lfn
     # FIXME: this should NOT be needed... but RMS complains!
