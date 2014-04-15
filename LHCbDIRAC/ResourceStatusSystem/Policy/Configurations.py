@@ -163,82 +163,82 @@ policies = {
                                     'args': ( None, ['ftschn', 'ftsinfo'] ) }},
                           ]
      },
-  'JobsEfficiencySimple' :
-    { 
-      'description'     : 'Simple jobs efficiency',
-      'module'          : 'JobsEfficiencySimplePolicy',
-      'commandInNewRes' : ( 'JobsCommand', 'JobsEffSimpleCommand' ),
-      'command'         : ( 'JobsCommand', 'JobsEffSimpleCachedCommand' ),
-      'args'            : None,
-      
-      'Service_Computing_Panel' : [ {'FillChart - Successfull Jobs in the last 24 hours':
-                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
-                                      'args':( 'Job', 'SuccessfullJobsBySiteSplitted_24' ),
-                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                                      'argsNewRes': ( 'Job', 'NumberOfJobs',
-                                                     {'Format': 'LastHours', 'hours': 24},
-                                                     'Site', {'FinalMajorStatus':'Done'} )}},
-                                    {'FillChart - Failed Jobs in the last 24 hours':
-                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
-                                      'args':( 'Job', 'FailedJobsBySiteSplitted_24' ),
-                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                                      'argsNewRes': ( 'Job', 'NumberOfJobs',
-                                                     {'Format': 'LastHours', 'hours': 24},
-                                                     'Site', {'FinalMajorStatus':'Failed'} )}},
-                                    {'FillChart - Running Jobs in the last 24 hours':
-                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
-                                      'args':( 'Job', 'RunningJobsBySiteSplitted_24' ),
-                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                                      'argsNewRes': ( 'WMSHistory', 'NumberOfJobs',
-                                                     {'Format': 'LastHours', 'hours': 24},
-                                                     'Site', {} )}},
-                                    {'FillChart - Running Jobs in the last week':
-                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
-                                      'args':( 'Job', 'RunningJobsBySiteSplitted_168' ),
-                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                                      'argsNewRes': ( 'WMSHistory', 'NumberOfJobs',
-                                                     {'Format': 'LastHours', 'hours': 168},
-                                                     'Site', {} )}},
-                                    {'FillChart - Running Jobs in the last month':
-                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
-                                      'args':( 'Job', 'RunningJobsBySiteSplitted_720' ),
-                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                                      'argsNewRes': ( 'WMSHistory', 'NumberOfJobs',
-                                                     {'Format': 'LastHours', 'hours': 720},
-                                                               'Site', {} )}},
-                                    {'FillChart - Running Jobs in the last year':
-                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
-                                      'args':( 'Job', 'RunningJobsBySiteSplitted_8760' ),
-                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                                      'argsNewRes': ( 'WMSHistory', 'NumberOfJobs',
-                                                     {'Format': 'LastHours', 'hours': 8760},
-                                                     'Site', {} )}}
-                                    ]
-   },
-  'PilotsEfficiencySimple_Service' :
-    { 
-      'description'     : 'Simple pilots efficiency',
-      'module'          : 'PilotsEfficiencySimplePolicy',
-      'commandInNewRes' : ( 'PilotsCommand', 'PilotsEffSimpleCommand' ),
-      'command'         : ( 'PilotsCommand', 'PilotsEffSimpleCachedCommand' ),
-      'args'            : None,
-      
-      'Service_Computing_Panel' : [ {'FillChart - Successfull pilots in the last 24 hours':
-                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
-                                      'args': ( 'Pilot', 'SuccessfullPilotsBySiteSplitted_24' ),
-                                      'CommandInNewRes' : ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                                      'argsNewRes': ( 'Pilot', 'NumberOfPilots',
-                                                     {'Format': 'LastHours', 'hours': 24},
-                                                     'Site', {'GridStatus':'Done'} )}},
-                                    {'FillChart - Aborted pilots in the last 24 hours':
-                                     {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotsCommand' ),
-                                      'args': ( 'Pilot', 'FailedPilotsBySiteSplitted_24' ),
-                                      'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                                      'argsNewRes': ( 'Pilot', 'NumberOfPilots',
-                                                     {'Format': 'LastHours', 'hours': 24},
-                                                     'Site', {'GridStatus':'Aborted'} )}},
-                                    ]
-     },
+#   'JobsEfficiencySimple' :
+#     {
+#       'description'     : 'Simple jobs efficiency',
+#       'module'          : 'JobsEfficiencySimplePolicy',
+#       'commandInNewRes' : ( 'JobsCommand', 'JobsEffSimpleCommand' ),
+#       'command'         : ( 'JobsCommand', 'JobsEffSimpleCachedCommand' ),
+#       'args'            : None,
+#
+#       'Service_Computing_Panel' : [ {'FillChart - Successfull Jobs in the last 24 hours':
+#                                      {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+#                                       'args':( 'Job', 'SuccessfullJobsBySiteSplitted_24' ),
+#                                       'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+#                                       'argsNewRes': ( 'Job', 'NumberOfJobs',
+#                                                      {'Format': 'LastHours', 'hours': 24},
+#                                                      'Site', {'FinalMajorStatus':'Done'} )}},
+#                                     {'FillChart - Failed Jobs in the last 24 hours':
+#                                      {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+#                                       'args':( 'Job', 'FailedJobsBySiteSplitted_24' ),
+#                                       'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+#                                       'argsNewRes': ( 'Job', 'NumberOfJobs',
+#                                                      {'Format': 'LastHours', 'hours': 24},
+#                                                      'Site', {'FinalMajorStatus':'Failed'} )}},
+#                                     {'FillChart - Running Jobs in the last 24 hours':
+#                                      {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+#                                       'args':( 'Job', 'RunningJobsBySiteSplitted_24' ),
+#                                       'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+#                                       'argsNewRes': ( 'WMSHistory', 'NumberOfJobs',
+#                                                      {'Format': 'LastHours', 'hours': 24},
+#                                                      'Site', {} )}},
+#                                     {'FillChart - Running Jobs in the last week':
+#                                      {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+#                                       'args':( 'Job', 'RunningJobsBySiteSplitted_168' ),
+#                                       'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+#                                       'argsNewRes': ( 'WMSHistory', 'NumberOfJobs',
+#                                                      {'Format': 'LastHours', 'hours': 168},
+#                                                      'Site', {} )}},
+#                                     {'FillChart - Running Jobs in the last month':
+#                                      {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+#                                       'args':( 'Job', 'RunningJobsBySiteSplitted_720' ),
+#                                       'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+#                                       'argsNewRes': ( 'WMSHistory', 'NumberOfJobs',
+#                                                      {'Format': 'LastHours', 'hours': 720},
+#                                                                'Site', {} )}},
+#                                     {'FillChart - Running Jobs in the last year':
+#                                      {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+#                                       'args':( 'Job', 'RunningJobsBySiteSplitted_8760' ),
+#                                       'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+#                                       'argsNewRes': ( 'WMSHistory', 'NumberOfJobs',
+#                                                      {'Format': 'LastHours', 'hours': 8760},
+#                                                      'Site', {} )}}
+#                                     ]
+#    },
+#   'PilotsEfficiencySimple_Service' :
+#     {
+#       'description'     : 'Simple pilots efficiency',
+#       'module'          : 'PilotsEfficiencySimplePolicy',
+#       'commandInNewRes' : ( 'PilotsCommand', 'PilotsEffSimpleCommand' ),
+#       'command'         : ( 'PilotsCommand', 'PilotsEffSimpleCachedCommand' ),
+#       'args'            : None,
+#
+#       'Service_Computing_Panel' : [ {'FillChart - Successfull pilots in the last 24 hours':
+#                                      {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+#                                       'args': ( 'Pilot', 'SuccessfullPilotsBySiteSplitted_24' ),
+#                                       'CommandInNewRes' : ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+#                                       'argsNewRes': ( 'Pilot', 'NumberOfPilots',
+#                                                      {'Format': 'LastHours', 'hours': 24},
+#                                                      'Site', {'GridStatus':'Done'} )}},
+#                                     {'FillChart - Aborted pilots in the last 24 hours':
+#                                      {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotsCommand' ),
+#                                       'args': ( 'Pilot', 'FailedPilotsBySiteSplitted_24' ),
+#                                       'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+#                                       'argsNewRes': ( 'Pilot', 'NumberOfPilots',
+#                                                      {'Format': 'LastHours', 'hours': 24},
+#                                                      'Site', {'GridStatus':'Aborted'} )}},
+#                                     ]
+#      },
   'PilotsEfficiencySimple_Resource' :
     { 
       'description' : 'Simple pilots efficiency',
@@ -262,57 +262,57 @@ policies = {
                                              'GridCE', {'GridStatus':'Aborted'} )}},
                           ]
      },
-  'OnSitePropagation' :
-    { 
-      'description' : 'How the site\'s services are behaving in the RSS',
-      'module'      : 'PropagationPolicy',
-      'command'     : ( 'RSCommand', 'ServiceStatsCommand' ),
-      'args'        : ( 'Service', ),
-      
-      'Site_Panel' : [ { 'RSS' : 'ServiceOfSite' } ]
-     },
-  'OnComputingServicePropagation' :
-    { 
-      'description' : 'How the service\'s computing resources are behaving in the RSS',
-      'module'      : 'PropagationPolicy',
-      'command'     : ( 'RSCommand', 'ResourceStatsCommand' ),
-      'args'        : ( 'Resource', ),
-      
-      'Service_Computing_Panel' : [ { 'RSS' : 'ResOfCompService' } ]
-     },
-  'OnStorageServicePropagation_Res' :
-    { 
-      'description' : 'How the service\'s storage nodes are behaving in the RSS',
-      'module'      : 'PropagationPolicy',
-      'command'     : ( 'RSCommand', 'ResourceStatsCommand' ),
-      'args'        : ( 'Resource', ),
-      
-      'Service_Storage_Panel' : [ { 'RSS' : 'ResOfStorService' } ]
-     },
-  'OnStorageServicePropagation_SE' :
-    { 
-      'description' : 'How the service\'s storage elements are behaving in the RSS',
-      'module'      : 'PropagationPolicy',
-      'command'     : ( 'RSCommand', 'StorageElementsStatsCommand' ),
-      'args'        : ( 'StorageElement', ),
-      
-      'Service_Storage_Panel' : [ { 'RSS' : 'StorageElementsOfSite' },
-                                  {'Chart - Transfer quality in the last 24 hours, incoming.':
-                                  {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
-                                   'args': ( 'Pilot', 'TransferQualityByDestSplittedSite_24' ),
-                                   'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                                   'argsNewRes': ( 'DataOperation', 'Quality',
-                                                  {'Format': 'LastHours', 'hours': 24},
-                                                  'Destination', {'OperationType':'putAndRegister'} )}},
-                                  {'Chart - Transfer quality in the last 24 hours, outgoing.':
-                                  {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
-                                   'args': ( 'Pilot', 'TransferQualityBySourceSplittedSite_24' ),
-                                   'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                                   'argsNewRes': ( 'DataOperation', 'Quality',
-                                                  {'Format': 'LastHours', 'hours': 24},
-                                                  'Source', {'OperationType':'putAndRegister'} )}},
-                                 ]
-     },
+#   'OnSitePropagation' :
+#     {
+#       'description' : 'How the site\'s services are behaving in the RSS',
+#       'module'      : 'PropagationPolicy',
+#       'command'     : ( 'RSCommand', 'ServiceStatsCommand' ),
+#       'args'        : ( 'Service', ),
+#
+#       'Site_Panel' : [ { 'RSS' : 'ServiceOfSite' } ]
+#      },
+#   'OnComputingServicePropagation' :
+#     {
+#       'description' : 'How the service\'s computing resources are behaving in the RSS',
+#       'module'      : 'PropagationPolicy',
+#       'command'     : ( 'RSCommand', 'ResourceStatsCommand' ),
+#       'args'        : ( 'Resource', ),
+#
+#       'Service_Computing_Panel' : [ { 'RSS' : 'ResOfCompService' } ]
+#      },
+#   'OnStorageServicePropagation_Res' :
+#     {
+#       'description' : 'How the service\'s storage nodes are behaving in the RSS',
+#       'module'      : 'PropagationPolicy',
+#       'command'     : ( 'RSCommand', 'ResourceStatsCommand' ),
+#       'args'        : ( 'Resource', ),
+#
+#       'Service_Storage_Panel' : [ { 'RSS' : 'ResOfStorService' } ]
+#      },
+#   'OnStorageServicePropagation_SE' :
+#     {
+#       'description' : 'How the service\'s storage elements are behaving in the RSS',
+#       'module'      : 'PropagationPolicy',
+#       'command'     : ( 'RSCommand', 'StorageElementsStatsCommand' ),
+#       'args'        : ( 'StorageElement', ),
+#
+#       'Service_Storage_Panel' : [ { 'RSS' : 'StorageElementsOfSite' },
+#                                   {'Chart - Transfer quality in the last 24 hours, incoming.':
+#                                   {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+#                                    'args': ( 'Pilot', 'TransferQualityByDestSplittedSite_24' ),
+#                                    'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+#                                    'argsNewRes': ( 'DataOperation', 'Quality',
+#                                                   {'Format': 'LastHours', 'hours': 24},
+#                                                   'Destination', {'OperationType':'putAndRegister'} )}},
+#                                   {'Chart - Transfer quality in the last 24 hours, outgoing.':
+#                                   {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+#                                    'args': ( 'Pilot', 'TransferQualityBySourceSplittedSite_24' ),
+#                                    'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+#                                    'argsNewRes': ( 'DataOperation', 'Quality',
+#                                                   {'Format': 'LastHours', 'hours': 24},
+#                                                   'Source', {'OperationType':'putAndRegister'} )}},
+#                                  ]
+#      },
   'VOBOX-SLS' :
     { 
       'description' : 'How the VO-Box is behaving in the SLS',
