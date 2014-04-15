@@ -1,5 +1,5 @@
-''' LHCbDIRAC.TransformationSystem.Service package
-'''
+""" LHCbDIRAC.TransformationSystem.Service package
+"""
 
 __RCSID__  = '$Id$'
 

@@ -16,10 +16,10 @@ def __getTransformations( args ):
       for transID in ids:
           r = transID.split( ':' )
           if len( r ) > 1:
-              for i in range( int( r[0] ), int( r[1] ) + 1 ):
-                  transList.append( i )
+            for i in range( int( r[0] ), int( r[1] ) + 1 ):
+              transList.append( i )
           else:
-              transList.append( int( r[0] ) )
+            transList.append( int( r[0] ) )
   return transList
 
 if __name__ == "__main__":
@@ -29,7 +29,6 @@ if __name__ == "__main__":
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
   from LHCbDIRAC.TransformationSystem.Client.Utilities   import addFilesToTransformation
-  import time
 
   dmScript = DMScript()
   dmScript.registerFileSwitches()

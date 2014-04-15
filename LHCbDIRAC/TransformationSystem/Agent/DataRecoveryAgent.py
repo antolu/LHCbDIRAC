@@ -19,6 +19,8 @@
     - Mark the recovered input file status as 'Unused' in the ProductionDB
 """
 
+__RCSID__ = '$Id:  $'
+
 import datetime
 
 from DIRAC                                                       import S_OK, S_ERROR
@@ -268,7 +270,8 @@ class DataRecoveryAgent( AgentModule ):
       jobInputData = [lfn.replace( 'LFN:', '' ) for lfn in jobInputData.split( ';' )]
 
       if not int( wmsID ):
-        self.log.verbose( 'Prod job %s status is %s (ID = %s) so will not recheck with WMS' % ( job, wmsStatus, wmsID ) )
+        self.log.verbose( 'Prod job %s status is %s (ID = %s) so will not recheck with WMS' % ( job,
+                                                                                                wmsStatus, wmsID ) )
         continue
 
       self.log.info( 'Job %s, prod job %s last update %s, production management system status %s' % ( wmsID,

@@ -7,7 +7,6 @@ import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
 
-import re, time, types, string, signal, sys, os, cmd
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 
@@ -15,7 +14,8 @@ if __name__ == "__main__":
 
   dmScript = DMScript()
   dmScript.registerFileSwitches()
-  statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset", "Processed", "NotProcessed", "Removed", 'ProbInFC' )
+  statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset",
+                 "Processed", "NotProcessed", "Removed", 'ProbInFC' )
   Script.registerSwitch( '', 'Status=', "Select files with a given status from %s" % str( statusList ) )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -41,13 +41,13 @@ if __name__ == "__main__":
     ids = args[0].split( "," )
     idList = []
     try:
-      for id in ids:
-        r = id.split( ':' )
+      for id_o in ids:
+        r = id_o.split( ':' )
         if len( r ) > 1:
-            for i in range( int( r[0] ), int( r[1] ) + 1 ):
-                idList.append( i )
+          for i in range( int( r[0] ), int( r[1] ) + 1 ):
+            idList.append( i )
         else:
-            idList.append( int( r[0] ) )
+          idList.append( int( r[0] ) )
     except:
       print "Invalid set of transformationIDs..."
       DIRAC.exit( 1 )
@@ -84,7 +84,8 @@ if __name__ == "__main__":
       resetFiles = 0
       failed = {}
       for lfnChunk in breakListIntoChunks( lfns, 10000 ):
-        res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnChunk, force = ( status == 'MaxReset' or status == 'Processed' ) or lfnsExplicit )
+        res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnChunk,
+                                             force = ( status == 'MaxReset' or status == 'Processed' ) or lfnsExplicit )
         if res['OK']:
           resetFiles += len( res['Value'].get( 'Successful', res['Value'] ) )
           for lfn, reason in res['Value'].get( 'Failed', {} ).items():

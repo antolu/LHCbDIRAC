@@ -4,8 +4,7 @@
 
 
 # imports
-import sys, os, time
-import DIRAC
+import time
 from DIRAC import gLogger
 # Code
 def removeFile( lfns ):

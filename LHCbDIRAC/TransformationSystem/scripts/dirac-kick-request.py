@@ -3,7 +3,6 @@
     Script for resetting Waiting old Assigned requests
     """
 from DIRAC.Core.Base import Script
-import DIRAC
 
 requestType = ''
 kickRequests = False
@@ -16,6 +15,11 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] --RequestType <type>' % Script.scriptName, ] ) )
 Script.parseCommandLine( ignoreErrors = True )
+
+import DIRAC
+from DIRAC.RequestManagementSystem.Client.RequestClient             import RequestClient
+requestClient = RequestClient()
+
 switches = Script.getUnprocessedSwitches()
 for switch in switches:
   if switch[0] == 'RequestType':
@@ -30,12 +34,7 @@ if not requestType:
   Script.showHelp()
   DIRAC.exit( 0 )
 
-from DIRAC.RequestManagementSystem.Client.RequestClient             import RequestClient
-from DIRAC import S_OK
 
-requestClient = RequestClient()
-
-import sys
 import datetime
 now = datetime.datetime.utcnow()
 timeLimit = now - datetime.timedelta( hours = delay )

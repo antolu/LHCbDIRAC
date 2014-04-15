@@ -185,7 +185,8 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
           result = self.transClient.addFilesToTransformation( transID, sorted( lfnList ) )
           runDict = {}
           if not result['OK']:
-            self._logWarn( "Failed to add %d lfns to transformation" % len( lfnList ), result['Message'], transID = transID )
+            self._logWarn( "Failed to add %d lfns to transformation" % len( lfnList ), result['Message'],
+                           transID = transID )
           else:
             _printFailed = [self._logWarn( "Failed to add %s to transformation\
             " % lfn, error, transID = transID ) for ( lfn, error ) in result['Value']['Failed'].items()]
@@ -261,7 +262,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     result = self.bkClient.getFiles( bkQuery )
     self._logVerbose( "BK query time: %.2f seconds." % ( time.time() - start ), transID = transID )
     if not result['OK']:
-      raise RuntimeError, result['Message']
+      raise RuntimeError( result['Message'] )
     else:
       self.timeLog[transID] = now
       if result['Value']:
@@ -274,18 +275,18 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     """
     runsInCache = self.transClient.getRunsInCache( {'Name':['TCK', 'CondDb', 'DDDB']} )
     if not runsInCache['OK']:
-      raise RuntimeError, runsInCache['Message']
+      raise RuntimeError( runsInCache['Message'] )
     newRuns = list( set( runsList ) - set( runsInCache['Value'] ) )
     if newRuns:
       self._logVerbose( "Associating run metadata to %d runs" % len( newRuns ), transID = transID )
       res = self.bkClient.getRunInformation( {'RunNumber':newRuns, 'Fields':['TCK', 'CondDb', 'DDDB']} )
       if not res['OK']:
-        raise RuntimeError, res['Message']
+        raise RuntimeError( res['Message'] )
       else:
         for run, runMeta in res['Value'].items():
           res = self.transClient.addRunsMetadata( run, runMeta )
           if not res['OK']:
-            raise RuntimeError, res['Message']
+            raise RuntimeError( res['Message'] )
 
   def finalize( self ):
     """ Gracious finalization

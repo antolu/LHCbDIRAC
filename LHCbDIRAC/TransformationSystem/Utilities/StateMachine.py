@@ -1,3 +1,9 @@
+""" Transformation Files state machine (LHCb specific)
+"""
+
+__RCSID__ = '$Id$'
+
+
 from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine         import State
 from LHCbDIRAC.ProductionManagementSystem.Utilities.StateMachine  import LHCbStateMachine
 

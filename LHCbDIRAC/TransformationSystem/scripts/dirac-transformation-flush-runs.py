@@ -27,12 +27,12 @@ if __name__ == "__main__":
     ids = args[0].split( "," )
     idList = []
     for id in ids:
-        r = id.split( ':' )
-        if len( r ) > 1:
-            for i in range( int( r[0] ), int( r[1] ) + 1 ):
-                idList.append( i )
-        else:
-            idList.append( int( r[0] ) )
+      r = id.split( ':' )
+      if len( r ) > 1:
+        for i in range( int( r[0] ), int( r[1] ) + 1 ):
+          idList.append( i )
+      else:
+        idList.append( int( r[0] ) )
 
   from DIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
   transClient = TransformationClient()
@@ -70,8 +70,8 @@ if __name__ == "__main__":
       else:
         runFiles = res['Value']
         missing = 0
-        for file in runFiles:
-          if file['Status'] in ( 'Unused', 'Assigned', 'MaxReset' ):
+        for rFile in runFiles:
+          if rFile['Status'] in ( 'Unused', 'Assigned', 'MaxReset' ):
             missing += 1
         if not missing:
           toBeFlushed.append( run )

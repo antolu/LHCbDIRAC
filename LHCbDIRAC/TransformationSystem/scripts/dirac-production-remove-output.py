@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from DIRAC.Core.Base.Script import parseCommandLine
-import DIRAC
 parseCommandLine()
 __RCSID__ = "$Id$"
 
@@ -15,10 +14,10 @@ else:
     print 'Invalid list of productions'
     DIRAC.exit( 1 )
 
+import DIRAC
+from DIRAC                                                                import gLogger
 from LHCbDIRAC.TransformationSystem.Agent.TransformationCleaningAgent     import TransformationCleaningAgent
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-from DIRAC                                                                import gLogger
-import DIRAC
 
 agent = TransformationCleaningAgent( 'Transformation/TransformationCleaningAgent',
                                      'Transformation/TransformationCleaningAgent',

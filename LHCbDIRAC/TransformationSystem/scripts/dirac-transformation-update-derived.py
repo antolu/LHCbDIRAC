@@ -7,7 +7,6 @@ The argument is a list of productions: comma separated list of ranges (a range h
 
 __RCSID__ = "$Id$"
 
-import sys
 from DIRAC.Core.Base import Script
 
 
@@ -16,7 +15,10 @@ Script.setUsageMessage( '\n'.join( [ __doc__,
                                     '  %s [option|cfgfile] [prod1[:prod2][,prod3[:prod4]]' % Script.scriptName, ] ) )
 Script.registerSwitch( '', 'NoReset', "Don't reset the MaxRest files to unused (default is to reset)" )
 Script.parseCommandLine( ignoreErrors=True )
+
 import DIRAC
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
+transClient = TransformationClient()
 
 resetUnused = True
 switches = Script.getUnprocessedSwitches()
@@ -26,21 +28,19 @@ for switch in switches:
 args = Script.getPositionalArgs()
 
 if not len( args ):
-    print "Specify transformation number..."
-    DIRAC.exit( 0 )
+  print "Specify transformation number..."
+  DIRAC.exit( 0 )
 else:
-    ids = args[0].split( "," )
-    idList = []
-    for id in ids:
-        r = id.split( ':' )
-        if len( r ) > 1:
-            for i in range( int( r[0] ), int( r[1] ) + 1 ):
-                idList.append( i )
-        else:
-            idList.append( int( r[0] ) )
+  ids = args[0].split( "," )
+  idList = []
+  for transId in ids:
+    r = transId.split( ':' )
+    if len( r ) > 1:
+      for i in range( int( r[0] ), int( r[1] ) + 1 ):
+        idList.append( i )
+    else:
+      idList.append( int( r[0] ) )
 
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-transClient = TransformationClient()
 
 for prod in idList:
   res = transClient.getTransformation( prod, extraParams=True )

@@ -247,7 +247,7 @@ def __checkFilesMissingInFC( transFilesList, status, fixIt ):
 def __getReplicas( lfns ):
   replicas = {}
   for lfnChunk in breakListIntoChunks( lfns, 200 ):
-    res = rm.getReplicas( lfnChunk )
+    res = dm.getReplicas( lfnChunk )
     if res['OK']:
       replicas.update( res['Value']['Successful'] )
     else:

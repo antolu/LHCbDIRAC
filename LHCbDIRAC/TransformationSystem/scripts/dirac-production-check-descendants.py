@@ -98,7 +98,6 @@ if __name__ == '__main__':
       nMax = 20
     suffix = ''
     n = 0
-    import os
     while True:
       fileName = 'CheckDescendantsResults_%s%s.txt' % ( str( cc.prod ), suffix )
       if not os.path.exists( fileName ):
