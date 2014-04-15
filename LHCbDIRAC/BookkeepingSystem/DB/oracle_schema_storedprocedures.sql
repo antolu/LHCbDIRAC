@@ -840,7 +840,6 @@ function insertJobsRow (
   jid       number;
   configId  number;
   existInDB  number;
-  isRun number;
   ecode    Varchar2(256);
   begin
     configId := 0;
@@ -916,14 +915,12 @@ function insertJobsRow (
   EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
     jid:=0;
-    isRun:=0;
-    select count(*) into isRun from jobs j where j.runnumber=v_runNumber and j.production<0;
-    if isRun=1 then
+    if v_Production < 0 then
       select j.jobid into jid from jobs j where j.runnumber=v_runNumber and j.production<0;
     ELSE 
        select j.jobid into jid from jobs j where j.name=v_Name and j.production=v_Production;
     END IF;
-   
+
     if jid=0 THEN
       ecode:= SQLERRM;
       raise_application_error(ecode, 'It is not a run!');
@@ -952,7 +949,7 @@ function insertJobsRow (
          FillNumber=v_fillNumber,
          WNCPUHS06=v_WNCPUHS06,
          TotalLuminosity=v_totalLuminosity,
-         Tck=v_tck where runnumber=v_runNumber and production<0;
+         Tck=v_tck where jobid=jid;
       commit;
     return jid;
     END IF;
@@ -1056,6 +1053,9 @@ begin
                 v_FileId,
                 v_JobId);
   COMMIT;
+  EXCEPTION
+  WHEN DUP_VAL_ON_INDEX THEN
+    DBMS_OUTPUT.PUT_LINE('The input file of the job is added: '|| v_JobId);
   end;
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure updateReplicaRow(
