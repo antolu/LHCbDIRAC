@@ -720,7 +720,6 @@ class SEUsageAgent( AgentModule ):
     outputFile = os.path.join( self.workDirectory, site + ".UnresolvedPFNs.txt" )
     # this should be done with the replicaManager, but it does not work for archive files . tbu why
     # seName = site + '-RAW'
-    # res = self.replicaManager.getLfnForPfn( pfnFilePath, seName )
     sePath = self.siteConfig[ site ][ 'SAPath']
     lfn = 'None'
     try:
