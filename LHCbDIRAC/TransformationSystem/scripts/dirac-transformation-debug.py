@@ -341,16 +341,16 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
         print "\tTask is failed: %d files were reset Unused" % len( lfnsInTask )
     else:
       print "\tTask is failed: %d files could be reset Unused: use --KickRequests option" % len( lfnsInTask )
-  if taskCompleted and ( task['ExternalStatus'] not in ( 'Done', 'Failed' ) or status == 'Assigned' ):
+  if taskCompleted and ( task['ExternalStatus'] not in ( 'Done', 'Failed' ) or status in ( 'Assigned', 'Problematic' ) ):
     prString = "\tTask %s is completed: no %s replicas" % ( requestName, dmFileStatusComment )
     if kickRequests:
-      if requestName:
+      if isinstance( client, RequestClient ):
         res = client.setRequestStatus( requestName, 'Done' )
         if res['OK']:
           prString += ": request set to Done"
         else:
           prString += ": error setting request to Done (%s)" % res['Message']
-      res = transClient.setFileStatusForTransformation( transID, 'Processed', lfnsInTask )
+      res = transClient.setFileStatusForTransformation( transID, 'Processed', lfnsInTask, force = True )
       if res['OK']:
         prString += " - %d files set Processed" % len( lfnsInTask )
       else:
@@ -515,7 +515,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
         prString += '. Use --FixIt to fix it'
       else:
         for lfn in lfns:
-          res = transClient.setFileStatusForTransformation( transID, 'Unused', lfns )
+          res = transClient.setFileStatusForTransformation( transID, 'Unused', lfns, force = True )
           if res['OK']:
             prString += " - %d files reset Unused" % len( lfns )
       print prString
@@ -530,7 +530,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
     if fixIt:
       __removeFiles( filesInFCNotExisting )
   if badChecksum:
-    prString = '%d files have a checksum mismatch.' % len( badChecksum )
+    prString = '%d files have a checksum mismatch:' % len( badChecksum )
     replicasToRemove = {}
     filesToRemove = []
     for lfn in badChecksum:
@@ -539,7 +539,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
       else:
         replicasToRemove[lfn] = badChecksum[lfn]
     if filesToRemove:
-      prString += ' %d files have no correct replica.' % len( filesToRemove )
+      prString += ' %d files have no correct replica;' % len( filesToRemove )
     if replicasToRemove:
       prString += ' %d files have at least an incorrect replica' % len( replicasToRemove )
     if not fixIt:
@@ -945,6 +945,7 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
       else:
         metadata = res['Value']['Successful']
         runRAWFiles = set( [lfn for lfn, meta in metadata.items() if meta['EventType'] == 90000000 and meta['GotReplica'] == 'Yes'] )
+        badRAWFiles = set( [lfn for lfn, meta in metadata.items() if meta['EventType'] == 90000000] ) - runRAWFiles
         # print len( runRAWFiles ), 'RAW files'
         missingFiles = set()
         for paramValue in paramValues:
@@ -954,6 +955,7 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
         if missingFiles:
           print "Missing RAW files:\n\t%s" % '\n\t'.join( sorted( missingFiles ) )
         else:
+          print "Indeed %d RAW files have no replicas and therefore..." % len( badRAWFiles )
           rawFiles = len( runRAWFiles )
           toFlush = True
   if toFlush:
