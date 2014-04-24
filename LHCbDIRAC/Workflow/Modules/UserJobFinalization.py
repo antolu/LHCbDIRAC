@@ -203,9 +203,11 @@ class UserJobFinalization( ModuleBase ):
       for fileName, metadata in final.items():
         self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName,
                                                                                 ', '.join( metadata['resolvedSE'] ) ) )
-        fileMetaDict = { 'Size': metadata['filedict']['Size'],
-                         'LFN' : metadata['filedict']['LFN'],
-                         'GUID' : metadata['filedict']['GUID'] }
+        fileMetaDict = { 'Size'         : metadata['filedict']['Size'],
+                         'LFN'          : metadata['filedict']['LFN'],
+                         'GUID'         : metadata['filedict']['GUID'],
+                         'Checksum'     : metadata['filedict']['Checksum'],
+                         'ChecksumType' : metadata['filedict']['ChecksumType'] }
         result = self.failoverTransfer.transferAndRegisterFile( fileName = fileName,
                                                                 localPath = metadata['localpath'],
                                                                 lfn = metadata['filedict']['LFN'],

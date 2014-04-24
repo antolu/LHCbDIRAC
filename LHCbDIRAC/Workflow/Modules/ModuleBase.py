@@ -625,7 +625,7 @@ class ModuleBase( object ):
       fileDict['LFN'] = metadata['lfn']
       fileDict['Size'] = os.path.getsize( fileName )
       fileDict['Checksum'] = fileAdler( fileName )
-      fileDict['ChecksumType'] = 'adler32'
+      fileDict['ChecksumType'] = 'ADLER32'
       fileDict['GUID'] = metadata['guid']
       fileDict['Status'] = 'Waiting'
 
@@ -837,7 +837,7 @@ class ModuleBase( object ):
 
   def setBKRegistrationRequest( self, lfn, error = '',
                                 metaData = {'Checksum':'justSomething',
-                                            'ChecksumType': 'adler32',
+                                            'ChecksumType': 'ADLER32',
                                             'GUID': 'aGUID'} ):
     """ Set a BK registration request for changing the replica flag.  Uses the global request object.
     """

@@ -4,7 +4,7 @@
 
 __RCSID__ = "$Id$"
 
-import re, os, sys, time, multiprocessing
+import re, os, sys, multiprocessing
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess  import shellCall
