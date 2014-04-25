@@ -105,7 +105,6 @@ class AnalyseLogFile( ModuleBase ):
   def _finalizeWithErrors( self, subj ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
-
     self.workflow_commons['AnalyseLogFilePreviouslyFinalized'] = True
     # Have to check that the output list is defined in the workflow commons, this is
     # done by the first BK report module that executes at the end of a step but in

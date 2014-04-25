@@ -64,37 +64,36 @@ class AnalyseXMLSummary( ModuleBase ):
       # Resolve the step and job input data
 
       self.step_commons['XMLSummary_o'] = self.XMLSummary_o
+
+      failTheJob = False
       if self.XMLSummary_o.success == 'True' \
         and self.XMLSummary_o.step == 'finalize' \
         and self.XMLSummary_o._outputsOK() \
         and not self.XMLSummary_o.inputFileStats['mult'] \
         and not self.XMLSummary_o.inputFileStats['other']:
         # basic success, now check for failures in the input files
-        self._basicSuccess()
+        failTheJob = self._basicSuccess()
       else:
         # here fails!
+        failTheJob = True
+
+      if failTheJob:
         if self.workflow_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
-          self.log.info( 'AnalyseLogFile has already run for this workflow and finalized with sending an error email' )
+          self.log.info( "AnalyseLogFile has already run for this workflow and finalized with sending an error email" )
           return S_OK()
 
         self._finalizeWithErrors( "XMLSummary reports error" )
 
-        # return S_OK if the Step already failed to avoid overwriting the error
-        if not self.stepStatus['OK']:
-          return S_OK()
-
         self.setApplicationStatus( "XMLSummary reports error" )
         return S_ERROR( "XMLSummary reports error" )
 
-      # if the log looks ok but the step already failed, preserve the previous error
+      # if the XMLSummary looks ok but the step already failed, preserve the previous error
       if not self.stepStatus['OK']:
         return S_OK()
 
-      else:
-        self.log.info( 'XML summary %s' % self.XMLSummary )
-        self.setApplicationStatus( '%s Step OK' % self.applicationName )
-
-        return S_OK()
+      self.log.info( 'XML summary %s' % self.XMLSummary )
+      self.setApplicationStatus( '%s Step OK' % self.applicationName )
+      return S_OK()
 
     except Exception, e:
       self.log.exception( e )
@@ -110,8 +109,10 @@ class AnalyseXMLSummary( ModuleBase ):
 ################################################################################
 
   def _basicSuccess( self ):
-    """ Treat basic success
+    """ Treats basic success, meaning the outputs and the status of the XML summary are ok.
+        Now, we have to check the input files if they are in "part" or "fail"
     """
+    failTheJob = False
     if self.XMLSummary_o.inputFileStats['part']:
       if self.numberOfEvents != -1:
         self.log.info( "Input on part is ok, since we are not processing all" )
@@ -125,6 +126,8 @@ class AnalyseXMLSummary( ModuleBase ):
           if fileInPart in self.inputDataList:
             self.log.error( "Reporting %s as 'Problematic'" % fileInPart )
             self.fileReport.setFileStatus( int( self.production_id ), fileInPart, 'Problematic' )
+            failTheJob = True
+
     if self.XMLSummary_o.inputFileStats['fail']:
       # report to FileReport
       filesInFail = [x[0].strip( 'LFN:' ) for x in self.XMLSummary_o.inputStatus if x[1] == 'fail']
@@ -133,11 +136,16 @@ class AnalyseXMLSummary( ModuleBase ):
         if fileInFail in self.inputDataList:
           self.log.error( "Reporting %s as 'Problematic'" % fileInFail )
           self.fileReport.setFileStatus( int( self.production_id ), fileInFail, 'Problematic' )
+          failTheJob = True
+
+    return failTheJob
 
   def _finalizeWithErrors( self, subj ):
     """ Method that sends an email and uploads intermediate job outputs.
     """
-    self.log.error( subj )
+    # FIXME: refactoring needed, this is very similar to what is in AnalyseLogFile
+
+    self.workflow_commons['AnalyseLogFilePreviouslyFinalized'] = True
     # Have to check that the output list is defined in the workflow commons, this is
     # done by the first BK report module that executes at the end of a step but in
     # this case the current step 'listoutput' must be added.
@@ -190,7 +198,7 @@ class AnalyseXMLSummary( ModuleBase ):
       if self._WMSJob():
         self.log.info( 'Attempting: dm.putAndRegister("%s","%s","CERN-DEBUG","%s") on catalog "LcgFileCatalogCombined"'
                        % ( fname, lfn, guidInput ) )
-        result = DataManager( catalog = ['LcgFileCatalogCombined'] ).putAndRegister( lfn, fname, 'CERN-DEBUG',
+        result = DataManager( catalogs = ['LcgFileCatalogCombined'] ).putAndRegister( lfn, fname, 'CERN-DEBUG',
                                          guidInput )
         self.log.info( result )
         if not result['OK']:
@@ -212,8 +220,6 @@ class AnalyseXMLSummary( ModuleBase ):
       res = self.nc.sendMail( mailAddress, subject, msg, 'joel.closier@cern.ch', localAttempt = False )
       if not res['OK']:
         self.log.warn( "The mail could not be sent" )
-
-    self.workflow_commons['AnalyseLogFilePreviouslyFinalized'] = True
 
 ################################################################################
 # END AUXILIAR FUNCTIONS

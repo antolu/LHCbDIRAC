@@ -19,6 +19,7 @@ class ModulesTestCase( unittest.TestCase ):
 #    import sys
 #    sys.modules["DIRAC"] = DIRAC.ResourceStatusSystem.test.fake_Logger
 #    sys.modules["DIRAC.ResourceStatusSystem.Utilities.CS"] = DIRAC.ResourceStatusSystem.test.fake_Logger
+    self.maxDiff = None
 
     self.jr_mock = Mock()
     self.jr_mock.setApplicationStatus.return_value = {'OK': True, 'Value': ''}
@@ -595,7 +596,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
                                                 'LFN': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                                                 'GUID': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
                                                 'Checksum': '001',
-                                                'ChecksumType': 'adler32',
+                                                'ChecksumType': 'ADLER32',
                                                 'Size': 0},
                                    'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                                    'localpath': os.getcwd() + '/bar_2.py',
@@ -606,7 +607,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
                                                  'LFN': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
                                                  'GUID': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
                                                  'Checksum': '001',
-                                                 'ChecksumType': 'adler32',
+                                                 'ChecksumType': 'ADLER32',
                                                  'Size': 0},
                                     'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
                                     'localpath': os.getcwd() + '/foo_1.txt',
@@ -894,7 +895,8 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
 """ )
     f.close()
     axlf.XMLSummary_o = XMLSummary( 'XMLSummaryFile' )
-    axlf._basicSuccess()
+    res = axlf._basicSuccess()
+    self.assertFalse( res )
 
     axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':1, 'fail':0, 'other':0}
     axlf.XMLSummary_o.inputStatus = [( 'aa/1.txt', 'full' ), ( 'aa/2.txt', 'part' )]
@@ -902,7 +904,8 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     axlf.numberOfEvents = -1
     axlf.fileReport = FileReport()
     axlf.production_id = '123'
-    axlf._basicSuccess()
+    res = axlf._basicSuccess()
+    self.assertTrue( res )
     self.assertEqual( axlf.fileReport.statusDict, {'aa/2.txt': 'Problematic'} )
 
     axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':0, 'fail':1, 'other':0}
@@ -911,7 +914,8 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     axlf.numberOfEvents = -1
     axlf.fileReport = FileReport()
     axlf.production_id = '123'
-    axlf._basicSuccess()
+    res = axlf._basicSuccess()
+    self.assertTrue( res )
     self.assertEqual( axlf.fileReport.statusDict, {'aa/1.txt': 'Problematic'} )
 
     axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':0, 'fail':1, 'other':0}
@@ -920,7 +924,8 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     axlf.numberOfEvents = -1
     axlf.fileReport = FileReport()
     axlf.production_id = '123'
-    axlf._basicSuccess()
+    res = axlf._basicSuccess()
+    self.assertFalse( res )
     self.assertEqual( axlf.fileReport.statusDict, {} )
 
     axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':1, 'fail':1, 'other':0}
@@ -929,7 +934,8 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     axlf.numberOfEvents = -1
     axlf.fileReport = FileReport()
     axlf.production_id = '123'
-    axlf._basicSuccess()
+    res = axlf._basicSuccess()
+    self.assertTrue( res )
     self.assertEqual( axlf.fileReport.statusDict, {'aa/1.txt': 'Problematic', 'aa/2.txt': 'Problematic'} )
 
     axlf.XMLSummary_o.inputFileStats = {'full':2, 'part':1, 'fail':1, 'other':0}
@@ -938,7 +944,8 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     axlf.numberOfEvents = '10'
     axlf.fileReport = FileReport()
     axlf.production_id = '123'
-    axlf._basicSuccess()
+    res = axlf._basicSuccess()
+    self.assertTrue( res )
     self.assertEqual( axlf.fileReport.statusDict, {'aa/1.txt': 'Problematic'} )
 
 
