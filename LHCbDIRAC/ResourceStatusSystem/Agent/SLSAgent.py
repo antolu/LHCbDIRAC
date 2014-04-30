@@ -261,7 +261,7 @@ class DIRACTest( TestBase ):
 
   def run_t1_xml_sensors( self ):
     # For each T0/T1 VO-BOXes, run xml_t1_sensors...
-    request_management_urls = gConfig.getValue( "/Systems/RequestManagement/Production/URLs/RequestProxyURLs", [] )
+    request_management_urls = gConfig.getValue( "/Systems/RequestManagement/Production/URLs/ReqProxyURLs", [] )
     configuration_urls = gConfig.getServersList()
     framework_urls = gConfig.getValue( "/DIRAC/Framework/SystemAdministrator", [] )
 
