@@ -800,15 +800,6 @@ class ModuleBase( object ):
       self.log.info( "Populating request with job report information" )
       self.request.addOperation( reportRequest )
 
-    accountingReport = None
-    if self.workflow_commons.has_key( 'AccountingReport' ):
-      accountingReport = self.workflow_commons['AccountingReport']
-    if accountingReport:
-      result = accountingReport.commit()
-      if not result['OK']:
-        self.log.error( "!!! Both accounting and RequestDB are down? !!!" )
-        raise RuntimeError
-
     if len( self.request ):
       isValid = gRequestValidator.validate( self.request )
       if not isValid['OK']:
@@ -832,6 +823,16 @@ class ModuleBase( object ):
             self.log.warn( "No digest? That's not sooo important, anyway: %s" % result['Message'] )
         else:
           raise RuntimeError( requestJSON['Message'] )
+
+    accountingReport = None
+    if self.workflow_commons.has_key( 'AccountingReport' ):
+      accountingReport = self.workflow_commons['AccountingReport']
+    if accountingReport:
+      result = accountingReport.commit()
+      if not result['OK']:
+        self.log.error( "!!! Both accounting and RequestDB are down? !!!" )
+        self.log.error( "accountingReport result: %s" % result['Message'] )
+        self.log.error( "Anyway, the job won't fail for this reason, because this is \"just\" the accounting report" )
 
   #############################################################################
 
