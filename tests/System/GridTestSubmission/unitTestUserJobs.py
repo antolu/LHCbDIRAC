@@ -302,6 +302,7 @@ class monitorSuccess( GridSubmissionTestCase ):
   def test_monitor( self ):
 
     toRemove = []
+    fail = False
 
     # we will check every 10 minutes, up to 6 hours
     counter = 0
@@ -319,7 +320,7 @@ class monitorSuccess( GridSubmissionTestCase ):
             lfns = res['Value']
             toRemove += lfns
         if status in ['Failed', 'Killed', 'Deleted']:
-          self.assertFalse( True )
+          fail = True
           jobsSubmittedList.remove( jobID )
       if jobsSubmittedList:
         time.sleep( 600 )
@@ -331,6 +332,8 @@ class monitorSuccess( GridSubmissionTestCase ):
     res = self.dirac.removeFile( toRemove )
     self.assert_( res['OK'] )
 
+    if fail:
+      self.assertFalse( True )
 
 #############################################################################
 # Test Suite run
