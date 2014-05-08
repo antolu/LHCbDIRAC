@@ -126,10 +126,8 @@ class submitSuccess( GridSubmissionTestCase ):
 
     helloJ = LHCbJob()
 
-    fileUploaded = 'testFileUpload.txt'
-
     helloJ.setName( "upload-Output-test" )
-    helloJ.setInputSandbox( [find_all( fileUploaded, '.', 'GridTestSubmission' )[0]] )
+    helloJ.setInputSandbox( [find_all( 'testFileUpload.txt', '.', 'GridTestSubmission' )[0]] )
     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
     helloJ.setCPUTime( 17800 )
