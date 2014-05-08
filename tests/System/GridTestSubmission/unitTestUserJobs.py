@@ -12,7 +12,7 @@ from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from LHCbTestDirac.Utilities.utils import find_all
 from LHCbTestDirac.Integration.Test_UserJobs import createJob
 
-# gLogger.setLevel( 'DEBUG' )
+gLogger.setLevel( 'VERBOSE' )
 
 cwd = os.path.realpath( '.' )
 
