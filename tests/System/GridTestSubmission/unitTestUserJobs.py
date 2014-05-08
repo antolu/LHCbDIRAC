@@ -16,12 +16,13 @@ gLogger.setLevel( 'DEBUG' )
 
 cwd = os.path.realpath( '.' )
 
+jobsSubmittedList = []
+
 class GridSubmissionTestCase( unittest.TestCase ):
   """ Base class for the Regression test cases
   """
   def setUp( self ):
     self.dirac = DiracLHCb()
-    self.jobsSubmittedList = []
 
   def tearDown( self ):
     pass
@@ -46,7 +47,7 @@ class submitSuccess( GridSubmissionTestCase ):
     gLogger.info( "Hello world job: ", result )
 
     jobID = int( result['Value'] )
-    self.jobsSubmittedList.append( jobID )
+    jobsSubmittedList.append( jobID )
 
     self.assert_( result['OK'] )
 
@@ -58,15 +59,15 @@ class monitorSuccess( GridSubmissionTestCase ):
     # we will check every 10 minutes, up to 6 hours
     counter = 0
     while counter < 36:
-      jobStatus = self.dirac.status( self.jobsSubmittedList )
+      jobStatus = self.dirac.status( jobsSubmittedList )
       self.assert_( jobStatus['OK'] )
-      for jobID in self.jobsSubmittedList:
+      for jobID in jobsSubmittedList:
         status = jobStatus['Value'][jobID]['Status']
         minorStatus = jobStatus['Value'][jobID]['MinorStatus']
         if status == 'Done':
           self.assert_( minorStatus in ['Execution Complete', 'Requests Done'] )
-          self.jobsSubmittedList.remove( jobID )
-      if self.jobsSubmittedList:
+          jobsSubmittedList.remove( jobID )
+      if jobsSubmittedList:
         time.sleep( 600 )
         counter = counter + 1
       else:
