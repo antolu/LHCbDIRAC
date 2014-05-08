@@ -4,17 +4,15 @@ parseCommandLine()
 import unittest
 import time
 
-import os.path
-
 from DIRAC import gLogger
+from DIRAC.Core.Security.ProxyInfo import getProxyInfo
+
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from LHCbTestDirac.Utilities.utils import find_all
 from LHCbTestDirac.Integration.Test_UserJobs import createJob
 
 gLogger.setLevel( 'VERBOSE' )
-
-cwd = os.path.realpath( '.' )
 
 jobsSubmittedList = []
 
@@ -23,6 +21,11 @@ class GridSubmissionTestCase( unittest.TestCase ):
   """
   def setUp( self ):
     self.dirac = DiracLHCb()
+
+    result = getProxyInfo()
+    if result['Value']['group'] not in ['lhcb_user', 'dirac_user']:
+      print "GET A USER GROUP"
+      exit( 1 )
 
   def tearDown( self ):
     pass
@@ -315,12 +318,16 @@ class monitorSuccess( GridSubmissionTestCase ):
           if res['OK']:
             lfns = res['Value']
             toRemove += lfns
+        if status in ['Failed', 'Killed', 'Deleted']:
+          self.assertFalse( True )
+          jobsSubmittedList.remove( jobID )
       if jobsSubmittedList:
         time.sleep( 600 )
         counter = counter + 1
       else:
         break
 
+    # removing produced files
     res = self.dirac.removeFile( toRemove )
     self.assert_( res['OK'] )
 
