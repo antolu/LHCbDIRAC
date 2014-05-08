@@ -20,21 +20,19 @@ class GridSubmissionTestCase( unittest.TestCase ):
   """ Base class for the Regression test cases
   """
   def setUp( self ):
-    pass
+    self.dirac = DiracLHCb()
+    self.jobsSubmittedList = []
 
   def tearDown( self ):
     pass
 
 class HelloWorldSuccess( GridSubmissionTestCase ):
 
-  def test_execute( self ):
-
-    ########################################################################################
+  def test_submit( self ):
 
     gLogger.info( "\n Submitting hello world job banning T1s" )
 
     helloJ = LHCbJob()
-    dirac = DiracLHCb()
 
     helloJ.setName( "helloWorld-test-T2s" )
     helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
@@ -44,27 +42,34 @@ class HelloWorldSuccess( GridSubmissionTestCase ):
     helloJ.setCPUTime( 17800 )
     tier1s = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl']
     helloJ.setBannedSites( tier1s )
-    result = dirac.submit( helloJ )
+    result = self.dirac.submit( helloJ )
     gLogger.info( "Hello world job: ", result )
 
-    self.assert_( result['OK'] )
     jobID = int( result['Value'] )
+    self.jobsSubmittedList.append( jobID )
+
+    self.assert_( result['OK'] )
+
+
+  def test_monitor( self ):
 
     # we will check every 10 minutes, up to 6 hours
     counter = 0
     while counter < 36:
-      jobStatus = dirac.status( jobID )
+      jobStatus = self.dirac.status( self.jobsSubmittedList )
       self.assert_( jobStatus['OK'] )
-      self.assert_( jobStatus['Value'][jobID]['Site'] not in tier1s )
-      status = jobStatus['Value'][jobID]['Status']
-      minorStatus = jobStatus['Value'][jobID]['MinorStatus']
-      if status == 'Done':
+      for jobID in self.jobsSubmittedList:
+        status = jobStatus['Value'][jobID]['Status']
+        minorStatus = jobStatus['Value'][jobID]['MinorStatus']
+        if status == 'Done':
+          self.assert_( minorStatus in ['Execution Complete', 'Requests Done'] )
+          self.jobsSubmittedList.remove( jobID )
+      if self.jobsSubmittedList:
+        time.sleep( 600 )
+        counter = counter + 1
+      else:
         break
-      time.sleep( 600 )
-      counter = counter + 1
 
-    self.assert_( status == 'Done' )
-    self.assert_( minorStatus in ['Execution Complete', 'Requests Done'] )
 
 # ########################################################################################
 #
