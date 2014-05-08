@@ -26,7 +26,7 @@ class GridSubmissionTestCase( unittest.TestCase ):
   def tearDown( self ):
     pass
 
-class HelloWorldSuccess( GridSubmissionTestCase ):
+class submitSuccess( GridSubmissionTestCase ):
 
   def test_submit( self ):
 
@@ -50,6 +50,8 @@ class HelloWorldSuccess( GridSubmissionTestCase ):
 
     self.assert_( result['OK'] )
 
+
+class monitorSuccess( GridSubmissionTestCase ):
 
   def test_monitor( self ):
 
@@ -263,7 +265,8 @@ class HelloWorldSuccess( GridSubmissionTestCase ):
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( GridSubmissionTestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( submitSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( monitorSuccess ) )
 #   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
 #   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
 #   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoOldSuccess ) )
