@@ -786,11 +786,11 @@ class OracleBookkeepingDB:
         return retVal
 
       command = "SELECT distinct name \
-      FROM processing   where parentid in (select id from  processing where name='%s') \
+      FROM processing   where parentid in (%s) \
       START WITH id in (select /*+ NOPARALLEL(prodview) */ distinct productionscontainer.processingid \
       from productionscontainer,prodview %s where \
       productionscontainer.production=prodview.production  %s )  CONNECT BY NOCYCLE PRIOR  parentid=id \
-      order by name desc" % ( str( proc ), tables, condition )
+      order by name desc" % ( pro, tables, condition )
     else:
       command = 'SELECT distinct name \
       FROM processing  where parentid is null START WITH id in \
