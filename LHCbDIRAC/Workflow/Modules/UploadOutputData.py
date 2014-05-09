@@ -239,6 +239,11 @@ class UploadOutputData( ModuleBase ):
           self.workflow_commons['Request'] = self.request
           return S_ERROR( "Input Data Already Processed" )
 
+      # For files correctly uploaded must report LFNs to job parameters
+      if final:
+        report = ', '.join( final.keys() )
+        self.setJobParameter( 'UploadedOutputData', report )
+
       # Finally can send the BK records for the steps of the job
       bkFileExtensions = ['bookkeeping*.xml']
       bkFiles = []
