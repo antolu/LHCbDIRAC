@@ -10,7 +10,7 @@ from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from LHCbTestDirac.Utilities.utils import find_all
-from LHCbTestDirac.Integration.Test_UserJobs import createJob
+from LHCbTestDirac.Integration.Workflow.Test_UserJobs import createJob
 
 gLogger.setLevel( 'VERBOSE' )
 
@@ -280,6 +280,7 @@ class submitSuccess( GridSubmissionTestCase ):
     gLogger.info( "This will generate a job that should become Completed, use the failover, and only later it will be Done" )
 
     gaudirunJob = createJob()
+    gaudirunJob.setName( "gaudirun-gauss-completed-than-done" )
     result = self.dirac.submit( gaudirunJob )
     gLogger.info( 'Submission Result: ', result )
 
