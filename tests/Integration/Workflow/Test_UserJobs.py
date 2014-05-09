@@ -5,9 +5,10 @@ import unittest, os
 
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 
+from TestDIRAC.Utilities.utils import find_all
+
 from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
 from LHCbTestDirac.Utilities.IntegrationTest import FailingUserJobTestCase
-from LHCbTestDirac.Utilities.utils import find_all
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb

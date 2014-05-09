@@ -46,13 +46,3 @@ def getOutput( typeOut = 'MC' ):
         retList.append( ( pConfFound, pConfExpected ) )
 
   return retList
-
-def find_all( name, path, directory = None ):
-  result = []
-  for root, _dirs, files in os.walk( path ):
-    if name in files:
-      result.append( os.path.join( root, name ) )
-  if directory:
-    if directory not in os.getcwd():
-      return [x for x in result if directory in x]
-  return result
