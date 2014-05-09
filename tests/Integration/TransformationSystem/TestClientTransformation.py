@@ -7,7 +7,7 @@
 """
 import unittest
 
-from TestDIRAC.System.TransformationSystem.TestClientTransformation import TransformationClientChain as DIRACTransformationClientChain
+from TestDIRAC.Integration.TransformationSystem.TestClientTransformation import TransformationClientChain as DIRACTransformationClientChain
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
 
