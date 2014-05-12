@@ -6,6 +6,7 @@
 
     Usage:
       dirac-lhcb-sam-submit
+        --system-config       Value to use as SystemConfig in JDL. eg x86_64-slc5-gcc43-opt
         --ce                  Computing Element to submit to or `all`
         --number              Number of SAM Jobs to be submitted [Experts only]
         --local               Run the job locally
@@ -28,7 +29,8 @@ def registerSwitches():
     command line interface.
   """
 
-  switches = ( 
+  switches = (     
+    ( 'system-config=', 'Value to use as SystemConfig in JDL. eg x86_64-slc5-gcc43-opt' ),
     ( 'ce=', 'Computing Element to submit to (must be in DIRAC CS) or all' ),
     ( 'number=', 'number of SAM Jobs to be submitted [Experts only]' ),
     ( 'local', 'Run the job locally' )
@@ -55,6 +57,7 @@ def parseSwitches():
   # Default values
   switches.setdefault( 'ce', 'all' )
   switches.setdefault( 'number', 1 )
+  switches.setdefault( 'system-config', None )
 
   subLogger.debug( "The switches used are:" )
   map( subLogger.debug, switches.iteritems() )
@@ -126,7 +129,16 @@ def submit( ces, number ):
     # Submit a number of times the SAM Job to the same CE
     for _j in xrange( 0, number ):
 
-      result = diracSAM.submitNewSAMJob( ce, runLocal = runLocal )
+      samJob = diracSAM.defineSAMJob( ce )
+
+      if 'system-config' in switchDict and switchDict[ 'system-config' ] is not None:
+        samJob[ 'Value' ].setSystemConfig( switchDict[ 'system-config' ] )
+
+      if not samJob[ 'OK' ]:
+        result = samJob
+      else:
+        result = diracSAM.submit( samJob[ 'Value' ], ( runLocal and 'local' ) or 'wms' )
+
       if not result[ 'OK' ]:
         subLogger.error( 'Submission of SAM job to CE %s failed' % ce )
         subLogger.verbose( 'with message:\n%s' % result[ 'Message' ] )
