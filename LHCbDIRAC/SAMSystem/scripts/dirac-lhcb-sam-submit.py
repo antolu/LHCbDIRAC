@@ -6,7 +6,7 @@
 
     Usage:
       dirac-lhcb-sam-submit
-        --system-config       Value to use as SystemConfig in JDL. eg x86_64-slc5-gcc43-opt
+        --systemconfig        Value to use as SystemConfig in JDL. eg x86_64-slc5-gcc43-opt
         --ce                  Computing Element to submit to or `all`
         --number              Number of SAM Jobs to be submitted [Experts only]
         --local               Run the job locally
@@ -30,7 +30,7 @@ def registerSwitches():
   """
 
   switches = (     
-    ( 'system-config=', 'Value to use as SystemConfig in JDL. eg x86_64-slc5-gcc43-opt' ),
+    ( 'systemconfig=', 'Value to use as SystemConfig in JDL. eg x86_64-slc5-gcc43-opt' ),
     ( 'ce=', 'Computing Element to submit to (must be in DIRAC CS) or all' ),
     ( 'number=', 'number of SAM Jobs to be submitted [Experts only]' ),
     ( 'local', 'Run the job locally' )
@@ -57,7 +57,7 @@ def parseSwitches():
   # Default values
   switches.setdefault( 'ce', 'all' )
   switches.setdefault( 'number', 1 )
-  switches.setdefault( 'system-config', None )
+  switches.setdefault( 'systemconfig', None )
 
   subLogger.debug( "The switches used are:" )
   map( subLogger.debug, switches.iteritems() )
@@ -131,8 +131,8 @@ def submit( ces, number ):
 
       samJob = diracSAM.defineSAMJob( ce )
 
-      if 'system-config' in switchDict and switchDict[ 'system-config' ] is not None:
-        samJob[ 'Value' ].setSystemConfig( switchDict[ 'system-config' ] )
+      if 'systemconfig' in switchDict and switchDict[ 'systemconfig' ] is not None:
+        samJob[ 'Value' ].setSystemConfig( switchDict[ 'systemconfig' ] )
 
       if not samJob[ 'OK' ]:
         result = samJob
