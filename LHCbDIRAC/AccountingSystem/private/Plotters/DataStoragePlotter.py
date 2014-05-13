@@ -56,7 +56,7 @@ class DataStoragePlotter( BaseReporter ):
 
     selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
 
-    selectFields = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
+    selectFields = ( selectString + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                                              'LogicalSize', 'entriesInBucket'
                                                              ]
@@ -67,7 +67,7 @@ class DataStoragePlotter( BaseReporter ):
                                  selectFields,
                                  reportRequest[ 'condDict' ],
                                  reportRequest[ 'groupingFields' ],
-                                 { 'convertToGranularity' : 'sum', 'checkNone' : True } )
+                                 { 'convertToGranularity' : 'average', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
 
@@ -164,7 +164,7 @@ class DataStoragePlotter( BaseReporter ):
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
 
     selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
-    selectFields = ( selectString + ", %s, %s, SUM(%s)/SUM(%s)",
+    selectFields = ( selectString + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
                                     'LogicalFiles', 'entriesInBucket'
                                    ]
@@ -174,7 +174,7 @@ class DataStoragePlotter( BaseReporter ):
                                  selectFields,
                                  reportRequest[ 'condDict' ],
                                  reportRequest[ 'groupingFields' ],
-                                 { 'convertToGranularity' : 'sum', 'checkNone' : True } )
+                                 { 'convertToGranularity' : 'average', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
 
