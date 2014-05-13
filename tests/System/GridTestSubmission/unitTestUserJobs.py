@@ -7,9 +7,11 @@ import time
 from DIRAC import gLogger
 from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 
+from TestDIRAC.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
+from TestDIRAC.Utilities.utils import find_all
+
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-from LHCbTestDirac.Utilities.utils import find_all
 from LHCbTestDirac.Integration.Workflow.Test_UserJobs import createJob
 
 gLogger.setLevel( 'VERBOSE' )
@@ -30,10 +32,9 @@ class GridSubmissionTestCase( unittest.TestCase ):
   def tearDown( self ):
     pass
 
-class submitSuccess( GridSubmissionTestCase ):
+class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
-  def test_submit( self ):
-
+  def test_LHCbsubmit( self ):
 
     print "**********************************************************************************************************"
 
@@ -340,6 +341,6 @@ class monitorSuccess( GridSubmissionTestCase ):
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( GridSubmissionTestCase )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( submitSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( LHCbsubmitSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( monitorSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
