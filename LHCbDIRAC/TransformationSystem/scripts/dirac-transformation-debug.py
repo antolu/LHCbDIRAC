@@ -1123,7 +1123,7 @@ if __name__ == "__main__":
     elif opt in ( 'v', 'Verbose' ):
       verbose = True
     elif opt == 'Tasks':
-      taskList = val.split( ',' )
+      taskList = [int( task ) for task in val.split( ',' )]
     elif opt == 'KickRequests':
       kickRequests = True
     elif opt == 'DumpFiles':
@@ -1268,7 +1268,7 @@ if __name__ == "__main__":
       for fileDict in transFilesList:
         if not allTasks:
           taskDict.setdefault( fileDict['TaskID'], [] ).append( fileDict['LFN'] )
-          if status == 'Problematic' and not fileDict['TaskID']:
+          if status == 'Problematic':
             problematicFiles.append( fileDict['LFN'] )
         else:
           # Get all tasks associated to that file
@@ -1331,19 +1331,12 @@ if __name__ == "__main__":
             continue
         nfiles = len( lfnsInTask )
         allFiles += lfnsInTask
-        if transType in dmTransTypes:
-          replicas = __getReplicas( lfnsInTask )
-        else:
-          replicas = {}
+        replicas = __getReplicas( lfnsInTask )
         targetSE = task.get( 'TargetSE', None )
         # Accounting per SE
         listSEs = targetSE.split( ',' )
         # If a list of LFNs is provided, we may not have all files in the task, set to False
         taskCompleted = not lfnList
-
-        # Check problematic files
-        if status == 'Problematic':
-          __checkReplicasForProblematic( lfnsInTask, replicas )
 
         # Collect statistics per SE
         for lfn in replicas:
