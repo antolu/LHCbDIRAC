@@ -119,7 +119,7 @@ def execute():
           parameterNames = res['Value']['ParameterNames']
           info = res['Value']['Records']
         else:
-          print "Error getting files for %s", queryDict
+          print "Error getting files for %s:" % queryDict, res['Message']
           continue
         for item in info:
           metadata = dict( zip( parameterNames, item ) )
