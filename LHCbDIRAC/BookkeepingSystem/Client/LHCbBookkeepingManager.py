@@ -101,9 +101,16 @@ class LHCbBookkeepingManager( BaseESManager ):
         self.__filetypes = [ i[0] for i in retVal['Value']['Records']]
 
   #############################################################################
-  def setFileTypes( self, fileTypeList ):
+  def setFileTypes( self, fileTypeList = list() ):
     """it sets the file types. The parameter is a list of file type"""
-    self.__filetypes = fileTypeList
+    if fileTypeList and len(fileTypeList)>0:
+      self.__filetypes = fileTypeList
+    else:
+      retVal = self.db_.getAvailableFileTypes()
+      if not retVal['OK']:
+        gLogger.error( retVal )
+      else:
+        self.__filetypes = [ i[0] for i in retVal['Value']['Records']]
     
   #############################################################################
   def _updateTreeLevels( self, level ):

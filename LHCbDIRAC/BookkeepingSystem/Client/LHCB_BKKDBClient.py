@@ -154,3 +154,5 @@ class LHCB_BKKDBClient( BaseESClient ):
     """it sets the file types"""
     return self.getManager().setFileTypes( fileTypeList )
   
+  
+  
