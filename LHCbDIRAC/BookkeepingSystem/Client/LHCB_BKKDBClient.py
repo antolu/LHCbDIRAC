@@ -15,9 +15,9 @@ __RCSID__ = "$Id$"
 class LHCB_BKKDBClient(BaseESClient):
   """Client which used to browse the Entities"""
   #############################################################################
-  def __init__(self, rpcClinet=None):
+  def __init__(self, rpcClinet=None, web = False):
     """Initialize the basic class"""
-    BaseESClient.__init__(self, LHCbBookkeepingManager(rpcClinet), '/')
+    BaseESClient.__init__(self, LHCbBookkeepingManager(rpcClinet), '/', web)
   #############################################################################
   def get(self, path=""):
     """get path"""
@@ -148,3 +148,9 @@ class LHCB_BKKDBClient(BaseESClient):
   def getStepsMetadata(self, bkDict):
     """returns detailed step metadata """
     return self.getManager().getStepsMetadata(bkDict)
+  
+  #############################################################################
+  def setFileTypes(self, fileTypeList):
+    """it sets the file types"""
+    return self.getManager().setFileTypes( fileTypeList)
+  
