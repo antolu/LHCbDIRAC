@@ -12,145 +12,145 @@ from LHCbDIRAC.BookkeepingSystem.Client.LHCbBookkeepingManager              impo
 __RCSID__ = "$Id$"
 
 #############################################################################
-class LHCB_BKKDBClient(BaseESClient):
+class LHCB_BKKDBClient( BaseESClient ):
   """Client which used to browse the Entities"""
   #############################################################################
-  def __init__(self, rpcClinet=None, web = False):
+  def __init__( self, rpcClinet = None, web = False ):
     """Initialize the basic class"""
-    BaseESClient.__init__(self, LHCbBookkeepingManager(rpcClinet), '/', web)
+    BaseESClient.__init__( self, LHCbBookkeepingManager( rpcClinet, web ), '/' )
   #############################################################################
-  def get(self, path=""):
+  def get( self, path = "" ):
     """get path"""
-    return self.getManager().get(path)
+    return self.getManager().get( path )
 
   #############################################################################
-  def help(self):
+  def help( self ):
     """help function"""
     return self.getManager().help()
 
   #############################################################################
-  def getPossibleParameters(self):
+  def getPossibleParameters( self ):
     """available trees"""
     return self.getManager().getPossibleParameters()
 
   #############################################################################
-  def setParameter(self, name):
+  def setParameter( self, name ):
     """tree used"""
-    return self.getManager().setParameter(name)
+    return self.getManager().setParameter( name )
 
   #############################################################################
-  def getLogicalFiles(self):
+  def getLogicalFiles( self ):
     """lfns"""
     return self.getManager().getLogicalFiles()
 
   #############################################################################
-  def getFilesPFN(self):
+  def getFilesPFN( self ):
     """PFNS"""
     return self.getManager().getFilesPFN()
 
   #############################################################################
-  def getNumberOfEvents(self, files):
+  def getNumberOfEvents( self, files ):
     """number of events"""
-    return self.getManager().getNumberOfEvents(files)
+    return self.getManager().getNumberOfEvents( files )
 
   #############################################################################
-  def writeJobOptions(self, files, optionsFile="jobOptions.opts",
-                      savedType=None, catalog=None, savePfn=None, dataset=None):
+  def writeJobOptions( self, files, optionsFile = "jobOptions.opts",
+                      savedType = None, catalog = None, savePfn = None, dataset = None ):
     """Gaudi card"""
-    return self.getManager().writeJobOptions(files, optionsFile, savedType, catalog, savePfn, dataset)
+    return self.getManager().writeJobOptions( files, optionsFile, savedType, catalog, savePfn, dataset )
 
   #############################################################################
-  def getJobInfo(self, lfn):
+  def getJobInfo( self, lfn ):
     """ how a file is created"""
-    return self.getManager().getJobInfo(lfn)
+    return self.getManager().getJobInfo( lfn )
 
   #############################################################################
-  def setVerbose(self, value):
+  def setVerbose( self, value ):
     """only important information"""
-    return self.getManager().setVerbose(value)
+    return self.getManager().setVerbose( value )
 
   #############################################################################
-  def setAdvancedQueries(self, value):
+  def setAdvancedQueries( self, value ):
     """Advanced queries"""
-    return self.getManager().setAdvancedQueries(value)
+    return self.getManager().setAdvancedQueries( value )
 
   #############################################################################
-  def getLimitedFiles(self, selectionDict, sortDict, startItem, maxitems):
+  def getLimitedFiles( self, selectionDict, sortDict, startItem, maxitems ):
     """get files used by Web portal"""
-    return self.getManager().getLimitedFiles(selectionDict, sortDict, startItem, maxitems)
+    return self.getManager().getLimitedFiles( selectionDict, sortDict, startItem, maxitems )
 
   #############################################################################
-  def getAncestors(self, files, depth):
+  def getAncestors( self, files, depth ):
     """ ancestor of files"""
-    return self.getManager().getAncestors(files, depth)
+    return self.getManager().getAncestors( files, depth )
 
   #############################################################################
-  def getLogfile(self, filename):
+  def getLogfile( self, filename ):
     """ log file of a given file"""
-    return self.getManager().getLogfile(filename)
+    return self.getManager().getLogfile( filename )
 
   #############################################################################
-  def writePythonOrJobOptions(self, startItem, maxitems, path, optstype):
+  def writePythonOrJobOptions( self, startItem, maxitems, path, optstype ):
     """python job option"""
-    return self.getManager().writePythonOrJobOptions(startItem, maxitems, path, optstype)
+    return self.getManager().writePythonOrJobOptions( startItem, maxitems, path, optstype )
 
   #############################################################################
-  def getLimitedInformations(self, startItem, maxitems, path):
+  def getLimitedInformations( self, startItem, maxitems, path ):
     """statistics"""
-    return self.getManager().getLimitedInformations(startItem, maxitems, path)
+    return self.getManager().getLimitedInformations( startItem, maxitems, path )
 
   #############################################################################
-  def getProcessingPassSteps(self, in_dict):
+  def getProcessingPassSteps( self, in_dict ):
     """step"""
-    return self.getManager().getProcessingPassSteps(in_dict)
+    return self.getManager().getProcessingPassSteps( in_dict )
 
   #############################################################################
-  def getMoreProductionInformations(self, prodid):
+  def getMoreProductionInformations( self, prodid ):
     """production details"""
-    return self.getManager().getMoreProductionInformations(prodid)
+    return self.getManager().getMoreProductionInformations( prodid )
 
   #############################################################################
-  def getAvailableProductions(self):
+  def getAvailableProductions( self ):
     """available productions"""
     return self.getManager().getAvailableProductions()
 
   #############################################################################
-  def getFileHistory(self, lfn):
+  def getFileHistory( self, lfn ):
     """"file history"""
-    return self.getManager().getFileHistory(lfn)
+    return self.getManager().getFileHistory( lfn )
 
   #############################################################################
-  def getCurrentParameter(self):
+  def getCurrentParameter( self ):
     """ curent bookkeeping path"""
     return self.getManager().getCurrentParameter()
 
   #############################################################################
-  def getQueriesTypes(self):
+  def getQueriesTypes( self ):
     """type of the current query"""
     return self.getManager().getQueriesTypes()
 
   #############################################################################
-  def getProductionProcessingPassSteps(self, in_dict):
+  def getProductionProcessingPassSteps( self, in_dict ):
     """the steps which produced a given production"""
-    return self.getManager().getProductionProcessingPassSteps(in_dict)
+    return self.getManager().getProductionProcessingPassSteps( in_dict )
 
   #############################################################################
-  def getAvailableDataQuality(self):
+  def getAvailableDataQuality( self ):
     """available data quality"""
     return self.getManager().getAvailableDataQuality()
 
   #############################################################################
-  def setDataQualities(self, values):
+  def setDataQualities( self, values ):
     """set data qualities"""
-    self.getManager().setDataQualities(values)
+    self.getManager().setDataQualities( values )
 
   #############################################################################
-  def getStepsMetadata(self, bkDict):
+  def getStepsMetadata( self, bkDict ):
     """returns detailed step metadata """
-    return self.getManager().getStepsMetadata(bkDict)
+    return self.getManager().getStepsMetadata( bkDict )
   
   #############################################################################
-  def setFileTypes(self, fileTypeList):
+  def setFileTypes( self, fileTypeList ):
     """it sets the file types"""
-    return self.getManager().setFileTypes( fileTypeList)
+    return self.getManager().setFileTypes( fileTypeList )
   
