@@ -73,7 +73,7 @@ class LHCbBookkeepingManager( BaseESManager ):
   __bookkeepingQueryTypes = ['adv', 'std']
 
   #############################################################################
-  def __init__( self, rpcClinet = None, web ):
+  def __init__( self, rpcClinet = None, web = False ):
     """initialize the values"""
     BaseESManager.__init__( self )
     self._BaseESManager___fileSeparator = INTERNAL_PATH_SEPARATOR
@@ -101,9 +101,9 @@ class LHCbBookkeepingManager( BaseESManager ):
         self.__filetypes = [ i[0] for i in retVal['Value']['Records']]
 
   #############################################################################
-  def setFileTypes(self, fileTypeList):
+  def setFileTypes( self, fileTypeList ):
     """it sets the file types. The parameter is a list of file type"""
-    self.__filetypes =  fileTypeList
+    self.__filetypes = fileTypeList
     
   #############################################################################
   def _updateTreeLevels( self, level ):
