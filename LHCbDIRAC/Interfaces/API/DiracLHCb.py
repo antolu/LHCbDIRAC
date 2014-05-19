@@ -84,14 +84,14 @@ class DiracLHCb( Dirac ):
        @return: S_OK,S_ERROR
     """
     return super( DiracLHCb, self ).addFile( lfn, fullPath, diracSE,
-                                             fileGuid = makeGuid( fullPath )[lfn],
+                                             fileGuid = makeGuid( fullPath )[fullPath],
                                              printOutput = printOutput )
 
   def addFile( self, lfn, fullPath, diracSE, printOutput = False ):
     """ Copy of addRootFile
     """
     return super( DiracLHCb, self ).addFile( lfn, fullPath, diracSE,
-                                             fileGuid = makeGuid( fullPath )[lfn],
+                                             fileGuid = makeGuid( fullPath )[fullPath],
                                              printOutput = printOutput )
 
   #############################################################################
