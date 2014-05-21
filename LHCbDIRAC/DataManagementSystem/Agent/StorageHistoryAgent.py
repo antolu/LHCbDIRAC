@@ -526,11 +526,11 @@ class StorageHistoryAgent( AgentModule ):
       if not res['Value']:
         self.log.error( "For dir %s getSummary returned an empty value: %s " % ( d, str( res ) ) )
         continue
-      self.lfnUsage.setdefault( d, {} )
+      self.lfnUsage.setdefault( d, {'LfnSize':0, 'LfnFiles':0} )
       for retDir, dirInfo in res['Value'].items():
         if d in retDir:
-          self.lfnUsage[ d ][ 'LfnSize' ] = dirInfo['Size']
-          self.lfnUsage[ d ][ 'LfnFiles'] = dirInfo['Files']
+          self.lfnUsage[ d ][ 'LfnSize' ] += dirInfo['Size']
+          self.lfnUsage[ d ][ 'LfnFiles'] += dirInfo['Files']
       self.log.verbose( "PFN usage: %s" % self.pfnUsage[ d ] )
       self.log.verbose( "LFN usage: %s" % self.lfnUsage[ d ] )
 
