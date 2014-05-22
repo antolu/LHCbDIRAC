@@ -3527,7 +3527,7 @@ and files.qualityid= dataquality.qualityid'
       if tables.find( 'bview' ) < 0:
         tables += ', prodview bview'
       tables2 += ' ,filetypes ftypes '
-      condition += " and bview.filetypeid=ftypes.filetypeid and bview.production=j.production"
+      condition += " and bview.filetypeid=ftypes.filetypeid and bview.production=j.production and bview.eventtypeid=f.eventtypeid"
       fcond += " and bview.production=prod.production and ftypes.Name='%s'" % ( str( filetype ) )
       fcond += 'and bview.filetypeid=ftypes.filetypeid '
       if type( filetype ) == types.ListType:
