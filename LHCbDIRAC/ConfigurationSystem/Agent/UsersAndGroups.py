@@ -160,8 +160,8 @@ class UsersAndGroups( AgentModule ):
       subject = 'New LFC Users found'
       self.log.info( subject, ", ".join( registerUsers ) )
       body = 'Command to add new entries into LFC: \n'
-      body += 'login to volhcbXX and run : \n'
-      body += 'source /afs/cern.ch/lhcb/software/releases/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.csh \n\n'
+      body += 'login to lbvoboxXX as root and run : \n'
+      body += 'source /opt/dirac/bashrc \n\n'
       for lfcuser in registerUsers:
         for lfc_dn in registerUsers[lfcuser]:
           print lfc_dn
