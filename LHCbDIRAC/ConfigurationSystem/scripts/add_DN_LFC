@@ -8,6 +8,6 @@ source /opt/dirac/bashrc
 export X509_USER_CERT=/opt/dirac/etc/grid-security/hostcert.pem
 export X509_USER_KEY=/opt/dirac/etc/grid-security/hostkey.pem
 export LFC_HOST=lfc-lhcb.cern.ch
-python add_DN_LFC.py "${@}"
+python /opt/dirac/pro/LHCbDIRAC/ConfigurationSystem/Agent/add_DN_LFC.py "${@}"
 
 exit 0
