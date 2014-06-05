@@ -615,43 +615,6 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def addPackage( self, appName, appVersion ):
-    """Helper function.
-
-       Specify additional software packages to be installed on Grid
-       Worker Node before job execution commences.
-
-       Example usage:
-
-       >>> job = LHCbJob()
-       >>> job.addPackage('DaVinci','v19r12')
-
-       :param appName: Package name
-       :type appName: string
-       :param appVersion: Package version
-       :type appVersion: Package version string
-
-    """
-    kwargs = {'appName':appName, 'appVersion':appVersion}
-    if not type( appName ) == type( ' ' ) or not type( appVersion ) == type( ' ' ):
-      return self._reportError( 'Expected strings for application name and version', __name__, **kwargs )
-
-    currentApp = '%s.%s' % ( appName, appVersion )
-    swPackages = 'SoftwarePackages'
-    description = 'List of LHCb Software Packages to be installed'
-    if not self.workflow.findParameter( swPackages ):
-      self._addParameter( self.workflow, swPackages, 'JDL', currentApp, description )
-    else:
-      apps = self.workflow.findParameter( swPackages ).getValue()
-      if apps:
-        if not currentApp in  apps.split( ';' ):
-          apps += ';' + currentApp
-        self._addParameter( self.workflow, swPackages, 'JDL', apps, description )
-
-    return S_OK()
-
-  #############################################################################
-
   def setAncestorDepth( self, depth ):
     """Helper function.
 

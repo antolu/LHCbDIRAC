@@ -16,7 +16,6 @@ import shutil, re, os, copy
 
 from DIRAC                                                        import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Workflow.Workflow                                 import Workflow, fromXMLString
-from DIRAC.Core.Utilities.List                                    import removeEmptyElements, uniqueElements
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations          import Operations
 from DIRAC.ConfigurationSystem.Client.Helpers.Resources           import getSites, getSiteTier
 from DIRAC.Workflow.Utilities.Utils                               import getStepDefinition
@@ -313,11 +312,6 @@ class Production( object ):
     outputFilesDict = self._constructOutputFilesDict( fileTypesOut, outputSE )
     gaudiStepInstance.setValue( 'listoutput', ( outputFilesDict ) )
 
-    # now we have to tell DIRAC to install the necessary software
-    if appName.lower() != 'mergemdf':
-      self.__addSoftwarePackages( '%s.%s' % ( appName, appVersion ) )
-    self.__addSoftwarePackages( extraPackages )
-
     # to construct the BK processing pass structure, starts from step '0'
     stepIDInternal = 'Step%s' % ( self.LHCbJob.stepCount - 1 )
     bkOptionsFile = optionsFile
@@ -339,7 +333,6 @@ class Production( object ):
     return name
 
   #############################################################################
-
 
   def _constructOutputFilesDict( self, filesTypesList, outputSE, histoName = None, histoSE = None ):
     """ build list of dictionary of output files, including HIST case, and fix outputSE for file
@@ -366,23 +359,6 @@ class Production( object ):
       outputList.append( fileDict )
 
     return outputList
-
-  #############################################################################
-
-  def __addSoftwarePackages( self, nameVersion ):
-    """ Internal method to accumulate software packages.
-    """
-    swPackages = 'SoftwarePackages'
-    description = 'LHCbSoftwarePackages'
-    if not self.LHCbJob.workflow.findParameter( swPackages ):
-      self.LHCbJob._addParameter( self.LHCbJob.workflow, swPackages, 'JDL', nameVersion, description )
-    else:
-      apps = self.LHCbJob.workflow.findParameter( swPackages ).getValue()
-      apps = apps.split( ';' )
-      apps.append( nameVersion )
-      apps = uniqueElements( removeEmptyElements( apps ) )
-      apps = ';'.join( apps )
-      self.LHCbJob._addParameter( self.LHCbJob.workflow, swPackages, 'JDL', apps, description )
 
   #############################################################################
 

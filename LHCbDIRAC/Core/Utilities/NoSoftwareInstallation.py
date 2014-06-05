@@ -1,10 +1,7 @@
 """ NoSoftwareInstallation
 
-  An instance of this module is created by the ModuleFactory. It just makes few basic checks
-
-  This relies on two JDL parameters in LHCb Workflows:
-    - SoftwarePackages - applications with their versions to be checked
-    - Platform - to determine the required value of CMTCONFIG
+    An instance of this module is created by the ModuleFactory. It just makes few basic checks
+    This relies on JDL parameters in LHCb Workflows "Platform" to determine the required value of CMTCONFIG
 
     DIRAC assumes an execute() method will exist during usage.
 """
@@ -34,17 +31,6 @@ class NoSoftwareInstallation( object ):
     """ Main method of the class executed by DIRAC JobAgent. It checks the parameters
         in case there is a mis-configuration and returns S_OK / S_ERROR.
     """
-
-    apps = self.job.get( 'SoftwarePackages', [] )
-    if not apps:
-      # There is nothing to do
-      self.log.info( "There are no Applications defined on SoftwarePackages" )
-      return S_OK()
-    if type( apps ) == str:
-      apps = [ apps ]
-
-    for app in apps:
-      self.log.info( 'Requested Package %s' % app )
 
     # platform ...........................................................
     if 'SystemConfig' in self.job:
