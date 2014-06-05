@@ -385,14 +385,13 @@ class ModuleBaseSuccess( ModulesTestCase ):
     open( 'foo_1.txt', 'w' ).close()
     open( 'bar_2.py', 'w' ).close()
 
-    outputList = [{'outputDataType': 'txt', 'outputDataSE': 'Tier1-RDST', 'outputDataName': 'foo_1.txt'},
-                  {'outputDataType': 'py', 'outputDataSE': 'Tier1-RDST', 'outputDataName': 'bar_2.py'}]
+    outputList = [{'outputDataType': 'txt', 'outputDataName': 'foo_1.txt'},
+                  {'outputDataType': 'py', 'outputDataName': 'bar_2.py'}]
     outputLFNs = ['/lhcb/MC/2010/DST/00012345/0001/foo_1.txt', '/lhcb/MC/2010/DST/00012345/0001/bar_2.py']
     fileMask = 'txt'
     stepMask = ''
     result = {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
-                            'type': outputList[0]['outputDataType'],
-                            'workflowSE': outputList[0]['outputDataSE']}}
+                            'type': outputList[0]['outputDataType']}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
     self.assertEqual( res, result )
@@ -400,11 +399,9 @@ class ModuleBaseSuccess( ModulesTestCase ):
     fileMask = ['txt', 'py']
     stepMask = None
     result = {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
-                            'type': outputList[0]['outputDataType'],
-                            'workflowSE': outputList[0]['outputDataSE']},
+                            'type': outputList[0]['outputDataType']},
               'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
-                           'type': outputList[1]['outputDataType'],
-                           'workflowSE': outputList[1]['outputDataSE']},
+                           'type': outputList[1]['outputDataType']},
               }
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
     self.assertEqual( res, result )
@@ -418,8 +415,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
     fileMask = ''
     stepMask = '2'
     result = {'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
-                           'type': outputList[1]['outputDataType'],
-                           'workflowSE': outputList[1]['outputDataSE']}}
+                           'type': outputList[1]['outputDataType']}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
@@ -428,8 +424,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
     fileMask = ''
     stepMask = 2
     result = {'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
-                           'type': outputList[1]['outputDataType'],
-                           'workflowSE': outputList[1]['outputDataSE']}}
+                           'type': outputList[1]['outputDataType']}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
@@ -439,8 +434,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
     fileMask = ''
     stepMask = ['2', '3']
     result = {'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
-                           'type': outputList[1]['outputDataType'],
-                           'workflowSE': outputList[1]['outputDataSE']}}
+                           'type': outputList[1]['outputDataType']}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
@@ -522,12 +516,10 @@ class ModuleBaseSuccess( ModulesTestCase ):
     for step_commons in self.step_commons:
       self.mb.step_commons = step_commons
       self.mb.step_commons['listoutput'] = [{'outputDataType': 'bhadron.dst;sdst',
-                                              'outputDataSE': 'Tier1_M-DST',
                                               'outputDataName': '00000123_00000456_1.bhadron.dst;sdst'}]
       outF, outft, histos = self.mb._determineOutputs()
       self.assertEqual( outF, [{'outputDataType': 'sdst',
                                 'outputDataName': '00000123_00000456_1.sdst',
-                                'outputDataSE': 'Tier1_M-DST',
                                 'outputBKType': 'SDST'}] )
       self.assertEqual( outft, ['sdst'] )
       self.assertFalse( histos )
@@ -553,23 +545,22 @@ class ModuleBaseSuccess( ModulesTestCase ):
     open( 'ccc.charm.mdst', 'w' ).close()
     open( 'prova.txt', 'w' ).close()
 
-    stepOutput = [{'outputDataType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.bhadron.dst'},
-                  {'outputDataType': 'CALIBRATION.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'bbb.calibration.dst'},
-                  {'outputDataType': 'CHARM.MDST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'ccc.charm.mdst'},
-                  {'outputDataType': 'CHARMCONTROL.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CHARMCONTROL.DST'},
-                  {'outputDataType': 'CHARMFULL.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CHARMFULL.DST'},
-                  {'outputDataType': 'LEPTONIC.MDST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.LEPTONIC.MDST'},
-                  {'outputDataType': 'LEPTONICFULL.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.LEPTONICFULL.DST'},
-                  {'outputDataType': 'MINIBIAS.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.MINIBIAS.DST'},
-                  {'outputDataType': 'RADIATIVE.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.RADIATIVE.DST'},
-                  {'outputDataType': 'SEMILEPTONIC.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.SEMILEPTONIC.DST'},
-                  {'outputDataType': 'HIST', 'outputDataSE': 'CERN-HIST', 'outputDataName': 'DaVinci_00012345_00012345_2_Hist.root'}]
+    stepOutput = [{'outputDataType': 'BHADRON.DST', 'outputDataName': 'aaa.bhadron.dst'},
+                  {'outputDataType': 'CALIBRATION.DST', 'outputDataName': 'bbb.calibration.dst'},
+                  {'outputDataType': 'CHARM.MDST', 'outputDataName': 'ccc.charm.mdst'},
+                  {'outputDataType': 'CHARMCONTROL.DST', 'outputDataName': '00012345_00012345_2.CHARMCONTROL.DST'},
+                  {'outputDataType': 'CHARMFULL.DST', 'outputDataName': '00012345_00012345_2.CHARMFULL.DST'},
+                  {'outputDataType': 'LEPTONIC.MDST', 'outputDataName': '00012345_00012345_2.LEPTONIC.MDST'},
+                  {'outputDataType': 'LEPTONICFULL.DST', 'outputDataName': '00012345_00012345_2.LEPTONICFULL.DST'},
+                  {'outputDataType': 'MINIBIAS.DST', 'outputDataName': '00012345_00012345_2.MINIBIAS.DST'},
+                  {'outputDataType': 'RADIATIVE.DST', 'outputDataName': '00012345_00012345_2.RADIATIVE.DST'},
+                  {'outputDataType': 'SEMILEPTONIC.DST', 'outputDataName': '00012345_00012345_2.SEMILEPTONIC.DST'},
+                  {'outputDataType': 'HIST', 'outputDataName': 'DaVinci_00012345_00012345_2_Hist.root'}]
 
     self.assertRaises( IOError, self.mb._findOutputs, stepOutput )
 
-    stepOutput = [{'outputDataType': 'BHADRON.DST', 'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.bhadron.dst'}]
-    outExp = [{'outputDataType': 'bhadron.dst', 'outputBKType': 'BHADRON.DST',
-               'outputDataSE': 'Tier1-DST', 'outputDataName': 'aaa.Bhadron.dst',
+    stepOutput = [{'outputDataType': 'BHADRON.DST', 'outputDataName': 'aaa.bhadron.dst'}]
+    outExp = [{'outputDataType': 'bhadron.dst', 'outputBKType': 'BHADRON.DST', 'outputDataName': 'aaa.Bhadron.dst',
                'stepName': 'someApp_1'}]
     bkExp = ['BHADRON.DST']
 

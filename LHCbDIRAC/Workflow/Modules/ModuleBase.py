@@ -425,7 +425,7 @@ class ModuleBase( object ):
 
 
     histogram = False
-    for hist in self.opsHelper.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST',
+    for hist in self.opsH.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST',
                                                                         'GAUSSHIST', ] ):
       try:
         stepOutTypes.remove( hist )
@@ -578,7 +578,7 @@ class ModuleBase( object ):
 
     notPresentKeys = []
 
-    mandatoryKeys = ['type', 'workflowSE', 'lfn']  # filedict is used for requests
+    mandatoryKeys = ['type', 'lfn']  # filedict is used for requests
     for fileName, metadata in candidateFiles.items():
       for key in mandatoryKeys:
         if not metadata.has_key( key ):
