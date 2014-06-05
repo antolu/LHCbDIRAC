@@ -335,7 +335,11 @@ class Production( object ):
   #############################################################################
 
   def _constructOutputFilesDict( self, filesTypesList, outputSE, histoName = None, histoSE = None ):
-    """ build list of dictionary of output files, including HIST case, and fix outputSE for file
+    """ Build list of dictionary of output files, including HIST case, and fix outputSE for file.
+
+        outputSE can be a string or a dictionary, e.g. it can be:
+        - Tier1-DST (applies to all the file types, with the exclusion of HIST)
+        - {'Type1': 'Tier1-DST', 'Type2': 'Tier1-BUFFER'} (in this case, ALL the file types have to be present)
     """
 
     if not histoName:
@@ -353,7 +357,10 @@ class Production( object ):
         fileDict['outputDataSE'] = histoSE
       else:
         fileDict['outputDataName'] = '@{STEP_ID}.' + fileType.lower()
-        fileDict['outputDataSE'] = outputSE
+        try:
+          fileDict['outputDataSE'] = outputSE[fileType]
+        except TypeError:
+          fileDict['outputDataSE'] = outputSE
       fileDict['outputDataType'] = fileType.lower()
 
       outputList.append( fileDict )

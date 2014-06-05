@@ -416,7 +416,7 @@ def getPlatformsConfigsDict():
   """
   result = opsH.getOptionsDict( 'PlatformsToConfigs' )
   if not result['OK'] or not result['Value']:
-    return S_ERROR( "PlatformsToConfigs info not found" )
+    raise ValueError( "PlatformsToConfigs info not found" )
   return dict( [( k, v.replace( ' ', '' ).split( ',' ) ) for k, v in result['Value'].iteritems()] )
 
 def getCMTConfigsCompatibleWithPlatforms( originalPlatforms ):
@@ -446,7 +446,7 @@ def getPlatformFromConfig( CMTConfig ):
       platformsList.append( plat )
 
   platformsList.sort( key = LooseVersion )
-  return S_OK( uniqueElements( platformsList ) )
+  return uniqueElements( platformsList )
 
 def getPlatformsCompatibilities( platform1, platform2 ):
   """ Is platform1 compatible with platform2? (e.g. can slc5 jobs run on a slc6 machine?)

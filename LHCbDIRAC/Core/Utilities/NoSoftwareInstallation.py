@@ -39,10 +39,7 @@ class NoSoftwareInstallation( object ):
       if systemConfig.lower() == 'any':
         platform = 'ANY'
       else:
-        platformsList = ProductionEnvironment.getPlatformFromConfig( systemConfig )
-        if not platformsList['OK'] or not platformsList['Value']:
-          raise RuntimeError( "No platform detected" )
-        platform = platformsList['Value'][0]
+        platform = ProductionEnvironment.getPlatformFromConfig( systemConfig )[0]
     elif 'Platform' in self.job:
       platform = self.job['Platform']
     else:

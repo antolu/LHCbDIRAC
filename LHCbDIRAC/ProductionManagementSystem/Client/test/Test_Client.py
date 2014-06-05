@@ -2,6 +2,7 @@ import unittest
 from mock import Mock
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest, _splitIntoProductionSteps
+from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
 
 class bkClientFake:
   def getAvailableSteps( self, stepID ):
@@ -56,6 +57,36 @@ class ClientTestCase( unittest.TestCase ):
 
     self.bkClientFake = bkClientFake()
 
+    self.maxDiff = None
+
+#############################################################################
+# Production.py
+#############################################################################
+
+class ProductionSuccess( ClientTestCase ):
+  def test__constructOutputFilesDict(self):
+    prod = Production()
+    res = prod._constructOutputFilesDict( ['T1', 'T2'], 'outputSE1' )
+    resExpected = [{'outputDataType': 't1', 'outputDataSE': 'outputSE1', 'outputDataName': '@{STEP_ID}.t1'},
+                   {'outputDataType': 't2', 'outputDataSE': 'outputSE1', 'outputDataName': '@{STEP_ID}.t2'}]
+    self.assertEqual( res, resExpected )
+
+    res = prod._constructOutputFilesDict( ['T1', 'T2'], {'T1':'outputSE1', 'T2':'outputSE2'} )
+    resExpected = [{'outputDataType': 't1', 'outputDataSE': 'outputSE1', 'outputDataName': '@{STEP_ID}.t1'},
+                   {'outputDataType': 't2', 'outputDataSE': 'outputSE2', 'outputDataName': '@{STEP_ID}.t2'}]
+    self.assertEqual( res, resExpected )
+
+    res = prod._constructOutputFilesDict( ['T1', 'HIST'], 'outputSE1' )
+    resExpected = [{'outputDataType': 't1', 'outputDataSE': 'outputSE1', 'outputDataName': '@{STEP_ID}.t1'},
+                   {'outputDataType': 'hist', 'outputDataSE': 'CERN-HIST', 'outputDataName': '@{applicationName}_@{STEP_ID}_Hist.root'}]
+    self.assertEqual( res, resExpected )
+
+    res = prod._constructOutputFilesDict( ['T1', 'HIST'], {'T1':'outputSE1'} )
+    resExpected = [{'outputDataType': 't1', 'outputDataSE': 'outputSE1', 'outputDataName': '@{STEP_ID}.t1'},
+                   {'outputDataType': 'hist', 'outputDataSE': 'CERN-HIST', 'outputDataName': '@{applicationName}_@{STEP_ID}_Hist.root'}]
+    self.assertEqual( res, resExpected )
+
+
 #############################################################################
 # ProductionRequest.py
 #############################################################################
@@ -69,7 +100,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.stepsList = ['123']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
-                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
+                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'',
                                          'prodStepID': "123['SDST']", 'SystemConfig':'',
@@ -81,7 +112,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.stepsList = ['123', '456']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
-                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
+                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'',
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
@@ -90,7 +121,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 456, 'StepName':'Merge',
-                                         'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
+                                         'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2', 'ExtraOptions': '',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'x86',
                                          'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
@@ -103,7 +134,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.stepsList = ['123', '456', '', '']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
-                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
+                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'',
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
@@ -111,7 +142,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
                                          {'StepId': 456, 'StepName':'Merge',
-                                         'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2',
+                                         'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2', 'ExtraOptions': '',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'x86',
                                          'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
@@ -123,7 +154,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.stepsList = ['123']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
-                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
+                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'',
                                          'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
@@ -134,7 +165,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.stepsList = ['123']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
-                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
+                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
                                          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
                                          'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'',
                                          'prodStepID': "123['SDST']", 'mcTCK': '',
@@ -1145,6 +1176,7 @@ class ProductionRequestFullChain( ClientTestCase ):
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ClientTestCase )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionRequestSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionRequestFailure ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionRequestFullChain ) )

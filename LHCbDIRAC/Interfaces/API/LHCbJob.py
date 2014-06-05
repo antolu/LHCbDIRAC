@@ -859,10 +859,12 @@ class LHCbJob( Job ):
     if listOfCMTConfigs[0] == 'zzz':
       return super( LHCbJob, self ).setPlatform( 'ANY' )
     else:
-      res = getPlatformFromConfig( listOfCMTConfigs[0] )
-      if not res['OK']:
-        return res
-      return super( LHCbJob, self ).setPlatform( res['Value'][0] )
+      try:
+        platform = getPlatformFromConfig( listOfCMTConfigs[0] )[0]
+      except ValueError, error:
+        self.log.warn( error )
+        platform = 'ANY'
+      return super( LHCbJob, self ).setPlatform( platform )
 
   #############################################################################
 
