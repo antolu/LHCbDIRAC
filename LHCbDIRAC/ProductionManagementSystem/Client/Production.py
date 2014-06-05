@@ -10,12 +10,15 @@
     - Uses __getOutputLFNs() function to add production output directory parameter
 """
 
+__RCSID__ = "$Id$"
+
 import shutil, re, os, copy
 
-from DIRAC                                                        import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC                                                        import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Workflow.Workflow                                 import Workflow, fromXMLString
 from DIRAC.Core.Utilities.List                                    import removeEmptyElements, uniqueElements
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations          import Operations
+from DIRAC.ConfigurationSystem.Client.Helpers.Resources           import getSites, getSiteTier
 from DIRAC.Workflow.Utilities.Utils                               import getStepDefinition
 
 from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubmissionLFNs
@@ -23,7 +26,7 @@ from LHCbDIRAC.Interfaces.API.LHCbJob                             import LHCbJob
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
 
-class Production():
+class Production( object ):
   """ Production uses an LHCbJob object, as well as few clients.
   """
 
@@ -34,7 +37,7 @@ class Production():
     """
 
     self.LHCbJob = LHCbJob( script )
-    self.BKKClient = BookkeepingClient()
+    self.bkkClient = BookkeepingClient()
     self.transformation = Transformation()
     self.opsHelper = Operations()
 
@@ -135,10 +138,10 @@ class Production():
       if not re.search( ';', optionsFile ):
         optionsFile = [optionsFile]
 
-    for p in extraPackages:
-      gLogger.verbose( "Checking extra package: %s" % ( p ) )
-      if not re.search( '.', p ):
-        raise TypeError( "Must have extra packages in the following format 'Name.Version' not %s" % ( p ) )
+    for package in extraPackages:
+      gLogger.verbose( "Checking extra package: %s" % ( package ) )
+      if not re.search( '.', package ):
+        raise TypeError( "Must have extra packages in the following format 'Name.Version' not %s" % ( package ) )
 
     gLogger.verbose( "Extra packages and event type options are correctly specified" )
     return S_OK()
@@ -176,7 +179,7 @@ class Production():
     optionsFormat = stepDict['OptionsFormat']
     dddbOpt = stepDict['DDDB']
     conddbOpt = stepDict['CONDDB']
-    DQOpt = stepDict['DQTag']
+    dqOpt = stepDict['DQTag']
     multicore = stepDict['isMulticore']
     sysConfig = stepDict['SystemConfig']
     if sysConfig == 'None' or sysConfig == 'NULL' or not sysConfig or sysConfig is None:
@@ -211,9 +214,9 @@ class Production():
     except AttributeError:
       pass
     try:
-      if not DQOpt.lower() == 'global':
-        gLogger.verbose( "Specific DQTag setting found for %s step, setting to: %s" % ( appName, DQOpt ) )
-        DQOpt = DQOpt.replace( ' ', '' )
+      if not dqOpt.lower() == 'global':
+        gLogger.verbose( "Specific DQTag setting found for %s step, setting to: %s" % ( appName, dqOpt ) )
+        dqOpt = dqOpt.replace( ' ', '' )
     except AttributeError:
       pass
 
@@ -283,7 +286,7 @@ class Production():
                    ['optionsFormat', optionsFormat],
                    ['CondDBTag', conddbOpt],
                    ['DDDBTag', dddbOpt],
-                   ['DQTag', DQOpt],
+                   ['DQTag', dqOpt],
                    ['multiCore', multicore],
                    ['SystemConfig', sysConfig],
                    ['mcTCK', mcTCK]
@@ -324,7 +327,7 @@ class Production():
                   'OptionFiles':bkOptionsFile,
                   'DDDb':dddbOpt,
                   'CondDb':conddbOpt,
-                  'DQTag':DQOpt,
+                  'DQTag':dqOpt,
                   'ExtraPackages':extraPackages,
                   'BKStepID':stepID,
                   'StepName':stepName,
@@ -392,15 +395,11 @@ class Production():
 
   #############################################################################
 
-  def addFinalizationStep( self, modulesList = [] ):
+  def addFinalizationStep( self, modulesList = ['UploadOutputData', 'UploadLogFile', 'FailoverRequest'] ):
     """ Add the finalization step (some defaults are inserted)
     """
 
     if 'Job_Finalization' not in self.LHCbJob.workflow.step_definitions.keys():
-
-      if not modulesList:
-        modulesList = self.opsHelper.getValue( 'Productions/FinalizationStep_Modules',
-                                               [ 'UploadOutputData', 'UploadLogFile', 'FailoverRequest' ] )
 
       jobFinalizationStepDef = getStepDefinition( 'Job_Finalization',
                                                   importLine = 'LHCbDIRAC.Workflow.Modules',
@@ -434,7 +433,7 @@ class Production():
 
     name = self.createWorkflow()['Value']
     # this "name" is the xml file
-    return LHCbJob( name ).runLocal( bkkClientIn = self.BKKClient )
+    return LHCbJob( name ).runLocal( bkkClientIn = self.bkkClient )
     # it makes a job (a Worklow, with Parameters), out of the xml file
 
   #############################################################################
@@ -569,7 +568,7 @@ class Production():
     bkDictStep = {}
 
     # Add the BK conditions metadata / name
-    simConds = self.BKKClient.getSimConditions()
+    simConds = self.bkkClient.getSimConditions()
     if not simConds['OK']:
       gLogger.error( 'Could not retrieve conditions data from BK:\n%s' % simConds )
       return simConds
@@ -657,7 +656,7 @@ class Production():
 
     if bkQuery:
       if queryProdID:
-        inputPass = self.BKKClient.getProductionProcessingPass( queryProdID )
+        inputPass = self.bkkClient.getProductionProcessingPass( queryProdID )
         if not inputPass['OK']:
           gLogger.error( inputPass )
           gLogger.error( 'Production %s was created but BK processing pass for %s was not found' % ( prodID,
@@ -689,7 +688,7 @@ class Production():
 
     if publish:
       gLogger.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
-      result = self.BKKClient.addProduction( bkDictStep )
+      result = self.bkkClient.addProduction( bkDictStep )
       if not result['OK']:
         gLogger.error( result )
         return result
@@ -715,8 +714,6 @@ class Production():
   def __getOutputLFNs( self, prodID = '12345', prodJobID = '6789', prodXMLFile = '' ):
     """ Will construct the output LFNs for the production for visual inspection.
     """
-    # TODO: fix this construction: really necessary?
-
     if not prodXMLFile:
       gLogger.verbose( 'Using workflow object to generate XML file' )
       prodXMLFile = self.createWorkflow()
@@ -750,27 +747,17 @@ class Production():
   def banTier1s( self ):
     """ Sets Tier1s as banned.
     """
-    # TODO: should change to RSS
     tier1s = []
+    sites = getSites()
+    if not sites['OK']:
+      return sites
 
-    lcgSites = gConfig.getSections( '/Resources/Sites/LCG' )
-    if not lcgSites[ 'OK' ]:
-      return lcgSites
-
-    for lcgSite in lcgSites[ 'Value' ]:
-
-      tier = gConfig.getValue( '/Resources/Sites/LCG/%s/MoUTierLevel' % lcgSite, 2 )
-      if tier in ( 0, 1 ):
-        tier1s.append( lcgSite )
-
-#    tier1s = []
-#    #from DIRAC.ResourceStatusSystem.Utilities.CS import getSites, getSiteTier
-#    sites = getSites()
-#
-#    for site in sites:
-#      tier = getSiteTier( site )
-#      if tier in ( 0, 1 ):
-#        tier1s.append( site )
+    for site in sites['Value']:
+      tier = getSiteTier( site )
+      if not tier['OK']:
+        return tier
+      if int( tier['Value'] ) in ( 0, 1 ):
+        tier1s.append( site )
 
     self.LHCbJob.setBannedSites( tier1s )
 

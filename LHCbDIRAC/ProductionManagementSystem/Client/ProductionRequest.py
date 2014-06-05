@@ -1,6 +1,8 @@
 """ Module for creating, describing and managing production requests objects
 """
 
+__RCSID__ = "$Id$"
+
 import itertools, copy
 
 from DIRAC import gLogger, S_OK
@@ -589,9 +591,7 @@ class ProductionRequest( object ):
                                  'UploadLogFile',
                                  'FailoverRequest'] )
     else:
-      prod.addFinalizationStep( ['UploadOutputData',
-                                 'UploadLogFile',
-                                 'FailoverRequest'] )
+      prod.addFinalizationStep()
 
     prod.LHCbJob.setDIRACPlatform()
 
