@@ -61,7 +61,7 @@ class ProductionStatusAgent( AgentModule ):
 
   #############################################################################
   def initialize( self ):
-    """Sets default values.
+    """ Sets default values.
     """
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
     self.notify = eval( self.am_getOption( 'NotifyProdManager', 'True' ) )
@@ -70,8 +70,7 @@ class ProductionStatusAgent( AgentModule ):
 
   #############################################################################
   def execute( self ):
-    """ The execution method, periodically checks productions for requests in the
-        Active status.
+    """ The execution method, periodically checks productions for requests in the Active status.
     """
     updatedProductions = {}
     updatedRequests = []
@@ -245,10 +244,8 @@ class ProductionStatusAgent( AgentModule ):
           # Now have to update productions to ValidatingOutput / Input after cleaning jobs
           for prod in prods:
             if prod in doneAndUsed:
-              self._cleanActiveJobs( prod )
               self._updateProductionStatus( prod, 'Idle', 'ValidatingOutput', updatedProductions )
             elif prod in doneAndNotUsed:
-              self._cleanActiveJobs( prod )
               self._updateProductionStatus( prod, 'Idle', 'ValidatingInput', updatedProductions )
     except RuntimeError, error:
       self.log.error( error )
@@ -268,7 +265,7 @@ class ProductionStatusAgent( AgentModule ):
       return []
     else:
       valOutStr = ', '.join( [str( i ) for i in res['Value']] )
-      self.log.verbose( 'The following productions are in %s status: %s' % ( status, valOutStr ) )
+      self.log.verbose( "The following productions are in %s status: %s" % ( status, valOutStr ) )
       return res['Value']
 
 
@@ -330,8 +327,7 @@ class ProductionStatusAgent( AgentModule ):
       bkTotal = mdata['bkTotal']
       if not bkTotal:
         continue
-      progress = int( bkTotal * 100 / totalRequested )
-      self.log.debug( 'Request progress for ID %s is %s%%' % ( reqID, progress ) )
+      self.log.verbose( "Request progress for ID %s is %s%%" % ( reqID, int( bkTotal * 100 / totalRequested ) ) )
 
       try:
         for prod, used in progressSummary[reqID].iteritems():
@@ -403,25 +399,6 @@ class ProductionStatusAgent( AgentModule ):
       self.log.error( result )
 
     return result
-
-  def _cleanActiveJobs( self, prodID ):
-    """ This method checks if a production having enough BK events has any Waiting
-        or Running jobs in the WMS and removes them to ensure the output data sample
-        is static.  Then the production status is updated.
-    """
-    running = self.dProd.selectProductionJobs( int( prodID ), Status = 'Running' )
-    if running['OK']:
-      self.log.info( 'Killing %s running jobs for production %s' % ( len( running['Value'] ), prodID ) )
-      result = self.dirac.kill( running['Value'] )
-      if not result['OK']:
-        self.log.error( result )
-
-    waiting = self.dProd.selectProductionJobs( int( prodID ), Status = 'Waiting' )
-    if waiting['OK']:
-      self.log.info( 'Deleting %s waiting jobs for production %s' % ( len( waiting['Value'] ), prodID ) )
-      result = self.dProd.delete( waiting['Value'] )
-      if not result['OK']:
-        self.log.error( result )
 
   def _updateProductionStatus( self, prodID, origStatus, status, updatedProductions ):
     """ This method updates the production status and logs the changes for each
