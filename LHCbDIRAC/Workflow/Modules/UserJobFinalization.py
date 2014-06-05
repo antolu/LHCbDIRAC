@@ -33,7 +33,6 @@ class UserJobFinalization( ModuleBase ):
     self.defaultOutputSE = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-USER', [] )
     self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
     # List all parameters here
-    self.userFileCatalog = 'LcgFileCatalogCombined'
     self.request = None
     # Always allow any files specified by users
     self.outputDataFileMask = ''
@@ -213,7 +212,7 @@ class UserJobFinalization( ModuleBase ):
                                                                 lfn = metadata['filedict']['LFN'],
                                                                 destinationSEList = metadata['resolvedSE'],
                                                                 fileMetaDict = fileMetaDict,
-                                                                fileCatalog = self.userFileCatalog )
+                                                                fileCatalog = self.fileCatalog )
         if not result['OK']:
           self.log.error( "Could not transfer and register %s with metadata:\n %s" % ( fileName, metadata ) )
           failover[fileName] = metadata
@@ -252,7 +251,7 @@ class UserJobFinalization( ModuleBase ):
                                                                         targetSE,
                                                                         metadata['resolvedSE'],
                                                                         fileMetaDict = fileMetaDict,
-                                                                        fileCatalog = self.userFileCatalog )
+                                                                        fileCatalog = self.fileCatalog )
         if not result['OK']:
           self.log.error( "Could not transfer and register %s with metadata:\n %s" % ( fileName, metadata ) )
           cleanUp = True

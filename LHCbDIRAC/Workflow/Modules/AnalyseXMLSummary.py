@@ -196,10 +196,10 @@ class AnalyseXMLSummary( ModuleBase ):
         guidInput = guidResult['Value'][fname]
 
       if self._WMSJob():
-        self.log.info( 'Attempting: dm.putAndRegister("%s","%s","CERN-DEBUG","%s") on catalog "LcgFileCatalogCombined"'
-                       % ( fname, lfn, guidInput ) )
-        result = DataManager( catalogs = ['LcgFileCatalogCombined'] ).putAndRegister( lfn, fname, 'CERN-DEBUG',
-                                         guidInput )
+        self.log.info( 'Attempting: dm.putAndRegister("%s","%s","%s","%s") on catalog "%s"' % ( fname, lfn, guidInput,
+                                                                                                self.debugSE,
+                                                                                                self.fileCatalog ) )
+        result = DataManager( catalogs = [self.fileCatalog] ).putAndRegister( lfn, fname, self.debugSE, guidInput )
         self.log.info( result )
         if not result['OK']:
           self.log.error( 'Could not save INPUT data file with result', str( result['Message'] ) )
@@ -207,8 +207,9 @@ class AnalyseXMLSummary( ModuleBase ):
         else:
           msg = msg + lfn + '\n' + str( result ) + '\n'
       else:
-        self.log.info( 'JOBID is null, would have attempted to upload: LFN:%s, file %s, GUID %s to CERN-DEBUG'
-                       % ( lfn, fname, guidInput ) )
+        self.log.info( "JOBID is null, would have attempted to upload: LFN:%s, file %s, GUID %s to %s" % ( lfn, fname,
+                                                                                                           guidInput,
+                                                                                                        self.debugSE ) )
 
     if not self._WMSJob():
       self.log.info( "JOBID is null, *NOT* sending mail, for information the mail was:\n====>Start\n%s\n<====End"

@@ -48,8 +48,6 @@ class UploadOutputData( ModuleBase ):
     self.request = None
     self.failoverTransfer = None
 
-    self.fileCatalog = 'LcgFileCatalogCombined'
-
   #############################################################################
   def _resolveInputVariables( self ):
     """ By convention the module parameters are resolved here.

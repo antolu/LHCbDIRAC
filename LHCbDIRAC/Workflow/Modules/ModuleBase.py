@@ -64,6 +64,9 @@ class ModuleBase( object ):
     self.workflow_commons = None
     self.step_commons = None
 
+    self.fileCatalog = 'LcgFileCatalogCombined'
+    self.debugSE = 'CERN-DEBUG'
+
   #############################################################################
 
   def execute( self, version = None,

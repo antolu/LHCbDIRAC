@@ -144,8 +144,9 @@ class AnalyseLogFile( ModuleBase ):
           coreLFN = lfn
       if self._WMSJob():
         if coreLFN:
-          self.log.info( "Attempting: dm.putAndRegister('%s','%s','CERN-DEBUG') on catalog 'LcgFileCatalogCombined'" % ( coreLFN, self.coreFile ) )
-          result = DataManager( catalogs = ['LcgFileCatalogCombined'] ).putAndRegister( coreLFN, self.coreFile, 'CERN-DEBUG' )
+          self.log.info( "Attempting putAndRegister('%s','%s','%s') on catalog %s" % ( coreLFN, self.coreFile,
+                                                                                      self.debugSE, self.fileCatalog ) )
+          result = DataManager( catalogs = [self.fileCatalog] ).putAndRegister( coreLFN, self.coreFile, self.debugSE )
           self.log.info( result )
           if not result['OK']:
             self.log.error( 'Could not save core dump file', result['Message'] )
@@ -153,8 +154,9 @@ class AnalyseLogFile( ModuleBase ):
           else:
             msg += coreLFN + '\n'
       else:
-        self.log.info( "JOBID is null, would have attempted to upload: LFN:%s, file %s to CERN-DEBUG" % ( coreLFN,
-                                                                                                       self.coreFile ) )
+        self.log.info( "JOBID is null, would have attempted to upload: LFN:%s, file %s to %s" % ( coreLFN,
+                                                                                                  self.coreFile,
+                                                                                                  self.debugSE ) )
 
     toUpload = {}
     for lfn in debugLFNs:
@@ -177,10 +179,10 @@ class AnalyseLogFile( ModuleBase ):
         guidInput = guidResult['Value'][fname]
 
       if self._WMSJob():
-        self.log.info( 'Attempting: dm.putAndRegister("%s","%s","CERN-DEBUG","%s") on catalog "LcgFileCatalogCombined"'
-                       % ( fname, lfn, guidInput ) )
-        result = DataManager( catalogs = ['LcgFileCatalogCombined'] ).putAndRegister( lfn, fname, 'CERN-DEBUG',
-                                         guidInput )
+        self.log.info( 'Attempting putAndRegister("%s","%s","CERN-DEBUG","%s") on catalog "%s"' % ( fname, lfn,
+                                                                                                    guidInput,
+                                                                                                    self.fileCatalog ) )
+        result = DataManager( catalogs = [self.fileCatalog] ).putAndRegister( lfn, fname, self.debugSE, guidInput )
         self.log.info( result )
         if not result['OK']:
           self.log.error( 'Could not save INPUT data file with result', str( result ) )
@@ -188,8 +190,8 @@ class AnalyseLogFile( ModuleBase ):
         else:
           msg = msg + lfn + '\n' + str( result ) + '\n'
       else:
-        self.log.info( 'JOBID is null, would have attempted to upload: LFN:%s, file %s, GUID %s to CERN-DEBUG'
-                       % ( lfn, fname, guidInput ) )
+        self.log.info( 'JOBID is null, would have attempted to upload: LFN:%s, file %s, GUID %s to %s'
+                       % ( lfn, fname, guidInput, self.debugSE ) )
 
     if self.applicationLog:
       logurl = 'http://lhcb-logs.cern.ch/storage' + self.logFilePath
