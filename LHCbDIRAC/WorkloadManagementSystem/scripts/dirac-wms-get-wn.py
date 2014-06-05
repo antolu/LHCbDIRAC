@@ -86,6 +86,7 @@ if __name__ == "__main__":
   allJobs = []
   result = {}
   wnJobs = {}
+  gLogger.always( '%d jobs found' % len( jobs ) )
   # Get host name
   for job in jobs:
     res = monitoring.getJobParameter( job, 'HostName' )
