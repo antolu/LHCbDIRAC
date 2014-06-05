@@ -20,6 +20,7 @@ class WorkflowTaskAgent( DIRACWorkflowTaskAgent ):
   def __init__( self, *args, **kwargs ):
     ''' c'tor
     '''
+    # FIXME: should port the clients initializations in the initialize(). Also for the basic class.
     DIRACWorkflowTaskAgent.__init__( self, *args, **kwargs )
     self.transClient = TransformationClient()
     outputDataModule = Operations().getValue( "Transformations/OutputDataModule",

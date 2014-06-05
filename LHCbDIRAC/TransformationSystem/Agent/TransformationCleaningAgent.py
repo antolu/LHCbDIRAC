@@ -21,18 +21,13 @@ from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient       import Stora
 AGENT_NAME = 'Transformation/TransformationCleaningAgent'
 
 class TransformationCleaningAgent( DiracTCAgent ):
-  """
-  .. class:: TransformationCleaningAgent
-
+  """ .. class:: TransformationCleaningAgent
   """
 
   def __init__( self, *args, **kwargs ):
     """ c'tor
     """
     DiracTCAgent.__init__( self, *args, **kwargs )
-    self.bkClient = BookkeepingClient()
-    self.transClient = TransformationClient()
-    self.storageUsageClient = StorageUsageClient()
 
     self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', [ 'TransformationDB',
                                                                                    'StorageUsage' ] ) )
@@ -43,7 +38,20 @@ class TransformationCleaningAgent( DiracTCAgent ):
     # # FIXME: what about RSS???
     self.activeStorages = sortList( self.am_getOption( 'ActiveSEs', storageElements ) )
 
+    self.bkClient = None
+    self.transClient = None
+    self.storageUsageClient = None
+
   #############################################################################
+
+  def initialize( self ):
+    """ Standard initialize method for agents
+    """
+    DiracTCAgent.initialize( self )
+
+    self.bkClient = BookkeepingClient()
+    self.transClient = TransformationClient()
+    self.storageUsageClient = StorageUsageClient()
 
   def cleanMetadataCatalogFiles( self, transID ):
     """ clean the metadata using BKK and Replica Manager. Replace the one from base class

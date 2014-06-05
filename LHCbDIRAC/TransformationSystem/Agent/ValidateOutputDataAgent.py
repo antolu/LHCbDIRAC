@@ -16,19 +16,26 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
   """ Simple extension of base class
   """
 
-  #############################################################################
-
   def __init__( self, *args, **kwargs ):
     """ c'tor
     """
     DIRACValidateOutputDataAgent.__init__( self, *args, **kwargs )
+
+    self.integrityClient = None
+    self.fileCatalog = None
+    self.transClient = None
+    self.storageUsageClient = None
+
+  def initialize( self ):
+    """ standard initialize method for DIRAC agents
+    """
+    DIRACValidateOutputDataAgent.initialize( self )
 
     self.integrityClient = DataIntegrityClient()
     self.fileCatalog = FileCatalog()
     self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
 
-  #############################################################################
 
   def checkTransformationIntegrity( self, prodID ):
     """ This method contains the real work

@@ -33,8 +33,6 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
     self.bkQueriesToBeChecked = Queue.Queue()
     self.bkQueriesInCheck = []
-    self.transClient = TransformationClient()
-    self.bkClient = BookkeepingClient()
 
     self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', 86400 )
     self.debug = self.am_getOption( 'verbose', False )
@@ -53,10 +51,16 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.fullTimeLog = {}
     self.bkQueries = {}
 
+    self.transClient = None
+    self.bkClient = None
+
   def initialize( self ):
     """ Make the necessary initializations.
         The ThreadPool is created here, the _execute() method is what each thread will execute.
     """
+
+    self.transClient = TransformationClient()
+    self.bkClient = BookkeepingClient()
 
     try:
       pf = open( self.pickleFile, 'r' )

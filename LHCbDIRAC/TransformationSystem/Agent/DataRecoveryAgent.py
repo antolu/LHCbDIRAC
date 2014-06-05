@@ -46,13 +46,12 @@ class DataRecoveryAgent( AgentModule ):
     """
     AgentModule.__init__( self, *args, **kwargs )
 
-    self.dataManager = DataManager()
-    self.transClient = TransformationClient()
-    self.bkClient = BookkeepingClient()
-    self.reqClient = ReqClient()
+    self.dataManager = None
+    self.transClient = None
+    self.bkClient = None
+    self.reqClient = None
 
-    self.cc = ConsistencyChecks( interactive = False, transClient = self.transClient,
-                                 dm = self.dataManager, bkClient = self.bkClient )
+    self.cc = None
 
     self.transformationTypes = Operations().getValue( 'Transformations/DataProcessing', [] )
     self.transformationTypes = list( set( self.transformationTypes ) - set( ['MCSimulation', 'Simulation'] ) )
@@ -65,6 +64,14 @@ class DataRecoveryAgent( AgentModule ):
     # This sets the Default Proxy
     # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
+
+    self.dataManager = DataManager()
+    self.transClient = TransformationClient()
+    self.bkClient = BookkeepingClient()
+    self.reqClient = ReqClient()
+
+    self.cc = ConsistencyChecks( interactive = False, transClient = self.transClient,
+                                 dm = self.dataManager, bkClient = self.bkClient )
 
     return S_OK()
 

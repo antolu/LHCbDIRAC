@@ -20,10 +20,13 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
   """
 
   def __init__( self, *args, **kwargs ):
+    """ c'tor
+    """
     DIRACMCExtensionAgent.__init__( self, *args, **kwargs )
 
-    self.rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
-    self.transClient = TransformationClient()
+    self.rpcProductionRequest = None
+    self.transClient = None
+
     self.enableFlag = True
 
     # default values
@@ -33,8 +36,11 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
   #############################################################################
   def initialize( self ):
-    """ Logs some parameters
+    """ Logs some parameters and initializes the clients
     """
+
+    self.rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
+    self.transClient = TransformationClient()
 
     self.log.info( 'Will consider the following transformation types: %s' % str( self.transformationTypes ) )
     self.log.info( 'Will create a maximum of %s tasks per iteration' % self.maxIterationTasks )
@@ -48,7 +54,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
     self.enableFlag = self.am_getOption( 'EnableFlag', 'True' )
     if not self.enableFlag == 'True':
-      self.log.info( 'MCExtensionAgent is disabled by configuration option EnableFlag' )
+      self.log.info( "MCExtensionAgent is disabled by configuration option EnableFlag" )
       return S_OK( 'Disabled via CS flag' )
 
     # done every cycle, as they may have changed
