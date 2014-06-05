@@ -97,7 +97,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
     try:
       self.cpuNormalizationFactorAvg = getCPUNormalizationFactorAvg()
-      self.log.verbose( "cpuTimeAvg = %d" % self.cpuTimeAvg )
+      self.log.verbose( "cpuNormalizationFactorAvg = %d" % self.cpuNormalizationFactorAvg )
     except RuntimeError:
       self.cpuNormalizationFactorAvg = productionRequest.CPUNormalizationFactorAvg
       self.log.info( "Could not get CPUNormalizationFactorAvg from config, defaulting to %d"
