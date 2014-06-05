@@ -189,7 +189,7 @@ if __name__ == '__main__':
       gLogger.always( "There are %d LFNs not marked Processed but that have descendants -> ERROR" % len( lfns ) )
       if fixIt:
         gLogger.always( "Marking them as 'Processed'" )
-        cc.transClient.setFileStatusForTransformation( id, 'Processed', lfns )
+        cc.transClient.setFileStatusForTransformation( id, 'Processed', lfns, force = True )
       else:
         if not fp:
           fp = open( fileName, 'w' )
