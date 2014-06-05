@@ -1,9 +1,9 @@
-''' LHCbDIRAC.ResourceStatusSystem.Agent.ShiftDBAgent
+""" LHCbDIRAC.ResourceStatusSystem.Agent.ShiftDBAgent
 
    ShiftDBAgent.__bases__:
      DIRAC.Core.Base.AgentModule.AgentModule
    
-'''
+"""
 
 import datetime
 import os
@@ -20,20 +20,18 @@ __RCSID__  = '$Id$'
 AGENT_NAME = 'ResourceStatus/ShiftDBAgent'
 
 class ShiftDBAgent( AgentModule ):
-  '''
-    This agent queries the LHCb ShiftDB and gets the emails of the Production
-    shifter. Then, populates the eGroup lhcb-grid-operations-alarms
-  '''
+  """ This agent queries the LHCb ShiftDB and gets the emails of the Production
+      shifter. Then, populates the eGroup lhcb-grid-operations-alarms
+  """
 
   # ShiftDB url where to find shifter emails
   __lbshiftdburl = 'https://lbshiftdb.cern.ch/shiftdb_list_mails.php'
   # eGroup user
-  __user         = 'lbdirac' 
+  __user = 'lbdirac'
   # eGroup password
-  __passwd       = 'belikeapanda'
+  __passwd = 'belikeapanda'
   # soap wsdl to access eGroups
-  # preprod wdsl: 'https://preprodcra-ws.cern.ch/cra-ws/CraEgroupsWebService.wsdl'
-  __wsdl         = 'https://cra-ws.cern.ch/cra-ws/CraEgroupsWebService.wsdl'
+  __wsdl = 'https://foundservices.cern.ch/ws/egroups/v1/EgroupsWebService/EgroupsWebService.wsdl'
   
   def __init__( self, *args, **kwargs ):
     
@@ -53,9 +51,9 @@ class ShiftDBAgent( AgentModule ):
     self.diracAdmin   = None
     
   def initialize( self ):
-    '''
+    """
      Initialize
-    '''
+    """
      
     self.user         = self.am_getOption( 'user', self.user )
     self.lbshiftdburl = self.am_getOption( 'lbshiftdburl', self.lbshiftdburl )
@@ -74,9 +72,8 @@ class ShiftDBAgent( AgentModule ):
     return S_OK()
  
   def execute( self ):
-    '''
-     Execution
-    '''  
+    """ Execution
+    """
    
     self.roles        = {}
     self.roleShifters = {}
@@ -125,12 +122,11 @@ class ShiftDBAgent( AgentModule ):
     return S_OK()
 
   def __getRolesFromCS( self ):
-    '''
-    Gets from the CS the roles we want to add to an eGroup.
-    Role1 : { eGroup: egroup-blah } in the CS
+    """ Gets from the CS the roles we want to add to an eGroup.
+        Role1 : { eGroup: egroup-blah } in the CS
    
-    returns S_OK( { role1: egroup1, .. } )
-    '''  
+        returns S_OK( { role1: egroup1, .. } )
+    """
    
     _section = self.am_getModuleParam( 'section' )
     roles    = gConfig.getSections( '%s/roles' % _section )
@@ -149,9 +145,8 @@ class ShiftDBAgent( AgentModule ):
     return S_OK( eGroups )
 
   def __getRoleEmail( self, role ):
-    '''
-    Get role email from shiftDB
-    '''
+    """ Get role email from shiftDB
+    """
        
     try:  
       web = urllib2.urlopen( self.lbshiftdburl, timeout = 60 )
@@ -199,9 +194,8 @@ class ShiftDBAgent( AgentModule ):
 #    return S_ERROR( 'Email not found' )    
 
   def __setRoleEmail( self, eGroup, email, role ):
-    '''
-    Set email in eGroup
-    '''
+    """ Set email in eGroup
+    """
    
     client = suds.client.Client( self.wsdl )
 
@@ -215,7 +209,7 @@ class ShiftDBAgent( AgentModule ):
       members = wgroup.result.Members[ 0 ]
       
     if len( members ) > 1:
-      self.log.info( 'More than one user in the eGroup - deleting all them' )
+      self.log.info( "More than one user in the eGroup - deleting all them" )
       return self.__deleteMembers( client, wgroup )
     
     elif len( members ) == 0:
@@ -229,14 +223,14 @@ class ShiftDBAgent( AgentModule ):
     if email is None:
       #self.log.warn( 'Get email returned None, deleting previous ... %s' % lastShifterEmail )
       #return self.__deleteMembers( client, wgroup )
-      self.log.warn( 'None email. Keeping previous one till an update is found.' )
+      self.log.warn( "None email. Keeping previous one till an update is found." )
       return S_OK()
    
     if lastShifterEmail.strip().lower() == email.strip().lower():
-      self.log.info( '%s has not changed as shifter, no changes needed' % email )      
+      self.log.info( "%s has not changed as shifter, no changes needed" % email )
       return S_OK()
     
-    self.log.info( '%s is not anymore shifter, deleting ...' % lastShifterEmail )
+    self.log.info( "%s is not anymore shifter, deleting ..." % lastShifterEmail )
 
     # Adding a member means it will be the only one in the eGroup, as it is overwritten
     res = self.__addMember( email, client, wgroup )
@@ -244,15 +238,15 @@ class ShiftDBAgent( AgentModule ):
       self.log.error( res[ 'Message' ] )
       return res
    
-    self.log.info( '%s added successfully to the eGroup for role %s' % ( email, role ) )
+    self.log.info( "%s added successfully to the eGroup for role %s" % ( email, role ) )
     self.newShifters[ role ] = eGroup
        
     return S_OK()
   
   def __deleteMembers( self, client, wgroup ):
-    '''
+    """
     Creates a new MembersType type and pushes it
-    '''
+    """
     
     self.log.info( 'Creating a new MembersType type' )
     
@@ -261,9 +255,9 @@ class ShiftDBAgent( AgentModule ):
     return self.__syncGroupMembers( client, wgroup, emptyMembers )
    
   def __addMember( self, email, client, wgroup ):
-    '''
+    """
     Adds a new member to the group
-    '''
+    """
    
     # Clear e-Group before inserting anything
     self.__deleteMembers( client, wgroup ) 
@@ -282,9 +276,9 @@ class ShiftDBAgent( AgentModule ):
     return self.__syncGroupMembers( client, wgroup, members )
 
   def __syncGroupMembers( self, client, wgroup, members ):
-    '''
+    """
     Synchronizes new group members
-    '''
+    """
 
     wgroupName = wgroup.result.Name
 
@@ -298,9 +292,9 @@ class ShiftDBAgent( AgentModule ):
 
   @staticmethod
   def __getPass( pwfile ):
-    '''
+    """
     Reads password from local file
-    '''
+    """
    
     try:
       pwf    = open( pwfile )
@@ -312,9 +306,9 @@ class ShiftDBAgent( AgentModule ):
     return S_OK( passwd )  
 
   def __notifyNewShifter( self, role, eGroup ):
-    '''
+    """
     Sends an email to the shifter ( if any ) at the beginning of the shift period.
-    '''
+    """
 
     body = getBodyEmail( role )
  
