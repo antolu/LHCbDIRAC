@@ -104,7 +104,7 @@ class Transformation( DIRACTransformation ):
     else:
       return res
 
-    bkQuery = self.paramValues['BkQuery']
+    bkQuery = self.paramValues.get( 'BkQuery' )
     if bkQuery:
       res = self.setBkQuery( bkQuery )
       if not res['OK']:
