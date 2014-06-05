@@ -458,14 +458,27 @@ class ConsistencyChecks( object ):
     if not self._lfns and self.runsList:
       selectDict['RunNumber'] = self.runsList
 
-    res = self.transClient.getTransformationFiles( selectDict )
+    res = self.transClient.getTransformation( self.prod )
     if not res['OK']:
-      gLogger.error( "Failed to get files for transformation %d" % self.prod, res['Message'] )
+      gLogger.error( "Failed to find transformation %s" % self.prod )
       return [], [], []
+    status = res['Value']['Status']
+    if status not in ( 'Active', 'Stopped', 'Completed' ):
+      gLogger.always( "Transformation %s in status %s, will not check if files are processed" % ( self.prod, status ) )
+      processedLFNs = []
+      nonProcessedLFNs = []
+      nonProcessedStatuses = []
+      if self._lfns:
+        processedLFNs = self._lfns
     else:
-      processedLFNs = [item['LFN'] for item in res['Value'] if item['Status'] == 'Processed']
-      nonProcessedLFNs = [item['LFN'] for item in res['Value'] if item['Status'] != 'Processed']
-      nonProcessedStatuses = list( set( [item['Status'] for item in res['Value'] if item['Status'] != 'Processed'] ) )
+      res = self.transClient.getTransformationFiles( selectDict )
+      if not res['OK']:
+        gLogger.error( "Failed to get files for transformation %d" % self.prod, res['Message'] )
+        return [], [], []
+      else:
+        processedLFNs = [item['LFN'] for item in res['Value'] if item['Status'] == 'Processed']
+        nonProcessedLFNs = [item['LFN'] for item in res['Value'] if item['Status'] != 'Processed']
+        nonProcessedStatuses = list( set( [item['Status'] for item in res['Value'] if item['Status'] != 'Processed'] ) )
 
     return processedLFNs, nonProcessedLFNs, nonProcessedStatuses
 
