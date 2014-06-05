@@ -103,7 +103,7 @@ class UploadOutputData( ModuleBase ):
       # Determine the final list of possible output files for the workflow and all the parameters needed to upload them.
       self.log.verbose( "Getting the list of candidate files" )
       fileDict = self.getCandidateFiles( self.outputList, self.prodOutputLFNs,
-                                       self.outputDataFileMask, self.outputDataStep )
+                                         self.outputDataFileMask, self.outputDataStep )
 
       fileMetadata = self.getFileMetadata( fileDict )
 

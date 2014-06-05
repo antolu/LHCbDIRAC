@@ -279,6 +279,9 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'numberOfEvents' ):
       self.numberOfEvents = int( self.workflow_commons['numberOfEvents'] )
 
+    if self.workflow_commons.has_key( 'outputSEs' ):
+      self.outputSEs = eval( self.workflow_commons[ 'outputSEs' ] )
+
   #############################################################################
 
   def _resolveInputStep( self ):
@@ -426,7 +429,7 @@ class ModuleBase( object ):
 
     histogram = False
     for hist in self.opsH.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST',
-                                                                        'GAUSSHIST', ] ):
+                                                                   'GAUSSHIST', ] ):
       try:
         stepOutTypes.remove( hist )
         histogram = True
@@ -517,6 +520,17 @@ class ModuleBase( object ):
 
     # Sanity check all final candidate metadata keys are present
     self._checkSanity( candidateFiles )
+
+    # Adding the SEs
+    for candidateFile in candidateFiles:
+      fType = candidateFiles[candidateFile]['type']
+      for fType in [fType, fType.lower(), fType.upper(), fType.capitalize()]:
+        try:
+          wfSE = self.outputSEs[fType]
+          break
+        except KeyError:
+          pass
+      candidateFiles[candidateFile]['workflowSE'] = wfSE
 
     return candidateFiles
 

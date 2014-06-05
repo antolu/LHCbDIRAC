@@ -120,74 +120,82 @@ class ModulesTestCase( unittest.TestCase ):
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
-                        'SystemConfig':'sys_config', 'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
+                        'SystemConfig':'sys_config', 'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'],
+                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'merge',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'runNumber':'Unknown',
-                        'gaudiSteps': ['someApp_1']},
+                        'gaudiSteps': ['someApp_1'], 'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'merge',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
-                        'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
+                        'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'],
+                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'merge',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
-                        'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'] },
+                        'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'],
+                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}' },
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
-                        'SystemConfig':'sys_config', 'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
+                        'SystemConfig':'sys_config', 'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'],
+                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'runNumber':'Unknown',
-                        'gaudiSteps': ['someApp_1']},
+                        'gaudiSteps': ['someApp_1'], 'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
-                        'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
+                        'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'],
+                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
-                        'runNumber':'Unknown', 'gaudiSteps': ['someApp_1']},
+                        'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'],
+                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
-                        'runNumber':'Unknown', 'InputData': '', 'gaudiSteps': ['someApp_1'] },
+                        'runNumber':'Unknown', 'InputData': '', 'gaudiSteps': ['someApp_1'],
+                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}' },
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
-                        'runNumber':'Unknown', 'InputData': 'foo;bar', 'gaudiSteps': ['someApp_1'] },
+                        'runNumber':'Unknown', 'InputData': 'foo;bar', 'gaudiSteps': ['someApp_1'],
+                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}' },
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': 'foo;bar', 'ParametricInputData':'' ,
-                        'gaudiSteps': ['someApp_1']},
+                        'gaudiSteps': ['someApp_1'], 'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': 'foo;bar', 'ParametricInputData':'pid1;pid2;pid3',
-                        'gaudiSteps': ['someApp_1']},
+                        'gaudiSteps': ['someApp_1'], 'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
                        ]
     self.step_commons = [
                          {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
@@ -312,15 +320,13 @@ class ModuleBaseSuccess( ModulesTestCase ):
     candidateFiles = {
                       '00012345_00012345_4.dst':
                         {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
-                         'type': 'dst',
-                         'workflowSE': 'Tier1_MC_M-DST'},
-                      '00012345_00012345_2.digi': {'type': 'digi', 'workflowSE': 'Tier1-RDST'},
-                      '00012345_00012345_3.digi': {'type': 'digi', 'workflowSE': 'Tier1-RDST'},
+                         'type': 'dst'},
+                      '00012345_00012345_2.digi': {'type': 'digi'},
+                      '00012345_00012345_3.digi': {'type': 'digi'},
                       '00012345_00012345_5.AllStreams.dst':
                         {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
-                         'type': 'allstreams.dst',
-                         'workflowSE': 'Tier1_MC_M-DST'},
-                      '00012345_00012345_1.sim': {'type': 'sim', 'workflowSE': 'Tier1-RDST'}}
+                         'type': 'allstreams.dst'},
+                      '00012345_00012345_1.sim': {'type': 'sim'}}
 
 
     fileMasks = ( ['dst'], 'dst', ['sim'], ['digi'], ['digi', 'sim'], 'allstreams.dst' )
@@ -330,25 +336,23 @@ class ModuleBaseSuccess( ModulesTestCase ):
                {
                 '00012345_00012345_4.dst':
                   {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
-                   'type': 'dst',
-                   'workflowSE': 'Tier1_MC_M-DST'}
+                   'type': 'dst'}
                 },
                {},
                 {
-                 '00012345_00012345_1.sim': {'type': 'sim', 'workflowSE': 'Tier1-RDST'}
+                 '00012345_00012345_1.sim': {'type': 'sim'}
                 },
                 {
-                 '00012345_00012345_2.digi': {'type': 'digi', 'workflowSE': 'Tier1-RDST'},
+                 '00012345_00012345_2.digi': {'type': 'digi'},
                 },
                 {
-                 '00012345_00012345_3.digi': {'type': 'digi', 'workflowSE': 'Tier1-RDST'},
-                 '00012345_00012345_1.sim': {'type': 'sim', 'workflowSE': 'Tier1-RDST'}
+                 '00012345_00012345_3.digi': {'type': 'digi'},
+                 '00012345_00012345_1.sim': {'type': 'sim'}
                 },
                 {
                  '00012345_00012345_5.AllStreams.dst':
                   {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
-                   'type': 'allstreams.dst',
-                   'workflowSE': 'Tier1_MC_M-DST'}
+                   'type': 'allstreams.dst'}
                 }
                )
 
@@ -365,15 +369,13 @@ class ModuleBaseSuccess( ModulesTestCase ):
     candidateFiles = {
                       '00012345_00012345_4.dst':
                         {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
-                         'type': 'dst',
-                         'workflowSE': 'Tier1_MC_M-DST'},
-                      '00012345_00012345_2.digi': {'type': 'digi', 'workflowSE': 'Tier1-RDST'},
-                      '00012345_00012345_3.digi': {'type': 'digi', 'workflowSE': 'Tier1-RDST'},
+                         'type': 'dst'},
+                      '00012345_00012345_2.digi': {'type': 'digi'},
+                      '00012345_00012345_3.digi': {'type': 'digi'},
                       '00012345_00012345_5.AllStreams.dst':
                         {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
-                         'type': 'DST',
-                         'workflowSE': 'Tier1_MC_M-DST'},
-                      '00012345_00012345_1.sim': {'type': 'sim', 'workflowSE': 'Tier1-RDST'}}
+                         'type': 'DST'},
+                      '00012345_00012345_1.sim': {'type': 'sim'}}
 
     self.assertRaises( ValueError, self.mb._checkSanity, candidateFiles )
 
@@ -381,6 +383,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
   def test_getCandidateFiles( self ):
     # this needs to avoid the "checkLocalExistance"
+
+    self.mb.outputSEs = {'txt':'SE1', 'py': 'SE', 'HIST':'HIST'}
 
     open( 'foo_1.txt', 'w' ).close()
     open( 'bar_2.py', 'w' ).close()
@@ -391,7 +395,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
     fileMask = 'txt'
     stepMask = ''
     result = {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
-                            'type': outputList[0]['outputDataType']}}
+                            'type': outputList[0]['outputDataType'],
+                             'workflowSE': 'SE1'}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
     self.assertEqual( res, result )
@@ -399,9 +404,11 @@ class ModuleBaseSuccess( ModulesTestCase ):
     fileMask = ['txt', 'py']
     stepMask = None
     result = {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
-                            'type': outputList[0]['outputDataType']},
+                            'type': outputList[0]['outputDataType'],
+                             'workflowSE': 'SE1'},
               'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
-                           'type': outputList[1]['outputDataType']},
+                           'type': outputList[1]['outputDataType'],
+                            'workflowSE': 'SE'},
               }
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
     self.assertEqual( res, result )
@@ -415,7 +422,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
     fileMask = ''
     stepMask = '2'
     result = {'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
-                           'type': outputList[1]['outputDataType']}}
+                           'type': outputList[1]['outputDataType'],
+                            'workflowSE': 'SE'}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
@@ -424,7 +432,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
     fileMask = ''
     stepMask = 2
     result = {'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
-                           'type': outputList[1]['outputDataType']}}
+                           'type': outputList[1]['outputDataType'],
+                            'workflowSE': 'SE'}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
@@ -434,7 +443,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
     fileMask = ''
     stepMask = ['2', '3']
     result = {'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
-                           'type': outputList[1]['outputDataType']}}
+                           'type': outputList[1]['outputDataType'],
+                            'workflowSE': 'SE'}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
@@ -576,11 +586,9 @@ class ModuleBaseSuccess( ModulesTestCase ):
     open( 'bar_2.py', 'w' ).close()
 
     candidateFiles = {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
-                                    'type': 'txt',
-                                    'workflowSE': 'SE1'},
+                                    'type': 'txt'},
                       'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
-                                   'type': 'py',
-                                   'workflowSE': 'SE2'},
+                                   'type': 'py'},
                       }
 
     expectedResult = {'bar_2.py': {'filedict': {'Status': 'Waiting',
@@ -591,7 +599,6 @@ class ModuleBaseSuccess( ModulesTestCase ):
                                                 'Size': 0},
                                    'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                                    'localpath': os.getcwd() + '/bar_2.py',
-                                   'workflowSE': 'SE2',
                                    'guid': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
                                    'type': 'py'},
                       'foo_1.txt': {'filedict': {'Status': 'Waiting',
@@ -602,7 +609,6 @@ class ModuleBaseSuccess( ModulesTestCase ):
                                                  'Size': 0},
                                     'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
                                     'localpath': os.getcwd() + '/foo_1.txt',
-                                    'workflowSE': 'SE1',
                                     'guid': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
                                     'type': 'txt'}
                       }
@@ -1332,8 +1338,8 @@ class UploadOutputDataSuccess( ModulesTestCase ):
             continue
           if wf_commons['InputData'] == '':
             continue
-          wf_commons['outputList'] = [{'outputDataType': 'txt', 'outputDataSE': 'Tier1-RDST', 'outputDataName': 'foo.txt'},
-                                      {'outputDataType': 'txt', 'outputDataSE': 'Tier1-RAW', 'outputDataName': 'bar.txt'},
+          wf_commons['outputList'] = [{'outputDataType': 'txt', 'outputDataName': 'foo.txt'},
+                                      {'outputDataType': 'txt', 'outputDataName': 'bar.txt'},
                                       ]
           wf_commons['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
                                                 '/lhcb/MC/2010/DST/00012345/0001/bar.txt' ]
