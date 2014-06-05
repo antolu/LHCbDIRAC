@@ -42,7 +42,6 @@ class Production( object ):
 
     self.histogramName = self.opsHelper.getValue( 'Productions/HistogramName',
                                                   '@{applicationName}_@{STEP_ID}_Hist.root' )
-    self.histogramSE = self.opsHelper.getValue( 'Productions/HistogramSE', 'CERN-HIST' )
     self.bkSteps = {}
     self.prodGroup = ''
     self.plugin = ''
@@ -53,6 +52,13 @@ class Production( object ):
     self.transformationFamily = 0
     self.priority = 1
     self.gaudiSteps = []
+
+    # a dictionary with 'FileType':'SEName'. All the file types should be present. HISTs are present by default
+    histogramSE = self.opsHelper.getValue( 'Productions/HistogramSE', 'CERN-HIST' )
+    histoTypes = self.opsHelper.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST',
+                                                                         'GAUSSHIST'] )
+    self.outputSEs = dict( ( ht, histogramSE ) for ht in histoTypes )
+
     if not script:
       self.__setDefaults()
 
@@ -87,6 +93,8 @@ class Production( object ):
     self.setParameter( 'configName', 'string', 'MC', 'ConfigName' )
     self.setParameter( 'configVersion', 'string', '2009', 'ConfigVersion' )
     self.setParameter( 'conditions', 'string', '', 'SimOrDataTakingCondsString' )
+
+    self.setParameter( 'outputSEs', 'string', self.outputSEs, 'dictionary of output SEs' )
 
   #############################################################################
 
@@ -147,7 +155,7 @@ class Production( object ):
 
   #############################################################################
 
-  def addApplicationStep( self, stepDict, outputSE, inputData = None,
+  def addApplicationStep( self, stepDict, inputData = None,
                           modules = [ 'GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
                                      'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ] ):
     """ stepDict contains everything that is in the step, for this production, e.g.:
@@ -162,6 +170,8 @@ class Production( object ):
 
         Note: this step treated here does not necessarily corresponds to a step of the BKK:
         the case where they might be different is the merging case.
+
+        outputSE can be a string or a dictionary (see note to _constructOutputFilesDict)
     """
 
     appName = stepDict['ApplicationName']
@@ -309,8 +319,8 @@ class Production( object ):
       if value:
         gaudiStepInstance.setValue( pName, value )
 
-    outputFilesDict = self._constructOutputFilesDict( fileTypesOut, outputSE )
-    gaudiStepInstance.setValue( 'listoutput', ( outputFilesDict ) )
+    outputFilesList = self._constructOutputFilesList( fileTypesOut )
+    gaudiStepInstance.setValue( 'listoutput', ( outputFilesList ) )
 
     # to construct the BK processing pass structure, starts from step '0'
     stepIDInternal = 'Step%s' % ( self.LHCbJob.stepCount - 1 )
@@ -334,19 +344,12 @@ class Production( object ):
 
   #############################################################################
 
-  def _constructOutputFilesDict( self, filesTypesList, outputSE, histoName = None, histoSE = None ):
-    """ Build list of dictionary of output files, including HIST case, and fix outputSE for file.
-
-        outputSE can be a string or a dictionary, e.g. it can be:
-        - Tier1-DST (applies to all the file types, with the exclusion of HIST)
-        - {'Type1': 'Tier1-DST', 'Type2': 'Tier1-BUFFER'} (in this case, ALL the file types have to be present)
+  def _constructOutputFilesList( self, filesTypesList, histoName = None ):
+    """ Build list of dictionary of output files, including HIST case
     """
 
     if not histoName:
       histoName = self.histogramName
-
-    if not histoSE:
-      histoSE = self.histogramSE
 
     outputList = []
 
@@ -354,13 +357,9 @@ class Production( object ):
       fileDict = {}
       if 'hist' in fileType.lower():
         fileDict['outputDataName'] = histoName
-        fileDict['outputDataSE'] = histoSE
       else:
         fileDict['outputDataName'] = '@{STEP_ID}.' + fileType.lower()
-        try:
-          fileDict['outputDataSE'] = outputSE[fileType]
-        except TypeError:
-          fileDict['outputDataSE'] = outputSE
+
       fileDict['outputDataType'] = fileType.lower()
 
       outputList.append( fileDict )

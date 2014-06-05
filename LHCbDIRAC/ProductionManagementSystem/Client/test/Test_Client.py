@@ -64,26 +64,21 @@ class ClientTestCase( unittest.TestCase ):
 #############################################################################
 
 class ProductionSuccess( ClientTestCase ):
-  def test__constructOutputFilesDict(self):
+  def test__constructOutputFilesList( self ):
     prod = Production()
-    res = prod._constructOutputFilesDict( ['T1', 'T2'], 'outputSE1' )
-    resExpected = [{'outputDataType': 't1', 'outputDataSE': 'outputSE1', 'outputDataName': '@{STEP_ID}.t1'},
-                   {'outputDataType': 't2', 'outputDataSE': 'outputSE1', 'outputDataName': '@{STEP_ID}.t2'}]
+    res = prod._constructOutputFilesList( ['T1', 'T2'] )
+    resExpected = [{'outputDataType': 't1', 'outputDataName': '@{STEP_ID}.t1'},
+                   {'outputDataType': 't2', 'outputDataName': '@{STEP_ID}.t2'}]
     self.assertEqual( res, resExpected )
 
-    res = prod._constructOutputFilesDict( ['T1', 'T2'], {'T1':'outputSE1', 'T2':'outputSE2'} )
-    resExpected = [{'outputDataType': 't1', 'outputDataSE': 'outputSE1', 'outputDataName': '@{STEP_ID}.t1'},
-                   {'outputDataType': 't2', 'outputDataSE': 'outputSE2', 'outputDataName': '@{STEP_ID}.t2'}]
+    res = prod._constructOutputFilesList( ['T1', 'HIST'] )
+    resExpected = [{'outputDataType': 't1', 'outputDataName': '@{STEP_ID}.t1'},
+                   {'outputDataType': 'hist', 'outputDataName': '@{applicationName}_@{STEP_ID}_Hist.root'}]
     self.assertEqual( res, resExpected )
 
-    res = prod._constructOutputFilesDict( ['T1', 'HIST'], 'outputSE1' )
-    resExpected = [{'outputDataType': 't1', 'outputDataSE': 'outputSE1', 'outputDataName': '@{STEP_ID}.t1'},
-                   {'outputDataType': 'hist', 'outputDataSE': 'CERN-HIST', 'outputDataName': '@{applicationName}_@{STEP_ID}_Hist.root'}]
-    self.assertEqual( res, resExpected )
-
-    res = prod._constructOutputFilesDict( ['T1', 'HIST'], {'T1':'outputSE1'} )
-    resExpected = [{'outputDataType': 't1', 'outputDataSE': 'outputSE1', 'outputDataName': '@{STEP_ID}.t1'},
-                   {'outputDataType': 'hist', 'outputDataSE': 'CERN-HIST', 'outputDataName': '@{applicationName}_@{STEP_ID}_Hist.root'}]
+    res = prod._constructOutputFilesList( ['T1', 'HIST'] )
+    resExpected = [{'outputDataType': 't1', 'outputDataName': '@{STEP_ID}.t1'},
+                   {'outputDataType': 'hist', 'outputDataName': '@{applicationName}_@{STEP_ID}_Hist.root'}]
     self.assertEqual( res, resExpected )
 
 
@@ -94,7 +89,6 @@ class ProductionSuccess( ClientTestCase ):
 class ProductionRequestSuccess( ClientTestCase ):
 
   def test_resolveStepsSuccess( self ):
-
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123']
@@ -173,6 +167,25 @@ class ProductionRequestSuccess( ClientTestCase ):
                                          'fileTypesIn':['SDST'],
                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
+  def test__determineOutputSEs( self ):
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.stepsList = ['123', '456']
+    pr.resolveSteps()
+    pr.outputSEs = ['SE1', 'SE2']
+    pr.specialOutputSEs = [{}, {}]
+    pr._determineOutputSEs()
+    self.assertEqual( pr.outputSEsPerFileType, [{'CALIBRATION.DST': 'SE1', 'BHADRON.DST': 'SE1'},
+                                                {'CALIBRATION.DST': 'SE2', 'BHADRON.DST': 'SE2'}] )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.stepsList = ['123', '456']
+    pr.resolveSteps()
+    pr.outputSEs = ['SE1', 'SE2']
+    pr.specialOutputSEs = [{'CALIBRATION.DST': 'SE3'}, {}]
+    pr._determineOutputSEs()
+    self.assertEqual( pr.outputSEsPerFileType, [{'CALIBRATION.DST': 'SE3', 'BHADRON.DST': 'SE1'},
+                                                {'CALIBRATION.DST': 'SE2', 'BHADRON.DST': 'SE2'}] )
+
   def test__applyOptionalCorrections( self ):
 
     stepMC = {'ApplicationName': 'Gauss', 'Usable': 'Yes', 'StepId': 246, 'ApplicationVersion': 'v28r3p1',
@@ -222,6 +235,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.stepsList = [123, 456]
     pr.stepsInProds = [[1], [2]]
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
+    pr.specialOutputSEs = [{}, {}]
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
     pr.groupSizes = [1, 2]
@@ -243,6 +257,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     stepsListDictExpected = [stepStripp, mergeStepBHADRON, mergeStepCALIBRA, mergeStepPIDMDST ]
     stepsInProdExpected = [[1], [2], [3], [4]]
     outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST', 'Tier1-M-DST']
+    specialOutputSEsExpected = [{}, {}, {}, {}]
     prioritiesExpected = [1, 4, 4, 4]
     cpusExpected = [10, 100, 100, 100]
     bkQueriesExpected = ['Full', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd']
@@ -263,6 +278,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
     self.assertEqual( pr.stepsInProds, stepsInProdExpected )
     self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.specialOutputSEs, specialOutputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
     self.assertEqual( pr.groupSizes, groupSizesExpected )
@@ -286,6 +302,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.stepsList = [123, 456]
     pr.stepsInProds = [[1], [2]]
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
+    pr.specialOutputSEs = [{'Type1': 'SE1'}, {}]
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
     pr.groupSizes = [1, 2]
@@ -307,6 +324,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     stepsListDictExpected = [stepStripp, mergeStep ]
     stepsInProdExpected = [[1], [2]]
     outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST']
+    specialOutputSEsExpected = [{'Type1': 'SE1'}, {}]
     prioritiesExpected = [1, 4]
     cpusExpected = [10, 100]
     groupSizesExpected = [1, 2]
@@ -327,6 +345,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
     self.assertEqual( pr.stepsInProds, stepsInProdExpected )
     self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.specialOutputSEs, specialOutputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
     self.assertEqual( pr.groupSizes, groupSizesExpected )
@@ -350,6 +369,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.stepsList = [456, 456]
     pr.stepsInProds = [[1], [2]]
     pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST']
+    pr.specialOutputSEs = [{'Type1':'SE1'}, {}]
     pr.priorities = [1, 4]
     pr.cpus = [10, 100]
     pr.groupSizes = [1, 2]
@@ -370,6 +390,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     stepsListDictExpected = [mergeStepBHADRON, mergeStepCALIBRA, mergeStepPIDMDST, mergeStep ]
     stepsInProdExpected = [[1], [2], [3], [4]]
     outputSEsExpected = ['Tier1-DST', 'Tier1-DST', 'Tier1-DST', 'Tier1-M-DST']
+    specialOutputSEsExpected = [{'Type1':'SE1'}, {'Type1':'SE1'}, {'Type1':'SE1'}, {}]
     prioritiesExpected = [1, 1, 1, 4]
     cpusExpected = [10, 10, 10, 100]
     groupSizesExpected = [1, 1, 1, 2]
@@ -390,6 +411,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
     self.assertEqual( pr.stepsInProds, stepsInProdExpected )
     self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.specialOutputSEs, specialOutputSEsExpected )
     self.assertEqual( pr.priorities, prioritiesExpected )
     self.assertEqual( pr.cpus, cpusExpected )
     self.assertEqual( pr.groupSizes, groupSizesExpected )
@@ -801,7 +823,9 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.outputFileSteps = ['', '', '']
     pr.stepsInProds = [[1, 2], [3], [4]]
     pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
-    pr.outputSEs = ['Tier1-BUFFER', 'Tier1-DST', 'Tier1-DST']
+#     pr.outputSEs = ['Tier1-BUFFER', 'Tier1-DST', 'Tier1-DST']
+#     pr.specialOutputSEs = [{}, {}, {}]
+    pr.outputSEsPerFileType = [{'T1':'SE1'}, {'T1':'SE1'}, {'T1':'SE1'}]
     pr.priorities = [5, 8, 9]
     pr.cpus = [1000000, 300000, 10000]
     pr.plugins = ['ByRun', 'BySize', 'BySize']
@@ -851,7 +875,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'bkQuery': 'Full',
                       'removeInputsFlag': False,
                       'tracking':0,
-                      'outputSE': 'Tier1-BUFFER',
+                      'outputSE': {'T1':'SE1'},
                       'priority': 5,
                       'cpu': 1000000,
                       'outputFileMask':'',
@@ -877,7 +901,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'bkQuery': 'fromPreviousProd',
                       'removeInputsFlag': True,
                       'tracking':1,
-                      'outputSE': 'Tier1-DST',
+                      'outputSE': {'T1':'SE1'},
                       'priority': 8,
                       'cpu': 300000,
                       'outputFileMask':'',
@@ -903,7 +927,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'bkQuery': 'fromPreviousProd',
                       'removeInputsFlag': True,
                       'tracking':1,
-                      'outputSE': 'Tier1-DST',
+                      'outputSE': {'T1':'SE1'},
                       'priority': 9,
                       'cpu': 10000,
                       'outputFileMask':'',
@@ -1153,6 +1177,7 @@ class ProductionRequestFullChain( ClientTestCase ):
 
     pr.prodsTypeList = ['Stripping', 'Merge']
     pr.outputSEs = ['Tier1_MC-DST', 'Tier1_MC-DST']
+    pr.specialOutputSEs = [{}, {}]
     pr.stepsInProds = [range( 1, len( pr.stepsList ) ), [len( pr.stepsList )]]
     pr.removeInputsFlags = [False, True]
     pr.priorities = [1, 6]

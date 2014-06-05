@@ -64,6 +64,7 @@ class ProductionRequest( object ):
     self.testFlag = False
     self.derivedProduction = 0
     self.previousProdID = 0  # optional prod from which to start
+    self.fullListOfOutputFileTypes = []
 
     # parameters that are the same for each productions
     self.prodGroup = ''
@@ -85,7 +86,6 @@ class ProductionRequest( object ):
     self.prodsTypeList = []
     self.bkQueries = []  # list of bk queries
     self.removeInputsFlags = []
-    self.outputSEs = []
     self.priorities = []
     self.cpus = []
     self.inputs = []  # list of lists
@@ -98,6 +98,10 @@ class ProductionRequest( object ):
     self.inputDataPolicies = []
     self.previousProds = [None]  # list of productions from which to take the inputs (the first is always None)
     self.multicore = []  # list of flags to override the multi core flags of the steps
+
+    self.outputSEs = []  # a list of StorageElements
+    self.specialOutputSEs = []  # a list of dictionaries - might be empty
+    self.outputSEsPerFileType = []  # a list of dictionaries - filled later
 
   #############################################################################
 
@@ -132,6 +136,7 @@ class ProductionRequest( object ):
         raise ValueError( s_out['Message'] )
       else:
         fileTypesList = [fileType[0].strip() for fileType in s_out['Value']['Records']]
+        self.fullListOfOutputFileTypes = self.fullListOfOutputFileTypes + fileTypesList
         stepsListDictItem['fileTypesOut'] = fileTypesList
 
       if stepsListDictItem['StepId'] in self.extraOptions:
@@ -163,6 +168,8 @@ class ProductionRequest( object ):
       self.resolveSteps()
 
     self._applyOptionalCorrections()
+
+    self._determineOutputSEs()
 
     prodsDict = self._getProdsDescriptionDict()
 
@@ -250,6 +257,19 @@ class ProductionRequest( object ):
 
   #############################################################################
 
+  def _determineOutputSEs( self ):
+    """ Fill outputSEsPerFileType based on outputSEs, fullListOfOutputFileTypes and specialOutputSEs
+    """
+    for outputSE, specialOutputSEs in itertools.izip( self.outputSEs,
+                                                      self.specialOutputSEs ):
+      outputSEDict = {}
+      if not self.fullListOfOutputFileTypes:
+        raise ValueError( "No steps defined" )
+      outputSEDict = dict( [( fType, outputSE ) for fType in self.fullListOfOutputFileTypes] )
+      if specialOutputSEs:
+        outputSEDict.update( specialOutputSEs )
+      self.outputSEsPerFileType.append( outputSEDict )
+
   def _applyOptionalCorrections( self ):
     """ if needed, calls _splitIntoProductionSteps. It also applies other changes
     """
@@ -295,6 +315,8 @@ class ProductionRequest( object ):
     if not self.multicore:
       self.multicore = ['True'] * len( self.prodsTypeList )
 
+    if not self.specialOutputSEs:
+      self.specialOutputSEs = [{}] * len( self.prodsTypeList )
 
     # Checking if we need to split the merging step into many productions
     if 'merge' in [pt.lower() for pt in self.prodsTypeList]:
@@ -309,6 +331,7 @@ class ProductionRequest( object ):
         # In this case and only in this case I have to split the merging in many productions
         plugin = self.plugins[index]
         outputSE = self.outputSEs[index]
+        specialOutputSE = self.specialOutputSEs[index]
         priority = self.priorities[index]
         cpu = self.cpus[index]
         bkQuery = self.bkQueries[index]
@@ -331,6 +354,7 @@ class ProductionRequest( object ):
           self.prodsTypeList.remove( 'Merge' )
           self.plugins.pop( index )
           self.outputSEs.pop( index )
+          self.specialOutputSEs.pop( index )
           self.priorities.pop( index )
           self.cpus.pop( index )
           self.bkQueries.pop( index )
@@ -355,6 +379,7 @@ class ProductionRequest( object ):
             self.prodsTypeList.insert( index, 'Merge' )
             self.plugins.insert( index, plugin )
             self.outputSEs.insert( index, outputSE )
+            self.specialOutputSEs.insert( index, specialOutputSE )
             self.priorities.insert( index, priority )
             self.cpus.insert( index, cpu )
             self.bkQueries.insert( index, bkQuery )
@@ -400,7 +425,7 @@ class ProductionRequest( object ):
                                                              self.stepsInProds,
                                                              self.bkQueries,
                                                              self.removeInputsFlags,
-                                                             self.outputSEs,
+                                                             self.outputSEsPerFileType,
                                                              self.priorities,
                                                              self.cpus,
                                                              self.inputs,
@@ -572,14 +597,12 @@ class ProductionRequest( object ):
     # Adding the application steps
     firstStep = stepsInProd.pop( 0 )
     stepName = prod.addApplicationStep( stepDict = firstStep,
-                                        outputSE = outputSE,
                                         inputData = '',
                                         modules = self.modulesList )
     prod.gaudiSteps.append( stepName )
 
     for step in stepsInProd:
       stepName = prod.addApplicationStep( stepDict = step,
-                                          outputSE = outputSE,
                                           inputData = 'previousStep',
                                           modules = self.modulesList )
       prod.gaudiSteps.append( stepName )
@@ -592,6 +615,8 @@ class ProductionRequest( object ):
                                  'FailoverRequest'] )
     else:
       prod.addFinalizationStep()
+
+    prod.outputSEs.update( outputSE )
 
     prod.LHCbJob.setDIRACPlatform()
 

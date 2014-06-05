@@ -410,7 +410,6 @@ class ModuleBase( object ):
       stepOutTypes = [outputType.lower()]
       stepOutputs = [{'outputDataName': self.step_id + '.' + outputType.lower(),
                       'outputDataType': outputType.lower(),
-                      'outputDataSE': self.step_commons['listoutput'][0]['outputDataSE'],
                       'outputBKType': outputType.upper()}]
 
 
@@ -426,9 +425,15 @@ class ModuleBase( object ):
 
 
     histogram = False
-    for hist in ['HIST', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'hist', 'brunelhist', 'davincihist', 'gausshist']:
+    for hist in self.opsHelper.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST',
+                                                                        'GAUSSHIST', ] ):
       try:
         stepOutTypes.remove( hist )
+        histogram = True
+      except ValueError:
+        continue
+      try:
+        stepOutTypes.remove( hist.lower() )
         histogram = True
       except ValueError:
         continue
@@ -480,7 +485,7 @@ class ModuleBase( object ):
     """ Returns list of candidate files to upload, check if some outputs are missing.
 
         outputList has the following structure:
-          [ {'outputDataType':'','outputDataSE':'','outputDataName':''} , {...} ]
+          [ {'outputDataType':'', 'outputDataName':''} , {...} ]
 
         outputLFNs is the list of output LFNs for the job
 
@@ -492,12 +497,10 @@ class ModuleBase( object ):
 
     for outputFile in outputList:
       if outputFile.has_key( 'outputDataType' ) \
-      and outputFile.has_key( 'outputDataSE' ) \
       and outputFile.has_key( 'outputDataName' ):
         fname = outputFile['outputDataName']
-        fileSE = outputFile['outputDataSE']
         fileType = outputFile['outputDataType']
-        fileInfo[fname] = {'type':fileType, 'workflowSE':fileSE}
+        fileInfo[fname] = {'type':fileType}
       else:
         self.log.error( 'Ignoring malformed output data specification', str( outputFile ) )
 
@@ -703,9 +706,9 @@ class ModuleBase( object ):
 
         stepOutput =
         [{'outputDataType': 'bhadron.dst', 'outputBKType': 'BHADRON.DST',
-        'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.BHADRON.DST'},
+        'outputDataName': '00012345_00012345_2.BHADRON.DST'},
         {'outputDataType': 'calibration.dst','outputDataType': 'CALIBRATION.DST',
-        'outputDataSE': 'Tier1-DST', 'outputDataName': '00012345_00012345_2.CALIBRATION.DST'},
+        'outputDataName': '00012345_00012345_2.CALIBRATION.DST'},
 
     """
 
@@ -735,7 +738,6 @@ class ModuleBase( object ):
       bkFileTypes.append( fileFound['outputDataType'].upper() )
       finalOutputs.append( {'outputDataName': fileFound['outputDataName'],
                             'outputDataType': fileFound['outputDataType'].lower(),
-                            'outputDataSE': fileFound['outputDataSE'],
                             'outputBKType': fileFound['outputDataType'].upper(),
                             'stepName':self.stepName
                             } )
