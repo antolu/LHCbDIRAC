@@ -96,7 +96,39 @@ class UploadOutputData( ModuleBase ):
       self._resolveInputVariables()
 
       if not self._checkWFAndStepStatus():
-        return S_OK( "No output data upload attempted" )
+        return S_OK( "Failures detected in previous steps: no output data upload attempted" )
+
+      # Finally can send the BK records for the steps of the job
+      bkFileExtensions = ['bookkeeping*.xml']
+      bkFiles = []
+      for ext in bkFileExtensions:
+        self.log.debug( "Looking at BK record wildcard: %s" % ext )
+        globList = glob.glob( ext )
+        for check in globList:
+          if os.path.isfile( check ):
+            self.log.verbose( "Found locally existing BK file record: %s" % check )
+            bkFiles.append( check )
+
+      # Unfortunately we depend on the file names to order the BK records
+      bkFiles.sort()
+      self.log.info( "The following BK records will be sent: %s" % ( ', '.join( bkFiles ) ) )
+      for bkFile in bkFiles:
+        fopen = open( bkFile, 'r' )
+        bkXML = fopen.read()
+        fopen.close()
+        self.log.info( "Sending BK record:\n%s" % ( bkXML ) )
+        result = self.bkClient.sendXMLBookkeepingReport( bkXML )
+        self.log.verbose( result )
+        if result['OK']:
+          self.log.info( "Bookkeeping report sent for %s" % bkFile )
+        else:
+          self.log.error( "Could not send Bookkeeping XML file to server: %s" % result['Message'] )
+          self.log.info( "Preparing DISET request for", bkFile )
+          bkDISETReq = Operation()
+          bkDISETReq.Type = 'ForwardDISET'
+          bkDISETReq.Arguments = DEncode.encode( result['rpcStub'] )
+          self.request.addOperation( bkDISETReq )
+          self.workflow_commons['Request'] = self.request  # update each time, just in case
 
       # Determine the final list of possible output files for the workflow and all the parameters needed to upload them.
       self.log.verbose( "Getting the list of candidate files" )
@@ -241,38 +273,6 @@ class UploadOutputData( ModuleBase ):
       if final:
         report = ', '.join( final.keys() )
         self.setJobParameter( 'UploadedOutputData', report )
-
-      # Finally can send the BK records for the steps of the job
-      bkFileExtensions = ['bookkeeping*.xml']
-      bkFiles = []
-      for ext in bkFileExtensions:
-        self.log.debug( "Looking at BK record wildcard: %s" % ext )
-        globList = glob.glob( ext )
-        for check in globList:
-          if os.path.isfile( check ):
-            self.log.verbose( "Found locally existing BK file record: %s" % check )
-            bkFiles.append( check )
-
-      # Unfortunately we depend on the file names to order the BK records
-      bkFiles.sort()
-      self.log.info( "The following BK records will be sent: %s" % ( ', '.join( bkFiles ) ) )
-      for bkFile in bkFiles:
-        fopen = open( bkFile, 'r' )
-        bkXML = fopen.read()
-        fopen.close()
-        self.log.info( "Sending BK record:\n%s" % ( bkXML ) )
-        result = self.bkClient.sendXMLBookkeepingReport( bkXML )
-        self.log.verbose( result )
-        if result['OK']:
-          self.log.info( "Bookkeeping report sent for %s" % bkFile )
-        else:
-          self.log.error( "Could not send Bookkeeping XML file to server: %s" % result['Message'] )
-          self.log.info( "Preparing DISET request for", bkFile )
-          bkDISETReq = Operation()
-          bkDISETReq.Type = 'ForwardDISET'
-          bkDISETReq.Arguments = DEncode.encode( result['rpcStub'] )
-          self.request.addOperation( bkDISETReq )
-          self.workflow_commons['Request'] = self.request  # update each time, just in case
 
       # Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
       if not performBKRegistration:
