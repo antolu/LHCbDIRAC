@@ -63,16 +63,21 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
   compatibleCMTConfigs = getCMTConfig( systemConfiguration )
   if not compatibleCMTConfigs['OK']:
     return compatibleCMTConfigs
-  gLogger.debug( "Compatible CMT Configs list: %s" % ','.join( compatibleCMTConfigs['Value'] ) )
+  gLogger.verbose( "Compatible CMT Configs list: %s" % ','.join( compatibleCMTConfigs['Value'] ) )
   for compatibleCMTConfig in compatibleCMTConfigs['Value']:
     gLogger.verbose( "Using %s for setup" % compatibleCMTConfig )
     environment['CMTCONFIG'] = compatibleCMTConfig
     result = runEnvironmentScripts( [lbLogin, setupProject], environment )
     if result['OK']:
       break
-    gLogger.warn( "Can't setup using %s, trying the next, if any" % compatibleCMTConfig )
+    else:
+      gLogger.verbose( "Problem executing SetupProject: %s" % result['Message'] )
+      gLogger.warn( "Can't setup using %s, trying the next, if any" % compatibleCMTConfig )
 
-  environment = result['Value']
+  try:
+    environment = result['Value']
+  except KeyError:
+    return result
 
   # Have to repeat this with the resulting environment since LbLogin / SetupProject overwrite any changes...
   return setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot,
