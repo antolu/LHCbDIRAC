@@ -13,7 +13,7 @@ from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment, addCommandDefaults, createDebugScript
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getEventsToProduce
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getEventsToProduce, multicoreWN
 
 
 class GaudiApplication( ModuleBase ):
@@ -265,7 +265,7 @@ class GaudiApplication( ModuleBase ):
                                         poolXMLCatalogName = self.poolXMLCatName )
 
         if not result['OK']:
-          self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
+          self.log.error( "Could not obtain project environment with result: %s" % ( result ) )
           return result  # this will distinguish between LbLogin / SetupProject / actual application failures
         projectEnvironment = result['Value']
 
@@ -275,7 +275,10 @@ class GaudiApplication( ModuleBase ):
         if self.multicoreStep.upper() == 'Y':
           cpus = multiprocessing.cpu_count()
           if cpus > 1:
-            gaudiRunFlags = gaudiRunFlags + ' --ncpus -1 '
+            if multicoreWN():
+              gaudiRunFlags = gaudiRunFlags + ' --ncpus -1 '
+            else:
+              self.log.info( "Would have run with option '--ncpus -1', but it is not allowed here" )
 
       if self.optionsLine or self.jobType.lower() == 'user':
         command = '%s %s %s' % ( gaudiRunFlags, self.optfile, 'gaudi_extra_options.py' )
