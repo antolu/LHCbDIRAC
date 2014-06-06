@@ -92,9 +92,6 @@ class RootApplication( ModuleBase ):
       elif not self.rootType.lower() in ( 'c', 'py', 'bin', 'exe' ):
         raise RuntimeError( 'Wrong root type defined' )
 
-      if not self.result['OK']:
-        return self.result
-
       self.setApplicationStatus( 'Initializing RootApplication module' )
 
       self.log.debug( self.version )
@@ -151,8 +148,7 @@ class RootApplication( ModuleBase ):
       if not ret['OK']:
         self.log.warn( 'Error during: %s ' % rootCmd )
         self.log.warn( ret )
-        self.result = ret
-        return self.result
+        return ret
 
       resultTuple = ret['Value']
       status = resultTuple[0]
@@ -173,8 +169,7 @@ class RootApplication( ModuleBase ):
         self.log.error( "==================================\n StdError:\n" )
         self.log.error( stdError )
         self.setApplicationStatus( '%s Exited With Status %s' % ( self.rootScript, status ) )
-        self.result = S_ERROR( "Script execution completed with errors" )
-        return self.result
+        return S_ERROR( "Script execution completed with errors" )
 
       # Return OK assuming that subsequent module will spot problems
       self.setApplicationStatus( '%s (Root) Successful' % self.rootScript )
