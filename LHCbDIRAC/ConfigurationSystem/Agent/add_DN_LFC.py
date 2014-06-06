@@ -10,7 +10,7 @@ import sys, socket, os
 import lfc, getopt
 def checkEnv():
     hostname = socket.gethostname()
-    if hostname.find( "volhcb" ) or hostname.find( "lbvobox" ) < 0 :
+    if hostname.find( "lbvobox" ) < 0 :
         print "Please log as root on one of the volhcbXX machines at CERN"
         return - 1
     user = os.getuid()
@@ -158,7 +158,7 @@ def getUserName ( userID ):
 def updateDirPerm ( userid, nickname, userDN ) :
     dirname = "/grid/lhcb/user/" + nickname[0] + "/" + nickname
     print "updating owner of user dir to " + str( userid )
-    res = lfc.lfc_chown ( dirname, userid, -1 )
+    res = lfc.lfc_chown ( dirname, userid, 4294967295 )
     if res == 0:
         print "Owner directory updated"
         return 0
@@ -236,7 +236,7 @@ def main () :
         sys.exit( -1 )
     #mean we have to create the user as we create the dir on the fly
     if res == -1:
-        if createUser( userDN, -1 ) != 0 :
+        if createUser( userDN, 4294967295 ) != 0 :
             #we delete the directory as we create it
             res = rmDir ( nickname )
             print "Exiting the script"
@@ -246,7 +246,7 @@ def main () :
             #we delete the directory as we create it
             res = rmDir ( nickname )
             # we delete the user entry in the userinfo
-            res = delUser( userDN, -1 )
+            res = delUser( userDN, 4294967295 )
             print "Exiting the script"
             sys.exit( -1 )
         if updateDirPerm( userid, nickname, userDN ) != 0:
@@ -254,7 +254,7 @@ def main () :
             res = rmDir ( nickname )
                         # we delete the user entry in the userinfo
             #print "user dn = "+ userDN
-            res = delUser( userDN, -1 )
+            res = delUser( userDN, 4294967295 )
             print "Exiting the script"
             sys.exit( -1 )
     #mean the dir exists before executing the script
