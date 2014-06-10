@@ -207,7 +207,7 @@ class UploadLogFile( ModuleBase ):
                                                             lfn = self.logLFNPath,
                                                             destinationSEList = self.failoverSEs,
                                                             fileMetaDict = fileMetaDict,
-                                                            fileCatalog = self.fileCatalog )
+                                                            masterCatalogOnly = True )
 
     if not result['OK']:
       self.log.error( "Failed to upload logs to all failover destinations (the job will not fail for this reason" )

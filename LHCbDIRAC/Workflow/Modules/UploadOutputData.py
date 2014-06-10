@@ -205,7 +205,7 @@ class UploadOutputData( ModuleBase ):
                                                                 lfn = metadata['filedict']['LFN'],
                                                                 destinationSEList = targetSE,
                                                                 fileMetaDict = fileMetaDict,
-                                                                fileCatalog = self.fileCatalog )
+                                                                masterCatalogOnly = True )
         if not result['OK']:
           self.log.error( "Could not transfer and register %s with metadata:\n %s" % ( fileName, metadata ) )
           failover[fileName] = metadata
@@ -235,7 +235,7 @@ class UploadOutputData( ModuleBase ):
                                                                         targetSE = targetSE,
                                                                         failoverSEList = metadata['resolvedSE'],
                                                                         fileMetaDict = fileMetaDict,
-                                                                        fileCatalog = self.fileCatalog )
+                                                                        masterCatalogOnly = True )
         if not result['OK']:
           self.log.error( "Could not transfer and register %s in failover with metadata:\n %s" % ( fileName,
                                                                                                    metadata ) )

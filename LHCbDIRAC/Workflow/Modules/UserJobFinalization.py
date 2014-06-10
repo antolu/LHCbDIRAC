@@ -212,7 +212,7 @@ class UserJobFinalization( ModuleBase ):
                                                                 lfn = metadata['filedict']['LFN'],
                                                                 destinationSEList = metadata['resolvedSE'],
                                                                 fileMetaDict = fileMetaDict,
-                                                                fileCatalog = self.fileCatalog )
+                                                                masterCatalogOnly = True )
         if not result['OK']:
           self.log.error( "Could not transfer and register %s with metadata:\n %s" % ( fileName, metadata ) )
           failover[fileName] = metadata
@@ -251,7 +251,7 @@ class UserJobFinalization( ModuleBase ):
                                                                         targetSE,
                                                                         metadata['resolvedSE'],
                                                                         fileMetaDict = fileMetaDict,
-                                                                        fileCatalog = self.fileCatalog )
+                                                                        masterCatalogOnly = True )
         if not result['OK']:
           self.log.error( "Could not transfer and register %s with metadata:\n %s" % ( fileName, metadata ) )
           cleanUp = True
