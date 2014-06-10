@@ -263,10 +263,6 @@ class LHCbJob( Job ):
     stepInstance.setValue( 'extraPackages', extraPackages )
     stepInstance.setValue( 'SystemConfig', systemConfig )
 
-    res = self.addPackage( appName, appVersion )
-    if not res['OK']:
-      return res
-
     return S_OK( stepInstance )
 
   #############################################################################
@@ -394,10 +390,6 @@ class LHCbJob( Job ):
       stepInstance.setValue( "poolXMLCatName", poolXMLCatalog )
     stepInstance.setValue( 'extraPackages', extraPackages )
     stepInstance.setValue( 'SystemConfig', systemConfig )
-
-    res = self.addPackage( appName, appVersion )
-    if not res['OK']:
-      return res
 
     return S_OK( stepInstance )
 
@@ -606,10 +598,6 @@ class LHCbJob( Job ):
     if not currentApp:
       return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot,
                                 __name__, **kwargs )
-
-    res = self.addPackage( currentApp, rootVersion )
-    if not res['OK']:
-      return res
 
     return S_OK( stepInstance )
 
@@ -966,10 +954,6 @@ class LHCbJob( Job ):
     appVersion = currentApp.split( '.' )[1]
     stepInstance.setValue( "applicationVersion", appVersion )
     stepInstance.setValue( "rootVersion", rootVersion )
-
-    res = self.addPackage( currentApp, appVersion )
-    if not res['OK']:
-      return res
 
     return S_OK()
 
