@@ -91,11 +91,12 @@ class RequestTrackingAgent( AgentModule ):
       if 'inTCKs' in request and str( request['inTCKs'] ) != '':
         condition['TCK'] = [str( x ) for x in str( request['inTCKs'] ).split( ',' )]
         
-    # FIXME: Exception because the posibility of KeyError, or an AttributeError doing str() ?    
+    # FIXME: Exception because the possibility of KeyError, or an AttributeError doing str() ?
     except Exception, e:
       return S_ERROR( "Can not parse the request: %s" % str( e ) )
     
     condition['NbOfEvents'] = True
+    gLogger.debug( condition )
     result = self.bkClient.getFiles( condition )
     if not result['OK']:
       return result
