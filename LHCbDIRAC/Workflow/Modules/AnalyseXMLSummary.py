@@ -196,10 +196,9 @@ class AnalyseXMLSummary( ModuleBase ):
         guidInput = guidResult['Value'][fname]
 
       if self._WMSJob():
-        self.log.info( 'Attempting: dm.putAndRegister("%s","%s","%s","%s") on catalog "%s"' % ( fname, lfn, guidInput,
-                                                                                                self.debugSE,
-                                                                                                self.fileCatalog ) )
-        result = DataManager( catalogs = [self.fileCatalog] ).putAndRegister( lfn, fname, self.debugSE, guidInput )
+        self.log.info( 'Attempting: dm.putAndRegister("%s","%s","%s","%s") on master catalog' % ( fname, lfn, guidInput,
+                                                                                                  self.debugSE ) )
+        result = DataManager( masterCatalogOnly = True ).putAndRegister( lfn, fname, self.debugSE, guidInput )
         self.log.info( result )
         if not result['OK']:
           self.log.error( 'Could not save INPUT data file with result', str( result['Message'] ) )

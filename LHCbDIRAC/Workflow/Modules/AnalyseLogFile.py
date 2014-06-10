@@ -144,9 +144,9 @@ class AnalyseLogFile( ModuleBase ):
           coreLFN = lfn
       if self._WMSJob():
         if coreLFN:
-          self.log.info( "Attempting putAndRegister('%s','%s','%s') on catalog %s" % ( coreLFN, self.coreFile,
-                                                                                      self.debugSE, self.fileCatalog ) )
-          result = DataManager( catalogs = [self.fileCatalog] ).putAndRegister( coreLFN, self.coreFile, self.debugSE )
+          self.log.info( "Attempting putAndRegister('%s','%s','%s') on master catalog" % ( coreLFN, self.coreFile,
+                                                                                           self.debugSE ) )
+          result = DataManager( masterCatalogOnly = True ).putAndRegister( coreLFN, self.coreFile, self.debugSE )
           self.log.info( result )
           if not result['OK']:
             self.log.error( 'Could not save core dump file', result['Message'] )
@@ -179,10 +179,9 @@ class AnalyseLogFile( ModuleBase ):
         guidInput = guidResult['Value'][fname]
 
       if self._WMSJob():
-        self.log.info( 'Attempting putAndRegister("%s","%s","CERN-DEBUG","%s") on catalog "%s"' % ( fname, lfn,
-                                                                                                    guidInput,
-                                                                                                    self.fileCatalog ) )
-        result = DataManager( catalogs = [self.fileCatalog] ).putAndRegister( lfn, fname, self.debugSE, guidInput )
+        self.log.info( 'Attempting putAndRegister("%s","%s","CERN-DEBUG","%s") on master catalog"' % ( fname, lfn,
+                                                                                                       guidInput ) )
+        result = DataManager( masterCatalogOnly = True ).putAndRegister( lfn, fname, self.debugSE, guidInput )
         self.log.info( result )
         if not result['OK']:
           self.log.error( 'Could not save INPUT data file with result', str( result ) )

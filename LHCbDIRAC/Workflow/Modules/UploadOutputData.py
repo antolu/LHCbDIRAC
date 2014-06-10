@@ -218,7 +218,7 @@ class UploadOutputData( ModuleBase ):
 
       cleanUp = False
       for fileName, metadata in failover.items():
-        self.log.info( "Setting default catalog for failover transfer registration to %s" % self.fileCatalog )
+        self.log.info( "Setting default catalog for failover transfer registration to master catalog" )
         random.shuffle( self.failoverSEs )
         targetSE = metadata['resolvedSE'][0]
         metadata['resolvedSE'] = self.failoverSEs
