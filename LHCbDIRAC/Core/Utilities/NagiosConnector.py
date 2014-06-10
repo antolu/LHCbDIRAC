@@ -31,7 +31,7 @@ class NagiosConnector():
 
     self.config = {}
     for item in ['MsgBroker', 'MsgQueue', 'MsgPort']:
-      path = self.opsHelper.generatePath( '/NagiosConnector/%s' % item )
+      path = self.opsHelper.getPath( '/NagiosConnector/%s' % item )
       self.config[ item ] = gConfig.getValue( path )
       if not self.config[item]:
         gLogger.verbose('Required Configuration Value is empty: %s' % item)
