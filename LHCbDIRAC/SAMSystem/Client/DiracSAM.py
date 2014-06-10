@@ -189,7 +189,6 @@ class DiracSAM( Dirac ):
   @staticmethod
   def __setOutputFile( appName, outputFilePrefix ):
     """ Given an application, returns a dictionary with its formatted output.
-        Note that outputDataSE is a dummy value ( this method only applies to SAM Jobs ).
     """
 
     outputType = {'Gauss'  : 'sim',
@@ -200,7 +199,6 @@ class DiracSAM( Dirac ):
     if appName in outputType:
       fileTypesOut = {'outputDataType': outputType[appName],
                       'outputDataName': '%s.%s' % ( outputFilePrefix, outputType[appName] ),
-                      'outputBKType': outputType[appName].upper(),
-                      'outputDataSE': 'Spock' }
+                      'outputBKType': outputType[appName].upper() }
 
     return fileTypesOut

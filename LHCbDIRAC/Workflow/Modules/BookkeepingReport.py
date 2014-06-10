@@ -396,18 +396,17 @@ class BookkeepingReport( ModuleBase ):
     while ( count < len( self.stepOutputs ) ):
       if self.stepOutputs[count].has_key( 'outputDataName' ):
         outputs.append( ( ( self.stepOutputs[ count ][ 'outputDataName' ] ),
-                          ( self.stepOutputs[ count ][ 'outputDataSE' ] ),
                           ( self.stepOutputs[ count ][ 'outputDataType' ] ) ) )
       if self.stepOutputs[ count ].has_key( 'outputBKType' ):
         bkTypeDict[ self.stepOutputs[ count ][ 'outputDataName' ]] = self.stepOutputs[ count ][ 'outputBKType' ]
       count = count + 1
-    outputs.append( ( ( self.applicationLog ), ( 'LogSE' ), ( 'LOG' ) ) )
+    outputs.append( ( ( self.applicationLog ), ( 'LOG' ) ) )
     self.log.info( outputs )
     if type( logFilePath ) == type( [] ):
       logFilePath = logFilePath[ 0 ]
 
-    for output, outputse, outputtype in list( outputs ):
-      self.log.info( 'Looking at output %s %s %s' % ( output, outputse, outputtype ) )
+    for output, outputtype in list( outputs ):
+      self.log.info( 'Looking at output %s %s' % ( output, outputtype ) )
       typeName = outputtype.upper()
       typeVersion = '1'
       fileStats = statistics

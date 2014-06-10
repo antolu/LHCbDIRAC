@@ -202,21 +202,21 @@ class ModulesTestCase( unittest.TestCase ):
                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
                          'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
                          'STEP_INSTANCE_NAME':'someApp_1',
-                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_', 'outputDataSE':'aaa',
+                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
                                        'outputDataType':'bbb'}]},
                          {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
                          'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
                          'optionsLine': '',
                          'STEP_INSTANCE_NAME':'someApp_1',
-                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_', 'outputDataSE':'aaa',
+                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
                                        'outputDataType':'bbb'}]},
                          {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
                          'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
                          'extraOptionsLine': 'blaBla',
                          'STEP_INSTANCE_NAME':'someApp_1',
-                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_', 'outputDataSE':'aaa',
+                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
                                        'outputDataType':'bbb'}]}
                          ]
     self.step_number = '321'
@@ -475,12 +475,10 @@ class ModuleBaseSuccess( ModulesTestCase ):
     self.mb.workflow_commons = {'outputList': [{'stepName': 'Brunel_1',
                                                'outputDataType': 'brunelhist',
                                                'outputBKType': 'BRUNELHIST',
-                                               'outputDataSE': 'CERN-HIST',
                                                'outputDataName': 'Brunel_00012345_00006789_1_Hist.root'},
                                               {'stepName': 'Brunel_1',
                                                'outputDataType': 'sdst',
                                                'outputBKType': 'SDST',
-                                               'outputDataSE': 'Tier1-BUFFER',
                                                'outputDataName': '00012345_00006789_1.sdst'}
                                               ]
                                 }
@@ -495,17 +493,14 @@ class ModuleBaseSuccess( ModulesTestCase ):
     self.mb.workflow_commons['outputList'] = [{'stepName': 'Brunel_1',
                                                'outputDataType': 'brunelhist',
                                                'outputBKType': 'BRUNELHIST',
-                                               'outputDataSE': 'CERN-HIST',
                                                'outputDataName': 'Brunel_00012345_00006789_1_Hist.root'},
                                               {'stepName': 'Brunel_1',
                                                'outputDataType': 'sdst',
                                                'outputBKType': 'SDST',
-                                               'outputDataSE': 'Tier1-BUFFER',
                                                'outputDataName': 'some.sdst'},
                                               {'stepName': 'Brunel_1',
                                                'outputDataType': 'sdst',
                                                'outputBKType': 'SDST',
-                                               'outputDataSE': 'Tier1-BUFFER',
                                                'outputDataName': '00012345_00006789_1.sdst'}
                                               ]
     self.mb.inputDataType = 'SDST'
@@ -538,13 +533,11 @@ class ModuleBaseSuccess( ModulesTestCase ):
     for step_commons in self.step_commons:
       self.mb.step_commons = step_commons
       self.mb.step_commons['listoutput'] = [{'outputDataType': 'sdst',
-                                             'outputDataSE': 'Tier1_M-DST',
                                              'outputDataName': '00000123_00000456_1.sdst',
                                              'outputBKType': 'SDST'}]
       outF, outft, histos = self.mb._determineOutputs()
       self.assertEqual( outF, [{'outputDataType': 'sdst',
                                 'outputDataName': '00000123_00000456_1.sdst',
-                                'outputDataSE': 'Tier1_M-DST',
                                 'outputBKType': 'SDST'}] )
       self.assertEqual( outft, ['sdst'] )
       self.assertFalse( histos )
