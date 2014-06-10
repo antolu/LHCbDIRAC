@@ -167,9 +167,9 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     if not res['OK']:
       return res
     lastLoggingEntry = res['Value'][-1]
-    if ( 'idle' in lastLoggingEntry['Message'].lower() ) and ( ( datetime.datetime.utcnow() - lastLoggingEntry['MessageDate'] ).seconds < 600 ):
-      self.log.verbose( "Prod %d is in 'Idle' for less than 10 minutes, waiting a bit" % simulationID )
-      return S_OK( "Prod %d is in 'Idle' for less than 10 minutes, waiting a bit" % simulationID )
+    if ( 'idle' in lastLoggingEntry['Message'].lower() ) and ( ( datetime.datetime.utcnow() - lastLoggingEntry['MessageDate'] ).seconds < 900 ):
+      self.log.verbose( "Prod %d is in 'Idle' for less than 15 minutes, waiting a bit" % simulationID )
+      return S_OK( "Prod %d is in 'Idle' for less than 15 minutes, waiting a bit" % simulationID )
 
     if simulationProgress['BkEvents'] < productionRequestSummary['reqTotal']:
       # the number of events produced by the simulation is of the order of the number of events requested
