@@ -62,7 +62,7 @@ class MCSuccess( ProductionJobTestCase ):
                    ]
 
     # First create the production object
-    prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, 'Tier1_MC-DST', 0, 100,
+    prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, {'ALLSTREAMS.DST': 'Tier1_MC-DST'}, 0, 100,
                                      outputFileMask = 'ALLSTREAMS.DST', CPUe = 5000 )
     # Then launch it
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
@@ -114,7 +114,7 @@ class MCSuccessMultiCore( ProductionJobTestCase ):
                    ]
 
     # First create the production object
-    prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, 'Tier1_MC-DST', 0, 100,
+    prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, {'ALLSTREAMS.DST': 'Tier1_MC-DST'}, 0, 100,
                                      outputFileMask = 'ALLSTREAMS.DST', CPUe = 5000 )
     # Then launch it
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
@@ -183,7 +183,7 @@ class RecoSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['DAVINCIHIST']}
                    ]
 
-    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, 'Tier1-BUFFER', 0, 100,
+    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
@@ -204,7 +204,7 @@ class RecoSuccessMultiCore( ProductionJobTestCase ):
                     'fileTypesOut':['BRUNELHIST', 'FULL.DST']}
                    ]
 
-    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, 'Tier1-BUFFER', 0, 100,
+    prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
@@ -227,7 +227,7 @@ class StrippSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST', 'DIMUON.DST', 'EW.DST', 'LEPTONIC.MDST', 'SEMILEPTONIC.DST']},
                    ]
 
-    prod = self.pr._buildProduction( 'Stripping', stepsInProd, 'Tier1-BUFFER', 0, 100,
+    prod = self.pr._buildProduction( 'Stripping', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns, events = 500 )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
@@ -249,7 +249,7 @@ class MergeSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['FMDST']},
                    ]
 
-    prod = self.pr._buildProduction( 'Merge', stepsInProd, 'Tier1_MC-DST', 0, 100,
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'FMDST': 'Tier1_MC-DST'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
@@ -275,7 +275,7 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
                                    'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST']},
                    ]
 
-    prod = self.pr._buildProduction( 'Merge', stepsInProd, 'Tier1_MC-DST', 0, 100,
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'DIMUON.DST': 'Tier1_MC-DST', 'EW.DST':'Tier1-DST'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
@@ -297,7 +297,7 @@ class MergeMDFSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['RAW']},
                    ]
     self.pr.modulesList = ['MergeMDF', 'BookkeepingReport']
-    prod = self.pr._buildProduction( 'Merge', stepsInProd, 'Tier1-BUFFER', 0, 100,
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'RAW':'Tier1-BUFFER'}, 0, 100,
                                      inputDataPolicy = 'download', inputDataList = lfns )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
@@ -325,7 +325,7 @@ class SwimmingSuccess( ProductionJobTestCase ):
                     'fileTypesIn':['SWIMTRIGGERD02KSKK.DST'],
                     'fileTypesOut':['SWIMSTRIPPINGD02KSKK.MDST']}
                    ]
-    prod = self.pr._buildProduction( 'Swimming', stepsInProd, 'Tier1-DST', 0, 100,
+    prod = self.pr._buildProduction( 'Swimming', stepsInProd, {'SWIMSTRIPPINGD02KSKK.MDST':'Tier1-DST'}, 0, 100,
                                       inputDataPolicy = 'protocol', inputDataList = lfns, events = 10 )
     prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 104262, 'Input Run number' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
