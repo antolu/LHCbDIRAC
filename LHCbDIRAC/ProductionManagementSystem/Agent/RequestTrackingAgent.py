@@ -72,31 +72,25 @@ class RequestTrackingAgent( AgentModule ):
   def bkInputNumberOfEvents( self, request ):
     ''' Extremely dirty way...
     '''
-
-    try:
-      condition = {
-                   'ProcessingPass'  : str( request['inProPass'] ),
-                   'FileType'        : str( request['inFileType'] ).replace( ' ', '' ).split( ',' ),
-                   'EventType'       : str( request['EventType'] ),
-                   'ConfigName'      : str( request['configName'] ),
-                   'ConfigVersion'   : str( request['configVersion'] ),
-                   'DataQualityFlag' : str( request['inDataQualityFlag'] ).replace( ' ', '' ).split( ',' )
-                   }
-      if request['condType'] == 'Run':
-        condition['DataTakingConditions'] = str( request['SimCondition'] )
-      else:
-        condition['SimulationConditions'] = str( request['SimCondition'] )
-      if str( request['inProductionID'] ) != '0':
-        condition['Production'] = [int( x ) for x in str( request['inProductionID'] ).split( ',' )]
-      if 'inTCKs' in request and str( request['inTCKs'] ) != '':
-        condition['TCK'] = [str( x ) for x in str( request['inTCKs'] ).split( ',' )]
-        
-    # FIXME: Exception because the possibility of KeyError, or an AttributeError doing str() ?
-    except Exception, e:
-      return S_ERROR( "Can not parse the request: %s" % str( e ) )
-    
+    condition = {
+                 'ProcessingPass'  : str( request['inProPass'] ),
+                 'FileType'        : str( request['inFileType'] ).replace( ' ', '' ).split( ',' ),
+                 'EventType'       : str( request['EventType'] ),
+                 'ConfigName'      : str( request['configName'] ),
+                 'ConfigVersion'   : str( request['configVersion'] ),
+                 'DataQualityFlag' : str( request['inDataQualityFlag'] ).replace( ' ', '' ).split( ',' )
+                 }
+    if request['condType'] == 'Run':
+      condition['DataTakingConditions'] = str( request['SimCondition'] )
+    else:
+      condition['SimulationConditions'] = str( request['SimCondition'] )
+    if str( request['inProductionID'] ) != '0':
+      condition['Production'] = [int( x ) for x in str( request['inProductionID'] ).split( ',' )]
+    if 'inTCKs' in request and str( request['inTCKs'] ) != '':
+      condition['TCK'] = [str( x ) for x in str( request['inTCKs'] ).split( ',' )]
     condition['NbOfEvents'] = True
-    gLogger.debug( condition )
+    
+    gLogger.debug( "Requesting: ", str( condition ) )
     result = self.bkClient.getFiles( condition )
     if not result['OK']:
       return result
