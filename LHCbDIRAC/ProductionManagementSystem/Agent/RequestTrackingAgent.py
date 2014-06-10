@@ -73,12 +73,12 @@ class RequestTrackingAgent( AgentModule ):
     ''' Extremely dirty way...
     '''
     condition = {
-                 'ProcessingPass'  : str( request['inProPass'] ),
+                 'ProcessingPass'  : str( request['inProPass'] ).replace( ' ', '' ),
                  'FileType'        : str( request['inFileType'] ).replace( ' ', '' ).split( ',' ),
-                 'EventType'       : str( request['EventType'] ),
-                 'ConfigName'      : str( request['configName'] ),
-                 'ConfigVersion'   : str( request['configVersion'] ),
-                 'DataQualityFlag' : str( request['inDataQualityFlag'] ).replace( ' ', '' ).split( ',' )
+                 'EventType'       : str( request['EventType'] ).replace( ' ', '' ),
+                 'ConfigName'      : str( request['configName'] ).replace( ' ', '' ),
+                 'ConfigVersion'   : str( request['configVersion'] ).replace( ' ', '' ),
+                 'DataQualityFlag' : str( request['inDataQualityFlag'] ).replace( ' ', '' )
                  }
     if request['condType'] == 'Run':
       condition['DataTakingConditions'] = str( request['SimCondition'] )
