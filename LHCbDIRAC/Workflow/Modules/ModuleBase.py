@@ -525,14 +525,17 @@ class ModuleBase( object ):
 
     # Adding the SEs
     for candidateFile in candidateFiles:
-      fType = candidateFiles[candidateFile]['type']
-      for fType in [fType, fType.lower(), fType.upper(), fType.capitalize()]:
-        try:
-          wfSE = self.outputSEs[fType]
-          break
-        except KeyError:
-          pass
-      candidateFiles[candidateFile]['workflowSE'] = wfSE
+      try:
+        fType = candidateFiles[candidateFile]['type']
+        for fType in [fType, fType.lower(), fType.upper(), fType.capitalize()]:
+          try:
+            wfSE = self.outputSEs[fType]
+            break
+          except KeyError:
+            pass
+        candidateFiles[candidateFile]['workflowSE'] = wfSE
+      except AttributeError:
+        break
 
     return candidateFiles
 

@@ -125,7 +125,6 @@ class UserJobFinalization( ModuleBase ):
       outputList = []
       for i in self.userOutputData:
         outputList.append( {'outputDataType':( '.'.split( i )[-1] ).upper(),
-                            'outputDataSE':self.userOutputSE,
                             'outputDataName':os.path.basename( i )} )
 
       userOutputLFNs = []
