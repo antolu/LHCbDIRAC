@@ -117,7 +117,6 @@ class GaudirunSuccess( UserJobTestCase ):
     optComp = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
     optPConf = "prodConf_Boole_00012345_00067890_1.py"
     options = opts + optDT + optTCK + optComp + optPConf
-    lhcbJob.addPackage( 'AppConfig', 'v3r155' )
 
     lhcbJob.setApplication( 'Boole', 'v24r0', options,
                             inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
@@ -137,9 +136,6 @@ class GaudiScriptSuccess( UserJobTestCase ):
     script = find_all( 'gaudi-script.py', '.', 'Integration' )[0]
     pConfFile = find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'Integration' )[0]
     lhcbJob.setInputSandbox( [pConfFile, script] )
-
-    lhcbJob.addPackage( 'AppConfig', 'v3r171' )
-    lhcbJob.addPackage( 'ProdConf', 'v1r9' )
 
     lhcbJob.setApplicationScript( 'Gauss', 'v45r3', script,
                                   extraPackages = 'AppConfig.v3r171;ProdConf.v1r9' )
