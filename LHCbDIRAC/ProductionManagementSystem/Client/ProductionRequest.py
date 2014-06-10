@@ -240,7 +240,7 @@ class ProductionRequest( object ):
                                                    publishFlag = self.publishFlag,
                                                    testFlag = self.testFlag,
                                                    requestID = self.requestID,
-                                                   extend = extend,
+                                                   extend = max( extend, 5000 ),
                                                    tracking = prodDict['tracking'] )
       if not res['OK']:
         raise RuntimeError( res['Message'] )
