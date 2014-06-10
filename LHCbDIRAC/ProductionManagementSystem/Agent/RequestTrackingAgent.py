@@ -76,11 +76,11 @@ class RequestTrackingAgent( AgentModule ):
     try:
       condition = {
                    'ProcessingPass'  : str( request['inProPass'] ),
-                   'FileType'        : str( request['inFileType'] ),
+                   'FileType'        : str( request['inFileType'] ).replace( ' ', '' ).split( ',' ),
                    'EventType'       : str( request['EventType'] ),
                    'ConfigName'      : str( request['configName'] ),
                    'ConfigVersion'   : str( request['configVersion'] ),
-                   'DataQualityFlag' : str( request['inDataQualityFlag'] ).split(',')
+                   'DataQualityFlag' : str( request['inDataQualityFlag'] ).replace( ' ', '' ).split( ',' )
                    }
       if request['condType'] == 'Run':
         condition['DataTakingConditions'] = str( request['SimCondition'] )
