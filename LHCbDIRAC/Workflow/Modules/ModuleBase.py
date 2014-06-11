@@ -530,10 +530,10 @@ class ModuleBase( object ):
         for fType in [fType, fType.lower(), fType.upper(), fType.capitalize()]:
           try:
             wfSE = self.outputSEs[fType]
+            candidateFiles[candidateFile]['workflowSE'] = wfSE
             break
           except KeyError:
             pass
-        candidateFiles[candidateFile]['workflowSE'] = wfSE
       except AttributeError:
         break
 
