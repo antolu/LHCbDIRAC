@@ -211,7 +211,7 @@ def multicoreWN():
   siteName = gConfig.getValue( '/LocalSite/Site' )
   gridCE = gConfig.getValue( '/LocalSite/GridCE' )
   tags = fromChar( gConfig.getValue( '/Resources/Sites/%s/%s/CEs/%s/Tag' % ( siteName.split( '.' )[0],
-                                                                             siteName, gridCE ), [] ) )
+                                                                             siteName, gridCE ), '' ) )
   if 'MultiCore' in tags:
     return True
   else:
