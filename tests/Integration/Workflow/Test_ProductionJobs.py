@@ -152,7 +152,7 @@ class MCSuccess_new( ProductionJobTestCase ):
                    ]
 
     # First create the production object
-    prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, 'Tier1_MC-DST', 0, 100,
+    prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, {'DIGI':'Tier1_MC-DST'}, 0, 100,
                                      outputFileStep = '3', CPUe = 5000 )
     # Then launch it
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
