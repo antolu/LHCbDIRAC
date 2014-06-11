@@ -461,8 +461,12 @@ class ControlerMain(ControlerAbstract):
       retVal = self.__diracAPI.getInputDataCatalog(lfnList, site, catalog, True)
       nbofsuccsessful = 0
       if retVal['OK']:
-        slist = retVal['Successful']
-        faild = retVal['Failed']
+        slist = {}
+        faild = {}
+        if 'Successful' in retVal['Value']: 
+          slist = retVal['Value']['Successful']
+        if 'Failed' in retVal['Value']:
+          faild = retVal['Value']['Failed']
         nbofsuccsessful = len(slist)
         nboffaild = len(faild)
         exist = {}

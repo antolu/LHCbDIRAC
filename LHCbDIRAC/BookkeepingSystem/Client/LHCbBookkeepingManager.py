@@ -1718,7 +1718,7 @@ class LHCbBookkeepingManager( BaseESManager ):
     string = self.__addDatasetcreationmetadata( string, dataset, comment )
 
 
-    filesandformats, rootFormat, lfn = self.__getFilesandFormats( savePfn, files )
+    filesandformats, rootFormat = self.__getFilesandFormats( savePfn, files )
 
     if rootFormat:
       string = self.__createRootformatstring( string, filesandformats )
@@ -1890,14 +1890,15 @@ class LHCbBookkeepingManager( BaseESManager ):
     """
     filesandformats = {}
     rootFormat = True
-    lfn = []
+    
     if savePfn:  # we have to decide the file type version.
       # This variable contains the file type version, if it is empty I check in the bkk
-      lfn = savePfn.keys()[0]
-      for i in savePfn:
-        if savePfn[i]['pfntype'].upper() == 'ROOT_ALL':
-          rootFormat = False
-        filesandformats[i] = savePfn[i]['pfntype']
+    
+      for lfns in savePfn:
+        for lfn in savePfn[lfns]:
+          if lfn['pfntype'].upper() == 'ROOT_ALL':
+            rootFormat = False
+          filesandformats[lfns] = lfn['pfntype']
     else:
       retVal = self.db_.getFileTypeVersion( files.keys() )
       if retVal['OK']:
@@ -1908,7 +1909,7 @@ class LHCbBookkeepingManager( BaseESManager ):
           rootFormat = False
       else:
         return retVal
-    return filesandformats, rootFormat, lfn
+    return filesandformats, rootFormat
 
   #############################################################################
   @staticmethod
