@@ -14,6 +14,7 @@ __RCSID__ = "$Id$"
 #'Tech OK'
 #'Accepted'
 #'Active'
+#'Completed'
 #'Done'
 #'Cancelled'
 
@@ -458,7 +459,7 @@ class ProductionRequestDB( DB ):
       if creds['Group'] != 'lhcb_prmgr':
         self.lock.release()
         return S_ERROR( "Only Tech. experts are allowed to manage accepted request" )
-    elif requestState == 'Active':
+    elif requestState in ['Active', 'Completed']:
       if not creds['Group'] in ['lhcb_prmgr', 'lhcb_prod']:
         self.lock.release()
         return S_ERROR( "Only experts are allowed to manage active request" )
@@ -595,7 +596,7 @@ class ProductionRequestDB( DB ):
         self.lock.release()
         _msgTuple = ( requestState, update['RequestState'] )
         return S_ERROR( "The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
-    elif requestState in ['Accepted', 'Active']:
+    elif requestState in ['Accepted', 'Active', 'Completed']:
       for x in update:
         if not x in ['RequestState', 'Comments', 'Inform', 'ProPath', 'ProID', 'ProDetail', 'Extra']:
           self.lock.release()
@@ -607,8 +608,13 @@ class ProductionRequestDB( DB ):
           self.lock.release()
           _msgTuple = ( requestState, update['RequestState'] )
           return S_ERROR( "The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
+      elif requestState == 'Active':
+        if not update['RequestState'] in ['Done', 'Cancelled', 'Completed']:
+          self.lock.release()
+          _msgTuple = ( requestState, update['RequestState'] )
+          return S_ERROR( "The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
       else:
-        if not update['RequestState'] in ['Done', 'Cancelled']:
+        if not update['RequestState'] in ['Active', 'Done', 'Cancelled']:
           self.lock.release()
           _msgTuple = ( requestState, update['RequestState'] )
           return S_ERROR( "The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
@@ -1014,7 +1020,7 @@ class ProductionRequestDB( DB ):
     if ( requestState in [ 'Submitted', 'PPG OK', 'On-hold' ] ) \
            and creds['Group'] == 'lhcb_tech':
       return S_OK()
-    if  requestState in [ 'Accepted', 'Active' ] and creds['Group'] == 'lhcb_prmgr':
+    if  requestState in [ 'Accepted', 'Active', 'Completed' ] and creds['Group'] == 'lhcb_prmgr':
       return S_OK()
     return S_ERROR( 'You are not allowed to split the request' )
 
@@ -1251,10 +1257,10 @@ class ProductionRequestDB( DB ):
 
   def getTrackedProductions( self ):
     ''' return a list of all productions associated
-        with requests in 'Active' state
+        with requests in 'Active' or 'Completed' state
     '''
-    req1 = "SELECT RequestID FROM ProductionRequests WHERE RequestState='Active'"
-    req2 = "SELECT RequestID FROM ProductionRequests WHERE RequestState='Active'"
+    req1 = "SELECT RequestID FROM ProductionRequests WHERE RequestState in ('Active','Completed')"
+    req2 = "SELECT RequestID FROM ProductionRequests WHERE RequestState in ('Active','Completed')"
     req2 += " OR MasterID in (%s)" % req1
     req = "SELECT ProductionID FROM ProductionProgress WHERE RequestID "
     req += "in (%s)" % req2
@@ -1289,13 +1295,13 @@ class ProductionRequestDB( DB ):
   def __trackedInputSQL( self, fields ):
     req = "SELECT %s " % fields
     req += "FROM ProductionRequests as t WHERE"
-    req += ' t.RequestState="Active"'
+    req += ' t.RequestState in ("Active","Completed")'
     req += ' AND NumberOfEvents<0 '
     return self._query( req )
 
   def getTrackedInput( self ):
     ''' return a list of all requests with dynamic input
-        in 'Active' state
+        in 'Active' or 'Completed' states
     '''
 
     fields = ','.join( ['t.' + x for x in self.requestFields[:-9]] )
@@ -1550,7 +1556,7 @@ class ProductionRequestDB( DB ):
       if creds['Group'] != 'lhcb_prmgr':
         self.lock.release()
         return S_ERROR( "Only Production manager is allowed to manage accepted request" )
-    elif requestState == 'Active':
+    elif requestState in ['Active', 'Completed']:
       if not creds['Group'] in ['lhcb_prmgr', 'lhcb_prod']:
         self.lock.release()
         return S_ERROR( "Only experts are allowed to manage active request" )
