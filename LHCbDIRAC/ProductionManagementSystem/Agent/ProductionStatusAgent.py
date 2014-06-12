@@ -51,10 +51,11 @@ class ProductionStatusAgent( AgentModule ):
     """
     AgentModule.__init__( self, *args, **kwargs )
 
-    self.dProd = DiracProduction()
-    self.dirac = Dirac()
-    self.reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
-    self.transClient = TransformationClient()
+    self.dProd = None
+    self.dirac = None
+    self.reqClient = None
+    self.transClient = None
+
     self.simulationTypes = Operations().getValue( 'Transformations/ExtendableTransfTypes', ['MCSimulation',
                                                                                             'Simulation'] )
     self.notify = True
@@ -63,8 +64,15 @@ class ProductionStatusAgent( AgentModule ):
   def initialize( self ):
     """ Sets default values.
     """
+    # shifter
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
     self.notify = eval( self.am_getOption( 'NotifyProdManager', 'True' ) )
+
+    # Set the clients
+    self.dProd = DiracProduction()
+    self.dirac = Dirac()
+    self.reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
+    self.transClient = TransformationClient()
 
     return S_OK()
 
