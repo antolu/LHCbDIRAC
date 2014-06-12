@@ -8,9 +8,7 @@
      Idle -> ValidatingOutput
 
      ValidatedOutput -> Completed
-     ValidatedOutput -> Active
 
-     ValidatingInput -> Active
      ValidatingInput -> RemovingFiles
 
      RemovedFiles -> Completed
@@ -83,6 +81,11 @@ class ProductionStatusAgent( AgentModule ):
     updatedProductions = {}
     updatedRequests = []
 
+    # TODO: with the introduction of the "Completed" production request state, this part can be greatly simplified.
+    # first, this agent should not set the status of a request.
+    # second, the _evaluateProgress can simply look for requests in "completed" and maintain the same structure with
+    # "doneAndUse" "doneAndNotUsed" for the productions that are in such requests
+    #
     prodReqSummary, progressSummary = self._getProgress()
     doneAndUsed, doneAndNotUsed, _notDoneAndUsed, _notDoneAndNotUsed = self._evaluateProgress( prodReqSummary,
                                                                                                progressSummary )
@@ -125,18 +128,15 @@ class ProductionStatusAgent( AgentModule ):
 
     self._checkActiveToIdle( updatedProductions )
 
-    self.log.info( "*********************************************************************************************" )
-    self.log.info( "Checking for ValidatedOutput -> Completed/Active and ValidatingInputs -> RemovingFiles/Active" )
-    self.log.info( "*********************************************************************************************" )
+    self.log.info( "*******************************************************************************" )
+    self.log.info( "Checking for ValidatedOutput -> Completed and ValidatingInputs -> RemovingFiles" )
+    self.log.info( "*******************************************************************************" )
 
     try:
       prods = self._getTransformations( 'ValidatedOutput' )
       if prods:
         for prod in prods:
-          if prod not in doneAndUsed:
-            self.log.info( 'Production %d is returned to Active status' % prod )
-            self._updateProductionStatus( prod, 'ValidatedOutput', 'Active', updatedProductions )
-          else:
+          if prod in doneAndUsed:
             self.log.info( 'Production %d is put in Completed status' % prod )
             self._updateProductionStatus( prod, 'ValidatedOutput', 'Completed', updatedProductions )
     except RuntimeError, error:
@@ -146,10 +146,7 @@ class ProductionStatusAgent( AgentModule ):
       prods = self._getTransformations( 'ValidatingInput' )
       if prods:
         for prod in prods:
-          if prod not in doneAndNotUsed:
-            self.log.info( 'Production %d is returned to Active status' % prod )
-            self._updateProductionStatus( prod, 'ValidatingInput', 'Active', updatedProductions )
-          else:
+          if prod in doneAndNotUsed:
             self.log.info( 'Production %d is put in RemovingFiles status' % prod )
             self._updateProductionStatus( prod, 'ValidatingInput', 'RemovingFiles', updatedProductions )
     except RuntimeError, error:
