@@ -1299,18 +1299,30 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         continue
       replicas = res['Value']['Successful']
       noMissingSE = []
+      noOtherReplica = []
       for lfn in lfns:
-        targetSEs = list( replicaSE - set( replicas.get( lfn, [] ) ) )
-        if targetSEs:
-          storageElementGroups.setdefault( ','.join( targetSEs ), [] ).append( lfn )
+        if lfn not in replicas:
+          # This file has no active replicas, problematic
+          noOtherReplica.append( lfn )
         else:
-          # print lfn, sorted( replicas[lfn] ), sorted( replicaSE )
-          noMissingSE.append( lfn )
+          targetSEs = replicaSE - set( replicas[lfn] )
+          if targetSEs:
+            storageElementGroups.setdefault( ','.join( sorted( targetSEs ) ), [] ).append( lfn )
+          else:
+            # print lfn, sorted( replicas[lfn] ), sorted( replicaSE )
+            noMissingSE.append( lfn )
+      if noOtherReplica:
+        self.util.logInfo( "Found %d files that have no other active replica (set Problematic)" % len( noOtherReplica ) )
+        res = self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', noOtherReplica )
+        if not res['OK']:
+          self.util.logError( "Can't set %d files of transformation %s to 'Problematic': %s" % ( len( noOtherReplica ),
+                                                                                               str( self.transID ),
+                                                                                               res['Message'] ) )
       if noMissingSE:
         self.util.logInfo( "Found %d files that are already present in the destination SEs (set Processed)" % len( noMissingSE ) )
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', noMissingSE )
         if not res['OK']:
-          self.util.logError( "Can't set %d files of transformation %s to 'Processed: %s'" % ( len( noMissingSE ),
+          self.util.logError( "Can't set %d files of transformation %s to 'Processed': %s" % ( len( noMissingSE ),
                                                                                                str( self.transID ),
                                                                                                res['Message'] ) )
           return res
