@@ -401,8 +401,7 @@ class ProductionStatusAgent( AgentModule ):
     """
     updatedRequests.append( reqID )
 
-    reqClient = RPCClient( 'ProductionManagement/ProductionRequest', useCertificates = False, timeout = 120 )
-    result = reqClient.updateProductionRequest( long( reqID ), {'RequestState':status} )
+    result = self.reqClient.updateProductionRequest( long( reqID ), {'RequestState':status} )
     if not result['OK']:
       self.log.error( result )
 
