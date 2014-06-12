@@ -533,7 +533,7 @@ class ModuleBase( object ):
             candidateFiles[candidateFile]['workflowSE'] = wfSE
             break
           except KeyError:
-            pass
+            continue
       except AttributeError:
         break
 
