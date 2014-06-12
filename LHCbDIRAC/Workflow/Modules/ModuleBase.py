@@ -282,7 +282,7 @@ class ModuleBase( object ):
       self.numberOfEvents = int( self.workflow_commons['numberOfEvents'] )
 
     if self.workflow_commons.has_key( 'outputSEs' ):
-      self.outputSEs = eval( self.workflow_commons[ 'outputSEs' ] )
+      self.outputSEs = self.workflow_commons[ 'outputSEs' ]
 
   #############################################################################
 
