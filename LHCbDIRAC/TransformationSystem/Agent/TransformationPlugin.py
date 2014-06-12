@@ -1287,20 +1287,20 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     storageElementGroups = {}
 
     for replicaSE, lfns in getFileGroups( self.transReplicas ).items():
-      replicaSE = [se for se in replicaSE.split( ',' ) if not isFailover( se ) and not isArchive( se )]
+      replicaSE = set( [se for se in replicaSE.split( ',' ) if not isFailover( se ) and not isArchive( se )] )
       if not replicaSE:
         self.util.logInfo( "Found %d files that don't have a suitable source replica. Set Problematic" % len( lfns ) )
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
         continue
-      # get other replicas
-      res = self.fc.getReplicas( lfns, allStatus = True )
+      # get no problematic replicas only
+      res = self.fc.getReplicas( lfns, allStatus = False )
       if not res['OK']:
         self.util.logError( 'Error getting catalog replicas', res['Message'] )
         continue
       replicas = res['Value']['Successful']
       noMissingSE = []
-      for lfn in replicas:
-        targetSEs = [se for se in replicas[lfn] if se not in replicaSE and not isFailover( se ) and not isArchive( se )]
+      for lfn in lfns:
+        targetSEs = list( replicaSE - set( replicas.get( lfn, [] ) ) )
         if targetSEs:
           storageElementGroups.setdefault( ','.join( targetSEs ), [] ).append( lfn )
         else:
