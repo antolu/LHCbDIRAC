@@ -94,8 +94,6 @@ class Production( object ):
     self.setParameter( 'configVersion', 'string', '2009', 'ConfigVersion' )
     self.setParameter( 'conditions', 'string', '', 'SimOrDataTakingCondsString' )
 
-    self.setParameter( 'outputSEs', 'string', self.outputSEs, 'dictionary of output SEs' )
-
   #############################################################################
 
   def setJobParameters( self, parametersDict ):
@@ -538,6 +536,8 @@ class Production( object ):
 
         The workflow XML is created regardless of the flags.
     """
+
+    self.setParameter( 'outputSEs', 'string', self.outputSEs, 'dictionary of output SEs' )
 
     if wfString:
       self.LHCbJob.workflow = fromXMLString( wfString )
