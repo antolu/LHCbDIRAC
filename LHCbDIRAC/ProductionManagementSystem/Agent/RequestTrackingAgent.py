@@ -1,7 +1,7 @@
-''' Production requests agent perform all periodic task with requests.
+""" Production requests agent perform all periodic task with requests.
     Currently it updates the number of Input Events for processing
     productions and the number of Output Events for all productions.
-'''
+"""
 
 from DIRAC                                                import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base.AgentModule                          import AgentModule
@@ -16,16 +16,22 @@ AGENT_NAME = 'ProductionManagement/RequestTrackingAgent'
 class RequestTrackingAgent( AgentModule ):
 
   def __init__( self, *args, **kwargs ):
-    ''' c'tor
-    '''
+    """ c'tor
+    """
     AgentModule.__init__( self, *args, **kwargs )
 
+    self.bkClient = None
+    self.prodReq = None
+
+  def initialize( self ):
+    """ Just initializing the clients
+    """
     self.bkClient = BookkeepingClient()
     self.prodReq = RPCClient( "ProductionManagement/ProductionRequest" )
 
   def execute( self ):
-    '''The RequestTrackingAgent execution method.
-    '''
+    """The RequestTrackingAgent execution method.
+    """
     result = self.prodReq.getTrackedInput()
     update = []
     if result['OK']:
@@ -70,8 +76,8 @@ class RequestTrackingAgent( AgentModule ):
     return S_OK( 'Request Tracking information updated' )
 
   def bkInputNumberOfEvents( self, request ):
-    ''' Extremely dirty way...
-    '''
+    """ Extremely dirty way...
+    """
     condition = {
                  'ProcessingPass'  : str( request['inProPass'] ).replace( ' ', '' ),
                  'FileType'        : str( request['inFileType'] ).replace( ' ', '' ).split( ',' ),
