@@ -168,8 +168,6 @@ class Production( object ):
 
         Note: this step treated here does not necessarily corresponds to a step of the BKK:
         the case where they might be different is the merging case.
-
-        outputSE can be a string or a dictionary (see note to _constructOutputFilesDict)
     """
 
     appName = stepDict['ApplicationName']
@@ -390,10 +388,12 @@ class Production( object ):
     self.LHCbJob.workflow.createStepInstance( 'Job_Finalization', 'finalization' )
 
   #############################################################################
-  def createWorkflow( self, name = '' ):
+
+  def __createWorkflow( self, name = '' ):
     """ Create XML of the workflow
     """
     self.LHCbJob._addParameter( self.LHCbJob.workflow, 'gaudiSteps', 'list', self.gaudiSteps, 'list of Gaudi Steps' )
+    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputSEs', 'dict', self.outputSEs, 'dictionary of output SEs' )
 
     if not name:
       name = self.LHCbJob.workflow.getName()
@@ -403,7 +403,8 @@ class Production( object ):
       shutil.move( name, '%s.backup' % name )
     name = name.replace( '/', '' ).replace( '\\', '' )
     self.LHCbJob.workflow.toXMLFile( name )
-    return S_OK( name )
+
+    return name
 
   #############################################################################
 
@@ -411,10 +412,9 @@ class Production( object ):
     """ Create XML workflow for local testing then reformulate as a job and run locally.
     """
 
-    name = self.createWorkflow()['Value']
-    # this "name" is the xml file
-    return LHCbJob( name ).runLocal( bkkClientIn = self.bkkClient )
+    xmlFileName = self.__createWorkflow()
     # it makes a job (a Worklow, with Parameters), out of the xml file
+    return LHCbJob( xmlFileName ).runLocal( bkkClientIn = self.bkkClient )
 
   #############################################################################
 
@@ -442,7 +442,7 @@ class Production( object ):
     if prodWorkflow.findParameter( 'InputData' ):  # now only comes from BK query
       prodWorkflow.findParameter( 'InputData' ).setValue( '' )
       gLogger.verbose( 'Resetting input data for production to null, this comes from a BK query...' )
-      prodXMLFile = self.createWorkflow( prodXMLFile )['Value']
+      prodXMLFile = self.__createWorkflow( prodXMLFile )
       # prodWorkflow.toXMLFile(prodXMLFile)
 
     if self.transformationFamily:
@@ -537,8 +537,6 @@ class Production( object ):
         The workflow XML is created regardless of the flags.
     """
 
-    self.setParameter( 'outputSEs', 'string', self.outputSEs, 'dictionary of output SEs' )
-
     if wfString:
       self.LHCbJob.workflow = fromXMLString( wfString )
 #      self.name = self.LHCbJob.workflow.getName()
@@ -575,7 +573,7 @@ class Production( object ):
       self.setParameter( 'Priority', 'JDL', str( self.priority ), 'UserPriority' )
 
       try:
-        fileName = self.createWorkflow()['Value']
+        fileName = self.__createWorkflow()
       except Exception, x:
         gLogger.error( x )
         return S_ERROR( 'Could not create workflow' )
@@ -698,7 +696,7 @@ class Production( object ):
     """
     if not prodXMLFile:
       gLogger.verbose( 'Using workflow object to generate XML file' )
-      prodXMLFile = self.createWorkflow()
+      prodXMLFile = self.__createWorkflow()
 
     job = LHCbJob( prodXMLFile )
     result = preSubmissionLFNs( job._getParameters(), job.workflow.createCode(),
