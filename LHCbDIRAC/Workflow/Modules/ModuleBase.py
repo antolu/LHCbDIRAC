@@ -432,18 +432,17 @@ class ModuleBase( object ):
 
 
     histogram = False
-    for hist in self.opsH.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST',
-                                                                   'GAUSSHIST', ] ):
+    for hist in self.opsH.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST' ] ):
       try:
         stepOutTypes.remove( hist )
         histogram = True
       except ValueError:
-        continue
+        pass
       try:
         stepOutTypes.remove( hist.lower() )
         histogram = True
       except ValueError:
-        continue
+        pass
 
     return stepOutputs, stepOutTypes, histogram
 
