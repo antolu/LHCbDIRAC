@@ -1318,6 +1318,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                            self.workflowStatus, self.stepStatus,
                                            wf_commons, step_commons,
                                            self.step_number, self.step_id,
+                                           SEs = ['SomeSE'],
                                            fileDescendants = fileDescendants )['OK'] )
 
 
@@ -1352,6 +1353,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                              self.workflowStatus, self.stepStatus,
                                              wf_commons, step_commons,
                                              self.step_number, self.step_id,
+                                             SEs = ['SomeSE'],
                                              fileDescendants = fileDescendants )['OK'] )
 #          self.bkc_mock.getFileDescendants.return_value = {'OK': True,
 #                                                           'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
@@ -1368,6 +1370,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                   self.workflowStatus, self.stepStatus,
                                   wf_commons, step_commons,
                                   self.step_number, self.step_id,
+                                  SEs = ['SomeSE'],
                                   fileDescendants = fileDescendants )
           self.assertTrue( res['OK'] )
 #            if transferAndRegisterFileFailover['OK']:

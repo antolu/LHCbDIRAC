@@ -81,7 +81,8 @@ class UploadOutputData( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None, fileDescendants = None ):
+               step_number = None, step_id = None,
+               SEs = None, fileDescendants = None ):
     """ Main execution function.
     """
 
@@ -143,7 +144,10 @@ class UploadOutputData( ModuleBase ):
       final = {}
 
       for fileName, metadata in fileMetadata.items():
-        resolvedSE = getDestinationSEList( metadata['workflowSE'], self.siteName, self.outputMode )
+        if not SEs:
+          resolvedSE = getDestinationSEList( metadata['workflowSE'], self.siteName, self.outputMode )
+        else:
+          resolvedSE = SEs
         final[fileName] = metadata
         final[fileName]['resolvedSE'] = resolvedSE
 
