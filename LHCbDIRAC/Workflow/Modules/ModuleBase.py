@@ -117,7 +117,7 @@ class ModuleBase( object ):
     else:
       self.step_id = '%s_%s_%s' % ( self.production_id, self.prod_job_id, self.step_number )
 
-    self.site = siteName()
+    self.siteName = siteName()
 
   #############################################################################
 
