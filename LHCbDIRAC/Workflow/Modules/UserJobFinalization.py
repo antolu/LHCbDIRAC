@@ -155,7 +155,7 @@ class UserJobFinalization( ModuleBase ):
         return S_OK()
 
       # First get the local (or assigned) SE to try first for upload and others in random fashion
-      localSEs = set( getDestinationSEList( 'Tier1-USER', DIRAC.siteName(), outputmode = 'local' ) )
+      localSEs = set( getDestinationSEList( 'Tier1-USER', self.siteName, outputmode = 'local' ) )
       self.log.verbose( "Site Local SE for user outputs is: %s" % ( localSEs ) )
       userSEs = set( self.userOutputSE )
       otherSEs = set( self.defaultOutputSE ) - localSEs - userSEs

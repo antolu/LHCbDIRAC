@@ -121,81 +121,81 @@ class ModulesTestCase( unittest.TestCase ):
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'],
-                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
+                        'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'merge',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'runNumber':'Unknown',
-                        'gaudiSteps': ['someApp_1'], 'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
+                        'gaudiSteps': ['someApp_1'], 'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'merge',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'],
-                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
+                        'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'merge',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'],
-                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}' },
+                        'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"} },
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'],
-                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
+                        'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'runNumber':'Unknown',
-                        'gaudiSteps': ['someApp_1'], 'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
+                        'gaudiSteps': ['someApp_1'], 'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'],
-                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
+                        'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'gaudiSteps': ['someApp_1'],
-                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
+                        'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': '', 'gaudiSteps': ['someApp_1'],
-                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}' },
+                        'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"} },
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': 'foo;bar', 'gaudiSteps': ['someApp_1'],
-                        'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}' },
+                        'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"} },
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': 'foo;bar', 'ParametricInputData':'' ,
-                        'gaudiSteps': ['someApp_1'], 'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
+                        'gaudiSteps': ['someApp_1'], 'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}},
                        {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id,
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'', 'jobType': 'reco',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': 'foo;bar', 'ParametricInputData':'pid1;pid2;pid3',
-                        'gaudiSteps': ['someApp_1'], 'outputSEs':'{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}'},
+                        'gaudiSteps': ['someApp_1'], 'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}},
                        ]
     self.step_commons = [
                          {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
@@ -1009,6 +1009,7 @@ class BookkeepingReportSuccess( ModulesTestCase ):
     # no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
+        self.bkr.siteName = 'DIRAC.Test.ch'
         self.assertTrue( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, step_commons,
@@ -1197,6 +1198,7 @@ class StepAccountingSuccess( ModulesTestCase ):
 
     self.sa.jobType = 'merge'
     self.sa.stepInputData = ['foo', 'bar']
+    self.sa.siteName = 'DIRAC.Test.ch'
 
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
@@ -1304,6 +1306,8 @@ class UploadOutputDataSuccess( ModulesTestCase ):
 
   def test_execute( self ):
 
+    self.uod.siteName = 'DIRAC.Test.ch'
+
     # no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
       if wf_commons.has_key( 'InputData' ):
@@ -1314,7 +1318,6 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                            self.workflowStatus, self.stepStatus,
                                            wf_commons, step_commons,
                                            self.step_number, self.step_id,
-                                           SEs = ['SomeSE'],
                                            fileDescendants = fileDescendants )['OK'] )
 
 
@@ -1349,7 +1352,6 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                              self.workflowStatus, self.stepStatus,
                                              wf_commons, step_commons,
                                              self.step_number, self.step_id,
-                                             SEs = ['SomeSE'],
                                              fileDescendants = fileDescendants )['OK'] )
 #          self.bkc_mock.getFileDescendants.return_value = {'OK': True,
 #                                                           'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
@@ -1366,9 +1368,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                   self.workflowStatus, self.stepStatus,
                                   wf_commons, step_commons,
                                   self.step_number, self.step_id,
-                                  SEs = ['SomeSE'],
                                   fileDescendants = fileDescendants )
-          print res, transferAndRegisterFile
           self.assertTrue( res['OK'] )
 #            if transferAndRegisterFileFailover['OK']:
 #              self.assertTrue( res['OK'] )

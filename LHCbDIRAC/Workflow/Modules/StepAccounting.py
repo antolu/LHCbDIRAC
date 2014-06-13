@@ -5,7 +5,6 @@
 
 __RCSID__ = "$Id$"
 
-import DIRAC
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.Utilities import Time
 from DIRAC.Workflow.Utilities.Utils import getStepCPUTimes
@@ -66,7 +65,7 @@ class StepAccounting( ModuleBase ):
                   'EventType': self.eventType,
                   'ProcessingType': self.stepProcPass, #this is the processing pass of the step
                   'ProcessingStep': self.BKstepID, #the step ID
-                  'Site': DIRAC.siteName(),
+                  'Site': self.siteName,
                   'FinalStepState': self.stepStat,
 
                   'CPUTime': self.CPUTime,

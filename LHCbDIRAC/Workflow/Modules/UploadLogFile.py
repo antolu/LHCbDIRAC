@@ -6,7 +6,6 @@ __RCSID__ = "$Id$"
 
 import os, shutil, glob, random
 
-import DIRAC
 from DIRAC                                              import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess                    import shellCall
 from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
@@ -371,7 +370,7 @@ class UploadLogFile( ModuleBase ):
     fopen.write( "<p>Job %s_%s corresponds to WMS JobID %s executed at %s.</p><br>" % ( productionID,
                                                                                         prodJobID,
                                                                                         wmsJobID,
-                                                                                        DIRAC.siteName() ) )
+                                                                                        self.siteName ) )
     fopen.write( "<h3>Parameter summary for job %s_%s</h3> \n" % ( prodJobID, productionID ) )
     check = ['BannedSites', 'JobType', 'CPUTime', 'ProductionOutputData', 'LogFilePath', 'InputData', 'InputSandbox']
     params = {}

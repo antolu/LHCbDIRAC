@@ -306,7 +306,7 @@ class BookkeepingReport( ModuleBase ):
     typedParams.append( ( "Name", self.step_id ) )
     typedParams.append( ( "JobStart", '%s %s' % ( self.ldatestart, self.ltimestart ) ) )
     typedParams.append( ( "JobEnd", '%s %s' % ( self.ldate, self.ltime ) ) )
-    typedParams.append( ( "Location", DIRAC.siteName() ) )
+    typedParams.append( ( "Location", self.siteName ) )
     typedParams.append( ( "JobType", self.jobType ) )
 
     host = None

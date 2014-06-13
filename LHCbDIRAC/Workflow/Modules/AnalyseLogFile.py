@@ -5,7 +5,6 @@ __RCSID__ = "$Id$"
 
 import os, re, glob
 
-import DIRAC
 from DIRAC                                            import S_OK, S_ERROR, gLogger
 from DIRAC.Resources.Catalog.PoolXMLFile              import getGUID
 from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
@@ -28,7 +27,6 @@ class AnalyseLogFile( ModuleBase ):
     super( AnalyseLogFile, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
-    self.site = DIRAC.siteName()
     self.logFilePath = ''
     self.coreFile = ''
     self.nc = NotificationClient()
@@ -128,10 +126,10 @@ class AnalyseLogFile( ModuleBase ):
 
     debugLFNs = result['Value']['DebugLFNs']
 
-    subject = '[' + self.site + '][' + self.applicationName + '] ' + self.applicationVersion + \
+    subject = '[' + self.siteName + '][' + self.applicationName + '] ' + self.applicationVersion + \
               ": " + subj + ' ' + self.production_id + '_' + self.prod_job_id + ' JobID=' + str( self.jobID )
     msg = 'The Application ' + self.applicationName + ' ' + self.applicationVersion + ' had a problem \n'
-    msg = msg + 'at site ' + self.site + '\n'
+    msg = msg + 'at site ' + self.siteName + '\n'
     msg = msg + 'JobID is ' + str( self.jobID ) + '\n'
     msg = msg + 'JobName is ' + self.production_id + '_' + self.prod_job_id + '\n'
 

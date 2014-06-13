@@ -5,7 +5,6 @@ __RCSID__ = "$Id$"
 
 import os
 
-import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger
 
 from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
@@ -29,7 +28,6 @@ class AnalyseXMLSummary( ModuleBase ):
     super( AnalyseXMLSummary, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
     self.version = __RCSID__
-    self.site = DIRAC.siteName()
     self.nc = NotificationClient()
     self.XMLSummary = ''
 
@@ -168,10 +166,10 @@ class AnalyseXMLSummary( ModuleBase ):
 
     debugLFNs = result['Value']['DebugLFNs']
 
-    subject = '[' + self.site + '][' + self.applicationName + '] ' + self.applicationVersion + \
+    subject = '[' + self.siteName + '][' + self.applicationName + '] ' + self.applicationVersion + \
               ": " + subj + ' ' + self.production_id + '_' + self.prod_job_id + ' JobID=' + str( self.jobID )
     msg = 'The Application ' + self.applicationName + ' ' + self.applicationVersion + ' had a problem \n'
-    msg = msg + 'at site ' + self.site + '\n'
+    msg = msg + 'at site ' + self.siteName + '\n'
     msg = msg + 'JobID is ' + str( self.jobID ) + '\n'
     msg = msg + 'JobName is ' + self.production_id + '_' + self.prod_job_id + '\n'
 

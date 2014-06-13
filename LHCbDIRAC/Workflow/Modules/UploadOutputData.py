@@ -5,7 +5,6 @@
 __RCSID__ = "$Id$"
 
 import os, random, glob
-import DIRAC
 
 from DIRAC                                                    import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities                                     import DEncode
@@ -82,8 +81,7 @@ class UploadOutputData( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None,
-               SEs = None, fileDescendants = None ):
+               step_number = None, step_id = None, fileDescendants = None ):
     """ Main execution function.
     """
 
@@ -145,10 +143,7 @@ class UploadOutputData( ModuleBase ):
       final = {}
 
       for fileName, metadata in fileMetadata.items():
-        if not SEs:
-          resolvedSE = getDestinationSEList( metadata['workflowSE'], DIRAC.siteName(), self.outputMode )
-        else:
-          resolvedSE = SEs
+        resolvedSE = getDestinationSEList( metadata['workflowSE'], self.siteName, self.outputMode )
         final[fileName] = metadata
         final[fileName]['resolvedSE'] = resolvedSE
 

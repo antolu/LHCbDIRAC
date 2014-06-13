@@ -4,7 +4,7 @@
 
 import os, copy, time
 
-from DIRAC                                                    import gLogger
+from DIRAC                                                    import gLogger, siteName
 from DIRAC.Core.Utilities.Adler                               import fileAdler
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
 from DIRAC.Resources.Catalog.PoolXMLFile                      import getGUID
@@ -116,6 +116,8 @@ class ModuleBase( object ):
       self.step_id = step_id
     else:
       self.step_id = '%s_%s_%s' % ( self.production_id, self.prod_job_id, self.step_number )
+
+    self.site = siteName()
 
   #############################################################################
 
