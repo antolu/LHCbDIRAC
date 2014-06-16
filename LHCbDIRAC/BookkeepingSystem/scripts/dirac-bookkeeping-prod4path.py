@@ -35,7 +35,7 @@ def execute():
   for prod in prods:
     type = tr.getTransformation( prod ).get( 'Value', {} ).get( 'Type', 'Unknown' )
     productions[prod] = type
-    parent = tr.getBookkeepingQueryForTransformation( prod ).get( 'Value', {} ).get( 'ProductionID', '' )
+    parent = tr.getBookkeepingQuery( prod ).get( 'Value', {} ).get( 'ProductionID', '' )
     if parent:
       type = tr.getTransformation( parent ).get( 'Value', {} ).get( 'Type', 'Unknown' )
       parents[parent] = type
