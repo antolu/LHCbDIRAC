@@ -227,8 +227,15 @@ class StrippSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST', 'DIMUON.DST', 'EW.DST', 'LEPTONIC.MDST', 'SEMILEPTONIC.DST']},
                    ]
 
-    prod = self.pr._buildProduction( 'Stripping', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
-                                     inputDataPolicy = 'protocol', inputDataList = lfns, events = 500 )
+    prod = self.pr._buildProduction( 'Stripping', stepsInProd, {'BHADRON.MDST': 'Tier1-BUFFER',
+                                                                'BHADRONCOMPLETEEVENT.DST': 'Tier1-BUFFER',
+                                                                'CALIBRATION.DST': 'Tier1-BUFFER',
+                                                                'CHARMCOMPLETEEVENT.DST': 'Tier1-BUFFER',
+                                                                'DIMUON.DST': 'Tier1-BUFFER',
+                                                                'EW.DST': 'Tier1-BUFFER',
+                                                                'LEPTONIC.MDST': 'Tier1-BUFFER',
+                                                                'SEMILEPTONIC.DST': 'Tier1-BUFFER'},
+                                     0, 100, inputDataPolicy = 'protocol', inputDataList = lfns, events = 500 )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
@@ -275,8 +282,21 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
                                    'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST']},
                    ]
 
-    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'DIMUON.DST': 'Tier1_MC-DST', 'EW.DST':'Tier1-DST'}, 0, 100,
-                                     inputDataPolicy = 'protocol', inputDataList = lfns )
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'BHADRON.MDST': 'Tier1-BUFFER',
+                                                            'BHADRONCOMPLETEEVENT.DST': 'Tier1-BUFFER',
+                                                            'CALIBRATION.DST': 'Tier1-BUFFER',
+                                                            'CHARM.MDST': 'Tier1-BUFFER',
+                                                            'CHARMCOMPLETEEVENT.DST': 'Tier1-BUFFER',
+                                                            'CHARMCONTROL.DST': 'Tier1-BUFFER',
+                                                            'DIMUON.DST': 'Tier1-BUFFER',
+                                                            'EW.DST': 'Tier1-BUFFER',
+                                                            'LEPTONIC.MDST': 'Tier1-BUFFER',
+                                                            'MINIBIAS.DST': 'Tier1-BUFFER',
+                                                            'PID.MDST':'Tier1-BUFFER',
+                                                            'RADIATIVE.DST': 'Tier1-BUFFER',
+                                                            'SEMILEPTONIC.DST': 'Tier1-BUFFER',
+                                                            },
+                                    0, 100, inputDataPolicy = 'protocol', inputDataList = lfns )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
