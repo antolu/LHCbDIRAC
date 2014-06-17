@@ -24,6 +24,7 @@ if __name__ == "__main__":
   lfcCheck = True
   unique = False
   bkQuery = None
+  depth = 99999
 
   Script.registerSwitch( "", "SetInvisible", "Before creating the transformation, set the files in the BKQuery as invisible (default for DeleteDataset)" )
   Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
@@ -31,6 +32,7 @@ if __name__ == "__main__":
   Script.registerSwitch( "", "Test", "   Just print out but not submit" )
   Script.registerSwitch( "", "NoLFCCheck", "   Suppress the check in LFC for removal transformations" )
   Script.registerSwitch( "", "Unique", "   Refuses to create a transformation with an existing name" )
+  Script.registerSwitch( "", "Depth=", "   Depth in path for replacing /... in processing pass" )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -44,21 +46,25 @@ if __name__ == "__main__":
 
 
   switches = Script.getUnprocessedSwitches()
-  for switch in switches:
-    opt = switch[0].lower()
-    val = switch[1]
-    if opt in ( 's', 'start' ):
+  for opt, val in switches:
+    if opt in ( 's', 'Start' ):
       start = True
-    elif opt == 'test':
+    elif opt == 'Test':
       test = True
-    elif opt == "force":
+    elif opt == "Force":
       force = True
-    elif opt == "setinvisible":
+    elif opt == "SetInvisible":
       invisible = True
-    elif opt == "nolfccheck":
+    elif opt == "NoLFCCheck":
       lfcCheck = False
-    elif opt == "unique":
+    elif opt == "Unique":
       unique = True
+    elif opt == "Depth":
+      try:
+        depth = int( val )
+      except:
+        print "Illegal integer depth:", val
+        DIRAC.exit( 2 )
 
   plugin = pluginScript.getOption( 'Plugin' )
   if not plugin:
@@ -107,7 +113,12 @@ if __name__ == "__main__":
     if processingPass.endswith( '/...' ):
       bkQuery.setProcessingPass( processingPass.replace( '/...', '' ) )
       processingPasses = bkQuery.getBKProcessingPasses().keys()
+      pp = bkQuery.getProcessingPass()
+      for processingPass in list( processingPasses ):
+        if pp == processingPass or len( processingPass.replace( pp, '' ).split( '/' ) ) > depth + 1:
+          processingPasses.remove( processingPass )
       if processingPasses:
+        processingPasses.sort()
         print "Transformations will be launched for the following list of processing passes:", '\n\t'.join( [''] + processingPasses )
       else:
         print "No processing passes matching the request"
@@ -159,7 +170,7 @@ if __name__ == "__main__":
       transName += '-' + str( transBKQuery['FileType'] )
     else:
       queryPath = bkQuery.getPath()
-      if queryPath.endswith( '/...' ):
+      if '/...' in queryPath:
         queryPath = bkQuery.makePath()
       longName = transGroup + " for BKQuery " + queryPath
       transName += '-' + queryPath
