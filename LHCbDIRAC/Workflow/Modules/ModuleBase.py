@@ -283,8 +283,14 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'numberOfEvents' ):
       self.numberOfEvents = int( self.workflow_commons['numberOfEvents'] )
 
+    self.outputSEs = {}
     if self.workflow_commons.has_key( 'outputSEs' ):
       self.outputSEs = self.workflow_commons[ 'outputSEs' ]
+    else:
+      # for older productions we construct it based on what should be found in the steps
+      listOutputStep = self.step_commons['listoutput']
+      for lOutput in listOutputStep:
+        self.outputSEs.setdefault( lOutput['outputDataType'], lOutput['outputDataSE'] )
 
   #############################################################################
 
