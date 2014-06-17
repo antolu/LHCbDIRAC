@@ -345,7 +345,8 @@ class SwimmingSuccess( ProductionJobTestCase ):
                     'fileTypesIn':['SWIMTRIGGERD02KSKK.DST'],
                     'fileTypesOut':['SWIMSTRIPPINGD02KSKK.MDST']}
                    ]
-    prod = self.pr._buildProduction( 'Swimming', stepsInProd, {'SWIMSTRIPPINGD02KSKK.MDST':'Tier1-DST'}, 0, 100,
+    prod = self.pr._buildProduction( 'Swimming', stepsInProd, {'SWIMTRIGGERD02KSKK.DST':'Tier1-DST',
+                                                               'SWIMSTRIPPINGD02KSKK.MDST':'Tier1-DST'}, 0, 100,
                                       inputDataPolicy = 'protocol', inputDataList = lfns, events = 10 )
     prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 104262, 'Input Run number' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
