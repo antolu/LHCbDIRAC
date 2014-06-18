@@ -288,9 +288,13 @@ class ModuleBase( object ):
       self.outputSEs = self.workflow_commons[ 'outputSEs' ]
     else:
       # for older productions we construct it based on what should be found in the steps
-      listOutputStep = self.step_commons['listoutput']
-      for lOutput in listOutputStep:
-        self.outputSEs.setdefault( lOutput['outputDataType'], lOutput['outputDataSE'] )
+      if self.step_commons['listoutput']:
+        listOutputStep = self.step_commons['listoutput']
+        for lOutput in listOutputStep:
+          try:
+            self.outputSEs.setdefault( lOutput['outputDataType'], lOutput['outputDataSE'] )
+          except KeyError:
+            continue
 
   #############################################################################
 
