@@ -75,7 +75,7 @@ class ProductionsStateMachine( LHCbStateMachine ):
                                                    defState = 'ValidatingInput' ),
                    'Flush'                : State( 3, ['Active', 'Cleaning'],
                                                    defState = 'Active' ),
-                   'Idle'                 : State( 2, ['Active', 'ValidatingInput', 'ValidatingOutput'], 
+                   'Idle'                 : State( 2, ['Active', 'ValidatingInput', 'ValidatingOutput', 'Completed'],
                                                    defState = 'Idle' ),
                    'Active'               : State( 1, ['Flush', 'Idle', 'Stopped', 'Completing', 'ValidatingInput',
                                                        'ValidatingOutput', 'Cleaning', 'TransformationCleaned'],
@@ -93,6 +93,7 @@ class ProductionsStateMachine( LHCbStateMachine ):
 #                   'Archived'   : State( 6 ),  # final state
 #                   'Completed'  : State( 5, ['Archived'], defState = 'Archived' ),
 #                   'Validating' : State( 4, ['Active', 'Completed', 'Cleaning'], defState = 'Completed' ),
+#                    #Idle to Completed? Should it be that when setting a prod to completed it actually goes to validating?
 #                   'Idle'       : State( 3, ['Active', 'Validating', 'Cleaning'], defState = 'Active' ),
 #                   'Flush'      : State( 2, ['Active', 'Cleaning'], defState = 'Active' ),
 #                   'Active'     : State( 1, ['Flush', 'Idle', 'Stopped', 'Completing', 'Validating', 'Cleaning'], defState = 'Flush' ),
