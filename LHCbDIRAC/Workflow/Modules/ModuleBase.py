@@ -834,6 +834,10 @@ class ModuleBase( object ):
       self.request.addOperation( reportRequest )
 
     if len( self.request ):
+      optimized = self.request.optimize()
+      if not optimized['OK']:
+        self.log.error( "Could not optimize: %s" % optimized['Message'] )
+        self.log.error( "Not failing the job because of that, keep going" )
       isValid = gRequestValidator.validate( self.request )
       if not isValid['OK']:
         raise RuntimeError( "Failover request is not valid: %s" % isValid['Message'] )
