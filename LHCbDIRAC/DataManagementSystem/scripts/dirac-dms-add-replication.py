@@ -110,12 +110,14 @@ if __name__ == "__main__":
       Script.showHelp()
       DIRAC.exit( 2 )
     processingPass = transBKQuery.get( 'ProcessingPass', '' )
-    if processingPass.endswith( '/...' ):
-      bkQuery.setProcessingPass( processingPass.replace( '/...', '' ) )
+    if processingPass.endswith( '...' ):
+      import os
+      basePass = os.path.dirname( processingPass )
+      wildPass = os.path.basename( processingPass ).replace( '...', '' )
+      bkQuery.setProcessingPass( basePass )
       processingPasses = bkQuery.getBKProcessingPasses().keys()
-      pp = bkQuery.getProcessingPass()
       for processingPass in list( processingPasses ):
-        if pp == processingPass or len( processingPass.replace( pp, '' ).split( '/' ) ) > depth + 1:
+        if not processingPass.startswith( os.path.join( basePass, wildPass ) ) or processingPass == basePass or len( processingPass.replace( basePass, '' ).split( '/' ) ) != ( depth + 1 ):
           processingPasses.remove( processingPass )
       if processingPasses:
         processingPasses.sort()
@@ -170,7 +172,7 @@ if __name__ == "__main__":
       transName += '-' + str( transBKQuery['FileType'] )
     else:
       queryPath = bkQuery.getPath()
-      if '/...' in queryPath:
+      if '...' in queryPath:
         queryPath = bkQuery.makePath()
       longName = transGroup + " for BKQuery " + queryPath
       transName += '-' + queryPath
