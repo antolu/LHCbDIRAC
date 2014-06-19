@@ -17,7 +17,7 @@ class RAWIntegrityDB( DB ):
   _tablesDict = {}
   # Files table
   _tablesDict[ 'Files' ] = { 'Fields' :
-                                       {
+                                       {'ID'             : 'BIGINT NOT NULL AUTO_INCREMENT',
                                         'LFN'            : 'VARCHAR(255) NOT NULL',
                                         'PFN'            : 'VARCHAR(255) NOT NULL',
                                         'Size'           : 'BIGINT NOT NULL',
@@ -28,12 +28,14 @@ class RAWIntegrityDB( DB ):
                                         'CompleteTime'   : 'DATETIME',
                                         'Status'         : 'VARCHAR(255) DEFAULT "Active"'
                                        },
-                             'Indexes' : { 'Status' : [ 'Status' ] }        
+                             'PrimaryKey' : 'ID',
+                             'Indexes' : { 'Status' : [ 'Status' ],
+                                          'LFN' : [ 'LFN' ] }
                            }
   # LastMonitor table
   _tablesDict[ 'LastMonitor' ] = { 'Fields' :
                                              {
-                                              'LastMonitorTime' : 'DATETIME NOT NULL'
+                                              'LastMonitorTime' : 'DATETIME NOT NULL PRIMARY KEY'
                                              }
                                  } 
 
