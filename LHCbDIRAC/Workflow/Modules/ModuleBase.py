@@ -286,14 +286,19 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'outputSEs' ):
       self.outputSEs = self.workflow_commons[ 'outputSEs' ]
     else:
-      self.outputSEs = {}
+      # this is here for backward compatibility
+      histogramSE = self.opsHelper.getValue( 'Productions/HistogramSE', 'CERN-HIST' )
+      histoTypes = self.opsHelper.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST',
+                                                                           'GAUSSHIST'] )
+      self.outputSEs = dict( ( ht, histogramSE ) for ht in histoTypes )
     # for older productions we construct it based on what should be found in the steps
     if self.step_commons.has_key( 'listoutput' ):
       listOutputStep = self.step_commons['listoutput']
       for lOutput in listOutputStep:
         try:
           for outputDataType in lOutput['outputDataType'].split( ';' ):
-            self.outputSEs.setdefault( outputDataType, lOutput['outputDataSE'] )
+            if outputDataType:
+              self.outputSEs.setdefault( outputDataType, lOutput['outputDataSE'] )
         except KeyError:
           continue
         self.workflow_commons['outputSEs'] = self.outputSEs
