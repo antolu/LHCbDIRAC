@@ -9,6 +9,9 @@ SOURCE DIRAC/TransformationSystem/DB/TransformationDB.sql
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- -----------------------------------------------------------------------------
+
+ALTER TABLE Transformations ADD COLUMN Hot BOOLEAN DEFAULT FALSE;
+
 DROP TABLE IF EXISTS BkQueries;
 CREATE TABLE BkQueries (
   BkQueryID INT(11) NOT NULL AUTO_INCREMENT,

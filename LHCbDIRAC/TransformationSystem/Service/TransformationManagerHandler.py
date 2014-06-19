@@ -2,7 +2,7 @@
 
 __RCSID__ = "$Id$"
 
-from types import LongType, IntType, StringType, DictType, ListType, StringTypes
+from types import LongType, IntType, StringType, DictType, ListType, StringTypes, BooleanType
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.TransformationSystem.Service.TransformationManagerHandler import TransformationManagerHandler as TManagerBase
@@ -25,6 +25,10 @@ class TransformationManagerHandler( TManagerBase ):
   types_deleteTransformation = [[LongType, IntType]]
   def export_deleteTransformation( self, transID ):
     return database.deleteTransformation( transID, author = self.getRemoteCredentials()[ 'DN' ] )
+
+  types_setHotFlag = [[LongType, IntType], BooleanType]
+  def export_setHotFlag( self, transID, hotFlag ):
+    return database.setHotFlag( transID, hotFlag )
 
   #############################################################################
   #

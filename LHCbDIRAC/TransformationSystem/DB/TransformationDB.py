@@ -30,8 +30,9 @@ class TransformationDB( DIRACTransformationDB ):
     self.intFields = ['EventType', 'ProductionID', 'StartRun', 'EndRun']
     self.transRunParams = ['TransformationID', 'RunNumber', 'SelectedSite', 'Status', 'LastUpdate']
     self.allowedStatusForTasks = ( 'Unused', 'ProbInFC' )
-    self.TRANSFILEPARAMS.append( "RunNumber" )
-    self.TASKSPARAMS.append( "RunNumber" )
+    self.TRANSPARAMS.append( 'Hot' )
+    self.TRANSFILEPARAMS.append( 'RunNumber' )
+    self.TASKSPARAMS.append( 'RunNumber' )
 
 # FIXME: not compatible with DIRAC v6r11, but will be compatible with DIRAC v7r0
 # TODO: re-check, also DIRAC part, for missing Foreign keys, plus re-check whole definition of everything
@@ -182,6 +183,13 @@ class TransformationDB( DIRACTransformationDB ):
 
     return S_OK( tasksDict )
 
+
+  def setHotFlag( self, transID, flag = False, connection = False ):
+    """ Simply set the hot flag
+    """
+    connection = self.__getConnection( connection )
+    return self._update( "UPDATE Transformations SET Hot = %s WHERE TransformationID = %d" % ( flag, int( transID ) ),
+                         connection )
 
   #############################################################################
   #
