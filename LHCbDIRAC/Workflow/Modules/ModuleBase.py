@@ -287,8 +287,8 @@ class ModuleBase( object ):
       self.outputSEs = self.workflow_commons[ 'outputSEs' ]
     else:
       # this is here for backward compatibility
-      histogramSE = self.opsHelper.getValue( 'Productions/HistogramSE', 'CERN-HIST' )
-      histoTypes = self.opsHelper.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST',
+      histogramSE = self.opsH.getValue( 'Productions/HistogramSE', 'CERN-HIST' )
+      histoTypes = self.opsH.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST',
                                                                            'GAUSSHIST'] )
       self.outputSEs = dict( ( ht, histogramSE ) for ht in histoTypes )
     # for older productions we construct it based on what should be found in the steps
