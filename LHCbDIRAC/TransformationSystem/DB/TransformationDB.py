@@ -252,10 +252,11 @@ class TransformationDB( DIRACTransformationDB ):
     res = self.getBookkeepingQuery( transID, connection = connection )
     if not res['OK']:
       return S_ERROR( "Cannot retrieve BkQuery" )
-    if res['Value']['RunNumbers'] == 'All':
-      runsInQuery = []
-    else:
-      runsInQuery = [int( run ) for run in res['Value']['RunNumbers'].split( ';;;' )]
+    if res['Value'].has_key( 'RunNumbers' ):
+      if res['Value']['RunNumbers'] == 'All':
+        runsInQuery = []
+      else:
+        runsInQuery = [int( run ) for run in res['Value']['RunNumbers'].split( ';;;' )]
     for run in runList:
       if run not in runsInQuery:
         runsInQuery.append( run )
