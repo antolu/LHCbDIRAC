@@ -292,10 +292,11 @@ class ModuleBase( object ):
       listOutputStep = self.step_commons['listoutput']
       for lOutput in listOutputStep:
         try:
-          self.outputSEs.setdefault( lOutput['outputDataType'], lOutput['outputDataSE'] )
+          for outputDataType in lOutput['outputDataType'].split( ';' ):
+            self.outputSEs.setdefault( outputDataType, lOutput['outputDataSE'] )
         except KeyError:
           continue
-        self.workflow_commons['listoutput'] = self.outputSEs
+        self.workflow_commons['outputSEs'] = self.outputSEs
 
   #############################################################################
 
