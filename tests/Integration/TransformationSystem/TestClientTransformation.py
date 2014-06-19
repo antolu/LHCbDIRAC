@@ -39,21 +39,16 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     self.assert_( res['OK'] )
     res = self.transClient.getBookkeepingQuery( transID )
     self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], {'TCK': 'All', 'StartRun': 1L, 'ConfigName': 'All', 'EndRun': 10L,
-                                     'EventType': 12345L, 'FileType': 'All', 'ProcessingPass': 'All',
-                                     'ProductionID': 'All', 'Visible': 'All', 'DataQualityFlag': 'All',
-                                     'RunNumbers': 'All', 'ConfigVersion': 'All',
-                                     'DataTakingConditions': 'DataTakingConditions', 'SimulationConditions': 'All'} )
+    self.assertEqual( res['Value'], {'StartRun': 1L, 'EndRun': 10L,
+                                     'EventType': 12345L, 'DataTakingConditions':'DataTakingConditions'} )
 
     res = self.transClient.addBookkeepingQueryRunList( transID, [2, 3, 4, 5] )
     self.assert_( res['OK'] )
     res = self.transClient.getBookkeepingQuery( transID )
     self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], {'TCK': 'All', 'StartRun': 1L, 'ConfigName': 'All', 'EndRun': 10L,
-                                     'EventType': 12345L, 'FileType': 'All', 'ProcessingPass': 'All',
-                                     'ProductionID': 'All', 'Visible': 'All', 'DataQualityFlag': 'All',
-                                     'RunNumbers': ['2', '3', '4', '5'], 'ConfigVersion': 'All',
-                                     'DataTakingConditions': 'DataTakingConditions', 'SimulationConditions': 'All'} )
+    self.assertEqual( res['Value'], {'StartRun': 1L, 'EndRun': 10L, 'EventType': 12345L,
+                                     'RunNumbers': ['2', '3', '4', '5'],
+                                     'DataTakingConditions': 'DataTakingConditions'} )
 
     res = self.transClient.getTransformationsWithBkQueries( [] )
     self.assert_( res['OK'] )
@@ -65,6 +60,12 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     self.assert_( res['OK'] )
     self.assertEqual( res['Value'], [] )
 
+    res = self.transClient.setHotFlag( transID, True )
+    self.assert_( res['OK'] )
+    res = self.transClient.getTransformations( {'Hot':True} )
+    self.assert_( res['OK'] )
+    self.assertEqual( res['Value'][0]['TransformationID'], transID )
+
     # FIXME: first, I should add some...
     res = self.transClient.getTransformationRuns()
     self.assert_( res['OK'] )
@@ -73,15 +74,15 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     self.assert_( res['OK'] )
 
     # clean
-    res = self.transClient.cleanTransformation( transID )
-    self.assert_( res['OK'] )
-    res = self.transClient.getTransformationParameters( transID, 'Status' )
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], 'TransformationCleaned' )
-
-    # really delete
-    res = self.transClient.deleteTransformation( transID )
-    self.assert_( res['OK'] )
+#     res = self.transClient.cleanTransformation( transID )
+#     self.assert_( res['OK'] )
+#     res = self.transClient.getTransformationParameters( transID, 'Status' )
+#     self.assert_( res['OK'] )
+#     self.assertEqual( res['Value'], 'TransformationCleaned' )
+#
+#     # really delete
+#     res = self.transClient.deleteTransformation( transID )
+#     self.assert_( res['OK'] )
 
 
 if __name__ == '__main__':
