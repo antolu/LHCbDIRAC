@@ -257,6 +257,8 @@ class TransformationDB( DIRACTransformationDB ):
         runsInQuery = []
       else:
         runsInQuery = [int( run ) for run in res['Value']['RunNumbers'].split( ';;;' )]
+    else:
+      runsInQuery = []
     for run in runList:
       if run not in runsInQuery:
         runsInQuery.append( run )
