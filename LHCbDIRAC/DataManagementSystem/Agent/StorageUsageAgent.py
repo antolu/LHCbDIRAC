@@ -173,16 +173,21 @@ class StorageUsageAgent( AgentModule ):
       self.log.notice( "Storage Usage Summary" )
       self.log.notice( "============================================================" )
       self.log.notice( "%-40s %20s %20s" % ( 'Storage Element', 'Number of files', 'Total size' ) )
+      
+      for se in sorted( res['Value'] ):
+        site = se.split( '_' )[0].split( '-' )[0]
+        gMonitor.registerActivity( "%s-used" % se, "%s usage" % se, "StorageUsage/%s usage" % site,
+                                   "", gMonitor.OP_MEAN, bucketLength = 600 )
+        gMonitor.registerActivity( "%s-files" % se, "%s files" % se, "StorageUsage/%s files" % site,
+                                   "Files", gMonitor.OP_MEAN, bucketLength = 600 )
+          
+      time.sleep(2)
+      
       for se in sorted( res['Value'] ):
         usage = res['Value'][se]['Size']
         files = res['Value'][se]['Files']
-        site = se.split( '_' )[0].split( '-' )[0]
         self.log.notice( "%-40s %20s %20s" % ( se, str( files ), str( usage ) ) )
-        gMonitor.registerActivity( "%s-used" % se, "%s usage" % se, "StorageUsage/%s usage" % site,
-                                   "", gMonitor.OP_MEAN, bucketLength = 600 )
         gMonitor.addMark( "%s-used" % se, usage )
-        gMonitor.registerActivity( "%s-files" % se, "%s files" % se, "StorageUsage/%s files" % site,
-                                   "Files", gMonitor.OP_MEAN, bucketLength = 600 )
         gMonitor.addMark( "%s-files" % se, files )
 
   def execute( self ):
