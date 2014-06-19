@@ -87,10 +87,9 @@ class InputDataResolution ( DIRACInputDataResolution ):
     if not typeVersions['OK']:
       return typeVersions
     typeVersions = typeVersions['Value']
-    print resolvedData
-
+    
     for lfn, mdataList in resolvedData.items():
-      print type( mdataList )
+      
       if type( mdataList ) != types.ListType:
         mdataList = [mdataList]
       if lfn not in typeVersions:
@@ -102,7 +101,7 @@ class InputDataResolution ( DIRACInputDataResolution ):
       else:
         self.log.verbose( 'Adding PFN file type %s for %s' % ( typeVersions[lfn], lfn ) )
         lfnType = typeVersions[lfn]
-      print mdataList
+      
       for mdata in mdataList:
         mdata['pfntype'] = lfnType
 
