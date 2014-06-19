@@ -96,6 +96,7 @@ class StorageUsageDB( DB ):
                                                        'Status' : 'VARCHAR(32) NOT NULL'
                                                   },
                                         'PrimaryKey' : [ 'ID'],
+                                        'Indexes': { 'InsertTime': [ 'InsertTime' ] }
                                      }
     self.__tablesDesc[ 'DirMetadata' ] = { 'Fields' : { 'DID' : 'INTEGER UNSIGNED NOT NULL',
                                                        'ConfigName' : 'VARCHAR(64) NOT NULL',
