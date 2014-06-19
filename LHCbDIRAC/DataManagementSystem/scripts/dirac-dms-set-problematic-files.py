@@ -62,12 +62,12 @@ if __name__ == "__main__":
   lfns = []
   userFiles = 0
   for lfn in lfnList:
-    if lfn.find( '/user/' ) >= 0:
-      userFiles += 1
-      continue
-    i = lfn.find( '/lhcb' )
-    if i >= 0:
-      lfns.append( lfn[i:] )
+#    if lfn.find( '/user/' ) >= 0:
+#      userFiles += 1
+#      continue
+#    i = lfn.find( '/lhcb' )
+#    if i >= 0:
+      lfns.append( lfn )
 
 
   from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
