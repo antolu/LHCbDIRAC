@@ -298,7 +298,7 @@ class ModuleBase( object ):
         try:
           for outputDataType in lOutput['outputDataType'].split( ';' ):
             if outputDataType:
-              self.outputSEs.setdefault( outputDataType, lOutput['outputDataSE'] )
+              self.outputSEs.setdefault( outputDataType.upper(), lOutput['outputDataSE'] )
         except KeyError:
           continue
         self.workflow_commons['outputSEs'] = self.outputSEs
