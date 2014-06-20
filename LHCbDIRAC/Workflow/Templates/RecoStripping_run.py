@@ -5,6 +5,7 @@
       WORKFLOW2: Stripping+Merge
       WORKFLOW3: RecoStripping+Merge (Reco and Stripping within the same job)
       WORKFLOW4: Reconstruction+Stripping+Merge
+      WORKFLOW5: Stripping+Merge+Indexing
 
     Exotic things you might want to do:
     * run a local test:
@@ -50,6 +51,7 @@ w1 = '{{w1#-WORKFLOW1: Reconstruction#False}}'
 w2 = '{{w2#-WORKFLOW2: Stripping+Merge#False}}'
 w3 = '{{w3#-WORKFLOW3: RecoStripping+Merge#False}}'
 w4 = '{{w4#-WORKFLOW4: Reconstruction+Stripping+Merge#False}}'
+w5 = '{{w5#-WORKFLOW5: Stripping+Merge+Indexing #False}}'
 
 certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
@@ -98,6 +100,14 @@ mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access 
 mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data flag True/False#True}}'
 mergeMulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
 
+# indexing params
+indexingPriority = int( '{{IndexingPriority#PROD-4:indexing: priority#5}}' )
+indexingCPU = '{{IndexingMaxCPUTime#PROD-4:indexing: Max CPU time in secs#50000}}'
+indexingPlugin = '{{IndexingPlugin#PROD-4:indexing: plugin#ByRunFileTypeSizeWithFlush}}'
+indexingGroupSize = '{{IndexingFileSize#PROD-4:indexing: Size (in GB) of the Indexed files#50}}'
+indexingDataSE = '{{IndexingStreamSE#PROD-4:indexing: output data SE (Indexed streams)#IndexerSE}}'
+indexingIDPolicy = '{{IndexingIDPolicy#PROD-4:indexing: policy for input data access (download or protocol)#protocol}}'
+
 pr.requestID = '{{ID}}'
 pr.prodGroup = '{{inProPass}}' + '/' + '{{pDsc}}'
 # used in case of a test e.g. certification etc.
@@ -115,6 +125,7 @@ w1 = eval( w1 )
 w2 = eval( w2 )
 w3 = eval( w3 )
 w4 = eval( w4 )
+w5 = eval( w5 )
 
 certificationFlag = eval( certificationFlag )
 localTestFlag = eval( localTestFlag )
@@ -253,5 +264,24 @@ elif w4:
   pr.targets = [targetSite, targetSite, targetSite]
   pr.multicore = [recoMulticoreFlag, strippMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Local', 'Local', 'Any']
+
+elif w5:
+  pr.prodsTypeList = ['DataStripping', 'Merge', 'WGProduction']
+  pr.outputSEs = [strippDataSE, mergingDataSE, indexingDataSE]
+  pr.specialOutputSEs = [strippDataSESpecial, mergingDataSESpecial, {}]
+  pr.stepsInProds = [range( 1, len( pr.stepsList ) - 1 ),
+                     range( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
+                     [len( pr.stepsList )]]
+  pr.removeInputsFlags = [False, mergeRemoveInputsFlag, False]
+  pr.priorities = [strippPriority, mergingPriority, indexingPriority]
+  pr.cpus = [strippCPU, mergingCPU, indexingCPU]
+  pr.groupSizes = [strippFilesPerJob, mergingGroupSize, indexingGroupSize]
+  pr.plugins = [strippPlugin, mergingPlugin, indexingPlugin]
+  pr.inputs = [strippInputDataList, [], []]
+  pr.inputDataPolicies = [strippIDPolicy, mergingIDPolicy, indexingIDPolicy]
+  pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
+  pr.targets = [targetSite, targetSite, targetSite]
+  pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag, False]
+  pr.outputModes = ['Local', 'Any', 'Any']
 
 pr.buildAndLaunchRequest()
