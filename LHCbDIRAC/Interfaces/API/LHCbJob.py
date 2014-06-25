@@ -240,7 +240,8 @@ class LHCbJob( Job ):
     self.stepCount += 1
     stepName = '%sStep%s' % ( appName, self.stepCount )
 
-    step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
+    step = getStepDefinition( stepName, modulesNameList = modulesNameList,
+                              importLine = "LHCbDIRAC.Workflow.Modules", parametersList = parametersList )
 
     logPrefix = 'Step%s_' % ( self.stepCount )
     logName = '%s%s' % ( logPrefix, logName )
@@ -276,7 +277,8 @@ class LHCbJob( Job ):
                                                'UserJobFinalization'],
                             parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
                                               ( 'applicationVersion', 'string', '', 'Application Version' ),
-                                              ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
+                                              ( 'applicationLog', 'string', '',
+                                                'Name of the output file of the application' ),
                                               ( 'script', 'string', '', 'Script Name' ),
                                               ( 'arguments', 'string', '', 'Arguments for executable' ),
                                               ( 'poolXMLCatName', 'string', '', 'POOL XML Catalog file name' ),
@@ -405,7 +407,7 @@ class LHCbJob( Job ):
 
        >>> job = LHCbJob()
        >>> job.setBenderModule('v8r3','BenderExample.PhiMC',
-       inputData=['LFN:/lhcb/production/DC06/phys-v2-lumi2/00001758/DST/0000/00001758_00000001_5.dst'],numberOfEvents=100)
+       inputData=['LFN:/lhcb/production/DC06/phys-v2-lumi2/00001758/DST/00001758_00000001_5.dst'],numberOfEvents=100)
 
        :param benderVersion: Bender Project Version
        :type benderVersion: string
@@ -426,7 +428,8 @@ class LHCbJob( Job ):
       try:
         numberOfEvents = int( numberOfEvents )
       except Exception, _x:
-        return self._reportError( 'Number of events should be an integer or convertible to an integer', __name__, **kwargs )
+        return self._reportError( 'Number of events should be an integer or convertible to an integer',
+                                   __name__, **kwargs )
     if type( inputData ) == type( " " ):
       inputData = [inputData]
     if not type( inputData ) == type( [] ):
@@ -923,7 +926,8 @@ class LHCbJob( Job ):
     rootVersions = gConfig.getOptionsDict( 'Operations/' + self.rootSection )
     # rootVersions = self.opsHelper.getOptions( self.rootSection, [] )
     if not rootVersions['OK']:
-      return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list', __name__, **kwargs )
+      return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list',
+                                __name__, **kwargs )
 
     rootList = rootVersions['Value']
     if not rootVersion in rootList:
@@ -949,7 +953,8 @@ class LHCbJob( Job ):
     # currentApp = gConfig.getValue( appRoot, '' )
     currentApp = self.opsHelper.getValue( appRoot, '' )
     if not currentApp:
-      return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot, __name__, **kwargs )
+      return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot,
+                                __name__, **kwargs )
 
     appVersion = currentApp.split( '.' )[1]
     stepInstance.setValue( "applicationVersion", appVersion )
