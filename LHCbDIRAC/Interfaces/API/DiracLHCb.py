@@ -5,6 +5,8 @@
 
 """
 
+__RCSID__ = "$Id$"
+
 import os, glob, fnmatch, time, types
 
 from DIRAC                                               import gLogger, S_OK, S_ERROR, gConfig
@@ -18,8 +20,6 @@ from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
 from LHCbDIRAC.Core.Utilities.File                        import makeGuid
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-
-__RCSID__ = "$Id$"
 
 COMPONENT_NAME = 'DiracLHCb'
 
