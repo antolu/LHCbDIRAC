@@ -12,19 +12,19 @@
     FileCatalog().Catalogs = ["xmlcatalog_file:pool_xml_catalog.xml"]
 """
 
+__RCSID__ = "$Id$"
 
 import os, fnmatch
+from DIRAC import gLogger
 
 class GangaDataFile( object ):
   """ Creates ganga data file
   """
 
-  def __init__( self, fileName = 'data.py', xmlcatalog_file = 'pool_xml_catalog.xml',
-                log = None ):
+  def __init__( self, fileName = 'data.py', xmlcatalog_file = 'pool_xml_catalog.xml', log = None ):
     """ initialize
     """
     if not log:
-      from DIRAC import gLogger
       self.log = gLogger.getSubLogger( 'GangaDataFile' )
     else:
       self.log = log
@@ -46,9 +46,9 @@ class GangaDataFile( object ):
   def generateDataFile( self, lfns, persistency = None,
                         TSDefaultStr = "TYP='POOL_ROOTTREE' OPT='READ'",
                         TSLookupMap = {'*.raw':"SVC='LHCb::MDFSelector'",
-                                        '*.RAW':"SVC='LHCb::MDFSelector'",
-                                        '*.mdf':"SVC='LHCb::MDFSelector'",
-                                        '*.MDF':"SVC='LHCb::MDFSelector'"}
+                                       '*.RAW':"SVC='LHCb::MDFSelector'",
+                                       '*.mdf':"SVC='LHCb::MDFSelector'",
+                                       '*.MDF':"SVC='LHCb::MDFSelector'"}
                         ):
     """ generate the data file
     """

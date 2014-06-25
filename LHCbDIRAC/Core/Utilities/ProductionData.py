@@ -7,6 +7,8 @@
 
 """
 
+__RCSID__ = "$Id$"
+
 import re, os, types, datetime, copy
 
 from DIRAC import S_OK, S_ERROR, gLogger
@@ -37,7 +39,8 @@ def constructProductionLFNs( paramDict, bkClient = None, quick = True ):
     outputList = paramDict['outputList']
 
     fileTupleList = []
-    gLogger.verbose( 'wfConfigName = %s, wfConfigVersion = %s, wfMask = %s' % ( wfConfigName, wfConfigVersion, wfMask ) )
+    gLogger.verbose( 'wfConfigName = %s, wfConfigVersion = %s, wfMask = %s' % ( wfConfigName,
+                                                                                wfConfigVersion, wfMask ) )
     for info in outputList:
       #Nasty check on whether the created code parameters were not updated e.g. when changing defaults in a workflow
       fileName = info['outputDataName'].split( '_' )
@@ -86,7 +89,8 @@ def constructProductionLFNs( paramDict, bkClient = None, quick = True ):
                                             str( productionID ).zfill( 8 ) ) )
 
     #Get log file path - unique for all modules
-    logPath = _makeProductionPath( str( jobID ).zfill( 8 ), lfnRoot, 'LOG', str( productionID ).zfill( 8 ), log = True )
+    logPath = _makeProductionPath( str( jobID ).zfill( 8 ), lfnRoot, 'LOG', str( productionID ).zfill( 8 ),
+                                   log = True )
     logFilePath = ['%s/%s' % ( logPath, str( jobID ).zfill( 8 ) )]
     logTargetPath = ['%s/%s_%s.tar' % ( logPath, str( productionID ).zfill( 8 ), str( jobID ).zfill( 8 ) )]
     #[ aside, why does makeProductionPath not append the jobID itself ????
@@ -193,7 +197,8 @@ def constructUserLFNs( jobID, owner, outputFiles, outputPath ):
     # strip out any fine structure in the output file specified by the user, restrict to output file names
     # the output path field can be used to describe this
     outputFile = outputFile.replace( 'LFN:', '' )
-    lfn = os.sep + os.path.join( 'lhcb', 'user', initial, owner, outputPath, yearMonth, subdir, str( jobID ) ) + os.sep + os.path.basename( outputFile )
+    lfn = os.sep + os.path.join( 'lhcb', 'user', initial, owner,
+                                 outputPath, yearMonth, subdir, str( jobID ) ) + os.sep + os.path.basename( outputFile )
     outputLFNs[outputFile] = lfn
 
   outputData = outputLFNs.values()

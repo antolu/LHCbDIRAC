@@ -22,10 +22,12 @@ def leave( msg, error = '', exitCode = 0 ):
   DIRAC.exit( exitCode )
 
 Script.registerSwitch( "f:", "OldLFN=", "LFN of existing file to be fixed." )
-Script.registerSwitch( "n:", "NewLFN=", "Optional: specify a new LFN for the file (retaining the existing file with incorrect GUID)." )
+Script.registerSwitch( "n:", "NewLFN=",
+                       "Optional: specify a new LFN for the file (retaining the existing file with incorrect GUID)." )
 Script.registerSwitch( "D:", "Directory=", "Optional: directory to download file (defaults to TMPDIR then PWD)." )
 Script.registerSwitch( "k", "Keep", "Optional: specify this switch to retain the local copy of the downloaded file" )
-Script.registerSwitch( "m", "SafeMode", "Optional: specify this switch to run the script in safe mode (will check the GUIDs only)" )
+Script.registerSwitch( "m", "SafeMode",
+                       "Optional: specify this switch to run the script in safe mode (will check the GUIDs only)" )
 Script.setUsageMessage( '\n'.join( [ __doc__,
                                      'Usage:',
                                      '  %s [option|cfgfile] [OldLFN]' % Script.scriptName ] ) )
@@ -121,7 +123,8 @@ if newLFN == oldLFN:
   if not result['OK']:
     leave( 'Could not remove existing LFN from Grid storage', result, exitCode = 2 )
 
-gLogger.always( 'Uploading %s as LFN:%s with replica at %s and GUID = %s' % ( localFile, newLFN, storageElements[0], newGUID ) )
+gLogger.always( 'Uploading %s as LFN:%s with replica at %s and GUID = %s' % ( localFile, newLFN,
+                                                                              storageElements[0], newGUID ) )
 result = dirac.addFile( newLFN, localFile, storageElements[0], fileGuid = newGUID, printOutput = False )
 if not result['OK']:
   leave( 'Failed to copy and register new LFN:%s' % newLFN, result, exitCode = 2 )

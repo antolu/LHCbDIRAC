@@ -1,6 +1,8 @@
 """ Utilities to check the application log files (for production jobs)
 """
 
+__RCSID__ = "$Id$"
+
 import re, os
 from DIRAC import gLogger
 
@@ -16,7 +18,7 @@ class LogError( Exception ):
 
 ################################################################################
 
-class ProductionLog:
+class ProductionLog( object ):
   """ Encapsulate production log info
   """
 
@@ -24,29 +26,29 @@ class ProductionLog:
                 prodName = '', jobName = '', stepName = '',
                 log = None ):
 
-    """ Well known application Errors """
+    # Well known application Errors
     self.__APPLICATION_ERRORS__ = {
-      'Terminating event processing loop due to errors' : 'Event Loop Not Terminated'
+                                   'Terminating event processing loop due to errors' : 'Event Loop Not Terminated'
     }
 
-    """ Well known Gaudi Errors """
+    # Well known Gaudi Errors
     self.__GAUDI_ERRORS__ = {
-      'Cannot connect to database'                                     : 'error database connection',
-      'Could not connect'                                              : 'CASTOR error connection',
-      'SysError in <TDCacheFile::ReadBuffer>: error reading from file' : 'DCACHE connection error',
-      'Failed to resolve'                                              : 'IODataManager error',
-      'Error: connectDataIO'                                           : 'connectDataIO error',
-      'Error:connectDataIO'                                            : 'connectDataIO error',
-      ' glibc '                                                        : 'Problem with glibc',
-      'segmentation violation'                                         : 'segmentation violation',
-      'GaussTape failed'                                               : 'GaussTape failed',
-      'Writer failed'                                                  : 'Writer failed',
-      'Bus error'                                                      : 'Bus error',
-      'Standard std::exception is caught'                              : 'Exception caught',
-      'User defined signal 1'                                          : 'User defined signal 1',
-      'Not found DLL'                                                  : 'Not found DLL',
-      'std::bad_alloc'                                                 : 'FATAL Bad alloc'
-    }
+                             'Cannot connect to database'  : 'error database connection',
+                             'Could not connect' : 'CASTOR error connection',
+                             'SysError in <TDCacheFile::ReadBuffer>: error reading from file' : 'DCACHE connection error',
+                             'Failed to resolve' : 'IODataManager error',
+                             'Error: connectDataIO' : 'connectDataIO error',
+                             'Error:connectDataIO' : 'connectDataIO error',
+                             ' glibc ' : 'Problem with glibc',
+                             'segmentation violation' : 'segmentation violation',
+                             'GaussTape failed' : 'GaussTape failed',
+                             'Writer failed' : 'Writer failed',
+                             'Bus error' : 'Bus error',
+                             'Standard std::exception is caught' : 'Exception caught',
+                             'User defined signal 1' : 'User defined signal 1',
+                             'Not found DLL' : 'Not found DLL',
+                             'std::bad_alloc' : 'FATAL Bad alloc'
+                             }
 
 
     if not log:
@@ -71,6 +73,10 @@ class ProductionLog:
     if not self.applicationName:
       self.__guessAppName()
       self.log.info( 'Guessed application name is "%s"' % ( self.applicationName ) )
+
+    self.prodName = None
+    self.jobName = None
+    self.stepName = None
 
 ################################################################################
 

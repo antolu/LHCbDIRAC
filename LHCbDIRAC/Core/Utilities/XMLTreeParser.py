@@ -2,11 +2,14 @@
    pythonic style. A tree ox XMLNodes.
 """
 
+__RCSID__ = "$Id$"
+
+
 import xml.dom.minidom
 
 ################################################################################
 
-class XMLNode:
+class XMLNode( object ):
   """XMLNodes represent XML elements. May have attributes. They have
      either children or value ( exclusive-or).
   """
@@ -25,7 +28,7 @@ class XMLNode:
 
 ################################################################################
 
-class XMLTreeParser:
+class XMLTreeParser( object ):
   """XMLTreeParser converts an XML file or a string into a tree of XMLNodes.
      It does not validate the XML.
 
@@ -51,11 +54,14 @@ class XMLTreeParser:
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def __handleXML( self, xml ):
-    self.tree = self.__handleElement( [ xml.firstChild ] )
+  def __handleXML( self, domXML ):
+    """ handles first child
+    """
+    self.tree = self.__handleElement( [ domXML.firstChild ] )
 
   def __handleElement( self, elements ):
-    """ treat each element """
+    """ treat each element
+    """
     nodes = []
 
     for el in elements:
@@ -79,8 +85,9 @@ class XMLTreeParser:
 
     return nodes
 
-  def __getAttributesDict( self, element ):
-    """ get the attributes in a dictionnary """
+  @staticmethod
+  def __getAttributesDict( element ):
+    """ get the attributes in a dictionary """
     dictionary = {}
     if element.attributes:
       for attr in element.attributes.values():
@@ -91,6 +98,7 @@ class XMLTreeParser:
     """ treat the Text element """
     return self.__getText( textElement )
 
+  @staticmethod
   def __getText( self, node ):
     """ get the TEXT """
     data = ''
@@ -98,10 +106,7 @@ class XMLTreeParser:
       data = node.data.encode( 'ascii' )
     return data
 
-
-"""
-Utilies for XML Report
-"""
+# Utilies for XML Report
 
 def addChildNode( parentNode, tag, returnChildren, args ):
   """
@@ -117,7 +122,7 @@ def addChildNode( parentNode, tag, returnChildren, args ):
   """
 
   allowedTags = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile',
-                   'Parameter', 'Replica', 'SimulationCondition' ]
+                 'Parameter', 'Replica', 'SimulationCondition' ]
 
   def genJobDict( configName, configVersion, ldate, ltime ):
     return {
@@ -127,30 +132,25 @@ def addChildNode( parentNode, tag, returnChildren, args ):
             "Time"         : ltime
            }
   def genTypedParameterDict( name, value, typeP = "Info" ):
-    return {
-            "Name"  : name,
-            "Value" : value,
-            "Type"  : typeP
+    return {"Name":name,
+            "Value":value,
+            "Type":typeP
             }
   def genInputFileDict( name ):
-    return {
-            "Name" : name
+    return {"Name":name
             }
   def genOutputFileDict( name, typeName, typeVersion ):
-    return {
-            "Name"        : name,
-            "TypeName"    : typeName,
-            "TypeVersion" : typeVersion
+    return {"Name" :name,
+            "TypeName":typeName,
+            "TypeVersion":typeVersion
             }
   def genParameterDict( name, value ):
-    return {
-            "Name"  : name,
-            "Value" : value
+    return {"Name":name,
+            "Value":value
             }
   def genReplicaDict( name, location = "Web" ):
-    return {
-            "Name"     : name,
-            "Location" : location
+    return {"Name":name,
+            "Location":location
             }
   def genSimulationConditionDict():
     return {}

@@ -1,6 +1,8 @@
 """ Utilities to check the XML summary files
 """
 
+__RCSID__ = "$Id$"
+
 import os
 from DIRAC import gLogger
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
@@ -20,7 +22,7 @@ class XMLSummaryError( Exception ):
 
 ################################################################################
 
-class XMLSummary:
+class XMLSummary( object ):
   """ XML summary class """
 
   def __init__( self, xmlFileName, log = None ):
@@ -181,8 +183,7 @@ class XMLSummary:
        - fail : failure while reading the file
     """
 
-    fileCounter = {
-                   'full'  : 0,
+    fileCounter = {'full'  : 0,
                    'part'  : 0,
                    'mult'  : 0,
                    'fail'  : 0,
@@ -308,8 +309,7 @@ class XMLSummary:
 
     res = self.__getOutputStatus()
 
-    fileCounter = {
-                   'full'  : 0,
+    fileCounter = {'full'  : 0,
                    'part'  : 0,
                    'mult'  : 0,
                    'fail'  : 0,

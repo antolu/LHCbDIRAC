@@ -6,10 +6,9 @@
     which is also specified in the configuration.
     The message is built using a dictionary passed to one of the methods, 
     which should contain the keys 'SAMResults' 'SAMDetails' 'GridRequiredCEs'.
-
-LHCbDIRAC/Core/Utilities
 """
 
+__RCSID__ = "$Id$"
 
 from DIRAC import gLogger, gConfig
 
@@ -17,9 +16,9 @@ import datetime, stomp
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 
-class NagiosConnector():
-  """Bundles functions in the stomp library for sending SAMJob-Results to 
-  SAM-Nagios.""" 
+class NagiosConnector( object ):
+  """ Bundles functions in the stomp library for sending SAMJob-Results to SAM-Nagios.
+  """
   def __init__( self ):
     self.config = {}
     self.opsHelper = Operations()
@@ -62,10 +61,10 @@ detailsData: further details here:
 EOT"""
 
   def assembleMessage( self,
-                      serviceURI='no serviceURI given',
-                      status='no status given',
-                      details='no details given', 
-                      nagiosName='no nagiosName given'
+                       serviceURI = 'no serviceURI given',
+                       status = 'no status given',
+                       details = 'no details given',
+                       nagiosName = 'no nagiosName given'
                       ):
     """Brings message information to the generic format required by Nagios."""
     
@@ -116,11 +115,11 @@ EOT"""
     try:
       self.conn = stomp.Connection( [ ( self.config['MsgBroker'], 
                                         self.config['MsgPort'] ) ],
-                                      use_ssl = _use_ssl,
-                                      ssl_key_file = _ssl_key_file,
-                                      ssl_cert_file = _ssl_cert_file ,
-                                      ssl_ca_certs = _ssl_ca_certs,
-                                      ssl_cert_validator = _ssl_cert_validator  )
+                                        use_ssl = _use_ssl,
+                                        ssl_key_file = _ssl_key_file,
+                                        ssl_cert_file = _ssl_cert_file ,
+                                        ssl_ca_certs = _ssl_ca_certs,
+                                        ssl_cert_validator = _ssl_cert_validator )
       # There may be a need to receive messages.
       # In this case there should be a class with an on_message method
       # conn.set_listener('',MyListener()) python-messaging provides a useful class.
