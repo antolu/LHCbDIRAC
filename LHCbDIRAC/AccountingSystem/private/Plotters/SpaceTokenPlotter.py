@@ -93,13 +93,11 @@ class SpaceTokenPlotter( BaseReporter ):
     granularity = plotInfo[ 'granularity' ]
     dataDict    = plotInfo[ 'graphDataDict' ]
     
-    metadata = {
-                 'title'     : "Space grouped by %s" % reportRequest[ 'grouping' ],
-                 'starttime' : startEpoch,
-                 'endtime'   : endEpoch,
-                 'span'      : granularity,
-                 'ylabel'    : plotInfo[ 'unit' ] 
-                }
+    metadata = {'title'     : "Space grouped by %s" % reportRequest[ 'grouping' ],
+                'starttime' : startEpoch,
+                'endtime'   : endEpoch,
+                'span'      : granularity,
+                'ylabel'    : plotInfo[ 'unit' ]}
     
     dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )

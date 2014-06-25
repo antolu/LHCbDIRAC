@@ -1,9 +1,9 @@
-''' LHCbDIRAC.AccountingSystem.private.Plotters.StoragePlotter
+""" LHCbDIRAC.AccountingSystem.private.Plotters.StoragePlotter
 
    StoragePlotter.__bases__:
      DIRAC.AccountingSystem.private.Plotters.BaseReporter.BaseReporter
 
-'''
+"""
 
 from DIRAC                                                import S_OK, S_ERROR
 from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
@@ -16,9 +16,9 @@ __RCSID__ = "$Id$"
 #FIXME: refactor _plotMethods
 
 class StoragePlotter( BaseReporter ):
-  '''
+  """
     StoragePlotter as extension of BaseReporter
-  '''
+  """
   
   _typeName      = "Storage"
   _typeKeyFields = [ dF[0] for dF in Storage().definitionKeyFields ]
@@ -28,7 +28,7 @@ class StoragePlotter( BaseReporter ):
   
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
-    '''
+    """
     Reports about LFN size and catalog space from the accounting.
     
     :param reportRequest: <dict>
@@ -53,7 +53,7 @@ class StoragePlotter( BaseReporter ):
         'unit'          : 'TB', 
         'granularity'   : 86400 
        }    
-    '''
+    """
     
     if reportRequest[ 'grouping' ] == 'StorageElement':
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
@@ -82,15 +82,13 @@ class StoragePlotter( BaseReporter ):
     #3rd value, maxValue is not used
     baseDataDict, graphDataDict, __, unitName = suitableUnits
      
-    return S_OK( { 
-                  'data'          : baseDataDict, 
+    return S_OK( {'data'          : baseDataDict,
                   'graphDataDict' : graphDataDict,
                   'granularity'   : granularity, 
-                  'unit'          : unitName 
-                  } )
+                  'unit'          : unitName } )
 
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
-    '''
+    """
     Creates <filename>.png file containing information regarding the LFN size and 
     the catalog space.
     
@@ -120,20 +118,18 @@ class StoragePlotter( BaseReporter ):
       
     returns S_OK / S_ERROR
        { 'plot': True, 'thumbnail': False }      
-    '''
+    """
     
     startEpoch  = reportRequest[ 'startTime' ]
     endEpoch    = reportRequest[ 'endTime' ]
     granularity = plotInfo[ 'granularity' ]
     dataDict    = plotInfo[ 'graphDataDict' ]
     
-    metadata = { 
-                'title'     : "LFN space usage by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "LFN space usage by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startEpoch,
                 'endtime'   : endEpoch,
                 'span'      : granularity,
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ]}
     
     dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
@@ -143,7 +139,7 @@ class StoragePlotter( BaseReporter ):
 
   _reportCatalogFilesName = "LFN files"
   def _reportCatalogFiles( self, reportRequest ):
-    '''
+    """
     Reports about the LFN files and the catalog files from the accounting.
     
     :param reportRequest: <dict>
@@ -168,7 +164,7 @@ class StoragePlotter( BaseReporter ):
         'unit'          : 'Mfiles', 
         'granularity'   : 86400
        }  
-    '''
+    """
     
     if reportRequest[ 'grouping' ] == 'StorageElement':
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
@@ -176,9 +172,7 @@ class StoragePlotter( BaseReporter ):
     selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( selectField + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                                              'LogicalFiles', 'entriesInBucket'
-                                                            ]
-                   )
+                                                              'LogicalFiles', 'entriesInBucket' ] )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
@@ -198,15 +192,13 @@ class StoragePlotter( BaseReporter ):
     #3rd value, maxValue is not used
     baseDataDict, graphDataDict, __, unitName = suitableUnits
     
-    return S_OK( { 
-                  'data'          : baseDataDict, 
+    return S_OK( {'data'          : baseDataDict,
                   'graphDataDict' : graphDataDict,
                   'granularity'   : granularity, 
-                  'unit'          : unitName
-                  } )
+                  'unit'          : unitName} )
 
   def _plotCatalogFiles( self, reportRequest, plotInfo, filename ):
-    '''
+    """
     Creates <filename>.png file containing information regarding the LFN files 
     and the catalog files.
     
@@ -236,19 +228,17 @@ class StoragePlotter( BaseReporter ):
     
     returns S_OK / S_ERROR
        { 'plot': True, 'thumbnail': False }   
-    '''
+    """
     startEpoch  = reportRequest[ 'startTime' ]
     endEpoch    = reportRequest[ 'endTime' ]
     granularity = plotInfo[ 'granularity' ]
     dataDict    = plotInfo[ 'graphDataDict' ]
         
-    metadata = { 
-                'title'     : "Number of LFNs by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "Number of LFNs by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startEpoch,
                 'endtime'   : endEpoch,
                 'span'      : granularity,
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ]}
     
     dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
@@ -258,7 +248,7 @@ class StoragePlotter( BaseReporter ):
 
   _reportPhysicalSpaceName = "PFN size"
   def _reportPhysicalSpace( self, reportRequest ):
-    '''
+    """
     Reports about the PFN size and the physical space from the accounting.
     
     :param reportRequest: <dict>
@@ -283,14 +273,12 @@ class StoragePlotter( BaseReporter ):
         'unit'          : 'TB', 
         'granularity'   : 86400
        }    
-    '''
+    """
     
     selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( selectField + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                                              'PhysicalSize', 'entriesInBucket'
-                                                            ]
-                   )
+                                                              'PhysicalSize', 'entriesInBucket' ] )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
@@ -318,7 +306,7 @@ class StoragePlotter( BaseReporter ):
                   } )
 
   def _plotPhysicalSpace( self, reportRequest, plotInfo, filename ):
-    '''
+    """
     Creates <filename>.png file containing information regarding the PFN size and 
     the physical space.
 
@@ -348,20 +336,18 @@ class StoragePlotter( BaseReporter ):
     
     returns S_OK / S_ERROR
        { 'plot': True, 'thumbnail': False }    
-    '''
+    """
 
     startEpoch  = reportRequest[ 'startTime' ]
     endEpoch    = reportRequest[ 'endTime' ]
     granularity = plotInfo[ 'granularity' ]
     dataDict    = plotInfo[ 'graphDataDict' ]
     
-    metadata = { 
-                'title'     : "PFN space usage by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "PFN space usage by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startEpoch,
                 'endtime'   : endEpoch,
                 'span'      : granularity,
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ] }
     dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
 
@@ -370,7 +356,7 @@ class StoragePlotter( BaseReporter ):
 
   _reportPhysicalFilesName = "PFN files"
   def _reportPhysicalFiles( self, reportRequest ):
-    '''
+    """
     Reports about the PFN files and the physical files from the accounting.
     
     :param reportRequest: <dict>
@@ -399,14 +385,12 @@ class StoragePlotter( BaseReporter ):
         'unit'          : 'kfiles', 
         'granularity'   : 86400
        }
-    '''
+    """
     
     selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( selectField + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                                              'PhysicalFiles', 'entriesInBucket'
-                                                             ]
-                   )
+                                                              'PhysicalFiles', 'entriesInBucket' ] )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
@@ -426,15 +410,13 @@ class StoragePlotter( BaseReporter ):
     #3rd value, maxValue is not used
     baseDataDict, graphDataDict, __, unitName = suitableUnits
     
-    return S_OK( { 
-                  'data'          : baseDataDict, 
+    return S_OK( {'data'          : baseDataDict,
                   'graphDataDict' : graphDataDict,
                   'granularity'   : granularity, 
-                  'unit'          : unitName 
-                  } )
+                  'unit'          : unitName } )
 
   def _plotPhysicalFiles( self, reportRequest, plotInfo, filename ):
-    '''
+    """
     Creates <filename>.png file containing information regarding the PFN files and 
     the physical files.
     
@@ -468,20 +450,18 @@ class StoragePlotter( BaseReporter ):
       
     return S_OK / S_ERROR
        { 'plot': True, 'thumbnail': False }      
-    '''
+    """
         
     startEpoch  = reportRequest[ 'startTime' ]
     endEpoch    = reportRequest[ 'endTime' ]
     granularity = plotInfo[ 'granularity' ]
     dataDict    = plotInfo[ 'graphDataDict' ]
         
-    metadata = { 
-                'title'     : "Number of PFNs by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "Number of PFNs by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startEpoch,
                 'endtime'   : endEpoch,
                 'span'      : granularity,
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ]}
     
     dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
@@ -504,13 +484,11 @@ class StoragePlotter( BaseReporter ):
     granularity = plotInfo[ 'granularity' ]
     dataDict    = plotInfo[ 'graphDataDict' ]
     
-    metadata = { 
-                'title'     : "Ratio of PFN/LFN files by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "Ratio of PFN/LFN files by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startEpoch,
                 'endtime'   : endEpoch,
                 'span'      : granularity,
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ] }
     
     dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
@@ -533,13 +511,11 @@ class StoragePlotter( BaseReporter ):
     granularity = plotInfo[ 'granularity' ]
     dataDict    = plotInfo[ 'graphDataDict' ]
     
-    metadata = { 
-                'title'     : "Ratio of PFN/LFN space used by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "Ratio of PFN/LFN space used by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startEpoch,
                 'endtime'   : endEpoch,
                 'span'      : granularity,
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ] }
     
     dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
@@ -571,9 +547,7 @@ class StoragePlotter( BaseReporter ):
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectField + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                                              physicalField, 'entriesInBucket'
-                                                            ]
-                   )
+                                                              physicalField, 'entriesInBucket'] )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
@@ -610,8 +584,7 @@ class StoragePlotter( BaseReporter ):
     return S_OK( { 'data'          : finalData, 
                    'graphDataDict' : finalData,
                    'granularity'   : granularity, 
-                   'unit'          : 'PFN / LFN' 
-                  } )
+                   'unit'          : 'PFN / LFN' } )
 
 #...............................................................................
 #EOF

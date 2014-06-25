@@ -55,12 +55,10 @@ class UserStoragePlotter( BaseReporter ):
     
     baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
     
-    return S_OK( { 
-                  'data'          : baseDataDict, 
+    return S_OK( {'data'          : baseDataDict,
                   'graphDataDict' : graphDataDict,
                   'granularity'   : granularity, 
-                  'unit'          : unitName 
-                  } )
+                  'unit'          : unitName} )
 
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
     """
@@ -71,13 +69,11 @@ class UserStoragePlotter( BaseReporter ):
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
     
-    metadata = { 
-                'title'     : "User's LFN space usage by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "User's LFN space usage by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ]}
     
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )    
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
@@ -137,13 +133,11 @@ class UserStoragePlotter( BaseReporter ):
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
     
-    metadata = { 
-                'title'     : "User's Number of LFNs by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "User's Number of LFNs by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ] }
     
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     
@@ -185,12 +179,10 @@ class UserStoragePlotter( BaseReporter ):
     
     baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
     
-    return S_OK( { 
-                  'data'          : baseDataDict, 
+    return S_OK( {'data'          : baseDataDict,
                   'graphDataDict' : graphDataDict,
                   'granularity'   : granularity, 
-                  'unit'          : unitName 
-                  } )
+                  'unit'          : unitName  } )
 
   def _plotPhysicalSpace( self, reportRequest, plotInfo, filename ):
     """
@@ -201,13 +193,11 @@ class UserStoragePlotter( BaseReporter ):
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
     
-    metadata = { 
-                'title'     : "User's PFN space usage by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "User's PFN space usage by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ] }
     
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     
@@ -265,13 +255,11 @@ class UserStoragePlotter( BaseReporter ):
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
     
-    metadata = { 
-                'title'     : "User's Number of PFNs by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "User's Number of PFNs by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ] }
     
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     
@@ -305,13 +293,11 @@ class UserStoragePlotter( BaseReporter ):
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
     
-    metadata = { 
-                'title'     : "User's Ratio of PFN/LFN files by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "User's Ratio of PFN/LFN files by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ] }
     
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     
@@ -345,13 +331,11 @@ class UserStoragePlotter( BaseReporter ):
     endTime   = reportRequest[ 'endTime' ]
     span      = plotInfo[ 'granularity' ]
     
-    metadata = { 
-                'title'     : "User's Ratio of PFN/LFN space used by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "User's Ratio of PFN/LFN space used by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ] }
     
     plotInfo[ 'graphDataDict' ] = self._fillWithZero( span, startTime, endTime, plotInfo[ 'graphDataDict' ] )
     
