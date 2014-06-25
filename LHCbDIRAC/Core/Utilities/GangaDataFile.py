@@ -48,8 +48,7 @@ class GangaDataFile( object ):
                         TSLookupMap = {'*.raw':"SVC='LHCb::MDFSelector'",
                                        '*.RAW':"SVC='LHCb::MDFSelector'",
                                        '*.mdf':"SVC='LHCb::MDFSelector'",
-                                       '*.MDF':"SVC='LHCb::MDFSelector'"}
-                        ):
+                                       '*.MDF':"SVC='LHCb::MDFSelector'"} ):
     """ generate the data file
     """
 
@@ -113,9 +112,9 @@ class GangaDataFile( object ):
     script += '\n    #new method'
     script += '\n    from GaudiConf import IOExtension'
     if persistency:
-        script += '\n    IOExtension("%s").inputFiles([' % persistency
+      script += '\n    IOExtension("%s").inputFiles([' % persistency
     else:
-        script += '\n    IOExtension().inputFiles(['
+      script += '\n    IOExtension().inputFiles(['
     script += ( '\n        \"LFN:%s\",' * entries )[:-1]
     script += '\n    ], clear=True)'
     script += '\nexcept ImportError:'
@@ -137,8 +136,7 @@ class GangaDataFile( object ):
                             lookupMap = {'*.raw':"SVC='LHCb::MDFSelector'",
                                          '*.RAW':"SVC='LHCb::MDFSelector'",
                                          '*.mdf':"SVC='LHCb::MDFSelector'",
-                                         '*.MDF':"SVC='LHCb::MDFSelector'"}
-                          ):
+                                         '*.MDF':"SVC='LHCb::MDFSelector'"} ):
     """ helper function 
     """
 
@@ -154,8 +152,7 @@ class GangaDataFile( object ):
                                 TSLookupMap = {'*.raw':"SVC='LHCb::MDFSelector'",
                                                '*.RAW':"SVC='LHCb::MDFSelector'",
                                                '*.mdf':"SVC='LHCb::MDFSelector'",
-                                               '*.MDF':"SVC='LHCb::MDFSelector'"}
-                               ):
+                                               '*.MDF':"SVC='LHCb::MDFSelector'"} ):
     """ helper function 
     """
 

@@ -7,6 +7,8 @@ import re, os
 from DIRAC import gLogger
 
 class LogError( Exception ):
+  """ custom exception
+  """
 
   def __init__( self, message = "" ):
 
@@ -32,8 +34,7 @@ class ProductionLog( object ):
     }
 
     # Well known Gaudi Errors
-    self.__GAUDI_ERRORS__ = {
-                             'Cannot connect to database'  : 'error database connection',
+    self.__GAUDI_ERRORS__ = {'Cannot connect to database'  : 'error database connection',
                              'Could not connect' : 'CASTOR error connection',
                              'SysError in <TDCacheFile::ReadBuffer>: error reading from file' : 'DCACHE connection error',
                              'Failed to resolve' : 'IODataManager error',
@@ -47,9 +48,7 @@ class ProductionLog( object ):
                              'Standard std::exception is caught' : 'Exception caught',
                              'User defined signal 1' : 'User defined signal 1',
                              'Not found DLL' : 'Not found DLL',
-                             'std::bad_alloc' : 'FATAL Bad alloc'
-                             }
-
+                             'std::bad_alloc' : 'FATAL Bad alloc'}
 
     if not log:
       self.log = gLogger.getSubLogger( 'ProductionLogs' )

@@ -182,8 +182,8 @@ class TableRow ( object ):
   """
 
   def __init__( self, cells = None, bgcolor = None, header = False, attribs = None,
-              col_align = None, col_valign = None, col_char = None,
-              col_charoff = None, col_styles = None ):
+                col_align = None, col_valign = None, col_char = None,
+                col_charoff = None, col_styles = None ):
     """TableCell constructor"""
     self.bgcolor = bgcolor
     self.cells = cells
@@ -250,9 +250,9 @@ class Table ( object ):
   """
 
   def __init__( self, rows = None, border = '1', style = None, width = None,
-              cellspacing = None, cellpadding = 4, attribs = None, header_row = None,
-              col_width = None, col_align = None, col_valign = None,
-              col_char = None, col_charoff = None, col_styles = None ):
+                cellspacing = None, cellpadding = 4, attribs = None, header_row = None,
+                col_width = None, col_align = None, col_valign = None,
+                col_char = None, col_charoff = None, col_styles = None ):
     """TableCell constructor"""
     self.border = border
     self.style = style

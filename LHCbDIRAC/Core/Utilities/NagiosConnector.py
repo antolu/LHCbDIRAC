@@ -64,9 +64,9 @@ EOT"""
                        serviceURI = 'no serviceURI given',
                        status = 'no status given',
                        details = 'no details given',
-                       nagiosName = 'no nagiosName given'
-                      ):
-    """Brings message information to the generic format required by Nagios."""
+                       nagiosName = 'no nagiosName given' ):
+    """Brings message information to the generic format required by Nagios.
+    """
     
     statuscodes = {0: 'OK', 1: 'CRITICAL', 2: 'WARNING', 3: 'UNKNOWN'}
     if status in ['CRITICAL', 'OK', 'WARNING', 'UNKNOWN']:
@@ -115,11 +115,11 @@ EOT"""
     try:
       self.conn = stomp.Connection( [ ( self.config['MsgBroker'], 
                                         self.config['MsgPort'] ) ],
-                                        use_ssl = _use_ssl,
-                                        ssl_key_file = _ssl_key_file,
-                                        ssl_cert_file = _ssl_cert_file ,
-                                        ssl_ca_certs = _ssl_ca_certs,
-                                        ssl_cert_validator = _ssl_cert_validator )
+                                   use_ssl = _use_ssl,
+                                   ssl_key_file = _ssl_key_file,
+                                   ssl_cert_file = _ssl_cert_file ,
+                                   ssl_ca_certs = _ssl_ca_certs,
+                                   ssl_cert_validator = _ssl_cert_validator )
       # There may be a need to receive messages.
       # In this case there should be a class with an on_message method
       # conn.set_listener('',MyListener()) python-messaging provides a useful class.

@@ -53,7 +53,8 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
 
   environment = result['Value']
   result = getProjectCommand( setupProjectLocation, applicationName, applicationVersion, extraPackages,
-                              site, runTimeProject, runTimeProjectVersion, '', directory )  # leave out additional options initially
+                              site, runTimeProject, runTimeProjectVersion, '', directory )
+  # leave out additional options initially
 
   if not result['OK']:
     return result
@@ -116,7 +117,8 @@ def addCommandDefaults( command, postExecution = '', envDump = 'localEnv.log', c
   return S_OK( ';'.join( cmdList ) )
 
 #############################################################################
-def createDebugScript( name, command, env = None, postExecution = '', envLogFile = 'localEnv.log', coreDumpLog = 'Step' ):
+def createDebugScript( name, command, env = None, postExecution = '',
+                       envLogFile = 'localEnv.log', coreDumpLog = 'Step' ):
   """ Create a shell script for the specified commands to be executed. If no
       environment is passed it defaults to os.environ.
   """

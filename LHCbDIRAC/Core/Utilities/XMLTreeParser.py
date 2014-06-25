@@ -99,7 +99,7 @@ class XMLTreeParser( object ):
     return self.__getText( textElement )
 
   @staticmethod
-  def __getText( self, node ):
+  def __getText( node ):
     """ get the TEXT """
     data = ''
     if node.nodeType == node.TEXT_NODE or node.nodeType == node.CDATA_SECTION_NODE:
@@ -121,12 +121,10 @@ def addChildNode( parentNode, tag, returnChildren, args ):
       possible attributes of the element
   """
 
-  allowedTags = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile',
-                 'Parameter', 'Replica', 'SimulationCondition' ]
+  allowedTags = [ 'Job', 'TypedParameter', 'InputFile', 'OutputFile', 'Parameter', 'Replica', 'SimulationCondition' ]
 
   def genJobDict( configName, configVersion, ldate, ltime ):
-    return {
-            "ConfigName"   : configName,
+    return {"ConfigName"   : configName,
             "ConfigVersion": configVersion,
             "Date"         : ldate,
             "Time"         : ltime
