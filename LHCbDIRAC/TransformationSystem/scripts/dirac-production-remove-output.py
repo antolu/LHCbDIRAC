@@ -1,18 +1,24 @@
 #!/usr/bin/env python
+""" remove output of production
+"""
+
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
+
+from DIRAC import exit as DIRACExit
+
 __RCSID__ = "$Id$"
 
 import sys
 if len( sys.argv ) < 2:
   print 'Usage: dirac-production-remove-output transID [transID] [transID]'
-  DIRAC.exit( 1 )
+  DIRACexit( 1 )
 else:
   try:
     transIDs = [int( arg ) for arg in sys.argv[1:]]
   except:
     print 'Invalid list of productions'
-    DIRAC.exit( 1 )
+    DIRACexit( 1 )
 
 import DIRAC
 from DIRAC                                                                import gLogger

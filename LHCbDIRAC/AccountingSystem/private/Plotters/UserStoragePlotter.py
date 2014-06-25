@@ -1,6 +1,6 @@
-''' UserStoragePlotter
+""" UserStoragePlotter
 
-'''
+"""
 
 from DIRAC                                                import S_OK, S_ERROR
 from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
@@ -10,9 +10,9 @@ from LHCbDIRAC.AccountingSystem.Client.Types.UserStorage  import UserStorage
 __RCSID__ = "$Id$"
 
 class UserStoragePlotter( BaseReporter ):
-  '''
+  """
     UserStoragePlotter as extension of BaseReporter
-  '''
+  """
 
   _typeName      = "UserStorage"
   _typeKeyFields = [ dF[0] for dF in UserStorage().definitionKeyFields ]
@@ -24,9 +24,9 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportCatalogSpaceName = "LFN size"
   def _reportCatalogSpace( self, reportRequest ):
-    '''
+    """
     Reports about the LFN size and the catalog space from the accounting. 
-    '''
+    """
     
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
@@ -63,9 +63,9 @@ class UserStoragePlotter( BaseReporter ):
                   } )
 
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
-    '''
+    """
     Plots about the LFN size and the catalog space. 
-    '''
+    """
         
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -89,9 +89,9 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportCatalogFilesName = "LFN files"
   def _reportCatalogFiles( self, reportRequest ):
-    '''
+    """
     Reports about the LFN files and the catalog files from the accounting. 
-    '''
+    """
     
     if reportRequest[ 'grouping' ] == "StorageElement":
       return S_ERROR( "Grouping by storage element when requesting lfn info makes no sense" )
@@ -129,9 +129,9 @@ class UserStoragePlotter( BaseReporter ):
                   } )
 
   def _plotCatalogFiles( self, reportRequest, plotInfo, filename ):
-    '''
+    """
     Plots about the LFN files and the catalog files. 
-    '''
+    """
     
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -156,9 +156,9 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportPhysicalSpaceName = "PFN size"
   def _reportPhysicalSpace( self, reportRequest ):
-    '''
+    """
     Reports about the PFN size and the physical space from the accounting. 
-    '''    
+    """
     
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectField + ", %s, %s, SUM(%s/%s)",
@@ -193,9 +193,9 @@ class UserStoragePlotter( BaseReporter ):
                   } )
 
   def _plotPhysicalSpace( self, reportRequest, plotInfo, filename ):
-    '''
+    """
     Plots about the PFN size and the physical space. 
-    '''
+    """
     
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -220,9 +220,9 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportPhysicalFilesName = "PFN files"
   def _reportPhysicalFiles( self, reportRequest ):
-    '''
+    """
     Reports about the PFN files and the physical files from the accounting. 
-    '''
+    """
     
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectField + ", %s, %s, SUM(%s/%s)",
@@ -257,9 +257,9 @@ class UserStoragePlotter( BaseReporter ):
                   } )
 
   def _plotPhysicalFiles( self, reportRequest, plotInfo, filename ):
-    '''
+    """
     Plots about the PFN files and the physical files. 
-    '''
+    """
 
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -284,9 +284,9 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportPFNvsLFNFileMultiplicityName = "PFN/LFN file ratio"
   def _reportPFNvsLFNFileMultiplicity( self, reportRequest ):
-    '''
+    """
     Reports about the PFN/LFN file ratio from the accounting ( only grouped by user ). 
-    '''
+    """
     
     if reportRequest[ 'grouping' ] == "User":
       return S_ERROR( "Grouping by user when requesting replicas/lfns makes no sense" )
@@ -297,9 +297,9 @@ class UserStoragePlotter( BaseReporter ):
     return self.__multiplicityReport( reportRequest, _logicalField, _physicalField )
 
   def _plotPFNvsLFNFileMultiplicity( self, reportRequest, plotInfo, filename ):
-    '''
+    """
     Plots about the PFN/LFN file ratio ( only grouped by user ). 
-    '''
+    """
 
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -324,9 +324,9 @@ class UserStoragePlotter( BaseReporter ):
 
   _reportPFNvsLFNSizeMultiplicityName = "PFN/LFN size ratio"
   def _reportPFNvsLFNSizeMultiplicity( self, reportRequest ):
-    '''
+    """
     Reports about the PFN/LFN size ratio from the accounting ( only grouped by user ). 
-    '''
+    """
     
     if reportRequest[ 'grouping' ] == "User":
       return S_ERROR( "Grouping by user when requesting replicas/lfns makes no sense" )
@@ -337,9 +337,9 @@ class UserStoragePlotter( BaseReporter ):
     return self.__multiplicityReport( reportRequest, _logicalField, _physicalField )
 
   def _plotPFNvsLFNSizeMultiplicity( self, reportRequest, plotInfo, filename ):
-    '''
+    """
     Plots about the PFN/LFN size ratio ( only grouped by user ). 
-    '''
+    """
 
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -363,9 +363,8 @@ class UserStoragePlotter( BaseReporter ):
   #  
 
   def __multiplicityReport( self, reportRequest, logicalField, physicalField ):
-    '''
-    Calculates the ratio between PFN and LFN.
-    '''
+    """ Calculates the ratio between PFN and LFN.
+    """
     
     #Step 1 get the total LFNs for each bucket
     selectFields = ( "%s, %s, %s, SUM(%s)/SUM(%s)",
@@ -379,7 +378,7 @@ class UserStoragePlotter( BaseReporter ):
                                  { 'convertToGranularity' : 'average', 'checkNone' : True } )
     if not retVal[ 'OK' ]:
       return retVal
-    dataDict, granularity = retVal[ 'Value' ]
+    dataDict, _granularity = retVal[ 'Value' ]
     self.stripDataField( dataDict, 0 )
     bucketTotals = self._getBucketTotals( dataDict )
     
@@ -387,9 +386,7 @@ class UserStoragePlotter( BaseReporter ):
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectField + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    physicalField, 'entriesInBucket'
-                                   ]
-                   )
+                                                             physicalField, 'entriesInBucket'] )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
@@ -412,12 +409,10 @@ class UserStoragePlotter( BaseReporter ):
             finalData[ k ] = {}
           finalData[ k ][ bt ] = dataDict[ k ][ bt ] / bucketTotals[ bt ]
     
-    return S_OK( { 
-                  'data'          : finalData, 
+    return S_OK( {'data'          : finalData,
                   'graphDataDict' : finalData,
                   'granularity'   : granularity, 
-                  'unit'          : 'PFN / LFN' 
-    } )
+                  'unit'          : 'PFN / LFN'  } )
 
 #...............................................................................
 #EOF

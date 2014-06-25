@@ -1,9 +1,9 @@
-''' LHCbDIRAC.AccountingSystem.private.Plotters.JobStepPlotter
+""" LHCbDIRAC.AccountingSystem.private.Plotters.JobStepPlotter
 
    JobStepPlotter.__bases__:
      DIRAC.AccountingSystem.private.Plotters.BaseReporter.BaseReporter    
 
-'''
+"""
 
 from DIRAC import S_OK
 from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
@@ -13,9 +13,8 @@ from LHCbDIRAC.AccountingSystem.Client.Types.JobStep import JobStep
 __RCSID__ = "$Id: $"
 
 class JobStepPlotter( BaseReporter ):
-  '''
-    JobStepPlotter as an extension of BaseReporter
-  '''
+  """ JobStepPlotter as an extension of BaseReporter
+  """
 
   _typeName      = "JobStep"
   _typeKeyFields = [ dF[0] for dF in JobStep().definitionKeyFields ]
@@ -29,7 +28,7 @@ class JobStepPlotter( BaseReporter ):
     selectField  = self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ])
     selectFields = ( selectField + ", %s, %s, SUM(%s), SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                                              'CPUTime', 'ExecTime'
+                                                             'CPUTime', 'ExecTime'
                                                             ]
                    )
 
@@ -39,10 +38,9 @@ class JobStepPlotter( BaseReporter ):
                                  reportRequest[ 'condDict' ],
                                  reportRequest[ 'groupingFields' ],
                                  { 'checkNone'                   : True,
-                                   'convertToGranularity'        : 'sum',
-                                   'calculateProportionalGauges' : False,
-                                   'consolidationFunction'       : self._efficiencyConsolidation }
-                                )
+                                  'convertToGranularity'        : 'sum',
+                                  'calculateProportionalGauges' : False,
+                                  'consolidationFunction'       : self._efficiencyConsolidation } )
     if not retVal[ 'OK' ]:
       return retVal
     
@@ -60,9 +58,9 @@ class JobStepPlotter( BaseReporter ):
                                    reportRequest[ 'condDict' ],
                                    reportRequest[ 'groupingFields' ],
                                    { 'scheckNone'                  : True,
-                                     'convertToGranularity'        : 'sum',
-                                     'calculateProportionalGauges' : False,
-                                     'consolidationFunction' : self._efficiencyConsolidation  })
+                                    'convertToGranularity'        : 'sum',
+                                    'calculateProportionalGauges' : False,
+                                    'consolidationFunction' : self._efficiencyConsolidation  } )
       if not retVal[ 'OK' ]:
         return retVal
       totalDict = retVal[ 'Value' ][0]
@@ -77,12 +75,10 @@ class JobStepPlotter( BaseReporter ):
 
   def _plotCPUEfficiency( self, reportRequest, plotInfo, filename ):
  
-    metadata = { 
-                'title'     : 'CPU efficiency by %s' % reportRequest[ 'grouping' ],
+    metadata = {'title'     : 'CPU efficiency by %s' % reportRequest[ 'grouping' ],
                 'starttime' : reportRequest[ 'startTime' ],
                 'endtime'   : reportRequest[ 'endTime' ],
-                'span'      : plotInfo[ 'granularity' ] 
-                }
+                'span'      : plotInfo[ 'granularity' ] }
     
     return self._generateQualityPlot( filename, plotInfo[ 'data' ], metadata )
 
@@ -432,22 +428,18 @@ class JobStepPlotter( BaseReporter ):
     #3rd element ( maxValue ) not used
     baseDataDict, graphDataDict, __, unitName = suitableUnits
      
-    return S_OK({ 
-                 'data'          : baseDataDict, 
+    return S_OK( {'data'          : baseDataDict,
                  'graphDataDict' : graphDataDict,
                  'granularity'   : granularity, 
-                 'unit'          : unitName 
-                 })
+                 'unit'          : unitName  } )
 
   def __plotNormPlot( self, reportRequest, plotInfo, filename, title ):
     
-    metadata = { 
-                'title'     : '%s by %s' % ( title, reportRequest[ 'grouping' ] ),
+    metadata = {'title'     : '%s by %s' % ( title, reportRequest[ 'grouping' ] ),
                 'starttime' : reportRequest[ 'startTime' ],
                 'endtime'   : reportRequest[ 'endTime' ],
                 'span'      : plotInfo[ 'granularity' ],
-                'ylabel'    : plotInfo[ 'unit' ] 
-                }
+                'ylabel'    : plotInfo[ 'unit' ]}
     
     return self._generateStackedLinePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
@@ -477,12 +469,10 @@ class JobStepPlotter( BaseReporter ):
     return S_OK({ 'data' : dataDict  })
 
   def __plotPie( self, reportRequest, plotInfo, filename, title, label ):
-    metadata = { 
-                'title'     : '%s by %s' % ( title, reportRequest[ 'grouping' ] ),
+    metadata = {'title'     : '%s by %s' % ( title, reportRequest[ 'grouping' ] ),
                 'ylabel'    : label,
                 'starttime' : reportRequest[ 'startTime' ],
-                'endtime'   : reportRequest[ 'endTime' ]
-                }
+                'endtime'   : reportRequest[ 'endTime' ]}
     return self._generatePiePlot( filename, plotInfo[ 'data'], metadata )
 
   def __reportCumulativePlot( self, reportRequest, field, unit ):
@@ -516,23 +506,19 @@ class JobStepPlotter( BaseReporter ):
     #3rd element ( maxValue ) unused    
     baseDataDict, graphDataDict, __, unitName = suitableUnits
      
-    return S_OK({ 
-                 'data'          : baseDataDict, 
+    return S_OK( {'data'          : baseDataDict,
                  'graphDataDict' : graphDataDict,
                  'granularity'   : granularity, 
-                 'unit'          : unitName 
-                 })
+                 'unit'          : unitName } )
 
   def __plotCumulative( self, reportRequest, plotInfo, filename, title ):
     
-    metadata = { 
-                'title'       : '%s by %s' % (title, reportRequest[ 'grouping' ]),
+    metadata = {'title'       : '%s by %s' % ( title, reportRequest[ 'grouping' ] ),
                 'starttime'   : reportRequest[ 'startTime' ],
                 'endtime'     : reportRequest[ 'endTime' ],
                 'span'        : plotInfo[ 'granularity' ],
                 'ylabel'      : plotInfo[ 'unit' ],
-                'sort_labels' : 'last_value' 
-               }
+                'sort_labels' : 'last_value' }
     
     return self._generateCumulativePlot( filename, plotInfo[ 'graphDataDict' ], metadata )
 
@@ -568,12 +554,10 @@ class JobStepPlotter( BaseReporter ):
     #3rd element ( maxValue ) unused    
     baseDataDict, graphDataDict, __, unitName = suitableUnits
     
-    return S_OK( { 
-                  'data'          : baseDataDict, 
+    return S_OK( {'data'          : baseDataDict,
                   'graphDataDict' : graphDataDict,
                   'granularity'   : granularity, 
-                  'unit'          : unitName 
-                  } )
+                  'unit'          : unitName } )
 
   def __plotNumberOfField( self, reportRequest, plotInfo, filename , title, label ):
     
@@ -632,14 +616,12 @@ class JobStepPlotter( BaseReporter ):
     granularity = plotInfo[ 'granularity' ]  
     dataDict    = plotInfo[ 'data' ]
     
-    metadata = { 
-                'title'         : '%s  by %s' % ( title, reportRequest[ 'grouping' ] ),
+    metadata = {'title'         : '%s  by %s' % ( title, reportRequest[ 'grouping' ] ),
                 'starttime'     : startEpoch,
                 'endtime'       : endEpoch,
                 'span'          : granularity,
                 'skipEdgeColor' : True,
-                'ylabel'        : label 
-                }
+                'ylabel'        : label}
     
     dataDict = self._fillWithZero( granularity, startEpoch, endEpoch, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
@@ -698,8 +680,7 @@ class JobStepPlotter( BaseReporter ):
                                  reportRequest[ 'groupingFields' ],
                                  { 'checkNone' : True,
                                    'convertToGranularity' : 'sum',
-                                   'calculateProportionalGauges' : True 
-                                 } )
+                                   'calculateProportionalGauges' : True } )
     if not retVal[ 'OK' ]:
       return retVal
     
@@ -714,13 +695,11 @@ class JobStepPlotter( BaseReporter ):
 
   def __plot2D( self, reportRequest, plotInfo, filename, label ):
 
-    metadata = { 
-                'title'     : 'Jobs by %s' % reportRequest[ 'grouping' ],
+    metadata = {'title'     : 'Jobs by %s' % reportRequest[ 'grouping' ],
                 'starttime' : reportRequest[ 'startTime' ],
                 'endtime'   : reportRequest[ 'endTime' ],
                 'span'      : plotInfo[ 'granularity' ],
-                'ylabel'    : label 
-                }
+                'ylabel'    : label }
     
     return self._generateTimedStackedBarPlot( filename, plotInfo[ 'data' ], metadata )
 
