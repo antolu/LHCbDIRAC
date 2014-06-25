@@ -447,8 +447,7 @@ class ProductionRequest( object ):
       else:
         transformationFamily = self.parentRequestID
 
-      prodsDict[ prodNumber ] = {
-                                 'productionType': prodType,
+      prodsDict[ prodNumber ] = {'productionType': prodType,
                                  'stepsInProd': [self.stepsList[index - 1] for index in stepsInProd],
                                  'bkQuery': bkQuery,
                                  'removeInputsFlag': removeInputsFlag,
@@ -470,8 +469,7 @@ class ProductionRequest( object ):
                                  'stepsInProd-ProdName': [str( self.stepsList[index - 1] ) + str( self.stepsListDict[index - 1]['fileTypesIn'] ) for index in stepsInProd],
                                  'events': events,
                                  'CPUe' : CPUe,
-                                 'multicore': multicore
-                                 }
+                                 'multicore': multicore}
       prodNumber += 1
 
     # tracking the last production(s)
@@ -629,12 +627,10 @@ class ProductionRequest( object ):
     """
 
     if mode.lower() == 'full':
-      bkQuery = {
-                 'FileType'                 : ';;;'.join( self.bkFileType ),
+      bkQuery = {'FileType'                 : ';;;'.join( self.bkFileType ),
                  'EventType'                : str( self.eventType ),
                  'ConfigName'               : self.configName,
-                 'ConfigVersion'            : self.configVersion,
-                 }
+                 'ConfigVersion'            : self.configVersion}
 
       if self.dataTakingConditions:
         bkQuery['DataTakingConditions'] = self.dataTakingConditions

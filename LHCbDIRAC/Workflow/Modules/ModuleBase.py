@@ -2,6 +2,8 @@
     common utility methods
 """
 
+__RCSID__ = "$Id$"
+
 import os, copy, time
 
 from DIRAC                                                    import gLogger, siteName
@@ -65,6 +67,18 @@ class ModuleBase( object ):
     self.step_commons = None
 
     self.debugSE = 'CERN-DEBUG'
+
+    self.applicationLog = None
+    self.applicationName = None
+    self.applicationVersion = None
+    self.bkConfigName = None
+    self.BKstepID = None
+    self.CondDBTag = None
+    self.DDDBTag = None
+    self.DQTag = None
+    self.CPUe = None
+    self.eventType = None
+    self.simDescription = None
 
   #############################################################################
 
