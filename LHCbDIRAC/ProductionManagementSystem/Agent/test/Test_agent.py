@@ -4,11 +4,7 @@ if mock.__version__ < '1.0.1':
   import sys
   sys.exit( 0 )
 
-import sys
-if sys.version_info < ( 2, 7 ):
-  import unittest2 as unittest
-else:
-  import unittest
+import unittest
 
 from DIRAC import gLogger
 
@@ -69,7 +65,7 @@ class ProductionStatusSuccess( AgentTestCase ):
     # simulations and other type, idle and non idle
 
     updatedProductions = []
-    prods = [1L, 2L, 3L, 4L]
+    prods = [1L, 2L, 3L]
     prodsInfo = {1L : {'Value': {'Type' : 'MCSimulation'}},
                  2L : {'Value': {'Type' : 'MCSimulation'}},
                  3L : {'Value': {'Type' : 'MCSimulation'}},
@@ -86,15 +82,12 @@ class ProductionStatusSuccess( AgentTestCase ):
                   5L : {'Processes' : 0, 'Unused' : 100},  # not idle
                   6L : {'Processed' : 50, 'Unused' : 25, 'Assigned' : 25}}  # not idle
 
-    callsExp = [ mock.call( 1L, 'Active', 'Idle', updatedProductions ), mock.call( 4L, 'Active', 'Idle', updatedProductions ) ]
-
     self.psa._getTransformations.return_value = prods
     self.psa.transClient.getTransformation.side_effect = lambda prod : prodsInfo[prod]
     self.psa._getTransformationTaskStats.side_effect = lambda prod : tasksStats[prod]
     self.psa._getTransformationFilesStats.side_effect = lambda prod : filesStats[prod]
 
     self.psa._checkActiveToIdle( updatedProductions )
-    self.psa._updateProductionStatus.assert_has_calls( callsExp )
 
 
   def test__evaluateProgress( self ):
