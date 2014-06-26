@@ -282,10 +282,10 @@ def __fillStatsPerSE( rep, listSEs ):
 def __getRequestClient( requestID ):
   level = gLogger.getLevel()
   gLogger.setLevel( 'FATAL' )
-  try:
-    if not requestID:
-      return None, None
-    for client in ( reqClient, requestClient, None ):
+  if not requestID:
+    return None, None
+  for client in ( reqClient, requestClient, None ):
+    try:
       if not client:
         print "No such request found: %s" % requestID
         return None, None
@@ -294,8 +294,10 @@ def __getRequestClient( requestID ):
         if res['OK']:
           requestName = res['Value'][2]
           return client, requestName
-  finally:
-    gLogger.setLevel( level )
+    except:
+      pass
+    finally:
+      gLogger.setLevel( level )
 
 listOfAssignedRequests = {}
 def __getAssignedRequests( client ):
@@ -311,11 +313,11 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
   client, requestName = __getRequestClient( requestID )
   if not client:
     if not kickRequests:
-      print "%d files can be reset Unused, use --KickRequest"
+      print "%d files can be reset Unused, use --KickRequest" % len( lfnsInTask )
     else:
       res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnsInTask, force = True )
       if res['OK']:
-        print "\tTask was not found: %d files were reset Unused" % len( lfnsInTask )
+        print "\tRequest was not found: %d files were reset Unused" % len( lfnsInTask )
     return 0
   if isinstance( client, RequestClient ):
     if cleanOld:
@@ -1123,7 +1125,7 @@ if __name__ == "__main__":
     elif opt in ( 'v', 'Verbose' ):
       verbose = True
     elif opt == 'Tasks':
-      taskList = [int( task ) for task in val.split( ',' )]
+      taskList = val.split( ',' )
     elif opt == 'KickRequests':
       kickRequests = True
     elif opt == 'DumpFiles':
@@ -1268,7 +1270,7 @@ if __name__ == "__main__":
       for fileDict in transFilesList:
         if not allTasks:
           taskDict.setdefault( fileDict['TaskID'], [] ).append( fileDict['LFN'] )
-          if status == 'Problematic':
+          if status == 'Problematic' and not fileDict['TaskID']:
             problematicFiles.append( fileDict['LFN'] )
         else:
           # Get all tasks associated to that file
@@ -1331,12 +1333,19 @@ if __name__ == "__main__":
             continue
         nfiles = len( lfnsInTask )
         allFiles += lfnsInTask
-        replicas = __getReplicas( lfnsInTask )
+        if transType in dmTransTypes:
+          replicas = __getReplicas( lfnsInTask )
+        else:
+          replicas = {}
         targetSE = task.get( 'TargetSE', None )
         # Accounting per SE
         listSEs = targetSE.split( ',' )
         # If a list of LFNs is provided, we may not have all files in the task, set to False
         taskCompleted = not lfnList
+
+        # Check problematic files
+        if status == 'Problematic':
+          __checkReplicasForProblematic( lfnsInTask, replicas )
 
         # Collect statistics per SE
         for lfn in replicas:
