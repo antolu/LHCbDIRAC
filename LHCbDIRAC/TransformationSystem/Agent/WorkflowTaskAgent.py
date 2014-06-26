@@ -6,11 +6,9 @@
 
 """
 
-from DIRAC import S_OK
 from DIRAC.TransformationSystem.Agent.WorkflowTaskAgent  import WorkflowTaskAgent as DIRACWorkflowTaskAgent
 
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.WorkloadManagementSystem.Client.WMSClient     import WMSClient
 
 from LHCbDIRAC.Interfaces.API.LHCbJob                           import LHCbJob
 from LHCbDIRAC.TransformationSystem.Client.TaskManager          import LHCbWorkflowTasks
@@ -28,20 +26,18 @@ class WorkflowTaskAgent( DIRACWorkflowTaskAgent ):
     """
     DIRACWorkflowTaskAgent.__init__( self, *args, **kwargs )
 
-  def initialize( self ):
-    """ standard initialize method
+  def _getClients( self ):
+    """ LHCb clients
     """
-    res = DIRACWorkflowTaskAgent.initialize( self )
-    if not res['OK']:
-      return res
+    res = DIRACWorkflowTaskAgent._getClients( self )
 
-    self.transClient = TransformationClient()
     outputDataModule = Operations().getValue( "Transformations/OutputDataModule",
                                               "LHCbDIRAC.Core.Utilities.OutputDataPolicy" )
-    self.taskManager = LHCbWorkflowTasks( transClient = self.transClient,
-                                          submissionClient = WMSClient(),
-                                          outputDataModule = outputDataModule,
-                                          jobClass = LHCbJob )
 
-    return S_OK()
+    threadTransformationClient = TransformationClient()
+    threadTaskManager = LHCbWorkflowTasks( outputDataModule = outputDataModule,
+                                           jobClass = LHCbJob )
+    res.update( {'TransformationClient':threadTransformationClient,
+                 'TaskManager': threadTaskManager} )
+    return res
 
