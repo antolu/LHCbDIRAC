@@ -44,77 +44,79 @@ if __name__ == "__main__":
     if switch[0] == 'SetProcessed':
       setProcessed = True
 
-  useRequest = dmScript.getOption( 'Async', False )
-  if useRequest:
-    print "Using Requests"
+#  This section would allow to do the suppression using Request. However,
+#  we did not sort out yet how to do properly the removal in the Transformation
+# System. Commenting for now...
 
-    from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
-    from DIRAC.RequestManagementSystem.Client.Request import Request
-    from DIRAC.RequestManagementSystem.Client.Operation import Operation
-    from DIRAC.RequestManagementSystem.Client.File import File
-    from DIRAC.RequestManagementSystem.private.RequestValidator import gRequestValidator
-    from DIRAC.Core.Security.ProxyInfo import getProxyInfo
-    from DIRAC.ConfigurationSystem.Client.Helpers.Registry  import getDNForUsername
-
-    import hashlib
-    import time
-
-    proxyInfo = getProxyInfo()
-    if not proxyInfo['OK']:
-      print "No proxy available. Please generate a proxy first"
-      DIRAC.exit( 1 )
-
-    proxyInfo = proxyInfo['Value']
-    username = proxyInfo['username']
-    ownerGroup = proxyInfo['group']
-    ownerDN = ''
-    res = getDNForUsername( username )
-    if not res['OK']:
-      print "Cannot get DN for user: %s" % res['Message']
-      DIRAC.exit( 1 )
-
-    ownerDN = res['Value'][0]
-    oRequest = Request()
-    requestName = "userscript_%s_%s" % ( username, hashlib.md5( repr( time.time() ) ).hexdigest()[:16] )
-    oRequest.RequestName = requestName
-    oRequest.SourceComponent = 'dirac-dms-remove-files'
-    oRequest.OwnerDN = ownerDN
-    oRequest.OwnerGroup = ownerGroup
-    chunkSize = 100
-
-    for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
-
-      oOperation = Operation()
-      oOperation.Type = 'RemoveFile'
-
-
-      for lfn in lfnChunk:
-        rarFile = File()
-        rarFile.LFN = lfn
-        oOperation.addFile( rarFile )
-
-      oRequest.addOperation( oOperation )
-
-
-    isValid = gRequestValidator.validate( oRequest )
-    if not isValid['OK']:
-      print "Request is not valid: ", isValid['Message']
-      DIRAC.exit( 1 )
-
-
-    print oRequest.toJSON()
-
-
-    result = ReqClient().putRequest( oRequest )
-    if result['OK']:
-      print 'Request %d Submitted' % result['Value']
-      print 'You can monitor it using "dirac-rms-show-request %s"' % ( requestName )
-    else:
-      print 'Failed to submit Request: ', result['Message']
-
-
-
-    DIRAC.exit( 0 )
+#   useRequest = dmScript.getOption( 'Async', False )
+#   if useRequest:
+#     print "Using Requests"
+#
+#     from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
+#     from DIRAC.RequestManagementSystem.Client.Request import Request
+#     from DIRAC.RequestManagementSystem.Client.Operation import Operation
+#     from DIRAC.RequestManagementSystem.Client.File import File
+#     from DIRAC.RequestManagementSystem.private.RequestValidator import gRequestValidator
+#     from DIRAC.Core.Security.ProxyInfo import getProxyInfo
+#     from DIRAC.ConfigurationSystem.Client.Helpers.Registry  import getDNForUsername
+#
+#     import hashlib
+#     import time
+#
+#     proxyInfo = getProxyInfo()
+#     if not proxyInfo['OK']:
+#       print "No proxy available. Please generate a proxy first"
+#       DIRAC.exit( 1 )
+#
+#     proxyInfo = proxyInfo['Value']
+#     username = proxyInfo['username']
+#     ownerGroup = proxyInfo['group']
+#     ownerDN = ''
+#     res = getDNForUsername( username )
+#     if not res['OK']:
+#       print "Cannot get DN for user: %s" % res['Message']
+#       DIRAC.exit( 1 )
+#
+#     ownerDN = res['Value'][0]
+#     oRequest = Request()
+#     requestName = "userscript_%s_%s" % ( username, hashlib.md5( repr( time.time() ) ).hexdigest()[:16] )
+#     oRequest.RequestName = requestName
+#     oRequest.SourceComponent = 'dirac-dms-remove-files'
+#     oRequest.OwnerDN = ownerDN
+#     oRequest.OwnerGroup = ownerGroup
+#     chunkSize = 100
+#
+#     for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
+#
+#       oOperation = Operation()
+#       oOperation.Type = 'RemoveFile'
+#
+#
+#       for lfn in lfnChunk:
+#         rarFile = File()
+#         rarFile.LFN = lfn
+#         oOperation.addFile( rarFile )
+#
+#       oRequest.addOperation( oOperation )
+#
+#
+#     isValid = gRequestValidator.validate( oRequest )
+#     if not isValid['OK']:
+#       print "Request is not valid: ", isValid['Message']
+#       DIRAC.exit( 1 )
+#
+#
+#
+#     result = ReqClient().putRequest( oRequest )
+#     if result['OK']:
+#       print 'Request %d Submitted' % result['Value']
+#       print 'You can monitor it using "dirac-rms-show-request %s"' % ( requestName )
+#     else:
+#       print 'Failed to submit Request: ', result['Message']
+#
+#
+#
+#     DIRAC.exit( 0 )
 
   from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
