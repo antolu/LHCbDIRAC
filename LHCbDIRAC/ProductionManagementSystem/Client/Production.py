@@ -71,13 +71,11 @@ class Production( object ):
     self.LHCbJob.stepCount = 0
     self.LHCbJob.setOutputSandbox( self.opsHelper.getValue( 'Productions/inOutputSandbox',
                                                             ['std.out', 'std.err', '*.log'] ) )
-    self.setJobParameters( {
-                           'Type'         : 'MCSimulation',
-                           'Platform'     : 'ANY',
-                           'CPUTime'      : '1000000',
-                           'LogLevel'     : 'verbose',
-                           'JobGroup'     : '@{PRODUCTION_ID}'
-                           } )
+    self.setJobParameters( {'Type'         : 'MCSimulation',
+                            'Platform'     : 'ANY',
+                            'CPUTime'      : '1000000',
+                            'LogLevel'     : 'verbose',
+                            'JobGroup'     : '@{PRODUCTION_ID}'} )
 
     self.setFileMask( '' )
 
@@ -154,7 +152,7 @@ class Production( object ):
   #############################################################################
 
   def addApplicationStep( self, stepDict, inputData = None,
-                          modules = [ 'GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                          modules = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
                                      'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ] ):
     """ stepDict contains everything that is in the step, for this production, e.g.:
         {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
@@ -237,8 +235,7 @@ class Production( object ):
       else:
         modulesNameList = modules
       # pName, pType, pValue, pDesc
-      parametersList = [
-                        ['inputData', 'string', '', 'StepInputData'],
+      parametersList = [['inputData', 'string', '', 'StepInputData'],
                         ['inputDataType', 'string', '', 'InputDataType'],
                         ['outputFilePrefix', 'string', '', 'OutputFilePrefix'],
 #                        ['outputData', 'string', '', 'OutputData'],
@@ -263,8 +260,7 @@ class Production( object ):
                         ['DQTag', 'string', '', 'DataQualityTag'],
                         ['multiCore', 'string', '', 'MultiCore Flag'],
                         ['SystemConfig', 'string', '', 'system config'],
-                        ['mcTCK', 'string', '', 'TCK to be simulated']
-                        ]
+                        ['mcTCK', 'string', '', 'TCK to be simulated']]
 
       gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
                                         importLine = 'LHCbDIRAC.Workflow.Modules',
@@ -275,8 +271,7 @@ class Production( object ):
     name = '%s_%s' % ( appName, self.LHCbJob.stepCount )
     gaudiStepInstance = self.LHCbJob.workflow.createStepInstance( 'Gaudi_App_Step', name )
 
-    valuesToSet = [
-                   ['applicationName', appName ],
+    valuesToSet = [['applicationName', appName ],
                    ['applicationVersion', appVersion ],
                    ['optionsFile', optionsFile ],
                    ['extraOptionsLine', optionsLine],
@@ -294,8 +289,7 @@ class Production( object ):
                    ['DQTag', dqOpt],
                    ['multiCore', multicore],
                    ['SystemConfig', sysConfig],
-                   ['mcTCK', mcTCK]
-                   ]
+                   ['mcTCK', mcTCK]]
 
     if fileTypesIn:
       valuesToSet.append( [ 'inputDataType', ';'.join( ftIn.upper() for ftIn in fileTypesIn ) ] )

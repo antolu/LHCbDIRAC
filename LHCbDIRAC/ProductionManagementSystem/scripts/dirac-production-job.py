@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
   dirac-production-job
 
@@ -42,16 +43,14 @@ def registerSwitches():
     command line interface.
   """
 
-  switches = ( 
-     ( 'jobid=', 'Job id(s) on csv format' ),
-     ( 'status=', 'Job major status' ),
-     ( 'minorStatus=', 'Job minor status' ),
-     ( 'applicationStatus=', 'Job application status' ),
-     ( 'site=', 'Site where the job runs' ),
-     ( 'owner=', 'DIRAC username that owns the job' ),
-     ( 'jobGroup=', 'JobGroup the job belongs to' ),
-     ( 'date=', 'Date on yyyy-mm-dd format' )
-              )
+  switches = ( ( 'jobid=', 'Job id(s) on csv format' ),
+               ( 'status=', 'Job major status' ),
+               ( 'minorStatus=', 'Job minor status' ),
+               ( 'applicationStatus=', 'Job application status' ),
+               ( 'site=', 'Site where the job runs' ),
+               ( 'owner=', 'DIRAC username that owns the job' ),
+               ( 'jobGroup=', 'JobGroup the job belongs to' ),
+               ( 'date=', 'Date on yyyy-mm-dd format' ) )
   for switch in switches:
     Script.registerSwitch( '', switch[0], switch[1] )
 
@@ -105,8 +104,7 @@ def getJobs():
                  'site'             : switchDict.get( 'site', None ),
                  'owner'            : switchDict.get( 'owner', None ),
                  'jobGroup'         : switchDict.get( 'jobGroup', None ),
-                 'date'             : switchDict.get( 'date', None ),
-                 }
+                 'date'             : switchDict.get( 'date', None )}
 
     subLogger.debug( '\n'.join( [ str( c ) for c in condDict.items()] ), switchDict )
 

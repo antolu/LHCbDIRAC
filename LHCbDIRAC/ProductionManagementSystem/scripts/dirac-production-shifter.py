@@ -69,14 +69,12 @@ def doParse():
   # Get switches and options from command line
   Script.parseCommandLine()
   
-  params = { 
-             'RequestID'    : None, 
+  params = { 'RequestID'    : None,
              'RequestState' : 'Active', 
              'RequestType'  : 'Stripping,Reconstruction', 
              'SimCondition' : None,
              'ProPath'      : None,
-             'EventType'    : None
-            }
+             'EventType'    : None}
   
   mergeAction, noFiles, sortKey = None, False, 'RequestID'
   
@@ -132,16 +130,13 @@ def getRequests( parsedInput, sortKey ):
   
   for request in sortedRequests:
     
-    parsedRequests.append( { 
-                             'requestID'    : request[ 'RequestID' ],
+    parsedRequests.append( { 'requestID'    : request[ 'RequestID' ],
                              'requestState' : request[ 'RequestState' ],
                              'requestName'  : request[ 'RequestName' ],
                              'requestType'  : request[ 'RequestType' ],
                              'proPath'      : request[ 'ProPath' ],
                              'simCondition' : request[ 'SimCondition' ],
-                             'eventType'    : request[ 'EventType' ]                                 
-                                                }
-                          )
+                             'eventType'    : request[ 'EventType' ] } )
   return parsedRequests
   
 def getTransformations( transClient, requestID, noFiles ):
@@ -167,12 +162,9 @@ def getTransformations( transClient, requestID, noFiles ):
     else:
       transformationFiles = {}  
 
-    parsedTransformations[ transformationID ] = {
-      
-      'transformationStatus' : transformation[ 'Status' ],
-      'transformationType'   : transformation[ 'Type' ],
-      'transformationFiles'  : transformationFiles
-    }   
+    parsedTransformations[ transformationID ] = {'transformationStatus' : transformation[ 'Status' ],
+                                                 'transformationType'   : transformation[ 'Type' ],
+                                                 'transformationFiles'  : transformationFiles}
 
   return parsedTransformations
   
@@ -187,7 +179,7 @@ def getFiles( transClient, transformationID ):
               }
   
   files = transClient.getTransformationFilesSummaryWeb( { 'TransformationID' : transformationID }, 
-                                              [], 0, 1000000 )
+                                                        [], 0, 1000000 )
   
   if not files[ 'OK' ]:
     print files[ 'Message' ]

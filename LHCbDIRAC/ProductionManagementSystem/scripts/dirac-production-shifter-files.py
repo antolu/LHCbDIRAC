@@ -65,14 +65,12 @@ def doParse():
   # Get switches and options from command line
   Script.parseCommandLine()
   
-  params = { 
-             'RequestID'    : None, 
+  params = { 'RequestID'    : None,
              'RequestState' : 'Active', 
              'RequestType'  : 'Stripping,Reconstruction', 
              'SimCondition' : None,
              'ProPath'      : None,
-             'EventType'    : None
-            }
+             'EventType'    : None}
   
   sortKey = 'RequestID'
   silent  = False
@@ -125,16 +123,13 @@ def getRequests( parsedInput, sortKey ):
   
   for request in sortedRequests:
     
-    parsedRequests.append( { 
-                             'requestID'    : request[ 'RequestID' ],
+    parsedRequests.append( { 'requestID'    : request[ 'RequestID' ],
                              'requestState' : request[ 'RequestState' ],
                              'requestName'  : request[ 'RequestName' ],
                              'requestType'  : request[ 'RequestType' ],
                              'proPath'      : request[ 'ProPath' ],
                              'simCondition' : request[ 'SimCondition' ],
-                             'eventType'    : request[ 'EventType' ]                                 
-                             }
-                          )
+                             'eventType'    : request[ 'EventType' ] } )
   return parsedRequests
   
 def getTransformations( transClient, requestID, silent ):
@@ -167,13 +162,10 @@ def getTransformations( transClient, requestID, silent ):
       for _bF in badFiles:
         _bF[ 'jobs' ] = getJobs( transClient, transformationID, _bF[ 'FileID' ], tasks )
 
-    parsedTransformations[ transformationID ] = {
-      
-      'transformationStatus' : transformation[ 'Status' ],
-      'transformationType'   : transformation[ 'Type' ],
-      'transformationFiles'  : transformationFiles,
-      'badFiles'             : badFiles
-    }   
+    parsedTransformations[ transformationID ] = {'transformationStatus' : transformation[ 'Status' ],
+                                                 'transformationType'   : transformation[ 'Type' ],
+                                                 'transformationFiles'  : transformationFiles,
+                                                 'badFiles'             : badFiles}
     
   return parsedTransformations
  
@@ -209,10 +201,8 @@ def getFiles( transClient, transformationID ):
   
   if states:
     
-    _badFiles = transClient.getTransformationFiles( { 
-                                                    'TransformationID' : transformationID,
-                                                    'Status'           : states 
-                                                    } )
+    _badFiles = transClient.getTransformationFiles( {'TransformationID' : transformationID,
+                                                     'Status'           : states} )
     if _badFiles[ 'OK' ]:
       badFiles = _badFiles[ 'Value' ]
     else:
@@ -238,14 +228,12 @@ def getTasks( transClient, transformationID ):
 
   for task in reqs:
   
-    tasks[ task[ 'TaskID' ] ] = {
-                                 'RunNumber'      : task[ 'RunNumber' ],
+    tasks[ task[ 'TaskID' ] ] = {'RunNumber'      : task[ 'RunNumber' ],
                                  'ExternalID'     : task[ 'ExternalID' ],
                                  'TargetSE'       : task[ 'TargetSE' ],
                                  'LastUpdateTime' : task[ 'LastUpdateTime' ],
                                  'CreationTime'   : task[ 'CreationTime' ],                  
-                                 'ExternalStatus' : task[ 'ExternalStatus' ]
-                                 }  
+                                 'ExternalStatus' : task[ 'ExternalStatus' ]}
 
   return tasks
 
@@ -258,8 +246,7 @@ def getJobs( transClient, transformationID, fileID, tasks ):
   jobs = []
   _jobs = transClient.getTableDistinctAttributeValues( 'TransformationFileTasks',
                                                       [ 'TransformationID', 'FileID', 'TaskID' ],
-                                                      {
-                                                        'TransformationID' : transformationID,
+                                                      { 'TransformationID' : transformationID,
                                                         'FileID'           : fileID } )
   
   if not _jobs[ 'OK' ]:
