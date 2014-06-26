@@ -16,6 +16,8 @@ from LHCbDIRAC.Interfaces.API.LHCbJob                           import LHCbJob
 from LHCbDIRAC.TransformationSystem.Client.TaskManager          import LHCbWorkflowTasks
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
+__RCSID__ = "$Id$"
+
 AGENT_NAME = 'Transformation/WorkflowTaskAgent'
 
 class WorkflowTaskAgent( DIRACWorkflowTaskAgent ):
