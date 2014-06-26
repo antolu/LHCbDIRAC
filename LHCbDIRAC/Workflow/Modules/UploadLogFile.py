@@ -12,7 +12,7 @@ from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 from DIRAC.RequestManagementSystem.Client.Operation     import Operation
 from DIRAC.RequestManagementSystem.Client.File          import File
 from DIRAC.Resources.Storage.StorageElement             import StorageElement
-from DIRAC.Resources.Utilities                          import Utils
+from DIRAC.Core.Utilities.ReturnValues                  import returnSingleResult
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase              import ModuleBase
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities        import tarFiles
@@ -147,7 +147,7 @@ class UploadLogFile( ModuleBase ):
       self.log.info( 'Logs for this job may be retrieved from %s' % logURL )
       self.log.info( 'putDirectory %s %s %s' % ( self.logFilePath, os.path.realpath( self.logdir ), self.logSE ) )
 
-      res = Utils.executeSingleFileOrDirWrapper( StorageElement( self.logSE ).putDirectory( {self.logFilePath:os.path.realpath( self.logdir )} ) )
+      res = returnSingleResult( StorageElement( self.logSE ).putDirectory( {self.logFilePath:os.path.realpath( self.logdir )} ) )
       self.log.verbose( res )
       self.setJobParameter( 'Log URL', logURL )
       if res['OK']:

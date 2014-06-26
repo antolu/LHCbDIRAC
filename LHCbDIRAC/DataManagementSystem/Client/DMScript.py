@@ -131,6 +131,8 @@ class DMScript():
     Script.registerSwitch( "", "File=", "File containing list of LFNs", self.setLFNsFromFile )
     Script.registerSwitch( "l:", "LFNs=", "List of LFNs (comma separated)", self.setLFNs )
     Script.registerSwitch( "", "Terminal", "LFNs are entered from stdin (--File /dev/stdin)", self.setLFNsFromTerm )
+    Script.registerSwitch( "", "Async", "The actions are executed with requests", lambda x: DIRAC.S_OK( self.options.setdefault( 'Async', True ) ) )
+
 
   def registerJobsSwitches( self ):
     ''' Job switches '''
@@ -282,7 +284,7 @@ class DMScript():
       lfns = self.getLFNsFromList( arg )
     self.options.setdefault( 'LFNs', set() ).update( lfns )
     return DIRAC.S_OK()
-
+  
   def getOptions( self ):
     return self.options
 

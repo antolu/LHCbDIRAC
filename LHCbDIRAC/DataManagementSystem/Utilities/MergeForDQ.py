@@ -11,7 +11,7 @@ from DIRAC.Core.Utilities.List                                  import sortList
 from DIRAC.DataManagementSystem.Client.FailoverTransfer         import FailoverTransfer
 from DIRAC.DataManagementSystem.Client.DataManager              import DataManager
 from DIRAC.Resources.Catalog.FileCatalog                        import FileCatalog
-from DIRAC.Resources.Utilities                                  import Utils
+from DIRAC.Core.Utilities.ReturnValues                          import returnSingleResult
 from DIRAC.Resources.Storage.StorageElement                     import StorageElement
 from DIRAC.RequestManagementSystem.Client.Request               import Request
 
@@ -1148,7 +1148,7 @@ def _upLoadOutputData( localpath, localfilename, lfn, xMLBookkeepingReport, logD
       log.verbose( "LogUpload results" )
       log.verbose( {logDict['logFilePath']:os.path.realpath( logDict['logdir'] )} )
       log.verbose( str( logDict['logSE'] ) )
-      res = Utils.executeSingleFileOrDirWrapper( StorageElement( logDict['logSE'] ).putDirectory( { logDict['logFilePath'] : os.path.realpath( logDict['logdir'] ) } ) )
+      res = returnSingleResult( StorageElement( logDict['logSE'] ).putDirectory( { logDict['logFilePath'] : os.path.realpath( logDict['logdir'] ) } ) )
 
       log.verbose( str( res ) )
 

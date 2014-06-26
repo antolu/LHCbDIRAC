@@ -20,7 +20,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.Utilities.DirectoryExplorer import DirectoryExplorer
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
-from DIRAC.Resources.Utilities import Utils
+from DIRAC.Core.Utilities.ReturnValues                  import returnSingleResult
 from DIRAC.Core.Utilities import List
 from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 from DIRAC.Core.Utilities.DictCache import DictCache
@@ -315,7 +315,7 @@ class StorageUsageAgent( AgentModule ):
   def __getOwnerProxy( self, dirPath ):
     ''' get owner creds for :dirPath: '''
     self.log.verbose( "Retrieving dir metadata..." )
-    result = Utils.executeSingleFileOrDirWrapper( self.catalog.getDirectoryMetadata( dirPath ) )
+    result = returnSingleResult( self.catalog.getDirectoryMetadata( dirPath ) )
     if not result[ 'OK' ]:
       self.log.error( "Could not get metadata info", result[ 'Message' ] )
       return result
