@@ -22,8 +22,10 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient import Transform
 
 __RCSID__ = "$Id:  $"
 
-class HTMLProgressTable:
+class HTMLProgressTable( object ):
   def __init__( self, processingPass ):
+    """ c'tor
+    """
     self.table = Table()
     self.HTMLColumns = 0
     self.__titleRow( '' )

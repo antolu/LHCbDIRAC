@@ -28,11 +28,13 @@ from DIRAC.Core.Base.DB import DB
 from LHCbDIRAC.ProductionManagementSystem.Utilities.Utils import informPeople
 
 class ProductionRequestDB( DB ):
+  """ DB class for ProductionManagement/ProductionRequestDB
+  """
+
   def __init__( self, maxQueueSize = 10 ):
     ''' Constructor
     '''
-    DB.__init__( self, 'ProductionRequestDB',
-                'ProductionManagement/ProductionRequestDB', maxQueueSize )
+    DB.__init__( self, 'ProductionRequestDB', 'ProductionManagement/ProductionRequestDB', maxQueueSize )
     self.lock = threading.Lock()
 
 #################### Production Requests table ########################
@@ -89,8 +91,8 @@ class ProductionRequestDB( DB ):
     '''
     inFields = [ 'RequestState', 'ParentID', 'MasterID', 'RequestAuthor', 'Inform', 'IsModel' ]
     result = self._query( "SELECT %s " % ','.join( inFields ) +
-                         "FROM ProductionRequests " +
-                         "WHERE RequestID=%s;" % iD, connection )
+                          "FROM ProductionRequests " +
+                          "WHERE RequestID=%s;" % iD, connection )
     if not result['OK']:
       self.lock.release()
       return result
@@ -245,10 +247,9 @@ class ProductionRequestDB( DB ):
     # Update history for masters. Errors are not reported back to the user.
     if rec['RequestState']:
       result = self._update( "INSERT INTO RequestHistory (" +
-                            ','.join( self.historyFields[:-1] ) +
-                            ") VALUES ( %s,'%s','%s')" %
-                            ( requestID, str( rec['RequestState'] ),
-                             str( rec['RequestAuthor'] ) ), connection )
+                             ','.join( self.historyFields[:-1] ) +
+                             ") VALUES ( %s,'%s','%s')" %
+                             ( requestID, str( rec['RequestState'] ), str( rec['RequestAuthor'] ) ), connection )
       if not result['OK']:
         gLogger.error( result['Message'] )
     self.lock.release()
@@ -289,8 +290,8 @@ class ProductionRequestDB( DB ):
     return rQuery + order
 
   def getProductionRequest( self, requestIDList, subrequestsFor = 0,
-                           sortBy = '', sortOrder = 'ASC',
-                           offset = 0, limit = 0, filterIn = {} ):
+                            sortBy = '', sortOrder = 'ASC',
+                            offset = 0, limit = 0, filterIn = {} ):
     ''' Get the Production Request(s) details.
         If requestIDList is not empty, only productions
         from the list are retured. Otherwise
@@ -376,7 +377,7 @@ class ProductionRequestDB( DB ):
     total = len( rows )
     if limit:
       result = self._query( "SELECT COUNT(*) FROM ProductionRequests AS t" +
-                           " WHERE %s" % where )
+                            " WHERE %s" % where )
       if not result['OK']:
         return result
       total = result['Value'][0][0]
@@ -685,7 +686,7 @@ class ProductionRequestDB( DB ):
 
     if 'Comments' in update:
       update['Comments'] = self.__prefixComments( update['Comments'],
-                                                 old['Comments'], creds['User'] )
+                                                  old['Comments'], creds['User'] )
 
     result = self.__checkUpdate( update, old, creds, connection )
     if not result['OK']:
@@ -733,8 +734,8 @@ class ProductionRequestDB( DB ):
         NOTE: it does self.lock.release() in case of errors
     '''
     result = self._query( "SELECT RequestID " +
-                         "FROM ProductionRequests " +
-                         "WHERE ParentID=%s and MasterID=%s" % ( iD, master ),
+                          "FROM ProductionRequests " +
+                          "WHERE ParentID=%s and MasterID=%s" % ( iD, master ),
                          connection )
     if not result['OK']:
       self.lock.release()
@@ -794,16 +795,16 @@ class ProductionRequestDB( DB ):
     if not masterID: # this request is a master
       # delete history
       result = self._update( "DELETE FROM RequestHistory " +
-                            "WHERE RequestID=%s" % requestID )
+                             "WHERE RequestID=%s" % requestID )
       if not result['OK']:
         self.lock.release()
         return result
       # delete tracking
       result = self._update( "DELETE FROM ProductionProgress " +
-                            "WHERE RequestID IN " +
-                            "(SELECT RequestID FROM ProductionRequests " +
-                            "WHERE RequestID=%s OR MasterID=%s" %
-                            ( requestID, requestID ) + ")", connection )
+                             "WHERE RequestID IN " +
+                             "(SELECT RequestID FROM ProductionRequests " +
+                             "WHERE RequestID=%s OR MasterID=%s" %
+                             ( requestID, requestID ) + ")", connection )
       if not result['OK']:
         self.lock.release()
         return result
@@ -816,8 +817,8 @@ class ProductionRequestDB( DB ):
       rlist = result['Value']
       # delete tracking
       result = self._update( "DELETE FROM ProductionProgress " +
-                            "WHERE RequestID IN (%s)" %
-                            ','.join( [str( x ) for x in rlist] + [str( requestID )] ) )
+                             "WHERE RequestID IN (%s)" %
+                             ','.join( [str( x ) for x in rlist] + [str( requestID )] ) )
       if not result['OK']:
         self.lock.release()
         return result
@@ -937,10 +938,10 @@ class ProductionRequestDB( DB ):
     # Update history for masters. Errors are not reported back to the user.
     if rec['RequestState']:
       result = self._update( "INSERT INTO RequestHistory (" +
-                            ','.join( self.historyFields[:-1] ) +
-                            ") VALUES ( %s,'%s','%s')" %
-                            ( newRequestID, str( rec['RequestState'] ),
-                             str( rec['RequestAuthor'] ) ), connection )
+                             ','.join( self.historyFields[:-1] ) +
+                             ") VALUES ( %s,'%s','%s')" %
+                             ( newRequestID, str( rec['RequestState'] ),
+                               str( rec['RequestAuthor'] ) ), connection )
       if not result['OK']:
         gLogger.error( result['Message'] )
 
@@ -1285,8 +1286,8 @@ class ProductionRequestDB( DB ):
 
     for x in update:
       result = self._update( "UPDATE ProductionProgress " +
-                            "SET BkEvents=%s " % x['BkEvents'] +
-                            "WHERE ProductionID=%s" % x['ProductionID'] )
+                             "SET BkEvents=%s " % x['BkEvents'] +
+                             "WHERE ProductionID=%s" % x['ProductionID'] )
       if not result['OK']:
         gLogger.info( 'Problem in updating progress. Not fatal: %s' %
                      result['Message'] )
@@ -1392,12 +1393,10 @@ class ProductionRequestDB( DB ):
     for sRequestID, parentID, tReq, status, reqEvents in res['Value']:
       if not parentID:
         parent = 0
-      sRequestInfo[sRequestID] = {
-                                   'Master'      : parent,
-                                   'RequestType' : tReq,
-                                   'Status'      : status,
-                                   'ReqEvents'   : reqEvents
-                                   }
+      sRequestInfo[sRequestID] = {'Master'      : parent,
+                                  'RequestType' : tReq,
+                                  'Status'      : status,
+                                  'ReqEvents'   : reqEvents}
     return S_OK( sRequestInfo )
 
   def getAllProductionProgress( self ):
@@ -1586,16 +1585,14 @@ class ProductionRequestDB( DB ):
     if not result['OK']:
       return result
 
-    rec = {
-      'RequestID' : iD,
-      'State' : 'Waiting',
-      'Actual' : 1,
-      'Link' : '',
-      'Input' : cPickle.dumps( tInput ),
-      'Params' : cPickle.dumps( params ),
-      'Script' : cPickle.dumps( script ),
-      'Template' : cPickle.dumps( tpl )
-      }
+    rec = {'RequestID' : iD,
+           'State' : 'Waiting',
+           'Actual' : 1,
+           'Link' : '',
+           'Input' : cPickle.dumps( tInput ),
+           'Params' : cPickle.dumps( params ),
+           'Script' : cPickle.dumps( script ),
+           'Template' : cPickle.dumps( tpl )}
 
     reck = rec.keys()
     recl = rec.values()
