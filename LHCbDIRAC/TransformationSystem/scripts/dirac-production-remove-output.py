@@ -2,12 +2,15 @@
 """ remove output of production
 """
 
+__RCSID__ = "$Id$"
+
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
 from DIRAC import exit as DIRACExit
-
-__RCSID__ = "$Id$"
+from DIRAC                                                                import gLogger
+from LHCbDIRAC.TransformationSystem.Agent.TransformationCleaningAgent     import TransformationCleaningAgent
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 
 import sys
 if len( sys.argv ) < 2:
@@ -20,10 +23,6 @@ else:
     print 'Invalid list of productions'
     DIRACExit( 1 )
 
-import DIRAC
-from DIRAC                                                                import gLogger
-from LHCbDIRAC.TransformationSystem.Agent.TransformationCleaningAgent     import TransformationCleaningAgent
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 
 agent = TransformationCleaningAgent( 'Transformation/TransformationCleaningAgent',
                                      'Transformation/TransformationCleaningAgent',
