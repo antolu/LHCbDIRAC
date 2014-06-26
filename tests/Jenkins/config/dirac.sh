@@ -169,16 +169,16 @@ dirac_externals(){
   
   wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
   #python dirac-install -X -l DIRAC -r `cat $WORKSPACE/new_tag.txt` -t server -p 'Linux_x86_64_glibc-2.5'
-  python dirac-install -X -l DIRAC -r v6r11 -t server -p 'Linux_x86_64_glibc-2.5'
+  python dirac-install -X -l DIRAC -r v6r11 -t server -p 'Linux_x86_64_glibc-2.12'
   ( 
     cd $WORKSPACE
-    sed -i 's/`$DIRACSCRIPTS\/dirac-platform`/Linux_x86_64_glibc-2.5/g' bashrc
+    sed -i 's/`$DIRACSCRIPTS\/dirac-platform`/Linux_x86_64_glibc-2.12/g' bashrc
     . bashrc
 
     python `which easy_install` mock
     python `which easy_install` -U docutils
     python `which easy_install` PIL
-    python `which easy_install` pyqt
+#    python `which easy_install` pyqt now it's impossible...
     python `which easy_install` stomp.py
 
     python `which easy_install` --upgrade nose
