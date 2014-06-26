@@ -10,10 +10,7 @@
 
 __RCSID__ = "$Id$"
 
-import DIRAC
-from DIRAC                                                          import S_OK, S_ERROR, gLogger
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations            import Operations
-from DIRAC.Core.Utilities.ModuleFactory                             import ModuleFactory
+from DIRAC                                                          import S_OK, gLogger
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
 from DIRAC.WorkloadManagementSystem.Client.InputDataResolution      import InputDataResolution as DIRACInputDataResolution
 
@@ -29,10 +26,9 @@ class InputDataResolution ( DIRACInputDataResolution ):
   def __init__( self, argumentsDict, bkkClient = None ):
     """ Standard constructor
     """
-    self.arguments = argumentsDict
+    super( InputDataResolution, self ).__init__( argumentsDict )
+
     self.arguments.setdefault( 'Configuration', {} )['AllReplicas'] = True
-    self.name = COMPONENT_NAME
-    self.log = gLogger.getSubLogger( self.name )
 
     if not bkkClient:
       from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -46,7 +42,7 @@ class InputDataResolution ( DIRACInputDataResolution ):
     """Given the arguments from the Job Wrapper, this function calls existing
        utilities in DIRAC to resolve input data according to LHCb VO policy.
     """
-    result = DIRACInputDataResolution.execute( self )
+    result = super( InputDataResolution, self ).execute()
     if not result['OK'] or not result['Value'].get( 'Successful', {} ):
       return result
     resolvedData = result['Value']['Successful']

@@ -38,7 +38,7 @@ def makeProductionLFN( jobid, prodid, config, fname, ftype ):
   return os.path.join( lfnroot, str( ftype ).upper(), prodid, jobindex, fname )
 
 
-class JobInfoFromXML:
+class JobInfoFromXML( object ):
   """ main class"""
 
   def __init__( self, jobid ):

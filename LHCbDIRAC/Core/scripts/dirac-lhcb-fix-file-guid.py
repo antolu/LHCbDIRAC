@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-  Fix incorrect file GUIDs
+""" Fix incorrect file GUIDs
 """
 __RCSID__ = "$Id$"
 
@@ -9,7 +8,7 @@ import os
 import DIRAC
 from DIRAC.Core.Base import Script
 
-def leave( msg, error = '', exitCode = 0 ):
+def leave( msg, error = {}, exitCode = 0 ):
   if not keep and os.path.exists( localFile ):
     os.remove( localFile )
     gLogger.info( "Local file %s removed" % localFile )

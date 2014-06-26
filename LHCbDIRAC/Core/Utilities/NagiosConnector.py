@@ -134,7 +134,7 @@ EOT"""
 
     if not self.message:
       gLogger.error(  'The message string is empty!' )
-    self.conn.send( self.message, destination = self.config[ 'MsgQueue' ] )
+    self.conn.send( message = self.message, destination = self.config[ 'MsgQueue' ] )
     gLogger.verbose( 'Message sent to %s on %s' % ( self.config[ 'MsgBroker' ], 
                                                     self.config[ 'MsgQueue'] ) )
     gLogger.verbose( 'Message content %s' %  self.message )
