@@ -393,7 +393,7 @@ class BookkeepingReport( ModuleBase ):
     outputs = []
     count = 0
     bkTypeDict = {}
-    while ( count < len( self.stepOutputs ) ):
+    while count < len( self.stepOutputs ):
       if self.stepOutputs[count].has_key( 'outputDataName' ):
         outputs.append( ( ( self.stepOutputs[ count ][ 'outputDataName' ] ),
                           ( self.stepOutputs[ count ][ 'outputDataType' ] ) ) )

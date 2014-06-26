@@ -169,7 +169,8 @@ class UploadOutputData( ModuleBase ):
         if fileDescendants != None:
           result = fileDescendants
         else:
-          result = getFileDescendants( self.production_id, self.inputDataList, dm = self.dm, bkClient = self.bkClient )
+          result = getFileDescendants( self.production_id, self.inputDataList,
+                                       dm = self.dataManager, bkClient = self.bkClient )
         if not result:
           self.log.info( "No descendants found, outputs can be uploaded" )
         else:
@@ -259,7 +260,8 @@ class UploadOutputData( ModuleBase ):
         if fileDescendants != None:
           result = fileDescendants
         else:
-          result = getFileDescendants( self.production_id, self.inputDataList, dm = self.dm, bkClient = self.bkClient )
+          result = getFileDescendants( self.production_id, self.inputDataList,
+                                       dm = self.dataManager, bkClient = self.bkClient )
         if not result:
           self.log.info( "No descendants found, outputs can be uploaded" )
         else:

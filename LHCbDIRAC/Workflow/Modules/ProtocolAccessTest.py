@@ -85,7 +85,7 @@ class ProtocolAccessTest( ModuleBase ):
 
       self.log.info( 'Attempting to get replica and metadata information for:\n%s' % ( '\n'.join( self.stepInputData ) ) )
 
-      replicaRes = self.dm.getReplicas( self.stepInputData )
+      replicaRes = self.dataManager.getReplicas( self.stepInputData )
       print replicaRes
       if not replicaRes['OK']:
         self.log.error( replicaRes )

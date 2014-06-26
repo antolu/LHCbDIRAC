@@ -47,9 +47,9 @@ class ModuleBase( object ):
       self.bkClient = bkClientIn
 
     if not dm:
-      self.dm = DataManager()
+      self.dataManager = DataManager()
     else:
-      self.dm = dm
+      self.dataManager = dm
 
     self.production_id = ''
     self.prod_job_id = ''
@@ -81,22 +81,37 @@ class ModuleBase( object ):
     self.gaudiSteps = None
     self.InputData = ''
     self.inputDataList = []
+    self.inputDataType = None
+    self.histoName = None
+    self.optionsFile = None
+    self.optionsFormat = None
+    self.optionsLine = None
+    self.extraOptionsLine = None
     self.jobType = None
+    self.logFilePath = None
     self.onlineCondDBTag = None
     self.onlineDDDBTag = None
     self.outputSEs = {}
+    self.outputDataFileMask = None
     self.numberOfEvents = 0
+    self.maxNumberOfEvents = None
     self.TCK = None
     self.mcTCK = None
     self.multicoreJob = None
     self.multicoreStep = None
     self.poolXMLCatName = None
     self.persistency = ''
+    self.processingPass = None
     self.runNumber = 'Unknown'
     self.runTimeProjectName = None
     self.runTimeProjectVersion = None
     self.simDescription = ''
     self.siteName = None
+    self.stepName = None
+    self.XMLSummary = None
+    self.stepProcPass = None
+    self.outputFilePrefix = None
+
 
   #############################################################################
 
@@ -316,7 +331,7 @@ class ModuleBase( object ):
       # this is here for backward compatibility
       histogramSE = self.opsH.getValue( 'Productions/HistogramSE', 'CERN-HIST' )
       histoTypes = self.opsH.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST',
-                                                                           'GAUSSHIST'] )
+                                                                      'GAUSSHIST'] )
       self.outputSEs = dict( ( ht, histogramSE ) for ht in histoTypes )
     # for older productions we construct it based on what should be found in the steps
     if self.step_commons.has_key( 'listoutput' ):
@@ -616,17 +631,17 @@ class ModuleBase( object ):
 
     if fileMask and fileMask != ['']:
       for fileName, metadata in candidateFiles.items():
-        if ( ( metadata['type'].lower() not in fileMask ) ):  # and ( fileName.split( '.' )[-1] not in fileMask ) ):
-          del( candidateFiles[fileName] )
+        if metadata['type'].lower() not in fileMask:  # and ( fileName.split( '.' )[-1] not in fileMask ) ):
+          del candidateFiles[fileName]
           self.log.info( 'Output file %s was produced but will not be treated (fileMask is %s)' % ( fileName,
-                                                                                              ', '.join( fileMask ) ) )
+                                                                                                    ', '.join( fileMask ) ) )
     else:
       self.log.info( 'No outputDataFileMask provided, the files with all the extensions will be considered' )
 
     if stepMask and stepMask != ['']:
       for fileName, metadata in candidateFiles.items():
         if fileName.split( '_' )[-1].split( '.' )[0] not in stepMask:
-          del( candidateFiles[fileName] )
+          del candidateFiles[fileName]
           self.log.info( 'Output file %s was produced but will not be treated (stepMask is %s)' % ( fileName,
                                                                                                ', '.join( stepMask ) ) )
     else:
@@ -803,8 +818,7 @@ class ModuleBase( object ):
       finalOutputs.append( {'outputDataName': fileFound['outputDataName'],
                             'outputDataType': fileFound['outputDataType'].lower(),
                             'outputBKType': fileFound['outputDataType'].upper(),
-                            'stepName':self.stepName
-                            } )
+                            'stepName':self.stepName} )
 
     return ( finalOutputs, bkFileTypes )
 

@@ -59,7 +59,7 @@ class RemoveInputData( ModuleBase ):
       # Try to remove the file list with failover if necessary
       failover = []
       self.log.info( 'Attempting dm.removeFile("%s")' % ( self.inputDataList ) )
-      result = self.dm.removeFile( self.inputDataList )
+      result = self.dataManager.removeFile( self.inputDataList )
       self.log.verbose( result )
       if not result['OK']:
         self.log.error( 'Could not remove files with message:\n"%s"\n\
