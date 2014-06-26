@@ -12,13 +12,13 @@ __RCSID__ = "$Id$"
 import sys
 if len( sys.argv ) < 2:
   print 'Usage: dirac-production-remove-output transID [transID] [transID]'
-  DIRACexit( 1 )
+  DIRACExit( 1 )
 else:
   try:
     transIDs = [int( arg ) for arg in sys.argv[1:]]
   except:
     print 'Invalid list of productions'
-    DIRACexit( 1 )
+    DIRACExit( 1 )
 
 import DIRAC
 from DIRAC                                                                import gLogger
