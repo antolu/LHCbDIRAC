@@ -52,8 +52,8 @@ class GaudiApplication( ModuleBase ):
     self.jobType = ''
     self.stdError = ''
     self.DDDBTag = ''
-    self.CondDBTag = ''
-    self.DQTag = ''
+    self.condDBTag = ''
+    self.dqTag = ''
     self.outputFilePrefix = ''
     self.runNumber = 0
     self.TCK = ''
@@ -206,8 +206,8 @@ class GaudiApplication( ModuleBase ):
           else:
             optionsDict['DDDBTag'] = self.DDDBTag
 
-        if self.CondDBTag:
-          if self.CondDBTag.lower() == 'online':
+        if self.condDBTag:
+          if self.condDBTag.lower() == 'online':
             try:
               optionsDict['CondDBTag'] = self.onlineCondDBTag
               self.log.debug( 'Set the online CondDB tag' )
@@ -215,10 +215,10 @@ class GaudiApplication( ModuleBase ):
               self.log.error( 'Could not find an online CondDb Tag: ', e )
               return S_ERROR( 'Could not find an online CondDb Tag' )
           else:
-            optionsDict['CondDBTag'] = self.CondDBTag
+            optionsDict['CondDBTag'] = self.condDBTag
 
-        if self.DQTag:
-          optionsDict['DQTag'] = self.DQTag
+        if self.dqTag:
+          optionsDict['DQTag'] = self.dqTag
 
         if self.applicationName.lower() == 'gauss':
           try:

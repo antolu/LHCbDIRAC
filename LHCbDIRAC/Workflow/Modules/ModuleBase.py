@@ -71,11 +71,14 @@ class ModuleBase( object ):
     self.applicationLog = None
     self.applicationName = None
     self.applicationVersion = None
+    self.applicationType = None
+    self.systemConfig = None
+    self.extraPackages = None
     self.bkConfigName = None
     self.BKstepID = None
-    self.CondDBTag = None
+    self.condDBTag = None
     self.DDDBTag = None
-    self.DQTag = None
+    self.dqTag = None
     self.CPUe = None
     self.eventType = ''
     self.gaudiSteps = None
@@ -108,6 +111,7 @@ class ModuleBase( object ):
     self.simDescription = ''
     self.siteName = None
     self.stepName = None
+    self.stepInputData = None
     self.XMLSummary = None
     self.stepProcPass = None
     self.outputFilePrefix = None
@@ -270,10 +274,10 @@ class ModuleBase( object ):
       self.DDDBTag = self.workflow_commons['DDDBTag']
 
     if self.workflow_commons.has_key( 'CondDBTag' ):
-      self.CondDBTag = self.workflow_commons['CondDBTag']
+      self.condDBTag = self.workflow_commons['CondDBTag']
 
     if self.workflow_commons.has_key( 'DQTag' ):
-      self.DQTag = self.workflow_commons['DQTag']
+      self.dqTag = self.workflow_commons['DQTag']
 
     if self.workflow_commons.has_key( 'runMetadata' ):
       runMetadataDict = eval( self.workflow_commons['runMetadata'] )
@@ -439,10 +443,10 @@ class ModuleBase( object ):
       self.DDDBTag = self.step_commons['DDDBTag']
 
     if self.step_commons.has_key( 'CondDBTag' ):
-      self.CondDBTag = self.step_commons['CondDBTag']
+      self.condDBTag = self.step_commons['CondDBTag']
 
     if self.step_commons.has_key( 'DQTag' ):
-      self.DQTag = self.step_commons['DQTag']
+      self.dqTag = self.step_commons['DQTag']
 
   #############################################################################
 
