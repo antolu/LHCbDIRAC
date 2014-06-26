@@ -13,29 +13,20 @@ __RCSID__ = '$Id$'
 #...............................................................................
 # LHCb Policies
 
-POLICIESMETA_LHCB = {
-  
-  'GGUSTickets' :
-    {
-      'description' : "Open GGUS tickets",
-      'module'      : 'GGUSTicketsPolicy',
-      'command'     : ( 'GGUSTicketsCommand', 'GGUSTicketsCommand' ),
-      'args'        : { 'onlyCache' : False }
-     },
-   'TransferQualitySource' :
-    { 
-      'description' : 'Transfers from element, quality measure',
-      'module'      : 'TransferQualityPolicy',
-      'command'     : ( 'TransferCommand', 'TransferCommand' ),
-      'args'        : { 'direction' : 'Source', 'metric' : 'Quality', 'hours' : 2 }
-     },                  
-   'TransferQualityDestination' :
-    { 
-      'description' : 'Transfers to element, quality measure',
-      'module'      : 'TransferQualityPolicy',
-      'command'     : ( 'TransferCommand', 'TransferCommand' ),
-      'args'        : { 'direction' : 'Destination', 'metric' : 'Quality', 'hours' : 2 }      
-     },
+POLICIESMETA_LHCB = {'GGUSTickets' : {'description' : "Open GGUS tickets",
+                                      'module'      : 'GGUSTicketsPolicy',
+                                      'command'     : ( 'GGUSTicketsCommand', 'GGUSTicketsCommand' ),
+                                      'args'        : { 'onlyCache' : False }},
+                     'TransferQualitySource' :{'description' : 'Transfers from element, quality measure',
+                                               'module'      : 'TransferQualityPolicy',
+                                               'command'     : ( 'TransferCommand', 'TransferCommand' ),
+                                               'args'        : { 'direction' : 'Source', 'metric' : 'Quality',
+                                                                'hours' : 2 }},
+                     'TransferQualityDestination' : {'description' : 'Transfers to element, quality measure',
+                                                     'module'      : 'TransferQualityPolicy',
+                                                     'command'     : ( 'TransferCommand', 'TransferCommand' ),
+                                                     'args'        : { 'direction' : 'Destination', 'metric' :
+                                                                      'Quality', 'hours' : 2 }},
 #  'PilotEfficiency' :
 #    { 
 #      'description'     : 'Pilots efficiency extracted from WMS',
@@ -48,56 +39,44 @@ POLICIESMETA_LHCB = {
 ################################################################################
 # Old stuff
 
-policies = {
-                  
-  'DTScheduled' :
-    { 
-      'description'     : 'Ongoing and scheduled down-times',
-      'module'          : 'DTPolicy',
-      'commandInNewRes' : ( 'GOCDBStatusCommand', 'GOCDBStatusCommand' ),
-      #'command'         : ( 'GOCDBStatusCommand', 'DTCachedCommand' ),
-      'command'         : ( 'GOCDBStatusCommand', 'GOCDBStatusCommand' ),
-      'args'            : { 'hours' : 12 }, # Fix to avoid querying the CS on load time, to be fixed
-      
-      'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GOCDBStatusCommand', 'DTInfoCachedCommand' ),
-                                    'args': None}},
-                      ],
-      'Resource_Panel' : [ {'WebLink': {'CommandIn': ( 'GOCDBStatusCommand', 'DTInfoCachedCommand' ),
-                                        'args': None}},
-                      ]
-     },
-  'GGUSTickets' :
-    { 
-      'description' : 'Open GGUS tickets',
-      'module'      : 'GGUSTicketsPolicy',
-      'command'     : ( 'GGUSTicketsCommand', 'GGUSTicketsOpen' ),
-      'args'        : None,
-      
-      'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GGUSTicketsCommand', 'GGUSTicketsLink' ),
-                                    'args': None}},
-                       {'TextInfo': {'CommandIn': ( 'GGUSTicketsCommand', 'GGUSTicketsInfo' ),
-                                    'args': None}},
-                     ]
-     },
-  'SAM_CE' :
-    { 
-      'description' : 'Latest SAM results on the LCG Computing Element',
-      'module'      : 'SAMResultsPolicy',
-      'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
-      'args'        : ( None, [ 'LHCb CE-lhcb-availability', 'LHCb CE-lhcb-install', 
-                                'LHCb CE-lhcb-job-Boole', 'LHCb CE-lhcb-job-Brunel', 
-                                'LHCb CE-lhcb-job-DaVinci', 'LHCb CE-lhcb-job-Gauss', 
-                                'LHCb CE-lhcb-os', 'LHCb CE-lhcb-queues', 'bi', 
-                                'csh', 'js', 'gfal', 'swdir', 'voms'] ),
-
-      'Resource_Panel' : [ {'SAM': {'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
-                                    'args': ( None, ['LHCb CE-lhcb-availability', 'LHCb CE-lhcb-install',
-                                                     'LHCb CE-lhcb-job-Boole', 'LHCb CE-lhcb-job-Brunel',
-                                                     'LHCb CE-lhcb-job-DaVinci', 'LHCb CE-lhcb-job-Gauss',
-                                                     'LHCb CE-lhcb-os', 'LHCb CE-lhcb-queues',
-                                                     'LHCb CE-lhcb-queues', 'bi', 'csh', 'js', 'gfal',
-                                                     'swdir', 'voms'] ) }},
-                         ]
+policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times',
+                              'module' : 'DTPolicy',
+                              'commandInNewRes' : ( 'GOCDBStatusCommand', 'GOCDBStatusCommand' ),
+                              # 'command'         : ( 'GOCDBStatusCommand', 'DTCachedCommand' ),
+                              'command'         : ( 'GOCDBStatusCommand', 'GOCDBStatusCommand' ),
+                              'args'            : { 'hours' : 12 },  # Fix to avoid querying the CS on load time, to be fixed
+                              'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GOCDBStatusCommand',
+                                                                           'DTInfoCachedCommand' ),
+                                                            'args': None}}],
+                              'Resource_Panel' : [ {'WebLink': {'CommandIn': ( 'GOCDBStatusCommand',
+                                                                               'DTInfoCachedCommand' ),
+                                                                'args': None}}]},
+            'GGUSTickets' : {'description' : 'Open GGUS tickets',
+                             'module'      : 'GGUSTicketsPolicy',
+                             'command'     : ( 'GGUSTicketsCommand', 'GGUSTicketsOpen' ),
+                             'args'        : None,
+                             'Site_Panel' : [ {'WebLink': {'CommandIn': ( 'GGUSTicketsCommand', 'GGUSTicketsLink' ),
+                                                           'args': None}},
+                                             {'TextInfo': {'CommandIn': ( 'GGUSTicketsCommand', 'GGUSTicketsInfo' ),
+                                                           'args': None}}]},
+            'SAM_CE' :{'description' : 'Latest SAM results on the LCG Computing Element',
+                       'module'      : 'SAMResultsPolicy',
+                       'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+                       'args'        : ( None, [ 'LHCb CE-lhcb-availability', 'LHCb CE-lhcb-install',
+                                                'LHCb CE-lhcb-job-Boole', 'LHCb CE-lhcb-job-Brunel',
+                                                'LHCb CE-lhcb-job-DaVinci', 'LHCb CE-lhcb-job-Gauss',
+                                                'LHCb CE-lhcb-os', 'LHCb CE-lhcb-queues', 'bi',
+                                                'csh', 'js', 'gfal', 'swdir', 'voms'] ),
+                       'Resource_Panel' : [ {'SAM': {'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
+                                                     'args': ( None, ['LHCb CE-lhcb-availability',
+                                                                      'LHCb CE-lhcb-install',
+                                                                      'LHCb CE-lhcb-job-Boole',
+                                                                      'LHCb CE-lhcb-job-Brunel',
+                                                                      'LHCb CE-lhcb-job-DaVinci',
+                                                                      'LHCb CE-lhcb-job-Gauss',
+                                                                      'LHCb CE-lhcb-os', 'LHCb CE-lhcb-queues',
+                                                                      'LHCb CE-lhcb-queues',
+                                                                      'bi', 'csh', 'js', 'gfal', 'swdir', 'voms'] ) }}]
      },
   'SAM_CREAMCE' :
     { 
