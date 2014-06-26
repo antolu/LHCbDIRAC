@@ -6,6 +6,8 @@
     databases
 """
 
+__RCSID__ = "$Id$"
+
 import threading, copy, re
 
 from types import IntType, LongType, FloatType, ListType, TupleType, StringTypes
@@ -26,7 +28,7 @@ class TransformationDB( DIRACTransformationDB ):
     self.lock = threading.Lock()
     self.queryFields = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType',
                         'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag',
-                         'StartRun', 'EndRun', 'Visible', 'RunNumbers', 'TCK']
+                        'StartRun', 'EndRun', 'Visible', 'RunNumbers', 'TCK']
     self.intFields = ['EventType', 'ProductionID', 'StartRun', 'EndRun']
     self.transRunParams = ['TransformationID', 'RunNumber', 'SelectedSite', 'Status', 'LastUpdate']
     self.allowedStatusForTasks = ( 'Unused', 'ProbInFC' )
@@ -403,7 +405,8 @@ class TransformationDB( DIRACTransformationDB ):
         if fileDict['Status'] in self.allowedStatusForTasks:
           foundLfns.add( lfn )
         else:
-          gLogger.error( "Supplied file not in %s status but %s" % ( self.allowedStatusForTasks, fileDict['Status'] ), lfn )
+          gLogger.error( "Supplied file not in %s status but %s" % ( self.allowedStatusForTasks, fileDict['Status'] ),
+                         lfn )
       unavailableLfns = set( lfns ) - foundLfns
       if unavailableLfns:
         return S_ERROR( "Not all supplied files available in the transformation database" )

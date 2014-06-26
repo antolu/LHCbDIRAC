@@ -11,15 +11,15 @@ def __getTransformations( args ):
     print "Specify transformation number..."
     Script.showHelp()
   else:
-      ids = args[0].split( "," )
-      transList = []
-      for transID in ids:
-          r = transID.split( ':' )
-          if len( r ) > 1:
-            for i in range( int( r[0] ), int( r[1] ) + 1 ):
-              transList.append( i )
-          else:
-            transList.append( int( r[0] ) )
+    ids = args[0].split( "," )
+    transList = []
+    for transID in ids:
+      r = transID.split( ':' )
+      if len( r ) > 1:
+        for i in range( int( r[0] ), int( r[1] ) + 1 ):
+          transList.append( i )
+      else:
+        transList.append( int( r[0] ) )
   return transList
 
 if __name__ == "__main__":

@@ -73,6 +73,8 @@ class DataRecoveryAgent( AgentModule ):
     self.cc = ConsistencyChecks( interactive = False, transClient = self.transClient,
                                  dm = self.dataManager, bkClient = self.bkClient )
 
+    self.enableFlag = True
+
     return S_OK()
 
   #############################################################################
@@ -107,8 +109,8 @@ class DataRecoveryAgent( AgentModule ):
 
     self.log.info( 'Selected %s transformations of types %s' % ( len( transformationDict.keys() ),
                                                                  ', '.join( self.transformationTypes ) ) )
-    self.log.verbose( 'The following transformations were selected of %s:\n%s' % ( ', '.join( self.transformationTypes ),
-                                                                              ', '.join( transformationDict.keys() ) ) )
+    self.log.verbose( 'Transformations selected %s:\n%s' % ( ', '.join( self.transformationTypes ),
+                                                             ', '.join( transformationDict.keys() ) ) )
 
 
     for transformation, typeName in transformationDict.items():
@@ -168,7 +170,7 @@ class DataRecoveryAgent( AgentModule ):
                                                                                      jobFileNoRequestsDict )
 
       self.log.info( '====> Transformation %s total jobs that can be updated now: %s' % ( transformation,
-                                                                                  len( jobsThatDidntProduceOutputs ) ) )
+                                                                                          len( jobsThatDidntProduceOutputs ) ) )
       self.log.info( '====> Transformation %s total jobs with descendants: %s' % ( transformation,
                                                                                    len( jobsThatProducedOutputs ) ) )
 
@@ -288,7 +290,7 @@ class DataRecoveryAgent( AgentModule ):
       # Exclude jobs not having appropriate WMS status - have to trust that production management status is correct
       if not wmsStatus in wmsStatusList:
         self.log.verbose( 'Job %s is in status %s, not %s so will be ignored' % ( wmsID, wmsStatus,
-                                                                               ', '.join( wmsStatusList ) ) )
+                                                                                  ', '.join( wmsStatusList ) ) )
         continue
 
       finalJobData = []
@@ -359,8 +361,8 @@ class DataRecoveryAgent( AgentModule ):
     """
     if not self.enableFlag:
       self.log.verbose( "Enable flag is False, would have updated %d files to '%s' status for %s" % ( len( fileList ),
-                                                                                                   fileStatus,
-                                                                                                   transformation ) )
+                                                                                                      fileStatus,
+                                                                                                      transformation ) )
       return S_OK()
 
     self.log.info( "Updating %s files to '%s' status for %s" % ( len( fileList ),
