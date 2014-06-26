@@ -4,17 +4,14 @@
 
 __RCSID__ = "$Id$"
 
-import DIRAC
-from DIRAC.Core.Base import Script
-from DIRAC import gConfig, gLogger, S_ERROR
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, convertSEs
 import os, time, datetime
 
-# Temporary overload of DIRAC's S_OK(), to make pylint happy
-def S_OK( value = None ):
-  return {'OK':True, 'Value':value}
+from DIRAC import gConfig, gLogger, S_OK, S_ERROR, exit as DIRACExit
+from DIRAC.Core.Base import Script
+from DIRAC.Resources.Storage.StorageElement import StorageElement
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, convertSEs
 
-class Setter:
+class Setter( object ):
   def __init__( self, obj, name ):
     self.name = name
     self.obj = obj
@@ -28,8 +25,9 @@ class Setter:
     return S_OK()
 
 class PluginScript( DMScript ):
+
   def __init__( self ):
-    DMScript.__init__( self )
+    super( PluginScript, self ).__init__()
 
   def registerPluginSwitches( self ):
     self.registerBKSwitches()
@@ -46,7 +44,8 @@ class PluginScript( DMScript ):
     for param in parameterSEs:
       self.setSEs[param] = Setter( self, param )
       Script.registerSwitch( "", param + '=',
-                             "   List of SEs for the corresponding parameter of the plugin", self.setSEs[param].setOption )
+                             "   List of SEs for the corresponding parameter of the plugin",
+                             self.setSEs[param].setOption )
     Script.registerSwitch( "g:", "GroupSize=",
                            "   GroupSize parameter for merging (GB) or nb of files" , self.setGroupSize )
     Script.registerSwitch( "", "Parameters=",
@@ -54,12 +53,14 @@ class PluginScript( DMScript ):
     Script.registerSwitch( "", "RequestID=",
                            "   Sets the request ID (default 0)", self.setRequestID )
     Script.registerSwitch( "", "ProcessingPasses=",
-                           "   List of processing passes for the DeleteReplicasWhenProcessed plugin", self.setProcessingPasses )
+                           "   List of processing passes for the DeleteReplicasWhenProcessed plugin",
+                           self.setProcessingPasses )
     Script.registerSwitch( "", "Period=",
                            "   minimal period at which a plugin is executed (if instrumented)", self.setPeriod )
     Script.registerSwitch( "", "CacheLifeTime=", "   plugin cache life time", self.setCacheLifeTime )
     Script.registerSwitch( "", "CleanTransformations",
-                           "   (only for DestroyDataset) clean transformations from the files being destroyed", self.setCleanTransformations )
+                           "   (only for DestroyDataset) clean transformations from the files being destroyed",
+                           self.setCleanTransformations )
     Script.registerSwitch( '', 'Debug', '   Sets a debug flag in the plugin', self.setDebug )
 
   def setPlugin( self, val ):
@@ -134,7 +135,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 
-class PluginUtilities:
+class PluginUtilities( object ):
   """
   Utility class used by plugins
   """
@@ -560,7 +561,6 @@ class PluginUtilities:
       return True
     for se in ( se1, se2 ):
       if se not in self.seConfig:
-        from DIRAC.Resources.Storage.StorageElement import StorageElement
         self.seConfig[se] = {}
         res = StorageElement( se ).getStorageParameters( 'SRM2' )
         if res['OK']:
@@ -676,7 +676,7 @@ class PluginUtilities:
           try:
             recoProduction = res['Value'][0][18]
             self.logVerbose( 'Reconstruction production is %d' % recoProduction )
-          except Exception, e:
+          except Exception, _e:
             self.logException( "Exception extracting reco production from %s" % str( res['Value'] ) )
             recoProduction = None
         else:
@@ -987,7 +987,6 @@ def getShares( sType, normalise = False ):
   """
   Get the shares from the Resources section of the CS
   """
-  from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
   optionPath = 'Shares/%s' % sType
   res = Operations().getOptionsDict( optionPath )
   if not res['OK']:
@@ -1087,7 +1086,6 @@ def sortSEs( ses ):
     if len( se.split( ',' ) ) != 1:
       return sorted( ses )
     if se not in seSvcClass:
-      from DIRAC.Resources.Storage.StorageElement import StorageElement
       seSvcClass[se] = StorageElement( se ).getStatus()['Value']['DiskSE']
   diskSEs = [se for se in ses if seSvcClass[se]]
   tapeSEs = [se for se in ses if se not in diskSEs]
@@ -1164,7 +1162,7 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
     res = transClient.addFilesToTransformation( transID, lfnChunk )
     if not res['OK']:
       gLogger.fatal( "Error adding %d files to transformation" % len( lfnChunk ), res['Message'] )
-      DIRAC.exit( 2 )
+      DIRACExit( 2 )
     added = [lfn for ( lfn, status ) in res['Value']['Successful'].items() if status == 'Added']
     addedLfns += added
     if addRunInfo and res['OK']:

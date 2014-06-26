@@ -31,10 +31,8 @@ DASHBOARD_LINK = 'https://eindex.cern.ch/dashboard'
 
 # # SE: RAL-DST, CERN-DST-EOS, RAL-ARCHIVE, PIC-DST, SARA_M-DST
 
-SE_WEIGHTS = {
-  'CERN.*': 10,
-  '.*-ARCHIVE':-1
-}
+SE_WEIGHTS = {'CERN.*': 10,
+              '.*-ARCHIVE':-1}
 SE_DEFAULT_WEIGHT = 1
 
 
@@ -73,6 +71,43 @@ def get_lfn2pfn_map( rm, lfns, se_black_list = [], get_single = True ):
     assert len( lfn2pfn_map[lfn] ) > 0, "cannot match lfn to pfns"
   return lfn2pfn_map
 
+def notify_email( request ):
+  if request.email is None:
+    return
+  subject = "EventIndex grid-collector report (%s)" % request.status
+  if request.status == STATUS_DONE:
+    body = """\
+Your download request '%s' has completed successfully.
+Please, proceed to dashboard for download (%s) or
+download results directly:
+
+%s
+
+--
+Faithfully Yours,
+EventIndex
+""" % ( request.id, DASHBOARD_LINK, request.get_url() )
+  else:
+    body = """\
+There was an error proceeding your request '%s'.
+Please contact EventIndex support.
+Request processing details: %s
+
+--
+Faithfully Yours,
+EventIndex
+""" % ( request.id, request.details )
+  try:
+    msg = MIMEText( body )
+    msg['To'] = request.email
+    msg['From'] = MAILFROM
+    msg['Subject'] = subject
+
+    smtpObj = smtplib.SMTP( MAILHOST )
+    smtpObj.sendmail( MAILFROM, [request.email], msg.as_string() )
+    gLogger.info( "Successfully sent email to %s" % request.email )
+  except smtplib.SMTPException, e:
+    gLogger.error( "Error: unable to send email to '%s' (%s)" % ( request.email, str( e ) ) )
 
 class GridCollectorAgent( AgentModule ):
 
@@ -80,12 +115,12 @@ class GridCollectorAgent( AgentModule ):
     """ c'tor
     """
     AgentModule.__init__( self, *args, **kwargs )
-    self.dm = None
+    self.dataManager = None
 
   def initialize( self ):
     """ agent initialization
     """
-    self.dm = DataManager()
+    self.dataManager = DataManager()
     self.am_setOption( 'shifterProxy', 'DataManager' )
     return S_OK()
 
@@ -113,47 +148,9 @@ class GridCollectorAgent( AgentModule ):
     return request
 
   def lfn2pfn_update( self, request ):
-    PFN_map = get_lfn2pfn_map( self.dm, [r[0] for r in request.req_list] )
+    PFN_map = get_lfn2pfn_map( self.dataManager, [r[0] for r in request.req_list] )
     request.lfn2pfn( PFN_map )
     request.save()
-
-  def notify_email( self, request ):
-    if request.email is None:
-      return
-    subject = "EventIndex grid-collector report (%s)" % request.status
-    if request.status == STATUS_DONE:
-      body = """\
-Your download request '%s' has completed successfully.
-Please, proceed to dashboard for download (%s) or
-download results directly:
-
-%s
-
---
-Faithfully Yours,
-EventIndex
-""" % ( request.id, DASHBOARD_LINK, request.get_url() )
-    else:
-      body = """\
-There was an error proceeding your request '%s'.
-Please contact EventIndex support.
-Request processing details: %s
-
---
-Faithfully Yours,
-EventIndex
-""" % ( request.id, request.details )
-    try:
-      msg = MIMEText( body )
-      msg['To'] = request.email
-      msg['From'] = MAILFROM
-      msg['Subject'] = subject
-
-      smtpObj = smtplib.SMTP( MAILHOST )
-      smtpObj.sendmail( MAILFROM, [request.email], msg.as_string() )
-      gLogger.info( "Successfully sent email to %s" % request.email )
-    except smtplib.SMTPException, e:
-      gLogger.error( "Error: unable to send email to '%s' (%s)" % ( request.email, str( e ) ) )
 
   def download( self, req_file, out_file ):
     rv = 1
@@ -173,7 +170,7 @@ EventIndex
     except Exception, e:
       gLogger.error( "Exception: " + str( e ) )
       request.change_status( STATUS_FAIL, "Grid-collector exception occurred: " + str( e ) )
-    self.notify_email( request )
+    notify_email( request )
     return rv
 
   def fake_download( self, request ):

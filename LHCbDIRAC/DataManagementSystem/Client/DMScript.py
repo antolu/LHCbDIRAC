@@ -77,9 +77,8 @@ def convertSEs( ses ):
 
   return seList
 
-class DMScript():
-  """
-  DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
+class DMScript( object ):
+  """ DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
   """
 
   def __init__( self ):
