@@ -64,33 +64,6 @@ __RCSID__ = "$Id$"
 #                        (thanks to an idea submitted by Michal Cernoevic)
 # 2009-07-28 v0.04 PL: - improved column styles, workaround for Mozilla
 
-
-#-------------------------------------------------------------------------------
-#TODO:
-# - method to return a generator (yield each row) instead of a single string
-# - unicode support (input and output)
-# - escape text in cells (optional)
-# - constants for standard colors
-# - use lxml to generate well-formed HTML ?
-# - add classes/functions to generate a HTML page, paragraphs, headings, etc...
-
-
-#--- THANKS --------------------------------------------------------------------
-
-# - Michal Cernoevic, for the idea of column styles.
-
-#--- REFERENCES ----------------------------------------------------------------
-
-# HTML 4.01 specs: http://www.w3.org/TR/html4/struct/tables.html
-
-# Colors: http://www.w3.org/TR/html4/types.html#type-color
-
-# Columns alignement and style, one of the oldest and trickiest bugs in Mozilla:
-# https://bugzilla.mozilla.org/show_bug.cgi?id=915
-
-
-#--- CONSTANTS -----------------------------------------------------------------
-
 # Table style to get thin black lines in Mozilla/Firefox instead of 3D borders
 TABLE_STYLE_THINBORDER = "border: 1px solid #000000; border-collapse: collapse;"
 #TABLE_STYLE_THINBORDER = "border: 1px solid #000000;"
@@ -119,8 +92,8 @@ class TableCell ( object ):
   """
 
   def __init__( self, text = "", bgcolor = None, header = False, width = None,
-              align = None, char = None, charoff = None, valign = None, style = None,
-              attribs = None ):
+                align = None, char = None, charoff = None, valign = None, style = None,
+                attribs = None ):
     """TableCell constructor"""
     self.text = text
     self.bgcolor = bgcolor
@@ -461,11 +434,10 @@ if __name__ == '__main__':
   print str( t )
   print '-' * 79
 
-  t2 = Table( [
-          ( '1', '2' ),
-          ['3', '4']
-      ], width = '100%', header_row = ( 'col1', 'col2' ),
-      col_width = ( '', '75%' ) )
+  t2 = Table( [( '1', '2' ),
+               ['3', '4']],
+             width = '100%', header_row = ( 'col1', 'col2' ),
+             col_width = ( '', '75%' ) )
   f.write( str( t2 ) + '<p>\n' )
   print t2
   print '-' * 79
@@ -478,16 +450,14 @@ if __name__ == '__main__':
   print '-' * 79
 
   # sample table with column attributes and styles:
-  table_data = [
-          ['Smith', 'John', 30, 4.5],
-          ['Carpenter', 'Jack', 47, 7],
-          ['Johnson', 'Paul', 62, 10.55],
-      ]
+  table_data = [['Smith', 'John', 30, 4.5],
+                ['Carpenter', 'Jack', 47, 7],
+                ['Johnson', 'Paul', 62, 10.55]]
   htmlcode = table( table_data,
-      header_row = ['Last name', 'First name', 'Age', 'Score'],
-      col_width = ['', '20%', '10%', '10%'],
-      col_align = ['left', 'center', 'right', 'char'],
-      col_styles = ['font-size: large', '', 'font-size: small', 'background-color:yellow'] )
+                    header_row = ['Last name', 'First name', 'Age', 'Score'],
+                    col_width = ['', '20%', '10%', '10%'],
+                    col_align = ['left', 'center', 'right', 'char'],
+                    col_styles = ['font-size: large', '', 'font-size: small', 'background-color:yellow'] )
   f.write( htmlcode + '<p>\n' )
   print htmlcode
   print '-' * 79

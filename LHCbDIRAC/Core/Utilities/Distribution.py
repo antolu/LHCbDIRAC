@@ -7,7 +7,7 @@ import urllib2, re, tarfile, os, types, sys, subprocess, urlparse, tempfile
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities import CFG, File, List
 
-class Distribution:
+class Distribution( object ):
   """ main class """
   cernAnonRoot = 'http://svn.cern.ch/guest/dirac'
   cernDevRoot = 'svn+ssh://svn.cern.ch/reps/dirac'
@@ -18,8 +18,7 @@ class Distribution:
                        'VMDIRAC' : cernAnonRoot,
                        'LHCbDIRAC' : cernAnonRoot,
                        'LHCbVMDIRAC' : cernAnonRoot,
-                       'LHCbWebDIRAC' : cernAnonRoot,
-                     }
+                       'LHCbWebDIRAC' : cernAnonRoot}
 
   devSVNRoot = { 'global' : cernDevRoot,
                  'Web' : cernDevRoot,
@@ -27,8 +26,7 @@ class Distribution:
                  'VMDIRAC' : cernDevRoot,
                  'LHCbDIRAC' : cernDevRoot,
                  'LHCbVMDIRAC' : cernDevRoot,
-                 'LHCbWebDIRAC' : cernDevRoot,
-               }
+                 'LHCbWebDIRAC' : cernDevRoot}
 
   def __init__( self, package = False ):
     """ Constructor """
@@ -144,8 +142,8 @@ class Distribution:
       return subprocess.Popen( cmd, shell = True, env = env ).wait() == 0
     #Get output
     proc = subprocess.Popen( cmd,
-                          shell = True, stdout = subprocess.PIPE,
-                          stderr = subprocess.PIPE, close_fds = True, env = env )
+                             shell = True, stdout = subprocess.PIPE,
+                             stderr = subprocess.PIPE, close_fds = True, env = env )
     stdData = proc.stdout.read()
     proc.wait()
     return ( proc.returncode, stdData )
