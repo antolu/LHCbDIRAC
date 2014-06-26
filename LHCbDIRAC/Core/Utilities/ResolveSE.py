@@ -4,6 +4,8 @@
 
 # FIXME: this might go/use the Resources CS helper once it becomes a class (v7r0...)
 
+from random import shuffle
+
 from DIRAC                              import gLogger, gConfig
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.Core.Utilities.List          import uniqueElements
@@ -33,12 +35,13 @@ def getDestinationSEList( outputSE, site, outputmode = 'Any' ):
   if not localSEs['OK']:
     raise RuntimeError( localSEs['Message'] )
   localSEs = localSEs['Value']
-  gLogger.verbose( 'Local SE list is: %s' % ( localSEs ) )
+  gLogger.verbose( "Local SE list is: %s" % ( localSEs ) )
 
   groupSEs = gConfig.getValue( '/Resources/StorageElementGroups/' + outputSE, [] )
   if not groupSEs:
-    raise RuntimeError( 'Failed to resolve SE ' + outputSE )
-  gLogger.verbose( 'Group SE list is: %s' % ( groupSEs ) )
+    raise RuntimeError( "Failed to resolve SE " + outputSE )
+  shuffle( groupSEs )
+  gLogger.verbose( "Group SE list is: %s" % ( groupSEs ) )
 
   if outputmode.lower() == "local":
     for se in localSEs:
@@ -51,7 +54,7 @@ def getDestinationSEList( outputSE, site, outputmode = 'Any' ):
     associatedSE = gConfig.getValue( section, '' )
     if associatedSE:
       gLogger.info( 'Found associated SE %s in %s' % ( associatedSE, section ) )
-      return [associatedSE]
+      return [shuffle( associatedSE )]
 
     # Final check for country associated SE
     count = 0
