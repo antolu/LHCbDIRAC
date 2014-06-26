@@ -80,7 +80,7 @@ def __replaceReplica( lfnDict ):
   if seLFNs:
     gLogger.always( "Now replicating bad replicas..." )
   for se, lfns in seLFNs.items():
-    res = rm.replicateAndRegister( lfns, se )
+    res = dm.replicateAndRegister( lfns, se )
     if res['OK']:
       success = len( res['Value']['Successful'] )
       failures = 0
@@ -234,7 +234,7 @@ if __name__ == '__main__':
     for prod in productions:
       cc.prod = prod
       gLogger.always( "Processing production %d" % cc.prod )
-      doCheck()
+      doCheck( bkCheck )
       gLogger.always( "Processed production %d" % cc.prod )
   else:
     doCheck( bkCheck )
