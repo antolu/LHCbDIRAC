@@ -77,8 +77,26 @@ class ModuleBase( object ):
     self.DDDBTag = None
     self.DQTag = None
     self.CPUe = None
-    self.eventType = None
-    self.simDescription = None
+    self.eventType = ''
+    self.gaudiSteps = None
+    self.InputData = ''
+    self.inputDataList = []
+    self.jobType = None
+    self.onlineCondDBTag = None
+    self.onlineDDDBTag = None
+    self.outputSEs = {}
+    self.numberOfEvents = 0
+    self.TCK = None
+    self.mcTCK = None
+    self.multicoreJob = None
+    self.multicoreStep = None
+    self.poolXMLCatName = None
+    self.persistency = ''
+    self.runNumber = 'Unknown'
+    self.runTimeProjectName = None
+    self.runTimeProjectVersion = None
+    self.simDescription = ''
+    self.siteName = None
 
   #############################################################################
 
@@ -198,13 +216,9 @@ class ModuleBase( object ):
 
     if self.workflow_commons.has_key( 'runNumber' ):
       self.runNumber = self.workflow_commons['runNumber']
-    else:
-      self.runNumber = 'Unknown'
 
     if self.workflow_commons.has_key( 'persistency' ):
       self.persistency = self.workflow_commons['persistency']
-    else:
-      self.persistency = ''
 
     if self.workflow_commons.has_key( 'JobType' ):
       self.jobType = self.workflow_commons['JobType']
@@ -212,7 +226,6 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'poolXMLCatName' ):
       self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
 
-    self.InputData = ''
     if self.workflow_commons.has_key( 'InputData' ):
       if self.workflow_commons['InputData']:
         self.InputData = self.workflow_commons['InputData']

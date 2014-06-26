@@ -57,9 +57,8 @@ class DataStoragePlotter( BaseReporter ):
     selectString = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
 
     selectFields = ( selectString + ", %s, %s, SUM(%s/%s)",
-                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                                             'LogicalSize', 'entriesInBucket'
-                                                             ]
+                     reportRequest[ 'groupingFields' ][1] + ['startTime', 'bucketLength',
+                                                             'LogicalSize', 'entriesInBucket']
                    )
 
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
@@ -80,12 +79,10 @@ class DataStoragePlotter( BaseReporter ):
     #3rd variable unused ( maxValue )
     baseDataDict, graphDataDict, __, unitName = suitableUnits
 
-    return S_OK( {
-                   'data'          : baseDataDict,
+    return S_OK( {'data'          : baseDataDict,
                    'graphDataDict' : graphDataDict,
                    'granularity'   : granularity,
-                   'unit'          : unitName
-                   } )
+                   'unit'          : unitName} )
 
   def _plotCatalogSpace( self, reportRequest, plotInfo, filename ):
     '''
@@ -121,13 +118,11 @@ class DataStoragePlotter( BaseReporter ):
     span      = plotInfo[ 'granularity' ]
     dataDict  = plotInfo[ 'graphDataDict' ]
 
-    metadata = {
-                'title'     : "LFN space usage grouped by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "LFN space usage grouped by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ]
-               }
+                'ylabel'    : plotInfo[ 'unit' ]}
 
     dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
@@ -187,12 +182,10 @@ class DataStoragePlotter( BaseReporter ):
     #3rd variable unused ( maxValue )
     baseDataDict, graphDataDict, __, unitName = suitableUnits
 
-    return S_OK( {
-                   'data'          : baseDataDict,
+    return S_OK( { 'data'          : baseDataDict,
                    'graphDataDict' : graphDataDict,
                    'granularity'   : granularity,
-                   'unit'          : unitName
-                   } )
+                   'unit'          : unitName} )
 
   def _plotCatalogFiles( self, reportRequest, plotInfo, filename ):
     '''
@@ -228,13 +221,11 @@ class DataStoragePlotter( BaseReporter ):
     span      = plotInfo[ 'granularity' ]
     dataDict  = plotInfo[ 'graphDataDict' ]
 
-    metadata = {
-                'title'     : "Number of LFNs by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "Number of LFNs by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ]
-               }
+                'ylabel'    : plotInfo[ 'unit' ]}
 
     dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
@@ -332,13 +323,11 @@ class DataStoragePlotter( BaseReporter ):
     span      = plotInfo[ 'granularity' ]
     dataDict  = plotInfo[ 'graphDataDict' ]
 
-    metadata = {
-                'title'     : "PFN space usage by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "PFN space usage by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ]
-                }
+                'ylabel'    : plotInfo[ 'unit' ]}
 
     dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )
@@ -394,12 +383,10 @@ class DataStoragePlotter( BaseReporter ):
     #3rd variable unused ( maxValue )
     baseDataDict, graphDataDict, __, unitName = suitableUnits
 
-    return S_OK( {
-                   'data'          : baseDataDict,
-                   'graphDataDict' : graphDataDict,
-                   'granularity'   : granularity,
-                   'unit'          : unitName
-                  } )
+    return S_OK( {'data'          : baseDataDict,
+                  'graphDataDict' : graphDataDict,
+                  'granularity'   : granularity,
+                  'unit'          : unitName} )
 
   def _plotPhysicalFiles( self, reportRequest, plotInfo, filename ):
     '''
@@ -435,13 +422,11 @@ class DataStoragePlotter( BaseReporter ):
     span      = plotInfo[ 'granularity' ]
     dataDict  = plotInfo[ 'graphDataDict' ]
 
-    metadata = {
-                'title'     : "Number of PFNs by %s" % reportRequest[ 'grouping' ],
+    metadata = {'title'     : "Number of PFNs by %s" % reportRequest[ 'grouping' ],
                 'starttime' : startTime,
                 'endtime'   : endTime,
                 'span'      : span,
-                'ylabel'    : plotInfo[ 'unit' ]
-               }
+                'ylabel'    : plotInfo[ 'unit' ]}
 
     dataDict = self._fillWithZero( span, startTime, endTime, dataDict )
     return self._generateStackedLinePlot( filename, dataDict, metadata )

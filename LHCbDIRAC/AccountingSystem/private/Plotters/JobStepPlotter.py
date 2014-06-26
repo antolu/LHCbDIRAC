@@ -27,17 +27,14 @@ class JobStepPlotter( BaseReporter ):
     
     selectField  = self._getSelectStringForGrouping(reportRequest[ 'groupingFields' ])
     selectFields = ( selectField + ", %s, %s, SUM(%s), SUM(%s)",
-                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                                             'CPUTime', 'ExecTime'
-                                                            ]
-                   )
+                     reportRequest[ 'groupingFields' ][1] + ['startTime', 'bucketLength', 'CPUTime', 'ExecTime'] )
 
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
                                  selectFields,
                                  reportRequest[ 'condDict' ],
                                  reportRequest[ 'groupingFields' ],
-                                 { 'checkNone'                   : True,
+                                 {'checkNone'                   : True,
                                   'convertToGranularity'        : 'sum',
                                   'calculateProportionalGauges' : False,
                                   'consolidationFunction'       : self._efficiencyConsolidation } )
@@ -57,7 +54,7 @@ class JobStepPlotter( BaseReporter ):
                                    selectFields,
                                    reportRequest[ 'condDict' ],
                                    reportRequest[ 'groupingFields' ],
-                                   { 'scheckNone'                  : True,
+                                   {'scheckNone'                  : True,
                                     'convertToGranularity'        : 'sum',
                                     'calculateProportionalGauges' : False,
                                     'consolidationFunction' : self._efficiencyConsolidation  } )
@@ -68,10 +65,8 @@ class JobStepPlotter( BaseReporter ):
       for key in totalDict:
         dataDict[ key ] = totalDict[ key ]
         
-    return S_OK({ 
-                 'data'        : dataDict, 
-                 'granularity' : granularity 
-                 })
+    return S_OK( {'data'        : dataDict,
+                  'granularity' : granularity } )
 
   def _plotCPUEfficiency( self, reportRequest, plotInfo, filename ):
  
