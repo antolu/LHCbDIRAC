@@ -6,7 +6,6 @@ __RCSID__ = "$Id$"
 
 import os, random, re
 
-import DIRAC
 from DIRAC                                                    import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities                                     import List
 from DIRAC.Core.Utilities.File                                import getGlobbedFiles
@@ -19,6 +18,8 @@ from LHCbDIRAC.Core.Utilities.ResolveSE                       import getDestinat
 
 
 class UserJobFinalization( ModuleBase ):
+  """ Finalization of user jobs
+  """
 
   #############################################################################
   def __init__( self, bkClient = None, dm = None ):

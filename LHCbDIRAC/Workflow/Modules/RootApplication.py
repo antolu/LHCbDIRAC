@@ -75,9 +75,8 @@ class RootApplication( ModuleBase ):
 
     try:
 
-      super( RootApplication, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
-                                               workflowStatus, stepStatus,
-                                               wf_commons, step_commons, step_number, step_id )
+      super( RootApplication, self ).execute( self.version, production_id, prod_job_id, wms_job_id, workflowStatus,
+                                              stepStatus, wf_commons, step_commons, step_number, step_id )
 
       self._resolveInputVariables()
 
@@ -185,7 +184,8 @@ class RootApplication( ModuleBase ):
   #############################################################################
 
   def redirectLogOutput( self, fd, message ):
-
+    """ just redirector
+    """
     print message
     sys.stdout.flush()
     if message:
