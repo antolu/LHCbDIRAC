@@ -12,7 +12,7 @@ for switch in Script.getUnprocessedSwitches():
     se = switch[1]
 import DIRAC
 from DIRAC                                                import gLogger
-from DIRAC.Core.Security.Misc                        import getProxyInfo
+from DIRAC.Core.Security.ProxyInfo                        import getProxyInfo
 from LHCbDIRAC.Interfaces.API.DiracLHCb                   import DiracLHCb
 import re, os
 
