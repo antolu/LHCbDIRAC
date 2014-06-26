@@ -48,8 +48,7 @@ class ProductionsStateMachine( LHCbStateMachine ):
     super( ProductionsStateMachine, self ).__init__( state )
 
     # Current states
-    self.states = {
-                   'Cleaned'              : State( 15 ),  # final state
+    self.states = {'Cleaned'              : State( 15 ),  # final state
                    'Cleaning'             : State( 14, ['Cleaned'],
                                                    defState = 'Cleaning' ),
                    'Completing'           : State( 13, ['Validating', 'Cleaning'],
