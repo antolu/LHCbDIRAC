@@ -402,8 +402,8 @@ class ProductionRequestDB( DB ):
     hasSubreq = False
     if not old['MasterID']:
       result = self._query( "SELECT RequestID " +
-                           "FROM ProductionRequests " +
-                           "WHERE MasterID=%s" % requestID, connection )
+                            "FROM ProductionRequests " +
+                            "WHERE MasterID=%s" % requestID, connection )
       if not result['OK']:
         self.lock.release()
         return result
@@ -711,10 +711,10 @@ class ProductionRequestDB( DB ):
 
     if 'RequestState' in update:
       result = self._update( "INSERT INTO RequestHistory (" +
-                            ','.join( self.historyFields[:-1] ) +
-                            ") VALUES ( %s,'%s','%s')" %
-                            ( requestID, str( update['RequestState'] ),
-                             str( creds['User'] ) ), connection )
+                             ','.join( self.historyFields[:-1] ) +
+                             ") VALUES ( %s,'%s','%s')" %
+                             ( requestID, str( update['RequestState'] ),
+                               str( creds['User'] ) ), connection )
       if not result['OK']:
         gLogger.error( result['Message'] )
 
@@ -736,7 +736,7 @@ class ProductionRequestDB( DB ):
     result = self._query( "SELECT RequestID " +
                           "FROM ProductionRequests " +
                           "WHERE ParentID=%s and MasterID=%s" % ( iD, master ),
-                         connection )
+                          connection )
     if not result['OK']:
       self.lock.release()
       return result
@@ -958,8 +958,7 @@ class ProductionRequestDB( DB ):
       self.lock.release()
       return result
     for chID in [row[0] for row in result['Value']]:
-      result = self.__duplicateDeep( chID, masterID, parentID, creds,
-                                    connection, False )
+      result = self.__duplicateDeep( chID, masterID, parentID, creds, connection, False )
       if not result['OK']:
         return result
 
@@ -1005,8 +1004,7 @@ class ProductionRequestDB( DB ):
         self.lock.release()
         return S_ERROR( 'Can not duplicate subrequest of request in progress' )
 
-    result = self.__duplicateDeep( requestID, masterID, parentID, creds,
-                                  connection, clearpp )
+    result = self.__duplicateDeep( requestID, masterID, parentID, creds, connection, clearpp )
     if result['OK']:
       self.lock.release()
     return result
@@ -1161,8 +1159,8 @@ class ProductionRequestDB( DB ):
         x = list( x )
         x[0] = newRequestID
         ret = self._update( "INSERT INTO RequestHistory (" +
-                           ','.join( self.historyFields ) +
-                           ") VALUES ( %s,'%s','%s','%s')" % tuple( [str( y ) for y in x] ), connection )
+                            ','.join( self.historyFields ) +
+                            ") VALUES ( %s,'%s','%s','%s')" % tuple( [str( y ) for y in x] ), connection )
       if not ret['OK']:
         gLogger.error( "SplitProductionRequest: add history fail: %s", ['Message'] )
 
@@ -1289,8 +1287,7 @@ class ProductionRequestDB( DB ):
                              "SET BkEvents=%s " % x['BkEvents'] +
                              "WHERE ProductionID=%s" % x['ProductionID'] )
       if not result['OK']:
-        gLogger.info( 'Problem in updating progress. Not fatal: %s' %
-                     result['Message'] )
+        gLogger.info( 'Problem in updating progress. Not fatal: %s' % result['Message'] )
     return S_OK( '' )
 
   def __trackedInputSQL( self, fields ):

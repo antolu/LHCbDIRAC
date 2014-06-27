@@ -1,5 +1,8 @@
 """ A module defining the state machine for the Productions
 """
+
+__RCSID__ = "$Id$"
+
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import State, StateMachine
 
@@ -95,6 +98,7 @@ class ProductionsStateMachine( LHCbStateMachine ):
 #                    #Idle to Completed? Should it be that when setting a prod to completed it actually goes to validating?
 #                   'Idle'       : State( 3, ['Active', 'Validating', 'Cleaning'], defState = 'Active' ),
 #                   'Flush'      : State( 2, ['Active', 'Cleaning'], defState = 'Active' ),
-#                   'Active'     : State( 1, ['Flush', 'Idle', 'Stopped', 'Completing', 'Validating', 'Cleaning'], defState = 'Flush' ),
+#                   'Active'     : State( 1, ['Flush', 'Idle', 'Stopped', 'Completing', 'Validating', 'Cleaning'],
+#                                         defState = 'Flush' ),
 #                   'New'        : State( 0, ['Active', 'Cleaning'], defState = 'Active' )  # initial state
 #                  }

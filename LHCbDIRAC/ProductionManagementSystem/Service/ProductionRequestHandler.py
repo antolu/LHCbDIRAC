@@ -69,20 +69,14 @@ class ProductionRequestHandler( RequestHandler ):
       rows[iD] = row
     return S_OK( rows )
 
-  types_getProductionRequestList_v2 = [ [IntType, LongType], StringTypes, StringTypes, [IntType, LongType], [IntType, LongType], DictType ]
-  def export_getProductionRequestList_v2( self, subrequestFor, sortBy, sortOrder,
+  types_getProductionRequestList = [ [IntType, LongType], StringTypes, StringTypes,
+                                    [IntType, LongType], [IntType, LongType], DictType ]
+  def export_getProductionRequestList( self, subrequestFor, sortBy, sortOrder,
                                           offset, limit, rFilter ):
     """ Get production requests in list format (for portal grid)
     """
     return self.database.getProductionRequest( [], subrequestFor, sortBy, sortOrder,
                                                offset, limit, rFilter )
-
-  types_getProductionRequestList = [ [IntType, LongType], StringTypes, StringTypes, [IntType, LongType], [IntType, LongType] ]
-  def export_getProductionRequestList( self, subrequestFor, sortBy, sortOrder, offset, limit ):
-    """ Get production requests in list format (compat version)
-    """
-    return self.database.getProductionRequest( [], subrequestFor, sortBy, sortOrder,
-                                               offset, limit, {} )
 
   types_updateProductionRequest = [ [IntType, LongType], DictType ]
   def export_updateProductionRequest( self, requestID, requestDict ):
@@ -91,19 +85,12 @@ class ProductionRequestHandler( RequestHandler ):
     creds = self.__clientCredentials()
     return self.database.updateProductionRequest( requestID, requestDict, creds )
 
-  types_duplicateProductionRequest_v2 = [ [IntType, LongType], BooleanType ]
-  def export_duplicateProductionRequest_v2( self, requestID, clearpp ):
+  types_duplicateProductionRequest = [ [IntType, LongType], BooleanType ]
+  def export_duplicateProductionRequest( self, requestID, clearpp ):
     """ Duplicate production request with subrequests.
     """
     creds = self.__clientCredentials()
     return self.database.duplicateProductionRequest( requestID, creds, clearpp )
-
-  types_duplicateProductionRequest = [ [IntType, LongType] ]
-  def export_duplicateProductionRequest( self, requestID ):
-    """ Duplicate production request with subrequests (compat version)
-    """
-    creds = self.__clientCredentials()
-    return self.database.duplicateProductionRequest( requestID, creds, False )
 
   types_deleteProductionRequest = [ [IntType, LongType] ]
   def export_deleteProductionRequest( self, requestID ):
