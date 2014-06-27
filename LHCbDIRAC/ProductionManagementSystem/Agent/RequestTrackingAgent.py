@@ -78,14 +78,12 @@ class RequestTrackingAgent( AgentModule ):
   def bkInputNumberOfEvents( self, request ):
     """ Extremely dirty way...
     """
-    condition = {
-                 'ProcessingPass'  : str( request['inProPass'] ).replace( ' ', '' ),
+    condition = {'ProcessingPass'  : str( request['inProPass'] ).replace( ' ', '' ),
                  'FileType'        : str( request['inFileType'] ).replace( ' ', '' ).split( ',' ),
                  'EventType'       : str( request['EventType'] ).replace( ' ', '' ),
                  'ConfigName'      : str( request['configName'] ).replace( ' ', '' ),
                  'ConfigVersion'   : str( request['configVersion'] ).replace( ' ', '' ),
-                 'DataQualityFlag' : str( request['inDataQualityFlag'] ).replace( ' ', '' )
-                 }
+                 'DataQualityFlag' : str( request['inDataQualityFlag'] ).replace( ' ', '' )}
     if request['condType'] == 'Run':
       condition['DataTakingConditions'] = str( request['SimCondition'] )
     else:

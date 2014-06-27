@@ -103,29 +103,29 @@ def informPeople( rec, oldstate, state, author, inform ):
   elif state == 'BK Check':
     subj = "DIRAC: new %s Production Request %s" % ( rec['RequestType'], reqId )
     body = '\n'.join( ["New Production is requested and it has",
-                      "customized Simulation Conditions.",
-                      "As member of %s group, your are asked either",
-                      "to register new Simulation conditions",
-                      "or to reject the request", "",
-                      "In case some other member of the group has already",
-                      "done that, please ignore this mail."] )
+                       "customized Simulation Conditions.",
+                       "As member of %s group, your are asked either",
+                       "to register new Simulation conditions",
+                       "or to reject the request", "",
+                       "In case some other member of the group has already",
+                       "done that, please ignore this mail."] )
     groups = [ 'lhcb_bk' ]
 
   elif state == 'Submitted':
     subj = "DIRAC: new %s Production Request %s" % ( rec['RequestType'], reqId )
     body = '\n'.join( ["New Production is requested",
-                      "As member of %s group, your are asked either to sign",
-                      "or to reject it.", "",
-                      "In case some other member of the group has already",
-                      "done that, please ignore this mail."] )
+                       "As member of %s group, your are asked either to sign",
+                       "or to reject it.", "",
+                       "In case some other member of the group has already",
+                       "done that, please ignore this mail."] )
     groups = [ 'lhcb_ppg', 'lhcb_tech' ]
   elif state == 'PPG OK' and oldstate == 'Accepted':
     subj = "DIRAC: returned Production Request %s" % reqId
     body = '\n'.join( ["Production Request is returned by Production Manager.",
-                      "As member of %s group, your are asked to correct and sign",
-                      "or to reject it.", "",
-                      "In case some other member of the group has already",
-                      "done that, please ignore this mail."] )
+                       "As member of %s group, your are asked to correct and sign",
+                       "or to reject it.", "",
+                       "In case some other member of the group has already",
+                       "done that, please ignore this mail."] )
     groups = [ 'lhcb_tech' ]
   else:
     return
