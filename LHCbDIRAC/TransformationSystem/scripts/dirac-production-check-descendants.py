@@ -20,22 +20,26 @@ if __name__ == '__main__':
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
                                        '  %s [option|cfgfile] [ProdIDs]' % Script.scriptName, ] ) )
-  Script.registerSwitch( '', 'Runs=', 'Specify the run range' )
-  Script.registerSwitch( '', 'ActiveRunsProduction=', 'Specify the production from which the runs should be derived' )
-  Script.registerSwitch( '', 'FileType=', 'Specify the descendants file type' )
+  Script.registerSwitch( '', 'Runs=', '   Specify the run range' )
+  Script.registerSwitch( '', 'ActiveRunsProduction=', '   Specify the production from which the runs should be derived' )
+  Script.registerSwitch( '', 'FileType=', 'S   pecify the descendants file type' )
   Script.registerSwitch( '', 'NoLFC', '   Trust the BK replica flag, no LFC check' )
-  Script.registerSwitch( '', 'FixIt', 'Fix the files in transformation table' )
-  Script.registerSwitch( '', 'Verbose', 'Print full list of files with error' )
+  Script.registerSwitch( '', 'FixIt', '   Fix the files in transformation table' )
+  Script.registerSwitch( '', 'Verbose', '   Print full list of files with error' )
+  Script.registerSwitch( '', 'Status=', '   Select files with a given status in the production' )
   Script.parseCommandLine( ignoreErrors = True )
   fileType = []
   runsList = []
   fixIt = False
   fromProd = None
   verbose = False
+  status = None
   noLFC = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
       runsList = switch[1].split( ',' )
+    elif switch[0] == 'Status':
+      status = switch[1]
     elif switch[0] == 'Verbose':
       verbose = True
     elif switch[0] == 'FileType':
@@ -66,18 +70,30 @@ if __name__ == '__main__':
       else:
         idList.append( int( r[0] ) )
   # In case the user asked for specific LFNs
-  lfnList = dmScript.getOption( 'LFNs', [] )
+  if not status:
+    lfnList = dmScript.getOption( 'LFNs', [] )
 
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
   from LHCbDIRAC.BookkeepingSystem.Client.BKQuery              import BKQuery
   for id in idList:
-
+    startTime = time.time()
     cc = ConsistencyChecks()
-    cc.lfns = lfnList
     cc.prod = id
     cc.noLFC = noLFC
-    startTime = time.time()
     gLogger.always( "Processing %s production %d" % ( cc.transType, cc.prod ) )
+
+    if status:
+      from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+      tr = TransformationClient()
+      res = tr.getTransformationFiles( {'TransformationID':id, 'Status':status} )
+      if res['OK']:
+        lfnList = [trFile['LFN'] for trFile in res['Value']]
+        gLogger.always( 'Found %d files with status %s' % ( len( lfnList ), status ) )
+      else:
+        gLogger.fatal( "Error getting files %s" % status, res['Message'] )
+        DIRAC.exit( 2 )
+
+    cc.lfns = lfnList
     if not fileType:
       bkQuery = BKQuery( {'Production':id, 'FileType':'ALL', 'Visible':'All'} )
       cc.fileType = bkQuery.getBKFileTypes()
