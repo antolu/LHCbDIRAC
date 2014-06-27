@@ -216,7 +216,7 @@ class ProductionRequest( object ):
                                     derivedProdID = prodDict['derivedProduction'],
                                     transformationFamily = prodDict['transformationFamily'],
                                     events = prodDict['events'],
-                                    CPUe = prodDict['CPUe'],
+                                    cpue = prodDict['CPUe'],
                                     multicore = prodDict['multicore'] )
 
       # check if we have to extend on multiple jobs
@@ -250,9 +250,9 @@ class ProductionRequest( object ):
 
       if self.publishFlag:
         self.logger.notice( 'For request %d, submitted Production %d, of type %s, ID = %s' % ( self.requestID,
-                                                                                             prodIndex,
-                                                                                             prodDict['productionType'],
-                                                                                             str( prodID ) ) )
+                                                                                               prodIndex,
+                                                                                               prodDict['productionType'],
+                                                                                               str( prodID ) ) )
     return S_OK( prodsLaunched )
 
   #############################################################################
@@ -402,9 +402,9 @@ class ProductionRequest( object ):
     correctedStepsInProds = []
     toInsert = self.stepsInProds[0][0]
     lengths = [len( x ) for x in self.stepsInProds]
-    for l in lengths:
-      li = [toInsert + x for x in range( l )]
-      toInsert += l
+    for length in lengths:
+      li = [toInsert + x for x in range( length )]
+      toInsert += length
       correctedStepsInProds.append( li )
 
     self.stepsInProds = correctedStepsInProds
@@ -421,7 +421,7 @@ class ProductionRequest( object ):
 
     for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
     cpu, inputD, outputMode, outFileMask, outFileStep, target, groupSize, plugin, idp, \
-    previousProd, events, CPUe, multicore in itertools.izip( self.prodsTypeList,
+    previousProd, events, cpue, multicore in itertools.izip( self.prodsTypeList,
                                                              self.stepsInProds,
                                                              self.bkQueries,
                                                              self.removeInputsFlags,
@@ -439,8 +439,7 @@ class ProductionRequest( object ):
                                                              self.previousProds,
                                                              self.events,
                                                              self.CPUeList,
-                                                             self.multicore
-                                                             ):
+                                                             self.multicore ):
 
       if not self.parentRequestID and self.requestID:
         transformationFamily = self.requestID
@@ -468,7 +467,7 @@ class ProductionRequest( object ):
                                  'previousProd': previousProd,
                                  'stepsInProd-ProdName': [str( self.stepsList[index - 1] ) + str( self.stepsListDict[index - 1]['fileTypesIn'] ) for index in stepsInProd],
                                  'events': events,
-                                 'CPUe' : CPUe,
+                                 'CPUe' : cpue,
                                  'multicore': multicore}
       prodNumber += 1
 
@@ -492,7 +491,7 @@ class ProductionRequest( object ):
   #############################################################################
 
   def _buildProduction( self, prodType, stepsInProd, outputSE, priority, cpu,
-                        inputDataList = [],
+                        inputDataList = None,
                         outputMode = 'Any',
                         inputDataPolicy = 'download',
                         outputFileMask = '',
@@ -506,7 +505,7 @@ class ProductionRequest( object ):
                         derivedProdID = 0,
                         transformationFamily = 0,
                         events = -1,
-                        CPUe = 100,
+                        cpue = 100,
                         multicore = 'True' ):
     """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object
@@ -521,29 +520,29 @@ class ProductionRequest( object ):
       fTypeIn = []
     prod.LHCbJob.workflow.setName( 'Request_%d_%s_%s_EventType_%s_%s_%s' % ( self.requestID, prodType,
                                                                              self.prodGroup, self.eventType,
-                                                                        ''.join( [x.split( '.' )[0] for x in fTypeIn] ),
+                                                                             ''.join( [x.split( '.' )[0] for x in fTypeIn] ),
                                                                              self.appendName ) )
     prod.setBKParameters( configName = self.outConfigName, configVersion = self.configVersion,
                           groupDescription = self.prodGroup, conditions = self.dataTakingConditions )
     prod.setParameter( 'eventType', 'string', self.eventType, 'Event Type of the production' )
     prod.setParameter( 'numberOfEvents', 'string', str( events ), 'Number of events requested' )
-    prod.setParameter( 'CPUe', 'string', str( CPUe ), 'CPU time per event' )
+    prod.setParameter( 'CPUe', 'string', str( cpue ), 'CPU time per event' )
 
     # maximum number of events to produce
     # try to get the CPU parameters from the configuration if possible
     op = Operations()
-    CPUTimeAvg = op.getValue( 'Transformations/CPUTimeAvg' )
-    if CPUTimeAvg is None:
-      self.logger.info( 'Could not get CPUTimeAvg from config, defaulting to %d' % self.CPUTimeAvg )
+    cpuTimeAvg = op.getValue( 'Transformations/CPUTimeAvg' )
+    if cpuTimeAvg is None:
+      self.logger.info( 'Could not get CPUTimeAvg from config, defaulting to %d' % self.cpuTimeAvg )
     else:
-      self.CPUTimeAvg = CPUTimeAvg
+      self.CPUTimeAvg = cpuTimeAvg
 
     try:
       self.CPUNormalizationFactorAvg = getCPUNormalizationFactorAvg()
     except RuntimeError:
       self.logger.info( 'Could not get CPUNormalizationFactorAvg, defaulting to %d' % self.CPUNormalizationFactorAvg )
 
-    max_e = getEventsToProduce( CPUe, self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
+    max_e = getEventsToProduce( cpue, self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
     prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce (Gauss only)' )
 
     prod.setParameter( 'multicore', 'string', multicore, 'Flag for enabling gaudi parallel' )
@@ -570,8 +569,7 @@ class ProductionRequest( object ):
         prod.banTier1s()
       elif target != 'ALL':
         prod.LHCbJob.setDestination( target )
-    if inputDataList:
-      prod.LHCbJob.setInputData( inputDataList )
+    prod.LHCbJob.setInputData( inputDataList )
     if derivedProdID:
       prod.ancestorProduction = derivedProdID
     if transformationFamily:
@@ -662,10 +660,8 @@ class ProductionRequest( object ):
 
 
     elif mode.lower() == 'frompreviousprod':
-      bkQuery = {
-                 'FileType': ';;;'.join( fileType ).replace( ' ', '' ),
-                 'ProductionID': int( previousProdID )
-                 }
+      bkQuery = {'FileType': ';;;'.join( fileType ).replace( ' ', '' ),
+                 'ProductionID': int( previousProdID )}
 
       if self.eventType:
         bkQuery['EventType'] = str( self.eventType )

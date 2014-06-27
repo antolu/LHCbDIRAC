@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-########################################################################
-"""
-   Get statistics on productions related to a given processing pass
+""" Get statistics on productions related to a given processing pass
 """
 
 import DIRAC
@@ -37,7 +34,7 @@ class HTMLProgressTable( object ):
     return self.table
 
   def __titleRow( self, title ):
-    titles = StatInfo().getTitles()
+    titles = StatInfo().titles
     row1 = [TableCell( '<b>' + str( title ) + '</b>', align = 'left', attribs = {'rowspan':2} )]
     row2 = []
     for ( head, subs ) in titles:
@@ -125,7 +122,7 @@ class HTMLProgressTable( object ):
     # row = self.__tableRow( diffStats[-1] )
     # self.table.rows.append(row)
 
-class StatInfo:
+class StatInfo( object ):
   def __init__( self, name = '', info = {} ):
     self.name = name
     self.items = ['BadFiles', 'BadRuns', 'BadLumi', 'OKFiles', 'OKRuns', 'OKLumi', 'Events', 'Files',
@@ -149,9 +146,6 @@ class StatInfo:
     for item in values:
       if item in self.items:
         self.contents[item] = values[item]
-
-  def getValues( self ):
-    return self.contents
 
   def __setRatios( self ):
     for item in self.ratioItems:
@@ -178,12 +172,7 @@ class StatInfo:
       self.other['prev'] = info
     self.other['raw'] = info
     self.__setRatios()
-  def getPrevInfo( self ):
-    return self.other['prev']
-  def getRawInfo( self ):
-    return self.other['raw']
-  def getName( self ):
-    return self.name
+
   def getItem( self, item, val = None ):
     return self.contents.get( item, val )
   def getItemAsString( self, item ):
@@ -199,10 +188,6 @@ class StatInfo:
     else:
       return str( val )
 
-  def getTitles( self ):
-    return self.titles
-  def getItemNames( self ):
-    return self.items
   def getItems( self ):
     values = []
     for item in self.items:
@@ -215,8 +200,8 @@ class StatInfo:
     return values
 
   def __add__( self, other ):
-    thisName = self.getName()
-    thatName = other.getName()
+    thisName = self.name
+    thatName = other.name
     if thisName != thatName:
       if not thisName:
         thisName = thatName
@@ -227,17 +212,17 @@ class StatInfo:
       values[item] = self.contents[item] + other.contents[item]
     info = StatInfo( thisName )
     info.setValues( values )
-    rawInfo1 = self.getRawInfo()
-    rawInfo2 = other.getRawInfo()
+    rawInfo1 = self.other['raw']
+    rawInfo2 = other.other['raw']
     if rawInfo1 and rawInfo2:
       info.setRawInfo( rawInfo1 + rawInfo2 )
-      info.setPrevInfo( self.getPrevInfo() + other.getPrevInfo() )
+      info.setPrevInfo( self.other['prev'] + other.other['prev'] )
     self.__setRatios()
     return info
 
   def __sub__( self, other ):
-    thisName = self.getName()
-    thatName = other.getName()
+    thisName = self.name
+    thatName = other.name
     if thisName != thatName:
       print "Error substracting StatInfo for %s and %s" % ( thisName, thatName )
       return StatInfo( '' )
@@ -251,7 +236,7 @@ class StatInfo:
     info.setValues( values )
     return info
 
-class ProcessingProgress:
+class ProcessingProgress( object ):
 
   def __init__( self, cacheFile = None ):
     if not cacheFile:
