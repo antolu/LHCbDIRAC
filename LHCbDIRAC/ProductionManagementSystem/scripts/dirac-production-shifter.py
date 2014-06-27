@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' dirac-production-shifter 
+""" dirac-production-shifter
  
   Script for the production shifter. 
 
@@ -21,7 +21,7 @@
   - omitMerge     : omit all merge production
   - noFiles       : do not request file information
   
-'''
+"""
 
 import sys
 
@@ -34,10 +34,10 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 __RCSID__  = "$Id$"
 
 def doParse():
-  '''
+  """
   Function that contains all the switches definition and isolates the rest of the
   module from parseCommandLine.
-  '''
+  """
   
   # Switch description
   Script.registerSwitch( 'i:', 'requestID='    , 'ID of the request' )
@@ -53,18 +53,18 @@ def doParse():
 
   # Set script help message
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
-                          '\nArguments:',
-                          '  requestID (string): csv ID(s) of the request, if used other switches are ignored',
-                          '  requestState (string): csv states, being "Active" by default',
-                          '  requestType (string): csv types, being "Stripping,Reconstruction" by default',
-                          '  simCondition (string): csv conditions, being None by default',
-                          '  proPath (string): csv paths, being None by default',
-                          '  eventType (string): csv events, being None by default',
-                          '  sortKey(string) : requests sort key [RequestID,RequestState,RequestType,\
-                             SimCondition,ProPath,EventType]',
-                          '  groupMerge: group merge productions in one line',
-                          '  omitMerge: omit merge productions on summary',
-                          '  noFiles: do not report file status\n'] ) )
+                                      '\nArguments:',
+                                      '  requestID (string): csv ID(s) of the request, if used other switches are ignored',
+                                      '  requestState (string): csv states, being "Active" by default',
+                                      '  requestType (string): csv types, being "Stripping,Reconstruction" by default',
+                                      '  simCondition (string): csv conditions, being None by default',
+                                      '  proPath (string): csv paths, being None by default',
+                                      '  eventType (string): csv events, being None by default',
+                                      '  sortKey(string) : requests sort key [RequestID,RequestState,RequestType,\
+                                      SimCondition,ProPath,EventType]',
+                                      '  groupMerge: group merge productions in one line',
+                                      '  omitMerge: omit merge productions on summary',
+                                      '  noFiles: do not report file status\n'] ) )
     
   # Get switches and options from command line
   Script.parseCommandLine()
@@ -104,9 +104,9 @@ def doParse():
   return params, mergeAction, noFiles, sortKey
   
 def getRequests( parsedInput, sortKey ):
-  '''
+  """
   Gets the requests from the database using the filters given by the user.  
-  '''
+  """
     
   reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
   
@@ -140,9 +140,9 @@ def getRequests( parsedInput, sortKey ):
   return parsedRequests
   
 def getTransformations( transClient, requestID, noFiles ):
-  '''
+  """
     Given a requestID, returns all its transformations.
-  '''
+  """
     
   transformations = transClient.getTransformations( { 'TransformationFamily' : requestID } )
   if not transformations[ 'OK' ]:
@@ -169,17 +169,13 @@ def getTransformations( transClient, requestID, noFiles ):
   return parsedTransformations
   
 def getFiles( transClient, transformationID ):
-  '''
-    Given a transformationID, returns the status of their files.
-  '''
+  """ Given a transformationID, returns the status of their files.
+  """
   
-  filesDict = { 
-                'Total'     : 0,
-                'Processed' : 0
-              }
+  filesDict = { 'Total'     : 0,
+                'Processed' : 0}
   
-  files = transClient.getTransformationFilesSummaryWeb( { 'TransformationID' : transformationID }, 
-                                                        [], 0, 1000000 )
+  files = transClient.getTransformationFilesSummaryWeb( { 'TransformationID' : transformationID }, [], 0, 1000000 )
   
   if not files[ 'OK' ]:
     print files[ 'Message' ]
@@ -195,10 +191,8 @@ def getFiles( transClient, transformationID ):
   return filesDict  
   
 def printSelection( parsedInput, mergeAction, noFiles, sortKey ):
-  '''
-    Prints header with selection parameters used to filter requests, plus some 
-    extra options to narrow summary.
-  '''
+  """ Prints header with selection parameters used to filter requests, plus some extra options to narrow summary.
+  """
   
   if parsedInput[ 'RequestID' ] is not None:
     parsedInput = { 'RequestID' : parsedInput[ 'RequestID' ] }   
@@ -224,12 +218,12 @@ def printSelection( parsedInput, mergeAction, noFiles, sortKey ):
   printNow()
   
 def printResults( request, mergeAction ):  
-  '''
+  """
     Given a dictionary with requests, it prints the content on a human readable way.
     If mergeAction is given and different than None, it can omit all merge
     transformations from the summary or group all them together in one line if 
     the value is group.
-  '''
+  """
  
   msgTuple = ( request[ 'requestID' ], request[ 'requestState' ], request[ 'requestType' ][:4], 
                request[ 'proPath' ], request[ 'simCondition' ], request[ 'eventType' ] )
@@ -275,8 +269,8 @@ def printResults( request, mergeAction ):
 
              
     msgTuple = ( ( '%s [%s] %s' % ( transformationID, transformation[ 'transformationStatus' ], 
-                 transformation[ 'transformationType' ] ) ).ljust( 40, ' ' ), filesMsg)
-      
+                                    transformation[ 'transformationType' ] ) ).ljust( 40, ' ' ), filesMsg )
+
     print '      %s %s' % msgTuple
 
   if mergeAction == 'group' and groupedMerge[ 0 ]:
@@ -292,18 +286,15 @@ def printResults( request, mergeAction ):
   printNow()
 
 def printRequestsInfo( requests ):
-  '''
-    Prints the number of requests 
-  '''
+  """ Prints the number of requests
+  """
   
   print ' found %s requests \n' % len( requests )
   printNow()
 
 def printNow():  
-  '''
-    Flush stdout, otherwhise we have to wait until the end of the script to have
-    if flushed.
-  '''
+  """ Flush stdout, otherwhise we have to wait until the end of the script to have if flushed.
+  """
   
   sys.stdout.flush()
                                         

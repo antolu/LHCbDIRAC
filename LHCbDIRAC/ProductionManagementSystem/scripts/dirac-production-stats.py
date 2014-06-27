@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-########################################################################
-
 """ Get statistics on productions related to a given processing pass
 """
+
+__RCSID__ = "$Id$"
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProcessingProgress import ProcessingProgress, HTMLProgressTable
 

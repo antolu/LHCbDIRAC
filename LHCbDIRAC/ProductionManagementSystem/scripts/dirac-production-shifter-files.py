@@ -50,17 +50,17 @@ def doParse():
 
   # Set script help message
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
-                          '\nArguments:',
-                          '  requestID (string): csv ID(s) of the request, if used other switches are ignored',
-                          '  requestState (string): csv states, being "Active" by default',
-                          '  requestType (string): csv types, being "Stripping,Reconstruction" by default',
-                          '  simCondition (string): csv conditions, being None by default',
-                          '  proPath (string): csv paths, being None by default',
-                          '  eventType (string): csv events, being None by default',
-                          '  sortKey(string) : requests sort key [RequestID,RequestState,RequestType,\
-                                               SimCondition,ProPath,EventType]',
-                          '  groupMerge: group merge productions in one line',
-                          '  omitMerge: omit merge productions on summary\n'] ) )
+                                      '\nArguments:',
+                                      '  requestID (string): csv ID(s) of the request, if used other switches are ignored',
+                                      '  requestState (string): csv states, being "Active" by default',
+                                      '  requestType (string): csv types, being "Stripping,Reconstruction" by default',
+                                      '  simCondition (string): csv conditions, being None by default',
+                                      '  proPath (string): csv paths, being None by default',
+                                      '  eventType (string): csv events, being None by default',
+                                      '  sortKey(string) : requests sort key [RequestID,RequestState,RequestType,\
+                                      SimCondition,ProPath,EventType]',
+                                      '  groupMerge: group merge productions in one line',
+                                      '  omitMerge: omit merge productions on summary\n'] ) )
     
   # Get switches and options from command line
   Script.parseCommandLine()
@@ -174,10 +174,8 @@ def getFiles( transClient, transformationID ):
     Given a transformationID, returns the status of their files.
   """
   
-  filesDict = { 
-                'Total'     : 0,
-                'Processed' : 0
-              }
+  filesDict = {'Total'     : 0,
+               'Processed' : 0}
   
   files = transClient.getTransformationFilesSummaryWeb( { 'TransformationID' : transformationID }, 
                                               [], 0, 1000000 )
@@ -245,8 +243,8 @@ def getJobs( transClient, transformationID, fileID, tasks ):
   
   jobs = []
   _jobs = transClient.getTableDistinctAttributeValues( 'TransformationFileTasks',
-                                                      [ 'TransformationID', 'FileID', 'TaskID' ],
-                                                      { 'TransformationID' : transformationID,
+                                                       [ 'TransformationID', 'FileID', 'TaskID' ],
+                                                       {'TransformationID' : transformationID,
                                                         'FileID'           : fileID } )
   
   if not _jobs[ 'OK' ]:
@@ -353,8 +351,7 @@ def printResults( request ):
   printNow()
 
 def printRequestsInfo( requests ):
-  """
-    Prints the number of requests 
+  """ Prints the number of requests
   """
   
   print ' found %s requests \n' % len( requests )
