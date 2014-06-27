@@ -84,7 +84,7 @@ dirac_branch_script_trigger(){
   cd DIRAC
   new=`git log --since="1 hour ago"`
   
-  [ "$new" ] && exit 0 || exit 1 
+  [ "$new" ] && return 0 || return 1 
 
 }
 
