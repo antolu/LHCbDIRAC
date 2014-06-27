@@ -225,7 +225,7 @@ class TargzJobLogAgent( AgentModule ):
       self.log.error( "getPfnForLfnfor file %s" % destFile, res.get( 'Message', res.get( 'Value', {} ).get( 'Failed', {} ).get( pfn ) ) )
       return S_ERROR()
 
-    res = self.storageElement.exists( pfn, True )
+    res = self.storageElement.exists( pfn )
     if res['OK']:
       if res['Value']:
         self.log.error( "file exists ", pfn )
