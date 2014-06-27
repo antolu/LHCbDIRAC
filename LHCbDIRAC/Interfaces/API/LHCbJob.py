@@ -968,7 +968,13 @@ class LHCbJob( Job ):
     """ Add the input data and the run number, if available
     """
 
-    Job.setInputData( self, lfns )
+    if not lfns:
+      self.log.warn( "no lfns passed in setInputData, was that intentional?" )
+      return S_OK( "Nothing to do" )
+
+    res = Job.setInputData( self, lfns )
+    if not res['OK']:
+      return res
 
     if not runNumber or not persistencyType:
       if not bkClient:
@@ -1021,6 +1027,8 @@ class LHCbJob( Job ):
     self._addParameter( self.workflow, 'runNumber', 'JDL', runNumber, 'Input run number' )
     self._addParameter( self.workflow, 'persistency', 'String', typeVersion, 'Persistency type of the inputs' )
 
+    return S_OK()
+
   #############################################################################
 
   def setRunMetadata( self, runMetadataDict ):
@@ -1028,7 +1036,7 @@ class LHCbJob( Job ):
     """
 
     self._addParameter( self.workflow, 'runMetadata', 'String', str( runMetadataDict ), 'Input run metadata' )
-
+    return S_OK()
 
   #############################################################################
 
