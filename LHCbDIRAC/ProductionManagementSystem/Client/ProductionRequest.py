@@ -533,7 +533,7 @@ class ProductionRequest( object ):
     op = Operations()
     cpuTimeAvg = op.getValue( 'Transformations/CPUTimeAvg' )
     if cpuTimeAvg is None:
-      self.logger.info( 'Could not get CPUTimeAvg from config, defaulting to %d' % self.cpuTimeAvg )
+      self.logger.info( 'Could not get CPUTimeAvg from config, defaulting to %d' % self.CPUTimeAvg )
     else:
       self.CPUTimeAvg = cpuTimeAvg
 
