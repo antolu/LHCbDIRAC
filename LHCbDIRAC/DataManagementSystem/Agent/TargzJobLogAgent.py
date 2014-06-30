@@ -226,10 +226,9 @@ class TargzJobLogAgent( AgentModule ):
       return S_ERROR()
 
     res = self.storageElement.exists( pfn )
-    if res['OK']:
-      if res['Value']:
-        self.log.error( "file exists ", pfn )
-        return S_ERROR()
+    if res['OK'] and res['Value']['Successful'].get( pfn, False ):
+      self.log.error( "file exists ", pfn )
+      return S_ERROR()
     else:
       self.log.error( "Can not check file exists %s" % pfn, res['Message'] )
       return S_ERROR()
