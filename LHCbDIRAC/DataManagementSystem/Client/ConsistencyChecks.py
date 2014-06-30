@@ -463,7 +463,7 @@ class ConsistencyChecks( object ):
       gLogger.error( "Failed to find transformation %s" % self.prod )
       return [], [], []
     status = res['Value']['Status']
-    if status not in ( 'Active', 'Stopped', 'Completed' ):
+    if status not in ( 'Active', 'Stopped', 'Completed', 'Idle' ):
       gLogger.always( "Transformation %s in status %s, will not check if files are processed" % ( self.prod, status ) )
       processedLFNs = []
       nonProcessedLFNs = []
