@@ -8,14 +8,20 @@ from DIRAC                                     import S_OK, gLogger
 from DIRAC.ConfigurationSystem.Client          import PathFinder
 from DIRAC.Resources.Catalog.FileCatalogueBase import FileCatalogueBase
 from DIRAC.Resources.Utilities.Utils           import checkArgumentFormat
+from DIRAC.Core.Base.Client import Client
 
 __RCSID__ = '$Id$'
 
-class RAWIntegrityClient( FileCatalogueBase ):
+class RAWIntegrityClient( Client ):
 
-  def __init__( self ):
+  def __init__( self, url = None ):
+    Client.__init__( self )
     try:
-      self.url = PathFinder.getServiceURL( 'DataManagement/RAWIntegrity' )
+      if url:
+        self.url = url
+      else:
+        self.url = PathFinder.getServiceURL( 'DataManagement/RAWIntegrity' )
+      self.setServer( url )
       self.valid = True
     except Exception, x:
       errStr = "RAWIntegrityClient.__init__: Exception while generating server url."
@@ -51,20 +57,20 @@ class RAWIntegrityClient( FileCatalogueBase ):
       return res
     failed = {}
     successful = {}
-    for lfn, _info in res['Value'].items():
-      pass
-      # FIXME
-#      server = RPCClient( self.url, timeout = 120 )
-#      pfn = str( info['PFN'] )
-#      size = int( info['Size'] )
-#      se = str( info['SE'] )
-#      guid = str( info['GUID'] )
-#      checksum = str( info['Checksum'] )
-#      res = server.addFile( lfn, pfn, size, se, guid, checksum )
-#      if not res['OK']:
-#        failed[lfn] = res['Message']
-#      else:
-#        successful[lfn] = True
+    for lfn, info in res['Value'].items():
+      pfn = str( info['PFN'] )
+      size = int( info['Size'] )
+      se = str( info['SE'] )
+      guid = str( info['GUID'] )
+      checksum = str( info['Checksum'] )
+      # res = self.rawIntegritySrv.addFile( lfn, pfn, size, se, guid, checksum )
+      rpc = self._getRPC()
+      rpc.addFile( lfn, pfn, size, se, guid, checksum )
+      if not res['OK']:
+        failed[lfn] = res['Message']
+      else:
+        successful[lfn] = True
+
     resDict = {
                'Failed'     : failed,
                'Successful' : successful
