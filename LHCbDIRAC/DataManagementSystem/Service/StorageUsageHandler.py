@@ -1,7 +1,3 @@
-########################################################################
-# File: StorageUsageHandler.py
-########################################################################
-
 """ :mod: StorageUsageHandler 
     =========================
  
@@ -18,7 +14,6 @@ from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
 __RCSID__ = "$Id$"
 
-# This is a global instance of the DataIntegrityDB class
 gStorageUsageDB = False
 
 def initializeStorageUsageHandler( _serviceInfo ):
