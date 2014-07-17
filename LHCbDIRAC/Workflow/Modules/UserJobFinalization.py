@@ -75,7 +75,7 @@ class UserJobFinalization( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None ):
+               step_number = None, step_id = None, orderedSEs = None ):
     """ Main execution function.
     """
 
@@ -121,8 +121,7 @@ class UserJobFinalization( ModuleBase ):
 
       self.log.info( "Final list of files to upload are: %s" % ( ', '.join( self.userOutputData ) ) )
 
-      # Determine the final list of possible output files for the
-      # workflow and all the parameters needed to upload them.
+      # Determine the final list of possible output files for the workflow and all the parameters needed to upload them.
       outputList = []
       for i in self.userOutputData:
         outputList.append( {'outputDataType':( '.'.split( i )[-1] ).upper(),
@@ -132,9 +131,8 @@ class UserJobFinalization( ModuleBase ):
       if self.userOutputData:
         self.log.info( "Constructing user output LFN(s) for %s" % ( ', '.join( self.userOutputData ) ) )
 
-        owner = self.getCurrentOwner()
-
-        userOutputLFNs = constructUserLFNs( self.jobID, owner, self.userOutputData, self.userOutputPath )
+        userOutputLFNs = constructUserLFNs( self.jobID, self._getCurrentOwner(),
+                                            self.userOutputData, self.userOutputPath )
 
       self.log.verbose( "Calling getCandidateFiles( %s, %s, %s)" % ( outputList, userOutputLFNs,
                                                                      self.outputDataFileMask ) )
@@ -155,22 +153,8 @@ class UserJobFinalization( ModuleBase ):
         self.setApplicationStatus( 'No Output Data Files To Upload' )
         return S_OK()
 
-      # First get the local (or assigned) SE to try first for upload and others in random fashion
-      localSEs = set( getDestinationSEList( 'Tier1-USER', self.siteName, outputmode = 'local' ) )
-      self.log.verbose( "Site Local SE for user outputs is: %s" % ( localSEs ) )
-      userSEs = set( self.userOutputSE )
-      otherSEs = set( self.defaultOutputSE ) - localSEs - userSEs
-      # If a user SE is  local set it first
-      topSEs = userSEs & localSEs
-      # reordered user SEs, setting local first
-      userSEs = list( topSEs ) + list( userSEs - topSEs )
-      localSEs = list( localSEs - topSEs )
-      if len( userSEs ) < 2 and localSEs:
-        # Set a local SE first
-        orderedSEs = localSEs[0:1] + userSEs + localSEs[1:]
-      else:
-        orderedSEs = userSEs + localSEs
-      orderedSEs += List.randomize( list( otherSEs ) )
+      if not orderedSEs:
+        orderedSEs = self._getOrderedSEsList()
 
       self.log.info( "Ordered list of output SEs is: %s" % ( ', '.join( orderedSEs ) ) )
       final = {}
@@ -186,7 +170,7 @@ class UserJobFinalization( ModuleBase ):
           for n, v in metadata.items():
             self.log.info( '%s = %s' % ( n, v ) )
 
-        return S_OK( 'Module is disabled by control flag' )
+        return S_OK( "Module is disabled by control flag" )
 
       # Disable the watchdog check in case the file uploading takes a long time
       self._disableWatchdogCPUCheck()
@@ -200,8 +184,8 @@ class UserJobFinalization( ModuleBase ):
       failover = {}
       uploaded = []
       for fileName, metadata in final.items():
-        self.log.info( "Attempting to store file %s to the following SE(s):\n%s" % ( fileName,
-                                                                                ', '.join( metadata['resolvedSE'] ) ) )
+        self.log.info( "Attempting to store %s to the following SE(s): %s" % ( fileName,
+                                                                               ', '.join( metadata['resolvedSE'] ) ) )
         fileMetaDict = { 'Size'         : metadata['filedict']['Size'],
                          'LFN'          : metadata['filedict']['LFN'],
                          'GUID'         : metadata['filedict']['GUID'],
@@ -231,7 +215,7 @@ class UserJobFinalization( ModuleBase ):
 
           if replicateSE and lfn and self.replicateUserOutputData:
             self.log.info( "Will attempt to replicate %s to %s" % ( lfn, replicateSE ) )
-            replication[lfn] = ( uploadedSE, replicateSE )
+            replication[lfn] = ( uploadedSE, replicateSE, fileMetaDict )
 
       cleanUp = False
       for fileName, metadata in failover.items():
@@ -261,7 +245,7 @@ class UserJobFinalization( ModuleBase ):
           uploaded.append( lfn )
           # Even when using Failover, one needs to replicate to a second SE
           if replicateSE and self.replicateUserOutputData:
-            replication[lfn] = ( targetSE, replicateSE )
+            replication[lfn] = ( targetSE, replicateSE, fileMetaDict )
 
       # For files correctly uploaded must report LFNs to job parameters
       if uploaded:
@@ -278,8 +262,8 @@ class UserJobFinalization( ModuleBase ):
         # do not try to replicate any files.
         return S_ERROR( "Failed To Upload Output Data" )
 
-      for lfn, ( uploadedSE, repSE ) in replication.items():
-        self.failoverTransfer._setFileReplicationRequest( lfn, repSE, fileMetaDict, uploadedSE )
+      for lfn, ( uploadedSE, repSE, fileMetaDictItem ) in replication.items():
+        self.failoverTransfer._setFileReplicationRequest( lfn, repSE, fileMetaDictItem, uploadedSE )
 
       self.workflow_commons['Request'] = self.failoverTransfer.request
 
@@ -299,9 +283,35 @@ class UserJobFinalization( ModuleBase ):
 
   #############################################################################
 
-  def getCurrentOwner( self ):
+  def _getOrderedSEsList( self ):
+    """ Returns list of ordered SEs to which trying to upload
+    """
+    # First get the local (or assigned) SE to try first for upload and others in random fashion
+    localSEs = set( getDestinationSEList( 'Tier1-USER', self.siteName, outputmode = 'local' ) )
+    self.log.verbose( "Site Local SE for user outputs is: %s" % ( localSEs ) )
+    userSEs = set( self.userOutputSE )
+    otherSEs = set( self.defaultOutputSE ) - localSEs - userSEs
+    # If a user SE is  local set it first
+    topSEs = userSEs & localSEs
+    # reordered user SEs, setting local first
+    userSEs = list( topSEs ) + list( userSEs - topSEs )
+    localSEs = list( localSEs - topSEs )
+    if len( userSEs ) < 2 and localSEs:
+      # Set a local SE first
+      orderedSEs = localSEs[0:1] + userSEs + localSEs[1:]
+    else:
+      orderedSEs = userSEs + localSEs
+    orderedSEs += List.randomize( list( otherSEs ) )
+
+    return orderedSEs
+
+
+  def _getCurrentOwner( self ):
     """Simple function to return current DIRAC username.
     """
+    if self.workflow_commons.has_key( 'OwnerName' ):
+      return self.workflow_commons['OwnerName']
+
     result = getProxyInfo()
 
     if not result['OK']:

@@ -33,6 +33,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.fr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': Operation()}
 
     rc_mock = Request()
+    rc_mock.RequestName = 'aRequestName'
     rc_mock.OwnerDN = 'pippo'
     rc_mock.OwnerGroup = 'pippoGRP'
     rOp = Operation()
@@ -1445,22 +1446,24 @@ class UserJobFinalizationSuccess( ModulesTestCase ):
       wf_commons['TotalSteps'] = self.step_number
       for step_commons in self.step_commons:
         self.assertTrue( self.ujf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                         self.workflowStatus, self.stepStatus,
-                                         wf_commons, step_commons,
-                                         self.step_number, self.step_id )['OK'] )
-      # with input data - would require correct CS settings...
-#      wf_commons['UserOutputData'] = ['i1', 'i2']
-#      wf_commons['OwnerName'] = 'fstagni'
-#      open( 'i1', 'w' ).close()
-#      open( 'i2', 'w' ).close()
-#      self.assertTrue( self.ujf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-#                                         self.workflowStatus, self.stepStatus,
-#                                         wf_commons, self.step_commons,
-#                                         self.step_number, self.step_id,
-#                                         self.ft_mock )['OK'] )
-#      os.remove( 'i1' )
-#      os.remove( 'i2' )
-    # TODO: make others cases tests!
+                                           self.workflowStatus, self.stepStatus,
+                                           wf_commons, step_commons,
+                                           self.step_number, self.step_id )['OK'] )
+
+    for wf_commons in copy.deepcopy( self.wf_commons ):
+      wf_commons['TotalSteps'] = self.step_number
+      for step_commons in self.step_commons:
+        wf_commons['UserOutputData'] = ['i1', 'i2']
+        wf_commons['UserOutputSE'] = ['MySE']
+        wf_commons['OwnerName'] = 'fstagni'
+        open( 'i1', 'w' ).close()
+        open( 'i2', 'w' ).close()
+        self.assertTrue( self.ujf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                           self.workflowStatus, self.stepStatus,
+                                           wf_commons, step_commons,
+                                           self.step_number, self.step_id, orderedSEs = ['MySE1', 'MySE2'] )['OK'] )
+      os.remove( 'i1' )
+      os.remove( 'i2' )
 
 #############################################################################
 # FileUsage.py
