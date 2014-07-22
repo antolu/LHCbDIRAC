@@ -245,8 +245,8 @@ class BKQuery():
     """
     if val:
       self.__bkQueryDict[key] = val
-    elif key in self.__bkQueryDict:
-      self.__bkQueryDict.pop( key )
+    else:
+      self.__bkQueryDict.pop( key, None )
     return self.__bkQueryDict
 
   def setConditions( self, cond = None ):
@@ -667,33 +667,41 @@ class BKQuery():
     if not self.getProcessingPass():
       gLogger.fatal( 'Impossible to get a list of productions without the Processing Pass' )
       return []
-    res = self.__bkClient.getProductions( BKQuery( self.__bkQueryDict ).setVisible( visible ) )
-    if not res['OK']:
-      gLogger.error( 'Error getting productions from BK', res['Message'] )
-      return []
-    transClient = TransformationClient()
-    if self.getProcessingPass().replace( '/', '' ) != 'Real Data':
-      fileTypes = self.getFileTypeList()
-      prodList = [prod for p in res['Value']['Records'] for prod in p
-                  if self.__getProdStatus( prod ) != 'Deleted']
-      # print '\n', self.__bkQueryDict, res['Value']['Records'], '\nVisible:', visible, prodList
-      pList = []
-      if fileTypes:
-        for prod in prodList:
-          res = transClient.getBookkeepingQuery( prod )
-          if res['OK'] and res['Value']['FileType'] in fileTypes:
-            if type( prod ) != type( [] ):
-              prod = [prod]
-            pList += [p for p in prod if p not in pList]
-      if not pList:
-        pList = prodList
-    else:
-      pList = [-run for r in res['Value']['Records'] for run in r]
-      pList.sort()
-      startRun = int( self.__bkQueryDict.get( 'StartRun', 0 ) )
-      endRun = int( self.__bkQueryDict.get( 'EndRun', sys.maxint ) )
-      pList = [run for run in pList if run >= startRun and run <= endRun]
-    return sorted( pList )
+    eventTypes = self.__bkQueryDict.get( 'EventType' )
+    if type( eventTypes ) != type( [] ):
+      eventTypes = [eventTypes]
+    fullList = []
+    for eventType in eventTypes:
+      bkQ = BKQuery( self.__bkQueryDict )
+      bkQ.setVisible( visible )
+      res = self.__bkClient.getProductions( bkQ.setEventType( eventType ) )
+      if not res['OK']:
+        gLogger.error( 'Error getting productions from BK', res['Message'] )
+        return []
+      transClient = TransformationClient()
+      if self.getProcessingPass().replace( '/', '' ) != 'Real Data':
+        fileTypes = self.getFileTypeList()
+        prodList = [prod for p in res['Value']['Records'] for prod in p
+                    if self.__getProdStatus( prod ) != 'Deleted']
+        # print '\n', self.__bkQueryDict, res['Value']['Records'], '\nVisible:', visible, prodList
+        pList = []
+        if fileTypes:
+          for prod in prodList:
+            res = transClient.getBookkeepingQuery( prod )
+            if res['OK'] and res['Value']['FileType'] in fileTypes:
+              if type( prod ) != type( [] ):
+                prod = [prod]
+              pList += [p for p in prod if p not in pList]
+        if not pList:
+          pList = prodList
+      else:
+        pList = [-run for r in res['Value']['Records'] for run in r]
+        pList.sort()
+        startRun = int( self.__bkQueryDict.get( 'StartRun', 0 ) )
+        endRun = int( self.__bkQueryDict.get( 'EndRun', sys.maxint ) )
+        pList = [run for run in pList if run >= startRun and run <= endRun]
+      fullList += pList
+    return sorted( fullList )
 
   def getBKConditions( self ):
     """
