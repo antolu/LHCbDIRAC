@@ -77,8 +77,9 @@ def convertSEs( ses ):
 
   return seList
 
-class DMScript( object ):
-  """ DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
+class DMScript():
+  """
+  DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
   """
 
   def __init__( self ):
@@ -130,8 +131,6 @@ class DMScript( object ):
     Script.registerSwitch( "", "File=", "File containing list of LFNs", self.setLFNsFromFile )
     Script.registerSwitch( "l:", "LFNs=", "List of LFNs (comma separated)", self.setLFNs )
     Script.registerSwitch( "", "Terminal", "LFNs are entered from stdin (--File /dev/stdin)", self.setLFNsFromTerm )
-    Script.registerSwitch( "", "Async", "The actions are executed with requests", lambda x: DIRAC.S_OK( self.options.setdefault( 'Async', True ) ) )
-
 
   def registerJobsSwitches( self ):
     ''' Job switches '''
@@ -223,7 +222,15 @@ class DMScript( object ):
     return DIRAC.S_OK()
 
   def setDirectory( self, arg ):
-    self.options['Directory'] = arg.split( ',' )
+    try:
+      import sys
+      f = open( arg, 'r' ) if arg else sys.stdin
+      directories = self.getLFNsFromList( f.read().splitlines() )
+      if arg:
+        f.close()
+    except:
+      directories = self.getLFNsFromList( arg )
+    self.options.setdefault( 'Directory', set() ).update( directories )
     return DIRAC.S_OK()
 
   def setSites( self, arg ):
@@ -283,7 +290,7 @@ class DMScript( object ):
       lfns = self.getLFNsFromList( arg )
     self.options.setdefault( 'LFNs', set() ).update( lfns )
     return DIRAC.S_OK()
-  
+
   def getOptions( self ):
     return self.options
 
