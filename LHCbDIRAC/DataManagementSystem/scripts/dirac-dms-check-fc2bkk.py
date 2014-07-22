@@ -56,21 +56,39 @@ def doCheck():
                      '\n'.join( sorted( cc.existLFNsNotInBK[0:maxFiles] ) ) ) )
     if fixIt:
       gLogger.always( "Going to fix them, by removing from the FC and storage" )
-      res = dm.removeFile( cc.existLFNsNotInBK )
-      if res['OK']:
-        success = len( res['Value']['Successful'] )
-        failures = 0
-        errors = {}
-        for reason in res['Value']['Failed'].values():
-          reason = str( reason )
-          if reason != "{'BookkeepingDB': 'File does not exist'}":
-            errors[reason] = errors.setdefault( reason, 0 ) + 1
-            failures += 1
-          else:
-            success += 1
-        gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if errors else '' ) )
-        for reason in errors:
-          gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
+      errors = {}
+      success = 0
+      failures = 0
+      maxRemove = 100
+      import sys
+      from DIRAC.Core.Utilities.List import breakListIntoChunks
+      chunkSize = min( maxRemove, max( 1, len( cc.existLFNsNotInBK ) / 2 ) )
+      if len( cc.existLFNsNotInBK ) > maxRemove:
+        sys.stdout.write( 'Remove by chunks of %d files ' % chunkSize )
+        dots = True
+      else:
+        dots = False
+      for lfns in breakListIntoChunks( cc.existLFNsNotInBK, chunkSize ):
+        if dots:
+          sys.stdout.write( '.' )
+          sys.stdout.flush()
+        res = dm.removeFile( lfns )
+        if res['OK']:
+          success += len( res['Value']['Successful'] )
+          for reason in res['Value']['Failed'].values():
+            reason = str( reason )
+            if reason != "{'BookkeepingDB': 'File does not exist'}":
+              errors[reason] = errors.setdefault( reason, 0 ) + 1
+              failures += 1
+            else:
+              success += 1
+        else:
+          reason = res['Message']
+          failures += len( lfns )
+          errors[reason] = errors.setdefault( reason, 0 ) + len( lfns )
+      gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if errors else '' ) )
+      for reason in errors:
+        gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
     else:
       gLogger.always( "Use --FixIt to fix it (remove from FC and storage)" )
   else:
