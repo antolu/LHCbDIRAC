@@ -24,7 +24,7 @@ if __name__ == "__main__":
   lfcCheck = True
   unique = False
   bkQuery = None
-  depth = 99999
+  depth = 0
 
   Script.registerSwitch( "", "SetInvisible", "Before creating the transformation, set the files in the BKQuery as invisible (default for DeleteDataset)" )
   Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
@@ -117,7 +117,7 @@ if __name__ == "__main__":
       bkQuery.setProcessingPass( basePass )
       processingPasses = bkQuery.getBKProcessingPasses().keys()
       for processingPass in list( processingPasses ):
-        if not processingPass.startswith( os.path.join( basePass, wildPass ) ) or processingPass == basePass or len( processingPass.replace( basePass, '' ).split( '/' ) ) != ( depth + 1 ):
+        if not processingPass.startswith( os.path.join( basePass, wildPass ) ) or processingPass == basePass or ( depth and len( processingPass.replace( basePass, '' ).split( '/' ) ) != ( depth + 1 ) ):
           processingPasses.remove( processingPass )
       if processingPasses:
         processingPasses.sort()
