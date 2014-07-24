@@ -11,7 +11,7 @@ from DIRAC.Core.DISET.RPCClient  import RPCClient
 from DIRAC.Core.Utilities        import List
 from DIRAC.Interfaces.API.Dirac  import Dirac
 
-from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
+from LHCbDIRAC.ResourceStatusSystem.Client.DiracSAM import DiracSAM
 
 __RCSID__  = "$Id$"
 AGENT_NAME = 'SAM/SAMAgent'
