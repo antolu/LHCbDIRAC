@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-########################################################################
-# $HeadURL$
-########################################################################
 """
 Remove replicas of a (list of) LFNs at a list of sites. It is possible to request a minimum of remaining replicas
 """
@@ -23,7 +20,6 @@ def __checkSEs( args ):
   return seList, args
 
 def execute():
-  verbose = False
   checkFC = True
   minReplicas = 1
 
@@ -56,8 +52,6 @@ def execute():
 
 
   for switch in Script.getUnprocessedSwitches():
-    if switch[0] == "v" or switch[0].lower() == "verbose":
-      verbose = True
     if switch[0] == "n" or switch[0].lower() == "nolfc":
       checkFC = False
     elif switch[0] == 'ReduceReplicas':
@@ -286,7 +280,6 @@ if __name__ == "__main__":
   dmScript.registerFileSwitches()
   dmScript.registerSiteSwitches()
 
-  Script.registerSwitch( "v", "Verbose", " use this option for verbose output [False]" )
   Script.registerSwitch( "n", "NoLFC", " use this option to force the removal from storage of replicas not in FC" )
   Script.registerSwitch( '', 'ReduceReplicas=', '  specify the number of replicas you want to keep (default SE: Tier1-USER)' )
   Script.setUsageMessage( '\n'.join( __doc__.split( '\n' ) + [
