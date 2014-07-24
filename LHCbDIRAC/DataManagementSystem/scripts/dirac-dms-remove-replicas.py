@@ -23,7 +23,8 @@ def execute():
   checkFC = True
   minReplicas = 1
 
-  from DIRAC.Core.Utilities.List                        import breakListIntoChunks, randomize
+  import random
+  from DIRAC.Core.Utilities.List                        import breakListIntoChunks
   from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from DIRAC.Resources.Catalog.FileCatalog           import FileCatalog
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
@@ -224,7 +225,7 @@ def execute():
         remaining = len( ses - seList )
         if remaining < minReplicas:
           # Not enough replicas outside seList, remove only part, otherwisae remove all
-          removeSEs = randomize( removeSEs )[0:remaining - minReplicas]
+          removeSEs = random.shuffle( removeSEs )[0:remaining - minReplicas]
         for seName in sorted( removeSEs ):
           res = dm.removeReplica( seName, lfns )
           if not res['OK']:

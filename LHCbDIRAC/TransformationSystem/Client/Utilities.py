@@ -5,10 +5,16 @@
 __RCSID__ = "$Id$"
 
 import os, time, datetime
-
+import random
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR, exit as DIRACExit
 from DIRAC.Core.Base import Script
+from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
+
 from DIRAC.Resources.Storage.StorageElement import StorageElement
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, convertSEs
 
 class Setter( object ):
@@ -129,11 +135,6 @@ class PluginScript( DMScript ):
     for key in [k for k in self.options if k.endswith( 'SE' ) or k.endswith( 'SEs' )]:
       params[key] = convertSEs( self.options[key] )
     return params
-
-from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
-from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 
 class PluginUtilities( object ):
   """
@@ -1128,9 +1129,9 @@ def closerSEs( existingSEs, targetSEs, local = False ):
                          for site in getSitesForSE( se ).get( 'Value', [] ) ] )
     closeSEs = set( [se for se in targetSEs if set( getSitesForSE( se ).get( 'Value', [] ) ) & existingSites] )
     otherSEs = targetSEs - closeSEs
-    targetSEs = randomize( list( closeSEs ) )
+    targetSEs = random.shuffle( list( closeSEs ) )
     if not local:
-      targetSEs += randomize( list( otherSEs ) )
+      targetSEs += random.shuffle( list( otherSEs ) )
   else:
     targetSEs = []
   return ( targetSEs + list( sameSEs ) ) if not local else targetSEs
