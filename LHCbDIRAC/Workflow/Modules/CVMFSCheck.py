@@ -1,5 +1,4 @@
-"""
-  CVMFSChech module for SAM jobs
+""" CVMFSCheck module for SAM jobs
 """
 
 import os
@@ -18,8 +17,7 @@ class CVMFSCheck( ModuleBase ):
   """
 
   def __init__( self ):
-    """
-    Constructor
+    """ Constructor
     """
     logger = gLogger.getSubLogger( self.__class__.__name__ )
     super( CVMFSCheck, self ).__init__( loggerIn = logger )
@@ -33,9 +31,7 @@ class CVMFSCheck( ModuleBase ):
     super( CVMFSCheck, self )._resolveInputStep()
 
   def execute( self ):
-    """
-    Main method. If ${VO_LHCB_SW_DIR}/lib/etc/cernvmfs is present, we continue
-    the SAM job.
+    """ Main method. If ${VO_LHCB_SW_DIR}/lib/etc/cernvmfs is present, we continue the SAM job.
     """
     try:
       super( CVMFSCheck, self ).execute( self.version, production_id = 'SAM', prod_job_id = '0000', step_number = '1' )
@@ -89,7 +85,6 @@ class CVMFSCheck( ModuleBase ):
 
     finally:
       super( CVMFSCheck, self ).finalize( self.version )
-
 
 # ...............................................................................
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

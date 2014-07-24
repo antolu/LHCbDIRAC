@@ -1,4 +1,4 @@
-""" LHCbDIRAC.SAMSystem.Modules.UploadSAMLogs
+""" LHCbDIRAC.Workflow.Modules.UploadSAMLogs
 
 """
 
@@ -10,7 +10,7 @@ import time
 from DIRAC                                               import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Resources.Storage.StorageElement              import StorageElement
-from DIRAC.Core.Utilities.ReturnValues                  import returnSingleResult
+from DIRAC.Core.Utilities.ReturnValues                   import returnSingleResult
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
@@ -18,8 +18,7 @@ from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
 __RCSID__ = '$Id$'
 
 class UploadSAMLogs( ModuleBase ):
-  """
-    UploadSAMLogs extends Workflow.Modules.ModuleBase
+  """ UploadSAMLogs extends Workflow.Modules.ModuleBase
 
       it is used by SAMJobs to upload their outputs, as they do not need a very
       complex module to do it.
