@@ -162,8 +162,14 @@ class UploadLogFile( ModuleBase ):
         self.log.error( "Failed to upload log files with message '%s', uploading to failover SE" % res['Message'] )
         # make a tar file
         tarFileName = os.path.basename( self.logLFNPath )
-        res = tarFiles( tarFileName, selectedFiles, compression = 'gz' )
-        if not res['OK']:
+        try:
+          res = tarFiles( tarFileName, selectedFiles, compression = 'gz' )
+          if not res['OK']:
+            self.log.error( 'Failed to create tar of log files: %s' % res['Message'] )
+            self.setApplicationStatus( 'Failed to create tar of log files' )
+            # We do not fail the job for this case
+            return S_OK()
+        except IOError:
           self.log.error( 'Failed to create tar of log files: %s' % res['Message'] )
           self.setApplicationStatus( 'Failed to create tar of log files' )
           # We do not fail the job for this case
