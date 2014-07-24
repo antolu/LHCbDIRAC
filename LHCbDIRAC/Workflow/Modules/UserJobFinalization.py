@@ -7,7 +7,6 @@ __RCSID__ = "$Id$"
 import os, random, re
 
 from DIRAC                                                    import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.Utilities                                     import List
 from DIRAC.Core.Utilities.File                                import getGlobbedFiles
 from DIRAC.DataManagementSystem.Client.FailoverTransfer       import FailoverTransfer
 from DIRAC.Core.Security.ProxyInfo                            import getProxyInfo
@@ -111,7 +110,7 @@ class UserJobFinalization( ModuleBase ):
         for i in globList:
           self.userOutputData.remove( i )
 
-        globbedOutputList = List.uniqueElements( getGlobbedFiles( globList ) )
+        globbedOutputList = list( set ( getGlobbedFiles( globList ) ) )
         if globbedOutputList:
           self.log.info( 'Found a pattern in the output data file list, \
           extra files to upload are: %s' % ( ', '.join( globbedOutputList ) ) )
@@ -301,7 +300,7 @@ class UserJobFinalization( ModuleBase ):
       orderedSEs = localSEs[0:1] + userSEs + localSEs[1:]
     else:
       orderedSEs = userSEs + localSEs
-    orderedSEs += List.randomize( list( otherSEs ) )
+    orderedSEs += random.shuffle( list( otherSEs ) )
 
     return orderedSEs
 

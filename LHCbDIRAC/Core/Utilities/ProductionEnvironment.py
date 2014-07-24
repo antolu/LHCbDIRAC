@@ -440,7 +440,7 @@ def getCMTConfigsCompatibleWithPlatforms( originalPlatforms ):
   for plat in platforms:
     CMTConfigsList += platformsDict.get( plat, [] )
 
-  return S_OK( uniqueElements( CMTConfigsList ) )
+  return S_OK( list( set( CMTConfigsList ) ) )
 
 
 def getPlatformFromConfig( CMTConfig ):

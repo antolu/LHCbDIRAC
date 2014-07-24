@@ -225,7 +225,7 @@ class LHCbJob( Job ):
 
     # ensure optionsFile list is unique:
     tmpList = optionsFile.split( ';' )
-    optionsFile = ';'.join( uniqueElements( tmpList ) )
+    optionsFile = ';'.join( list( set( tmpList ) ) )
     self.log.verbose( 'Final options list is: %s' % optionsFile )
     if inputData:
       if type( inputData ) in types.StringTypes:

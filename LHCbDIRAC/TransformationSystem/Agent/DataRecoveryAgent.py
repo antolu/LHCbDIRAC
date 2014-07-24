@@ -25,7 +25,6 @@ import datetime
 
 from DIRAC                                                       import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule                                 import AgentModule
-from DIRAC.Core.Utilities.List                                   import uniqueElements
 from DIRAC.Core.Utilities.Time                                   import dateTime
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations         import Operations
 from DIRAC.DataManagementSystem.Client.DataManager               import DataManager
@@ -241,7 +240,7 @@ class DataRecoveryAgent( AgentModule ):
         statuses only possibly include some files in Unused status (not Processed
         for example) that will not be touched.
     """
-    prodJobIDs = uniqueElements( fileDict.values() )
+    prodJobIDs = list( set( fileDict.values() ) )
     self.log.verbose( 'The following %s production jobIDs apply to the selected files:\n%s' % ( len( prodJobIDs ),
                                                                                              prodJobIDs ) )
 
