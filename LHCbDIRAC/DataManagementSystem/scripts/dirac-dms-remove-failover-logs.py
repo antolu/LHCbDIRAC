@@ -4,8 +4,8 @@
 """
 import DIRAC
 from DIRAC.Core.Base import Script
-from DIRAC import gLogger, gConfig
-import sys, os
+from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+import sys
 
 if __name__ == "__main__":
 
@@ -38,19 +38,17 @@ if __name__ == "__main__":
 
 
   from DIRAC.Core.DISET.RPCClient import RPCClient
-  from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
 
-  from DIRAC.DataManagementSystem.Client.ReplicaManager                     import ReplicaManager
-  from types import StringTypes, ListType, DictType, StringType, TupleType
-  from DIRAC import S_OK, S_ERROR, gLogger, gConfig
+  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+  from types import StringTypes, ListType, StringType
   from DIRAC.AccountingSystem.Client.Types.DataOperation import DataOperation
   from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
   from DIRAC.Resources.Storage.StorageElement import StorageElement
   from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
   import time
-  class MyReplicaManager( ReplicaManager ):
+  class MyReplicaManager( DataManager ):
     def __init( self ):
-      ReplicaManager.__init__( self )
+      DataManager.__init__( self )
 
     def removeDirectory( self, dir, seList = [] ):
       if not seList:
