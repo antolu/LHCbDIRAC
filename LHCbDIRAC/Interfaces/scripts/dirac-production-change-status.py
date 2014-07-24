@@ -1,23 +1,13 @@
 #!/usr/bin/env python
-########################################################################
-# File :   dirac-production-change-status
-# Author : Stuart Paterson
-########################################################################
+
 __RCSID__   = "$Id$"
-__VERSION__ = "$Revision$"
 
 import DIRAC
 from DIRAC.Core.Base import Script
 
-Script.registerSwitch( "f", "Force", "Optional: specify this flag to disable checks" )
 Script.parseCommandLine( ignoreErrors = True )
 
 args = Script.getPositionalArgs()
-
-disableChecks = False
-for switch in Script.getUnprocessedSwitches():
-  if switch[0].lower() in ('f','force'):
-    disableChecks = True
 
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 diracProd = DiracProduction()
@@ -31,7 +21,6 @@ def usage():
     print '%s:' %n
     for i, j in v.items():
       print '     %s = %s' % ( i, j )
-  print '\nOptional flag: -f --Force to disable checks'
 
   DIRAC.exit(2)
 
@@ -44,7 +33,7 @@ command = args[0]
 
 for prodID in args[1:]:
 
-  result = diracProd.production( prodID, command, disableCheck = disableChecks )
+  result = diracProd.production( prodID, command, disableCheck = False )
   if result.has_key('Message'):
     errorList.append( (prodID, result['Message']) )
     exitCode = 2
