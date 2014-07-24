@@ -370,9 +370,9 @@ if __name__ == "__main__":
         previousTask = { 'First': i, 'SEs':task[0], 'Location':location, 'Tasks': 1 }
       else:
         if previousTask['Tasks']:
-            print '%d:%d (%d tasks)' % ( previousTask['First'], i - 1, i - previousTask['First'] ), '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
-            printFinalSEs( transType, previousTask['Location'], previousTask['SEs'] )
-            previousTask = { 'First': 0, 'SEs':None, 'Location':None, 'Tasks': 0 }
+          print '%d:%d (%d tasks)' % ( previousTask['First'], i - 1, i - previousTask['First'] ), '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
+          printFinalSEs( transType, previousTask['Location'], previousTask['SEs'] )
+          previousTask = { 'First': 0, 'SEs':None, 'Location':None, 'Tasks': 0 }
         print i, '- Target SEs:', task[0], "- %d files" % len( task[1] ), " - Current locations:", location
         printFinalSEs( transType, location, task[0] )
     if previousTask['Tasks']:
