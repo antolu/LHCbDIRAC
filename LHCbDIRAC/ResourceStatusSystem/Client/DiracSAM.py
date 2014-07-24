@@ -3,14 +3,14 @@
     The Dirac SAM class inherits generic VO functionality from the Dirac API base class.
 """
 
+__RCSID__ = '$Id$'
+
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteCEMapping                  import getCESiteMapping
 from DIRAC.Interfaces.API.Dirac                          import Dirac, S_OK, S_ERROR
 from DIRAC.Workflow.Utilities.Utils                      import getStepDefinition, addStepToWorkflow
 
 from LHCbDIRAC.Interfaces.API.LHCbJob      import LHCbJob
-
-COMPONENT_NAME = 'DiracSAMAPI'
 
 class DiracSAM( Dirac ):
   """ DiracSAM: extension of Dirac Interface for SAM jobs
@@ -132,8 +132,7 @@ class DiracSAM( Dirac ):
                                                events = 2,
                                                extraPackages = 'ProdConf',
                                                modulesNameList = ['GaudiApplication'],
-                                               parametersList = [
-                                                                 ( 'applicationName', 'string', '', 'Application Name' ),
+                                               parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
                                                                  ( 'applicationVersion', 'string', '', 'Application Version' ),
                                                                  ( 'applicationLog', 'string', '', 'Application output file' ),
                                                                  ( 'numberOfEvents', 'string', '', 'Events treated' ),

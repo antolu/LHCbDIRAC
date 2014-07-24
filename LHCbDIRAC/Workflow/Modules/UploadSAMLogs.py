@@ -2,6 +2,8 @@
 
 """
 
+__RCSID__ = '$Id$'
+
 import glob
 import os
 import shutil
@@ -15,8 +17,6 @@ from DIRAC.Core.Utilities.ReturnValues                   import returnSingleResu
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
 
-__RCSID__ = '$Id$'
-
 class UploadSAMLogs( ModuleBase ):
   """ UploadSAMLogs extends Workflow.Modules.ModuleBase
 
@@ -29,6 +29,8 @@ class UploadSAMLogs( ModuleBase ):
   __logExtensions = [ '*.log' ]
 
   def __init__( self ):
+    """Module initialization.
+    """
 
     logger = gLogger.getSubLogger( self.__class__.__name__ )
     super( UploadSAMLogs, self ).__init__( loggerIn = logger )
@@ -49,12 +51,16 @@ class UploadSAMLogs( ModuleBase ):
     super( UploadSAMLogs, self )._resolveInputVariables()
     super( UploadSAMLogs, self )._resolveInputStep()
 
-  def execute( self ):
-    """
-      Main method.
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None, ):
+    """ Main method.
     """
     try:
-      super( UploadSAMLogs, self ).execute( self.version, production_id = 'SAM', prod_job_id = '0000', step_number = '2' )
+      super( UploadSAMLogs, self ).execute( self.version, 'SAM', '0000', wms_job_id,
+                                            workflowStatus, stepStatus,
+                                            wf_commons, step_commons, '2', step_id )
 
       self._resolveInputVariables()
 
@@ -117,19 +123,15 @@ class UploadSAMLogs( ModuleBase ):
       try:
         self.nagiosConnector.readConfig()
         self.nagiosConnector.initializeConnection()
-        self.nagiosConnector.assembleMessage(
-                            serviceURI=self.workflow_commons[ 'GridRequiredCEs' ],
-                            # if one step fails, set the status to 'CRITICAL'
-                            # in a SAMJob only OK (False) and CRITICAL (True)  are used
-                            # this function will also accept appropriate strings or numbers 0-3
-                            status='CRITICAL' in self.workflow_commons[ 'SAMResults' ].values(),
-                            details ="Job_ID: %s. Logfile: %s Details: %s " % (
-                                        self.workflow_commons[ 'logURL' ].split('/')[-1], 
-                                        self.workflow_commons[ 'logURL' ], 
-                                        ". ".join(self.workflow_commons['SAMDetails'].values())
-                                        ),
-                            nagiosName='org.lhcb.DiracTest-lhcb'
-                            )                      
+        self.nagiosConnector.assembleMessage( serviceURI = self.workflow_commons[ 'GridRequiredCEs' ],
+                                              # if one step fails, set the status to 'CRITICAL'
+                                              # in a SAMJob only OK (False) and CRITICAL (True)  are used
+                                              # this function will also accept appropriate strings or numbers 0-3
+                                              status = 'CRITICAL' in self.workflow_commons[ 'SAMResults' ].values(),
+                                              details = "Job_ID: %s. Logfile: %s Details: %s " % ( self.workflow_commons[ 'logURL' ].split( '/' )[-1],
+                                                                                                   self.workflow_commons[ 'logURL' ],
+                                                                                                   ". ".join( self.workflow_commons['SAMDetails'].values() ) ),
+                                                                                                   nagiosName = 'org.lhcb.DiracTest-lhcb' )
 
         self.nagiosConnector.sendMessage()
         self.nagiosConnector.endConnection()
@@ -143,9 +145,6 @@ class UploadSAMLogs( ModuleBase ):
       return S_ERROR( e )
 
     finally:
-
       super( UploadSAMLogs, self ).finalize( self.version )
 
-
-################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

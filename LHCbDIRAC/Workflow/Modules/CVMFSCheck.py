@@ -1,15 +1,13 @@
 """ CVMFSCheck module for SAM jobs
 """
 
+__RCSID__ = '$Id: $'
+
 import os
 
-# DIRAC
 from DIRAC import gLogger, S_ERROR, S_OK
-
-# LHCbDIRAC
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
-__RCSID__ = '$Id: $'
 
 class CVMFSCheck( ModuleBase ):
   """
@@ -30,12 +28,18 @@ class CVMFSCheck( ModuleBase ):
     super( CVMFSCheck, self )._resolveInputVariables()
     super( CVMFSCheck, self )._resolveInputStep()
 
-  def execute( self ):
+  def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None, ):
     """ Main method. If ${VO_LHCB_SW_DIR}/lib/etc/cernvmfs is present, we continue the SAM job.
     """
     try:
-      super( CVMFSCheck, self ).execute( self.version, production_id = 'SAM', prod_job_id = '0000', step_number = '1' )
-  
+      super( CVMFSCheck, self ).execute( self.version, 'SAM', '0000', wms_job_id,
+                                         workflowStatus, stepStatus,
+                                         wf_commons, step_commons, '1', step_id )
+
+
       self._resolveInputVariables()
 
       self.log.info( 'Checking presence of CVMFS' )
