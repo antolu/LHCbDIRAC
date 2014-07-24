@@ -106,7 +106,7 @@ class DiracSAM( Dirac ):
     
     # CVMFS step definition
     stepName = 'CVMFSCheck'
-    step = getStepDefinition( stepName, modulesNameList = [stepName], importLine = "LHCbDIRAC.SAMSystem.Modules" )
+    step = getStepDefinition( stepName, modulesNameList = [stepName] )
     addStepToWorkflow( samJob.workflow, step, stepName )
    
     gaudiSteps = []
@@ -133,21 +133,21 @@ class DiracSAM( Dirac ):
                                                extraPackages = 'ProdConf',
                                                modulesNameList = ['GaudiApplication'],
                                                parametersList = [
-                                                    ( 'applicationName', 'string', '', 'Application Name' ),
-                                                    ( 'applicationVersion', 'string', '', 'Application Version' ),
-                                                    ( 'applicationLog', 'string', '', 'Application output file' ),
-                                                    ( 'numberOfEvents', 'string', '', 'Events treated' ),
-                                                    ( 'outputFilePrefix', 'string', '', 'Data file name' ),
-                                                    ( 'XMLSummary', 'string', '', 'XMLSummaryFile name' ),
-                                                    ( 'extraPackages', 'string', '', 'extraPackages' ),
-                                                    ( 'optionsFile', 'string', '', 'optionsFile' ),
-                                                    ( 'listoutput', 'list', [], 'loutputs' ),
-                                                    ( 'DDDBTag', 'string', '', 'DDDBTag' ),
-                                                    ( 'CondDBTag', 'string', '', 'CondDBTag' ),
-                                                    ( 'inputData', 'string', '', 'iData' ),
-                                                    ( 'inputDataType', 'string', '', 'iDataType' ),
-                                                    ( 'SystemConfig', 'string', '', 'CMT Config' )
-                                                    ] )
+                                                                 ( 'applicationName', 'string', '', 'Application Name' ),
+                                                                 ( 'applicationVersion', 'string', '', 'Application Version' ),
+                                                                 ( 'applicationLog', 'string', '', 'Application output file' ),
+                                                                 ( 'numberOfEvents', 'string', '', 'Events treated' ),
+                                                                 ( 'outputFilePrefix', 'string', '', 'Data file name' ),
+                                                                 ( 'XMLSummary', 'string', '', 'XMLSummaryFile name' ),
+                                                                 ( 'extraPackages', 'string', '', 'extraPackages' ),
+                                                                 ( 'optionsFile', 'string', '', 'optionsFile' ),
+                                                                 ( 'listoutput', 'list', [], 'loutputs' ),
+                                                                 ( 'DDDBTag', 'string', '', 'DDDBTag' ),
+                                                                 ( 'CondDBTag', 'string', '', 'CondDBTag' ),
+                                                                 ( 'inputData', 'string', '', 'iData' ),
+                                                                 ( 'inputDataType', 'string', '', 'iDataType' ),
+                                                                 ( 'SystemConfig', 'string', '', 'CMT Config' )
+                                                                 ] )
 
       if not applicationStep['OK']:
         return applicationStep
@@ -166,8 +166,7 @@ class DiracSAM( Dirac ):
     samJob._addParameter( samJob.workflow, 'gaudiSteps', 'list', gaudiSteps, 'list of Gaudi Steps' )
     
     stepName = 'UploadSAMLogs' 
-    step = getStepDefinition( stepName, modulesNameList = [stepName],
-                              importLine = "LHCbDIRAC.SAMSystem.Modules" )
+    step = getStepDefinition( stepName, modulesNameList = [stepName] )
     addStepToWorkflow( samJob.workflow, step, stepName )
     
     samJob.setDIRACPlatform()

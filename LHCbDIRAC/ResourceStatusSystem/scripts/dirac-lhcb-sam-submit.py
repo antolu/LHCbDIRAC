@@ -29,12 +29,10 @@ def registerSwitches():
     command line interface.
   """
 
-  switches = (     
-    ( 'systemconfig=', 'Value to use as SystemConfig in JDL. eg x86_64-slc5-gcc43-opt' ),
-    ( 'ce=', 'Computing Element to submit to (must be in DIRAC CS) or all' ),
-    ( 'number=', 'number of SAM Jobs to be submitted [Experts only]' ),
-    ( 'local', 'Run the job locally' )
-              )
+  switches = ( ( 'systemconfig=', 'Value to use as SystemConfig in JDL. eg x86_64-slc5-gcc43-opt' ),
+               ( 'ce=', 'Computing Element to submit to (must be in DIRAC CS) or all' ),
+               ( 'number=', 'number of SAM Jobs to be submitted [Experts only]' ),
+               ( 'local', 'Run the job locally' ) )
   for switch in switches:
     Script.registerSwitch( '', switch[ 0 ], switch[ 1 ] )
   Script.setUsageMessage( __doc__ )
@@ -175,7 +173,7 @@ if __name__ == "__main__":
   registerSwitches()
   switchDict = parseSwitches()
 
-  from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
+  from LHCbDIRAC.ResourceStatusSystem.Client.DiracSAM import DiracSAM
 
   diracSAM = DiracSAM()
 
