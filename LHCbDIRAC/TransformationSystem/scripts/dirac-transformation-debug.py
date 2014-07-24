@@ -1171,11 +1171,7 @@ if __name__ == "__main__":
   bkClient = BookkeepingClient()
   transClient = TransformationClient()
   reqClient = ReqClient()
-  try:
-    from DIRAC.RequestManagementSystem.Client.RequestClient                  import RequestClient
-    requestClient = RequestClient()
-  except:
-    requestClient = None
+  requestClient = None
   dm = DataManager()
   fc = FileCatalog()
   dmTransTypes = ( "Replication", "Removal" )
