@@ -23,6 +23,7 @@ class RAWIntegrityClient( Client ):
         self.url = PathFinder.getServiceURL( 'DataManagement/RAWIntegrity' )
       self.setServer( url )
       self.valid = True
+      self.rawIntegritySrv = self._getRPC()
     except Exception, x:
       errStr = "RAWIntegrityClient.__init__: Exception while generating server url."
       gLogger.exception( errStr, lException = x )
@@ -63,9 +64,9 @@ class RAWIntegrityClient( Client ):
       se = str( info['SE'] )
       guid = str( info['GUID'] )
       checksum = str( info['Checksum'] )
-      # res = self.rawIntegritySrv.addFile( lfn, pfn, size, se, guid, checksum )
-      rpc = self._getRPC()
-      rpc.addFile( lfn, pfn, size, se, guid, checksum )
+      res = self.rawIntegritySrv.addFile( lfn, pfn, size, se, guid, checksum )
+#       rpc = self._getRPC()
+#       rpc.addFile( lfn, pfn, size, se, guid, checksum )
       if not res['OK']:
         failed[lfn] = res['Message']
       else:

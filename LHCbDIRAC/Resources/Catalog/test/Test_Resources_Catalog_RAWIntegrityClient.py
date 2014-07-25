@@ -117,8 +117,9 @@ class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
     """
 
     catalog = self.testClass()
+    catalog.rawIntegritySrv = mock.MagicMock()
 
-    res = catalog.addFile( '1' )
+    res = catalog.addFile( {'1':{'PFN':'pfn', 'Size': 123, 'SE': 'aSe', 'GUID': 'aGuid', 'Checksum': 'aCksm'}} )
     self.assert_( res['OK'] )
 
     fileDict = {
