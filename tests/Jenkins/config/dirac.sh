@@ -180,8 +180,9 @@ dirac_externals(){
     python `which easy_install` PIL
 #    python `which easy_install` pyqt now it's impossible...
     python `which easy_install` stomp.py
-    # Putting as "hack"... is it really necessary?
-    python `which easy_install` WebOb
+    # Putting as "hack" because of problems between pylons and python 2.7
+    pip uninstall webob ; pip install webob==0.9.6.1 ; pip uninstall webtest ; pip install webtest==1.4.3
+#python `which easy_install` WebOb
 
     python `which easy_install` --upgrade nose
     python `which easy_install` --upgrade pylint  
