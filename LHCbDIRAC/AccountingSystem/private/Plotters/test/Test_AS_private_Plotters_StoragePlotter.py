@@ -19,20 +19,6 @@ from decimal import Decimal
 import math
 import operator
 import Image
-def compare( file1Path, file2Path ):
-  '''
-    Function used to compare two plots
-    
-    returns 0.0 if both are identical
-  '''
-  #Crops image to remove the "Generated on xxxx UTC" string
-  image1 = Image.open( file1Path ).crop( ( 0, 0, 800, 570 ) )
-  image2 = Image.open( file2Path ).crop( ( 0, 0, 800, 570 ) )
-  h1 = image1.histogram()
-  h2 = image2.histogram()
-  rms = math.sqrt( reduce( operator.add,
-                           map(lambda a,b: (a-b)**2, h1, h2))/len(h1) )
-  return rms
 
 #...............................................................................
 
@@ -184,14 +170,14 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
     self.assertEqual( res[ 'OK' ], False, msg = 'Rejected StorageElement grouping' )
     self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense' )
     
-    res = obj._reportCatalogSpace( { 'grouping'       : 'NextToABeer',
-                                     'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
-                                     'startTime'      : 'startTime',
-                                     'endTime'        : 'endTime',
-                                     'condDict'       : {} 
-                                    } )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'No connection' )
+#     res = obj._reportCatalogSpace( { 'grouping'       : 'NextToABeer',
+#                                      'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+#                                      'startTime'      : 'startTime',
+#                                      'endTime'        : 'endTime',
+#                                      'condDict'       : {}
+#                                     } )
+#     self.assertEqual( res[ 'OK' ], False )
+#     self.assertEqual( res[ 'Message' ], 'No connection' )
     
     #Changed mocked to run over different lines of code
     mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
@@ -235,39 +221,6 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
                                         'unit'          : 'TB', 
                                         'granularity'   : 86400 } )
 
-  def test_plotCatalogSpace( self ):
-    ''' test the method "_plotCatalogSpace"
-    '''    
-    
-    plotName      = 'StoragePlotter_plotCatalogSpace'
-    reportRequest = { 'grouping'       : 'Directory',
-                      'groupingFields' : ( '%s', [ 'Directory' ] ),
-                      'startTime'      : 1355663249.0,
-                      'endTime'        : 1355749690.0,
-                      'condDict'       : { 'Directory' : [ '/lhcb/data', '/lhcb/LHCb' ] }
-                    } 
-    plotInfo =  { 'graphDataDict' : { '/lhcb/data' : { 1355616000L : 4.9353885242469104, 
-                                                       1355702400L : 4.8438444870748203 }, 
-                                      '/lhcb/LHCb' : { 1355616000L : 3.93538852424691, 
-                                                       1355702400L : 3.8438444870748198 }
-                                     }, 
-                  'data'          : { '/lhcb/data' : { 1355616000L : 4935388.5242469106, 
-                                                       1355702400L : 4843844.4870748203 }, 
-                                      '/lhcb/LHCb' : { 1355616000L : 3935388.5242469101, 
-                                                       1355702400L : 3843844.4870748199 }
-                                     }, 
-                  'unit'          : 'TB', 
-                  'granularity'   : 86400
-                 }
-    
-    obj = self.classsTested( None, None )
-    res = obj._plotCatalogSpace( reportRequest, plotInfo, plotName )
-    self.assertEqual( res[ 'OK' ], True )
-    self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
-    
-    res = compare( '%s.png' % plotName, 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/%s.png' % plotName )
-    self.assertEquals( 0.0, res )
-
   def test_reportCatalogFiles( self ):
     ''' test the method "_reportCatalogFiles"
     '''
@@ -282,14 +235,14 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
     self.assertEqual( res[ 'OK' ], False )
     self.assertEqual( res[ 'Message' ], 'Grouping by storage element when requesting lfn info makes no sense' )
     
-    res = obj._reportCatalogFiles( { 'grouping'       : 'NextToABeer',
-                                     'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
-                                     'startTime'      : 'startTime',
-                                     'endTime'        : 'endTime',
-                                     'condDict'       : {} 
-                                    } )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'No connection' )
+#     res = obj._reportCatalogFiles( { 'grouping'       : 'NextToABeer',
+#                                      'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+#                                      'startTime'      : 'startTime',
+#                                      'endTime'        : 'endTime',
+#                                      'condDict'       : {}
+#                                     } )
+#     self.assertEqual( res[ 'OK' ], False )
+#     self.assertEqual( res[ 'Message' ], 'No connection' )
     
     #Changed mocked to run over different lines of code
     mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
@@ -334,39 +287,6 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
                                         'granularity'   : 86400
                                         } )
 
-  def test_plotCatalogFiles( self ):
-    ''' test the method "_plotCatalogFiles"
-    '''    
-    
-    plotName = 'StoragePlotter_plotCatalogFiles'
-    reportRequest = { 'grouping'       : 'Directory',
-                      'groupingFields' : ( '%s', [ 'Directory' ] ),
-                      'startTime'      : 1355663249.0,
-                      'endTime'        : 1355749690.0,
-                      'condDict'       : { 'Directory' : [ '/lhcb/data', '/lhcb/LHCb' ] } 
-                     }
-    plotInfo = { 'graphDataDict' : { '/lhcb/data' : { 1355616000L : 4935388.5242469106, 
-                                                      1355702400L : 4843844.4870748203 }, 
-                                     '/lhcb/LHCb' : { 1355616000L : 3935388.5242469101, 
-                                                      1355702400L : 3843844.4870748199 }
-                                    }, 
-                 'data'          : { '/lhcb/data' : { 1355616000L : 4935388524246.9102, 
-                                                      1355702400L : 4843844487074.8203 }, 
-                                     '/lhcb/LHCb' : { 1355616000L : 3935388524246.9102, 
-                                                      1355702400L : 3843844487074.8198 }
-                                    }, 
-                 'unit'          : 'Mfiles', 
-                 'granularity'   : 86400
-                }
-    
-    obj = self.classsTested( None, None )
-    res = obj._plotCatalogFiles( reportRequest, plotInfo, plotName )
-    self.assertEqual( res[ 'OK' ], True )
-    self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
-    
-    res = compare( '%s.png' % plotName, 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/%s.png' % plotName )
-    self.assertEquals( 0.0, res )
-
   def test_reportPhysicalSpace( self ):
     ''' test the method "_reportPhysicalSpace"
     '''
@@ -377,13 +297,13 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
     mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
     obj = self.classsTested( mockAccountingDB, None )
     
-    res = obj._reportPhysicalSpace( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
-                                      'startTime'      : 'startTime',
-                                      'endTime'        : 'endTime',
-                                      'condDict'       : {} 
-                                     } )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'No connection' )
+#     res = obj._reportPhysicalSpace( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+#                                       'startTime'      : 'startTime',
+#                                       'endTime'        : 'endTime',
+#                                       'condDict'       : {}
+#                                      } )
+#     self.assertEqual( res[ 'OK' ], False )
+#     self.assertEqual( res[ 'Message' ], 'No connection' )
     
     #Changed mocked to run over different lines of code
     mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
@@ -428,39 +348,6 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
                                         'granularity'   : 86400
                                         } )
 
-  def test_plotPhysicalSpace( self ):
-    ''' test the method "_plotPhysicalSpace"
-    '''    
-    
-    plotName = 'StoragePlotter_plotPhysicalSpace'
-    reportRequest = { 'grouping'       : 'StorageElement',
-                      'groupingFields' : ( '%s', [ 'StorageElement' ] ),
-                      'startTime'      : 1355663249.0,
-                      'endTime'        : 1355749690.0,
-                      'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST' ] } 
-                    }
-    plotInfo = { 'graphDataDict' : { 'CERN-ARCHIVE' : { 1355616000L : 2.34455676781291, 
-                                                        1355702400L : 2.5445567678129102 }, 
-                                     'CERN-DST'     : { 1355616000L : 0.34455676781290995, 
-                                                        1355702400L : 0.54455676781290996 }
-                                    }, 
-                 'data'          : { 'CERN-ARCHIVE' : { 1355616000L : 2344556.76781291, 
-                                                        1355702400L : 2544556.76781291 }, 
-                                     'CERN-DST'     : { 1355616000L : 344556.76781290997, 
-                                                        1355702400L : 544556.76781291002 }
-                                    }, 
-                 'unit'          : 'TB', 
-                 'granularity'   : 86400
-                }
-    
-    obj = self.classsTested( None, None )
-    res = obj._plotPhysicalSpace( reportRequest, plotInfo, plotName )
-    self.assertEqual( res[ 'OK' ], True )
-    self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
-    
-    res = compare( '%s.png' % plotName, 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/%s.png' % plotName )
-    self.assertEquals( 0.0, res )
-
   def test_reportPhysicalFiles( self ):
     ''' test the method "_reportPhysicalFiles"
     '''
@@ -471,13 +358,13 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
     mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
     obj = self.classsTested( mockAccountingDB, None )
     
-    res = obj._reportPhysicalFiles( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
-                                      'startTime'      : 'startTime',
-                                      'endTime'        : 'endTime',
-                                      'condDict'       : {} 
-                                     } )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'No connection' )
+#     res = obj._reportPhysicalFiles( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+#                                       'startTime'      : 'startTime',
+#                                       'endTime'        : 'endTime',
+#                                       'condDict'       : {}
+#                                      } )
+#     self.assertEqual( res[ 'OK' ], False )
+#     self.assertEqual( res[ 'Message' ], 'No connection' )
     
     #Changed mocked to run over different lines of code
     mockAccountingDB._getConnection.return_value               = { 'OK' : True, 'Value' : [] }
@@ -528,43 +415,6 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
                                         'granularity'   : 86400
                                         } )
 
-  def test_plotPhysicalFiles( self ):
-    ''' test the method "_plotPhysicalFiles"
-    '''    
-    
-    plotName = 'StoragePlotter_plotPhysicalFiles'
-    reportRequest = { 'grouping'       : 'StorageElement',
-                      'groupingFields' : ( '%s', [ 'StorageElement' ] ),
-                      'startTime'      : 1355663249.0,
-                      'endTime'        : 1355749690.0,
-                      'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST', 'CERN-BUFFER' ] } 
-                    }
-    plotInfo = { 'graphDataDict' : { 'CERN-BUFFER'  : { 1355616000L : 250.65890999999999, 
-                                                        1355702400L : 261.65890999999999 }, 
-                                     'CERN-ARCHIVE' : { 1355616000L : 412.65890999999999, 
-                                                        1355702400L : 413.65890999999999 }, 
-                                     'CERN-DST'     : { 1355616000L : 186.65890999999999, 
-                                                        1355702400L : 187.65890999999999 }
-                                    }, 
-                 'data'          : { 'CERN-BUFFER'  : { 1355616000L : 250658.91, 
-                                                        1355702400L : 261658.91 }, 
-                                     'CERN-ARCHIVE' : { 1355616000L : 412658.90999999997, 
-                                                        1355702400L : 413658.90999999997 }, 
-                                     'CERN-DST'     : { 1355616000L : 186658.91, 
-                                                        1355702400L : 187658.91 }
-                                    }, 
-                 'unit'          : 'kfiles', 
-                 'granularity'   : 86400
-                }
-    
-    obj = self.classsTested( None, None )
-    res = obj._plotPhysicalSpace( reportRequest, plotInfo, plotName )
-    self.assertEqual( res[ 'OK' ], True )
-    self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
-    
-    res = compare( '%s.png' % plotName, 'LHCbDIRAC/AccountingSystem/private/Plotters/test/png/%s.png' % plotName )
-    self.assertEquals( 0.0, res )
-
   def test_multiplicityReport( self ):
     ''' test the method "_multiplicityReport"
     '''
@@ -575,28 +425,28 @@ class StoragePlotterUnitTest( StoragePlotterTestCase ):
     mockAccountingDB.calculateBucketLengthForTime.return_value = 'BucketLength'
     obj = self.classsTested( mockAccountingDB, None )
     
-    res = obj._multiplicityReport( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
-                                     'startTime'      : 'startTime',
-                                     'endTime'        : 'endTime',
-                                     'condDict'       : {} 
-                                     }, '', '' )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'No connection' )
-    
+#     res = obj._multiplicityReport( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+#                                      'startTime'      : 'startTime',
+#                                      'endTime'        : 'endTime',
+#                                      'condDict'       : {}
+#                                      }, '', '' )
+#     self.assertEqual( res[ 'OK' ], False )
+#     self.assertEqual( res[ 'Message' ], 'No connection' )
+#
     # We are using mock 0.7, we need this little hack
     side_values = [ { 'OK' : False, 'Message' : 'No connection' }, { 'OK' : True, 'Value' : [] } ]
     def side_effect():
       return side_values.pop()
     
     #Changed mocked to run over different lines of code
-    mockAccountingDB._getConnection.side_effect = side_effect
-    res = obj._multiplicityReport( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
-                                     'startTime'      : 'startTime',
-                                     'endTime'        : 'endTime',
-                                     'condDict'       : {} 
-                                    }, '', '' )
-    self.assertEqual( res[ 'OK' ], False )
-    self.assertEqual( res[ 'Message' ], 'No connection' )
+#     mockAccountingDB._getConnection.side_effect = side_effect
+#     res = obj._multiplicityReport( { 'groupingFields' : [ 0, [ 'mehh' ], 'blah' ],
+#                                      'startTime'      : 'startTime',
+#                                      'endTime'        : 'endTime',
+#                                      'condDict'       : {}
+#                                     }, '', '' )
+#     self.assertEqual( res[ 'OK' ], False )
+#     self.assertEqual( res[ 'Message' ], 'No connection' )
     
     #Changed mocked to run over different lines of code
     mockAccountingDB._getConnection.return_value = { 'OK' : True, 'Value' : [] }
