@@ -180,6 +180,8 @@ dirac_externals(){
     python `which easy_install` PIL
 #    python `which easy_install` pyqt now it's impossible...
     python `which easy_install` stomp.py
+    # Putting as "hack"... is it really necessary?
+    python `which easy_install` WebOb
 
     python `which easy_install` --upgrade nose
     python `which easy_install` --upgrade pylint  
