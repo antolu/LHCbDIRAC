@@ -9,7 +9,6 @@ __RCSID__ = "$Id$"
 
 # # from DIRAC
 from DIRAC                                                        import S_OK, S_ERROR, gConfig
-from DIRAC.Core.Utilities.List                                    import sortList
 from DIRAC.Resources.Catalog.FileCatalog                          import FileCatalog
 from DIRAC.TransformationSystem.Agent.TransformationCleaningAgent import TransformationCleaningAgent as DiracTCAgent
 # # from LHCbDIRAC
@@ -29,14 +28,14 @@ class TransformationCleaningAgent( DiracTCAgent ):
     """
     DiracTCAgent.__init__( self, *args, **kwargs )
 
-    self.directoryLocations = sortList( self.am_getOption( 'DirectoryLocations', [ 'TransformationDB',
+    self.directoryLocations = sorted( self.am_getOption( 'DirectoryLocations', [ 'TransformationDB',
                                                                                    'StorageUsage' ] ) )
     self.archiveAfter = self.am_getOption( 'ArchiveAfter', 7 )  # days
 
     storageElements = gConfig.getValue( '/Resources/StorageElementGroups/Tier1_MC_M-DST', [] )
     storageElements += ['CNAF_MC-DST', 'CNAF-RAW']
     # # FIXME: what about RSS???
-    self.activeStorages = sortList( self.am_getOption( 'ActiveSEs', storageElements ) )
+    self.activeStorages = sorted( self.am_getOption( 'ActiveSEs', storageElements ) )
 
     self.bkClient = None
     self.transClient = None
@@ -113,5 +112,5 @@ class TransformationCleaningAgent( DiracTCAgent ):
 
     if not directories:
       self.log.info( "No output directories found" )
-    directories = sortList( directories )
+    directories = sorted( directories )
     return S_OK( directories )

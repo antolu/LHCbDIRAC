@@ -9,7 +9,6 @@ import os, shutil
 
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.Utilities.ModuleFactory import ModuleFactory
-from DIRAC.Core.Utilities.List import sortList
 from DIRAC.Core.Utilities.Statistics import getMean, getMedian, getVariance, getStandardDeviation
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 
@@ -139,7 +138,7 @@ class ProtocolAccessTest( ModuleBase ):
           if not failedInitialise.has_key( failed ):
             failedInitialise[failed] = []
           failedInitialise[failed].append( protocol )
-        for lfn in sortList( res['Value']['Successful'].keys() ):
+        for lfn in sorted( res['Value']['Successful'].keys() ):
           if not fileLocations.has_key( lfn ):
             fileLocations[lfn] = {}
           turl = res['Value']['Successful'][lfn]
@@ -153,7 +152,7 @@ class ProtocolAccessTest( ModuleBase ):
         if not failedInitialise.has_key( failed ):
             failedInitialise[failed] = []
         failedInitialise[failed].append( 'local' )
-      for lfn in sortList( res['Value']['Successful'].keys() ):
+      for lfn in sorted( res['Value']['Successful'].keys() ):
         if not fileLocations.has_key( lfn ):
           fileLocations[lfn] = {}
         turl = res['Value']['Successful'][lfn]
@@ -161,8 +160,8 @@ class ProtocolAccessTest( ModuleBase ):
 
       # For any files that that failed to initialise
       timingResults = open( self.applicationLog, 'w' )
-      for lfn in sortList( failedInitialise.keys() ):
-        for protocol in sortList( failedInitialise[lfn] ):
+      for lfn in sorted( failedInitialise.keys() ):
+        for protocol in sorted( failedInitialise[lfn] ):
           statsString = "%s %s %s %s %s %s %s" % ( lfn.ljust( 70 ),
                                                    protocol.ljust( 10 ),
                                                    'I'.ljust( 10 ),
@@ -174,15 +173,15 @@ class ProtocolAccessTest( ModuleBase ):
       timingResults.close()
 
       gLogger.info( "Will test the following files:" )
-      for lfn in sortList( fileLocations.keys() ):
-        for protocol in sortList( fileLocations[lfn].keys() ):
+      for lfn in sorted( fileLocations.keys() ):
+        for protocol in sorted( fileLocations[lfn].keys() ):
           turl = fileLocations[lfn][protocol]
           self.log.info( "%s %s" % ( lfn, turl ) )
 
       statsStrings = []
-      for lfn in sortList( fileLocations.keys() ):
+      for lfn in sorted( fileLocations.keys() ):
         protocolDict = fileLocations[lfn]
-        for protocol in sortList( protocolDict.keys() ):
+        for protocol in sorted( protocolDict.keys() ):
           turl = protocolDict[protocol]
           res = readFileEvents( turl, self.applicationVersion )
           openTime = 'F'
@@ -249,7 +248,7 @@ class ProtocolAccessTest( ModuleBase ):
     if not res['OK']:
       self.log.error( "Failed to get turl for files", res['Message'] )
       failed = argumentsDict['InputData']
-    for lfn in sortList( res['Failed'] ):
+    for lfn in sorted( res['Failed'] ):
       self.log.error( "Failed to get turl for protocol", "%s %s" % ( protocol , lfn ) )
       failed.append( lfn )
     if not res['Successful']:
@@ -258,7 +257,7 @@ class ProtocolAccessTest( ModuleBase ):
     successful = {}
     if res['Successful']:
       self.log.info( "Successfully obtained turls for %s at:" % protocol )
-      for lfn in sortList( res['Successful'].keys() ):
+      for lfn in sorted( res['Successful'].keys() ):
         turl = res['Successful'][lfn]['turl']
         successful[lfn] = turl
         self.log.info( "%s : %s" % ( lfn.ljust( 50 ), turl.ljust( 50 ) ) )
@@ -279,7 +278,7 @@ class ProtocolAccessTest( ModuleBase ):
     if not res['OK']:
       self.log.error( "Failed to download file locally", res['Message'] )
       failed = argumentsDict['InputData']
-    for lfn in sortList( res['Failed'] ):
+    for lfn in sorted( res['Failed'] ):
       self.log.error( "Failed to download %s locally" % ( lfn ) )
       failed.append( lfn )
     if not res['Successful']:
@@ -288,7 +287,7 @@ class ProtocolAccessTest( ModuleBase ):
     successful = {}
     if res['Successful']:
       self.log.info( "Successfully obtained local copies of files at:" )
-      for lfn in sortList( res['Successful'].keys() ):
+      for lfn in sorted( res['Successful'].keys() ):
         path = res['Successful'][lfn]['path']
         successful[lfn] = path
         self.log.info( "%s : %s" % ( lfn.ljust( 50 ), path.ljust( 50 ) ) )

@@ -27,7 +27,6 @@ except:
   Script.showHelp()
 
 from DIRAC.Core.DISET.RPCClient import RPCClient
-from DIRAC.Core.Utilities.List import sortList
 
 exitCode = 0
 
@@ -41,7 +40,7 @@ else:
     print 'No files found for run %s' % runID
   else:
     print  '%s %s %s %s' % ('FileName'.ljust(100), 'Size'.ljust(10), 'GUID'.ljust(40), 'Replica'.ljust(8))
-    for lfn in sortList(res['Value'].keys()):
+    for lfn in sorted( res['Value'].keys() ):
       size = res['Value'][lfn]['FileSize']
       guid = res['Value'][lfn]['GUID']
       hasReplica = res['Value'][lfn]['GotReplica']

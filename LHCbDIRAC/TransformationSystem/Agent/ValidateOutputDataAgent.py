@@ -2,7 +2,6 @@
 """
 
 from DIRAC                                                    import S_OK, S_ERROR, gLogger
-from DIRAC.Core.Utilities.List                                import sortList
 from DIRAC.Resources.Catalog.FileCatalog                      import FileCatalog
 from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
 
@@ -80,7 +79,7 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
     if res['Value']['Failed']:
       return S_ERROR( "Failed to determine the existance of directories" )
     directoryExists = res['Value']['Successful']
-    for directory in sortList( directoryExists.keys() ):
+    for directory in sorted( directoryExists.keys() ):
       if not directoryExists[directory]:
         continue
       iRes = self.integrityClient.catalogDirectoryToBK( directory )
@@ -129,5 +128,5 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
 
     if not directories:
       self.log.info( "No output directories found" )
-    directories = sortList( directories )
+    directories = sorted( directories )
     return S_OK( directories )

@@ -6,7 +6,7 @@ __RCSID__ = "$Id$"
 import os, tempfile, time
 
 from DIRAC import gLogger, S_OK, S_ERROR
-from DIRAC.Core.Utilities.List          import breakListIntoChunks, sortList
+from DIRAC.Core.Utilities.List          import breakListIntoChunks
 from DIRAC.Core.Utilities.Subprocess    import systemCall, shellCall
 
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getScriptsLocation, getProjectCommand, runEnvironmentScripts
@@ -84,7 +84,7 @@ def readFileEvents( turl, appVersion ):
   oOutput.write( stdout )
   oOutput.close()
   oError = open( '%s/full.error' % ( workingDirectory ), 'w' )
-  for key in sortList( gaudiEnv.keys() ):
+  for key in sorted( gaudiEnv.keys() ):
     oError.write( "%s : %s\n" % ( key.ljust( 25 ), gaudiEnv[key] ) )
   oError.write( stderr )
   oError.close()

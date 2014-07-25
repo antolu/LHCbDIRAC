@@ -10,7 +10,7 @@ from DIRAC.Core.Base import Script
 import sys
 
 def orderSEs( listSEs ):
-  listSEs = sortList( listSEs )
+  listSEs = sorted( listSEs )
   orderedSEs = [se for se in listSEs if se.endswith( "-ARCHIVE" )]
   orderedSEs += [se for se in listSEs if not se.endswith( "-ARCHIVE" )]
   return orderedSEs
@@ -51,7 +51,7 @@ if __name__ == "__main__":
       prWithReplicas = [int( xx ) for xx in switch[1].split( ',' )]
 
 
-  from DIRAC.Core.Utilities.List                        import sortList, breakListIntoChunks
+  from DIRAC.Core.Utilities.List                        import breakListIntoChunks
   from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
   from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     print string
 
   print "\nSites statistics:"
-  for site in sortList( repSites.keys() ):
+  for site in sorted( repSites.keys() ):
     string = "%16s: %d files" % ( site, repSites[site][0] )
     if getSize: string += " - %.3f TB" % ( repSites[site][1] / TB )
     print string

@@ -8,7 +8,6 @@ import shutil
 
 from DIRAC                         import S_OK, gConfig, gLogger
 from DIRAC.Core.Base.AgentModule   import AgentModule
-from DIRAC.Core.Utilities.List     import sortList
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProcessingProgress import ProcessingProgress, HTMLProgressTable
 
@@ -87,7 +86,7 @@ class DataProcessingProgressAgent( AgentModule ):
   def execute( self ):
     self.log.info( "Now getting progress of processing (iteration %d)..." % self.iterationNumber )
 
-    for reportName in sortList( self.progressReports.keys() ):
+    for reportName in sorted( self.progressReports.keys() ):
       htmlTable = HTMLProgressTable( reportName.replace( '.', '/' ) )
       reportLen = len( reportName ) + 4
       self.log.info( "\n%s\n* %s *\n%s" % ( reportLen * '*', reportName, reportLen * '*' ) )

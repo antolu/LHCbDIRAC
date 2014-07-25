@@ -21,7 +21,6 @@ Script.addDefaultOptionValue( "LogLevel", "ALWAYS" )
 Script.parseCommandLine( ignoreErrors = True )
 
 from DIRAC.Interfaces.API.Dirac import Dirac
-from DIRAC.Core.Utilities.List import sortList
 args = Script.getPositionalArgs()
 
 wmsStatus = None
@@ -189,7 +188,7 @@ print '##################################'
 print '# Error-Node summary information #'
 print '##################################'
 print "%s %s %s" % ( "Error".ljust( 50 ), "Occurences".ljust( 12 ), "Unique nodes".ljust( 15 ) )
-for error in sortList( error2Nodes.keys() ):
+for error in sorted( error2Nodes.keys() ):
   nodes = error2Nodes[error]
   print "%s %s %s" % ( error.ljust( 50 ), str( len( nodes ) ).ljust( 12 ), str( len( set( nodes ) ) ).ljust( 15 ) )
 
@@ -198,7 +197,7 @@ print '##################################'
 print '# Error-User summary information #'
 print '##################################'
 print "%s %s %s" % ( "Error".ljust( 50 ), "Occurences".ljust( 12 ), "Unique users".ljust( 15 ) )
-for error in sortList( error2Users.keys() ):
+for error in sorted( error2Users.keys() ):
   users = error2Users[error]
   print "%s %s %s" % ( error.ljust( 50 ), str( len( users ) ).ljust( 12 ), str( len( set( users ) ) ).ljust( 15 ) )
 
@@ -207,7 +206,7 @@ print '###################################'
 print '# Node-Error summary information  #'
 print '###################################'
 print "%s %s %s" % ( "Node".ljust( 50 ), "Errors".ljust( 12 ), "Unique errors".ljust( 15 ) )
-for node in sortList( node2Errors.keys() ):
+for node in sorted( node2Errors.keys() ):
   errors = node2Errors[node]
   if node:
     print "%s %s %s" % ( node.ljust( 50 ), str( len( errors ) ).ljust( 12 ), str( len( set( errors ) ) ).ljust( 15 ) )
@@ -219,7 +218,7 @@ print '###################################'
 print '# User-Error summary information  #'
 print '###################################'
 print "%s %s %s" % ( "User".ljust( 50 ), "Errors".ljust( 12 ), "Unique errors".ljust( 15 ) )
-for user in sortList( user2Errors.keys() ):
+for user in sorted( user2Errors.keys() ):
   errors = user2Errors[user]
   print "%s %s %s" % ( user.ljust( 50 ), str( len( errors ) ).ljust( 12 ), str( len( set( errors ) ) ).ljust( 15 ) )
 

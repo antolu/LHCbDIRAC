@@ -8,7 +8,6 @@
 
 from DIRAC import gConfig, S_OK
 from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.Core.Utilities.List import sortList
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
@@ -70,7 +69,7 @@ class UserStorageQuotaAgent( AgentModule ):
     managerMsg = ""
     errorMsg = ""
     self.log.info( "Determining quota usage for %s users." % len( usageDict ) )
-    for userName in sortList( usageDict.keys() ):
+    for userName in sorted( usageDict.keys() ):
       usageGB = usageDict[userName] / byteToGB
       res = gConfig.getOptionsDict( '/Registry/Users/%s' % userName )
       if not res['OK']:

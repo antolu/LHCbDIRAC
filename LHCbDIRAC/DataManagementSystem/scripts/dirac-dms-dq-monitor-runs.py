@@ -37,7 +37,6 @@ if sw[0][0] == 'version' and len( args ) < 1 or len( args ) > 1:
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC                      import S_OK, S_ERROR, gLogger
 
-from DIRAC.Core.Utilities.List                                  import sortList
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient       import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
 
@@ -562,7 +561,7 @@ def processRuns(bkDict, runList):
   procPass = bkDict['ProcessingPass']
 
 
-  for run in sortList(runList.keys()):
+  for run in sorted( runList.keys() ):
     #
     # Check if a run has been merged.
     #
