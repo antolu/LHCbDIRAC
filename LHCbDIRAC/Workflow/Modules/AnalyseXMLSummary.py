@@ -30,6 +30,7 @@ class AnalyseXMLSummary( ModuleBase ):
     self.version = __RCSID__
     self.nc = NotificationClient()
     self.XMLSummary = ''
+    self.XMLSummary_o = None
 
   def _resolveInputVariables( self ):
     """ By convention any workflow parameters are resolved here.
@@ -115,7 +116,6 @@ class AnalyseXMLSummary( ModuleBase ):
       if self.numberOfEvents != -1:
         self.log.info( "Input on part is ok, since we are not processing all" )
         # this is not an error
-        pass
       else:
         # report to FileReport
         filesInPart = [x[0].strip( 'LFN:' ) for x in self.XMLSummary_o.inputStatus if x[1] == 'part']
@@ -206,7 +206,7 @@ class AnalyseXMLSummary( ModuleBase ):
       else:
         self.log.info( "JOBID is null, would have attempted to upload: LFN:%s, file %s, GUID %s to %s" % ( lfn, fname,
                                                                                                            guidInput,
-                                                                                                        self.debugSE ) )
+                                                                                                           self.debugSE ) )
 
     if not self._WMSJob():
       self.log.info( "JOBID is null, *NOT* sending mail, for information the mail was:\n====>Start\n%s\n<====End"

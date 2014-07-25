@@ -803,12 +803,14 @@ class ModuleBase( object ):
     for output in stepOutput:
 
       found = False
+      fileOnDisk = None
+
       for fileOnDisk in os.listdir( '.' ):
         if output['outputDataName'].lower() == fileOnDisk.lower():
           found = True
           break
 
-      if found:
+      if found and fileOnDisk:
         self.log.info( 'Found output file %s matching %s (case is not considered)' % ( fileOnDisk,
                                                                                        output['outputDataName'] ) )
         output['outputDataName'] = fileOnDisk
@@ -941,7 +943,7 @@ class ModuleBase( object ):
 
     bkFile = File()
     bkFile.LFN = lfn
-    # FIXME: this should NOT be needed... but RMS complains!
+    # this should NOT be needed... but RMS complains!
     bkFile.PFN = lfn
     bkFile.GUID = metaData['GUID']
     bkFile.Checksum = metaData['Checksum']

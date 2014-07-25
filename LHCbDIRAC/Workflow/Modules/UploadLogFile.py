@@ -46,7 +46,7 @@ class UploadLogFile( ModuleBase ):
 
 ######################################################################
 
-  def _resolveInputVariables( self, bk = None ):
+  def _resolveInputVariables( self ):
 
     super( UploadLogFile, self )._resolveInputVariables()
 

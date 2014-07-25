@@ -46,6 +46,7 @@ class UploadOutputData( ModuleBase ):
     self.outputDataStep = ''
     self.request = None
     self.failoverTransfer = None
+    self.prodOutputLFNs = []
 
   #############################################################################
   def _resolveInputVariables( self ):
