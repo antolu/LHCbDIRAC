@@ -1,5 +1,5 @@
-""" GridCollectorAgent is for
-    <add doc>
+""" GridCollectorAgent gets metadata from events stored in input file and saves it into outputfile.
+    This metadata is generated at times of stripping and used for indexing events in those files.
 """
 
 __RCSID__ = "$Id$"
