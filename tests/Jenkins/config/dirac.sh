@@ -169,7 +169,7 @@ dirac_externals(){
   
   wget --no-check-certificate -O dirac-install 'https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py' --quiet
   #python dirac-install -X -l DIRAC -r `cat $WORKSPACE/new_tag.txt` -t server -p 'Linux_x86_64_glibc-2.5'
-  python dirac-install -X -l DIRAC -r v6r11 -i 27 -t server -p 'Linux_x86_64_glibc-2.12'
+  python dirac-install -X -l DIRAC -r v6r11 -i 27 -t server -p 'Linux_x86_64_glibc-2.12' -dd
   ( 
     cd $WORKSPACE
     sed -i 's/`$DIRACSCRIPTS\/dirac-platform`/Linux_x86_64_glibc-2.12/g' bashrc
