@@ -259,3 +259,7 @@ class TransformationManagerHandler( TManagerBase ):
   def export_removeStoredJobDescription( self, transformationID ):
     return database.removeStoredJobDescription( transformationID )
 
+  types_getStoredJobDescriptionIDs = []
+  def export_getStoredJobDescriptionIDs( self ):
+    return database.getStoredJobDescriptionIDs()
+
