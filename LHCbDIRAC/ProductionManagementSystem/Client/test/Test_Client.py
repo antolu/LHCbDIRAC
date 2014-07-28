@@ -24,6 +24,28 @@ class bkClientFake:
                         'Records': [[456, 'Merge', 'LHCb', 'v1r2',
                                      'optsFiles', 'Yes', 'eps', 'procPass', '',
                                      '', 'fromPreviousStep', '', 'x86']]}}
+    elif stepID == {'StepId':125080}:
+      return {'OK': True,
+              'Value': {'TotalRecords': 1,
+                        'ParameterNames': ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
+                                           'ExtraPackages', 'ProcessingPass', 'Visible', 'Usable',
+                                           'DDDB', 'CONDDB', 'DQTag', 'OptionsFormat', 'OptionFiles', 
+                                           'isMulticore', 'SystemConfig', 'mcTCK', 'ExtraOptions'],
+                        'Records': [[125080, 'Sim08a', 'Gauss', 'v45r3', 'AppConfig.v3r171', 'Sim08a', 'Y',
+                                     'Yes', 'Sim08-20130503-1', 'Sim08-20130503-1-vc-mu100', '', '',
+                                     '$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;$DECFILESROOT/options/11102400.py;$LBPYTHIA8ROOT/options/Pythia8.py;$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
+                                     'N', 'x86_64-slc5-gcc43-opt', '', '']]}}
+    elif stepID == {'StepId':124620}:
+      return {'OK': True,
+              'Value' : {'TotalRecords': 1,
+                         'ParameterNames' : ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
+                                             'ExtraPackages', 'ProcessingPass', 'Visible', 'Usable',
+                                             'DDDB', 'CONDDB', 'DQTag', 'OptionsFormat', 'OptionFiles',
+                                             'isMulticore', 'SystemConfig', 'mcTCK', 'ExtraOptions'],
+                         'Records': [[124620, 'Digi13', 'Boole', 'v26r3', 'AppConfig.v3r164', 'Digi13', 'N',
+                                      'Yes', 'Sim08-20130503-1', 'Sim08-20130503-1-vc-mu100', '', '',
+                                      '$APPCONFIGOPTS/Boole/Default.py;$APPCONFIGOPTS/Boole/DataType-2012.py;$APPCONFIGOPTS/Boole/Boole-SiG4EnergyDeposit.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
+                                      'N', 'x86_64-slc5-gcc43-opt', '', '']]}}
 
   def getStepInputFiles( self, stepID ):
     if stepID == 123:
@@ -35,6 +57,14 @@ class bkClientFake:
       return {'OK': True, 'Value': {'TotalRecords': 7,
                                    'ParameterNames': ['FileType', 'Visible'],
                                    'Records': [['BHADRON.DST', 'Y'], ['CALIBRATION.DST', 'Y']]}}
+    if stepID == 125080:
+      return {'OK': True, 'Value': {'TotalRecords': 7,
+                                    'ParameterNames': ['FileType', 'Visible'],
+                                    'Records': [['', 'Y']]}}
+    if stepID == 124620:
+      return {'OK': True, 'Value': {'TotalRecords': 7,
+                                    'ParameterNames': ['FileType', 'Visible'],
+                                    'Records': [['SIM', 'N']]}}
 
   def getStepOutputFiles( self, stepID ):
     if stepID == 123:
@@ -45,6 +75,14 @@ class bkClientFake:
       return {'OK': True, 'Value': {'TotalRecords': 7,
                                    'ParameterNames': ['FileType', 'Visible'],
                                    'Records': [['BHADRON.DST', 'Y'], ['CALIBRATION.DST', 'Y']]}}
+    if stepID == 125080:
+      return {'OK': True, 'Value': {'TotalRecords': 7,
+                                    'ParameterNames': ['FileType', 'Visible'],
+                                    'Records': [['SIM', 'Y']]}}
+    if stepID == 124620:
+      return {'OK': True, 'Value': {'TotalRecords': 7,
+                                    'ParameterNames': ['FileType', 'Visible'],
+                                    'Records': [['DIGI', 'N']]}}
 
 class ClientTestCase( unittest.TestCase ):
   """ Base class for the Client test cases
@@ -64,6 +102,8 @@ class ClientTestCase( unittest.TestCase ):
 #############################################################################
 
 class ProductionSuccess( ClientTestCase ):
+
+
   def test__constructOutputFilesList( self ):
     prod = Production()
     res = prod._constructOutputFilesList( ['T1', 'T2'] )
@@ -1143,6 +1183,51 @@ class ProductionRequestFailure( ClientTestCase ):
 
 class ProductionRequestFullChain( ClientTestCase ):
 
+  def test_MCsimulation( self ):
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.logger.setLevel( 'VERBOSE' )
+
+    stepsList = [ 125080, 124620]
+    pr.stepsList = stepsList
+    pr.resolveSteps()
+
+    pr.appendName = '1'
+    pr.configName = 'MC'
+    pr.configVersion = 'MC11a'
+
+    pr.events = ['100', '-1']
+    pr.CPUeList = [100.0, 1.0]
+
+    pr.eventsToProduce = 10000
+
+    pr.eventType = '11124001'
+    pr.parentRequestID = '34'
+    pr.requestID = '0'
+
+    pr.prodGroup = 'Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged'
+    pr.dataTakingConditions = 'Beam3500GeV-2011-MagDown-Nu2-EmNoCuts'
+
+    pr.CPUNormalizationFactorAvg = 1.0
+    pr.CPUTimeAvg = 100000.0
+
+    pr.prodsTypeList = ['MCSimulation', 'MCSimulation']
+    pr.outputSEs = ['Tier1_MC-DST', 'Tier1_MC-DST']
+    pr.specialOutputSEs = [{}, {}]
+    pr.stepsInProds = [range( 1, len( pr.stepsList ) ), [len( pr.stepsList )]]
+    pr.removeInputsFlags = [False, True]
+    pr.priorities = [1, 6]
+    pr.cpus = [1000, 100]
+    pr.outputModes = ['Local', 'Any']
+    pr.outputFileMasks = ['FOO', '']
+    pr.outputFileSteps = ['2', '']
+    pr.targets = ['Tier2', '']
+    pr.groupSizes = [1, 5]
+    pr.plugins = ['', 'BySize']
+    pr.inputDataPolicies = ['', 'protocol']
+    pr.inputs = [[], []]
+
+    res = pr.buildAndLaunchRequest()
+  '''
   def test_full( self ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
@@ -1194,7 +1279,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     res = pr.buildAndLaunchRequest()
 
     self.assertEqual( res, {'OK':True, 'Value': [321, 321, 321]} )
-
+'''
 #############################################################################
 # Test Suite run
 #############################################################################
