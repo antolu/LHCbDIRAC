@@ -701,3 +701,42 @@ class TransformationDB( DIRACTransformationDB ):
       return S_OK( [run[0] for run in res['Value']] )
 
   #############################################################################
+  #
+  # Managing the StoredJobDescription table
+  #
+
+  def addStoredJobDescription ( self, transformationID, jobDescription, connection = False ):
+    """ store a job description for transformationID
+    """
+    connection = self.__getConnection( connection )
+    req = "INSERT INTO StoredJobDescription (TransformationID, JobDescription) VALUES (%d, %s)" % ( transformationID, jobDescription )
+    res = self._query( req, connection )
+    if not res['OK']:
+      gLogger.error( "Failure executing %s" % str( req ) )
+      return res
+    else:
+      return S_OK()
+
+  def getStoredJobDescription ( self, transformationID, connection = False ):
+    """ get the job description for transformationID
+    """
+    connection = self.__getConnection( connection )
+    req = "SELECT * FROM StoredJobDescription WHERE TransformationID = %d" % transformationID
+    res = self._query( req, connection )
+    if not res['OK']:
+      gLogger.error( "Failure executing %s" % str( req ) )
+      return res
+    else:
+      return S_OK( res['Value'] )
+
+  def removeStoredJobDescription( self, transformationID, connection = False ):
+    """ remove the job description for transformationID
+    """
+    connection = self.__getConnection( connection )
+    req = "DELETE FROM StoredJobDescription WHERE TransformationID = %d" % transformationID
+    res = self._query( req, connection )
+    if not res['OK']:
+      gLogger.error( "Failure executing %s" % str( req ) )
+      return res
+    else:
+      return S_OK()
