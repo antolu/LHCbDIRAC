@@ -236,12 +236,23 @@ class ProductionRequest( object ):
       else:
         extend = 0
 
-      res = self.diracProduction.launchProduction( prod = prod,
+      '''check prodDict here for MCSimulation if so, add the boolflag to res, else, do res.
+         Also call the method for jobXML modification and saving and stuff here'''
+      if prodDict['productionType'] == 'MCSimulation':
+        res = self.diracProduction.launchProduction( prod = prod,
                                                    publishFlag = self.publishFlag,
                                                    testFlag = self.testFlag,
                                                    requestID = self.requestID,
                                                    extend = max( extend, 5000 ),
-                                                   tracking = prodDict['tracking'] )
+                                                   tracking = prodDict['tracking'],
+                                                   MCsimflag = True )
+      else:
+        res = self.diracProduction.launchProduction( prod = prod,
+                                                     publishFlag = self.publishFlag,
+                                                     testFlag = self.testFlag,
+                                                     requestID = self.requestID,
+                                                     extend = max( extend, 5000 ),
+                                                     tracking = prodDict['tracking'] )
       if not res['OK']:
         raise RuntimeError( res['Message'] )
 
