@@ -274,8 +274,7 @@ class ProductionRequest( object ):
         prod.LHCbJob.workflow = workflowToSave
         prod.setParameter( 'ProcessingType', processingType.getType(), processingType.getValue(), processingType.getDescription() )
         prod.setParameter( 'Priority', priority.getType(), priority.getValue(), priority.getDescription() )
-        # store how many to extend the original xml by
-        prod.setParameter( 'extend', 'string', str( extend, 5000 ), 'Number of events to extend by' )
+
 
         # original xml to save
         descriptionToStore = prod.LHCbJob.workflow.toXML()
