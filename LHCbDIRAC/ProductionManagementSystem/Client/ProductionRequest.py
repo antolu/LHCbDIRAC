@@ -247,6 +247,7 @@ class ProductionRequest( object ):
         # set the destination and number of events for testing
         prod.setJobParameters( {'Destination':'CLOUD.Test.ch'} )
         prod.setParameter( 'numberOfEvents', 'string', str( 1000 ), 'Number of events to test' )
+
         # find the file types out already built, append GAUSSHIT and set the new listoutput
         fileTypesOut = prod.LHCbJob.workflow.step_instances[0].findParameter( 'listoutput' ).getValue()[0]['outputDataType']
         fileTypesOut = fileTypesOut.split( ', ' )
@@ -262,7 +263,6 @@ class ProductionRequest( object ):
                                                    extend = 10,
                                                    tracking = prodDict['tracking'],
                                                    MCsimflag = True )
-        print res
 
         # launchProduction adds extra parameters, as we 'hot swap' the xml, we need to get these parameters for the uneddited version
         processingType = prod.LHCbJob.workflow.findParameter( 'ProcessingType' )
@@ -274,7 +274,6 @@ class ProductionRequest( object ):
         prod.LHCbJob.workflow = workflowToSave
         prod.setParameter( 'ProcessingType', processingType.getType(), processingType.getValue(), processingType.getDescription() )
         prod.setParameter( 'Priority', priority.getType(), priority.getValue(), priority.getDescription() )
-
 
         # original xml to save
         descriptionToStore = prod.LHCbJob.workflow.toXML()
