@@ -740,3 +740,16 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     else:
       return S_OK()
+
+  def getStoredJobDescriptionIDs ( self, connection = False ):
+    """ gets a list of all the stored job description transformationIDs
+    """
+    connection = self.__getConnection( connection )
+    req = "SELECT TransformationID FROM StoredJobDescription"
+    res = self._query( req, connection )
+    print res
+    if not res['OK']:
+      gLogger.error( "Failure executing %s" % str( req ) )
+      return res
+    else:
+      return S_OK( res['Value'] )
