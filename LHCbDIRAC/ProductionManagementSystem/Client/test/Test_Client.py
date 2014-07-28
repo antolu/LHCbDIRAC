@@ -1184,6 +1184,7 @@ class ProductionRequestFailure( ClientTestCase ):
 class ProductionRequestFullChain( ClientTestCase ):
 
   def test_MCsimulation( self ):
+    # this test isnt really thorough, am going to test the buildAndLaunch request in the certification phase
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.logger.setLevel( 'VERBOSE' )
 
@@ -1227,7 +1228,9 @@ class ProductionRequestFullChain( ClientTestCase ):
     pr.inputs = [[], []]
 
     res = pr.buildAndLaunchRequest()
-  '''
+    self.assertEqual( res, {'OK':True, 'Value': [321, 321]} )
+
+
   def test_full( self ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
@@ -1279,7 +1282,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     res = pr.buildAndLaunchRequest()
 
     self.assertEqual( res, {'OK':True, 'Value': [321, 321, 321]} )
-'''
+
 #############################################################################
 # Test Suite run
 #############################################################################
