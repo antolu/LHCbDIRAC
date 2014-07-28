@@ -43,10 +43,11 @@ class DiracProduction( DiracLHCb ):
                         'TransformationName':'Name',
                         'Type':'Type'}
     self.prodAdj = 22
-    self.commands = {'start':['Active', 'Manual'],
-                     'stop':['Stopped', 'Manual'],
-                     'automatic':['Active', 'Automatic'],
-                     'manual':['Active', 'Manual'],
+    self.commands = { 'start':['Active', 'Manual'],
+                      'stop':['Stopped', 'Manual'],
+                      'automatic':['Active', 'Automatic'],
+                      'manual':['Active', 'Manual'],
+                      'mctestmode':['Testing', 'Automatic'],
                      'completed':['Completed', 'Manual'],
                      'completing':['Completing', 'Automatic'],
                      'cleaning':['Cleaning', 'Manual'],
@@ -830,7 +831,8 @@ class DiracProduction( DiracLHCb ):
 
   def launchProduction( self, prod, publishFlag, testFlag, requestID,
                         extend = 0,
-                        tracking = 0
+                        tracking = 0,
+                        MCsimflag = False
                         ):
     """ given a production object (prod), launch it
         It returns the productionID created
@@ -862,8 +864,10 @@ class DiracProduction( DiracLHCb ):
       if extend:
         self.extendProduction( prodID, extend, printOutput = True )
         msg += ', extended by %s jobs' % extend
-
-      if testFlag:
+      if MCsimflag:
+        self.production ( prodID, 'mctestmode' )
+        msg = msg + ' and started in mctestmode.'
+      elif testFlag:
         self.production( prodID, 'manual' )
         msg = msg + ' and started in manual mode.'
       else:
