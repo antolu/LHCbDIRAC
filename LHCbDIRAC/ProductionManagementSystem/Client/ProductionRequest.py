@@ -231,21 +231,59 @@ class ProductionRequest( object ):
                                                                   'Simulation' )
           if not res['OK']:
             return res
+          print res
           eventsToProduceForRequest = res['Value'][self.requestID]['reqTotal']
           extend = int( eventsToProduceForRequest / max_e )
       else:
         extend = 0
 
-      '''check prodDict here for MCSimulation if so, add the boolflag to res, else, do res.
-         Also call the method for jobXML modification and saving and stuff here'''
+      # if the production is an MCSimulation, submit to the automated testing
       if prodDict['productionType'] == 'MCSimulation':
+
+        # save the original xml before it is editted for testing
+        prodXML = prod.LHCbJob.workflow.toXML()
+
+        # set the destination and number of events for testing
+        prod.setJobParameters( {'Destination':'CLOUD.Test.ch'} )
+        prod.setParameter( 'numberOfEvents', 'string', str( 1000 ), 'Number of events to test' )
+        # find the file types out already built, append GAUSSHIT and set the new listoutput
+        fileTypesOut = prod.LHCbJob.workflow.step_instances[0].findParameter( 'listoutput' ).getValue()[0]['outputDataType']
+        fileTypesOut = fileTypesOut.split( ', ' )
+        fileTypesOut.append( 'GAUSSHIST' )
+        outputFilesList = prod._constructOutputFilesList( fileTypesOut )
+        prod.LHCbJob.workflow.step_instances[0].setValue( 'listoutput', outputFilesList )
+
+        # launch the test production
         res = self.diracProduction.launchProduction( prod = prod,
                                                    publishFlag = self.publishFlag,
                                                    testFlag = self.testFlag,
                                                    requestID = self.requestID,
-                                                   extend = max( extend, 5000 ),
+                                                   extend = 10,
                                                    tracking = prodDict['tracking'],
                                                    MCsimflag = True )
+        print res
+
+        # launchProduction adds extra parameters, as we 'hot swap' the xml, we need to get these parameters for the uneddited version
+        processingType = prod.LHCbJob.workflow.findParameter( 'ProcessingType' )
+        priority = prod.LHCbJob.workflow.findParameter( 'Priority' )
+
+        # load a production from the original xml to save the priority and processingtype
+        from DIRAC.Core.Workflow.Workflow import fromXMLString
+        workflowToSave = fromXMLString( prodXML )
+        prod.LHCbJob.workflow = workflowToSave
+        prod.setParameter( 'ProcessingType', processingType.getType(), processingType.getValue(), processingType.getDescription() )
+        prod.setParameter( 'Priority', priority.getType(), priority.getValue(), priority.getDescription() )
+        # store how many to extend the original xml by
+        prod.setParameter( 'extend', 'string', str( extend, 5000 ), 'Number of events to extend by' )
+
+        # original xml to save
+        descriptionToStore = prod.LHCbJob.workflow.toXML()
+
+        # saving the original xml in the StoredJobDescription table.
+        from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+        transformationClient = TransformationClient()
+        transformationClient.addStoredJobDescription( res, descriptionToStore )
+
       else:
         res = self.diracProduction.launchProduction( prod = prod,
                                                      publishFlag = self.publishFlag,
@@ -284,6 +322,7 @@ class ProductionRequest( object ):
   def _applyOptionalCorrections( self ):
     """ if needed, calls _splitIntoProductionSteps. It also applies other changes
     """
+
     if len( self.bkQueries ) != len( self.prodsTypeList ):
       self.bkQueries += ['fromPreviousProd'] * ( len( self.prodsTypeList ) - len( self.bkQueries ) )
 
