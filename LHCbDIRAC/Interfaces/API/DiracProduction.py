@@ -48,18 +48,18 @@ class DiracProduction( DiracLHCb ):
                       'automatic':['Active', 'Automatic'],
                       'manual':['Active', 'Manual'],
                       'mctestmode':['Testing', 'Automatic'],
-                     'completed':['Completed', 'Manual'],
-                     'completing':['Completing', 'Automatic'],
-                     'cleaning':['Cleaning', 'Manual'],
-                     'flush':['Flush', 'Automatic'],
-                     'deleted':['Deleted', 'Manual'],
-                     'cleaned':['Cleaned', 'Manual'],
-                     'archived':['Archived', 'Manual'],
-                     'valinput':['ValidatingInput', 'Manual'],
-                     'valoutput':['ValidatingOutput', 'Manual'],
-                     'remove':['RemovingFiles', 'Manual'],
-                     'validated':['ValidatedOutput', 'Manual'],
-                     'removed':['RemovedFiles', 'Manual']}
+                      'completed':['Completed', 'Manual'],
+                      'completing':['Completing', 'Automatic'],
+                      'cleaning':['Cleaning', 'Manual'],
+                      'flush':['Flush', 'Automatic'],
+                      'deleted':['Deleted', 'Manual'],
+                      'cleaned':['Cleaned', 'Manual'],
+                      'archived':['Archived', 'Manual'],
+                      'valinput':['ValidatingInput', 'Manual'],
+                      'valoutput':['ValidatingOutput', 'Manual'],
+                      'remove':['RemovingFiles', 'Manual'],
+                      'validated':['ValidatedOutput', 'Manual'],
+                      'removed':['RemovedFiles', 'Manual']}
 
   #############################################################################
   def getProduction( self, productionID, printOutput = False ):
