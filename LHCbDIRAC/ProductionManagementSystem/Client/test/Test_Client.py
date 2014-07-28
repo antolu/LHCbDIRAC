@@ -1183,54 +1183,6 @@ class ProductionRequestFailure( ClientTestCase ):
 
 class ProductionRequestFullChain( ClientTestCase ):
 
-  def test_MCsimulation( self ):
-    # this test isnt really thorough, am going to test the buildAndLaunch request in the certification phase
-    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-    pr.logger.setLevel( 'VERBOSE' )
-
-    stepsList = [ 125080, 124620]
-    pr.stepsList = stepsList
-    pr.resolveSteps()
-
-    pr.appendName = '1'
-    pr.configName = 'MC'
-    pr.configVersion = 'MC11a'
-
-    pr.events = ['100', '-1']
-    pr.CPUeList = [100.0, 1.0]
-
-    pr.eventsToProduce = 10000
-
-    pr.eventType = '11124001'
-    pr.parentRequestID = '34'
-    pr.requestID = '0'
-
-    pr.prodGroup = 'Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged'
-    pr.dataTakingConditions = 'Beam3500GeV-2011-MagDown-Nu2-EmNoCuts'
-
-    pr.CPUNormalizationFactorAvg = 1.0
-    pr.CPUTimeAvg = 100000.0
-
-    pr.prodsTypeList = ['MCSimulation', 'MCSimulation']
-    pr.outputSEs = ['Tier1_MC-DST', 'Tier1_MC-DST']
-    pr.specialOutputSEs = [{}, {}]
-    pr.stepsInProds = [range( 1, len( pr.stepsList ) ), [len( pr.stepsList )]]
-    pr.removeInputsFlags = [False, True]
-    pr.priorities = [1, 6]
-    pr.cpus = [1000, 100]
-    pr.outputModes = ['Local', 'Any']
-    pr.outputFileMasks = ['FOO', '']
-    pr.outputFileSteps = ['2', '']
-    pr.targets = ['Tier2', '']
-    pr.groupSizes = [1, 5]
-    pr.plugins = ['', 'BySize']
-    pr.inputDataPolicies = ['', 'protocol']
-    pr.inputs = [[], []]
-
-    res = pr.buildAndLaunchRequest()
-    self.assertEqual( res, {'OK':True, 'Value': [321, 321]} )
-
-
   def test_full( self ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
