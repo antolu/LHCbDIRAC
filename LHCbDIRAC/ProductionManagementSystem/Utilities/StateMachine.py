@@ -77,12 +77,13 @@ class ProductionsStateMachine( LHCbStateMachine ):
                                                    defState = 'ValidatingInput' ),
                    'Flush'                : State( 3, ['Active', 'Cleaning'],
                                                    defState = 'Active' ),
-                   'Idle'                 : State( 2, ['Active', 'ValidatingInput', 'ValidatingOutput', 'Completed'],
+                   'Idle'                 : State( 2, ['Active', 'ValidatingInput', 'ValidatingOutput', 'Completed', 'Testing'],
                                                    defState = 'Idle' ),
                    'Active'               : State( 1, ['Flush', 'Idle', 'Stopped', 'Completing', 'ValidatingInput',
                                                        'ValidatingOutput', 'Cleaning', 'TransformationCleaned'],
                                                   defState = 'Flush' ),
-                   'New'                  : State( 0, ['Active', 'Cleaning'], defState = 'New' )  # initial state
+                   'Testing'              : State( 17, ['Idle'], defState = 'Testing' ),
+                   'New'                  : State( 0, ['Active', 'Testing', 'Cleaning'], defState = 'New' )  # initial state
                   }
 
     # NEW states proposal
