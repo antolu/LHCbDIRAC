@@ -80,6 +80,7 @@ DROP TABLE IF EXISTS StoredJobDescription;
 CREATE TABLE StoredJobDescription(
   TransformationID INTEGER NOT NULL,
   JobDescription LONGBLOB NOT NULL,
+  PRIMARY KEY (TransformationID),
   FOREIGN KEY (TransformationID) REFERENCES Transformations (TransformationID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
