@@ -38,6 +38,8 @@ class ProductionRequest( object ):
     else:
       self.diracProduction = diracProdIn
 
+    self.rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
+
     self.logger = gLogger.getSubLogger( 'ProductionRequest' )
 
     # parameters of the request
@@ -226,8 +228,7 @@ class ProductionRequest( object ):
           extend = 0
         else:
           # getting the events to produce
-          rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
-          res = rpcProductionRequest.getProductionRequestSummary( ['Accepted', 'Submitted', 'New', 'PPG OK', 'Tech OK'],
+          res = self.rpcProductionRequest.getProductionRequestSummary( ['Accepted', 'Submitted', 'New', 'PPG OK', 'Tech OK'],
                                                                   'Simulation' )
           if not res['OK']:
             return res
@@ -322,7 +323,6 @@ class ProductionRequest( object ):
   def _applyOptionalCorrections( self ):
     """ if needed, calls _splitIntoProductionSteps. It also applies other changes
     """
-
     if len( self.bkQueries ) != len( self.prodsTypeList ):
       self.bkQueries += ['fromPreviousProd'] * ( len( self.prodsTypeList ) - len( self.bkQueries ) )
 
