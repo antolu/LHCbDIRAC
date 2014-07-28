@@ -76,4 +76,11 @@ CREATE TABLE RunsMetadata(
   PRIMARY KEY (RunNumber, Name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS StoredJobDescription;
+CREATE TABLE StoredJobDescription(
+  TransformationID INTEGER NOT NULL,
+  JobDescription LONGBLOB NOT NULL,
+  FOREIGN KEY (TransformationID) REFERENCES Transformations (TransformationID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 SET FOREIGN_KEY_CHECKS = 1;
