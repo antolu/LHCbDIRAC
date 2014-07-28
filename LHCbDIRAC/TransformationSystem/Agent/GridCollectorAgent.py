@@ -18,8 +18,6 @@ from DIRAC import gLogger
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 
-BASE_DIR = "/var/www/grid-collector"
-sys.path.append( BASE_DIR + "/src" )
 from config import STATUS_RUNNING, STATUS_NEW, STATUS_DONE, STATUS_FAIL, \
     DOWNLOADS_CACHE_DIR, DOWNLOADS_REQUEST_DIR
 from request import Request
@@ -35,6 +33,11 @@ SE_WEIGHTS = {'CERN.*': 10,
               '.*-ARCHIVE':-1}
 SE_DEFAULT_WEIGHT = 1
 
+def module_dir():
+   d = os.path.abspath(os.curdir)
+   return os.path.dirname(os.path.join(d, __file__))
+
+BASE_DIR = module_dir()
 
 def sort_se_weighted( storage_elements, black_list = [], cut_negative = True ):
   result = {}
