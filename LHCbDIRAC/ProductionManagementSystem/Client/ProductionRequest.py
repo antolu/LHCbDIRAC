@@ -246,7 +246,7 @@ class ProductionRequest( object ):
 
         # set the destination and number of events for testing
         prod.setJobParameters( {'Destination':'CLOUD.Test.ch'} )
-        prod.setParameter( 'numberOfEvents', 'string', str( 1000 ), 'Number of events to test' )
+        prod.setParameter( 'numberOfEvents', 'string', str( 200 ), 'Number of events to test' )
 
         # find the file types out already built, append GAUSSHIT and set the new listoutput
         fileTypesOut = prod.LHCbJob.workflow.step_instances[0].findParameter( 'listoutput' ).getValue()[0]['outputDataType']
