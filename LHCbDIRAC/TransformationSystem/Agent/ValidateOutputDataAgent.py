@@ -1,6 +1,10 @@
 """ Simple extension of base class
 """
 
+__RCSID__ = "$Id$"
+
+AGENT_NAME = 'Transformation/ValidateOutputDataAgent'
+
 from DIRAC                                                    import S_OK, S_ERROR, gLogger
 from DIRAC.Resources.Catalog.FileCatalog                      import FileCatalog
 from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent import ValidateOutputDataAgent as DIRACValidateOutputDataAgent
@@ -8,8 +12,6 @@ from DIRAC.TransformationSystem.Agent.ValidateOutputDataAgent import ValidateOut
 from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient       import StorageUsageClient
 from LHCbDIRAC.DataManagementSystem.Client.DataIntegrityClient      import DataIntegrityClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
-
-AGENT_NAME = 'Transformation/ValidateOutputDataAgent'
 
 class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
   """ Simple extension of base class
