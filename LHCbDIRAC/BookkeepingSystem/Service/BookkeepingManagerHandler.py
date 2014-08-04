@@ -681,7 +681,7 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.getJobInfo(lfn)
 
   #############################################################################
-  types_bulkJobInfo = [ListType]
+  types_bulkJobInfo = [DictType]
   @staticmethod
   def export_bulkJobInfo(lfns):
     """more info in the BookkeepingClient.py"""

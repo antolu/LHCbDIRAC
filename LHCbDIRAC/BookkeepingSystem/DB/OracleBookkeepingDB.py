@@ -1244,13 +1244,32 @@ class OracleBookkeepingDB:
     return self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getJobInfo', [lfn] )
 
   #############################################################################
-  def bulkJobInfo( self, lfns ):
+  def bulkJobInfo( self, in_dict ):
     """returns the job information for a list of files"""
-    retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfo',
+    
+    data = []
+    if 'lfn' in in_dict:
+      data = in_dict['lfn']
+      retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfo',
                                                 parameters = [],
                                                 output = True,
-                                                array = lfns )
-
+                                                array = data )
+    elif 'jobId' in in_dict:
+      data = in_dict['jobId']
+      retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfoForJobId',
+                                                parameters = [],
+                                                output = True,
+                                                array = data )
+      
+    elif 'jobName' in in_dict:
+      data = in_dict['jobName']
+      retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfoForJobName',
+                                                parameters = [],
+                                                output = True,
+                                                array = data )
+    else:
+      return S_ERROR("Wrong input parameters. You can use a dictionary with the following keys: lfn,jobId, jobName")
+     
     records = {}
     if retVal['OK']:
       for i in retVal['Value']:
@@ -1277,7 +1296,7 @@ class OracleBookkeepingDB:
                               'ApplicationName',
                               'ApplicationVersion' ), i[1:] ) )
 
-      failed = [ i for i in lfns if i not in records]
+      failed = [ i for i in data if i not in records]
       result = S_OK( {'Successful':records, 'Failed':failed} )
     else:
       result = retVal

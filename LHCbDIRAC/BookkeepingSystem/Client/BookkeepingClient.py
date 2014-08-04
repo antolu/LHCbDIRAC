@@ -317,14 +317,25 @@ class BookkeepingClient:
 
 
   #############################################################################
-  def bulkJobInfo( self, lfns ):
+  def bulkJobInfo( self, in_dict ):
     """
-    It returns the job metadata information for a list of lfns produced by this job.
+    It returns the job metadata information for a given condition:
+    -a list of lfns
+    - a list of DIRAC job ids
+    - a list of jobNames
+    in_dict = {'lfn':[],jobId:[],jobName:[]}    
+    
     """
-    if type( lfns ) == types.StringType:
-      lfns = [lfns]
+    conditions = {}
+    if type( in_dict ) == types.StringType:
+      conditions['lfn'] = [in_dict]
+    elif type (in_dict) == types.ListType:
+      conditions['lfn'] = in_dict
+    else:
+      conditions = in_dict
+      
     server = self.__getServer()
-    return server.bulkJobInfo( lfns )
+    return server.bulkJobInfo( conditions )
 
 
   #############################################################################

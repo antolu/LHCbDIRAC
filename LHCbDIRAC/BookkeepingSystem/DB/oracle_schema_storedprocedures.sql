@@ -176,6 +176,8 @@ procedure bulkgetTypeVesrsion(lfns varchararray, a_Cursor out udt_RefCursor);
 procedure setObsolete;
 procedure getDirectoryMetadata_new(lfns varchararray, a_Cursor out udt_RefCursor);
 procedure bulkJobInfo(lfns varchararray, a_Cursor out udt_RefCursor);
+procedure bulkJobInfoForJobName(jobNames varchararray, a_Cursor out udt_RefCursor);
+procedure bulkJobInfoForJobId(jobids numberarray, a_Cursor out udt_RefCursor);
 end;
 /
 
@@ -1853,6 +1855,44 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
      jobmeta.extend;
      n:=n+1;
     jobmeta (n):= jobMetadata(lfns(i), c.DIRACJOBID, c.DIRACVERSION, c.EVENTINPUTSTAT, c.EXECTIME, c.FIRSTEVENTNUMBER,c.LOCATION,  c.NAME, c.NUMBEROFEVENTS,
+                 c.STATISTICSREQUESTED, c.WNCPUPOWER, c.CPUTIME, c.WNCACHE, c.WNMEMORY, c.WNMODEL, c.WORKERNODE, c.WNCPUHS06, c.jobid, c.totalluminosity, c.production, c.programName, c.programVersion);
+  END LOOP;
+END LOOP;
+open a_Cursor for select * from table(jobmeta);
+END;
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure bulkJobInfoForJobName(jobNames varchararray, a_Cursor out udt_RefCursor)
+is
+n integer := 0;
+jobmeta bulk_collect_jobMetadata := bulk_collect_jobMetadata();
+BEGIN
+FOR i in jobNames.FIRST .. jobNames.LAST LOOP
+  for c in (select  jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER,jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS,
+                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion
+   from jobs,files where files.jobid=jobs.jobid and  jobs.name=jobNames(i)) LOOP
+     jobmeta.extend;
+     n:=n+1;
+    jobmeta (n):= jobMetadata(jobNames(i), c.DIRACJOBID, c.DIRACVERSION, c.EVENTINPUTSTAT, c.EXECTIME, c.FIRSTEVENTNUMBER,c.LOCATION,  c.NAME, c.NUMBEROFEVENTS,
+                 c.STATISTICSREQUESTED, c.WNCPUPOWER, c.CPUTIME, c.WNCACHE, c.WNMEMORY, c.WNMODEL, c.WORKERNODE, c.WNCPUHS06, c.jobid, c.totalluminosity, c.production, c.programName, c.programVersion);
+  END LOOP;
+END LOOP;
+open a_Cursor for select * from table(jobmeta);
+END;
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure bulkJobInfoForJobId(jobids numberarray, a_Cursor out udt_RefCursor)
+is
+n integer := 0;
+jobmeta bulk_collect_jobMetadata := bulk_collect_jobMetadata();
+BEGIN
+FOR i in jobids.FIRST .. jobids.LAST LOOP
+  for c in (select  jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER,jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS,
+                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion
+   from jobs,files where files.jobid=jobs.jobid and  jobs.diracjobid= jobids(i)) LOOP
+     jobmeta.extend;
+     n:=n+1;
+    jobmeta (n):= jobMetadata(jobids(i), c.DIRACJOBID, c.DIRACVERSION, c.EVENTINPUTSTAT, c.EXECTIME, c.FIRSTEVENTNUMBER,c.LOCATION,  c.NAME, c.NUMBEROFEVENTS,
                  c.STATISTICSREQUESTED, c.WNCPUPOWER, c.CPUTIME, c.WNCACHE, c.WNMEMORY, c.WNMODEL, c.WORKERNODE, c.WNCPUHS06, c.jobid, c.totalluminosity, c.production, c.programName, c.programVersion);
   END LOOP;
 END LOOP;
