@@ -149,6 +149,10 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return res
 
+    res = self.removeStoredJobDescription( transID, connection = connection )
+    if not res['OK']:
+      return res
+
     res = self.__cleanTransformationRuns( transID, connection = connection )
     if not res['OK']:
       return res
