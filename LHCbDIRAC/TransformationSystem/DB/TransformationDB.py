@@ -709,6 +709,10 @@ class TransformationDB( DIRACTransformationDB ):
     """ store a job description for transformationID
     """
     connection = self.__getConnection( connection )
+    res = self._escapeString( jobDescription )
+    if not res['OK']:
+      return S_ERROR( "Failed to parse the transformation body" )
+    jobDescription = res['Value']
     req = "INSERT INTO StoredJobDescription (TransformationID, JobDescription) VALUES (%d, %s)" % ( transformationID, jobDescription )
     res = self._query( req, connection )
     if not res['OK']:
