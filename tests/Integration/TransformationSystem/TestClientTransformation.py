@@ -59,31 +59,45 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     res = self.transClient.getTransformationsWithBkQueries( [transID - 10] )
     self.assert_( res['OK'] )
     self.assertEqual( res['Value'], [] )
-
     res = self.transClient.setHotFlag( transID, True )
     self.assert_( res['OK'] )
-    res = self.transClient.getTransformations( {'Hot':True} )
+    '''ideally should be {'Hot': True} but a bug in DIRAC/../mysql.py causes line 68 to fail unless
+       it's {'Hot': 1}'''
+    res = self.transClient.getTransformations( {'Hot': 1} )
     self.assert_( res['OK'] )
+
     self.assertEqual( res['Value'][0]['TransformationID'], transID )
 
     # FIXME: first, I should add some...
     res = self.transClient.getTransformationRuns()
     self.assert_( res['OK'] )
-
     res = self.transClient.getTransformationRunStats( transID )
     self.assert_( res['OK'] )
 
-    # clean
-#     res = self.transClient.cleanTransformation( transID )
-#     self.assert_( res['OK'] )
-#     res = self.transClient.getTransformationParameters( transID, 'Status' )
-#     self.assert_( res['OK'] )
-#     self.assertEqual( res['Value'], 'TransformationCleaned' )
-#
-#     # really delete
-#     res = self.transClient.deleteTransformation( transID )
-#     self.assert_( res['OK'] )
+    # testStoredJobDescription
+    # add
+    res = self.transClient.addStoredJobDescription( transID, 'jobdescription' )
+    self.assert_( res['OK'] )
 
+    # testing get
+    res = self.transClient.getStoredJobDescription( transID )
+    self.assert_( res ['OK'] )
+    self.assertEqual( res['Value'][0][0], transID )
+
+    # testing remove
+    res = self.transClient.removeStoredJobDescription( transID )
+    self.assert_( res ['OK'] )
+
+    # clean
+    res = self.transClient.cleanTransformation( transID )
+    self.assert_( res['OK'] )
+    res = self.transClient.getTransformationParameters( transID, 'Status' )
+    self.assert_( res['OK'] )
+    self.assertEqual( res['Value'], 'TransformationCleaned' )
+
+    # really delete
+    res = self.transClient.deleteTransformation( transID )
+    self.assert_( res['OK'] )
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( TestClientTransformationTestCase )
