@@ -79,6 +79,11 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     res = self.transClient.addStoredJobDescription( transID, 'jobdescription' )
     self.assert_( res['OK'] )
 
+    # list Ids
+    res = self.transClient.getStoredJobDescriptionIDs()
+    self.assert_( res['OK'] )
+    self.assertEqual( res['Value'][0][0], transID )
+
     # testing get
     res = self.transClient.getStoredJobDescription( transID )
     self.assert_( res ['OK'] )
