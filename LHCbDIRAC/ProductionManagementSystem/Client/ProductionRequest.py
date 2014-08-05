@@ -245,7 +245,9 @@ class ProductionRequest( object ):
         prodXML = prod.LHCbJob.workflow.toXML()
 
         # set the destination and number of events for testing
-        prod.setJobParameters( {'Destination':'CLOUD.Test.ch'} )
+        op = Operations()
+        destination = op.getValue( "Productions/MCTestingDestination" )
+        prod.setJobParameters( {'Destination': destination} )
         prod.setParameter( 'numberOfEvents', 'string', str( 200 ), 'Number of events to test' )
 
         # find the file types out already built, append GAUSSHIT and set the new listoutput
