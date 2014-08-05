@@ -8,7 +8,7 @@
 """
 
 # # imports
-import os.path
+import os.path, os
 from DIRAC                                                      import S_OK, S_ERROR, gMonitor
 from DIRAC.RequestManagementSystem.private.OperationHandlerBase import OperationHandlerBase
 
@@ -35,6 +35,7 @@ class LogUpload( OperationHandlerBase ):
                                "RequestExecutingAgent", "Files/min", gMonitor.OP_SUM )
     gMonitor.registerActivity( "LogUploadFail", "Replications failed",
                                "RequestExecutingAgent", "Files/min", gMonitor.OP_SUM )
+    self.workDirectory = os.environ.get( 'LOGUPLOAD_CACHE', os.environ.get( 'AGENT_WORKDIRECTORY', '/tmp/LogUpload' ) )
 
   def __call__( self ):
     """ LogUpload operation processing """
@@ -82,7 +83,7 @@ class LogUpload( OperationHandlerBase ):
       gMonitor.addMark( "LogUploadAtt", 1 )
 
       destination = '/'.join( lfn.split( '/' )[0:-1] ) + '/' + ( os.path.basename( lfn ) ).split( '_' )[1].split( '.' )[0]
-      logUpload = self.dm.replicate( lfn, targetSE, destPath = destination )
+      logUpload = self.dm.replicate( lfn, targetSE, destPath = destination, localCache = self.workDirectory )
       if not logUpload["OK"]:
         gMonitor.addMark( "LogUploadFail", 1 )
         self.dataLoggingClient().addFileRecord( lfn, "LogUploadFail", targetSE, "", "LogUpload" )
