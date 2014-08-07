@@ -90,7 +90,9 @@ class LogUpload( OperationHandlerBase ):
         self.log.error( "completely failed to upload log file: %s" % logUpload["Message"] )
         opFile.Error = str( logUpload["Message"] )
         opFile.Attempt += 1
-        self.operation.Error = str( logUpload["Message"] )
+        self.operation.Error = opFile.Error
+        if 'No such file or directory' in opFile.Error:
+          opFile.Status = 'Failed'
         continue
 
       if lfn in logUpload['Value']:
