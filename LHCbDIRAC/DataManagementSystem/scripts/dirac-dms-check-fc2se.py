@@ -4,7 +4,7 @@
 
     Uses the DM script switches, and, unless a list of LFNs is provided:
     1) If --Directory is used: get files in FC directories
-    2) If --Production is used get files in the FC directories used
+    2) If --Production or --BK options is used get files in the FC directories from the BK
 
     If --FixIt is set, takes actions:
       Missing files: remove from SE and FC
@@ -202,8 +202,7 @@ if __name__ == '__main__':
   dmScript = DMScript()
   dmScript.registerNamespaceSwitches()  # Directory
   dmScript.registerFileSwitches()  # File, LFNs
-  Script.registerSwitch( "P:", "Productions=",
-                         "   Production ID to search (comma separated list)", dmScript.setProductions )
+  dmScript.registerBKSwitches()
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs and storage' )
   Script.registerSwitch( '', 'NoBK', '   Do not check with BK' )
   Script.parseCommandLine( ignoreErrors = True )
@@ -228,13 +227,9 @@ if __name__ == '__main__':
   cc = ConsistencyChecks( dm = dm, bkClient = bk )
   cc.directories = dmScript.getOption( 'Directory', [] )
   cc.lfns = dmScript.getOption( 'LFNs', [] ) + [lfn for arg in Script.getPositionalArgs() for lfn in arg.split( ',' )]
-  productions = dmScript.getOption( 'Productions', [] )
+  bkQuery = dmScript.getBKQuery( visible = 'All' )
+  if bkQuery.getQueryDict() != {'Visible': 'All'}:
+    bkQuery.setOption( 'ReplicaFlag', 'All' )
+    cc.bkQuery = bkQuery
 
-  if productions:
-    for prod in productions:
-      cc.prod = prod
-      gLogger.always( "Processing production %d" % cc.prod )
-      doCheck( bkCheck )
-      gLogger.always( "Processed production %d" % cc.prod )
-  else:
-    doCheck( bkCheck )
+  doCheck( bkCheck )

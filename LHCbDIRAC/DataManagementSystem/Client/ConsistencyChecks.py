@@ -14,6 +14,7 @@ from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.Resources.Storage.StorageElement import StorageElement
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -36,7 +37,7 @@ class ConsistencyChecks( object ):
   """ A class for handling some consistency check
   """
 
-  def __init__( self, interactive = True, transClient = None, dm = None, bkClient = None ):
+  def __init__( self, interactive = True, transClient = None, dm = None, bkClient = None, fc = None ):
     """ c'tor
 
         One object for every production/BkQuery/directoriesList...
@@ -45,6 +46,7 @@ class ConsistencyChecks( object ):
     self.transClient = TransformationClient() if transClient is None else transClient
     self.dm = DataManager() if dm is None else dm
     self.bkClient = BookkeepingClient() if bkClient is None else bkClient
+    self.fc = FileCatalog() if fc is None else fc
 
     self.dirac = Dirac()
 
@@ -790,7 +792,13 @@ class ConsistencyChecks( object ):
       if printout:
         gLogger.always( 'Expanded list of %d directories:\n%s' % ( len( directories ), '\n'.join( directories ) ) )
       return directories
-    elif self.prod:
+    try:
+      bkQuery = self.__getBKQuery()
+    except ValueError, _e:
+      pass
+    if bkQuery:
+      return bkQuery.getDirs()
+    if self.prod:
       res = self.transClient.getTransformationParameters( self.prod, ['OutputDirectories'] )
       if not res['OK']:
         raise RuntimeError( res['Message'] )
@@ -910,7 +918,7 @@ class ConsistencyChecks( object ):
     metadata = {}
     for lfnChunk in breakListIntoChunks( replicas.keys(), chunkSize ):
       self.__write( '.' )
-      res = self.dm.getCatalogFileMetadata( lfnChunk )
+      res = self.fc.getFileMetadata( lfnChunk )
       if not res['OK']:
         gLogger.error( "error %s" % res['Message'] )
         return res
