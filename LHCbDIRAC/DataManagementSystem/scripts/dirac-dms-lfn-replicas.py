@@ -10,8 +10,8 @@ __RCSID__ = "$Id$"
 __VERSION__ = "$Revision$"
 
 from DIRAC.Core.Base import Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult
-import DIRAC
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeLfnReplicas
 
 if __name__ == "__main__":
 
@@ -24,52 +24,4 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
   Script.parseCommandLine( ignoreErrors = False )
-  for lfn in Script.getPositionalArgs():
-    dmScript.setLFNsFromFile( lfn )
-  lfnList = dmScript.getOption( 'LFNs', [] )
-
-  active = True
-  switches = Script.getUnprocessedSwitches()
-  for switch in switches:
-    if switch[0] in ( "a", "All" ):
-      active = False
-
-  if not lfnList or len( lfnList ) < 1:
-    Script.showHelp()
-
-  # from DIRAC.Interfaces.API.Dirac                         import Dirac
-  # dirac = Dirac()
-
-  from DIRAC.DataManagementSystem.Client.DataManager                  import DataManager
-  from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
-  from DIRAC import gLogger
-  dm = DataManager()
-  fc = FileCatalog()
-  while True:
-    res = dm.getActiveReplicas( lfnList ) if active else dm.getReplicas( lfnList )
-    if not res['OK']:
-      break
-    if active and not res['Value']['Successful'] and not res['Value']['Failed']:
-      active = False
-    else:
-      break
-  if res['OK']:
-    if active:
-      res = dm.checkActiveReplicas( res['Value'] )
-      value = res['Value']
-    else:
-      lfns = []
-      replicas = res['Value']['Successful']
-      value = {'Failed': res['Value']['Failed'], 'Successful' : {}}
-      for lfn in sorted( replicas ):
-        for se in sorted( replicas[lfn] ):
-          res = fc.getReplicaStatus( {lfn:se} )
-          if not res['OK']:
-            value['Failed'][lfn] = "Can't get replica status"
-          else:
-            value['Successful'].setdefault( lfn, {} )[se] = "(%s) %s" % ( res['Value']['Successful'][lfn], replicas[lfn][se] )
-      res = DIRAC.S_OK( value )
-  # DIRAC.exit( printDMResult( dirac.getReplicas( lfnList, active=active, printOutput=False ),
-  #                           empty="No allowed SE found", script="dirac-dms-lfn-replicas" ) )
-  DIRAC.exit( printDMResult( res,
-                             empty = "No allowed replica found", script = "dirac-dms-lfn-replicas" ) )
+  executeLfnReplicas( dmScript )
