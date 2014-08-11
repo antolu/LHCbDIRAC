@@ -9,7 +9,6 @@ __RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeAccessURL
 
 
 if __name__ == "__main__":
@@ -26,5 +25,6 @@ if __name__ == "__main__":
                                        '  SE:       Valid DIRAC SE' ] ) )
   Script.parseCommandLine( ignoreErrors = True )
 
+  from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeAccessURL
   executeAccessURL( dmScript )
 
