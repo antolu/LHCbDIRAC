@@ -7,7 +7,6 @@ __VERSION__ = "$Revision$"
 
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeSetProblematicFiles
 
 if __name__ == "__main__":
 
@@ -24,5 +23,7 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
   Script.parseCommandLine( ignoreErrors = False )
+
+  from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeSetProblematicFiles
   executeSetProblematicFiles( dmScript )
 

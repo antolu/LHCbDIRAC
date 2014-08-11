@@ -10,7 +10,6 @@
 __RCSID__ = "$Id$"
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 from DIRAC.Core.Base import Script
-from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeGetFile
 import os
 
 if __name__ == "__main__":
@@ -25,4 +24,5 @@ if __name__ == "__main__":
 
   Script.parseCommandLine( ignoreErrors = False )
 
+  from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeGetFile
   executeGetFile( dmScript )

@@ -24,6 +24,7 @@ if __name__ == "__main__":
                                        '  LFN:      Logical File Name or file containing LFNs',
                                        '  SE:       Valid DIRAC SE' ] ) )
   Script.parseCommandLine()
+
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeRemoveReplicas
   executeRemoveReplicas( dmScript )
 

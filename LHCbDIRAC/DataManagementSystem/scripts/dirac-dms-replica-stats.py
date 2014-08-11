@@ -8,7 +8,6 @@ __RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeReplicaStats
 
 if __name__ == "__main__":
 
@@ -26,6 +25,9 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'DumpWithArchives=', '   =<n>, print list of files with <n> archives' )
   Script.registerSwitch( '', 'DumpWithReplicas=', '   =<n>, print list of files with <n> replicas' )
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
+
   Script.parseCommandLine( ignoreErrors = False )
+
+  from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeReplicaStats
   executeReplicaStats( dmScript )
 

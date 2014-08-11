@@ -10,7 +10,6 @@
 __RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult
-from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executePfnMetadata
 
 if __name__ == "__main__":
 
@@ -27,5 +26,7 @@ if __name__ == "__main__":
                                        '  URL:      Logical/Physical File Name or file containing URLs',
                                        '  SE:       Valid DIRAC SE' ] ) )
   Script.parseCommandLine( ignoreErrors = True )
+
+  from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executePfnMetadata
   executePfnMetadata( dmScript )
 

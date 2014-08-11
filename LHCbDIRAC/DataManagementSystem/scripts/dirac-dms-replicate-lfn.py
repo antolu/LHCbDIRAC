@@ -10,7 +10,6 @@
 __RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeReplicateLfn
 
 if __name__ == "__main__":
   dmScript = DMScript()
@@ -24,5 +23,7 @@ if __name__ == "__main__":
                                        '  Source:   Valid DIRAC SE',
                                        '  Cache:    Local directory to be used as cache' ] ) )
   Script.parseCommandLine( ignoreErrors = True )
+
+  from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeReplicateLfn
   executeReplicateLfn( dmScript )
 
