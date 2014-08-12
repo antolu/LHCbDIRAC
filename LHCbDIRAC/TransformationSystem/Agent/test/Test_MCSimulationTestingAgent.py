@@ -3,7 +3,7 @@
 
 import unittest
 import datetime
-from mock import MagicMock
+from mock import MagicMock, patch
 
 from LHCbDIRAC.TransformationSystem.Agent.MCSimulationTestingAgent import MCSimulationTestingAgent
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
@@ -387,6 +387,37 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
     self.transClientMock.extendTransformation.return_value = {'OK' : True, 'Value' : [3L, 4L, 5L]}
 
     self.bkClientMock = MagicMock()
+    self.bkClientMock.bulkJobInfo.return_value = {'OK': True,
+                                                   'Value': {'Failed': [],
+                                                    'Successful': {'/lhcb/production/DC06/phys-v2-lumi2/00001764/DST/0000/00001764_00000195_5.dst': {'ApplicationName': 'Brunel',
+                                                      'ApplicationVersion': 'v30r14',
+                                                      'CPUTIME': 1983.83,
+                                                      'DIRACJobId': 1563495,
+                                                      'DIRACVersion': 'v2r13 build 3',
+                                                      'EventInputStat': None,
+                                                      'ExecTime': 2079.81009412,
+                                                      'FirstEventNumber': 1,
+                                                      'JobId': 10987796,
+                                                      'Location': 'LCG.Glasgow.uk',
+                                                      'Name': '00001764_00000195_5',
+                                                      'NumberOfEvents': 1,
+                                                      'Production': 1764,
+                                                      'StatisticsRequested': None,
+                                                      'TotalLumonosity': 0,
+                                                      'WNCACHE': '1024KB',
+                                                      'WNCPUHS06': 0,
+                                                      'WNCPUPOWER': None,
+                                                      'WNMEMORY': '8195868kB',
+                                                      'WNMODEL': 'DualCoreAMDOpteron(tm)Processor280',
+                                                      'WORKERNODE': 'node046.beowulf.cluster'}}},
+                                                   'rpcStub': (('Bookkeeping/BookkeepingManager',
+                                                     {'delegatedDN': '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=sbidwell/CN=758039/CN=Simon Bidwell',
+                                                      'delegatedGroup': 'lhcb_user',
+                                                      'keepAliveLapse': 150,
+                                                      'skipCACheck': False,
+                                                      'timeout': 3600}),
+                                                    'bulkJobInfo',
+                                                    (['/lhcb/production/DC06/phys-v2-lumi2/00001764/DST/0000/00001764_00000195_5.dst'],))}
 
     self.notifyClientMock = MagicMock()
     self.notifyClientMock.sendMail.return_value = {'OK' : True, 'Value': "The mail was succesfully sent"}
@@ -410,10 +441,6 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
     res = self.agent._send_report( self.report )
     self.assertTrue( res['OK'] )
 
-  def test_calculate_parameters( self ):
-    res = self.agent._calculate_parameters( self.tasks )
-    self.assertTrue( res['OK'] )
-
   def test_update_workflow( self ):
     CPUe = 1
     max_e = 1
@@ -427,6 +454,17 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
     max_e_param = prod.LHCbJob.workflow.findParameter( 'maxNumberOfEvents' )
     self.assertEqual( CPUe_xml, cpue_param.toXML() )
     self.assertEqual( max_e_xml, max_e_param.toXML() )
+
+  @patch( "LHCbDIRAC.TransformationSystem.Agent.MCSimulationTestingAgent.getEventsToProduce" )
+  def test_calculate_parameters( self, patch_mock ):
+    expected_cpue = 2079.81009412
+    expected_max_e = 100
+    # mock to make getEventsToProduce to return 100
+    patch_mock.return_value = expected_max_e
+    res = self.agent._calculate_parameters( self.tasks )
+    self.assertTrue( res['OK'] )
+    self.assertEqual( res['Value']['CPUe'], expected_cpue )
+    self.assertEqual( res['Value']['max_e'], expected_max_e )
 
   def test_extend_failed_tasks( self ):
     numberOfFailedTasks = 3
