@@ -19,6 +19,7 @@ from DIRAC.FrameworkSystem.Client.NotificationClient                      import
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations                  import Operations
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry                    import getUserOption
 from LHCbDIRAC.ProductionManagementSystem.Client.Production               import Production
+from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest        import getEventsToProduce
 
 class MCSimulationTestingAgent ( AgentModule ):
   '''An agent to check for MCSimulation productions that have undergone the testing phase.
@@ -166,9 +167,20 @@ class MCSimulationTestingAgent ( AgentModule ):
   def _calculate_parameters( self, tasks ):
     '''calculates the CPU time per event for a successful task.
     '''
-    # use the bkclient - how?
-    # return an S_OK with the CPUe value
-    return S_OK( {'CPUe' : 100, 'max_e': 100} )
+    job_id = tasks[0]['ExternalID']
+    res = self.bkClient.bulkJobInfo( {'jobId':[job_id]} )
+    if not res['OK']:
+      self.log.error( res['Message'] )
+      return S_ERROR( res['Message'] )
+    successful = res['Value']['Successful']
+    key = successful.keys()[0]
+    cpuTime = successful[key]['ExecTime']
+    # number of events is a known quantity, should we get this known value from the CS file, or assume
+    # the bkClient holds the correct value
+    events = successful[key]['NumberOfEvents']
+    CPUe = cpuTime / events
+    max_e = getEventsToProduce( CPUe )
+    return S_OK( {'CPUe' : CPUe, 'max_e': max_e} )
 
   def _update_workflow( self, transID, CPUe, max_e ):
     '''updates the workflow of a savedProductionDescription to reflect the calculated CPUe
