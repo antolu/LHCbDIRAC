@@ -755,7 +755,6 @@ class TransformationDB( DIRACTransformationDB ):
     connection = self.__getConnection( connection )
     req = "SELECT TransformationID FROM StoredJobDescription"
     res = self._query( req, connection )
-    print res
     if not res['OK']:
       gLogger.error( "Failure executing %s" % str( req ) )
       return res
