@@ -1,14 +1,14 @@
 '''Test class for the MCSimulationTestingAgent
 '''
 
-import unittest
-import datetime
+import unittest, datetime, importlib
 from mock import MagicMock, patch
 
 from LHCbDIRAC.TransformationSystem.Agent.MCSimulationTestingAgent import MCSimulationTestingAgent
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from DIRAC.Core.Workflow.Workflow import fromXMLString
+from DIRAC import gLogger
 
 storedJobDescription = """<Workflow>
 <origin></origin>
@@ -297,7 +297,11 @@ data
 class MCSimulationTestingAgentTestCase( unittest.TestCase ):
 
   def setUp( self ):
-    self.agent = MCSimulationTestingAgent( 'Transformation/MCSimulationTestingAgent', 'Transformation/MCSimulationTestingAgent' )
+    self.mockAM = MagicMock()
+    self.agent = importlib.import_module( 'LHCbDIRAC.TransformationSystem.Agent.MCSimulationTestingAgent' )
+    self.agent.AgentModule = self.mockAM
+    self.agent = MCSimulationTestingAgent()
+    self.agent.log = gLogger
     self.transID = 1L
     self.tasks = [{'TargetSE': 'Unknown',
                    'TransformationID': 1L,
