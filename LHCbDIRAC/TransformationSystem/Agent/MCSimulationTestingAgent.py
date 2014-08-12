@@ -175,8 +175,6 @@ class MCSimulationTestingAgent ( AgentModule ):
     successful = res['Value']['Successful']
     key = successful.keys()[0]
     cpuTime = successful[key]['ExecTime']
-    # number of events is a known quantity, should we get this known value from the CS file, or assume
-    # the bkClient holds the correct value
     events = successful[key]['NumberOfEvents']
     CPUe = cpuTime / events
     max_e = getEventsToProduce( CPUe )
