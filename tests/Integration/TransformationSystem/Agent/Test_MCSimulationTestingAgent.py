@@ -2,12 +2,15 @@
 
    Test of the chain:
    MCSimulationTestingAgent -> TransformationClient -> TransformationManager -> TransformationDB
-                            -> BookKeepingClient -> ...
                             -> NotificationClient -> ...
+
+   The method _calculate_parameters is unit tested in the Test_McSimulationTestingAgent.py file found in
+   LHCbDIRAC/TransformationSystem/Agent/Test, but is mocked here because it needs entries in the bkClient
+   to work.
 '''
 
 import unittest
-from mock import Mock
+from mock import Mock, patch
 
 from LHCbDIRAC.TransformationSystem.Agent.MCSimulationTestingAgent import MCSimulationTestingAgent
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
@@ -299,6 +302,10 @@ data
 </Workflow>
 """
 
+def _calculate_parameters_mock( self , input_params ):
+  return {'OK' : True, 'Value': {'CPUe' : 100, 'max_e' : 100}}
+
+@patch.object( MCSimulationTestingAgent, "_calculate_parameters", _calculate_parameters_mock )
 class MCSimulationTestingAgentIntegrationTestCase( unittest.TestCase ):
 
   def setUp( self ):
@@ -483,10 +490,6 @@ class MCSimulationTestingAgentIntegrationTestCase( unittest.TestCase ):
     tasks = self.transClient.getTransformationTasks( condDict = {'TransformationID' : self.transIDs[0]} )
     self.assertEqual( len( tasks['Value'] ), 8 )
 
-    #  to do:
-    #  - when the new release goes up, use lxplus to do SetupProject lhcbdirac --dev
-    #  - test the bulkjobinfo methods from zoltan to make sure they output the same and use their outputs
-    #  - to create your mocks.
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( MCSimulationTestingAgentIntegrationTestCase )
