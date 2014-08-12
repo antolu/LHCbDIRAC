@@ -246,9 +246,12 @@ class ProductionRequest( object ):
 
         # set the destination and number of events for testing
         op = Operations()
-        destination = op.getValue( "Productions/MCTestingDestination" )
+        destination = op.getValue( "Productions/MCTesting/MCTestingDestination" )
+        numberOfEvents = op.getValue( "Productions/MCTesting/numberOfEvents" )
+        extendBy = op.getValue( "Productions/MCTesting/extendBy" )
+
         prod.setJobParameters( {'Destination': destination} )
-        prod.setParameter( 'numberOfEvents', 'string', str( 200 ), 'Number of events to test' )
+        prod.setParameter( 'numberOfEvents', 'string', str( numberOfEvents ), 'Number of events to test' )
 
         # find the file types out already built, append GAUSSHIT and set the new listoutput
         fileTypesOut = prod.LHCbJob.workflow.step_instances[0].findParameter( 'listoutput' ).getValue()[0]['outputDataType']
@@ -262,7 +265,7 @@ class ProductionRequest( object ):
                                                    publishFlag = self.publishFlag,
                                                    testFlag = self.testFlag,
                                                    requestID = self.requestID,
-                                                   extend = 10,
+                                                   extend = extendBy,
                                                    tracking = prodDict['tracking'],
                                                    MCsimflag = True )
 
