@@ -6,7 +6,6 @@ from mock import MagicMock, patch
 
 from LHCbDIRAC.TransformationSystem.Agent.MCSimulationTestingAgent import MCSimulationTestingAgent
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from DIRAC.Core.Workflow.Workflow import fromXMLString
 from DIRAC import gLogger
 
