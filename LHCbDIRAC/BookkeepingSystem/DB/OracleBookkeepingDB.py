@@ -4473,7 +4473,8 @@ and files.qualityid= dataquality.qualityid'
                               'EventType',
                               'FileType',
                               'ProcessingPass',
-                              'ConditionDescription' ), i ) )]
+                              'ConditionDescription',
+                              'VisibilityFlag' ), i ) )]
       result = S_OK( records )
     else:
       result = retVal
@@ -4501,7 +4502,8 @@ and files.qualityid= dataquality.qualityid'
                               'EventType',
                               'FileType',
                               'ProcessingPass',
-                              'ConditionDescription' ), i[1:] ) )]
+                              'ConditionDescription',
+                              'VisibilityFlag' ), i[1:] ) )]
         else:
           records[fileName] = [dict( zip( ( 'Production',
                               'ConfigName',
@@ -4509,7 +4511,8 @@ and files.qualityid= dataquality.qualityid'
                               'EventType',
                               'FileType',
                               'ProcessingPass',
-                              'ConditionDescription' ), i[1:] ) )]
+                              'ConditionDescription',
+                              'VisibilityFlag' ), i[1:] ) )]
       failed = [ i[:-1] for i in lfns if i[:-1] not in records]
       result = S_OK( {'Successful':records, 'Failed':failed} )
     else:

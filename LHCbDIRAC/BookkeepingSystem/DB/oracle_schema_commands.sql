@@ -1,10 +1,37 @@
+drop type bulk_collect_directoryMetadata;
+/
+create or replace  type
+directoryMetadata is object
+(production number,
+configname varchar2(256),
+configversion  varchar2(256),
+eventtypeid number,
+filetype varchar2(256),
+processingpass varchar2(256),
+ConditionDescription varchar2(256),
+VISIBILITYFLAG CHAR(1));
+/
+create or replace type bulk_collect_directoryMetadata is table of directoryMetadata;
+/
+drop type bulk_collect_directoryMet_new;
+/
+create or replace  type
+directoryMetadata_new is object
+(lfn varchar2(256),
+production number,
+configname varchar2(256),
+configversion  varchar2(256),
+eventtypeid number,
+filetype varchar2(256),
+processingpass varchar2(256),
+ConditionDescription varchar2(256),
+VISIBILITYFLAG CHAR(1));
+/
+create or replace type bulk_collect_directoryMet_new is table of directoryMetadata_new;
+/
 drop type metadata_table;
-create or replace
-type metadata_table is table of metadata0bj;
-
-
-create or replace
-type metadata0bj is object (
+/
+create or replace type metadata0bj is object (
   FILENAME varchar2(128),
   ADLER32 varchar2(256),
   CREATIONDATE timestamp(6),
@@ -24,5 +51,8 @@ type metadata0bj is object (
   instluminosity number ,
   VISIBILITYFLAG CHAR(1)
  );
+/
+create or replace type metadata_table is table of metadata0bj;
+/
 create index jobs_fill_runnumber on jobs(fillnumber,runnumber);
 create index djobid on jobs(diracjobid);

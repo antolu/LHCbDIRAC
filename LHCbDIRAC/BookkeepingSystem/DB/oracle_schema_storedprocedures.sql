@@ -1671,7 +1671,8 @@ configversion  varchar2(256),
 eventtypeid number,
 filetype varchar2(256),
 processingpass varchar2(256),
-ConditionDescription varchar2(256));
+ConditionDescription varchar2(256),
+VISIBILITYFLAG CHAR(1));
 create or replace
 type bulk_collect_directoryMetadata is table of directoryMetadata;
 */
@@ -1681,7 +1682,7 @@ procName varchar2(256);
 simdesc varchar2(256);
 daqdesc varchar2(256);
 begin
-for c in (select /*+ INDEX(f FILES_FILENAME_UNIQUE) */ distinct j.production, c.configname, c.configversion, ft.name, f.eventtypeid from files f, jobs j, filetypes ft, configurations c where
+for c in (select /*+ INDEX(f FILES_FILENAME_UNIQUE) */ distinct j.production, c.configname, c.configversion, ft.name, f.eventtypeid, f.VISIBILITYFLAG from files f, jobs j, filetypes ft, configurations c where
 c.configurationid=j.configurationid and ft.filetypeid = f.filetypeid and j.jobid=f.jobid and f.gotreplica='Yes' and f.filename like f_name)
 LOOP
   select getProductionPorcPassName(prod.processingid),sim.simdescription, daq.description into procName, simdesc, daqdesc from productionscontainer prod, simulationconditions sim, data_taking_conditions daq where
@@ -1691,9 +1692,9 @@ LOOP
    lfnmeta.extend;
    n:=n+1;
    if simdesc is NULL or simdesc='' then
-     lfnmeta (n):= directoryMetadata(c.production,c.configname, c.configversion, c.eventtypeid, c.name, procname,daqdesc);
+     lfnmeta (n):= directoryMetadata(c.production,c.configname, c.configversion, c.eventtypeid, c.name, procname,daqdesc,c.VISIBILITYFLAG);
    else
-     lfnmeta (n):= directoryMetadata(c.production,c.configname, c.configversion, c.eventtypeid, c.name, procname,simdesc);
+     lfnmeta (n):= directoryMetadata(c.production,c.configname, c.configversion, c.eventtypeid, c.name, procname,simdesc,c.VISIBILITYFLAG);
    END if;
 END LOOP;
 open a_Cursor for select * from table(lfnmeta);
@@ -1713,7 +1714,8 @@ configversion  varchar2(256),
 eventtypeid number,
 filetype varchar2(256),
 processingpass varchar2(256),
-ConditionDescription varchar2(256));
+ConditionDescription varchar2(256),
+VISIBILITYFLAG CHAR(1));
 create or replace
 type bulk_collect_directoryMet_new is table of directoryMetadata_new;
 */
@@ -1725,7 +1727,7 @@ daqdesc varchar2(256);
 found number := 0;
 BEGIN
 FOR i in lfns.FIRST .. lfns.LAST LOOP
-  for c in (select /*+ INDEX(f FILES_FILENAME_UNIQUE) */ distinct j.production, c.configname, c.configversion, ft.name, f.eventtypeid from files f, jobs j, filetypes ft, configurations c where
+  for c in (select /*+ INDEX(f FILES_FILENAME_UNIQUE) */ distinct j.production, c.configname, c.configversion, ft.name, f.eventtypeid, f.VISIBILITYFLAG from files f, jobs j, filetypes ft, configurations c where
    c.configurationid=j.configurationid and ft.filetypeid = f.filetypeid and j.jobid=f.jobid and f.gotreplica='Yes' and f.filename like lfns(i)) LOOP
    select count(*) into found from productionscontainer where production=c.production;
    if found>0then
@@ -1736,9 +1738,9 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
      lfnmeta.extend;
      n:=n+1;
     if simdesc is NULL or simdesc='' then
-      lfnmeta (n):= directoryMetadata_new(lfns(i),c.production,c.configname, c.configversion, c.eventtypeid, c.name, procname,daqdesc);
+      lfnmeta (n):= directoryMetadata_new(lfns(i),c.production,c.configname, c.configversion, c.eventtypeid, c.name, procname,daqdesc, c.VISIBILITYFLAG);
     else
-      lfnmeta (n):= directoryMetadata_new(lfns(i),c.production,c.configname, c.configversion, c.eventtypeid, c.name, procname,simdesc);
+      lfnmeta (n):= directoryMetadata_new(lfns(i),c.production,c.configname, c.configversion, c.eventtypeid, c.name, procname,simdesc, c.VISIBILITYFLAG);
     END if;
  END IF;
   END LOOP;
