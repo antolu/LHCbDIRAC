@@ -2220,7 +2220,8 @@ class OracleBookkeepingDB:
                  'RunNumber':record[13],
                  'InsertTimeStamp':record[14],
                  'Luminosity':record[15],
-                 'InstLuminosity':record[16]}
+                 'InstLuminosity':record[16],
+                 'VisibilityFlag': record[17]}
           result[record[0]] = row
 #    4 type
 #    for lfn in lfns:

@@ -1252,12 +1252,12 @@ is
 BEGIN
 FOR j in iftypes.FIRST .. iftypes.LAST LOOP
   DBMS_OUTPUT.PUT_LINE('FileName: '|| iftypes(j));
-  FOR cur in (select files.FILENAME,files.ADLER32,files.CREATIONDATE,files.EVENTSTAT,files.EVENTTYPEID,filetypes.Name,files.GOTREPLICA,files.GUID,files.MD5SUM,files.FILESIZE, files.FullStat, dataquality.DATAQUALITYFLAG, files.jobid, jobs.runnumber, files.inserttimestamp,files.luminosity,files.instluminosity from files,filetypes,dataquality,jobs where
+  FOR cur in (select files.FILENAME,files.ADLER32,files.CREATIONDATE,files.EVENTSTAT,files.EVENTTYPEID,filetypes.Name,files.GOTREPLICA,files.GUID,files.MD5SUM,files.FILESIZE, files.FullStat, dataquality.DATAQUALITYFLAG, files.jobid, jobs.runnumber, files.inserttimestamp,files.luminosity,files.instluminosity, files.VISIBILITYFLAG from files,filetypes,dataquality,jobs where
          filename=iftypes(j) and
          jobs.jobid=files.jobid and
          files.filetypeid=filetypes.filetypeid and
          files.QUALITYID=DataQuality.qualityID) LOOP
-        pipe row(metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity));
+        pipe row(metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity, cur.VISIBILITYFLAG));
   END LOOP;
 END LOOP;
 END;
@@ -1270,14 +1270,14 @@ n integer := 0;
 BEGIN
 FOR j in iftypes.FIRST .. iftypes.LAST LOOP
   DBMS_OUTPUT.PUT_LINE('FileName: '|| iftypes(j));
-  FOR cur in (select files.FILENAME,files.ADLER32,files.CREATIONDATE,files.EVENTSTAT,files.EVENTTYPEID,filetypes.Name,files.GOTREPLICA,files.GUID,files.MD5SUM,files.FILESIZE, files.FullStat, dataquality.DATAQUALITYFLAG, files.jobid, jobs.runnumber, files.inserttimestamp,files.luminosity,files.instluminosity from files,filetypes,dataquality,jobs where
+  FOR cur in (select files.FILENAME,files.ADLER32,files.CREATIONDATE,files.EVENTSTAT,files.EVENTTYPEID,filetypes.Name,files.GOTREPLICA,files.GUID,files.MD5SUM,files.FILESIZE, files.FullStat, dataquality.DATAQUALITYFLAG, files.jobid, jobs.runnumber, files.inserttimestamp,files.luminosity,files.instluminosity, files.VISIBILITYFLAG from files,filetypes,dataquality,jobs where
          filename=iftypes(j) and
          jobs.jobid=files.jobid and
          files.filetypeid=filetypes.filetypeid and
          files.QUALITYID=DataQuality.qualityID) LOOP
  lfnmeta.extend;
  n:=n+1;
- lfnmeta (n):=metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity);
+ lfnmeta (n):=metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity, cur.VISIBILITYFLAG);
   END LOOP;
 END LOOP;
 open a_Cursor for select * from table(lfnmeta);
@@ -1776,7 +1776,7 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
   IF found = 0 THEN
     lfnmeta.extend;
     n:=n+1;
-    lfnmeta (n):=metadata0bj(lfns(i), NULL,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    lfnmeta (n):=metadata0bj(lfns(i), NULL,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
   END IF;
 END LOOP;
 open a_Cursor for select filename from table(lfnmeta);
@@ -1805,7 +1805,7 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
     select ftype.version into ftype from files f, filetypes ftype where f.filetypeid=ftype.filetypeid and f.filename=lfns(i);
     lfnmeta.extend;
     n:=n+1;
-    lfnmeta (n):=metadata0bj(lfns(i), ftype ,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    lfnmeta (n):=metadata0bj(lfns(i), ftype ,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
   END IF;
 END LOOP;
 open a_Cursor for select * from table(lfnmeta);
