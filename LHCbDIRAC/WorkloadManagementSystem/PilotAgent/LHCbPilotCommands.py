@@ -54,7 +54,8 @@ class InstallLHCbDIRAC( InstallDIRAC ):
     # now setting the correct paths/variables 
     # (by default this is not needed, since with dirac-install we work in the local directory)
     self.pp.installEnv = environment
-    self.pp.rootPath = 
+# FIXME
+#     self.pp.rootPath =
 
 
   def __invokeCmd( self, cmd, environment ):
