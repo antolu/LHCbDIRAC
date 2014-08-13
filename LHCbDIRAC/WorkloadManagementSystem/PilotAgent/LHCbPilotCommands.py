@@ -6,6 +6,7 @@ __RCSID__ = "$Id$"
 # import re
 # import sys
 import subprocess
+import os
 import distutils.spawn
 
 from pilotCommands import InstallDIRAC, ConfigureDIRAC, GetPilotVersion
@@ -34,7 +35,7 @@ class InstallLHCbDIRAC( InstallDIRAC ):
       self._doSetupProject()
       self.log.info( "SetupProject DONE, for release %s" % self.pp.releaseVersion )
     except OSError, e:
-      self.log.error(e)
+      print "Exception when trying SetupProject:", e
       self.log.warn( "SetupProject NOT DONE: starting traditional DIRAC installation" )
       super( InstallLHCbDIRAC, self ).execute()
 
@@ -45,18 +46,25 @@ class InstallLHCbDIRAC( InstallDIRAC ):
         If the version does not exist, or if there is an issue within LbLogin or SetupProject, raise OSError
     """
 
+    environment = os.environ
     # when we reach here we expect to know the release version to install
     for cmd in [ '/cvmfs/lhcb.cern.ch/lib/LbLogin.sh', 'SetupProject.sh LHCbDirac %s' % self.pp.releaseVersion]:
-      self.__invokeCmd( cmd )
+      environment = self.__invokeCmd( cmd, environment )
+
+    # now setting the correct paths/variables 
+    # (by default this is not needed, since with dirac-install we work in the local directory)
+    self.pp.installEnv = environment
+    self.pp.rootPath = 
 
 
-  def __invokeCmd( self, cmd ):
+  def __invokeCmd( self, cmd, environment ):
     """ Controlled invoke of command via subprocess.Popen
     """
 
-    self.log.debug( "Executing %s" % cmd )
+    self.log.debug( "Executing . %s && printenv > environment%s" % ( cmd, cmd.replace( ' ', '' ).split( '/' )[-1] ) )
 
-    cmdExecution = subprocess.Popen( ". %s" % cmd, shell = True,
+    cmdExecution = subprocess.Popen( ". %s && printenv > environment%s" % ( cmd, cmd.replace( ' ', '' ).split( '/' )[-1] ),
+                                     shell = True, env = environment,
                                      stdout = subprocess.PIPE, stderr = subprocess.PIPE, close_fds = False )
     if cmdExecution.wait() != 0:
       for line in cmdExecution.stderr:
@@ -66,24 +74,22 @@ class InstallLHCbDIRAC( InstallDIRAC ):
     for line in cmdExecution.stdout:
       self.log.debug(line)
 
+    # getting the produced environment
+    environmentProduced = {}
+    fp = open( 'environment%s' % cmd.replace( ' ', '' ).split( '/' )[-1], 'r' )
+    for line in fp:
+      try:
+        var = line.split( '=' )[0].strip()
+        value = line.split( '=' )[1].strip()
+        # FIXME: horrible hack... (there's a function that ends in the next line...)
+        if '{' in value:
+          value = value + '\n}'
+        environmentProduced[var] = value
+      except IndexError:
+        continue
 
+    return environmentProduced
 
-#     # Creating the dictionary containing the LHCbDirac environment
-#     outData = {}
-#     first = True
-#     for line in _p.stdout:
-#       self.log.debug( line )
-#       if line.find( 'LHCbDirac' ) != -1 and first:
-#         SetupProjectRelease = re.findall( r'(?<=LHCbDirac)(.*?)(?=ready)', line )
-#         SetupProjectRelease = SetupProjectRelease[0]
-#         SetupProjectRelease = SetupProjectRelease.strip()
-#         first = False
-#       if line.find( "=" ) != -1:
-#         line = line.strip()
-#         parts = line.split( '=' )
-#         outData[parts[0]] = parts[1]
-#     returnCode = _p.wait()
-#     return ( returnCode, outData, SetupProjectRelease )
 
 
 
