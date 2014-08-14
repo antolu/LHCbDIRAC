@@ -124,8 +124,12 @@ class BKQuery():
           eventTypes = []
           # print b
           for et in bpath.split( ',' ):
-            eventTypes.append( et.split( ' ' )[0] )
-          if type( eventTypes ) == type( [] ) and len( eventTypes ) == 1:
+            try:
+              eventType = int( et.split( ' ' )[0] )
+              eventTypes.append( eventType )
+            except:
+              pass
+          if len( eventTypes ) == 1:
             eventTypes = eventTypes[0]
           bpath = eventTypes
           gLogger.verbose( 'buildBKQuery. Event types %s' % eventTypes )
