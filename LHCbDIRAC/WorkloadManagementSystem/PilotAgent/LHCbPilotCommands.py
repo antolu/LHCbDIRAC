@@ -3,10 +3,9 @@
 
 __RCSID__ = "$Id$"
 
-# import re
-# import sys
 import subprocess
 import os
+import sys
 
 from pilotCommands import InstallDIRAC, GetPilotVersion
 
@@ -65,12 +64,13 @@ class InstallLHCbDIRAC( InstallDIRAC ):
                                      shell = True, env = environment,
                                      stdout = subprocess.PIPE, stderr = subprocess.PIPE, close_fds = False )
     if cmdExecution.wait() != 0:
+      self.log.error( "Problem executing %s" % cmd )
       for line in cmdExecution.stderr:
-        print line
+        sys.stdout.write( line )
       raise OSError, "Can't do %s" % cmd
 
     for line in cmdExecution.stdout:
-      self.log.debug(line)
+      sys.stdout.write( line )
 
     # getting the produced environment
     environmentProduced = {}
