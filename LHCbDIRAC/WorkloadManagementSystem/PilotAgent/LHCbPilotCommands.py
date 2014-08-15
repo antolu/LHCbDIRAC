@@ -7,9 +7,8 @@ __RCSID__ = "$Id$"
 # import sys
 import subprocess
 import os
-import distutils.spawn
 
-from pilotCommands import InstallDIRAC, ConfigureDIRAC, GetPilotVersion
+from pilotCommands import InstallDIRAC, GetPilotVersion
 
 class GetLHCbPilotVersion( GetPilotVersion ):
   """ Only to set the location of the pilot cfg file
@@ -51,11 +50,9 @@ class InstallLHCbDIRAC( InstallDIRAC ):
     for cmd in [ '/cvmfs/lhcb.cern.ch/lib/LbLogin.sh', 'SetupProject.sh LHCbDirac %s' % self.pp.releaseVersion]:
       environment = self.__invokeCmd( cmd, environment )
 
-    # now setting the correct paths/variables 
+    # now setting the correct environment to be used by dirac-configure, or whatever follows
     # (by default this is not needed, since with dirac-install we work in the local directory)
     self.pp.installEnv = environment
-# FIXME
-#     self.pp.rootPath =
 
 
   def __invokeCmd( self, cmd, environment ):
@@ -90,33 +87,4 @@ class InstallLHCbDIRAC( InstallDIRAC ):
         continue
 
     return environmentProduced
-
-
-
-
-# class ConfigureLHCbDIRAC( ConfigureDIRAC ):
-#   """ Configure LHCbDIRAC and with dirac-configure
-#   """
-# # FIXME: this is broken right now
-#
-#   def execute( self ):
-#     """ Standard module executed
-#     """
-#     diracScriptsPath = distutils.spawn.find_executable( 'dirac-configure', diracEnv ).replace( "/dirac-configure", "/" )
-#
-#     rootPath = diracScriptsPath.replace( "/InstallArea/scripts/", "/" )
-#
-#     self.log.info( 'Using the DIRAC installation in %s' % rootPath )
-#
-#     configure = diracPilotLast.ConfigureDIRAC( diracScriptsPath, rootPath, diracEnv, True )
-#     configure.setConfigureOpt()
-#     release = configure.releaseVersionList.split( ',' )
-#     if SetupProjectRelease in release:
-#       diracPilotLast.logINFO ( 'The release version %s is available in cvmfs' % SetupProjectRelease )
-#       configure.releaseVersion = SetupProjectRelease
-#       configure.execute()
-#       return True
-#     else:
-#       self.log.info( 'The release version %s is NOT available cvmfs: start DIRAC Installation' % release )
-#       return False
 
