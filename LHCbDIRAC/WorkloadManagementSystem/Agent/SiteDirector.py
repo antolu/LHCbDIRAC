@@ -33,8 +33,7 @@ class SiteDirector( DIRACSiteDirector ):
     """
     pilotOptions, pilotsToSubmit = DIRACSiteDirector._getPilotOptions( queue, pilotsToSubmit )
 
-#  FIXME: commented out for now, but should be uncommented
-#     pilotOptions.append( '-E LHCbPilot' )
-#     pilotOptions.append( '-X GetLHCbPilotVersion,InstallLHCbDIRAC,ConfigureDIRAC,LaunchAgent' )
+    pilotOptions.append( '-E LHCbPilot' )
+    pilotOptions.append( '-X GetLHCbPilotVersion,InstallLHCbDIRAC,ConfigureDIRAC,LaunchAgent' )
 
     return [pilotOptions, pilotsToSubmit]
