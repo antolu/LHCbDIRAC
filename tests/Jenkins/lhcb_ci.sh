@@ -622,8 +622,11 @@ dumpDBs(){
 
 function prepareDIRAC(){
   
-  echo 'Running in DEBUG mode'
-  DEBUG='-ddd'
+  if [ ! -z "$DEBUG" ]
+  then
+    echo 'Running in DEBUG mode'
+    export DEBUG='-ddd'
+  fi  
   
   killRunsv
   
