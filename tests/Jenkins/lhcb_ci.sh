@@ -622,12 +622,12 @@ dumpDBs(){
 
 function prepareDIRAC(){
   
-  [ "$DEBUG" ] && 'Running in DEBUG mode' && DEBUG='-ddd'
+  echo 'Running in DEBUG mode'
+  DEBUG='-ddd'
   
   killRunsv
   
   findRelease
-  
   diracInstall
   generateCertificates
   
