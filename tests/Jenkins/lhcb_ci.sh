@@ -99,7 +99,7 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
     echo PROJECT:$projectVersion && echo $projectVersion > project.version
     echo DIRAC:$diracVersion && echo $diracVersion > dirac.version
     echo LHCbDIRAC:$lhcbdiracVersion && echo $lhcbdiracVersion > lhcbdirac.version
-    echo LCG:$lcgVersion && echo $lcgVersion > lhcbdirac.version
+    echo LCG:$lcgVersion && echo $lcgVersion > lcg.version
 
   }
 
@@ -763,8 +763,9 @@ function installSite(){
 	cd $WORKSPACE/DIRAC
 	wget -np https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/install_site.sh --no-check-certificate
 	chmod +x install_site.sh
-	sed s/VAR_Release/$lhcbdiracVersion install_site.sh
-	sed s/VAR_LcgVer/
+	sed s/VAR_Release/$lhcbdiracVersion/g install.cfg
+	sed s/VAR_LcgVer/$lcgVersion/g install.cfg
+	sed s/VAR_TargetPath/$WORKSPACE/g install.cfg
 	
 	./install_site.sh install.cfg
 }
