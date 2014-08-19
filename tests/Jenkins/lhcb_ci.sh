@@ -88,15 +88,18 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
     diracVersion=`echo $versions | tr ' ' '\n' | grep ^DIRAC:v*[^,] | sed 's/,//g' | cut -d ':' -f2`
     # Extract LHCbDIRAC version
     lhcbdiracVersion=`echo $versions | tr ' ' '\n' | grep ^LHCbDIRAC:v* | sed 's/,//g' | cut -d ':' -f2`
+    # Extract LCG version
+	lcgVersion=`echo $versions | sed s/' = '/'='/g | tr ' ' '\n' | grep LcgVer | cut -d '=' -f2`
   
     # Back to $WORKSPACE and clean tmp_dir
     cd $WORKSPACE
     rm -r $tmp_dir
     
     # PrintOuts
-    echo PROJECT:$projectVersion     && echo $projectVersion   > project.version
-    echo DIRAC:$diracVersion         && echo $diracVersion     > dirac.version
+    echo PROJECT:$projectVersion && echo $projectVersion > project.version
+    echo DIRAC:$diracVersion && echo $diracVersion > dirac.version
     echo LHCbDIRAC:$lhcbdiracVersion && echo $lhcbdiracVersion > lhcbdirac.version
+    echo LCG:$lcgVersion && echo $lcgVersion > lhcbdirac.version
 
   }
 
@@ -362,7 +365,8 @@ findServices(){
   #.............................................................................
 
   function diracMySQL(){
-  
+	echo '[diracMySQL]'
+
     # Kills MySQL daemon if running
     killMySQL
     
@@ -731,6 +735,40 @@ function mergeTests(){
   coverage xml --include="*DIRAC/*"
 
 }
+
+#...............................................................................
+#
+# installSite:
+#
+#   This function will install DIRAC using the install_site.sh script 
+#     following (more or less) instructions at diracgrid.org
+#
+#...............................................................................
+
+
+function installSite(){
+	 
+	killRunsv
+	findRelease
+
+	#adduser -s /bin/bash -d /home/dirac dirac
+	#mkdir /opt/dirac
+	#chown -R dirac:dirac /opt/dirac
+	#su dirac
+	#mkdir -p /opt/dirac/etc/grid-security/
+	#cp hostcert.pem hostkey.pem /opt/dirac/etc/grid-security
+	generateCertificates
+	#ln -s $WORKSPACE/etc/grid-security/certificates  /opt/dirac/etc/grid-security/certificates
+	mkdir $WORKSPACE/DIRAC
+	cd $WORKSPACE/DIRAC
+	wget -np https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/install_site.sh --no-check-certificate
+	chmod +x install_site.sh
+	sed s/VAR_Release/$lhcbdiracVersion install_site.sh
+	sed s/VAR_LcgVer/
+	
+	./install_site.sh install.cfg
+}
+
 
 
 #-------------------------------------------------------------------------------
