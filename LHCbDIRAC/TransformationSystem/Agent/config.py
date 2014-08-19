@@ -1,3 +1,5 @@
+""" Configuratoin of grid collector
+"""
 import logging
 LISTEN_ADDRESS = '0.0.0.0'
 LISTEN_PORT = 9152

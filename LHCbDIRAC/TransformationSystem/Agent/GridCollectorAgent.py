@@ -5,7 +5,6 @@
 __RCSID__ = "$Id$"
 
 import os
-import sys
 import re
 import smtplib
 import subprocess as subp
@@ -16,13 +15,12 @@ from email.mime.text import MIMEText
 from DIRAC import S_OK, S_ERROR
 from DIRAC import gLogger
 from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+# from DIRAC.DataManagementSystem.Client.DataManager import DataManager  # TODO1: uncomment after DataManager support
+from DIRAC.Core.Base import Script  # TODO1: remove after DataManager support
 
-from config import STATUS_RUNNING, STATUS_NEW, STATUS_DONE, STATUS_FAIL, \
+from LHCbDIRAC.DataManagementSystem.Agent.config import STATUS_RUNNING, STATUS_NEW, STATUS_DONE, STATUS_FAIL,\
     DOWNLOADS_CACHE_DIR, DOWNLOADS_REQUEST_DIR
-from request import Request
-from request import normalize_lfns
-
+from LHCbDIRAC.DataManagementSystem.Agent.request import Request, normalize_lfns
 MAILFROM = 'EventIndex Grid Collector <dirac@eindex.cern.ch>'
 MAILHOST = 'localhost'
 DASHBOARD_LINK = 'https://eindex.cern.ch/dashboard'
@@ -33,11 +31,13 @@ SE_WEIGHTS = {'CERN.*': 10,
               '.*-ARCHIVE':-1}
 SE_DEFAULT_WEIGHT = 1
 
+
 def module_dir():
-   d = os.path.abspath(os.curdir)
-   return os.path.dirname(os.path.join(d, __file__))
+  my_dir = os.path.abspath( os.curdir )
+  return os.path.dirname( os.path.join( my_dir, __file__ ) )
 
 BASE_DIR = module_dir()
+
 
 def sort_se_weighted( storage_elements, black_list = [], cut_negative = True ):
   result = {}
@@ -73,6 +73,7 @@ def get_lfn2pfn_map( rm, lfns, se_black_list = [], get_single = True ):
             break
     assert len( lfn2pfn_map[lfn] ) > 0, "cannot match lfn to pfns"
   return lfn2pfn_map
+
 
 def notify_email( request ):
   if request.email is None:
@@ -112,6 +113,7 @@ EventIndex
   except smtplib.SMTPException, e:
     gLogger.error( "Error: unable to send email to '%s' (%s)" % ( request.email, str( e ) ) )
 
+
 class GridCollectorAgent( AgentModule ):
 
   def __init__( self, *args, **kwargs ):
@@ -120,10 +122,19 @@ class GridCollectorAgent( AgentModule ):
     AgentModule.__init__( self, *args, **kwargs )
     self.dataManager = None
 
-  def initialize( self ):
+  def initialize_dm( self ):  # TODO1: rename to initialize after DataManager support
     """ agent initialization
     """
-    self.dataManager = DataManager()
+    self.dataManager = DataManager()  # TODO1: uncomment after DataManager support
+    self.am_setOption( 'shifterProxy', 'DataManager' )
+    return S_OK()
+
+  def initialize( self ):  # TODO1: remove after DataManager support
+    """ agent initialization
+    """
+    Script.initialize()  
+    from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager  # should be imported after init!  # TODO1: remove after DataManager support
+    self.rm = ReplicaManager()
     self.am_setOption( 'shifterProxy', 'DataManager' )
     return S_OK()
 
@@ -151,7 +162,8 @@ class GridCollectorAgent( AgentModule ):
     return request
 
   def lfn2pfn_update( self, request ):
-    PFN_map = get_lfn2pfn_map( self.dataManager, [r[0] for r in request.req_list] )
+    # PFN_map = get_lfn2pfn_map( self.dataManager, [r[0] for r in request.req_list] )  # TODO1: uncomment after DataManager support
+    PFN_map = get_lfn2pfn_map( self.rm, [r[0] for r in request.req_list] )  # TODO1: remove after DataManager support
     request.lfn2pfn( PFN_map )
     request.save()
 
@@ -169,7 +181,7 @@ class GridCollectorAgent( AgentModule ):
         request.change_status( STATUS_DONE, "OK" )
         rv = 0
       else:
-        request.change_status( STATUS_FAIL, "error creating file '%s'" % out_file )
+        request.change_status( STATUS_FAIL, "error creating file '%s'\nSTDERR: %s" % (out_file, stderr) )
     except Exception, e:
       gLogger.error( "Exception: " + str( e ) )
       request.change_status( STATUS_FAIL, "Grid-collector exception occurred: " + str( e ) )
