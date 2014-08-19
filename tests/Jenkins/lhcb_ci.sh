@@ -748,25 +748,30 @@ function mergeTests(){
 
 function installSite(){
 	 
+	if [ ! -z "$DEBUG" ]
+	then
+		echo 'Running in DEBUG mode'
+		export DEBUG='-ddd'
+	fi  
+
 	killRunsv
 	findRelease
 
-	#adduser -s /bin/bash -d /home/dirac dirac
-	#mkdir /opt/dirac
-	#chown -R dirac:dirac /opt/dirac
-	#su dirac
-	#mkdir -p /opt/dirac/etc/grid-security/
-	#cp hostcert.pem hostkey.pem /opt/dirac/etc/grid-security
 	generateCertificates
-	#ln -s $WORKSPACE/etc/grid-security/certificates  /opt/dirac/etc/grid-security/certificates
+
+	#install_site.sh file
 	mkdir $WORKSPACE/DIRAC
 	cd $WORKSPACE/DIRAC
 	wget -np https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/install_site.sh --no-check-certificate
 	chmod +x install_site.sh
-	sed s/VAR_Release/$lhcbdiracVersion/g install.cfg
-	sed s/VAR_LcgVer/$lcgVersion/g install.cfg
-	sed s/VAR_TargetPath/$WORKSPACE/g install.cfg
 	
+	#Fixing install.cfg file
+	cp $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg $WORKSPACE/DIRAC
+	sed -i s/VAR_Release/$lhcbdiracVersion/g $WORKSPACE/DIRAC/install.cfg
+	sed -i s/VAR_LcgVer/$lcgVersion/g $WORKSPACE/DIRAC/install.cfg
+	sed -i s,VAR_TargetPath,$WORKSPACE,g $WORKSPACE/DIRAC/install.cfg
+
+	#Installing
 	./install_site.sh install.cfg
 }
 
