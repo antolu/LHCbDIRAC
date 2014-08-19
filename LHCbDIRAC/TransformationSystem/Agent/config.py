@@ -1,5 +1,8 @@
 """ Configuratoin of grid collector
 """
+
+__RCSID__ = "$Id$"
+
 import logging
 LISTEN_ADDRESS = '0.0.0.0'
 LISTEN_PORT = 9152

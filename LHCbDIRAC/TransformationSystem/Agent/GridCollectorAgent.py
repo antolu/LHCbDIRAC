@@ -6,6 +6,7 @@ __RCSID__ = "$Id$"
 
 import os
 import re
+import sys
 import smtplib
 import subprocess as subp
 
@@ -18,9 +19,6 @@ from DIRAC.Core.Base.AgentModule import AgentModule
 # from DIRAC.DataManagementSystem.Client.DataManager import DataManager  # TODO1: uncomment after DataManager support
 from DIRAC.Core.Base import Script  # TODO1: remove after DataManager support
 
-from LHCbDIRAC.DataManagementSystem.Agent.config import STATUS_RUNNING, STATUS_NEW, STATUS_DONE, STATUS_FAIL,\
-    DOWNLOADS_CACHE_DIR, DOWNLOADS_REQUEST_DIR
-from LHCbDIRAC.DataManagementSystem.Agent.request import Request, normalize_lfns
 MAILFROM = 'EventIndex Grid Collector <dirac@eindex.cern.ch>'
 MAILHOST = 'localhost'
 DASHBOARD_LINK = 'https://eindex.cern.ch/dashboard'
@@ -37,6 +35,11 @@ def module_dir():
   return os.path.dirname( os.path.join( my_dir, __file__ ) )
 
 BASE_DIR = module_dir()
+sys.path.append(BASE_DIR)
+
+from config import STATUS_RUNNING, STATUS_NEW, STATUS_DONE, STATUS_FAIL,\
+    DOWNLOADS_CACHE_DIR, DOWNLOADS_REQUEST_DIR
+from request import Request, normalize_lfns
 
 
 def sort_se_weighted( storage_elements, black_list = [], cut_negative = True ):
@@ -125,7 +128,7 @@ class GridCollectorAgent( AgentModule ):
   def initialize_dm( self ):  # TODO1: rename to initialize after DataManager support
     """ agent initialization
     """
-    self.dataManager = DataManager()  # TODO1: uncomment after DataManager support
+    # self.dataManager = DataManager()  # TODO1: uncomment after DataManager support
     self.am_setOption( 'shifterProxy', 'DataManager' )
     return S_OK()
 
