@@ -866,7 +866,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
       gLogger.always( "   ...but all of them are also somewhere else" )
   if maxArch:
     for nrep in range( 1, maxArch + 1 ):
-      gLogger.always( "%d archives: %d files)" % ( nrep - 1, repStats.setdefault( -nrep, 0 ) ) )
+      gLogger.always( "%d archives: %d files" % ( nrep - 1, repStats.setdefault( -nrep, 0 ) ) )
   for nrep in range( maxRep + 1 ):
     gLogger.always( "%d replicas: %d files" % ( nrep, repStats.setdefault( nrep, 0 ) ) )
 
