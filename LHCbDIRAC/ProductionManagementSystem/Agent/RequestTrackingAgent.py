@@ -29,6 +29,8 @@ class RequestTrackingAgent( AgentModule ):
     self.bkClient = BookkeepingClient()
     self.prodReq = RPCClient( "ProductionManagement/ProductionRequest" )
 
+    return S_OK()
+
   def execute( self ):
     """The RequestTrackingAgent execution method.
     """
