@@ -27,7 +27,10 @@ def __removeFile( lfns ):
   import sys
   writeDots = len( lfns ) > 3 * chunkSize
   if writeDots:
-    sys.stdout.write( "Removing %d files (chunks of %d): " % ( len( lfns ), chunkSize ) )
+    sys.stdout.write( "Removing completely %d files (chunks of %d): " % ( len( lfns ), chunkSize ) )
+  else:
+    gLogger.always( "Removing completely %d files" % len( lfns ) )
+
   for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
     if writeDots:
       sys.stdout.write( '.' )
@@ -52,48 +55,70 @@ def __removeFile( lfns ):
 
 def __removeReplica( lfnDict ):
   seLFNs = {}
+  chunkSize = 1000
+  from DIRAC.Core.Utilities.List import breakListIntoChunks
+  import sys
   for lfn in lfnDict:
     for se in lfnDict[lfn]:
       seLFNs.setdefault( se, [] ).append( lfn )
+  success = 0
+  failures = 0
+  errors = {}
+  writeDots = len( lfnDict ) > 3 * chunkSize
+  if writeDots:
+    sys.stdout.write( "Removing  %d replicas (chunks of %d) at %d SEs: " % ( len( lfnDict ), chunkSize, len( seLFNs ) ) )
+  else:
+    gLogger.always( "Removing  %d replicas at %d SEs" % ( len( lfnDict ), len( seLFNs ) ) )
   for se, lfns in seLFNs.items():
-    res = dm.removeReplica( se, lfns )
-    if res['OK']:
-      success = len( res['Value']['Successful'] )
-      failures = 0
-      errors = {}
-      for lfn, reason in res['Value']['Failed'].items():
-        reason = str( reason )
-        if reason != "{'BookkeepingDB': 'File does not exist'}":
+    for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
+      if writeDots:
+        sys.stdout.write( '.' )
+        sys.stdout.flush()
+      res = dm.removeReplica( se, lfnChunk )
+      if res['OK']:
+        success += len( res['Value']['Successful'] )
+        for lfn, reason in res['Value']['Failed'].items():
+          reason = str( reason )
+          if reason != "{'BookkeepingDB': 'File does not exist'}":
+            seLFNs[se].remove( lfn )
+            errors[reason] = errors.setdefault( reason, 0 ) + 1
+            failures += 1
+      else:
+        failures += len( lfnChunk )
+        for lfn in lfnChunk:
           seLFNs[se].remove( lfn )
-          errors[reason] = errors.setdefault( reason, 0 ) + 1
-          failures += 1
-      gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if failures else '' ) )
-      for reason in errors:
-        gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
-    else:
-      gLogger.fatal( 'Fully failed removing replicas', res['Message'] )
-      return {}
+        reason = res['Message']
+        errors[reason] = errors.setdefault( reason, 0 ) + len( lfnChunk )
+  if writeDots:
+    gLogger.always( '' )
+  gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if failures else '' ) )
+  for reason in errors:
+    gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
   return seLFNs
 
-def __replaceReplica( lfnDict ):
-  seLFNs = __removeReplica( lfnDict )
+def __replaceReplica( seLFNs ):
   if seLFNs:
     gLogger.always( "Now replicating bad replicas..." )
-  for se, lfns in seLFNs.items():
-    res = dm.replicateAndRegister( lfns, se )
-    if res['OK']:
-      success = len( res['Value']['Successful'] )
-      failures = 0
-      errors = {}
-      for lfn, reason in res['Value']['Failed'].items():
-        reason = str( reason )
-        errors[reason] = errors.setdefault( reason, 0 ) + 1
-        failures += 1
-      gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if failures else '' ) )
-      for reason in errors:
-        gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
-    else:
-      gLogger.fatal( 'Fully failed replacing replicas', res['Message'] )
+    success = {}
+    failed = {}
+    for se, lfns in seLFNs.items():
+      for lfn in lfns:
+        res = dm.replicateAndRegister( lfn, se )
+        if res['OK']:
+          success.update( res['Value']['Successful'] )
+          failed.update( res['Value']['Failed'] )
+        else:
+          failed[lfn] = res['Message']
+
+    failures = 0
+    errors = {}
+    for lfn, reason in failed.items():
+      reason = str( reason )
+      errors[reason] = errors.setdefault( reason, 0 ) + 1
+      failures += 1
+    gLogger.always( "\t%d success, %d failures%s" % ( len( success ), failures, ':' if failures else '' ) )
+    for reason in errors:
+      gLogger.always( '\tError %s : %d files' % ( reason, errors[reason] ) )
 
 
 def doCheck( bkCheck ):
@@ -105,16 +130,13 @@ def doCheck( bkCheck ):
 
   maxFiles = 20
   if cc.existLFNsBKRepNo:
-    affectedRuns = []
-    for run in cc.existLFNsBKRepNo.values():
-      if run not in affectedRuns:
-        affectedRuns.append( str( run ) )
+    affectedRuns = set( [str( run ) for run in cc.existLFNsBKRepNo.values() if run] )
     if len( cc.existLFNsBKRepNo ) > maxFiles:
       prStr = ' (first %d)' % maxFiles
     else:
       prStr = ''
     gLogger.error( "%d files are in the FC but have replica = NO in BK%s:\nAffected runs: %s\n%s" %
-                   ( len( cc.existLFNsBKRepNo ), prStr, ','.join( affectedRuns ),
+                   ( len( cc.existLFNsBKRepNo ), prStr, ','.join( sorted( affectedRuns ) if affectedRuns else 'None' ),
                      '\n'.join( sorted( cc.existLFNsBKRepNo )[0:maxFiles] ) ) )
     if fixIt:
       gLogger.always( "Going to fix them, setting the replica flag" )
@@ -148,8 +170,9 @@ def doCheck( bkCheck ):
   if cc.existLFNsNoSE:
     seOK = False
     gLogger.error( "%d files are in the BK and FC but do not exist on at least one SE" % len( cc.existLFNsNoSE ) )
+    fixStr = "removing them from catalogs" if noReplace else "re-replicating them"
     if fixIt:
-      gLogger.always( "Going to fix them, removing from catalogs" )
+      gLogger.always( "Going to fix, " + fixStr )
       removeLfns = []
       removeReplicas = {}
       for lfn, ses in cc.existLFNsNoSE.items():
@@ -160,9 +183,13 @@ def doCheck( bkCheck ):
       if removeLfns:
         __removeFile( removeLfns )
       if removeReplicas:
-        __replaceReplica( removeReplicas )
+        seLFNs = __removeReplica( removeReplicas )
+        if not noReplace:
+          __replaceReplica( seLFNs )
     else:
-      gLogger.always( "Use --FixIt to fix it (remove from catalogs)" )
+      if not noReplace:
+        fixStr += "; use --NoReplace if you want to only remove them from catalogs"
+      gLogger.always( "Use --FixIt to fix it (%s)" % fixStr )
   else:
     gLogger.always( "No missing replicas at sites -> OK!" )
 
@@ -177,12 +204,17 @@ def doCheck( bkCheck ):
 
   if cc.existLFNsBadReplicas:
     seOK = False
-    gLogger.error( "%d files have a bad checksum" % len( cc.existLFNsBadReplicas ) )
+    gLogger.error( "%d replicas have a bad checksum" % len( cc.existLFNsBadReplicas ) )
+    fixStr = "removing them from catalogs and SE" if noReplace else "re-replicating them"
     if fixIt:
-      gLogger.always( "Going to fix them, removing from catalogs and storage" )
-      __replaceReplica( cc.existLFNsBadReplicas )
+      gLogger.always( "Going to fix, " + fixStr )
+      seLFNs = __removeReplica( cc.existLFNsBadReplicas )
+      if not noReplace:
+        __replaceReplica( seLFNs )
     else:
-      gLogger.always( "Use --FixIt to fix it (remove from SE and FC)" )
+      if not noReplace:
+        fixStr += "; use --NoReplace if you want to only remove them from catalogs and SE"
+      gLogger.always( "Use --FixIt to fix it (%s)" % fixStr )
 
   if not cc.existLFNsBadFiles and not cc.existLFNsBadReplicas:
     gLogger.always( "No replicas have a bad checksum -> OK!" )
@@ -204,6 +236,7 @@ if __name__ == '__main__':
   dmScript.registerFileSwitches()  # File, LFNs
   dmScript.registerBKSwitches()
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs and storage' )
+  Script.registerSwitch( '', 'NoReplace', '   Do not replace bad or missing replicas' )
   Script.registerSwitch( '', 'NoBK', '   Do not check with BK' )
   Script.parseCommandLine( ignoreErrors = True )
 
@@ -215,11 +248,14 @@ if __name__ == '__main__':
 
   fixIt = False
   bkCheck = True
+  noReplace = True
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'FixIt':
       fixIt = True
     elif switch[0] == 'NoBK':
       bkCheck = False
+    elif switch[0] == 'NoReplace':
+      noreplace = True
 
   dm = DataManager()
   bk = BookkeepingClient()
