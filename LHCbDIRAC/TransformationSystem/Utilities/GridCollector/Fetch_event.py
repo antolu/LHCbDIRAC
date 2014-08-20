@@ -9,7 +9,7 @@ import sys
 from LHCbConfig import ApplicationMgr, INFO, InputCopyStream
 import GaudiPython
 
-from request import Request
+from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Request import Request
 
 
 def process_pfn( sel, evt, appMgr, PFN, positions ):

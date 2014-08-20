@@ -37,8 +37,9 @@ def module_dir():
 BASE_DIR = module_dir()
 sys.path.append(BASE_DIR)
 
-from config import STATUS_RUNNING, STATUS_NEW, STATUS_DONE, STATUS_FAIL,\
-    DOWNLOADS_CACHE_DIR, DOWNLOADS_REQUEST_DIR
+from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Config import STATUS_RUNNING, STATUS_NEW, STATUS_DONE, \
+                                                                          STATUS_FAIL, DOWNLOADS_CACHE_DIR, \
+                                                                          DOWNLOADS_REQUEST_DIR
 from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Request import Request, normalize_lfns
 
 

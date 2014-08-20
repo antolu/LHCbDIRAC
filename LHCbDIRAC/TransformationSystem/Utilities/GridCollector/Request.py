@@ -9,9 +9,8 @@ import uuid
 import cPickle
 from datetime import datetime
 from pprint import pprint
-from config import DOWNLOADS_REQUEST_DIR, DOWNLOADS_CACHE_DIR, DOWNLOADS_BASE_URL,\
-    STATUS_RUNNING, STATUS_DONE, STATUS_NEW, STATUS_FAIL, STATUS_INVALID, IS_TESTING,\
-    TYPE_ROOT, TYPE_SE
+from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Config import DOWNLOADS_REQUEST_DIR, DOWNLOADS_BASE_URL, \
+                                                                          STATUS_NEW, STATUS_INVALID, TYPE_ROOT, TYPE_SE
 
 
 def normalize_lfns( lfns ):
@@ -24,16 +23,16 @@ def normalize_lfns( lfns ):
 class Request( object ):
   basedir = DOWNLOADS_REQUEST_DIR
 
-  def __init__( self, id = None, req_list = None, status = STATUS_NEW, req_file = None, email = None, type = None ):
+  def __init__( self, fId = None, req_list = None, status = STATUS_NEW, req_file = None, email = None, fType = None ):
     if req_file is None:
-      self.id = id if id is not None else str( uuid.uuid1() )
+      self.id = fId if fId is not None else str( uuid.uuid1() )
       self.status = status
       self.req_list = req_list
       self.age = None
       self.details = ""
       self.req_file = self.filename()
       self.email = email
-      self.type = type
+      self.type = fType
       self.pfn_req_list = None
       if not self.validate():
         self.id = -1
