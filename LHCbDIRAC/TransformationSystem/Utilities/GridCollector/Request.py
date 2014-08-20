@@ -118,15 +118,13 @@ class Request( object ):
 
   def save( self ):
     if not os.path.exists( self.basedir ):
-      os.makedirs( self.basr, mode = 0755 )
+      os.makedirs( self.basedir, mode = 0755 )
     with open( self.req_file, 'w' ) as request_file:
-      req_hash = {
-        'request': self.req_list,
-        'pfn_request': self.pfn_req_list,
-        'details': self.details,
-        'email': self.email,
-        'type': self.type,
-      }
+      req_hash = {'request': self.req_list,
+                  'pfn_request': self.pfn_req_list,
+                  'details': self.details,
+                  'email': self.email,
+                  'type': self.type}
       cPickle.dump( req_hash, request_file )
 
   def change_status( self, new_status, details = "" ):
