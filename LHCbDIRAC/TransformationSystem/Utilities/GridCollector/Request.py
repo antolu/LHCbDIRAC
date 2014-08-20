@@ -21,7 +21,7 @@ def normalize_lfns( lfns ):
     return [s.replace( "LFN:", "" ) for s in lfns]
 
 
-class Request:
+class Request( object ):
   basedir = DOWNLOADS_REQUEST_DIR
 
   def __init__( self, id = None, req_list = None, status = STATUS_NEW, req_file = None, email = None, type = None ):
@@ -133,7 +133,7 @@ class Request:
   def change_status( self, new_status, details = "" ):
     # fname = self.filename()
     assert os.path.exists( self.req_file ), "change_status: file not found: %s" % self.req_file
-    f, ext = os.path.splitext( self.req_file )
+    f, _ext = os.path.splitext( self.req_file )
     new_filename = "%s.%s" % ( f, new_status )
     os.renames( self.req_file, new_filename )  # just to save ctime
     self.req_file = new_filename

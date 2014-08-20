@@ -39,7 +39,7 @@ sys.path.append(BASE_DIR)
 
 from config import STATUS_RUNNING, STATUS_NEW, STATUS_DONE, STATUS_FAIL,\
     DOWNLOADS_CACHE_DIR, DOWNLOADS_REQUEST_DIR
-from request import Request, normalize_lfns
+from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Request import Request, normalize_lfns
 
 
 def sort_se_weighted( storage_elements, black_list = [], cut_negative = True ):
