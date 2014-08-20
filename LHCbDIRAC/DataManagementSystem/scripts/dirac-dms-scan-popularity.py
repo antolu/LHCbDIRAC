@@ -372,7 +372,7 @@ if __name__ == '__main__':
   # Name, ProcessingPass, #files, size, SE type, each week's usage (before now)
   csvFile = 'popularity-%ddays.csv' % since
   f = open( csvFile, 'w' )
-  title = "Name,Configuration, ProcessingPass,Type,Creation-%s,NbLFN,LFNSize,NbDisk,DiskSize,NbTape,TapeSize,NbArchived,ArchivedSize,Nb Replicas,Storage,FirstUsage,LastUsage" % binSize
+  title = "Name,Configuration,ProcessingPass,Type,Creation-%s,NbLFN,LFNSize,NbDisk,DiskSize,NbTape,TapeSize,NbArchived,ArchivedSize,Nb Replicas,Nb ArchReps,Storage,FirstUsage,LastUsage,Now" % binSize
   for bin in range( nbBins ):
     title += ',%d' % ( 1 + bin )
   f.write( title + '\n' )
@@ -393,7 +393,7 @@ if __name__ == '__main__':
     row += ',%d' % ( getTimeBin( creationTime.get( bkPath, datetime.now() ) ) )
     for type in ( 'LFN', 'Disk', 'Tape', 'Archived' ):
       row += ',%d,%f' % tuple( info[type] )
-    row += ',%f' % ( float( info['Disk'][0] ) / float( info['LFN'][0] ) + 0.000000000000001 )
+    row += ',%f,%f' % ( float( info['Disk'][0] ) / float( info['LFN'][0] ), float( info['Archived'][0] ) / float( info['LFN'][0] ) )
     dsType = 'Unknown'
     for type in storageTypes[0:3]:
       if bkPath in datasetStorage[type]:
@@ -403,7 +403,7 @@ if __name__ == '__main__':
     bins = sorted( timeUsage.get( bkPath, {} ) )
     if not bins:
       bins = [0]
-    row += ',%d,%d' % ( bins[0], bins[-1] )
+    row += ',%d,%d,%d' % ( bins[0], bins[-1], nowBin )
     usage = 0
     for bin in range( nbBins ):
       usage += timeUsage.get( bkPath, {} ).get( nowBin - bin, 0 )
