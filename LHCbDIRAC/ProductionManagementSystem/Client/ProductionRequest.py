@@ -228,8 +228,9 @@ class ProductionRequest( object ):
           extend = 0
         else:
           # getting the events to produce
-          res = self.rpcProductionRequest.getProductionRequestSummary( ['Accepted', 'Submitted', 'New', 'PPG OK', 'Tech OK'],
-                                                                  'Simulation' )
+          res = self.rpcProductionRequest.getProductionRequestSummary( ['Accepted', 'Submitted',
+                                                                        'New', 'PPG OK', 'Tech OK'],
+                                                                       'Simulation' )
           if not res['OK']:
             return res
           print res
@@ -262,12 +263,12 @@ class ProductionRequest( object ):
 
         # launch the test production
         res = self.diracProduction.launchProduction( prod = prod,
-                                                   publishFlag = self.publishFlag,
-                                                   testFlag = self.testFlag,
-                                                   requestID = self.requestID,
-                                                   extend = extendBy,
-                                                   tracking = prodDict['tracking'],
-                                                   MCsimflag = True )
+                                                     publishFlag = self.publishFlag,
+                                                     testFlag = self.testFlag,
+                                                     requestID = self.requestID,
+                                                     extend = extendBy,
+                                                     tracking = prodDict['tracking'],
+                                                     MCsimflag = True )
 
         # launchProduction adds extra parameters, as we 'hot swap' the xml, we need to get these parameters for the uneddited version
         processingType = prod.LHCbJob.workflow.findParameter( 'ProcessingType' )
@@ -277,7 +278,8 @@ class ProductionRequest( object ):
         from DIRAC.Core.Workflow.Workflow import fromXMLString
         workflowToSave = fromXMLString( prodXML )
         prod.LHCbJob.workflow = workflowToSave
-        prod.setParameter( 'ProcessingType', processingType.getType(), processingType.getValue(), processingType.getDescription() )
+        prod.setParameter( 'ProcessingType', processingType.getType(), processingType.getValue(),
+                           processingType.getDescription() )
         prod.setParameter( 'Priority', priority.getType(), priority.getValue(), priority.getDescription() )
 
         # original xml to save
