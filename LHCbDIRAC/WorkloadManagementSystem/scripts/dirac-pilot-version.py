@@ -46,26 +46,26 @@ def showVersion():
   """
   # CS version
   csVersion = Operations().getValue( "Pilot/Version", [] )
-  print( "Version specified in the CS: %s" % ', '.join( csVersion ) )
+  print "Version specified in the CS: %s" % ', '.join( csVersion )
   # file version
   try:
     remoteFD = urllib2.urlopen( fileLocation )
-    fileVersion = json.load( remoteFD )
-    versionsInFile = [str( x ) for x in fileVersion[gConfig.getValue( '/DIRAC/Setup' )]['Version']]
-    print( "Version specified in the file: %s" % ', '.join( versionsInFile ) )
+    fileV = json.load( remoteFD )
+    versionsInFile = [str( x ) for x in fileV[gConfig.getValue( '/DIRAC/Setup' )]['Version']]
+    print "Version specified in the file: %s" % ', '.join( versionsInFile )
   except urllib2.HTTPError, x:
     print "Can't find the file in %s" % fileLocation, x
 
 
 # main
-print( "Versions set right now:" )
+print "Versions set right now:"
 showVersion()
 
 if setVersion:
   if 'CSAdministrator' not in getProxyInfo()['Value']['groupProperties']:
     gLogger.error( "You need CSAdministrator property to modify the CS" )
     DIRACExit( 1 )
-  print( "Going to set the pilot version" )
+  print "Going to set the pilot version"
   # CS version
   csAPI = CSAPI()
   res = csAPI.modifyValue( "/Operations/%s/Pilot/Version" % gConfig.getValue( '/DIRAC/Setup' ), ','.join( version ) )
@@ -87,5 +87,5 @@ if setVersion:
   json.dump( newFileVersion, fp )
   fp.close()
 
-  print( "Versions set now:" )
+  print "Versions set now:"
   showVersion()
