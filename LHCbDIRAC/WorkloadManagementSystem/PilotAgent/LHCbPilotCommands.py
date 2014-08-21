@@ -67,7 +67,7 @@ class InstallLHCbDIRAC( InstallDIRAC ):
       self.log.error( "Problem executing %s" % cmd )
       for line in cmdExecution.stderr:
         sys.stdout.write( line )
-      raise OSError, "Can't do %s" % cmd
+      raise OSError( "Can't do %s" % cmd )
 
     for line in cmdExecution.stdout:
       sys.stdout.write( line )
