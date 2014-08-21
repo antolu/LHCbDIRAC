@@ -772,7 +772,7 @@ function installSite(){
 	sed -i s,VAR_TargetPath,$WORKSPACE,g $WORKSPACE/DIRAC/install.cfg
 
 	#Installing
-	./install_site.sh install.cfg
+	./install_site.sh install.cfg $DEBUG
 }
 
 
