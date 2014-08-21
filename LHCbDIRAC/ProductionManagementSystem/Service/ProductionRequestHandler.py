@@ -173,7 +173,7 @@ class ProductionRequestHandler( RequestHandler ):
     return self.database.getAllProductionProgress()
 
   @staticmethod
-  def __getTplFolder( self, tt ):
+  def __getTplFolder( cls, tt ):
 
     csS = PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
     if not csS:
