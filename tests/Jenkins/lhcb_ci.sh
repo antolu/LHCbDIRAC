@@ -39,10 +39,10 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
   #
   #.............................................................................
   
-  function findRelease(){
-    echo '[findRelease]'
+function findRelease(){
+	echo '[findRelease]'
 
-    cd $WORKSPACE
+	cd $WORKSPACE
 
     PRE='p[[:digit:]]*'
 
@@ -101,7 +101,7 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
     echo LHCbDIRAC:$lhcbdiracVersion && echo $lhcbdiracVersion > lhcbdirac.version
     echo LCG:$lcgVersion && echo $lcgVersion > lcg.version
 
-  }
+}
 
 
   #.............................................................................
@@ -113,15 +113,15 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
   #
   #.............................................................................
   
-  function findSystems(){
-    echo '[findSystems]'
+function findSystems(){
+	echo '[findSystems]'
    
-    cd $WORKSPACE
-    find *DIRAC/ -name *System  | cut -d '/' -f 2 | sort | uniq > systems
+	cd $WORKSPACE
+	find *DIRAC/ -name *System  | cut -d '/' -f 2 | sort | uniq > systems
 
-    echo found `wc -l systems`
+	echo found `wc -l systems`
 
-  }
+}
 
 
   #.............................................................................
@@ -133,7 +133,7 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
   #
   #.............................................................................
 
-  function findDatabases(){
+function findDatabases(){
     echo '[findDatabases]'
     
     cd $WORKSPACE
@@ -146,7 +146,7 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
 
     echo found `wc -l databases`
 
-  }
+}
 
 
 #-------------------------------------------------------------------------------
@@ -159,9 +159,9 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
 
 findServices(){
 
-  find *DIRAC/*/Service/ -name *Handler.py | grep -v test | awk -F "/" '{print $2,$4}' | sort | uniq > services
+	find *DIRAC/*/Service/ -name *Handler.py | grep -v test | awk -F "/" '{print $2,$4}' | sort | uniq > services
 
-  echo found `wc -l services`
+	echo found `wc -l services`
 
 }
 
@@ -187,7 +187,7 @@ findServices(){
   #
   #.............................................................................
   
-  function generateCertificates(){
+function generateCertificates(){
     echo '[generateCertificates]'
 
     mkdir -p $WORKSPACE/etc/grid-security/certificates
@@ -209,7 +209,7 @@ findServices(){
     # Copy hostcert, hostkey to certificates ( CA dir )
     cp host{cert,key}.pem certificates/
   
-  }
+}
 
   
   #.............................................................................
@@ -228,8 +228,8 @@ findServices(){
   #
   #.............................................................................
 
-  function generateUserCredentials(){
-    echo '[generateUserCreedentials]'
+function generateUserCredentials(){
+    echo '[generateUserCredentials]'
   
     # Generate directory where to store credentials
     mkdir $WORKSPACE/user
@@ -247,7 +247,7 @@ findServices(){
     
     openssl x509 -req -in client.req -CA $CA/hostcert.pem -CAkey $CA/hostkey.pem -CAserial file.srl -out client.pem
   
-  }
+}
 
 
 #-------------------------------------------------------------------------------
@@ -598,9 +598,9 @@ diracServices(){
 
 dumpDBs(){
 
-  rootPass=`cat rootMySQL`
-  sqlStatements=`mysql -u root -p$rootPass -e "show databases" | grep -v mysql | grep -v Database | grep -v information_schema | grep -v test`
-  echo "$sqlStatements" | gawk '{print "drop database " $1 ";select sleep(0.1);"}' | mysql -u root -p$rootPass 
+	rootPass=`cat rootMySQL`
+	sqlStatements=`mysql -u root -p$rootPass -e "show databases" | grep -v mysql | grep -v Database | grep -v information_schema | grep -v test`
+	echo "$sqlStatements" | gawk '{print "drop database " $1 ";select sleep(0.1);"}' | mysql -u root -p$rootPass 
 
 }
 
@@ -773,6 +773,10 @@ function installSite(){
 
 	#Installing
 	./install_site.sh install.cfg $DEBUG
+	
+	generateUserCredentials
+	diracCredentials
+
 }
 
 
