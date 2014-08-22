@@ -675,8 +675,8 @@ function prepareDIRAC(){
 
 function prepareTestExternals(){
 
-  source $WORKSPACE/bashrc
-  python `which easy_install` nose
+	source $WORKSPACE/bashrc
+	python `which easy_install` nose
 
 }
 
@@ -774,6 +774,8 @@ function installSite(){
 
 	#Installing
 	./install_site.sh install.cfg
+	
+	source $WORKSPACE/bashrc	
 	
 	generateUserCredentials
 	diracCredentials
