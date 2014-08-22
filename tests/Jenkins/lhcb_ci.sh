@@ -342,15 +342,15 @@ function generateUserCredentials(){
   #
   #.............................................................................
 
-  function diracCredentials(){
-  
-    cd $WORKSPACE
-  
-    sed -i 's/commitNewData = CSAdministrator/commitNewData = authenticated/g' etc/Configuration_Server.cfg
-    dirac-proxy-init -g dirac_admin -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
-    sed -i 's/commitNewData = authenticated/commitNewData = CSAdministrator/g' etc/Configuration_Server.cfg
-  
-  }
+function diracCredentials(){
+
+	cd $WORKSPACE
+
+	sed -i 's/commitNewData = CSAdministrator/commitNewData = authenticated/g' etc/Configuration_Server.cfg
+	dirac-proxy-init -g dirac_admin -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+	sed -i 's/commitNewData = authenticated/commitNewData = CSAdministrator/g' etc/Configuration_Server.cfg
+
+}
 
 
   #.............................................................................
