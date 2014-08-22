@@ -770,6 +770,7 @@ function installSite(){
 	sed -i s/VAR_Release/$lhcbdiracVersion/g $WORKSPACE/DIRAC/install.cfg
 	sed -i s/VAR_LcgVer/$lcgVersion/g $WORKSPACE/DIRAC/install.cfg
 	sed -i s,VAR_TargetPath,$WORKSPACE,g $WORKSPACE/DIRAC/install.cfg
+	sed -i s,VAR_HostDN,$fqdn,g $WORKSPACE/DIRAC/install.cfg
 
 	#Installing
 	./install_site.sh install.cfg $DEBUG
