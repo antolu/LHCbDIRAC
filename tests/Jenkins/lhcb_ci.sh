@@ -773,7 +773,7 @@ function installSite(){
 	sed -i s,VAR_HostDN,$fqdn,g $WORKSPACE/DIRAC/install.cfg
 
 	#Installing
-	./install_site.sh install.cfg $DEBUG
+	./install_site.sh install.cfg
 	
 	generateUserCredentials
 	diracCredentials
