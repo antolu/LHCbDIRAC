@@ -30,12 +30,14 @@ class TargzJobLogAgent( AgentModule ):
   :param int pollingTime: polling time
   :param str logPath: log path location
   :param StorageElement storageElement: CERN-tape SE
-  :param str desDirectory: destination directory
+  :param str destDirectory: destination directory
+  :param str tempDirectory: temporal directory for tar files
   """
   pollingTime = 3600
   logPath = "/storage/lhcb/MC/MC09/LOG"
   storageElement = None
   destDirectory = "/lhcb/backup/log"
+  tempDirectory = "/opt/dirac/tmp"
 
   def __init__( self, *args, **kwargs ):
     ''' c'tor
@@ -54,6 +56,9 @@ class TargzJobLogAgent( AgentModule ):
 
     self.actions = self.am_getOption( 'Actions', ['SubProductions', 'Jobs'] )
     self.log.info( "Actions", self.actions )
+
+    self.tempDirectory = self.am_getOption( 'TempDirectory', self.tempDirectory )
+    self.log.info( "TempDirectory", self.tempDirectory )
 
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/TestManager
@@ -215,7 +220,7 @@ class TargzJobLogAgent( AgentModule ):
 
     date = str( datetime.now() ).split( " " )[0]
 
-    tarname = "/opt/dirac/tmp/" + prod + "_" + sub + ".tgz"
+    tarname = self.tempDirectory + "/" + prod + "_" + sub + ".tgz"
     destFile = self.destDirectory + "/" + prod + "_" + sub + "_" + date + ".tgz"
 
     res = self.storageElement.getPfnForLfn( destFile )
@@ -226,11 +231,11 @@ class TargzJobLogAgent( AgentModule ):
       return S_ERROR()
 
     res = self.storageElement.exists( pfn )
-    if res['OK'] and res['Value']['Successful'].get( pfn, False ):
-      self.log.error( "file exists ", pfn )
-      return S_ERROR()
-    else:
+    if not res['OK']:
       self.log.error( "Can not check file exists %s" % pfn, res['Message'] )
+      return S_ERROR()
+    if res['Value']['Successful'].get( pfn, False ):
+      self.log.error( "file exists ", pfn )
       return S_ERROR()
 
     tared = False
