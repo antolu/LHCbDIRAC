@@ -90,13 +90,12 @@ class PopularityAgent( AgentModule ):
       self.log.error( "Error querying Popularity table.. %s" % res['Message'] )
       return S_ERROR( res['Message'] )
     val = res[ 'Value' ]
-    self.log.verbose( "val %s " % ( val, ) )
-    self.log.info( "Retrieved %d entries from Pop table" % len( val ) )
+    self.log.info( "Retrieved %d entries from Popularity table" % len( val ) )
     # Build popularity report, and store the Ids in a  list:
     idList = set()
     traceDict = {}
     for row in val:
-      self.log.verbose( "row: %s" % str( row ) )
+      self.log.debug( "row: %s" % str( row ) )
       rowId, dirLfn, site, count, insertTime = row
       if rowId not in idList:
         idList.add( rowId )
@@ -109,7 +108,7 @@ class PopularityAgent( AgentModule ):
       # get the day (to do )
       dayBin = ( insertTime - startTime ).days
       traceDict[ dayBin ][ dirLfn ][ site ] = \
-        traceDict.setdefault( dayBin, {} ).setdefault( dirLfn, {} ). setdefault( site, 0 ) + count
+        traceDict.setdefault( dayBin, {} ).setdefault( dirLfn, {} ).setdefault( site, 0 ) + count
 
     # print a summary
     dayList = sorted( traceDict )
@@ -209,27 +208,34 @@ class PopularityAgent( AgentModule ):
                         ( timeForAccounting, configName, configVersion, fileType,
                           production, processingPass, conditions, eventType, site, usage, normUsage ) )
           if self.numPopRows > self.limitForCommit:
-            self.log.info( " %d records being sent to Popularity accounting" % self.numPopRows )
-            res = gDataStoreClient.commit()
-            if not res[ 'OK' ]:
-              self.log.error( "ERROR: committing Popularity records", res['Message'] )
-              return S_ERROR( res )
-            else:
-              self.log.info( "%s records for Popularity type successfully committed" % self.numPopRows )
-              self.numPopRows = 0
+            res = self.__commitAccounting()
+            if not res['OK']:
+              return res
     # then set the status to Used
+    res = self.__commitAccounting()
+    if not res['OK']:
+      return res
     self.log.info( "Set the status to Used for %d entries" % len( idList ) )
     from DIRAC.Core.Utilities.List import breakListIntoChunks
     for idChunk in breakListIntoChunks( list( idList ), 1000 ):
       res = self.__dataUsageClient.updatePopEntryStatus( list( idChunk ), 'Used', timeout = self.queryTimeout )
       if not res['OK']:
         self.log.error( "Error to update status in  Popularity table.. %s" % res['Message'] )
-        return S_ERROR( res['Message'] )
+        return res
     self.log.info( "Status updated to Used correctly for %s entries " % len( idList ) )
 
     return S_OK()
 
 # .........................................................................................
+
+  def __commitAccounting( self ):
+    res = gDataStoreClient.commit()
+    if not res[ 'OK' ]:
+      self.log.error( "while committing %d Popularity records" % self.numPopRows, res['Message'] )
+    else:
+      self.log.info( "%s records for Popularity type successfully committed" % self.numPopRows )
+      self.numPopRows = 0
+    return res
 
   def computeTimeForAccounting( self, startTime, day ):
     """ Compute the time for the accounting record, starting from the start time of the query and the day bin
