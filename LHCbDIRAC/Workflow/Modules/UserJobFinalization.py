@@ -287,7 +287,7 @@ class UserJobFinalization( ModuleBase ):
     """
     # First get the local (or assigned) SE to try first for upload and others in random fashion
     localSEs = set( getDestinationSEList( 'Tier1-USER', self.siteName, outputmode = 'local' ) )
-    self.log.verbose( "Site Local SE for user outputs is: %s" % ( localSEs ) )
+    self.log.verbose( "Site Local SE for user outputs is: %s" % ( list( localSEs ) ) )
     userSEs = set( self.userOutputSE )
     otherSEs = set( self.defaultOutputSE ) - localSEs - userSEs
     # If a user SE is  local set it first
@@ -300,7 +300,8 @@ class UserJobFinalization( ModuleBase ):
       orderedSEs = localSEs[0:1] + userSEs + localSEs[1:]
     else:
       orderedSEs = userSEs + localSEs
-    orderedSEs += random.shuffle( list( otherSEs ) )
+    random.shuffle( list( otherSEs ) )
+    orderedSEs += otherSEs
 
     return orderedSEs
 

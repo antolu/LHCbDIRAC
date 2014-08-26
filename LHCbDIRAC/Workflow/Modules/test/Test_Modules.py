@@ -1,6 +1,11 @@
-import unittest, itertools, os, copy, shutil
+import unittest
+import itertools
+import os
+import copy
+import shutil
+import importlib
 
-from mock import Mock, patch
+from mock import MagicMock, patch
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers import Resources
@@ -9,6 +14,8 @@ from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.File import File
 
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce, getCPUNormalizationFactorAvg, getProductionParameterValue
+
+from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
 
 class ModulesTestCase( unittest.TestCase ):
   """ Base class for the Modules test cases
@@ -21,12 +28,12 @@ class ModulesTestCase( unittest.TestCase ):
 #    sys.modules["DIRAC.ResourceStatusSystem.Utilities.CS"] = DIRAC.ResourceStatusSystem.test.fake_Logger
     self.maxDiff = None
 
-    self.jr_mock = Mock()
+    self.jr_mock = MagicMock()
     self.jr_mock.setApplicationStatus.return_value = {'OK': True, 'Value': ''}
     self.jr_mock.generateForwardDISET.return_value = {'OK': True, 'Value': Operation()}
     self.jr_mock.setJobParameter.return_value = {'OK': True, 'Value': 'pippo'}
 
-    self.fr_mock = Mock()
+    self.fr_mock = MagicMock()
     self.fr_mock.getFiles.return_value = {}
     self.fr_mock.setFileStatus.return_value = {'OK': True, 'Value': ''}
     self.fr_mock.commit.return_value = {'OK': True, 'Value': ''}
@@ -45,10 +52,10 @@ class ModulesTestCase( unittest.TestCase ):
     rOp.addFile( f )
     rc_mock.addOperation( rOp )
 
-    ar_mock = Mock()
+    ar_mock = MagicMock()
     ar_mock.commit.return_value = {'OK': True, 'Value': ''}
 
-    self.dm_mock = Mock()
+    self.dm_mock = MagicMock()
     self.dm_mock.getReplicas.return_value = {'OK': True, 'Value':{'Successful':{'pippo':'metadataPippo'},
                                                                   'Failed':None}}
     self.dm_mock.getCatalogFileMetadata.return_value = {'OK': True, 'Value':{'Successful':{'pippo':'metadataPippo'},
@@ -59,18 +66,18 @@ class ModulesTestCase( unittest.TestCase ):
     self.dm_mock.putAndRegister.return_value = {'OK': True, 'Value': {'Failed':False}}
     self.dm_mock.getFile.return_value = {'OK': True, 'Value': {'Failed':False}}
 
-    self.jsu_mock = Mock()
+    self.jsu_mock = MagicMock()
     self.jsu_mock.setJobApplicationStatus.return_value = {'OK': True, 'Value': ''}
 
-    self.jsu_mock = Mock()
+    self.jsu_mock = MagicMock()
     self.jsu_mock.setJobApplicationStatus.return_value = {'OK': True, 'Value': ''}
 
-    self.ft_mock = Mock()
+    self.ft_mock = MagicMock()
     self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': {'uploadedSE':''}}
     self.ft_mock.transferAndRegisterFileFailover.return_value = {'OK': True, 'Value': {}}
     self.ft_mock.request = rc_mock
 
-    self.bkc_mock = Mock()
+    self.bkc_mock = MagicMock()
     self.bkc_mock.sendBookkeeping.return_value = {'OK': True, 'Value': ''}
     self.bkc_mock.getFileTypes.return_value = {'OK': True,
                                                'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
@@ -97,15 +104,15 @@ class ModulesTestCase( unittest.TestCase ):
                                                   'rpcStub': ( ( 'Bookkeeping/BookkeepingManager', ) )
                                                   }
 
-    self.nc_mock = Mock()
+    self.nc_mock = MagicMock()
     self.nc_mock.sendMail.return_value = {'OK': True, 'Value': ''}
 
-    self.xf_o_mock = Mock()
+    self.xf_o_mock = MagicMock()
     self.xf_o_mock.inputFileStats = {'a':1, 'b':2}
     self.xf_o_mock.outputFileStats = {'a':1, 'b':2}
     self.xf_o_mock.analyse.return_value = True
 
-    self.jobStep_mock = Mock()
+    self.jobStep_mock = MagicMock()
     self.jobStep_mock.commit.return_value = {'OK': True, 'Value': ''}
     self.jobStep_mock.setValuesFromDict.return_value = {'OK': True, 'Value': ''}
     self.jobStep_mock.checkValues.return_value = {'OK': True, 'Value': ''}
@@ -265,7 +272,10 @@ class ModulesTestCase( unittest.TestCase ):
     self.uod = UploadOutputData( bkClient = self.bkc_mock, dm = self.dm_mock )
     self.uod.failoverTransfer = self.ft_mock
 
-    from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
+    sut = importlib.import_module( "LHCbDIRAC.Workflow.Modules.UserJobFinalization" )
+    self.getDestinationSEListMock = MagicMock()
+    self.getDestinationSEListMock.return_value = []
+    sut.getDestinationSEList = self.getDestinationSEListMock
     self.ujf = UserJobFinalization( bkClient = self.bkc_mock, dm = self.dm_mock )
     self.ujf.bkClient = self.bkc_mock
     self.ujf.failoverTransfer = self.ft_mock
@@ -628,7 +638,7 @@ class GaudiApplicationSuccess( ModulesTestCase ):
 #                                        self.workflowStatus, self.stepStatus,
 #                                        wf_commons, self.step_commons,
 #                                        self.step_number, self.step_id,
-#                                        Mock() )['OK'] )
+#                                        MagicMock() )['OK'] )
 
 #############################################################################
 # GaudiApplicationScript.py
@@ -811,7 +821,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     self.axlf.stepInputData = ['some.sdst', '00012345_00006789_1.sdst']
     self.axlf.jobType = 'merge'
 
-    logAnalyser = Mock()
+    logAnalyser = MagicMock()
 
     logAnalyser.return_value = True
     self.axlf.logAnalyser = logAnalyser
@@ -954,7 +964,7 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
     self.alf.jobType = 'merge'
     self.alf.nc = self.nc_mock
 
-    logAnalyser = Mock()
+    logAnalyser = MagicMock()
     logAnalyser.return_value = True
     self.alf.logAnalyser = logAnalyser
 #    no errors, no input data
@@ -1464,6 +1474,20 @@ class UserJobFinalizationSuccess( ModulesTestCase ):
                                            self.step_number, self.step_id, orderedSEs = ['MySE1', 'MySE2'] )['OK'] )
       os.remove( 'i1' )
       os.remove( 'i2' )
+
+  def test__getOrderedSEsList( self ):
+
+    self.ujf.userOutputSE = ['userSE']
+    res = self.ujf._getOrderedSEsList()
+    self.assertEqual( res, ['userSE'] )
+
+    self.ujf.defaultOutputSE = ['CERN']
+    res = self.ujf._getOrderedSEsList()
+    self.assertEqual( res, ['userSE', 'CERN'] )
+    
+    self.getDestinationSEListMock.return_value = ['CNAF']
+    res = self.ujf._getOrderedSEsList()
+    self.assertEqual( res, ['CNAF', 'userSE', 'CERN'] )
 
 #############################################################################
 # FileUsage.py
