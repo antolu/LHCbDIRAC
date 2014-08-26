@@ -52,6 +52,8 @@ class TransformationCleaningAgent( DiracTCAgent ):
     self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
 
+    return S_OK()
+
   def cleanMetadataCatalogFiles( self, transID ):
     """ clean the metadata using BKK and Replica Manager. Replace the one from base class
     """
