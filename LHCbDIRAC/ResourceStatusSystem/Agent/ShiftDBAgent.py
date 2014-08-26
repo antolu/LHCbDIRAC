@@ -175,54 +175,30 @@ class ShiftDBAgent( AgentModule ):
 
     return S_ERROR( 'Email not found' ) 
 
-#    for line in web.readlines():
-#     
-#      if line.find( role ) != -1:
-#       
-#        linesplitted = line.split( '|' )
-#       
-#        if linesplitted[ 4 ].find( ':' ) != -1 :
-#          email = linesplitted[ 4 ].split( ':' )[ 1 ]
-#         
-#          if email.find( '@' ) != -1:
-#           
-#            email = email.strip()
-#           
-#            return S_OK( email )
-#          else:
-#            return S_ERROR( '%s in %s should be an email but seems not' % ( email, linesplitted[ 4 ] ) )
-#    return S_ERROR( 'Email not found' )    
 
   def __setRoleEmail( self, eGroup, email, role ):
     """ Set email in eGroup
     """
    
-    client = suds.client.Client( self.wsdl )
+    client = suds.client.Client( self.wsdl, username = self.user, password = self.passwd )
 
     try:
-      wgroup = client.service.findEgroupByName( self.user, self.passwd, eGroup )
+      wgroup = client.service.FindEgroupByName( eGroup )
     except suds.WebFault, wError:
       return S_ERROR( wError )  
 
     members = []
-    if wgroup.result.Members:
+    lastShifterEmail = ''
+
+    if hasattr( wgroup, 'warnings' ):
+      if wgroup.warnings != []:
+        self.log.warn( wgroup.warnings )
+    #  return S_ERROR(wgroup.warnings)
+    elif wgroup.result.Members:
       members = wgroup.result.Members[ 0 ]
+      lastShifterEmail = members.Email
       
-    if len( members ) > 1:
-      self.log.info( "More than one user in the eGroup - deleting all them" )
-      return self.__deleteMembers( client, wgroup )
-    
-    elif len( members ) == 0:
-      self.log.info( 'eGroup is empty' )
-      lastShifterEmail = '-there is no last shifter email-'  
-
-    else:
-      lastShifterEmail = members[ 0 ].Email
-    
-
     if email is None:
-      #self.log.warn( 'Get email returned None, deleting previous ... %s' % lastShifterEmail )
-      #return self.__deleteMembers( client, wgroup )
       self.log.warn( "None email. Keeping previous one till an update is found." )
       return S_OK()
    
@@ -231,9 +207,14 @@ class ShiftDBAgent( AgentModule ):
       return S_OK()
     
     self.log.info( "%s is not anymore shifter, deleting ..." % lastShifterEmail )
+    try:
+      # The last boolean flag is to overwrite
+      client.service.RemoveEgroupMembers( eGroup, members )
+    except suds.WebFault, wError:
+      return S_ERROR( wError )
 
     # Adding a member means it will be the only one in the eGroup, as it is overwritten
-    res = self.__addMember( email, client, wgroup )
+    res = self.__addMember( email, client, eGroup )
     if not res[ 'OK' ]:
       self.log.error( res[ 'Message' ] )
       return res
@@ -242,53 +223,30 @@ class ShiftDBAgent( AgentModule ):
     self.newShifters[ role ] = eGroup
        
     return S_OK()
-  
-  def __deleteMembers( self, client, wgroup ):
-    """
-    Creates a new MembersType type and pushes it
-    """
-    
-    self.log.info( 'Creating a new MembersType type' )
-    
-    emptyMembers = client.factory.create( 'ns1:MembersType' )  
-    
-    return self.__syncGroupMembers( client, wgroup, emptyMembers )
-   
+
   def __addMember( self, email, client, wgroup ):
     """
     Adds a new member to the group
     """
    
     # Clear e-Group before inserting anything
-    self.__deleteMembers( client, wgroup ) 
+    #self.__deleteMembers( client, wgroup ) 
    
     self.log.info( 'Adding member %s to eGroup' % email )
    
-    members         = client.factory.create( 'ns1:MembersType' )
-   
-    newmember       = client.factory.create( 'ns1:MemberType' )
-    newmember.ID    = email
+    members = []
+    newmember = client.factory.create( 'ns0:MemberType' )
     newmember.Type  = "External"
     newmember.Email = email
 
-    members.Member.append( newmember )
-   
-    return self.__syncGroupMembers( client, wgroup, members )
-
-  def __syncGroupMembers( self, client, wgroup, members ):
-    """
-    Synchronizes new group members
-    """
-
-    wgroupName = wgroup.result.Name
-
+    members.append( newmember )
     try:
       # The last boolean flag is to overwrite
-      client.service.addEgroupMembers( self.user, self.passwd, wgroupName, members, True )
+      client.service.AddEgroupMembers( wgroup, 'True', members )
     except suds.WebFault, wError:
-      return S_ERROR( wError )  
-
+      return S_ERROR( wError )
     return S_OK()
+
 
   @staticmethod
   def __getPass( pwfile ):
