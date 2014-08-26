@@ -333,14 +333,14 @@ function generateUserCredentials(){
   }  
 
 
-  #.............................................................................
-  #
-  # diracCredentials:
-  #
-  #   hacks CS service to create a first dirac_admin proxy that will be used
-  #   to install the components and run the test ( some of them ).
-  #
-  #.............................................................................
+#.............................................................................
+#
+# diracCredentials:
+#
+#   hacks CS service to create a first dirac_admin proxy that will be used
+#   to install the components and run the test ( some of them ).
+#
+#.............................................................................
 
 function diracCredentials(){
 
@@ -352,6 +352,22 @@ function diracCredentials(){
 
 }
 
+#.............................................................................
+#
+# diracProxies:
+#
+#   Upload proxies in the ProxyDB
+#
+#.............................................................................
+
+
+
+function diracProxies(){
+
+	dirac-proxy-init -U -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+	dirac-proxy-init -U -g dirac_admin -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+
+}
 
   #.............................................................................
   #
@@ -581,11 +597,11 @@ diracDBs(){
 
 diracServices(){
 
-  services=`cat services | cut -d '.' -f 1 | grep -v ^ConfigurationSystem | grep -v SystemAdministrator | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v ProductionRequest | grep -v MigrationMonitoring | grep -v Future | grep -v Bookkeeping | sed 's/System / /g' | sed 's/Handler//g' | sed 's/ /\//g'`
-  for serv in $services
-  do
-    dirac-install-service $serv $DEBUG
-  done
+	services=`cat services | cut -d '.' -f 1 | grep -v ^ConfigurationSystem | grep -v SystemAdministrator | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v MigrationMonitoring | grep -v Future | grep -v Bookkeeping | sed 's/System / /g' | sed 's/Handler//g' | sed 's/ /\//g'`
+	for serv in $services
+	do
+		dirac-install-service $serv $DEBUG
+	done
 
 }
 
@@ -604,10 +620,81 @@ dumpDBs(){
 
 }
 
-
 #-------------------------------------------------------------------------------
 # Here is where the real functions start
 #-------------------------------------------------------------------------------
+
+#...............................................................................
+#
+# installSite:
+#
+#   This function will install DIRAC using the install_site.sh script 
+#     following (more or less) instructions at diracgrid.org
+#
+#...............................................................................
+
+
+function installSite(){
+	 
+	killRunsv
+	findRelease
+
+	generateCertificates
+
+	#install_site.sh file
+	mkdir $WORKSPACE/DIRAC
+	cd $WORKSPACE/DIRAC
+	wget -np https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/install_site.sh --no-check-certificate
+	chmod +x install_site.sh
+	
+	#Fixing install.cfg file
+	cp $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg $WORKSPACE/DIRAC
+	sed -i s/VAR_Release/$lhcbdiracVersion/g $WORKSPACE/DIRAC/install.cfg
+	sed -i s/VAR_LcgVer/$lcgVersion/g $WORKSPACE/DIRAC/install.cfg
+	sed -i s,VAR_TargetPath,$WORKSPACE,g $WORKSPACE/DIRAC/install.cfg
+	sed -i s,VAR_HostDN,$fqdn,g $WORKSPACE/DIRAC/install.cfg
+
+	#Installing
+	./install_site.sh install.cfg
+	
+	source $WORKSPACE/bashrc
+	
+	generateUserCredentials
+	diracCredentials
+	
+	diracProxies
+}
+
+#...............................................................................
+#
+# fullInstall:
+#
+#   This function install all the DIRAC stuff known...
+#
+#...............................................................................
+
+function fullInstall(){
+	
+	if [ ! -z "$DEBUG" ]
+	then
+		echo 'Running in DEBUG mode'
+		export DEBUG='-ddd'
+	fi  
+
+	#basic install, with only the CS running
+	installSite
+	
+	#DBs
+	findDatabases
+	diracDBs
+	
+	#services
+	findServices
+	diracServices
+}
+
+
+# Older functions
 #
 # o prepareDIRAC
 # o prepareTestExternals
@@ -626,40 +713,37 @@ dumpDBs(){
 
 function prepareDIRAC(){
   
-  if [ ! -z "$DEBUG" ]
-  then
-    echo 'Running in DEBUG mode'
-    export DEBUG='-ddd'
-  fi  
+	if [ ! -z "$DEBUG" ]
+	then
+		echo 'Running in DEBUG mode'
+		export DEBUG='-ddd'
+	fi  
   
-  killRunsv
+	killRunsv
   
-  findRelease
-  diracInstall
-  generateCertificates
+	findRelease
+	diracInstall
+	generateCertificates
   
-  findSystems
-  findDatabases
+	findSystems
+	findDatabases
 
-  source $WORKSPACE/bashrc
+	source $WORKSPACE/bashrc
 
-  diracConfigure
+	diracConfigure
   
-  generateUserCredentials
-  diracCredentials
+	generateUserCredentials
+	diracCredentials
 
-  diracMySQL
+	diracMySQL
   
-  dirac-install-db ProxyDB $DEBUG
-  dirac-install-service Framework/ProxyManager $DEBUG
-  ln -s $WORKSPACE/runit/Framework/ProxyManager $WORKSPACE/startup/Framework_ProxyManager
+	dirac-install-db ProxyDB $DEBUG
+	dirac-install-service Framework/ProxyManager $DEBUG
+	ln -s $WORKSPACE/runit/Framework/ProxyManager $WORKSPACE/startup/Framework_ProxyManager
   
-  # Give runit 10 secs to pick it up
-  sleep 10
-  
-  # Make sure there are a proxies in the database
-  dirac-proxy-init -U -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
-  dirac-proxy-init -U -g dirac_admin -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+	# Give runit 10 secs to pick it up
+	sleep 10
+	diracProxies
 }
 
 
@@ -733,52 +817,6 @@ function mergeTests(){
 
   coverage combine
   coverage xml --include="*DIRAC/*"
-
-}
-
-#...............................................................................
-#
-# installSite:
-#
-#   This function will install DIRAC using the install_site.sh script 
-#     following (more or less) instructions at diracgrid.org
-#
-#...............................................................................
-
-
-function installSite(){
-	 
-	if [ ! -z "$DEBUG" ]
-	then
-		echo 'Running in DEBUG mode'
-		export DEBUG='-ddd'
-	fi  
-
-	killRunsv
-	findRelease
-
-	generateCertificates
-
-	#install_site.sh file
-	mkdir $WORKSPACE/DIRAC
-	cd $WORKSPACE/DIRAC
-	wget -np https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/install_site.sh --no-check-certificate
-	chmod +x install_site.sh
-	
-	#Fixing install.cfg file
-	cp $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg $WORKSPACE/DIRAC
-	sed -i s/VAR_Release/$lhcbdiracVersion/g $WORKSPACE/DIRAC/install.cfg
-	sed -i s/VAR_LcgVer/$lcgVersion/g $WORKSPACE/DIRAC/install.cfg
-	sed -i s,VAR_TargetPath,$WORKSPACE,g $WORKSPACE/DIRAC/install.cfg
-	sed -i s,VAR_HostDN,$fqdn,g $WORKSPACE/DIRAC/install.cfg
-
-	#Installing
-	./install_site.sh install.cfg
-	
-	source $WORKSPACE/bashrc	
-	
-	generateUserCredentials
-	diracCredentials
 
 }
 
