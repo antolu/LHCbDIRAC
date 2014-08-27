@@ -15,8 +15,12 @@
 # Exit on error. If something goes wrong, we terminate execution
 set -o errexit
 
-# URL where to get dirac-install script
+# URLs where to get scripts
 DIRAC_INSTALL='https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py'
+DIRAC_PILOT='https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/WorkloadManagementSystem/PilotAgent/dirac-pilot.py'
+DIRAC_PILOT_TOOLS='https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/WorkloadManagementSystem/PilotAgent/pilotTools.py'
+DIRAC_PILOT_COMMANDS='https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/WorkloadManagementSystem/PilotAgent/pilotCommands.py'
+LHCbDIRAC_PILOT_COMMANDS='http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py'
 
 # Path to lhcb_ci config files
 LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
@@ -692,6 +696,30 @@ function fullInstall(){
 	findServices
 	diracServices
 }
+
+
+#...............................................................................
+#
+# DIRACPilotInstall:
+#
+#   This function uses the pilot code to make a DIRAC pilot installation
+#   The JobAgent is not run here 
+#
+#...............................................................................
+
+function DIRACPilotInstall(){
+	
+	#get the necessary scripts
+	wget --no-check-certificate -O dirac-install $DIRAC_INSTALL
+	wget --no-check-certificate -O dirac-pilot.py $DIRAC_PILOT
+	wget --no-check-certificate -O pilotTools.py $DIRAC_PILOT_TOOLS
+	wget --no-check-certificate -O pilotCommands.py $DIRAC_PILOT_COMMANDS
+	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
+
+	#run the dirac-pilot script
+	python dirac-pilot.py -S LHCb-Certification -l LHCb -M 5 -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -e LHCb -T 50000 -N jenkins.cern.ch -Q cream-lsf-grid_2nh_lhcb -n DIRAC.Jenkins.ch -o '/LocalSite/CPUScalingFactor=4.0' -o '/LocalSite/CPUNormalizationFactor=4.0' -E LHCbPilot -X GetLHCbPilotVersion,InstallLHCbDIRAC,ConfigureDIRAC
+}
+
 
 
 # Older functions
