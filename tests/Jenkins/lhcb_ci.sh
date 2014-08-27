@@ -709,6 +709,12 @@ function fullInstall(){
 
 function DIRACPilotInstall(){
 	
+	if [ ! -z "$DEBUG" ]
+	then
+		echo 'Running in DEBUG mode'
+		export DEBUG='-ddd'
+	fi  
+
 	#get the necessary scripts
 	wget --no-check-certificate -O dirac-install $DIRAC_INSTALL
 	wget --no-check-certificate -O dirac-pilot.py $DIRAC_PILOT
@@ -717,7 +723,7 @@ function DIRACPilotInstall(){
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
 
 	#run the dirac-pilot script
-	python dirac-pilot.py -S LHCb-Certification -l LHCb -M 5 -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -e LHCb -T 50000 -N jenkins.cern.ch -Q cream-lsf-grid_2nh_lhcb -n DIRAC.Jenkins.ch -o '/LocalSite/CPUScalingFactor=4.0' -o '/LocalSite/CPUNormalizationFactor=4.0' -E LHCbPilot -X GetLHCbPilotVersion,InstallLHCbDIRAC,ConfigureDIRAC
+	python dirac-pilot.py -S LHCb-Certification -l LHCb -M 5 -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -e LHCb -T 50000 -N jenkins.cern.ch -Q cream-lsf-grid_2nh_lhcb -n DIRAC.Jenkins.ch -o '/LocalSite/CPUScalingFactor=4.0' -o '/LocalSite/CPUNormalizationFactor=4.0' -E LHCbPilot -X GetLHCbPilotVersion,InstallLHCbDIRAC,ConfigureDIRAC $DEBUG
 }
 
 
