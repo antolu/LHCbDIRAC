@@ -716,7 +716,7 @@ function DIRACPilotInstall(){
 	fi  
 
 	#get the necessary scripts
-	wget --no-check-certificate -O dirac-install $DIRAC_INSTALL
+	wget --no-check-certificate -O dirac-install.py $DIRAC_INSTALL
 	wget --no-check-certificate -O dirac-pilot.py $DIRAC_PILOT
 	wget --no-check-certificate -O pilotTools.py $DIRAC_PILOT_TOOLS
 	wget --no-check-certificate -O pilotCommands.py $DIRAC_PILOT_COMMANDS
