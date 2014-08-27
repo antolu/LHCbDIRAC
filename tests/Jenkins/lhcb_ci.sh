@@ -726,7 +726,7 @@ function DIRACPilotInstall(){
 	python dirac-pilot.py -S LHCb-Certification -l LHCb -M 5 -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -e LHCb -T 50000 -N jenkins.cern.ch -Q cream-lsf-grid_2nh_lhcb -n DIRAC.Jenkins.ch -o '/LocalSite/CPUScalingFactor=4.0' -o '/LocalSite/CPUNormalizationFactor=4.0' -E LHCbPilot -X GetLHCbPilotVersion,InstallLHCbDIRAC $DEBUG
 	
 	#run the configuration, "by hand" because dirac-architecture would require a proxy...
-	dirac-configure -n "DIRAC.Jenkins.ch" -N "jenkins.cern.ch" -S "LHCb-Certification" -C "dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server" -o /LocalSite/ReleaseProject=LHCb -o "/LocalSite/CPUScalingFactor=4.0" -o "/LocalSite/CPUNormalizationFactor=4.0" -o /LocalSite/GridMiddleware=DIRAC -N "jenkins.cern.ch" -o /LocalSite/GridCE=jenkins.cern.ch -o /LocalSite/ReleaseVersion=v8r0-pre9 -o /LocalSite/Architecture=x86_64-slc6 -I
+	python $WORKSPACE/DIRAC/Core/scripts/dirac-configure.py -n "DIRAC.Jenkins.ch" -N "jenkins.cern.ch" -S "LHCb-Certification" -C "dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server" -o /LocalSite/ReleaseProject=LHCb -o "/LocalSite/CPUScalingFactor=4.0" -o "/LocalSite/CPUNormalizationFactor=4.0" -o /LocalSite/GridMiddleware=DIRAC -N "jenkins.cern.ch" -o /LocalSite/GridCE=jenkins.cern.ch -o /LocalSite/ReleaseVersion=v8r0-pre9 -o /LocalSite/Architecture=x86_64-slc6 -I
 
 }
 
