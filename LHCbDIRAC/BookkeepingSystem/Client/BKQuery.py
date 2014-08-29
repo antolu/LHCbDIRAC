@@ -27,6 +27,7 @@ class BKQuery():
     self.__bkFileTypes = set()
     self.__exceptFileTypes = set()
     self.__fakeAllDST = 'ZZZZZZZZALL.DST'
+    self.__alreadyWarned = False
     if isinstance( bkQuery, BKQuery ):
       bkQueryDict = bkQuery.getQueryDict().copy()
     elif type( bkQuery ) == type( {} ):
@@ -457,8 +458,11 @@ class BKQuery():
     gLogger.verbose( "BKQuery.__fileType: requested %s, expanded %s, except %s" % ( allRequested,
                                                                                     expandedTypes,
                                                                                     self.__exceptFileTypes ) )
+    if expandedTypes - self.__bkFileTypes and not self.__alreadyWarned:
+      self.__alreadyWarned = True
+      gLogger.always( "**** Take care: some requested file types do not exist!!", str( sorted( expandedTypes - self.__bkFileTypes ) ) )
     if allRequested or not expandedTypes & self.__exceptFileTypes :
-      expandedTypes = ( expandedTypes & self.__bkFileTypes ) - self.__exceptFileTypes
+      expandedTypes -= self.__exceptFileTypes
     gLogger.verbose( "BKQuery.__fileType: result %s" % sorted( expandedTypes ) )
     if len( expandedTypes ) == 1 and not returnList:
       return list( expandedTypes )[0]
@@ -471,14 +475,20 @@ class BKQuery():
     """
     if not self.__bkFileTypes:
       self.__bkFileTypes = set( [self.__fakeAllDST] )
-      res = self.__bkClient.getAvailableFileTypes()
-      if res['OK']:
-        dbresult = res['Value']
-        for record in dbresult['Records']:
-          if record[0].endswith( 'HIST' ) or record[0].endswith( 'ETC' ) or record[0] == 'LOG' or record[0].endswith( 'ROOT' ):
-            self.__exceptFileTypes.add( record[0] )
-          else:
-            self.__bkFileTypes.add( record[0] )
+      warned = False
+      while True:
+        res = self.__bkClient.getAvailableFileTypes()
+        if res['OK']:
+          dbresult = res['Value']
+          for record in dbresult['Records']:
+            if record[0].endswith( 'HIST' ) or record[0].endswith( 'ETC' ) or record[0] == 'LOG' or record[0].endswith( 'ROOT' ):
+              self.__exceptFileTypes.add( record[0] )
+            else:
+              self.__bkFileTypes.add( record[0] )
+          break
+        if not warned:
+          gLogger.always( 'Error getting BK file types, retrying', res['Message'] )
+          warned = True
 
   def getLFNsAndSize( self ):
     """
