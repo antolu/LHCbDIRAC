@@ -400,15 +400,12 @@ def executeAccessURL( dmScript ):
 
 def getAccessURL( lfnList, seList, protocol = None ):
   dm = DataManager()
+  res = dm.getActiveReplicas( lfnList )
+  replicas = res.get( 'Value', {} ).get( 'Successful', {} )
   if not seList:
-    res = dm.getReplicas( lfnList )
-    seList = sorted( set( [se for lfn in lfnList for se in res.get( 'Value', {} ).get( 'Successful', {} ).get( lfn, {} ) if se] ) )
-  if not seList:
-    gLogger.fatal( 'No SE was provided' )
-    Script.showHelp()
-    exit( 1 )
-  if len( seList ) > 1:
-    gLogger.info( "Using the following list of SEs: %s" % str( seList ) )
+    seList = sorted( set( [se for lfn in lfnList for se in replicas.get( lfn, {} )] ) )
+    if len( seList ) > 1:
+      gLogger.always( "Using the following list of SEs: %s" % str( seList ) )
   bk = BookkeepingClient()
   # gLogger.setLevel( "FATAL" )
   notFoundLfns = set( lfnList )
@@ -416,20 +413,18 @@ def getAccessURL( lfnList, seList, protocol = None ):
   level = gLogger.getLevel()
   gLogger.setLevel( 'FATAL' )
   # Check if files are MDF
-  mdfFiles = set()
   bkRes = bk.getFileTypeVersion( lfnList )
-  if bkRes['OK']:
-    for lfn in bkRes['Value']:
-      if bkRes['Value'][lfn] == 'MDF':
-        mdfFiles.add( lfn )
+  mdfFiles = set( [lfn for lfn, fileType in bkRes.get( 'Value', {} ).items() if fileType == 'MDF'] )
   for se in seList:
-    res = StorageElement( se ).getAccessUrl( lfnList, protocol = protocol )
-    success = res.get( 'Value', {} ).get( 'Successful' )
-    if res['OK'] and success:
-      for lfn in set( success ) & mdfFiles:
-        success[lfn] = 'mdf:' + success[lfn]
-      notFoundLfns -= set( success )
-      results['Value']['Successful'].setdefault( se, {} ).update( success )
+    lfns = [lfn for lfn in lfnList if se in replicas.get( lfn, [] )]
+    if lfns:
+      res = StorageElement( se ).getAccessUrl( lfns, protocol = protocol )
+      success = res.get( 'Value', {} ).get( 'Successful' )
+      if res['OK'] and success:
+        for lfn in set( success ) & mdfFiles:
+          success[lfn] = 'mdf:' + success[lfn]
+        notFoundLfns -= set( success )
+        results['Value']['Successful'].setdefault( se, {} ).update( success )
   gLogger.setLevel( level )
 
   if notFoundLfns:
@@ -1255,3 +1250,93 @@ def executeAddFile():
         gLogger.error( 'Error: failed to upload %s to %s' % ( lfn, lfnDict['SE'] ), res['Value']['Failed'][lfn] )
 
   exit( exitCode )
+
+def __isOlderThan( cTimeStruct, days ):
+  from datetime import datetime, timedelta
+  return cTimeStruct < ( datetime.utcnow() - timedelta( days = days ) )
+
+def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = None ):
+  """
+  List a FC directory contents recursively
+  """
+  emptyDirsFlag = False
+  outputFlag = False
+  if wildcard == None:
+    wildcard = '*'
+  for switch in Script.getUnprocessedSwitches():
+    if switch[0] == "Days":
+      days = int( switch[1] )
+    elif switch[0] == "Months":
+      months = int( switch[1] )
+    elif switch[0] == "Years":
+      years = int( switch[1] )
+    elif switch[0] == "Wildcard":
+      wildcard = switch[1]
+    elif switch[0] == "Emptydirs":
+      emptyDirsFlag = True
+    elif switch[0] == 'Output':
+      outputFlag = True
+
+
+  verbose = False
+  if days or months or years:
+    verbose = True
+  totalDays = 0
+  if years:
+    totalDays += 365 * years
+  if months:
+    totalDays += 30 * months
+  if days:
+    totalDays += days
+
+  import fnmatch
+  fc = FileCatalog()
+  baseDirs = dmScript.getOption( 'Directory' )
+
+  for baseDir in baseDirs:
+    gLogger.info( 'Will search for files in %s' % baseDir )
+    activeDirs = [baseDir]
+
+    allFiles = set()
+    emptyDirs = set()
+    while len( activeDirs ) > 0:
+      currentDir = activeDirs.pop( 0 )
+      res = fc.listDirectory( currentDir, verbose )
+      if not res['OK']:
+        gLogger.error( "Error retrieving directory contents", "%s %s" % ( currentDir, res['Message'] ) )
+      elif currentDir in res['Value']['Failed']:
+        gLogger.error( "Error retrieving directory contents", "%s %s" % ( currentDir, res['Value']['Failed'][currentDir] ) )
+      else:
+        dirContents = res['Value']['Successful'][currentDir]
+        empty = True
+        for subdir, metadata in dirContents['SubDirs'].items():
+          if ( not verbose ) or __isOlderThan( metadata['CreationDate'], totalDays ):
+            activeDirs.append( subdir )
+          empty = False
+        for filename, fileInfo in dirContents['Files'].items():
+          metadata = fileInfo['MetaData']
+          if ( not verbose ) or __isOlderThan( metadata['CreationDate'], totalDays ):
+            if fnmatch.fnmatch( filename, wildcard ):
+              allFiles.add( filename )
+          empty = False
+        gLogger.notice( "%s: %d files, %d sub-directories" % ( currentDir, len( dirContents['Files'] ), len( dirContents['SubDirs'] ) ) )
+        if empty:
+          emptyDirs.add( currentDir )
+
+    if outputFlag:
+      outputFileName = '%s.lfns' % baseDir[1:].replace( '/', '-' )
+      outputFile = open( outputFileName, 'w' )
+      outputFile.write( '\n'.join( sorted( allFiles ) ) )
+      outputFile.close()
+      gLogger.notice( '%d matched files have been put in %s' % ( len( allFiles ), outputFileName ) )
+    else:
+      gLogger.always( '\n'.join( sorted( allFiles ) ) )
+
+    if emptyDirsFlag:
+      outputFileName = '%s.emptydirs' % baseDir[1:].replace( '/', '-' )
+      outputFile = open( outputFileName, 'w' )
+      outputFile.write( '\n'.join( sorted( emptyDirs ) ) )
+      outputFile.close()
+      gLogger.notice( '%d empty directories have been put in %s' % ( len( emptyDirs ), outputFileName ) )
+
+  exit( 0 )
