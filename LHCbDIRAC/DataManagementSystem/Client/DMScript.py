@@ -130,7 +130,7 @@ class DMScript():
     ''' File switches '''
     Script.registerSwitch( "", "File=", "File containing list of LFNs", self.setLFNsFromFile )
     Script.registerSwitch( "l:", "LFNs=", "List of LFNs (comma separated)", self.setLFNs )
-    Script.registerSwitch( "", "Terminal", "LFNs are entered from stdin (--File /dev/stdin) (deprecated)", self.setLFNsFromTerm )
+    Script.registerSwitch( "", "Terminal", "LFNs are entered from stdin (--File /dev/stdin)", self.setLFNsFromTerm )
 
   def registerJobsSwitches( self ):
     ''' Job switches '''
@@ -299,8 +299,10 @@ class DMScript():
       return convertSEs( self.options.get( switch, default ) )
     value = self.options.get( switch, default )
     if switch == 'LFNs' and not value:
-      self.setLFNsFromTerm()
-      value = self.options.get( switch, default )
+      import sys
+      if not sys.stdin.isatty():
+        self.setLFNsFromTerm()
+        value = self.options.get( switch, default )
     if type( value ) == type( set() ):
       value = sorted( value )
     return value
