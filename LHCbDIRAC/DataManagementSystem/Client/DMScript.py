@@ -8,7 +8,6 @@ from DIRAC           import gLogger, gConfig
 from DIRAC.Core.Base import Script
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
 
 __RCSID__ = "$Id$"
 
@@ -78,14 +77,13 @@ def convertSEs( ses ):
 
   return seList
 
-class DMScript( object ):
+class DMScript():
   """
   DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
   """
 
   def __init__( self ):
-    """ c'tor
-    """
+    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
     self.bkFields = [ "ConfigName", "ConfigVersion", "ConditionDescription", "ProcessingPass", "EventType", "FileType" ]
     self.extraBKitems = [ "StartRun", "EndRun", "ProductionID" ]
     self.bk = BookkeepingClient()
@@ -132,7 +130,7 @@ class DMScript( object ):
     ''' File switches '''
     Script.registerSwitch( "", "File=", "File containing list of LFNs", self.setLFNsFromFile )
     Script.registerSwitch( "l:", "LFNs=", "List of LFNs (comma separated)", self.setLFNs )
-    Script.registerSwitch( "", "Terminal", "LFNs are entered from stdin (--File /dev/stdin)", self.setLFNsFromTerm )
+    Script.registerSwitch( "", "Terminal", "LFNs are entered from stdin (--File /dev/stdin) (deprecated)", self.setLFNsFromTerm )
 
   def registerJobsSwitches( self ):
     ''' Job switches '''
@@ -301,10 +299,8 @@ class DMScript( object ):
       return convertSEs( self.options.get( switch, default ) )
     value = self.options.get( switch, default )
     if switch == 'LFNs' and not value:
-      import sys
-      if not sys.stdin.isatty():
-        self.setLFNsFromTerm()
-        value = self.options.get( switch, default )
+      self.setLFNsFromTerm()
+      value = self.options.get( switch, default )
     if type( value ) == type( set() ):
       value = sorted( value )
     return value
