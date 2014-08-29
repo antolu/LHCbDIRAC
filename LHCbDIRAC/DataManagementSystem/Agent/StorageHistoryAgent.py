@@ -41,7 +41,7 @@ def _fillMetadata( dictToFill, metadataValue ):
   # keyList = ds.keyFieldsList
   # this is the list of attributes returned by the Bookkeeping for a given directory
   keyList = ( 'ConfigName', 'ConfigVersion', 'FileType', 'Production',
-             'ProcessingPass', 'ConditionDescription', 'EventType' )
+             'ProcessingPass', 'ConditionDescription', 'EventType', 'Visibility' )
   if type( metadataValue ) == type( '' ):
     for k in keyList:
       dictToFill[ k ] = metadataValue
@@ -526,11 +526,11 @@ class StorageHistoryAgent( AgentModule ):
       if not res['Value']:
         self.log.error( "For dir %s getSummary returned an empty value: %s " % ( d, str( res ) ) )
         continue
-      self.lfnUsage.setdefault( d, {'LfnSize':0, 'LfnFiles':0} )
+      self.lfnUsage.setdefault( d, {} )
       for retDir, dirInfo in res['Value'].items():
         if d in retDir:
-          self.lfnUsage[ d ][ 'LfnSize' ] += dirInfo['Size']
-          self.lfnUsage[ d ][ 'LfnFiles'] += dirInfo['Files']
+          self.lfnUsage[ d ][ 'LfnSize' ] = dirInfo['Size']
+          self.lfnUsage[ d ][ 'LfnFiles'] = dirInfo['Files']
       self.log.verbose( "PFN usage: %s" % self.pfnUsage[ d ] )
       self.log.verbose( "LFN usage: %s" % self.lfnUsage[ d ] )
 
