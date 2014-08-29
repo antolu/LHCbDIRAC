@@ -170,6 +170,24 @@ findServices(){
 }
 
 
+#.............................................................................
+#
+# function getCertificate:
+#  
+#   This function just gets a host certificate from a known location 
+#
+#.............................................................................
+
+
+function getCertificate(){
+
+	mkdir -p $WORKSPACE/etc/grid-security/
+	cp /root/hostcert.pem $WORKSPACE/etc/grid-security/
+	cp /root/hostkey.pem $WORKSPACE/etc/grid-security/ 
+	chmod 0600 $WORKSPACE/etc/grid-security/hostkey.pem
+
+} 
+	
 #-------------------------------------------------------------------------------
 # OPEN SSL... let's create a fake CA and certificates
 #-------------------------------------------------------------------------------
@@ -709,9 +727,8 @@ function fullInstall(){
 
 function DIRACPilotInstall(){
 	
-	#certs and proxy first
-	generateCertificates
-	generateUserCredentials
+	#cert first
+	getCertificate
 	
 	if [ ! -z "$DEBUG" ]
 	then
@@ -727,7 +744,7 @@ function DIRACPilotInstall(){
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
 
 	#run the dirac-pilot script, only for installing
-	python dirac-pilot.py -S LHCb-Certification -l LHCb -M 5 -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -e LHCb -T 50000 -N jenkins.cern.ch -Q cream-lsf-grid_2nh_lhcb -n DIRAC.Jenkins.ch -o '/LocalSite/CPUScalingFactor=4.0' -o '/LocalSite/CPUNormalizationFactor=4.0' --UseServerCertificate -E LHCbPilot -X GetLHCbPilotVersion,InstallLHCbDIRAC,ConfigureDIRAC $DEBUG
+	python dirac-pilot.py -S LHCb-Certification -l LHCb -M 5 -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -e LHCb -T 50000 -N jenkins.cern.ch -Q cream-lsf-grid_2nh_lhcb -n DIRAC.Jenkins.ch -o '/LocalSite/CPUScalingFactor=4.0' -o '/LocalSite/CPUNormalizationFactor=4.0' --cert -E LHCbPilot -X GetLHCbPilotVersion,InstallLHCbDIRAC,ConfigureDIRAC $DEBUG
 	#this should have been created
 	source bashrc
 	
