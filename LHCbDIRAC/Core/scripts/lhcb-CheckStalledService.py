@@ -37,6 +37,11 @@ gLogger.getSubLogger( "CheckStalledServices" )
 write_log( 'The script ' + Script.scriptName + ' is running at ' + str( now ) )
 
 fd = os.listdir( runit_dir )
+# remove the web log as the format is different
+for dirname in fd:
+  if dirname.find( 'Web' ) == 0:
+    fd.remove( dirname )
+
 for dirname in fd:
   status, result = commands.getstatusoutput( 'runsvstat ' + runit_dir + '/' + dirname )
   filename = runit_dir + '/' + dirname + '/' + logfile
@@ -51,8 +56,11 @@ for dirname in fd:
         try:
           pollingtime = line.split( ':' )[4].split( ' ' )[1].split( '.' )[0]
         except:
-          write_log( "    wrong format for Polling Time : " + line )
-          break
+          try:
+            pollingtime = line.split( ':' )[7].split( ' ' )[1].split( '.' )[0]
+          except:
+            write_log( "    wrong format for Polling Time : " + line )
+            break
       else:
         lastLine = line
 
