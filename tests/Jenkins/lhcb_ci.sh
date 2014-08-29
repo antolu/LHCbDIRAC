@@ -727,7 +727,7 @@ function DIRACPilotInstall(){
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
 
 	#run the dirac-pilot script, only for installing
-python dirac-pilot.py -S LHCb-Certification -l LHCb -M 5 -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -e LHCb -T 50000 -N jenkins.cern.ch -Q cream-lsf-grid_2nh_lhcb -n DIRAC.Jenkins.ch -o '/LocalSite/CPUScalingFactor=4.0' -o '/LocalSite/CPUNormalizationFactor=4.0' --UseServerCertificate -E LHCbPilot -X GetLHCbPilotVersion,InstallLHCbDIRAC,ConfigureDIRAC $DEBUG
+	python dirac-pilot.py -S LHCb-Certification -l LHCb -M 5 -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -e LHCb -T 50000 -N jenkins.cern.ch -Q cream-lsf-grid_2nh_lhcb -n DIRAC.Jenkins.ch -o '/LocalSite/CPUScalingFactor=4.0' -o '/LocalSite/CPUNormalizationFactor=4.0' --UseServerCertificate -E LHCbPilot -X GetLHCbPilotVersion,InstallLHCbDIRAC,ConfigureDIRAC $DEBUG
 	#this should have been created
 	source bashrc
 	
