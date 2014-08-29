@@ -7,9 +7,9 @@
     .. module: StorageUsageDB
     :synopsis: StorageUsageDB class is a front-end to the Storage Usage Database.
 """
-## imports
+# # imports
 from types import StringType, IntType
-## from DIRAC
+# # from DIRAC
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Base.DB import DB
 
@@ -96,7 +96,7 @@ class StorageUsageDB( DB ):
                                                        'Status' : 'VARCHAR(32) NOT NULL'
                                                   },
                                         'PrimaryKey' : [ 'ID'],
-                                        'Indexes': { 'InsertTime': [ 'InsertTime' ] }
+                                        'Indexes' : { 'InsertTime': ['InsertTime'], 'Status': ['Status']}
                                      }
     self.__tablesDesc[ 'DirMetadata' ] = { 'Fields' : { 'DID' : 'INTEGER UNSIGNED NOT NULL',
                                                        'ConfigName' : 'VARCHAR(64) NOT NULL',
@@ -105,10 +105,28 @@ class StorageUsageDB( DB ):
                                                        'ProcessingPass' : 'VARCHAR(255) NOT NULL',
                                                        'EventType' : 'VARCHAR(255) NOT NULL',
                                                        'FileType' : 'VARCHAR(64) NOT NULL',
-                                                       'Production' : 'VARCHAR(64) NOT NULL'
+                                                       'Production' : 'VARCHAR(64) NOT NULL',
+                                                       'Visibility' : 'VARCHAR(4) NOT NULL'
                                                   },
                                        'PrimaryKey' : [ 'DID'],
                                      }
+    # These are templates for a possible popularity summary table
+    # self.__tablesDesc['BKDatasets'] = { 'Fields': { 'DSID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
+    #                                                'DSPath':'VARCHAR(255) NOT NULL',
+    #                                                'CreationTime':'DATETIME NOT NULL',
+    #                                                'Archived':'BOOL'},
+    #                                    'PrimaryKey' : ['DSID'],
+    #                                    'Indexes' : { 'DSPath' : 'DSPath'}
+    #                                  }
+    # self.__tablesDesc['DatasetUsage'] = { 'Fields' : { 'DSID': 'INTEGER UNSIGNED NOT NULL',
+    #                                                  'Week' : 'INTEGER UNSIGNED NOT NULL',
+    #                                                  'Usage' : 'INTEGER UNSIGNED NOT NULL',
+    #                                                  'Files' : 'INTEGER UNSIGNED NOT NULL',
+    #                                                  'Size' : 'BIGINT UNSIGNED NOT NULL',
+    #                                                  },
+    #                                     'Indexes': { 'Week':'Week',
+    #                                                 'DSID':'DSID'}
+    #                                     }
 
     for tableName in self.__tablesDesc:
       if not tableName in tablesInDB:
@@ -222,9 +240,9 @@ class StorageUsageDB( DB ):
           self.log.error( "Cannot insert row (%s, %s) in problematicDirs" % ( path, site ) )
           return result
     return S_OK()
-  ###
+  # ##
   # Insert/Update to se_Usage table
-  ###
+  # ##
   def publishToSEReplicas( self , directoryDict ):
     """ Publish an entry to se_Usage table """
     for path, pathInfo in directoryDict.items():
@@ -266,7 +284,7 @@ class StorageUsageDB( DB ):
         if not result[ 'OK' ]:
           self.log.error( "Cannot getIds for directory %s" % ( path ) )
           return result
-        for dirKey in result[ 'Value' ].keys():
+        for dirKey in result[ 'Value' ]:
           try:
             did = int( result[ 'Value' ][ dirKey ] )
           except ValueError:
@@ -364,7 +382,7 @@ class StorageUsageDB( DB ):
       self.log.error( "Ooops. Dir has no SEUsage!", "ID %s" % dirID )
       return S_OK()
     sqlVals = []
-    #HACK: Make sure SEName makes sense
+    # HACK: Make sure SEName makes sense
     fixedSEUsage = {}
     for seName in seUsage:
       if seName == "CERN-Tape":
@@ -376,7 +394,7 @@ class StorageUsageDB( DB ):
     if fixedSEUsage != seUsage:
       self.log.warn( "Fixed dirID %s SEUsage from:\n %s\nto:\n %s" % ( dirID, seUsage, fixedSEUsage ) )
     seUsage = fixedSEUsage
-    #Insert data
+    # Insert data
     for seName in seUsage:
       try:
         size = seUsage[ seName ][ 'Size' ]
@@ -646,7 +664,7 @@ class StorageUsageDB( DB ):
     data = {}
     for row in result[ 'Value' ]:
       seName = row[ 0 ]
-      if seName not in data.keys():
+      if seName not in data:
         data[ seName ] = {}
       data[ seName ] = { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }
     return S_OK( data )
@@ -766,8 +784,6 @@ class StorageUsageDB( DB ):
         data[ thisRun ] = {}
         for row in result[ 'Value' ]:
           seName = row[ 0 ]
-          if seName not in data[ thisRun ].keys():
-            data[ thisRun ][ seName ] = {}
           data[ thisRun ][ seName ] = { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }
     else:
       sqlCmd = "SELECT su.SEName, SUM(su.Size), SUM(su.Files)  FROM su_Directory AS d, su_SEUsage AS su WHERE " \
@@ -778,8 +794,6 @@ class StorageUsageDB( DB ):
         return S_ERROR( result )
       for row in result[ 'Value' ]:
         seName = row[ 0 ]
-        if seName not in data.keys():
-          data[ seName ] = {}
         data[ seName ] = { 'Size' : long( row[1] ), 'Files' : long( row[2] ) }
 
     return S_OK( data )
@@ -792,7 +806,7 @@ class StorageUsageDB( DB ):
     result = self._query( sqlCmd )
     if not result['OK']:
       return result
-    if not result['Value']: # no replica found
+    if not result['Value']:  # no replica found
       return S_OK( result )
 
     for row in result['Value']:
@@ -808,7 +822,7 @@ class StorageUsageDB( DB ):
     replicasData[ path ] = {}
     for row in result['Value']:
       seName = row[ 2 ]
-      if seName in replicasData[ path ].keys():
+      if seName in replicasData[ path ]:
         return S_ERROR( "There cannot be two replicas on the same SE!" )
       replicasData[ path ][ seName ] = {}
       replicasData[ path ][ seName ][ 'Files' ] = row[0]
@@ -904,7 +918,7 @@ class StorageUsageDB( DB ):
     insertedEntries = 0
     for d in directoryDict:
       try:
-        site  = directoryDict[ d ]['site']
+        site = directoryDict[ d ]['site']
         count = directoryDict[ d ]['count']
       except KeyError:
         self.log.error( "input directoryDict should specify site and count keys . %s " % str( directoryDict ) )
@@ -920,14 +934,10 @@ class StorageUsageDB( DB ):
         self.log.warn( "in sendDataUsageReport: type is not correct %s" % count )
         continue
       # by default, insert the record with the current time, unless the input directoryDict specifies the creation time
-      if directoryDict[ d ].has_key( 'creationTime' ):
-        insertTime = directoryDict[ d ][ 'creationTime' ]
-        sqlInsertTime = self._escapeString( insertTime )[ 'Value' ]
-        sqlCmd = "INSERT INTO `Popularity` ( Path, Site, Count, Status, InsertTime) VALUES " \
-               "( %s, %s, %d, %s, %s )" % ( sqlPath, sqlSite, count, sqlStatus, sqlInsertTime )
-      else:
-        sqlCmd = "INSERT INTO `Popularity` ( Path, Site, Count, Status, InsertTime) VALUES " \
-               "( %s, %s, %d, %s, UTC_TIMESTAMP() )" % ( sqlPath, sqlSite, count, sqlStatus )
+      insertTime = directoryDict[ d ].get( 'creationTime' )
+      sqlInsertTime = self._escapeString( insertTime )[ 'Value' ] if insertTime else 'UTC_TIMESTAMP()'
+      sqlCmd = "INSERT INTO `Popularity` ( Path, Site, Count, Status, InsertTime) VALUES " \
+             "( %s, %s, %d, %s, %s )" % ( sqlPath, sqlSite, count, sqlStatus, sqlInsertTime )
       self.log.verbose( "in sendDataUsageReport_2, sqlCmd: %s " % sqlCmd )
       result = self._update( sqlCmd )
       if not result[ 'OK' ]:
@@ -937,13 +947,12 @@ class StorageUsageDB( DB ):
     return S_OK( insertedEntries )
 
 
-
   def getDataUsageSummary( self, startTime, endTime, status = 'New' ):
     """ returns a summary of the counts for each tuple (Site,Path) in the given time interval
     """
     if startTime > endTime:
       return S_OK()
-    if ( type( startTime ) != StringType or type( endTime ) != StringType ):
+    if type( startTime ) != StringType or type( endTime ) != StringType:
       return S_ERROR( 'wrong arguments format' )
 
     sqlStartTime = self._escapeString( startTime )[ 'Value' ]
@@ -952,10 +961,13 @@ class StorageUsageDB( DB ):
     sqlCmd = "SELECT ID, Path, Site, Count, InsertTime from `Popularity` WHERE " \
         "Status = %s AND InsertTime > %s AND InsertTime < %s " % ( sqlStatus, sqlStartTime, sqlEndTime )
     self.log.verbose( "in getDataUsageSummary, sqlCmd: %s " % sqlCmd )
-    result = self._query( sqlCmd )
-    if not result[ 'OK' ]:
-      return S_ERROR( result['Message'] )
-    return result
+    return self._query( sqlCmd )
+
+  def getDataUsageForDirectory( self, path ):
+    """ returns all entries for a given path
+    """
+    sqlCmd = "SELECT ID, Path, Site, Count, InsertTime from `Popularity` WHERE Path = %s" % self._escapeString( path )[ 'Value' ]
+    return self._query( sqlCmd )
 
 
   def updatePopEntryStatus( self, idList, newStatus ):
@@ -994,25 +1006,27 @@ class StorageUsageDB( DB ):
     # returns a dictionary of type:
     #  {dir1: ID1, dir2: ID2, ...}
     insertedEntries = 0
-    for dirKey in directoryDict.keys():
-      if dirKey not in dirIDs.keys():
+    for dirKey in directoryDict:
+      if dirKey not in dirIDs:
         self.log.warn( "in insertToDirMetadata: found no DID for directory %s" % dirKey )
         continue
       iD = int( dirIDs[ dirKey ] )
       try:
-        sqlConfigname = self._escapeString( directoryDict[dirKey]['ConfigName'] )[ 'Value' ]
-        sqlConfigversion = self._escapeString( directoryDict[dirKey]['ConfigVersion'] )[ 'Value' ]
-        sqlConditions = self._escapeString( directoryDict[dirKey]['ConditionDescription'] )[ 'Value' ]
-        sqlProcpass = self._escapeString( directoryDict[dirKey]['ProcessingPass'] )[ 'Value' ]
-        sqlEvttype = self._escapeString( directoryDict[dirKey]['EventType'] )[ 'Value' ]
-        sqlFiletype = self._escapeString( directoryDict[dirKey]['FileType'] )[ 'Value' ]
-        sqlProd = self._escapeString( directoryDict[dirKey]['Production'] )[ 'Value' ]
+        info = directoryDict[dirKey]
+        sqlConfigname = self._escapeString( info['ConfigName'] )[ 'Value' ]
+        sqlConfigversion = self._escapeString( info['ConfigVersion'] )[ 'Value' ]
+        sqlConditions = self._escapeString( info['ConditionDescription'] )[ 'Value' ]
+        sqlProcpass = self._escapeString( info['ProcessingPass'] )[ 'Value' ]
+        sqlEvttype = self._escapeString( info['EventType'] )[ 'Value' ]
+        sqlFiletype = self._escapeString( info['FileType'] )[ 'Value' ]
+        sqlProd = self._escapeString( info['Production'] )[ 'Value' ]
+        sqlVisi = self._escapeString( info['Visibility'] )[ 'Value' ]
       except KeyError:
         self.log.error( "in insertToDirMetadata: the input dict was not correctly formatted: %s" % directoryDict )
         return S_ERROR( "Key error in input dictionary %s" % directoryDict )
       sqlCmd = "INSERT INTO `DirMetadata` ( DID, ConfigName, ConfigVersion, Conditions, ProcessingPass, " \
-          "EventType, FileType, Production ) VALUES ( %d, %s, %s, %s, %s, %s, %s, %s )" % \
-          ( iD, sqlConfigname, sqlConfigversion, sqlConditions, sqlProcpass, sqlEvttype, sqlFiletype, sqlProd )
+          "EventType, FileType, Production, Visibility ) VALUES ( %d, %s, %s, %s, %s, %s, %s, %s, %s )" % \
+          ( iD, sqlConfigname, sqlConfigversion, sqlConditions, sqlProcpass, sqlEvttype, sqlFiletype, sqlProd, sqlVisi )
       self.log.verbose( "in insertToDirMetadata, sqlCmd: %s " % sqlCmd )
       result = self._update( sqlCmd )
       if not result[ 'OK' ]:
@@ -1047,7 +1061,7 @@ class StorageUsageDB( DB ):
       else:
         idList.append( str( dirIDs[ dirKey ] ) )
     sqlCmd = "SELECT DID, ConfigName, ConfigVersion, Conditions, ProcessingPass, EventType, FileType, " \
-        "Production FROM `DirMetadata` WHERE DID in ( %s )" % ", ".join( ["'%s'" % did for did in idList] )
+        "Production, Visibility FROM `DirMetadata` WHERE DID in ( %s )" % ", ".join( ["'%s'" % did for did in idList] )
     self.log.verbose( "in getDirMetadata, sqlCmd: %s " % sqlCmd )
     result = self._query( sqlCmd )
     if not result[ 'OK' ]:
@@ -1067,4 +1081,4 @@ class StorageUsageDB( DB ):
     return S_OK( metadata )
 
 ################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

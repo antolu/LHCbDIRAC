@@ -3,19 +3,19 @@
 ########################################################################
 """ :mod: DataUsageHandler
     ======================
- 
+
     .. module: DataUsageHandler
     :synopsis: Implementation of the Data Usage service in the DISET framework.
 """
-## imports
+# # imports
 from types import StringType, DictType, ListType
-## from DIRAC
+# # from DIRAC
 from DIRAC import S_OK
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
-## from LHCbDIRAC
+# # from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
-## RCSID
+# # RCSID
 __RCSID__ = "$Id:  $"
 
 # global instance of the StorageUsageDB class
@@ -33,7 +33,7 @@ class DataUsageHandler( RequestHandler ):
   """
   types_sendDataUsageReport = [ ( StringType, DictType, StringType ) ]
   @staticmethod
-  def export_sendDataUsageReport( site , directoryDict, status ='New' ):
+  def export_sendDataUsageReport( site , directoryDict, status = 'New' ):
     """ export of sendDataUsageReport """
     return gStorageUsageDB.sendDataUsageReport( site, directoryDict, status )
 
@@ -42,6 +42,12 @@ class DataUsageHandler( RequestHandler ):
   def export_getDataUsageSummary( startTime, endTime, status = 'New' ):
     """ export of getDataUsageSummary """
     return gStorageUsageDB.getDataUsageSummary( startTime, endTime, status )
+
+  types_getDataUsageForDirectory = [ StringType ]
+  @staticmethod
+  def export_getDataUsageForDirectory( path ):
+    """ export of getDataUsageForDirectory """
+    return gStorageUsageDB.getDataUsageForDirectory( path )
 
   types_sendDataUsageReport_2 = [ ( DictType ) ]
   @staticmethod
@@ -67,6 +73,6 @@ class DataUsageHandler( RequestHandler ):
     """ export of getDirMetadata """
     return gStorageUsageDB.getDirMetadata( directoryList )
 
- 
 
- 
+
+
