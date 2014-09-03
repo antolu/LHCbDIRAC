@@ -7,7 +7,7 @@ import subprocess
 import os
 import sys
 
-from pilotCommands import CommandBase, InstallDIRAC, GetPilotVersion, ConfigureArchitecture
+from pilotCommands import InstallDIRAC, GetPilotVersion, ConfigureArchitecture, ConfigureBasics
 
 class GetLHCbPilotVersion( GetPilotVersion ):
   """ Only to set the location of the pilot cfg file
@@ -88,49 +88,19 @@ class InstallLHCbDIRAC( InstallDIRAC ):
 
     return environmentProduced
 
-class setServerCertificates( CommandBase ):
-  """ To fix the use of server certificate path for IAAS and IAAC types of resources
+
+class ConfigureLHCbBasics( ConfigureBasics ):
+  """ just set specificities
+
+      To fix the use of server certificate path for IAAS and IAAC types of resources
   """
 
-  def __init__( self, pilotParams ):
+  def __init__(self, pilotParams):
     """ c'tor
     """
-    super( setServerCertificates, self ).__init__( pilotParams )
+    super( ConfigureLHCbBasics, self ).__init__( pilotParams )
+    self.certsLocation = '/home/dirac/certs/'
 
-  def execute( self ):
-    """ Adds the following configuration:
-
-        DIRAC
-        {
-          Security
-          {
-            CertFile = %s/etc/grid-security/hostcert.pem
-            KeyFile  = %s/etc/grid-security/hostkey.pem
-          }
-        }
-    """
-
-    # this conf can be shared...
-    cfg = ['-FHDM']  # force update, skip CA cheks, skip CA download, skip VOMS
-    cfg.append( "-O pilot.cfg" )  # output file
-    if self.pp.useServerCertificate:
-      cfg.append( '--UseServerCertificate' )
-    if self.pp.debugFlag:
-      cfg.append( '-ddd' )
-
-    # real stuff
-    secPath = '/DIRAC/Security'
-    gridSec = '%s/etc/grid-security' % self.pp.workingDir
-    cfg.append( "-o %s/CertFile=%s/hostcert.pem" % ( secPath, gridSec ) )
-    cfg.append( "-o %s/KeyFile=%s/hostkey.pem" % ( secPath, gridSec ) )
-
-    configureCmd = "%s %s" % ( self.pp.configureScript, " ".join( cfg ) )
-
-    retCode, _configureOutData = self.executeAndGetOutput( configureCmd, self.pp.installEnv )
-
-    if retCode:
-      self.log.error( "Could not configure the use of server certificates" )
-      sys.exit( 1 )
 
 class ConfigureLHCbArchitecture( ConfigureArchitecture ):
   """ just fix the script to be used
@@ -144,7 +114,12 @@ class ConfigureLHCbArchitecture( ConfigureArchitecture ):
   def execute( self ):
     """ calls the superclass execute and then sets the CMTCONFIG variable
     """
+    if self.pp.useServerCertificate:
+      self.archScriptCFG.append( '-o /DIRAC/Security/UseServerCertificate=yes' )
+
+    self.archScriptCFG.append( 'pilot.cfg' )  # at least part of the configuration is here
+
     localArchitecture = super( ConfigureLHCbArchitecture, self ).execute()
+
     self.log.info( 'Setting CMTCONFIG=%s' % localArchitecture )
     os.environ['CMTCONFIG'] = localArchitecture
-
