@@ -34,6 +34,6 @@ class SiteDirector( DIRACSiteDirector ):
     pilotOptions, newPilotsToSubmit = DIRACSiteDirector._getPilotOptions( self, queue, pilotsToSubmit )
 
     pilotOptions.append( '-E LHCbPilot' )
-    pilotOptions.append( '-X GetLHCbPilotVersion,InstallLHCbDIRAC,ConfigureDIRAC,LaunchAgent' )
+    pilotOptions.append( '-X GetLHCbPilotVersion,InstallLHCbDIRAC,ConfigureDIRAC,ConfigureLHCbArchitecture,LaunchAgent' )
 
     return [pilotOptions, newPilotsToSubmit]

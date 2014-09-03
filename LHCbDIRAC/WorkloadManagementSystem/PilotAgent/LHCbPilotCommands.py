@@ -7,7 +7,7 @@ import subprocess
 import os
 import sys
 
-from pilotCommands import InstallDIRAC, GetPilotVersion
+from pilotCommands import InstallDIRAC, GetPilotVersion, ConfigureArchitecture
 
 class GetLHCbPilotVersion( GetPilotVersion ):
   """ Only to set the location of the pilot cfg file
@@ -50,7 +50,7 @@ class InstallLHCbDIRAC( InstallDIRAC ):
       environment = self.__invokeCmd( cmd, environment )
 
     # now setting the correct environment to be used by dirac-configure, or whatever follows
-    # (by default this is not needed, since with dirac-install we work in the local directory)
+    # (by default this is not needed, since with dirac-install works in the local directory)
     self.pp.installEnv = environment
 
 
@@ -88,3 +88,11 @@ class InstallLHCbDIRAC( InstallDIRAC ):
 
     return environmentProduced
 
+class ConfigureLHCbArchitecture( ConfigureArchitecture ):
+  """ just fix the script
+  """
+  def __init__( self, pilotParams ):
+    """ c'tor
+    """
+    pilotParams.architectureScript = 'dirac-architecture'
+    super( ConfigureLHCbArchitecture, self ).__init__( pilotParams )
