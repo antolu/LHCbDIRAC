@@ -110,24 +110,19 @@ class setServerCertificates( CommandBase ):
         }
     """
 
-#     from DIRAC.Core.Utilities.CFG import CFG
-#     from DIRAC.gConfig import diracConfigFilePath
-#     cfg = CFG()
-#     cfg.loadFromFile( diracConfigFilePath )
-#
+    # this conf can be shared...
+    cfg = ['-FHDM']  # force update, skip CA cheks, skip CA download, skip VOMS
+    cfg.append( "-O pilot.cfg" )  # output file
+    if self.pp.useServerCertificate:
+      cfg.append( '--UseServerCertificate' )
+    if self.pp.debugFlag:
+      cfg.append( '-ddd' )
+
+    # real stuff
     secPath = '/DIRAC/Security'
     gridSec = '%s/etc/grid-security' % self.pp.workingDir
-#
-#     cfg.setOption( '%s/CertFile' % secPath, '%s/hostcert.pem' % gridSec )
-#     cfg.setOption( '%s/KeyFile' % secPath, '%s/hostkey.pem' % gridSec )
-#     cfg.writeToFile( 'pilot.cfg' )
-
-    cfg = ['-FHDM']  # force update, skip CA cheks, skip CA download, skip VOMS
     cfg.append( "-o %s/CertFile=%s/hostcert.pem" % ( secPath, gridSec ) )
     cfg.append( "-o %s/KeyFile=%s/hostkey.pem" % ( secPath, gridSec ) )
-    cfg.append( "-O %s/etc/dirac.cfg" % self.pp.workingDir )  # output file
-    if self.pp.debugFlag:
-      cfg.append( "-ddd" )
 
     configureCmd = "%s %s" % ( self.pp.configureScript, " ".join( cfg ) )
 
