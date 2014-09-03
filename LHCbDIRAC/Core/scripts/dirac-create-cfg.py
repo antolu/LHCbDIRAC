@@ -8,6 +8,9 @@
 
 """
 
+# TODO: this script will not be needed after with pilots 2.0 (DIRAC v6r12)
+# Eventual needs should be coded as pilot commands
+
 __RCSID__ = '$Id$'
 
 
