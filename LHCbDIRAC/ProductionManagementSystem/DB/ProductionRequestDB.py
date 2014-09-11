@@ -1148,7 +1148,7 @@ class ProductionRequestDB( DB ):
 
     # Copy the history (failures are not fatal since
     # it is hard to revert the previous changes...)
-    req = "SELECT * FROM RequestHistory WHERE RequestID=%s " % requestID
+    req = "SELECT " + ','.join( self.historyFields ) + " FROM RequestHistory WHERE RequestID=%s " % requestID
     req += "ORDER BY TimeStamp"
     result = self._query( req, connection )
     if not result['OK']:
