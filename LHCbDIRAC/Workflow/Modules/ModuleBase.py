@@ -644,10 +644,10 @@ class ModuleBase( object ):
 
     if stepMask and stepMask != ['']:
       for fileName, metadata in candidateFiles.items():
-        if fileName.split( '_' )[-1].split( '.' )[0] not in stepMask:
+        if fileName.lower().replace( metadata['type'], '' ).split( '_' )[-1].split( '.' )[0] not in stepMask:
           del candidateFiles[fileName]
           self.log.info( 'Output file %s was produced but will not be treated (stepMask is %s)' % ( fileName,
-                                                                                               ', '.join( stepMask ) ) )
+                                                                                                    ', '.join( stepMask ) ) )
     else:
       self.log.info( 'No outputDataStep provided, the files output of all the steps will be considered' )
 
