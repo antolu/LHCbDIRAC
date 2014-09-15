@@ -6,10 +6,10 @@ __RCSID__ = "$Id"
 import os, tarfile, math
 
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
-from DIRAC.Core.Utilities.List                  import fromChar
-from DIRAC.ConfigurationSystem.Client.Helpers   import Resources
-from DIRAC.Core.Utilities.SiteCEMapping         import getQueueInfo
-from LHCbDIRAC.Core.Utilities.XMLTreeParser     import XMLTreeParser
+from DIRAC.Core.Utilities.List import fromChar
+from DIRAC.ConfigurationSystem.Client.Helpers import Resources
+from DIRAC.WorkloadManagementSystem.Client.CPUNormalization import getCPUTime
+from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
 
 
 def tarFiles( outputFile, files = [], compression = 'gz', deleteInput = False ):
@@ -95,50 +95,6 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
     raise RuntimeError( "No time left to produce events" )
 
   return willProduce
-
-#############################################################################
-
-def getCPUTime( CPUNormalizationFactor ):
-  """ Trying to get CPUTime (in seconds) from the CS. The default is a (low) 10000s
-  """
-  CPUTime = gConfig.getValue( '/LocalSite/CPUTimeLeft', 0 )
-
-  if CPUTime:
-    # This is in HS06sseconds
-    # We need to convert in real seconds
-    CPUTime = CPUTime / int( CPUNormalizationFactor )
-  else:
-    # now we know that we have to find the CPUTimeLeft by looking in the CS
-    gridCE = gConfig.getValue( '/LocalSite/GridCE' )
-    CEQueue = gConfig.getValue( '/LocalSite/CEQueue' )
-    if not CEQueue:
-      # we have to look for a CEQueue in the CS
-      # FIXME: quite hacky. We should better profit from something generic
-      gLogger.warn( "No CEQueue in local configuration, looking to find one in CS" )
-      siteName = gConfig.getValue( '/LocalSite/Site' )
-      queueSection = '/Resources/Sites/%s/%s/CEs/%s/Queues' % ( siteName.split( '.' )[0], siteName, gridCE )
-      res = gConfig.getSections( queueSection )
-      if not res['OK']:
-        raise RuntimeError( res['Message'] )
-      queues = res['Value']
-      CPUTimes = []
-      for queue in queues:
-        CPUTimes.append( gConfig.getValue( queueSection + '/' + queue + '/maxCPUTime', 10000 ) )
-      cpuTimeInMinutes = min( CPUTimes )
-      # These are (real, wall clock) minutes - damn BDII!
-      CPUTime = int( cpuTimeInMinutes ) * 60
-    else:
-      queueInfo = getQueueInfo( '%s/%s' % ( gridCE, CEQueue ) )
-      if not queueInfo['OK'] or not queueInfo['Value']:
-        gLogger.warn( "Can't find a CE/queue, defaulting CPUTime to 10000" )
-        CPUTime = 10000
-      else:
-        queueCSSection = queueInfo['Value']['QueueCSSection']
-        # These are (real, wall clock) minutes - damn BDII!
-        cpuTimeInMinutes = gConfig.getValue( '%s/maxCPUTime' % queueCSSection )
-        CPUTime = int( cpuTimeInMinutes ) * 60
-
-  return CPUTime
 
 #############################################################################
 
