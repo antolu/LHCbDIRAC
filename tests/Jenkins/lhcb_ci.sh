@@ -602,7 +602,7 @@ finalCleanup(){
 
 diracDBs(){
 
-  dbs=`cat databases | cut -d ' ' -f 2 | grep -v ^RequestDB | cut -d '.' -f 1`
+  dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1 | grep -v ^RequestDB | grep -v FileCatalogDB`
   for db in $dbs
   do
     dirac-install-db $db $DEBUG
