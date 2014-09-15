@@ -291,6 +291,16 @@ class BookkeepingReport( ModuleBase ):
       typedParams.append( ( "WNMODEL", nodeInfo[ "ModelName" ] ) )
       typedParams.append( ( "WNCPUPOWER", nodeInfo[ "CPU(MHz)" ] ) )
       typedParams.append( ( "WNCACHE", nodeInfo[ "CacheSize(kB)" ] ) )
+      # THIS OR THE NEXT
+      # typedParams.append( ( "WorkerNode", nodeInfo['HostName'] ) )
+
+    host = None
+    if os.environ.has_key( "HOSTNAME" ):
+      host = os.environ[ "HOSTNAME" ]
+    elif os.environ.has_key( "HOST" ):
+      host = os.environ[ "HOST" ]
+    if host is not None:
+      typedParams.append( ( "WorkerNode", host ) )
 
     try:
       memory = self.__getMemoryFromXMLSummary()
@@ -308,14 +318,6 @@ class BookkeepingReport( ModuleBase ):
     typedParams.append( ( "JobEnd", '%s %s' % ( self.ldate, self.ltime ) ) )
     typedParams.append( ( "Location", self.siteName ) )
     typedParams.append( ( "JobType", self.jobType ) )
-
-    host = None
-    if os.environ.has_key( "HOSTNAME" ):
-      host = os.environ[ "HOSTNAME" ]
-    elif os.environ.has_key( "HOST" ):
-      host = os.environ[ "HOST" ]
-    if host is not None:
-      typedParams.append( ( "WorkerNode", host ) )
 
     if os.environ.has_key( 'XMLDDDB_VERSION' ):
       typedParams.append( ( "GeometryVersion", os.environ[ "XMLDDDB_VERSION" ] ) )
