@@ -365,7 +365,8 @@ function generateUserCredentials(){
 #.............................................................................
 
 function diracCredentials(){
-
+	echo '[diracCredentials]'
+	
 	cd $WORKSPACE
 
 	sed -i 's/commitNewData = CSAdministrator/commitNewData = authenticated/g' etc/Configuration_Server.cfg
@@ -378,13 +379,12 @@ function diracCredentials(){
 #
 # diracProxies:
 #
-#   Upload proxies in the ProxyDB
+#   Upload proxies in the ProxyDB (which is supposed to be installed...)
 #
 #.............................................................................
 
-
-
 function diracProxies(){
+	echo '[diracProxies]'
 
 	dirac-proxy-init -U -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
 	dirac-proxy-init -U -g dirac_admin -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
@@ -680,11 +680,6 @@ function installSite(){
 	./install_site.sh install.cfg
 	
 	source $WORKSPACE/bashrc
-	
-	generateUserCredentials
-	diracCredentials
-	
-	diracProxies
 }
 
 #...............................................................................
@@ -706,6 +701,10 @@ function fullInstall(){
 	#basic install, with only the CS running
 	installSite
 	
+	#Dealing with security stuff
+	generateUserCredentials
+	diracCredentials
+	
 	#DBs
 	findDatabases
 	diracDBs
@@ -713,6 +712,10 @@ function fullInstall(){
 	#services
 	findServices
 	diracServices
+
+	#upload proxies
+	#diracProxies
+
 }
 
 
