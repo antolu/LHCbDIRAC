@@ -94,7 +94,6 @@ def executeRemoveReplicas( dmScript, allDisk = False ):
   lfnList, seList = parseArguments( dmScript, allSEs = allDisk )
   if not lfnList:
     gLogger.fatal( "No LFNs have been supplied" )
-    Script.showHelp()
     exit( 1 )
   if not allDisk:
     # Only remove from selected SEs
@@ -1291,7 +1290,10 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
 
   import fnmatch
   fc = FileCatalog()
-  baseDirs = dmScript.getOption( 'Directory' )
+  baseDirs = dmScript.getOption( 'Directory', [] )
+  args = Script.getPositionalArgs()
+  for arg in args:
+    baseDirs += arg.split( ',' )
 
   for baseDir in baseDirs:
     gLogger.info( 'Will search for files in %s' % baseDir )

@@ -87,6 +87,7 @@ class ConsistencyChecks( object ):
     self.inFCNotInBK = []
     self.removedFiles = []
 
+    self.absentLFNsInFC = []
     self.existLFNsNoSE = {}
     self.existLFNsBadReplicas = {}
     self.existLFNsBadFiles = {}
@@ -97,12 +98,8 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
-  def checkBK2FC( self, checkAll ):
-    """ Starting from the BK, check if the FileCatalog has consistent information (BK -> FileCatalog)
-
-        Works either when the bkQuery is free, or when it is made using a transformation ID
-    """
-
+  def __getLFNsFromBK( self, checkAll = False ):
+    lfnsReplicaNo, lfnsReplicaYes = ( 0, 0 )
     if self.lfns:
       lfnsNotInBK, lfnsReplicaNo, lfnsReplicaYes = self._getBKMetadata( self.lfns )
       lfnsReplicaNo = lfnsReplicaNo.keys() + lfnsNotInBK
@@ -115,6 +112,14 @@ class ConsistencyChecks( object ):
       if checkAll:
         lfnsReplicaNo = self._getBKFiles( bkQuery, 'No' )
       lfnsReplicaYes = self._getBKFiles( bkQuery, 'Yes' )
+    return lfnsReplicaNo, lfnsReplicaYes
+
+  def checkBK2FC( self, checkAll ):
+    """ Starting from the BK, check if the FileCatalog has consistent information (BK -> FileCatalog)
+
+        Works either when the bkQuery is free, or when it is made using a transformation ID
+    """
+    lfnsReplicaNo, lfnsReplicaYes = self.__getLFNsFromBK( checkAll )
 
     if self.lfns:
       gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = No' )
@@ -726,11 +731,7 @@ class ConsistencyChecks( object ):
 
     return ft_dict
 
-  ################################################################################
-
-  def checkFC2BK( self, bkCheck = True ):
-    """ check that files present in the FC are also in the BK
-    """
+  def __getLFNsFromFC( self ):
     if not self.lfns:
       try:
         directories = []
@@ -742,11 +743,21 @@ class ConsistencyChecks( object ):
         return S_ERROR( e )
       present, notPresent = self.getReplicasPresenceFromDirectoryScan( directories )
       gLogger.always( '%d files found in the FC' % len( present ) )
-      prStr = ' are in the FC but'
     else:
       present, notPresent = self.getReplicasPresence( self.lfns )
       gLogger.always( 'Out of %d files, %d are in the FC, %d are not' \
                       % ( len( self.lfns ), len( present ), len( notPresent ) ) )
+    return present, notPresent
+
+  ################################################################################
+
+  def checkFC2BK( self, bkCheck = True ):
+    """ check that files present in the FC are also in the BK
+    """
+    present, notPresent = self.__getLFNsFromFC()
+    if not self.lfns:
+      prStr = ' are in the FC but'
+    else:
       if not present:
         if bkCheck:
           gLogger.always( 'No files are in the FC, no check in the BK. Use dirac-dms-check-bkk2fc instead' )
@@ -883,6 +894,23 @@ class ConsistencyChecks( object ):
       self.existLFNsBadReplicas = repDict['SomeReplicasCorrupted']
       self.existLFNsBadFiles = repDict['AllReplicasCorrupted']
 
+  def checkSE( self, seList ):
+    lfnsReplicaNo, lfnsReplicaYes = self.__getLFNsFromBK()
+    if not lfnsReplicaNo and not lfnsReplicaYes:
+      lfns, notPresent = self.__getLFNsFromFC()
+    else:
+      lfns = lfnsReplicaYes
+      notPresent = []
+    gLogger.always( "Checking presence of %d files at %s" % ( len( lfns ), ', '.join( seList ) ) )
+    replicaRes = self.dm.getReplicas( lfns )
+    if not replicaRes['OK']:
+      gLogger.error( 'Error getting replicas', replicaRes['Message'] )
+      return
+    seSet = set( seList )
+    success = replicaRes['Value']['Successful']
+    self.absentLFNsInFC = sorted( set( notPresent ) | set( replicaRes['Value']['Failed'] ) )
+    self.existLFNsNoSE = [lfn for lfn in success if not seSet & set( success[lfn] ) ]
+
   def compareChecksum( self, lfns ):
     """compare the checksum of the file in the FC and the checksum of the physical replicas.
        Returns a dictionary containing 3 sub-dictionaries: one with files with missing PFN, one with
@@ -914,7 +942,7 @@ class ConsistencyChecks( object ):
         replicas.update( replicasRes['Successful'] )
       self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
 
-    self.__write( "Get FC metadata for %d files to be checked" % len( lfns ) )
+    self.__write( "Get FC metadata for %d files to be checked: " % len( lfns ) )
     metadata = {}
     for lfnChunk in breakListIntoChunks( replicas.keys(), chunkSize ):
       self.__write( '.' )
@@ -925,7 +953,7 @@ class ConsistencyChecks( object ):
       metadata.update( res['Value']['Successful'] )
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
 
-    gLogger.always( "Check existence and compare checksum file by file ..." )
+    gLogger.always( "Check existence and compare checksum file by file..." )
     csDict = {}
     seFiles = {}
     surlLfn = {}
@@ -940,12 +968,12 @@ class ConsistencyChecks( object ):
         seFiles.setdefault( se, [] ).append( surl )
 
     checkSum = {}
-    self.__write( 'Getting checksum of %d replicas (chunks of %d) ' % ( len( surlLfn ), chunkSize ) )
+    self.__write( 'Getting checksum of %d replicas in %d SEs (chunks of %d): ' % ( len( surlLfn ), len( seFiles ), chunkSize ) )
     pfnNotAvailable = {}
     logLevel = gLogger.getLevel()
     gLogger.setLevel( 'FATAL' )
-    for se in seFiles:
-      self.__write( '\nAt %s ' % se )
+    for num, se in enumerate( sorted( seFiles ) ):
+      self.__write( '\n%d. At %s (%d files): ' % ( num, se, len( seFiles[se] ) ) )
       oSe = StorageElement( se )
       for surlChunk in breakListIntoChunks( seFiles[se], chunkSize ):
         self.__write( '.' )
@@ -967,9 +995,10 @@ class ConsistencyChecks( object ):
 
     startTime = time.time()
     self.__write( 'Verifying checksum of %d files (chunks of %d) ' % ( len( replicas ), chunkSize ) )
-    for lfn in replicas:
+    for num, lfn in enumerate( replicas ):
       # get the lfn checksum from the LFC
-      self.__write( '.' )
+      if num % chunkSize == 0:
+        self.__write( '.' )
 
       replicaDict = replicas[ lfn ]
       oneGoodReplica = False

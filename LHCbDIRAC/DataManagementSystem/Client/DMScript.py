@@ -224,14 +224,14 @@ class DMScript( object ):
     return DIRAC.S_OK()
 
   def setDirectory( self, arg ):
-    try:
-      import sys
-      f = open( arg, 'r' ) if arg else sys.stdin
-      directories = self.getLFNsFromList( f.read().splitlines() )
+    import os
+    if os.path.exists( arg ) and not os.path.isdir( arg ):
+      f = open( arg, 'r' )
+      directories = self.getLFNsFromList( f.read().splitlines(), directories = True )
       if arg:
         f.close()
-    except:
-      directories = self.getLFNsFromList( arg )
+    else:
+      directories = self.getLFNsFromList( arg, directories = True )
     self.options.setdefault( 'Directory', set() ).update( directories )
     return DIRAC.S_OK()
 
@@ -255,7 +255,7 @@ class DMScript( object ):
   def setLFNsFromTerm( self, arg = None ):
     return self.setLFNsFromFile( None )
 
-  def getLFNsFromList( self, lfns ):
+  def getLFNsFromList( self, lfns, directories = False ):
     if type( lfns ) == type( {} ):
       lfnList = lfns.keys()
     elif type( lfns ) == type( '' ):
@@ -265,9 +265,10 @@ class DMScript( object ):
     else:
       gLogger.error( 'getLFNsFromList: invalid type %s' % type( lfns ) )
       return []
-    lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
-    lfnList = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] if '/lhcb' in lfn else '' for lfn in lfnList]
-    lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
+    if not directories:
+      lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
+      lfnList = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] if '/lhcb' in lfn else '' for lfn in lfnList]
+      lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
     return sorted( [lfn for lfn in set( lfnList ) if lfn] )
 
   @staticmethod
