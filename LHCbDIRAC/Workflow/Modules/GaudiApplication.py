@@ -122,10 +122,8 @@ class GaudiApplication( ModuleBase ):
         if self.jobType.lower() == 'user':
           eventsMax = self.numberOfEvents
         else:
-          try:
-            eventsMax = self.maxNumberOfEvents
-          except AttributeError:
-            eventsMax = self.numberOfEvents
+          # maintaining backward compatibility
+          eventsMax = self.maxNumberOfEvents if self.maxNumberOfEvents else self.numberOfEvents
         runNumberGauss = int( self.production_id ) * 100 + int( self.prod_job_id )
         firstEventNumberGauss = eventsMax * ( int( self.prod_job_id ) - 1 ) + 1
 
