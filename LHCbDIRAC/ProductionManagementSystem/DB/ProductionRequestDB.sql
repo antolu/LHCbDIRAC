@@ -1,16 +1,17 @@
 -- $Header: /local/reps/dirac/DIRAC3/DIRAC/ProductionManagementSystem/DB/ProductionRequestDB.sql,v 1.3 2009/10/15 15:27:45 azhelezo Exp $
 -- ------------------------------------------------------------------------------
-DROP DATABASE IF EXISTS ProductionRequestDB;
-CREATE DATABASE ProductionRequestDB;
+
+-- When installing via dirac tools, the following is not needed (still here for reference)
+-- 
+-- DROP DATABASE IF EXISTS ProductionRequestDB;
+-- CREATE DATABASE ProductionRequestDB;
 -- ------------------------------------------------------------------------------
-
 -- Database owner definition
-USE mysql;
-
+-- USE mysql;
 -- Must set passwords for database user by replacing "must_be_set".
-GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequestDB.* TO Dirac@localhost IDENTIFIED BY 'FillIt';
-GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequest.* TO Dirac@'%' IDENTIFIED BY 'FillIt';
-FLUSH PRIVILEGES;
+-- GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequestDB.* TO Dirac@localhost IDENTIFIED BY 'FillIt';
+-- GRANT SELECT,INSERT,LOCK TABLES,UPDATE,DELETE,CREATE,DROP,ALTER ON ProductionRequest.* TO Dirac@'%' IDENTIFIED BY 'FillIt';
+-- FLUSH PRIVILEGES;
 
 --
 --  Schema definition for the Production Requests table 
