@@ -15,54 +15,6 @@
 __RCSID__ = "$Id$"
 
 # Code
-def doCheck( checkAll ):
-  """
-  Method actually calling for the the check using ConsistencyChecks module
-  It prints out results and calls corrective actions if required
-  """
-  cc.checkBK2FC( checkAll )
-  maxPrint = 20
-
-  if checkAll:
-    if cc.existLFNsBKRepNo:
-      nFiles = len( cc.existLFNsBKRepNo )
-      if nFiles <= maxPrint:
-        comment = str( cc.existLFNsBKRepNo )
-      else:
-        comment = ' (first %d LFNs) : %s' % ( maxPrint, str( cc.existLFNsBKRepNo[:maxPrint] ) )
-      if fixIt:
-        gLogger.always( "Setting the replica flag to %d files: %s" % ( nFiles, comment ) )
-        res = bk.addFiles( cc.existLFNsBKRepNo )
-        if not res['OK']:
-          gLogger.error( "Something wrong: %s" % res['Message'] )
-        else:
-          gLogger.always( "Successfully set replica flag to %d files" % nFiles )
-      else:
-        gLogger.error( "%d LFNs exist in the FC but have replicaFlag = No: %s" % ( nFiles, comment ) )
-        gLogger.always( "Use option --FixIt to fix it (set the replica flag)" )
-    else:
-      gLogger.always( "No LFNs exist in the FC but have replicaFlag = No in the BK -> OK!" )
-
-  if cc.absentLFNsBKRepYes:
-    nFiles = len( cc.absentLFNsBKRepYes )
-    if nFiles <= maxPrint:
-      comment = str( cc.absentLFNsBKRepYes )
-    else:
-      comment = ' (first %d LFNs) : %s' % ( maxPrint, str( cc.absentLFNsBKRepYes[:maxPrint] ) )
-
-    if fixIt:
-      gLogger.always( "Removing the replica flag to %d files: %s" % ( nFiles, comment ) )
-      res = bk.removeFiles( cc.absentLFNsBKRepYes )
-      if not res['OK']:
-        gLogger.error( "Something wrong: %s" % res['Message'] )
-      else:
-        gLogger.always( "Successfully removed replica flag to %d files" % nFiles )
-    else:
-      gLogger.error( "%d files have replicaFlag = Yes but are not in FC: %s" % ( nFiles, comment ) )
-      gLogger.always( "Use option --FixIt to fix it (remove the replica flag)" )
-  else:
-    gLogger.always( "No LFNs have replicaFlag = Yes but are not in the FC -> OK!" )
-
 
 if __name__ == '__main__':
 
@@ -84,33 +36,27 @@ if __name__ == '__main__':
   fixIt = False
   checkAll = False
   production = 0
-  switches = Script.getUnprocessedSwitches()
-  for opt, val in switches:
+  for opt, val in Script.getUnprocessedSwitches():
     if opt == 'FixIt':
       fixIt = True
     elif opt == 'CheckAllFlags':
       checkAll = True
 
   # imports
-  from DIRAC.DataManagementSystem.Client.DataManager import DataManager
-  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
-
   gLogger.setLevel( 'INFO' )
-  dm = DataManager()
-  bk = BookkeepingClient()
-
-  cc = ConsistencyChecks( dm = dm, bkClient = bk )
+  cc = ConsistencyChecks()
   bkQuery = dmScript.getBKQuery( visible = 'All' )
   cc.bkQuery = bkQuery
   cc.lfns = dmScript.getOption( 'LFNs', [] )
-  prods = dmScript.getOption( 'Productions', [] )
+  productions = dmScript.getOption( 'Productions', [] )
 
-  if prods:
-    for prod in prods:
+  from LHCbDIRAC.DataManagementSystem.Client.CheckExecutors import doCheckBK2FC
+  if productions:
+    for prod in productions:
       cc.prod = prod
       gLogger.always( "Processing production %d" % cc.prod )
-      doCheck( checkAll )
+      doCheckBK2FC( cc, checkAll, fixIt )
       gLogger.always( "Processed production %d" % cc.prod )
   else:
-    doCheck( checkAll )
+    doCheckBK2FC( cc, checkAll, fixIt )

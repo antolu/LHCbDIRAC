@@ -94,18 +94,20 @@ def cacheDirectories( directories ):
   dirSet -= invisible
 
   # # Get the creation date
-  for lfns in breakListIntoChunks( list( dirSet ), chunkSize ):
-    while True:
-      res = fcClient.getDirectoryMetadata( lfns )
-      if not res['OK']:
-        gLogger.fatal( 'Error getting directory metadata', res['Message'] )
-      else:
-        break
-    success = res['Value']['Successful']
-    for lfn in success:
-      bkPath = bkPathForLfn[lfn]
-      ct = creationTime.get( bkPath, datetime.now() )
-      creationTime[bkPath] = min( success[lfn]['CreationDate'], ct )
+  # for lfns in breakListIntoChunks( dirLong2Short.values(), chunkSize ):
+  #  while True:
+  #    res = fcClient.getDirectoryMetadata( lfns )
+  #    if not res['OK']:
+  #      gLogger.fatal( 'Error getting directory metadata', res['Message'] )
+  #    else:
+  #      break
+  #  success = res['Value']['Successful']
+  #  for lfn in dirSet:
+  #    shortDir = dirLong2Short[lfn]
+  #    if shortDir in success:
+  #      bkPath = bkPathForLfn[lfn]
+  #      ct = creationTime.get( bkPath, datetime.now() )
+  #      creationTime[bkPath] = min( success[shortDir]['CreationDate'], ct )
 
   missingSU = set( [dirLong2Short[lfn] for lfn in dirSet] )
   gLogger.always( 'Get LFN Storage Usage for %d directories' % len( missingSU ) )
@@ -210,7 +212,9 @@ def getPhysicalUsage( baseDir ):
   return dirSet
 
 def storageType( seList ):
-  if not [se for se in seList if not se.endswith( "-ARCHIVE" )]:
+  if not [se for se in seList if not se.endswith( "-ARCHIVE" ) and \
+          se not in ( 'CERN-SW-TEST', 'CERN-FREEZER-EOS', 'CERN-FREEZER' )] and \
+         [se for se in seList if se.endswith( "-ARCHIVE" )]:
     # Only -ARCHIVE
     return 'Archived'
   if [se for se in seList if se.endswith( '-RAW' ) or se.endswith( '-RDST' )]:
@@ -261,8 +265,6 @@ if __name__ == '__main__':
 
   # Dictionary with weekly/dayly usage for each BK path
   timeUsage = {}
-  # Dictionary with creation time of each BK path
-  creationTime = {}
   # PFN #files and size for each BK path
   physicalDataUsage = {}
   # set of used directories
@@ -278,7 +280,7 @@ if __name__ == '__main__':
     nbBins = since
   else:
     binSize = 'week'
-    nbBins = int( since / 7 ) + 1
+    nbBins = int( ( since + 6 ) / 7 )
     since = 7 * nbBins
 
   ignoreDirectories = ( 'user', 'test', 'debug', 'dataquality', 'software', 'database', 'swtest', 'data', 'certification', 'validation' )
@@ -290,6 +292,9 @@ if __name__ == '__main__':
     from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
     startTime = time.time()
     res = FileCatalog().listDirectory( '/lhcb' )
+    if not res['OK']:
+      gLogger.fatal( "Cannot get list of directories", res['Message'] )
+      DIRAC.exit( 1 )
     directories = set( [ subDir for subDir in res['Value']['Successful']['/lhcb']['SubDirs'] if subDir.split( '/' )[2] not in ignoreDirectories] )
     allDirectoriesSet = set()
     for baseDir in directories:
@@ -356,7 +361,8 @@ if __name__ == '__main__':
       for i in range( 2 ):
         counters.setdefault( type, [] ).append( sum( [bkPathUsage[bkPath].get( type, ( 0, 0 ) )[i] for bkPath in timeUsage] ) )
     for bkPath in sorted( timeUsage ):
-      datasetStorage[storageType( usedSEs[bkPath] )].add( bkPath )
+      if bkPath not in ( datasetStorage['Disk'] | datasetStorage['Archived'] | datasetStorage['Tape'] ):
+        datasetStorage[storageType( usedSEs[bkPath] )].add( bkPath )
       nLfns, lfnSize = bkPathUsage[bkPath].get( 'LFN', ( 0, 0 ) )
       nPfns, pfnSize = bkPathUsage[bkPath].get( 'All', ( 0, 0 ) )
       gLogger.always( '%s (%d LFNs, %s), (%d PFNs, %s, %.1f replicas)' % ( bkPath, nLfns, prSize( lfnSize ), nPfns, prSize( pfnSize ), float( nPfns ) / float( nLfns ) if nLfns else 0. ) )
@@ -375,7 +381,7 @@ if __name__ == '__main__':
     if unusedDirectories:
       cacheDirectories( unusedDirectories )
       # Remove the used datasets (from other directories)
-      unusedBKPaths = set( [bkPathForLfn[lfn] for lfn in unusedDirectories] ) - set( timeUsage )
+      unusedBKPaths = set( [bkPathForLfn[lfn] for lfn in unusedDirectories if lfn in bkPathForLfn] ) - set( timeUsage )
       # Remove empty datasets
       strangeBKPaths = set( [bkPath for bkPath in unusedBKPaths if not bkPathUsage[bkPath].get( 'LFN', ( 0, 0 ) )[0]] )
       if strangeBKPaths:
@@ -406,7 +412,7 @@ if __name__ == '__main__':
   # Name, ProcessingPass, #files, size, SE type, each week's usage (before now)
   csvFile = 'popularity-%ddays.csv' % since
   f = open( csvFile, 'w' )
-  title = "Name,Configuration,ProcessingPass,Type,Creation-%s,NbLFN,LFNSize,NbDisk,DiskSize,NbTape,TapeSize,NbArchived,ArchivedSize,Nb Replicas,Nb ArchReps,Storage,FirstUsage,LastUsage,Now" % binSize
+  title = "Name,Configuration,ProcessingPass,FileType,Type,Creation-%s,NbLFN,LFNSize,NbDisk,DiskSize,NbTape,TapeSize,NbArchived,ArchivedSize,Nb Replicas,Nb ArchReps,Storage,FirstUsage,LastUsage,Now" % binSize
   for bin in range( nbBins ):
     title += ',%d' % ( 1 + bin )
   f.write( title + '\n' )
@@ -418,23 +424,28 @@ if __name__ == '__main__':
     # If there are fewer Archive replicas than LFNs, check if the production is still active
     lfns = info.get( 'LFN', ( 0, 0 ) )[0]
     archives = info.get( 'Archived', ( 0, 0 ) )[0]
-    active = False
-    if archives and archives < lfns and prodForBKPath[bkPath]:
-      for prod in prodForBKPath.get( bkPath, () ):
-        res = transClient.getTransformation( prod )
-        if res.get( 'Value', {} ).get( 'Status', '' ) == 'Active':
-          # print 'Prod', prod, 'Active'
-          active = True
-          break
+    prods = prodForBKPath[bkPath]
+    res = transClient.getTransformations( {'TransformationID':list( prods )} )
+    creationTime = datetime.now()
+    active = []
+    for prodDict in res.get( 'Value', [] ):
+      creationTime = min( creationTime, prodDict['CreationDate'] )
+      if prodDict['Status'] in ( 'Active', 'Idle', 'Completed' ):
+        active.append( str( prodDict['TransformationID'] ) )
+    if active:
+      gLogger.always( "Active productions %s found in %s" % ( ','.join( sorted( active ) ), bkPath ) )
     if info['LFN'][0] == 0:
       continue
     for type in info:
       info[type][1] /= TB
     # Some BK paths contain a , to be replaces by a . for the CSV file!!
     config = '/'.join( bkPath.split( '/' )[0:3] )
-    row = '%s,%s,%s' % ( bkPath.replace( ',', '.' ).replace( 'Real Data', 'RealData' ), config, processingPass.get( bkPath, 'Unknown' ) )
+    fileType = bkPath.split( '/' )[-1]
+    if ',' in bkPath:
+      gLogger.always( "BK path found with ',':", bkPath )
+    row = '%s,%s,%s,%s' % ( bkPath.replace( ',', '.' ).replace( 'Real Data', 'RealData' ), config, processingPass.get( bkPath, 'Unknown' ).replace( 'Real Data', 'RealData' ), fileType )
     row += ',0' if bkPath.startswith( '/MC' ) else ',1'
-    row += ',%d' % ( getTimeBin( creationTime.get( bkPath, datetime.now() ) ) )
+    row += ',%d' % ( getTimeBin( creationTime ) )
     for type in ( 'LFN', 'Disk', 'Tape', 'Archived' ):
       row += ',%d,%f' % tuple( info[type] )
     row += ',%f,%f' % ( float( info['Disk'][0] ) / float( info['LFN'][0] ), float( info['Archived'][0] ) / float( info['LFN'][0] ) )
