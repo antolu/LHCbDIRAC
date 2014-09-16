@@ -30,12 +30,16 @@ class ValidateOutputDataAgent( DIRACValidateOutputDataAgent ):
   def initialize( self ):
     """ standard initialize method for DIRAC agents
     """
-    DIRACValidateOutputDataAgent.initialize( self )
+    res = DIRACValidateOutputDataAgent.initialize( self )
+    if not res['OK']:
+      return res
 
     self.integrityClient = DataIntegrityClient()
     self.fileCatalog = FileCatalog()
     self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
+
+    return S_OK()
 
 
   def checkTransformationIntegrity( self, prodID ):
