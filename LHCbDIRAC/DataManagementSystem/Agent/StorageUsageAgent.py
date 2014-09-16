@@ -20,7 +20,7 @@ from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.Utilities.DirectoryExplorer import DirectoryExplorer
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
-from DIRAC.Core.Utilities.ReturnValues                  import returnSingleResult
+from DIRAC.Resources.Utilities import Utils
 from DIRAC.Core.Utilities import List
 from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 from DIRAC.Core.Utilities.DictCache import DictCache
@@ -173,16 +173,16 @@ class StorageUsageAgent( AgentModule ):
       self.log.notice( "Storage Usage Summary" )
       self.log.notice( "============================================================" )
       self.log.notice( "%-40s %20s %20s" % ( 'Storage Element', 'Number of files', 'Total size' ) )
-      
+
       for se in sorted( res['Value'] ):
         site = se.split( '_' )[0].split( '-' )[0]
         gMonitor.registerActivity( "%s-used" % se, "%s usage" % se, "StorageUsage/%s usage" % site,
                                    "", gMonitor.OP_MEAN, bucketLength = 600 )
         gMonitor.registerActivity( "%s-files" % se, "%s files" % se, "StorageUsage/%s files" % site,
                                    "Files", gMonitor.OP_MEAN, bucketLength = 600 )
-          
-      time.sleep(2)
-      
+
+      time.sleep( 2 )
+
       for se in sorted( res['Value'] ):
         usage = res['Value'][se]['Size']
         files = res['Value'][se]['Files']
@@ -214,11 +214,7 @@ class StorageUsageAgent( AgentModule ):
     iterMaxDirs = 100
     while self.__dirExplorer.isActive():
       startT = time.time()
-      d2E = []
-      for i in range( iterMaxDirs ):
-        if not self.__dirExplorer.isActive():
-          break
-        d2E.append( self.__dirExplorer.getNextDir() )
+      d2E = [self.__dirExplorer.getNextDir() for _i in range( iterMaxDirs ) if self.__dirExplorer.isActive()]
       self.__exploreDirList( d2E )
       iterTime = time.time() - startT
       totalIterTime += iterTime
@@ -252,12 +248,12 @@ class StorageUsageAgent( AgentModule ):
     res = self.catalog.getDirectorySize( dirList )
     if not res['OK']:
       self.log.error( "Completely failed to get usage.", "%s %s" % ( dirList, res['Message'] ) )
-      return
-    for dirPath in dirList:
-      if dirPath in res['Value']['Failed']:
-        self.log.error( "Failed to get usage.", "%s %s" % ( dirPath, res['Value']['Failed'][ dirPath ] ) )
-        continue
-      self.__processDir( dirPath, res['Value']['Successful'][dirPath] )
+    else:
+      for dirPath in dirList:
+        if dirPath in res['Value']['Failed']:
+          self.log.error( "Failed to get usage.", "%s %s" % ( dirPath, res['Value']['Failed'][ dirPath ] ) )
+        else:
+          self.__processDir( dirPath, res['Value']['Successful'][dirPath] )
 
   def __processDir( self, dirPath, directoryMetadata ):
     ''' calculate nb of files and size of :dirPath:, remove it if it's empty '''
@@ -270,8 +266,8 @@ class StorageUsageAgent( AgentModule ):
     prStr = "%s: found %s sub-directories" % ( dirPath, len( subDirs ) if subDirs else 'no' )
     if closedDirs:
       prStr += ", %s are closed (ignored)" % len( closedDirs )
-      for closedDir in closedDirs:
-        subDirs.pop( closedDir, None )
+    for rmDir in closedDirs + self.__ignoreDirsList:
+      subDirs.pop( rmDir, None )
     numberOfFiles = long( directoryMetadata['Files'] )
     totalSize = long( directoryMetadata['TotalSize'] )
     if numberOfFiles:
@@ -295,17 +291,10 @@ class StorageUsageAgent( AgentModule ):
       if not dirPath == self.__baseDir:
         self.removeEmptyDir( dirPath )
         return
-    chosenDirs = []
     rightNow = dateTime()
-    for subDir in subDirs:
-      if subDir in self.__ignoreDirsList:
-        continue
-      if self.activePeriod:
-        timeDiff = timeInterval( subDirs[subDir], self.activePeriod * week )
-        if timeDiff.includes( rightNow ):
-          chosenDirs.append( subDir )
-      else:
-        chosenDirs.append( subDir )
+    chosenDirs = [subDir for subDir in subDirs
+                  if not self.activePeriod or
+                  timeInterval( subDirs[subDir], self.activePeriod * week ).includes( rightNow )]
 
     self.__dirExplorer.addDirList( chosenDirs )
     notCommited = len( self.__publishDirQueue ) + len( self.__dirsToPublish )
@@ -315,7 +304,7 @@ class StorageUsageAgent( AgentModule ):
   def __getOwnerProxy( self, dirPath ):
     ''' get owner creds for :dirPath: '''
     self.log.verbose( "Retrieving dir metadata..." )
-    result = returnSingleResult( self.catalog.getDirectoryMetadata( dirPath ) )
+    result = Utils.executeSingleFileOrDirWrapper( self.catalog.getDirectoryMetadata( dirPath ) )
     if not result[ 'OK' ]:
       self.log.error( "Could not get metadata info", result[ 'Message' ] )
       return result
