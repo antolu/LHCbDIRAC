@@ -424,7 +424,6 @@ class PluginUtilities( object ):
     """
     if len( candSEs ) <= 1:
       return candSEs
-    import random
     # Weights should be obtained from the RSS or CS
     weightForSEs = self.getStorageFreeSpace( candSEs )
     rankedSEs = []
@@ -880,7 +879,6 @@ class PluginUtilities( object ):
 
   def cacheExpired( self, runID ):
     if runID not in self.runExpiredCache:
-      import random
       self.runExpiredCache[runID] = ( random.uniform( 0., 1. ) > self.cacheHitFrequency )
     return self.runExpiredCache[runID]
 
@@ -1129,9 +1127,12 @@ def closerSEs( existingSEs, targetSEs, local = False ):
                          for site in getSitesForSE( se ).get( 'Value', [] ) ] )
     closeSEs = set( [se for se in targetSEs if set( getSitesForSE( se ).get( 'Value', [] ) ) & existingSites] )
     otherSEs = targetSEs - closeSEs
-    targetSEs = random.shuffle( list( closeSEs ) )
+    targetSEs = list( closeSEs )
+    random.shuffle( targetSEs )
     if not local:
-      targetSEs += random.shuffle( list( otherSEs ) )
+      otherSEs = list( otherSEs )
+      random.shuffle( otherSEs )
+      targetSEs += otherSEs
   else:
     targetSEs = []
   return ( targetSEs + list( sameSEs ) ) if not local else targetSEs

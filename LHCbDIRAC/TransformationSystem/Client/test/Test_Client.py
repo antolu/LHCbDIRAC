@@ -1,6 +1,8 @@
 import unittest
 from mock import Mock
 
+from LHCbDIRAC.TransformationSystem.Client.Utilities import closerSEs
+
 from LHCbDIRAC.TransformationSystem.Client.TaskManager import LHCbWorkflowTasks
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
@@ -25,6 +27,15 @@ class ClientTestCase( unittest.TestCase ):
 
   def tearDown( self ):
     pass
+
+class UtilitiesSuccess( ClientTestCase ):
+  def test_closerSEs( self ):
+    existingSEs = ['CERN-ARCHIVE', 'CERN-DST-EOS', 'CERN_MC_M-DST', 'GRIDKA-ARCHIVE', 'IN2P3-DST']
+    targetSEs = ['CERN-DST-EOS', 'RAL-DST', 'PIC-DST', 'CNAF-DST', 'SARA-DST', 'IN2P3-DST', 'GRIDKA-DST']
+
+    res = closerSEs( existingSEs, targetSEs, False )
+    self.assert_( type( res ) == list )
+    self.assert_( len( res ) )
 
 class TaskManagerSuccess( ClientTestCase ):
   pass

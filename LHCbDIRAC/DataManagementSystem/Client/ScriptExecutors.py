@@ -219,7 +219,8 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
       remaining = len( ses - seList )
       if remaining < minReplicas:
         # Not enough replicas outside seList, remove only part, otherwisae remove all
-        removeSEs = random.shuffle( removeSEs )[0:remaining - minReplicas]
+        random.shuffle( removeSEs )
+        removeSEs = removeSEs[0:remaining - minReplicas]
       for seName in sorted( removeSEs ):
         res = dm.removeReplica( seName, lfns )
         if not res['OK']:
