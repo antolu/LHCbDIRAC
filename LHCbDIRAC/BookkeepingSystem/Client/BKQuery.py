@@ -641,13 +641,10 @@ class BKQuery():
     if visible == None:
       visible = self.isVisible()
     lfns = self.getLFNs( printSEUsage = True, printOutput = printOutput, visible = visible )
-    dirs = []
+    dirs = set()
     for lfn in lfns:
-      directory = os.path.dirname( lfn )
-      if directory not in dirs:
-        dirs.append( directory )
-    dirs.sort()
-    return dirs
+      dirs.add( os.path.dirname( lfn ) )
+    return sorted( dirs )
 
   @staticmethod
   def __getProdStatus( prod ):
