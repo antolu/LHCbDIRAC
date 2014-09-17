@@ -27,10 +27,8 @@ from DIRAC                                                       import S_OK, S_
 from DIRAC.Core.Base.AgentModule                                 import AgentModule
 from DIRAC.Core.Utilities.Time                                   import dateTime
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations         import Operations
-from DIRAC.DataManagementSystem.Client.DataManager               import DataManager
 from DIRAC.RequestManagementSystem.Client.ReqClient              import ReqClient
 
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient        import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks     import ConsistencyChecks
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
 
@@ -45,34 +43,26 @@ class DataRecoveryAgent( AgentModule ):
     """
     AgentModule.__init__( self, *args, **kwargs )
 
-    self.dataManager = None
     self.transClient = None
-    self.bkClient = None
     self.reqClient = None
-
     self.cc = None
 
-    self.transformationTypes = Operations().getValue( 'Transformations/DataProcessing', [] )
-    self.transformationTypes = list( set( self.transformationTypes ) - set( ['MCSimulation', 'Simulation'] ) )
+    self.enableFlag = True
+    self.transformationTypes = []
 
   #############################################################################
 
   def initialize( self ):
     """Sets defaults
     """
-    # This sets the Default Proxy
-    # the shifterProxy option in the Configuration can be used to change this default.
     self.am_setOption( 'shifterProxy', 'ProductionManager' )
 
-    self.dataManager = DataManager()
     self.transClient = TransformationClient()
-    self.bkClient = BookkeepingClient()
     self.reqClient = ReqClient()
+    self.cc = ConsistencyChecks( interactive = False, transClient = self.transClient )
 
-    self.cc = ConsistencyChecks( interactive = False, transClient = self.transClient,
-                                 dm = self.dataManager, bkClient = self.bkClient )
-
-    self.enableFlag = True
+    self.transformationTypes = Operations().getValue( 'Transformations/DataProcessing', [] )
+    self.transformationTypes = list( set( self.transformationTypes ) - set( ['MCSimulation', 'Simulation'] ) )
 
     return S_OK()
 

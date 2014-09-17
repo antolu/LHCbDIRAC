@@ -754,7 +754,7 @@ class ConsistencyChecks( object ):
   def checkFC2BK( self, bkCheck = True ):
     """ check that files present in the FC are also in the BK
     """
-    present, notPresent = self.__getLFNsFromFC()
+    present, _notPresent = self.__getLFNsFromFC()
     if not self.lfns:
       prStr = ' are in the FC but'
     else:
