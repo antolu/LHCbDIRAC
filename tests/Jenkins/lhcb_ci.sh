@@ -162,6 +162,7 @@ function findDatabases(){
 #-------------------------------------------------------------------------------
 
 findServices(){
+	echo '[findServices]'
 
 	find *DIRAC/*/Service/ -name *Handler.py | grep -v test | awk -F "/" '{print $2,$4}' | sort | uniq > services
 
@@ -180,6 +181,7 @@ findServices(){
 
 
 function getCertificate(){
+	echo '[getCertificate]'
 
 	mkdir -p $WORKSPACE/etc/grid-security/
 	cp /root/hostcert.pem $WORKSPACE/etc/grid-security/
@@ -586,10 +588,11 @@ function diracProxies(){
 #-------------------------------------------------------------------------------
 
 finalCleanup(){
-  
-  rm etc/grid-security/certificates
-  rm etc/grid-security/host*.pem
-  rm -r .installCache
+	echo '[finalCleanup]'
+
+	rm etc/grid-security/certificates
+	rm etc/grid-security/host*.pem
+	rm -r .installCache
 
 } 
 
@@ -601,18 +604,21 @@ finalCleanup(){
 #-------------------------------------------------------------------------------
 
 diracDBs(){
+	echo '[dumpDBs]'
 
-  dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1 | grep -v ^RequestDB | grep -v FileCatalogDB`
-  for db in $dbs
-  do
-    dirac-install-db $db $DEBUG
-  done
+	dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1 | grep -v ^RequestDB | grep -v FileCatalogDB`
+	for db in $dbs
+	do
+		dirac-install-db $db $DEBUG
+	done
 
 }
 
 dropDBs(){
-  dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1 | grep -v ^RequestDB | grep -v FileCatalogDB`
- python dirac-drop-db.py $dbs $DEBUG
+	echo '[dropDBs]'
+	
+	dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1 | grep -v ^RequestDB | grep -v FileCatalogDB`
+	python dirac-drop-db.py $dbs $DEBUG
 }
 
 #-------------------------------------------------------------------------------
@@ -623,6 +629,7 @@ dropDBs(){
 #-------------------------------------------------------------------------------
 
 diracServices(){
+	echo '[diracServices]'
 
 	services=`cat services | cut -d '.' -f 1 | grep -v ^ConfigurationSystem | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v MigrationMonitoring | grep -v Future | grep -v Bookkeeping | grep -v RequestManager | grep -v RequestProxy  | sed 's/System / /g' | sed 's/Handler//g' | sed 's/ /\//g'`
 	for serv in $services
@@ -640,6 +647,7 @@ diracServices(){
 #-------------------------------------------------------------------------------
 
 dumpDBs(){
+	echo '[dumpDBs]'
 
 	rootPass=`cat rootMySQL`
 	sqlStatements=`mysql -u root -p$rootPass -e "show databases" | grep -v mysql | grep -v Database | grep -v information_schema | grep -v test`
@@ -662,6 +670,7 @@ dumpDBs(){
 
 
 function installSite(){
+	echo '[installSite]'
 	 
 	killRunsv
 	findRelease
@@ -696,6 +705,7 @@ function installSite(){
 #...............................................................................
 
 function fullInstall(){
+	echo '[fullInstall]'
 	
 	if [ ! -z "$DEBUG" ]
 	then
