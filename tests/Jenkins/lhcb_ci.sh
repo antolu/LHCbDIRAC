@@ -610,6 +610,11 @@ diracDBs(){
 
 }
 
+dropDBs(){
+  dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1 | grep -v ^RequestDB | grep -v FileCatalogDB`
+ python dirac-drop-db.py $dbs $DEBUG
+}
+
 #-------------------------------------------------------------------------------
 # diracServices:
 #
