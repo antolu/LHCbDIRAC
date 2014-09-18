@@ -171,6 +171,25 @@ findServices(){
 }
 
 
+#-------------------------------------------------------------------------------
+# findExecutors:
+#
+#   gets all executor names from *DIRAC code and writes them to a file
+#   named executors.
+#
+#-------------------------------------------------------------------------------
+
+findExecutors(){
+	echo '[findExecutors]'
+
+	find *DIRAC/*/Executor/ -name *.py | awk -F "/" '{print $2,$4}' | sort | uniq > executors
+
+	echo found `wc -l executors`
+
+}
+
+
+
 #.............................................................................
 #
 # function getCertificate:
@@ -618,7 +637,7 @@ dropDBs(){
 	echo '[dropDBs]'
 	
 	dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1 | grep -v ^RequestDB | grep -v FileCatalogDB`
-	python $WORKSPACE/LHCbTestDirac/Jenkins/LHCbdirac-drop-db.py $dbs $DEBUG
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-drop-db.py $dbs $DEBUG
 }
 
 #-------------------------------------------------------------------------------
@@ -631,7 +650,7 @@ dropDBs(){
 diracServices(){
 	echo '[diracServices]'
 
-	services=`cat services | cut -d '.' -f 1 | grep -v ^ConfigurationSystem | grep -v Plotting | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v MigrationMonitoring | grep -v Future | grep -v Bookkeeping | grep -v RequestManager | grep -v RequestProxy  | grep -v TransferDBMonitoring | grep -v LcgFileCatalogProxy | grep -v FileCatalog  | grep -v FileCatalogProxy  | sed 's/System / /g' | sed 's/Handler//g' | sed 's/ /\//g'`
+	services=`cat services | cut -d '.' -f 1 | grep -v ^ConfigurationSystem | grep -v Plotting | grep -v RAWIntegrity | grep -v RunDBInterface | grep -v MigrationMonitoring | grep -v Bookkeeping | grep -v RequestManager | grep -v RequestProxy  | grep -v TransferDBMonitoring | grep -v LcgFileCatalogProxy | grep -v FileCatalog  | grep -v FileCatalogProxy  | sed 's/System / /g' | sed 's/Handler//g' | sed 's/ /\//g'`
 	for serv in $services
 	do
 		dirac-install-service $serv $DEBUG
