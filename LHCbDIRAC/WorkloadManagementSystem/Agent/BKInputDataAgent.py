@@ -124,7 +124,13 @@ class BKInputDataAgent( OptimizerModule ):
         if int( lfcMeta.get( 'Size', 0 ) ) != int( bkMeta.get( 'FileSize', 0 ) ):
           badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'LFC-BK File Size Mismatch' ) )
           badFile = True
-        if ( lfcMeta.get( 'CheckSumType', '' ) == 'AD' ) and bkMeta['ADLER32']:
+
+        # Prepare changes from "CheckSumType" to "ChecksumType"
+        # and LFC ('AD') to DFC ('Adler32')
+        checksumType = lfcMeta.get( 'CheckSumType', '' )
+        if not checksumType:
+          lfcMeta.get( 'ChecksumType', '' )
+        if ( ( checksumType == 'AD' ) or ( checksumType == 'Adler32' ) ) and bkMeta['ADLER32']:
           if lfcMeta['CheckSumValue'].upper() != bkMeta['ADLER32'].upper():
             badLFNs.append( 'BK:%s Problem: %s' % ( lfn, 'LFC-BK Checksum Mismatch' ) )
             badFile = True
