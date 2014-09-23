@@ -363,7 +363,7 @@ class StorageHistoryAgent( AgentModule ):
           if metaTuple:
             metaForDir = metaForList[dirName]
             _dirID, metaForDir[ 'DataType' ], metaForDir[ 'Activity' ], metaForDir[ 'Conditions' ], metaForDir[ 'ProcessingPass' ], \
-              metaForDir[ 'EventType' ], metaForDir[ 'FileType' ], metaForDir[ 'Production' ] = metaTuple
+              metaForDir[ 'EventType' ], metaForDir[ 'FileType' ], metaForDir[ 'Production' ], metaForDir['Visibility'] = metaTuple
           else:
             notInCache.append( dirName )
 
