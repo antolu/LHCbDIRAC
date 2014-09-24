@@ -402,7 +402,7 @@ def doCheckSE( cc, seList, fixIt = False ):
 
   if cc.absentLFNsInFC:
     gLogger.always( '>>>>' )
-    gLogger.always( '%d files are not in the FC' % len( cc.absentInFC ) )
+    gLogger.always( '%d files are not in the FC' % len( cc.absentLFNsInFC ) )
     if fixIt:
       __removeFile( cc.absentLFNsInFC )
     else:
@@ -412,7 +412,7 @@ def doCheckSE( cc, seList, fixIt = False ):
   if cc.existLFNsNoSE:
     gLogger.always( '<<<<' )
     gLogger.always( '%d files are not present at %s' % ( len( cc.existLFNsNoSE ), ', '.join( sorted( seList ) ) ) )
-    gLogger.always( '\n'.join( cc.existLFNsNoSE ) )
+    gLogger.always( '\n'.join( sorted( cc.existLFNsNoSE ) ) )
   else:
     gLogger.always( 'No LFNs missing at %s' % ', '.join( sorted( seList ) ) )
 
