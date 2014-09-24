@@ -743,19 +743,6 @@ class BookkeepingManagerHandler(RequestHandler):
     return dataMGMT_.renameFile(oldLFN, newLFN)
 
   #############################################################################
-  types_getInputAndOutputJobFiles = [ListType]
-  def export_getInputAndOutputJobFiles(self, jobids):
-    """more info in the BookkeepingClient.py"""
-    return self.export_getJobInputAndOutputJobFiles(jobids)
-
-  #############################################################################
-  types_getJobInputAndOutputJobFiles = [ListType]
-  @staticmethod
-  def export_getJobInputAndOutputJobFiles(jobids):
-    """more info in the BookkeepingClient.py"""
-    return dataMGMT_.getJobInputAndOutputJobFiles(jobids)
-
-  #############################################################################
   types_getProductionProcessingPassID = [LongType]
   @staticmethod
   def export_getProductionProcessingPassID(prodid):

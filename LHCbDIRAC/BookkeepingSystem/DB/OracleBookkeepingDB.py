@@ -1315,20 +1315,14 @@ class OracleBookkeepingDB:
       if type( production ) in [ types.StringType, types.IntType, types.LongType] :
         condition += " and j.production=%d " % ( int( production ) )
       elif type( production ) == types.ListType:
-        condition += ' and j.production in ( '
-        for i in production:
-          condition += "%d," % ( int( i ) )
-        condition = condition[:-1] + ')'
+        condition += ' and j.production in ( ' + ','.join( [str( p ) for p in production] ) + ')'
       else:
         result = S_ERROR( "The production type is invalid. It can be a list, integer or string!" )
     elif lfn != default:
       if type( lfn ) == types.StringType:
         condition += " and f.filename='%s' " % ( lfn )
       elif type( lfn ) == types.ListType:
-        condition += ' and ('
-        for i in lfn:
-          condition += " filename='%s' or" % ( i )
-        condition = condition[:-2] + ")"
+        condition += ' and (' + ' or '.join( ["f.filename='%s'" % l for l in lfn] ) + ')'
       else:
         result = S_ERROR( "You must provide an LFN or a list of LFNs!" )
 
@@ -1420,14 +1414,8 @@ class OracleBookkeepingDB:
     """updates the file metadata"""
     utctime = datetime.datetime.utcnow().strftime( '%Y-%m-%d %H:%M:%S' )
     command = "update files Set inserttimestamp=TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS') ," % ( str( utctime ) )
-    for attribute in fileAttr:
-      if type( fileAttr[attribute] ) == types.StringType:
-        command += "%s='%s'," % ( attribute, str( fileAttr[attribute] ) )
-      else:
-        command += "%s=%s," % ( str( attribute ), str( fileAttr[attribute] ) )
-
-    command = command[:-1]
-    command += " where filaName='%s'" % ( filename )
+    command += ','.join( ["%s=%s" % ( str( attribute ), str( fileAttr[attribute] ) ) for attribute in fileAttr] )
+    command += " where fileName='%s'" % ( filename )
     res = self.dbW_.query( command )
     return res
 
@@ -1439,36 +1427,6 @@ class OracleBookkeepingDB:
      filename ='%s' where filename='%s'" % ( str( utctime ), newLFN, oldLFN )
     res = self.dbW_.query( command )
     return res
-
-  #############################################################################
-  def getJobInputAndOutputJobFiles( self, jobids ):
-    """returns the input and output files for a given jobids"""
-    result = S_ERROR()
-    jobs = {}
-    for jobid in jobids:
-      tmp = {}
-      res = self.getInputFiles( jobid )
-      if not res['OK']:
-        result = res
-        break
-      else:
-        inputfiles = res['Value']
-        inputs = []
-        for lfn in inputfiles:
-          inputs += [lfn]
-        res = self.getOutputFiles( jobid )
-        if not res['OK']:
-          result = res
-          break
-        else:
-          output = res['Value']
-          outputs = []
-          for lfn in output:
-            if lfn not in inputs:
-              outputs += [lfn]
-          tmp = {'InputFiles':inputs, 'OutputFiles':outputs}
-          jobs[jobid] = tmp
-    return S_OK( result )
 
   #############################################################################
   def getInputFiles( self, jobid ):

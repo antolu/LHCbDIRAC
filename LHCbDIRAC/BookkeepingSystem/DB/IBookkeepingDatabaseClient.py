@@ -200,11 +200,6 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().renameFile(oldLFN, newLFN)
 
   #############################################################################
-  def getJobInputAndOutputJobFiles(self, jobids):
-    "more info in the BookkeepingClient.py"
-    return self.getManager().getJobInputAndOutputJobFiles(jobids)
-
-  #############################################################################
   def insertTag(self, name, tag):
     "more info in the BookkeepingClient.py"
     return self.getManager().insertTag(name, tag)

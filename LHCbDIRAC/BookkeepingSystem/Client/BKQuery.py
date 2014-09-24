@@ -153,8 +153,7 @@ class BKQuery():
 
     # Run limits are given
     runs = bkQuery.get( "Runs", runs )
-    if 'Runs' in bkQuery:
-      bkQuery.pop( 'Runs' )
+    bkQuery.pop( 'Runs', None )
     if runs:
       if type( runs ) == type( '' ):
         runs = runs.split( ',' )
@@ -209,8 +208,7 @@ class BKQuery():
 
     # Set the file type(s) taking into account excludes file types
     fileTypes = bkQuery.get( 'FileType', fileTypes )
-    if 'FileType' in bkQuery:
-      bkQuery.pop( 'FileType' )
+    bkQuery.pop( 'FileType', None )
     self.__bkQueryDict = bkQuery.copy()
     fileType = self.__fileType( fileTypes )
     # print fileType
@@ -219,7 +217,7 @@ class BKQuery():
 
     # Remove all "ALL"'s in the dict, if any
     for i in self.__bkQueryDict:
-      if type( bkQuery[i] ) == type( '' ) and bkQuery[i].upper() == 'ALL':
+      if type( bkQuery[i] ) == type( '' ) and bkQuery[i] == 'ALL':
         bkQuery.pop( i )
 
     # If there is only one production, make it faster with a single value rather than a list

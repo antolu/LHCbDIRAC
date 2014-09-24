@@ -402,15 +402,6 @@ class BookkeepingClient:
 
 
 #############################################################################
-  def getJobInputAndOutputJobFiles( self, jobids ):
-    """
-    It returns the job input and output files for a given jobid.
-    """
-    server = self.__getServer()
-    return server.getJobInputAndOutputJobFiles( jobids )
-
-
-  #############################################################################
   def setRunAndProcessingPassDataQuality( self, runNB, procpass, flag ):
     """
     It sets the data quality to a run which belong to a given processing pass. This method insert a new row to the runquality table.
@@ -1072,13 +1063,6 @@ class BookkeepingClient:
     self.__errorReport( "The 'getAvailableRunNumbers' method is obsolete and it will be \
     removed from the next release. Please use the 'getAvailableRuns'!" )
     return self.getAvailableRuns()
-
-  #############################################################################
-  def getInputAndOutputJobFiles( self, jobids ):
-    """Temporary method"""
-    self.__errorReport( "The 'getInputAndOutputJobFiles' method is obsolete and it will be removed \
-    from the next release. Please use the 'getJobInputAndOutputJobFiles'!" )
-    return self.getJobInputAndOutputJobFiles( jobids )
 
   #############################################################################
   def setRunQualityWithProcessing( self, runNB, procpass, flag ):

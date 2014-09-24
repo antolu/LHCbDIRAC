@@ -64,11 +64,14 @@ else:
     gLogger.always( 'No files found for BKQuery', str( bkQuery ) )
     DIRAC.exit( 0 )
 
-  res = bk.getFileMetadata( lfns )
-  if not res['OK']:
-    gLogger.error( 'ERROR: failed to get metadata:', res['Message'] )
-    DIRAC.exit( 1 )
-  fileDict = res['Value']['Successful']
+  from DIRAC.Core.Utilities.List import breakListIntoChunks
+  fileDict = {}
+  for lfnChunk in breakListIntoChunks( lfns, 1000 ):
+    res = bk.getFileMetadata( lfnChunk )
+    if not res['OK']:
+      gLogger.error( 'ERROR: failed to get metadata:', res['Message'] )
+      DIRAC.exit( 1 )
+    fileDict.update( res['Value']['Successful'] )
 
 # Now print out
 nFiles = len( fileDict )
