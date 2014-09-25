@@ -295,6 +295,7 @@ def execute( unit, minimum ):
   if users:
     if users != 'all':
       dirs += ['/lhcb/user/%s/%s' % ( user[0], user ) for user in users]
+      minimum = 0
     else:
       res = rpc.getStorageDirectories( '/lhcb/user', None, None, None )
       if not res['OK']:
