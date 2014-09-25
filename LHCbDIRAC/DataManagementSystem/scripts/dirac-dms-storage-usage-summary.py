@@ -254,12 +254,12 @@ def execute( unit, minimum ):
     elif switch[0] == "BrowseBK":
       bkBrowse = True
     elif switch[0] == "Users":
-      if switch[1].lower() == 'all':
-        users = sorted( gConfig.getSections( '/Registry/Users' )['Value'] )
+      users = switch[1].lower()
+      if users == 'all':
         summary = True
         rank = True
       else:
-        users = sorted( switch[1].split( ',' ) )
+        users = sorted( users.split( ',' ) )
     elif switch[0] == "Summary":
       summary = True
     elif switch[0] == 'Minimum':
@@ -290,9 +290,18 @@ def execute( unit, minimum ):
     browseBK( bkQuery, ses, scaleFactor )
     DIRAC.exit( 0 )
 
+  rpc = RPCClient( 'DataManagement/StorageUsage' )
   dirs = dmScript.getOption( 'Directory', [] )
   if users:
-    dirs += ['/lhcb/user/%s/%s' % ( user[0], user ) for user in users]
+    if users != 'all':
+      dirs += ['/lhcb/user/%s/%s' % ( user[0], user ) for user in users]
+    else:
+      res = rpc.getStorageDirectories( '/lhcb/user', None, None, None )
+      if not res['OK']:
+        print 'Error getting directories in /lhcb/user:', res['Message']
+        DIRAC.exit( 2 )
+      dirs += sorted( set( ['/'.join( d.split( '/' )[0:5] ) for d in res['Value']] ) )
+      users = [user for user in [d.split( '/' )[-1] for d in dirs] if user]
   prods = None
   bkQuery = dmScript.getBKQuery()
   # print bkQuery
@@ -323,8 +332,6 @@ def execute( unit, minimum ):
         print "Looking for %d productions:" % len( prods ), prods
     elif fileTypes and fileTypes[0]:
       print 'FileTypes:', fileTypes
-
-  rpc = RPCClient( 'DataManagement/StorageUsage' )
 
   if not prods:
     prods = ['']
