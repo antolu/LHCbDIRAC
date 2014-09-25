@@ -917,9 +917,9 @@ class ConsistencyChecks( object ):
       for lfnChunk in breakListIntoChunks( lfnsLeft, chunkSize ):
         self.__write( '.' )
         replicasRes = self.dm.getReplicas( lfnChunk )
-        if not replicasRes[ 'OK' ]:
+        if not replicasRes['OK']:
           gLogger.error( "error:  %s" % replicasRes['Message'] )
-          return replicasRes
+          raise RuntimeError( "error:  %s" % replicasRes['Message'] )
         replicasRes = replicasRes['Value']
         if replicasRes['Failed']:
           retDict['NoReplicas'].update( replicasRes['Failed'] )
@@ -961,9 +961,9 @@ class ConsistencyChecks( object ):
       for surlChunk in breakListIntoChunks( seFiles[se], chunkSize ):
         self.__write( '.' )
         surlRes = oSe.getFileMetadata( surlChunk )
-        if not surlRes[ 'OK' ]:
+        if not surlRes['OK']:
           gLogger.error( "error StorageElement.getFileMetadata returns %s" % ( surlRes['Message'] ) )
-          return surlRes
+          raise RuntimeError( "error StorageElement.getFileMetadata returns %s" % ( surlRes['Message'] ) )
         surlRes = surlRes['Value']
         for surl in surlRes['Failed']:
           lfn = surlLfn[surl]
