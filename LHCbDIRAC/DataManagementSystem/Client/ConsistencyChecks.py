@@ -9,7 +9,7 @@
 import os, copy, ast, time, sys
 
 import DIRAC
-from DIRAC import gLogger, S_ERROR, S_OK
+from DIRAC import gLogger
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
@@ -104,10 +104,7 @@ class ConsistencyChecks( object ):
       lfnsNotInBK, lfnsReplicaNo, lfnsReplicaYes = self._getBKMetadata( self.lfns )
       lfnsReplicaNo = lfnsReplicaNo.keys() + lfnsNotInBK
     else:
-      try:
-        bkQuery = self.__getBKQuery()
-      except ValueError, e:
-        return S_ERROR( e )
+      bkQuery = self.__getBKQuery()
       gLogger.always( 'Getting files for BK query %s...' % str( bkQuery ) )
       if checkAll:
         lfnsReplicaNo = self._getBKFiles( bkQuery, 'No' )
@@ -219,7 +216,7 @@ class ConsistencyChecks( object ):
     for chunk in breakListIntoChunks( lfns, chunkSize ):
       if printProgress:
         self.__write( '.' )
-      while True:
+      for _ in range( 1, 10 ):
         res = self.dm.getReplicas( chunk )
         if res['OK']:
           present.update( res['Value']['Successful'] )
@@ -228,6 +225,7 @@ class ConsistencyChecks( object ):
           break
         else:
           gLogger.error( "\nError getting replicas from FC, retry", res['Message'] )
+          time.sleep( 0.1 )
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
 
     gLogger.info( "Found %d files with replicas and %d without" % ( len( present ), len( notPresent ) ) )
@@ -319,7 +317,7 @@ class ConsistencyChecks( object ):
     """ Check if lfns has descendants (TransformationFiles -> BK)
     """
     if not self.prod:
-      return S_ERROR( "You need a transformationID" )
+      raise ValueError( "You need a transformationID" )
 
     gLogger.always( 'Getting files from the TransformationSystem...' )
     startTime = time.time()
@@ -371,10 +369,7 @@ class ConsistencyChecks( object ):
       bkQuery = None
       fileType = []
     else:
-      try:
-        bkQuery = self.__getBKQuery()
-      except ValueError, e:
-        return S_ERROR( e )
+      bkQuery = self.__getBKQuery()
       gLogger.always( "Getting files for BK query: %s" % bkQuery )
       fileType = bkQuery.getFileTypeList()
       files = self._getBKFiles( bkQuery )
@@ -733,14 +728,11 @@ class ConsistencyChecks( object ):
 
   def __getLFNsFromFC( self ):
     if not self.lfns:
-      try:
-        directories = []
-        for dirName in self.__getDirectories():
-          if not dirName.endswith( '/' ):
-            dirName += '/'
-          directories.append( dirName )
-      except RuntimeError, e:
-        return S_ERROR( e )
+      directories = []
+      for dirName in self.__getDirectories():
+        if not dirName.endswith( '/' ):
+          dirName += '/'
+        directories.append( dirName )
       present, notPresent = self.getReplicasPresenceFromDirectoryScan( directories )
       gLogger.always( '%d files found in the FC' % len( present ) )
     else:
@@ -869,10 +861,7 @@ class ConsistencyChecks( object ):
   def checkBK2TS( self ):
     """ check that files present in the BK are also in the FC (re-check of BKWatchAgent)
     """
-    try:
-      bkQuery = self.__getBKQuery( fromTS = True )
-    except ValueError, e:
-      return S_ERROR( e )
+    bkQuery = self.__getBKQuery( fromTS = True )
     lfnsReplicaYes = self._getBKFiles( bkQuery )
     proc, nonProc, _statuses = self._getTSFiles()
     self.filesInBKNotInTS = list( set( lfnsReplicaYes ) - set( proc + nonProc ) )
@@ -886,10 +875,6 @@ class ConsistencyChecks( object ):
     self.checkFC2BK( bkCheck = bkCheck )
     if self.existLFNsBKRepYes or self.existLFNsBKRepNo:
       repDict = self.compareChecksum( self.existLFNsBKRepYes + self.existLFNsBKRepNo.keys() )
-      if not repDict['OK']:
-        gLogger.error( "Error when comparing checksum", repDict['Message'] )
-        return
-      repDict = repDict['Value']
       self.existLFNsNoSE = repDict['MissingPFN']
       self.existLFNsBadReplicas = repDict['SomeReplicasCorrupted']
       self.existLFNsBadFiles = repDict['AllReplicasCorrupted']
@@ -919,7 +904,6 @@ class ConsistencyChecks( object ):
     """
     retDict = {'AllReplicasCorrupted' : {}, 'SomeReplicasCorrupted': {}, 'MissingPFN':{}, 'NoReplicas':{}}
 
-
     chunkSize = 1000
     replicas = {}
     setLfns = set( lfns )
@@ -948,8 +932,7 @@ class ConsistencyChecks( object ):
       self.__write( '.' )
       res = self.fc.getFileMetadata( lfnChunk )
       if not res['OK']:
-        gLogger.error( "error %s" % res['Message'] )
-        return res
+        raise RuntimeError( "error %s" % res['Message'] )
       metadata.update( res['Value']['Successful'] )
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
 
@@ -1036,7 +1019,6 @@ class ConsistencyChecks( object ):
           retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ]
 
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
-    return S_OK( retDict )
 
   ################################################################################
   # properties
