@@ -743,6 +743,7 @@ function fullInstall(){
 	
 	#DBs
 	findDatabases
+	dropDBs
 	diracDBs
 	
 	#services
