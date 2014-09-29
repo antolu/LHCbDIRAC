@@ -213,7 +213,7 @@ def getPhysicalUsage( baseDir ):
 
 def storageType( seList ):
   if not [se for se in seList if not se.endswith( "-ARCHIVE" ) and \
-          se not in ( 'CERN-SW-TEST', 'CERN-FREEZER-EOS', 'CERN-FREEZER' )] and \
+          se not in ( 'CERN-SWTEST', 'CERN-FREEZER-EOS', 'CERN-FREEZER' )] and \
          [se for se in seList if se.endswith( "-ARCHIVE" )]:
     # Only -ARCHIVE
     return 'Archived'
