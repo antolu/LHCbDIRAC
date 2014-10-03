@@ -161,14 +161,14 @@ function findDatabases(){
 # findServices:
 #
 #   gets all service names from *DIRAC code and writes them to a file
-#   named services.
+#   named services. Needs an input for searching
 #
 #-------------------------------------------------------------------------------
 
 findServices(){
 	echo '[findServices]'
 
-	find *DIRAC/*/Service/ -name *Handler.py | grep -v test | awk -F "/" '{print $2,$4}' | sort | uniq > services
+	find *DIRAC/*/Service/ -name *Handler.py | grep -v test | grep $1 | awk -F "/" '{print $2,$4}' | sort | uniq > services
 
 	echo found `wc -l services`
 
@@ -793,7 +793,7 @@ function fullInstall(){
 	diracDBs
 	
 	#services
-	findServices
+	findServices ' '
 	diracServices
 
 	#upload proxies
