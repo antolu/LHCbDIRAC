@@ -22,6 +22,10 @@ DIRAC_PILOT_TOOLS='https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration
 DIRAC_PILOT_COMMANDS='https://raw.githubusercontent.com/DIRACGrid/DIRAC/integration/WorkloadManagementSystem/PilotAgent/pilotCommands.py'
 LHCbDIRAC_PILOT_COMMANDS='http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py'
 
+# Define it in your environment if you want to replace the DIRAC source with custom ones
+# The URL has to be a zip file provided by github
+DIRAC_ALTERNATIVE_SRC_ZIP=''
+
 # Path to lhcb_ci config files
 LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
 
@@ -374,6 +378,39 @@ function generateUserCredentials(){
     dirac-setup-site $DEBUG
   
   }  
+  
+  
+  
+
+  #.............................................................................
+  #
+  # diracReplace
+  #
+  #   This function gets DIRAC sources from an alternative github repository,
+  #   and replace the existing sources used for installation by these ones.
+  #
+  #   It is done only the environment variable $DIRAC_ALTERNATIVE_SRC_ZIP is set
+  #
+  #.............................................................................
+
+  function diracReplace(){
+    echo 'diracReplace'
+
+    if [[ -z $DIRAC_ALTERNATIVE_SRC_ZIP ]];
+    then
+      echo 'Variable $DIRAC_ALTERNATIVE_SRC_ZIP not defined';
+      return
+    fi
+
+    wget $DIRAC_ALTERNATIVE_SRC_ZIP
+    zipName=$(basename $DIRAC_ALTERNATIVE_SRC_ZIP)
+    unzip $zipName
+    dirName="DIRAC-$(echo $zipName | sed 's/\.zip//g')"
+    mv DIRAC DIRAC.bak
+    mv $dirName DIRAC
+
+  }
+
 
 
 #.............................................................................
@@ -711,7 +748,15 @@ function installSite(){
 	sed -i s/VAR_LcgVer/$lcgVersion/g $WORKSPACE/DIRAC/install.cfg
 	sed -i s,VAR_TargetPath,$WORKSPACE,g $WORKSPACE/DIRAC/install.cfg
 	sed -i s,VAR_HostDN,$fqdn,g $WORKSPACE/DIRAC/install.cfg
-
+	
+	sed -i s/VAR_DB_User/$DB_USER/g $WORKSPACE/DIRAC/install.cfg
+	sed -i s/VAR_DB_Password/$DB_PASSWORD/g $WORKSPACE/DIRAC/install.cfg
+	sed -i s/VAR_DB_RootUser/$DB_ROOTUSER/g $WORKSPACE/DIRAC/install.cfg
+	sed -i s/VAR_DB_RootPwd/$DB_ROOTPWD/g $WORKSPACE/DIRAC/install.cfg
+	sed -i s/VAR_DB_Host/$DB_HOST/g $WORKSPACE/DIRAC/install.cfg
+	sed -i s/VAR_DB_Port/$DB_PORT/g $WORKSPACE/DIRAC/install.cfg
+	
+	
 	#Installing
 	./install_site.sh install.cfg
 	
@@ -754,6 +799,8 @@ function fullInstall(){
 	#upload proxies
 	#diracProxies
 
+	#replace the sources with custom ones if defined
+	diracReplace
 }
 
 
