@@ -7,6 +7,9 @@
 """
 import unittest
 
+from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
+
 from TestDIRAC.Integration.TransformationSystem.TestClientTransformation import TransformationClientChain as DIRACTransformationClientChain
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient

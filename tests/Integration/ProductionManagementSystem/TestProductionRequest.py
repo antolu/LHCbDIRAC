@@ -7,6 +7,9 @@
 """
 import unittest
 
+from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
+
 from DIRAC.Core.DISET.RPCClient                                 import RPCClient
 
 class TestProductionRequestTestCase( unittest.TestCase ):
