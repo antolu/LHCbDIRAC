@@ -3132,9 +3132,9 @@ and files.qualityid= dataquality.qualityid'
     """it adds the run numbers or start end run to the jobs table"""
     cond = None
     if type( runnumbers ) in [IntType, LongType]:
-      cond = ' j.runnumber=%s' % ( str( runnumbers ) )
+      condition = ' and j.runnumber=%s' % ( str( runnumbers ) )
     elif type( runnumbers ) == types.StringType and runnumbers.upper() != default:
-      cond = ' j.runnumber=%s' % ( str( runnumbers ) )
+      condition = ' and j.runnumber=%s' % ( str( runnumbers ) )
     elif type( runnumbers ) == types.ListType and len( runnumbers ) > 0:
       cond = ' ( '
       for i in runnumbers:
