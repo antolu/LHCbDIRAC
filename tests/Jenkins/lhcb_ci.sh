@@ -150,7 +150,7 @@ function findDatabases(){
     #
     #   We are avoiding TransferDB, which will be deprecated soon.. 
     #
-    find *DIRAC -name *DB.sql | grep -v TransferDB.sql | awk -F "/" '{print $2,$4}' | sort | uniq > databases
+    find *DIRAC -name *DB.sql |grep -vE '(TransferDB.sql|FileCatalogDB)' | awk -F "/" '{print $2,$4}' | sort | uniq > databases
 
     echo found `wc -l databases`
 
