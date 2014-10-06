@@ -30,7 +30,7 @@ DIRAC_ALTERNATIVE_SRC_ZIP=''
 LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
 
 
-#-------------------------------------------------------------------------------
+#-------------------------------------------https://github.com/chaen/DIRAC/archive/rel-v6r12_NEW_PsAndFkDfc.zip------------------------------------
 # Finders... functions devoted to find DBs, Services, versions, etc..
 #-------------------------------------------------------------------------------
 
@@ -394,7 +394,7 @@ function generateUserCredentials(){
   #.............................................................................
 
   function diracReplace(){
-    echo 'diracReplace'
+    echo '[diracReplace]'
 
     if [[ -z $DIRAC_ALTERNATIVE_SRC_ZIP ]];
     then
@@ -662,7 +662,7 @@ finalCleanup(){
 diracDBs(){
 	echo '[dumpDBs]'
 
-	dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1 | grep -v ^RequestDB | grep -v FileCatalogDB`
+	dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1 | grep -v ^RequestDB`
 	for db in $dbs
 	do
 		dirac-install-db $db $DEBUG
@@ -673,8 +673,7 @@ diracDBs(){
 dropDBs(){
 	echo '[dropDBs]'
 	
-	#TODO: try to add FileCatalogDB at one point
-	dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1 | grep -v ^RequestDB | grep -v FileCatalogDB`
+	dbs=`cat databases | cut -d ' ' -f 2 | cut -d '.' -f 1 | grep -v ^RequestDB`
 	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-drop-db.py $dbs $DEBUG
 }
 
@@ -787,6 +786,9 @@ function fullInstall(){
 	generateUserCredentials
 	diracCredentials
 	
+        #replace the sources with custom ones if defined
+        diracReplace	
+        
 	#DBs
 	findDatabases
 	dropDBs
@@ -799,8 +801,7 @@ function fullInstall(){
 	#upload proxies
 	#diracProxies
 
-	#replace the sources with custom ones if defined
-	diracReplace
+
 }
 
 
