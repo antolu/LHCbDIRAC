@@ -24,7 +24,7 @@ LHCbDIRAC_PILOT_COMMANDS='http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIR
 
 # Define it in your environment if you want to replace the DIRAC source with custom ones
 # The URL has to be a zip file provided by github
-DIRAC_ALTERNATIVE_SRC_ZIP=''
+#DIRAC_ALTERNATIVE_SRC_ZIP=''
 
 # Path to lhcb_ci config files
 LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
