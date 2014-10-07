@@ -6,6 +6,7 @@
 import DIRAC
 from DIRAC           import gLogger, gConfig
 from DIRAC.Core.Base import Script
+import os
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
@@ -95,6 +96,7 @@ class DMScript( object ):
     self.bkQuery = None
     self.bkQueryDict = {}
     self.options = {}
+    self.lastFile = os.path.join( os.environ['HOME'], '.lastLFNs' )
 
   def registerDMSwitches( self ) :
     self.registerBKSwitches()
@@ -133,6 +135,7 @@ class DMScript( object ):
     Script.registerSwitch( "", "File=", "File containing list of LFNs", self.setLFNsFromFile )
     Script.registerSwitch( "l:", "LFNs=", "List of LFNs (comma separated)", self.setLFNs )
     Script.registerSwitch( "", "Terminal", "LFNs are entered from stdin (--File /dev/stdin)", self.setLFNsFromTerm )
+    Script.registerSwitch( "", "LastLFNs", "Use last set of LFNs", self.setLFNsFromLast )
 
   def registerJobsSwitches( self ):
     ''' Job switches '''
@@ -253,7 +256,7 @@ class DMScript( object ):
     return DIRAC.S_OK()
 
   def setLFNsFromTerm( self, arg = None ):
-    return self.setLFNsFromFile( None )
+    return self.setLFNsFromFile( arg )
 
   def getLFNsFromList( self, lfns, directories = False ):
     if type( lfns ) == type( {} ):
@@ -282,16 +285,29 @@ class DMScript( object ):
     jobidsList = [ jobid for jobid in jobidsList if jobid != '']
     return jobidsList
 
+  def setLFNsFromLast( self, val ):
+    if os.path.exists( self.lastFile ):
+      return self.setLFNsFromFile( self.lastFile )
+    gLogger.fatal( 'Last file $s does not exist' % self.lastFile )
+    DIRAC.exit( 2 )
+
   def setLFNsFromFile( self, arg ):
+    if type( arg ) == type( '' ) and arg.lower() == 'last':
+      arg = self.lastFile
     try:
       import sys
       f = open( arg, 'r' ) if arg else sys.stdin
       lfns = self.getLFNsFromList( f.read().splitlines() )
+      gLogger.always( "Got %d LFNs" % len( lfns ) )
       if arg:
         f.close()
     except:
       lfns = self.getLFNsFromList( arg )
     self.options.setdefault( 'LFNs', set() ).update( lfns )
+    if arg != None and arg != self.lastFile:
+      f = open( self.lastFile, 'w' )
+      f.write( '\n'.join( sorted( self.options['LFNs'] ) ) )
+      f.close()
     return DIRAC.S_OK()
 
   def getOptions( self ):
