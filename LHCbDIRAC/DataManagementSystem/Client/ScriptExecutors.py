@@ -219,8 +219,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
       remaining = len( ses - seList )
       if remaining < minReplicas:
         # Not enough replicas outside seList, remove only part, otherwisae remove all
-        random.shuffle( removeSEs )
-        removeSEs = removeSEs[0:remaining - minReplicas]
+        removeSEs = random.shuffle( removeSEs )[0:remaining - minReplicas]
       for seName in sorted( removeSEs ):
         res = dm.removeReplica( seName, lfns )
         if not res['OK']:
@@ -497,7 +496,7 @@ def removeFiles( lfnList, setProcessed = False ):
           for transID, lfns in ignoredFiles.items():
             gLogger.always( 'Ignored %d files in status Processed in transformation %d' % ( len( lfns ), transID ) )
 
-      for fileDict in [fc for fc in transFiles if fc['Status'] not in ignoreStatus]:
+      for fileDict in [tf for tf in transFiles if tf['Status'] not in ignoreStatus]:
         lfnsToSet.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
       # If required, set files Removed in transformations
       for transID, lfns in lfnsToSet.items():
