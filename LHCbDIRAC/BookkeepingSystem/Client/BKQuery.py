@@ -481,8 +481,7 @@ class BKQuery():
           for record in dbresult['Records']:
             if record[0].endswith( 'HIST' ) or record[0].endswith( 'ETC' ) or record[0] == 'LOG' or record[0].endswith( 'ROOT' ):
               self.__exceptFileTypes.add( record[0] )
-            else:
-              self.__bkFileTypes.add( record[0] )
+            self.__bkFileTypes.add( record[0] )
           break
         if not warned:
           gLogger.always( 'Error getting BK file types, retrying', res['Message'] )
