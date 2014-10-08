@@ -356,11 +356,16 @@ class BKQuery():
     Builds a path from the dictionary
     """
     bk = self.__bkQueryDict
+    fileType = bk.get( 'FileType', '.' )
+    if type( fileType ) == type( [] ):
+      fileType = ','.join( fileType )
     path = os.path.join( '/',
-                         bk.get( 'ConfigName', '' ), bk.get( 'ConfigVersion', '' ),
-                         bk.get( 'Conditions', '.' ), bk.get( 'ProcessingPass', '.' )[1:],
-                         str( bk.get( 'EventType', '.' ) ).replace( '90000000', '' ),
-                         bk.get( 'FileType', '.' ) ).replace( '.', '' )
+                         bk.get( 'ConfigName', '' ),
+                         bk.get( 'ConfigVersion', '' ),
+                         bk.get( 'Conditions', '.' ),
+                         bk.get( 'ProcessingPass', '.' )[1:],
+                         str( bk.get( 'EventType', '.' ) ).replace( '90000000', '.' ),
+                         fileType ).replace( '.', '' )
     while True:
       if path.endswith( '/' ):
         path = path[:-1]
