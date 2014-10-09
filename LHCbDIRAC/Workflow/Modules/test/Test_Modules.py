@@ -15,7 +15,7 @@ from DIRAC.RequestManagementSystem.Client.File import File
 
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce, getCPUNormalizationFactorAvg, getProductionParameterValue
 
-from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
+# from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
 
 class ModulesTestCase( unittest.TestCase ):
   """ Base class for the Modules test cases
@@ -232,8 +232,13 @@ class ModulesTestCase( unittest.TestCase ):
 
 
 
-    from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-    self.mb = ModuleBase( bkClientIn = self.bkc_mock, dm = self.dm_mock )
+    sut = importlib.import_module( "LHCbDIRAC.Workflow.Modules.ModuleBase" )
+    self.RequestValidatorMock = MagicMock()
+    self.RequestValidatorMock.return_value = []
+    sut.RequestValidator = self.RequestValidatorMock
+    self.mb = sut.ModuleBase( bkClientIn = self.bkc_mock, dm = self.dm_mock )
+#     from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+#     self.mb = ModuleBase( bkClientIn = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.AnalyseLogFile import AnalyseLogFile
     self.alf = AnalyseLogFile( bkClient = self.bkc_mock, dm = self.dm_mock )
@@ -276,7 +281,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.getDestinationSEListMock = MagicMock()
     self.getDestinationSEListMock.return_value = []
     sut.getDestinationSEList = self.getDestinationSEListMock
-    self.ujf = UserJobFinalization( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.ujf = sut.UserJobFinalization( bkClient = self.bkc_mock, dm = self.dm_mock )
     self.ujf.bkClient = self.bkc_mock
     self.ujf.failoverTransfer = self.ft_mock
 
@@ -1039,11 +1044,11 @@ class BookkeepingReportSuccess( ModulesTestCase ):
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.bkr.siteName = 'DIRAC.Test.ch'
+        step_commons['XMLSummary_o'] = self.xf_o_mock
         self.assertTrue( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
                                          self.workflowStatus, self.stepStatus,
                                          wf_commons, step_commons,
-                                         self.step_number, self.step_id, False,
-                                         self.xf_o_mock )['OK'] )
+                                         self.step_number, self.step_id, False )['OK'] )
 
 
 class BookkeepingReportFailure( ModulesTestCase ):

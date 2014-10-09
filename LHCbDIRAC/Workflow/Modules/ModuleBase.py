@@ -15,7 +15,7 @@ from DIRAC.TransformationSystem.Client.FileReport             import FileReport
 from DIRAC.RequestManagementSystem.Client.Request             import Request
 from DIRAC.RequestManagementSystem.Client.Operation           import Operation
 from DIRAC.RequestManagementSystem.Client.File                import File
-from DIRAC.RequestManagementSystem.private.RequestValidator   import gRequestValidator
+from DIRAC.RequestManagementSystem.private.RequestValidator   import RequestValidator
 from DIRAC.DataManagementSystem.Client.DataManager            import DataManager
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
@@ -891,7 +891,7 @@ class ModuleBase( object ):
       if not optimized['OK']:
         self.log.error( "Could not optimize: %s" % optimized['Message'] )
         self.log.error( "Not failing the job because of that, keep going" )
-      isValid = gRequestValidator.validate( self.request )
+      isValid = RequestValidator().validate( self.request )
       if not isValid['OK']:
         raise RuntimeError( "Failover request is not valid: %s" % isValid['Message'] )
       else:
