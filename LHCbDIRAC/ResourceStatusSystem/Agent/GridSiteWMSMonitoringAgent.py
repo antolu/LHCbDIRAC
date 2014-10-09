@@ -15,7 +15,7 @@ from DIRAC                                               import S_OK
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Base.AgentModule                         import AgentModule
 from DIRAC.DataManagementSystem.Client.DataManager       import DataManager
-from DIRAC.WorkloadManagementSystem.DB.JobDB             import JobDB
+from LHCbDIRAC.WorkloadManagementSystem.DB.JobDB         import JobDB
 from DIRAC.Core.Utilities                                import Time
 
 MC_JOB_TYPES   = [ 'normal', '^MC' ]
