@@ -7,22 +7,27 @@ import subprocess
 import os
 import sys
 
-from pilotCommands import InstallDIRAC, GetPilotVersion, ConfigureArchitecture, ConfigureBasics
+from pilotCommands import GetPilotVersion, InstallDIRAC, ConfigureBasics, ConfigureCPURequirements, ConfigureSite, ConfigureArchitecture
+from pilotTools import CommandBase
 
-class GetLHCbPilotVersion( GetPilotVersion ):
-  """ Only to set the location of the pilot cfg file
+class LHCbCommandBase( CommandBase ):
+  """ Simple extension, just for LHCb parameters
   """
-
   def __init__( self, pilotParams ):
     """ c'tor
     """
-    super( GetLHCbPilotVersion, self ).__init__( pilotParams )
+    super( LHCbCommandBase, self ).__init__( pilotParams )
+    pilotParams.localConfigFile = 'pilot.cfg'
+    pilotParams.architectureScript = 'dirac-architecture'
+    pilotParams.certsLocation = '/home/dirac/certs/'
     # FIXME: set correct ones
-    self.pilotCFGFileLocation = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/DIRAC3/defaults/'
-    self.pilotCFGFile = '%s-pilot.json' % self.pp.releaseProject
+    pilotParams.pilotCFGFileLocation = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/DIRAC3/defaults/'
+    pilotParams.pilotCFGFile = '%s-pilot.json' % pilotParams.releaseProject
 
+class LHCbGetPilotVersion( LHCbCommandBase, GetPilotVersion ):
+  pass
 
-class InstallLHCbDIRAC( InstallDIRAC ):
+class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
   """ Try SetupProject LHCbDIRAC and fall back to dirac-install when the requested version is not in CVMFS
   """
 
@@ -35,7 +40,7 @@ class InstallLHCbDIRAC( InstallDIRAC ):
     except OSError, e:
       print "Exception when trying SetupProject:", e
       self.log.warn( "SetupProject NOT DONE: starting traditional DIRAC installation" )
-      super( InstallLHCbDIRAC, self ).execute()
+      super( LHCbInstallDIRAC, self ).execute()
 
 
   def _doSetupProject( self ):
@@ -88,38 +93,23 @@ class InstallLHCbDIRAC( InstallDIRAC ):
 
     return environmentProduced
 
+class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
+  pass
 
-class ConfigureLHCbBasics( ConfigureBasics ):
-  """ just set specificities
+class LHCbConfigureCPURequirements( LHCbCommandBase, ConfigureCPURequirements ):
+  pass
 
-      To fix the use of server certificate path for IAAS and IAAC types of resources
-  """
+class LHCbConfigureSite( LHCbCommandBase, ConfigureSite ):
+  pass
 
-  def __init__(self, pilotParams):
-    """ c'tor
-    """
-    super( ConfigureLHCbBasics, self ).__init__( pilotParams )
-    self.certsLocation = '/home/dirac/certs/'
-
-
-class ConfigureLHCbArchitecture( ConfigureArchitecture ):
+class LHCbConfigureArchitecture( LHCbCommandBase, ConfigureArchitecture ):
   """ just fix the script to be used
   """
-  def __init__( self, pilotParams ):
-    """ c'tor
-    """
-    pilotParams.architectureScript = 'dirac-architecture'
-    super( ConfigureLHCbArchitecture, self ).__init__( pilotParams )
 
   def execute( self ):
     """ calls the superclass execute and then sets the CMTCONFIG variable
     """
-    if self.pp.useServerCertificate:
-      self.archScriptCFG.append( '-o /DIRAC/Security/UseServerCertificate=yes' )
+    localArchitecture = super( LHCbConfigureArchitecture, self ).execute()
 
-    self.archScriptCFG.append( 'pilot.cfg' )  # at least part of the configuration is here
-
-    localArchitecture = super( ConfigureLHCbArchitecture, self ).execute()
-
-    self.log.info( 'Setting CMTCONFIG=%s' % localArchitecture )
+    self.log.info( 'Setting variable CMTCONFIG=%s' % localArchitecture )
     os.environ['CMTCONFIG'] = localArchitecture
