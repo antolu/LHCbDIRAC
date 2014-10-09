@@ -57,8 +57,7 @@ class BookkeepingReport( ModuleBase ):
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
-               step_number = None, step_id = None, saveOnFile = True,
-               xf_o = None ):
+               step_number = None, step_id = None, saveOnFile = True ):
     """ Usual executor
     """
 
@@ -71,7 +70,7 @@ class BookkeepingReport( ModuleBase ):
       if not self._checkWFAndStepStatus():
         return S_OK()
 
-      bkLFNs, logFilePath = self._resolveInputVariables( xf_o )
+      bkLFNs, logFilePath = self._resolveInputVariables()
 
       doc = self.__makeBookkeepingXML( bkLFNs, logFilePath )
 
@@ -98,7 +97,7 @@ class BookkeepingReport( ModuleBase ):
 # AUXILIAR FUNCTIONS
 ################################################################################
 
-  def _resolveInputVariables( self, xf_o = None ):
+  def _resolveInputVariables( self ):
     """ By convention the module parameters are resolved here.
     """
 
@@ -144,37 +143,34 @@ class BookkeepingReport( ModuleBase ):
       self.ldatestart = time.strftime( "%Y-%m-%d", time.localtime( startTime ) )
       self.ltimestart = time.strftime( "%H:%M", time.localtime( startTime ) )
 
-    if not xf_o:
+    try:
+      self.xf_o = self.step_commons['XMLSummary_o']
+    except KeyError:
+      self.log.warn( 'XML Summary object not found, will try to create it (again?)' )
       try:
-        self.xf_o = self.step_commons['XMLSummary_o']
+        xmlSummaryFile = self.step_commons['XMLSummary']
       except KeyError:
-        self.log.warn( 'XML Summary object not found, will try to create it (again?)' )
-        try:
-          xmlSummaryFile = self.step_commons['XMLSummary']
-        except KeyError:
-          self.log.warn( 'XML Summary file name not found, will try to guess it' )
-          xmlSummaryFile = 'summary%s_%s_%s_%s.xml' % ( self.applicationName,
-                                                        self.production_id,
-                                                        self.prod_job_id,
-                                                        self.step_number )
+        self.log.warn( 'XML Summary file name not found, will try to guess it' )
+        xmlSummaryFile = 'summary%s_%s_%s_%s.xml' % ( self.applicationName,
+                                                      self.production_id,
+                                                      self.prod_job_id,
+                                                      self.step_number )
+        self.log.warn( 'Trying %s' % xmlSummaryFile )
+        if not xmlSummaryFile in os.listdir( '.' ):
+          self.log.warn( 'XML Summary file %s not found, will try to guess a second time' % xmlSummaryFile )
+          xmlSummaryFile = 'summary%s_%s.xml' % ( self.applicationName,
+                                                  self.step_id )
           self.log.warn( 'Trying %s' % xmlSummaryFile )
           if not xmlSummaryFile in os.listdir( '.' ):
-            self.log.warn( 'XML Summary file %s not found, will try to guess a second time' % xmlSummaryFile )
+            self.log.warn( 'XML Summary file %s not found, will try to guess a third and last time' % xmlSummaryFile )
             xmlSummaryFile = 'summary%s_%s.xml' % ( self.applicationName,
-                                                    self.step_id )
+                                                    self.step_number )
             self.log.warn( 'Trying %s' % xmlSummaryFile )
-            if not xmlSummaryFile in os.listdir( '.' ):
-              self.log.warn( 'XML Summary file %s not found, will try to guess a third and last time' % xmlSummaryFile )
-              xmlSummaryFile = 'summary%s_%s.xml' % ( self.applicationName,
-                                                      self.step_number )
-              self.log.warn( 'Trying %s' % xmlSummaryFile )
-        try:
-          self.xf_o = XMLSummary( xmlSummaryFile )
-        except XMLSummaryError:
-          self.log.warn( 'No XML summary available' )
-          self.xf_o = None
-    else:
-      self.xf_o = xf_o
+      try:
+        self.xf_o = XMLSummary( xmlSummaryFile )
+      except XMLSummaryError:
+        self.log.warn( 'No XML summary available' )
+        self.xf_o = None
 
     return bkLFNs, logFilePath
 
@@ -303,7 +299,7 @@ class BookkeepingReport( ModuleBase ):
       typedParams.append( ( "WorkerNode", host ) )
 
     try:
-      memory = self.__getMemoryFromXMLSummary()
+      memory = self.xf_o.memory
     except AttributeError:
       memory = nodeInfo[ "Memory(kB)" ]
 
@@ -574,11 +570,6 @@ class BookkeepingReport( ModuleBase ):
       return result
 
     return result
-
-  def __getMemoryFromXMLSummary( self ):
-    """ Use XMLSummary module
-    """
-    return self.xf_o.memory
 
 ################################################################################
 # END AUXILIAR FUNCTIONS
