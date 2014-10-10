@@ -27,3 +27,8 @@ LOGLEVEL = logging.DEBUG
 # DOWNLOADS_REQUEST_DIR = './requests'
 # PID_FILE = './eventindex-grid-collector.pid'
 # IS_TESTING = True
+
+def module_dir():
+  import os
+  my_dir = os.path.abspath( os.curdir )
+  return os.path.dirname( os.path.join( my_dir, __file__ ) )

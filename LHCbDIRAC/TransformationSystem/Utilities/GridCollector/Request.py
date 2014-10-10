@@ -9,7 +9,8 @@ import uuid
 import cPickle
 from datetime import datetime
 from pprint import pprint
-from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Config import DOWNLOADS_REQUEST_DIR, DOWNLOADS_BASE_URL, \
+#from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Config import DOWNLOADS_REQUEST_DIR, DOWNLOADS_BASE_URL, \
+from Config import DOWNLOADS_REQUEST_DIR, DOWNLOADS_BASE_URL, \
                                                                           STATUS_NEW, STATUS_INVALID, TYPE_ROOT, TYPE_SE
 
 

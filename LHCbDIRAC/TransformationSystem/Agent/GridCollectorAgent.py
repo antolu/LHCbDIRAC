@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import smtplib
+import traceback
 import subprocess as subp
 
 from random import randint
@@ -41,7 +42,9 @@ from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Config import STATUS
                                                                           STATUS_FAIL, DOWNLOADS_CACHE_DIR, \
                                                                           DOWNLOADS_REQUEST_DIR
 from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Request import Request, normalize_lfns
+from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Config import module_dir as util_module_dir
 
+UTIL_DIR = util_module_dir()
 
 def sort_se_weighted( storage_elements, black_list = [], cut_negative = True ):
   result = {}
@@ -176,7 +179,7 @@ class GridCollectorAgent( AgentModule ):
     try:
       request = Request( req_file = req_file )
       self.lfn2pfn_update( request )
-      p = subp.Popen( ["%s/run_fetch.sh" % BASE_DIR, req_file, out_file], stdout = subp.PIPE, stderr = subp.PIPE )
+      p = subp.Popen( ["%s/run_fetch.sh" % UTIL_DIR, req_file, out_file], stdout = subp.PIPE, stderr = subp.PIPE )
       stdout, stderr = p.communicate()
       gLogger.info( stdout )
       if len( stderr ) > 0:
@@ -187,6 +190,7 @@ class GridCollectorAgent( AgentModule ):
       else:
         request.change_status( STATUS_FAIL, "error creating file '%s'\nSTDERR: %s" % (out_file, stderr) )
     except Exception, e:
+      gLogger.error( traceback.format_exc() )
       gLogger.error( "Exception: " + str( e ) )
       request.change_status( STATUS_FAIL, "Grid-collector exception occurred: " + str( e ) )
     notify_email( request )
