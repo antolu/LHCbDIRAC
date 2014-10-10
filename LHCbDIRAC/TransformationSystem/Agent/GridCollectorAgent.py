@@ -17,8 +17,7 @@ from email.mime.text import MIMEText
 from DIRAC import S_OK, S_ERROR
 from DIRAC import gLogger
 from DIRAC.Core.Base.AgentModule import AgentModule
-# from DIRAC.DataManagementSystem.Client.DataManager import DataManager  # TODO1: uncomment after DataManager support
-from DIRAC.Core.Base import Script  # TODO1: remove after DataManager support
+from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 
 MAILFROM = 'EventIndex Grid Collector <dirac@eindex.cern.ch>'
 MAILHOST = 'localhost'
@@ -63,15 +62,15 @@ def sort_se_weighted( storage_elements, black_list = [], cut_negative = True ):
   return sorted_se
 
 
-def get_lfn2pfn_map( rm, lfns, se_black_list = [], get_single = True ):
+def get_lfn2pfn_map( dm, lfns, se_black_list = [], get_single = True ):
   lfns = normalize_lfns( lfns )
-  res = rm.getCatalogReplicas( lfns )
+  res = dm.getReplicas( lfns )
   assert res['OK'] is True, "error getting catalog replicas"
   lfn2pfn_map = {}
   for lfn, se2lfn_map in res['Value']['Successful'].iteritems():
     lfn2pfn_map[lfn] = []
     for se in sort_se_weighted( se2lfn_map.keys(), se_black_list, cut_negative = True ):
-      res_url = rm.getReplicaAccessUrl( [lfn, ], se )
+      res_url = dm.getReplicaAccessUrl( [lfn, ], se )
       if res_url['OK']:
         if lfn in res_url['Value']['Successful']:
           pfn = res_url['Value']['Successful'][lfn]
@@ -129,19 +128,10 @@ class GridCollectorAgent( AgentModule ):
     AgentModule.__init__( self, *args, **kwargs )
     self.dataManager = None
 
-  def initialize_dm( self ):  # TODO1: rename to initialize after DataManager support
+  def initialize( self ):
     """ agent initialization
     """
-    # self.dataManager = DataManager()  # TODO1: uncomment after DataManager support
-    self.am_setOption( 'shifterProxy', 'DataManager' )
-    return S_OK()
-
-  def initialize( self ):  # TODO1: remove after DataManager support
-    """ agent initialization
-    """
-    Script.initialize()  
-    from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager  # should be imported after init!  # TODO1: remove after DataManager support
-    self.rm = ReplicaManager()
+    self.dataManager = DataManager()
     self.am_setOption( 'shifterProxy', 'DataManager' )
     return S_OK()
 
