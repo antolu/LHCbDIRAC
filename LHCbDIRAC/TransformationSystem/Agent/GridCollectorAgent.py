@@ -179,7 +179,8 @@ class GridCollectorAgent( AgentModule ):
     try:
       request = Request( req_file = req_file )
       self.lfn2pfn_update( request )
-      p = subp.Popen( ["%s/run_fetch.sh" % UTIL_DIR, req_file, out_file], stdout = subp.PIPE, stderr = subp.PIPE )
+      p = subp.Popen( ["%s/run_fetch.sh" % UTIL_DIR, req_file, out_file], stdout = subp.PIPE, stderr = subp.PIPE,
+          env = {'USER': 'dirac', 'PATH': '/usr/bin:/bin', 'HOME': '/home/dirac'} )
       stdout, stderr = p.communicate()
       gLogger.info( stdout )
       if len( stderr ) > 0:
