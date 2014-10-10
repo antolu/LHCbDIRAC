@@ -18,6 +18,7 @@ from DIRAC import S_OK, S_ERROR
 from DIRAC import gLogger
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment
 
 MAILFROM = 'EventIndex Grid Collector <dirac@eindex.cern.ch>'
 MAILHOST = 'localhost'
@@ -159,8 +160,7 @@ class GridCollectorAgent( AgentModule ):
     return request
 
   def lfn2pfn_update( self, request ):
-    # PFN_map = get_lfn2pfn_map( self.dataManager, [r[0] for r in request.req_list] )  # TODO1: uncomment after DataManager support
-    PFN_map = get_lfn2pfn_map( self.rm, [r[0] for r in request.req_list] )  # TODO1: remove after DataManager support
+    PFN_map = get_lfn2pfn_map( self.dataManager, [r[0] for r in request.req_list] )
     request.lfn2pfn( PFN_map )
     request.save()
 
@@ -169,8 +169,11 @@ class GridCollectorAgent( AgentModule ):
     try:
       request = Request( req_file = req_file )
       self.lfn2pfn_update( request )
+#       getProjectEnvironment( systemConfiguration, 'Panoramix', applicationVersion = '', extraPackages = '',
+#                              runTimeProject = '', runTimeProjectVersion = '', site = '', directory = '',
+#                              poolXMLCatalogName = defaultCatalogName, env = None )
       p = subp.Popen( ["%s/run_fetch.sh" % UTIL_DIR, req_file, out_file], stdout = subp.PIPE, stderr = subp.PIPE,
-          env = {'USER': 'dirac', 'PATH': '/usr/bin:/bin', 'HOME': '/home/dirac'} )
+                      env = {'USER': 'dirac', 'PATH': '/usr/bin:/bin', 'HOME': '/home/dirac'} )
       stdout, stderr = p.communicate()
       gLogger.info( stdout )
       if len( stderr ) > 0:
