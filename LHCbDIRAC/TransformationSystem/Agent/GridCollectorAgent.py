@@ -9,7 +9,7 @@ import re
 import sys
 import smtplib
 import traceback
-import subprocess as subp
+import subprocess
 
 from random import randint
 from email.mime.text import MIMEText
@@ -169,20 +169,34 @@ class GridCollectorAgent( AgentModule ):
     try:
       request = Request( req_file = req_file )
       self.lfn2pfn_update( request )
-#       getProjectEnvironment( systemConfiguration, 'Panoramix', applicationVersion = '', extraPackages = '',
-#                              runTimeProject = '', runTimeProjectVersion = '', site = '', directory = '',
-#                              poolXMLCatalogName = defaultCatalogName, env = None )
-      p = subp.Popen( ["%s/run_fetch.sh" % UTIL_DIR, req_file, out_file], stdout = subp.PIPE, stderr = subp.PIPE,
-                      env = {'USER': 'dirac', 'PATH': '/usr/bin:/bin', 'HOME': '/home/dirac'} )
-      stdout, stderr = p.communicate()
-      gLogger.info( stdout )
-      if len( stderr ) > 0:
-        gLogger.error( stderr )
+      res = getProjectEnvironment( 'x86_64-slc6-gcc48-opt', 'Panoramix',
+                                   env = {'USER': 'dirac', 'PATH': '/usr/bin:/bin', 'HOME': '/home/dirac'} )
+      if not res['OK']:
+        return
+      panoramixEnvironment = res['Value']
+      _p = subprocess.Popen( '%s/Fetch_event.py %s %s' % ( UTIL_DIR, req_file, out_file ),
+                             shell = True, env = panoramixEnvironment,
+                             stdout = subprocess.PIPE, stderr = subprocess.PIPE, close_fds = False )
+
+      # standard output
+      outData = _p.stdout.read().strip()
+      for line in outData:
+        sys.stdout.write( line )
+      sys.stdout.write( '\n' )
+
+      for line in _p.stderr:
+        sys.stdout.write( line )
+      sys.stdout.write( '\n' )
+
+      returnCode = _p.wait()
+
       if os.path.exists( out_file ):
         request.change_status( STATUS_DONE, "OK" )
         rv = 0
+      elif returnCode:
+        request.change_status( STATUS_FAIL, "error processing file '%s'\nSTDERR: %s" % ( out_file, _p.stderr ) )
       else:
-        request.change_status( STATUS_FAIL, "error creating file '%s'\nSTDERR: %s" % (out_file, stderr) )
+        request.change_status( STATUS_FAIL, "error creating file '%s'\nSTDERR: %s" % ( out_file, _p.stderr ) )
     except Exception, e:
       gLogger.exception( traceback.format_exc() )
       gLogger.error( "Exception: " + str( e ) )
