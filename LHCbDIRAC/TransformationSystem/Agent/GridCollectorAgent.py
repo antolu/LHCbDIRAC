@@ -117,7 +117,7 @@ EventIndex
     smtpObj.sendmail( MAILFROM, [request.email], msg.as_string() )
     gLogger.info( "Successfully sent email to %s" % request.email )
   except smtplib.SMTPException, e:
-    gLogger.error( "Error: unable to send email to '%s' (%s)" % ( request.email, str( e ) ) )
+    gLogger.exception( "Error: unable to send email to '%s' (%s)" % ( request.email, str( e ) ) )
 
 
 class GridCollectorAgent( AgentModule ):
@@ -181,7 +181,7 @@ class GridCollectorAgent( AgentModule ):
       else:
         request.change_status( STATUS_FAIL, "error creating file '%s'\nSTDERR: %s" % (out_file, stderr) )
     except Exception, e:
-      gLogger.error( traceback.format_exc() )
+      gLogger.exception( traceback.format_exc() )
       gLogger.error( "Exception: " + str( e ) )
       request.change_status( STATUS_FAIL, "Grid-collector exception occurred: " + str( e ) )
     notify_email( request )
