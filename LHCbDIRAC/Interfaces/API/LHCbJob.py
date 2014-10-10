@@ -128,6 +128,7 @@ class LHCbJob( Job ):
                       modulesNameList = ['CreateDataFile',
                                          'GaudiApplication',
                                          'FileUsage',
+                                         'AnalyseFileAccess',
                                          'UserJobFinalization'],
                       parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
                                         ( 'applicationVersion', 'string', '', 'Application Version' ),
