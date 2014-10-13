@@ -469,7 +469,7 @@ function diracUserAndGroup(){
 	
 	dirac-admin-add-group -G prod -U lhcbciuser,trialUser -P Operator,FullDelegation,ProxyManagement,ServiceAdministrator,JobAdministrator,CSAdministrator,AlarmsManagement,FileCatalogManagement,SiteManager
 
-
+}
 
 #.............................................................................
 #
