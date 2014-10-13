@@ -13,7 +13,7 @@
 
 
 # Exit on error. If something goes wrong, we terminate execution
-set -o errexit
+#set -o errexit
 
 # URLs where to get scripts
 DIRAC_INSTALL='https://github.com/DIRACGrid/DIRAC/raw/integration/Core/scripts/dirac-install.py'
@@ -143,6 +143,19 @@ function findSystems(){
 
 function findDatabases(){
     echo '[findDatabases]'
+
+	if [ ! -z "$1" ]
+	then
+		DBstoSearch=$1
+	    if [ "$DBstoSearch" = "exclude" ]
+		then
+			echo 'excluding ' $2
+			DBstoExclude=$2
+			DBstoSearch=' '
+		fi
+	else
+    	DBstoExclude='notExcluding'
+	fi
     
     cd $WORKSPACE
     #
@@ -150,10 +163,14 @@ function findDatabases(){
     #
     #   We are avoiding TransferDB, which will be deprecated soon.. 
     #
-    find *DIRAC -name *DB.sql |grep -vE '(TransferDB.sql|FileCatalogDB)' | awk -F "/" '{print $2,$4}' | sort | uniq > databases
+	if [ ! -z "$DBstoExclude" ]
+	then 
+		find *DIRAC -name *DB.sql | grep -vE '(TransferDB.sql|FileCatalogDB)' | awk -F "/" '{print $2,$4}' | grep -v $DBstoExclude | sort | uniq > databases
+	else
+		find *DIRAC -name *DB.sql | grep -vE '(TransferDB.sql|FileCatalogDB)' | awk -F "/" '{print $2,$4}' | grep $DBstoSearch | sort | uniq > databases
+	fi
 
     echo found `wc -l databases`
-
 }
 
 
@@ -168,10 +185,34 @@ function findDatabases(){
 findServices(){
 	echo '[findServices]'
 
-	find *DIRAC/*/Service/ -name *Handler.py | grep -v test | grep $1 | awk -F "/" '{print $2,$4}' | sort | uniq > services
+
+	if [ ! -z "$1" ]
+	then
+		ServicestoSearch=$1
+	    if [ "$ServicestoSearch" = "exclude" ]
+		then
+			echo 'excluding ' $2
+			ServicestoExclude=$2
+			ServicestoSearch=' '
+		fi
+	else
+    	ServicestoExclude='notExcluding'
+	fi
+    
+    cd $WORKSPACE
+    #
+    # HACK ALERT:
+    #
+    #   We are avoiding TransferDB, which will be deprecated soon.. 
+    #
+	if [ ! -z "$ServicestoExclude" ]
+	then 
+		find *DIRAC/*/Service/ -name *Handler.py | grep -v test | awk -F "/" '{print $2,$4}' | grep -v $ServicestoExclude | sort | uniq > services
+	else
+		find *DIRAC/*/Service/ -name *Handler.py | grep -v test | awk -F "/" '{print $2,$4}' | grep $ServicestoSearch | sort | uniq > services
+	fi
 
 	echo found `wc -l services`
-
 }
 
 
@@ -396,7 +437,7 @@ function generateUserCredentials(){
   function diracReplace(){
     echo '[diracReplace]'
 
-    if [[ -z $DIRAC_ALTERNATIVE_SRC_ZIP ]];
+    if [[ -z $DIRAC_ALTERNATIVE_SRC_ZIP ]]
     then
       echo 'Variable $DIRAC_ALTERNATIVE_SRC_ZIP not defined';
       return
@@ -410,6 +451,23 @@ function generateUserCredentials(){
     mv $dirName DIRAC
 
   }
+
+
+#.............................................................................
+#
+# diracUserAndGroup:
+#
+#   create a user and a group (the CS has the running) 
+#
+#.............................................................................
+
+function diracUserAndGroup(){
+	echo '[diracUserAndGroup]'
+	
+	dirac-admin-add-user -N lhcbciuser -D /C=ch/O=LHCb/OU=LHCbDIRAC CI/CN=lhcbciuser/emailAddress=trialUser@cern.ch -M lhcb-dirac-ci@cern.ch
+	dirac-admin-add-user -N trialUser -D /C=ch/O=LHCb/OU=LHCbDIRAC CI/CN=trialUser/emailAddress=trialUser@cern.ch -M trialUser@cern.ch
+	
+	dirac-admin-add-group -G prod -U lhcbciuser,trialUser -P Operator,FullDelegation,ProxyManagement,ServiceAdministrator,JobAdministrator,CSAdministrator,AlarmsManagement,FileCatalogManagement,SiteManager
 
 
 
@@ -445,7 +503,7 @@ function diracProxies(){
 	echo '[diracProxies]'
 
 	dirac-proxy-init -U -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
-	dirac-proxy-init -U -g dirac_admin -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+	dirac-proxy-init -U -g $1 -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
 
 }
 
@@ -755,7 +813,6 @@ function installSite(){
 	sed -i s/VAR_DB_Host/$DB_HOST/g $WORKSPACE/DIRAC/install.cfg
 	sed -i s/VAR_DB_Port/$DB_PORT/g $WORKSPACE/DIRAC/install.cfg
 	
-	
 	#Installing
 	./install_site.sh install.cfg
 	
@@ -779,28 +836,29 @@ function fullInstall(){
 		export DEBUG='-ddd'
 	fi  
 
-	#basic install, with only the CS running
+	#basic install, with only the CS and the Framework systems running 
 	installSite
 	
 	#Dealing with security stuff
+	diracUserAndGroup
 	generateUserCredentials
 	diracCredentials
 	
-        #replace the sources with custom ones if defined
-        diracReplace	
+	#upload proxies
+	diracProxies dirac_admin
+	diracProxies prod
+	
+    #replace the sources with custom ones if defined
+    diracReplace	
         
-	#DBs
-	findDatabases
+	#DBs (not looking for FrameworkSystem ones, already installed)
+	findDatabases 'exclude' 'FrameworkSystem'
 	dropDBs
 	diracDBs
 	
-	#services
-	findServices ' '
+	#services (not looking for FrameworkSystem already installed)
+	findServices 'exclude' 'FrameworkSystem'
 	diracServices
-
-	#upload proxies
-	#diracProxies
-
 
 }
 
