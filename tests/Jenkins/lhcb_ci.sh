@@ -464,10 +464,10 @@ function generateUserCredentials(){
 function diracUserAndGroup(){
 	echo '[diracUserAndGroup]'
 	
-	dirac-admin-add-user -N lhcbciuser -D /C=ch/O=LHCb/OU=LHCbDIRAC CI/CN=lhcbciuser/emailAddress=trialUser@cern.ch -M lhcb-dirac-ci@cern.ch
-	dirac-admin-add-user -N trialUser -D /C=ch/O=LHCb/OU=LHCbDIRAC CI/CN=trialUser/emailAddress=trialUser@cern.ch -M trialUser@cern.ch
+	dirac-admin-add-user -N lhcbciuser -D /C=ch/O=LHCb/OU=LHCbDIRAC CI/CN=lhcbciuser/emailAddress=trialUser@cern.ch -M lhcb-dirac-ci@cern.ch -G user,dirac_admin,prod
+	dirac-admin-add-user -N trialUser -D /C=ch/O=LHCb/OU=LHCbDIRAC CI/CN=trialUser/emailAddress=trialUser@cern.ch -M trialUser@cern.ch -G user,dirac_admin,prod
 	
-	dirac-admin-add-group -G prod -U lhcbciuser,trialUser -P Operator,FullDelegation,ProxyManagement,ServiceAdministrator,JobAdministrator,CSAdministrator,AlarmsManagement,FileCatalogManagement,SiteManager
+	dirac-admin-add-group -G prod -U adminusername,lhcbciuser,trialUser -P Operator,FullDelegation,ProxyManagement,ServiceAdministrator,JobAdministrator,CSAdministrator,AlarmsManagement,FileCatalogManagement,SiteManager
 
 }
 
@@ -706,6 +706,7 @@ finalCleanup(){
 
 	rm etc/grid-security/certificates
 	rm etc/grid-security/host*.pem
+	rm -Rf /tmp/x*
 	rm -r .installCache
 
 } 
@@ -829,6 +830,8 @@ function installSite(){
 
 function fullInstall(){
 	echo '[fullInstall]'
+	
+	finalCleanup
 	
 	if [ ! -z "$DEBUG" ]
 	then
