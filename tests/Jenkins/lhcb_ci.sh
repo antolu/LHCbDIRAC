@@ -13,6 +13,7 @@
 
 
 # Exit on error. If something goes wrong, we terminate execution
+#TODO: fix
 #set -o errexit
 
 # URLs where to get scripts
@@ -771,6 +772,19 @@ dumpDBs(){
 	echo "$sqlStatements" | gawk '{print "drop database " $1 ";select sleep(0.1);"}' | mysql -u root -p$rootPass 
 
 }
+
+
+function integrationTest(){
+	echo '[integrationTest]'
+	
+	nosetests -a $WORKSPACE/LHCbTestDIRAC/$1
+	
+	#nosetests -a $TEST_MODE --with-xunit LHCbTestDirac/Jenkins/lhcb_ci/test -v --xunit-file=nosetests_${TEST_MODE}.xml --with-coverage --cover-package=DIRAC,LHCbDIRAC
+	#mv .coverage .coverage.${TEST_MODE}
+	
+}
+
+
 
 #-------------------------------------------------------------------------------
 # Here is where the real functions start
