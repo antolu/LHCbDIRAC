@@ -707,8 +707,8 @@ finalCleanup(){
 	rm etc/grid-security/certificates
 	rm etc/grid-security/host*.pem
 	rm -Rf /tmp/x*
-	rm -r .installCache
-
+	rm -rRf .installCache
+	rm -Rf /tmp/tmp.*
 } 
 
 #-------------------------------------------------------------------------------
