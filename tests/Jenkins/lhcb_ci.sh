@@ -836,8 +836,18 @@ function fullInstall(){
 		export DEBUG='-ddd'
 	fi  
 
-	#basic install, with only the CS and the Framework systems running 
+	#basic install, with only the CS running 
 	installSite
+	
+    #replace the sources with custom ones if defined
+    diracReplace	
+	
+	#Install the Framework
+	findDatabases 'FrameworkSystem'
+	dropDBs
+	diracDBs
+	findServices 'FrameworkSystem'
+	diracServices
 	
 	#Dealing with security stuff
 	diracUserAndGroup
@@ -848,9 +858,8 @@ function fullInstall(){
 	diracProxies dirac_admin
 	diracProxies prod
 	
-    #replace the sources with custom ones if defined
-    diracReplace	
-        
+	#Now all the rest
+
 	#DBs (not looking for FrameworkSystem ones, already installed)
 	findDatabases 'exclude' 'FrameworkSystem'
 	dropDBs
