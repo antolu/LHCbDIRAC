@@ -842,6 +842,10 @@ function fullInstall(){
     #replace the sources with custom ones if defined
     diracReplace	
 	
+	#Dealing with security stuff
+	generateUserCredentials
+	diracCredentials
+	
 	#Install the Framework
 	findDatabases 'FrameworkSystem'
 	dropDBs
@@ -849,12 +853,8 @@ function fullInstall(){
 	findServices 'FrameworkSystem'
 	diracServices
 	
-	#Dealing with security stuff
-	diracUserAndGroup
-	generateUserCredentials
-	diracCredentials
-	
 	#upload proxies
+	diracUserAndGroup
 	diracProxies dirac_admin
 	diracProxies prod
 	
