@@ -519,7 +519,9 @@ function diracCredentials(){
 function diracProxies(){
 	echo '[diracProxies]'
 
-	dirac-proxy-init -U -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+	# User proxy, should be uploaded anyway
+	dirac-proxy-init -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG 
+	# group proxy, will be uploaded explicitly
 	dirac-proxy-init -U -g $1 -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
 
 }
@@ -892,7 +894,6 @@ function fullInstall(){
 	#upload proxies
 	diracUserAndGroup
 	diracProxies dirac_admin
-	diracProxies prod
 	
 	#Now all the rest
 
