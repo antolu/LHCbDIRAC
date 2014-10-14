@@ -456,6 +456,22 @@ function generateUserCredentials(){
 
 #.............................................................................
 #
+# diracSite:
+#
+#   add a site (the CS has the running) 
+#
+#.............................................................................
+
+function diracAddSite(){
+	echo '[diracAddSite]'
+
+	dirac-admin-add-site DIRAC.Jenkins.org aNameWhatSoEver some.CE.org
+
+}
+
+
+#.............................................................................
+#
 # diracUserAndGroup:
 #
 #   create a user and a group (the CS has the running) 
@@ -862,6 +878,9 @@ function fullInstall(){
 	#Dealing with security stuff
 	generateUserCredentials
 	diracCredentials
+	
+	#just add a site
+	diracAddSite
 	
 	#Install the Framework
 	findDatabases 'FrameworkSystem'
