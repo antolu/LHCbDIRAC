@@ -6,6 +6,7 @@ import operator
 import Image
 
 from LHCbDIRAC.AccountingSystem.private.Plotters.DataStoragePlotter import DataStoragePlotter
+from LHCbDIRAC.AccountingSystem.private.Plotters.StoragePlotter import StoragePlotter
 
 def compare( file1Path, file2Path ):
   '''
@@ -27,7 +28,6 @@ def compare( file1Path, file2Path ):
 
 class PlotterTestCase( unittest.TestCase ):
   '''
-    PopularityPlotterTestCase
   '''
 
   moduleTested = None
@@ -108,7 +108,7 @@ class DataStoragePlotterUnitTest( PlotterTestCase ):
                  'granularity'   : 86400
                 }
 
-    obj = self.classsTested( None, None )
+    obj = DataStoragePlotter( None, None )
     res = obj._plotCatalogFiles( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
@@ -138,7 +138,7 @@ class DataStoragePlotterUnitTest( PlotterTestCase ):
                  'granularity'   : 86400
                 }
 
-    obj = self.classsTested( None, None )
+    obj = DataStoragePlotter( None, None )
     res = obj._plotPhysicalSpace( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
@@ -167,7 +167,7 @@ class DataStoragePlotterUnitTest( PlotterTestCase ):
                  'granularity'   : 86400
                 }
 
-    obj = self.classsTested( None, None )
+    obj = DataStoragePlotter( None, None )
     res = obj._plotPhysicalFiles( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
@@ -203,7 +203,7 @@ class StoragePlotterUnitTest( PlotterTestCase ):
                   'granularity'   : 86400
                  }
 
-    obj = self.classsTested( None, None )
+    obj = StoragePlotter( None, None )
     res = obj._plotCatalogSpace( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
@@ -236,7 +236,7 @@ class StoragePlotterUnitTest( PlotterTestCase ):
                  'granularity'   : 86400
                 }
 
-    obj = self.classsTested( None, None )
+    obj = StoragePlotter( None, None )
     res = obj._plotCatalogFiles( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
@@ -269,7 +269,7 @@ class StoragePlotterUnitTest( PlotterTestCase ):
                  'granularity'   : 86400
                 }
 
-    obj = self.classsTested( None, None )
+    obj = StoragePlotter( None, None )
     res = obj._plotPhysicalSpace( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
@@ -306,7 +306,7 @@ class StoragePlotterUnitTest( PlotterTestCase ):
                  'granularity'   : 86400
                 }
 
-    obj = self.classsTested( None, None )
+    obj = StoragePlotter( None, None )
     res = obj._plotPhysicalSpace( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
