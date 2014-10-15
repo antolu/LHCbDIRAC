@@ -795,11 +795,8 @@ dumpDBs(){
 function integrationTest(){
 	echo '[integrationTest]'
 	
-	nosetests $WORKSPACE/$1/Integration/$2
-	
-	#nosetests -a $TEST_MODE --with-xunit LHCbTestDirac/Jenkins/lhcb_ci/test -v --xunit-file=nosetests_${TEST_MODE}.xml --with-coverage --cover-package=DIRAC,LHCbDIRAC
-	#mv .coverage .coverage.${TEST_MODE}
-	
+	nosetests --with-xunit LHCbTestDirac/Jenkins/lhcb_ci/test -v --xunit-file=nosetests_$1_$2.xml --with-coverage --cover-package=DIRAC,LHCbDIRAC
+	mv .coverage .coverage._$1_$2
 }
 
 
