@@ -113,8 +113,7 @@ class DataStoragePlotterUnitTest( PlotterTestCase ):
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
 
-    res = compare( '%s.png' % plotName, './png/%s.png' % plotName )
-#     res = compare( '%s.png' % plotName, 'LHCbTestDirac/Integration/AccountingSystem/png/%s.png' % plotName )
+    res = compare( '%s.png' % plotName, 'LHCbTestDirac/Integration/AccountingSystem/png/%s.png' % plotName )
     self.assertEquals( 0.0, res )
 
   def test_plotPhysicalSpace( self ):
