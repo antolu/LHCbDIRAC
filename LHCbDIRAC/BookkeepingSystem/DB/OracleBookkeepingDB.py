@@ -11,7 +11,7 @@ from types                                                           import Long
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 from DIRAC.ConfigurationSystem.Client.PathFinder                     import getDatabaseSection
-#from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
+# from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
 from LHCbDIRAC.BookkeepingSystem.DB.OracleDB                      import OracleDB
 from DIRAC.Core.Utilities.List                                       import breakListIntoChunks
 import datetime
@@ -360,10 +360,10 @@ class OracleBookkeepingDB:
     if retVal['OK']:
       parameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles', 'DDDB',
                     'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat',
-                    'isMulticore', 'SystemConfig','mcTCK', 'RuntimeProjects']
+                    'isMulticore', 'SystemConfig', 'mcTCK', 'RuntimeProjects']
       rParameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles',
                      'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag',
-                     'OptionsFormat', 'isMulticore', 'SystemConfig','mcTCK']
+                     'OptionsFormat', 'isMulticore', 'SystemConfig', 'mcTCK']
       records = []
       for record in retVal['Value']:
         step = list( record[0:16] )
@@ -403,7 +403,7 @@ class OracleBookkeepingDB:
       if retVal['OK']:
         parameters = ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion', 'OptionFiles',
                       'DDDB', 'CONDDB', 'ExtraPackages', 'Visible', 'ProcessingPass', 'Usable', 'DQTag',
-                      'OptionsFormat', 'isMulticore', 'SystemConfig','mcTCK']
+                      'OptionsFormat', 'isMulticore', 'SystemConfig', 'mcTCK']
         records = []
         for record in retVal['Value']:
           records += [list( record )]
@@ -1268,13 +1268,16 @@ class OracleBookkeepingDB:
                                                 output = True,
                                                 array = data )
     else:
-      return S_ERROR("Wrong input parameters. You can use a dictionary with the following keys: lfn,jobId, jobName")
+      return S_ERROR( "Wrong input parameters. You can use a dictionary with the following keys: lfn,jobId, jobName" )
      
     records = {}
     if retVal['OK']:
       for i in retVal['Value']:
-
-        records[i[0]] = dict( zip( ( 'DIRACJobId',
+        j = 0
+        if i[0] not in records:
+          records[i[0]] = {}
+           
+        records[i[0]][j] = dict( zip( ( 'DIRACJobId',
                               'DIRACVersion',
                               'EventInputStat',
                               'ExecTime',
@@ -1295,6 +1298,7 @@ class OracleBookkeepingDB:
                               'Production',
                               'ApplicationName',
                               'ApplicationVersion' ), i[1:] ) )
+        j += 1
 
       failed = [ i for i in data if i not in records]
       result = S_OK( {'Successful':records, 'Failed':failed} )
@@ -1449,7 +1453,7 @@ class OracleBookkeepingDB:
     return self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertTag', [name, tag], False )
 
   #############################################################################
-  def existsTag( self, name, value ): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  def existsTag( self, name, value ):  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     """checks the tag existsance in the database"""
     result = False
     command = "select count(*) from tags where name='%s' and tag='%s'" % ( str( name ), str( value ) )
@@ -1758,7 +1762,7 @@ class OracleBookkeepingDB:
 
 
   #############################################################################
-  def checkfile( self, fileName ): #file
+  def checkfile( self, fileName ):  # file
     """checks the status of a file"""
     result = self.dbR_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.checkfile', [fileName] )
     if result['OK']:
@@ -1773,14 +1777,14 @@ class OracleBookkeepingDB:
     return result
 
   #############################################################################
-  def checkFileTypeAndVersion( self, filetype, version ): #fileTypeAndFileTypeVersion(self, type, version):
+  def checkFileTypeAndVersion( self, filetype, version ):  # fileTypeAndFileTypeVersion(self, type, version):
     """checks the the format and the version"""
     result = self.dbR_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.checkFileTypeAndVersion',
                                                LongType, [filetype, version] )
     return result
 
   #############################################################################
-  def checkEventType( self, eventTypeId ):  #eventType(self, eventTypeId):
+  def checkEventType( self, eventTypeId ):  # eventType(self, eventTypeId):
     """checks the event type"""
     result = S_ERROR()
 
@@ -1833,7 +1837,7 @@ class OracleBookkeepingDB:
         gLogger.error( "insert job error: ", " the job table not contains " + param + " this attributte!!" )
         return S_ERROR( " The job table not contains " + param + " this attributte!!" )
 
-      if param == 'JobStart' or param == 'JobEnd': # We have to convert data format
+      if param == 'JobStart' or param == 'JobEnd':  # We have to convert data format
         dateAndTime = job[param].split( ' ' )
         date = dateAndTime[0].split( '-' )
         time = dateAndTime[1].split( ':' )
@@ -1853,7 +1857,7 @@ class OracleBookkeepingDB:
       conv = int( attrList['Tck'] )
       attrList['Tck'] = str( hex( conv ) )
     except ValueError:
-      pass #it is already defined
+      pass  # it is already defined
 
 
     result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertJobsRow',
@@ -1917,7 +1921,7 @@ class OracleBookkeepingDB:
         gLogger.error( "insert file error: ", " the files table not contains " + param + " this attributte!!" )
         return S_ERROR( " The files table not contains " + param + " this attributte!!" )
 
-      if param == 'CreationDate': # We have to convert data format
+      if param == 'CreationDate':  # We have to convert data format
         dateAndTime = fileobject[param].split( ' ' )
         date = dateAndTime[0].split( '-' )
         time = dateAndTime[1].split( ':' )
@@ -1946,7 +1950,7 @@ class OracleBookkeepingDB:
     return result
 
   #############################################################################
-  def updateReplicaRow( self, fileID, replica ): #, name, location):
+  def updateReplicaRow( self, fileID, replica ):  # , name, location):
     """adds the replica flag"""
     result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.updateReplicaRow', [fileID, replica], False )
     return result
@@ -2073,7 +2077,7 @@ class OracleBookkeepingDB:
           failed['Failed'] = failed.keys()
           failed['Successful'] = fileNames
           result = S_OK( failed )
-      else: # when no files are exists
+      else:  # when no files are exists
         files = {'Failed':[ i[0] for i in retVal['Value']], 'Successful':[]}
         result = S_OK( files )
     return result
@@ -2346,7 +2350,7 @@ class OracleBookkeepingDB:
           failed['Failed'] = failed.keys()
           failed['Successful'] = fileNames
           result = S_OK( failed )
-      else: # when no files are exists
+      else:  # when no files are exists
         files = {'Failed':[ i[0] for i in retVal['Value']], 'Successful':[]}
         result = S_OK( files )
 
@@ -3091,8 +3095,8 @@ and files.qualityid= dataquality.qualityid'
       if not retVal['OK']:
         return retVal
 
-      if len(retVal['Value']) < 1:
-        return S_ERROR('No file found! Processing pass is missing!')
+      if len( retVal['Value'] ) < 1:
+        return S_ERROR( 'No file found! Processing pass is missing!' )
 
       pro = '('
       for i in retVal['Value']:
@@ -4044,13 +4048,13 @@ and files.qualityid= dataquality.qualityid'
 
     retVal = self.dbR_.query( command )
     records = []
-    #parametersNames = [ 'StepId', 'StepName','ApplicationName', 'ApplicationVersion',
-    #'OptionFiles','DDDB','CONDDB','ExtraPackages','Visible']
+    # parametersNames = [ 'StepId', 'StepName','ApplicationName', 'ApplicationVersion',
+    # 'OptionFiles','DDDB','CONDDB','ExtraPackages','Visible']
     parametersNames = ['id', 'name']
     if retVal['OK']:
       nb = 0
       for i in retVal['Value']:
-        #records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
+        # records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
         records = [ ['StepId', i[0]],
                    ['StepName', i[1]],
                    ['ApplicationName', i[2]],
@@ -4095,13 +4099,13 @@ and files.qualityid= dataquality.qualityid'
 
     retVal = self.dbR_.query( command )
     records = []
-    #parametersNames = [ 'StepId', 'StepName','ApplicationName',
-    #'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible']
+    # parametersNames = [ 'StepId', 'StepName','ApplicationName',
+    # 'ApplicationVersion','OptionFiles','DDDB','CONDDB','ExtraPackages','Visible']
     parametersNames = ['id', 'name']
     if retVal['OK']:
       nb = 0
       for i in retVal['Value']:
-        #records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
+        # records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
         records = [ ['StepId', i[0]],
                    ['ProcessingPass', procpass],
                    ['ApplicationName', i[2]],
@@ -4129,7 +4133,7 @@ and files.qualityid= dataquality.qualityid'
     """returns the processing pass of a run"""
     command = "select distinct runnumber, processingpass from table (BOOKKEEPINGORACLEDB.getRunProcPass(%d))" % ( runnb )
     return self.dbR_.query( command )
-    #return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRunProcPass', [runnb])
+    # return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRunProcPass', [runnb])
 
   #############################################################################
   def getNbOfRawFiles( self, runid, eventtype ):
@@ -4368,8 +4372,8 @@ and files.qualityid= dataquality.qualityid'
               condition += retVal['Value']
             else:
               return retVal
-          if len(parentprod) < 2:
-            parentprod = str(parentprod)[:-2] + ")"
+          if len( parentprod ) < 2:
+            parentprod = str( parentprod )[:-2] + ")"
           command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
        s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step  from  %s \
                      where cont.stepid=s.stepid and \
@@ -4397,7 +4401,7 @@ and files.qualityid= dataquality.qualityid'
       if retVal['OK']:
         nb = 0
         for i in retVal['Value']:
-          #records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
+          # records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
           records = [ ['StepId', i[0]],
                      ['StepName', i[1]],
                      ['ApplicationName', i[2]],

@@ -1889,9 +1889,9 @@ n integer := 0;
 jobmeta bulk_collect_jobMetadata := bulk_collect_jobMetadata();
 BEGIN
 FOR i in jobids.FIRST .. jobids.LAST LOOP
-  for c in (select  jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER,jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS,
+  for c in (select  distinct jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER,jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS,
                  jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion
-   from jobs,files where files.jobid=jobs.jobid and  jobs.diracjobid= jobids(i)) LOOP
+   from jobs,files where files.jobid=jobs.jobid and  jobs.diracjobid= jobids(i) Order by jobs.name) LOOP
      jobmeta.extend;
      n:=n+1;
     jobmeta (n):= jobMetadata(jobids(i), c.DIRACJOBID, c.DIRACVERSION, c.EVENTINPUTSTAT, c.EXECTIME, c.FIRSTEVENTNUMBER,c.LOCATION,  c.NAME, c.NUMBEROFEVENTS,
