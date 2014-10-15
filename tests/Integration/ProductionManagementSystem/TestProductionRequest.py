@@ -73,7 +73,7 @@ class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
 
     # delete
     res = self.reqClient.deleteProductionRequest( firstReq )
-    self.assertFalse( res['OK'] )
+    self.assert_( res['OK'] )
     res = self.reqClient.deleteProductionRequest( firstReq + 1 )
     self.assert_( res['OK'] )
 
