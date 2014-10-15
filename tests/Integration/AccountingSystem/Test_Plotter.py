@@ -5,6 +5,7 @@ import math
 import operator
 import Image
 
+from LHCbDIRAC.AccountingSystem.private.Plotters.DataStoragePlotter import DataStoragePlotter
 
 def compare( file1Path, file2Path ):
   '''
@@ -40,7 +41,7 @@ class PlotterTestCase( unittest.TestCase ):
 
     pass
 
-#     import LHCbDIRAC.AccountingSystem.private.Plotters.PopularityPlotter as moduleTested
+#    import LHCbDIRAC.AccountingSystem.private.Plotters.PopularityPlotter as moduleTested
 #
 #     self.moduleTested = self.mockModuleTested( moduleTested )
 #     self.classsTested = self.moduleTested.PopularityPlotter
@@ -78,7 +79,7 @@ class DataStoragePlotterUnitTest( PlotterTestCase ):
                  'granularity'   : 86400
                 }
 
-    obj = self.classsTested( None, None )
+    obj = DataStoragePlotter( None, None )
     res = obj._plotCatalogSpace( reportRequest, plotInfo, plotName )
     self.assertEqual( res[ 'OK' ], True )
     self.assertEqual( res[ 'Value' ], { 'plot': True, 'thumbnail': False } )
