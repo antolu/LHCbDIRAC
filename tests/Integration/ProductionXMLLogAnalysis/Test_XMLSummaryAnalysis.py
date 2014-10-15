@@ -7,8 +7,7 @@ class XMLSummaryAnalysisTestCase( unittest.TestCase ):
   """
   def setUp( self ):
 
-    self.workdir = 'ProductionXMLLogAnalysis'
-    # self.workdir = os.getcwd() + '/ProductionXMLLogAnalysis'
+    self.workdir = os.getcwd() + '/LHCbTestDirac/Integration/ProductionXMLLogAnalysis'
 
   def generalTest( self, workdir, directory ):
 

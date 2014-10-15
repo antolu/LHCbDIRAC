@@ -6,7 +6,7 @@ class ProductionLogAnalysisTestCase( unittest.TestCase ):
   """ Base class for the ProductionLogAnalysis test cases
   """
   def setUp( self ):
-    self.workdir = 'ProductionXMLLogAnalysis'
+    self.workdir = os.getcwd() + '/LHCbTestDirac/Integration/ProductionXMLLogAnalysis'
 
   def generalTest( self, workdir, directory, app ):
 
