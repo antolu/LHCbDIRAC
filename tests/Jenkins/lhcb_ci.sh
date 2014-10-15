@@ -795,8 +795,6 @@ dumpDBs(){
 function integrationTest(){
 	echo '[integrationTest]'
 	
-	nosetests $WORKSPACE/$1/Integration/$2
-	
 	nosetests --with-xunit $WORKSPACE/$1/Integration/$2 -v --xunit-file=nosetests_$1_$2.xml --with-coverage --cover-package=DIRAC,LHCbDIRAC
 	mv .coverage .coverage._$1_$2
 	
@@ -937,13 +935,9 @@ function DIRACPilotInstall(){
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
 
 	#run the dirac-pilot script, only for installing
-	python dirac-pilot.py -S LHCb-Certification -l LHCb -M 5 -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -e LHCb -T 50000 -N jenkins.cern.ch -Q cream-lsf-grid_2nh_lhcb -n DIRAC.Jenkins.ch -o '/LocalSite/CPUScalingFactor=4.0' -o '/LocalSite/CPUNormalizationFactor=4.0' --cert -E LHCbPilot -X GetLHCbPilotVersion,InstallLHCbDIRAC,ConfigureDIRAC $DEBUG
+	python dirac-pilot.py -S LHCb-Certification -l LHCb -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements -d
 	#this should have been created
 	source bashrc
-	
-	#run the configuration, "by hand" because dirac-architecture would require a proxy...
-	#python $WORKSPACE/DIRAC/Core/scripts/dirac-configure.py -n "DIRAC.Jenkins.ch" -N "jenkins.cern.ch" -S "LHCb-Certification" -C "dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server" -o /LocalSite/ReleaseProject=LHCb -o "/LocalSite/CPUScalingFactor=4.0" -o "/LocalSite/CPUNormalizationFactor=4.0" -o /LocalSite/GridMiddleware=DIRAC -N "jenkins.cern.ch" -o /LocalSite/GridCE=jenkins.cern.ch -o /LocalSite/ReleaseVersion=v8r0-pre9 -o /LocalSite/Architecture=x86_64-slc6 -I
-
 }
 
 
