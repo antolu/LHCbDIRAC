@@ -54,7 +54,8 @@ def getDestinationSEList( outputSE, site, outputmode = 'Any' ):
     associatedSE = gConfig.getValue( section, [] )
     if associatedSE:
       gLogger.info( 'Found associated SEs %s in %s' % ( ', '.join( list( associatedSE ) ), section ) )
-      return [shuffle( list( associatedSE ) )]
+      shuffle( associatedSE )
+      return associatedSE
 
     # Final check for country associated SE
     count = 0
