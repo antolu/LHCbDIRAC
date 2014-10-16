@@ -1273,11 +1273,7 @@ class OracleBookkeepingDB:
     records = {}
     if retVal['OK']:
       for i in retVal['Value']:
-        j = 0
-        if i[0] not in records:
-          records[i[0]] = {}
-           
-        records[i[0]][j] = dict( zip( ( 'DIRACJobId',
+        record = dict( zip( ( 'DIRACJobId',
                               'DIRACVersion',
                               'EventInputStat',
                               'ExecTime',
@@ -1298,6 +1294,12 @@ class OracleBookkeepingDB:
                               'Production',
                               'ApplicationName',
                               'ApplicationVersion' ), i[1:] ) )
+        j = 0
+        if i[0] not in records:
+          records[i[0]] = [record]
+        else:
+          records[i[0]] += [record]
+        
         j += 1
 
       failed = [ i for i in data if i not in records]
