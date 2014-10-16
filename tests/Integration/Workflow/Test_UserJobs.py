@@ -32,6 +32,7 @@ class HelloWorldSuccess( UserJobTestCase ):
 
     lhcbJob.setName( "helloWorld-test" )
     lhcbJob.setExecutable( self.exeScriptLocation )
+    lhcbJob.setLogLevel( 'DEBUG' )
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
@@ -44,6 +45,7 @@ class HelloWorldSuccessWithJobID( UserJobTestCase ):
 
     lhcbJob.setName( "helloWorld-test" )
     lhcbJob.setExecutable( self.exeScriptLocation )
+    lhcbJob.setLogLevel( 'DEBUG' )
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )  # There's nothing to upload, so it will complete happily
 
@@ -57,6 +59,7 @@ class HelloWorldSuccessOutput( UserJobTestCase ):
     lhcbJob.setName( "helloWorld-test" )
     lhcbJob.setExecutable( self.exeScriptLocation )
     lhcbJob.setOutputData( "applicationLog.txt" )
+    lhcbJob.setLogLevel( 'DEBUG' )
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
@@ -70,6 +73,7 @@ class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
     lhcbJob.setName( "helloWorld-test" )
     lhcbJob.setExecutable( self.exeScriptLocation )
     lhcbJob.setOutputData( "applicationLog.txt" )
+    lhcbJob.setLogLevel( 'DEBUG' )
     res = lhcbJob.runLocal( self.dLHCb )  # Can't upload, so it will fail
     self.assertFalse( res['OK'] )
 
@@ -95,6 +99,7 @@ class GaudirunSuccess( UserJobTestCase ):
                             extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
                             events = '3' )
     lhcbJob.setDIRACPlatform()
+    lhcbJob.setLogLevel( 'DEBUG' )
 
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
@@ -119,6 +124,7 @@ class GaudirunSuccess( UserJobTestCase ):
     lhcbJob.setApplication( 'Boole', 'v24r0', options,
                             inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
                             extraPackages = 'AppConfig.v3r155;ProdConf.v1r9' )
+    lhcbJob.setLogLevel( 'DEBUG' )
 
     lhcbJob.setDIRACPlatform()
     res = lhcbJob.runLocal( self.dLHCb )
@@ -138,6 +144,7 @@ class GaudiScriptSuccess( UserJobTestCase ):
     lhcbJob.setApplicationScript( 'Gauss', 'v45r3', script,
                                   extraPackages = 'AppConfig.v3r171;ProdConf.v1r9' )
 
+    lhcbJob.setLogLevel( 'DEBUG' )
     lhcbJob.setDIRACPlatform()
     res = lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
@@ -213,6 +220,7 @@ def createJob():
                       'outputDataType': 'SIM'}]
   gaudirunJob._addParameter( gaudirunJob.workflow.step_instances[0], 'listoutput', 'list', outputFilesDict, 'listoutput' )
 
+  gaudirunJob.setLogLevel( 'DEBUG' )
   gaudirunJob.setDIRACPlatform()
   gaudirunJob.setConfigArgs( 'wrongConfig.cfg' )
 
