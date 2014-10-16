@@ -51,6 +51,8 @@ class ModuleBase( object ):
     else:
       self.dataManager = dm
 
+    self.requestValidator = RequestValidator()
+
     self.production_id = ''
     self.prod_job_id = ''
     self.jobID = 0
@@ -891,7 +893,7 @@ class ModuleBase( object ):
       if not optimized['OK']:
         self.log.error( "Could not optimize: %s" % optimized['Message'] )
         self.log.error( "Not failing the job because of that, keep going" )
-      isValid = RequestValidator().validate( self.request )
+      isValid = self.requestValidator.validate( self.request )
       if not isValid['OK']:
         raise RuntimeError( "Failover request is not valid: %s" % isValid['Message'] )
       else:

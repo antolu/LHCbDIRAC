@@ -1103,6 +1103,7 @@ class FailoverRequestSuccess( ModulesTestCase ):
 
     self.fr.jobType = 'merge'
     self.fr.stepInputData = ['foo', 'bar']
+    self.fr.requestValidator = MagicMock()
 
     # no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
@@ -1473,6 +1474,9 @@ class UserJobFinalizationSuccess( ModulesTestCase ):
   #################################################
 
   def test_execute( self ):
+
+    self.ujf.requestValidator = MagicMock()
+    self.ujf.requestValidator.validate.return_value = {'OK':True}
 
     # no errors, no input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
