@@ -526,6 +526,21 @@ function diracProxies(){
 
 }
 
+#.............................................................................
+#
+# downloadProxy:
+#
+#   dowloads a proxy from the ProxyManager into a file
+#
+#.............................................................................
+
+function downloadProxy(){
+	echo '[downloadProxy]'
+	
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-proxy-download.py $DEBUG
+}
+
+
   #.............................................................................
   #
   # diracMySQL:
@@ -918,7 +933,7 @@ function fullInstall(){
 
 function DIRACPilotInstall(){
 	
-	#cert first
+	#cert first (host certificate)
 	getCertificate
 	
 	if [ ! -z "$DEBUG" ]
@@ -934,12 +949,27 @@ function DIRACPilotInstall(){
 	wget --no-check-certificate -O pilotCommands.py $DIRAC_PILOT_COMMANDS
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
 
-	#run the dirac-pilot script, only for installing
+	#run the dirac-pilot script, only for installing, do not run the JobAgent here
 	python dirac-pilot.py -S LHCb-Certification -l LHCb -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements -d
-	#this should have been created
-	source bashrc
 }
 
+
+function fullPilot(){
+
+	#first simply install via the pilot
+	DIRACPilotInstall
+
+	#this should have been created, we source it so that we can continue
+	source bashrc
+	
+	#Adding the LocalSE, for the subsequent tests
+	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O pilot.cfg pilot.cfg $DEBUG
+	
+	#Getting a user proxy, so that we can run jobs
+	downloadProxy
+	
+	#should we remove the created etc/dirac.cfg?
+}
 
 
 # Older functions
