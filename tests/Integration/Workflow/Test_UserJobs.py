@@ -21,21 +21,20 @@ class UserJobTestCase( IntegrationTest ):
 
     self.dLHCb = DiracLHCb()
     self.exeScriptLocation = find_all( 'exe-script.py', '.', 'Integration' )[0]
+    self.lhcbJob = LHCbJob()
+    self.lhcbJob.setLogLevel( 'DEBUG' )
+    self.lhcbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
+    self.lhcbJob.setConfigArgs( 'pilot.cfg' )
 
   def tearDown( self ):
-    pass
+    del self.lhcbJob
 
 class HelloWorldSuccess( UserJobTestCase ):
   def test_execute( self ):
 
-    lhcbJob = LHCbJob()
-
-    lhcbJob.setName( "helloWorld-test" )
-    lhcbJob.setExecutable( self.exeScriptLocation )
-    lhcbJob.setLogLevel( 'DEBUG' )
-    lhcbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
-    lhcbJob.setConfigArgs( 'pilot.cfg' )
-    res = lhcbJob.runLocal( self.dLHCb )
+    self.lhcbJob.setName( "helloWorld-test" )
+    self.lhcbJob.setExecutable( self.exeScriptLocation )
+    res = self.lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
 class HelloWorldSuccessWithJobID( UserJobTestCase ):
@@ -43,12 +42,9 @@ class HelloWorldSuccessWithJobID( UserJobTestCase ):
 
     os.environ['JOBID'] = '12345'
 
-    lhcbJob = LHCbJob()
-
-    lhcbJob.setName( "helloWorld-test" )
-    lhcbJob.setExecutable( self.exeScriptLocation )
-    lhcbJob.setLogLevel( 'DEBUG' )
-    res = lhcbJob.runLocal( self.dLHCb )
+    self.lhcbJob.setName( "helloWorld-test" )
+    self.lhcbJob.setExecutable( self.exeScriptLocation )
+    res = self.lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )  # There's nothing to upload, so it will complete happily
 
     del os.environ['JOBID']
@@ -56,13 +52,10 @@ class HelloWorldSuccessWithJobID( UserJobTestCase ):
 class HelloWorldSuccessOutput( UserJobTestCase ):
   def test_execute( self ):
 
-    lhcbJob = LHCbJob()
-
-    lhcbJob.setName( "helloWorld-test" )
-    lhcbJob.setExecutable( self.exeScriptLocation )
-    lhcbJob.setOutputData( "applicationLog.txt" )
-    lhcbJob.setLogLevel( 'DEBUG' )
-    res = lhcbJob.runLocal( self.dLHCb )
+    self.lhcbJob.setName( "helloWorld-test" )
+    self.lhcbJob.setExecutable( self.exeScriptLocation )
+    self.lhcbJob.setOutputData( "applicationLog.txt" )
+    res = self.lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
 class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
@@ -70,13 +63,10 @@ class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
 
     os.environ['JOBID'] = '12345'
 
-    lhcbJob = LHCbJob()
-
-    lhcbJob.setName( "helloWorld-test" )
-    lhcbJob.setExecutable( self.exeScriptLocation )
-    lhcbJob.setOutputData( "applicationLog.txt" )
-    lhcbJob.setLogLevel( 'DEBUG' )
-    res = lhcbJob.runLocal( self.dLHCb )  # Can't upload, so it will fail
+    self.lhcbJob.setName( "helloWorld-test" )
+    self.lhcbJob.setExecutable( self.exeScriptLocation )
+    self.lhcbJob.setOutputData( "applicationLog.txt" )
+    res = self.lhcbJob.runLocal( self.dLHCb )  # Can't upload, so it will fail
     self.assertFalse( res['OK'] )
 
     del os.environ['JOBID']
@@ -84,10 +74,8 @@ class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
 class GaudirunSuccess( UserJobTestCase ):
   def test_mc( self ):
 
-    lhcbJob = LHCbJob()
-
-    lhcbJob.setName( "gaudirun-test" )
-    lhcbJob.setInputSandbox( find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'Integration' )[0] )
+    self.lhcbJob.setName( "gaudirun-test" )
+    self.lhcbJob.setInputSandbox( find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'Integration' )[0] )
 
     optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;"
     optDec = "$DECFILESROOT/options/11102400.py;"
@@ -97,13 +85,12 @@ class GaudirunSuccess( UserJobTestCase ):
     optPConf = "prodConf_Gauss_00012345_00067890_1.py"
     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
 
-    lhcbJob.setApplication( 'Gauss', 'v45r3', options,
+    self.lhcbJob.setApplication( 'Gauss', 'v45r3', options,
                             extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
                             events = '3' )
-    lhcbJob.setDIRACPlatform()
-    lhcbJob.setLogLevel( 'DEBUG' )
+    self.lhcbJob.setDIRACPlatform()
 
-    res = lhcbJob.runLocal( self.dLHCb )
+    res = self.lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
   def test_boole( self ):
@@ -111,10 +98,8 @@ class GaudirunSuccess( UserJobTestCase ):
     # get a shifter proxy
     setupShifterProxyInEnv( 'ProductionManager' )
 
-    lhcbJob = LHCbJob()
-
-    lhcbJob.setName( "gaudirun-test-inputs" )
-    lhcbJob.setInputSandbox( find_all( 'prodConf_Boole_00012345_00067890_1.py', '.', 'Integration' )[0] )
+    self.lhcbJob.setName( "gaudirun-test-inputs" )
+    self.lhcbJob.setInputSandbox( find_all( 'prodConf_Boole_00012345_00067890_1.py', '.', 'Integration' )[0] )
 
     opts = "$APPCONFIGOPTS/Boole/Default.py;"
     optDT = "$APPCONFIGOPTS/Boole/DataType-2012.py;"
@@ -123,14 +108,12 @@ class GaudirunSuccess( UserJobTestCase ):
     optPConf = "prodConf_Boole_00012345_00067890_1.py"
     options = opts + optDT + optTCK + optComp + optPConf
 
-    lhcbJob.setApplication( 'Boole', 'v24r0', options,
-                            inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
-                            extraPackages = 'AppConfig.v3r155;ProdConf.v1r9' )
-    lhcbJob.setLogLevel( 'DEBUG' )
-    lhcbJob.setConfigArgs( 'pilot.cfg' )
+    self.lhcbJob.setApplication( 'Boole', 'v24r0', options,
+                                 inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
+                                 extraPackages = 'AppConfig.v3r155;ProdConf.v1r9' )
 
-    lhcbJob.setDIRACPlatform()
-    res = lhcbJob.runLocal( self.dLHCb )
+    self.lhcbJob.setDIRACPlatform()
+    res = self.lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
 # class GaudiScriptSuccess( UserJobTestCase ):
@@ -173,7 +156,8 @@ def createJob():
 
   gaudirunJob.setName( "gaudirun-Gauss-test" )
   gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', 'GridTestSubmission' )[0],
-                                find_all( 'wrongConfig.cfg', '..', 'GridTestSubmission' )[0]] )
+                                find_all( 'wrongConfig.cfg', '..', 'GridTestSubmission' )[0],
+                                find_all( 'pilot.cfg', '.' )[0] ] )
   gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
 
   optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam3500GeV-md100-2011-nu2.py;"
@@ -225,7 +209,7 @@ def createJob():
 
   gaudirunJob.setLogLevel( 'DEBUG' )
   gaudirunJob.setDIRACPlatform()
-  gaudirunJob.setConfigArgs( 'wrongConfig.cfg' )
+  gaudirunJob.setConfigArgs( 'pilot.cfg wrongConfig.cfg' )
 
   gaudirunJob.setCPUTime( 172800 )
 
