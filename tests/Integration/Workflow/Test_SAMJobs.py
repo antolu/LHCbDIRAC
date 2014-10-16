@@ -7,7 +7,7 @@ from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
 
 from DIRAC import gLogger, gConfig
 
-from LHCbDIRAC.SAMSystem.Client.DiracSAM import DiracSAM
+from LHCbDIRAC.ResourceStatus.Client.DiracSAM import DiracSAM
 
 class SAMJobTestCase( IntegrationTest ):
   """ Base class for the SAMJob test cases
