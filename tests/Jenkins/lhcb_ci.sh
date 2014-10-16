@@ -936,12 +936,6 @@ function DIRACPilotInstall(){
 	#cert first (host certificate)
 	getCertificate
 	
-	if [ ! -z "$DEBUG" ]
-	then
-		echo 'Running in DEBUG mode'
-		export DEBUG='-ddd'
-	fi  
-
 	#get the necessary scripts
 	wget --no-check-certificate -O dirac-install.py $DIRAC_INSTALL
 	wget --no-check-certificate -O dirac-pilot.py $DIRAC_PILOT
@@ -950,11 +944,17 @@ function DIRACPilotInstall(){
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
 
 	#run the dirac-pilot script, only for installing, do not run the JobAgent here
-	python dirac-pilot.py -S LHCb-Certification -l LHCb -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements -d
+	python dirac-pilot.py -S LHCb-Certification -l LHCb -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
 }
 
 
 function fullPilot(){
+
+	if [ ! -z "$DEBUG" ]
+	then
+		echo 'Running in DEBUG mode'
+		export DEBUG='-ddd'
+	fi  
 
 	#first simply install via the pilot
 	DIRACPilotInstall
