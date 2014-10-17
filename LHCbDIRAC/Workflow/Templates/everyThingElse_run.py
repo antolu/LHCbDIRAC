@@ -36,8 +36,6 @@ stepsList.append( '{{p19Step}}' )
 stepsList.append( '{{p20Step}}' )
 pr.stepsList = stepsList
 
-pr.resolveSteps()
-
 ###########################################
 # Configurable and fixed parameters
 ###########################################
@@ -127,6 +125,8 @@ if not parentReq:
   pr.requestID = '{{ID}}'
 else:
   pr.requestID = parentReq
+
+pr.resolveSteps()
 
 pr.prodGroup = '{{inProPass}}' + '/' + '{{pDsc}}'
 # used in case of a test e.g. certification etc.

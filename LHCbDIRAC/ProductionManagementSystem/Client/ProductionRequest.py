@@ -142,7 +142,7 @@ class ProductionRequest( object ):
         stepsListDictItem['fileTypesOut'] = fileTypesList
 
       if stepsListDictItem['StepId'] in self.extraOptions:
-        stepsListDictItem['ExtraOptions'] = self.extraOptions['StepId']
+        stepsListDictItem['ExtraOptions'] = self.extraOptions[stepsListDictItem['StepId']]
       else:
         stepsListDictItem['ExtraOptions'] = ''
 
@@ -233,7 +233,6 @@ class ProductionRequest( object ):
                                                                        'Simulation' )
           if not res['OK']:
             return res
-          print res
           eventsToProduceForRequest = res['Value'][self.requestID]['reqTotal']
           extend = int( eventsToProduceForRequest / max_e )
       else:

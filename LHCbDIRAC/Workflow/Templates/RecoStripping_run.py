@@ -38,8 +38,6 @@ stepsList.append( '{{p8Step}}' )
 stepsList.append( '{{p9Step}}' )
 pr.stepsList = stepsList
 
-pr.resolveSteps()
-
 ###########################################
 # Configurable and fixed parameters
 ###########################################
@@ -134,6 +132,8 @@ validationFlag = eval( validationFlag )
 if extraOptions:
   pr.extraOptions = eval( extraOptions )
 mergeRemoveInputsFlag = eval( mergingRemoveInputsFlag )
+
+pr.resolveSteps()
 
 if not w1 and not w2 and not w3 and not w4:
   gLogger.error( 'I told you to select at least one workflow!' )

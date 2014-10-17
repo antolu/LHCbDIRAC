@@ -49,8 +49,6 @@ stepsList.append( '{{p19Step}}' )
 stepsList.append( '{{p20Step}}' )
 pr.stepsList = stepsList
 
-pr.resolveSteps()
-
 ###########################################
 # Configurable and fixed parameters
 ###########################################
@@ -110,6 +108,8 @@ mergingPriority = int( mergingPriority )
 
 removeInputMerge = eval( removeInputMerge )
 removeInputSelection = eval( removeInputSelection )
+
+pr.resolveSteps()
 
 ###########################################
 # LHCb conventions implied by the above
