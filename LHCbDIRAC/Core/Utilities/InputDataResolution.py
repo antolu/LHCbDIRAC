@@ -10,7 +10,7 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                          import S_OK, gLogger
+from DIRAC                                                          import S_OK
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
 from DIRAC.WorkloadManagementSystem.Client.InputDataResolution      import InputDataResolution as DIRACInputDataResolution
 
