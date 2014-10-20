@@ -24,7 +24,7 @@ def cacheDirectories( directories ):
   if not dirSet:
     return
   startTime = time.time()
-  gLogger.always( 'Caching %d directories, %d not cached yet' % ( len( directories ), len( dirSet ) ) )
+  gLogger.always( '\nCaching %d directories, %d not cached yet' % ( len( directories ), len( dirSet ) ) )
 
   # # keep only the first directory when numbered
   dirLong2Short = {}
@@ -74,79 +74,66 @@ def cacheDirectories( directories ):
         else:
           break
       success.update( res['Value'].get( 'Successful', {} ) )
-    gLogger.always( '' )
+    gLogger.always( 'Successfully obtained BK metadata for %d directories' % len( success ) )
     for lfn in dirSet - set( bkPathForLfn ):
       longDir = dirShort2Long[dirLong2Short[lfn]]
       metadata = success.get( longDir, [{}] )[0]
       if metadata:
         if metadata.get( 'VisibilityFlag', 'Y' ) == 'Y':
-          bkPathForLfn[lfn] = BKQuery( metadata ).makePath()
-          processingPass[bkPathForLfn[lfn]] = metadata['ProcessingPass']
-          prodForBKPath.setdefault( bkPathForLfn[lfn], set() ).add( metadata['Production'] )
+          bkPath = BKQuery( metadata ).makePath()
+          processingPass[bkPath] = metadata['ProcessingPass']
+          prodForBKPath.setdefault( bkPath, set() ).add( metadata['Production'] )
         else:
           invisible.add( lfn )
       else:
-        bkPathForLfn[lfn] = "Unknown-" + lfn
-        prodForBKPath.setdefault( bkPathForLfn[lfn], set() )
-  gLogger.always( 'Obtained BK path' )
+        bkPath = "Unknown-" + lfn
+        prodForBKPath.setdefault( bkPath, set() )
+      if lfn not in invisible:
+        bkPathForLfn[lfn] = bkPath
+        bkPathUsage.setdefault( bkPath, {} ).setdefault( 'LFN', [0, 0] )
   if invisible:
-    gLogger.always( 'The following paths are ignored as invisible:\n', '\n'.join( sorted( invisible ) ) )
+    gLogger.always( 'The following %d paths are ignored as invisible:\n' % len( invisible ), '\n'.join( sorted( invisible ) ) )
   dirSet -= invisible
 
-  # # Get the creation date
-  # for lfns in breakListIntoChunks( dirLong2Short.values(), chunkSize ):
-  #  while True:
-  #    res = fcClient.getDirectoryMetadata( lfns )
-  #    if not res['OK']:
-  #      gLogger.fatal( 'Error getting directory metadata', res['Message'] )
-  #    else:
-  #      break
-  #  success = res['Value']['Successful']
-  #  for lfn in dirSet:
-  #    shortDir = dirLong2Short[lfn]
-  #    if shortDir in success:
-  #      bkPath = bkPathForLfn[lfn]
-  #      ct = creationTime.get( bkPath, datetime.now() )
-  #      creationTime[bkPath] = min( success[shortDir]['CreationDate'], ct )
+  if dirSet:
+    missingSU = set( [dirLong2Short[lfn] for lfn in dirSet] )
+    gLogger.always( 'Get LFN Storage Usage for %d directories' % len( missingSU ) )
+    for lfn in missingSU:
+      # LFN usage
+      while True:
+        res = suClient.getSummary( lfn )
+        if not res['OK']:
+          gLogger.fatal( 'Error getting LFN storage usage %s' % lfn, res['Message'] )
+        else:
+          break
+      bkPath = bkPathForLfn[dirShort2Long[lfn]]
+      type = 'LFN'
+      bkPathUsage.setdefault( bkPath, {} ).setdefault( type, [0, 0] )
+      bkPathUsage[bkPath][type][0] += sum( [val.get( 'Files', 0 ) for val in res['Value'].values()] )
+      bkPathUsage[bkPath][type][1] += sum( [val.get( 'Size', 0 ) for val in res['Value'].values()] )
 
-  missingSU = set( [dirLong2Short[lfn] for lfn in dirSet] )
-  gLogger.always( 'Get LFN Storage Usage for %d directories' % len( missingSU ) )
-  for lfn in missingSU:
-    # LFN usage
-    while True:
-      res = suClient.getSummary( lfn )
-      if not res['OK']:
-        gLogger.fatal( 'Error getting LFN storage usage %s' % lfn, res['Message'] )
-      else:
-        break
-    bkPath = bkPathForLfn[dirShort2Long[lfn]]
-    type = 'LFN'
-    bkPathUsage.setdefault( bkPath, {} ).setdefault( type, [0, 0] )
-    bkPathUsage[bkPath][type][0] += sum( [val.get( 'Files', 0 ) for val in res['Value'].values()] )
-    bkPathUsage[bkPath][type][1] += sum( [val.get( 'Size', 0 ) for val in res['Value'].values()] )
-
-  # # get the PFN usage per storage type
-  gLogger.always( 'Check storage type and PFN usage for %d directories' % len( dirSet ) )
-  for lfn in dirSet:
-    while True:
-      res = suClient.getDirectorySummaryPerSE( lfn )
-      if not res['OK']:
-        gLogger.fatal( 'Error getting storage usage per SE %s' % lfn, res['Message'] )
-      else:
-        break
-    info = physicalDataUsage.setdefault( lfn, {} )
-    for type in storageTypes:
-      # Active type will be recorded in Disk, just a special flag
-      if type != 'LFN' and type not in info:
-        nf = sum( [val['Files'] for se, val in res['Value'].items() if isType( se, type )] )
-        size = sum( [val['Size'] for se, val in res['Value'].items() if isType( se, type )] )
-        info[type] = {'Files':nf, 'Size':size}
-    bkPath = bkPathForLfn[lfn]
-    for type in info:
-      bkPathUsage.setdefault( bkPath, {} ).setdefault( type, [ 0, 0 ] )
-      bkPathUsage[bkPath][type][0] += info[type].get( 'Files', 0 )
-      bkPathUsage[bkPath][type][1] += info[type].get( 'Size', 0 )
-    datasetStorage[storageType( res['Value'] )].add( bkPath )
+    # # get the PFN usage per storage type
+    gLogger.always( 'Check storage type and PFN usage for %d directories' % len( dirSet ) )
+    for lfn in dirSet:
+      while True:
+        res = suClient.getDirectorySummaryPerSE( lfn )
+        if not res['OK']:
+          gLogger.fatal( 'Error getting storage usage per SE %s' % lfn, res['Message'] )
+        else:
+          break
+      info = physicalDataUsage.setdefault( lfn, {} )
+      for type in storageTypes:
+        # Active type will be recorded in Disk, just a special flag
+        if type != 'LFN' and type not in info:
+          nf = sum( [val['Files'] for se, val in res['Value'].items() if isType( se, type )] )
+          size = sum( [val['Size'] for se, val in res['Value'].items() if isType( se, type )] )
+          info[type] = {'Files':nf, 'Size':size}
+      bkPath = bkPathForLfn[lfn]
+      for type in info:
+        bkPathUsage.setdefault( bkPath, {} ).setdefault( type, [ 0, 0 ] )
+        bkPathUsage[bkPath][type][0] += info[type].get( 'Files', 0 )
+        bkPathUsage[bkPath][type][1] += info[type].get( 'Size', 0 )
+      datasetStorage[storageType( res['Value'] )].add( bkPath )
 
   gLogger.always( 'Obtained BK path and storage usage of %d directories in %.1f seconds' % ( len( dirSet ), time.time() - startTime ) )
 
@@ -350,21 +337,23 @@ if __name__ == '__main__':
         # if bkPath == '/LHCb/Collision12/Beam4000GeV-VeloClosed-MagUp/Real Data/Reco14/Stripping20/90000000/DIMUON.DST':
           # print rowId, dirLfn, count, insertTime, bin
 
+    gLogger.always( "\n=============================================================" )
     gLogger.always( "Retrieved %d entries from Popularity table in %.1f seconds" % ( entries, time.time() - stTime ) )
     gLogger.always( 'Found %d datasets used since %d days' % ( len( timeUsage ), since ) )
     counters = {}
-    strangeBKPaths = set( [bkPath for bkPath in timeUsage if not bkPathUsage[bkPath].get( 'LFN', ( 0, 0 ) )[0]] )
+    strangeBKPaths = set( [bkPath for bkPath in timeUsage if not bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )[0]] )
     if strangeBKPaths:
-      gLogger.always( 'Some datasets do not have an LFN count:' )
-      gLogger.always( '\n'.join( ["%s : %s" % ( bkPath, str( bkPathUsage[bkPath] ) ) for bkPath in strangeBKPaths] ) )
+      gLogger.always( '%d used datasets do not have an LFN count:' % len( strangeBKPaths ) )
+      gLogger.always( '\n'.join( ["%s : %s" % ( bkPath, str( bkPathUsage.get( bkPath, {} ) ) ) for bkPath in strangeBKPaths] ) )
+    gLogger.always( '\nDataset usage for %d datasets' % len( timeUsage ) )
     for type in ( 'All', 'LFN' ):
       for i in range( 2 ):
-        counters.setdefault( type, [] ).append( sum( [bkPathUsage[bkPath].get( type, ( 0, 0 ) )[i] for bkPath in timeUsage] ) )
+        counters.setdefault( type, [] ).append( sum( [bkPathUsage.get( bkPath, {} ).get( type, ( 0, 0 ) )[i] for bkPath in timeUsage] ) )
     for bkPath in sorted( timeUsage ):
       if bkPath not in ( datasetStorage['Disk'] | datasetStorage['Archived'] | datasetStorage['Tape'] ):
         datasetStorage[storageType( usedSEs[bkPath] )].add( bkPath )
-      nLfns, lfnSize = bkPathUsage[bkPath].get( 'LFN', ( 0, 0 ) )
-      nPfns, pfnSize = bkPathUsage[bkPath].get( 'All', ( 0, 0 ) )
+      nLfns, lfnSize = bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )
+      nPfns, pfnSize = bkPathUsage.get( bkPath, {} ).get( 'All', ( 0, 0 ) )
       gLogger.always( '%s (%d LFNs, %s), (%d PFNs, %s, %.1f replicas)' % ( bkPath, nLfns, prSize( lfnSize ), nPfns, prSize( pfnSize ), float( nPfns ) / float( nLfns ) if nLfns else 0. ) )
       bins = sorted( timeUsage[bkPath] )
       lastBin = bins[-1]
@@ -379,15 +368,17 @@ if __name__ == '__main__':
     # Consider only unused directories
     unusedDirectories = allDirectoriesSet - usedDirectories
     if unusedDirectories:
-      cacheDirectories( unusedDirectories )
+      gLogger.always( "\n=============================================================" )
+      gLogger.always( '%d directories have not been used' % len( unusedDirectories ) )
       # Remove the used datasets (from other directories)
       unusedBKPaths = set( [bkPathForLfn[lfn] for lfn in unusedDirectories if lfn in bkPathForLfn] ) - set( timeUsage )
       # Remove empty datasets
-      strangeBKPaths = set( [bkPath for bkPath in unusedBKPaths if not bkPathUsage[bkPath].get( 'LFN', ( 0, 0 ) )[0]] )
+      strangeBKPaths = set( [bkPath for bkPath in unusedBKPaths if not bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )[0]] )
       if strangeBKPaths:
-        gLogger.always( 'Some datasets do not have an LFN count:' )
-        gLogger.always( '\n'.join( ["%s : %s" % ( bkPath, str( bkPathUsage[bkPath] ) ) for bkPath in strangeBKPaths] ) )
-      unusedBKPaths = set( [bkPath for bkPath in unusedBKPaths if bkPathUsage[bkPath].get( 'LFN', ( 0, 0 ) )[0]] )
+        gLogger.always( '%d unused datasets do not have an LFN count:' % len( strangeBKPaths ) )
+        gLogger.always( '\n'.join( ["%s : %s" % ( bkPath, str( bkPathUsage.get( bkPath, {} ) ) ) for bkPath in strangeBKPaths] ) )
+      unusedBKPaths = set( [bkPath for bkPath in unusedBKPaths if bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )[0]] )
+
       # In case there are datasets both on tape and disk, priviledge tape
       datasetStorage['Disk'] -= datasetStorage['Tape']
       gLogger.always( "\nThe following %d BK paths were not used since %d days" % ( len( unusedBKPaths ), since ) )
@@ -397,10 +388,10 @@ if __name__ == '__main__':
         counters = {}
         for t in ( 'All', 'LFN' ):
           for i in range( 2 ):
-            counters.setdefault( t, [] ).append( sum( [bkPathUsage[bkPath].get( t, ( 0, 0 ) )[i] for bkPath in unusedPaths] ) )
+            counters.setdefault( t, [] ).append( sum( [bkPathUsage.get( bkPath, {} ).get( t, ( 0, 0 ) )[i] for bkPath in unusedPaths] ) )
         for bkPath in sorted( unusedPaths ):
-          nLfns, lfnSize = bkPathUsage[bkPath].get( 'LFN', ( 0, 0 ) )
-          nPfns, pfnSize = bkPathUsage[bkPath].get( 'All', ( 0, 0 ) )
+          nLfns, lfnSize = bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )
+          nPfns, pfnSize = bkPathUsage.get( bkPath, {} ).get( 'All', ( 0, 0 ) )
           gLogger.always( '\t%s (%d LFNs, %s), (%d PFNs, %s, %.1f replicas)' % ( bkPath, nLfns, prSize( lfnSize ), nPfns, prSize( pfnSize ), float( nPfns ) / float( nLfns ) ) )
         gLogger.always( "\nA total of %d %s LFNs (%s), %d PFNs (%s) were not used" % ( counters['LFN'][0], type, prSize( counters['LFN'][1] ), counters['All'][0], prSize( counters['All'][1] ) ) )
       noBKDirectories = sorted( unusedDirectories - set( bkPathForLfn ) )
@@ -411,6 +402,8 @@ if __name__ == '__main__':
   # Now create a CSV file with all dataset information
   # Name, ProcessingPass, #files, size, SE type, each week's usage (before now)
   csvFile = 'popularity-%ddays.csv' % since
+  gLogger.always( "\n=============================================================" )
+  gLogger.always( 'Creating %s file with %d datasets' % ( csvFile, len( timeUsage ) + len( unusedBKPaths ) ) )
   f = open( csvFile, 'w' )
   title = "Name,Configuration,ProcessingPass,FileType,Type,Creation-%s,NbLFN,LFNSize,NbDisk,DiskSize,NbTape,TapeSize,NbArchived,ArchivedSize,Nb Replicas,Nb ArchReps,Storage,FirstUsage,LastUsage,Now" % binSize
   for bin in range( nbBins ):
@@ -420,7 +413,7 @@ if __name__ == '__main__':
   for bkPath in sorted( timeUsage ) + sorted( unusedBKPaths ):
     if bkPath.startswith( 'Unknown-' ):
       continue
-    info = bkPathUsage[bkPath]
+    info = bkPathUsage.get( bkPath, {} )
     # If there are fewer Archive replicas than LFNs, check if the production is still active
     lfns = info.get( 'LFN', ( 0, 0 ) )[0]
     archives = info.get( 'Archived', ( 0, 0 ) )[0]
