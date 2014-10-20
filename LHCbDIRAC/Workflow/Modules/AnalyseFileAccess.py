@@ -155,7 +155,7 @@ class AnalyseFileAccess( ModuleBase ):
       gDataStoreClient.commit()
 
     except Exception, e:
-      self.log.exception( e )
+      self.log.warning( str( e ) )
 
     finally:
       super( AnalyseFileAccess, self ).finalize( self.version )
