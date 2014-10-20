@@ -5,6 +5,7 @@ Set of functions used by the DMS checking scripts
 __RCSID__ = "$Id: CheckExecutors.py 76721 2014-07-22 08:05:22Z phicharp $"
 
 from DIRAC import gLogger
+from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 def __removeFile( lfns ):
   if type( lfns ) == type( {} ):
@@ -302,7 +303,6 @@ def doCheckFC2BK( cc, fixIt = False, listAffectedRuns = False ):
       failures = 0
       maxRemove = 100
       import sys
-      from DIRAC.Core.Utilities.List import breakListIntoChunks
       chunkSize = min( maxRemove, max( 1, len( cc.existLFNsNotInBK ) / 2 ) )
       if len( cc.existLFNsNotInBK ) > maxRemove:
         sys.stdout.write( 'Remove by chunks of %d files ' % chunkSize )
@@ -346,6 +346,7 @@ def doCheckBK2FC( cc, checkAll = False, fixIt = False ):
   bk = cc.bkClient
   cc.checkBK2FC( checkAll )
   maxPrint = 20
+  chunkSize = 10000
 
   if checkAll:
     if cc.existLFNsBKRepNo:
@@ -361,11 +362,14 @@ def doCheckBK2FC( cc, checkAll = False, fixIt = False ):
       gLogger.error( comment )
       if fixIt:
         gLogger.always( "Setting the replica flag..." )
-        res = bk.addFiles( cc.existLFNsBKRepNo )
-        if not res['OK']:
-          gLogger.error( "Something wrong: %s" % res['Message'] )
-        else:
-          gLogger.always( "Successfully set replica flag to %d files" % nFiles )
+        nFiles = 0
+        for lfnChunk in breakListIntoChunks( cc.existLFNsBKRepNo, chunkSize ):
+          res = bk.addFiles( lfnChunk )
+          if not res['OK']:
+            gLogger.error( "Something wrong: %s" % res['Message'] )
+          else:
+            nFiles += len( lfnChunk )
+        gLogger.always( "Successfully set replica flag to %d files" % nFiles )
       else:
         gLogger.always( "Use option --FixIt to fix it (set the replica flag)" )
       gLogger.always( '<<<<' )
@@ -383,11 +387,14 @@ def doCheckBK2FC( cc, checkAll = False, fixIt = False ):
       comment = ' (first %d LFNs) : %s' % ( maxPrint, str( cc.absentLFNsBKRepYes[:maxPrint] ) )
     if fixIt:
       gLogger.always( "Removing the replica flag to %d files: %s" % ( nFiles, comment ) )
-      res = bk.removeFiles( cc.absentLFNsBKRepYes )
-      if not res['OK']:
-        gLogger.error( "Something wrong: %s" % res['Message'] )
-      else:
-        gLogger.always( "Successfully removed replica flag to %d files" % nFiles )
+      nFiles = 0
+      for lfnChunk in breakListIntoChunks( cc.absentLFNsBKRepYes, chunkSize ):
+        res = bk.removeFiles( lfnChunk )
+        if not res['OK']:
+          gLogger.error( "Something wrong:", res['Message'] )
+        else:
+          nFiles += len( lfnChunk )
+      gLogger.always( "Successfully removed replica flag to %d files" % nFiles )
     else:
       gLogger.error( "%d files have replicaFlag = Yes but are not in FC: %s" % ( nFiles, comment ) )
       gLogger.always( "Use option --FixIt to fix it (remove the replica flag)" )
