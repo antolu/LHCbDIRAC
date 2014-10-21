@@ -24,9 +24,7 @@ class RegressionTestCase( IntegrationTest ):
 
     exeScriptLoc = find_all( 'exe-script.py', '.', 'Regression' )[0]
     helloWorldLoc = find_all( 'helloWorld.py', '.', 'Regression' )[0]
-#     pilotCFGLoc = find_all( 'pilot.cfg', '.' )[0]
 
-#     shutil.copyfile( pilotCFGLoc, './pilot.cfg' )
     shutil.copyfile( exeScriptLoc, './exe-script.py' )
     shutil.copyfile( helloWorldLoc, './helloWorld.py' )
 

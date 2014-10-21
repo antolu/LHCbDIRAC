@@ -63,7 +63,7 @@ from LHCbDIRAC.Workflow.Modules.FileUsage import FileUsage
 </ModuleDefinition>
 <ModuleDefinition>
 <body><![CDATA[
-from DIRAC.Core.Workflow.Modules.Script import Script
+from DIRAC.Workflow.Modules.Script import Script
 ]]></body>
 <origin></origin>
 <description><![CDATA[ The Script class provides a simple way for users to specify an executable
