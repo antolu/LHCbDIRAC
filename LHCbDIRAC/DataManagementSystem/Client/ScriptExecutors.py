@@ -419,13 +419,24 @@ def getAccessURL( lfnList, seList, protocol = None ):
     if lfns:
       res = StorageElement( se ).getAccessUrl( lfns, protocol = protocol )
       success = res.get( 'Value', {} ).get( 'Successful' )
-      if res['OK'] and success:
-        for lfn in set( success ) & mdfFiles:
-          success[lfn] = 'mdf:' + success[lfn]
-        notFoundLfns -= set( success )
-        results['Value']['Successful'].setdefault( se, {} ).update( success )
+      failed = res.get( 'Value', {} ).get( 'Failed' )
+      if res['OK']:
+        if success:
+          for lfn in set( success ) & mdfFiles:
+            success[lfn] = 'mdf:' + success[lfn]
+          notFoundLfns -= set( success )
+          results['Value']['Successful'].setdefault( se, {} ).update( success )
+        results['Value']['Failed'].setdefault( se, {} ).update( failed )
+      else:
+        results['Value']['Failed'].setdefault( se, {} ).update( dict.fromkeys( lfns, res['Message'] ) )
   gLogger.setLevel( level )
 
+  for se, failed in results['Value']['Failed'].items():
+    for lfn in failed:
+      if lfn not in notFoundLfns:
+        results['Value']['Failed'][se].pop( lfn )
+      else:
+        notFoundLfns.remove( lfn )
   if notFoundLfns:
     results['Value']['Failed'] = dict.fromkeys( sorted( notFoundLfns ), 'File not found in required SEs' )
 
