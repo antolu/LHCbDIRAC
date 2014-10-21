@@ -537,7 +537,7 @@ function diracProxies(){
 function downloadProxy(){
 	echo '[downloadProxy]'
 	
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-proxy-download.py $DEBUG
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-proxy-download.py -o /DIRAC/Security/UseServerCertificate=True pilot.cfg $DEBUG
 }
 
 
