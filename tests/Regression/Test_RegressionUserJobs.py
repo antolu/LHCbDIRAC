@@ -2,7 +2,7 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-import unittest
+import unittest, os, shutil
 
 from TestDIRAC.Utilities.utils import find_all
 
@@ -22,12 +22,21 @@ class RegressionTestCase( IntegrationTest ):
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
 
-    helloWorldLocation = find_all( 'helloWorld.xml', '.', 'Regression' )[0]
-    self.j_u_hello = LHCbJob( helloWorldLocation )
-    helloWorldFewMoreLocation = find_all( 'helloWorld.xml', '.', 'Regression' )[0]
-    self.j_u_helloPlus = LHCbJob( helloWorldFewMoreLocation )
+    exeScriptLoc = find_all( 'exe-script.py', '.', 'Regression' )[0]
+    shutil.copyfile( exeScriptLoc, './exe-script.py' )
+    helloWorldLoc = find_all( 'helloWorld.py', '.', 'Regression' )[0]
+    shutil.copyfile( helloWorldLoc, './helloWorld.py' )
+
+    helloWorldXMLLocation = find_all( 'helloWorld.xml', '.', 'Regression' )[0]
+    self.j_u_hello = LHCbJob( helloWorldXMLLocation )
+    helloWorldXMLFewMoreLocation = find_all( 'helloWorld.xml', '.', 'Regression' )[0]
+    self.j_u_helloPlus = LHCbJob( helloWorldXMLFewMoreLocation )
 #    self.j_u_collision12 = LHCbJob( 'collision12.xml' )
 #    self.j_u_rootMerger = LHCbJob( 'rootMerger.xml' )
+
+  def tearDown( self ):
+    os.remove( 'exe-script.py' )
+    os.remove( 'helloWorld.py' )
 
 class HelloWorldSuccess( RegressionTestCase ):
   def test_execute( self ):
