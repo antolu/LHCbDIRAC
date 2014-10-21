@@ -911,12 +911,14 @@ function fullInstall(){
 	#Now all the rest
 
 	#DBs (not looking for FrameworkSystem ones, already installed)
-	findDatabases 'exclude' 'FrameworkSystem'
+	#findDatabases 'exclude' 'FrameworkSystem'
+	findDatabases 'TransformationSystem' 
 	dropDBs
 	diracDBs
 	
 	#services (not looking for FrameworkSystem already installed)
-	findServices 'exclude' 'FrameworkSystem'
+	#findServices 'exclude' 'FrameworkSystem'
+	findServices 'TransformationSystem'
 	diracServices
 
 }
