@@ -18,6 +18,7 @@
 <Parameter name="LogLevel" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified logging level"><value><![CDATA[verbose]]></value></Parameter>
 <Parameter name="ParametricInputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input data value"><value><![CDATA[]]></value></Parameter>
 <Parameter name="ParametricInputSandbox" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input sandbox value"><value><![CDATA[]]></value></Parameter>
+<Parameter name="InputSandbox" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Input sandbox file list"><value><![CDATA[pilot.cfg]]></value></Parameter>
 <Parameter name="ParametricParameters" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input parameters value"><value><![CDATA[]]></value></Parameter>
 <Parameter name="OutputSandbox" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Output sandbox file list"><value><![CDATA[std.out;std.err]]></value></Parameter>
 <Parameter name="MaxCPUTime" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="CPU time in secs"><value><![CDATA[1000000]]></value></Parameter>
