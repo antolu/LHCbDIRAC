@@ -29,8 +29,11 @@ class RegressionTestCase( IntegrationTest ):
 
     helloWorldXMLLocation = find_all( 'helloWorld.xml', '.', 'Regression' )[0]
     self.j_u_hello = LHCbJob( helloWorldXMLLocation )
+    self.j_u_hello.setConfigArgs( 'pilot.cfg' )
+
     helloWorldXMLFewMoreLocation = find_all( 'helloWorld.xml', '.', 'Regression' )[0]
     self.j_u_helloPlus = LHCbJob( helloWorldXMLFewMoreLocation )
+    self.j_u_helloPlus.setConfigArgs( 'pilot.cfg' )
 #    self.j_u_collision12 = LHCbJob( 'collision12.xml' )
 #    self.j_u_rootMerger = LHCbJob( 'rootMerger.xml' )
 
