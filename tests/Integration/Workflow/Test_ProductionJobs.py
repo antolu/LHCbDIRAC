@@ -3,6 +3,8 @@ parseCommandLine()
 
 import unittest
 
+from TestDIRAC.Utilities.utils import find_all
+
 from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
 from LHCbTestDirac.Utilities.utils import getOutput
 
