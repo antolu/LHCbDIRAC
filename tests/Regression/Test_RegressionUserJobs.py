@@ -1,7 +1,10 @@
+#!/usr/bin/env python
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
 import unittest
+
+from TestDIRAC.Utilities.utils import find_all
 
 from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
 
@@ -11,16 +14,18 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 
 
 class RegressionTestCase( IntegrationTest ):
-  ''' Base class for the Regression test cases
-  '''
+  """ Base class for the Regression test cases
+  """
   def setUp( self ):
     super( IntegrationTest, self ).setUp()
 
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
 
-    self.j_u_hello = LHCbJob( 'helloWorld.xml' )
-    self.j_u_helloPlus = LHCbJob( 'helloWorld-FewMoreStuff.xml' )
+    helloWorldLocation = find_all( 'helloWorld.xml', '.', 'Regression' )[0]
+    self.j_u_hello = LHCbJob( helloWorldLocation )
+    helloWorldFewMoreLocation = find_all( 'helloWorld.xml', '.', 'Regression' )[0]
+    self.j_u_helloPlus = LHCbJob( helloWorldFewMoreLocation )
 #    self.j_u_collision12 = LHCbJob( 'collision12.xml' )
 #    self.j_u_rootMerger = LHCbJob( 'rootMerger.xml' )
 
