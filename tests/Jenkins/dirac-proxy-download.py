@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-""" Drop DBs from the MySQL server
+""" Get a proxy from the proxy manager
 """
 
 from DIRAC.Core.Base import Script
