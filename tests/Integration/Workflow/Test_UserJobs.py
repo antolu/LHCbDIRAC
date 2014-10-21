@@ -72,27 +72,27 @@ class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
     del os.environ['JOBID']
 
 class GaudirunSuccess( UserJobTestCase ):
-#   def test_mc( self ):
-#
-#     self.lhcbJob.setName( "gaudirun-test" )
-#     self.lhcbJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'Integration' )[0],
-#                                    find_all( 'pilot.cfg', '.' )[0]] )
-#
-#     optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;"
-#     optDec = "$DECFILESROOT/options/11102400.py;"
-#     optPythia = "$LBPYTHIA8ROOT/options/Pythia8.py;"
-#     optOpts = " $APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
-#     optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
-#     optPConf = "prodConf_Gauss_00012345_00067890_1.py"
-#     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-#
-#     self.lhcbJob.setApplication( 'Gauss', 'v45r3', options,
-#                             extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
-#                             events = '3' )
-#     self.lhcbJob.setDIRACPlatform()
-#
-#     res = self.lhcbJob.runLocal( self.dLHCb )
-#     self.assertTrue( res['OK'] )
+  def test_mc( self ):
+
+    self.lhcbJob.setName( "gaudirun-test" )
+    self.lhcbJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'Integration' )[0],
+                                   find_all( 'pilot.cfg', '.' )[0]] )
+
+    optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;"
+    optDec = "$DECFILESROOT/options/11102400.py;"
+    optPythia = "$LBPYTHIA8ROOT/options/Pythia8.py;"
+    optOpts = " $APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
+    optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
+    optPConf = "prodConf_Gauss_00012345_00067890_1.py"
+    options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
+
+    self.lhcbJob.setApplication( 'Gauss', 'v45r3', options,
+                            extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
+                            events = '3' )
+    self.lhcbJob.setDIRACPlatform()
+
+    res = self.lhcbJob.runLocal( self.dLHCb )
+    self.assertTrue( res['OK'] )
 
   def test_boole( self ):
 
@@ -220,14 +220,14 @@ def createJob():
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( UserJobTestCase )
-#   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
-#   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessWithJobID ) )
-#   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutput ) )
-# #   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutputWithJobID ) ) #not suitable for Jenkins
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessWithJobID ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutput ) )
+#   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( HelloWorldSuccessOutputWithJobID ) ) #not suitable for Jenkins
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudirunSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiScriptSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
-#   suiteFailures = unittest.defaultTestLoader.loadTestsFromTestCase( FailingUserJobTestCase )
-#   suiteFailures.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UserJobsFailingLocalSuccess ) )
-#   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suiteFailures )
+  suiteFailures = unittest.defaultTestLoader.loadTestsFromTestCase( FailingUserJobTestCase )
+  suiteFailures.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UserJobsFailingLocalSuccess ) )
+  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suiteFailures )
