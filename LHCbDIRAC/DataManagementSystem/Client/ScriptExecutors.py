@@ -426,7 +426,8 @@ def getAccessURL( lfnList, seList, protocol = None ):
             success[lfn] = 'mdf:' + success[lfn]
           notFoundLfns -= set( success )
           results['Value']['Successful'].setdefault( se, {} ).update( success )
-        results['Value']['Failed'].setdefault( se, {} ).update( failed )
+        if failed:
+          results['Value']['Failed'].setdefault( se, {} ).update( failed )
       else:
         results['Value']['Failed'].setdefault( se, {} ).update( dict.fromkeys( lfns, res['Message'] ) )
   gLogger.setLevel( level )
