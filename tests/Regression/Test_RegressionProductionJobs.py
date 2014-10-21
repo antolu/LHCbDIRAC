@@ -2,10 +2,12 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
+import unittest, os, shutil
+
+from TestDIRAC.Utilities.utils import find_all
+
 from LHCbTestDirac.Utilities.utils import getOutput
 from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
-
-import unittest
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
@@ -20,12 +22,6 @@ class RegressionTestCase( IntegrationTest ):
 
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
-
-    exeScriptLoc = find_all( 'exe-script.py', '.', 'Regression' )[0]
-    helloWorldLoc = find_all( 'helloWorld.py', '.', 'Regression' )[0]
-
-    shutil.copyfile( exeScriptLoc, './exe-script.py' )
-    shutil.copyfile( helloWorldLoc, './helloWorld.py' )
 
 #    self.j_mc_20160 = LHCbJob( '20160.xml' )
     location31202 = find_all( '31202.xml', '.', 'Regression' )[0]
@@ -60,6 +56,9 @@ class RegressionTestCase( IntegrationTest ):
     location31057 = find_all( '31057.xml', '.', 'Regression' )[0]
     self.j_swimming_31057 = LHCbJob( location31057 )
     self.j_swimming_31057.setConfigArgs( 'pilot.cfg' )
+
+#   def tearDown( self ):
+#     pass
 
 class MCSuccess( RegressionTestCase ):
   def test_execute( self ):
