@@ -141,7 +141,8 @@ class PopularityAgent( AgentModule ):
           if not res[ 'OK' ]:
             self.log.error( "Error retrieving directory meta-data %s " % res['Message'] )
             continue
-          if not res['Value'] or not res['Value'].get( dirLfn ):
+          dirMetadata = res['Value'].get( dirLfn )
+          if not res['Value'] or not dirMetadata:
             self.log.info( "Cache missed: query BK to retrieve '%s' metadata and store  cache" % dirList )
             res = self.__bkClient.getDirectoryMetadata( dirList )
             if not res[ 'OK' ]:
@@ -174,9 +175,10 @@ class PopularityAgent( AgentModule ):
             self.log.info( "Directory %s was cached in DirMetadata table" % dirLfn )
             try:
               __did, configName, configVersion, conditions, \
-                processingPass, eventType, fileType, production = res['Value'][dirLfn]
+                processingPass, eventType, fileType, production = dirMetadata[0:8]
             except:
-              self.log.error( "Error decoding directory cached information", res['Value'][dirLfn] )
+              self.log.error( "Error decoding directory cached information", dirMetadata )
+              continue
           self.cacheMetadata[dirLfn] = ( configName, configVersion, conditions, processingPass, eventType, fileType, production )
         else:
           configName, configVersion, conditions, processingPass, eventType, fileType, production = metaForDir
