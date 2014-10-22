@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-''' Gets a list of files from BK and checks if they have common descendants
+''' Gets a list of files from BK and checks if they have common ancestors
 '''
 
 
