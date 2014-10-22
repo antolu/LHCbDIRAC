@@ -176,8 +176,6 @@ dirac_externals(){
     . bashrc
 	
 	dirac_testing_externals
-    
-    cd -
   )
   
 }
@@ -199,7 +197,9 @@ dirac_testing_externals(){
     wget http://download.logilab.org/pub/common/logilab-common-0.62.1.tar.gz
     tar xfv logilab-common-0.62.1.tar.gz
     cd logilab-common-0.62.1
-    python setup.py install
+	python setup.py install
+
+	cd -
 }
 
 
