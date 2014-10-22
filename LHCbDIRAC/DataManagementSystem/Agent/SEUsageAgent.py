@@ -1147,8 +1147,8 @@ class SEUsageAgent( AgentModule ):
     if inputFilesDir[-1:] != '/':
       inputFilesDir = inputFilesDir + '/'
     inputFile = os.listdir( inputFilesDir )
-    if len( inputFile ) > 1:
-      self.log.error( "For this parser, there should be only one file. Found these files: %s " % inputFile )
+    if len( inputFile ) != 1:
+      self.log.error( "For this parser, there should be one and only one file. Found these files: %s " % inputFile )
       return S_ERROR()
 
     p1FilesDict = { 'LHCb_USER': {'fileName': inputFilesDir + 'LHCb_USER.txt'},
