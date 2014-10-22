@@ -41,9 +41,9 @@ class RegressionTestCase( IntegrationTest ):
     self.j_stripp_31017 = LHCbJob( location31017 )
     self.j_stripp_31017.setConfigArgs( 'pilot.cfg' )
 
-    location20752 = find_all( '20752.xml', '.', 'Regression' )[0]
-    self.j_merge_20752 = LHCbJob( location20752 )
-    self.j_merge_20752.setConfigArgs( 'pilot.cfg' )
+    location40464 = find_all( '40464.xml', '.', 'Regression' )[0]
+    self.j_merge_40464 = LHCbJob( location40464 )
+    self.j_merge_40464.setConfigArgs( 'pilot.cfg' )
 
     location21211 = find_all( '21211.xml', '.', 'Regression' )[0]
     self.j_merge_21211 = LHCbJob( location21211 )
@@ -96,7 +96,7 @@ class StrippSuccess( RegressionTestCase ):
 
 class MergeSuccess( RegressionTestCase ):
   def test_execute( self ):
-    res = self.j_merge_20752.runLocal( self.diracLHCb, self.bkkClient )
+    res = self.j_merge_40464.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
     for found, expected in getOutput( 'Merge' ):
