@@ -967,10 +967,11 @@ function fullPilot(){
 	#Adding the LocalSE, for the subsequent tests
 	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O pilot.cfg pilot.cfg $DEBUG
 	
+	#be sure we only have pilot.cfg
+	mv $WORKSPACE/etc/dirac.cfg $WORKSPACE/etc/dirac.cfg-not-here
+	
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
-	
-	#should we remove the created etc/dirac.cfg?
 }
 
 
