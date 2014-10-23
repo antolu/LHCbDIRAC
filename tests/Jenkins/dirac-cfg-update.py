@@ -10,7 +10,7 @@ import os
 from DIRAC.Core.Utilities.CFG import CFG
 
 localCfg = CFG()
-localConfigFile = os.path.join( rootPath, 'pilot.cfg' )
+localConfigFile = os.path.join( '.', 'pilot.cfg' )
 localCfg.loadFromFile( localConfigFile )
 if not localCfg.isSection( '/LocalSite' ):
   localCfg.createNewSection( '/LocalSite' )
