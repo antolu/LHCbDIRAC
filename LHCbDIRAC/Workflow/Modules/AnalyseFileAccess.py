@@ -4,21 +4,15 @@
 
 __RCSID__ = "$Id: AnalyseXMLSummary.py 76848 2014-07-25 10:16:44Z fstagni $"
 
-import os
-
-from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC import S_OK, gLogger
 
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.Resources.Catalog.PoolXMLCatalog import PoolXMLCatalog
 from DIRAC.AccountingSystem.Client.Types.DataOperation import DataOperation
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 
-
-
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
-
-
 
 class AnalyseFileAccess( ModuleBase ):
   """ Analyzing the access with xroot
@@ -74,7 +68,6 @@ class AnalyseFileAccess( ModuleBase ):
 
       self._resolveInputVariables()
 
-
       self.log.info( "Analyzing root access from %s and %s" % ( self.XMLSummary, self.poolXMLCatName ) )
 
       pfn_lfn = {}
@@ -88,11 +81,10 @@ class AnalyseFileAccess( ModuleBase ):
         lfn = pFile.lfns[0] # there can be only one
         lfn_guid[lfn] = guid
         self.lfn_pfn[lfn] = []
-        for pfn, ftype, se in pFile.pfns:
+        for pfn, _ftype, se in pFile.pfns:
           pfn_lfn[pfn] = lfn
           self.pfn_se[pfn] = se
           self.lfn_pfn[lfn].append(pfn)
-
 
       for inputFile, status in self.XMLSummary_o.inputStatus:
 
@@ -111,7 +103,6 @@ class AnalyseFileAccess( ModuleBase ):
         else:
           # intermediate status, think of it...
           pass
-
 
       # The lfn in successful and not in lfn_pfn_failed succeeded immediately
       immediately_successful = successful_lfn - set( lfn_pfn_fail )
@@ -208,9 +199,5 @@ class AnalyseFileAccess( ModuleBase ):
     pfn = pfns[pfnIndex]
 
     return pfn
-
-
-
-
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
