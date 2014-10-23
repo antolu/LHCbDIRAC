@@ -23,10 +23,13 @@ class RegressionTestCase( IntegrationTest ):
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
 
-#    self.j_mc_20160 = LHCbJob( '20160.xml' )
-    location31202 = find_all( '31202.xml', '.', 'Regression' )[0]
-    self.j_mc_31202 = LHCbJob( location31202 )
-    self.j_mc_31202.setConfigArgs( 'pilot.cfg' )
+    location40651 = find_all( '40651.xml', '.', 'Regression' )[0]
+    self.j_mc_40651 = LHCbJob( location40651 )
+    self.j_mc_40651.setConfigArgs( 'pilot.cfg' )
+
+    location40652 = find_all( '40652.xml', '.', 'Regression' )[0]
+    self.j_mc_40652 = LHCbJob( location40652 )
+    self.j_mc_40652.setConfigArgs( 'pilot.cfg' )
 
     location20194 = find_all( '20194.xml', '.', 'Regression' )[0]
     self.j_reco_20194 = LHCbJob()
@@ -62,12 +65,19 @@ class RegressionTestCase( IntegrationTest ):
 
 class MCSuccess( RegressionTestCase ):
   def test_execute( self ):
-#    res = self.j_mc_20160.runLocal( self.diracLHCb, self.bkkClient )
-    res = self.j_mc_31202.runLocal( self.diracLHCb, self.bkkClient )
+    res = self.j_mc_40651.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
     for found, expected in getOutput( 'MC' ):
       self.assertEqual( found, expected )
+
+class MCReconstructionSuccess( RegressionTestCase ):
+  def test_execute( self ):
+    res = self.j_mc_40652.runLocal( self.diracLHCb, self.bkkClient )
+    self.assertTrue( res['OK'] )
+
+#     for found, expected in getOutput( 'MC' ):
+#       self.assertEqual( found, expected )
 
 class RecoSuccess( RegressionTestCase ):
   def test_execute( self ):
