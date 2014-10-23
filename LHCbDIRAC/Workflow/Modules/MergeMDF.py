@@ -61,7 +61,7 @@ class MergeMDF( ModuleBase ):
 
       logLines = ['#' * len( self.version ), self.version, '#' * len( self.version )]
 
-      localInputs = [str( poolCat.getPfnsByLfn( x )['Replicas']['Uknown'] ) for x in self.stepInputData]
+      localInputs = [str( poolCat.getPfnsByLfn( x )['Replicas']['Unknown'] ) for x in self.stepInputData]
       inputs = ' '.join( localInputs )
       cmd = 'cat %s > %s' % ( inputs, self.outputFilePrefix + '.' + stepOutputTypes[0] )
       logLines.append( '\nExecuting merge operation...' )
