@@ -591,13 +591,14 @@ class ProductionRequest( object ):
     else:
       self.CPUTimeAvg = cpuTimeAvg
 
-    try:
-      self.CPUNormalizationFactorAvg = getCPUNormalizationFactorAvg()
-    except RuntimeError:
-      self.logger.info( 'Could not get CPUNormalizationFactorAvg, defaulting to %d' % self.CPUNormalizationFactorAvg )
+    if prodType.lower() == 'mcsimulation':
+      try:
+        self.CPUNormalizationFactorAvg = getCPUNormalizationFactorAvg()
+      except RuntimeError:
+        self.logger.info( 'Could not get CPUNormalizationFactorAvg, defaulting to %d' % self.CPUNormalizationFactorAvg )
 
-    max_e = getEventsToProduce( cpue, self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
-    prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce (Gauss only)' )
+      max_e = getEventsToProduce( cpue, self.CPUTimeAvg, self.CPUNormalizationFactorAvg )
+      prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce (Gauss)' )
 
     prod.setParameter( 'multicore', 'string', multicore, 'Flag for enabling gaudi parallel' )
     prod.prodGroup = self.prodGroup
