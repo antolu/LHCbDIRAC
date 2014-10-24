@@ -112,23 +112,26 @@ class UploadOutputData( ModuleBase ):
       # Unfortunately we depend on the file names to order the BK records
       bkFiles.sort()
       self.log.info( "The following BK records will be sent: %s" % ( ', '.join( bkFiles ) ) )
-      for bkFile in bkFiles:
-        fopen = open( bkFile, 'r' )
-        bkXML = fopen.read()
-        fopen.close()
-        self.log.info( "Sending BK record:\n%s" % ( bkXML ) )
-        result = self.bkClient.sendXMLBookkeepingReport( bkXML )
-        self.log.verbose( result )
-        if result['OK']:
-          self.log.info( "Bookkeeping report sent for %s" % bkFile )
-        else:
-          self.log.error( "Could not send Bookkeeping XML file to server: %s" % result['Message'] )
-          self.log.info( "Preparing DISET request for", bkFile )
-          bkDISETReq = Operation()
-          bkDISETReq.Type = 'ForwardDISET'
-          bkDISETReq.Arguments = DEncode.encode( result['rpcStub'] )
-          self.request.addOperation( bkDISETReq )
-          self.workflow_commons['Request'] = self.request  # update each time, just in case
+      if self._enableModule():
+        for bkFile in bkFiles:
+          fopen = open( bkFile, 'r' )
+          bkXML = fopen.read()
+          fopen.close()
+          self.log.info( "Sending BK record:\n%s" % ( bkXML ) )
+          result = self.bkClient.sendXMLBookkeepingReport( bkXML )
+          self.log.verbose( result )
+          if result['OK']:
+            self.log.info( "Bookkeeping report sent for %s" % bkFile )
+          else:
+            self.log.error( "Could not send Bookkeeping XML file to server: %s" % result['Message'] )
+            self.log.info( "Preparing DISET request for", bkFile )
+            bkDISETReq = Operation()
+            bkDISETReq.Type = 'ForwardDISET'
+            bkDISETReq.Arguments = DEncode.encode( result['rpcStub'] )
+            self.request.addOperation( bkDISETReq )
+            self.workflow_commons['Request'] = self.request  # update each time, just in case
+      else:
+        self.log.info( "Would have attempted to send bk records, but module is disabled" )
 
       # Determine the final list of possible output files for the workflow and all the parameters needed to upload them.
       self.log.verbose( "Getting the list of candidate files" )
