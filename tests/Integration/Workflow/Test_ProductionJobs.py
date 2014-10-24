@@ -195,7 +195,7 @@ class RecoSuccess( ProductionJobTestCase ):
     prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
-    prod.setConfigArgs( 'pilot.cfg' )
+    prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
@@ -218,7 +218,7 @@ class RecoSuccessMultiCore( ProductionJobTestCase ):
     prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
-    prod.setConfigArgs( 'pilot.cfg' )
+    prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
@@ -250,7 +250,7 @@ class StrippSuccess( ProductionJobTestCase ):
                                                                 'SEMILEPTONIC.DST': 'Tier1-BUFFER'},
                                      0, 100, inputDataPolicy = 'protocol', inputDataList = lfns, events = 500 )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
-    prod.setConfigArgs( 'pilot.cfg' )
+    prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
@@ -274,7 +274,7 @@ class MergeSuccess( ProductionJobTestCase ):
     prod = self.pr._buildProduction( 'Merge', stepsInProd, {'FMDST': 'Tier1_MC-DST'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
-    prod.setConfigArgs( 'pilot.cfg' )
+    prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
@@ -315,7 +315,7 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
                                                             },
                                     0, 100, inputDataPolicy = 'protocol', inputDataList = lfns )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
-    prod.setConfigArgs( 'pilot.cfg' )
+    prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
@@ -339,7 +339,7 @@ class MergeMDFSuccess( ProductionJobTestCase ):
     prod = self.pr._buildProduction( 'Merge', stepsInProd, {'RAW':'Tier1-BUFFER'}, 0, 100,
                                      inputDataPolicy = 'download', inputDataList = lfns )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
-    prod.setConfigArgs( 'pilot.cfg' )
+    prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
@@ -371,7 +371,7 @@ class SwimmingSuccess( ProductionJobTestCase ):
                                       inputDataPolicy = 'protocol', inputDataList = lfns, events = 10 )
     prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 104262, 'Input Run number' )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
-    prod.setConfigArgs( 'pilot.cfg' )
+    prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
