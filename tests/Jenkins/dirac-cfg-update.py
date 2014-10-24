@@ -14,5 +14,5 @@ localConfigFile = os.path.join( '.', 'pilot.cfg' )
 localCfg.loadFromFile( localConfigFile )
 if not localCfg.isSection( '/LocalSite' ):
   localCfg.createNewSection( '/LocalSite' )
-localCfg.setOption( '/LocalSite/CPUTimeLeft', 10000 )
+localCfg.setOption( '/LocalSite/CPUTimeLeft', 5000 )
 localCfg.writeToFile( localConfigFile )
