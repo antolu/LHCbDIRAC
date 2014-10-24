@@ -1003,7 +1003,7 @@ class LHCbJob( Job ):
 
     if not persistencyType:
 
-      res = bkClient.getFileTypeVersion ( lfns )
+      res = bkClient.getFileTypeVersion( lfns )
       if not res['OK']:
         return res
 
