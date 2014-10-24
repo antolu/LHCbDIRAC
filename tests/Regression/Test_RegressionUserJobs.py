@@ -43,22 +43,22 @@ class RegressionTestCase( IntegrationTest ):
     os.remove( 'helloWorld.py' )
 
 class HelloWorldSuccess( RegressionTestCase ):
-  def test_execute( self ):
+  def test_Regression_User( self ):
     res = self.j_u_hello.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 class HelloWorldPlusSuccess( RegressionTestCase ):
-  def test_execute( self ):
+  def test_Regression_User( self ):
     res = self.j_u_helloPlus.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 # class Collision12Success( RegressionTestCase ):
-#  def test_execute( self ):
+#  def test_Regression_User( self ):
 #    res = self.j_u_collision12.runLocal( self.diracLHCb, self.bkkClient )
 #    self.assertTrue( res['OK'] )
 
 # class RootMergerSuccess( RegressionTestCase ):
-#  def test_execute( self ):
+#  def test_Regression_User( self ):
 #    res = self.j_u_rootMerger.runLocal( self.diracLHCb, self.bkkClient )
 #    self.assertTrue( res['OK'] )
 

@@ -22,7 +22,7 @@ class SAMJobTestCase( IntegrationTest ):
     self.subLogger.debug( self.ce )
 
 class SAMSuccess( SAMJobTestCase ):
-  def test_execute( self ):
+  def test_Integration_SAM( self ):
 
     res = self.diracSAM.submitNewSAMJob( ce = self.ce, runLocal = True )
     self.assertTrue( res['OK'] )

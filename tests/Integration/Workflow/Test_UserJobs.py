@@ -31,7 +31,7 @@ class UserJobTestCase( IntegrationTest ):
     del self.lhcbJob
 
 class HelloWorldSuccess( UserJobTestCase ):
-  def test_execute( self ):
+  def test_Integration_User( self ):
 
     self.lhcbJob.setName( "helloWorld-test" )
     self.lhcbJob.setExecutable( self.exeScriptLocation )
@@ -39,7 +39,7 @@ class HelloWorldSuccess( UserJobTestCase ):
     self.assertTrue( res['OK'] )
 
 class HelloWorldSuccessWithJobID( UserJobTestCase ):
-  def test_execute( self ):
+  def test_Integration_User( self ):
 
     os.environ['JOBID'] = '12345'
 
@@ -51,7 +51,7 @@ class HelloWorldSuccessWithJobID( UserJobTestCase ):
     del os.environ['JOBID']
 
 class HelloWorldSuccessOutput( UserJobTestCase ):
-  def test_execute( self ):
+  def test_Integration_User( self ):
 
     self.lhcbJob.setName( "helloWorld-test" )
     self.lhcbJob.setExecutable( self.exeScriptLocation )
@@ -60,7 +60,7 @@ class HelloWorldSuccessOutput( UserJobTestCase ):
     self.assertTrue( res['OK'] )
 
 class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
-  def test_execute( self ):
+  def test_Integration_User( self ):
 
     os.environ['JOBID'] = '12345'
 
@@ -121,7 +121,7 @@ class GaudirunSuccess( UserJobTestCase ):
 
 # class GaudiScriptSuccess( UserJobTestCase ):
 #   # FIXME: this, doens't work!
-#   def test_execute( self ):
+#   def test_Integration_User( self ):
 #
 #     lhcbJob = LHCbJob()
 #

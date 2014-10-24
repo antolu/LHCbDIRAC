@@ -1,7 +1,7 @@
 import unittest
 from DIRAC import gLogger
 from LHCbTestDirac.Utilities.utils import cleanTestDir
-from DIRAC.DataManagementSystem.Client.ReplicaManager import ReplicaManager
+from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
 class IntegrationTest( unittest.TestCase ):
@@ -24,8 +24,8 @@ class FailingUserJobTestCase( IntegrationTest ):
   def setUp( self ):
     super( IntegrationTest, self ).setUp()
 
-    rm = ReplicaManager()
-    res = rm.removeFile( ['/lhcb/testCfg/testVer/LOG/00012345/0006/00012345_00067890.tar',
+    dm = DataManager()
+    res = dm.removeFile( ['/lhcb/testCfg/testVer/LOG/00012345/0006/00012345_00067890.tar',
                           '/lhcb/testCfg/testVer/SIM/00012345/0006/00012345_00067890_1.sim'],
                         force = True )
     if not res['OK']:
