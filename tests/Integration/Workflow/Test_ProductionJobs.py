@@ -243,6 +243,7 @@ class StrippSuccess( ProductionJobTestCase ):
     prod = self.pr._buildProduction( 'Stripping', stepsInProd, {'BHADRON.MDST': 'Tier1-BUFFER',
                                                                 'BHADRONCOMPLETEEVENT.DST': 'Tier1-BUFFER',
                                                                 'CALIBRATION.DST': 'Tier1-BUFFER',
+                                                                'CHARM.MDST': 'Tier1-BUFFER',
                                                                 'CHARMCOMPLETEEVENT.DST': 'Tier1-BUFFER',
                                                                 'DIMUON.DST': 'Tier1-BUFFER',
                                                                 'EW.DST': 'Tier1-BUFFER',
@@ -259,19 +260,19 @@ class StrippSuccess( ProductionJobTestCase ):
 
 class MergeSuccess( ProductionJobTestCase ):
   def test_Integration_Production( self ):
-    lfns = ['/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000280_1.fmdst',
-            '/lhcb/LHCb/Collision12/FMDST/00020751/0000/00020751_00000357_1.fmdst']
-    # From request 9085
-    stepsInProd = [{'StepId': 17420, 'StepName': 'MergeFMDST', 'ApplicationName': 'LHCb', 'ApplicationVersion': 'v34r2',
-                    'ExtraPackages': 'AppConfig.v3r134', 'ProcessingPass': 'MergeFMDST', 'Visible': 'N', 'Usable': 'Yes',
+    lfns = ['/lhcb/MC/Dev/MCFILTER.LDST/00040719/0000/00040719_00000537_4.MCFilter.ldst',
+            '/lhcb/MC/Dev/MCFILTER.LDST/00040719/0000/00040719_00000068_4.MCFilter.ldst']
+    # From request 24183
+    stepsInProd = [{'StepId': 126966, 'StepName': 'Merging', 'ApplicationName': 'LHCb', 'ApplicationVersion': 'v38r1',
+                    'ExtraPackages': 'AppConfig.v3r202', 'ProcessingPass': 'Merge15', 'Visible': 'N', 'Usable': 'Yes',
                     'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': '',
                     'OptionFiles': '$APPCONFIGOPTS/Merging/CopyDST.py', 'mcTCK': '', 'ExtraOptions': '',
                     'isMulticore': 'N', 'SystemConfig': '',
-                    'fileTypesIn':['FMDST'],
-                    'fileTypesOut':['FMDST']},
+                    'fileTypesIn':['MCFILTER.LDST'],
+                    'fileTypesOut':['MCFILTER.LDST']},
                    ]
 
-    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'FMDST': 'Tier1_MC-DST'}, 0, 100,
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'MCFILTER.LDST': 'Tier1_MC-DST'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
