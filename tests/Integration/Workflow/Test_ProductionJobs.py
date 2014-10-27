@@ -66,7 +66,7 @@ class MCSuccess( ProductionJobTestCase ):
 
     # First create the production object
     prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, {'ALLSTREAMS.DST': 'Tier1_MC-DST'}, 0, 100,
-                                     outputFileMask = 'ALLSTREAMS.DST', cpue = 5000 )
+                                     outputFileMask = 'ALLSTREAMS.DST', cpue = 1300 )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     # Then launch it
@@ -120,7 +120,7 @@ class MCSuccessMultiCore( ProductionJobTestCase ):
 
     # First create the production object
     prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, {'ALLSTREAMS.DST': 'Tier1_MC-DST'}, 0, 100,
-                                     outputFileMask = 'ALLSTREAMS.DST', cpue = 5000 )
+                                     outputFileMask = 'ALLSTREAMS.DST', cpue = 1300 )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     # Then launch it
@@ -160,7 +160,7 @@ class MCSuccess_new( ProductionJobTestCase ):
 
     # First create the production object
     prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, {'DIGI':'Tier1_MC-DST'}, 0, 100,
-                                     outputFileStep = '3', cpue = 5000 )
+                                     outputFileStep = '3', cpue = 1300 )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     # Then launch it
