@@ -73,7 +73,7 @@ class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
     del os.environ['JOBID']
 
 class GaudirunSuccess( UserJobTestCase ):
-  def test_mc( self ):
+  def test_Integration_User_mc( self ):
 
     self.lhcbJob.setName( "gaudirun-test" )
     self.lhcbJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'Integration' )[0],
@@ -95,7 +95,7 @@ class GaudirunSuccess( UserJobTestCase ):
     res = self.lhcbJob.runLocal( self.dLHCb )
     self.assertTrue( res['OK'] )
 
-  def test_boole( self ):
+  def test_Integration_User_boole( self ):
 
     # get a shifter proxy
     setupShifterProxyInEnv( 'ProductionManager' )
@@ -142,7 +142,7 @@ class GaudirunSuccess( UserJobTestCase ):
 
 class UserJobsFailingLocalSuccess( FailingUserJobTestCase ):
 
-  def test_run( self ):
+  def test_Integration_User_Failing( self ):
     print "Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info"
     print "This will generate a local job"
     os.environ['JOBID'] = '12345'
