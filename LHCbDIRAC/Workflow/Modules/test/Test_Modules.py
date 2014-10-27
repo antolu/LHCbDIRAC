@@ -613,9 +613,11 @@ class ModuleBaseSuccess( ModulesTestCase ):
     open( 'bar_2.py', 'w' ).close()
 
     candidateFiles = {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
-                                    'type': 'txt'},
+                                    'type': 'txt',
+                                    'workflowSE': 'SE1'},
                       'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
-                                   'type': 'py'},
+                                   'type': 'py',
+                                   'workflowSE': 'SE2'},
                       }
 
     expectedResult = {'bar_2.py': {'filedict': {'Status': 'Waiting',
@@ -625,6 +627,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
                                                 'ChecksumType': 'ADLER32',
                                                 'Size': 0},
                                    'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
+                                   'workflowSE': 'SE2',
                                    'localpath': os.getcwd() + '/bar_2.py',
                                    'guid': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
                                    'type': 'py'},
@@ -635,6 +638,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
                                                  'ChecksumType': 'ADLER32',
                                                  'Size': 0},
                                     'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
+                                    'workflowSE': 'SE1',
                                     'localpath': os.getcwd() + '/foo_1.txt',
                                     'guid': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
                                     'type': 'txt'}
