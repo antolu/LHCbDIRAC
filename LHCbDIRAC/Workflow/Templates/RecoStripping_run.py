@@ -72,7 +72,10 @@ recoCPU = '{{RecoMaxCPUTime#PROD-1:RECO(Stripp): Max CPU time in secs#1000000}}'
 recoPlugin = '{{RecoPluginType#PROD-1:RECO(Stripp): production plugin name#AtomicRun}}'
 recoFilesPerJob = '{{RecoFilesPerJob#PROD-1:RECO(Stripp): Group size or number of files per job#1}}'
 recoDataSE = '{{RecoDataSE#PROD-1:RECO(Stripp): Output Data Storage Element#Tier1-BUFFER}}'
-recoDataSESpecial = eval( '{{RecoDataSESpecial#PROD-1:RECO(Stripp): Special SE (a dictionary Type:SE)#}}' )
+try:
+  recoDataSESpecial = eval( '{{RecoDataSESpecial#PROD-1:RECO(Stripp): Special SE (a dictionary Type:SE)#}}' )
+except SyntaxError:
+  recoDataSESpecial = {}
 recoType = '{{RecoType#PROD-1:RECO(Stripp): DataReconstruction or DataReprocessing#DataReconstruction}}'
 recoIDPolicy = '{{recoIDPolicy#PROD-1:RECO(Stripp): policy for input data access (download or protocol)#download}}'
 recoMulticoreFlag = '{{recoMulticoreFLag#PROD-1: multicore flag#True}}'
@@ -83,7 +86,10 @@ strippCPU = '{{StrippMaxCPUTime#PROD-2:Stripping: Max CPU time in secs#1000000}}
 strippPlugin = '{{StrippPluginType#PROD-2:Stripping: plugin name#ByRunWithFlush}}'
 strippFilesPerJob = '{{StrippFilesPerJob#PROD-2:Stripping: Group size or number of files per job#2}}'
 strippDataSE = '{{StrippStreamSE#PROD-2:Stripping: output data SE (un-merged streams)#Tier1-BUFFER}}'
-strippDataSESpecial = eval( '{{StrippDataSESpecial#PROD-2:Stripping: Special SE (a dictionary Type:SE)#}}' )
+try:
+  strippDataSESpecial = eval( '{{StrippDataSESpecial#PROD-2:Stripping: Special SE (a dictionary Type:SE)#}}' )
+except SyntaxError:
+  strippDataSESpecial = {}
 strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data access (download or protocol)#download}}'
 strippMulticoreFlag = '{{strippMulticoreFLag#PROD-2: multicore flag#True}}'
 
@@ -93,7 +99,10 @@ mergingCPU = '{{MergeMaxCPUTime#PROD-3:Merging: Max CPU time in secs#300000}}'
 mergingPlugin = '{{MergePlugin#PROD-3:Merging: plugin#ByRunFileTypeSizeWithFlush}}'
 mergingGroupSize = '{{MergeFileSize#PROD-3:Merging: Size (in GB) of the merged files#5}}'
 mergingDataSE = '{{MergeStreamSE#PROD-3:Merging: output data SE (merged streams)#Tier1-DST}}'
-mergingDataSESpecial = eval( '{{MergingDataSESpecial#PROD-3:Merging: Special SE (a dictionary Type:SE)#}}' )
+try:
+  mergingDataSESpecial = eval( '{{MergingDataSESpecial#PROD-3:Merging: Special SE (a dictionary Type:SE)#}}' )
+except SyntaxError:
+  mergingDataSESpecial = {}
 mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access (download or protocol)#download}}'
 mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data flag True/False#True}}'
 mergeMulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
