@@ -190,7 +190,8 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
         # There are no archives, but remove all disk replicas, i.e. removeFile
         filesToRemove.append( lfn )
         continue
-      rep -= archiveSEs
+      if allDisk:
+        rep -= archiveSEs
       if not seList & rep:
         if allDisk:
           errorReasons.setdefault( 'Only ARCHIVE replicas', {} ).setdefault( 'anywhere', [] ).append( lfn )
