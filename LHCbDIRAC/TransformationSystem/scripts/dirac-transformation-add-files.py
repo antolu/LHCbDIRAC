@@ -62,8 +62,7 @@ if __name__ == "__main__":
       gLogger.always( 'Invalid transformation ID' )
       DIRAC.exit( 1 )
   if not requestedLFNs:
-    gLogger.always( 'A list of files must be provided' )
-    Script.showHelp()
+    gLogger.always( 'No files to add' )
     DIRAC.exit( 1 )
 
   res = addFilesToTransformation( transID, requestedLFNs, runInfo )
