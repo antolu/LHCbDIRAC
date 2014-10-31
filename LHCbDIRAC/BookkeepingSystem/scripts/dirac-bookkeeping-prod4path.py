@@ -3,24 +3,21 @@
    Get production numbers given a dataset path
 """
 
-__RCSID__ = "$Id: dirac-bookkeeping-get-stats.py 69357 2013-08-08 13:33:31Z phicharp $"
+__RCSID__ = "$Id: $"
 
-import DIRAC
 from DIRAC.Core.Base import Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 from DIRAC import gLogger
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 def printProds( title, prods ):
-    types = list( set( prods.values() ) )
-    if len( types ) == 1:
-      gLogger.always( '%s (%s): %s' % ( title, types[0], ','.join( [str( prod ) for prod in sorted( prods )] ) ) )
-    else:
-      gLogger.always( '%s: %s' % ','.join( [' %s (%s)' % ( title, prod, prods[prod] ) for prod in sorted( prods )] ) )
+  types = list( set( prods.values() ) )
+  if len( types ) == 1:
+    gLogger.always( '%s (%s): %s' % ( title, types[0], ','.join( [str( prod ) for prod in sorted( prods )] ) ) )
+  else:
+    gLogger.always( '%s' % ','.join( [' %s (%s)' % ( title, prod, prods[prod] ) for prod in sorted( prods )] ) )
 
 def execute():
-  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
-  from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-  bk = BookkeepingClient()
   tr = TransformationClient()
 
   for switch in Script.getUnprocessedSwitches():
