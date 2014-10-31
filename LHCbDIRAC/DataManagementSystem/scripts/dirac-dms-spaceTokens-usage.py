@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-"""
-  Check the space token usage at the site and report the space usage from several sources: File Catalogue, Storage dumps, SRM interface
+"""  Check the space token usage at the site and report the space usage from several sources:
+      File Catalogue, Storage dumps, SRM interface
 """
 
 __RCSID__ = "$Id$"
@@ -16,7 +16,7 @@ Script.registerSwitch( "S:", "Sites=", "  Sites to consider [ALL] (space or comm
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',
                                      '  %s [option|cfgfile] ...' %
-Script.scriptName, ] ) )
+                                     Script.scriptName, ] ) )
 
 
 Script.parseCommandLine( ignoreErrors = False )
@@ -25,7 +25,6 @@ Script.parseCommandLine( ignoreErrors = False )
 import DIRAC
 from DIRAC.ResourceStatusSystem.Utilities               import CSHelpers
 from DIRAC.Core.DISET.RPCClient                         import RPCClient
-from DIRAC.Resources.Storage.StorageElement             import StorageElement
 import time
 storageUsage = RPCClient( 'DataManagement/StorageUsage' )
 
@@ -36,7 +35,8 @@ for switch in Script.getUnprocessedSwitches():
     sites = switch[1].replace( ',', ' ' ).split()
 
 if not sites:
-  sites = ['LCG.CERN.ch' , 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl']
+  sites = ['LCG.CERN.ch' , 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr',
+           'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl', 'LCG.RRCKI.ru']
 
 scaleDict = { 'MB' : 1000 * 1000.0,
               'GB' : 1000 * 1000 * 1000.0,

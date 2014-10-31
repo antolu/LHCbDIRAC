@@ -18,17 +18,17 @@ class RAWIntegrityClient_TestCase( unittest.TestCase ):
     """
 
     # Mock external libraries / modules not interesting for the unit test
-    mock_pathFinder = mock.Mock()
+    mock_pathFinder = mock.MagicMock()
     mock_pathFinder.getServiceURL.return_value = 'cookiesURL'
     self.mock_pathFinder = mock_pathFinder
 
-    mock_RPC = mock.Mock()
+    mock_RPC = mock.MagicMock()
     mock_RPC.addFile.return_value = { 'OK' : True }
 #    mock_RPC.addMigratingReplicas.return_value    = { 'OK' : True }
 #    mock_RPC.removeMigratingFiles.return_value    = { 'OK' : True }
 #    mock_RPC.removeMigratingReplicas.return_value = { 'OK' : True }
 #
-    mock_RPCClient = mock.Mock()
+    mock_RPCClient = mock.MagicMock()
     mock_RPCClient.return_value = mock_RPC
     self.mock_RPCClient = mock_RPCClient
 

@@ -6,7 +6,6 @@
 
 from DIRAC                                     import S_OK, gLogger
 from DIRAC.ConfigurationSystem.Client          import PathFinder
-from DIRAC.Resources.Catalog.FileCatalogueBase import FileCatalogueBase
 from DIRAC.Resources.Utilities.Utils           import checkArgumentFormat
 from DIRAC.Core.Base.Client import Client
 
@@ -14,7 +13,7 @@ __RCSID__ = '$Id$'
 
 class RAWIntegrityClient( Client ):
 
-  def __init__( self, url = None ):
+  def __init__( self, url = '' ):
     Client.__init__( self )
     try:
       if url:
@@ -46,10 +45,8 @@ class RAWIntegrityClient( Client ):
     failed = {}
     for lfn in lfns.keys():
       successful[lfn] = False
-    resDict = {
-               'Failed'     : failed,
-               'Successful' : successful
-               }
+    resDict = {'Failed'     : failed,
+               'Successful' : successful}
     return S_OK( resDict )
 
   def addFile( self, lfn ):
