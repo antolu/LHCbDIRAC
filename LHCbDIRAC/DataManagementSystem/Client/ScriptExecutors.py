@@ -434,9 +434,9 @@ def getAccessURL( lfnList, seList, protocol = None ):
   gLogger.setLevel( level )
 
   for se, failed in results['Value']['Failed'].items():
-    for lfn in failed:
+    for lfn in list( failed ):
       if lfn not in notFoundLfns:
-        results['Value']['Failed'][se].pop( lfn )
+        failed[se].pop( lfn )
       else:
         notFoundLfns.remove( lfn )
   if notFoundLfns:
