@@ -362,10 +362,10 @@ class BKQuery():
     path = os.path.join( '/',
                          bk.get( 'ConfigName', '' ),
                          bk.get( 'ConfigVersion', '' ),
-                         bk.get( 'Conditions', '.' ),
+                         bk.get( 'ConditionDescription', '.' ),
                          bk.get( 'ProcessingPass', '.' )[1:],
                          str( bk.get( 'EventType', '.' ) ).replace( '90000000', '.' ),
-                         fileType ).replace( '.', '' )
+                         fileType ).replace( '/./', '//' )
     while True:
       if path.endswith( '/' ):
         path = path[:-1]
