@@ -16,6 +16,25 @@ def getTimeBin( time ):
   else:
     return week
 
+def makePath( bkDict ):
+  """
+  Builds a path from the dictionary
+  """
+  fileType = bkDict.get( 'FileType', '.' )
+  if type( fileType ) == type( [] ):
+    fileType = ','.join( fileType )
+  path = os.path.join( '/',
+                       bkDict.get( 'ConfigName', '' ),
+                       bkDict.get( 'ConfigVersion', '' ),
+                       bkDict.get( 'ConditionDescription', '.' ),
+                       bkDict.get( 'ProcessingPass', '.' )[1:],
+                       str( bkDict.get( 'EventType', '.' ) ).replace( '90000000', '.' ),
+                       fileType ).replace( '/./', '//' )
+  while True:
+    if path.endswith( '/' ):
+      path = path[:-1]
+    else:
+      return path
 def cacheDirectories( directories ):
   from DIRAC.Core.Utilities.List import breakListIntoChunks
 
@@ -80,7 +99,8 @@ def cacheDirectories( directories ):
       metadata = success.get( longDir, [{}] )[0]
       if metadata:
         if metadata.get( 'VisibilityFlag', 'Y' ) == 'Y':
-          bkPath = BKQuery( metadata ).makePath()
+          bkDict = BKQuery( metadata ).getQueryDict()
+          bkPath = makePath( bkDict )
           processingPass[bkPath] = metadata['ProcessingPass']
           prodForBKPath.setdefault( bkPath, set() ).add( metadata['Production'] )
         else:
@@ -107,10 +127,10 @@ def cacheDirectories( directories ):
         else:
           break
       bkPath = bkPathForLfn[dirShort2Long[lfn]]
-      type = 'LFN'
-      bkPathUsage.setdefault( bkPath, {} ).setdefault( type, [0, 0] )
-      bkPathUsage[bkPath][type][0] += sum( [val.get( 'Files', 0 ) for val in res['Value'].values()] )
-      bkPathUsage[bkPath][type][1] += sum( [val.get( 'Size', 0 ) for val in res['Value'].values()] )
+      infoType = 'LFN'
+      bkPathUsage.setdefault( bkPath, {} ).setdefault( infoType, [0, 0] )
+      bkPathUsage[bkPath][infoType][0] += sum( [val.get( 'Files', 0 ) for val in res['Value'].values()] )
+      bkPathUsage[bkPath][infoType][1] += sum( [val.get( 'Size', 0 ) for val in res['Value'].values()] )
 
     # # get the PFN usage per storage type
     gLogger.always( 'Check storage type and PFN usage for %d directories' % len( dirSet ) )
@@ -122,27 +142,27 @@ def cacheDirectories( directories ):
         else:
           break
       info = physicalDataUsage.setdefault( lfn, {} )
-      for type in storageTypes:
+      for infoType in storageTypes:
         # Active type will be recorded in Disk, just a special flag
-        if type != 'LFN' and type not in info:
-          nf = sum( [val['Files'] for se, val in res['Value'].items() if isType( se, type )] )
-          size = sum( [val['Size'] for se, val in res['Value'].items() if isType( se, type )] )
-          info[type] = {'Files':nf, 'Size':size}
+        if infoType != 'LFN' and infoType not in info:
+          nf = sum( [val['Files'] for se, val in res['Value'].items() if isType( se, infoType )] )
+          size = sum( [val['Size'] for se, val in res['Value'].items() if isType( se, infoType )] )
+          info[infoType] = {'Files':nf, 'Size':size}
       bkPath = bkPathForLfn[lfn]
-      for type in info:
-        bkPathUsage.setdefault( bkPath, {} ).setdefault( type, [ 0, 0 ] )
-        bkPathUsage[bkPath][type][0] += info[type].get( 'Files', 0 )
-        bkPathUsage[bkPath][type][1] += info[type].get( 'Size', 0 )
+      for infoType in info:
+        bkPathUsage.setdefault( bkPath, {} ).setdefault( infoType, [ 0, 0 ] )
+        bkPathUsage[bkPath][infoType][0] += info[infoType].get( 'Files', 0 )
+        bkPathUsage[bkPath][infoType][1] += info[infoType].get( 'Size', 0 )
       datasetStorage[storageType( res['Value'] )].add( bkPath )
 
   gLogger.always( 'Obtained BK path and storage usage of %d directories in %.1f seconds' % ( len( dirSet ), time.time() - startTime ) )
 
-def isType( se, type ):
-  if type == 'All':
+def isType( se, infoType ):
+  if infoType == 'All':
     return True
-  if type == 'LFN':
+  if infoType == 'LFN':
     return False
-  return storageType( [se] ) == type
+  return storageType( [se] ) == infoType
 
 def prBinNumber( bin ):
   if byDay:
@@ -258,8 +278,8 @@ if __name__ == '__main__':
   usedDirectories = set()
   storageTypes = ( 'Disk', 'Tape', 'Archived', 'All', 'LFN' )
   datasetStorage = {}
-  for type in storageTypes:
-    datasetStorage[type] = set()
+  for infoType in storageTypes:
+    datasetStorage[infoType] = set()
   usedSEs = {}
   byDay = ( since <= 30 )
   if byDay:
@@ -346,9 +366,9 @@ if __name__ == '__main__':
       gLogger.always( '%d used datasets do not have an LFN count:' % len( strangeBKPaths ) )
       gLogger.always( '\n'.join( ["%s : %s" % ( bkPath, str( bkPathUsage.get( bkPath, {} ) ) ) for bkPath in strangeBKPaths] ) )
     gLogger.always( '\nDataset usage for %d datasets' % len( timeUsage ) )
-    for type in ( 'All', 'LFN' ):
+    for infoType in ( 'All', 'LFN' ):
       for i in range( 2 ):
-        counters.setdefault( type, [] ).append( sum( [bkPathUsage.get( bkPath, {} ).get( type, ( 0, 0 ) )[i] for bkPath in timeUsage] ) )
+        counters.setdefault( infoType, [] ).append( sum( [bkPathUsage.get( bkPath, {} ).get( infoType, ( 0, 0 ) )[i] for bkPath in timeUsage] ) )
     for bkPath in sorted( timeUsage ):
       if bkPath not in ( datasetStorage['Disk'] | datasetStorage['Archived'] | datasetStorage['Tape'] ):
         datasetStorage[storageType( usedSEs[bkPath] )].add( bkPath )
@@ -382,9 +402,9 @@ if __name__ == '__main__':
       # In case there are datasets both on tape and disk, priviledge tape
       datasetStorage['Disk'] -= datasetStorage['Tape']
       gLogger.always( "\nThe following %d BK paths were not used since %d days" % ( len( unusedBKPaths ), since ) )
-      for type in storageTypes[0:3]:
-        gLogger.always( "\n=========== %s datasets ===========" % type )
-        unusedPaths = unusedBKPaths & datasetStorage[type]
+      for infoType in storageTypes[0:3]:
+        gLogger.always( "\n=========== %s datasets ===========" % infoType )
+        unusedPaths = unusedBKPaths & datasetStorage[infoType]
         counters = {}
         for t in ( 'All', 'LFN' ):
           for i in range( 2 ):
@@ -393,7 +413,7 @@ if __name__ == '__main__':
           nLfns, lfnSize = bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )
           nPfns, pfnSize = bkPathUsage.get( bkPath, {} ).get( 'All', ( 0, 0 ) )
           gLogger.always( '\t%s (%d LFNs, %s), (%d PFNs, %s, %.1f replicas)' % ( bkPath, nLfns, prSize( lfnSize ), nPfns, prSize( pfnSize ), float( nPfns ) / float( nLfns ) ) )
-        gLogger.always( "\nA total of %d %s LFNs (%s), %d PFNs (%s) were not used" % ( counters['LFN'][0], type, prSize( counters['LFN'][1] ), counters['All'][0], prSize( counters['All'][1] ) ) )
+        gLogger.always( "\nA total of %d %s LFNs (%s), %d PFNs (%s) were not used" % ( counters['LFN'][0], infoType, prSize( counters['LFN'][1] ), counters['All'][0], prSize( counters['All'][1] ) ) )
       noBKDirectories = sorted( unusedDirectories - set( bkPathForLfn ) )
   else:
     unusedBKPaths = set()
@@ -429,8 +449,8 @@ if __name__ == '__main__':
       gLogger.always( "Active productions %s found in %s" % ( ','.join( sorted( active ) ), bkPath ) )
     if info['LFN'][0] == 0:
       continue
-    for type in info:
-      info[type][1] /= TB
+    for infoType in info:
+      info[infoType][1] /= TB
     # Some BK paths contain a , to be replaces by a . for the CSV file!!
     config = '/'.join( bkPath.split( '/' )[0:3] )
     fileType = bkPath.split( '/' )[-1]
@@ -439,16 +459,16 @@ if __name__ == '__main__':
     row = '%s,%s,%s,%s' % ( bkPath.replace( ',', '.' ).replace( 'Real Data', 'RealData' ), config, processingPass.get( bkPath, 'Unknown' ).replace( 'Real Data', 'RealData' ), fileType )
     row += ',0' if bkPath.startswith( '/MC' ) else ',1'
     row += ',%d' % ( getTimeBin( creationTime ) )
-    for type in ( 'LFN', 'Disk', 'Tape', 'Archived' ):
-      row += ',%d,%f' % tuple( info[type] )
+    for infoType in ( 'LFN', 'Disk', 'Tape', 'Archived' ):
+      row += ',%d,%f' % tuple( info[infoType] )
     row += ',%f,%f' % ( float( info['Disk'][0] ) / float( info['LFN'][0] ), float( info['Archived'][0] ) / float( info['LFN'][0] ) )
     if active:
       dsType = 'Active'
     else:
       dsType = 'Unknown'
-      for type in storageTypes[0:3]:
-        if bkPath in datasetStorage[type]:
-          dsType = type
+      for infoType in storageTypes[0:3]:
+        if bkPath in datasetStorage[infoType]:
+          dsType = infoType
           break
     row += ',%s' % dsType
     bins = sorted( timeUsage.get( bkPath, {} ) )
