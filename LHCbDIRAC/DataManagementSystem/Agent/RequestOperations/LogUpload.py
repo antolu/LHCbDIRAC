@@ -86,7 +86,7 @@ class LogUpload( OperationHandlerBase ):
       logUpload = self.dm.replicate( lfn, targetSE, destPath = destination, localCache = self.workDirectory )
       if not logUpload["OK"]:
         gMonitor.addMark( "LogUploadFail", 1 )
-        self.dataLoggingClient().addFileRecord( lfn, "LogUploadFail", targetSE, "", "LogUpload" )
+#         self.dataLoggingClient().addFileRecord( lfn, "LogUploadFail", targetSE, "", "LogUpload" )
         self.log.error( "completely failed to upload log file: %s" % logUpload["Message"] )
         opFile.Error = str( logUpload["Message"] )
         opFile.Attempt += 1
@@ -97,7 +97,7 @@ class LogUpload( OperationHandlerBase ):
 
       if lfn in logUpload['Value']:
         gMonitor.addMark( "LogUploadOK", 1 )
-        self.dataLoggingClient().addFileRecord( lfn, "LogUpload", targetSE, "", "LogUpload" )
+#         self.dataLoggingClient().addFileRecord( lfn, "LogUpload", targetSE, "", "LogUpload" )
         opFile.Status = 'Done'
         self.log.info( "Uploaded %s to %s" % ( lfn, targetSE ) )
 

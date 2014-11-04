@@ -20,7 +20,6 @@ from DIRAC.ConfigurationSystem.Client import PathFinder
 ## from DMS
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.Resources.Storage.StorageElement import StorageElement
-from DIRAC.DataManagementSystem.Client.DataLoggingClient import DataLoggingClient
 from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB import RAWIntegrityDB
 ## from RMS
 from DIRAC.RequestManagementSystem.Client.Request import Request
@@ -35,7 +34,6 @@ class RAWIntegrityAgent( AgentModule ):
 
   :param DataManager dataManager: DataManager instance
   :param RAWIntegrityDB rawIntegrityDB: RAWIntegrityDB instance
-  :param DataLoggingClient dataLoggingClient: DataLoggingClient instance
   :param str gatewayUrl: URL to online RequestClient
   """
   
@@ -45,7 +43,6 @@ class RAWIntegrityAgent( AgentModule ):
     
     AgentModule.__init__( self, *args, **kwargs )
   
-    self.dataLoggingClient = None
     self.rawIntegrityDB    = None
     self.dataManager = None
     self.onlineRequestMgr  = None
@@ -54,7 +51,6 @@ class RAWIntegrityAgent( AgentModule ):
   def initialize( self ):
     """ agent initialisation """
 
-    self.dataLoggingClient = DataLoggingClient()
     self.rawIntegrityDB    = RAWIntegrityDB()
     self.dataManager = DataManager()
 
@@ -180,7 +176,6 @@ class RAWIntegrityAgent( AgentModule ):
         onlineChecksum = activeFiles[lfn]['Checksum']
         if castorChecksum.lower().lstrip( '0' ) == onlineChecksum.lower().lstrip( '0' ).lstrip( 'x' ):
           self.log.info( "%s migrated checksum match." % lfn )
-          self.dataLoggingClient.addFileRecord( lfn, 'Checksum match', castorChecksum, '', 'RAWIntegrityAgent' )
           filesToRemove.append( lfn )
           activeFiles[lfn]['Checksum'] = castorChecksum
         elif pfnMetadataDict['Checksum'] == 'Not available':
@@ -188,10 +183,6 @@ class RAWIntegrityAgent( AgentModule ):
         else:
           self.log.error( "Migrated checksum mis-match.", "%s %s %s" % ( lfn, castorChecksum.lstrip( '0' ), 
                                                                          onlineChecksum.lstrip( '0' ).lstrip( 'x' ) ) )
-          self.dataLoggingClient.addFileRecord( lfn, 'Checksum mismatch', 
-                                                '%s %s' % ( castorChecksum.lower().lstrip( '0' ), 
-                                                            onlineChecksum.lower().lstrip( '0' ) ), 
-                                                '', 'RAWIntegrityAgent' )
           filesToTransfer.append( lfn )
 
     migratedSize = 0
@@ -231,13 +222,10 @@ class RAWIntegrityAgent( AgentModule ):
         fileTuple = ( lfn, pfn, size, se, guid, checksum )
         res = self.dataManager.registerFile( fileTuple )
         if not res['OK']:
-          self.dataLoggingClient.addFileRecord( lfn, 'RegisterFailed', se, '', 'RAWIntegrityAgent' )
           self.log.error( "Completely failed to register successfully migrated file.", res['Message'] )
         elif lfn in res['Value']['Failed']:
-          self.dataLoggingClient.addFileRecord( lfn, 'RegisterFailed', se, '', 'RAWIntegrityAgent' )
           self.log.error( "Failed to register lfn in the File Catalog.", res['Value']['Failed'][lfn] )
         else:
-          self.dataLoggingClient.addFileRecord( lfn, 'Register', se, '', 'RAWIntegrityAgent' )
           self.log.info( "Successfully registered %s in the File Catalog." % lfn )
           ############################################################
           #
@@ -286,13 +274,10 @@ class RAWIntegrityAgent( AgentModule ):
         guid = activeFiles[lfn]['GUID']
         res = StorageElement( se ).removeFile( pfn )
         if not res['OK']:
-          self.dataLoggingClient.addFileRecord( lfn, 'RemoveReplicaFailed', se, '', 'RAWIntegrityAgent' )
           self.log.error( "Completely failed to remove pfn from the storage element.", res['Message'] )
         elif pfn not in res['Value']['Successful']:
-          self.dataLoggingClient.addFileRecord( lfn, 'RemoveReplicaFailed', se, '', 'RAWIntegrityAgent' )
           self.log.error( "Failed to remove pfn from the storage element.", res['Value']['Failed'][pfn] )
         else:
-          self.dataLoggingClient.addFileRecord( lfn, 'RemoveReplica', se, '', 'RAWIntegrityAgent' )
           self.log.info( "Successfully removed pfn from the storage element." )
           ############################################################
           #
