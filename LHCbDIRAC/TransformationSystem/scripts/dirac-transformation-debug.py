@@ -319,22 +319,6 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
       if res['OK']:
         print "\tRequest was not found: %d files were reset Unused" % len( lfnsInTask )
     return 0
-  if isinstance( client, RequestClient ):
-    if cleanOld:
-      if client:
-        res = client.deleteRequest( requestName )
-      else:
-        res = {'OK':True}
-      if res['OK']:
-        res = transClient.setTaskStatus( transID, task['TaskID'], 'Failed' )
-        if res['OK']:
-          res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnsInTask, force = True )
-      if res['OK']:
-        print "Request deleted, tasks set Failed and files set Unused"
-      else:
-        print "Error deleting task", res['Message']
-    else:
-      print '\tOld style request %s found, use --CleanOld to get rid of it' % requestName
 
   if not taskCompleted and task['ExternalStatus'] == 'Failed':
     if kickRequests:
@@ -346,12 +330,6 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
   if taskCompleted and ( task['ExternalStatus'] not in ( 'Done', 'Failed' ) or status in ( 'Assigned', 'Problematic' ) ):
     prString = "\tTask %s is completed: no %s replicas" % ( requestName, dmFileStatusComment )
     if kickRequests:
-      if isinstance( client, RequestClient ):
-        res = client.setRequestStatus( requestName, 'Done' )
-        if res['OK']:
-          prString += ": request set to Done"
-        else:
-          prString += ": error setting request to Done (%s)" % res['Message']
       res = transClient.setFileStatusForTransformation( transID, 'Processed', lfnsInTask, force = True )
       if res['OK']:
         prString += " - %d files set Processed" % len( lfnsInTask )
