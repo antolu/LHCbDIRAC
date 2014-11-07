@@ -1003,28 +1003,30 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _DeleteReplicas( self ):
     """ Plugin for removing replicas from specific SEs or reduce the number of replicas
     """
-    listSEs = self.util.getPluginParam( 'FromSEs', [] )
+    fromSEs = self.util.getPluginParam( 'FromSEs', [] )
     keepSEs = self.util.getPluginParam( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
                                                     'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE',
                                                     'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
     mandatorySEs = self.util.getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] )
     # Allow removing explicitly from SEs in mandatorySEs
-    mandatorySEs = [se for se in mandatorySEs if se not in listSEs]
+    mandatorySEs = [se for se in mandatorySEs if se not in fromSEs]
     # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
     minKeep = self.util.getPluginParam( 'NumberOfReplicas', 1 )
 
-    return self._removeReplicas( listSEs = listSEs, keepSEs = keepSEs, mandatorySEs = mandatorySEs, minKeep = minKeep )
+    return self._removeReplicas( fromSEs = fromSEs, keepSEs = keepSEs, mandatorySEs = mandatorySEs, minKeep = minKeep )
 
-  def _removeReplicas( self, listSEs = None, keepSEs = None, mandatorySEs = None, minKeep = 999 ):
+  def _removeReplicas( self, fromSEs = None, keepSEs = None, mandatorySEs = None, minKeep = 999 ):
     """ Utility acutally implementing the logic to remove replicas or files
     """
-    if not listSEs:
-      listSEs = []
+    if not fromSEs:
+      fromSEs = []
     if not keepSEs:
       keepSEs = []
     if not mandatorySEs:
       mandatorySEs = []
     self.util.logInfo( "Starting execution of plugin" )
+    reduceSEs = minKeep < 0
+    minKeep = abs( minKeep )
 
     storageElementGroups = {}
     notInKeepSEs = []
@@ -1044,28 +1046,32 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Take into account the mandatory SEs
         existingSEs = [se for se in existingSEs if se not in mandatorySEs]
         self.util.logVerbose( "%d files, non-keep SEs: %s, removal from %s, keep %d" % ( len( lfns ), existingSEs,
-                                                                                         listSEs, minKeep ) )
-        # print existingSEs, listSEs, minKeep
+                                                                                         fromSEs, minKeep ) )
+        # print existingSEs, fromSEs, minKeep
         if len( existingSEs ) > minKeep:
           # explicit deletion
-          if listSEs:
-            # check how  many replicas would be left if we remove from listSEs
-            nLeft = len( [se for se in existingSEs if se not in listSEs] )
-            # we can delete all replicas in listSEs
-            targetSEs = [se for se in listSEs if se in existingSEs]
+          if fromSEs and not reduceSEs:
+            # check how  many replicas would be left if we remove from fromSEs
+            nLeft = len( [se for se in existingSEs if se not in fromSEs] )
+            # we can delete all replicas in fromSEs
+            targetSEs = [se for se in fromSEs if se in existingSEs]
             self.util.logVerbose( "Target SEs, 1st level: %s, number of left replicas: %d" % ( targetSEs, nLeft ) )
             if nLeft < minKeep:
-              # we should keep some in listSEs, too bad
+              # we should keep some in fromSEs, too bad
               targetSEs = randomize( targetSEs )[0:minKeep - nLeft]
               self.util.logInfo( "Found %d files that could only be deleted in %d of the requested SEs" % ( len( lfns ),
                                                                                                     minKeep - nLeft ) )
               self.util.logVerbose( "Target SEs, 2nd level: %s" % targetSEs )
           else:
-            # remove all replicas and keep only minKeep
-            targetSEs = randomize( existingSEs )
+            # Here the fromSEs are only a preference
+            if fromSEs:
+              targetSEs = [se for se in fromSEs if se in existingSEs] + randomize( [se for se in existingSEs if se not in fromSEs] )
+            else:
+              # remove all replicas and keep only minKeep
+              targetSEs = randomize( existingSEs )
             targetSEs = targetSEs[0:-minKeep]
-        elif [se for se in listSEs if se in existingSEs]:
-          nLeft = len( [se for se in existingSEs if se not in listSEs] )
+        elif [se for se in fromSEs if se in existingSEs]:
+          nLeft = len( [se for se in existingSEs if se not in fromSEs] )
           self.util.logInfo( "Found %d files at requested SEs with not enough replicas (%d left, %d requested)" % ( len( lfns ), nLeft, minKeep ) )
           self.util.logVerbose( "First file at %s are: %s" % ( str( existingSEs ), lfns[0] ) )
           self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
