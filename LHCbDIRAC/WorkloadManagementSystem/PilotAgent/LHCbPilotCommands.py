@@ -51,7 +51,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
 
     environment = os.environ
     # when we reach here we expect to know the release version to install
-    for cmd in [ '/cvmfs/lhcb.cern.ch/lib/LbLogin.sh', 'SetupProject.sh LHCbDirac %s' % self.pp.releaseVersion]:
+    for cmd in [ 'LbLogin.sh', 'SetupProject.sh LHCbDirac %s' % self.pp.releaseVersion]:
       environment = self.__invokeCmd( cmd, environment )
 
     # now setting the correct environment to be used by dirac-configure, or whatever follows
