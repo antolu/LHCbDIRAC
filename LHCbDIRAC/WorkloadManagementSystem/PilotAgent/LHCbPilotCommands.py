@@ -17,12 +17,9 @@ class LHCbCommandBase( CommandBase ):
     """ c'tor
     """
     super( LHCbCommandBase, self ).__init__( pilotParams )
+    pilotParams.pilotCFGFile = 'LHCb-pilot.json'
     pilotParams.localConfigFile = 'pilot.cfg'
     pilotParams.architectureScript = 'dirac-architecture'
-    pilotParams.certsLocation = '/home/dirac/certs/'
-    # FIXME: set correct ones
-    pilotParams.pilotCFGFileLocation = 'http://lhcbproject.web.cern.ch/lhcbproject/dist/DIRAC3/defaults/'
-    pilotParams.pilotCFGFile = '%s-pilot.json' % pilotParams.releaseProject
 
 class LHCbGetPilotVersion( LHCbCommandBase, GetPilotVersion ):
   pass
