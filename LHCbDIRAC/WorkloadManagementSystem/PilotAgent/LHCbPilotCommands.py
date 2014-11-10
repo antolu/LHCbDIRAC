@@ -34,10 +34,12 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     try:
       self._doSetupProject()
       self.log.info( "SetupProject DONE, for release %s" % self.pp.releaseVersion )
+      self.pp.setupLHCbDIRAC = True
     except OSError, e:
       print "Exception when trying SetupProject:", e
       self.log.warn( "SetupProject NOT DONE: starting traditional DIRAC installation" )
       super( LHCbInstallDIRAC, self ).execute()
+      self.pp.setupLHCbDIRAC = False
 
 
   def _doSetupProject( self ):
@@ -91,7 +93,15 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     return environmentProduced
 
 class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
-  pass
+  """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
+  """
+  def _getSecurityCFG( self ):
+    if self.pp.setupLHCbDIRAC:
+      self.pp.installEnv['X509_CERT_DIR'] = '/cvmfs/grid.cern.ch/etc/grid-security/certificates'
+      self.pp.installEnv['X509_VOMS_DIR'] = '/cvmfs/grid.cern.ch/etc/grid-security/vomsdir'
+      self.cfg.append( '-DMH' )
+    super( LHCbConfigureBasics, self )._getSecurityCFG()
+
 
 class LHCbConfigureCPURequirements( LHCbCommandBase, ConfigureCPURequirements ):
   pass
