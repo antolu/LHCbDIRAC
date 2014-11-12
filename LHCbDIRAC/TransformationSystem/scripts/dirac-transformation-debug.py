@@ -841,7 +841,6 @@ def __checkJobs( jobsForLfn, byFiles = False ):
           res = monitoring.getJobParameter( int( lastJob ), 'Log URL' )
           if res['OK']:
             logURL = res['Value']['Log URL'].split( '"' )[1] + '/'
-            print lastJob, logURL
             lfns = __checkXMLSummary( lastJob, logURL )
             lfns = dict( [( lfn, lfns[lfn] ) for lfn in set( lfns ) & set( lfnList )] )
             if lfns:
