@@ -436,7 +436,7 @@ def getAccessURL( lfnList, seList, protocol = None ):
   for se, failed in results['Value']['Failed'].items():
     for lfn in list( failed ):
       if lfn not in notFoundLfns:
-        failed[se].pop( lfn )
+        failed.pop( lfn )
       else:
         notFoundLfns.remove( lfn )
   if notFoundLfns:
