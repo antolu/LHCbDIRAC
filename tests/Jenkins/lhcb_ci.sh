@@ -976,6 +976,27 @@ function fullPilot(){
 }
 
 
+function submitAndMatch(){
+	
+	if [ ! -z "$DEBUG" ]
+	then
+		echo 'Running in DEBUG mode'
+		export DEBUG='-ddd'
+	fi  
+
+	findRelease
+	
+	SetupProject LHCbDIRAC --dev `cat project.version`
+	
+	downloadProxy
+	
+	#submit
+	#put pilot cfg in
+	
+	dirac-agent WorkloadManagement/JobAgent -o MaxCycles=1 -s /Resources/Computing/CEDefaults -o WorkingDirectory=$PWD -o TotalCPUs=1 -o MaxCPUTime=47520 -o CPUTime=47520 -o MaxRunningJobs=1 -o MaxTotalJobs=10 -o /LocalSite/InstancePath=$PWD -o /AgentJobRequirements/ExtraOptions=pilot.cfg pilot.cfg $DEBUG
+}
+
+
 # Older functions
 #
 # o prepareDIRAC
