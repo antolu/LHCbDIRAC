@@ -650,7 +650,7 @@ def __getLog( urlBase, logFile, debug = False ):
   tmp = None
   tmp1 = None
   tf = None
-  if ".tgz" in url:
+  if ".tgz" in url or '.gz' in url:
     if debug: print "Opening tgz file ", url
     # retrieve the zipped file
     tmp = os.path.join( os.environ.get( "TMPDIR", "/tmp" ), "logFile.tmp" )
@@ -740,9 +740,9 @@ def __getSandbox( job, logFile, debug = False ):
 
 
 def __checkXMLSummary( job, logURL ):
-  xmlFile = __getLog( logURL, 'summary*.xml', debug = False )
+  xmlFile = __getLog( logURL, 'summary*.xml*', debug = False )
   if not xmlFile:
-    xmlFile = __getSandbox( job, 'summary*.xml', debug = False )
+    xmlFile = __getSandbox( job, 'summary*.xml*', debug = False )
   lfns = {}
   if xmlFile:
     for line in xmlFile:
@@ -841,6 +841,7 @@ def __checkJobs( jobsForLfn, byFiles = False ):
           res = monitoring.getJobParameter( int( lastJob ), 'Log URL' )
           if res['OK']:
             logURL = res['Value']['Log URL'].split( '"' )[1] + '/'
+            print lastJob, logURL
             lfns = __checkXMLSummary( lastJob, logURL )
             lfns = dict( [( lfn, lfns[lfn] ) for lfn in set( lfns ) & set( lfnList )] )
             if lfns:
