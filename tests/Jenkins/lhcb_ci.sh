@@ -448,7 +448,10 @@ function generateUserCredentials(){
     zipName=$(basename $DIRAC_ALTERNATIVE_SRC_ZIP)
     unzip $zipName
     dirName="DIRAC-$(echo $zipName | sed 's/\.zip//g')"
-    mv DIRAC DIRAC.bak
+    if [ -d "DIRAC" ];
+    then
+      mv DIRAC DIRAC.bak;
+    fi
     mv $dirName DIRAC
 
   }
