@@ -187,6 +187,7 @@ dirac_testing_externals(){
     python `which easy_install` PIL
 #    python `which easy_install` pyqt now it's impossible...
     python `which easy_install` stomp.py
+    python `which easy_install` sqlalchemy
     # Putting as "hack" because of problems between pylons and python 2.7
     pip uninstall webob ; pip install webob==0.9.6.1 ; pip uninstall webtest ; pip install webtest==1.4.3
 #python `which easy_install` WebOb
