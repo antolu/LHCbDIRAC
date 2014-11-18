@@ -22,10 +22,10 @@ from LHCbDIRAC.ProductionManagementSystem.Client.Production               import
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest        import getEventsToProduce
 
 class MCSimulationTestingAgent ( AgentModule ):
-  '''An agent to check for MCSimulation productions that have undergone the testing phase.
+  """An agent to check for MCSimulation productions that have undergone the testing phase.
      Productions that have the status Idle and are also in the table StoredJobDescription have undergone testing.
      A report is created by the agent from the results of the test phase and emailed to the Production Manager
-  '''
+  """
   
   def __init__( self, *args, **kwargs ):
     """ c'tor
@@ -79,7 +79,7 @@ class MCSimulationTestingAgent ( AgentModule ):
           parameters = self._calculate_parameters( tasks )
           if parameters['OK']:
             parameters = parameters['Value']
-            workflow = self._update_workflow( transID, parameters['CPUe'], parameters['max_e'] )
+            workflow = self._update_workflow( transID, parameters['CPUe'], parameters['MCCpu'] )
             if workflow['OK']:
               workflow = workflow['Value']
               res = self._update_transformations_table( transID, workflow )
@@ -105,8 +105,8 @@ class MCSimulationTestingAgent ( AgentModule ):
     return S_OK()
 
   def _create_report( self, tasks ):
-    '''creates a report from a failed task to email to the production manager
-    '''
+    """creates a report from a failed task to email to the production manager
+    """
     dateformat = '%d/%m/%Y %H:%M'
     transformationID = tasks[0]["TransformationID"]
     transformation = self.transClient.getTransformations( condDict = {"TransformationID" : transformationID} )
@@ -150,8 +150,8 @@ class MCSimulationTestingAgent ( AgentModule ):
     return {'subject': subject, 'body': body}
 
   def _send_report( self, report ):
-    '''sends a given report to the production manager
-    '''
+    """sends a given report to the production manager
+    """
     username = self.operations.getValue("Shifter/ProductionManager/User")
     email = getUserOption( username, "Email" )
     body = '\n'.join( report['body'] )
@@ -165,8 +165,8 @@ class MCSimulationTestingAgent ( AgentModule ):
       return res
 
   def _calculate_parameters( self, tasks ):
-    '''calculates the CPU time per event for a successful task.
-    '''
+    """calculates the CPU time per event for a successful task.
+    """
     job_id = tasks[0]['ExternalID']
     res = self.bkClient.bulkJobInfo( {'jobId':[job_id]} )
     if not res['OK']:
@@ -177,20 +177,22 @@ class MCSimulationTestingAgent ( AgentModule ):
     cpuTime = successful[key]['ExecTime']
     events = successful[key]['NumberOfEvents']
     CPUe = cpuTime / events
-    max_e = getEventsToProduce( CPUe )
-    return S_OK( {'CPUe' : CPUe, 'max_e': max_e} )
+    MCCpu = str( 25 * int( float( CPUe ) ) )
+    return S_OK( {'CPUe' : CPUe, 'MCCpu': MCCpu} )
 
-  def _update_workflow( self, transID, CPUe, max_e ):
-    '''updates the workflow of a savedProductionDescription to reflect the calculated CPUe
-    '''
+  def _update_workflow( self, transID, CPUe, MCCpu ):
+    """ Updates the workflow of a savedProductionDescription to reflect the calculated CPUe
+    """
     res = self.transClient.getStoredJobDescription( transID )
     if res['OK']:
       workflow = fromXMLString( res['Value'][0][1] )
       prod = Production()
       prod.LHCbJob.workflow = workflow
       prod.setParameter( 'CPUe', 'string', str( CPUe ), 'CPU time per event' )
-      prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce (Gauss only)' )
-      self.log.info( "Transformation " + str( transID ) + "Calculated CPUe: " + str( CPUe ) + ". Calculated max_e: " + str( max_e ) )
+      prod.LHCbJob.setCPUTime( MCCpu )
+      self.log.info( "Transformation ", str( transID ) )
+      self.log.info( "Calculated CPUTime: ", str( CPUe ) )
+      self.log.info( "CpuTime: ", str( MCCpu ) )
       return S_OK( prod.LHCbJob.workflow.toXML() )
     else:
       message = "Call to Transformation Client service failed : %s" % res['Message']
@@ -198,9 +200,9 @@ class MCSimulationTestingAgent ( AgentModule ):
       return S_ERROR( message )
 
   def _update_transformations_table( self, transID, workflow ):
-    '''puts the modified workflow from the savedProductionDescription table into the transformations table
+    """puts the modified workflow from the savedProductionDescription table into the transformations table
        and removes it from the savedProductionDescription table.
-    '''
+    """
     transformation = self.transClient.getTransformations( condDict = {"TransformationID" : transID} )
     if transformation['OK']:
       body = self.transClient.setTransformationParameter( transID, "Body", workflow )
@@ -224,9 +226,9 @@ class MCSimulationTestingAgent ( AgentModule ):
       return S_ERROR( message )
 
   def _extend_failed_tasks( self, transID, numberOfFailedTasks ):
-    '''takes the number of failed tasks of a testing phase and extends the production by that number to
+    """takes the number of failed tasks of a testing phase and extends the production by that number to
        repeat the test
-    '''
+    """
     res = self.transClient.extendTransformation( transID, numberOfFailedTasks )
     if not res['OK']:
       message = 'Failed to extend transformation %d : %s' % ( transID, res['Message'] )

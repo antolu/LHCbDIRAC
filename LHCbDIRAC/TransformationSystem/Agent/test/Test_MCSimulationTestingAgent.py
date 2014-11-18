@@ -446,28 +446,28 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
 
   def test_update_workflow( self ):
     CPUe = 1
-    max_e = 1
+    MCCpu = 25
     CPUe_xml = self.test_workflow = """<Parameter name="CPUe" type="string" linked_module="" linked_parameter="" in="True" out="False" description="CPU time per event"><value><![CDATA[1]]></value></Parameter>\n"""
-    max_e_xml = self.test_workflow = """<Parameter name="maxNumberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Maximum number of events to produce (Gauss only)"><value><![CDATA[1]]></value></Parameter>\n"""
-    res = self.agent._update_workflow( self.transID, CPUe, max_e )
+#    MCCpu_e_xml = self.test_workflow = """<Parameter name="maxNumberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Maximum number of events to produce (Gauss only)"><value><![CDATA[1]]></value></Parameter>\n"""
+    res = self.agent._update_workflow( self.transID, CPUe, MCCpu )
     self.assertTrue( res['OK'] )
     prod = Production()
     prod.LHCbJob.workflow = fromXMLString( res['Value'] )
     cpue_param = prod.LHCbJob.workflow.findParameter( 'CPUe' )
-    max_e_param = prod.LHCbJob.workflow.findParameter( 'maxNumberOfEvents' )
+#    max_e_param = prod.LHCbJob.workflow.findParameter( 'maxNumberOfEvents' )
     self.assertEqual( CPUe_xml, cpue_param.toXML() )
-    self.assertEqual( max_e_xml, max_e_param.toXML() )
+#    self.assertEqual( max_e_xml, max_e_param.toXML() )
 
   @patch( "LHCbDIRAC.TransformationSystem.Agent.MCSimulationTestingAgent.getEventsToProduce" )
   def test_calculate_parameters( self, patch_mock ):
     expected_cpue = 2079.81009412
-    expected_max_e = 100
+#     expected_max_e = 100
     # mock to make getEventsToProduce to return 100
-    patch_mock.return_value = expected_max_e
+#     patch_mock.return_value = expected_max_e
     res = self.agent._calculate_parameters( self.tasks )
     self.assertTrue( res['OK'] )
     self.assertEqual( res['Value']['CPUe'], expected_cpue )
-    self.assertEqual( res['Value']['max_e'], expected_max_e )
+#     self.assertEqual( res['Value']['max_e'], expected_max_e )
 
   def test_extend_failed_tasks( self ):
     numberOfFailedTasks = 3

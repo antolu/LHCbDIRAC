@@ -70,8 +70,6 @@ pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
 pr.configVersion = '{{mcConfigVersion#GENERAL: BK configuration version, e.g. MC10#2012}}'
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepID:options#}}'
 
-CPUe = '{{MCCPUperEvent#GENERAL: CPU time per event#500}}'
-
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
@@ -129,8 +127,6 @@ if certificationFlag or localTestFlag:
 
 pr.outConfigName = pr.configName
 
-MCCpu = str( 25 * int( float( CPUe ) ) )
-
 w1 = eval( w1 )
 w2 = eval( w2 )
 w3 = eval( w3 )
@@ -149,13 +145,12 @@ if w1:
                      [len( pr.stepsList )]]
   pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
   pr.priorities = [MCPriority, selectionPriority, mergingPriority]
-  pr.cpus = [MCCpu, selectionCPU, mergingCPU]
+  pr.cpus = [100000, selectionCPU, mergingCPU]
   pr.outputFileSteps = [str( len( pr.stepsListDict ) - 2 ), '', '']
   pr.targets = [targets, '', '']
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
   pr.inputDataPolicies = ['', 'download', 'download']
-  pr.CPUeList = [CPUe, 1, 1]
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
 
@@ -178,12 +173,11 @@ elif w2:
 
   pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
   pr.priorities = [MCPriority, selectionPriority, mergingPriority]
-  pr.cpus = [MCCpu, selectionCPU, mergingCPU]
+  pr.cpus = [100000, selectionCPU, mergingCPU]
   pr.targets = [targets, '', '']
   pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
   pr.plugins = ['', selectionPlugin, mergingPlugin]
   pr.inputDataPolicies = ['', 'download', 'download']
-  pr.CPUeList = [CPUe, 1, 1]
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
 
@@ -208,12 +202,11 @@ elif w3:
 
   pr.removeInputsFlags = [False, removeInputSelection]
   pr.priorities = [MCPriority, selectionPriority]
-  pr.cpus = [MCCpu, selectionCPU]
+  pr.cpus = [100000, selectionCPU]
   pr.targets = [targets, '']
   pr.groupSizes = [1, selectionGroupSize]
   pr.plugins = ['', selectionPlugin]
   pr.inputDataPolicies = ['', 'download']
-  pr.CPUeList = [CPUe, 1]
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
 
@@ -224,13 +217,12 @@ elif w4:
                      [len( pr.stepsList )]]
   pr.removeInputsFlags = [False, removeInputMerge]
   pr.priorities = [MCPriority, mergingPriority]
-  pr.cpus = [MCCpu, mergingCPU]
+  pr.cpus = [100000, mergingCPU]
   pr.outputFileSteps = [str( len( pr.stepsListDict ) - 1 ), '']
   pr.targets = [targets, '']
   pr.groupSizes = [1, mergingGroupSize]
   pr.plugins = ['', mergingPlugin]
   pr.inputDataPolicies = ['', 'download']
-  pr.CPUeList = [CPUe, 1]
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, mergemulticoreFlag]
 
@@ -244,13 +236,12 @@ elif w5:
   pr.stepsInProds = [range( 1, len( pr.stepsList ) + 1 )]
   pr.removeInputsFlags = [False]
   pr.priorities = [MCPriority]
-  pr.cpus = [MCCpu]
+  pr.cpus = [100000]
   pr.outputFileSteps = [str( len( pr.stepsListDict ) )]
   pr.targets = [targets]
   pr.groupSizes = [1]
   pr.plugins = ['']
   pr.inputDataPolicies = ['']
-  pr.CPUeList = [CPUe]
   pr.bkQueries = ['']
   pr.multicore = [MCmulticoreFlag]
 
