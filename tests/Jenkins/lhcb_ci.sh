@@ -973,10 +973,12 @@ function fullPilot(){
 	#be sure we only have pilot.cfg
 	mv $WORKSPACE/etc/dirac.cfg $WORKSPACE/etc/dirac.cfg-not-here
 	
+	#Configure for CPUTimeLeft
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update.py pilot.cfg -o /DIRAC/Security/UseServerCertificate=True $DEBUG
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
-	#Configure for CPUTimeLeft, plus set not to use the server certificate for running the jobs 
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update.py pilot.cfg -o /DIRAC/Security/UseServerCertificate=False $DEBUG
+	#Set not to use the server certificate for running the jobs 
+	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O pilot.cfg pilot.cfg $DEBUG
 }
 
 
