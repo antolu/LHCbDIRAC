@@ -965,7 +965,8 @@ function fullPilot(){
 	DIRACPilotInstall
 
 	#this should have been created, we source it so that we can continue
-	source bashrc
+	#source bashrc
+	source environmentSetupProject.shLHCbDiracv0r94
 	
 	#Adding the LocalSE and the CPUTimeLeft, for the subsequent tests
 	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O pilot.cfg pilot.cfg $DEBUG
