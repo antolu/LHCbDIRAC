@@ -38,6 +38,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       print "Exception when trying SetupProject:", e
       self.log.warn( "SetupProject NOT DONE: starting traditional DIRAC installation" )
       super( LHCbInstallDIRAC, self ).execute()
+      self.pp.installEnv = os.environ
 
 
   def _doSetupProject( self ):
