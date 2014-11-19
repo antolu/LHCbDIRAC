@@ -34,12 +34,10 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     try:
       self._doSetupProject()
       self.log.info( "SetupProject DONE, for release %s" % self.pp.releaseVersion )
-      self.pp.setupLHCbDIRAC = True
     except OSError, e:
       print "Exception when trying SetupProject:", e
       self.log.warn( "SetupProject NOT DONE: starting traditional DIRAC installation" )
       super( LHCbInstallDIRAC, self ).execute()
-      self.pp.setupLHCbDIRAC = False
 
 
   def _doSetupProject( self ):
@@ -49,8 +47,11 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     """
 
     environment = os.environ
+    if 'LHCb_release_area' not in environment:
+      environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
     # when we reach here we expect to know the release version to install
-    for cmd in [ 'LbLogin.sh', 'SetupProject.sh LHCbDirac %s' % self.pp.releaseVersion]:
+    for cmd in ['$LHCb_release_area/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh',
+                'SetupProject.sh LHCbDirac %s' % self.pp.releaseVersion]:
       environment = self.__invokeCmd( cmd, environment )
 
     # now setting the correct environment to be used by dirac-configure, or whatever follows
@@ -96,10 +97,9 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
   """
   def _getSecurityCFG( self ):
-    if self.pp.setupLHCbDIRAC:
-      self.pp.installEnv['X509_CERT_DIR'] = '/cvmfs/grid.cern.ch/etc/grid-security/certificates'
-      self.pp.installEnv['X509_VOMS_DIR'] = '/cvmfs/grid.cern.ch/etc/grid-security/vomsdir'
-      self.cfg.append( '-DMH' )
+    self.pp.installEnv['X509_CERT_DIR'] = '/cvmfs/grid.cern.ch/etc/grid-security/certificates'
+    self.pp.installEnv['X509_VOMS_DIR'] = '/cvmfs/grid.cern.ch/etc/grid-security/vomsdir'
+    self.cfg.append( '-DMH' )
     super( LHCbConfigureBasics, self )._getSecurityCFG()
 
 
