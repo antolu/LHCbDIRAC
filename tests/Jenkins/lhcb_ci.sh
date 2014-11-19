@@ -949,7 +949,7 @@ function DIRACPilotInstall(){
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
 
 	#run the dirac-pilot script, only for installing, do not run the JobAgent here
-	python dirac-pilot.py -S LHCb-Certification -l LHCb -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
+	python dirac-pilot.py -S LHCb-Certification -l LHCb -r v0r94 -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
 }
 
 
@@ -991,7 +991,7 @@ function submitAndMatch(){
 	
 	#Here, since I have CVMFS only, I can't use the "latest" pre-release, because won't be on CVMFS 
 	#FIXME!
-	SetupProject LHCbDIRAC v0r92
+	SetupProject LHCbDIRAC v0r94
 	downloadProxy
 	
 	#submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
