@@ -969,13 +969,14 @@ function fullPilot(){
 	
 	#Adding the LocalSE and the CPUTimeLeft, for the subsequent tests
 	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O pilot.cfg pilot.cfg $DEBUG
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update.py pilot.cfg -o /DIRAC/Security/UseServerCertificate=True $DEBUG
 	
 	#be sure we only have pilot.cfg
 	mv $WORKSPACE/etc/dirac.cfg $WORKSPACE/etc/dirac.cfg-not-here
 	
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
+	#Configure for CPUTimeLeft, plus set not to use the server certificate for running the jobs 
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update.py pilot.cfg -o /DIRAC/Security/UseServerCertificate=False $DEBUG
 }
 
 
