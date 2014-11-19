@@ -629,8 +629,10 @@ def __getLog( urlBase, logFile, debug = False ):
     c = c.split( "\n" )
     logURL = None
     for l in c:
-      # If hte line matches the requested URL
+      # If the line matches the requested URL
       if fnmatch.fnmatch( l, '*' + logFile + '*' ):
+        if debug:
+          print "Match found:", l
         try:
           logURL = l.split( '"' )[1]
           break
@@ -695,8 +697,8 @@ def __getLog( urlBase, logFile, debug = False ):
     c = f.read()
     f.close()
     if "was not found on this server." not in c:
-      if debug: print "Reading the file now... %d lines" % len( c )
       c = c.split( "\n" )
+      if debug: print "Reading the file now... %d lines" % len( c )
     else:
       c = ''
   if tf:
@@ -747,17 +749,43 @@ def __checkXMLSummary( job, logURL ):
   if xmlFile:
     for line in xmlFile:
       if 'status="part"' in line and 'LFN:' in line:
-        lfns.update( {line.split( 'LFN:' )[1].split( '"' )[0] : 'Partial'} )
+        event = line.split( '>' )[1].split( '<' )[0]
+        lfns.update( {line.split( 'LFN:' )[1].split( '"' )[0] : 'Partial (last event %s)' % event} )
       elif 'status="fail"' in line and 'LFN:' in line:
         lfns.update( {line.split( 'LFN:' )[1].split( '"' )[0] : 'Failed'} )
     if not lfns:
       lfns = {None:'No errors found in XML summary'}
   return lfns
 
-def __checkJobs( jobsForLfn, byFiles = False ):
+def __checkLog( logURL ):
+  for i in range( 5, 0, -1 ):
+    logFile = __getLog( logURL, '*_%d.log' % i, debug = False )
+    if logFile:
+      break
+  logDump = []
+  if logFile:
+    space = True
+    for line in logFile:
+      if ' ERROR ' in line:
+        if space:
+          logDump.append( '....' )
+          space = False
+        logDump.append( line )
+      else:
+        space = True
+      if 'Stalled event' in line:
+        logDump = ['Stalled Event']
+        break
+  else:
+    logDump = ["Couldn't find log file in %s" % logURL]
+  return logDump[-10:]
+
+def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
   from DIRAC.Core.DISET.RPCClient                          import RPCClient
   monitoring = RPCClient( 'WorkloadManagement/JobMonitoring' )
   failedLfns = {}
+  jobLogURL = {}
+  jobSites = {}
   for lfnStr, allJobs in jobsForLfn.items():
     lfnList = lfnStr.split( ',' )
     exitedJobs = []
@@ -811,7 +839,7 @@ def __checkJobs( jobsForLfn, byFiles = False ):
         # Now get last lines
         res = monitoring.getJobsSites( jobs )
         if res['OK']:
-          jobSites = res['Value']
+          jobSites.update( res['Value'] )
         for job1 in sorted( jobs ) + [0]:
           if job1:
             res = monitoring.getJobParameter( int( job1 ), 'StandardOutput' )
@@ -841,6 +869,7 @@ def __checkJobs( jobsForLfn, byFiles = False ):
           res = monitoring.getJobParameter( int( lastJob ), 'Log URL' )
           if res['OK']:
             logURL = res['Value']['Log URL'].split( '"' )[1] + '/'
+            jobLogURL[lastJob] = logURL
             lfns = __checkXMLSummary( lastJob, logURL )
             lfns = dict( [( lfn, lfns[lfn] ) for lfn in set( lfns ) & set( lfnList )] )
             if lfns:
@@ -861,7 +890,19 @@ def __checkJobs( jobsForLfn, byFiles = False ):
   if failedLfns:
     print "\nSummary of failures due to: Application Exited with non-zero status"
     for ( lfn, reason ), jobs in failedLfns.items():
-      print "ERROR ==> %s was %s during processing from jobs %s: " % ( lfn, reason, jobs )
+      res = monitoring.getJobsSites( jobs )
+      if res['OK']:
+        sites = sorted( set( [val['Site'] for val in res['Value'].values()] ) )
+      print "ERROR ==> %s was %s during processing from jobs %s (sites %s): " % ( lfn, reason, ','.join( [str( job ) for job in jobs] ), ','.join( sites ) )
+      # Get an example log if possible
+      if checkLogs:
+        logDump = __checkLog( jobLogURL[jobs[0]] )
+        prStr = "\tFrom logfile of job %s: " % jobs[0]
+        if len( logDump ) == 1:
+          prStr += logDump[0]
+        else:
+          prStr += '\n\t'.join( [''] + logDump )
+        print prStr
   print ''
 
 def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
@@ -1038,9 +1079,10 @@ if __name__ == "__main__":
   checkFlush = False
   checkWaitingTasks = False
   cleanOld = False
+  checkLogs = False
   from DIRAC.Core.Base import Script
 
-  infoList = ( "files", "runs", "tasks", 'jobs', 'alltasks', 'flush' )
+  infoList = ( "files", "runs", "tasks", 'jobs', 'alltasks', 'flush', 'log' )
   statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset", "Processed", "NotProcessed", "Removed", 'ProbInFC' )
   dmScript = DMScript()
   dmScript.registerFileSwitches()
@@ -1089,12 +1131,15 @@ if __name__ == "__main__":
         elif val == 'flush':
           byRuns = True
           checkFlush = True
+        elif val == 'log':
+          checkLogs = True
     elif opt == 'Status':
-      if val not in statusList:
-        print "Unknown status %s... Select in %s" % ( val, str( statusList ) )
-        Script.showHelp()
-      status = val
-      if status in ( "MissingLFC", "MissingInFC" ):
+      status = val.split( ',' )
+      val = set( status ) - set( statusList )
+      if val:
+        print "Unknown status... Select in %s" % ( sorted( val ), str( statusList ) )
+        DIRAC.exit( 1 )
+      if set( status ) & set( ["MissingLFC", "MissingInFC"] ):
         status = ["MissingLFC", "MissingInFC"]
     elif opt == 'Runs' :
       runList = val.split( ',' )
@@ -1342,7 +1387,7 @@ if __name__ == "__main__":
 
           print ""
       if byJobs and jobsForLfn:
-        __checkJobs( jobsForLfn, byFiles )
+        __checkJobs( jobsForLfn, byFiles, checkLogs )
     if status == 'Problematic' and nbReplicasProblematic:
       __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas, failedFiles, fixIt )
     if toBeKicked:
