@@ -176,6 +176,9 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
         try:
           files = self.__getFiles( transID, bkQuery, now )
         except RuntimeError, e:
+          # In case we failed a full query, we should retry full query until successful
+          if 'StartDate' not in bkQuery:
+            self.bkQueries.pop( transID, None )
           self._logError( "Failed to get response from the Bookkeeping: %s" % e, "", "__getFiles", transID )
           continue
 
