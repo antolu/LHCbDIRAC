@@ -741,8 +741,8 @@ function downloadProxy(){
 finalCleanup(){
 	echo '[finalCleanup]'
 
-	rm etc/grid-security/certificates
-	rm etc/grid-security/host*.pem
+	rm -Rf etc/grid-security/certificates
+	rm -f etc/grid-security/host*.pem
 	rm -Rf /tmp/x*
 	rm -rRf .installCache
 	rm -Rf /tmp/tmp.*
@@ -890,8 +890,8 @@ function fullInstall(){
 	#basic install, with only the CS running 
 	installSite
 	
-    #replace the sources with custom ones if defined
-    diracReplace	
+	#replace the sources with custom ones if defined
+	diracReplace	
 	
 	#Dealing with security stuff
 	generateUserCredentials
