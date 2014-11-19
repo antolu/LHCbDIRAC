@@ -15,4 +15,5 @@ localCfg.loadFromFile( localConfigFile )
 if not localCfg.isSection( '/LocalSite' ):
   localCfg.createNewSection( '/LocalSite' )
 localCfg.setOption( '/LocalSite/CPUTimeLeft', 5000 )
+localCfg.setOption( '/DIRAC/Security/UseServerCertificate', False )
 localCfg.writeToFile( localConfigFile )
