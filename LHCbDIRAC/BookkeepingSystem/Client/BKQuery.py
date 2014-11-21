@@ -356,7 +356,7 @@ class BKQuery():
     Builds a path from the dictionary
     """
     bk = self.__bkQueryDict
-    fileType = bk.get( 'FileType', '.' )
+    fileType = bk.get( 'FileType', '' )
     if type( fileType ) == type( [] ):
       fileType = ','.join( fileType )
     path = os.path.join( '/',
