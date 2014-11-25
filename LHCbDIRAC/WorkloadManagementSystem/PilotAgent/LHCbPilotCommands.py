@@ -98,8 +98,10 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
   """
   def _getSecurityCFG( self ):
-    self.pp.installEnv['X509_CERT_DIR'] = '/cvmfs/grid.cern.ch/etc/grid-security/certificates'
-    self.pp.installEnv['X509_VOMS_DIR'] = '/cvmfs/grid.cern.ch/etc/grid-security/vomsdir'
+    if 'X509_CERT_DIR' not in self.pp.installEnv:
+      self.pp.installEnv['X509_CERT_DIR'] = '/cvmfs/grid.cern.ch/etc/grid-security/certificates'
+    if 'X509_VOMS_DIR' not in self.pp.installEnv:
+      self.pp.installEnv['X509_VOMS_DIR'] = '/cvmfs/grid.cern.ch/etc/grid-security/vomsdir'
     self.cfg.append( '-DMH' )
     super( LHCbConfigureBasics, self )._getSecurityCFG()
 
