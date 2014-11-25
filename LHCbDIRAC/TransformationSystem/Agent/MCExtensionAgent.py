@@ -87,17 +87,15 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     op = Operations()
     self.cpuTimeAvg = op.getValue( 'Transformations/cpuTimeAvg' )
     if self.cpuTimeAvg is None:
-      self.cpuTimeAvg = 200000
-      self.log.info( "Could not get cpuTimeAvg from config, defaulting to %d" % 200000 )
+      self.log.info( "Could not get cpuTimeAvg from config, defaulting to %d" % self.cpuTimeAvg )
     else:
-      self.log.verbose( "cpuTimeAvg = %d" % 200000 )
+      self.log.verbose( "cpuTimeAvg = %d" % self.cpuTimeAvg )
 
     try:
       self.cpuNormalizationFactorAvg = getCPUNormalizationFactorAvg()
       self.log.verbose( "cpuNormalizationFactorAvg = %d" % self.cpuNormalizationFactorAvg )
     except RuntimeError:
-      self.cpuNormalizationFactorAvg = 1.0
-      self.log.info( "Could not get CPUNormalizationFactorAvg from config, defaulting to %d" % 1.0 )
+      self.log.info( "Could not get CPUNormalizationFactorAvg from config, defaulting to %d" % self.cpuNormalizationFactorAvg )
  
   #############################################################################
   def _checkProductionRequest( self, productionRequestID, productionRequestSummary ):
