@@ -766,7 +766,7 @@ class LHCbJob( Job ):
                      parametersList = [( 'name', 'string', '', 'Name of executable' ),
                                        ( 'executable', 'string', '', 'Executable Script' ),
                                        ( 'arguments', 'string', '', 'Arguments for executable Script' ),
-                                       ( 'logFile', 'string', '', 'Log file name' ),
+                                       ( 'applicationLog', 'string', '', 'Log file name' ),
                                        ( 'SystemConfig', 'string', '', 'CMT Config' )]
                     ):
     """Specifies executable script to run with optional arguments and log file
@@ -790,7 +790,7 @@ class LHCbJob( Job ):
        :param logFile: Optional log file name
        :type logFile: string
     """
-    kwargs = {'executable':executable, 'arguments':arguments, 'logFile':logFile}
+    kwargs = {'executable':executable, 'arguments':arguments, 'applicationLog':logFile}
     if not type( executable ) == type( ' ' ) or not type( arguments ) == type( ' ' ) or not type( logFile ) == type( ' ' ):
       return self._reportError( 'Expected strings for executable and arguments', **kwargs )
 
@@ -806,7 +806,7 @@ class LHCbJob( Job ):
 
     if logFile:
       if type( logFile ) == type( ' ' ):
-        logName = logFile
+        logName = str( logFile )
 
     self.stepCount += 1
 
@@ -822,9 +822,8 @@ class LHCbJob( Job ):
 
     stepInstance = addStepToWorkflow( self.workflow, step, stepName )
 
-
     stepInstance.setValue( 'name', moduleName )
-    stepInstance.setValue( 'logFile', logName )
+    stepInstance.setValue( 'applicationLog', logName )
     stepInstance.setValue( 'executable', executable )
     stepInstance.setValue( 'SystemConfig', systemConfig )
     if arguments:
