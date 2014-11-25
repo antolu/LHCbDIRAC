@@ -9,7 +9,6 @@ from DIRAC.Core.Base import Script
 import os
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
 
 __RCSID__ = "$Id$"
 
@@ -79,14 +78,13 @@ def convertSEs( ses ):
 
   return seList
 
-class DMScript( object ):
+class DMScript():
   """
   DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
   """
 
   def __init__( self ):
-    """ c'tor
-    """
+    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
     self.bkFields = [ "ConfigName", "ConfigVersion", "ConditionDescription", "ProcessingPass", "EventType", "FileType" ]
     self.extraBKitems = [ "StartRun", "EndRun", "ProductionID" ]
     self.bk = BookkeepingClient()
@@ -260,15 +258,16 @@ class DMScript( object ):
 
   def getLFNsFromList( self, lfns, directories = False ):
     if type( lfns ) == type( {} ):
-      lfnList = lfns.keys()
+      lfnList = [lfn.strip() for lfn in lfns]
     elif type( lfns ) == type( '' ):
       lfnList = lfns.split( ',' )
     elif type( lfns ) == type( [] ):
-      lfnList = [lfn for lfn1 in lfns for lfn in lfn1.split( ',' )]
+      lfnList = [lfn.strip() for lfn1 in lfns for lfn in lfn1.split( ',' )]
     else:
       gLogger.error( 'getLFNsFromList: invalid type %s' % type( lfns ) )
       return []
-    if not directories:
+    # if not directories:
+    if True:
       lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
       lfnList = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] if '/lhcb' in lfn else '' for lfn in lfnList]
       lfnList = [lfn.split( '?' )[0] for lfn in lfnList]

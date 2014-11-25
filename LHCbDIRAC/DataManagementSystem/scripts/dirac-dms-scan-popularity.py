@@ -290,7 +290,8 @@ if __name__ == '__main__':
     nbBins = int( ( since + 6 ) / 7 )
     since = 7 * nbBins
 
-  ignoreDirectories = ( 'user', 'test', 'debug', 'dataquality', 'software', 'database', 'swtest', 'data', 'certification', 'validation' )
+  # ignoreDirectories = ( 'user', 'test', 'debug', 'dataquality', 'software', 'database', 'swtest', 'data', 'certification', 'validation' )
+  ignoreDirectories = ( 'user', 'test', 'debug', 'dataquality', 'software', 'database', 'swtest', 'certification', 'validation' )
   nowBin = getTimeBin( datetime.now() - timedelta( days = 1 ) )
   notCached = set()
 
@@ -302,7 +303,7 @@ if __name__ == '__main__':
     if not res['OK']:
       gLogger.fatal( "Cannot get list of directories", res['Message'] )
       DIRAC.exit( 1 )
-    directories = set( [ subDir for subDir in res['Value']['Successful']['/lhcb']['SubDirs'] if subDir.split( '/' )[2] not in ignoreDirectories] )
+    directories = set( [ subDir for subDir in res['Value']['Successful']['/lhcb']['SubDirs'] if subDir.split( '/' )[2] not in ignoreDirectories and 'RAW' not in subDir] )
     allDirectoriesSet = set()
     for baseDir in directories:
       allDirectoriesSet.update( getPhysicalUsage( baseDir ) )

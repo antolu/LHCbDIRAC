@@ -22,8 +22,9 @@ if __name__ == "__main__":
 
   Script.registerSwitch( "", "Size", "   Get the LFN size [No]" )
   Script.registerSwitch( '', 'DumpNoReplicas', '   Print list of files without a replica [No]' )
-  Script.registerSwitch( '', 'DumpWithArchives=', '   =<n>, print list of files with <n> archives' )
-  Script.registerSwitch( '', 'DumpWithReplicas=', '   =<n>, print list of files with <n> replicas' )
+  Script.registerSwitch( '', 'DumpWithArchives=', '   =<n>, print files with <n> archives' )
+  Script.registerSwitch( '', 'DumpWithReplicas=', '   =<n>, print files with <n> replicas' )
+  Script.registerSwitch( '', 'DumpFailover', '   print files with failover replica (can be used with Dump[With/No]Replicas)' )
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
 
   Script.parseCommandLine( ignoreErrors = False )

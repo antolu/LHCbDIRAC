@@ -35,9 +35,9 @@ def __checkSEs( args, expand = True ):
 def getAllSEs():
   res = gConfig.getSections( '/Resources/StorageElements' )
   if not res['OK']:
-    gLogger.fatal( 'Error getting list of SEs', res['Message'] )
+    gLogger.fatal( 'Error getting list of seList', res['Message'] )
     exit( 1 )
-  # Archive SEs will be removed from the list later
+  # Archive seList will be removed from the list later
   return [se for se in res['Value']]
 
 def getArchiveSEs():
@@ -46,19 +46,19 @@ def getArchiveSEs():
 def getSEs( seGroup ):
   dmScript = DMScript()
   dmScript.setSEs( seGroup )
-  return set( dmScript.getOption( 'SEs', [] ) )
+  return set( dmScript.getOption( 'seList', [] ) )
 
 def parseArguments( dmScript, allSEs = False ):
-  # SEs passes as option arguments
+  # seList passes as option arguments
   if allSEs:
     seList = getAllSEs()
   else:
-    seList = dmScript.getOption( 'SEs', [] )
+    seList = dmScript.getOption( 'seList', [] )
     sites = dmScript.getOption( 'Sites', [] )
     if sites:
       seList += getSEsForSites( sites )
 
-  # LFNs and SEs passed as positional arguments
+  # LFNs and seList passed as positional arguments
   args = Script.getPositionalArgs()
   args = [aa for arg in args for aa in arg.split( ',' )]
   ses, args = __checkSEs( args )
@@ -96,10 +96,10 @@ def executeRemoveReplicas( dmScript, allDisk = False ):
     gLogger.fatal( "No LFNs have been supplied" )
     exit( 1 )
   if not allDisk:
-    # Only remove from selected SEs
+    # Only remove from selected seList
     minReplicas = 1
   else:
-    # Remove from all SEs
+    # Remove from all seList
     minReplicas = 0
 
   for switch in Script.getUnprocessedSwitches():
@@ -115,12 +115,12 @@ def executeRemoveReplicas( dmScript, allDisk = False ):
         # Set a default for Users
         if not seList:
           dmScript.setSEs( 'Tier1-USER' )
-          seList = dmScript.getOption( 'SEs', [] )
+          seList = dmScript.getOption( 'seList', [] )
       except:
         gLogger.fatal( "Invalid number of replicas:", switch[1] )
         exit( 1 )
 
-  # This should be improved, with disk SEs first...
+  # This should be improved, with disk seList first...
   if not seList:
     gLogger.fatal( "Provide SE name (list) as last argument or with --SE option" )
     Script.showHelp()
@@ -136,6 +136,11 @@ def removeReplicas( lfnList, seList, minReplicas = 1, checkFC = True, allDisk = 
       exit( -1 )
     successfullyRemoved = res['Value']['Successful']
     errorReasons = res['Value']['Failed']
+    lfnList = []
+    for lfns in successfullyRemoved.values():
+      lfnList += lfns
+    if lfnList:
+      removeFilesInTransformations( lfnList )
   else:
     res = removeReplicasWithFC( lfnList, sorted( seList ), minReplicas, allDisk, force )
     if not res['OK']:
@@ -355,14 +360,16 @@ def removeReplicasNoFC( lfnList, seList ):
             errorReasons.setdefault( str( reason ), {} ).setdefault( seName, [] ).append( lfn )
       if not pfnsToRemove:
         continue
-      gLogger.verbose( "Removing surls: %s" % '\n'.join( pfnsToRemove ) )
+      gLogger.verbose( "List of urls: %s" % '\n'.join( pfnsToRemove ) )
       res = se.exists( pfnsToRemove.keys() )
       if not res['OK']:
         gLogger.error( 'ERROR checking file:', res['Message'] )
         continue
       pfns = [pfn for pfn, exists in res['Value']['Successful'].items() if exists]
       if not pfns:
+        gLogger.always( "No files found for removal at %s" % seName )
         continue
+      gLogger.always( "Removing %d files from %s" % ( len( pfns ), seName ) )
       gLogger.setLevel( 'FATAL' )
       res = se.removeFile( pfns )
       gLogger.setLevel( 'ERROR' )
@@ -405,7 +412,7 @@ def getAccessURL( lfnList, seList, protocol = None ):
   if not seList:
     seList = sorted( set( [se for lfn in lfnList for se in replicas.get( lfn, {} )] ) )
     if len( seList ) > 1:
-      gLogger.always( "Using the following list of SEs: %s" % str( seList ) )
+      gLogger.always( "Using the following list of seList: %s" % str( seList ) )
   bk = BookkeepingClient()
   # gLogger.setLevel( "FATAL" )
   notFoundLfns = set( lfnList )
@@ -440,7 +447,7 @@ def getAccessURL( lfnList, seList, protocol = None ):
       else:
         notFoundLfns.remove( lfn )
   if notFoundLfns:
-    results['Value']['Failed'] = dict.fromkeys( sorted( notFoundLfns ), 'File not found in required SEs' )
+    results['Value']['Failed'] = dict.fromkeys( sorted( notFoundLfns ), 'File not found in required seList' )
 
   printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
 
@@ -459,7 +466,6 @@ def executeRemoveFiles( dmScript ):
 def removeFiles( lfnList, setProcessed = False ):
   dm = DataManager()
   fc = FileCatalog()
-  transClient = TransformationClient()
 
   errorReasons = {}
   successfullyRemoved = []
@@ -477,10 +483,10 @@ def removeFiles( lfnList, setProcessed = False ):
     res = dm.removeFile( lfnChunk, force = False )
     if not res['OK']:
       gLogger.fatal( "Failed to remove data", res['Message'] )
-      exit( -2 )
+      continue
     for lfn, reason in res['Value']['Failed'].items():
       reasonStr = str( reason )
-      if type( reason ) == type( {} ) and reason == {'BookkeepingDB': 'File does not exist'}:
+      if type( reason ) == type( {} ) and str( reason ) == "{'BookkeepingDB': 'File does not exist'}":
         pass
       elif 'No such file or directory' in reasonStr or 'File does not exist' in reasonStr:
         notExisting.append( lfn )
@@ -492,32 +498,7 @@ def removeFiles( lfnList, setProcessed = False ):
   gLogger.setLevel( 'ERROR' )
 
   if successfullyRemoved + notExisting:
-    res = transClient.getTransformationFiles( {'LFN':successfullyRemoved + notExisting } )
-    if not res['OK']:
-      gLogger.error( "Error getting transformation files", res['Message'] )
-    else:
-      transFiles = res['Value']
-      lfnsToSet = {}
-      if setProcessed:
-        ignoreStatus = ( 'Removed' )
-      else:
-        ignoreStatus = ( 'Processed', 'Removed' )
-        ignoredFiles = {}
-        for fileDict in [fileDict for fileDict in transFiles if fileDict['Status'] == 'Processed']:
-          ignoredFiles.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
-        if ignoredFiles:
-          for transID, lfns in ignoredFiles.items():
-            gLogger.always( 'Ignored %d files in status Processed in transformation %d' % ( len( lfns ), transID ) )
-
-      for fileDict in [tf for tf in transFiles if tf['Status'] not in ignoreStatus]:
-        lfnsToSet.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
-      # If required, set files Removed in transformations
-      for transID, lfns in lfnsToSet.items():
-        res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns, force = True )
-        if not res['OK']:
-          gLogger.error( 'Error setting %d files to Removed' % len( lfns ), res['Message'] )
-        else:
-          gLogger.always( 'Successfully set %d files as Removed in transformation %d' % ( len( lfns ), transID ) )
+    removeFilesInTransformations( successfullyRemoved + notExisting, setProcessed = setProcessed )
 
   if notExisting:
     # The files are not yet removed from the catalog!! :(((
@@ -551,8 +532,11 @@ def removeFiles( lfnList, setProcessed = False ):
             errorReasons.setdefault( str( res['Message'] ), [] ).extend( lfnChunk )
           else:
             for lfn, reason in res['Value']['Failed'].items():
-              errorReasons.setdefault( str( reason ), [] ).append( lfn )
-              lfnChunk.remove( lfn )
+              if type( reason ) == type( {} ) and str( reason ) == "{'BookkeepingDB': 'File does not exist'}":
+                pass
+              else:
+                errorReasons.setdefault( str( reason ), [] ).append( lfn )
+                lfnChunk.remove( lfn )
         notExistingRemoved += lfnChunk
     if verbose:
       gLogger.always( '' )
@@ -564,6 +548,38 @@ def removeFiles( lfnList, setProcessed = False ):
     gLogger.always( "Successfully removed %d files" % len( successfullyRemoved ) )
   for reason, lfns in errorReasons.items():
     gLogger.always( "Failed to remove %d files with error: %s" % ( len( lfns ), reason ) )
+
+def removeFilesInTransformations( lfns, setProcessed = False ):
+  """
+  Set files Removed in transformations
+  """
+  transClient = TransformationClient()
+  res = transClient.getTransformationFiles( {'LFN':lfns } )
+  if not res['OK']:
+    gLogger.error( "Error getting transformation files", res['Message'] )
+  else:
+    transFiles = res['Value']
+    lfnsToSet = {}
+    if setProcessed:
+      ignoreStatus = ( 'Removed' )
+    else:
+      ignoreStatus = ( 'Processed', 'Removed' )
+      ignoredFiles = {}
+      for fileDict in [fileDict for fileDict in transFiles if fileDict['Status'] == 'Processed']:
+        ignoredFiles.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
+      if ignoredFiles:
+        for transID, lfns in ignoredFiles.items():
+          gLogger.always( 'Ignored %d files in status Processed in transformation %d' % ( len( lfns ), transID ) )
+
+    for fileDict in [tf for tf in transFiles if tf['Status'] not in ignoreStatus]:
+      lfnsToSet.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
+    # If required, set files Removed in transformations
+    for transID, lfns in lfnsToSet.items():
+      res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns, force = True )
+      if not res['OK']:
+        gLogger.error( 'Error setting %d files to Removed' % len( lfns ), res['Message'] )
+      else:
+        gLogger.always( 'Successfully set %d files as Removed in transformation %d' % ( len( lfns ), transID ) )
 
 def executeLfnReplicas( dmScript ):
 
@@ -639,7 +655,7 @@ def executePfnMetadata( dmScript ):
 def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = False ):
   from DIRAC.Core.Utilities.Adler import compareAdler
   if len( seList ) > 1:
-    gLogger.always( "Using the following list of SEs: %s" % str( seList ) )
+    gLogger.always( "Using the following list of seList: %s" % str( seList ) )
   if len( lfnList ) > 100:
     gLogger.always( "Getting metadata for %d files, be patient" % len( lfnList ) )
 
@@ -648,7 +664,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
   gLogger.setLevel( "FATAL" )
   metadata = {'Successful':{}, 'Failed':{}}
   replicas = {}
-  # restrict SEs to those where the replicas are
+  # restrict seList to those where the replicas are
   for lfnChunk in breakListIntoChunks( lfnList, 100 ):
     res = fc.getReplicas( lfnChunk, allStatus = True )
     if not res['OK']:
@@ -666,7 +682,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
   metadata['Failed'].update( dict.fromkeys( [url for url in lfnList if url not in replicas and url not in metadata['Failed']], 'FC: No active replicas' ) )
   result = None
   if not seList:
-    # take all SEs in replicas and add a fake '' to printout the SE name
+    # take all seList in replicas and add a fake '' to printout the SE name
     seList = [''] + sorted( list( set( [se for lfn in replicas for se in replicas[lfn]] ) ) )
   if replicas:
     for se in seList:
@@ -751,25 +767,35 @@ def executeReplicaStats( dmScript ):
   prNoReplicas = False
   prWithArchives = False
   prWithReplicas = False
+  prFailover = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] in ( "S", "Size" ):
       getSize = True
     elif switch[0] == 'DumpNoReplicas':
       prNoReplicas = True
     elif switch[0] == 'DumpWithArchives':
-      prWithArchives = [int( xx ) for xx in switch[1].split( ',' )]
+      if switch[1].lower() == 'any':
+        prWithArchives = range( 1, 10 )
+      else:
+        prWithArchives = [int( xx ) for xx in switch[1].split( ',' )]
     elif switch[0] == 'DumpWithReplicas':
-      prWithReplicas = [int( xx ) for xx in switch[1].split( ',' )]
-
+      if switch[1].lower() == 'any':
+        prWithReplicas = range( 1, 100 )
+      else:
+        prWithReplicas = [int( xx ) for xx in switch[1].split( ',' )]
+    elif switch[0] == 'DumpFailover':
+      prFailover = True
 
   directories = dmScript.getOption( 'Directory' )
   if not directories:
     lfnList, _ses = parseArguments( dmScript )
 
-  printReplicaStats( directories, lfnList, getSize, prNoReplicas, prWithReplicas, prWithArchives )
+  printReplicaStats( directories, lfnList, getSize, prNoReplicas,
+                     prWithReplicas, prWithArchives, prFailover )
   exit( 0 )
 
-def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = False, prWithReplicas = False, prWithArchives = False ):
+def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = False,
+                       prWithReplicas = False, prWithArchives = False, prFailover = False ):
   from DIRAC.Core.Utilities.SiteSEMapping                        import getSitesForSE
   dm = DataManager()
 
@@ -777,6 +803,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
   noReplicas = {}
   withReplicas = {}
   withArchives = {}
+  withFailover = set()
   lfnReplicas = {}
   if directories:
     for directory in directories:
@@ -823,16 +850,17 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
     for lfn, size in lfnSize.items():
       totSize += size
   for lfn, replicas in lfnReplicas.items():
-    SEs = replicas.keys()
+    seList = replicas.keys()
     nrep = len( replicas )
     narchive = -1
-    for se in list( SEs ):
+    for se in list( seList ):
       if se.endswith( "-FAILOVER" ):
+        withFailover.add( lfn )
         nrep -= 1
         repStats[-100] = repStats.setdefault( -100, 0 ) + 1
         if nrep == 0:
           repStats[-101] = repStats.setdefault( -101, 0 ) + 1
-        SEs.remove( se )
+        seList.remove( se )
       if se.endswith( "-ARCHIVE" ):
         nrep -= 1
         narchive -= 1
@@ -906,7 +934,11 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
 
   if prNoReplicas and noReplicas:
     gLogger.always( "\nFiles without a disk replica:" )
-    for rep in sorted( noReplicas ):
+    if prFailover:
+      prList = set( noReplicas ) & withFailover
+    else:
+      prList = noReplicas
+    for rep in sorted( prList ):
       gLogger.always( "%s (%d archives)" % ( rep, noReplicas[rep] ) )
 
   if type( prWithArchives ) == type( [] ):
@@ -918,8 +950,16 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
   if type( prWithReplicas ) == type( [] ):
     for n in [m for m in prWithReplicas if m in withReplicas]:
       gLogger.always( '\nFiles with %d disk replicas:' % n )
-      for rep in sorted( withReplicas[n] ):
+      if prFailover:
+        prList = set( withReplicas[n] ) & withFailover
+      else:
+        prList = withReplicas[n]
+      for rep in sorted( prList ):
         gLogger.always( rep )
+  elif not prNoReplicas and prFailover and withFailover:
+    for rep in sorted( withFailover ):
+      gLogger.always( rep )
+
   exit( 0 )
 
 def executeReplicateLfn( dmScript ):
@@ -1273,6 +1313,7 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
   """
   emptyDirsFlag = False
   outputFlag = False
+  depth = 999999
   if wildcard == None:
     wildcard = '*'
   for switch in Script.getUnprocessedSwitches():
@@ -1288,6 +1329,8 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
       emptyDirsFlag = True
     elif switch[0] == 'Output':
       outputFlag = True
+    elif switch[0] == 'Depth':
+      depth = int( switch[1] )
 
 
   verbose = False
@@ -1325,7 +1368,9 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
         dirContents = res['Value']['Successful'][currentDir]
         empty = True
         for subdir, metadata in dirContents['SubDirs'].items():
-          if ( not verbose ) or __isOlderThan( metadata['CreationDate'], totalDays ):
+          d = len( subdir.replace( baseDir, '' ).split( '/' ) )
+          # print subdir, baseDir, subdir.replace( baseDir, '' ).split( '/' ), d
+          if ( d < depth + 2 ) and ( not verbose or __isOlderThan( metadata['CreationDate'], totalDays ) ):
             activeDirs.append( subdir )
           empty = False
         for filename, fileInfo in dirContents['Files'].items():
