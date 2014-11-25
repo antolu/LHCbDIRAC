@@ -21,6 +21,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'GroupBy=', '   Return a list of files per <metadata item>' )
   Script.registerSwitch( '', 'GroupByPath', '   Return a list of files per BK path' )
   Script.registerSwitch( '', 'GroupByProduction', '   Return a list of files per production' )
+  Script.registerSwitch( '', 'Summary', '   Only give the number of files in each path' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] ... LFN|File' % Script.scriptName,
@@ -35,6 +36,7 @@ if __name__ == "__main__":
 
   full = False
   groupBy = False
+  summary = False
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
     if switch[0] == 'Full':
@@ -45,6 +47,8 @@ if __name__ == "__main__":
       groupBy = 'Production'
     elif switch[0] == 'GroupBy':
       groupBy = switch[1]
+    elif switch[0] == 'Summary':
+      summary = True
 
   args = Script.getPositionalArgs()
   for lfn in args:
@@ -85,13 +89,14 @@ if __name__ == "__main__":
       printDMResult( res )
       DIRAC.exit( 1 )
 
-    dirList = res.get( 'Value', {} ).get( 'Successful', {} )
+    success = res.get( 'Value', {} ).get( 'Successful', {} )
+    failed = res.get( 'Value', {} ).get( 'Failed', {} )
     paths = {'Successful':{}, 'Failed':{}}
-    for dirName in dirList:
+    for dirName in success:
       if full:
-        dirList[dirName] = dirList[dirName][0]
+        success[dirName] = success[dirName][0]
       else:
-        bkDict = dirList[dirName][0].copy()
+        bkDict = success[dirName][0].copy()
         bkDict['Path'] = __buildPath( bkDict )
         if groupBy in bkDict:
           if groupBy != 'Path':
@@ -104,12 +109,22 @@ if __name__ == "__main__":
           gLogger.always( 'Available are: %s' % str( bkDict.keys() ) )
           DIRAC.exit( 1 )
         else:
-          dirList[dirName] = bkDict['Path']
+          success[dirName] = bkDict['Path']
 
     if groupBy:
-      for dirName in res.get( 'Value', {} ).get( 'Failed', {} ):
-        paths['Failed'].update( dict.fromkeys( directories[dirName], 'Directory not in BK' ) )
-      res = S_OK( paths )
+      if summary:
+        pathSummary = {'Successful': {}, 'Failed' : {}}
+        for path in paths['Successful']:
+          pathSummary['Successful'][path] = '%d files' % len( paths['Successful'][path] )
+        if failed:
+          pathSummary['Failed'] = dict( ( path, 'Directory not in BK (%d files)' % len( directories[path] ) ) for path in failed )
+        else:
+          pathSummary.pop( 'Failed' )
+        res = S_OK( pathSummary )
+      else:
+        for dirName in failed:
+          paths['Failed'].update( dict.fromkeys( directories[dirName], 'Directory not in BK' ) )
+        res = S_OK( paths )
 
   printDMResult( res, empty = 'None', script = 'dirac-bookkeeping-file-path' )
 
