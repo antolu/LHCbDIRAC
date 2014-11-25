@@ -301,6 +301,7 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
     self.agent.AgentModule = self.mockAM
     self.agent = MCSimulationTestingAgent()
     self.agent.log = gLogger
+    self.agent.log.setLevel( 'DEBUG' )
     self.transID = 1L
     self.tasks = [{'TargetSE': 'Unknown',
                    'TransformationID': 1L,
@@ -448,15 +449,15 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
     CPUe = 1
     MCCpu = 25
     CPUe_xml = self.test_workflow = """<Parameter name="CPUe" type="string" linked_module="" linked_parameter="" in="True" out="False" description="CPU time per event"><value><![CDATA[1]]></value></Parameter>\n"""
-#    MCCpu_e_xml = self.test_workflow = """<Parameter name="maxNumberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Maximum number of events to produce (Gauss only)"><value><![CDATA[1]]></value></Parameter>\n"""
+    max_e_xml = self.test_workflow = """<Parameter name="maxNumberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Maximum number of events to produce (Gauss)"><value><![CDATA[160000]]></value></Parameter>\n"""
     res = self.agent._update_workflow( self.transID, CPUe, MCCpu )
     self.assertTrue( res['OK'] )
     prod = Production()
     prod.LHCbJob.workflow = fromXMLString( res['Value'] )
     cpue_param = prod.LHCbJob.workflow.findParameter( 'CPUe' )
-#    max_e_param = prod.LHCbJob.workflow.findParameter( 'maxNumberOfEvents' )
+    max_e_param = prod.LHCbJob.workflow.findParameter( 'maxNumberOfEvents' )
     self.assertEqual( CPUe_xml, cpue_param.toXML() )
-#    self.assertEqual( max_e_xml, max_e_param.toXML() )
+    self.assertEqual( max_e_xml, max_e_param.toXML() )
 
   @patch( "LHCbDIRAC.TransformationSystem.Agent.MCSimulationTestingAgent.getEventsToProduce" )
   def test_calculate_parameters( self, patch_mock ):

@@ -8,7 +8,6 @@ from DIRAC.Core.DISET.RPCClient                                       import RPC
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations              import Operations
 from DIRAC.TransformationSystem.Agent.MCExtensionAgent                import MCExtensionAgent as DIRACMCExtensionAgent
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient       import TransformationClient
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest    import ProductionRequest
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities                      import getCPUNormalizationFactorAvg, getEventsToProduce, getProductionParameterValue
 
 __RCSID__ = "$Id$"
@@ -82,26 +81,23 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
   def _getCPUParameters( self ):
     """ Get the CPUTimeAvg and CPUNormalizationFactorAvg from config,
-        or as a fail-over, from ProductionRequest defaults.
+        or as a fail-over, there are some defaults
     """
-
-    productionRequest = ProductionRequest()
 
     op = Operations()
     self.cpuTimeAvg = op.getValue( 'Transformations/cpuTimeAvg' )
     if self.cpuTimeAvg is None:
-      self.cpuTimeAvg = productionRequest.CPUTimeAvg
-      self.log.info( "Could not get cpuTimeAvg from config, defaulting to %d" % self.cpuTimeAvg )
+      self.cpuTimeAvg = 200000
+      self.log.info( "Could not get cpuTimeAvg from config, defaulting to %d" % 200000 )
     else:
-      self.log.verbose( "cpuTimeAvg = %d" % self.cpuTimeAvg )
+      self.log.verbose( "cpuTimeAvg = %d" % 200000 )
 
     try:
       self.cpuNormalizationFactorAvg = getCPUNormalizationFactorAvg()
       self.log.verbose( "cpuNormalizationFactorAvg = %d" % self.cpuNormalizationFactorAvg )
     except RuntimeError:
-      self.cpuNormalizationFactorAvg = productionRequest.CPUNormalizationFactorAvg
-      self.log.info( "Could not get CPUNormalizationFactorAvg from config, defaulting to %d"
-                     % self.cpuNormalizationFactorAvg )
+      self.cpuNormalizationFactorAvg = 1.0
+      self.log.info( "Could not get CPUNormalizationFactorAvg from config, defaulting to %d" % 1.0 )
  
   #############################################################################
   def _checkProductionRequest( self, productionRequestID, productionRequestSummary ):

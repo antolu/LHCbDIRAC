@@ -286,7 +286,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [['aa'], []]
     pr.inputDataPolicies = ['dl', 'pr']
     pr.events = [-1, -1]
-    pr.CPUeList = [1.0, 1.0]
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
@@ -309,7 +308,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [['aa'], [], [], []]
     inputDataPoliciesExpected = ['dl', 'pr', 'pr', 'pr']
     eventsExpected = [-1, -1, -1, -1]
-    CPUeListExpected = [1.0, 1.0, 1.0, 1.0]
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2']
     multicoreExpected = ['False', 'True', 'True', 'True']
     outputModeExpected = ['Local', 'Any', 'Any', 'Any']
@@ -330,7 +328,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
-    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
@@ -353,7 +350,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.outputFileSteps = ['', '2']
     pr.inputDataPolicies = ['pr', 'dl']
     pr.events = [-1, -1]
-    pr.CPUeList = [1.0, 1.0]
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
@@ -376,7 +372,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[], ['aa']]
     inputDataPoliciesExpected = ['pr', 'dl']
     eventsExpected = [-1, -1]
-    CPUeListExpected = [1.0, 1.0]
     targetsExpected = ['Target1', 'Target2']
     multicoreExpected = ['False', 'True']
     outputModeExpected = ['Local', 'Any']
@@ -397,7 +392,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
-    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
@@ -419,7 +413,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[], ['aa']]
     pr.inputDataPolicies = ['dl', 'pr']
     pr.events = [-1, -1]
-    pr.CPUeList = [1.0, 1.0]
     pr.bkQueries = ['fromPreviousProd', 'fromPreviousProd']
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
@@ -442,7 +435,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[], [], [], ['aa']]
     inputDataPoliciesExpected = ['dl', 'dl', 'dl', 'pr']
     eventsExpected = [-1, -1, -1, -1]
-    CPUeListExpected = [1.0, 1.0, 1.0, 1.0]
     targetsExpected = ['Target1', 'Target1', 'Target1', 'Target2']
     multicoreExpected = ['False', 'False', 'False', 'True']
     outputModeExpected = ['Local', 'Local', 'Local', 'Any']
@@ -463,7 +455,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
-    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
@@ -485,7 +476,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[]]
     pr.inputDataPolicies = ['']
     pr.events = [-1]
-    pr.CPUeList = [1.0]
     pr.bkQueries = ['Full']
     pr.targets = ['Target1']
     pr.multicore = ['False']
@@ -507,7 +497,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[]]
     inputDataPoliciesExpected = ['']
     eventsExpected = [-1]
-    CPUeListExpected = [1.0]
     targetsExpected = ['Target1']
     multicoreExpected = ['False']
     outputModeExpected = ['Local']
@@ -527,7 +516,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
-    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
@@ -550,7 +538,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputDataPolicies = ['', 'dl', 'pr']
     pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
     pr.events = [-1, -1, -1]
-    pr.CPUeList = [1.0, 1.0, 1.0]
     pr.targets = ['Target1', 'Target2', 'Target3']
     pr.multicore = ['False', 'True', 'False']
     pr.outputModes = ['Local', 'Any', 'Any']
@@ -571,7 +558,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[], ['aa'], ['aa'], ['aa'], ['bb']]
     inputDataPoliciesExpected = ['', 'dl', 'dl', 'dl', 'pr']
     eventsExpected = [-1, -1, -1, -1, -1]
-    CPUeListExpected = [1.0, 1.0, 1.0, 1.0, 1.0]
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2', 'Target3']
     multicoreExpected = ['False', 'True', 'True', 'True', 'False']
     outputModeExpected = ['Local', 'Any', 'Any', 'Any', 'Any']
@@ -591,7 +577,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
-    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
@@ -613,7 +598,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[], []]
     pr.inputDataPolicies = ['', 'dl']
     pr.events = [-1, -1]
-    pr.CPUeList = [1.0, 1.0]
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
@@ -635,7 +619,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[], [], [], []]
     inputDataPoliciesExpected = ['', 'dl', 'dl', 'dl']
     eventsExpected = [-1, -1, -1, -1]
-    CPUeListExpected = [1.0, 1.0, 1.0, 1.0]
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2']
     multicoreExpected = ['False', 'True', 'True', 'True']
     outputModeExpected = ['Local', 'Any', 'Any', 'Any']
@@ -655,7 +638,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
-    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
@@ -677,7 +659,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[]]
     pr.inputDataPolicies = ['dl']
     pr.events = [-1]
-    pr.CPUeList = [1.0]
     pr.bkQueries = ['Full']
     pr.targets = ['Target1']
     pr.multicore = ['False']
@@ -699,7 +680,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[]]
     inputDataPoliciesExpected = ['dl']
     eventsExpected = [-1]
-    CPUeListExpected = [1.0]
     targetsExpected = ['Target1']
     multicoreExpected = ['False']
     outputModeExpected = ['Local']
@@ -719,7 +699,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
-    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
@@ -740,7 +719,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [['aa'], ['bb']]
     pr.inputDataPolicies = ['dl', 'pr']
     pr.events = [-1, -1]
-    pr.CPUeList = [1.0, 1.0]
     pr.bkQueries = ['Full', 'fromPreviousProd']
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
@@ -762,7 +740,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [['aa'], ['aa'], ['aa'], ['bb']]
     inputDataPoliciesExpected = ['dl', 'dl', 'dl', 'pr']
     eventsExpected = [-1, -1, -1, -1]
-    CPUeListExpected = [1.0, 1.0, 1.0, 1.0]
     targetsExpected = ['Target1', 'Target1', 'Target1', 'Target2']
     multicoreExpected = ['False', 'False', 'False', 'True']
     outputModeExpected = ['Local', 'Local', 'Local', 'Any']
@@ -782,7 +759,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
-    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
@@ -803,7 +779,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.inputs = [[], []]
     pr.inputDataPolicies = ['', 'dl']
     pr.events = [100, -1]
-    pr.CPUeList = [100.0, 1.0]
     pr.bkQueries = ['', 'fromPreviousProd']
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
@@ -825,7 +800,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     inputsExpected = [[], []]
     inputDataPoliciesExpected = ['', 'dl']
     eventsExpected = [100, -1]
-    CPUeListExpected = [100.0, 1.0]
     targetsExpected = ['Target1', 'Target2']
     multicoreExpected = ['False', 'True']
     outputModeExpected = ['Local', 'Any']
@@ -845,7 +819,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.inputs, inputsExpected )
     self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
     self.assertEqual( pr.events, eventsExpected )
-    self.assertEqual( pr.CPUeList, CPUeListExpected )
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
@@ -871,7 +844,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.plugins = ['ByRun', 'BySize', 'BySize']
     pr.previousProds = [None, 1, 1]
     pr.events = [-1, -1, -1]
-    pr.CPUeList = [1.0, 1.0, 1.0]
     pr.multicore = ['False', 'False', 'True']
     pr.outputModes = ['Any', 'Local', 'Any']
 
@@ -930,7 +902,6 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'previousProd': None,
                       'stepsInProd-ProdName': ["123['SDST']", "456['BHADRON.DST']"],
                       'events':-1,
-                      'CPUe' : 1.0,
                       'multicore': 'False',
                       'outputMode': 'Any'
                      },
@@ -956,7 +927,6 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'previousProd': 1,
                       'stepsInProd-ProdName': ["456['CALIBRATION.DST']"],
                       'events':-1,
-                      'CPUe' : 1.0,
                       'multicore': 'False',
                       'outputMode': 'Local'
                       },
@@ -982,7 +952,6 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'previousProd': 1,
                       'stepsInProd-ProdName': ["456['PID.MDST']"],
                       'events':-1,
-                      'CPUe' : 1.0,
                       'multicore': 'True',
                       'outputMode': 'Any'
                       }
@@ -1201,7 +1170,6 @@ class ProductionRequestFullChain( ClientTestCase ):
     pr.configVersion = 'MC11a'
 
     pr.events = ['100', '-1']
-    pr.CPUeList = [100.0, 1.0]
 
     pr.eventsToProduce = 10000
 
@@ -1211,9 +1179,6 @@ class ProductionRequestFullChain( ClientTestCase ):
 
     pr.prodGroup = 'Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged'
     pr.dataTakingConditions = 'Beam3500GeV-2011-MagDown-Nu2-EmNoCuts'
-
-    pr.CPUNormalizationFactorAvg = 1.0
-    pr.CPUTimeAvg = 100000.0
 
     pr.prodsTypeList = ['Stripping', 'Merge']
     pr.outputSEs = ['Tier1_MC-DST', 'Tier1_MC-DST']

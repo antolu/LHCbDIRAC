@@ -10,16 +10,19 @@ __RCSID__ = "$Id$"
 
 AGENT_NAME = 'Transformation/MCSimulationTestingAgent'
 
-from DIRAC                                                                import S_OK, S_ERROR
-from DIRAC.Core.Base.AgentModule                                          import AgentModule
-from DIRAC.Core.Workflow.Workflow                                         import fromXMLString
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient
-from DIRAC.FrameworkSystem.Client.NotificationClient                      import NotificationClient
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations                  import Operations
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry                    import getUserOption
-from LHCbDIRAC.ProductionManagementSystem.Client.Production               import Production
-from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest        import getEventsToProduce
+from DIRAC import S_OK, S_ERROR
+
+from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.Core.Workflow.Workflow import fromXMLString
+from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUserOption
+
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getEventsToProduce, getCPUNormalizationFactorAvg
+
 
 class MCSimulationTestingAgent ( AgentModule ):
   """An agent to check for MCSimulation productions that have undergone the testing phase.
@@ -193,6 +196,22 @@ class MCSimulationTestingAgent ( AgentModule ):
       self.log.info( "Transformation ", str( transID ) )
       self.log.info( "Calculated CPUTime: ", str( CPUe ) )
       self.log.info( "CpuTime: ", str( MCCpu ) )
+
+      # maximum number of events to produce
+      # try to get the CPU parameters from the configuration if possible
+      cpuTimeAvg = Operations().getValue( 'Transformations/CPUTimeAvg' )
+      if cpuTimeAvg is None:
+        self.log.info( 'Could not get CPUTimeAvg from config, defaulting to %d' % 200000 )
+        cpuTimeAvg = 200000
+
+      try:
+        CPUNormalizationFactorAvg = getCPUNormalizationFactorAvg()
+      except RuntimeError:
+        self.log.info( 'Could not get CPUNormalizationFactorAvg, defaulting to %f' % 1.0 )
+        CPUNormalizationFactorAvg = 1.0
+
+      max_e = getEventsToProduce( CPUe, cpuTimeAvg, CPUNormalizationFactorAvg )
+      prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce (Gauss)' )
       return S_OK( prod.LHCbJob.workflow.toXML() )
     else:
       message = "Call to Transformation Client service failed : %s" % res['Message']
