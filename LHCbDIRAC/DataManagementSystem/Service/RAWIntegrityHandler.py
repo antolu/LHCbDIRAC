@@ -8,7 +8,7 @@
     :synopsis: DISET interface to the RAWIntegrityDB.
 """
 # imports
-from types import StringType, IntType, DictType, ListType
+from types import StringType, IntType, DictType, ListType, StringTypes
 # from DIRAC
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -133,3 +133,32 @@ class RAWIntegrityHandler( RequestHandler ):
     resultDict['Records'] = records
     resultDict['Extras'] = statusCountDict
     return S_OK( resultDict )
+  
+  types_getStatistics = [ StringTypes, DictType ]
+  @staticmethod
+  def export_getStatistics ( attribute, selectDict ):
+    """ Get job statistics distribution per attribute value with a given selection
+    """
+    startDate = selectDict.get( 'FromDate', None )
+    if startDate:
+      del selectDict['FromDate']
+    # For backward compatibility
+    if startDate is None:
+      startDate = selectDict.get( 'LastUpdate', None )
+      if startDate:
+        del selectDict['LastUpdate']
+    endDate = selectDict.get( 'ToDate', None )
+    if endDate:
+      del selectDict['ToDate']
+
+    result = gRAWIntegrityDB.getCounters( 'Files', [attribute], selectDict,
+                               newer = startDate,
+                               older = endDate)
+                               
+    resultDict = {}
+    if result['OK']:
+      for cDict, count in result['Value']:
+        resultDict[cDict[attribute]] = count
+
+    return S_OK( resultDict )
+
