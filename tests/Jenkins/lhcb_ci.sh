@@ -525,7 +525,7 @@ function diracProxies(){
 	# User proxy, should be uploaded anyway
 	dirac-proxy-init -U -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG 
 	# group proxy, will be uploaded explicitly
-	dirac-proxy-init -U -g $1 -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
+	#dirac-proxy-init -U -g $1 -C $WORKSPACE/user/client.pem -K $WORKSPACE/user/client.key $DEBUG
 
 }
 
@@ -932,7 +932,8 @@ function fullInstall(){
 	sleep 10
 	
 	#upload proxies
-	diracProxies prod
+	diracProxies
+	# prod
 	
 	#Now all the rest
 
