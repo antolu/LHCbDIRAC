@@ -14,12 +14,12 @@ import os
 from DIRAC import gMonitor, S_OK
 ## from Core
 from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.Core.DISET.RPCClient import RPCClient 
 from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC.ConfigurationSystem.Client import PathFinder
 ## from DMS
-from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.Resources.Storage.StorageElement import StorageElement
+from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB import RAWIntegrityDB
 ## from RMS
 from DIRAC.RequestManagementSystem.Client.Request import Request
@@ -32,7 +32,6 @@ class RAWIntegrityAgent( AgentModule ):
   """
   .. class:: RAWIntegirtyAgent
 
-  :param DataManager dataManager: DataManager instance
   :param RAWIntegrityDB rawIntegrityDB: RAWIntegrityDB instance
   :param str gatewayUrl: URL to online RequestClient
   """
@@ -44,7 +43,7 @@ class RAWIntegrityAgent( AgentModule ):
     AgentModule.__init__( self, *args, **kwargs )
   
     self.rawIntegrityDB    = None
-    self.dataManager = None
+    self.fileCatalog = None
     self.onlineRequestMgr  = None
     
     
@@ -52,10 +51,21 @@ class RAWIntegrityAgent( AgentModule ):
     """ agent initialisation """
 
     self.rawIntegrityDB    = RAWIntegrityDB()
-    self.dataManager = DataManager()
 
-    gatewayUrl = PathFinder.getServiceURL( 'RequestManagement/onlineGateway' )
-    self.onlineRequestMgr = RPCClient( gatewayUrl )
+    # The file catalog is used to register file once it has been transfered
+    # But we want to register it in all the catalogs except the RAWIntegrityDB
+    # otherwise it is register twice
+    # We also remove the BK catalog because some files are not registered there
+    # (detector calibration files for example). The real data are registered in
+    # the bookeeping by the DataMover
+    self.fileCatalog = FileCatalog()
+    self.fileCatalog.removeCatalog( 'RAWIntegrity' )
+    self.fileCatalog.removeCatalog( 'BookkeepingDB' )
+
+
+    self.onlineRequestMgr = ReqClient()
+    self.onlineRequestMgr.setServer( 'RequestManagement/onlineGateway' )
+
     
     gMonitor.registerActivity( "Iteration", "Agent Loops/min", 
                                "RAWIntegriryAgent", "Loops", gMonitor.OP_SUM )
@@ -183,6 +193,7 @@ class RAWIntegrityAgent( AgentModule ):
         else:
           self.log.error( "Migrated checksum mis-match.", "%s %s %s" % ( lfn, castorChecksum.lstrip( '0' ), 
                                                                          onlineChecksum.lstrip( '0' ).lstrip( 'x' ) ) )
+
           filesToTransfer.append( lfn )
 
     migratedSize = 0
@@ -219,14 +230,26 @@ class RAWIntegrityAgent( AgentModule ):
         se = activeFiles[lfn]['SE']
         guid = activeFiles[lfn]['GUID']
         checksum = activeFiles[lfn]['Checksum']
-        fileTuple = ( lfn, pfn, size, se, guid, checksum )
-        res = self.dataManager.registerFile( fileTuple )
+
+        fileDict = {}
+        fileDict[lfn] = {'PFN':pfn, 'Size':size, 'SE':se, 'GUID':guid, 'Checksum':checksum}
+        res = self.fileCatalog.addFile( fileDict )
+        
         if not res['OK']:
           self.log.error( "Completely failed to register successfully migrated file.", res['Message'] )
-        elif lfn in res['Value']['Failed']:
-          self.log.error( "Failed to register lfn in the File Catalog.", res['Value']['Failed'][lfn] )
+          continue
         else:
-          self.log.info( "Successfully registered %s in the File Catalog." % lfn )
+          if lfn in res['Value']['Failed']:
+            
+            if lfn in res['Value']['Successful']:
+              self.log.error( "Only partially registered lfn in the File Catalog.", res['Value']['Failed'][lfn] )
+            else:
+              self.log.error( "Completely failed to register lfn in the File Catalog.", res['Value']['Failed'][lfn] )
+            
+            continue
+
+          else:
+            self.log.info( "Successfully registered %s in the File Catalog." % lfn )
           ############################################################
           #
           # Create a removal request and set it to the gateway request DB
