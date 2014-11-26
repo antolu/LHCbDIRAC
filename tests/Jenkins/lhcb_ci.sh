@@ -531,6 +531,21 @@ function diracProxies(){
 
 #.............................................................................
 #
+# diracRefreshCS:
+#
+#   refresh the CS
+#
+#.............................................................................
+
+function diracRefreshCS(){
+	echo '[diracRefreshCS]'
+	
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-refresh-cs.py $DEBUG
+}
+
+
+#.............................................................................
+#
 # downloadProxy:
 #
 #   dowloads a proxy from the ProxyManager into a file
@@ -907,8 +922,13 @@ function fullInstall(){
 	findServices 'FrameworkSystem'
 	diracServices
 	
-	#upload proxies
+	#create groups
 	diracUserAndGroup
+	
+	#refresh the configuration (gConfig dark side!)
+	diracRefreshCS
+	
+	#upload proxies
 	diracProxies prod
 	
 	#Now all the rest
