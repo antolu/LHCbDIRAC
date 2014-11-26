@@ -184,9 +184,6 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
     optPConf = "prodConf_Gauss_00012345_00067890_1.py"
     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-    gaudirunJob.addPackage( 'AppConfig', 'v3r179' )
-    gaudirunJob.addPackage( 'DecFiles', 'v27r14p1' )
-    gaudirunJob.addPackage( 'ProdConf', 'v1r9' )
     gaudirunJob.setApplication( 'Gauss', 'v45r5', options,
                                 extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
                                 systemConfig = 'x86_64-slc5-gcc43-opt' )
@@ -220,9 +217,6 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 #     optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
 #     optPConf = "prodConf_Gauss_00012345_00067890_1.py"
 #     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-#     gaudirunJob.addPackage( 'AppConfig', 'v3r179' )
-#     gaudirunJob.addPackage( 'DecFiles', 'v27r14p1' )
-#     gaudirunJob.addPackage( 'ProdConf', 'v1r9' )
 #     gaudirunJob.setApplication( 'Gauss', 'v45r5', options,
 #                                 extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
 #                                 systemConfig = 'x86_64-slc5-gcc43-opt' )
@@ -257,7 +251,6 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     optPConf = "prodConf_Boole_00012345_00067890_1.py"
     options = opts + optDT + optTCK + optComp + optPConf
 
-    gaudirunJob.addPackage( 'AppConfig', 'v3r171' )
     gaudirunJob.setApplication( 'Boole', 'v26r3', options,
                                 inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
                                 extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
