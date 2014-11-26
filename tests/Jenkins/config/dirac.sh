@@ -195,10 +195,10 @@ dirac_testing_externals(){
     python `which easy_install` --upgrade nose
     python `which easy_install` --upgrade pylint  
     # little hack to get right version  of logilab-common
-    wget http://download.logilab.org/pub/common/logilab-common-0.62.1.tar.gz
-    tar xfv logilab-common-0.62.1.tar.gz
-    cd logilab-common-0.62.1
-	python setup.py install
+    #wget http://download.logilab.org/pub/common/logilab-common-0.62.1.tar.gz
+    #tar xfv logilab-common-0.62.1.tar.gz
+    #cd logilab-common-0.62.1
+	#python setup.py install
 
 	cd -
 }
