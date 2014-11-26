@@ -540,6 +540,7 @@ function diracProxies(){
 function diracRefreshCS(){
 	echo '[diracRefreshCS]'
 	
+	
 	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-refresh-cs.py $DEBUG
 }
 
@@ -926,7 +927,9 @@ function fullInstall(){
 	diracUserAndGroup
 	
 	#refresh the configuration (gConfig dark side!)
+	sleep 10
 	diracRefreshCS
+	sleep 10
 	
 	#upload proxies
 	diracProxies prod
