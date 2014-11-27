@@ -15,6 +15,7 @@ localConfigFile = os.path.join( '.', 'etc', 'Production.cfg' )
 localCfg.loadFromFile( localConfigFile )
 
 os.makedirs( '/scratch/workspace/lhcbdirac_certification/sandboxes' )
+localCfg.createNewSection( 'WorkloadManagement/Production/Databases/SandboxStore/' )
 localCfg.setOption( 'WorkloadManagement/Production/Databases/SandboxStore/BasePath',
                     '/scratch/workspace/lhcbdirac_certification/sandboxes' )
 
