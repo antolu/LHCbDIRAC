@@ -934,10 +934,9 @@ function fullInstall(){
 	#upload proxies
 	diracProxies
 	# prod
-	
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update-server.py 
-	#Now all the rest
 
+	#Now all the rest	
+	
 	#DBs (not looking for FrameworkSystem ones, already installed)
 	#findDatabases 'exclude' 'FrameworkSystem'
 	findDatabases 'exclude' 'FrameworkSystem'
@@ -949,6 +948,9 @@ function fullInstall(){
 	findServices 'exclude' 'FrameworkSystem'
 	diracServices
 
+	#fix the SandboxStore 
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update-server.py 
+	runsvctrl t $WORKSPACE/runit/WorkloadManagement/SandboxStore/
 }
 
 
