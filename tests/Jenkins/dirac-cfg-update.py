@@ -16,4 +16,7 @@ if not localCfg.isSection( '/LocalSite' ):
   localCfg.createNewSection( '/LocalSite' )
 localCfg.setOption( '/LocalSite/CPUTimeLeft', 5000 )
 localCfg.setOption( '/DIRAC/Security/UseServerCertificate', False )
+os.makedirs( '/scratch/workspace/lhcbdirac_certification/sandboxes' )
+localCfg.setOption( 'WorkloadManagement/Production/Databases/SandboxStore/BasePath',
+                    '/scratch/workspace/lhcbdirac_certification/sandboxes' )
 localCfg.writeToFile( localConfigFile )
