@@ -935,6 +935,7 @@ function fullInstall(){
 	diracProxies
 	# prod
 	
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update-server.py 
 	#Now all the rest
 
 	#DBs (not looking for FrameworkSystem ones, already installed)
