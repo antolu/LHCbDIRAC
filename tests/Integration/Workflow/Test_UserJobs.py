@@ -153,14 +153,19 @@ class UserJobsFailingLocalSuccess( FailingUserJobTestCase ):
 
     del os.environ['JOBID']
 
-def createJob():
+def createJob( local = True ):
 
   gaudirunJob = LHCbJob()
 
   gaudirunJob.setName( "gaudirun-Gauss-test" )
-  gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', 'GridTestSubmission' )[0],
-                                find_all( 'wrongConfig.cfg', '..', 'GridTestSubmission' )[0],
-                                find_all( 'pilot.cfg', '.' )[0] ] )
+  if local:
+    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', 'GridTestSubmission' )[0],
+                                  find_all( 'wrongConfig.cfg', '..', 'GridTestSubmission' )[0],
+                                  find_all( 'pilot.cfg', '.' )[0] ] )
+  else:
+    gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', 'GridTestSubmission' )[0],
+                                  find_all( 'wrongConfig.cfg', '..', 'GridTestSubmission' )[0] ] )
+
   gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
 
   optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam3500GeV-md100-2011-nu2.py;"
@@ -212,7 +217,10 @@ def createJob():
 
   gaudirunJob.setLogLevel( 'DEBUG' )
   gaudirunJob.setDIRACPlatform()
-  gaudirunJob.setConfigArgs( 'pilot.cfg wrongConfig.cfg' )
+  if local:
+    gaudirunJob.setConfigArgs( 'pilot.cfg wrongConfig.cfg' )
+  else:
+    gaudirunJob.setConfigArgs( 'wrongConfig.cfg' )
 
   gaudirunJob.setCPUTime( 172800 )
 
