@@ -34,11 +34,12 @@ load-plugins=
 # it should appear only once).
 
 #R0801 = Similar lines in %s files
+#R0903 = Too few public methods (%s/%s)
 #R0904 = Too many public methods (%s/%s)
 #C0303 = Trailing whitespace 
 #C0326 = bad-whitespace
 #E1601 = print statement used
-disable=R0801,R0904,C0303, C0326,E1601
+disable=R0801,R0903,R0904,C0303,C0326,E1601
 
 [REPORTS]
 
