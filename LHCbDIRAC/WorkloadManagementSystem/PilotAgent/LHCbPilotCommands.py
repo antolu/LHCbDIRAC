@@ -133,9 +133,9 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
           os.environ['DIRAC_VOMSES'] = candidate
           break
 
-    self.log.debug( 'X509_CERT_DIR = ', self.pp.installEnv['X509_CERT_DIR'], os.environ['X509_CERT_DIR'] )
-    self.log.debug( 'X509_VOMS_DIR = ', self.pp.installEnv['X509_VOMS_DIR'], os.environ['X509_VOMS_DIR'] )
-    self.log.debug( 'DIRAC_VOMSES = ', self.pp.installEnv['DIRAC_VOMSES'], os.environ['DIRAC_VOMSES'] )
+    self.log.debug( 'X509_CERT_DIR = %s, %s' % ( self.pp.installEnv['X509_CERT_DIR'], os.environ['X509_CERT_DIR'] ) )
+    self.log.debug( 'X509_VOMS_DIR = %s, %s' % ( self.pp.installEnv['X509_VOMS_DIR'], os.environ['X509_VOMS_DIR'] ) )
+    self.log.debug( 'DIRAC_VOMSES = %s, %s' % ( self.pp.installEnv['DIRAC_VOMSES'], os.environ['DIRAC_VOMSES'] ) )
 
     # In any case do not download VOMS and CAs
     self.cfg.append( '-DMH' )
