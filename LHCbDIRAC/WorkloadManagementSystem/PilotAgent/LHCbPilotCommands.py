@@ -107,6 +107,7 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """
   def _getSecurityCFG( self ):
 
+    self.log.debug( str( self.pp.installEnv ) )
     if 'X509_CERT_DIR' not in self.pp.installEnv:
       # try and find it
       self.log.debug( 'X509_CERT_DIR is not set' )
