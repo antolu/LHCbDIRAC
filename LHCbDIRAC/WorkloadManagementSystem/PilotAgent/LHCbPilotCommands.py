@@ -5,6 +5,7 @@ __RCSID__ = "$Id$"
 
 import subprocess
 import os
+import os.path
 import sys
 
 from pilotCommands import GetPilotVersion, InstallDIRAC, ConfigureBasics, ConfigureCPURequirements, ConfigureSite, ConfigureArchitecture
@@ -104,11 +105,37 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
   """
   def _getSecurityCFG( self ):
+
     if 'X509_CERT_DIR' not in self.pp.installEnv:
-      self.pp.installEnv['X509_CERT_DIR'] = '/cvmfs/grid.cern.ch/etc/grid-security/certificates'
+      # try and find it
+      candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/certificates', '$VO_LHCB_SW_DIR/etc/grid-security/certificates']
+      for candidate in candidates:
+        if os.path.isdir( candidate ):
+          self.pp.installEnv['X509_CERT_DIR'] = candidate
+          os.environ['X509_CERT_DIR'] = candidate
+          break
+
     if 'X509_VOMS_DIR' not in self.pp.installEnv:
-      self.pp.installEnv['X509_VOMS_DIR'] = '/cvmfs/grid.cern.ch/etc/grid-security/vomsdir'
+      # try and find it
+      candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/vomsdir', '$VO_LHCB_SW_DIR/etc/grid-security/vomsdir']
+      for candidate in candidates:
+        if os.path.isdir( candidate ):
+          self.pp.installEnv['X509_VOMS_DIR'] = candidate
+          os.environ['X509_VOMS_DIR'] = candidate
+          break
+
+    if 'DIRAC_VOMSES' not in self.pp.installEnv:
+      # try and find it
+      candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/vomses', '$VO_LHCB_SW_DIR/etc/grid-security/vomses']
+      for candidate in candidates:
+        if os.path.isdir( candidate ):
+          self.pp.installEnv['DIRAC_VOMSES'] = candidate
+          os.environ['DIRAC_VOMSES'] = candidate
+          break
+
+    # In any case do not download VOMS and CAs
     self.cfg.append( '-DMH' )
+
     super( LHCbConfigureBasics, self )._getSecurityCFG()
 
 
