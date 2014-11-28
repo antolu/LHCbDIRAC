@@ -33,8 +33,11 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     """ Standard module executed
     """
     try:
-      self._doSetupProject()
+      # also setting the correct environment to be used by dirac-configure, or whatever follows
+      # (by default this is not needed, since with dirac-install works in the local directory)
+      self.pp.installEnv = self._doSetupProject()
       self.log.info( "SetupProject DONE, for release %s" % self.pp.releaseVersion )
+
     except OSError, e:
       print "Exception when trying SetupProject:", e
       self.log.warn( "SetupProject NOT DONE: starting traditional DIRAC installation" )
@@ -62,10 +65,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
                 'SetupProject.sh LHCbDirac %s' % self.pp.releaseVersion]:
       environment = self.__invokeCmd( cmd, environment )
 
-    # now setting the correct environment to be used by dirac-configure, or whatever follows
-    # (by default this is not needed, since with dirac-install works in the local directory)
-    self.pp.installEnv = environment
-
+    return environment
 
   def __invokeCmd( self, cmd, environment ):
     """ Controlled invoke of command via subprocess.Popen
@@ -132,6 +132,10 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
           self.pp.installEnv['DIRAC_VOMSES'] = candidate
           os.environ['DIRAC_VOMSES'] = candidate
           break
+
+    self.log.debug( 'X509_CERT_DIR = ', self.pp.installEnv['X509_CERT_DIR'], os.environ['X509_CERT_DIR'] )
+    self.log.debug( 'X509_VOMS_DIR = ', self.pp.installEnv['X509_VOMS_DIR'], os.environ['X509_VOMS_DIR'] )
+    self.log.debug( 'DIRAC_VOMSES = ', self.pp.installEnv['DIRAC_VOMSES'], os.environ['DIRAC_VOMSES'] )
 
     # In any case do not download VOMS and CAs
     self.cfg.append( '-DMH' )
