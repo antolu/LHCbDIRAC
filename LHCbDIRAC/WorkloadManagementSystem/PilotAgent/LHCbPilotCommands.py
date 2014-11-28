@@ -119,6 +119,8 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
           self.pp.installEnv['X509_CERT_DIR'] = candidate
           os.environ['X509_CERT_DIR'] = candidate
           break
+    elif 'X509_CERT_DIR' not in os.environ:
+      os.environ['X509_CERT_DIR'] = self.pp.installEnv['X509_CERT_DIR']
 
     if 'X509_VOMS_DIR' not in self.pp.installEnv:
       # try and find it
@@ -130,6 +132,8 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
           self.pp.installEnv['X509_VOMS_DIR'] = candidate
           os.environ['X509_VOMS_DIR'] = candidate
           break
+    elif 'X509_VOMS_DIR' not in os.environ:
+      os.environ['X509_VOMS_DIR'] = self.pp.installEnv['X509_VOMS_DIR']
 
     if 'DIRAC_VOMSES' not in self.pp.installEnv:
       # try and find it
@@ -141,6 +145,8 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
           self.pp.installEnv['DIRAC_VOMSES'] = candidate
           os.environ['DIRAC_VOMSES'] = candidate
           break
+    elif 'DIRAC_VOMSES' not in os.environ:
+      os.environ['DIRAC_VOMSES'] = self.pp.installEnv['DIRAC_VOMSES']
 
     self.log.debug( 'X509_CERT_DIR = %s, %s' % ( self.pp.installEnv['X509_CERT_DIR'], os.environ['X509_CERT_DIR'] ) )
     self.log.debug( 'X509_VOMS_DIR = %s, %s' % ( self.pp.installEnv['X509_VOMS_DIR'], os.environ['X509_VOMS_DIR'] ) )
