@@ -559,8 +559,6 @@ class StoragePlotter( BaseReporter ):
       return retVal
     
     dataDict, granularity = retVal[ 'Value' ]
-    #FIXME: remove this print !
-    print dataDict
     self.stripDataField( dataDict, 0 )
     
     #Step 3 divide the PFNs by the total amount of LFNs

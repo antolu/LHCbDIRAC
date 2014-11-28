@@ -34,9 +34,7 @@ class UserStoragePlotter( BaseReporter ):
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectField + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    'LogicalSize', 'entriesInBucket'
-                                   ]
-                   )
+                                                             'LogicalSize', 'entriesInBucket'] )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
@@ -95,9 +93,7 @@ class UserStoragePlotter( BaseReporter ):
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectField + ", %s, %s, SUM(%s)/SUM(%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    'LogicalFiles', 'entriesInBucket'
-                                   ]
-                   )
+                                                             'LogicalFiles', 'entriesInBucket' ] )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
@@ -117,12 +113,10 @@ class UserStoragePlotter( BaseReporter ):
     
     baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
     
-    return S_OK( { 
-                  'data'          : baseDataDict, 
+    return S_OK( {'data'          : baseDataDict,
                   'graphDataDict' : graphDataDict,
                   'granularity'   : granularity, 
-                  'unit'          : unitName 
-                  } )
+                  'unit'          : unitName } )
 
   def _plotCatalogFiles( self, reportRequest, plotInfo, filename ):
     """
@@ -157,9 +151,7 @@ class UserStoragePlotter( BaseReporter ):
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectField + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    'PhysicalSize', 'entriesInBucket'
-                                   ]
-                   )
+                                                             'PhysicalSize', 'entriesInBucket' ] )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
@@ -217,9 +209,7 @@ class UserStoragePlotter( BaseReporter ):
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectField + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                    'PhysicalFiles', 'entriesInBucket'
-                                   ]
-                   )
+                                                             'PhysicalFiles', 'entriesInBucket'] )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
@@ -239,12 +229,10 @@ class UserStoragePlotter( BaseReporter ):
     
     baseDataDict, graphDataDict, __maxValue, unitName = suitableUnits
     
-    return S_OK( { 
-                  'data'          : baseDataDict, 
+    return S_OK( {'data'          : baseDataDict,
                   'graphDataDict' : graphDataDict,
                   'granularity'   : granularity, 
-                  'unit'          : unitName 
-                  } )
+                  'unit'          : unitName } )
 
   def _plotPhysicalFiles( self, reportRequest, plotInfo, filename ):
     """
@@ -370,7 +358,7 @@ class UserStoragePlotter( BaseReporter ):
     _selectField = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( _selectField + ", %s, %s, SUM(%s/%s)",
                      reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength',
-                                                             physicalField, 'entriesInBucket'] )
+                                                              physicalField, 'entriesInBucket'] )
     
     retVal = self._getTimedData( reportRequest[ 'startTime' ],
                                  reportRequest[ 'endTime' ],
@@ -382,7 +370,6 @@ class UserStoragePlotter( BaseReporter ):
       return retVal
     
     dataDict, granularity = retVal[ 'Value' ]
-    print dataDict
     self.stripDataField( dataDict, 0 )
     #Step 3 divide the PFNs by the total amount of LFNs
     finalData = {}
