@@ -4,7 +4,6 @@
 __RCSID__ = "$Id$"
 
 import subprocess
-import os
 import os.path
 import sys
 
@@ -38,18 +37,20 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       self.pp.installEnv = self._doSetupProject()
       self.log.info( "SetupProject DONE, for release %s" % self.pp.releaseVersion )
 
-    except OSError, e:
-      print "Exception when trying SetupProject:", e
-      self.log.warn( "SetupProject NOT DONE: starting traditional DIRAC installation" )
-      super( LHCbInstallDIRAC, self ).execute()
       # saving as installation environment
       self.pp.installEnv = os.environ
-      # saving also in bashrc file
+
+      # saving also in bashrc file for completeness
       fd = open( 'bashrc', 'w' )
       for var, val in os.environ.iteritems():
         bl = "%s=%s\n" % ( var, val )
         fd.write( bl )
       fd.close()
+
+    except OSError, e:
+      print "Exception when trying SetupProject:", e
+      self.log.warn( "SetupProject NOT DONE: starting traditional DIRAC installation" )
+      super( LHCbInstallDIRAC, self ).execute()
 
   def _doSetupProject( self ):
     """ do SetupProject LHCbDIRAC of the requested version.
