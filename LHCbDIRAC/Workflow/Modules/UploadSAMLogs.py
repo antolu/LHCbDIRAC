@@ -131,7 +131,7 @@ class UploadSAMLogs( ModuleBase ):
                                               details = "Job_ID: %s. Logfile: %s Details: %s " % ( self.workflow_commons[ 'logURL' ].split( '/' )[-1],
                                                                                                    self.workflow_commons[ 'logURL' ],
                                                                                                    ". ".join( self.workflow_commons['SAMDetails'].values() ) ),
-                                                                                                   nagiosName = 'org.lhcb.DiracTest-lhcb' )
+                                              nagiosName = 'org.lhcb.DiracTest-lhcb' )
 
         self.nagiosConnector.sendMessage()
         self.nagiosConnector.endConnection()

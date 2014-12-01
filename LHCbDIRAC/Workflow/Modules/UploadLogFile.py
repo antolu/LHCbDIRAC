@@ -380,10 +380,10 @@ class UploadLogFile( ModuleBase ):
     fopen.write( "<h3>Parameter summary for job %s_%s</h3> \n" % ( prodJobID, productionID ) )
     check = ['BannedSites', 'JobType', 'CPUTime', 'ProductionOutputData', 'LogFilePath', 'InputData', 'InputSandbox']
     params = {}
-    for n, v in self.workflow_commons.items():
+    for name, val in self.workflow_commons.items():
       for item in check:
-        if n == item and v:
-          params[n] = str( v )
+        if name == item and val:
+          params[name] = str( val )
 
     finalKeys = params.keys()
     finalKeys.sort()

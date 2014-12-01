@@ -1,5 +1,4 @@
-""" Module to upload specified job output files according to the parameters
-    defined in the production workflow.
+""" Module to upload specified job output files according to the parameters defined in the production workflow.
 """
 
 __RCSID__ = "$Id$"
@@ -21,10 +20,12 @@ from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks  import getFileDesc
 from LHCbDIRAC.Workflow.Modules.ModuleBase                    import ModuleBase
 
 class UploadOutputData( ModuleBase ):
+  """ Module to upload specified job output files according to the parameters defined in the production workflow.
+  """
 
   #############################################################################
   def __init__( self, bkClient = None, dm = None ):
-    """Module initialization.
+    """ Module initialization.
     """
 
     self.log = gLogger.getSubLogger( "UploadOutputData" )
@@ -131,8 +132,8 @@ class UploadOutputData( ModuleBase ):
       self.log.info( "The following files will be uploaded: %s" % ( ', '.join( final.keys() ) ) )
       for fileName, metadata in final.items():
         self.log.info( '--------%s--------' % fileName )
-        for n, v in metadata.items():
-          self.log.info( '%s = %s' % ( n, v ) )
+        for name, val in metadata.items():
+          self.log.info( '%s = %s' % ( name, val ) )
 
       if not self._enableModule():
         # At this point can exit and see exactly what the module would have uploaded

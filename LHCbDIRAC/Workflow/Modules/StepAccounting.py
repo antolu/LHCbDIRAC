@@ -22,7 +22,29 @@ class StepAccounting( ModuleBase ):
     self.log = gLogger.getSubLogger( "StepAccounting" )
     super( StepAccounting, self ).__init__( self.log, bkClientIn = bkClient, dm = dm )
 
+    self.dsc = None
+    self.stepStat = None
+
     self.version = __RCSID__
+
+  ########################################################################
+
+  def _resolveInputVariables( self, dsc = None ):
+    """ By convention all workflow parameters are resolved here.
+    """
+
+    super( StepAccounting, self )._resolveInputVariables()
+    super( StepAccounting, self )._resolveInputStep()
+
+    if dsc is not None:
+      self.dsc = dsc
+    else:
+      self.dsc = self.workflow_commons['AccountingReport']
+
+    if self.stepStatus['OK']:
+      self.stepStat = 'Done'
+    else:
+      self.stepStat = 'Failed'
 
   ########################################################################
 
@@ -41,6 +63,14 @@ class StepAccounting( ModuleBase ):
       if not self.step_commons.has_key( 'applicationName' ):
         self.log.info( 'Not an application step: it will not be accounted' )
         return S_OK()
+
+      ########################################################################
+      # Timing
+      execTime, cpuTime = getStepCPUTimes( self.step_commons )
+      normCPU = cpuTime
+      cpuNormFactor = gConfig.getValue ( "/LocalSite/CPUNomalizationFactor", 0.0 )
+      if cpuNormFactor:
+        normCPU = cpuTime * cpuNormFactor
 
       if not js:
         jobStep = JobStep()
@@ -68,14 +98,13 @@ class StepAccounting( ModuleBase ):
                   'Site': self.siteName,
                   'FinalStepState': self.stepStat,
 
-                  'CPUTime': self.CPUTime,
-                  'NormCPUTime': self.normCPUTime,
-                  'ExecTime': self.execTime,
+                  'CPUTime': cpuTime,
+                  'NormCPUTime': normCPU,
+                  'ExecTime': execTime,
                   'InputData': sum( xf_o.inputFileStats.values() ),
                   'OutputData': sum( xf_o.outputFileStats.values() ),
                   'InputEvents': xf_o.inputEventsTotal,
-                  'OutputEvents': xf_o.outputEventsTotal
-                  }
+                  'OutputEvents': xf_o.outputEventsTotal }
 
       jobStep.setValuesFromDict( dataDict )
 
@@ -98,36 +127,5 @@ class StepAccounting( ModuleBase ):
 
     finally:
       super( StepAccounting, self ).finalize( self.version )
-
-  ########################################################################
-
-  def _resolveInputVariables( self, dsc = None ):
-    """ By convention all workflow parameters are resolved here.
-    """
-
-    super( StepAccounting, self )._resolveInputVariables()
-    super( StepAccounting, self )._resolveInputStep()
-
-    if dsc is not None:
-      self.dsc = dsc
-    else:
-      self.dsc = self.workflow_commons['AccountingReport']
-
-    if self.stepStatus['OK']:
-      self.stepStat = 'Done'
-    else:
-      self.stepStat = 'Failed'
-
-    ########################################################################
-    # Timing
-    exectime, cputime = getStepCPUTimes( self.step_commons )
-    normcpu = cputime
-    cpuNormFactor = gConfig.getValue ( "/LocalSite/CPUNomalizationFactor", 0.0 )
-    if cpuNormFactor:
-      normcpu = cputime * cpuNormFactor
-
-    self.CPUTime = cputime
-    self.normCPUTime = normcpu
-    self.execTime = exectime
 
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
