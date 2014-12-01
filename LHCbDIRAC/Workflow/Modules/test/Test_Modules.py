@@ -1459,11 +1459,13 @@ class UploadOutputDataSuccess( ModulesTestCase ):
     fileRemove3 = File()
     fileRemove3.LFN = '/a/notPresent.txt'
     removeOp.addFile( fileRemove1 )
-    removeOp.addFile( fileRemove2 )
     removeOp.addFile( fileRemove3 )
+    removeOp.addFile( fileRemove2 )
     expected.addOperation( removeOp )
 
-    self.uod._cleanUp( ['/a/1.txt', '/a/2.txt', '/a/notPresent.txt' ] )
+    self.uod._cleanUp( {'1.txt':{'lfn':'/a/1.txt'}, 
+                        '2.txt':{'lfn':'/a/2.txt'},
+                        'notPresent.txt':{'lfn':'/a/notPresent.txt' } } )
 
     for opsR, opsE in itertools.izip( self.uod.request, expected ):
       self.assertEqual( str( opsR ), str( opsE ) )

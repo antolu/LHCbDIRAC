@@ -85,6 +85,12 @@ class UploadOutputData( ModuleBase ):
                step_number = None, step_id = None,
                SEs = None, fileDescendants = None ):
     """ Main execution function.
+
+        1. Determine the final list of possible output files for the workflow and all the parameters needed to upload them.
+        2. Verifying that the input files have no descendants (and exiting with error, otherwise)
+        3. Sending the BK records for the steps of the job
+        4. Transfer output files in their destination, register in the FC (with failover)
+        5. Registering the output files in the Bookkeeping
     """
 
     try:
@@ -98,7 +104,63 @@ class UploadOutputData( ModuleBase ):
       if not self._checkWFAndStepStatus():
         return S_OK( "Failures detected in previous steps: no output data upload attempted" )
 
-      # Finally can send the BK records for the steps of the job
+      # ## 1. Determine the final list of possible output files for the workflow and all the parameters needed to upload them.
+      # ##
+
+      self.log.verbose( "Getting the list of candidate files" )
+      fileDict = self.getCandidateFiles( self.outputList, self.prodOutputLFNs,
+                                         self.outputDataFileMask, self.outputDataStep )
+
+      fileMetadata = self.getFileMetadata( fileDict )
+
+      if not fileMetadata:
+        self.log.info( "No output data files were determined to be uploaded for this workflow" )
+        return S_OK()
+
+      # Get final, resolved SE list for files
+      final = {}
+
+      for fileName, metadata in fileMetadata.items():
+        if not SEs:
+          resolvedSE = getDestinationSEList( metadata['workflowSE'], self.siteName, self.outputMode )
+        else:
+          resolvedSE = SEs
+        final[fileName] = metadata
+        final[fileName]['resolvedSE'] = resolvedSE
+
+      self.log.info( "The following files will be uploaded: %s" % ( ', '.join( final.keys() ) ) )
+      for fileName, metadata in final.items():
+        self.log.info( '--------%s--------' % fileName )
+        for n, v in metadata.items():
+          self.log.info( '%s = %s' % ( n, v ) )
+
+      if not self._enableModule():
+        # At this point can exit and see exactly what the module would have uploaded
+        self.log.info( "Would have attempted to upload the following files %s" % ', '.join( final.keys() ) )
+        return S_OK()
+
+
+      # ## 2. Prior to uploading any files must check (for productions with input data) that no descendant files
+      # ## already exist with replica flag in the BK.
+      # ##
+
+      if self.inputDataList:
+        if fileDescendants != None:
+          result = fileDescendants
+        else:
+          result = getFileDescendants( self.production_id, self.inputDataList,
+                                       dm = self.dataManager, bkClient = self.bkClient )
+        if not result:
+          self.log.info( "No descendants found, outputs can be uploaded" )
+        else:
+          self.log.error( "Found descendants!!! Outputs won't be uploaded" )
+          self.log.info( "Files with descendants: %s" ', '.join( result ) )
+          return S_ERROR( "Input Data Already Processed" )
+
+
+      # ## 3. Sending the BK records for the steps of the job
+      # ##
+
       bkFileExtensions = ['bookkeeping*.xml']
       bkFiles = []
       for ext in bkFileExtensions:
@@ -133,54 +195,9 @@ class UploadOutputData( ModuleBase ):
       else:
         self.log.info( "Would have attempted to send bk records, but module is disabled" )
 
-      # Determine the final list of possible output files for the workflow and all the parameters needed to upload them.
-      self.log.verbose( "Getting the list of candidate files" )
-      fileDict = self.getCandidateFiles( self.outputList, self.prodOutputLFNs,
-                                         self.outputDataFileMask, self.outputDataStep )
 
-      fileMetadata = self.getFileMetadata( fileDict )
-
-      if not fileMetadata:
-        self.log.info( "No output data files were determined to be uploaded for this workflow" )
-        return S_OK()
-
-      # Get final, resolved SE list for files
-      final = {}
-
-      for fileName, metadata in fileMetadata.items():
-        if not SEs:
-          resolvedSE = getDestinationSEList( metadata['workflowSE'], self.siteName, self.outputMode )
-        else:
-          resolvedSE = SEs
-        final[fileName] = metadata
-        final[fileName]['resolvedSE'] = resolvedSE
-
-      self.log.info( "The following files will be uploaded: %s" % ( ', '.join( final.keys() ) ) )
-      for fileName, metadata in final.items():
-        self.log.info( '--------%s--------' % fileName )
-        for n, v in metadata.items():
-          self.log.info( '%s = %s' % ( n, v ) )
-
-      # At this point can exit and see exactly what the module would have uploaded
-      if not self._enableModule():
-        self.log.info( "Would have attempted to upload the following files %s" % ', '.join( final.keys() ) )
-        return S_OK()
-
-      # Prior to uploading any files must check (for productions with input data) that no descendent files
-      # already exist with replica flag in the BK.
-
-      if self.inputDataList:
-        if fileDescendants != None:
-          result = fileDescendants
-        else:
-          result = getFileDescendants( self.production_id, self.inputDataList,
-                                       dm = self.dataManager, bkClient = self.bkClient )
-        if not result:
-          self.log.info( "No descendants found, outputs can be uploaded" )
-        else:
-          self.log.error( "Found descendants!!! Outputs won't be uploaded" )
-          self.log.info( "Files with descendants: %s" ', '.join( result ) )
-          return S_ERROR( "Input Data Already Processed" )
+      # ## 4. Transfer output files in their destination, register in the FC (with failover)
+      # ##
 
       # Disable the watchdog check in case the file uploading takes a long time
       self._disableWatchdogCPUCheck()
@@ -249,33 +266,20 @@ class UploadOutputData( ModuleBase ):
       # Now after all operations, retrieve potentially modified request object
       self.request = self.failoverTransfer.request
 
-      # If some or all of the files failed to be saved to failover
+      # If some or all of the files failed to be saved even to failover
       if cleanUp:
         self._cleanUp( final )
         self.workflow_commons['Request'] = self.request
         return S_ERROR( 'Failed to upload output data' )
-
-      # Now double-check prior to final BK replica flag setting that the input files are still not processed
-      if self.inputDataList:
-        if fileDescendants != None:
-          result = fileDescendants
-        else:
-          result = getFileDescendants( self.production_id, self.inputDataList,
-                                       dm = self.dataManager, bkClient = self.bkClient )
-        if not result:
-          self.log.info( "No descendants found, outputs can be uploaded" )
-        else:
-          self.log.error( "Input files for this job were marked as processed during the upload. Cleaning up..." )
-          self._cleanUp( final )
-          self.workflow_commons['Request'] = self.request
-          return S_ERROR( "Input Data Already Processed" )
 
       # For files correctly uploaded must report LFNs to job parameters
       if final:
         report = ', '.join( final.keys() )
         self.setJobParameter( 'UploadedOutputData', report )
 
-      # Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
+      # ## 5. Can now register the successfully uploaded files in the BK i.e. set the BK replica flags
+      # ##
+
       if not performBKRegistration:
         self.log.info( "There are no files to perform the BK registration for, all are in failover" )
       else:
