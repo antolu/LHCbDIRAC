@@ -223,9 +223,9 @@ class ProductionRequest( object ):
 
         # set the destination and number of events for testing
         op = Operations()
-        destination = op.getValue( "Productions/MCTesting/MCTestingDestination" )
-        numberOfEvents = op.getValue( "Productions/MCTesting/numberOfEvents" )
-        extendBy = op.getValue( "Productions/MCTesting/extendBy" )
+        destination = op.getValue( "Productions/MCTesting/MCTestingDestination", 'DIRAC.Test.ch' )
+        numberOfEvents = op.getValue( "Productions/MCTesting/numberOfEvents", '500' )
+        extendBy = op.getValue( "Productions/MCTesting/extendBy", 20 )
 
         prod.setJobParameters( {'Destination': destination} )
         prod.setParameter( 'numberOfEvents', 'string', str( numberOfEvents ), 'Number of events to test' )

@@ -83,7 +83,7 @@ class ProductionsStateMachine( LHCbStateMachine ):
                    'Active'               : State( 1, ['Flush', 'Idle', 'Stopped', 'Completing', 'ValidatingInput',
                                                        'ValidatingOutput', 'Cleaning', 'TransformationCleaned'],
                                                   defState = 'Flush' ),
-                   'Testing'              : State( 17, ['Idle'], defState = 'Testing' ),
+                   'Testing'              : State( 17, ['Idle', 'Cleaning'], defState = 'Testing' ),
                    'New'                  : State( 0, ['Active', 'Testing', 'Cleaning'], defState = 'New' )  # initial state
                   }
 
