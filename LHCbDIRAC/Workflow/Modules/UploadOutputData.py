@@ -251,11 +251,7 @@ class UploadOutputData( ModuleBase ):
 
       # If some or all of the files failed to be saved to failover
       if cleanUp:
-        lfns = []
-        for fileName, metadata in final.items():
-          lfns.append( metadata['lfn'] )
-
-        self._cleanUp( lfns )
+        self._cleanUp( final )
         self.workflow_commons['Request'] = self.request
         return S_ERROR( 'Failed to upload output data' )
 
@@ -270,7 +266,7 @@ class UploadOutputData( ModuleBase ):
           self.log.info( "No descendants found, outputs can be uploaded" )
         else:
           self.log.error( "Input files for this job were marked as processed during the upload. Cleaning up..." )
-          self._cleanUp( lfns )
+          self._cleanUp( final )
           self.workflow_commons['Request'] = self.request
           return S_ERROR( "Input Data Already Processed" )
 
@@ -312,9 +308,13 @@ class UploadOutputData( ModuleBase ):
 
   #############################################################################
 
-  def _cleanUp( self, lfnList ):
+  def _cleanUp( self, final ):
     """ Clean up uploaded data for the LFNs in the list
     """
+    lfnList = []
+    for _fileName, metadata in final.items():
+      lfnList.append( metadata['lfn'] )
+
     self.log.verbose( "Cleaning up the request, for LFNs: %s" % ', '.join( lfnList ) )
 
     newRequest = Request()
