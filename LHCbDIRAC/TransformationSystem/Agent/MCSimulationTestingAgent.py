@@ -54,7 +54,7 @@ class MCSimulationTestingAgent ( AgentModule ):
       idleTransformations = res['Value']
       idleTransformations = [d.get( "TransformationID" ) for d in idleTransformations]
       self.log.verbose( "Found %d Idle MC transformations" % len( idleTransformations ) )
-      self.log.debug( "Idle transformations found: %s" % ','.join( idleTransformations ) )
+      self.log.debug( "Idle transformations found: %s" % ','.join( str( it ) for it in idleTransformations ) )
     else:
       message = "Call to Transformation Client service failed : %s" % res['Message']
       self.log.error( message )
@@ -66,7 +66,7 @@ class MCSimulationTestingAgent ( AgentModule ):
       testingSimulations = res['Value']
       testingSimulations = [pair[0] for pair in testingSimulations]
       self.log.verbose( "Found %d MC transformations undergoing a testing phase" % len( testingSimulations ) )
-      self.log.debug( "MC transformations found undergoing a testing phase: %s" % ','.join( testingSimulations ) )
+      self.log.debug( "MC transformations found undergoing a testing phase: %s" % ','.join( str( ts ) for ts in testingSimulations ) )
     else:
       message = "Call to Transformation Client service failed : %s" % res['Message']
       self.log.error( message )

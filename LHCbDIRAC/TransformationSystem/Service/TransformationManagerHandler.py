@@ -248,11 +248,11 @@ class TransformationManagerHandler( TManagerBase ):
   #
   
   types_addStoredJobDescription = [LongType, StringTypes]
-  def export_addStoredJobDescription ( self, transformationID, jobDescription ):
+  def export_addStoredJobDescription( self, transformationID, jobDescription ):
     return database.addStoredJobDescription( transformationID, jobDescription )
 
   types_getStoredJobDescription = [LongType]
-  def export_getStoredJobDescription ( self, transformationID ):
+  def export_getStoredJobDescription( self, transformationID ):
     return database.getStoredJobDescription( transformationID )
   
   types_removeStoredJobDescription = [LongType]
