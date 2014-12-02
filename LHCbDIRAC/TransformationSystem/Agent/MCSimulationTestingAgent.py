@@ -53,6 +53,8 @@ class MCSimulationTestingAgent ( AgentModule ):
     if res['OK']:
       idleTransformations = res['Value']
       idleTransformations = [d.get( "TransformationID" ) for d in idleTransformations]
+      self.log.verbose( "Found %d Idle MC transformations" % len( idleTransformations ) )
+      self.log.debug( "Idle transformations found: %s" % ','.join( idleTransformations ) )
     else:
       message = "Call to Transformation Client service failed : %s" % res['Message']
       self.log.error( message )
@@ -63,25 +65,31 @@ class MCSimulationTestingAgent ( AgentModule ):
     if res['OK']:
       testingSimulations = res['Value']
       testingSimulations = [pair[0] for pair in testingSimulations]
+      self.log.verbose( "Found %d MC transformations undergoing a testing phase" % len( testingSimulations ) )
+      self.log.debug( "MC transformations found undergoing a testing phase: %s" % ','.join( testingSimulations ) )
     else:
       message = "Call to Transformation Client service failed : %s" % res['Message']
       self.log.error( message )
       return S_ERROR( message )
 
     # get the IDs that occur in both idle transformations and testing phase
-    idleSimulations = set( testingSimulations ).intersection( idleTransformations )
+    idleSimulations = list( set( testingSimulations ).intersection( idleTransformations ) )
+    self.log.info( "MC transformations under considerations: %s" % ','.join( idleSimulations ) )
     for transID in idleSimulations:
+      self.log.info( "Looking into %d" % transID )
       tasks = self.transClient.getTransformationTasks( condDict = {"TransformationID" : transID} )
       if tasks['OK']:
 
         tasks = tasks['Value']
         numberOfTasks = len( tasks )
         numberOfDoneTasks = sum( 1 for d in tasks if d.get( "ExternalStatus" ) == "Done" )
+        self.log.verbose( "TransID = %d, numberOfTasks = %d, numberOfDoneTasks = %d" % ( transID, numberOfTasks, numberOfDoneTasks ) )
         if numberOfTasks == numberOfDoneTasks:
-          # all tasks have passed so the request can be accepted and the transformation table accepted
+          self.log.info( "All tasks have passed so the request can be accepted and the transformation updated" )
           parameters = self._calculate_parameters( tasks )
           if parameters['OK']:
             parameters = parameters['Value']
+            self.log.verbose( "TransID = %d, Calculated Parameters: %s" % ( transID, str( parameters ) ) )
             workflow = self._update_workflow( transID, parameters['CPUe'], parameters['MCCpu'] )
             if workflow['OK']:
               workflow = workflow['Value']
