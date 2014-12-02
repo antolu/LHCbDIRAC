@@ -5,7 +5,7 @@ __RCSID__ = "$Id$"
 
 import itertools, copy
 
-from DIRAC import gLogger, S_OK, exit as DIRACExit
+from DIRAC import gLogger, S_OK
 
 from DIRAC.Core.DISET.RPCClient                               import RPCClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
@@ -247,7 +247,9 @@ class ProductionRequest( object ):
                                                      MCsimflag = True )
         if not res['OK']:
           self.logger.error( "Error launching production", res['Message'] )
-          DIRACExit( 1 )
+          raise RuntimeError( res['Message'] )
+
+        prodID = res['Value']
 
         # launchProduction adds extra parameters, as we 'hot swap' the xml, we need to get these parameters for the un-edited version
         processingType = prod.LHCbJob.workflow.findParameter( 'ProcessingType' )
@@ -264,10 +266,12 @@ class ProductionRequest( object ):
         descriptionToStore = prod.LHCbJob.workflow.toXML()
 
         # saving the original xml in the StoredJobDescription table.
-        res = TransformationClient().addStoredJobDescription( res, descriptionToStore )
+        res = TransformationClient().addStoredJobDescription( prodID, descriptionToStore )
         if not res['OK']:
           self.logger.error( "Error calling addStoredJobDescription", res['Message'] )
-          DIRACExit( 1 )
+          self.logger.info( "Cleaning created production and exiting" )
+          self.diracProduction.production( res['Value'], 'cleaning' )
+          raise RuntimeError( res['Message'] )
 
       else:
         res = self.diracProduction.launchProduction( prod = prod,
@@ -275,10 +279,11 @@ class ProductionRequest( object ):
                                                      testFlag = self.testFlag,
                                                      requestID = self.requestID,
                                                      tracking = prodDict['tracking'] )
-      if not res['OK']:
-        raise RuntimeError( res['Message'] )
+        if not res['OK']:
+          raise RuntimeError( res['Message'] )
 
-      prodID = res['Value']
+        prodID = res['Value']
+
       prodsLaunched.append( prodID )
 
       if self.publishFlag:
