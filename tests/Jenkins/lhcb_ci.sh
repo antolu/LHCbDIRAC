@@ -437,7 +437,7 @@ function generateUserCredentials(){
 
   function diracReplace(){
     echo '[diracReplace]'
-
+    cd $WORKSPACE/
     if [[ -z $DIRAC_ALTERNATIVE_SRC_ZIP ]]
     then
       echo 'Variable $DIRAC_ALTERNATIVE_SRC_ZIP not defined';
