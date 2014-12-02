@@ -451,6 +451,9 @@ function generateUserCredentials(){
     if [ -d "DIRAC" ];
     then
       mv DIRAC DIRAC.bak;
+    else
+      echo "There is no previous DIRAC directory ??!!!"
+      ls
     fi
     mv $dirName DIRAC
 
@@ -902,12 +905,13 @@ function fullInstall(){
 		echo 'Running in DEBUG mode'
 		export DEBUG='-ddd'
 	fi  
-
+	
 	#basic install, with only the CS running 
 	installSite
 	
-	#replace the sources with custom ones if defined
-	diracReplace	
+        #replace the sources with custom ones if defined
+        diracReplace
+        
 	
 	#Dealing with security stuff
 	generateUserCredentials
@@ -949,7 +953,7 @@ function fullInstall(){
 	diracServices
 
 	#fix the SandboxStore 
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update-server.py $DEBUG
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update-server.py $WORKSPACE $DEBUG
 	#refresh the configuration (gConfig dark side!)
 	sleep 10
 	diracRefreshCS
