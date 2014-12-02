@@ -5,16 +5,16 @@ __RCSID__ = "$Id$"
 
 import itertools, copy
 
-from DIRAC import gLogger, S_OK
+from DIRAC import gLogger, S_OK, exit as DIRACExit
 
 from DIRAC.Core.DISET.RPCClient                               import RPCClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
+from DIRAC.Core.Workflow.Workflow                             import fromXMLString
 
-from LHCbDIRAC.Interfaces.API.DiracProduction                 import DiracProduction
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import BookkeepingClient
-from LHCbDIRAC.ProductionManagementSystem.Client.Production   import Production
-
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities              import getEventsToProduce
+from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracProduction
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
+from LHCbDIRAC.ProductionManagementSystem.Client.Production       import Production
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
 
 class ProductionRequest( object ):
   """ Production request class - objects are usually created starting from a production request
@@ -245,13 +245,15 @@ class ProductionRequest( object ):
                                                      extend = extendBy,
                                                      tracking = prodDict['tracking'],
                                                      MCsimflag = True )
+        if not res['OK']:
+          self.logger.error( "Error launching production", res['Message'] )
+          DIRACExit( 1 )
 
-        # launchProduction adds extra parameters, as we 'hot swap' the xml, we need to get these parameters for the uneddited version
+        # launchProduction adds extra parameters, as we 'hot swap' the xml, we need to get these parameters for the un-edited version
         processingType = prod.LHCbJob.workflow.findParameter( 'ProcessingType' )
         priority = prod.LHCbJob.workflow.findParameter( 'Priority' )
 
         # load a production from the original xml to save the priority and processingtype
-        from DIRAC.Core.Workflow.Workflow import fromXMLString
         workflowToSave = fromXMLString( prodXML )
         prod.LHCbJob.workflow = workflowToSave
         prod.setParameter( 'ProcessingType', processingType.getType(), processingType.getValue(),
@@ -262,9 +264,10 @@ class ProductionRequest( object ):
         descriptionToStore = prod.LHCbJob.workflow.toXML()
 
         # saving the original xml in the StoredJobDescription table.
-        from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-        transformationClient = TransformationClient()
-        transformationClient.addStoredJobDescription( res, descriptionToStore )
+        res = TransformationClient().addStoredJobDescription( res, descriptionToStore )
+        if not res['OK']:
+          self.logger.error( "Error calling addStoredJobDescription", res['Message'] )
+          DIRACExit( 1 )
 
       else:
         res = self.diracProduction.launchProduction( prod = prod,
@@ -279,7 +282,7 @@ class ProductionRequest( object ):
       prodsLaunched.append( prodID )
 
       if self.publishFlag:
-        self.logger.notice( 'For request %d, submitted Production %d, of type %s, ID = %s' % ( self.requestID,
+        self.logger.notice( "For request %d, submitted Production %d, of type %s, ID = %s" % ( self.requestID,
                                                                                                prodIndex,
                                                                                                prodDict['productionType'],
                                                                                                str( prodID ) ) )
