@@ -303,7 +303,9 @@ if __name__ == '__main__':
     if not res['OK']:
       gLogger.fatal( "Cannot get list of directories", res['Message'] )
       DIRAC.exit( 1 )
-    directories = set( [ subDir for subDir in res['Value']['Successful']['/lhcb']['SubDirs'] if subDir.split( '/' )[2] not in ignoreDirectories and 'RAW' not in subDir] )
+    directories = set( [ subDir for subDir in res['Value']['Successful']['/lhcb']['SubDirs']
+                        if subDir.split( '/' )[2] not in ignoreDirectories and
+                        'RAW' not in subDir and 'RDST' not in subDir and 'SDST' not in subDir] )
     allDirectoriesSet = set()
     for baseDir in directories:
       allDirectoriesSet.update( getPhysicalUsage( baseDir ) )
