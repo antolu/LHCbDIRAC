@@ -46,14 +46,14 @@ def getArchiveSEs():
 def getSEs( seGroup ):
   dmScript = DMScript()
   dmScript.setSEs( seGroup )
-  return set( dmScript.getOption( 'seList', [] ) )
+  return set( dmScript.getOption( 'SEs', [] ) )
 
-def parseArguments( dmScript, allSEs = False ):
+def parseArguments( dmScript, allSEs = False, visible = None ):
   # seList passes as option arguments
   if allSEs:
     seList = getAllSEs()
   else:
-    seList = dmScript.getOption( 'seList', [] )
+    seList = dmScript.getOption( 'SEs', [] )
     sites = dmScript.getOption( 'Sites', [] )
     if sites:
       seList += getSEsForSites( sites )
@@ -70,10 +70,31 @@ def parseArguments( dmScript, allSEs = False ):
 
   # LFNs from BK
   if not lfnList:
-    bkQuery = dmScript.getBKQuery( visible = 'All' )
-    if set( bkQuery.getQueryDict() ) - set( ['Visible', 'ReplicaFlag'] ):
-      gLogger.always( "Executing BKQuery:", bkQuery )
-      lfnList = bkQuery.getLFNs()
+    from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
+    bkQuery = dmScript.getBKQuery()
+    lfnList = []
+    if bkQuery:
+      bkFile = bkQuery.getPath()
+      if visible == None:
+        visible = bkQuery.isVisible()
+      # Trick to be able to pass a file containing BKpaths
+      if os.path.exists( bkFile ):
+        f = open( bkFile, 'r' )
+        lines = f.read().splitlines()
+        f.close()
+        bkQueries = [BKQuery( ll.strip().split()[0] ) for ll in lines ]
+        gLogger.always( "Executing %d BKQueries" % len( bkQueries ) )
+      else:
+        bkQueries = [bkQuery]
+      multi = len( bkQueries ) > 1
+      for bkQuery in bkQueries:
+        if isinstance( bkQuery, BKQuery ):
+          bkQuery.setVisible( visible )
+          if not multi:
+            gLogger.always( "Executing BKQuery:", bkQuery )
+          lfnList += bkQuery.getLFNs( printOutput = not multi )
+      if multi:
+        gLogger.always( 'Got %d LFNs' % len( lfnList ) )
 
   return sorted( lfnList ), seList
 
@@ -115,7 +136,7 @@ def executeRemoveReplicas( dmScript, allDisk = False ):
         # Set a default for Users
         if not seList:
           dmScript.setSEs( 'Tier1-USER' )
-          seList = dmScript.getOption( 'seList', [] )
+          seList = dmScript.getOption( 'SEs', [] )
       except:
         gLogger.fatal( "Invalid number of replicas:", switch[1] )
         exit( 1 )
@@ -136,11 +157,6 @@ def removeReplicas( lfnList, seList, minReplicas = 1, checkFC = True, allDisk = 
       exit( -1 )
     successfullyRemoved = res['Value']['Successful']
     errorReasons = res['Value']['Failed']
-    lfnList = []
-    for lfns in successfullyRemoved.values():
-      lfnList += lfns
-    if lfnList:
-      removeFilesInTransformations( lfnList )
   else:
     res = removeReplicasWithFC( lfnList, sorted( seList ), minReplicas, allDisk, force )
     if not res['OK']:
@@ -148,6 +164,14 @@ def removeReplicas( lfnList, seList, minReplicas = 1, checkFC = True, allDisk = 
       exit( -1 )
     successfullyRemoved = res['Value']['Successful']
     errorReasons = res['Value']['Failed']
+
+  if not checkFC or allDisk:
+    lfnList = []
+    for lfns in successfullyRemoved.values() + \
+                [lfns for reason, siteLFNs in errorReasons.items() for lfns in siteLFNs.values() if reason == 'Only ARCHIVE replicas']:
+      lfnList += lfns
+    if lfnList:
+      removeFilesInTransformations( lfnList )
 
   # Print result
   if successfullyRemoved:
@@ -187,6 +211,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
       exit( -2 )
     if res['Value']['Failed']:
       lfnChunk = list( set( lfnChunk ) - set( res['Value']['Failed'] ) )
+      successfullyRemoved.setdefault( 'SEs (not in FC)', [] ).extend( res['Value']['Failed'].keys() )
     seReps = {}
     filesToRemove = []
     for lfn in res['Value']['Successful']:
@@ -217,7 +242,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
         reason = str( reason )
         if 'File does not exist' not in reason:
           errorReasons.setdefault( str( reason ), {} ).setdefault( 'AllSEs', [] ).append( lfn )
-      successfullyRemoved.setdefault( 'AllSEs', [] ).extend( res['Value']['Successful'].keys() )
+      successfullyRemoved.setdefault( 'all SEs', [] ).extend( res['Value']['Successful'].keys() )
     for seString in seReps:
       ses = set( seString.split( ',' ) )
       lfns = seReps[seString]
@@ -229,15 +254,16 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
       for seName in sorted( removeSEs ):
         res = dm.removeReplica( seName, lfns )
         if not res['OK']:
-          gLogger.fatal( "Failed to remove replica", res['Message'] )
-          exit( -2 )
-        for lfn, reason in res['Value']['Failed'].items():
-          reason = str( reason )
-          if 'No such file or directory' in reason:
-            notExisting.setdefault( lfn, [] ).append( seName )
-          else:
-            errorReasons.setdefault( reason, {} ).setdefault( seName, [] ).append( lfn )
-        successfullyRemoved.setdefault( seName, [] ).extend( res['Value']['Successful'].keys() )
+          gLogger.verbose( "Failed to remove replica", res['Message'] )
+          errorReasons.setdefault( res['Message'], {} ).setdefault( seName, [] ).extend( lfns )
+        else:
+          for lfn, reason in res['Value']['Failed'].items():
+            reason = str( reason )
+            if 'No such file or directory' in reason:
+              notExisting.setdefault( lfn, [] ).append( seName )
+            else:
+              errorReasons.setdefault( reason, {} ).setdefault( seName, [] ).append( lfn )
+          successfullyRemoved.setdefault( seName, [] ).extend( res['Value']['Successful'].keys() )
 
   gLogger.setLevel( 'ERROR' )
   if notExisting:
@@ -482,7 +508,7 @@ def removeFiles( lfnList, setProcessed = False ):
       sys.stdout.flush()
     res = dm.removeFile( lfnChunk, force = False )
     if not res['OK']:
-      gLogger.fatal( "Failed to remove data", res['Message'] )
+      gLogger.error( "%sFailed to remove data" % '\n' if verbose else '', res['Message'] )
       continue
     for lfn, reason in res['Value']['Failed'].items():
       reasonStr = str( reason )
@@ -511,7 +537,7 @@ def removeFiles( lfnList, setProcessed = False ):
         sys.stdout.flush()
       res = dm.getReplicas( lfnChunk )
       if not res['OK']:
-        gLogger.error( "Error getting replicas of %d non-existing files" % len( lfnChunk ), res['Message'] )
+        gLogger.error( "%sError getting replicas of %d non-existing files" % ( '\n' if verbose else '', len( lfnChunk ) ), res['Message'] )
         errorReasons.setdefault( str( res['Message'] ), [] ).extend( lfnChunk )
       else:
         replicas = res['Value']['Successful']
@@ -519,7 +545,7 @@ def removeFiles( lfnList, setProcessed = False ):
           for se in replicas[lfn]:
             res = fc.removeReplica( {lfn:{'SE':se, 'PFN':replicas[lfn][se]}} )
             if not res['OK']:
-              gLogger.error( 'Error removing replica in the FC for a non-existing file', res['Message'] )
+              gLogger.error( '%sError removing replica in the FC for a non-existing file' % '\n' if verbose else '', res['Message'] )
               errorReasons.setdefault( str( res['Message'] ), [] ).append( lfn )
             else:
               for lfn, reason in res['Value']['Failed'].items():
@@ -528,7 +554,7 @@ def removeFiles( lfnList, setProcessed = False ):
         if lfnChunk:
           res = fc.removeFile( lfnChunk )
           if not res['OK']:
-            gLogger.error( "Error removing %d non-existing files from the FC" % len( lfnChunk ), res['Message'] )
+            gLogger.error( "%sError removing %d non-existing files from the FC" % ( '\n' if verbose else '', len( lfnChunk ) ), res['Message'] )
             errorReasons.setdefault( str( res['Message'] ), [] ).extend( lfnChunk )
           else:
             for lfn, reason in res['Value']['Failed'].items():
@@ -548,6 +574,7 @@ def removeFiles( lfnList, setProcessed = False ):
     gLogger.always( "Successfully removed %d files" % len( successfullyRemoved ) )
   for reason, lfns in errorReasons.items():
     gLogger.always( "Failed to remove %d files with error: %s" % ( len( lfns ), reason ) )
+    gLogger.always( '\n'.join( lfns ) )
 
 def removeFilesInTransformations( lfns, setProcessed = False ):
   """
@@ -788,7 +815,7 @@ def executeReplicaStats( dmScript ):
 
   directories = dmScript.getOption( 'Directory' )
   if not directories:
-    lfnList, _ses = parseArguments( dmScript )
+    lfnList, _ses = parseArguments( dmScript, visible = 'All' )
 
   printReplicaStats( directories, lfnList, getSize, prNoReplicas,
                      prWithReplicas, prWithArchives, prFailover )
@@ -964,6 +991,8 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
 
 def executeReplicateLfn( dmScript ):
   seList, args = __checkSEs( Script.getPositionalArgs(), expand = False )
+  if not seList:
+    seList = [','.join( dmScript.getOption( 'SEs' ) ), '']
   destList = []
   sourceSE = []
   localCache = ''
@@ -1274,14 +1303,38 @@ def executeAddFile():
   logLevel = gLogger.getLevel()
   for lfnDict in lfnList:
     localFile = lfnDict['localfile']
-    if not os.path.exists( localFile ):
+    remoteFile = None
+    if localFile.startswith( '/castor/cern.ch/user' ) or localFile.startswith( '/eos/lhcb/user' ):
+      remoteFile = localFile
+    elif os.path.exists( localFile ):
+      if not os.path.isfile( localFile ):
+        gLogger.error( "%s is not a file" % localFile )
+        continue
+    else:
       gLogger.error( "File %s doesn't exist locally" % localFile )
-      exitCode = 1
       continue
-    if not os.path.isfile( localFile ):
-      gLogger.error( "%s is not a file" % localFile )
-      exitCode = 2
-      continue
+
+    if remoteFile:
+      # fist get the file locally
+      if remoteFile.startswith( '/castor' ):
+        prefix = 'root://castorpublic.cern.ch/'
+      elif remoteFile.startswith( '/eos/lhcb/user' ):
+        prefix = 'root://eoslhcb.cern.ch/'
+      localFile = os.path.join( os.environ.get( 'TMPDIR', os.environ.get( 'TMP', '/tmp' ) ), os.path.basename( remoteFile ) )
+      gLogger.always( 'Attempting to download file to', localFile )
+      from subprocess import Popen, PIPE
+      eos = '/afs/cern.ch/project/eos/installation/lhcb/bin/eos.select'
+      process = Popen( [eos, 'cp', '%s%s' % ( prefix, remoteFile ), localFile], stdout = PIPE, stderr = PIPE )
+      out = process.stdout.read()
+      err = process.stderr.read()
+      process.stdout.close()
+      process.stderr.close()
+      rc = process.wait()
+      if rc:
+        gLogger.error( "Error downloading file", err )
+        exit( rc )
+      else:
+        gLogger.always( "Download successful", out )
 
     if not lfnDict['guid']:
       from LHCbDIRAC.Core.Utilities.File import makeGuid
@@ -1300,6 +1353,8 @@ def executeAddFile():
                                                                             res['Value']['Successful'][lfn]['put'] ) )
       else:
         gLogger.error( 'Error: failed to upload %s to %s' % ( lfn, lfnDict['SE'] ), res['Value']['Failed'][lfn] )
+    if remoteFile:
+      os.remove( localFile )
 
   exit( exitCode )
 
@@ -1379,7 +1434,7 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
             if fnmatch.fnmatch( filename, wildcard ):
               allFiles.add( filename )
           empty = False
-        gLogger.notice( "%s: %d files, %d sub-directories" % ( currentDir, len( dirContents['Files'] ), len( dirContents['SubDirs'] ) ) )
+        gLogger.notice( "%s/: %d files, %d sub-directories" % ( currentDir, len( dirContents['Files'] ), len( dirContents['SubDirs'] ) ) )
         if empty:
           emptyDirs.add( currentDir )
 
