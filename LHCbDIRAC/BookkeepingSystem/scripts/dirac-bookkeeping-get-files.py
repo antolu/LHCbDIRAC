@@ -8,11 +8,15 @@
 """
 __RCSID__ = "$Id$"
 import DIRAC
+import os
 from DIRAC import gLogger
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 
 dmScript = DMScript()
 dmScript.registerBKSwitches()
+Script.registerSwitch( '', 'File=', '   Provide a list of BK paths' )
+Script.registerSwitch( '', 'Term', '   Provide the list of BK paths from terminal' )
 Script.registerSwitch( '', 'Output=', '  Specify a file that will contain the list of files' )
 maxFiles = 20
 Script.registerSwitch( '', 'MaxFiles=', '   Print only <MaxFiles> lines on stdout (%d if output, else All)' % maxFiles )
@@ -24,9 +28,14 @@ Script.parseCommandLine()
 
 output = None
 nMax = None
+bkFile = None
 for switch, val in Script.getUnprocessedSwitches():
   if switch == 'Output':
     output = val
+  elif switch == 'File':
+    bkFile = val
+  elif switch == 'Term':
+    bkFile = '/dev/stdin'
   elif switch == 'MaxFiles':
     try:
       nMax = int( val )
@@ -34,44 +43,56 @@ for switch, val in Script.getUnprocessedSwitches():
       gLogger.error( 'Invalid integer', val )
       DIRAC.exit( 2 )
 
+bkQueries = []
 bkQuery = dmScript.getBKQuery()
+if bkQuery:
+  bkQueries.append( bkQuery )
+if bkFile:
+  if os.path.exists( bkFile ):
+    lines = open( bkFile, 'r' ).readlines()
+    for ll in lines:
+      bkQueries.append( BKQuery( ll.strip().split()[0] ) )
+
+if not bkQueries:
+  gLogger.always( "No BK query given, use --BK <bkPath> or --BKFile <localFile>" )
+  DIRAC.exit( 1 )
+
+fileDict = {}
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 bk = BookkeepingClient()
-gLogger.always( "Using BKQuery:", bkQuery )
 
-useFilesWithMetadata = False
-if useFilesWithMetadata:
-  res = bk.getFilesWithMetadata( bkQuery.getQueryDict() )
-  if not res['OK']:
-    gLogger.error( 'ERROR getting the files', res['Message'] )
-    DIRAC.exit( 1 )
-  if not res['Value']['TotalRecords']:
-    gLogger.always( 'No files found for BK query' )
-    DIRAC.exit( 0 )
-  parameters = res['Value']['ParameterNames']
-  fileDict = {}
-  for record in res['Value']['Records']:
-    dd = dict( zip( parameters, record ) )
-    lfn = dd['FileName']
-    dd.pop( 'FileName' )
-    fileDict[lfn] = dd
+for bkQuery in bkQueries:
+  gLogger.always( "Using BKQuery:", bkQuery )
 
-else:
-  lfns = bkQuery.getLFNs( printSEUsage = False, printOutput = False )
-  if not lfns:
-    gLogger.always( 'No files found for BKQuery', str( bkQuery ) )
-    DIRAC.exit( 0 )
-
-  from DIRAC.Core.Utilities.List import breakListIntoChunks
-  fileDict = {}
-  for lfnChunk in breakListIntoChunks( lfns, 1000 ):
-    res = bk.getFileMetadata( lfnChunk )
+  useFilesWithMetadata = False
+  if useFilesWithMetadata:
+    res = bk.getFilesWithMetadata( bkQuery.getQueryDict() )
     if not res['OK']:
-      gLogger.error( 'ERROR: failed to get metadata:', res['Message'] )
+      gLogger.error( 'ERROR getting the files', res['Message'] )
       DIRAC.exit( 1 )
-    fileDict.update( res['Value']['Successful'] )
+    parameters = res['Value']['ParameterNames']
+    for record in res['Value']['Records']:
+      dd = dict( zip( parameters, record ) )
+      lfn = dd['FileName']
+      dd.pop( 'FileName' )
+      fileDict[lfn] = dd
+
+  else:
+    lfns = bkQuery.getLFNs( printSEUsage = False, printOutput = False )
+
+    for lfnChunk in breakListIntoChunks( lfns, 1000 ):
+      res = bk.getFileMetadata( lfnChunk )
+      if not res['OK']:
+        gLogger.error( 'ERROR: failed to get metadata:', res['Message'] )
+        DIRAC.exit( 1 )
+      fileDict.update( res['Value']['Successful'] )
+
+if not fileDict:
+  gLogger.always( 'No files found for BK query' )
+  DIRAC.exit( 0 )
 
 # Now print out
 nFiles = len( fileDict )
