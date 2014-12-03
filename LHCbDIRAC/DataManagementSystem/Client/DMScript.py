@@ -181,22 +181,9 @@ class DMScript():
 
   def setBKQuery( self, arg ):
     # BKQuery could either be a BK path or a file path that contains the BK items
-    try:
-      f = open( arg, 'r' )
-      content = f.readlines()
-      f.close()
-      items = [( l[0].strip(), l[1].strip() ) for l in [line.split( '=' ) for line in content]]
-      for ( i, j ) in items:
-        try:
-          j = int( j )
-        except:
-          pass
-        if i in self.bkFields + self.extraBKitems and j:
-          self.bkQueryDict[i] = j
-    except:
-      self.bkQuery = None
-      self.bkQueryDict = {}
-      self.options['BKPath'] = arg
+    self.bkQuery = None
+    self.bkQueryDict = {}
+    self.options['BKPath'] = arg
     return DIRAC.S_OK()
 
   def setRuns( self, arg ):
@@ -271,6 +258,7 @@ class DMScript():
       lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
       lfnList = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] if '/lhcb' in lfn else '' for lfn in lfnList]
       lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
+      lfnList = [lfn for lfn in lfnList if not lfn.endswith( '/' )]
     return sorted( [lfn for lfn in set( lfnList ) if lfn] )
 
   @staticmethod
@@ -293,20 +281,29 @@ class DMScript():
   def setLFNsFromFile( self, arg ):
     if type( arg ) == type( '' ) and arg.lower() == 'last':
       arg = self.lastFile
-    try:
-      import sys
-      f = open( arg, 'r' ) if arg else sys.stdin
-      lfns = self.getLFNsFromList( f.read().splitlines() )
-      gLogger.always( "Got %d LFNs" % len( lfns ) )
-      if arg:
-        f.close()
-    except:
-      lfns = self.getLFNsFromList( arg )
-    self.options.setdefault( 'LFNs', set() ).update( lfns )
-    if arg != None and arg != self.lastFile:
-      f = open( self.lastFile, 'w' )
-      f.write( '\n'.join( sorted( self.options['LFNs'] ) ) )
-      f.close()
+    # Make a list of files
+    if type( arg ) == type( '' ):
+      files = arg.split( ',' )
+    elif type( arg ) == type( [] ):
+      files = arg
+    elif not arg:
+      files = [arg]
+    nfiles = 0
+    for fName in files:
+      try:
+        import sys
+        f = open( fName, 'r' ) if fName else sys.stdin
+        lfns = self.getLFNsFromList( f.read().splitlines() )
+        if fName:
+          f.close()
+        nfiles += len( lfns )
+      except:
+        lfns = self.getLFNsFromList( fName )
+      self.options.setdefault( 'LFNs', set() ).update( lfns )
+    if nfiles:
+      gLogger.always( "Got %d LFNs" % nfiles )
+    if arg != self.lastFile:
+      open( self.lastFile, 'w' ).write( '\n'.join( sorted( self.options['LFNs'] ) ) )
     return DIRAC.S_OK()
 
   def getOptions( self ):
@@ -326,6 +323,7 @@ class DMScript():
     return value
 
   def getBKQuery( self, visible = None ):
+    mandatoryKeys = set( ( 'ConfigName', 'ConfigVersion', 'Production' ) )
     if self.bkQuery:
       return self.bkQuery
     if self.bkQueryDict:
@@ -337,6 +335,10 @@ class DMScript():
       runs = self.options.get( 'Runs' )
       fileTypes = self.options.get( 'FileType' )
       self.bkQuery = BKQuery( bkPath, prods, runs, fileTypes, visible )
+    bkQueryDict = self.bkQuery.getQueryDict()
+    if not set( bkQueryDict ) & mandatoryKeys:
+      self.bkQuery = None
+      return None
     self.bkQuery.setExceptFileTypes( self.exceptFileTypes )
     if 'DQFlags' in self.options:
       self.bkQuery.setDQFlag( self.options['DQFlags'] )
