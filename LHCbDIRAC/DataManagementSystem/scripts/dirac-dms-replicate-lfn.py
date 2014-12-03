@@ -14,6 +14,7 @@ from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 if __name__ == "__main__":
   dmScript = DMScript()
   dmScript.registerFileSwitches()
+  dmScript.registerSiteSwitches()
 
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
