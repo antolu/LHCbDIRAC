@@ -12,7 +12,7 @@ import os
 
 def __buildPath( bkDict ):
   return os.path.join( '/' + bkDict['ConfigName'], bkDict['ConfigVersion'], bkDict['ConditionDescription'],
-                  bkDict['ProcessingPass'][1:].replace( 'Real Data', 'RealData' ), str( bkDict['EventType'] ), bkDict['FileType'] )
+                  bkDict['ProcessingPass'][1:].replace( 'Real Data', 'RealData' ), str( bkDict['EventType'] ), bkDict['FileType'] ) + ( ' (Invisible)' if bkDict['VisibilityFlag'] == 'N' else '' )
 
 if __name__ == "__main__":
   dmScript = DMScript()
@@ -21,7 +21,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'GroupBy=', '   Return a list of files per <metadata item>' )
   Script.registerSwitch( '', 'GroupByPath', '   Return a list of files per BK path' )
   Script.registerSwitch( '', 'GroupByProduction', '   Return a list of files per production' )
-  Script.registerSwitch( '', 'Summary', '   Only give the number of files in each path' )
+  Script.registerSwitch( '', 'Summary', '   Only give the number of files in each group (default: GroupByPath)' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] ... LFN|File' % Script.scriptName,
@@ -49,6 +49,8 @@ if __name__ == "__main__":
       groupBy = switch[1]
     elif switch[0] == 'Summary':
       summary = True
+  if summary and not groupBy:
+    groupBy = 'Path'
 
   args = Script.getPositionalArgs()
   for lfn in args:
@@ -114,8 +116,15 @@ if __name__ == "__main__":
     if groupBy:
       if summary:
         pathSummary = {'Successful': {}, 'Failed' : {}}
-        for path in paths['Successful']:
-          pathSummary['Successful'][path] = '%d files' % len( paths['Successful'][path] )
+        for path in paths['Successful'].keys():
+          nfiles = paths['Successful'][path]
+          if 'Invisible' in path:
+            paths['Successful'].pop( path )
+            path = path.split()[0]
+            inv = ' (Invisible)'
+          else:
+            inv = ''
+          pathSummary['Successful'][path] = '%d files%s' % ( len( nfiles ), inv )
         if failed:
           pathSummary['Failed'] = dict( ( path, 'Directory not in BK (%d files)' % len( directories[path] ) ) for path in failed )
         else:
