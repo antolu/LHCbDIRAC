@@ -53,6 +53,8 @@ class RequestTrackingAgent( AgentModule ):
       if not result['OK']:
         gLogger.error( result['Message'] )
 
+    return S_OK( 'Request Tracking information updated' )
+    # The following functionality is moved to the ProductionStatusAgent.py
     result = self.prodReq.getTrackedProductions()
     update = []
     if result['OK']:
