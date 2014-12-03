@@ -609,7 +609,7 @@ class BKQuery():
       print "\n%d files (%.1f TB) in directories:" % ( len( lfns ), lfnSize )
       dirs = {}
       for lfn in lfns:
-        directory = os.path.dirname( lfn )
+        directory = os.path.join( os.path.dirname( lfn ), '' )
         dirs[directory] = dirs.setdefault( directory, 0 ) + 1
       dirSorted = dirs.keys()
       dirSorted.sort()
