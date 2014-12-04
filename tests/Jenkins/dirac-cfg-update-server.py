@@ -51,6 +51,7 @@ localCfg.setOption( 'Systems/WorkloadManagement/Production/Services/SandboxStore
 #         WSUrl =
 #       }
 #     }
+localCfg.createNewSection( 'Resources/StorageElements/' )
 localCfg.createNewSection( 'Resources/StorageElements/ProductionSandboxSE' )
 localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/BackendType', 'DISET' )
 localCfg.createNewSection( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1' )
