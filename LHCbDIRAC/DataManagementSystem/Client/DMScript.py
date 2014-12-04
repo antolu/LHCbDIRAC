@@ -9,6 +9,7 @@ from DIRAC.Core.Base import Script
 import os
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
 
 __RCSID__ = "$Id$"
 
@@ -78,13 +79,13 @@ def convertSEs( ses ):
 
   return seList
 
-class DMScript():
-  """
-  DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
+class DMScript( object ):
+  """ DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
   """
 
   def __init__( self ):
-    from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+    """ c'tor
+    """
     self.bkFields = [ "ConfigName", "ConfigVersion", "ConditionDescription", "ProcessingPass", "EventType", "FileType" ]
     self.extraBKitems = [ "StartRun", "EndRun", "ProductionID" ]
     self.bk = BookkeepingClient()
@@ -212,7 +213,6 @@ class DMScript():
     return DIRAC.S_OK()
 
   def setDirectory( self, arg ):
-    import os
     if os.path.exists( arg ) and not os.path.isdir( arg ):
       f = open( arg, 'r' )
       directories = self.getLFNsFromList( f.read().splitlines(), directories = True )
