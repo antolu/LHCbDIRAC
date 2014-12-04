@@ -23,40 +23,34 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
   '''
   
   _tablesDB    = DIRACResourceManagementDB._tablesDB
-  _tablesDB[ 'EnvironmentCache' ] = { 'Fields' : 
-                     { 'HashKey'       : 'VARCHAR(64) NOT NULL',
-                       'Environment'   : 'TEXT',
-                       'SiteName'      : 'VARCHAR(64) NOT NULL',
-                       'Arguments'     : 'VARCHAR(512) NOT NULL',
-                       'DateEffective' : 'DATETIME NOT NULL',
-                       'LastCheckTime' : 'DATETIME NOT NULL'},
-                     'PrimaryKey' : [ 'HashKey' ]
-                                }
-  _tablesDB[ 'HammerCloudTest' ] = { 'Fields' : 
-                     {'TestID'            : 'INT UNSIGNED',
-                       'SiteName'          : 'VARCHAR(64) NOT NULL',
-                       'ResourceName'      : 'VARCHAR(64) NOT NULL',
-                       'TestStatus'        : 'VARCHAR(16)',
-                       'SubmissionTime'    : 'DATETIME NOT NULL',
-                       'StartTime'         : 'DATETIME',
-                       'EndTime'           : 'DATETIME',
-                       'CounterTime'       : 'DATETIME',
-                       'AgentStatus'       : 'VARCHAR(255) NOT NULL DEFAULT "Unspecified"',
-                       'FormerAgentStatus' : 'VARCHAR(255) NOT NULL DEFAULT "Unspecified"',
-                       'Counter'           : 'INT NOT NULL DEFAULT 0' },
-                      'PrimaryKey' : [ 'SubmissionTime' ]                                            
-                                }
-  _tablesDB[ 'MonitoringTest' ] = { 'Fields' : 
-                     { 'MetricName'     : 'VARCHAR(128) NOT NULL',
-                       'ServiceURI'     : 'VARCHAR(128) NOT NULL',
-                       'SiteName'       : 'VARCHAR(64) NOT NULL',
-                       'ServiceFlavour' : 'VARCHAR(64) NOT NULL',
-                       'MetricStatus'   : 'VARCHAR(512) NOT NULL',
-                       'SummaryData'    : 'BLOB NOT NULL',
-                       'Timestamp'      : 'DATETIME NOT NULL',
-                       'LastCheckTime'  : 'DATETIME NOT NULL'},
-                      'PrimaryKey' : [ 'MetricName', 'ServiceURI' ]                                            
-                                }
+  _tablesDB[ 'EnvironmentCache' ] = { 'Fields' : { 'HashKey'       : 'VARCHAR(64) NOT NULL',
+                                                    'Environment'   : 'TEXT',
+                                                    'SiteName'      : 'VARCHAR(64) NOT NULL',
+                                                    'Arguments'     : 'VARCHAR(512) NOT NULL',
+                                                    'DateEffective' : 'DATETIME NOT NULL',
+                                                    'LastCheckTime' : 'DATETIME NOT NULL'},
+                                       'PrimaryKey' : [ 'HashKey' ]}
+  _tablesDB[ 'HammerCloudTest' ] = { 'Fields' : {'TestID'            : 'INT UNSIGNED',
+                                                 'SiteName'          : 'VARCHAR(64) NOT NULL',
+                                                 'ResourceName'      : 'VARCHAR(64) NOT NULL',
+                                                 'TestStatus'        : 'VARCHAR(16)',
+                                                 'SubmissionTime'    : 'DATETIME NOT NULL',
+                                                 'StartTime'         : 'DATETIME',
+                                                 'EndTime'           : 'DATETIME',
+                                                 'CounterTime'       : 'DATETIME',
+                                                 'AgentStatus'       : 'VARCHAR(255) NOT NULL DEFAULT "Unspecified"',
+                                                 'FormerAgentStatus' : 'VARCHAR(255) NOT NULL DEFAULT "Unspecified"',
+                                                 'Counter'           : 'INT NOT NULL DEFAULT 0' },
+                                    'PrimaryKey' : [ 'SubmissionTime' ]}
+  _tablesDB[ 'MonitoringTest' ] = { 'Fields' : { 'MetricName'     : 'VARCHAR(128) NOT NULL',
+                                                'ServiceURI'     : 'VARCHAR(128) NOT NULL',
+                                                'SiteName'       : 'VARCHAR(64) NOT NULL',
+                                                'ServiceFlavour' : 'VARCHAR(64) NOT NULL',
+                                                'MetricStatus'   : 'VARCHAR(512) NOT NULL',
+                                                'SummaryData'    : 'BLOB NOT NULL',
+                                                'Timestamp'      : 'DATETIME NOT NULL',
+                                                'LastCheckTime'  : 'DATETIME NOT NULL'},
+                                   'PrimaryKey' : [ 'MetricName', 'ServiceURI' ]}
   _tablesDB[ 'JobAccountingCache' ] = { 'Fields' : 
                      {'Name'          : 'VARCHAR(64) NOT NULL',
                        'Checking'      : 'DOUBLE NOT NULL DEFAULT 0',
