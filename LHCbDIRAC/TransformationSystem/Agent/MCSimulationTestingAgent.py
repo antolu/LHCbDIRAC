@@ -114,12 +114,13 @@ class MCSimulationTestingAgent ( AgentModule ):
             # all tasks have failed so the request can be rejected and an email report sent
             report = self.__createReport( tasks )
             self._sendReport( report )
-            self.log.info( "Transformation " + str( transID ) + " failed the testing phase" )
+            self.log.warn( "Transformation " + str( transID ) + " failed the testing phase" )
             self.failedTransIDs.append( transID )
           else:
             # only some tasks have failed so extend the failed tasks to repeat them
             self._extendFailedTasks( transID, numberOfFailedTasks )
-            self.log.info( str( numberOfFailedTasks ) + "tasks of Transformation " + str( transID ) + "failed the testing phase, so the transformation has been extended" )
+            self.log.info( "%d tasks of Transformation %d failed the testing phase, so it has been extended" % ( numberOfFailedTasks,
+                                                                                                                 transID ) )
 
 
     return S_OK()
@@ -178,11 +179,11 @@ class MCSimulationTestingAgent ( AgentModule ):
     res = self.notifyClient.sendMail( email, report['subject'], body,
                                       email )
     if not res['OK']:
-      self.log.error( res['Message'] )
-      return S_ERROR( res['Message'] )
+      self.log.error( "sendMail failed", res['Message'] )
     else:
       self.log.info( 'Mail summary sent to production manager' )
-      return res
+
+    return res
 
   def _calculateParameters( self, tasks ):
     """calculates the CPU time per event for a successful task.
@@ -231,9 +232,8 @@ class MCSimulationTestingAgent ( AgentModule ):
       prod.setParameter( 'maxNumberOfEvents', 'string', str( max_e ), 'Maximum number of events to produce (Gauss)' )
       return S_OK( prod.LHCbJob.workflow.toXML() )
     else:
-      message = "Call to Transformation Client service failed : %s" % res['Message']
-      self.log.error( message )
-      return S_ERROR( message )
+      self.log.error( "Call to Transformation Client service failed", res['Message'] )
+      return res
 
   def _updateTransformationsTable( self, transID, workflow ):
     """puts the modified workflow from the savedProductionDescription table into the transformations table
@@ -244,22 +244,26 @@ class MCSimulationTestingAgent ( AgentModule ):
       body = self.transClient.setTransformationParameter( transID, "Body", workflow )
       status = self.transClient.setTransformationParameter( transID, "Status", "Active" )
       if body['OK'] and status['OK']:
-        self.transClient.removeStoredJobDescription( transID )
-        message = "Transformation " + str( transID ) + " has an updated body and Status set to active"
-        self.log.info( message )
-        return S_OK( message )
+        res = self.transClient.removeStoredJobDescription( transID )
+        if not res['OK']:
+          self.log.error( "Call to removeStoredJobDescription failed", res['Message'] )
+          return res
+        self.log.info( "Transformation %s has an updated body and Status set to active" % transID )
+        return S_OK()
       else:
-        # one of the updates has failed so set them both back to the previous value to ensure atomicity
-        print transformation['Value'][0]['Body']
-        self.transClient.setTransformationParameter( transID, "Body", transformation['Value'][0]['Body'] )
-        self.transClient.setTransformationParameter( transID, "Status", transformation['Value'][0]['Status'] )
-        message = "One of the updates for transformation " + str( transID ) + " has failed."
-        self.log.error( message )
-        return S_ERROR( message )
+        self.log.error( "One of the updates has failed so set them both back to the previous value to ensure atomicity" )
+        self.log.debug( str( transformation['Value'][0]['Body'] ) )
+        res = self.transClient.setTransformationParameter( transID, "Body", transformation['Value'][0]['Body'] )
+        if not res['OK']:
+          self.log.error( "Failure calling setTransformationParameter", res['Message'] )
+          return res
+        res = self.transClient.setTransformationParameter( transID, "Status", transformation['Value'][0]['Status'] )
+        if not res['OK']:
+          self.log.error( "Failure calling setTransformationParameter", res['Message'] )
+          return res
     else:
-      message = "Call to Transformation Client service failed : %s" % transformation['Message']
-      self.log.error( message )
-      return S_ERROR( message )
+      self.log.error( "Call to getTransformations failed", transformation['Message'] )
+      return transformation
 
   def _extendFailedTasks( self, transID, numberOfFailedTasks ):
     """takes the number of failed tasks of a testing phase and extends the production by that number to
@@ -267,11 +271,9 @@ class MCSimulationTestingAgent ( AgentModule ):
     """
     res = self.transClient.extendTransformation( transID, numberOfFailedTasks )
     if not res['OK']:
-      message = 'Failed to extend transformation %d : %s' % ( transID, res['Message'] )
-      self.log.error( message )
-      return S_ERROR( message )
+      self.log.error( "Failed to extend transformation", "%s: %s" % ( transID, res['Message'] ) )
+      return res
     else:
-      message = "Successfully extended transformation %d by %d tasks" % ( transID, numberOfFailedTasks )
-      self.log.info( message )
-      return S_OK( message )
+      self.log.info( "Successfully extended transformation %d by %d tasks" % ( transID, numberOfFailedTasks ) )
+      return S_OK()
 
