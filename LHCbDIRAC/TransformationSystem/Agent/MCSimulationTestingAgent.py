@@ -54,11 +54,10 @@ class MCSimulationTestingAgent ( AgentModule ):
       idleTransformations = res['Value']
       idleTransformations = [d.get( "TransformationID" ) for d in idleTransformations]
       self.log.verbose( "Found %d Idle MC transformations" % len( idleTransformations ) )
-      self.log.debug( "Idle transformations found: %s" % ','.join( str( it ) for it in idleTransformations ) )
+      self.log.debug( "Idle transformations found: %s" % ','.join( [str( it ) for it in idleTransformations] ) )
     else:
-      message = "Call to Transformation Client service failed : %s" % res['Message']
-      self.log.error( message )
-      return S_ERROR( message )
+      self.log.error( "Call to Transformation Client service failed", res['Message'] )
+      return res
 
     # get all the IDs of transformations undergoing a testing phase
     res = self.transClient.getStoredJobDescriptionIDs()
@@ -66,56 +65,60 @@ class MCSimulationTestingAgent ( AgentModule ):
       testingSimulations = res['Value']
       testingSimulations = [pair[0] for pair in testingSimulations]
       self.log.verbose( "Found %d MC transformations undergoing a testing phase" % len( testingSimulations ) )
-      self.log.debug( "MC transformations found undergoing a testing phase: %s" % ','.join( str( ts ) for ts in testingSimulations ) )
+      self.log.debug( "MC transformations found undergoing a testing phase: %s" % ','.join( [str( ts ) for ts in testingSimulations] ) )
     else:
-      message = "Call to Transformation Client service failed : %s" % res['Message']
-      self.log.error( message )
-      return S_ERROR( message )
+      self.log.error( "Call to Transformation Client service failed", res['Message'] )
+      return res
 
     # get the IDs that occur in both idle transformations and testing phase
     idleSimulations = list( set( testingSimulations ).intersection( idleTransformations ) )
-    self.log.info( "MC transformations under considerations: %s" % ','.join( idleSimulations ) )
+    self.log.info( "MC transformations under considerations: %s (will loop on them)" % ','.join( [str( idS ) for idS in idleSimulations] ) )
     for transID in idleSimulations:
       self.log.info( "Looking into %d" % transID )
       tasks = self.transClient.getTransformationTasks( condDict = {"TransformationID" : transID} )
-      if tasks['OK']:
-
+      if not tasks['OK']:
+        self.log.error( "Call to Transformation Client service failed", res['Message'] )
+      else:
         tasks = tasks['Value']
         numberOfTasks = len( tasks )
         numberOfDoneTasks = sum( 1 for d in tasks if d.get( "ExternalStatus" ) == "Done" )
         self.log.verbose( "TransID = %d, numberOfTasks = %d, numberOfDoneTasks = %d" % ( transID, numberOfTasks, numberOfDoneTasks ) )
         if numberOfTasks == numberOfDoneTasks:
           self.log.info( "All tasks have passed so the request can be accepted and the transformation updated" )
-          parameters = self._calculate_parameters( tasks )
-          if parameters['OK']:
+          parameters = self._calculateParameters( tasks )
+          if not parameters['OK']:
+            self.log.error( "Error calculating parameters", parameters['Message'] )
+            return parameters
+          else:
             parameters = parameters['Value']
             self.log.verbose( "TransID = %d, Calculated Parameters: %s" % ( transID, str( parameters ) ) )
-            workflow = self._update_workflow( transID, parameters['CPUe'], parameters['MCCpu'] )
+            workflow = self._updateWorkflow( transID, parameters['CPUe'], parameters['MCCpu'] )
             if workflow['OK']:
               workflow = workflow['Value']
-              res = self._update_transformations_table( transID, workflow )
-              if res['OK']:
+              res = self._updateTransformationsTable( transID, workflow )
+              if not res['OK']:
+                self.log.error( "Error updating transformations table", res['Message'] )
+                return res
+              else:
                 self.log.info( "Transformation " + str( transID ) + "passed the testing phase and is now set to active" )
 
         else:
+          self.log.warn( "There are failed tasks" )
           numberOfFailedTasks = sum( 1 for d in tasks if d.get( "ExternalStatus" ) == "Failed" )
           if numberOfFailedTasks == numberOfTasks:
             # all tasks have failed so the request can be rejected and an email report sent
-            report = self._create_report( tasks )
-            self._send_report( report )
+            report = self.__createReport( tasks )
+            self._sendReport( report )
             self.log.info( "Transformation " + str( transID ) + "failed the testing phase" )
           else:
             # only some tasks have failed so extend the failed tasks to repeat them
-            self._extend_failed_tasks( transID, numberOfFailedTasks )
+            self._extendFailedTasks( transID, numberOfFailedTasks )
             self.log.info( str( numberOfFailedTasks ) + "tasks of Transformation " + str( transID ) + "failed the testing phase, so the transformation has been extended" )
 
-      else:
-        message = "Call to Transformation Client service failed : %s" % res['Message']
-        self.log.info( message )
 
     return S_OK()
 
-  def _create_report( self, tasks ):
+  def __createReport( self, tasks ):
     """creates a report from a failed task to email to the production manager
     """
     dateformat = '%d/%m/%Y %H:%M'
@@ -160,10 +163,10 @@ class MCSimulationTestingAgent ( AgentModule ):
       body.append( "" )
     return {'subject': subject, 'body': body}
 
-  def _send_report( self, report ):
+  def _sendReport( self, report ):
     """sends a given report to the production manager
     """
-    username = self.operations.getValue("Shifter/ProductionManager/User")
+    username = self.operations.getValue( "Shifter/ProductionManager/User" )
     email = getUserOption( username, "Email" )
     body = '\n'.join( report['body'] )
     res = self.notifyClient.sendMail( email, report['subject'], body,
@@ -175,7 +178,7 @@ class MCSimulationTestingAgent ( AgentModule ):
       self.log.info( 'Mail summary sent to production manager' )
       return res
 
-  def _calculate_parameters( self, tasks ):
+  def _calculateParameters( self, tasks ):
     """calculates the CPU time per event for a successful task.
     """
     job_id = tasks[0]['ExternalID']
@@ -191,7 +194,7 @@ class MCSimulationTestingAgent ( AgentModule ):
     MCCpu = str( 25 * int( float( CPUe ) ) )
     return S_OK( {'CPUe' : CPUe, 'MCCpu': MCCpu} )
 
-  def _update_workflow( self, transID, CPUe, MCCpu ):
+  def _updateWorkflow( self, transID, CPUe, MCCpu ):
     """ Updates the workflow of a savedProductionDescription to reflect the calculated CPUe
     """
     res = self.transClient.getStoredJobDescription( transID )
@@ -226,7 +229,7 @@ class MCSimulationTestingAgent ( AgentModule ):
       self.log.error( message )
       return S_ERROR( message )
 
-  def _update_transformations_table( self, transID, workflow ):
+  def _updateTransformationsTable( self, transID, workflow ):
     """puts the modified workflow from the savedProductionDescription table into the transformations table
        and removes it from the savedProductionDescription table.
     """
@@ -252,7 +255,7 @@ class MCSimulationTestingAgent ( AgentModule ):
       self.log.error( message )
       return S_ERROR( message )
 
-  def _extend_failed_tasks( self, transID, numberOfFailedTasks ):
+  def _extendFailedTasks( self, transID, numberOfFailedTasks ):
     """takes the number of failed tasks of a testing phase and extends the production by that number to
        repeat the test
     """
