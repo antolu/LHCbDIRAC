@@ -31,10 +31,10 @@ localConfigFile = os.path.join( '.', 'etc', 'Production.cfg' )
 localCfg.loadFromFile( localConfigFile )
 
 # Where to store outputs
-if not os.path.isdir( '/scratch/workspace/%s/sandboxes' % setupName ):
-  os.makedirs( '/scratch/workspace/%s/sandboxes' % setupName )
+if not os.path.isdir( '%s/sandboxes' % setupName ):
+  os.makedirs( '%s/sandboxes' % setupName )
 localCfg.setOption( 'Systems/WorkloadManagement/Production/Services/SandboxStore/BasePath',
-                    '/scratch/workspace/%s/sandboxes' % setupName )
+                    '%s/sandboxes' % setupName )
 
 # Now setting a SandboxSE as the following:
 #     ProductionSandboxSE
@@ -59,7 +59,7 @@ localCfg.createNewSection( 'Resources/StorageElements/ProductionSandboxSE/Access
 localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1/Host', 'localhost' )
 localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1/Port', '9196' )
 localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1/ProtocolName', 'DIP' )
-localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1/Path', '/scratch/workspace/%s/sandboxes' % setupName )
+localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1/Path', '%s/sandboxes' % setupName )
 localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1/Access', 'remote' )
 
 localCfg.writeToFile( localConfigFile )
