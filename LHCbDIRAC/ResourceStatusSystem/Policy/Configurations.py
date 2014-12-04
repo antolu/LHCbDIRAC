@@ -76,72 +76,38 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
                                                                       'LHCb CE-lhcb-job-Gauss',
                                                                       'LHCb CE-lhcb-os', 'LHCb CE-lhcb-queues',
                                                                       'LHCb CE-lhcb-queues',
-                                                                      'bi', 'csh', 'js', 'gfal', 'swdir', 'voms'] ) }}]
-     },
-  'SAM_CREAMCE' :
-    { 
-      'description' : 'Latest SAM results on the CREAM Computing Element',
-      'module'      : 'SAMResultsPolicy',
-      'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
-      'args'        : ( None, [ 'bi', 'csh', 'gfal', 'swdir', 'creamvoms' ] ),
-
-      'Resource_Panel' : [ { 'SAM': 
-                             { 'CommandIn' : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
-                               'args'      : ( None, [ 'bi', 'csh', 'gfal', 'swdir', 'creamvoms' ] ) 
-                               }
-                            },
-                         ]
-     },
-  'SAM_SE' :
-    { 
-      'description' : 'Latest SAM results on the SRM nodes',
-      'module'      : 'SAMResultsPolicy',
-      'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
-      'args'        : ( None, [ 'DiracTestUSER', 'FileAccessV2', 'LHCb-cr' ] ),
-
-      'Resource_Panel' : [ {'SAM': {'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
-                                    'args': ( None, ['DiracTestUSER', 'FileAccessV2', 'LHCb-cr'] ) }},
-                         ]
-     },
-  'SAM_LFC_C' :
-    { 
-      'description' : 'Latest SAM results on the central LFC nodes',
-      'module'      : 'SAMResultsPolicy',
-      'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
-      'args'        : ( None, [ 'lfcwf', 'lfclr', 'lfcls', 'lfcping' ] ),
-      
-      'Resource_Panel' : [ { 'SAM': 
-                            { 'CommandIn' : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
-                              'args'      : ( None, [ 'lfcwf', 'lfclr', 'lfcls', 'lfcping' ] ) 
-                              }
-                            },
-                          ]
-     },
-  'SAM_LFC_L' :
-    { 
-      'description' : 'Latest SAM results on the slave LFC nodes',
-      'module'      : 'SAMResultsPolicy',
-      'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
-      'args'        : ( None, [ 'lfcstreams', 'lfclr', 'lfcls', 'lfcping' ] ),
-      
-      'Resource_Panel' : [ { 'SAM': 
-                            { 'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
-                              'args'     : ( None, [ 'lfcstreams', 'lfclr', 'lfcls', 'lfcping' ] ) 
-                            }
-                           },
-                          ]
-     },
-  'SAM_FTS' :
-    { 
-      'description' : 'Latest SAM results on the FTS nodes',
-      'module'      : 'SAMResultsPolicy',
-      'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
-      'args'        : ( None, [ 'ftschn', 'ftsinfo' ] ),
-     
-      'Resource_Panel' : [ { 'SAM': {'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
-                                    'args': ( None, ['ftschn', 'ftsinfo'] ) }},
-                          ]
-     },
+                                                                      'bi', 'csh', 'js', 'gfal', 'swdir', 'voms'] ) }}]},
+            'SAM_CREAMCE' :{'description' : 'Latest SAM results on the CREAM Computing Element',
+                            'module'      : 'SAMResultsPolicy',
+                            'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+                            'args'        : ( None, [ 'bi', 'csh', 'gfal', 'swdir', 'creamvoms' ] ),
+                            'Resource_Panel' : [ { 'SAM':
+                                                  { 'CommandIn' : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+                                                   'args'      : ( None, [ 'bi', 'csh', 'gfal', 'swdir', 'creamvoms' ] )}}, ]},
+            'SAM_SE' :{'description' : 'Latest SAM results on the SRM nodes',
+                       'module'      : 'SAMResultsPolicy',
+                       'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+                       'args'        : ( None, [ 'DiracTestUSER', 'FileAccessV2', 'LHCb-cr' ] ),
+                       'Resource_Panel' : [ {'SAM': {'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
+                                                     'args': ( None, ['DiracTestUSER', 'FileAccessV2', 'LHCb-cr'] ) }}, ]},
+            'SAM_LFC_C' :{'description' : 'Latest SAM results on the central LFC nodes',
+                          'module'      : 'SAMResultsPolicy',
+                          'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+                          'args'        : ( None, [ 'lfcwf', 'lfclr', 'lfcls', 'lfcping' ] ),
+                          'Resource_Panel' : [ { 'SAM': { 'CommandIn' : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+                                                         'args'      : ( None, [ 'lfcwf', 'lfclr', 'lfcls', 'lfcping' ] )}}, ]},
+            'SAM_LFC_L' :{'description' : 'Latest SAM results on the slave LFC nodes',
+                          'module'      : 'SAMResultsPolicy',
+                          'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+                          'args'        : ( None, [ 'lfcstreams', 'lfclr', 'lfcls', 'lfcping' ] ),
+                          'Resource_Panel' : [ { 'SAM': { 'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
+                                                         'args'     : ( None, [ 'lfcstreams', 'lfclr', 'lfcls', 'lfcping' ] )}}, ]},
+            'SAM_FTS' :{'description' : 'Latest SAM results on the FTS nodes',
+                        'module'      : 'SAMResultsPolicy',
+                        'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
+                        'args'        : ( None, [ 'ftschn', 'ftsinfo' ] ),
+                        'Resource_Panel' : [ { 'SAM': {'CommandIn':( 'SAMResultsCommand', 'SAMResultsCommand' ),
+                                                       'args': ( None, ['ftschn', 'ftsinfo'] ) }}, ]},
 #   'JobsEfficiencySimple' :
 #     {
 #       'description'     : 'Simple jobs efficiency',
@@ -218,29 +184,24 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
 #                                                      'Site', {'GridStatus':'Aborted'} )}},
 #                                     ]
 #      },
-  'PilotsEfficiencySimple_Resource' :
-    { 
-      'description' : 'Simple pilots efficiency',
-      'module'      : 'PilotsEfficiencySimplePolicy',
-      'command'     : ( 'PilotsCommand', 'PilotsEffSimpleCommand' ),
-      'args'        : None,
-      
-      'Resource_Panel' : [ { 'FillChart - Successfull pilots in the last 24 hours':
-                           { 'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
-                             'args':( 'Pilot', 'SuccessfullPilotsByCESplitted_24' ),
-                             'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                             'argsNewRes': ( 'Pilot', 'NumberOfPilots',
-                                            {'Format': 'LastHours', 'hours': 24},
-                                            'GridCE', {'GridStatus':'Done'} )}},
-                           { 'FillChart - Failed pilots in the last 24 hours':
-                            { 'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
-                             'args': ( 'Pilot', 'FailedPilotsByCESplitted_24' ),
-                              'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                              'argsNewRes': ( 'Pilot', 'NumberOfPilots',
-                                             {'Format': 'LastHours', 'hours': 24},
-                                             'GridCE', {'GridStatus':'Aborted'} )}},
-                          ]
-     },
+  'PilotsEfficiencySimple_Resource' :{'description' : 'Simple pilots efficiency',
+                                      'module'      : 'PilotsEfficiencySimplePolicy',
+                                      'command'     : ( 'PilotsCommand', 'PilotsEffSimpleCommand' ),
+                                      'args'        : None,
+                                      'Resource_Panel' : [ { 'FillChart - Successfull pilots in the last 24 hours':
+                                                            { 'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+                                                             'args':( 'Pilot', 'SuccessfullPilotsByCESplitted_24' ),
+                                                             'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+                                                             'argsNewRes': ( 'Pilot', 'NumberOfPilots',
+                                                                             {'Format': 'LastHours', 'hours': 24},
+                                                                             'GridCE', {'GridStatus':'Done'} )}},
+                                                          { 'FillChart - Failed pilots in the last 24 hours':
+                                                           { 'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+                                                            'args': ( 'Pilot', 'FailedPilotsByCESplitted_24' ),
+                                                            'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+                                                            'argsNewRes': ( 'Pilot', 'NumberOfPilots',
+                                                                            {'Format': 'LastHours', 'hours': 24},
+                                                                            'GridCE', {'GridStatus':'Aborted'} )}}, ]},
 #   'OnSitePropagation' :
 #     {
 #       'description' : 'How the site\'s services are behaving in the RSS',
@@ -299,13 +260,8 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
       'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : ( 'VO-BOX', ),
       
-      'Service_VO-BOX_Panel' : [ {
-                                   'WebLink' : {
-                                                 'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
-                                                 'args'      : ( 'VO-BOX', )
-                                                 }
-                                  },
-                                ]
+      'Service_VO-BOX_Panel' : [ { 'WebLink' : { 'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
+                                                 'args'      : ( 'VO-BOX', )}     }, ]
      },
   'VOMS-SLS' :
     { 
