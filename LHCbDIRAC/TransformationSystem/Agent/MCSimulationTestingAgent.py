@@ -39,6 +39,8 @@ class MCSimulationTestingAgent ( AgentModule ):
     self.notifyClient = None
     self.operations = None
 
+    self.failedTransIDs = []
+
   def initialize( self ):
     self.transClient = TransformationClient()
     self.bkClient = BookkeepingClient()
@@ -72,12 +74,15 @@ class MCSimulationTestingAgent ( AgentModule ):
 
     # get the IDs that occur in both idle transformations and testing phase
     idleSimulations = list( set( testingSimulations ).intersection( idleTransformations ) )
+    # remove those that we know failed
+    idleSimulations = list( set( idleSimulations ).difference( self.failedTransIDs ) )
     self.log.info( "MC transformations under considerations: %s (will loop on them)" % ','.join( [str( idS ) for idS in idleSimulations] ) )
     for transID in idleSimulations:
       self.log.info( "Looking into %d" % transID )
       tasks = self.transClient.getTransformationTasks( condDict = {"TransformationID" : transID} )
       if not tasks['OK']:
-        self.log.error( "Call to Transformation Client service failed", res['Message'] )
+        self.log.error( "Call to Transformation Client service failed", tasks['Message'] )
+        continue
       else:
         tasks = tasks['Value']
         numberOfTasks = len( tasks )
@@ -100,7 +105,7 @@ class MCSimulationTestingAgent ( AgentModule ):
                 self.log.error( "Error updating transformations table", res['Message'] )
                 return res
               else:
-                self.log.info( "Transformation " + str( transID ) + "passed the testing phase and is now set to active" )
+                self.log.info( "Transformation " + str( transID ) + " passed the testing phase and is now set to active" )
 
         else:
           self.log.warn( "There are failed tasks" )
@@ -109,7 +114,8 @@ class MCSimulationTestingAgent ( AgentModule ):
             # all tasks have failed so the request can be rejected and an email report sent
             report = self.__createReport( tasks )
             self._sendReport( report )
-            self.log.info( "Transformation " + str( transID ) + "failed the testing phase" )
+            self.log.info( "Transformation " + str( transID ) + " failed the testing phase" )
+            self.failedTransIDs.append( transID )
           else:
             # only some tasks have failed so extend the failed tasks to repeat them
             self._extendFailedTasks( transID, numberOfFailedTasks )
