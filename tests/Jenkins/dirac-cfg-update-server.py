@@ -26,12 +26,38 @@ from DIRAC.Core.Utilities.CFG import CFG
 
 localCfg = CFG()
 
+# Which file
 localConfigFile = os.path.join( '.', 'etc', 'Production.cfg' )
 localCfg.loadFromFile( localConfigFile )
 
+# Where to store outputs
 os.makedirs( '/scratch/workspace/%s/sandboxes' % setupName )
-# localCfg.createNewSection( 'Systems/WorkloadManagement/Production/Services/SandboxStore/' )
 localCfg.setOption( 'Systems/WorkloadManagement/Production/Services/SandboxStore/BasePath',
                     '/scratch/workspace/%s/sandboxes' % setupName )
-localCfg.writeToFile( localConfigFile )
 
+# Now setting a SandboxSE as the following:
+#     ProductionSandboxSE
+#     {
+#       BackendType = DISET
+#       AccessProtocol.1
+#       {
+#         Host = localhost
+#         Port = 9196
+#         ProtocolName = DIP
+#         Protocol = dips
+#         Path = /scratch/workspace/%s/sandboxes % setupName
+#         Access = remote
+#         SpaceToken =
+#         WSUrl =
+#       }
+#     }
+localCfg.createNewSection( 'Resources/StorageElements/ProductionSandboxSE' )
+localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/BackendType', 'DISET' )
+localCfg.createNewSection( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1' )
+localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1/Host', 'localhost' )
+localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1/Port', '9196' )
+localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1/ProtocolName', 'DIP' )
+localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1/Path', '/scratch/workspace/%s/sandboxes' % setupName )
+localCfg.setOption( 'Resources/StorageElements/ProductionSandboxSE/AccessProtocol.1/Access', 'remote' )
+
+localCfg.writeToFile( localConfigFile )
