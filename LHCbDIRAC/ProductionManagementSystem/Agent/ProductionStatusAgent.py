@@ -15,11 +15,13 @@
 
      Active -> Idle
 
+     Testing -> Idle
+
      In addition this also updates request status from Active to Done.
 
      To do: review usage of production API(s) and re-factor into Production Client
 
-     AZ 10.14: merged with a part from RequestTrachingAgent to avoid race conditions
+     AZ 10.14: merged with a part from RequestTrackingAgent to avoid race conditions
 """
 
 __RCSID__ = "$Id$"
@@ -465,7 +467,7 @@ class ProductionStatusAgent( AgentModule ):
 
     result = self._getActiveProductionRequests()
     if not result['OK']:
-      self.log.error( "Aborting cycle: %s" % result["Message"] )
+      self.log.error( "Aborting cycle", result["Message"] )
       return S_OK()
 
     self._getTransformationsState()
@@ -475,7 +477,7 @@ class ProductionStatusAgent( AgentModule ):
     # since Validation can (really???) update BK, rendering MC incomplete
     result = self._trackProductionRequests() # also updates PR DB
     if not result['OK']:
-      self.log.error( "Aborting cycle: %s" % result["Message"] )
+      self.log.error( "Aborting cycle", result["Message"] )
       return S_OK()
 
     self.log.info( "******************************" )
@@ -576,7 +578,7 @@ class ProductionStatusAgent( AgentModule ):
 
     res = self.tClient.getTransformationWithStatus( status )
     if not res['OK']:
-      self.log.error( "Failed to get %s transformations: %s" % ( status, res['Message'] ) )
+      self.log.error( "Failed to get transformations", "%s: %s" % ( status, res['Message'] ) )
       raise RuntimeError( "Failed to get %s transformations: %s" % ( status, res['Message'] ) )
     if not res['Value']:
       self.log.debug( 'No transformations in %s status' % status )
@@ -628,7 +630,7 @@ class ProductionStatusAgent( AgentModule ):
 
     result = self.tClient.getTransformationTaskStats( tID )
     if not result['OK']:
-      self.log.error( 'Could not retrieve transformation tasks stats: %s' % result['Message'] )
+      self.log.error( 'Could not retrieve transformation tasks stats', result['Message'] )
       tTaskStats = {}
     else:
       tTaskStats = result['Value']
@@ -641,7 +643,7 @@ class ProductionStatusAgent( AgentModule ):
 
     result = self.tClient.getTransformationStats( tID )
     if not result['OK']:
-      self.log.error( 'Could not retrieve transformation files stats: %s' % result['Message'] )
+      self.log.error( 'Could not retrieve transformation files stats', result['Message'] )
       tFilesStats = {}
     else:
       tFilesStats = result['Value']
@@ -737,7 +739,7 @@ class ProductionStatusAgent( AgentModule ):
           toUpdate.append( { 'ProductionID': tID, 'BkEvents': nEvents } )
           tInfo['Events'] = nEvents
       else:
-        self.log.error( 'Progress of %s is not updated: %s' % ( tID, result['Message'] ) )
+        self.log.error( 'Progress is not updated", %s : %s' % ( tID, result['Message'] ) )
         return S_ERROR( 'Too dangerous to continue' )
 
     if toUpdate:
@@ -746,7 +748,7 @@ class ProductionStatusAgent( AgentModule ):
       else:
         result = S_OK()
       if not result['OK']:
-        self.log.error( 'Could not send update to the Production Request System: %s ' % result['Message'] ) # that is not critical
+        self.log.error( 'Could not send update to the Production Request System', result['Message'] )  # that is not critical
       else:
         self.log.info( 'The progress of %s Production Requests is updated' % len( toUpdate ) )
     self.log.verbose( "Production requests progress update is finished" )
@@ -783,7 +785,7 @@ class ProductionStatusAgent( AgentModule ):
     try:
       result = self.tClient.setTransformationParameter( tID, 'Status', status )
       if not result['OK']:
-        self.log.error( "Failed to update status of transformation %s from %s to %s" % ( tID, origStatus, status ) )
+        self.log.error( "Failed to update status of transformation", "%s from %s to %s" % ( tID, origStatus, status ) )
       else:
         updatedT[tID] = {'to':status, 'from':origStatus}
     except RuntimeError, error:
@@ -808,7 +810,7 @@ class ProductionStatusAgent( AgentModule ):
       result = notify.sendMail( 'vladimir.romanovsky@cern.ch', subject, '\n'.join( msg ),
                                 'vladimir.romanovsky@cern.ch', localAttempt = False )
       if not result['OK']:
-        self.log.error( result['Message'] )
+        self.log.error( "Could not send mail", result['Message'] )
       else:
         self.log.info( 'Mail summary sent to production manager' )
 
