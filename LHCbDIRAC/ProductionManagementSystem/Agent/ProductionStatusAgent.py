@@ -401,7 +401,7 @@ class ProductionStatusAgent( AgentModule ):
     self.simulationTypes = Operations().getValue( 'Transformations/ExtendableTransfTypes', ['MCSimulation',
                                                                                             'Simulation'] )
 
-    self.allKnownStates = ( 'RemovedFiles', 'RemovingFiles', 'ValidatedOutput', 'ValidatingInput', 'Active', 'Idle' )
+    self.allKnownStates = ( 'RemovedFiles', 'RemovingFiles', 'ValidatedOutput', 'ValidatingInput', 'Testing', 'Active', 'Idle' )
 
     self.notify = True
 
@@ -1005,6 +1005,12 @@ class ProductionStatusAgent( AgentModule ):
             self.__updateTransformationStatus( tID, 'ValidatingInput', 'RemovingFiles', updatedT )
           else:
             self.log.warn( 'Logical bug: transformation %s is unexpectadly "ValidatingInput"' & tID )
+        elif tInfo['state'] == 'Testing':
+          isIdle, isProcIdle, isSimulation = self.__isIdle( tID )
+          self.log.verbose( "TransID %d, %s, %s, %s" % ( tID, isIdle, isProcIdle, isSimulation ) )
+          if isIdle:
+            self.__updateTransformationStatus( tID, 'Testing', 'Idle', updatedT )
+
 
       summary['isFinished'] = True if countFinished == len(summary['prods']) else False
       if summary['isFinished'] and not summary['master'] and summary['type'] == 'Simulation':
