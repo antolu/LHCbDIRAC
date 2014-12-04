@@ -8,7 +8,6 @@ from DIRAC.Core.Base.AgentModule                          import AgentModule
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
-
 __RCSID__ = "$Id$"
 
 AGENT_NAME = 'ProductionManagement/RequestTrackingAgent'
@@ -42,38 +41,14 @@ class RequestTrackingAgent( AgentModule ):
         result = self.bkInputNumberOfEvents( request )
         if result['OK']:
           update.append( {'RequestID':request['RequestID'],
-                         'RealNumberOfEvents':result['Value']} )
+                          'RealNumberOfEvents':result['Value']} )
         else:
           gLogger.error( 'Input of %s is not updated: %s' %
-                        ( str( request['RequestID'] ), result['Message'] ) )
+                         ( str( request['RequestID'] ), result['Message'] ) )
     else:
       gLogger.error( 'Request service: %s' % result['Message'] )
     if update:
       result = self.prodReq.updateTrackedInput( update )
-      if not result['OK']:
-        gLogger.error( result['Message'] )
-
-    return S_OK( 'Request Tracking information updated' )
-    # The following functionality is moved to the ProductionStatusAgent.py
-    result = self.prodReq.getTrackedProductions()
-    update = []
-    if result['OK']:
-      gLogger.verbose( "Productions tracked: %s" % ( ','.join( [str( prod ) for prod in result['Value'] ] ) ) )
-      for productionID in result['Value']:
-        result = self.bkClient.getProductionProcessedEvents( productionID )
-        if result['OK']:
-          if result['Value']:
-            gLogger.verbose( "Updating production %d, with BkEvents %d" % ( int( productionID ),
-                                                                            int( result['Value'] ) ) )
-            update.append( {'ProductionID':productionID, 'BkEvents':result['Value']} )
-        else:
-          gLogger.error( 'Progress of %s is not updated: %s' %
-                        ( productionID, result['Message'] ) )
-    else:
-      gLogger.error( 'Request service: %s' % result['Message'] )
-
-    if update:
-      result = self.prodReq.updateTrackedProductions( update )
       if not result['OK']:
         gLogger.error( result['Message'] )
 
