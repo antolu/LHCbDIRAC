@@ -74,7 +74,7 @@ class ProductionRequestSIM():
         answer[prID][tID] = { 'Used': tInfo['Used'], 'Events': tInfo['Events'] }
     return S_OK( answer )
 
-  def getProductionRequestList_v2( self, master, u1, u2, u3, u4, rfilter ):
+  def getProductionRequestList( self, master, u1, u2, u3, u4, rfilter ):
     """ Only works for the calls used in this agent
     """
     answer = []
@@ -87,7 +87,7 @@ class ProductionRequestSIM():
       if toInclude:
         hasSubrequest = 2 if len( summary['prods'] ) == 0 else 0
         bkTotal = 0
-        for tID, tInfo in summary['prods'].iteritems():
+        for _tID, tInfo in summary['prods'].iteritems():
           if tInfo['Used']:
             bkTotal += tInfo['Events']
         answer.append( { 'RequestID': prID, 'HasSubrequest': hasSubrequest, 'RequestType': summary['type'], 'master': summary['master'],
@@ -101,14 +101,14 @@ class ProductionRequestSIM():
       self.pr[prID]['state'] = updDict['RequestState']
       return S_OK()
     else:
-      self.log.error( 'Unsupported parameters for updateProductionRequest' )
+      gLogger.error( 'Unsupported parameters for updateProductionRequest' )
       return S_ERROR( ' Unsupported ' )
     
   def updateTrackedProductions( self, toUpdate ):
     """ Update production progress
     """
     for it in toUpdate:
-      for prID, summary in self.pr.iteritems():
+      for _prID, summary in self.pr.iteritems():
         if it['ProductionID'] in summary['prods']:
           summary['prods'][it['ProductionID']]['Events'] = it['BkEvents']
           break
@@ -117,7 +117,7 @@ class ProductionRequestSIM():
   def __getPrForT( self, tID):
     """ For simulation only
     """
-    for prID, summary in self.pr.iteritems():
+    for _prID, summary in self.pr.iteritems():
       if tID in summary['prods']:
         return summary
     return {}
@@ -151,8 +151,8 @@ class TransformationAndBookkeepingSIM():
                      16: 'MCSimulation', 17: 'MCReconstruction', 18: 'DataStripping', 19: 'Merge',
                      100: 'Replication' }
     self.t  = { }
-    for tID, type in self.t_types.iteritems():
-      self.t[tID] = { 'status': 'Active', 'processedEvents': 0, 'Type': type, 
+    for tID, tType in self.t_types.iteritems():
+      self.t[tID] = { 'status': 'Active', 'processedEvents': 0, 'Type': tType,
                       'filesStat': { 'Processed': 0, 'Unused': 0, 'Assigned': 0 }, 
                       'tasksStat': { 'TotalCreated': 0, 'Running': 0, 'Done': 0, 'Failed': 0 } 
                       }
@@ -250,7 +250,7 @@ class TransformationAndBookkeepingSIM():
     """ Advance simulation transformation
     """
     
-    ( nJobsDone, nJobsFail ) = self.__animateJobs( tID, failing )
+    ( nJobsDone, _nJobsFail ) = self.__animateJobs( tID, failing )
     self.t[tID]['processedEvents'] += nJobsDone * self.evPerFile
     self.t[tNextID]['filesStat']['Unused'] += nJobsDone
 
@@ -540,7 +540,7 @@ class ProductionStatusAgent( AgentModule ):
         Note: this method can be moved to the service
     """
     self.log.verbose( "Collecting active production requests..." )
-    result = self.prClient.getProductionRequestList_v2( 0, '', 'ASC', 0, 0, { 'RequestState':'Active' } )
+    result = self.prClient.getProductionRequestList( 0, '', 'ASC', 0, 0, { 'RequestState':'Active' } )
     if not result['OK']:
       return S_ERROR( 'Could not retrieve active production requests: %s' % result['Message'] )
     activeMasters = result['Value']['Rows']
@@ -548,7 +548,7 @@ class ProductionStatusAgent( AgentModule ):
       prID = pr['RequestID']
       if pr['HasSubrequest']:
         self.prMasters[prID] = [ ]
-        result = self.prClient.getProductionRequestList_v2( prID, '', 'ASC', 0, 0, {} )
+        result = self.prClient.getProductionRequestList( prID, '', 'ASC', 0, 0, {} )
         if not result['OK']:
           return S_ERROR( 'Could not get subrequests for production request %s: %s' % ( prID, result['Message'] ) )
         for subPr in result['Value']['Rows']:
@@ -760,7 +760,7 @@ class ProductionStatusAgent( AgentModule ):
       if tID in self.prProds:
         continue
       used = False
-      for status, IDs in self.notPrTrans.iteritems():
+      for _status, IDs in self.notPrTrans.iteritems():
         if tID in IDs:
           used = True
           break
@@ -845,7 +845,7 @@ class ProductionStatusAgent( AgentModule ):
                        len( self.notPrTrans['Active'] ) )
       for tID in self.notPrTrans['Active']:
         try:
-          isIdle, isProcIdle, isSimulation = self.__isIdle( tID )
+          isIdle, _isProcIdle, _isSimulation = self.__isIdle( tID )
           if isIdle:
             self.__updateTransformationStatus( tID, 'Active', 'Idle', updatedT )
         except RuntimeError, error:
@@ -856,7 +856,7 @@ class ProductionStatusAgent( AgentModule ):
                        len( self.notPrTrans['Idle'] ) )
       for tID in self.notPrTrans['Idle']:
         try:
-          isIdle, isProcIdle, isSimulation = self.__isIdle( tID )
+          isIdle, _isProcIdle, _isSimulation = self.__isIdle( tID )
           if not isIdle:
             self.__updateTransformationStatus( tID, 'Idle', 'Active', updatedT )
         except RuntimeError, error:
@@ -869,7 +869,7 @@ class ProductionStatusAgent( AgentModule ):
     """ Evaluate 'isDone' from current update cycle
     """
     bkTotal = 0
-    for tID, tInfo in summary['prods'].iteritems():
+    for _tID, tInfo in summary['prods'].iteritems():
       if tInfo['Used']:
         bkTotal += tInfo['Events']
     return ( True if bkTotal >= summary['prTotal'] else False )
@@ -877,7 +877,7 @@ class ProductionStatusAgent( AgentModule ):
   def _producersAreIdle( self, summary ):
     """ Return True in case all producers (not 'Used') transformations are Idle, Finished or not exist
     """
-    for tID, tInfo in summary['prods'].iteritems():
+    for _tID, tInfo in summary['prods'].iteritems():
       if tInfo['Used']:
         continue
       if tInfo['isIdle'] != 'Yes' and tInfo['state'] != 'Finished' :
@@ -887,7 +887,7 @@ class ProductionStatusAgent( AgentModule ):
   def _producersAreProcIdle( self, summary ):
     """ Return True in case all producers (not 'Used') transformations are procIdle or not exist
     """
-    for tID, tInfo in summary['prods'].iteritems():
+    for _tID, tInfo in summary['prods'].iteritems():
       if tInfo['Used']:
         continue
       if tInfo['isProcIdle'] != 'Yes':
@@ -897,7 +897,7 @@ class ProductionStatusAgent( AgentModule ):
   def _processorsAreProcIdle( self, summary ):
     """ Return True in case all processors ('Used' or not Sim) transformations are procIdle or not exist
     """
-    for tID, tInfo in summary['prods'].iteritems():
+    for _tID, tInfo in summary['prods'].iteritems():
       if not tInfo['Used'] and tInfo['isSimulation']:
         continue
       if tInfo['isProcIdle'] != 'Yes':
@@ -907,7 +907,7 @@ class ProductionStatusAgent( AgentModule ):
   def _mergersAreDone( self, summary ):
     """ Return True in case all mergers ('Used') transformations are finished or not exist
     """
-    for tID, tInfo in summary['prods'].iteritems():
+    for _tID, tInfo in summary['prods'].iteritems():
       if not tInfo['Used']:
         continue
       if tInfo['state'] != 'Finished':
@@ -917,7 +917,7 @@ class ProductionStatusAgent( AgentModule ):
   def _mergersAreProcIdle( self, summary ):
     """ Return True in case all mergers ('Used') transformations are procIdle or not exist
     """
-    for tID, tInfo in summary['prods'].iteritems():
+    for _tID, tInfo in summary['prods'].iteritems():
       if not tInfo['Used']:
         continue
       if tInfo['isProcIdle'] != 'Yes':
