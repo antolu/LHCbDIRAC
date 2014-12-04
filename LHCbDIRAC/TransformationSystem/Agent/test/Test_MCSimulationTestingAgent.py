@@ -437,12 +437,8 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
   def tearDown(self):
     pass
   
-  def test_create_report( self ):
-    generated_report = self.agent._create_report( self.tasks )
-    self.assertEqual(generated_report, self.report)
-  
   def test_send_report( self ):
-    res = self.agent._send_report( self.report )
+    res = self.agent._sendReport( self.report )
     self.assertTrue( res['OK'] )
 
   def test_update_workflow( self ):
@@ -450,7 +446,7 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
     MCCpu = 25
     CPUe_xml = self.test_workflow = """<Parameter name="CPUe" type="string" linked_module="" linked_parameter="" in="True" out="False" description="CPU time per event"><value><![CDATA[1]]></value></Parameter>\n"""
     max_e_xml = self.test_workflow = """<Parameter name="maxNumberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Maximum number of events to produce (Gauss)"><value><![CDATA[160000]]></value></Parameter>\n"""
-    res = self.agent._update_workflow( self.transID, CPUe, MCCpu )
+    res = self.agent._updateWorkflow( self.transID, CPUe, MCCpu )
     self.assertTrue( res['OK'] )
     prod = Production()
     prod.LHCbJob.workflow = fromXMLString( res['Value'] )
@@ -465,14 +461,14 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
 #     expected_max_e = 100
     # mock to make getEventsToProduce to return 100
 #     patch_mock.return_value = expected_max_e
-    res = self.agent._calculate_parameters( self.tasks )
+    res = self.agent._calculateParameters( self.tasks )
     self.assertTrue( res['OK'] )
     self.assertEqual( res['Value']['CPUe'], expected_cpue )
 #     self.assertEqual( res['Value']['max_e'], expected_max_e )
 
   def test_extend_failed_tasks( self ):
     numberOfFailedTasks = 3
-    res = self.agent._extend_failed_tasks( self.transID, numberOfFailedTasks )
+    res = self.agent._extendFailedTasks( self.transID, numberOfFailedTasks )
     self.assertTrue( res['OK'] )
 
 if __name__ == '__main__':
