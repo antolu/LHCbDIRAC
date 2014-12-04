@@ -152,7 +152,7 @@ class TransformationAndBookkeepingSIM():
                      100: 'Replication' }
     self.t  = { }
     for tID, tType in self.t_types.iteritems():
-      self.t[tID] = { 'status': 'Active', 'processedEvents': 0, 'Type': tType,
+      self.t[tID] = { 'status': 'Active', 'processedEvents': 0, 'Type': tType, 
                       'filesStat': { 'Processed': 0, 'Unused': 0, 'Assigned': 0 }, 
                       'tasksStat': { 'TotalCreated': 0, 'Running': 0, 'Done': 0, 'Failed': 0 } 
                       }
@@ -885,22 +885,22 @@ class ProductionStatusAgent( AgentModule ):
     return True
 
   def _producersAreProcIdle( self, summary ):
-    """ Return True in case all producers (not 'Used') transformations are procIdle or not exist
+    """ Return True in case all producers (not 'Used') transformations are procIdle or finished or not exist
     """
     for _tID, tInfo in summary['prods'].iteritems():
       if tInfo['Used']:
         continue
-      if tInfo['isProcIdle'] != 'Yes':
+      if tInfo['isProcIdle'] != 'Yes' and tInfo['state'] != 'Finished':
         return False
     return True
 
   def _processorsAreProcIdle( self, summary ):
-    """ Return True in case all processors ('Used' or not Sim) transformations are procIdle or not exist
+    """ Return True in case all processors ('Used' or not Sim) transformations are procIdle or finished or not exist
     """
     for _tID, tInfo in summary['prods'].iteritems():
       if not tInfo['Used'] and tInfo['isSimulation']:
         continue
-      if tInfo['isProcIdle'] != 'Yes':
+      if tInfo['isProcIdle'] != 'Yes' and tInfo['state'] != 'Finished' :
         return False
     return True
 
@@ -915,15 +915,23 @@ class ProductionStatusAgent( AgentModule ):
     return True
 
   def _mergersAreProcIdle( self, summary ):
-    """ Return True in case all mergers ('Used') transformations are procIdle or not exist
+    """ Return True in case all mergers ('Used') transformations are procIdle or finished or not exist
     """
     for _tID, tInfo in summary['prods'].iteritems():
       if not tInfo['Used']:
         continue
-      if tInfo['isProcIdle'] != 'Yes':
+      if tInfo['isProcIdle'] != 'Yes' and tInfo['state'] != 'Finished' :
         return False
     return True
-    
+
+  def _requestedMoreThenProduced( self, tID, summary):
+    """ Check that this transformation has registered less events than it was requested
+    """
+    if summary['prods'][tID]['Events'] < summary['prTotal']:
+      self.log.verbose( " Transformation %s has produced less events, asking for extention " % tID )
+      return True
+    return False
+
   def _applyProductionRequestsLogic( self, updatedT, updatedPr ):
     """ Apply known logic to transformations related to production requests
         NOTE: we make decision based on BK statistic collected in the PREVIOUS cycle (except isReallyDone)
@@ -975,7 +983,7 @@ class ProductionStatusAgent( AgentModule ):
                 if self._isReallyDone( summary ):                  
                   if self._mergersAreProcIdle( summary ):
                     self.__updateTransformationStatus( tID, 'Active', 'ValidatingInput', updatedT )
-                elif self._processorsAreProcIdle( summary ):
+                elif self._processorsAreProcIdle( summary ) or self._requestedMoreThenProduced( tID, summary):
                   # we are not done yet, extend production
                   self.__updateTransformationStatus( tID, 'Active', 'Idle', updatedT )
                 # else:
