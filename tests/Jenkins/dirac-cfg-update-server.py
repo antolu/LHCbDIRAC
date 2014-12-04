@@ -20,7 +20,7 @@ if len( args ) < 1:
 
 setupName = args[0]
 
-import os
+import os.path
 
 from DIRAC.Core.Utilities.CFG import CFG
 
@@ -31,7 +31,8 @@ localConfigFile = os.path.join( '.', 'etc', 'Production.cfg' )
 localCfg.loadFromFile( localConfigFile )
 
 # Where to store outputs
-os.makedirs( '/scratch/workspace/%s/sandboxes' % setupName )
+if not os.path.isdir( '/scratch/workspace/%s/sandboxes' % setupName ):
+  os.makedirs( '/scratch/workspace/%s/sandboxes' % setupName )
 localCfg.setOption( 'Systems/WorkloadManagement/Production/Services/SandboxStore/BasePath',
                     '/scratch/workspace/%s/sandboxes' % setupName )
 
