@@ -306,7 +306,10 @@ def execute( unit, minimum ):
   prods = None
   bkQuery = dmScript.getBKQuery()
   # print bkQuery
-  fileTypes = bkQuery.getFileTypeList()
+  if bkQuery:
+    fileTypes = bkQuery.getFileTypeList()
+  else:
+    fileTypes = []
   # print fileTypes
   if type( fileTypes ) != type( [] ):
     fileTypes = [fileTypes]
