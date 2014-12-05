@@ -1180,7 +1180,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               status = res['Value']['Status']
               if status == 'Archived':
                 archivedProds[procPass].append( int( prod ) )
-              else:
+              elif status != "Cleaned":
                 activeProds[procPass].append( int( prod ) )
           self.util.logInfo( "For procPass %s, found productions: %s, archived %s"
                           % ( procPass, activeProds[procPass], archivedProds[procPass] ) )
