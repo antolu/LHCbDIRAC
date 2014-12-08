@@ -1098,7 +1098,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         For files that were processed, it sets replica removal tasks from a set of SEs
     """
     keepSEs = self.util.getPluginParam( 'KeepSEs', [] )
-    listSEs = list( set( self.util.getPluginParam( 'FromSEs', [] ) ) - set( keepSEs ) )
+    listSEs = set( self.util.getPluginParam( 'FromSEs', [] ) ) - set( keepSEs )
     if not listSEs:
       self.util.logError( 'No SEs where to delete from, check overlap with %s' % keepSEs )
       return S_OK( [] )
@@ -1108,6 +1108,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     transStatus = self.params['Status']
     self.util.readCacheFile( self.workDirectory )
+    onlyAtList = False
 
     if not processingPasses:
       self.util.logWarn( "No processing pass(es)" )
@@ -1190,15 +1191,19 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       productions['LastCall_%s' % self.transID] = now
       self.util.setCachedProductions( productions )
       replicaGroups = getFileGroups( self.data )
+      self.util.logVerbose( "Using %d input files, in %d groups" % ( len( self.data ), len( replicaGroups ) ) )
       storageElementGroups = {}
       newGroups = {}
-      for replicaSEs, lfns in replicaGroups.items():
-        replicaSE = replicaSEs.split( ',' )
-        targetSEs = [se for se in listSEs if se in replicaSE]
+      for stringSEs, lfns in replicaGroups.items():
+        replicaSEs = set( stringSEs.split( ',' ) )
+        targetSEs = listSEs & replicaSEs
         if not targetSEs:
-          self.util.logInfo( "%d files are not in required list (only at %s)" % ( len( lfns ), replicaSE ) )
+          self.util.logInfo( "%d files are not in required list (only at %s)" % ( len( lfns ), sorted( replicaSEs ) ) )
+        elif not replicaSEs - listSEs :
+          self.util.logInfo( "%d files are only in required list (only at %s), don't remove yet" % ( len( lfns ), sorted( replicaSEs ) ) )
+          onlyAtList = True
         else:
-          newGroups.setdefault( ','.join( targetSEs ), [] ).extend( lfns )
+          newGroups.setdefault( ','.join( list( targetSEs ) ), [] ).extend( lfns )
       # Restrict the query to the TS to the interesting productions
       prodList = [pr for prods in activeProds.values() for pr in prods ]
       self.util.logVerbose( "Using following list of productions: %s" % str( prodList ) )
@@ -1246,7 +1251,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_ERROR( e )
     finally:
       self.util.writeCacheFile()
-      if not skip and self.pluginCallback:
+      if not skip and onlyAtList and self.pluginCallback:
         self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
