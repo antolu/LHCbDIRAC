@@ -20,9 +20,12 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile]' % Script.scriptName, ] ) )
 
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
-  Script.parseCommandLine( ignoreErrors=False )
+  Script.parseCommandLine( ignoreErrors = False )
 
   bkQuery = dmScript.getBKQuery()
+  if not bkQuery:
+    print "No BKQuery given..."
+    DIRAC.exit( 1 )
   # Invert the visibility flag as want to set Invisible those that are visible and vice-versa
   visibilityFlag = bkQuery.isVisible()
   bkQuery.setOption( 'Visible', 'No' if visibilityFlag else 'Yes' )

@@ -189,14 +189,12 @@ class ConsistencyChecks( object ):
       if self.bkQuery:
         bkQuery = self.bkQuery
       if self.prod:
-        bkQuery = BKQuery( self.bkQuery.setOption( "Production", self.prod ) )
+        if not self.bkquery:
+          bkQuery = BKQuery( prods = self.prod, fileTypes = self.fileType )
+        else:
+          bkQuery = BKQuery( self.bkQuery.setOption( "Production", self.prod ) )
       if not bkQuery:
         raise ValueError( "Need to specify either the bkQuery or a production id" )
-
-    # if self.runsList:
-    #  bkQuery.update( {'RunNumbers':self.runsList} )
-    #  bkQuery.pop( 'StartRun', 0 )
-    #  bkQuery.pop( 'EndRun', 0 )
 
     return bkQuery
 

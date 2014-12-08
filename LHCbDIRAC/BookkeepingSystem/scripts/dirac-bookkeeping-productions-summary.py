@@ -25,6 +25,10 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 bk = BookkeepingClient()
 
 bkQuery = dmScript.getBKQuery()
+if not bkQuery:
+  print "No BKQuery given..."
+  DIRAC.exit( 1 )
+
 dict = bkQuery.getQueryDict()
 dictItems = ( 'ConfigName', 'ConfigVersion', 'Production', 'ConditionDescription', 'ProcessingPass', 'FileType', 'EventType' )
 for item in dictItems:

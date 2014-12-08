@@ -6,7 +6,7 @@
 __RCSID__ = "$Id: $"
 
 from DIRAC.Core.Base import Script
-from DIRAC import gLogger
+from DIRAC import gLogger, exit
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
@@ -24,6 +24,9 @@ def execute():
     pass
 
   bkQuery = dmScript.getBKQuery()
+  if not bkQuery:
+    gLogger.always( "No BKQuery given..." )
+    exit( 1 )
 
   prods = bkQuery.getBKProductions( visible = 'All' )
 

@@ -28,6 +28,9 @@ def execute():
     pass
 
   bkQuery = dmScript.getBKQuery()
+  if not bkQuery:
+    print "No BK query given..."
+    DIRAC.exit( 1 )
   prodList = bkQuery.getQueryDict().get( 'Production', [None] )
   bkQuery.setOption( 'ProductionID', None )
 

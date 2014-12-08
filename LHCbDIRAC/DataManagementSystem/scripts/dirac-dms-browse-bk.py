@@ -113,10 +113,10 @@ def execute():
       noEventType = True
 
   bkQuery = dmScript.getBKQuery()
-  configuration = bkQuery.getConfiguration()
-  if not configuration:
+  if not bkQuery:
     print "It is only possible to browse BK giving a BK path..."
     DIRAC.exit( 1 )
+  configuration = bkQuery.getConfiguration()
   confName, confVersion = configuration.split( '/' )[1:]
 
   toKeep = {}
