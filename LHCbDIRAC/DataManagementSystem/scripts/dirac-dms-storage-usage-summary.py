@@ -304,22 +304,16 @@ def execute( unit, minimum ):
       dirs += sorted( set( ['/'.join( d.split( '/' )[0:5] ) for d in res['Value']] ) )
       users = [user for user in [d.split( '/' )[-1] for d in dirs] if user]
   prods = None
-  bkQuery = dmScript.getBKQuery()
   # print bkQuery
-  if bkQuery:
-    fileTypes = bkQuery.getFileTypeList()
-  else:
-    fileTypes = []
-  # print fileTypes
-  if type( fileTypes ) != type( [] ):
-    fileTypes = [fileTypes]
+  fileTypes = dmScript.getOption( 'FileType', [] )
   if not dirs:
     dirs = ['']
-    bkQuery = dmScript.getBKQuery( visible = 'All' )
-    bkFileTypes = bkQuery.getFileTypeList()
-    if bkFileTypes:
-      fileTypes = bkFileTypes
-    if bkQuery.getQueryDict().keys() not in ( [], ['Visible'], ['FileType'], ['Visible', 'FileType'] ):
+    bkQuery = dmScript.getBKQuery()
+    if bkQuery:
+      bkQuery = dmScript.getBKQuery( visible = 'All' )
+      bkFileTypes = bkQuery.getFileTypeList()
+      if bkFileTypes:
+        fileTypes = bkFileTypes
       print "BK query:", bkQuery
       if fileTypes == ['RAW']:
         # For RAW data, get the list of directories...
@@ -343,9 +337,9 @@ def execute( unit, minimum ):
     fileTypes = ['']
   prString = "Storage usage for "
   if sites:
-    prString += "Sites %s" % str( sites )
+    prString += "Sites %s " % str( sites )
   elif ses:
-    prString += "SEs %s" % str( ses )
+    prString += "SEs %s " % str( ses )
   if prods[0] != '':
     prString += 'productions %s ' % str( prods )
   if fileTypes[0] not in ( '', None ):
