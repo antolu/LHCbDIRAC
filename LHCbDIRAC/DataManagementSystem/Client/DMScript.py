@@ -253,11 +253,10 @@ class DMScript( object ):
     else:
       gLogger.error( 'getLFNsFromList: invalid type %s' % type( lfns ) )
       return []
-    # if not directories:
-    if True:
-      lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
-      lfnList = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] if '/lhcb' in lfn else '' for lfn in lfnList]
-      lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
+    lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
+    lfnList = [ '/lhcb' + lfn.split( '/lhcb' )[-1].split()[0] if '/lhcb/' in lfn else lfn if lfn == '/lhcb' else '' for lfn in lfnList]
+    lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
+    if not directories:
       lfnList = [lfn for lfn in lfnList if not lfn.endswith( '/' )]
     return sorted( [lfn for lfn in set( lfnList ) if lfn] )
 
