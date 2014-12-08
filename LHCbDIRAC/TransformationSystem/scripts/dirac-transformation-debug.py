@@ -677,11 +677,9 @@ def __getLog( urlBase, logFile, debug = False ):
         if '.gz' in file:
           # file is again a gzip file!!
           tmp1 = os.path.join( os.environ.get( "TMPDIR", "/tmp" ), "logFile-1.tmp" )
-          if os.path.exists( tmp1 ):
-            os.remove( tmp1 )
           if debug: print "Extract", file, "into", tmp1, "and open it"
           tf.extract( file, tmp1 )
-          tmp1 += file
+          tmp1 = os.path.join( tmp1, file )
           f = gzip.GzipFile( tmp1, 'r' )
         else:
           f = tf.extractfile( file )
