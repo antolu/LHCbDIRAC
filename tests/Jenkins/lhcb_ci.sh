@@ -245,13 +245,13 @@ findExecutors(){
 #.............................................................................
 
 
-function getCertificate(){
-	echo '[getCertificate]'
+#function getCertificate(){
+	#	echo '[getCertificate]'
 
-	mkdir -p $WORKSPACE/etc/grid-security/
-	cp /root/hostcert.pem $WORKSPACE/etc/grid-security/
-	cp /root/hostkey.pem $WORKSPACE/etc/grid-security/ 
-	chmod 0600 $WORKSPACE/etc/grid-security/hostkey.pem
+	#mkdir -p $WORKSPACE/etc/grid-security/
+	#cp /root/hostcert.pem $WORKSPACE/etc/grid-security/
+	#cp /root/hostkey.pem $WORKSPACE/etc/grid-security/ 
+	#chmod 0600 $WORKSPACE/etc/grid-security/hostkey.pem
 
 } 
 	
@@ -965,27 +965,31 @@ function fullInstall(){
 
 #...............................................................................
 #
-# DIRACPilotInstall:
+# LHCbDIRACPilotInstall:
 #
 #   This function uses the pilot code to make a DIRAC pilot installation
 #   The JobAgent is not run here 
 #
 #...............................................................................
 
-function DIRACPilotInstall(){
+function LHCbDIRACPilotInstall(){
 	
 	#cert first (host certificate)
-	getCertificate
+	#getCertificate
 	
 	#get the necessary scripts
-	wget --no-check-certificate -O dirac-install.py $DIRAC_INSTALL
-	wget --no-check-certificate -O dirac-pilot.py $DIRAC_PILOT
-	wget --no-check-certificate -O pilotTools.py $DIRAC_PILOT_TOOLS
-	wget --no-check-certificate -O pilotCommands.py $DIRAC_PILOT_COMMANDS
+
+	#wget --no-check-certificate -O dirac-install.py $DIRAC_INSTALL
+	#wget --no-check-certificate -O dirac-pilot.py $DIRAC_PILOT
+	#wget --no-check-certificate -O pilotTools.py $DIRAC_PILOT_TOOLS
+	#wget --no-check-certificate -O pilotCommands.py $DIRAC_PILOT_COMMANDS
+	
+	prepareForPilot
+	
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
 
 	#run the dirac-pilot script, only for installing, do not run the JobAgent here
-	python dirac-pilot.py -S LHCb-Certification -l LHCb -r v8r0-pre30 -C dips://lbvobox18.cern.ch:9135/Configuration/Server -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
+	python dirac-pilot.py -S LHCb-Certification -l LHCb -C dips://lbvobox18.cern.ch:9135/Configuration/Server -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
 }
 
 
@@ -998,7 +1002,7 @@ function fullPilot(){
 	fi  
 
 	#first simply install via the pilot
-	DIRACPilotInstall
+	LHCbDIRACPilotInstall
 
 	#this should have been created, we source it so that we can continue
 	source bashrc
