@@ -55,6 +55,8 @@ class DataRecoveryAgent( AgentModule ):
   def initialize( self ):
     """Sets defaults
     """
+    self.am_setOption( 'shifterProxy', 'ProductionManager' )
+
     self.transClient = TransformationClient()
     self.reqClient = ReqClient()
     self.cc = ConsistencyChecks( interactive = False, transClient = self.transClient )
