@@ -219,12 +219,12 @@ class GaudiApplication( ModuleBase ):
           optionsDict['DQTag'] = self.dqTag
 
         if self.applicationName.lower() == 'gauss':
-          try:
+          if self.CPUe and self.maxNumberOfEvents:
             # Here we set maxCPUTime to 1 day, which seems reasonable
             eventsToProduce = getEventsToProduce( self.CPUe, 
                                                   maxNumberOfEvents = self.maxNumberOfEvents, 
                                                   maxCPUTime = 86400 )
-          except AttributeError:
+          else:
             eventsToProduce = self.numberOfEvents
         else:
           eventsToProduce = self.numberOfEvents
