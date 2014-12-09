@@ -37,8 +37,6 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
   def initialize( self ):
     """ Logs some parameters and initializes the clients
     """
-    self.am_setOption( 'shifterProxy', 'ProductionManager' )
-
     self.rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
     self.transClient = TransformationClient()
 

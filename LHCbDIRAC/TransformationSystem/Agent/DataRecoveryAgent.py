@@ -55,8 +55,6 @@ class DataRecoveryAgent( AgentModule ):
   def initialize( self ):
     """Sets defaults
     """
-    self.am_setOption( 'shifterProxy', 'ProductionManager' )
-
     self.transClient = TransformationClient()
     self.reqClient = ReqClient()
     self.cc = ConsistencyChecks( interactive = False, transClient = self.transClient )
@@ -86,8 +84,8 @@ class DataRecoveryAgent( AgentModule ):
     for transStatus in transformationStatus:
       result = self._getEligibleTransformations( transStatus, self.transformationTypes )
       if not result['OK']:
-        self.log.error( result )
-        return S_ERROR( 'Could not obtain eligible transformations for status "%s"' % ( transStatus ) )
+        self.log.error( "Could not obtain eligible transformations", "Status '%s': %s" % ( transStatus, result['Message'] ) )
+        return result
 
       if not result['Value']:
         self.log.info( 'No "%s" transformations of types %s to process.' % ( transStatus,
@@ -108,8 +106,7 @@ class DataRecoveryAgent( AgentModule ):
 
       result = self._selectTransformationFiles( transformation, fileSelectionStatus )
       if not result['OK']:
-        self.log.error( result )
-        self.log.error( 'Could not select files for transformation %s' % transformation )
+        self.log.error( 'Could not select files for transformation', '%s: %s' % ( transformation, result['Message'] ) )
         continue
 
       if not result['Value']:
@@ -120,8 +117,7 @@ class DataRecoveryAgent( AgentModule ):
       fileDict = result['Value']
       result = self._obtainWMSJobIDs( transformation, fileDict, selectDelay, wmsStatusList )
       if not result['OK']:
-        self.log.error( result )
-        self.log.error( 'Could not obtain WMS jobIDs for files of transformation %s' % ( transformation ) )
+        self.log.error( "Could not obtain WMS jobIDs for files of transformation" "%s: %s" % ( transformation, result['Message'] ) )
         continue
 
       if not result['Value']:
@@ -130,6 +126,7 @@ class DataRecoveryAgent( AgentModule ):
         continue
 
       jobFileDict = result['Value']
+      self.log.verbose( "Looking at WMS jobs %s" % str( jobFileDict ) )
       fileCount = 0
       for job, lfnList in jobFileDict.items():
         fileCount += len( lfnList )
@@ -231,8 +228,8 @@ class DataRecoveryAgent( AgentModule ):
         for example) that will not be touched.
     """
     prodJobIDs = list( set( fileDict.values() ) )
-    self.log.verbose( 'The following %s production jobIDs apply to the selected files:\n%s' % ( len( prodJobIDs ),
-                                                                                             prodJobIDs ) )
+    self.log.verbose( "The following %s production jobIDs apply to the selected files:\n%s" % ( len( prodJobIDs ),
+                                                                                                prodJobIDs ) )
 
     jobFileDict = {}
     condDict = {'TransformationID':transformation, 'TaskID':prodJobIDs}
@@ -246,7 +243,7 @@ class DataRecoveryAgent( AgentModule ):
                                                    inputVector = True )
     self.log.debug( res )
     if not res['OK']:
-      self.log.error( 'getTransformationTasks returned an error:\n%s' )
+      self.log.error( "getTransformationTasks returned an error", '%s' % res['Message'] )
       return res
 
     for jobDict in res['Value']:
@@ -296,8 +293,7 @@ class DataRecoveryAgent( AgentModule ):
   #############################################################################
 
   def _checkOutstandingRequests( self, jobFileDict ):
-    """ Before doing anything check that no outstanding requests are pending
-        for the set of WMS jobIDs. (this one differs because it uses the new RMS)
+    """ Before doing anything check that no outstanding requests are pending for the set of WMS jobIDs.
     """
     jobs = jobFileDict.keys()
 
@@ -306,7 +302,7 @@ class DataRecoveryAgent( AgentModule ):
       return result
 
     if not result['Value']['Successful']:
-      self.log.verbose( 'None of the jobs have pending requests (in the new RMS)' )
+      self.log.verbose( 'None of the jobs have pending requests' )
       return S_OK( jobFileDict )
 
     for jobID, requestName in result['Value']['Successful'].items():

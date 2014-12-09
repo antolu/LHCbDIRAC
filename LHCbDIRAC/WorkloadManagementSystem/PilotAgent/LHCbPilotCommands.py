@@ -105,6 +105,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
 class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
   """
+
   def _getSecurityCFG( self ):
 
     self.log.debug( "self.pp.installEnv: %s" % str( self.pp.installEnv ) )

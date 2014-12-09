@@ -421,7 +421,6 @@ class ProductionStatusAgent( AgentModule ):
     """
     # shifter
     if not gStandAlone:
-      self.am_setOption( 'shifterProxy', 'ProductionManager' )
       self.notify = eval( self.am_getOption( 'NotifyProdManager', 'True' ) )
 
     # Set the clients

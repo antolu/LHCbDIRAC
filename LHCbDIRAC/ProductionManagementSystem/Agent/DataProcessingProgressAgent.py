@@ -31,11 +31,6 @@ class DataProcessingProgressAgent( AgentModule ):
     self.statCollector = ProcessingProgress( os.path.join( self.workDirectory, "dirac-production-stats.pkl" ) )
     self.uploadDirectory = self.am_getOption( 'UploadDirectory', None )
 
-    # This sets the Default Proxy to used as that defined under
-    # /Operations/Shifter/ProductionManager
-    # the shifterProxy option in the Configuration can be used to change this default.
-    self.am_setOption( 'shifterProxy', 'ProductionManager' )
-
     # Get back the loop number
     self.cacheFile = os.path.join( self.workDirectory, "cacheFile" )
     try:
