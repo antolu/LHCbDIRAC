@@ -330,10 +330,8 @@ class PluginUtilities( object ):
     for chunk in breakListIntoChunks( lfns, 1000 ):
       res = self.bkClient.getFileMetadata( chunk )
       if res['OK']:
-        for lfn, metadata in res['Value']['Successful'].items():
-          filesParam[lfn] = metadata.get( param )
-          if lfn not in self.cachedLFNSize:
-            self.cachedLFNSize[lfn] = metadata.get( 'FileSize' )
+        filesParam.update( dict( [( lfn, metadata.get( param ) ) for lfn, metadata in res['Value']['Successful'].items()] ) )
+        self.cachedLFNSize.update( dict( [( lfn, metadata.get( 'FileSize' ) ) for lfn, metadata in res['Value']['Successful'].items()] ) )
       else:
         return res
     return S_OK( filesParam )
@@ -348,16 +346,14 @@ class PluginUtilities( object ):
             self.filesParam[lfn] = paramValue
             nCached += 1
       self.logVerbose( 'Found %d files cached for param %s' % ( nCached, param ) )
-    filesParam = dict( zip( lfns, [self.filesParam.get( lfn ) for lfn in lfns] ) )
+    filesParam = dict( [( lfn, self.filesParam.get( lfn ) ) for lfn in lfns] )
     newLFNs = [lfn for lfn in lfns if not filesParam[lfn]]
     if newLFNs:
       res = self.getBookkeepingMetadata( newLFNs, param )
-      if res['OK']:
-        for lfn in res['Value']:
-          filesParam[lfn] = res['Value'][lfn]
-          self.filesParam[lfn] = filesParam[lfn]
-      else:
+      if not res['OK']:
         return res
+      filesParam.update( res['Value'] )
+      self.filesParam.update( res['Value'] )
       self.logVerbose( "Obtained BK %s of %d files in %.3f seconds" % ( param, len( newLFNs ), time.time() - start ) )
     return S_OK( filesParam )
 
@@ -587,7 +583,7 @@ class PluginUtilities( object ):
     from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import getFileDescendants
     return getFileDescendants( self.transID, lfns, transClient = self.transClient, dm = self.dm, bkClient = self.bkClient )
 
-  def getRAWAncestorsForRun( self, runID, param = '', paramValue = '', getFiles = False ):
+  def getRAWAncestorsForRun( self, runID, param = None, paramValue = None, getFiles = False ):
     """ Determine from BK how many ancestors files from a given runs do have
         This is used for deciding when to flush a run (when all RAW files have been processed)
     """
@@ -601,20 +597,20 @@ class PluginUtilities( object ):
       if not res['OK']:
         self.logError( "Cannot get transformation files for run %s: %s" % ( str( runID ), res['Message'] ) )
         return 0
-      excludedStatuses = ( 'Removed', 'MissingLFC', 'MissingInFC', 'Problematic' )
+      excludedStatuses = ( 'Removed', 'MissingInFC', 'Problematic' )
       lfns = [fileDict['LFN'] for fileDict in res['Value'] if fileDict['Status'] not in excludedStatuses]
       self.transRunFiles[runID] = lfns
       self.logVerbose( 'Obtained %d input files for run %d' % ( len( lfns ), runID ) )
 
     # Restrict to files with the required parameter
     if param:
-      paramStr = ' (%s:%s)' % ( param, paramValue )
+      paramStr = ' (%s:%s)' % ( param, paramValue if paramValue else '' )
       res = self.getFilesParam( lfns, param )
       if not res['OK']:
         self.logError( "Error getting BK param %s:" % param, res['Message'] )
         return 0
       paramValues = res['Value']
-      lfns = [f for f in paramValues if paramValues[f] == paramValue]
+      lfns = [f for f, v in paramValues.items() if v == paramValue]
     else:
       paramStr = ''
     if lfns:
@@ -622,14 +618,14 @@ class PluginUtilities( object ):
     else:
       lfnToCheck = None
     # Get number of ancestors for known files
-    cachedLFNs = self.cachedLFNAncestors.get( runID, {} )
-    hitLFNs = [lfn for lfn in lfns if lfn in cachedLFNs]
-    if hitLFNs and not getFiles:
+    cachedLfns = self.cachedLFNAncestors.get( runID, {} )
+    setLfns = set( lfns )
+    hitLfns = setLfns & set( cachedLfns )
+    if hitLfns and not getFiles:
       self.logVerbose( "Ancestors cache hit for run %d: %d files cached" % \
-                       ( runID, len( hitLFNs ) ) )
-      for lfn in hitLFNs:
-        ancestors += cachedLFNs[lfn]
-      lfns = [lfn for lfn in lfns if lfn not in hitLFNs]
+                       ( runID, len( hitLfns ) ) )
+      ancestors += sum( [cachedLfns[lfn] for lfn in hitLfns] )
+      lfns = list( setLfns - hitLfns )
 
     # If some files are unknown, get the ancestors from BK
     ancestorFiles = []
@@ -866,7 +862,7 @@ class PluginUtilities( object ):
         self.logVerbose( "Cache file %s could not be loaded" % cacheFile )
 
   def getCachedRunLFNs( self, runID, paramValue ):
-    return self.cachedRunLfns.get( runID, {} ).get( paramValue, [] )
+    return set( self.cachedRunLfns.get( runID, {} ).get( paramValue, [] ) )
 
   def setCachedRunLfns( self, runID, paramValue, lfnList ):
     self.cachedRunLfns.setdefault( runID, {} )[paramValue] = lfnList
@@ -887,20 +883,16 @@ class PluginUtilities( object ):
     """ Get the number of RAW files in a run
     """
     # Every now and then refresh the cache
-    if not self.cacheExpired( runID ):
-      rawFiles = self.cachedNbRAWFiles.get( runID, {} ).get( evtType )
-    else:
-      rawFiles = 0
+    rawFiles = self.cachedNbRAWFiles.get( runID, {} ).get( evtType ) if not self.cacheExpired( runID ) else None
     if not rawFiles:
       startTime = time.time()
       res = self.bkClient.getNbOfRawFiles( {'RunNumber':runID, 'EventTypeId':evtType} )
       if not res['OK']:
-        rawFiles = 0
         self.logError( "Cannot get number of RAW files for run %d, evttype %d" % ( runID, evtType ) )
-      else:
-        rawFiles = res['Value']
-        self.cachedNbRAWFiles.setdefault( runID, {} )[evtType] = rawFiles
-        self.logVerbose( "Run %d has %d RAW files (timing: %3f s)" % ( runID, rawFiles, time.time() - startTime ) )
+        return 0
+      rawFiles = res['Value']
+      self.cachedNbRAWFiles.setdefault( runID, {} )[evtType] = rawFiles
+      self.logVerbose( "Run %d has %d RAW files (timing: %3f s)" % ( runID, rawFiles, time.time() - startTime ) )
     return rawFiles
 
 
