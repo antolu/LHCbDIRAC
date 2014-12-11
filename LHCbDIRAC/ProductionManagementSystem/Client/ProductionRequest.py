@@ -39,6 +39,7 @@ class ProductionRequest( object ):
       self.diracProduction = diracProdIn
 
     self.rpcProductionRequest = RPCClient( 'ProductionManagement/ProductionRequest' )
+    self.tc = TransformationClient()
 
     self.logger = gLogger.getSubLogger( 'ProductionRequest' )
 
@@ -217,61 +218,7 @@ class ProductionRequest( object ):
 
       # if the production is an MCSimulation, submit to the automated testing
       if prodDict['productionType'] == 'MCSimulation':
-
-        # save the original xml before it is editted for testing
-        prodXML = prod.LHCbJob.workflow.toXML()
-
-        # set the destination and number of events for testing
-        op = Operations()
-        destination = op.getValue( "Productions/MCTesting/MCTestingDestination", 'DIRAC.Test.ch' )
-        numberOfEvents = op.getValue( "Productions/MCTesting/numberOfEvents", '500' )
-        extendBy = op.getValue( "Productions/MCTesting/extendBy", 20 )
-
-        prod.setJobParameters( {'Destination': destination} )
-        prod.setParameter( 'numberOfEvents', 'string', str( numberOfEvents ), 'Number of events to test' )
-
-        # find the file types out already built, append GAUSSHIT and set the new listoutput
-        fileTypesOut = prod.LHCbJob.workflow.step_instances[0].findParameter( 'listoutput' ).getValue()[0]['outputDataType']
-        fileTypesOut = fileTypesOut.split( ', ' )
-        fileTypesOut.append( 'GAUSSHIST' )
-        outputFilesList = prod._constructOutputFilesList( fileTypesOut )
-        prod.LHCbJob.workflow.step_instances[0].setValue( 'listoutput', outputFilesList )
-
-        # launch the test production
-        res = self.diracProduction.launchProduction( prod = prod,
-                                                     publishFlag = self.publishFlag,
-                                                     testFlag = self.testFlag,
-                                                     requestID = self.requestID,
-                                                     extend = extendBy,
-                                                     tracking = prodDict['tracking'],
-                                                     MCsimflag = True )
-        if not res['OK']:
-          self.logger.error( "Error launching production", res['Message'] )
-          raise RuntimeError( res['Message'] )
-
-        prodID = res['Value']
-
-        # launchProduction adds extra parameters, as we 'hot swap' the xml, we need to get these parameters for the un-edited version
-        processingType = prod.LHCbJob.workflow.findParameter( 'ProcessingType' )
-        priority = prod.LHCbJob.workflow.findParameter( 'Priority' )
-
-        # load a production from the original xml to save the priority and processingtype
-        workflowToSave = fromXMLString( prodXML )
-        prod.LHCbJob.workflow = workflowToSave
-        prod.setParameter( 'ProcessingType', processingType.getType(), processingType.getValue(),
-                           processingType.getDescription() )
-        prod.setParameter( 'Priority', priority.getType(), priority.getValue(), priority.getDescription() )
-
-        # original xml to save
-        descriptionToStore = prod.LHCbJob.workflow.toXML()
-
-        # saving the original xml in the StoredJobDescription table.
-        res = TransformationClient().addStoredJobDescription( prodID, descriptionToStore )
-        if not res['OK']:
-          self.logger.error( "Error calling addStoredJobDescription", res['Message'] )
-          self.logger.info( "Cleaning created production and exiting" )
-          self.diracProduction.production( res['Value'], 'cleaning' )
-          raise RuntimeError( res['Message'] )
+        prodID = self._mcSpecialCase( prod, prodDict )
 
       else:
         res = self.diracProduction.launchProduction( prod = prod,
@@ -294,6 +241,78 @@ class ProductionRequest( object ):
     return S_OK( prodsLaunched )
 
   #############################################################################
+
+  def _mcSpecialCase( self, prod, prodDict ):
+    """ Treating the MC special case for putting MC productions in status "Testing"
+    """
+
+    # save the original xml before it is edited for testing
+    prodXML = prod.LHCbJob.workflow.toXML()
+
+    prodID = self._modifyAndLaunchMCXML( prod, prodDict )
+
+    # launchProduction adds extra parameters, as we 'hot swap' the xml, we need to get these parameters for the un-edited version
+    processingType = prod.LHCbJob.workflow.findParameter( 'ProcessingType' )
+    priority = prod.LHCbJob.workflow.findParameter( 'Priority' )
+
+    # load a production from the original xml to save the priority and processing type
+    workflowToSave = fromXMLString( prodXML )
+    prod.LHCbJob.workflow = workflowToSave
+    prod.setParameter( 'ProcessingType', processingType.getType(), processingType.getValue(),
+                       processingType.getDescription() )
+    prod.setParameter( 'Priority', priority.getType(), priority.getValue(), priority.getDescription() )
+
+    # original xml to save
+    descriptionToStore = prod.LHCbJob.workflow.toXML()
+
+    # saving the original xml in the StoredJobDescription table.
+    res = self.tc.addStoredJobDescription( prodID, descriptionToStore )
+    if not res['OK']:
+      self.logger.error( "Error calling addStoredJobDescription", res['Message'] )
+      self.logger.info( "Cleaning created production and exiting" )
+      self.diracProduction.production( res['Value'], 'cleaning' )
+      raise RuntimeError( res['Message'] )
+
+    return prodID
+
+  def _modifyAndLaunchMCXML( self, prod, prodDict ):
+    """ needed mods
+    """
+    # set the destination and number of events for testing
+    op = Operations()
+    destination = op.getValue( "Productions/MCTesting/MCTestingDestination", 'DIRAC.Test.ch' )
+    numberOfEvents = op.getValue( "Productions/MCTesting/numberOfEvents", '500' )
+    extendBy = op.getValue( "Productions/MCTesting/extendBy", 20 )
+
+    prod.setJobParameters( {'Destination': destination} )
+    prod.setParameter( 'numberOfEvents', 'string', str( numberOfEvents ), 'Number of events to test' )
+
+    # remove the stepMask and add the fileMask
+    fileTypesOutLastStep = prod.LHCbJob.workflow.step_instances[-2].findParameter( 'listoutput' ).getValue()[0]['outputDataType']
+    newFileMask = ['GAUSSHIST'] + [x for x in fileTypesOutLastStep.split( ';' )]
+    prod.setFileMask( newFileMask )
+    prod.setParameter( 'outputDataStep', 'string', '', 'outputDataStep Mask' )
+
+    # find the file types out already built, append GAUSSHIST and set the new listoutput
+    fileTypesOut = prod.LHCbJob.workflow.step_instances[0].findParameter( 'listoutput' ).getValue()[0]['outputDataType']
+    fileTypesOut = fileTypesOut.split( ', ' )
+    fileTypesOut.append( 'GAUSSHIST' )
+    outputFilesList = prod._constructOutputFilesList( fileTypesOut )
+    prod.LHCbJob.workflow.step_instances[0].setValue( 'listoutput', outputFilesList )
+
+    # launch the test production
+    res = self.diracProduction.launchProduction( prod = prod,
+                                                 publishFlag = self.publishFlag,
+                                                 testFlag = self.testFlag,
+                                                 requestID = self.requestID,
+                                                 extend = extendBy,
+                                                 tracking = prodDict['tracking'],
+                                                 MCsimflag = True )
+    if not res['OK']:
+      self.logger.error( "Error launching production", res['Message'] )
+      raise RuntimeError( res['Message'] )
+
+    return res['Value']
 
   def _determineOutputSEs( self ):
     """ Fill outputSEsPerFileType based on outputSEs, fullListOfOutputFileTypes and specialOutputSEs

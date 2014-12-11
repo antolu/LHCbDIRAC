@@ -1,5 +1,5 @@
 import unittest
-from mock import Mock
+from mock import Mock, MagicMock
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest, _splitIntoProductionSteps
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
@@ -126,44 +126,98 @@ class ProductionSuccess( ClientTestCase ):
 # ProductionRequest.py
 #############################################################################
 
+stepMC = {'StepId': 123, 'StepName':'Stripping14-Stripping',
+          'ApplicationName':'Gauss', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
+          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+          'ProcessingPass':'procPass', 'OptionsFormat':'',
+          'prodStepID': "123['SDST']", 'SystemConfig':'',
+          'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
+          'mcTCK': '',
+          'fileTypesIn':[],
+          'fileTypesOut':['SIM']}
+
+stepMC2 = {'StepId': 123, 'StepName':'Stripping14-Stripping',
+          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
+          'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+          'ProcessingPass':'procPass', 'OptionsFormat':'',
+          'prodStepID': "123['SDST']", 'SystemConfig':'',
+          'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
+          'mcTCK': '',
+          'fileTypesIn':['SIM'],
+          'fileTypesOut':['DST']}
+
+step1Dict = {'StepId': 123, 'StepName':'Stripping14-Stripping',
+             'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
+             'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+             'ProcessingPass':'procPass', 'OptionsFormat':'',
+             'prodStepID': "123['SDST']", 'SystemConfig':'',
+             'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
+             'mcTCK': '',
+             'fileTypesIn':['SDST'],
+             'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
+
+step2Dict = {'StepId': 456, 'StepName':'Merge',
+             'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2', 'ExtraOptions': '',
+             'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+             'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'x86',
+             'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
+             'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
+             'mcTCK': '',
+             'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
+             'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
+
 class ProductionRequestSuccess( ClientTestCase ):
+
+  def test__mcSpecialCase( self ):
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.tc = MagicMock()
+    # prepare the test case
+    prod = Production()
+    prod.setParameter( 'ProcessingType', 'JDL', 'Test', 'ProductionGroupOrType' )
+    prod.addApplicationStep( stepDict = stepMC,
+                             inputData = '',
+                             modules = ['GaudiApplication', 'AnalyseLogFile'] )
+    prod.addApplicationStep( stepDict = stepMC2,
+                             inputData = 'previousStep',
+                             modules = ['GaudiApplication', 'AnalyseLogFile'] )
+    prod.addFinalizationStep()
+    prod.setFileMask( '', ['4'] )
+
+    pr._modifyAndLaunchMCXML( prod, {'tracking':0} )
+    print prod.LHCbJob.workflow.toXML()
+    for par in prod.LHCbJob.workflow.parameters:
+      if par.getName() == 'outputDataStep':
+        self.assertEqual( par.value, '' )
+      if par.getName() == 'outputDataFileMask':
+        self.assertEqual( par.value, ['GAUSSHIST', 'DST'] )
+
+
+
+    # re-prepare the test case
+    prod = Production()
+    prod.setParameter( 'ProcessingType', 'JDL', 'Test', 'ProductionGroupOrType' )
+    prod.addApplicationStep( stepDict = step1Dict,
+                             inputData = 'previousStep',
+                             modules = ['GaudiApplication', 'AnalyseLogFile'] )
+    prod.addFinalizationStep()
+    prod.setFileMask( '', ['4'] )
+
+#     pr._mcSpecialCase( prod, {'tracking':0} )
+#     # print prod.LHCbJob.workflow.toXML()
+#     for par in prod.LHCbJob.workflow.parameters:
+#       if par.getName() == 'outputDataStep':
+#         self.assertEqual( par.value, 4 )
 
   def test_resolveStepsSuccess( self ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123']
     pr.resolveSteps()
-    self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
-                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
-                                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
-                                         'ProcessingPass':'procPass', 'OptionsFormat':'',
-                                         'prodStepID': "123['SDST']", 'SystemConfig':'',
-                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
-                                         'mcTCK': '',
-                                         'fileTypesIn':['SDST'],
-                                         'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+    self.assertEqual( pr.stepsListDict, [step1Dict] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456']
     pr.resolveSteps()
-    self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
-                                         'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2', 'ExtraOptions': '',
-                                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
-                                         'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'',
-                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
-                                         'prodStepID': "123['SDST']",
-                                         'mcTCK': '',
-                                         'fileTypesIn':['SDST'],
-                                         'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
-                                         {'StepId': 456, 'StepName':'Merge',
-                                         'ApplicationName':'LHCb', 'ApplicationVersion':'v1r2', 'ExtraOptions': '',
-                                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
-                                         'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'x86',
-                                         'prodStepID': "456['BHADRON.DST', 'CALIBRATION.DST']",
-                                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
-                                         'mcTCK': '',
-                                         'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
-                                         'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
-                           ] )
+    self.assertEqual( pr.stepsListDict, [step1Dict, step2Dict] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456', '', '']
     pr.resolveSteps()
