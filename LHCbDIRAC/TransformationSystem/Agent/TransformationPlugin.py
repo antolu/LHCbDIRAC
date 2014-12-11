@@ -128,11 +128,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if res['OK']:
           self.util.logInfo( "Found %d input files that have already been processed (status set)" % len( processedLfns ) )
           for lfn in processedLfns:
-            if lfn in self.transReplicas:
-              self.transReplicas.pop( lfn )
-          for fileDict in [fileDict for fileDict in self.transFiles]:
-            if fileDict['LFN'] in processedLfns:
-              self.transFiles.remove( fileDict )
+            self.transReplicas.pop( lfn, None )
+          for fileDict in [fileDict for fileDict in self.transFiles if fileDict['LFN'] in processedLfns]:
+            self.transFiles.remove( fileDict )
       else:
         # Here one should check descendants of children
         self.util.logVerbose( "No input files have already been processed" )
@@ -510,6 +508,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     runSites = dict( [ ( run['RunNumber'], run['SelectedSite'] ) for run in res['Value'] if run['SelectedSite'] ] )
     # Loop on all runs that have new files
     inputData = self.transReplicas.copy()
+    setInputData = set( inputData )
     runEvtType = {}
     nRunsLeft = len( res['Value'] )
     for run in sorted( res['Value'], cmp = ( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) ):
@@ -527,10 +526,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           paramStr = " (%s : %s) " % ( param, paramValue )
         else:
           paramStr = " "
-        runParamLfns = paramDict[paramValue]
+        runParamLfns = set( paramDict[paramValue] )
         # Check if something was new since last time...
         cachedLfns = self.util.getCachedRunLFNs( runID, paramValue )
-        newLfns = [lfn for lfn in runParamLfns if lfn not in cachedLfns]
+        newLfns = runParamLfns - cachedLfns
         if len( newLfns ) == 0 and self.transID > 0 and runStatus != 'Flush' and not self.util.cacheExpired( runID ):
           self.util.logVerbose( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
           continue
@@ -539,7 +538,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         runFlush = requireFlush
         if runFlush:
           if not runEvtType.get( paramValue ):
-            lfn = runParamLfns[0]
+            lfn = paramDict[paramValue][0]
             res = self.util.getBookkeepingMetadata( [lfn], 'EventType' )
             if res['OK']:
               runEvtType[paramValue] = res['Value'].get( lfn, 90000000 )
@@ -552,7 +551,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if not evtType:
             runFlush = False
         runParamReplicas = {}
-        for lfn in [lfn for lfn in runParamLfns if lfn in inputData]:
+        for lfn in runParamLfns & setInputData:
           runParamReplicas[lfn ] = [se for se in inputData[lfn] if not isArchive( se )]
         # We need to replace the input replicas by those of this run before calling the helper plugin
         # As it may use self.data, set both transReplicas and data members
@@ -1237,12 +1236,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         lfnsProcessed = [lfn for lfn in lfnsNotProcessed if not lfnsNotProcessed[lfn]]
         lfnsNotProcessed = [lfn for lfn in lfns if lfnsNotProcessed.get( lfn, True )]
         # print lfnsProcessed, lfnsNotProcessed
-        if lfnsNotProcessed:
-          self.util.logInfo( "Found %d files that are not fully processed at %s" % ( len( lfnsNotProcessed ),
-                                                                                     stringTargetSEs ) )
+        self.util.logInfo( "Found %d / %d files that are processed (/ not) at %s" % ( len( lfnsProcessed ),
+                                                                                      len( lfnsNotProcessed ),
+                                                                                      stringTargetSEs ) )
         if lfnsProcessed:
-          self.util.logInfo( "Found %d files that are fully processed at %s" % ( len( lfnsProcessed ),
-                                                                                 stringTargetSEs ) )
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
       if not storageElementGroups:
         return S_OK( [] )
