@@ -52,7 +52,6 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     self.assertEqual( res['Value'], {'StartRun': 1L, 'EndRun': 10L, 'EventType': 12345L,
                                      'RunNumbers': ['2', '3', '4', '5'],
                                      'DataTakingConditions': 'DataTakingConditions'} )
-
     res = self.transClient.getTransformationsWithBkQueries( [] )
     self.assert_( res['OK'] )
     self.assertEqual( res['Value'], [transID] )
@@ -72,9 +71,24 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     self.assertEqual( res['Value'][0]['TransformationID'], transID )
 
     # FIXME: first, I should add some...
-    res = self.transClient.getTransformationRuns()
+    res = self.transClient.insertTransformationRun( transID, 767, 'PIPPO_SE' )
     self.assert_( res['OK'] )
+
+    res = self.transClient.insertTransformationRun( transID, 768, 'PIPPO_SE' )
+    self.assert_( res['OK'] )
+
+    res = self.transClient.getTransformationRuns()
+    runs = [element['RunNumber'] for element in res ['Value']]
+    self.assert_( res['OK'] )
+
     res = self.transClient.getTransformationRunStats( transID )
+    self.assert_( res['OK'] )
+
+     # test managing RunDestination table
+    res = self.transClient.setSEForRun ( runs[0], 'PLUTO_SE' )
+    self.assert_( res['OK'] )
+
+    res = self.transClient.getSEForRun ( runs[0] )
     self.assert_( res['OK'] )
 
     # testStoredJobDescription
@@ -95,6 +109,7 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     # testing remove
     res = self.transClient.removeStoredJobDescription( transID )
     self.assert_( res ['OK'] )
+
 
     # clean
     res = self.transClient.cleanTransformation( transID )
