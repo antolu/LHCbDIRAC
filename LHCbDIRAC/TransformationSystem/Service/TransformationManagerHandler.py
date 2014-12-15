@@ -73,7 +73,7 @@ class TransformationManagerHandler( TManagerBase ):
   def export_getTransformationRuns( self, condDict = {}, orderAttribute = None, limit = None ):
     return database.getTransformationRuns( condDict, orderAttribute = orderAttribute, limit = limit )
 
-  types_insertTransformationRun = []
+  types_insertTransformationRun = [[IntType, LongType], [IntType, LongType], StringTypes]
   def export_insertTransformationRun( self, transID, runID, selectedSite = '' ):
     return database.insertTransformationRun( transID, runID, selectedSite = '' )
 
@@ -246,7 +246,7 @@ class TransformationManagerHandler( TManagerBase ):
     """
     return database.getRunsInCache( condDict )
   
-   #############################################################################
+  #############################################################################
   #
   # Managing the RunDestination table
   #
