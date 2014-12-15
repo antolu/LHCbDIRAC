@@ -566,21 +566,23 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           runProcessed = ( ancestorRawFiles == rawFiles )
           if runProcessed:
             # The whole run was processed by the parent production and we received all files
-            self.util.logInfo( "All RAW files (%d) ready for run %d%s- Flushing %d files" % ( rawFiles,
-                                                                                            runID, paramStr,
-                                                                                            len( runParamReplicas ) ) )
+            self.util.logInfo( "All RAW files (%d) ready for run %d- Flushing run" % ( rawFiles, runID ) )
             status = 'Flush'
+            runStatus = status
             self.transClient.setTransformationRunStatus( self.transID, runID, 'Flush' )
           else:
             self.util.logVerbose( "Only %d ancestor RAW files (of %d) available for run %d" % ( ancestorRawFiles, rawFiles, runID ) )
+        if status == 'Flush':
+          self.util.logInfo( "Run %d is flushed - %d files %s" % ( runID, len( runParamReplicas ), paramStr ) )
+        # Now calling the helper plugin... Set status to a fake value
         self.params['Status'] = status
-        # Now calling the helper plugin
         startTime = time.time()
         res = eval( 'self._%s()' % plugin )
         self.util.logVerbose( "Executed helper plugin %s for %d files (Run %d%s) in %.1f seconds" % ( plugin,
                                                                                                       len( self.data ), runID,
                                                                                                       paramStr,
                                                                                                       time.time() - startTime ) )
+        # Resetting status
         self.params['Status'] = transStatus
         if not res['OK']:
           return res
