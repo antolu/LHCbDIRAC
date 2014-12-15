@@ -123,8 +123,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.wms_job_id = 12345
     self.workflowStatus = {'OK':True}
     self.stepStatus = {'OK':True}
-    self.wf_commons = [
-                       {'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id, 'eventType': '123456789', 'jobType': 'merge',
+    self.wf_commons = [{'PRODUCTION_ID': self.prod_id, 'JOB_ID': self.prod_job_id, 'eventType': '123456789', 'jobType': 'merge',
                         'configName': 'aConfigName', 'configVersion': 'aConfigVersion', 'outputDataFileMask':'',
                         'BookkeepingLFNs':'aa', 'ProductionOutputData':'ProductionOutputData', 'numberOfEvents':'100',
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
@@ -203,10 +202,9 @@ class ModulesTestCase( unittest.TestCase ):
                         'JobReport':self.jr_mock, 'Request':rc_mock, 'AccountingReport': ar_mock, 'FileReport':self.fr_mock,
                         'SystemConfig':'sys_config', 'LogFilePath':'someDir', 'LogTargetPath':'someOtherDir',
                         'runNumber':'Unknown', 'InputData': 'foo;bar', 'ParametricInputData':'pid1;pid2;pid3',
-                        'gaudiSteps': ['someApp_1'], 'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}},
-                       ]
-    self.step_commons = [
-                         {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
+                        'gaudiSteps': ['someApp_1'], 'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}}, ]
+
+    self.step_commons = [{'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
                          'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
                          'STEP_INSTANCE_NAME':'someApp_1',
@@ -225,8 +223,7 @@ class ModulesTestCase( unittest.TestCase ):
                          'extraOptionsLine': 'blaBla',
                          'STEP_INSTANCE_NAME':'someApp_1',
                          'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
-                                       'outputDataType':'bbb'}]}
-                         ]
+                                       'outputDataType':'bbb'}]}]
     self.step_number = '321'
     self.step_id = '%s_%s_%s' % ( self.prod_id, self.prod_job_id, self.step_number )
 

@@ -135,12 +135,12 @@ class ModuleBase( object ):
     if production_id:
       self.production_id = production_id
     else:
-      self.production_id = self.PRODUCTION_ID
+      self.production_id = self.workflow_commons['PRODUCTION_ID']
 
     if prod_job_id:
       self.prod_job_id = prod_job_id
     else:
-      self.prod_job_id = self.JOB_ID
+      self.prod_job_id = self.workflow_commons['JOB_ID']
 
     if os.environ.has_key( 'JOBID' ):
       self.jobID = os.environ['JOBID']
