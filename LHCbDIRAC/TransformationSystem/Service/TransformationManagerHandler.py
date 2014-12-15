@@ -73,6 +73,10 @@ class TransformationManagerHandler( TManagerBase ):
   def export_getTransformationRuns( self, condDict = {}, orderAttribute = None, limit = None ):
     return database.getTransformationRuns( condDict, orderAttribute = orderAttribute, limit = limit )
 
+  types_insertTransformationRun = []
+  def export_insertTransformationRun( self, transID, runID, selectedSite = '' ):
+    return database.insertTransformationRun( transID, runID, selectedSite = '' )
+
   types_getTransformationRunStats = [[IntType, LongType, ListType]]
   def export_getTransformationRunStats( self, transIDs ):
     if type( transIDs ) in ( int, long ):
@@ -242,6 +246,25 @@ class TransformationManagerHandler( TManagerBase ):
     """
     return database.getRunsInCache( condDict )
   
+   #############################################################################
+  #
+  # Managing the RunDestination table
+  #
+
+  types_getSEForRun = [[LongType, IntType, StringType]]
+  def export_getSEForRun( self, runID ):
+    """ retrieve run destination
+    """
+    return database.getSEForRun( runID )
+
+  types_setSEForRun = [[LongType, IntType, StringType]]
+  def export_setSEForRun( self, runID, SE ):
+    """ set run destination
+    """
+    return database.setSEForRun( runID, SE )
+
+
+
   #############################################################################
   #
   # Managing the StoredJobDescription table
