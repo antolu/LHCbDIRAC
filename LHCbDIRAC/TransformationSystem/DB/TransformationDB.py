@@ -551,7 +551,7 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       gLogger.error( "Failed to update TransformationRuns table with LastUpdate", res['Message'] )
     elif not res['Value']:
-      self.__insertTransformationRun( transID, runID, connection = connection )
+      self.insertTransformationRun( transID, runID, connection = connection )
     resDict = {'Successful':successful, 'Failed':failed}
     return S_OK( resDict )
 
@@ -591,7 +591,7 @@ class TransformationDB( DIRACTransformationDB ):
 
 
   def insertTransformationRun( self, transID, runID, selectedSite = '', connection = False ):
-    """ Inserts a new Run
+    """ Inserts a new Run for a specific transformation
     """
     req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,Status,LastUpdate) \
     VALUES (%d,%d,'Active',UTC_TIMESTAMP())" % ( transID, runID )
