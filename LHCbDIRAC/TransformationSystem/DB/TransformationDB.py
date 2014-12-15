@@ -586,10 +586,11 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       gLogger.error( "Failed to update TransformationRuns table with SelectedSite", res['Message'] )
     elif not res['Value']:
-      res = self.__insertTransformationRun( transID, runID, selectedSite = selectedSite, connection = connection )
+      res = self.insertTransformationRun( transID, runID, selectedSite = selectedSite, connection = connection )
     return res
 
-  def __insertTransformationRun( self, transID, runID, selectedSite = '', connection = False ):
+
+  def insertTransformationRun( self, transID, runID, selectedSite = '', connection = False ):
     """ Inserts a new Run
     """
     req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,Status,LastUpdate) \
@@ -703,6 +704,39 @@ class TransformationDB( DIRACTransformationDB ):
       return res
     else:
       return S_OK( [run[0] for run in res['Value']] )
+
+
+  #############################################################################
+  #
+  # Managing the RunDestination table
+  #
+
+  def getSEForRun( self, runID, connection = False ):
+    """ get destination of a run.
+    """
+    connection = self.__getConnection( connection )
+    req = "SELECT SE FROM RunDestination WHERE RunNumber = %d" % runID
+    res = self._query( req, connection )
+    if not res['OK']:
+      gLogger.error( "Failure executing %s" % str( req ) )
+      return res
+    else:
+      res = res['Value']
+      return S_OK( res )
+
+  def setSEForRun( self, runID, SE, connection = False ):
+    """ set destination of a run.
+    """
+    connection = self.__getConnection( connection )
+    req = "INSERT INTO RunDestination (RunNumber, SE) VALUES (%d, '%s')" % ( runID, SE )
+    res = self._query( req, connection )
+    if not res['OK']:
+      gLogger.error( "Failure executing %s" % str( req ) )
+      return res
+    else:
+      res = res['Value']
+      return S_OK( res )
+
 
   #############################################################################
   #
