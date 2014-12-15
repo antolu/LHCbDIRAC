@@ -184,14 +184,17 @@ class ProductionRequestSuccess( ClientTestCase ):
     prod.setFileMask( '', ['4'] )
 
     pr._modifyAndLaunchMCXML( prod, {'tracking':0} )
-    print prod.LHCbJob.workflow.toXML()
     for par in prod.LHCbJob.workflow.parameters:
+      if par.getName() == 'Site':
+        self.assertEqual( par.value, 'DIRAC.Test.ch' )
+      if par.getName() == 'Numberofevents':
+        self.assertEqual( par.value, '500' )
+      if par.getName() == 'listoutput':
+        self.assert_( 'gausshist' in dict( par.value ).values() )
       if par.getName() == 'outputDataStep':
         self.assertEqual( par.value, '' )
       if par.getName() == 'outputDataFileMask':
-        self.assertEqual( par.value, ['GAUSSHIST', 'DST'] )
-
-
+        self.assertEqual( par.value, 'GAUSSHIST;DST' )
 
     # re-prepare the test case
     prod = Production()
@@ -202,11 +205,16 @@ class ProductionRequestSuccess( ClientTestCase ):
     prod.addFinalizationStep()
     prod.setFileMask( '', ['4'] )
 
-#     pr._mcSpecialCase( prod, {'tracking':0} )
-#     # print prod.LHCbJob.workflow.toXML()
-#     for par in prod.LHCbJob.workflow.parameters:
-#       if par.getName() == 'outputDataStep':
-#         self.assertEqual( par.value, 4 )
+    pr._mcSpecialCase( prod, {'tracking':0} )
+    for par in prod.LHCbJob.workflow.parameters:
+      if par.getName() == 'Site':
+        self.assertEqual( par.value, 'ANY' )
+      if par.getName() == 'listoutput':
+        self.assert_( 'gausshist' not in dict( par.value ).values() )
+      if par.getName() == 'outputDataStep':
+        self.assertEqual( par.value, '4' )
+      if par.getName() == 'outputDataFileMask':
+        self.assertEqual( par.value, '' )
 
   def test_resolveStepsSuccess( self ):
 

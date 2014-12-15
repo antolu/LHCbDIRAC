@@ -276,7 +276,7 @@ class ProductionRequest( object ):
     return prodID
 
   def _modifyAndLaunchMCXML( self, prod, prodDict ):
-    """ needed mods
+    """ needed modifications
     """
     # set the destination and number of events for testing
     op = Operations()
@@ -289,7 +289,7 @@ class ProductionRequest( object ):
 
     # remove the stepMask and add the fileMask
     fileTypesOutLastStep = prod.LHCbJob.workflow.step_instances[-2].findParameter( 'listoutput' ).getValue()[0]['outputDataType']
-    newFileMask = ['GAUSSHIST'] + [x for x in fileTypesOutLastStep.split( ';' )]
+    newFileMask = ['GAUSSHIST'] + [ftOut.upper() for ftOut in fileTypesOutLastStep.split( ';' )]
     prod.setFileMask( newFileMask )
     prod.setParameter( 'outputDataStep', 'string', '', 'outputDataStep Mask' )
 
