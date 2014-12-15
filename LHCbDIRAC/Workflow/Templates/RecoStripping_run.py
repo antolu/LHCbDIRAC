@@ -222,7 +222,7 @@ if w1:
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
   pr.outputSEs = [strippDataSE, mergingDataSE]
-  pr.specialOutputSEs = [recoDataSESpecial, mergingDataSESpecial]
+  pr.specialOutputSEs = [strippDataSESpecial, mergingDataSESpecial]
   pr.stepsInProds = [range( 1, len( pr.stepsList ) ),
                      [len( pr.stepsList )]]
   pr.removeInputsFlags = [False, mergeRemoveInputsFlag]
