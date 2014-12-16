@@ -19,8 +19,6 @@ def slsid_of_service( granularity, name, type_ = None ):
     Return the SLS id of various services.
   '''
   
-  if type_ == 'CondDB': 
-    return name.split( '@' )[ 1 ] + '_CondDB'
   if type_ == 'VO-BOX': 
     return name.split( '.' )[ 1 ] + '_VOBOX'
   elif type_ == 'VOMS': 

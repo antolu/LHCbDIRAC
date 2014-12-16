@@ -278,13 +278,6 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
                                 },
                               ]
      },
-  'CondDB-SLS' :
-    { 
-      'description' : 'How the CondDB service is behaving in the SLS',
-      'module'      : 'SLSPolicy',
-      'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
-      'args'        : ( 'CondDB', )
-      },
   'OnStorageElementPropagation' :
     { 
       'description' : 'How the storage element\'s nodes are behaving in the RSS',

@@ -125,17 +125,6 @@
 #
 #class ClassFunctions_Success( ClassFunctions_TestCase ):
 # 
-#  def test_condDB( self ):
-#    
-#    res = self.func( 1, '1@1', 'CondDB' )
-#    self.assertEquals( res, '1_CondDB' )
-#    
-#    res = self.func( 1, 'a@b', 'CondDB' )
-#    self.assertEquals( res, 'b_CondDB' )
-#
-#    res = self.func( '1', 'a@b', 'CondDB' )
-#    self.assertEquals( res, 'b_CondDB' )
-#
 #  def test_vobox( self ):
 #    
 #    res = self.func( 1, '1.1', 'VO-BOX' )
