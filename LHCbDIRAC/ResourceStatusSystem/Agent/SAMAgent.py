@@ -46,14 +46,14 @@ class SAMAgent( AgentModule ):
 
     diracSAM = DiracSAM()
    
-    ces = diracSAM.getSuitableCEs()
-    if not ces[ 'OK' ]:
-      self.log.error( ces[ 'Message' ] )
-      return ces
-    ces = ces[ 'Value' ]
+    ceSites = diracSAM.getSuitableCEs()
+    if not ceSites[ 'OK' ]:
+      self.log.error( ceSites[ 'Message' ] )
+      return ceSites
+    ceSites = ceSites[ 'Value' ]
   
-    for ce in ces:
-      result = diracSAM.submitNewSAMJob( ce )
+    for ce, site in ceSites:
+      result = diracSAM.submitNewSAMJob( ce = ce, site = site )
       if not result[ 'OK' ]:
         self.log.error( 'Submission to CE %s failed with message %s' % ( ce, result[ 'Message' ] ) )
 

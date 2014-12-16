@@ -7,7 +7,7 @@
     Usage:
       dirac-lhcb-sam-submit
         --systemconfig        Value to use as SystemConfig in JDL. eg x86_64-slc5-gcc43-opt
-        --ce                  Computing Element to submit to or `all`
+        --ceSites             Computing Element / Site to submit to or `all`
         --number              Number of SAM Jobs to be submitted [Experts only]
         --local               Run the job locally
 
@@ -30,7 +30,7 @@ def registerSwitches():
   """
 
   switches = ( ( 'systemconfig=', 'Value to use as SystemConfig in JDL. eg x86_64-slc5-gcc43-opt' ),
-               ( 'ce=', 'Computing Element to submit to (must be in DIRAC CS) or all' ),
+               ( 'ceSites=', 'Computing Element/Site to submit to (must be in DIRAC CS) or all' ),
                ( 'number=', 'number of SAM Jobs to be submitted [Experts only]' ),
                ( 'local', 'Run the job locally' ) )
   for switch in switches:
@@ -65,11 +65,10 @@ def parseSwitches():
 ################################################################################
 
 def getCEs():
-  """
-    Gets all CEs of the non-banned sites if the user sets the ce as "all".
+  """ Gets all CE/Sites of the non-banned sites if the user sets the ce as "all".
   """
 
-  ces = switchDict[ 'ce' ]
+  ceSites = switchDict[ 'ceSites' ]
 
   if ces == 'all':
 
@@ -78,15 +77,18 @@ def getCEs():
       subLogger.info( 'Action cancelled.' )
       DIRACExit( 2 )
 
-    ces = diracSAM.getSuitableCEs()
-    if not ces[ 'OK' ]:
-      subLogger.error( ces[ 'Message' ] )
+    ceSites = diracSAM.getSuitableCEs()
+    if not ceSites[ 'OK' ]:
+      subLogger.error( ceSites[ 'Message' ] )
       DIRACExit( 2 )
-    ces = ces[ 'Value' ]
+    ceSites = ceSites[ 'Value' ]
   else:
-    ces = [ ces ]
+    ceS = ceSites.replace( ' ', '' ).split( ',' )
+    ceSites = {}
+    for cs in ceS:
+      ceSites[cs.split( '/' )[0]] = cs.split( '/' )[1]
 
-  return ces
+  return ceSites
 
 def getNumber():
   """
@@ -109,10 +111,8 @@ def getNumber():
 
   return number
 
-def submit( ces, number ):
-  """
-    Submit <number> of jobs to each ce in <ces>. Also passing switches as
-    keyword arguments to diracSAM.
+def submit( ceSites, number ):
+  """ Submit <number> of jobs to each ce/site combination in <ceSites>. Also passing switches as keyword arguments to diracSAM.
   """
 
   # If local is in switchDict, we run jobs locally 
@@ -120,14 +120,14 @@ def submit( ces, number ):
 
   subLogger.info( 'Submitting %d jobs to each ce' % number )
 
-  for ce in ces:
+  for ce, site in ceSites.iteritems():
 
-    subLogger.verbose( 'Submitting job(s) to %s CE' % ce )
+    subLogger.verbose( 'Submitting job(s) to %s : %s' % ( site, ce ) )
 
     # Submit a number of times the SAM Job to the same CE
     for _j in xrange( 0, number ):
 
-      samJob = diracSAM.defineSAMJob( ce )
+      samJob = diracSAM.defineSAMJob( ce, site )
 
       if 'systemconfig' in switchDict and switchDict[ 'systemconfig' ] is not None:
         samJob[ 'Value' ].setSystemConfig( switchDict[ 'systemconfig' ] )
@@ -138,7 +138,7 @@ def submit( ces, number ):
         result = diracSAM.submit( samJob[ 'Value' ], ( runLocal and 'local' ) or 'wms' )
 
       if not result[ 'OK' ]:
-        subLogger.error( 'Submission of SAM job to CE %s failed' % ce )
+        subLogger.error( 'Submission of SAM job to %s : %s failed' % ( site, ce ) )
         subLogger.verbose( 'with message:\n%s' % result[ 'Message' ] )
         break
 
@@ -153,10 +153,10 @@ def run():
   jobsNumber = getNumber()
   subLogger.debug( jobsNumber )
 
-  ces = getCEs()
-  subLogger.debug( ces )
+  ceSites = getCEs()
+  subLogger.debug( ceSites )
 
-  submit( ces, jobsNumber )
+  submit( ceSites, jobsNumber )
 
   subLogger.info( 'done' )
 

@@ -31,7 +31,7 @@ class DiracSAM( Dirac ):
     self.bannedSites = self.opsH.getValue( 'SAM/BannedSites', [] )
 
   def getSuitableCEs( self ):
-    """ Gets all CEs ( excluding the ones of banned sites )
+    """ Gets all CE/site ( excluding the ones of banned sites )
     """
     
     self.log.info( "Banned SAM sites are: %s" % ( ', '.join( self.bannedSites ) ) )
@@ -41,15 +41,13 @@ class DiracSAM( Dirac ):
       return ceMapping
     ceMapping = ceMapping[ 'Value' ]
     
-    validCEs = []
-    
     for ce, site in ceMapping.iteritems():
-      if not site in self.bannedSites:
-        validCEs.append( ce )
+      if site in self.bannedSites:
+        ceMapping.pop( ce )
     
-    return S_OK( validCEs )
+    return S_OK( ceMapping )
 
-  def defineSAMJob( self, ce ):
+  def defineSAMJob( self, ce, site ):
     """ Defines an LHCbJob which is going to be submitted to a given ce
       
         Steps:
@@ -82,7 +80,7 @@ class DiracSAM( Dirac ):
     if not res['OK']:
       return res
 
-    res = samJob.setDestinationCE( ce )
+    res = samJob.setDestinationCE( ce, site )
     if not res['OK']:
       return res    
     res = samJob.setLogLevel( samLogLevel )
@@ -172,14 +170,14 @@ class DiracSAM( Dirac ):
 
     return S_OK( samJob )
   
-  def submitNewSAMJob( self, ce, runLocal = False ):
+  def submitNewSAMJob( self, ce, site, runLocal = False ):
     """ Method that generates a NewStyle SAM Job and submits it to the given ce if mode is wms.
         If mode is local, it will be run locally
     """
     
     mode = ( runLocal and 'local' ) or 'wms'
     
-    samJob = self.defineSAMJob( ce )
+    samJob = self.defineSAMJob( ce, site )
     if not samJob[ 'OK' ]:
       return samJob
     return self.submit( samJob[ 'Value' ], mode )
