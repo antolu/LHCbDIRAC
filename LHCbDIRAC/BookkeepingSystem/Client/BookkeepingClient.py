@@ -899,7 +899,7 @@ class BookkeepingClient:
     """
     server = self.__getServer()
     if type( lfns ) == types.StringType:
-      lfns = [lfns]
+      lfns = lfns.split( ';' )
     return server.getFileTypeVersion( lfns )
 
   #############################################################################
