@@ -150,7 +150,7 @@ class ConsistencyChecks( object ):
 
     if self.absentLFNsBKRepYes:
       msg = "%d files have ReplicaFlag = Yes, but %d are not in the FC" % ( len( lfnsReplicaYes ),
-                                                                         len( self.absentLFNsBKRepYes ) )
+                                                                            len( self.absentLFNsBKRepYes ) )
       if self.transType:
         msg = "For prod %s of type %s, " % ( self.prod, self.transType ) + msg
       gLogger.info( msg )
@@ -189,7 +189,7 @@ class ConsistencyChecks( object ):
       if self.bkQuery:
         bkQuery = self.bkQuery
       if self.prod:
-        if not self.bkquery:
+        if not self.bkQuery:
           bkQuery = BKQuery( prods = self.prod, fileTypes = self.fileType )
         else:
           bkQuery = BKQuery( self.bkQuery.setOption( "Production", self.prod ) )
