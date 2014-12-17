@@ -397,7 +397,7 @@ class Production( object ):
   def __createWorkflow( self, name = '' ):
     """ Create XML of the workflow
     """
-    self.lastParameters()
+    self._lastParameters()
 
     if not name:
       name = self.LHCbJob.workflow.getName()
