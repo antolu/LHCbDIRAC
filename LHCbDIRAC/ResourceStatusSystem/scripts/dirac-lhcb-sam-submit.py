@@ -70,7 +70,7 @@ def getCEs():
 
   ceSites = switchDict[ 'ceSites' ]
 
-  if ces == 'all':
+  if ceSites == 'all':
 
     userReply = promptUser( 'Are you sure you want to submit SAM jobs for all CEs known to DIRAC?' )
     if not userReply[ 'OK' ]:
