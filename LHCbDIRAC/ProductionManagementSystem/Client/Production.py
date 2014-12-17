@@ -381,13 +381,23 @@ class Production( object ):
     # create the step instance add it to the wf
     self.LHCbJob.workflow.createStepInstance( 'Job_Finalization', 'finalization' )
 
+
+
+
+
   #############################################################################
+
+  def _lastParameters( self ):
+    """ Add the last parameters before creating the xml file containing the workflow
+    """
+
+    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'gaudiSteps', 'list', self.gaudiSteps, 'list of Gaudi Steps' )
+    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputSEs', 'dict', self.outputSEs, 'dictionary of output SEs' )
 
   def __createWorkflow( self, name = '' ):
     """ Create XML of the workflow
     """
-    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'gaudiSteps', 'list', self.gaudiSteps, 'list of Gaudi Steps' )
-    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputSEs', 'dict', self.outputSEs, 'dictionary of output SEs' )
+    self.lastParameters()
 
     if not name:
       name = self.LHCbJob.workflow.getName()
@@ -413,7 +423,7 @@ class Production( object ):
   #############################################################################
 
   def __getProductionParameters( self, prodXMLFile, prodID, groupDescription = '',
-                                bkPassInfo = {}, derivedProd = 0, reqID = 0 ):
+                                 bkPassInfo = {}, derivedProd = 0, reqID = 0 ):
     """ This method will publish production parameters.
     """
 

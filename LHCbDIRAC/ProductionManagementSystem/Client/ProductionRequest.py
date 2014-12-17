@@ -247,6 +247,7 @@ class ProductionRequest( object ):
     """
 
     # save the original xml before it is edited for testing
+    prod._lastParameters()
     prodXML = prod.LHCbJob.workflow.toXML()
 
     prodID = self._modifyAndLaunchMCXML( prod, prodDict )
