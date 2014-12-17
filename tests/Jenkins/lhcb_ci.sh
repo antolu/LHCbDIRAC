@@ -32,17 +32,17 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
 #-------------------------------------------------------------------------------
 
 
-  #.............................................................................
-  #
-  # findRelease:
-  #
-  #   If the environment variable "PRERELEASE" exists, we use a LHCb prerelease
-  #   instead of a regular release ( production-like ).
-  #   If any parameter is passed, we assume we are on pre-release mode, otherwise, 
-  #   we assume production. It reads from releases.cfg and picks the latest version
-  #   which is written to {project,dirac,lhcbdirac}.version
-  #
-  #.............................................................................
+#.............................................................................
+#
+# findRelease:
+#
+#   If the environment variable "PRERELEASE" exists, we use a LHCb prerelease
+#   instead of a regular release ( production-like ).
+#   If any parameter is passed, we assume we are on pre-release mode, otherwise, 
+#   we assume production. It reads from releases.cfg and picks the latest version
+#   which is written to {project,dirac,lhcbdirac}.version
+#
+#.............................................................................
   
 function findRelease(){
 	echo '[findRelease]'
@@ -320,82 +320,81 @@ function generateUserCredentials(){
 #-------------------------------------------------------------------------------
 
 
-  #.............................................................................
-  #
-  # diracInstall:
-  #
-  #   This function gets the DIRAC install script defined on $DIRAC_INSTAll and
-  #   runs it with some hardcoded options. The only option that varies is the 
-  #   project version, in this case LHCb project version, obtained from the file
-  #   'project.version'.
-  #
-  #.............................................................................
+#.............................................................................
+#
+# diracInstall:
+#
+#   This function gets the DIRAC install script defined on $DIRAC_INSTAll and
+#   runs it with some hardcoded options. The only option that varies is the 
+#   project version, in this case LHCb project version, obtained from the file
+#   'project.version'.
+#
+#.............................................................................
 
-  function diracInstall(){
-    echo '[diracInstall]'
+function diracInstall(){
+	echo '[diracInstall]'
 
-    cd $WORKSPACE
+	cd $WORKSPACE
 
-    wget --no-check-certificate -O dirac-install $DIRAC_INSTALL --quiet
-    chmod +x dirac-install
-    ./dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
+	wget --no-check-certificate -O dirac-install $DIRAC_INSTALL --quiet
+	chmod +x dirac-install
+	./dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
+}
 
-  }
 
+#.............................................................................
+#
+# diracConfigure:
+# 
+#   in short, it writes dirac.cfg file. More on detail, it sets: 
+#
+#   o /LocalSite/Architecture
+#   o /LocalInstallation/Database/RootPwd
+#   o /LocalInstallation/Database/Password
+#   o /LocalInstallation/HostDN
+#   o /LocalInstallation/Host
+#
+#.............................................................................
 
-  #.............................................................................
-  #
-  # diracConfigure:
-  # 
-  #   in short, it writes dirac.cfg file. More on detail, it sets: 
-  #
-  #   o /LocalSite/Architecture
-  #   o /LocalInstallation/Database/RootPwd
-  #   o /LocalInstallation/Database/Password
-  #   o /LocalInstallation/HostDN
-  #   o /LocalInstallation/Host
-  #
-  #.............................................................................
+function diracConfigure(){
+	echo '[diracConfigure]'
 
-  function diracConfigure(){
-    echo '[diracConfigure]'
-    
-    cd $WORKSPACE
+	cd $WORKSPACE
 
-    # Find architecture platform
-    arch=`dirac-architecture`
-    
-    # Randomly generated passwords
-    # DB root
-    randomRoot=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
-    rootPass=/LocalInstallation/Database/RootPwd=$randomRoot
-    # DB user
-    randomUser=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
-    userPass=/LocalInstallation/Database/Password=$randomUser
-    
-    # Stores passwords on files for latter usage
-    echo $randomRoot > rootMySQL
-    echo $randomUser > userMySQL
-    
-    # Sets all systems on Jenkins setup
-    setups=`cat systems | sed 's/System//' | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/'` 
+	# Find architecture platform
+	arch=`dirac-architecture`
 
-    cp $LHCb_CI_CONFIG/install.cfg etc/install.cfg
-    
-    # Set HostDN in install.cfg
-    # We use colons instead of forward slashes in sed, otherwise we cannot scape
-    # the '/' characters in the DN
-    hostdn=`openssl x509 -noout -in etc/grid-security/hostcert.pem -subject | sed 's/subject= //g'` 
-    sed -i "s:#hostdn#:$hostdn:g" etc/install.cfg
-  
-    # Set FQDN in install.cfg
-    fqdn=`hostname --fqdn`
-    sed -i "s/#hostname#/$fqdn/g" etc/install.cfg
+	# Randomly generated passwords
+	# DB root
+	randomRoot=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
+	rootPass=/LocalInstallation/Database/RootPwd=$randomRoot
+	# DB user
+	randomUser=`tr -cd '[:alnum:]' < /dev/urandom | fold -w20 | head -n1`
+	userPass=/LocalInstallation/Database/Password=$randomUser
 
-    dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG
-    dirac-setup-site $DEBUG
-  
-  }  
+	# Stores passwords on files for latter usage
+	echo $randomRoot > rootMySQL
+	echo $randomUser > userMySQL
+
+	# Sets all systems on Jenkins setup
+	setups=`cat systems | sed 's/System//' | sed 's/^/-o \/DIRAC\/Setups\/Jenkins\//' | sed 's/$/=Jenkins/'` 
+
+	cp $LHCb_CI_CONFIG/install.cfg etc/install.cfg
+
+	# Set HostDN in install.cfg
+	# We use colons instead of forward slashes in sed, otherwise we cannot scape
+	# the '/' characters in the DN
+	hostdn=`openssl x509 -noout -in etc/grid-security/hostcert.pem -subject | sed 's/subject= //g'` 
+	sed -i "s:#hostdn#:$hostdn:g" etc/install.cfg
+
+	# Set FQDN in install.cfg
+	fqdn=`hostname --fqdn`
+	sed -i "s/#hostname#/$fqdn/g" etc/install.cfg
+
+	dirac-configure etc/install.cfg -A $arch -o $rootPass -o $userPass $setups $DEBUG
+	dirac-setup-site $DEBUG
+
+}  
   
   
   
