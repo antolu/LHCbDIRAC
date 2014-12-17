@@ -144,9 +144,6 @@ class ProductionRequestDB( DB ):
         TODO: Complete check of content
     '''
 
-    if creds['Group'] == 'hosts':
-      return S_ERROR( 'Authorization required' )
-
     rec = dict.fromkeys( self.requestFields[1:-9], None )
     for x in requestDict:
       if x in rec and str( requestDict[x] ) != '':
@@ -973,9 +970,6 @@ class ProductionRequestDB( DB ):
     author. If clearpp is set, all details in the Processing
     pass (of the master) are cleaned.
     '''
-    if creds['Group'] == 'hosts':
-      return S_ERROR( 'Authorization required' )
-
     try:
       requestID = long( requestID )
     except ValueError:
@@ -1509,11 +1503,6 @@ class ProductionRequestDB( DB ):
     ''' Check that test submission is authorized.
         NOTE: unlock in case of errors
     '''
-    if creds['Group'] == 'hosts':
-      self.lock.release()
-      return S_ERROR( 'Authorization required' )
-
-
     result = self.__getStateAndAuthor( iD, connection )
     if not result['OK']:
       return result
