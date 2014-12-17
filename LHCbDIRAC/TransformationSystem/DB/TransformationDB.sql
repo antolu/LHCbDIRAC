@@ -80,7 +80,7 @@ DROP TABLE IF EXISTS RunDestination;
 CREATE TABLE RunDestination(
   RunNumber INT(11) NOT NULL,
   SE VARCHAR(255) NOT NULL,
-  PRIMARY KEY (RunNumber, Destination)
+  PRIMARY KEY (RunNumber)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
