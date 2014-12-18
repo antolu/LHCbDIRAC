@@ -37,9 +37,11 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       self.pp.installEnv = self._doSetupProject()
       self.log.info( "SetupProject DONE, for release %s" % self.pp.releaseVersion )
 
-      # saving also in bashrc file for completeness
+      # saving also in bashrc file for completeness... this is doing some horrible mangling unfortunately!
       fd = open( 'bashrc', 'w' )
-      for var, val in os.environ.iteritems():
+      for var, val in self.pp.installEnv.iteritems():
+        if var == '_' or 'SSH' in var or '{' in val or '}' in val:
+          continue
         bl = "%s=%s\n" % ( var, val )
         fd.write( bl )
       fd.close()
