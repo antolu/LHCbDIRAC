@@ -209,7 +209,7 @@ class MCSimulationTestingAgent ( AgentModule ):
 
       CPUeJobTotal += CPUeJob
 
-    CPUe = CPUeJobTotal / len( tasks )
+    CPUe = CPUeJobTotal / len( successful )
     # We want to produce at least 25 events per job...
     MCCpu = str( 25 * int( float( CPUe ) ) )
     self.log.verbose( "CPUe = %d, MCCpu = %s" % ( CPUe, MCCpu ) )
