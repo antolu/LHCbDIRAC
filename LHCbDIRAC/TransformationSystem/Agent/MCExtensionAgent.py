@@ -188,7 +188,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
     eventsToProduce = eventsNeeded * extensionFactor
 
-    cpuE = int( getProductionParameterValue( production['Body'], 'CPUe' ) )
+    cpuE = int( round( float( getProductionParameterValue( production['Body'], 'CPUe' ) ) ) )
     if cpuE is None:
       self.log.info( 'Could not get CPUe from production, defaulting to %d' % self.cpuE )
       cpuE = self.cpuE
