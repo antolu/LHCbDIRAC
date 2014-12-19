@@ -83,11 +83,8 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
     """
 
     op = Operations()
-    self.cpuTimeAvg = op.getValue( 'Transformations/cpuTimeAvg' )
-    if self.cpuTimeAvg is None:
-      self.log.info( "Could not get cpuTimeAvg from config, using default" )
-    else:
-      self.log.verbose( "cpuTimeAvg = %d" % self.cpuTimeAvg )
+    self.cpuTimeAvg = op.getValue( 'Transformations/cpuTimeAvg', self.cpuTimeAvg )
+    self.log.verbose( "cpuTimeAvg = %d" % self.cpuTimeAvg )
 
     try:
       self.cpuNormalizationFactorAvg = getCPUNormalizationFactorAvg()
