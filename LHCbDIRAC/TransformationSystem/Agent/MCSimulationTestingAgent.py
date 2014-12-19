@@ -186,19 +186,33 @@ class MCSimulationTestingAgent ( AgentModule ):
     return res
 
   def _calculateParameters( self, tasks ):
-    """calculates the CPU time per event for a successful task.
+    """ Calculates the CPU time per event for the production
     """
-    job_id = tasks[0]['ExternalID']
-    res = self.bkClient.bulkJobInfo( {'jobId':[job_id]} )
+    jobIds = [ int( x['ExternalID'] ) for x in tasks ]
+    res = self.bkClient.bulkJobInfo( {'jobId':jobIds} )
     if not res['OK']:
       self.log.error( res['Message'] )
       return S_ERROR( res['Message'] )
     successful = res['Value']['Successful']
-    key = successful.keys()[0]
-    cpuTime = successful[key]['ExecTime']
-    events = successful[key]['NumberOfEvents']
-    CPUe = cpuTime / events
+
+    CPUeJobTotal = 0.0
+    for job in successful.itervalues():
+      cpuJob = 0
+      for bkJob in job:
+        if bkJob['ApplicationName'] == 'Gauss':
+          events = bkJob['NumberOfEvents']
+          timeInSeconds = bkJob['CPUTime']
+          cpuJob = timeInSeconds * bkJob['WNCPUHS06']
+          break
+      CPUeJob = cpuJob / events
+      self.log.debug( "CPUeJob = %d" % CPUeJob )
+
+      CPUeJobTotal += CPUeJob
+
+    CPUe = CPUeJobTotal / len( tasks )
+    # We want to produce at least 25 events per job...
     MCCpu = str( 25 * int( float( CPUe ) ) )
+    self.log.verbose( "CPUe = %d, MCCpu = %s" % ( CPUe, MCCpu ) )
     return S_OK( {'CPUe' : CPUe, 'MCCpu': MCCpu} )
 
   def _updateWorkflow( self, transID, CPUe, MCCpu ):
