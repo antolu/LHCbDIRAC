@@ -536,6 +536,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # # # # # # # Loop on all selected runs # # # # # # #
     #
     pluginStartTime = time.time()
+    timeout = False
     for run in sorted( runList, cmp = ( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) ):
       runID = run['RunNumber']
       self.util.logDebug( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
@@ -644,6 +645,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       timeSpent = time.time() - pluginStartTime
       lastRun = runID
       if maxTime and timeSpent > maxTime:
+        timeout = True
         self.util.logInfo( "Enough time spent in plugin (%.1f seconds), exit at run %d" % ( timeSpent, runID ) )
         break
     # # # # # # # # End of run loop # # # # # # # #
@@ -654,7 +656,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if missingAtSEs and self.pluginCallback:
       # If some files could not be scheduled, clear the cache
       self.pluginCallback( self.transID, invalidateCache = True )
-    return S_OK( allTasks )
+    ret = S_OK( allTasks )
+    ret['Timeout'] = timeout
+    return ret
 
   def _ByRunWithFlush( self ):
     # If groupSize is 1, no need to flush!
