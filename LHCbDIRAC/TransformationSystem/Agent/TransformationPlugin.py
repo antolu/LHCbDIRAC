@@ -469,8 +469,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _ByRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
     try:
       return self.__byRun( param, plugin, requireFlush )
-    except Exception:
-      self.util.logException( "Exception in _ByRun plugin:" )
+    except Exception, x:
+      self.util.logException( "Exception in _ByRun plugin:", '', x )
       return S_ERROR( [] )
 
   def __byRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
@@ -478,54 +478,76 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     self.util.logInfo( "Starting execution of plugin" )
     allTasks = []
-    typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge'] )
-    if self.params['Type'] not in typesWithNoCheck:
-      self._removeProcessedFiles()
+    typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge', 'Replication', 'Removal'] )
+    fromSEs = set( self.util.getPluginParam( 'FromSEs', [] ) )
+    maxTime = self.util.getPluginParam( 'MaxTimeAllowed', 0 )
     self.util.readCacheFile( self.workDirectory )
     if not self.transReplicas:
       self.util.logVerbose( "No data to be processed by plugin" )
       return S_OK( allTasks )
+
+    startTime = time.time()
     res = self.util.groupByRunAndParam( self.transReplicas, self.transFiles, param = param )
     if not res['OK']:
       self.util.logError( "Error when grouping %d files by run for param %s" % ( len( self.transReplicas ), param ) )
       return res
     runDict = res['Value']
+    self.util.logVerbose( "Grouped %d files in %d runs %s in %.1f seconds" %
+                          ( len( self.transFiles ), len( runDict ),
+                            'and %s' % param if param else '', time.time() - startTime ) )
+
+    # If necessary fix files with run number 0
     zeroRunDict = runDict.pop( 0, None )
     if zeroRunDict:
-      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
+      nZero = 0
       for paramValue, zeroRun in zeroRunDict.items():
         newRuns = self.util.setRunForFiles( zeroRun )
         for newRun, runLFNs in newRuns.items():
           runDict.setdefault( newRun, {} ).setdefault( paramValue, [] ).extend( runLFNs )
+          nZero += len( runLFNs )
+      self.util.logInfo( "Set run number for %d files with run #0, which means it was not set yet" % nZero )
+
     transStatus = self.params['Status']
     startTime = time.time()
     res = self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runDict.keys()} )
     if not res['OK']:
       self.util.logError( "Error when getting transformation runs for runs %s" % str( runDict.keys() ) )
       return res
-    self.util.logVerbose( "Obtained %d runs from transDB in %.1f seconds" % ( len( res['Value'] ),
+    transRuns = res['Value']
+    self.util.logVerbose( "Obtained %d runs from transDB in %.1f seconds" % ( len( transRuns ),
                                                                               time.time() - startTime ) )
-    runSites = dict( [ ( run['RunNumber'], run['SelectedSite'] ) for run in res['Value'] if run['SelectedSite'] ] )
+    runSites = dict( [ ( run['RunNumber'], run['SelectedSite'] ) for run in transRuns if run['SelectedSite'] ] )
     # Loop on all runs that have new files
     inputData = self.transReplicas.copy()
     setInputData = set( inputData )
     runEvtType = {}
-    nRunsLeft = len( res['Value'] )
-    for run in sorted( res['Value'], cmp = ( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) ):
+    # Restart where we finished last time
+    lastRun = self.util.getCachedLastRun()
+    runList = [run for run in transRuns if run['RunNumber'] > lastRun]
+    # If none left, restart from the beginning
+    if not runList:
+      runList = transRuns
+      lastRun = 0
+      self.util.setCachedLastRun( lastRun )
+    nRunsLeft = len( runList )
+    missingAtSEs = False
+    self.util.logInfo( "Processing %d runs starting at run %d" % ( len( runList ), lastRun ) )
+    #
+    # # # # # # # Loop on all selected runs # # # # # # #
+    #
+    pluginStartTime = time.time()
+    for run in sorted( runList, cmp = ( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) ):
       runID = run['RunNumber']
       self.util.logDebug( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
       nRunsLeft -= 1
-      if transStatus == 'Flush':
-        runStatus = 'Flush'
-      else:
-        runStatus = run['Status']
+      runStatus = run['Status'] if transStatus != 'Flush' else transStatus
       paramDict = runDict.get( runID, {} )
       targetSEs = [se for se in runSites.get( runID, '' ).split( ',' ) if se]
+      #
+      # Loop on parameters (None if not by param
+      #
       for paramValue in sorted( paramDict ):
-        if paramValue:
-          paramStr = " (%s : %s) " % ( param, paramValue )
-        else:
-          paramStr = " "
+        paramStr = " (%s : %s) " % ( param, paramValue ) if paramValue else ' '
         runParamLfns = set( paramDict[paramValue] )
         # Check if something was new since last time...
         cachedLfns = self.util.getCachedRunLFNs( runID, paramValue )
@@ -555,7 +577,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           runParamReplicas[lfn ] = [se for se in inputData[lfn] if not isArchive( se )]
         # We need to replace the input replicas by those of this run before calling the helper plugin
         # As it may use self.data, set both transReplicas and data members
-        self.data = self.transReplicas = runParamReplicas
+        self.transReplicas = runParamReplicas
+        # Check if files have already been processed
+        if self.params['Type'] not in typesWithNoCheck:
+          self._removeProcessedFiles()
+        self.data = self.transReplicas
         status = runStatus
         if status != 'Flush' and runFlush:
           # If all files in that run have been processed and received, flush
@@ -572,6 +598,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             self.transClient.setTransformationRunStatus( self.transID, runID, 'Flush' )
           else:
             self.util.logVerbose( "Only %d ancestor RAW files (of %d) available for run %d" % ( ancestorRawFiles, rawFiles, runID ) )
+            # If the run is not complete for that parameter, come back later
+            break
         if status == 'Flush':
           self.util.logInfo( "Run %d is flushed - %d files %s" % ( runID, len( runParamReplicas ), paramStr ) )
         # Now calling the helper plugin... Set status to a fake value
@@ -587,6 +615,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if not res['OK']:
           return res
         tasks = res['Value']
+        if fromSEs:
+          nTasks = len( tasks )
+          for task in list( tasks ):
+            # If fromSEs is defined, check if in the list
+            if not fromSEs & set( task[0].split( ',' ) ):
+              tasks.remove( task )
+          if len( tasks ) != nTasks:
+            missingAtSEs = True
+            self.util.logInfo( "%d tasks could not be created for run %d as files are not at required SEs" % ( nTasks - len( tasks ), runID ) )
         self.util.logVerbose( "Created %d tasks for run %d%s" % ( len( tasks ), runID, paramStr ) )
         allTasks.extend( tasks )
         # Cache the left-over LFNs
@@ -603,13 +640,26 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             self.util.logError( "Failed to set target SEs to run %s as %s" % ( str( runID ), str( targetSEs ) ),
                              res['Message'] )
         self.util.setCachedRunLfns( runID, paramValue, [lfn for lfn in runParamLfns if lfn not in taskLfns] )
+      # End of run loop: if enough time already spent, exit
+      timeSpent = time.time() - pluginStartTime
+      lastRun = runID
+      if maxTime and timeSpent > maxTime:
+        self.util.logInfo( "Enough time spent in plugin (%.1f seconds), exit at run %d" % ( timeSpent, runID ) )
+        break
+    # # # # # # # # End of run loop # # # # # # # #
+    self.util.setCachedLastRun( lastRun )
     # reset the input data as it was when calling the plugin
     self.setInputData( inputData )
     self.util.writeCacheFile()
+    if missingAtSEs and self.pluginCallback:
+      # If some files could not be scheduled, clear the cache
+      self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( allTasks )
 
   def _ByRunWithFlush( self ):
-    return self._ByRun( requireFlush = True )
+    # If groupSize is 1, no need to flush!
+    groupSize = self.util.getPluginParam( 'GroupSize' )
+    return self._ByRun( requireFlush = groupSize != 1 )
 
   def _ByRunBySize( self ):
     return self._ByRun( plugin = 'BySize' )
@@ -633,7 +683,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self._ByRun( param = 'FileType' )
 
   def _ByRunFileTypeWithFlush( self ):
-    return self._ByRun( param = 'FileType', requireFlush = True )
+    # If groupSize is 1, no need to flush!
+    groupSize = self.util.getPluginParam( 'GroupSize' )
+    return self._ByRun( param = 'FileType', requireFlush = groupSize != 1 )
 
   def _ByRunFileTypeSize( self ):
     return self._ByRun( param = 'FileType', plugin = 'BySize' )
@@ -645,6 +697,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self._ByRun( param = 'EventTypeId' )
 
   def _ByRunEventTypeWithFlush( self ):
+    # If groupSize is 1, no need to flush!
+    groupSize = self.util.getPluginParam( 'GroupSize' )
     return self._ByRun( param = 'EventTypeId', requireFlush = True )
 
   def _ByRunEventTypeSize( self ):

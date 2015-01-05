@@ -158,6 +158,7 @@ class PluginUtilities( object ):
     self.cachedNbRAWFiles = {}
     self.cachedRunLfns = {}
     self.cachedProductions = {}
+    self.cachedLastRun = 0
     self.cacheFile = ''
     self.filesParam = {}
     self.transRunFiles = {}
@@ -330,8 +331,10 @@ class PluginUtilities( object ):
     for chunk in breakListIntoChunks( lfns, 1000 ):
       res = self.bkClient.getFileMetadata( chunk )
       if res['OK']:
-        filesParam.update( dict( [( lfn, metadata.get( param ) ) for lfn, metadata in res['Value']['Successful'].items()] ) )
-        self.cachedLFNSize.update( dict( [( lfn, metadata.get( 'FileSize' ) ) for lfn, metadata in res['Value']['Successful'].items()] ) )
+        success = res['Value']['Successful']
+        filesParam.update( dict( [( lfn, success[lfn].get( param ) ) for lfn in success] ) )
+        # Always cache the size, will be useful
+        self.cachedLFNSize.update( dict( [( lfn, success[lfn].get( 'FileSize' ) ) for lfn in success] ) )
       else:
         return res
     return S_OK( filesParam )
@@ -701,7 +704,8 @@ class PluginUtilities( object ):
     res = groupByRun( lfns )
     self.logVerbose( "Grouped %d files by run in %.1f seconds" % ( len( lfns ), time.time() - startTime ) )
     runGroups = res['Value']
-    for runNumber, runLFNs in runGroups.items():
+    for runNumber in runGroups:
+      runLFNs = runGroups[runNumber]
       if not param:
         runDict[runNumber] = {None:runLFNs}
       else:
@@ -710,8 +714,8 @@ class PluginUtilities( object ):
         if not res['OK']:
           self.logError( 'Error getting %s for %d files of run %d' % ( param, len( runLFNs ), runNumber ), res['Message'] )
         else:
-          for lfn, paramValue in res['Value'].items():
-            runDict[runNumber].setdefault( paramValue, [] ).append( lfn )
+          for lfn in res['Value']:
+            runDict[runNumber].setdefault( res['Value'][lfn], [] ).append( lfn )
     if param:
       self.logVerbose( "Grouped %d files by run and %s in %.1f seconds" % ( len( lfns ), param, time.time() - startTime ) )
     return S_OK( runDict )
@@ -855,9 +859,12 @@ class PluginUtilities( object ):
         self.cachedLFNSize = pickle.load( f )
         self.cachedRunLfns = pickle.load( f )
         self.cachedProductions = pickle.load( f )
+        self.cachedLastRun = pickle.load( f )
         f.close()
         self.logVerbose( "Cache file %s successfully loaded" % cacheFile )
         break
+      except EOFError:
+        f.close()
       except:
         self.logVerbose( "Cache file %s could not be loaded" % cacheFile )
 
@@ -872,6 +879,12 @@ class PluginUtilities( object ):
 
   def setCachedProductions( self, productions ):
     self.cachedProductions = productions
+
+  def getCachedLastRun( self ):
+    return self.cachedLastRun
+
+  def setCachedLastRun( self, lastRun ):
+    self.cachedLastRun = lastRun
 
   def cacheExpired( self, runID ):
     if runID not in self.runExpiredCache:
@@ -908,6 +921,7 @@ class PluginUtilities( object ):
         pickle.dump( self.cachedLFNSize, f )
         pickle.dump( self.cachedRunLfns, f )
         pickle.dump( self.cachedProductions, f )
+        pickle.dump( self.cachedLastRun, f )
         f.close()
         self.logVerbose( "Cache file %s successfully written" % self.cacheFile )
       except:
@@ -929,7 +943,8 @@ class PluginUtilities( object ):
       if not res['OK']:
         return S_ERROR( "Failed to get sizes for all files: " % res['Message'] )
       if res['Value']['Failed']:
-        self.logWarn( "Failed to get sizes for %d files" % len( res['Value']['Failed'] ) )
+        errorReason = sorted( set( res['Value']['Failed'].values() ) )
+        self.logWarn( "Failed to get sizes for %d files:" % len( res['Value']['Failed'] ), errorReason )
       fileSizes.update( res['Value']['Successful'] )
       self.cachedLFNSize.update( ( res['Value']['Successful'] ) )
       self.logVerbose( "Timing for getting size of %d files from catalog: %.3f seconds" % ( len( lfns ), ( time.time() - startTime ) ) )
@@ -1032,10 +1047,10 @@ def groupByRun( files ):
   """
   runDict = {}
   for fileDict in files:
-    runID = fileDict.get( 'RunNumber' ) if fileDict.get( 'RunNumber' ) else 0
+    runID = fileDict.get( 'RunNumber' )
     lfn = fileDict['LFN']
     if lfn:
-      runDict.setdefault( runID, [] ).append( lfn )
+      runDict.setdefault( runID if runID else 0, [] ).append( lfn )
   return S_OK( runDict )
 
 def isArchive( se ):
