@@ -124,7 +124,7 @@ class MCSimulationTestingAgent ( AgentModule ):
     else:
       parameters = parameters['Value']
       self.log.verbose( "TransID = %d, Calculated Parameters: %s" % ( transID, str( parameters ) ) )
-      workflow = self._updateWorkflow( transID, parameters['CPUe'], parameters['MCCpu'] )
+      workflow = self._updateWorkflow( transID, int( round( float( parameters['CPUe'] ) ) ), parameters['MCCpu'] )
       if workflow['OK']:
         workflow = workflow['Value']
         res = self._updateTransformationsTable( transID, workflow )
