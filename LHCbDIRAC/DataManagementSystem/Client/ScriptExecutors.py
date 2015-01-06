@@ -75,8 +75,6 @@ def parseArguments( dmScript, allSEs = False, visible = None ):
     lfnList = []
     if bkQuery:
       bkFile = bkQuery.getPath()
-      if visible == None:
-        visible = bkQuery.isVisible()
       # Trick to be able to pass a file containing BKpaths
       if os.path.exists( bkFile ):
         f = open( bkFile, 'r' )
@@ -89,7 +87,6 @@ def parseArguments( dmScript, allSEs = False, visible = None ):
       multi = len( bkQueries ) > 1
       for bkQuery in bkQueries:
         if isinstance( bkQuery, BKQuery ):
-          bkQuery.setVisible( visible )
           if not multi:
             gLogger.always( "Executing BKQuery:", bkQuery )
           lfnList += bkQuery.getLFNs( printOutput = not multi )
@@ -815,7 +812,7 @@ def executeReplicaStats( dmScript ):
 
   directories = dmScript.getOption( 'Directory' )
   if not directories:
-    lfnList, _ses = parseArguments( dmScript, visible = 'All' )
+    lfnList, _ses = parseArguments( dmScript )
 
   printReplicaStats( directories, lfnList, getSize, prNoReplicas,
                      prWithReplicas, prWithArchives, prFailover )
