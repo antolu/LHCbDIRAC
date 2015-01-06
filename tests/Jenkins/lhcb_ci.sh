@@ -63,7 +63,7 @@ function findRelease(){
     # the end of the function )
     tmp_dir=`mktemp -d -q`
     cd $tmp_dir
-    wget http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC/releases.cfg --quiet
+    wget http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC/releases.cfg
 
     # Match project ( LHCbDIRAC, soon BeautyDirac ) version from releases.cfg
     # Example releases.cfg
