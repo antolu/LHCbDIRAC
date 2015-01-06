@@ -387,6 +387,7 @@ class StorageHistoryAgent( AgentModule ):
               metaForDir = metaForList[dirName]
               # BK returns a list of metadata, chose the first one...
               metadata = bkMetadata['Successful'].get( dirName, [{}] )[0]
+              metadata['Visibility'] = metadata.pop( 'VisibilityFlag', metadata.get( 'Visibility', 'na' ) )
               if metadata:
                 # All is OK, directory found
                 _fillMetadata( metaForDir, metadata )

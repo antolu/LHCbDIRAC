@@ -98,7 +98,7 @@ def cacheDirectories( directories ):
       longDir = dirShort2Long[dirLong2Short[lfn]]
       metadata = success.get( longDir, [{}] )[0]
       if metadata:
-        if metadata.get( 'VisibilityFlag', 'Y' ) == 'Y':
+        if metadata.get( 'VisibilityFlag', metadata.get( 'Visibility', 'Y' ) ) == 'Y':
           bkDict = BKQuery( metadata ).getQueryDict()
           bkPath = makePath( bkDict )
           processingPass[bkPath] = metadata['ProcessingPass']

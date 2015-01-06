@@ -155,6 +155,7 @@ class PopularityAgent( AgentModule ):
               self.log.warn( "Directory is not registered in Bookkeeping! %s " % dirLfn )
               configName = configVersion = conditions = processingPass = eventType = fileType = production = "na"
             else:
+              metadata['Visibility'] = metadata.pop( 'VisibilityFlag', metadata.get( 'Visibility', 'na' ) )
               configName = metadata[ 'ConfigName' ]
               configVersion = metadata[ 'ConfigVersion' ]
               conditions = metadata[ 'ConditionDescription' ]
