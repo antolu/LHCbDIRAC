@@ -17,7 +17,6 @@ from DIRAC.Core.Workflow.Workflow import fromXMLString
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUserOption
-from DIRAC.WorkloadManagementSystem.Client.WMSClient import WMSClient
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
@@ -110,21 +109,19 @@ class MCSimulationTestingAgent ( AgentModule ):
 
         else:
           self.log.warn( "There are failed tasks" )
-          numberOfFailedTasks = sum( 1 for d in tasks if d.get( 'ExternalStatus' ) == "Failed" )
+          report = self.__createReport( tasks )
+          numberOfFailedTasks = sum( 1 for d in tasks if d.get( 'ExternalStatus' ) == 'Failed' )
           if numberOfFailedTasks == numberOfTasks:
             # all tasks have failed so the request can be rejected and an email report sent
-            report = self.__createReport( tasks )
             self._sendReport( report )
             self.log.warn( "Transformation " + str( transID ) + " failed the testing phase" )
             self.failedTransIDs.append( transID )
           else:
-            # only some tasks have failed so extend the failed tasks to repeat them
-            self._extendFailedTasks( transID, numberOfFailedTasks )
-            self.log.info( "%d tasks of Transformation %d failed the testing phase, so it has been extended" % ( numberOfFailedTasks,
-                                                                                                                 transID ) )
-            failedJobIDs = [int( d['ExternalID'] ) for d in tasks if d.get( 'ExternalStatus' ) == 'Failed']
-            self.log.info( "Deleting the failed jobs %s" % ( ', '.join( str( x ) for x in failedJobIDs ) ) )
-            WMSClient().deleteJob( failedJobIDs )
+            # only some tasks have failed so continue but send a warn email
+            subject = "MCSimulation Test Failure Report. TransformationID: " + str( transID ) + " - some tasks failed"
+            report['subject'] = subject
+            self._sendReport( report )
+            self.log.warn( "Transformation " + str( transID ) + " failed partially the testing phase, continuing anyway" )
 
     return S_OK()
 
