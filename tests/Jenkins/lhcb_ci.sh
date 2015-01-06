@@ -59,11 +59,9 @@ function findRelease(){
       echo 'Running on REGULAR mode'
     fi  
     
-    echo 'AAAAAAAAAAA'
   
     # Create temporary directory where to store releases.cfg ( will be deleted at
     # the end of the function )
-    echo 'BBBBBB'
     #tmp_dir=`mktemp -d -q`
     #echo 'Moving to'
     #echo $tmp_dir
@@ -849,6 +847,7 @@ function installSite(){
 	
 	#Fixing install.cfg file
 	cp $WORKSPACE/LHCbTestDirac/Jenkins/install.cfg $WORKSPACE/DIRAC
+	lhcbdiracVersion=v0r108
 	sed -i s/VAR_Release/$lhcbdiracVersion/g $WORKSPACE/DIRAC/install.cfg
 	sed -i s/VAR_LcgVer/$lcgVersion/g $WORKSPACE/DIRAC/install.cfg
 	sed -i s,VAR_TargetPath,$WORKSPACE,g $WORKSPACE/DIRAC/install.cfg
