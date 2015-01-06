@@ -17,6 +17,7 @@ from DIRAC.Core.Workflow.Workflow import fromXMLString
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUserOption
+from DIRAC.WorkloadManagementSystem.Client.WMSClient import WMSClient
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
@@ -109,7 +110,7 @@ class MCSimulationTestingAgent ( AgentModule ):
 
         else:
           self.log.warn( "There are failed tasks" )
-          numberOfFailedTasks = sum( 1 for d in tasks if d.get( "ExternalStatus" ) == "Failed" )
+          numberOfFailedTasks = sum( 1 for d in tasks if d.get( 'ExternalStatus' ) == "Failed" )
           if numberOfFailedTasks == numberOfTasks:
             # all tasks have failed so the request can be rejected and an email report sent
             report = self.__createReport( tasks )
@@ -121,7 +122,9 @@ class MCSimulationTestingAgent ( AgentModule ):
             self._extendFailedTasks( transID, numberOfFailedTasks )
             self.log.info( "%d tasks of Transformation %d failed the testing phase, so it has been extended" % ( numberOfFailedTasks,
                                                                                                                  transID ) )
-
+            failedJobIDs = [int( d['ExternalID'] ) for d in tasks if d.get( 'ExternalStatus' ) == 'Failed']
+            self.log.info( "Deleting the failed jobs %s" % ( ', '.join( str( x ) for x in failedJobIDs ) ) )
+            WMSClient().deleteJob( failedJobIDs )
 
     return S_OK()
 
@@ -250,8 +253,8 @@ class MCSimulationTestingAgent ( AgentModule ):
       return res
 
   def _updateTransformationsTable( self, transID, workflow ):
-    """puts the modified workflow from the savedProductionDescription table into the transformations table
-       and removes it from the savedProductionDescription table.
+    """ Puts the modified workflow from the savedProductionDescription table into the transformations table
+        and removes it from the savedProductionDescription table.
     """
     transformation = self.transClient.getTransformations( condDict = {"TransformationID" : transID} )
     if transformation['OK']:
@@ -280,8 +283,7 @@ class MCSimulationTestingAgent ( AgentModule ):
       return transformation
 
   def _extendFailedTasks( self, transID, numberOfFailedTasks ):
-    """takes the number of failed tasks of a testing phase and extends the production by that number to
-       repeat the test
+    """ Takes the number of failed tasks of a testing phase and extends the production by that number to repeat the test
     """
     res = self.transClient.extendTransformation( transID, numberOfFailedTasks )
     if not res['OK']:
