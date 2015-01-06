@@ -906,14 +906,6 @@ function fullInstall(){
 	findServices 'FrameworkSystem'
 	diracServices
 	
-	#create groups
-	diracUserAndGroup
-	
-	#refresh the configuration (gConfig dark side!)
-	sleep 10
-	diracRefreshCS
-	sleep 10
-	
 	#upload proxies
 	diracProxies
 	# prod
@@ -939,6 +931,14 @@ function fullInstall(){
 	sleep 10
 	echo 'Restarting WorkloadManagement SandboxStore'
 	dirac-restart-component WorkloadManagement SandboxStore $DEBUG
+
+	#create groups
+	diracUserAndGroup
+	
+	#refresh the configuration (gConfig dark side!)
+	sleep 10
+	diracRefreshCS
+	sleep 10
 }
 
 
