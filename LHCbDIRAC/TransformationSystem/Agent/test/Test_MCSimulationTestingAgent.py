@@ -395,7 +395,7 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
                                                   'Value': {'Failed': [],
                                                             'Successful': {'123': [{'ApplicationName': 'Gauss',
                                                                                     'ApplicationVersion': 'v30r14',
-                                                                                    'CPUTime': 1000.0,
+                                                                                    'CPUTIME': 1000.0,
                                                                                     'DIRACJobId': 1563495,
                                                                                     'DIRACVersion': 'v2r13 build 3',
                                                                                     'EventInputStat': None,
