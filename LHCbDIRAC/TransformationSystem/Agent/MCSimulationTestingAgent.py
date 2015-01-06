@@ -90,23 +90,9 @@ class MCSimulationTestingAgent ( AgentModule ):
         self.log.verbose( "TransID = %d, numberOfTasks = %d, numberOfDoneTasks = %d" % ( transID, numberOfTasks, numberOfDoneTasks ) )
         if numberOfTasks == numberOfDoneTasks:
           self.log.info( "All tasks have passed so the request can be accepted and the transformation updated" )
-          parameters = self._calculateParameters( tasks )
-          if not parameters['OK']:
-            self.log.error( "Error calculating parameters", parameters['Message'] )
-            return parameters
-          else:
-            parameters = parameters['Value']
-            self.log.verbose( "TransID = %d, Calculated Parameters: %s" % ( transID, str( parameters ) ) )
-            workflow = self._updateWorkflow( transID, parameters['CPUe'], parameters['MCCpu'] )
-            if workflow['OK']:
-              workflow = workflow['Value']
-              res = self._updateTransformationsTable( transID, workflow )
-              if not res['OK']:
-                self.log.error( "Error updating transformations table", res['Message'] )
-                return res
-              else:
-                self.log.info( "Transformation " + str( transID ) + " passed the testing phase and is now set to active" )
-
+          res = self._activateTransformation( transID, tasks )
+          if not res['OK']:
+            self.log.error( "Error Activating Production", res['Message'] )
         else:
           self.log.warn( "There are failed tasks" )
           report = self.__createReport( tasks )
@@ -122,8 +108,34 @@ class MCSimulationTestingAgent ( AgentModule ):
             report['subject'] = subject
             self._sendReport( report )
             self.log.warn( "Transformation " + str( transID ) + " failed partially the testing phase, continuing anyway" )
+            res = self._activateTransformation( transID, tasks )
+            if not res['OK']:
+              self.log.error( "Error Activating Production", res['Message'] )
 
     return S_OK()
+
+  def _activateTransformation( self, transID, tasks ):
+    """ Calculate parameters, update the workflow, then move the production to Active
+    """
+    parameters = self._calculateParameters( tasks )
+    if not parameters['OK']:
+      self.log.error( "Error calculating parameters", parameters['Message'] )
+      return parameters
+    else:
+      parameters = parameters['Value']
+      self.log.verbose( "TransID = %d, Calculated Parameters: %s" % ( transID, str( parameters ) ) )
+      workflow = self._updateWorkflow( transID, parameters['CPUe'], parameters['MCCpu'] )
+      if workflow['OK']:
+        workflow = workflow['Value']
+        res = self._updateTransformationsTable( transID, workflow )
+        if not res['OK']:
+          self.log.error( "Error updating transformations table", res['Message'] )
+          return res
+        else:
+          self.log.info( "Transformation " + str( transID ) + " passed the testing phase and is now set to active" )
+
+    return S_OK()
+
 
   def __createReport( self, tasks ):
     """creates a report from a failed task to email to the production manager
@@ -201,7 +213,7 @@ class MCSimulationTestingAgent ( AgentModule ):
       for bkJob in job:
         if bkJob['ApplicationName'] == 'Gauss':
           events = bkJob['NumberOfEvents']
-          timeInSeconds = bkJob['CPUTime']
+          timeInSeconds = bkJob['CPUTIME']
           cpuJob = timeInSeconds * bkJob['WNCPUHS06']
           break
       CPUeJob = cpuJob / events
