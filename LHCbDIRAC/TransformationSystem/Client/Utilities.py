@@ -821,10 +821,12 @@ class PluginUtilities( object ):
     self.logVerbose( "Grouped %d files by size in %.1f seconds" % ( len( files ), time.time() - startTime ) )
     return S_OK( tasks )
 
-  def createTasks( self, storageElementGroups, chunkSize = 100 ):
+  def createTasks( self, storageElementGroups, chunkSize = None ):
     """ Create reasonable size tasks
     """
     tasks = []
+    if not chunkSize:
+      chunkSize = self.getPluginParam( 'MaxFiles', 100 )
     for stringTargetSEs in sorted( storageElementGroups.keys() ):
       stringTargetLFNs = storageElementGroups[stringTargetSEs]
       for lfnGroup in breakListIntoChunks( sorted( stringTargetLFNs ), chunkSize ):
