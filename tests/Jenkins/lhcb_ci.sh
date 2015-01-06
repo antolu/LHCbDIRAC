@@ -64,10 +64,10 @@ function findRelease(){
     # Create temporary directory where to store releases.cfg ( will be deleted at
     # the end of the function )
     echo 'BBBBBB'
-    tmp_dir=`mktemp -d -q`
-    echo 'Moving to'
-    echo $tmp_dir
-    cd $tmp_dir
+    #tmp_dir=`mktemp -d -q`
+    #echo 'Moving to'
+    #echo $tmp_dir
+    #cd $tmp_dir
     wget http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC/releases.cfg
 
     # Match project ( LHCbDIRAC, soon BeautyDirac ) version from releases.cfg
@@ -103,7 +103,7 @@ function findRelease(){
   
     # Back to $WORKSPACE and clean tmp_dir
     cd $WORKSPACE
-    rm -r $tmp_dir
+    #rm -r $tmp_dir
     
     # PrintOuts
     echo PROJECT:$projectVersion && echo $projectVersion > project.version
