@@ -149,7 +149,7 @@ class PopularityAgent( AgentModule ):
               self.log.error( "Failed to query Bookkeeping %s" % res[ 'Message' ] )
               metadata = None
             else:
-              self.log.info( "Successfully queried Bookkeeping, result: %s " % res )
+              self.log.verbose( "Successfully queried Bookkeeping, result: %s " % res )
               metadata = res['Value'].get( 'Successful', {} ).get( dirLfn, [{}] )[0]
             if not metadata:
               self.log.warn( "Directory is not registered in Bookkeeping! %s " % dirLfn )
