@@ -541,7 +541,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       runID = run['RunNumber']
       self.util.logDebug( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
       nRunsLeft -= 1
-      runStatus = run['Status'] if transStatus != 'Flush' else transStatus
+      if transStatus == 'Flush':
+        runStatus = 'Flush'
+      else:
+        runStatus = run['Status']
       paramDict = runDict.get( runID, {} )
       targetSEs = [se for se in runSites.get( runID, '' ).split( ',' ) if se]
       #
