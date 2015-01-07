@@ -30,8 +30,11 @@ def getFileDescendants( transID, lfns, transClient = None, dm = None, bkClient =
   cc.prod = transID
   cc.fileType = []
   cc.fileTypesExcluded = Operations().getValue( 'DataConsistency/IgnoreDescendantsOfType', [] )
-
-  return cc.getDescendants( lfns )[0]
+  savedLevel = gLogger.getLevel()
+  gLogger.setLevel( 'FATAL' )
+  descendants = cc.getDescendants( lfns )[0]
+  gLogger.setLevel( savedLevel )
+  return descendants
 
 class ConsistencyChecks( object ):
   """ A class for handling some consistency check
