@@ -419,7 +419,7 @@ def executeAccessURL( dmScript ):
   protocol = None
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Protocol':
-      protocol = switch[1].lower()
+      protocol = switch[1].lower().split( ',' )
   lfnList, seList = parseArguments( dmScript )
   if not lfnList:
     gLogger.always( "No list of LFNs provided" )
