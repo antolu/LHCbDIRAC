@@ -35,6 +35,7 @@ if not os.path.isdir( '%s/sandboxes' % setupName ):
   os.makedirs( '%s/sandboxes' % setupName )
 localCfg.setOption( 'Systems/WorkloadManagement/Production/Services/SandboxStore/BasePath',
                     '%s/sandboxes' % setupName )
+localCfg.setOption( 'Systems/WorkloadManagement/Production/Services/SandboxStore/LogLevel', 'DEBUG' )
 
 # Now setting a SandboxSE as the following:
 #     ProductionSandboxSE
