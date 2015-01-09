@@ -9,6 +9,7 @@ __RCSID__ = "$Id$"
 
 # # from DIRAC
 from DIRAC                                                        import S_OK, S_ERROR, gConfig
+from DIRAC.DataManagementSystem.Client.DataManager                import DataManager
 from DIRAC.Resources.Catalog.FileCatalog                          import FileCatalog
 from DIRAC.TransformationSystem.Agent.TransformationCleaningAgent import TransformationCleaningAgent as DiracTCAgent
 # # from LHCbDIRAC
@@ -28,8 +29,8 @@ class TransformationCleaningAgent( DiracTCAgent ):
     """
     DiracTCAgent.__init__( self, *args, **kwargs )
 
-    self.directoryLocations = sorted( self.am_getOption( 'DirectoryLocations', [ 'TransformationDB',
-                                                                                   'StorageUsage' ] ) )
+    self.directoryLocations = sorted( self.am_getOption( 'DirectoryLocations', ['TransformationDB',
+                                                                                'StorageUsage' ] ) )
     self.archiveAfter = self.am_getOption( 'ArchiveAfter', 7 )  # days
 
     storageElements = gConfig.getValue( '/Resources/StorageElementGroups/Tier1_MC_M-DST', [] )
@@ -40,6 +41,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
     self.bkClient = None
     self.transClient = None
     self.storageUsageClient = None
+    self.dm = None
 
   #############################################################################
 
@@ -51,6 +53,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
     self.bkClient = BookkeepingClient()
     self.transClient = TransformationClient()
     self.storageUsageClient = StorageUsageClient()
+    self.dm = DataManager()
 
     return S_OK()
 
