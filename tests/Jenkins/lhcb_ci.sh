@@ -34,7 +34,7 @@ LHCb_CI_CONFIG=$WORKSPACE/LHCbTestDirac/Jenkins/config/lhcb_ci
 
 #.............................................................................
 #
-# findRelease:
+# findRelease for LHCbDIRAC:
 #
 #   If the environment variable "PRERELEASE" exists, we use a LHCb prerelease
 #   instead of a regular release ( production-like ).
@@ -112,155 +112,33 @@ function findRelease(){
 }
 
 
-  #.............................................................................
-  #
-  # findSystems:
-  #
-  #   gets all system names from *DIRAC code and writes them to a file
-  #   named systems.
-  #
-  #.............................................................................
-  
-function findSystems(){
-	echo '[findSystems]'
-   
-	cd $WORKSPACE
-	find *DIRAC/ -name *System  | cut -d '/' -f 2 | sort | uniq > systems
-
-	echo found `wc -l systems`
-
-}
-
-
-  #.............................................................................
-  #
-  # findDatabases:
-  #
-  #   gets all database names from *DIRAC code and writes them to a file
-  #   named databases.
-  #
-  #.............................................................................
-
-function findDatabases(){
-    echo '[findDatabases]'
-
-	if [ ! -z "$1" ]
-	then
-		DBstoSearch=$1
-	    if [ "$DBstoSearch" = "exclude" ]
-		then
-			echo 'excluding ' $2
-			DBstoExclude=$2
-			DBstoSearch=' '
-		fi
-	else
-    	DBstoExclude='notExcluding'
-	fi
-    
-    cd $WORKSPACE
-    #
-    # HACK ALERT:
-    #
-    #   We are avoiding TransferDB, which will be deprecated soon.. 
-    #
-	if [ ! -z "$DBstoExclude" ]
-	then 
-		find *DIRAC -name *DB.sql | grep -vE '(TransferDB.sql|FileCatalogDB)' | awk -F "/" '{print $2,$4}' | grep -v $DBstoExclude | sort | uniq > databases
-	else
-		find *DIRAC -name *DB.sql | grep -vE '(TransferDB.sql|FileCatalogDB)' | awk -F "/" '{print $2,$4}' | grep $DBstoSearch | sort | uniq > databases
-	fi
-
-    echo found `wc -l databases`
-}
-
-
-#-------------------------------------------------------------------------------
-# findServices:
-#
-#   gets all service names from *DIRAC code and writes them to a file
-#   named services. Needs an input for searching
-#
-#-------------------------------------------------------------------------------
-
-findServices(){
-	echo '[findServices]'
-
-
-	if [ ! -z "$1" ]
-	then
-		ServicestoSearch=$1
-	    if [ "$ServicestoSearch" = "exclude" ]
-		then
-			echo 'excluding ' $2
-			ServicestoExclude=$2
-			ServicestoSearch=' '
-		fi
-	else
-    	ServicestoExclude='notExcluding'
-	fi
-    
-    cd $WORKSPACE
-    #
-    # HACK ALERT:
-    #
-    #   We are avoiding TransferDB, which will be deprecated soon.. 
-    #
-	if [ ! -z "$ServicestoExclude" ]
-	then 
-		find *DIRAC/*/Service/ -name *Handler.py | grep -v test | awk -F "/" '{print $2,$4}' | grep -v $ServicestoExclude | sort | uniq > services
-	else
-		find *DIRAC/*/Service/ -name *Handler.py | grep -v test | awk -F "/" '{print $2,$4}' | grep $ServicestoSearch | sort | uniq > services
-	fi
-
-	echo found `wc -l services`
-}
-
-
-#-------------------------------------------------------------------------------
-# findExecutors:
-#
-#   gets all executor names from *DIRAC code and writes them to a file
-#   named executors.
-#
-#-------------------------------------------------------------------------------
-
-findExecutors(){
-	echo '[findExecutors]'
-
-	find *DIRAC/*/Executor/ -name *.py | awk -F "/" '{print $2,$4}' | sort | uniq > executors
-
-	echo found `wc -l executors`
-
-}
-
-
 #-------------------------------------------------------------------------------
 # OPEN SSL... let's create a fake CA and certificates
 #-------------------------------------------------------------------------------
 
-  
-  #.............................................................................
-  #
-  # function generateCertificates
-  #
-  #   This function generates a random host certificate ( certificate and key ), 
-  #   which will be stored on etc/grid-security. As we need a CA to validate it,
-  #   we simply copy it to the directory where the CA certificates are supposed
-  #   to be stored etc/grid-security/certificates. In real, we'd copy them from 
-  #   CVMFS:
-  #     /cvmfs/grid.cern.ch/etc/grid-security/certificates    
-  #
-  #   Additional info:
-  #     http://www.openssl.org/docs/apps/req.html
-  #
-  #.............................................................................
+
+#.............................................................................
+#
+# function generateCertificates
+#
+#   This function generates a random host certificate ( certificate and key ), 
+#   which will be stored on etc/grid-security. As we need a CA to validate it,
+#   we simply copy it to the directory where the CA certificates are supposed
+#   to be stored etc/grid-security/certificates. In real, we'd copy them from 
+#   CVMFS:
+#     /cvmfs/grid.cern.ch/etc/grid-security/certificates    
+#
+#   Additional info:
+#     http://www.openssl.org/docs/apps/req.html
+#
+#.............................................................................
   
 function generateCertificates(){
-    echo '[generateCertificates]'
+	echo '[generateCertificates]'
 
-    mkdir -p $WORKSPACE/etc/grid-security/certificates
-    cd $WORKSPACE/etc/grid-security
-    
+	mkdir -p $WORKSPACE/etc/grid-security/certificates
+	cd $WORKSPACE/etc/grid-security
+
     # Generate private RSA key
     openssl genrsa -out hostkey.pem 2048 2&>1 /dev/null
     
@@ -925,9 +803,12 @@ function fullInstall(){
 	#fix the SandboxStore 
 	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update-server.py $WORKSPACE $DEBUG
 	#refresh the configuration (gConfig dark side!)
-	sleep 180
+	sleep 30
 	diracRefreshCS
-	sleep 180
+	sleep 30
+	echo 'Restarting Configuration Server'
+	dirac-restart-component Configuration Server $DEBUG
+	sleep 30
 	echo 'Restarting WorkloadManagement SandboxStore'
 	dirac-restart-component WorkloadManagement SandboxStore $DEBUG
 
