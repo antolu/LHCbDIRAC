@@ -10,7 +10,7 @@
 __RCSID__ = "$Id:  $"
 
 from DIRAC.Core.Base import Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript,printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult
 import DIRAC
 
 if __name__ == "__main__":
@@ -36,6 +36,5 @@ if __name__ == "__main__":
     DIRAC.exit( 0 )
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-  retVal = BookkeepingClient().bulkJobInfo( lfnList)
-  if retVal['OK']:
-    printDMResult( retVal, empty = "File does not exists in the Bookkeeping" )
+  retVal = BookkeepingClient().bulkJobInfo( lfnList )
+  printDMResult( retVal, empty = "File does not exists in the Bookkeeping" )
