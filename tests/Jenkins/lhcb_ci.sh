@@ -925,9 +925,9 @@ function fullInstall(){
 	#fix the SandboxStore 
 	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update-server.py $WORKSPACE $DEBUG
 	#refresh the configuration (gConfig dark side!)
-	sleep 10
+	sleep 180
 	diracRefreshCS
-	sleep 10
+	sleep 180
 	echo 'Restarting WorkloadManagement SandboxStore'
 	dirac-restart-component WorkloadManagement SandboxStore $DEBUG
 
