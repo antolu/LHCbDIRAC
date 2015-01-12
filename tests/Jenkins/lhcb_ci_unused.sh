@@ -246,3 +246,29 @@ function mergeTests(){
 
 }
 
+
+#-------------------------------------------------------------------------------
+# dumpDBs:
+#
+#   removes all the DBs from the MySQL server to start with a fresh installation
+#
+#-------------------------------------------------------------------------------
+
+function dumpDBs(){
+	echo '[dumpDBs]'
+
+	rootPass=`cat rootMySQL`
+	sqlStatements=`mysql -u root -p$rootPass -e "show databases" | grep -v mysql | grep -v Database | grep -v information_schema | grep -v test`
+	echo "$sqlStatements" | gawk '{print "drop database " $1 ";select sleep(0.1);"}' | mysql -u root -p$rootPass 
+
+}
+
+
+
+function integrationTest(){
+	echo '[integrationTest]'
+	
+	nosetests --with-xunit $WORKSPACE/$1/Integration/$2 -v --xunit-file=nosetests_$1_$2.xml --with-coverage --cover-package=DIRAC,LHCbDIRAC
+	mv .coverage .coverage._$1_$2
+	
+}
