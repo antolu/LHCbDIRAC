@@ -323,17 +323,17 @@ class BookkeepingClient:
     -a list of lfns
     - a list of DIRAC job ids
     - a list of jobNames
-    in_dict = {'lfn':[],jobId:[],jobName:[]}    
-    
+    in_dict = {'lfn':[],jobId:[],jobName:[]}
+
     """
     conditions = {}
     if type( in_dict ) == types.StringType:
       conditions['lfn'] = [in_dict]
-    elif type (in_dict) == types.ListType:
+    elif type ( in_dict ) == types.ListType:
       conditions['lfn'] = in_dict
     else:
       conditions = in_dict
-      
+
     server = self.__getServer()
     return server.bulkJobInfo( conditions )
 
@@ -1000,18 +1000,18 @@ class BookkeepingClient:
     return server.deleteSimulationConditions( simid )
 
   #############################################################################
-  def getProductionSummaryFromView(self, in_dict):
+  def getProductionSummaryFromView( self, in_dict ):
     """it returns a summary for a given condition."""
     server = self.__getServer()
-    return server.getProductionSummaryFromView(in_dict)
+    return server.getProductionSummaryFromView( in_dict )
 
   #############################################################################
-  def getJobInputOutputFiles(self, diracjobids):
+  def getJobInputOutputFiles( self, diracjobids ):
     """It returns the input and output files for a given DIRAC jobid"""
     if type( diracjobids ) in [ types.LongType, types.IntType]:
       diracjobids = [diracjobids]
     server = self.__getServer()
-    return server.getJobInputOutputFiles(diracjobids)
+    return server.getJobInputOutputFiles( diracjobids )
 
   # The following method names are changed in the Bookkeeping client.
 
@@ -1446,6 +1446,27 @@ class BookkeepingClient:
     will be removed from the next release. Please use the 'getTCKs'!" )
     server = self.__getServer()
     return server.getTCKs( in_dict )
+
+class BKClientWithRetry():
+  """
+  Utility class wrapping BKClient with retries
+  """
+  def __init__( self, bkClient = None, retries = None ):
+    if not bkClient:
+      bkClient = BookkeepingClient()
+    self.bk = bkClient
+    self.retries = retries if retries else 5
+    self.method = None
+  def __getattr__( self, x ):
+    self.method = x
+    return self.__executeMethod
+  def __executeMethod( self, *args, **kwargs ):
+    fcn = getattr( self.bk, self.method )
+    for _i in range( self.retries ):
+      res = fcn( *args, **kwargs )
+      if res['OK']:
+        break
+    return res
 
 
 
