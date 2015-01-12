@@ -285,10 +285,11 @@ class XMLFilesReaderManager:
                 dqvalue = retVal['Value']
               else:
                 dqvalue = None
-                gLogger.warn('The data quality working group did not checked the run!!')
+                message = "The rundataquality table does not contains %d %s. Consequently, the Dq flag is inherited from the ancestor file!" % (runnumber, proc)
+                gLogger.warn(message)
             else:
               dqvalue = None
-              gLogger.warn('Bkk can not set the quality flag because the processing pass is missing!')
+              gLogger.warn('Bkk can not set the quality flag because the processing pass is missing for % d production (run number: %d )!' % (prod, runnumber))
 
     inputfiles = job.getJobInputFiles()
 
@@ -346,7 +347,7 @@ class XMLFilesReaderManager:
         newFileParams.setParamName('Luminosity')
         newFileParams.setParamValue(sumLuminosity)
         outputfile.addFileParam(newFileParams)
-        gLogger.debug('Lumiisity added to ' + outputfile.getFileName())
+        gLogger.debug('Luminosity added to ' + outputfile.getFileName())
       ################
 
     config = job.getJobConfiguration()
