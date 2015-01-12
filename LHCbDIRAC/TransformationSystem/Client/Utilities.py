@@ -14,6 +14,7 @@ from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
 
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BKClientWithRetry
 
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, convertSEs
 
@@ -143,7 +144,7 @@ class PluginUtilities( object ):
   def __init__( self, plugin, transClient, dataManager, bkClient, rmClient, resourceStatus, debug, transInThread, transID = None ):
     self.plugin = plugin
     self.transClient = transClient
-    self.bkClient = bkClient
+    self.bkClient = BKClientWithRetry( bkClient )
     self.dm = dataManager
     self.fc = FileCatalog()
     self.rmClient = rmClient
@@ -653,10 +654,10 @@ class PluginUtilities( object ):
       return ancestorFiles
     # If needed, add NotProcessed files in the Reconstruction production
     if runID not in self.notProcessed and lfnToCheck:
-      res = self.bkClient.getFileMetadata( lfnToCheck )
       ancestorFullDST = None
       recoProduction = None
       notProcessed = 0
+      res = self.bkClient.getFileMetadata( lfnToCheck )
       if res['OK']:
         if res['Value']['Successful'].get( lfnToCheck, {} ).get( 'FileType' ) != 'FULL.DST':
           res = self.bkClient.getFileAncestors( [lfnToCheck], depth = 10, replica = False )
