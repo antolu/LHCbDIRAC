@@ -711,31 +711,29 @@ class TransformationDB( DIRACTransformationDB ):
   # Managing the RunDestination table
   #
 
-  def getSEForRun( self, runID, connection = False ):
+  def getDestinationForRun( self, runID, connection = False ):
     """ get destination of a run.
     """
     connection = self.__getConnection( connection )
-    req = "SELECT SE FROM RunDestination WHERE RunNumber = %d" % runID
+    req = "SELECT Destination FROM RunDestination WHERE RunNumber = %d" % runID
     res = self._query( req, connection )
     if not res['OK']:
       gLogger.error( "Failure executing %s" % str( req ) )
       return res
     else:
-      res = res['Value']
-      return S_OK( res )
+      return S_OK( res['Value'][0] )
 
-  def setSEForRun( self, runID, SE, connection = False ):
+  def setDestinationForRun( self, runID, destination, connection = False ):
     """ set destination of a run.
     """
     connection = self.__getConnection( connection )
-    req = "INSERT INTO RunDestination (RunNumber, SE) VALUES (%d, '%s')" % ( runID, SE )
+    req = "INSERT INTO RunDestination (RunNumber, Destination) VALUES (%d, '%s')" % ( runID, destination )
     res = self._query( req, connection )
     if not res['OK']:
       gLogger.error( "Failure executing %s" % str( req ) )
       return res
     else:
-      res = res['Value']
-      return S_OK( res )
+      return res
 
 
   #############################################################################

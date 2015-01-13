@@ -251,17 +251,17 @@ class TransformationManagerHandler( TManagerBase ):
   # Managing the RunDestination table
   #
 
-  types_getSEForRun = [[LongType, IntType, StringType]]
-  def export_getSEForRun( self, runID ):
+  types_getDestinationForRun = [[LongType, IntType]]
+  def export_getDestinationForRun( self, runID ):
     """ retrieve run destination
     """
-    return database.getSEForRun( runID )
+    return database.getDestinationForRun( runID )
 
-  types_setSEForRun = [[LongType, IntType, StringType]]
-  def export_setSEForRun( self, runID, SE ):
+  types_setDestinationForRun = [[LongType, IntType], StringType]
+  def export_setDestinationForRun( self, runID, destination ):
     """ set run destination
     """
-    return database.setSEForRun( runID, SE )
+    return database.setDestinationForRun( runID, destination )
 
 
 
