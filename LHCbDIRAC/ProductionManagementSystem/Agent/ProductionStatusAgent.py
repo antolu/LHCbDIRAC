@@ -420,6 +420,8 @@ class ProductionStatusAgent( AgentModule ):
     """ Sets default values.
     """
     # shifter
+    self.am_setOption( 'shifterProxy', 'ProductionManager' )
+
     if not gStandAlone:
       self.notify = eval( self.am_getOption( 'NotifyProdManager', 'True' ) )
 
