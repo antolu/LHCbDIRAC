@@ -70,6 +70,12 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
 
     self.assertEqual( res['Value'][0]['TransformationID'], transID )
 
+    res = self.transClient.setDestinationForRun( 1, 'CERN-RAW' )
+    self.assert_( res['OK'] )
+    res = self.transClient.getDestinationForRun( 1 )
+    self.assert_( res['OK'] )
+    self.assert_( res['Value'], 'CERN-RAW' )
+
     # FIXME: first, I should add some...
     res = self.transClient.insertTransformationRun( transID, 767, 'PIPPO_SE' )
     self.assert_( res['OK'] )
