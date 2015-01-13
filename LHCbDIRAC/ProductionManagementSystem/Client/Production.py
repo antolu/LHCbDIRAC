@@ -606,6 +606,14 @@ class Production( object ):
       self.transformation.setGroupSize( int( self.jobFileGroupSize ) )
       self.transformation.setInheritedFrom( int( self.ancestorProduction ) )
 
+      result = self.transformation.addTransformation()
+
+      if not result['OK']:
+        gLogger.error( 'Problem creating production:\n%s' % result )
+        return result
+      prodID = result['Value']
+      gLogger.info( 'Production %s successfully created' % prodID )
+
       # All other parameters
       groupDesc = self.LHCbJob.workflow.findParameter( 'groupDescription' ).getValue(),
       paramsDict = self.__getProductionParameters( prodID = prodID,
@@ -617,13 +625,6 @@ class Production( object ):
       for parName, parValue in paramsDict.items():
         result = getattr( self.transformation, 'set' + parName )( parValue )
 
-      result = self.transformation.addTransformation()
-
-      if not result['OK']:
-        gLogger.error( 'Problem creating production:\n%s' % result )
-        return result
-      prodID = result['Value']
-      gLogger.info( 'Production %s successfully created' % prodID )
     else:
       gLogger.verbose( 'Publish flag is disabled, using default production ID' )
 
