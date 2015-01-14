@@ -477,6 +477,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ Basic plugin for when you want to group files by run
     """
     self.util.logInfo( "Starting execution of plugin" )
+    pluginStartTime = time.time()
     allTasks = []
     typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge', 'Replication', 'Removal'] )
     fromSEs = set( self.util.getPluginParam( 'FromSEs', [] ) )
@@ -487,12 +488,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_OK( allTasks )
 
     startTime = time.time()
+    self.util.logInfo( "Grouping %d files by runs %s " %
+                          ( len( self.transFiles ),
+                            'and %s' % param if param else '' ) )
     res = self.util.groupByRunAndParam( self.transReplicas, self.transFiles, param = param )
     if not res['OK']:
       self.util.logError( "Error when grouping %d files by run for param %s" % ( len( self.transReplicas ), param ) )
       return res
     runDict = res['Value']
-    self.util.logVerbose( "Grouped %d files in %d runs %s in %.1f seconds" %
+    self.util.logInfo( "Grouped %d files in %d runs %s in %.1f seconds" %
                           ( len( self.transFiles ), len( runDict ),
                             'and %s' % param if param else '', time.time() - startTime ) )
 
@@ -521,9 +525,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     inputData = self.transReplicas.copy()
     setInputData = set( inputData )
     runEvtType = {}
+    runList = []
     # Restart where we finished last time
     lastRun = self.util.getCachedLastRun()
-    runList = [run for run in transRuns if run['RunNumber'] > lastRun]
+    # runList = [run for run in transRuns if run['RunNumber'] > lastRun]
     # If none left, restart from the beginning
     if not runList:
       runList = transRuns
@@ -535,8 +540,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     #
     # # # # # # # Loop on all selected runs # # # # # # #
     #
-    pluginStartTime = time.time()
     timeout = False
+    processedFiles = 0
     for run in sorted( runList, cmp = ( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) ):
       runID = run['RunNumber']
       self.util.logDebug( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
@@ -550,6 +555,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for paramValue in sorted( paramDict ):
         paramStr = " (%s : %s) " % ( param, paramValue ) if paramValue else ' '
         runParamLfns = set( paramDict[paramValue] )
+        processFiles += len( runParamFiles )
         # Check if something was new since last time...
         cachedLfns = self.util.getCachedRunLFNs( runID, paramValue )
         newLfns = runParamLfns - cachedLfns
@@ -646,9 +652,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       lastRun = runID
       if maxTime and timeSpent > maxTime:
         timeout = True
-        self.util.logInfo( "Enough time spent in plugin (%.1f seconds), exit at run %d" % ( timeSpent, runID ) )
+        self.util.logInfo( "Enough time spent in plugin (%.1f seconds), exit at run %d, %d runs left" % ( timeSpent, runID, nRunsLeft ) )
         break
     # # # # # # # # End of run loop # # # # # # # #
+    self.util.logInfo( "Processed %d files in %.1f seconds" % ( processedFiles, timeSpent ) )
     self.util.setCachedLastRun( lastRun )
     # reset the input data as it was when calling the plugin
     self.setInputData( inputData )
