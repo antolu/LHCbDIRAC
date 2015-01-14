@@ -66,8 +66,15 @@ function findRelease(){
     #   LcgVer = 2013-09-24
     # }
     
-    # projectVersion := v7r15-pre2 ( if we are in PRERELEASE mode )
-    projectVersion=`cat releases.cfg | grep [^:]v[[:digit:]]r[[:digit:]]*$PRE | head -1 | sed 's/ //g'`
+	if [ ! -z "$LHCBDIRAC_RELEASE" ]
+	then
+		echo 'Specified release'
+		echo $LHCBDIRAC_RELEASE
+		projectVersion=$LHCBDIRAC_RELEASE
+	else
+		# projectVersion := v7r15-pre2 ( if we are in PRERELEASE mode )
+		projectVersion=`cat releases.cfg | grep [^:]v[[:digit:]]r[[:digit:]]*$PRE | head -1 | sed 's/ //g'`
+	fi  
 
     # projectVersionLine : line number where v7r15-pre2 is
     projectVersionLine=`cat releases.cfg | grep -n $projectVersion | cut -d ':' -f 1 | head -1`
