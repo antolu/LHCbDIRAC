@@ -51,6 +51,8 @@ class BKQuery():
     """
     bkQueryDict = bkQueryDict if bkQueryDict is not None else {}
     prods = prods if prods is not None else []
+    if type( prods ) != type( [] ):
+      prods = [prods]
     runs = runs if runs is not None else []
     fileTypes = fileTypes if fileTypes is not None else []
 
