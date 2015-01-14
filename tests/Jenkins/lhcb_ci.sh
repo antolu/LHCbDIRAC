@@ -40,14 +40,6 @@ function findRelease(){
 
     PRE='p[[:digit:]]*'
 
-    if [ ! -z "$PRERELEASE" ]
-    then
-      echo 'Running on PRERELEASE mode'
-      PRE='-pre'
-    else
-      echo 'Running on REGULAR mode'
-    fi  
-    
   
     # Create temporary directory where to store releases.cfg ( will be deleted at
     # the end of the function )
@@ -72,11 +64,20 @@ function findRelease(){
 		echo $LHCBDIRAC_RELEASE
 		projectVersion=$LHCBDIRAC_RELEASE
 	else
+		if [ ! -z "$PRERELEASE" ]
+		then
+			echo 'Running on PRERELEASE mode'
+			PRE='-pre'
+		else
+			echo 'Running on REGULAR mode'
+		fi
 		# projectVersion := v7r15-pre2 ( if we are in PRERELEASE mode )
 		projectVersion=`cat releases.cfg | grep [^:]v[[:digit:]]r[[:digit:]]*$PRE | head -1 | sed 's/ //g'`
 	fi  
 
-    # projectVersionLine : line number where v7r15-pre2 is
+	echo PROJECT:$projectVersion && echo $projectVersion > project.version
+
+	# projectVersionLine : line number where v7r15-pre2 is
     projectVersionLine=`cat releases.cfg | grep -n $projectVersion | cut -d ':' -f 1 | head -1`
     # start := line number after "{"  
     start=$(($projectVersionLine+2))
@@ -100,7 +101,6 @@ function findRelease(){
     #rm -r $tmp_dir
     
     # PrintOuts
-    echo PROJECT:$projectVersion && echo $projectVersion > project.version
     echo DIRAC:$diracVersion && echo $diracVersion > dirac.version
     echo LHCbDIRAC:$lhcbdiracVersion && echo $lhcbdiracVersion > lhcbdirac.version
     echo LCG:$lcgVersion && echo $lcgVersion > lcg.version
