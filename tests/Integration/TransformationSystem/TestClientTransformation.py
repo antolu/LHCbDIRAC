@@ -70,6 +70,7 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
 
     self.assertEqual( res['Value'][0]['TransformationID'], transID )
 
+     # test managing RunDestination table
     res = self.transClient.setDestinationForRun( 1, 'CERN-RAW' )
     self.assert_( res['OK'] )
     res = self.transClient.getDestinationForRun( 1 )
@@ -88,13 +89,6 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     self.assert_( res['OK'] )
 
     res = self.transClient.getTransformationRunStats( transID )
-    self.assert_( res['OK'] )
-
-     # test managing RunDestination table
-    res = self.transClient.setSEForRun ( runs[0], 'PLUTO_SE' )
-    self.assert_( res['OK'] )
-
-    res = self.transClient.getSEForRun ( runs[0] )
     self.assert_( res['OK'] )
 
     # testStoredJobDescription
