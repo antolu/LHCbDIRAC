@@ -439,7 +439,7 @@ def getAccessURL( lfnList, seList, protocol = None ):
   if not seList:
     seList = sorted( set( [se for lfn in lfnList for se in replicas.get( lfn, {} )] ) )
     if len( seList ) > 1:
-      gLogger.always( "Using the following list of seList: %s" % str( seList ) )
+      gLogger.always( "Using the following list of SEs: %s" % str( seList ) )
   bk = BookkeepingClient()
   # gLogger.setLevel( "FATAL" )
   notFoundLfns = set( lfnList )
@@ -683,7 +683,7 @@ def executePfnMetadata( dmScript ):
 def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = False ):
   from DIRAC.Core.Utilities.Adler import compareAdler
   if len( seList ) > 1:
-    gLogger.always( "Using the following list of seList: %s" % str( seList ) )
+    gLogger.always( "Using the following list of SEs: %s" % str( seList ) )
   if len( lfnList ) > 100:
     gLogger.always( "Getting metadata for %d files, be patient" % len( lfnList ) )
 

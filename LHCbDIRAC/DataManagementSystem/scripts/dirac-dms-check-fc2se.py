@@ -52,7 +52,7 @@ if __name__ == '__main__':
   cc.directories = dmScript.getOption( 'Directory', [] )
   cc.lfns = dmScript.getOption( 'LFNs', [] ) + [lfn for arg in Script.getPositionalArgs() for lfn in arg.split( ',' )]
   bkQuery = dmScript.getBKQuery( visible = 'All' )
-  if bkQuery.getQueryDict() != {'Visible': 'All'}:
+  if bkQuery:
     bkQuery.setOption( 'ReplicaFlag', 'All' )
     cc.bkQuery = bkQuery
 

@@ -47,9 +47,13 @@ if __name__ == '__main__':
   cc.directories = dmScript.getOption( 'Directory', [] )
   cc.lfns = dmScript.getOption( 'LFNs', [] ) + [lfn for arg in Script.getPositionalArgs() for lfn in arg.split( ',' )]
   productions = dmScript.getOption( 'Productions', [] )
+  runs = dmScript.getOption( 'Runs', [] )
 
   from LHCbDIRAC.DataManagementSystem.Client.CheckExecutors import doCheckFC2BK
-  if productions:
+  if productions and not runs:
+    fileType = dmScript.getOption( 'FileType', [] )
+    if fileType:
+      cc.fileType = fileType
     for prod in productions:
       cc.prod = prod
       gLogger.always( "Processing production %d" % cc.prod )
@@ -57,7 +61,7 @@ if __name__ == '__main__':
       gLogger.always( "Processed production %d" % cc.prod )
   else:
     bkQuery = dmScript.getBKQuery( visible = 'All' )
-    if bkQuery.getQueryDict() != {'Visible': 'All'}:
+    if bkQuery:
       bkQuery.setOption( 'ReplicaFlag', 'All' )
       cc.bkQuery = bkQuery
     doCheckFC2BK( cc, fixIt, listAffectedRuns )

@@ -800,15 +800,21 @@ class ConsistencyChecks( object ):
       bkQuery = self.__getBKQuery()
     except ValueError, _e:
       pass
-    if bkQuery:
+    if bkQuery and set( bkQuery.getQueryDict() ) - set( ['Visible', 'Production', 'FileType'] ):
       return bkQuery.getDirs()
     if self.prod:
+      if bkQuery:
+        fileType = bkQuery.getFileTypeList()
+      else:
+        fileType = []
       res = self.transClient.getTransformationParameters( self.prod, ['OutputDirectories'] )
       if not res['OK']:
         raise RuntimeError( res['Message'] )
       else:
         directories = []
-        dirList = res['Value'].split( '\n' )
+        dirList = res['Value']
+        if type( dirList ) == type( '' ) and dirList[0] == '[' and dirList[-1] == ']':
+          dirList = eval( dirList )
         for dirName in dirList:
           # There is a shortcut when multiple streams are used, only the stream name is repeated!
           if ';' in dirName:
@@ -824,7 +830,15 @@ class ConsistencyChecks( object ):
             for it in items:
               directories.append( os.path.join( baseDir, it, suffix ) )
           else:
-            directories.append( dirName )
+            if dirName.endswith( '/0' ):
+              dirName = dirName.replace( '/0', '/%08d' % int( self.prod ) )
+            ftOK = True if not fileType else False
+            for ft in fileType:
+              if ft in dirName:
+                ftOK = True
+                break
+            if ftOK:
+              directories.append( dirName )
         return directories
     else:
       raise RuntimeError( "Need to specify either the directories or a production id" )
@@ -1020,6 +1034,7 @@ class ConsistencyChecks( object ):
           retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ]
 
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
+    return retDict
 
   ################################################################################
   # properties
