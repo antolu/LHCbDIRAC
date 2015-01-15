@@ -15,7 +15,7 @@ def printProds( title, prods ):
   if len( types ) == 1:
     gLogger.always( '%s (%s): %s' % ( title, types[0], ','.join( [str( prod ) for prod in sorted( prods )] ) ) )
   else:
-    gLogger.always( '%s' % ','.join( [' %s (%s)' % ( title, prod, prods[prod] ) for prod in sorted( prods )] ) )
+    gLogger.always( '%s' % ','.join( [' %s (%s) %s' % ( title, prod, prods[prod] ) for prod in sorted( prods )] ) )
 
 def execute():
   tr = TransformationClient()
