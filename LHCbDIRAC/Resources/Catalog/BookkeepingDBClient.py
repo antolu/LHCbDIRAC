@@ -161,13 +161,17 @@ class BookkeepingDBClient( FileCatalogueBase ):
 
   def __toggleReplicaFlag( self, lfns, setflag = True ):
     successful = {}
+    # Poor man's way to not return an error for user files
+    for lfn in  [lfn for lfn in lfns if lfn.startswith( '/lhcb/user' )]:
+      lfns.remove( lfn )
+      successful[lfn] = True
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):
       res = {True: self.__getServer().addFiles, False:self.__getServer().removeFiles}[setflag]( lfnList )
       if not res['OK']:
         failed.update( dict.fromkeys( lfnList, res['Message'] ) )
       else:
-        #It is a dirty, but ...
+        # It is a dirty, but ...
         failed.update( dict.fromkeys( [lfn for lfn in res['Value']['Failed']], 'File does not exist' ) )
         successful.update( dict.fromkeys( [lfn for lfn in res['Value']['Successful']], True ) )
     return S_OK( {'Successful':successful, 'Failed':failed} )
@@ -215,4 +219,4 @@ class BookkeepingDBClient( FileCatalogueBase ):
         successful.update( dict( [( lfn, val ) for lfn, val in success.items() if type( val ) not in types.StringTypes ] ) )
     return S_OK( {'Successful':successful, 'Failed':failed} )
 ################################################################################
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
