@@ -22,7 +22,7 @@ if os.path.isdir( os.path.join( diracroot, 'runit' ) ) and os.path.isdir( os.pat
   diracstartup = os.path.join( diracroot, 'startup' )
   for link in os.listdir( diracstartup ):
     system = link.split( '_' )[0]
-    agent = link.split( system )[1].strip( '_' )
+    agent = link.split( '_' )[1]
     if re.search( 'Agent', link ):
       if not os.path.isdir( os.path.join( diracrunit, system ) ):
         os.mkdir( os.path.join( diracrunit, system ) )
