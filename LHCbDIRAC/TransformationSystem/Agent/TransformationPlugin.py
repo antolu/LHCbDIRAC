@@ -555,7 +555,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for paramValue in sorted( paramDict ):
         paramStr = " (%s : %s) " % ( param, paramValue ) if paramValue else ' '
         runParamLfns = set( paramDict[paramValue] )
-        processFiles += len( runParamFiles )
+        processedFiles += len( runParamLfns )
         # Check if something was new since last time...
         cachedLfns = self.util.getCachedRunLFNs( runID, paramValue )
         newLfns = runParamLfns - cachedLfns
