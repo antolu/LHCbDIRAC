@@ -106,11 +106,11 @@ class MCSimulationTestingAgent ( AgentModule ):
             # only some tasks have failed so continue but send a warn email
             subject = "MCSimulation Test Failure Report. TransformationID: " + str( transID ) + " - some tasks failed"
             report['subject'] = subject
-            self._sendReport( report )
             self.log.warn( "Transformation " + str( transID ) + " failed partially the testing phase, continuing anyway" )
             res = self._activateTransformation( transID, tasks )
             if not res['OK']:
               self.log.error( "Error Activating Production", res['Message'] )
+            self._sendReport( report )
 
     return S_OK()
 
@@ -203,7 +203,7 @@ class MCSimulationTestingAgent ( AgentModule ):
     jobIds = [ int( x['ExternalID'] ) for x in tasks ]
     res = self.bkClient.bulkJobInfo( {'jobId':jobIds} )
     if not res['OK']:
-      self.log.error( res['Message'] )
+      self.log.error( "Error calling bkClient", res['Message'] )
       return S_ERROR( res['Message'] )
     successful = res['Value']['Successful']
 
