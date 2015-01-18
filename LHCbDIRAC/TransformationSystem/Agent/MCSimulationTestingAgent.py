@@ -185,7 +185,7 @@ class MCSimulationTestingAgent ( AgentModule ):
   def _sendReport( self, report ):
     """sends a given report to the production manager
     """
-    username = self.operations.getValue( "Shifter/ProductionManager/User" )
+    username = self.operations.getValue( "Shifter/TestManager/User" )
     email = getUserOption( username, "Email" )
     body = '\n'.join( report['body'] )
     res = self.notifyClient.sendMail( email, report['subject'], body,
