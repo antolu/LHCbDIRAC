@@ -433,13 +433,14 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
     self.agent.bkClient = self.bkClientMock
     self.agent.notifyClient = self.notifyClientMock
     self.agent.operations = self.operationsMock
+    self.agent.email = 'myEmail@cern.ch'
 
   def tearDown(self):
     pass
   
   def test_send_report( self ):
     res = self.agent._sendReport( self.report )
-    self.assertTrue( res['OK'] )
+    self.assertEqual( res, None )
 
   def test_update_workflow( self ):
     CPUe = 1
@@ -464,11 +465,6 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
     self.assertTrue( res['OK'] )
     self.assertEqual( res['Value']['CPUe'], 100.0 )
 #     self.assertEqual( res['Value']['max_e'], expected_max_e )
-
-  def test_extend_failed_tasks( self ):
-    numberOfFailedTasks = 3
-    res = self.agent._extendFailedTasks( self.transID, numberOfFailedTasks )
-    self.assertTrue( res['OK'] )
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( MCSimulationTestingAgentTestCase)

@@ -46,6 +46,9 @@ class MCSimulationTestingAgent ( AgentModule ):
     self.bkClient = BookkeepingClient()
     self.notifyClient = NotificationClient()
     self.operations = Operations()
+
+    self.email = self.am_getOption( "MailTo", '' )
+
     return S_OK()
 
 
@@ -186,12 +189,10 @@ class MCSimulationTestingAgent ( AgentModule ):
   def _sendReport( self, report ):
     """sends a given report to the production manager
     """
-    email = self.am_getOption( "MailTo", '' )
-    if not email:
-      email = getUserOption( self.operations.getValue( "Shifter/ProductionManager/User" ), 'Email' )
+    if not self.email:
+      self.email = getUserOption( self.operations.getValue( "Shifter/ProductionManager/User" ), 'Email' )
     body = '\n'.join( report['body'] )
-    res = self.notifyClient.sendMail( email, report['subject'], body,
-                                      email )
+    res = self.notifyClient.sendMail( self.email, report['subject'], body, self.email )
     if not res['OK']:
       self.log.error( "sendMail failed", res['Message'] )
     else:
