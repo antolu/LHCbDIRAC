@@ -330,63 +330,68 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
   def test__applyMask( self ):
 
-    candidateFiles = {'00012345_00012345_4.dst':
-                      {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
-                       'type': 'dst'},
+    candidateFiles = {'00012345_00012345_4.dst': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
+                                                  'type': 'dst'},
                       '00012345_00012345_2.digi': {'type': 'digi'},
                       '00012345_00012345_3.digi': {'type': 'digi'},
-                      '00012345_00012345_5.AllStreams.dst':
-                      {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
-                       'type': 'allstreams.dst'},
+                      '00012345_00012345_5.AllStreams.dst': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
+                                                            'type': 'allstreams.dst'},
                       '00012345_00012345_1.sim': {'type': 'sim'},
-                      '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
-                      {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
-                       'type': 'b2d0pi_d2kkpipi.strip.dst'}}
+                      'Gauss_HIST_1.root': {'type':'GAUSSHIST'},
+                      '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst': {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
+                                                                        'type': 'b2d0pi_d2kkpipi.strip.dst'}}
 
 
     fileMasks = ( ['dst'], 'dst', ['sim'], ['digi'], ['digi', 'sim'], 'allstreams.dst',
-                  'b2d0pi_d2kkpipi.strip.dst', [], ['b2d0pi_d2kkpipi.strip.dst', 'digi'] )
-    stepMasks = ( '', '5', '', ['2'], ['1', '3'], '', '', ['6'], [] )
+                  'b2d0pi_d2kkpipi.strip.dst', [], ['b2d0pi_d2kkpipi.strip.dst', 'digi'],
+                  ['gausshist', 'digi'],
+                   )
+    stepMasks = ( '', '5', '', ['2'], ['1', '3'], '', '', ['6'], [],
+                  ['1', '3'], )
 
     results = ( 
-               {
-                '00012345_00012345_4.dst':
-                  {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
-                   'type': 'dst'}
-                },
-               {},
                 {
-                 '00012345_00012345_1.sim': {'type': 'sim'}
-                },
-                {
-                 '00012345_00012345_2.digi': {'type': 'digi'},
-                },
+                 '00012345_00012345_4.dst':
+                   {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
+                    'type': 'dst'}
+                 },
+                {},
+                 {
+                  '00012345_00012345_1.sim': {'type': 'sim'}
+                 },
+                 {
+                  '00012345_00012345_2.digi': {'type': 'digi'},
+                 },
+                 {
+                  '00012345_00012345_3.digi': {'type': 'digi'},
+                  '00012345_00012345_1.sim': {'type': 'sim'}
+                 },
+                 {
+                  '00012345_00012345_5.AllStreams.dst':
+                   {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
+                    'type': 'allstreams.dst'}
+                 },
+                 {
+                  '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
+                   {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
+                    'type': 'b2d0pi_d2kkpipi.strip.dst'}
+                 },
+                 {
+                  '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
+                   {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
+                    'type': 'b2d0pi_d2kkpipi.strip.dst'}
+                 },
+                 {
+                  '00012345_00012345_2.digi': {'type': 'digi'},
+                  '00012345_00012345_3.digi': {'type': 'digi'},
+                  '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
+                   {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
+                    'type': 'b2d0pi_d2kkpipi.strip.dst'}
+                 },
                 {
                  '00012345_00012345_3.digi': {'type': 'digi'},
-                 '00012345_00012345_1.sim': {'type': 'sim'}
+                 'Gauss_HIST_1.root':{'type':'GAUSSHIST'}
                 },
-                {
-                 '00012345_00012345_5.AllStreams.dst':
-                  {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
-                   'type': 'allstreams.dst'}
-                },
-                {
-                 '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
-                  {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
-                   'type': 'b2d0pi_d2kkpipi.strip.dst'}
-                },
-                {
-                 '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
-                  {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
-                   'type': 'b2d0pi_d2kkpipi.strip.dst'}
-                },
-                {
-                 '00012345_00012345_2.digi': {'type': 'digi'},
-                 '00012345_00012345_3.digi': {'type': 'digi'},
-                 '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
-                  {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
-                   'type': 'b2d0pi_d2kkpipi.strip.dst'}
-                }
                )
 
     for fileMask, result, stepMask in itertools.izip( fileMasks, results, stepMasks ):
