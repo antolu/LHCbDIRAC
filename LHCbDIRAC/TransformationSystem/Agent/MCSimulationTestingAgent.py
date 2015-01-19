@@ -104,12 +104,13 @@ class MCSimulationTestingAgent ( AgentModule ):
             self.failedTransIDs.append( transID )
           else:
             # only some tasks have failed so continue but send a warn email
-            subject = "MCSimulation Test Failure Report. TransformationID: " + str( transID ) + " - some tasks failed"
-            report['subject'] = subject
             self.log.warn( "Transformation " + str( transID ) + " failed partially the testing phase, continuing anyway" )
             res = self._activateTransformation( transID, tasks )
             if not res['OK']:
               self.log.error( "Error Activating Production", res['Message'] )
+              continue
+            subject = "MCSimulation Test Failure Report. TransformationID: " + str( transID ) + " - some tasks failed"
+            report['subject'] = subject
             self._sendReport( report )
 
     return S_OK()
@@ -185,8 +186,9 @@ class MCSimulationTestingAgent ( AgentModule ):
   def _sendReport( self, report ):
     """sends a given report to the production manager
     """
-    username = self.operations.getValue( "Shifter/TestManager/User" )
-    email = getUserOption( username, "Email" )
+    email = self.am_getOption( "MailTo", '' )
+    if not email:
+      email = getUserOption( self.operations.getValue( "Shifter/ProductionManager/User" ), 'Email' )
     body = '\n'.join( report['body'] )
     res = self.notifyClient.sendMail( email, report['subject'], body,
                                       email )
@@ -194,8 +196,6 @@ class MCSimulationTestingAgent ( AgentModule ):
       self.log.error( "sendMail failed", res['Message'] )
     else:
       self.log.info( 'Mail summary sent to production manager' )
-
-    return res
 
   def _calculateParameters( self, tasks ):
     """ Calculates the CPU time per event for the production
@@ -290,15 +290,3 @@ class MCSimulationTestingAgent ( AgentModule ):
     else:
       self.log.error( "Call to getTransformations failed", transformation['Message'] )
       return transformation
-
-  def _extendFailedTasks( self, transID, numberOfFailedTasks ):
-    """ Takes the number of failed tasks of a testing phase and extends the production by that number to repeat the test
-    """
-    res = self.transClient.extendTransformation( transID, numberOfFailedTasks )
-    if not res['OK']:
-      self.log.error( "Failed to extend transformation", "%s: %s" % ( transID, res['Message'] ) )
-      return res
-    else:
-      self.log.info( "Successfully extended transformation %d by %d tasks" % ( transID, numberOfFailedTasks ) )
-      return S_OK()
-
