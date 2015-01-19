@@ -176,24 +176,24 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
 
   #############################################################################
   def _extendProduction( self, production, extensionFactor, eventsNeeded ):
-    """ Extend a production to produce eventsNeeded*extensionFactor more events.
+    """ Extends a production to produce eventsNeeded*extensionFactor more events.
     """
     productionID = production['TransformationID']
-    self.log.info( "Extending prod %d, that is still missing %d events. Extension factor = %d" % ( productionID,
-                                                                                                   eventsNeeded,
-                                                                                                   extensionFactor ) )
+
+    cpuEProd = getProductionParameterValue( production['Body'], 'CPUe' )
+    if cpuEProd is None:
+      self.log.warn( "CPUe for transformation %d is not set, skipping for now" % productionID )
+      return S_OK()
+    cpuE = int( round( float( cpuEProd ) ) )
+
+    self.log.info( "Extending production %d, that is still missing %d events. Extension factor = %d" % ( productionID,
+                                                                                                         eventsNeeded,
+                                                                                                         extensionFactor ) )
 
     eventsToProduce = eventsNeeded * extensionFactor
-
-    cpuE = int( round( float( getProductionParameterValue( production['Body'], 'CPUe' ) ) ) )
-    if cpuE is None:
-      self.log.info( 'Could not get CPUe from production, defaulting to %d' % self.cpuE )
-      cpuE = self.cpuE
-
     max_e = getEventsToProduce( cpuE, self.cpuTimeAvg, self.cpuNormalizationFactorAvg )
-
     numberOfTasks = int( math.ceil( float( eventsToProduce ) / float( max_e ) ) )
-    self.log.info( "Extending prod %d by %d tasks" % ( productionID, numberOfTasks ) )
+    self.log.info( "Extending production %d by %d tasks" % ( productionID, numberOfTasks ) )
 
     # extend the transformation by the determined number of tasks
     res = self.transClient.extendTransformation( productionID, numberOfTasks )
