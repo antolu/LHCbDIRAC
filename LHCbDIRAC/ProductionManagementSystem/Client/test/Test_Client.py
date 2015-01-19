@@ -181,7 +181,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                              inputData = 'previousStep',
                              modules = ['GaudiApplication', 'AnalyseLogFile'] )
     prod.addFinalizationStep()
-    prod.setFileMask( '', ['4'] )
+    prod.setFileMask( '', '4' )
 
     pr._modifyAndLaunchMCXML( prod, {'tracking':0} )
     for par in prod.LHCbJob.workflow.parameters:
@@ -192,7 +192,7 @@ class ProductionRequestSuccess( ClientTestCase ):
       if par.getName() == 'listoutput':
         self.assert_( 'gausshist' in dict( par.value ).values() )
       if par.getName() == 'outputDataStep':
-        self.assertEqual( par.value, '' )
+        self.assertEqual( par.value, '1;4' )
       if par.getName() == 'outputDataFileMask':
         self.assertEqual( par.value, 'GAUSSHIST;DST' )
 
