@@ -248,20 +248,26 @@ class ProductionRequest( object ):
 
     # save the original xml before it is edited for testing
     prod._lastParameters()
+    originalProcessingType = prod.LHCbJob.workflow.findParameter( 'ProcessingType' )
+    originalPriority = prod.LHCbJob.workflow.findParameter( 'Priority' )
+
     prodXML = prod.LHCbJob.workflow.toXML()
 
     prodID = self._modifyAndLaunchMCXML( prod, prodDict )
 
     # launchProduction adds extra parameters, as we 'hot swap' the xml, we need to get these parameters for the un-edited version
-    processingType = prod.LHCbJob.workflow.findParameter( 'ProcessingType' )
-    priority = prod.LHCbJob.workflow.findParameter( 'Priority' )
 
     # load a production from the original xml to save the priority and processing type
     workflowToSave = fromXMLString( prodXML )
     prod.LHCbJob.workflow = workflowToSave
-    prod.setParameter( 'ProcessingType', processingType.getType(), processingType.getValue(),
-                       processingType.getDescription() )
-    prod.setParameter( 'Priority', priority.getType(), priority.getValue(), priority.getDescription() )
+    prod.setParameter( 'ProcessingType',
+                       originalProcessingType.getType(),
+                       originalProcessingType.getValue(),
+                       originalProcessingType.getDescription() )
+    prod.setParameter( 'Priority',
+                       originalPriority.getType(),
+                       originalPriority.getValue(),
+                       originalPriority.getDescription() )
 
     # original xml to save
     descriptionToStore = prod.LHCbJob.workflow.toXML()
@@ -301,6 +307,9 @@ class ProductionRequest( object ):
     fileTypesOut.append( 'GAUSSHIST' )
     outputFilesList = prod._constructOutputFilesList( fileTypesOut )
     prod.LHCbJob.workflow.step_instances[0].setValue( 'listoutput', outputFilesList )
+
+    # increase the priority to the 9
+    prod.setParameter( 'Priority', 'JDL', '9', 'UserPriority' )
 
     # launch the test production
     res = self.diracProduction.launchProduction( prod = prod,
