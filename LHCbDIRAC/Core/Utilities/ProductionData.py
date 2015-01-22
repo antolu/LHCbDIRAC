@@ -304,7 +304,7 @@ def _getLFNRoot( lfn, namespace = '', configVersion = 0, bkClient = None, quick 
 
     dataTypes = bkClient.getFileTypes( {} )
     if not dataTypes['OK']:
-      raise Exception, dataTypes['Message']
+      raise Exception( dataTypes['Message'] )
     dataTypes = [x[0] for x in dataTypes['Value']['Records']]
     gLogger.verbose( 'DataTypes retrieved from the BKK are:\n%s' % ( ', '.join( dataTypes ) ) )
     gLogger.verbose( 'wf lfn: %s, namespace: %s, configVersion: %s' % ( lfn, namespace, configVersion ) )
