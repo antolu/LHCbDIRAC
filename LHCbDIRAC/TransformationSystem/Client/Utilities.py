@@ -1079,16 +1079,6 @@ def getFileGroups( fileReplicas, groupSE = True ):
       fileGroups.setdefault( replicaSEs, [] ).append( lfn )
   return fileGroups
 
-def getSiteForSE( se ):
-  """ Get site name for the given SE
-  """
-  result = getSitesForSE( se, gridName = 'LCG' )
-  if not result['OK']:
-    return result
-  if result['Value']:
-    return S_OK( result['Value'][0] )
-  return S_OK( '' )
-
 seSvcClass = {}
 def sortSEs( ses ):
   for se in ses:

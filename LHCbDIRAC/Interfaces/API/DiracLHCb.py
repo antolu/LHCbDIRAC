@@ -23,16 +23,6 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 
 COMPONENT_NAME = 'DiracLHCb'
 
-def getSiteForSE( se ):
-  """ Get site name for the given SE
-  """
-  result = getSitesForSE( se )
-  if not result['OK']:
-    return result
-  if result['Value']:
-    return S_OK( result['Value'][0] )
-  return S_OK( '' )
-
 class DiracLHCb( Dirac ):
 
   #############################################################################
