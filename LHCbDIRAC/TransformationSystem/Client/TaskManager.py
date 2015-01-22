@@ -30,7 +30,7 @@ class LHCbWorkflowTasks( WorkflowTasks ):
 
     except KeyError:
       self.log.error( 'Could not found an input data or a run number' )
-      raise KeyError, 'Could not found an input data or a run number'
+      raise KeyError( 'Could not found an input data or a run number' )
 
   #############################################################################
 

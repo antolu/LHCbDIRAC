@@ -29,7 +29,7 @@ def getOutputType( outputs, inputs, directory = '' ):
       typeFileIn.append( tFileIn )
 
   if generatedIn and inputs:
-    raise ValueError, 'Could not find Type for inputs'
+    raise ValueError( 'Could not find Type for inputs' )
 
   #outputs - by pfn
   pfnTypesOut = {}
