@@ -120,12 +120,18 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
       # try and find it
       candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/certificates', '$VO_LHCB_SW_DIR/etc/grid-security/certificates']
       for candidate in candidates:
-        self.log.debug( "Candidate is %s" % candidate )
+        self.log.debug( "Candidate directory for X509_CERT_DIR is %s" % candidate )
         if os.path.isdir( candidate ):
           self.log.debug( "Setting X509_CERT_DIR=%s" % candidate )
           self.pp.installEnv['X509_CERT_DIR'] = candidate
           os.environ['X509_CERT_DIR'] = candidate
           break
+        else:
+          self.log.debug( "%s not found or not a directory" % candidate )
+
+    if 'X509_CERT_DIR' not in self.pp.installEnv:
+      self.log.error( "Could not find/set X509_CERT_DIR" )
+      sys.exit( 1 )
 
     if 'X509_VOMS_DIR' in os.environ:
       self.log.debug( "X509_VOMS_DIR is set in the host environment as %s, aligning installEnv to it" % os.environ['X509_VOMS_DIR'] )
@@ -135,12 +141,18 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
       # try and find it
       candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/certificates', '$VO_LHCB_SW_DIR/etc/grid-security/certificates']
       for candidate in candidates:
-        self.log.debug( "Candidate is %s" % candidate )
+        self.log.debug( "Candidate directory for X509_VOMS_DIR is %s" % candidate )
         if os.path.isdir( candidate ):
           self.log.debug( "Setting X509_VOMS_DIR=%s" % candidate )
           self.pp.installEnv['X509_VOMS_DIR'] = candidate
           os.environ['X509_VOMS_DIR'] = candidate
           break
+        else:
+          self.log.debug( "%s not found" % candidate )
+
+    if 'X509_VOMS_DIR' not in self.pp.installEnv:
+      self.log.error( "Could not find/set X509_VOMS_DIR" )
+      sys.exit( 1 )
 
     if 'DIRAC_VOMSES' in os.environ:
       self.log.debug( "DIRAC_VOMSES is set in the host environment as %s, aligning installEnv to it" % os.environ['DIRAC_VOMSES'] )
@@ -150,12 +162,18 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
       # try and find it
       candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/certificates', '$VO_LHCB_SW_DIR/etc/grid-security/certificates']
       for candidate in candidates:
-        self.log.debug( "Candidate is %s" % candidate )
+        self.log.debug( "Candidate directory for DIRAC_VOMSES is %s" % candidate )
         if os.path.isdir( candidate ):
           self.log.debug( "Setting DIRAC_VOMSES=%s" % candidate )
           self.pp.installEnv['DIRAC_VOMSES'] = candidate
           os.environ['DIRAC_VOMSES'] = candidate
           break
+        else:
+          self.log.debug( "%s not found" % candidate )
+
+    if 'DIRAC_VOMSES' not in self.pp.installEnv:
+      self.log.error( "Could not find/set DIRAC_VOMSES" )
+      sys.exit( 1 )
 
     self.log.debug( 'X509_CERT_DIR = %s, %s' % ( self.pp.installEnv['X509_CERT_DIR'], os.environ['X509_CERT_DIR'] ) )
     self.log.debug( 'X509_VOMS_DIR = %s, %s' % ( self.pp.installEnv['X509_VOMS_DIR'], os.environ['X509_VOMS_DIR'] ) )
