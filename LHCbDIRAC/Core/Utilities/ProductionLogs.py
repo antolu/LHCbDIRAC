@@ -89,7 +89,7 @@ class ProductionLog( object ):
       self.log.info( 'Logs OK' )
       return True
     except LogError, e:
-      self.log.error( "Found error in " + self.fileName + ": " + str( e ) )
+      self.log.error( 'LogError', "Found error in " + self.fileName + ": " + str( e ) )
       return False
 
 ################################################################################
@@ -105,7 +105,7 @@ class ProductionLog( object ):
     guess = guess.split( '_' )
 
     if len( guess ) != 4:
-      raise LogError( 'Could not guess production, job and step from %s' % self.fileName )
+      raise LogError( 'LogError', "Could not guess production, job and step from %s" % self.fileName )
 
     self.prodName = guess[ 1 ]
     self.jobName = guess[ 2 ]
