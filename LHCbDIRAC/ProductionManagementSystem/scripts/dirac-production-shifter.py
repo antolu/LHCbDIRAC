@@ -117,7 +117,7 @@ def getRequests( parsedInput, sortKey ):
   if 'RequestID' in parsedInput:
     parsedInput = { 'RequestID' : parsedInput[ 'RequestID' ] }
       
-  requests = reqClient.getProductionRequestList( 0L, 'RequestID', 'DESC', 0L, 0L, parsedInput )
+  requests = reqClient.getProductionRequestList( 0, 'RequestID', 'DESC', 0, 0, parsedInput )
   if not requests[ 'OK' ]:
     print requests[ 'Message' ]
     return
