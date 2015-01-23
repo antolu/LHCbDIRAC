@@ -80,7 +80,15 @@ if __name__ == "__main__":
         paths['Successful'].setdefault( '%s %s' % ( groupBy, group ), set() ).add( lfn )
         lfnList.remove( lfn )
       paths['Failed'].extend( lfnList )
-      res = S_OK( paths )
+      if summary:
+        pathSummary = {'Successful':{}}
+        for groupStr in paths['Successful']:
+          pathSummary['Successful'][groupStr] = '%d files' % len( paths['Successful'][groupStr] )
+        if paths['Failed']:
+          pathSummary[ 'Failed' ] = len( paths['Failed'] )
+        res = S_OK( pathSummary )
+      else:
+        res = S_OK( paths )
   else:
     directories = {}
     for lfn in lfnList:
@@ -117,14 +125,13 @@ if __name__ == "__main__":
       if summary:
         pathSummary = {'Successful': {}, 'Failed' : {}}
         for path in paths['Successful'].keys():
-          nfiles = paths['Successful'][path]
+          nfiles = len( paths['Successful'][path] )
           if 'Invisible' in path:
-            paths['Successful'].pop( path )
             path = path.split()[0]
             inv = ' (Invisible)'
           else:
             inv = ''
-          pathSummary['Successful'][path] = '%d files%s' % ( len( nfiles ), inv )
+          pathSummary['Successful'][path] = '%d files%s' % ( nfiles, inv )
         if failed:
           pathSummary['Failed'] = dict( ( path, 'Directory not in BK (%d files)' % len( directories[path] ) ) for path in failed )
         else:
