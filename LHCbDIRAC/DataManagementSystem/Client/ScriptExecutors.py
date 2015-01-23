@@ -195,8 +195,15 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
   notExisting = {}
   gLogger.setLevel( 'FATAL' )
   seList = set( seList )
+  chunkSize = 500
+  showProgress = len( lfnList ) > 3 * chunkSize
+  if showProgress:
+    sys.stdout.write( 'Removing replica flag in BK for files not in FC (chunks of %d files): ' % chunkSize )
   # Set files invisible in BK if removing all disk replicas
-  for lfnChunk in breakListIntoChunks( sorted( lfnList ), 500 ):
+  for lfnChunk in breakListIntoChunks( sorted( lfnList ), chunkSize ):
+    if showProgress:
+      sys.stdout.write( '.' )
+      sys.stdout.flush()
     if allDisk:
       res = bk.setFilesInvisible( lfnChunk )
       if not res['OK']:
@@ -261,7 +268,8 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
             else:
               errorReasons.setdefault( reason, {} ).setdefault( seName, [] ).append( lfn )
           successfullyRemoved.setdefault( seName, [] ).extend( res['Value']['Successful'].keys() )
-
+  if showProgress:
+    gLogger.always( '' )
   gLogger.setLevel( 'ERROR' )
   if notExisting:
     res = dm.getReplicas( notExisting.keys() )
@@ -796,6 +804,7 @@ def executeReplicaStats( dmScript ):
   prWithArchives = False
   prWithReplicas = False
   prFailover = False
+  prSEList = []
   for switch in Script.getUnprocessedSwitches():
     if switch[0] in ( "S", "Size" ):
       getSize = True
@@ -813,17 +822,21 @@ def executeReplicaStats( dmScript ):
         prWithReplicas = [int( xx ) for xx in switch[1].split( ',' )]
     elif switch[0] == 'DumpFailover':
       prFailover = True
+    elif switch[0] == 'DumpAtSE':
+      dmScript.setSEs( switch[1].upper() )
+    elif switch[0] == 'DumpAtSite':
+      dmScript.setSites( switch[1] )
+
 
   directories = dmScript.getOption( 'Directory' )
-  if not directories:
-    lfnList, _ses = parseArguments( dmScript )
+  lfnList, prSEList = parseArguments( dmScript )
 
   printReplicaStats( directories, lfnList, getSize, prNoReplicas,
-                     prWithReplicas, prWithArchives, prFailover )
+                     prWithReplicas, prWithArchives, prFailover, prSEList )
   DIRACExit( 0 )
 
 def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = False,
-                       prWithReplicas = False, prWithArchives = False, prFailover = False ):
+                       prWithReplicas = False, prWithArchives = False, prFailover = False, prSEList = None ):
   from DIRAC.Core.Utilities.SiteSEMapping                        import getSitesForSE
   dm = DataManager()
 
@@ -833,6 +846,10 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
   withArchives = {}
   withFailover = set()
   lfnReplicas = {}
+  if not prSEList:
+    prSEList = set()
+  elif type( prSEList ) != type( set() ):
+    prSEList = set( prSEList )
   if directories:
     for directory in directories:
       res = dm.getReplicasFromDirectory( directory )
@@ -865,6 +882,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
   maxArch = 0
   nfiles = 0
   totSize = 0
+  dumpFromSE = {}
   if getSize:
     lfnSize = {}
     left = len( lfnReplicas )
@@ -878,10 +896,14 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
     for lfn, size in lfnSize.items():
       totSize += size
   for lfn, replicas in lfnReplicas.items():
-    seList = replicas.keys()
+    seList = set( replicas )
+    dumpSE = seList & prSEList
+    if dumpSE:
+      seStr = ','.join( sorted( dumpSE ) )
+      dumpFromSE.setdefault( seStr, [] ).append( lfn )
     nrep = len( replicas )
     narchive = -1
-    for se in list( seList ):
+    for se in set( seList ):
       if se.endswith( "-FAILOVER" ):
         withFailover.add( lfn )
         nrep -= 1
@@ -988,6 +1010,14 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
     for rep in sorted( withFailover ):
       gLogger.always( rep )
 
+  if prSEList:
+    gLogger.always( '\nFiles present at %s' % ( ','.join( sorted( prSEList ) ) ) )
+    if not dumpFromSE:
+      gLogger.always( "No files found at these SEs" )
+    for se in dumpFromSE:
+      gLogger.always( 'At %s' % se )
+      for lfn in dumpFromSE[se]:
+        gLogger.always( '\t%s' % lfn )
   DIRACExit( 0 )
 
 def executeReplicateLfn( dmScript ):
