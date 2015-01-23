@@ -79,7 +79,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     except Exception, x:
       errorMsg = 'The following error occurred during XML processing: %s ' % str( x )
       gLogger.error( errorMsg )
-      result = errorMsg
+      result = S_ERROR( errorMsg )
     return result
 
   #############################################################################
