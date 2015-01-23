@@ -27,23 +27,27 @@ def execute():
   for switch in Script.getUnprocessedSwitches():
     pass
 
+  lfns = dmScript.getOption( 'LFNs' )
   bkQuery = dmScript.getBKQuery()
-  if not bkQuery:
+  if not bkQuery and not lfns:
     print "No BK query given..."
     DIRAC.exit( 1 )
-  prodList = bkQuery.getQueryDict().get( 'Production', [None] )
-  bkQuery.setOption( 'ProductionID', None )
+  if bkQuery:
+    prodList = bkQuery.getQueryDict().get( 'Production', [None] )
+    bkQuery.setOption( 'ProductionID', None )
+  else:
+    prodList = [None]
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
   transClient = TransformationClient()
-  lfns = dmScript.getOption( 'LFNs' )
 
   for prod in prodList:
-    queryDict = bkQuery.getQueryDict()
-    if queryDict.get( 'Visible', 'All' ).lower() in ( 'no', 'all' ):
-      bkQuery.setOption( 'ReplicaFlag', 'ALL' )
+    if bkQuery:
+      queryDict = bkQuery.getQueryDict()
+      if queryDict.get( 'Visible', 'All' ).lower() in ( 'no', 'all' ):
+        bkQuery.setOption( 'ReplicaFlag', 'ALL' )
     if prod:
       res = transClient.getTransformation( prod, extraParams = False )
       if not res['OK']:
@@ -55,10 +59,8 @@ def execute():
       print "For %d LFNs:" % len( lfns )
     else:
       print "For BK query:", bkQuery
-    queryDict = bkQuery.getQueryDict()
-    if not lfns and queryDict.keys() in ( ['Visible'], [] ):
-      print "Invalid query", queryDict
-      DIRAC.exit( 1 )
+      if bkQuery:
+        queryDict = bkQuery.getQueryDict()
 
     # Get information from BK
     if not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
