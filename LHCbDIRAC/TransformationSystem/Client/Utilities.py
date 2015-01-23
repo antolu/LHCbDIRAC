@@ -601,7 +601,7 @@ class PluginUtilities( object ):
       if not res['OK']:
         self.logError( "Cannot get transformation files for run %s: %s" % ( str( runID ), res['Message'] ) )
         return 0
-      excludedStatuses = ( 'Removed', 'MissingInFC', 'Problematic' )
+      excludedStatuses = self.getPluginParam( 'IgnoreStatusForFlush', [ 'Removed', 'MissingInFC', 'Problematic' ] )
       lfns = [fileDict['LFN'] for fileDict in res['Value'] if fileDict['Status'] not in excludedStatuses]
       self.transRunFiles[runID] = lfns
       self.logVerbose( 'Obtained %d input files for run %d' % ( len( lfns ), runID ) )
@@ -1078,6 +1078,16 @@ def getFileGroups( fileReplicas, groupSE = True ):
       replicaSEs = str.join( ',', sorted( replicas ) )
       fileGroups.setdefault( replicaSEs, [] ).append( lfn )
   return fileGroups
+
+def getSiteForSE( se ):
+  """ Get site name for the given SE
+  """
+  result = getSitesForSE( se, gridName = 'LCG' )
+  if not result['OK']:
+    return result
+  if result['Value']:
+    return S_OK( result['Value'][0] )
+  return S_OK( '' )
 
 seSvcClass = {}
 def sortSEs( ses ):
