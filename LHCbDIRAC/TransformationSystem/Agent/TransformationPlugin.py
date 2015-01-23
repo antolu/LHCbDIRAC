@@ -552,6 +552,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       #
       # Loop on parameters (None if not by param
       #
+      flushed = []
       for paramValue in sorted( paramDict ):
         paramStr = " (%s : %s) " % ( param, paramValue ) if paramValue else ' '
         runParamLfns = set( paramDict[paramValue] )
@@ -599,7 +600,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           runProcessed = ( ancestorRawFiles == rawFiles )
           if runProcessed:
             # The whole run was processed by the parent production and we received all files
-            self.util.logInfo( "All RAW files (%d) ready for run %d- Flushing run" % ( rawFiles, runID ) )
+            self.util.logInfo( "All RAW files (%d) ready for run %d%s- Flushing run" % ( rawFiles, runID, paramStr ) )
             status = 'Flush'
             runStatus = status
             self.transClient.setTransformationRunStatus( self.transID, runID, 'Flush' )
@@ -607,8 +608,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             self.util.logVerbose( "Only %d ancestor RAW files (of %d) available for run %d" % ( ancestorRawFiles, rawFiles, runID ) )
             # If the run is not complete for that parameter, come back later
             break
-        if status == 'Flush':
-          self.util.logInfo( "Run %d is flushed - %d files %s" % ( runID, len( runParamReplicas ), paramStr ) )
+        if runStatus == 'Flush':
+          flushed.append( ( paramValue, len( self.data ) ) )
         # Now calling the helper plugin... Set status to a fake value
         self.params['Status'] = status
         startTime = time.time()
@@ -647,14 +648,25 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             self.util.logError( "Failed to set target SEs to run %s as %s" % ( str( runID ), str( targetSEs ) ),
                              res['Message'] )
         self.util.setCachedRunLfns( runID, paramValue, [lfn for lfn in runParamLfns if lfn not in taskLfns] )
-      # End of run loop: if enough time already spent, exit
+      # # # # # # # # # # #
+      # End of param loop #
+      # # # # # # # # # # #
+      if flushed:
+        # Print out info about what was flushed
+        prStr = "Run %d is flushed%s:" % ( runID, " for %s" % param if param else "" )
+        prStr += ','.join( [ " %s (%d)" % flTuple if flTuple[0] else " %d files" % flTuple[1] for flTuple in sorted( flushed )] )
+        self.util.logInfo( prStr )
+
+      # if enough time already spent, exit
       timeSpent = time.time() - pluginStartTime
       lastRun = runID
       if maxTime and timeSpent > maxTime:
         timeout = True
         self.util.logInfo( "Enough time spent in plugin (%.1f seconds), exit at run %d, %d runs left" % ( timeSpent, runID, nRunsLeft ) )
         break
-    # # # # # # # # End of run loop # # # # # # # #
+    # # # # # # # # # #
+    # End of run loop #
+    # # # # # # # # # #
     self.util.logInfo( "Processed %d files in %.1f seconds" % ( processedFiles, timeSpent ) )
     self.util.setCachedLastRun( lastRun )
     # reset the input data as it was when calling the plugin
