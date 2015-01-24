@@ -207,6 +207,10 @@ class MCSimulationTestingAgent ( AgentModule ):
       self.log.error( "Error calling bkClient", res['Message'] )
       return S_ERROR( res['Message'] )
     successful = res['Value']['Successful']
+    self.log.debug( "Successful tasks: %s" % str( successful ) )
+    if not len( successful ):
+      self.log.error( "There are no successful tasks" )
+      return S_ERROR( "There are no successful tasks" )
 
     CPUeJobTotal = 0.0
     for job in successful.itervalues():
