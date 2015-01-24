@@ -57,7 +57,7 @@ class UploadOutputData( ModuleBase ):
     super( UploadOutputData, self )._resolveInputVariables()
 
     if self.workflow_commons.has_key( 'outputDataStep' ):
-      self.outputDataStep = self.workflow_commons['outputDataStep']
+      self.outputDataStep = [str( ds ) for ds in self.workflow_commons['outputDataStep'].split( ';' )]
 
     if self.workflow_commons.has_key( 'outputList' ):
       self.outputList = self.workflow_commons['outputList']
