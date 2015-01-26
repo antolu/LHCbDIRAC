@@ -121,7 +121,7 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
       candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/certificates', '$VO_LHCB_SW_DIR/etc/grid-security/certificates']
       for candidate in candidates:
         self.log.debug( "Candidate directory for X509_CERT_DIR is %s" % candidate )
-        if os.path.isdir( candidate ):
+        if os.path.isdir( os.path.expandvars( candidate ) ):
           self.log.debug( "Setting X509_CERT_DIR=%s" % candidate )
           self.pp.installEnv['X509_CERT_DIR'] = candidate
           os.environ['X509_CERT_DIR'] = candidate
@@ -142,7 +142,7 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
       candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/certificates', '$VO_LHCB_SW_DIR/etc/grid-security/certificates']
       for candidate in candidates:
         self.log.debug( "Candidate directory for X509_VOMS_DIR is %s" % candidate )
-        if os.path.isdir( candidate ):
+        if os.path.isdir( os.path.expandvars( candidate ) ):
           self.log.debug( "Setting X509_VOMS_DIR=%s" % candidate )
           self.pp.installEnv['X509_VOMS_DIR'] = candidate
           os.environ['X509_VOMS_DIR'] = candidate
@@ -163,7 +163,7 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
       candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/certificates', '$VO_LHCB_SW_DIR/etc/grid-security/certificates']
       for candidate in candidates:
         self.log.debug( "Candidate directory for DIRAC_VOMSES is %s" % candidate )
-        if os.path.isdir( candidate ):
+        if os.path.isdir( os.path.expandvars( candidate ) ):
           self.log.debug( "Setting DIRAC_VOMSES=%s" % candidate )
           self.pp.installEnv['DIRAC_VOMSES'] = candidate
           os.environ['DIRAC_VOMSES'] = candidate
