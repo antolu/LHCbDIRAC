@@ -814,7 +814,7 @@ class ConsistencyChecks( object ):
         directories = []
         dirList = res['Value']
         if type( dirList ) == type( '' ) and dirList[0] == '[' and dirList[-1] == ']':
-          dirList = eval( dirList )
+          dirList = ast.literal_eval( dirList )
         for dirName in dirList:
           # There is a shortcut when multiple streams are used, only the stream name is repeated!
           if ';' in dirName:
