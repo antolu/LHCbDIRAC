@@ -248,26 +248,21 @@ class ProductionRequest( object ):
 
     # save the original xml before it is edited for testing
     prod._lastParameters()
-    originalProcessingType = prod.LHCbJob.workflow.findParameter( 'ProcessingType' )
-    originalPriority = prod.LHCbJob.workflow.findParameter( 'Priority' )
+
+    # launchProduction adds extra parameters, as we 'hot swap' the xml, we need to get these parameters for the un-edited version
+    originalProcessingType = prod.prodGroup
+    originalPriority = prod.priority
 
     prodXML = prod.LHCbJob.workflow.toXML()
 
     prodID = self._modifyAndLaunchMCXML( prod, prodDict )
 
-    # launchProduction adds extra parameters, as we 'hot swap' the xml, we need to get these parameters for the un-edited version
 
     # load a production from the original xml to save the priority and processing type
     workflowToSave = fromXMLString( prodXML )
     prod.LHCbJob.workflow = workflowToSave
-    prod.setParameter( 'ProcessingType',
-                       originalProcessingType.getType(),
-                       originalProcessingType.getValue(),
-                       originalProcessingType.getDescription() )
-    prod.setParameter( 'Priority',
-                       originalPriority.getType(),
-                       originalPriority.getValue(),
-                       originalPriority.getDescription() )
+    prod.setParameter( 'ProcessingType', 'JDL', str( originalProcessingType ), 'ProductionGroupOrType' )
+    prod.setParameter( 'Priority', 'JDL', str( originalPriority ), 'Job Priority' )
 
     # original xml to save
     descriptionToStore = prod.LHCbJob.workflow.toXML()
