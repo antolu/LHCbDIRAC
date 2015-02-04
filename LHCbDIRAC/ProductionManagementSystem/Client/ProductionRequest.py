@@ -304,7 +304,7 @@ class ProductionRequest( object ):
     prod.LHCbJob.workflow.step_instances[0].setValue( 'listoutput', outputFilesList )
 
     # increase the priority to the 9
-    prod.setParameter( 'Priority', 'JDL', '9', 'UserPriority' )
+    prod.priority = 9
 
     # launch the test production
     res = self.diracProduction.launchProduction( prod = prod,

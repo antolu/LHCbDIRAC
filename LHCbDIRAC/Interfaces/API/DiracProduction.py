@@ -830,11 +830,8 @@ class DiracProduction( DiracLHCb ):
   #############################################################################
 
   def launchProduction( self, prod, publishFlag, testFlag, requestID,
-                        extend = 0,
-                        tracking = 0,
-                        MCsimflag = False
-                        ):
-    """ given a production object (prod), launch it
+                        extend = 0, tracking = 0, MCsimflag = False ):
+    """ Given a production object (prod), launch it
         It returns the productionID created
     """
 
@@ -850,8 +847,7 @@ class DiracProduction( DiracLHCb ):
 
     result = prod.create( publish = publishFlag,
                           requestID = requestID,
-                          reqUsed = tracking
-                          )
+                          reqUsed = tracking )
 
     if not result['OK']:
       gLogger.error( 'Error during prod creation:\n%s\ncheck that the wkf name is unique.' % ( result['Message'] ) )
