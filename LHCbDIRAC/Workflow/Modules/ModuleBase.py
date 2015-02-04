@@ -72,9 +72,10 @@ class ModuleBase( object ):
 
     self.debugSE = 'CERN-DEBUG'
 
+    self.executable = 'gaudirun.py'
+    self.applicationName = 'Unknown'
+    self.applicationVersion = 'Unknown'
     self.applicationLog = None
-    self.applicationName = None
-    self.applicationVersion = None
     self.applicationType = None
     self.systemConfig = None
     self.extraPackages = None
@@ -361,15 +362,14 @@ class ModuleBase( object ):
 
     self.stepName = self.step_commons['STEP_INSTANCE_NAME']
 
+    if self.step_commons.has_key( 'executable' ) and self.step_commons['executable']:
+      self.executable = self.step_commons['executable']
+
     if self.step_commons.has_key( 'applicationName' ) and self.step_commons['applicationName']:
       self.applicationName = self.step_commons['applicationName']
-    else:
-      self.applicationName = 'Unknown'
 
     if self.step_commons.has_key( 'applicationVersion' ) and self.step_commons['applicationVersion']:
       self.applicationVersion = self.step_commons['applicationVersion']
-    else:
-      self.applicationVersion = 'Unknown'
 
     if self.step_commons.has_key( 'applicationLog' ):
       self.applicationLog = self.step_commons['applicationLog']

@@ -178,7 +178,10 @@ class GaudiApplication( ModuleBase ):
         projectEnvironment = result['Value']
 
       # Creating the command
-      gaudiRunFlags = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
+      if self.executable == 'gaudirun.py':
+        gaudiRunFlags = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
+      else:
+        gaudiRunFlags = self.executable
       if self.multicoreJob == 'True':
         if self.multicoreStep.upper() == 'Y':
           cpus = multiprocessing.cpu_count()
