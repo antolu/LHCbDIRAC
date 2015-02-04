@@ -9,11 +9,10 @@ import re, os, sys, multiprocessing
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess  import shellCall
 
-from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment, addCommandDefaults, createDebugScript
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getEventsToProduce, multicoreWN
+from LHCbDIRAC.Workflow.Modules.ModulesUtilities import multicoreWN
 
 
 class GaudiApplication( ModuleBase ):
@@ -138,7 +137,6 @@ class GaudiApplication( ModuleBase ):
 
 
       if self.optionsLine or self.jobType.lower() == 'user':
-
         # Prepare standard project run time options
         generatedOpts = 'gaudi_extra_options.py'
         if os.path.exists( generatedOpts ):
@@ -161,96 +159,8 @@ class GaudiApplication( ModuleBase ):
         options.close()
 
       else:
-        # Creating ProdConf file
-        prodConfFileName = 'prodConf_%s_%s_%s_%s.py' % ( self.applicationName,
-                                                         self.production_id,
-                                                         self.prod_job_id,
-                                                         self.step_number )
-        optionsDict = {}
+        prodConfFileName = self.createProdConfFile( stepOutputTypes, histogram, runNumberGauss, firstEventNumberGauss )
 
-        optionsDict['Application'] = self.applicationName
-
-        optionsDict['AppVersion'] = self.applicationVersion
-
-        if self.optionsFormat:
-          optionsDict['OptionFormat'] = self.optionsFormat
-
-        if self.stepInputData:
-          optionsDict['InputFiles'] = ['LFN:' + sid for sid in self.stepInputData]
-        else:
-          if self.applicationName.lower() != "gauss":
-            return S_ERROR( 'No MC, but no input data' )
-
-        if self.outputFilePrefix:
-          optionsDict['OutputFilePrefix'] = self.outputFilePrefix
-
-        optionsDict['OutputFileTypes'] = stepOutputTypes
-
-        optionsDict['XMLSummaryFile'] = self.XMLSummary
-
-        optionsDict['XMLFileCatalog'] = self.poolXMLCatName
-
-        if histogram:
-          optionsDict['HistogramFile'] = self.histoName
-
-        if self.DDDBTag:
-          if self.DDDBTag.lower() == 'online':
-            try:
-              optionsDict['DDDBTag'] = self.onlineDDDBTag
-              self.log.debug( 'Set the online DDDB tag' )
-            except NameError, e:
-              self.log.error( 'Could not find an online DDDb Tag: ', e )
-              return S_ERROR( 'Could not find an online DDDb Tag' )
-          else:
-            optionsDict['DDDBTag'] = self.DDDBTag
-
-        if self.condDBTag:
-          if self.condDBTag.lower() == 'online':
-            try:
-              optionsDict['CondDBTag'] = self.onlineCondDBTag
-              self.log.debug( 'Set the online CondDB tag' )
-            except NameError, e:
-              self.log.error( 'Could not find an online CondDb Tag: ', e )
-              return S_ERROR( 'Could not find an online CondDb Tag' )
-          else:
-            optionsDict['CondDBTag'] = self.condDBTag
-
-        if self.dqTag:
-          optionsDict['DQTag'] = self.dqTag
-
-        if self.applicationName.lower() == 'gauss':
-          if self.CPUe and self.maxNumberOfEvents:
-            # Here we set maxCPUTime to 1 day, which seems reasonable
-            eventsToProduce = getEventsToProduce( self.CPUe, 
-                                                  maxNumberOfEvents = self.maxNumberOfEvents, 
-                                                  maxCPUTime = 86400 )
-          else:
-            eventsToProduce = self.numberOfEvents
-        else:
-          eventsToProduce = self.numberOfEvents
-        optionsDict['NOfEvents'] = eventsToProduce
-
-        if runNumberGauss:
-          optionsDict['RunNumber'] = runNumberGauss
-
-        if self.runNumber:
-          if self.runNumber != 'Unknown':
-            optionsDict['RunNumber'] = self.runNumber
-
-        if firstEventNumberGauss:
-          optionsDict['FirstEventNumber'] = firstEventNumberGauss
-
-        # TCK: can't have both set!
-        if self.TCK and self.mcTCK:
-          raise RuntimeError( "%s step: TCK set in step, and should't be!" % self.applicationName )
-        if self.TCK or self.mcTCK:
-          optionsDict['TCK'] = self.TCK if self.TCK else self.mcTCK
-
-        if self.processingPass:
-          optionsDict['ProcessingPass'] = self.processingPass
-
-        prodConfFile = ProdConf( prodConfFileName )
-        prodConfFile.putOptionsIn( optionsDict )
 
       if not projectEnvironment:
         # Now obtain the project environment for execution

@@ -207,20 +207,20 @@ class ModulesTestCase( unittest.TestCase ):
     self.step_commons = [{'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
                          'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
+                         'STEP_INSTANCE_NAME':'someApp_1', 'inputData':'/for/bar/',
+                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
+                                       'outputDataType':'bbb'}]},
+                         {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
+                         'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
+                         'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
+                         'optionsLine': '', 'inputData':'/for/bar/',
                          'STEP_INSTANCE_NAME':'someApp_1',
                          'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
                                        'outputDataType':'bbb'}]},
                          {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
                          'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
-                         'optionsLine': '',
-                         'STEP_INSTANCE_NAME':'someApp_1',
-                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
-                                       'outputDataType':'bbb'}]},
-                         {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
-                         'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
-                         'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
-                         'extraOptionsLine': 'blaBla',
+                         'extraOptionsLine': 'blaBla', 'inputData':'/for/bar/',
                          'STEP_INSTANCE_NAME':'someApp_1',
                          'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
                                        'outputDataType':'bbb'}]}]
@@ -648,6 +648,17 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
     result = self.mb.getFileMetadata( candidateFiles )
     self.assertEqual( result, expectedResult )
+
+  def test_createProdConfFile( self ):
+#     self.mb.applicationName = 'myApp'
+    for wf_commons in self.wf_commons:
+      self.mb.workflow_commons = wf_commons
+      for step_commons in self.step_commons:
+        self.mb.step_commons = step_commons
+        self.mb._resolveInputVariables()
+        self.mb._resolveInputStep()
+        res = self.mb.createProdConfFile( ['DST', 'GAUSSHIST'], True, 123, 1 )
+        print res
 
 
 #############################################################################
