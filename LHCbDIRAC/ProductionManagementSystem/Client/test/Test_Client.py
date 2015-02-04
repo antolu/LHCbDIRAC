@@ -196,8 +196,6 @@ class ProductionRequestSuccess( ClientTestCase ):
         self.assertEqual( par.value, '1;4' )
       if par.getName() == 'outputDataFileMask':
         self.assertEqual( par.value, 'GAUSSHIST;DST' )
-      if par.getName() == 'Priority':
-        self.assertEqual( par.value, '9' )
 
     # re-prepare the test case
     prod = Production()
@@ -219,7 +217,6 @@ class ProductionRequestSuccess( ClientTestCase ):
       if par.getName() == 'outputDataFileMask':
         self.assertEqual( par.value, '' )
       if par.getName() == 'Priority':
-        print par.value
         self.assertEqual( par.value, '1' )
 
   def test_resolveStepsSuccess( self ):
