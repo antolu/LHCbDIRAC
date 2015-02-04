@@ -615,7 +615,7 @@ class Production( object ):
       gLogger.info( 'Production %s successfully created' % prodID )
 
       # All other parameters
-      groupDesc = self.LHCbJob.workflow.findParameter( 'groupDescription' ).getValue(),
+      groupDesc = self.LHCbJob.workflow.findParameter( 'groupDescription' ).getValue()
       paramsDict = self.__getProductionParameters( prodID = prodID,
                                                    prodXMLFile = fileName,
                                                    groupDescription = groupDesc,
