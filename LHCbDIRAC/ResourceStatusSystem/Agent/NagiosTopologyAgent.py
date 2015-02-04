@@ -89,7 +89,7 @@ class NagiosTopologyAgent( AgentModule ):
           has_grid_elem = res or has_grid_elem
 
         # SE info
-        if site_opts.has_key( 'SE' ) and site_tier in [ '0', '1' ]:
+        if site_opts.has_key( 'SE' ) and site_tier in [ '0', '1', '2' ]:
           res = self.__writeSEInfo( xml_doc, xml_site, site )
           # Update has_grid_elem
           has_grid_elem = res or has_grid_elem
