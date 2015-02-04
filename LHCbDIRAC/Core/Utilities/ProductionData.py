@@ -169,17 +169,19 @@ def getLogPath( paramDict, bkClient = None, quick = True ):
 
 #############################################################################
 
-def constructUserLFNs( jobID, owner, outputFiles, outputPath ):
+def constructUserLFNs( jobID, owner, outputFiles, outputPath = '', prependString = '' ):
   """ This method is used to supplant the standard job wrapper output data policy
       for LHCb.  The initial convention adopted for user output files is the following:
 
-      /lhcb/user/<initial e.g. p>/<owner e.g. paterson>/<outputPath>/<yearMonth e.g. 2010_02>/<subdir>/<fileName>
+      /lhcb/user/<initial e.g. p>/<owner e.g. paterson>/<outputPath>/<jobID>_<prependString>_fileName
   """
+
   initial = owner[:1]
-  subdir = str( jobID / 1000 )
   timeTup = datetime.date.today().timetuple()
   yearMonth = '%s_%s' % ( timeTup[0], str( timeTup[1] ).zfill( 2 ) )
   outputLFNs = {}
+
+  outputPathStr=''
 
   # Strip out any leading or trailing slashes but allow fine structure
   if outputPath:
@@ -188,18 +190,24 @@ def constructUserLFNs( jobID, owner, outputFiles, outputPath ):
     for i in outputPathList:
       if i:
         newPath.append( i )
-    outputPath = ( os.sep ).join( newPath )
+    outputPathStr = ( os.sep ).join( newPath )
 
   if not type( outputFiles ) == types.ListType:
     outputFiles = [outputFiles]
 
-  for outputFile in outputFiles:
-    # strip out any fine structure in the output file specified by the user, restrict to output file names
-    # the output path field can be used to describe this
-    outputFile = outputFile.replace( 'LFN:', '' )
-    lfn = os.sep + os.path.join( 'lhcb', 'user', initial, owner,
-                                 outputPath, yearMonth, subdir, str( jobID ) ) + os.sep + os.path.basename( outputFile )
-    outputLFNs[outputFile] = lfn
+  if prependString:
+    for outputFile in outputFiles:
+      outputFile = outputFile.replace( 'LFN:', '' )
+      lfn = os.sep + os.path.join( 'lhcb', 'user', initial, owner, outputPathStr, yearMonth ) \
+                   + os.sep + str( jobID ) + "_" + prependString + "_" + os.path.basename( outputFile )
+      outputLFNs[outputFile] = lfn
+  else:
+    for outputFile in outputFiles:
+      outputFile = outputFile.replace( 'LFN:', '' )
+      lfn = os.sep + os.path.join( 'lhcb', 'user', initial, owner, outputPath, yearMonth, str( jobID / 1000 ), str( jobID ) ) \
+                   + os.sep + os.path.basename( outputFile )
+      outputLFNs[outputFile] = lfn
+    
 
   outputData = outputLFNs.values()
   if outputData:

@@ -1,10 +1,10 @@
 __RCSID__ = "$Id:  $"
 
-import unittest, itertools, os
+import unittest, itertools, os, datetime
 
 from mock import Mock
 
-from LHCbDIRAC.Core.Utilities.ProductionData import _makeProductionLFN, constructProductionLFNs, _getLFNRoot, _applyMask, getLogPath
+from LHCbDIRAC.Core.Utilities.ProductionData import _makeProductionLFN, constructProductionLFNs, _getLFNRoot, _applyMask, getLogPath, constructUserLFNs
 from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
 from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectCommand
@@ -461,6 +461,25 @@ class ProductionDataSuccess( UtilitiesTestCase ):
     res = _getLFNRoot( '/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst', 'MC12', bkClient = self.bkClientMock, quick = True )
     self.assertEqual( res, '/lhcb/data/CCRC08/00009909' )
 
+  def test_constructUserLFNs( self ):
+    timeTup = datetime.date.today().timetuple()
+    yearMonth = '%s_%s' % ( timeTup[0], str( timeTup[1] ).zfill( 2 ) )
+
+    res = constructUserLFNs( 123, 'fstagni', ['pippo.txt', 'pluto.txt'] )
+    self.assertEqual( sorted ( res ), sorted ( ['/lhcb/user/f/fstagni/' + yearMonth + '/0/123/pluto.txt',
+                                                '/lhcb/user/f/fstagni/' + yearMonth + '/0/123/pippo.txt'] ) )
+
+    res = constructUserLFNs( 123, 'fstagni', ['pippo.txt', 'pluto.txt'], 'my/Output/Path' )
+    self.assertEqual( sorted ( res ), sorted ( ['/lhcb/user/f/fstagni/my/Output/Path/' + yearMonth + '/0/123/pluto.txt',
+                                                '/lhcb/user/f/fstagni/my/Output/Path/' + yearMonth + '/0/123/pippo.txt'] ) )
+
+    res = constructUserLFNs( 123, 'fstagni', ['pippo.txt', 'pluto.txt'], prependString = 'pre/pend' )
+    self.assertEqual( sorted( res ), sorted( ['/lhcb/user/f/fstagni/' + yearMonth + '/123_pre/pend_pippo.txt',
+                                              '/lhcb/user/f/fstagni/' + yearMonth + '/123_pre/pend_pluto.txt'] ) )
+
+    res = constructUserLFNs( 123, 'fstagni', ['pippo.txt', 'pluto.txt'], 'my/Output/Path', 'pre/pend' )
+    self.assertEqual( sorted( res ), sorted( ['/lhcb/user/f/fstagni/my/Output/Path/' + yearMonth + '/123_pre/pend_pippo.txt',
+                                              '/lhcb/user/f/fstagni/my/Output/Path/' + yearMonth + '/123_pre/pend_pluto.txt'] ) )
 
 class InputDataResolutionSuccess( UtilitiesTestCase ):
 

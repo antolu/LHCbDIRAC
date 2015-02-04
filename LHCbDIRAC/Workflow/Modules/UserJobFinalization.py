@@ -69,6 +69,10 @@ class UserJobFinalization( ModuleBase ):
     if self.workflow_commons.has_key( 'ReplicateUserOutputData' ) and self.workflow_commons['ReplicateUserOutputData']:
       self.replicateUserOutputData = True
 
+    self.userPrependString = ''
+    if self.workflow_commons.has_key( 'UserOutputLFNPrepend' ):
+      self.userPrependString = self.workflow_commons['UserOutputLFNPrepend']
+
   #############################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
@@ -131,7 +135,8 @@ class UserJobFinalization( ModuleBase ):
         self.log.info( "Constructing user output LFN(s) for %s" % ( ', '.join( self.userOutputData ) ) )
 
         userOutputLFNs = constructUserLFNs( self.jobID, self._getCurrentOwner(),
-                                            self.userOutputData, self.userOutputPath )
+                                            self.userOutputData, self.userOutputPath,
+                                            self.userPrependString )
 
       self.log.verbose( "Calling getCandidateFiles( %s, %s, %s)" % ( outputList, userOutputLFNs,
                                                                      self.outputDataFileMask ) )

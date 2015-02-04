@@ -703,7 +703,7 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setOutputData( self, lfns, OutputSE = [], OutputPath = '', replicate = '' ):
+  def setOutputData( self, lfns, OutputSE = [], OutputPath = '', replicate = '', filePrepend = '' ):
     """Helper function, used in preference to Job.setOutputData() for LHCb.
 
        For specifying user output data to be registered in Grid storage.
@@ -753,6 +753,11 @@ class LHCbJob( Job ):
       self._addParameter( self.workflow, 'UserOutputPath', 'JDL', OutputPath, description )
 
     self._addParameter( self.workflow, 'ReplicateUserOutputData', 'string', replicate, "Flag to replicate or not" )
+
+    if filePrepend:
+      keepcharacters = ( '.', '_' )
+      prependString = str( filePrepend ).join( c for c in filePrepend if c.isalnum() or c in keepcharacters ).rstrip()
+      self.addParameter( self.workflow, 'UserOutputLFNPrepend', 'string', prependString, "String to prepend to " )
 
     return S_OK()
 
