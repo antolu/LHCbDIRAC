@@ -479,6 +479,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.util.logInfo( "Starting execution of plugin" )
     pluginStartTime = time.time()
     allTasks = []
+    groupSize = self.util.getPluginParam( 'GroupSize' )
     typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge', 'Replication', 'Removal'] )
     fromSEs = set( self.util.getPluginParam( 'FromSEs', [] ) )
     maxTime = self.util.getPluginParam( 'MaxTimeAllowed', 0 )
@@ -560,7 +561,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Check if something was new since last time...
         cachedLfns = self.util.getCachedRunLFNs( runID, paramValue )
         newLfns = runParamLfns - cachedLfns
-        if len( newLfns ) == 0 and self.transID > 0 and runStatus != 'Flush' and not self.util.cacheExpired( runID ):
+        if len( newLfns ) == 0 and \
+           self.transID > 0 and \
+           runStatus != 'Flush' and \
+           not self.util.cacheExpired( runID ) and \
+           ( plugin != 'LHCbStandard' or groupSize != 1 ):
           self.util.logVerbose( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
           continue
         self.util.logVerbose( "Of %d files, %d are new for %d%s" % ( len( runParamLfns ),
