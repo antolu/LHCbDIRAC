@@ -95,7 +95,7 @@ class DMScript( object ):
     self.bkQuery = None
     self.bkQueryDict = {}
     self.options = {}
-    self.lastFile = os.path.join( os.environ['HOME'], '.lastLFNs' )
+    self.lastFile = os.path.join( os.environ.get( 'TMPDIR', '/tmp' ), '%d.lastLFNs' % os.getppid() )
 
   def registerDMSwitches( self ) :
     self.registerBKSwitches()
@@ -274,7 +274,7 @@ class DMScript( object ):
   def setLFNsFromLast( self, val ):
     if os.path.exists( self.lastFile ):
       return self.setLFNsFromFile( self.lastFile )
-    gLogger.fatal( 'Last file $s does not exist' % self.lastFile )
+    gLogger.fatal( 'Last file %s does not exist' % self.lastFile )
     DIRAC.exit( 2 )
 
   def setLFNsFromFile( self, arg ):
