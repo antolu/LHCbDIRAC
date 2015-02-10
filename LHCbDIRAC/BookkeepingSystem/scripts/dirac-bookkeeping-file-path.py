@@ -22,6 +22,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'GroupByPath', '   Return a list of files per BK path' )
   Script.registerSwitch( '', 'GroupByProduction', '   Return a list of files per production' )
   Script.registerSwitch( '', 'Summary', '   Only give the number of files in each group (default: GroupByPath)' )
+  Script.registerSwitch( '', 'List', '   Print a list of group keys' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] ... LFN|File' % Script.scriptName,
@@ -37,6 +38,7 @@ if __name__ == "__main__":
   full = False
   groupBy = False
   summary = False
+  printList = False
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
     if switch[0] == 'Full':
@@ -49,6 +51,8 @@ if __name__ == "__main__":
       groupBy = switch[1]
     elif switch[0] == 'Summary':
       summary = True
+    elif switch[0] == 'List':
+      printList = True
   if summary and not groupBy:
     groupBy = 'Path'
 
@@ -143,4 +147,7 @@ if __name__ == "__main__":
         res = S_OK( paths )
 
   printDMResult( res, empty = 'None', script = 'dirac-bookkeeping-file-path' )
+  if printList:
+    gLogger.always( '\nList of %s values' % groupBy )
+    gLogger.always( ','.join( sorted( [item.replace( '%s ' % groupBy, '' ) for item in res['Value']['Successful']] ) ) )
 
