@@ -721,20 +721,6 @@ class DiracProduction( DiracLHCb ):
 
   #############################################################################
 
-  def getProdJobOutputData( self, jobID ):
-    """ For a single jobID / list of jobIDs retrieve the output data LFN list.
-    """
-    result = self.getJobJDL( jobID )
-    if not result['OK']:
-      return result
-    if not result['Value'].has_key( 'ProductionOutputData' ):
-      return S_ERROR( 'Could not obtain ProductionOutputData from job JDL' )
-    lfns = result['Value']['ProductionOutputData']
-    if type( lfns ) == type( ' ' ):
-      lfns = [lfns]
-    return S_OK( lfns )
-
-  #############################################################################
   def getWMSProdJobID( self, jobID, printOutput = False ):
     """This method takes the DIRAC WMS JobID and returns the Production JobID information.
     """

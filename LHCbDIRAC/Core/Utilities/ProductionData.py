@@ -18,9 +18,8 @@ gLogger = gLogger.getSubLogger( 'ProductionData' )
 #############################################################################
 
 def constructProductionLFNs( paramDict, bkClient = None, quick = True ):
-  """ Used for local testing of a workflow, a temporary measure until
-      LFN construction is tidied.  This works using the workflow commons for
-      on the fly construction.
+  """ Used for local testing of a workflow, a temporary measure until LFN construction is tidied.
+      This works using the workflow commons for on the fly construction.
   """
   try:
 
