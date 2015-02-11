@@ -93,12 +93,12 @@ class LHCbBookkeepingManager( BaseESManager ):
     print 'WELCOME'
     print "For more information use the 'help' command! "
     self.dataQualities_ = {}
-    if not web:
-      retVal = self.db_.getAvailableFileTypes()
-      if not retVal['OK']:
-        gLogger.error( retVal )
-      else:
-        self.__filetypes = [ i[0] for i in retVal['Value']['Records']]
+    
+    retVal = self.db_.getAvailableFileTypes()
+    if not retVal['OK']:
+      gLogger.error( retVal )
+    else:
+      self.__filetypes = [ i[0] for i in retVal['Value']['Records']]
 
   #############################################################################
   def setFileTypes( self, fileTypeList = list() ):
