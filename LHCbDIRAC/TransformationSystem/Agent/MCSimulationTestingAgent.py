@@ -216,11 +216,10 @@ class MCSimulationTestingAgent ( AgentModule ):
     for job in successful.itervalues():
       cpuJob = 0
       for bkJob in job:
-        if bkJob['ApplicationName'] == 'Gauss':
+        if bkJob['ApplicationName'] in ['Gauss', 'Boole', 'Moore', 'Brunel', 'DaVinci']:
           events = bkJob['NumberOfEvents']
           timeInSeconds = bkJob['CPUTIME']
-          cpuJob = timeInSeconds * bkJob['WNCPUHS06']
-          break
+          cpuJob += timeInSeconds * bkJob['WNCPUHS06']
       CPUeJob = cpuJob / events
       self.log.debug( "CPUeJob = %d" % CPUeJob )
 
