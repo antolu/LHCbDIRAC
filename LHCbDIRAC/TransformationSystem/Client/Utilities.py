@@ -669,7 +669,7 @@ class PluginUtilities( object ):
             self.logError( "Error getting ancestors of %s" % lfnToCheck, res['Message'] )
         else:
           ancestorFullDST = lfnToCheck
-      self.logVerbose( "Ancestor FULL.DST found: %s" % ancestorFullDST )
+      self.logDebug( "Ancestor FULL.DST found: %s" % ancestorFullDST )
       if ancestorFullDST:
         res = self.bkClient.getJobInfo( ancestorFullDST )
         if res['OK']:
