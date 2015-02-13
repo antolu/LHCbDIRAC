@@ -611,8 +611,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             self.transClient.setTransformationRunStatus( self.transID, runID, 'Flush' )
           else:
             self.util.logVerbose( "Only %d ancestor RAW files (of %d) available for run %d" % ( ancestorRawFiles, rawFiles, runID ) )
-            # If the run is not complete for that parameter, come back later
-            break
         if runStatus == 'Flush':
           flushed.append( ( paramValue, len( self.data ) ) )
         # Now calling the helper plugin... Set status to a fake value
