@@ -318,7 +318,7 @@ if __name__ == "__main__":
   from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   oplugin = TransformationPlugin( plugin, transClient = fakeClient, dataManager = DataManager(), bkkClient = BookkeepingClient() )
   pluginParams['TransformationID'] = transID
-  oplugin.setParameters( pluginParams )
+  oplugin.params = pluginParams
   replicas = fakeClient.getReplicas()
   # Special case of RAW files registered in CERN-RDST...
   if plugin == "AtomicRun":
@@ -338,7 +338,7 @@ if __name__ == "__main__":
   oplugin.setTransformationFiles( files )
   import time
   startTime = time.time()
-  res = oplugin.generateTasks()
+  res = oplugin.run()
   print "Plugin took %.1f seconds" % ( time.time() - startTime )
   print ""
   if res['OK']:
