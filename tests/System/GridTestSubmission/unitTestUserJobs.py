@@ -168,7 +168,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     print "**********************************************************************************************************"
 
-    gLogger.info( "\n Submitting a job that uploads 2 outputs to an SE that is banned (CPPM-USER)" )
+    gLogger.info( "\n Submitting a job that uploads 2 outputs to an SE that is banned (PIC-USER)" )
 
     helloJ = LHCbJob()
 
@@ -180,7 +180,8 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     helloJ.setCPUTime( 17800 )
 
-    helloJ.setOutputData( ['testFileUploadBanned-1.txt', 'testFileUploadBanned-2.txt'], OutputSE = 'CPPM-USER' )
+    helloJ.setDestination( 'LCG.PIC.es' )
+    helloJ.setOutputData( ['testFileUploadBanned-1.txt', 'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
 
     result = self.dirac.submit( helloJ )
     gLogger.info( "Hello world submitting a job that uploads 2 outputs to an SE that is banned: ", result )
