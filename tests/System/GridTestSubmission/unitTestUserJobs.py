@@ -166,6 +166,30 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     self.assert_( result['OK'] )
 
+    print "**********************************************************************************************************"
+
+    gLogger.info( "\n Submitting a job that uploads 2 outputs to an SE that is banned (CPPM-USER)" )
+
+    helloJ = LHCbJob()
+
+    helloJ.setName( "upload-2-Output-to-banned-SE" )
+    helloJ.setInputSandbox( [find_all( 'testFileUploadBanned-1.txt', '.', 'GridTestSubmission' )[0]] \
+                            + [find_all( 'testFileUploadBanned-2.txt', '.', 'GridTestSubmission' )[0]] \
+                            + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+    helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
+
+    helloJ.setCPUTime( 17800 )
+
+    helloJ.setOutputData( ['testFileUploadBanned-1.txt', 'testFileUploadBanned-2.txt'], OutputSE = 'CPPM-USER' )
+
+    result = self.dirac.submit( helloJ )
+    gLogger.info( "Hello world submitting a job that uploads 2 outputs to an SE that is banned: ", result )
+
+    jobID = int( result['Value'] )
+    jobsSubmittedList.append( jobID )
+
+    self.assert_( result['OK'] )
+
 
     print "**********************************************************************************************************"
 
