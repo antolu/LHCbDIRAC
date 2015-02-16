@@ -22,6 +22,19 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, convertSEs
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
+# Function to be used as a decorator for timing other functions
+def timeThis( method ):
+
+  def timed( *args, **kw ):
+    ts = time.time()
+    result = method( *args, **kw )
+    te = time.time()
+
+    gLogger.verbose( "Exec time === ", " function %r arguments len: %d -> %2.2f sec" % ( method.__name__, len( kw ), te - ts ) )
+    return result
+
+  return timed
+
 class Setter( object ):
   def __init__( self, obj, name ):
     self.name = name
@@ -376,8 +389,8 @@ class PluginUtilities( object ):
         return res
     return S_OK( filesParam )
 
+  @timeThis
   def getFilesParam( self, lfns, param ):
-    start = time.time()
     if not self.filesParam:
       nCached = 0
       for run in self.cachedRunLfns:
@@ -394,7 +407,7 @@ class PluginUtilities( object ):
         return res
       filesParam.update( res['Value'] )
       self.filesParam.update( res['Value'] )
-      self.logVerbose( "Obtained BK %s of %d files in %.3f seconds" % ( param, len( newLFNs ), time.time() - start ) )
+      self.logVerbose( "Obtained BK %s of %d files" % ( param, len( newLFNs ) ) )
     return S_OK( filesParam )
 
   def getActiveSEs( self, selist ):
@@ -623,17 +636,16 @@ class PluginUtilities( object ):
     from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import getFileDescendants
     return getFileDescendants( self.transID, lfns, transClient = self.transClient, dm = self.dm, bkClient = self.bkClient )
 
+  @timeThis
   def getRAWAncestorsForRun( self, runID, param = None, paramValue = None, getFiles = False ):
     """ Determine from BK how many ancestors files from a given runs do have
         This is used for deciding when to flush a run (when all RAW files have been processed)
     """
-    startTime1 = time.time()
     ancestors = 0
     # The transformation files cannot be cached globally as they evolve at each cycle
     lfns = self.transRunFiles.get( runID, [] )
     if not lfns:
-      res = self.transClient.getTransformationFiles( { 'TransformationID' : self.transID, 'RunNumber': runID } )
-      self.logVerbose( "Timing for getting transformation files: %.3f s" % ( time.time() - startTime1 ) )
+      res = self.getTransformationFiles( RunNumber = runID )
       if not res['OK']:
         self.logError( "Cannot get transformation files for run %s: %s" % ( str( runID ), res['Message'] ) )
         return 0
@@ -670,10 +682,7 @@ class PluginUtilities( object ):
     # If some files are unknown, get the ancestors from BK
     ancestorFiles = []
     if lfns:
-      startTime = time.time()
-      res = self.bkClient.getFileAncestors( lfns, depth = 10 )
-      self.logVerbose( "Timing for getting all ancestors with metadata of %d files%s: %.3f s" % ( len( lfns ), paramStr,
-                                                                                                  time.time() - startTime ) )
+      res = self.getFileAncestors( lfns )
       if res['OK']:
         ancestorDict = res['Value']['Successful']
       else:
@@ -696,7 +705,7 @@ class PluginUtilities( object ):
       res = self.bkClient.getFileMetadata( lfnToCheck )
       if res['OK']:
         if res['Value']['Successful'].get( lfnToCheck, {} ).get( 'FileType' ) != 'FULL.DST':
-          res = self.bkClient.getFileAncestors( [lfnToCheck], depth = 10, replica = False )
+          res = self.getFileAncestors( [lfnToCheck], replica = False )
           if res['OK']:
             fullDst = [f['FileName'] for f in res['Value']['Successful'].get( lfnToCheck, [{}] ) if f.get( 'FileType' ) == 'FULL.DST']
             if fullDst:
@@ -705,7 +714,7 @@ class PluginUtilities( object ):
             self.logError( "Error getting ancestors of %s" % lfnToCheck, res['Message'] )
         else:
           ancestorFullDST = lfnToCheck
-      self.logDebug( "Ancestor FULL.DST found: %s" % ancestorFullDST )
+      self.logVerbose( "Ancestor FULL.DST found: %s" % ancestorFullDST )
       if ancestorFullDST:
         res = self.bkClient.getJobInfo( ancestorFullDST )
         if res['OK']:
@@ -718,7 +727,7 @@ class PluginUtilities( object ):
         else:
           self.logError( "Error getting job information", res['Message'] )
       if recoProduction:
-        res = self.transClient.getTransformationFiles( { 'TransformationID':recoProduction, 'RunNumber':runID} )
+        res = self.transClient.getTransformationFiles( runID = runID )
         if res['OK']:
           notProcessed = len( [fileDict for fileDict in res['Value'] if fileDict['Status'] == 'NotProcessed'] )
           self.notProcessed[runID] = notProcessed
@@ -727,19 +736,26 @@ class PluginUtilities( object ):
     if notProcessed:
       self.logVerbose( "Found %d files not processed for run %d" % ( notProcessed, runID ) )
       ancestors += notProcessed
-    self.logVerbose( "Full timing for getRAWAncestors (found %d for run %d): %.3f seconds" % ( ancestors, runID, time.time() - startTime1 ) )
+    self.logVerbose( "found %d for run %d" % ( ancestors, runID ) )
     return ancestors
 
+  @timeThis
+  def getTransformationFiles( self, runID ):
+    return self.transClient.getTransformationFiles( { 'TransformationID' : self.transID, 'RunNumber': runID } )
+
+  @timeThis
+  def getFileAncestors( self, lfns, depth = 10, replica = True ):
+    return self.bkClient.getFileAncestors( lfns, depth, replica )
+
+  @timeThis
   def groupByRunAndParam( self, lfns, files, param = '' ):
     """ Group files by run and another BK parameter (e.g. file type or event type)
     """
     runDict = {}
-    startTime = time.time()
     # no need to query the BK as we have the answer from files
     lfns = [ fileDict for fileDict in files if fileDict['LFN'] in lfns]
     self.logVerbose( "Starting groupByRunAndParam for %d files, %s" % ( len( lfns ), 'by %s' % param if param else 'no param' ) )
     res = groupByRun( lfns )
-    self.logVerbose( "Grouped %d files by run in %.1f seconds" % ( len( lfns ), time.time() - startTime ) )
     runGroups = res['Value']
     for runNumber in runGroups:
       runLFNs = runGroups[runNumber]
@@ -754,7 +770,7 @@ class PluginUtilities( object ):
           for lfn in res['Value']:
             runDict[runNumber].setdefault( res['Value'][lfn], [] ).append( lfn )
     if param:
-      self.logVerbose( "Grouped %d files by run and %s in %.1f seconds" % ( len( lfns ), param, time.time() - startTime ) )
+      self.logVerbose( "Grouped %d files by run and %s" % ( len( lfns ), param ) )
     return S_OK( runDict )
 
   def groupByReplicas( self, files, status ):
@@ -930,21 +946,20 @@ class PluginUtilities( object ):
       self.runExpiredCache[runID] = ( random.uniform( 0., 1. ) > self.cacheHitFrequency )
     return self.runExpiredCache[runID]
 
-
+  @timeThis
   def getNbRAWInRun( self, runID, evtType ):
     """ Get the number of RAW files in a run
     """
     # Every now and then refresh the cache
     rawFiles = self.cachedNbRAWFiles.get( runID, {} ).get( evtType ) if not self.cacheExpired( runID ) else None
     if not rawFiles:
-      startTime = time.time()
       res = self.bkClient.getNbOfRawFiles( {'RunNumber':runID, 'EventTypeId':evtType} )
       if not res['OK']:
         self.logError( "Cannot get number of RAW files for run %d, evttype %d" % ( runID, evtType ) )
         return 0
       rawFiles = res['Value']
       self.cachedNbRAWFiles.setdefault( runID, {} )[evtType] = rawFiles
-      self.logVerbose( "Run %d has %d RAW files (timing: %3f s)" % ( runID, rawFiles, time.time() - startTime ) )
+      self.logVerbose( "Run %d has %d RAW files" % ( runID, rawFiles ) )
     return rawFiles
 
 
@@ -966,11 +981,11 @@ class PluginUtilities( object ):
       except:
         self.logError( "Could not write cache file %s" % self.cacheFile )
 
+  @timeThis
   def getFileSize( self, lfns ):
     """ Get file size from a cache, if not from the catalog
     """
     fileSizes = {}
-    startTime1 = time.time()
     for lfn in [lfn for lfn in lfns if lfn in self.cachedLFNSize]:
       fileSizes[lfn] = self.cachedLFNSize[lfn]
     if fileSizes:
@@ -987,7 +1002,6 @@ class PluginUtilities( object ):
       fileSizes.update( res['Value']['Successful'] )
       self.cachedLFNSize.update( ( res['Value']['Successful'] ) )
       self.logVerbose( "Timing for getting size of %d files from catalog: %.3f seconds" % ( len( lfns ), ( time.time() - startTime ) ) )
-    self.logVerbose( "Timing for getting size of files: %.3f seconds" % ( time.time() - startTime1 ) )
     return S_OK( fileSizes )
 
   def clearCachedFileSize( self, lfns ):
@@ -1080,6 +1094,7 @@ def sortExistingSEs( lfnSEs, lfns = None ):
   # add the archive SEs at the end
   return sortedSEs + archiveSEs
 
+@timeThis
 def groupByRun( files ):
   """ Groups files by run
   files is a list of dictionaries containing the run number
