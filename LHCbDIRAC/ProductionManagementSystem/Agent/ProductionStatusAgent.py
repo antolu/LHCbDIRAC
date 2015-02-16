@@ -676,7 +676,6 @@ class ProductionStatusAgent( AgentModule ):
       isSimulation = False
       # other transformation type : go to Idle if
       # 0 assigned files, unused files number was not chaning during the last cyclesTillIdle time
-      # AND > 0 processed files
       # AND only failed and done jobs
       filesStats = self.__getTransformationFilesStats( tID )
       self.log.debug( "Files stats: %s" % str( filesStats ) )
@@ -689,7 +688,7 @@ class ProductionStatusAgent( AgentModule ):
         oldUnused['Number'] = unused
       assigned = filesStats.get( 'Assigned', 0 )
       processed = filesStats.get( 'Processed', 0 )
-      isProcIdle = ( ( processed > 0 ) and ( assigned == 0 ) and ( ( unused == 0 ) or ( oldUnused['NotChanged'] >= self.cyclesTillIdle ) ) )
+      isProcIdle = ( ( assigned == 0 ) and ( ( unused == 0 ) or ( oldUnused['NotChanged'] >= self.cyclesTillIdle ) ) )
       if isProcIdle:
         tStats = self.__getTransformationTaskStats( tID )
         self.log.debug( "Tasks Stats: %s" % str( tStats ) )
