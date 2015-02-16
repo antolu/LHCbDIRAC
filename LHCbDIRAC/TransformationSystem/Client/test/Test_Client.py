@@ -382,6 +382,13 @@ class PluginsUtilitiesSuccess( ClientTestCase ):
     self.assertEqual( res['Value'], resExpected )
 
 
+  def test_getRAWAncestorsForRun( self ):
+
+    # no files, nothing happens
+    pu = PluginUtilities( fc = self.fcMock, dataManager = MagicMock(), rmClient = MagicMock() )
+    res = pu.getRAWAncestorsForRun( 0 )
+    print res
+
 #############################################################################
 #############################################################################
 

@@ -645,7 +645,7 @@ class PluginUtilities( object ):
     # The transformation files cannot be cached globally as they evolve at each cycle
     lfns = self.transRunFiles.get( runID, [] )
     if not lfns:
-      res = self.getTransformationFiles( RunNumber = runID )
+      res = self.getTransformationFiles( runID = runID )
       if not res['OK']:
         self.logError( "Cannot get transformation files for run %s: %s" % ( str( runID ), res['Message'] ) )
         return 0
