@@ -85,7 +85,7 @@ p1CPU = '{{p1MaxCPUTime#PROD-P1: Max CPU time in secs#1000000}}'
 p1GroupSize = '{{p1GroupSize#PROD-P1: Group size or number of files per job#1}}'
 p1DataSE = '{{p1DataSE#PROD-P1: Output Data Storage Element#Tier1-DST}}'
 try:
-  p1DataSESpecial = eval( '{{p1DataSE#PROD-P1: Special SEs per file type, e.g. {"T1":"SE1"}#}}' )
+  p1DataSESpecial = eval( '{{p1DataSESpecial#PROD-P1: Special SEs per file type, e.g. {"T1":"SE1"}#}}' )
 except SyntaxError:
   p1DataSESpecial = {}
 p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
@@ -102,7 +102,7 @@ p2CPU = '{{p2MaxCPUTime#PROD-P2: Max CPU time in secs#1000000}}'
 p2GroupSize = '{{p2GroupSize#PROD-P2: Group Size#1}}'
 p2DataSE = '{{p2DataSE#PROD-P2: Output Data Storage Element#Tier1-DST}}'
 try:
-  p2DataSESpecial = eval('{{p2DataSE#PROD-P2: Special SEs per file type, e.g. {"T1":"SE1"}#}}')
+  p2DataSESpecial = eval( '{{p2DataSESpecial#PROD-P2: Special SEs per file type, e.g. {"T1":"SE1"}#}}' )
 except SyntaxError:
   p2DataSESpecial = {}
 p2Policy = '{{p2Policy#PROD-P2: data policy (download or protocol)#download}}'
@@ -119,7 +119,7 @@ p3CPU = '{{p3MaxCPUTime#PROD-P3: Max CPU time in secs#1000000}}'
 p3GroupSize = '{{p3GroupSize#PROD-P3: Group Size#1}}'
 p3DataSE = '{{p3DataSE#PROD-P3: Output Data Storage Element#Tier1-DST}}'
 try:
-  p3DataSESpecial = eval( '{{p3DataSE#PROD-P3: Special SEs per file type, e.g. {"T1":"SE1"}#}}' )
+  p3DataSESpecial = eval( '{{p3DataSESpecial#PROD-P3: Special SEs per file type, e.g. {"T1":"SE1"}#}}' )
 except SyntaxError:
   p3DataSESpecial = {}
 p3Policy = '{{p3Policy#PROD-P3: data policy (download or protocol)#download}}'
