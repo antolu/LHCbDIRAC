@@ -6,6 +6,7 @@ import time
 
 from DIRAC import gLogger
 from DIRAC.Core.Security.ProxyInfo import getProxyInfo
+from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 
 from TestDIRAC.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
 from TestDIRAC.Utilities.utils import find_all
@@ -27,6 +28,11 @@ class GridSubmissionTestCase( unittest.TestCase ):
     result = getProxyInfo()
     if result['Value']['group'] not in ['lhcb_user', 'dirac_user']:
       print "GET A USER GROUP"
+      exit( 1 )
+      
+    result = ResourceStatus().getStorageElementStatus( 'PIC-USER', 'WriteAccess' )
+    if result['Value']['PIC-USER']['WriteAccess'].lower() != 'banned':
+      print "BAN PIC-USER in writing!"
       exit( 1 )
 
   def tearDown( self ):
@@ -175,10 +181,12 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     helloJ.setName( "upload-2-Output-to-banned-SE" )
     helloJ.setInputSandbox( [find_all( 'testFileUploadBanned-1.txt', '.', 'GridTestSubmission' )[0]] \
                             + [find_all( 'testFileUploadBanned-2.txt', '.', 'GridTestSubmission' )[0]] \
-                            + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+                            + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] \
+                            + [find_all( 'partialConfig.cfg', '.', 'GridTestSubmission' )[0] ] )
     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
     helloJ.setCPUTime( 17800 )
+    gaudirunJob.setConfigArgs( 'partialConfig.cfg' )
 
     helloJ.setDestination( 'LCG.PIC.es' )
     helloJ.setOutputData( ['testFileUploadBanned-1.txt', 'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
@@ -283,7 +291,6 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     gaudirunJob.setDIRACPlatform()
     gaudirunJob.setCPUTime( 172800 )
-    gaudirunJob.setConfigArgs( 'partialConfig.cfg' )
 
     result = self.dirac.submit( gaudirunJob )
     gLogger.info( 'Submission Result: ', result )
