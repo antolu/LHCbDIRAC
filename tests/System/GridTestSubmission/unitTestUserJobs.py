@@ -283,6 +283,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     gaudirunJob.setDIRACPlatform()
     gaudirunJob.setCPUTime( 172800 )
+    gaudirunJob.setConfigArgs( 'partialConfig.cfg' )
 
     result = self.dirac.submit( gaudirunJob )
     gLogger.info( 'Submission Result: ', result )
