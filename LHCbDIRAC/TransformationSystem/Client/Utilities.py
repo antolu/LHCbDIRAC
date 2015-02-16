@@ -12,11 +12,15 @@ from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
 
+from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
+from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BKClientWithRetry
 
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient, BKClientWithRetry
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, convertSEs
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 class Setter( object ):
   def __init__( self, obj, name ):
@@ -141,14 +145,43 @@ class PluginUtilities( object ):
   """
   Utility class used by plugins
   """
-  def __init__( self, plugin, transClient, dataManager, bkClient, rmClient, resourceStatus, debug, transInThread, transID = None ):
-    self.plugin = plugin
-    self.transClient = transClient
+
+  def __init__( self, plugin = 'LHCbStandard', transClient = None, dataManager = None, fc = None,
+                 bkClient = None, rmClient = None, resourceStatus = None,
+                 debug = False, transInThread = None, transID = None ):
+    """
+    c'tor
+    """
+
+    # logger
+    self.log = gLogger.getSubLogger( "%s/PluginUtilities" % plugin )
+
+    # clients
+    if transClient is None:
+      self.transClient = TransformationClient()
+    else:
+      self.transClient = transClient
+    if dataManager is None:
+      self.dm = DataManager()
+    else:
+      self.dm = dataManager
+    if fc is None:
+      self.fc = FileCatalog()
+    else:
+      self.fc = fc
+    if bkClient is None:
+      bkClient = BookkeepingClient()
     self.bkClient = BKClientWithRetry( bkClient )
-    self.dm = dataManager
-    self.fc = FileCatalog()
-    self.rmClient = rmClient
-    self.resourceStatus = resourceStatus
+    if rmClient is None:
+      self.rmClient = ReqClient()
+    else:
+      self.rmClient = rmClient
+    if resourceStatus is None:
+      self.resourceStatus = ResourceStatus()
+    else:
+      self.resourceStatus = resourceStatus
+
+    self.plugin = plugin
     self.freeSpace = {}
     self.debug = debug
     self.transID = transID
@@ -165,7 +198,10 @@ class PluginUtilities( object ):
     self.transRunFiles = {}
     self.groupSize = 0
     self.maxFiles = 0
-    self.transInThread = transInThread
+    if transInThread is None:
+      self.transInThread = {}
+    else:
+      self.transInThread = transInThread
     self.transString = ''
     self.notProcessed = {}
     self.cacheHitFrequency = max( 0., 1 - self.getPluginParam( 'RunCacheUpdateFrequency', 0.05 ) )
@@ -173,24 +209,24 @@ class PluginUtilities( object ):
 
   def logVerbose( self, message, param = '' ):
     if self.debug:
-      gLogger.info( '(V)' + self.transString + message, param )
+      self.log.info( '(V)' + self.transString + message, param )
     else:
-      gLogger.verbose( self.transString + message, param )
+      self.log.verbose( self.transString + message, param )
 
   def logDebug( self, message, param = '' ):
-    gLogger.debug( self.transString + message, param )
+    self.log.debug( self.transString + message, param )
 
   def logInfo( self, message, param = '' ):
-    gLogger.info( self.transString + message, param )
+    self.log.info( self.transString + message, param )
 
   def logWarn( self, message, param = '' ):
-    gLogger.warn( self.transString + message, param )
+    self.log.warn( self.transString + message, param )
 
   def logError( self, message, param = '' ):
-    gLogger.error( self.transString + message, param )
+    self.log.error( self.transString + message, param )
 
   def logException( self, message, param = '', lException = False ):
-    gLogger.exception( self.transString + message, param, lException )
+    self.log.exception( self.transString + message, param, lException )
 
   def setParameters( self, params ):
     self.params = params
@@ -1138,8 +1174,6 @@ def closerSEs( existingSEs, targetSEs, local = False ):
   return ( targetSEs + list( sameSEs ) ) if not local else targetSEs
 
 def addFilesToTransformation( transID, lfns, addRunInfo = True ):
-  from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   transClient = TransformationClient()
   bk = BookkeepingClient()
   gLogger.info( "Adding %d files to transformation %s" % ( len( lfns ), transID ) )

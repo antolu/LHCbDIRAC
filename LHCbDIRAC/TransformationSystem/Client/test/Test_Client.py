@@ -1,10 +1,15 @@
 import unittest
-from mock import Mock
+import itertools
+
+from mock import MagicMock
+
+from DIRAC import S_OK, S_ERROR, gLogger
 
 from LHCbDIRAC.TransformationSystem.Client.Utilities import closerSEs
 
 from LHCbDIRAC.TransformationSystem.Client.TaskManager import LHCbWorkflowTasks
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.TransformationSystem.Client.Utilities import PluginUtilities, getFileGroups, groupByRun
 
 def getSitesForSE( ses ):
   if ses == 'pippo':
@@ -16,14 +21,21 @@ def getSitesForSE( ses ):
 class ClientTestCase( unittest.TestCase ):
 
   def setUp( self ):
-    tcMock = Mock()
-    sc = Mock()
-    jmc = Mock()
+    tcMock = MagicMock()
+    sc = MagicMock()
+    jmc = MagicMock()
 
     self.l_wft = LHCbWorkflowTasks( tcMock, submissionClient = sc, jobMonitoringClient = jmc )
     self.tc = TransformationClient()
-    self.tc.opsH = Mock()
+    self.tc.opsH = MagicMock()
     self.tc.opsH.getValue.return_value = ['MCSimulation', 'DataReconstruction']
+
+    self.fcMock = MagicMock()
+    self.fcMock.getFileSize.return_value = S_OK( {'Failed':[], 'Successful': cachedLFNSize} )
+
+    gLogger.setLevel( 'DEBUG' )
+
+    self.maxDiff = None
 
   def tearDown( self ):
     pass
@@ -176,9 +188,206 @@ class TransformationClientSuccess( ClientTestCase ):
 
 
 
+# Test data for plugins
+data = {'/this/is/at_1':['SE1'],
+        '/this/is/at_2':['SE2'],
+        '/this/is/at_12':['SE1', 'SE2'],
+        '/this/is/also/at_12':['SE1', 'SE2'],
+        '/this/is/at_123':['SE1', 'SE2', 'SE3'],
+        '/this/is/at_23':['SE2', 'SE3'],
+        '/this/is/at_4':['SE4']}
+
+cachedLFNSize = {'/this/is/at_1':1,
+                 '/this/is/at_2':2,
+                 '/this/is/at_12':12,
+                 '/this/is/also/at_12':12,
+                 '/this/is/at_123':123,
+                 '/this/is/at_23':23,
+                 '/this/is/at_4':4}
+
+runFiles = [{'LFN':'/this/is/at_1', 'RunNumber':1},
+            {'LFN':'/this/is/at_2', 'RunNumber':2},
+            {'LFN':'/this/is/at_12', 'RunNumber':12},
+            {'LFN':'/this/is/also/at_12', 'RunNumber':12},
+            {'LFN':'/this/is/at_123', 'RunNumber':123},
+            {'LFN':'/this/is/at_23', 'RunNumber':23},
+            {'LFN':'/this/is/at_4', 'RunNumber':4}]
+
+class PluginsUtilitiesSuccess( ClientTestCase ):
+
+#   def test_getFileGroups( self ):
+# 
+#     res = getFileGroups( data )
+#     resExpected = {'SE1':['/this/is/at_1'],
+#                    'SE2':['/this/is/at_2'],
+#                    'SE1,SE2':sorted( ['/this/is/at_12', '/this/is/also/at_12'] ),
+#                    'SE1,SE2,SE3':['/this/is/at_123'],
+#                    'SE2,SE3':['/this/is/at_23'],
+#                    'SE4':['/this/is/at_4']}
+#     for t, tExp in itertools.izip( res.items(), resExpected.items() ):
+#       self.assertEqual( t[0], tExp[0] )
+#       self.assertEqual( sorted( t[1] ), tExp[1] )
+# 
+#     res = getFileGroups( data, False )
+#     resExpected = {'SE1': sorted( ['/this/is/at_1', '/this/is/at_123', '/this/is/at_12', '/this/is/also/at_12'] ),
+#                    'SE2': sorted( ['/this/is/at_23', 'this/is/at_2', '/this/is/at_123', '/this/is/at_12', '/this/is/also/at_12'] ),
+#                    'SE3': sorted( ['/this/is/at_23', '/this/is/at_123'] ),
+#                    'SE4': sorted( ['/this/is/at_4'] )}
+# 
+#     self.assertItemsEqual( res, resExpected )
+# 
+#   def test_groupByReplicas( self ):
+# 
+#     pu = PluginUtilities( rmClient = MagicMock() )
+#     res = pu.groupByReplicas( data, 'Active' )
+#     self.assert_( res['OK'] )
+#     self.assertEqual( res['Value'], [] )
+# 
+#     pu = PluginUtilities( rmClient = MagicMock() )
+#     pu.params['GroupSize'] = 2
+#     res = pu.groupByReplicas( data, 'Active' )
+#     self.assert_( res['OK'] )
+#     self.assert_( len( res['Value'] ) == 3 )
+#     for t in res['Value']:
+#       self.assert_( len( t[1] ) <= 2 )
+# 
+#     pu = PluginUtilities( rmClient = MagicMock() )
+#     pu.params['GroupSize'] = 2
+#     res = pu.groupByReplicas( data, 'Flush' )
+#     self.assert_( res['OK'] )
+#     self.assert_( len( res['Value'] ) == 4 )
+# 
+#     pu = PluginUtilities( rmClient = MagicMock() )
+#     res = pu.groupByReplicas( data, 'Flush' )
+#     self.assert_( res['OK'] )
+#     resExpected = [( 'SE1', sorted( ['/this/is/also/at_12', '/this/is/at_1', '/this/is/at_123', '/this/is/at_12'] ) ),
+#                    ( 'SE2', sorted( ['/this/is/at_23', '/this/is/at_2'] ) ),
+#                    ( 'SE4', sorted( ['/this/is/at_4'] ) )]
+#     for t, tExp in itertools.izip( res['Value'], resExpected ):
+#       self.assertEqual( t[0], tExp[0] )
+#       self.assertEqual( sorted( t[1] ), tExp[1] )
+# 
+#   def test_groupBySize( self ):
+# 
+#     # no files, nothing happens
+#     pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
+#     res = pu.groupBySize( {}, 'Active' )
+#     self.assert_( res['OK'] )
+#     self.assertEqual( res['Value'], [] )
+# 
+#     # files, cached, nothing happens as too small
+#     pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
+#     pu.cachedLFNSize = dict( cachedLFNSize )
+#     res = pu.groupBySize( data, 'Active' )
+#     self.assert_( res['OK'] )
+#     self.assertEqual( res['Value'], [] )
+# 
+#     # files, cached, low GroupSize imposed
+#     pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
+#     pu.cachedLFNSize = dict( cachedLFNSize )
+#     pu.groupSize = 10
+#     res = pu.groupBySize( data, 'Active' )
+#     self.assert_( res['OK'] )
+#     resExpected = [( 'SE1,SE2', ['/this/is/at_12'] ),
+#                    ( 'SE2,SE3', ['/this/is/at_23'] ),
+#                    ( 'SE1,SE2,SE3', ['/this/is/at_123'] ),
+#                    ( 'SE1,SE2', ['/this/is/also/at_12'] )]
+#     for tExp in resExpected:
+#       self.assert_( tExp in res['Value'] )
+# 
+#     # files, cached, flushed
+#     pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
+#     pu.cachedLFNSize = dict( cachedLFNSize )
+#     res = pu.groupBySize( data, 'Flush' )
+#     self.assert_( res['OK'] )
+#     self.assert_( len( res['Value'] ) == 6 )
+# 
+#     # files, not cached, nothing happens as too small
+#     pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
+#     res = pu.groupBySize( data, 'Active' )
+#     self.assert_( res['OK'] )
+#     self.assertEqual( res['Value'], [] )
+# 
+#     # files, not cached, flushed
+#     pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
+# 
+#     res = pu.groupBySize( data, 'Flush' )
+#     self.assert_( res['OK'] )
+#     self.assert_( len( res['Value'] ) == 6 )
+# 
+#     # files, not cached, low GroupSize imposed
+#     pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
+#     pu.groupSize = 10
+#     res = pu.groupBySize( data, 'Active' )
+#     self.assert_( res['OK'] )
+#     self.assert_( res['OK'] )
+#     resExpected = [( 'SE1,SE2', ['/this/is/at_12'] ),
+#                    ( 'SE2,SE3', ['/this/is/at_23'] ),
+#                    ( 'SE1,SE2,SE3', ['/this/is/at_123'] ),
+#                    ( 'SE1,SE2', ['/this/is/also/at_12'] )]
+#     for tExp in resExpected:
+#       self.assert_( tExp in res['Value'] )
+# 
+#     # files, not cached, low GroupSize imposed, Flushed
+#     pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
+#     pu.groupSize = 10
+#     res = pu.groupBySize( data, 'Flush' )
+#     self.assert_( res['OK'] )
+#     self.assert_( res['OK'] )
+#     resExpected = [( 'SE1,SE2', ['/this/is/at_12'] ),
+#                    ( 'SE2,SE3', ['/this/is/at_23'] ),
+#                    ( 'SE1,SE2,SE3', ['/this/is/at_123'] ),
+#                    ( 'SE1,SE2', ['/this/is/also/at_12'] )]
+#     for tExp in resExpected:
+#       self.assert_( tExp in res['Value'] )
+# 
+# 
+#   def test_groupByRun( self ):
+# 
+#     # no files, nothing happens
+#     res = groupByRun( [] )
+#     self.assert_( res['OK'] )
+#     self.assertEqual( res['Value'], {} )
+# 
+#     # some files
+#     res = groupByRun( list( runFiles ) )
+#     self.assert_( res['OK'] )
+#     resExpected = { 1: ['/this/is/at_1'],
+#                     2: ['/this/is/at_2'],
+#                     4: ['/this/is/at_4'],
+#                     12: ['/this/is/at_12', '/this/is/also/at_12'],
+#                     23: ['/this/is/at_23'],
+#                     123: ['/this/is/at_123']}
+#     self.assertEqual( res['Value'], resExpected )
+
+
+  def test_groupByRunAndParam( self ):
+
+    # no files, nothing happens
+#     pu = PluginUtilities( fc = self.fcMock, dataManager = MagicMock(), rmClient = MagicMock() )
+#     res = pu.groupByRunAndParam( {}, [] )
+#     self.assert_( res['OK'] )
+#     self.assertEqual( res['Value'], {} )
+
+    # some files, no params (it seems it's never called with params...?
+    pu = PluginUtilities( fc = self.fcMock, dataManager = MagicMock(), rmClient = MagicMock() )
+    res = pu.groupByRunAndParam( data, runFiles )
+    self.assert_( res['OK'] )
+    resExpected = {1: {None: ['/this/is/at_1']},
+                   2: {None: ['/this/is/at_2']},
+                   4: {None: ['/this/is/at_4']},
+                   12: {None: ['/this/is/at_12', '/this/is/also/at_12']},
+                   23: {None: ['/this/is/at_23']},
+                   123: {None: ['/this/is/at_123']}}
+    self.assertEqual( res['Value'], resExpected )
+
+
+#############################################################################
+#############################################################################
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ClientTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TaskManagerSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TransformationClientSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( PluginsUtilitiesSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
