@@ -95,11 +95,11 @@ class NagiosTopologyAgent( AgentModule ):
           has_grid_elem = res or has_grid_elem
 
         # FileCatalog info
-        sites = gConfig.getSections( 'Resources/FileCatalogs/LcgFileCatalogCombined' )
-        if sites['OK'] and site in sites['Value']:
-          res = self.__writeFileCatalogInfo( xml_doc, xml_site, site )
-          # Update has_grid_elem
-          has_grid_elem = res or has_grid_elem
+#         sites = gConfig.getSections( 'Resources/FileCatalogs/LcgFileCatalogCombined' )
+#         if sites['OK'] and site in sites['Value']:
+#           res = self.__writeFileCatalogInfo( xml_doc, xml_site, site )
+#           # Update has_grid_elem
+#           has_grid_elem = res or has_grid_elem
 
         # Site info will be put if we found at least one CE, SE or LFC element
         if has_grid_elem:
