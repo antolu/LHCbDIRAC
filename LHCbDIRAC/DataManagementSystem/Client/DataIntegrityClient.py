@@ -128,7 +128,8 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     catalogMetadata = res['Value']['Metadata']
     resDict = {'CatalogMetadata':catalogMetadata, 'CatalogReplicas':replicas}
     if not catalogMetadata:
-      return S_ERROR( 'No files found in directory' )
+      gLogger.warn( 'No files found in directory %s' % lfnDir )
+      return S_OK( resDict )
     res = self.__checkBKFiles( replicas, catalogMetadata )
     if not res['OK']:
       return res
