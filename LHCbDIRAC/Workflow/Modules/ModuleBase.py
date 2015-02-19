@@ -891,7 +891,10 @@ class ModuleBase( object ):
       self.request.addOperation( reportRequest )
 
     if len( self.request ):
-      optimized = self.request.optimize()
+      try:
+        optimized = self.request.optimize()
+      except AttributeError:
+        optimized = {'OK':True}
       if not optimized['OK']:
         self.log.error( "Could not optimize: %s" % optimized['Message'] )
         self.log.error( "Not failing the job because of that, keep going" )
