@@ -12,7 +12,7 @@ from DIRAC                                                           import gLog
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 from DIRAC.ConfigurationSystem.Client.PathFinder                     import getDatabaseSection
 # from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
-from LHCbDIRAC.BookkeepingSystem.DB.OracleDB                      import OracleDB
+from LHCbDIRAC.BookkeepingSystem.DB.OracleDB                         import OracleDB
 from DIRAC.Core.Utilities.List                                       import breakListIntoChunks
 import datetime
 import types, re
@@ -4138,14 +4138,20 @@ and files.qualityid= dataquality.qualityid'
     # return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRunProcPass', [runnb])
 
   #############################################################################
-  def getNbOfRawFiles( self, runid, eventtype ):
+  def getNbOfRawFiles( self, runid, eventtype, replicaFlag = 'Yes', visible = 'Y' ):
     """retuns the number of raw files"""
     condition = ''
     if eventtype != default:
       condition = ' and f.eventtypeid=%d' % ( eventtype )
-
-    command = ' select count(*) from jobs j, files f where \
-    j.jobid=f.jobid and j.production<0 and j.runnumber=%d %s' % ( runid, condition )
+    
+    if visible != default:
+      condition += " and f.visibilityFlag='%s'" % ( visible )
+    
+    if replicaFlag != default:
+      condition += " and f.gotreplica='%s'" % ( replicaFlag )
+    
+    command = " select count(*) from jobs j, files f where \
+    j.jobid=f.jobid and j.production<0 and j.runnumber=%d %s " % ( runid, condition )
     return self.dbR_.query( command )
 
   #############################################################################

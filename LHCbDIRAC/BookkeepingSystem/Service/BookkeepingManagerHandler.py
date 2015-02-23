@@ -1720,11 +1720,15 @@ class BookkeepingManagerHandler( RequestHandler ):
     if 'EventTypeId' in in_dict:
       gLogger.verbose( 'The EventTypeId has to be replaced by EventType!' )
 
+    
+    replicaFlag = in_dict.get( 'ReplicaFlag', 'Yes' )
+    visible = in_dict.get( 'Visible', 'Y' )
+    
     result = S_ERROR()
     if runnb == default and evt == default:
       result = S_ERROR( 'Run number or event type must be given!' )
     else:
-      retVal = dataMGMT_.getNbOfRawFiles( runnb, evt )
+      retVal = dataMGMT_.getNbOfRawFiles( runnb, evt, replicaFlag,  visible)
       if retVal['OK']:
         result = S_OK( retVal['Value'][0][0] )
       else:
