@@ -24,14 +24,13 @@ if __name__ == "__main__":
     elif switch == 'Runs':
       try:
         runs = val.split( ',' )
-        if len( runs ) > 1:
-          for run in runs:
-            if run.isdigit():
-              runList.append( int( run ) )
-            else:
-              runRange = run.split( ':' )
-              if len( runRange ) == 2 and runRange[0].isdigit() and runRange[1].isdigit():
-                runList += range( int( runRange[0] ), int( runRange[1] ) + 1 )
+        for run in runs:
+          if run.isdigit():
+            runList.append( int( run ) )
+          else:
+            runRange = run.split( ':' )
+            if len( runRange ) == 2 and runRange[0].isdigit() and runRange[1].isdigit():
+              runList += range( int( runRange[0] ), int( runRange[1] ) + 1 )
       except Exception, x:
         gLogger.exception( 'Bad run parameter', lException = x )
 
