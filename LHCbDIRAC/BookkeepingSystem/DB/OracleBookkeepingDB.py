@@ -1645,7 +1645,7 @@ class OracleBookkeepingDB:
         else:
           dbResult = res['Value']
           for record in dbResult:
-            if (not replica or ( record[2] != 'No' )):
+            if ( not replica or ( record[2] != 'No' ) ):
               files.append( {'FileName':record[0],
                             'GotReplica':record[2],
                             'EventStat':record[3],
@@ -1760,8 +1760,6 @@ class OracleBookkeepingDB:
 
     for fileName in lfn:
       files = {}
-      global gCounter
-      gCounter = 0
       failed, notprocessed = self.getFileDescendentsHelper( fileName, files, depth, production, 0, checkreplica )
       logicalFileNames['Failed'] += failed
       logicalFileNames['NotProcessed'] += notprocessed
