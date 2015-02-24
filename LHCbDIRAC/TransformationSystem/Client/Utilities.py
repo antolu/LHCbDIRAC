@@ -680,7 +680,7 @@ class PluginUtilities( object ):
       lfns = list( setLfns - hitLfns )
 
     # If some files are unknown, get the ancestors from BK
-    ancestorFiles = []
+    ancestorFiles = set()
     if lfns:
       res = self.getFileAncestors( lfns )
       if res['OK']:
@@ -690,54 +690,66 @@ class PluginUtilities( object ):
         ancestorDict = {}
       for lfn in ancestorDict:
         ancFiles = [f['FileName'] for f in ancestorDict[lfn] if f['FileType'] == 'RAW']
-        ancestorFiles += ancFiles
+        ancestorFiles.update( ancFiles )
         n = len( ancFiles )
         self.cachedLFNAncestors.setdefault( runID, {} )[lfn] = n
         ancestors += n
 
     if getFiles:
       return ancestorFiles
-    # If needed, add NotProcessed files in the Reconstruction production
-    if runID not in self.notProcessed and lfnToCheck:
-      ancestorFullDST = None
-      recoProduction = None
-      notProcessed = 0
-      res = self.bkClient.getFileMetadata( lfnToCheck )
-      if res['OK']:
-        if res['Value']['Successful'].get( lfnToCheck, {} ).get( 'FileType' ) != 'FULL.DST':
-          res = self.getFileAncestors( [lfnToCheck], replica = False )
-          if res['OK']:
-            fullDst = [f['FileName'] for f in res['Value']['Successful'].get( lfnToCheck, [{}] ) if f.get( 'FileType' ) == 'FULL.DST']
-            if fullDst:
-              ancestorFullDST = fullDst[0]
-          else:
-            self.logError( "Error getting ancestors of %s" % lfnToCheck, res['Message'] )
-        else:
-          ancestorFullDST = lfnToCheck
-      self.logVerbose( "Ancestor FULL.DST found: %s" % ancestorFullDST )
-      if ancestorFullDST:
-        res = self.bkClient.getJobInfo( ancestorFullDST )
-        if res['OK']:
-          try:
-            recoProduction = res['Value'][0][18]
-            self.logVerbose( 'Reconstruction production is %d' % recoProduction )
-          except Exception, _e:
-            self.logException( "Exception extracting reco production from %s" % str( res['Value'] ) )
-            recoProduction = None
-        else:
-          self.logError( "Error getting job information", res['Message'] )
-      if recoProduction:
-        res = self.transClient.getTransformationFiles( runID = runID )
-        if res['OK']:
-          notProcessed = len( [fileDict for fileDict in res['Value'] if fileDict['Status'] == 'NotProcessed'] )
-          self.notProcessed[runID] = notProcessed
-    else:
-      notProcessed = self.notProcessed.get( runID, 0 )
+    notProcessed = self.__getNotProcessedAncestors( runID, lfnToCheck )
     if notProcessed:
       self.logVerbose( "Found %d files not processed for run %d" % ( notProcessed, runID ) )
       ancestors += notProcessed
     self.logVerbose( "found %d for run %d" % ( ancestors, runID ) )
     return ancestors
+
+  def __getNotProcessedAncestors( self, runID, lfnToCheck ):
+    """
+    returns the number of RAW ancestor files that were not processed by the reconstruction production
+    This is necessary only if that produciton is not processing all files, but in the doubt we check it
+    """
+    if runID in self.notProcessed or not lfnToCheck:
+      return self.notProcessed.get( runID, 0 )
+    ancestorFullDST = None
+    recoProduction = None
+    notProcessed = 0
+    if not self.__recoType:
+      self.__recoType = self.getPluginParam( 'RecoFileType', 'FULL.DST' )
+    # Check if the file itself is a FULL.DST
+    res = self.bkClient.getFileMetadata( lfnToCheck )
+    if res['OK']:
+      if res['Value']['Successful'].get( lfnToCheck, {} ).get( 'FileType' ) == self.__recoType:
+        ancestorFullDST = lfnToCheck
+      else:
+        # If not, get its ancestors
+        res = self.bkClient.getFileAncestors( [lfnToCheck], depth = 10, replica = False )
+        if res['OK']:
+          fullDst = [f['FileName'] for f in res['Value']['Successful'].get( lfnToCheck, [{}] ) if f.get( 'FileType' ) == 'FULL.DST']
+          if fullDst:
+            ancestorFullDST = fullDst[0]
+        else:
+          self.logError( "Error getting ancestors of %s" % lfnToCheck, res['Message'] )
+    if ancestorFullDST:
+      self.logDebug( "Ancestor FULL.DST found: %s" % ancestorFullDST )
+      res = self.bkClient.getJobInfo( ancestorFullDST )
+      if res['OK']:
+        try:
+          recoProduction = res['Value'][0][18]
+          self.logVerbose( 'Reconstruction production is %d' % recoProduction )
+        except Exception, _e:
+          self.logException( "Exception extracting reco production from %s" % str( res['Value'] ) )
+          recoProduction = None
+      else:
+        self.logError( "Error getting job information", res['Message'] )
+    else:
+      self.logVerbose( "No ancestor FULL.DST file found" )
+    if recoProduction:
+      res = self.transClient.getTransformationFiles( { 'TransformationID':recoProduction, 'RunNumber':runID} )
+      if res['OK']:
+        notProcessed = len( [fileDict for fileDict in res['Value'] if fileDict['Status'] == 'NotProcessed'] )
+    self.notProcessed[runID] = notProcessed
+    return notProcessed
 
   @timeThis
   def getTransformationFiles( self, runID ):
