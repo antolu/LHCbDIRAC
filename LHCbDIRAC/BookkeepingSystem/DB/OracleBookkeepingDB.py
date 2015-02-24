@@ -1625,6 +1625,7 @@ class OracleBookkeepingDB:
   def getFileAncestorHelper( self, fileName, files, depth, counter, replica ):
     """returns the ancestor of a file"""
     failed = []
+    
     if counter < depth:
       counter += 1
       result = self.dbR_.executeStoredFunctions( 'BKK_MONITORING.getJobIdWithoutReplicaCheck', LongType, [fileName] )
@@ -1644,7 +1645,7 @@ class OracleBookkeepingDB:
         else:
           dbResult = res['Value']
           for record in dbResult:
-            if not replica or ( record[2] != 'No' ):
+            if (not replica or ( record[2] != 'No' )):
               files.append( {'FileName':record[0],
                             'GotReplica':record[2],
                             'EventStat':record[3],
@@ -1652,7 +1653,8 @@ class OracleBookkeepingDB:
                             'Luminosity':record[5],
                             'InstLuminosity':record[6],
                             'FileType':record[7]} )
-            self.getFileAncestorHelper( record[0], files, depth, counter, replica )
+            previousFailed = self.getFileAncestorHelper( record[0], files, depth, counter, replica )
+            failed += previousFailed
       else:
         failed += [fileName]
     return failed
@@ -1670,9 +1672,10 @@ class OracleBookkeepingDB:
     filesWithMetadata = {}
     logicalFileNames['Failed'] = []
     gLogger.debug( 'original', lfn )
+    failed = []
     for fileName in lfn:
       files = []
-      failed = self.getFileAncestorHelper( fileName, files, depth, 0, replica )
+      failed += self.getFileAncestorHelper( fileName, files, depth, 0, replica )
       logicalFileNames['Failed'] = failed
       if len( files ) > 0:
         ancestorList[fileName] = files
@@ -1686,10 +1689,11 @@ class OracleBookkeepingDB:
     return S_OK( logicalFileNames )
 
   #############################################################################
-  def getFileDescendentsHelper( self, fileName, files, depth, production, counter, checkreplica ):
+  def getFileDescendentsHelper( self, fileName, files, depth, production, counter, checkreplica, processedFiles = [] ):
     """returns the descendents of a file"""
     failed = []
     notprocessed = []
+    
     if counter < depth:
       counter += 1
       res = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getFileID', LongType, [fileName] )
@@ -1706,7 +1710,8 @@ class OracleBookkeepingDB:
             if not fileName in failed:
               failed += [fileName]
           elif len( res['Value'] ) == 0:
-            notprocessed += [fileName]
+            if fileName not in processedFiles:
+              notprocessed += [fileName]
           elif  len( res['Value'] ) != 0:
             job_ids = res['Value']
             for i in job_ids:
@@ -1724,6 +1729,7 @@ class OracleBookkeepingDB:
                 notprocessed += [fileName]
               else:
                 for record in res['Value']:
+                  processedFiles += [record[0]]
                   if ( not checkreplica or ( record[2] != 'No' ) ) and ( not production or int( record[3] ) == int( production ) ):
                     files[record[0]] = {'GotReplica':record[2],
                                         'EventStat':record[4],
@@ -1732,7 +1738,10 @@ class OracleBookkeepingDB:
                                         'InstLuminosity':record[7],
                                         'FileType':record[8]}
 
-                  self.getFileDescendentsHelper( record[0], files, depth, production, counter, checkreplica )
+                  previousFailed, previousNotprocessed = self.getFileDescendentsHelper( record[0], files, depth, production, counter, checkreplica, processedFiles )
+                  failed += previousFailed
+                  notprocessed += previousNotprocessed
+                  
     return failed, notprocessed
 
   #############################################################################
@@ -1751,10 +1760,11 @@ class OracleBookkeepingDB:
 
     for fileName in lfn:
       files = {}
-
+      global gCounter
+      gCounter = 0
       failed, notprocessed = self.getFileDescendentsHelper( fileName, files, depth, production, 0, checkreplica )
-      logicalFileNames['Failed'] = failed
-      logicalFileNames['NotProcessed'] = notprocessed
+      logicalFileNames['Failed'] += failed
+      logicalFileNames['NotProcessed'] += notprocessed
       if len( files ) > 0:
         ancestorList[fileName] = files.keys()
         filesWithMetadata[fileName] = files
@@ -3429,34 +3439,17 @@ and files.qualityid= dataquality.qualityid'
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
     tables = 'files f, jobs j '
-    if startDate != None:
-      condition += " and f.inserttimestamp >= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % ( str( startDate ) )
-
-    if endDate != None:
-      condition += " and f.inserttimestamp <= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % ( str( endDate ) )
-    elif startDate != None and endDate == None:
-      currentTimeStamp = datetime.datetime.utcnow().strftime( '%Y-%m-%d %H:%M:%S' )
-      condition += " and f.inserttimestamp <= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % ( str( currentTimeStamp ) )
-
-    if len( runnumbers ) > 0:
-      cond = None
-      if type( runnumbers ) == types.ListType:
-        cond = ' ( '
-        for i in runnumbers:
-          cond += ' j.runnumber=' + str( i ) + ' or '
-        cond = cond[:-3] + ')'
-      elif type( runnumbers ) == types.StringType:
-        cond = ' j.runnumber=%s' % ( str( runnumbers ) )
-      if startrun == default and endrun == default:
-        condition += " and %s " % ( cond )
-      elif startrun != default and endrun != default:
-        condition += ' and (j.runnumber>=%s and j.runnumber<=%s or %s)' % ( str( startrun ), str( endrun ), cond )
-    else:
-      if startrun != default:
-        condition += ' and j.runnumber>=' + str( startrun )
-      if endrun != default:
-        condition += ' and j.runnumber<=' + str( endrun )
-
+    
+    retVal = self.__buildStartenddate( startDate, endDate, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
+    retVal = self.__buildRunnumbers( runnumbers, startrun, endrun, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
     if not visible.upper().startswith( 'A' ):
       if visible.upper().startswith( 'Y' ):
         condition += "and f.visibilityFlag='Y' "
@@ -3485,8 +3478,10 @@ and files.qualityid= dataquality.qualityid'
     econd = ''
     tables2 = ''
     if evt != default and visible.upper().startswith( 'Y' ):
+      if tables.find( 'bview' ) < 0:
+        tables += ', prodview bview'
       tables2 += ', prodview bview'
-      econd += " and bview.production=prod.production and bview.eventtypeid='%s'" % ( str( evt ) )
+      econd += " and bview.production=prod.production and bview.eventtypeid=%s" % ( str( evt ) )
       condition += " and f.eventtypeid=bview.eventtypeid and f.eventtypeid=%s" % ( str( evt ) )
 
     elif evt != default:
@@ -3495,14 +3490,7 @@ and files.qualityid= dataquality.qualityid'
     if production != default:
       condition += ' and j.production=' + str( production )
 
-    if runnb != default and ( type( runnb ) != types.ListType ):
-      condition += ' and j.runnumber=' + str( runnb )
-    elif type( runnb ) == types.ListType:
-      cond = ' ( '
-      for i in runnb:
-        cond += 'j.runnumber=' + str( i ) + ' or '
-      condition += " and %s )" % ( cond[:-3] )
-
+  
     tables += ' ,filetypes ftypes '
     fcond = ''
     if filetype != default and visible.upper().startswith( 'Y' ):
