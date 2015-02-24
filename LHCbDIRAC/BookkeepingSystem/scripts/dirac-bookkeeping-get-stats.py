@@ -121,8 +121,14 @@ def execute():
           nDatasets = len( fileTypes )
         res = bk.getFilesWithMetadata( queryDict )
         if res['OK']:
-          parameterNames = res['Value']['ParameterNames']
-          info = res['Value']['Records']
+          if 'ParameterNames' in res['Value']:
+            parameterNames = res['Value']['ParameterNames']
+            info = res['Value']['Records']
+          else:
+            info = []
+            res = bk.getFiles( queryDict )
+            if res['OK']:
+              lfns = res['Value']
         else:
           print "Error getting files for %s:" % queryDict, res['Message']
           continue
@@ -135,7 +141,7 @@ def execute():
             nbFiles += 1
           except:
             pass
-      else:
+      if lfns:
         res = bk.getFileMetadata( lfns )
         if res['OK']:
           for lfn, metadata in res['Value'].items():
