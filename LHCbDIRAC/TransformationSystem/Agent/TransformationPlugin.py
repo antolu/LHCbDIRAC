@@ -1279,7 +1279,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         replicaSEs = set( stringSEs.split( ',' ) )
         targetSEs = listSEs & replicaSEs
         if not targetSEs:
-          self.util.logInfo( "%d files are not in required list (only at %s)" % ( len( lfns ), sorted( replicaSEs ) ) )
+          # This is a fake to have a placeholder for the replica location... Later it is not used
+          self.util.logVerbose( "%d files are not in required list (only at %s)" % ( len( lfns ), sorted( replicaSEs ) ) )
+          newGroups.setdefault( ','.join( list( replicaSEs ) ), [] ).extend( lfns )
         elif not replicaSEs - listSEs :
           self.util.logInfo( "%d files are only in required list (only at %s), don't remove yet" % ( len( lfns ), sorted( replicaSEs ) ) )
           onlyAtList = True
@@ -1322,7 +1324,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                                                                                       len( lfnsNotProcessed ),
                                                                                       stringTargetSEs ) )
         if lfnsProcessed:
-          storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
+          targetSEs = set( stringTargetSEs.split( ',' ) )
+          if not targetSEs & listSEs:
+            # Files are processed but are no longer at the requested SEs, set them Processed
+            self.util.logInfo( "Processed files are no longer in required list: set them Processed" )
+            self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfnsProcessed )
+          else:
+            storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
       if not storageElementGroups:
         return S_OK( [] )
     except Exception, e:
