@@ -39,7 +39,7 @@ if __name__ == '__main__':
     if switch[0] == 'Runs':
       runsList = switch[1].split( ',' )
     elif switch[0] == 'Status':
-      status = switch[1]
+      status = switch[1].split( ',' )
     elif switch[0] == 'Verbose':
       verbose = True
     elif switch[0] == 'FileType':
@@ -92,6 +92,8 @@ if __name__ == '__main__':
       else:
         gLogger.fatal( "Error getting files %s" % status, res['Message'] )
         DIRAC.exit( 2 )
+      if not lfnList:
+        continue
 
     cc.lfns = lfnList
     if not fileType:
