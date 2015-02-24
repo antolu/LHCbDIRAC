@@ -923,11 +923,7 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
     if not res['OK']:
       print 'Error getting files metadata', res['Message']
       DIRAC.exit( 2 )
-    paramValues = []
-    for lfn in res['Value']['Successful']:
-      val = res['Value']['Successful'][lfn].get( param )
-      if val and val not in paramValues:
-        paramValues.append( val )
+    paramValues = sorted( set( [meta[param] for meta in res['Value']['Successful'].values() if param in meta] ) )
   ancestors = {}
   for paramValue in paramValues:
     try:
@@ -966,11 +962,12 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
         runRAWFiles = set( [lfn for lfn, meta in metadata.items() if meta['EventType'] == 90000000 and meta['GotReplica'] == 'Yes'] )
         badRAWFiles = set( [lfn for lfn, meta in metadata.items() if meta['EventType'] == 90000000] ) - runRAWFiles
         # print len( runRAWFiles ), 'RAW files'
-        missingFiles = set()
+        allAncestors = set()
         for paramValue in paramValues:
-          ancFiles = set( pluginUtil.getRAWAncestorsForRun( runID, param, paramValue, getFiles = True ) )
+          ancFiles = pluginUtil.getRAWAncestorsForRun( runID, param, paramValue, getFiles = True )
           # print paramValue, len( ancFiles )
-          missingFiles.update( runRAWFiles - ancFiles )
+          allAncestors.update( ancFiles )
+        missingFiles = runRAWFiles - allAncestors
         if missingFiles:
           print "Missing RAW files:\n\t%s" % '\n\t'.join( sorted( missingFiles ) )
         else:
@@ -1268,9 +1265,12 @@ if __name__ == "__main__":
         prString += " - %d files (SelectedSite: %s), %d processed, status: %s" % ( files, SEs, processed, runStatus )
         print prString
 
-      if checkFlush or ( ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in transPlugin and runStatus != 'Flush' ):
-        # Check if the run should be flushed
-        __checkRunsToFlush( runID, transFilesList, runStatus )
+      if checkFlush or ( ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in transPlugin ) :
+        if runStatus != 'Flush':
+          # Check if the run should be flushed
+          __checkRunsToFlush( runID, transFilesList, runStatus )
+        else:
+          print 'Run %d is already flushed' % runID
 
       prString = "%d files found" % len( transFilesList )
       if status:
