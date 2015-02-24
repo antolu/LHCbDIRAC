@@ -115,7 +115,7 @@ if __name__ == "__main__":
       sys.stdout.write( '.' )
       sys.stdout.flush()
     nj += 1
-    res = monitoring.getJobJDL( jobID )
+    res = monitoring.getJobJDL( jobID, False )
     if not res['OK']:
       gLogger.always( 'Error getting job %d JDL' % jobID, res['Message'] )
       continue
