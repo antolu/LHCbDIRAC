@@ -8,7 +8,7 @@
 """
 
 # # imports
-import os.path, os
+import os
 from DIRAC                                                      import S_OK, S_ERROR, gMonitor
 from DIRAC.RequestManagementSystem.private.OperationHandlerBase import OperationHandlerBase
 
@@ -41,10 +41,8 @@ class LogUpload( OperationHandlerBase ):
     """ LogUpload operation processing """
     # # list of targetSEs
 
-    targetSEs = self.operation.targetSEList
-
-    if len( targetSEs ) != 1:
-      self.log.error( "wrong value for TargetSE list = %s, should contain only one target!" % targetSEs )
+    if len( self.operation.targetSEList ) != 1:
+      self.log.error( "wrong value for TargetSE list = %s, should contain only one target!" % self.operation.targetSEList )
       self.operation.Error = "Wrong parameters: TargetSE should contain only one targetSE"
       for opFile in self.operation:
 
@@ -54,23 +52,14 @@ class LogUpload( OperationHandlerBase ):
         gMonitor.addMark( "LogUploadAtt", 1 )
         gMonitor.addMark( "LogUploadFail", 1 )
 
-      return S_ERROR( "TargetSE should contain only one target, got %s" % targetSEs )
+      return S_ERROR( "TargetSE should contain only one target, got %s" % self.operation.targetSEList )
 
-    targetSE = targetSEs[0]
-    targetWrite = self.rssSEStatus( targetSE, "WriteAccess" )
-    if not targetWrite["OK"]:
-      self.log.error( targetWrite["Message"] )
-      for opFile in self.operation:
-        opFile.Status = "Failed"
-        opFile.Error = "Wrong parameters: %s" % targetWrite["Message"]
-        gMonitor.addMark( "LogUploadAtt", 1 )
-        gMonitor.addMark( "LogUploadFail", 1 )
-      self.operation.Error = targetWrite["Message"]
-      return S_OK()
-
-    if not targetWrite["Value"]:
-      self.operation.Error = "TargetSE %s is banned for writing"
-      return S_ERROR( self.operation.Error )
+    # # check targetSEs for write
+    bannedTargets = self.checkSEsRSS()
+    if not bannedTargets['OK']:
+      gMonitor.addMark( "LogUploadAtt", 1 )
+      gMonitor.addMark( "LogUploadFail", 1 )
+      return bannedTargets
 
     # # get waiting files
     waitingFiles = self.getWaitingFilesList()
@@ -83,7 +72,7 @@ class LogUpload( OperationHandlerBase ):
       gMonitor.addMark( "LogUploadAtt", 1 )
 
       destination = '/'.join( lfn.split( '/' )[0:-1] ) + '/' + ( os.path.basename( lfn ) ).split( '_' )[1].split( '.' )[0]
-      logUpload = self.dm.replicate( lfn, targetSE, destPath = destination, localCache = self.workDirectory )
+      logUpload = self.dm.replicate( lfn, self.operation.targetSEList[0], destPath = destination, localCache = self.workDirectory )
       if not logUpload["OK"]:
         gMonitor.addMark( "LogUploadFail", 1 )
 #         self.dataLoggingClient().addFileRecord( lfn, "LogUploadFail", targetSE, "", "LogUpload" )
@@ -99,6 +88,6 @@ class LogUpload( OperationHandlerBase ):
         gMonitor.addMark( "LogUploadOK", 1 )
 #         self.dataLoggingClient().addFileRecord( lfn, "LogUpload", targetSE, "", "LogUpload" )
         opFile.Status = 'Done'
-        self.log.info( "Uploaded %s to %s" % ( lfn, targetSE ) )
+        self.log.info( "Uploaded %s to %s" % ( lfn, self.operation.targetSEList[0] ) )
 
     return S_OK()
