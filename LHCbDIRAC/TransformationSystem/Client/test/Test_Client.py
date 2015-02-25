@@ -30,6 +30,8 @@ class ClientTestCase( unittest.TestCase ):
     self.tc.opsH = MagicMock()
     self.tc.opsH.getValue.return_value = ['MCSimulation', 'DataReconstruction']
 
+    self.tsMock = MagicMock()
+
     self.fcMock = MagicMock()
     self.fcMock.getFileSize.return_value = S_OK( {'Failed':[], 'Successful': cachedLFNSize} )
 
@@ -213,6 +215,8 @@ runFiles = [{'LFN':'/this/is/at_1', 'RunNumber':1},
             {'LFN':'/this/is/at_23', 'RunNumber':23},
             {'LFN':'/this/is/at_4', 'RunNumber':4}]
 
+cachedLFNAncestors = {1:{'':1}}
+
 class PluginsUtilitiesSuccess( ClientTestCase ):
 
   def test_getFileGroups( self ):
@@ -385,9 +389,24 @@ class PluginsUtilitiesSuccess( ClientTestCase ):
   def test_getRAWAncestorsForRun( self ):
 
     # no files, nothing happens
-    pu = PluginUtilities( fc = self.fcMock, dataManager = MagicMock(), rmClient = MagicMock() )
-    res = pu.getRAWAncestorsForRun( 0 )
-    print res
+#     tsMock = MagicMock()
+#     tsMock.getTransformationFiles.return_value = S_OK( [] )
+#     pu = PluginUtilities( transClient = tsMock, fc = self.fcMock, dataManager = MagicMock(), rmClient = MagicMock() )
+#     res = pu.getRAWAncestorsForRun( 1 )
+#     self.assertEqual( res, 0 )
+
+    # some files
+    tsMock = MagicMock()
+    tsMock.getTransformationFiles.return_value = S_OK( [{'LFN':'this/is/at_1', 'Status':'Unused'},
+                                                        {'LFN':'this/is/not_here', 'Status':'MissingInFC'}] )
+    bkMock = MagicMock()
+    bkMock.getFileAncestors.return_value = 
+    pu = PluginUtilities( transClient = tsMock, fc = self.fcMock, dataManager = MagicMock(), rmClient = MagicMock() )
+    res = pu.getRAWAncestorsForRun( 1 )
+    self.assertEqual( res, 0 )
+
+
+
 
 #############################################################################
 #############################################################################

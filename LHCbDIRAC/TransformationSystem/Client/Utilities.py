@@ -638,8 +638,9 @@ class PluginUtilities( object ):
 
   @timeThis
   def getRAWAncestorsForRun( self, runID, param = None, paramValue = None, getFiles = False ):
-    """ Determine from BK how many ancestors files from a given runs do have
-        This is used for deciding when to flush a run (when all RAW files have been processed)
+    """
+    Determine from BK how many ancestors files from a given run we have.
+    This is used for deciding when to flush a run (when all RAW files have been processed)
     """
     ancestors = 0
     # The transformation files cannot be cached globally as they evolve at each cycle
@@ -654,17 +655,20 @@ class PluginUtilities( object ):
       self.transRunFiles[runID] = lfns
       self.logVerbose( 'Obtained %d input files for run %d' % ( len( lfns ), runID ) )
 
+    if not lfns:
+      return 0
+
     # Restrict to files with the required parameter
     if param:
-      paramStr = ' (%s:%s)' % ( param, paramValue if paramValue else '' )
+#       paramStr = ' (%s:%s)' % ( param, paramValue if paramValue else '' )
       res = self.getFilesParam( lfns, param )
       if not res['OK']:
         self.logError( "Error getting BK param %s:" % param, res['Message'] )
         return 0
       paramValues = res['Value']
       lfns = [f for f, v in paramValues.items() if v == paramValue]
-    else:
-      paramStr = ''
+#     else:
+#       paramStr = ''
     if lfns:
       lfnToCheck = lfns[0]
     else:
