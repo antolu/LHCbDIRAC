@@ -242,10 +242,10 @@ def printResults( request, mergeAction ):
     if filesDict == {}:
       continue
       
-    if mergeAction == 'omit' and transformation[ 'transformationType' ] == 'Merge':
+    if mergeAction == 'omit' and transformation[ 'transformationType' ] in ['Merge', 'MCMerge']:
       continue
       
-    if mergeAction == 'group' and transformation[ 'transformationType' ] == 'Merge':
+    if mergeAction == 'group' and transformation[ 'transformationType' ] in ['Merge', 'MCMerge']:
         
       groupedMerge[ 0 ] += 1  
         

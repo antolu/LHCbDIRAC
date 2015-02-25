@@ -52,9 +52,9 @@ class ProductionRequestSIM():
   """
   def __init__( self, *args, **kwargs ):
     """ Define some test Production Requests:
-       Active Simulation Request with 3 transformations. (pr 1, t 11 MCSimulation, 12 MCStripping, 13 Merge)
-       Active Simulation Request with 2 subrequests, 2 transformations in each (pr 2,(3,4) t (14 MCSimulation, 15 Merge), (16,17) )
-       Active Stripping Request with 2 transformations. (pr 5, t (18 DataStripping, 19 Merge))
+       Active Simulation Request with 3 transformations. (pr 1, t 11 MCSimulation, 12 MCStripping, 13 MCMerge)
+       Active Simulation Request with 2 subrequests, 2 transformations in each (pr 2,(3,4) t (14 MCSimulation, 15 MCMerge), (16,17) )
+       Active Stripping Request with 2 transformations. (pr 5, t (18 DataStripping, 19 MCMerge))
     """
     self.pr = {
       1 : { 'state': 'Active', 'type': 'Simulation', 'master': 0, 'rqTotal': 10000,  'prods': { 11 : { 'Used': 0, 'Events': 0 }, 
@@ -149,8 +149,8 @@ class TransformationAndBookkeepingSIM():
        11-18 from simulated requests
        100 is not request related transformation
     """
-    self.t_types = { 11: 'MCSimulation', 12: 'MCStripping', 13: 'Merge', 14: 'MCSimulation', 15: 'MCReconstruction',
-                     16: 'MCSimulation', 17: 'MCReconstruction', 18: 'DataStripping', 19: 'Merge',
+    self.t_types = { 11: 'MCSimulation', 12: 'MCStripping', 13: 'MCMerge', 14: 'MCSimulation', 15: 'MCReconstruction',
+                     16: 'MCSimulation', 17: 'MCReconstruction', 18: 'DataStripping', 19: 'MCMerge',
                      100: 'Replication' }
     self.t  = { }
     for tID, tType in self.t_types.iteritems():
@@ -270,7 +270,7 @@ class TransformationAndBookkeepingSIM():
 
 
   def _animate3TSimulation ( self, prClient ):
-    """ animate Simulation->Stripping->Merge production request
+    """ animate Simulation->Stripping->MCMerge production request
     """
     if self.t[11]['tasksStat']['TotalCreated'] == 0:
       self.__extendSimulation( 11, prClient )

@@ -1,9 +1,10 @@
 """  The MC Simulation Template creates workflows for the following simulation
      use-cases:
-      WORKFLOW1: Simulation+MCMerge+Selection+Merge
-      WORKFLOW2: Simulation+MCMerge+Selection
-      WORKFLOW3: Simulation+MCMerge
-      WORKFLOW4: Simulation
+      WORKFLOW1: Simulation+Selection+Merge
+      WORKFLOW2: Simulation+Selection+MCMerge
+      WORKFLOW3: Simulation+Selection
+      WORKFLOW4: Simulation+MCMerge
+      WORKFLOW5: Simulation
 
     Exotic things you might want to do:
     * run a local test:
@@ -59,7 +60,7 @@ w = '{{w#----->WORKFLOW: choose one below#}}'
 w1 = '{{w1#-WORKFLOW1: Simulation+Selection+Merge#False}}'
 w2 = '{{w2#-WORKFLOW2: Simulation(up to Moore)+Selection+Merge#False}}'
 w3 = '{{w3#-WORKFLOW3: Simulation(up to Moore)+Selection(-->avoid merge)#False}}'
-w4 = '{{w4#-WORKFLOW4: Simulation+Merge#False}}'
+w4 = '{{w4#-WORKFLOW4: Simulation+MCMerge#False}}'
 w5 = '{{w5#-WORKFLOW5: Simulation#False}}'
 
 certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
@@ -138,7 +139,7 @@ if not w1 and not w2 and not w3 and not w4 and not w5:
   DIRAC.exit( 2 )
 
 if w1:
-  pr.prodsTypeList = ['MCSimulation', 'MCStripping', 'Merge']
+  pr.prodsTypeList = ['MCSimulation', 'MCStripping', 'MCMerge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
   pr.stepsInProds = [range( 1, len( pr.stepsList ) - 1 ),
                      range( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
@@ -155,7 +156,7 @@ if w1:
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
 
 elif w2:
-  pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'Merge']
+  pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
 
   mooreStepIndex = 1
@@ -211,7 +212,7 @@ elif w3:
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
 
 elif w4:
-  pr.prodsTypeList = ['MCSimulation', 'Merge']
+  pr.prodsTypeList = ['MCSimulation', 'MCMerge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
   pr.stepsInProds = [range( 1, len( pr.stepsList ) ),
                      [len( pr.stepsList )]]

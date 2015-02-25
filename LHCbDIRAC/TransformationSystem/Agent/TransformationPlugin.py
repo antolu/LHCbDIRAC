@@ -480,7 +480,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     pluginStartTime = time.time()
     allTasks = []
     groupSize = self.util.getPluginParam( 'GroupSize' )
-    typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge', 'Replication', 'Removal'] )
+    typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge', 'MCMerge', 'Replication', 'Removal'] )
     fromSEs = set( self.util.getPluginParam( 'FromSEs', [] ) )
     maxTime = self.util.getPluginParam( 'MaxTimeAllowed', 0 )
     self.util.readCacheFile( self.workDirectory )
@@ -1258,7 +1258,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             res = self.transClient.getTransformation( prod )
             if not res['OK']:
               self.util.logError( "Error getting transformation %s" % prod, res['Message'] )
-            elif ( acceptMerge and res['Value']['Type'] == 'Merge' ) or ( not acceptMerge and res['Value']['Type'] != 'Merge' ):
+            elif ( acceptMerge and res['Value']['Type'] in ['Merge', 'MCMerge'] ) or ( not acceptMerge and res['Value']['Type'] not in ['Merge', 'MCMerge'] ):
               status = res['Value']['Status']
               if status == 'Archived':
                 archivedProds[procPass].append( int( prod ) )
