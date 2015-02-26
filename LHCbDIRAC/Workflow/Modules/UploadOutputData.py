@@ -4,6 +4,7 @@
 __RCSID__ = "$Id$"
 
 import os, random, glob
+from operator import itemgetter
 
 from DIRAC                                                    import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities                                     import DEncode
@@ -173,7 +174,11 @@ class UploadOutputData( ModuleBase ):
             bkFiles.append( check )
 
       # Unfortunately we depend on the file names to order the BK records
-      bkFiles.sort()
+      bkFilesListTuples = []
+      for bk in bkFiles:
+        bkFilesListTuples.append( ( bk, int( bk.split( '_' )[-1].split( '.' )[0] ) ) )
+      bkFiles = [bk[0] for bk in sorted( bkFilesListTuples, key = itemgetter( 1 ) )]
+
       self.log.info( "The following BK records will be sent: %s" % ( ', '.join( bkFiles ) ) )
       if self._enableModule():
         for bkFile in bkFiles:
