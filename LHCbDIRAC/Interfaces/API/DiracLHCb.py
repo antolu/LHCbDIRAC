@@ -23,6 +23,16 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 
 COMPONENT_NAME = 'DiracLHCb'
 
+def getSiteForSE( se ):
+  """ Get site name for the given SE
+  """
+  result = getSitesForSE( se )
+  if not result['OK']:
+    return result
+  if result['Value']:
+    return S_OK( result['Value'][0] )
+  return S_OK( '' )
+
 class DiracLHCb( Dirac ):
 
   #############################################################################
@@ -963,7 +973,7 @@ class DiracLHCb( Dirac ):
       # Sort in decreasing size
       files.sort( cmp = ( lambda f1, f2: fileSizes[f2] - fileSizes[f1] ) )
       while( files ):
-        print [( lfn, fileSizes[lfn] ) for lfn in files]
+        # print [( lfn, fileSizes[lfn] ) for lfn in files]
         group = []
         sizeTot = 0
         for lfn in list( files ):
