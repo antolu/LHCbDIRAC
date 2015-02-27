@@ -31,7 +31,7 @@ paramsBase = {'AgentType': 'Automatic',
 
 data = {'/this/is/at.1':['SE1'],
         '/this/is/at.2':['SE2'],
-        '/this/is/als/at.2':['SE2'],
+        '/this/is/also/at.2':['SE2'],
         '/this/is/at.12':['SE1', 'SE2'],
         '/this/is/also/at.12':['SE1', 'SE2'],
         '/this/is/at_123':['SE1', 'SE2', 'SE3'],
@@ -45,12 +45,14 @@ class PluginsTestCase( unittest.TestCase ):
   def setUp( self ):
     self.mockTC = MagicMock()
     self.mockDM = MagicMock()
+    self.mockRM = MagicMock()
     self.mockCatalog = MagicMock()
     self.mockCatalog.getFileSize.return_value()
     self.tPlugin = importlib.import_module( 'LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin' )
     self.tPlugin.TransformationClient = self.mockTC
     self.tPlugin.DataManager = self.mockDM
     self.tPlugin.FileCatalog = self.mockCatalog
+    self.tPlugin.rmClient = self.mockRM
 
     self.maxDiff = None
 
@@ -76,18 +78,31 @@ class PluginsBaseSuccess( PluginsTestCase ):
     pluginStandard = TransformationPlugin( 'LHCbStandard' )
     pluginStandard.setParameters( paramsBase )
     pluginStandard.setInputData( data )
+    params = {}
+    params['TransformationID'] = 123
+    params['Status'] = 'Active'
+    params['GroupSize'] = 2
+    pluginStandard.setParameters( params )
     res = pluginStandard.run()
     self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], [] )
+    self.assert_( len( res['Value'] ) == 3 )
+    for t in res['Value']:
+      self.assert_( len( t[1] ) <= 2 )
 
     # input data, flush
     pluginStandard = TransformationPlugin( 'LHCbStandard' )
-    paramsBase['Status'] = 'Flush'
     pluginStandard.setParameters( paramsBase )
     pluginStandard.setInputData( data )
+    params = {}
+    params['TransformationID'] = 123
+    params['Status'] = 'Flush'
+    params['GroupSize'] = 2
+    pluginStandard.setParameters( params )
     res = pluginStandard.run()
     self.assert_( res['OK'] )
-    self.assertNotEqual( res['Value'], [] )
+    self.assert_( len( res['Value'] ) == 5 )
+    for t in res['Value']:
+      self.assert_( len( t[1] ) <= 2 )
 
 #############################################################################
 # Test Suite run
