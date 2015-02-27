@@ -629,6 +629,7 @@ class PluginUtilities( object ):
         return True
     return False
 
+  @timeThis
   def getProcessedFiles( self, lfns ):
     """
     Check which files have been processed by a given production, i.e. have a meaningful descendant
@@ -762,6 +763,10 @@ class PluginUtilities( object ):
   @timeThis
   def getFileAncestors( self, lfns, depth = 10, replica = True ):
     return self.bkClient.getFileAncestors( lfns, depth, replica )
+
+  @timeThis
+  def getTransformationRuns(self, runs):
+    return self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runs} )
 
   @timeThis
   def groupByRunAndParam( self, lfns, files, param = '' ):

@@ -8,13 +8,14 @@ import time, datetime, os, random
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize, uniqueElements
 from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
+from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
+
 from LHCbDIRAC.TransformationSystem.Client.Utilities \
      import PluginUtilities, getFileGroups, groupByRun, isArchive, isFailover, \
-     sortExistingSEs, getRemovalPlugins, closerSEs
+     sortExistingSEs, getRemovalPlugins, closerSEs, timeThis
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
-from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 
 class TransformationPlugin( DIRACTransformationPlugin ):
   """ Extension of DIRAC TransformationPlugin - instantiated by the TransformationAgent
@@ -56,7 +57,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                                  transInThread if transInThread else {} )
     self.setDebug( self.util.getPluginParam( 'Debug', False ) )
 
-  def voidMethod( self, id, invalidateCache = False ):
+  def voidMethod( self, _id, invalidateCache = False ):
     return
 
   def setInputData( self, data ):
@@ -112,15 +113,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __del__( self ):
     self.util.logInfo( "Execution finished, timing: %.3f seconds" % ( time.time() - self.startTime ) )
 
+  @timeThis
   def _removeProcessedFiles( self ):
     """
     Checks if the LFNs have descendants in the same transformation. Removes them from self.transReplicas
     and sets them 'Processed'
     """
-    startTime = time.time()
     descendants = self.util.getProcessedFiles( self.transReplicas.keys() )
-    self.util.logVerbose( "Got descendants of %d files in %.3f seconds" % ( len( self.transReplicas ),
-                                                                            time.time() - startTime ) )
     if descendants:
       processedLfns = [lfn for lfn in descendants if descendants[lfn]]
       if processedLfns:
@@ -172,7 +171,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_OK( [] )
 
     # For each of the runs determine the destination of any previous files
-    res = self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runFileDict.keys()} )
+    res = self.util.getTransformationRuns( runFileDict.keys() )
     if not res['OK']:
       self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
       return res
@@ -262,7 +261,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # For each of the runs determine the destination of any previous files
     runUpdate = {}
     runSEDict = {}
-    res = self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runFileDict.keys()} )
+    res = self.util.getTransformationRuns( runFileDict.keys() )
     if not res['OK']:
       self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
       return res
@@ -473,6 +472,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logException( "Exception in _ByRun plugin:", '', x )
       return S_ERROR( [] )
 
+  @timeThis
   def __byRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
     """ Basic plugin for when you want to group files by run
     """
@@ -488,7 +488,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logVerbose( "No data to be processed by plugin" )
       return S_OK( allTasks )
 
-    startTime = time.time()
     self.util.logInfo( "Grouping %d files by runs %s " %
                           ( len( self.transFiles ),
                             'and %s' % param if param else '' ) )
@@ -497,9 +496,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logError( "Error when grouping %d files by run for param %s" % ( len( self.transReplicas ), param ) )
       return res
     runDict = res['Value']
-    self.util.logInfo( "Grouped %d files in %d runs %s in %.1f seconds" %
-                          ( len( self.transFiles ), len( runDict ),
-                            'and %s' % param if param else '', time.time() - startTime ) )
 
     # If necessary fix files with run number 0
     zeroRunDict = runDict.pop( 0, None )
@@ -513,14 +509,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logInfo( "Set run number for %d files with run #0, which means it was not set yet" % nZero )
 
     transStatus = self.params['Status']
-    startTime = time.time()
-    res = self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runDict.keys()} )
+    res = self.util.getTransformationRuns( runDict.keys() )
     if not res['OK']:
       self.util.logError( "Error when getting transformation runs for runs %s" % str( runDict.keys() ) )
       return res
     transRuns = res['Value']
-    self.util.logVerbose( "Obtained %d runs from transDB in %.1f seconds" % ( len( transRuns ),
-                                                                              time.time() - startTime ) )
     runSites = dict( [ ( run['RunNumber'], run['SelectedSite'] ) for run in transRuns if run['SelectedSite'] ] )
     # Loop on all runs that have new files
     inputData = self.transReplicas.copy()
@@ -615,12 +608,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           flushed.append( ( paramValue, len( self.data ) ) )
         # Now calling the helper plugin... Set status to a fake value
         self.params['Status'] = status
-        startTime = time.time()
         res = eval( 'self._%s()' % plugin )
-        self.util.logVerbose( "Executed helper plugin %s for %d files (Run %d%s) in %.1f seconds" % ( plugin,
-                                                                                                      len( self.data ), runID,
-                                                                                                      paramStr,
-                                                                                                      time.time() - startTime ) )
         # Resetting status
         self.params['Status'] = transStatus
         if not res['OK']:
@@ -789,7 +777,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     runSEDict = {}
     runUpdate = {}
     # Make a list of SEs already assigned to runs
-    res = self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runFileDict.keys()} )
+    res = self.util.getTransformationRuns( runFileDict.keys() )
     if not res['OK']:
       self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
       return res
