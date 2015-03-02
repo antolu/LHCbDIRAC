@@ -386,7 +386,8 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
       if res['OK']:
         ftsJobs = res['Value']
         if ftsJobs:
-          print '\tFTS jobs associated:', ','.join( ['%s@%s (%s)' % ( job.FTSGUID, job.FTSServer, job.Status ) for job in ftsJobs] )
+          for job in ftsJobs:
+            print '\tFTS jobs associated:', '%s@%s (%s) from %s to %s' % ( job.FTSGUID, job.FTSServer, job.Status, job.SourceSE, job.TargetSE )
         else:
           print '\tNo FTS jobs found for that request'
 
