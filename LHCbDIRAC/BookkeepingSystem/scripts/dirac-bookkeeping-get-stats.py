@@ -34,6 +34,8 @@ def execute():
     DIRAC.exit( 1 )
   if bkQuery:
     prodList = bkQuery.getQueryDict().get( 'Production', [None] )
+    if type( prodList ) != type( [] ):
+      prodList = [prodList]
     bkQuery.setOption( 'ProductionID', None )
   else:
     prodList = [None]
