@@ -25,6 +25,7 @@ from DIRAC.Core.Utilities import List
 from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 from DIRAC.Core.Utilities.DictCache import DictCache
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.Utilities.List import breakListIntoChunks
 # # from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
@@ -62,6 +63,15 @@ class StorageUsageAgent( AgentModule ):
     '''
     AgentModule.__init__( self, *args, **kwargs )
 
+    self.__baseDir = '/lhcb'
+    self.__baseDirLabel = "_".join( List.fromChar( self.__baseDir, "/" ) )
+    self.__ignoreDirsList = []
+    self.__keepDirLevels = 4
+
+    self.__startExecutionTime = long( time.time() )
+    self.__dirExplorer = DirectoryExplorer( reverse = True )
+    self.__processedDirs = 0
+    self.__directoryOwners = {}
     self.catalog = FileCatalog()
     if self.am_getOption( 'DirectDB', False ):
       self.storageUsage = StorageUsageDB()
@@ -73,6 +83,7 @@ class StorageUsageAgent( AgentModule ):
     self.replicaListLock = threading.Lock()
     self.proxyCache = DictCache( removeProxy )
     self.__noProxy = set()
+    self.__catalogType = None
 
   def initialize( self ):
     ''' agent initialisation '''
@@ -203,6 +214,8 @@ class StorageUsageAgent( AgentModule ):
     self.__dirExplorer = DirectoryExplorer( reverse = True )
     self.__resetReplicaListFiles()
     self.__noProxy = set()
+    self.__processedDirs = 0
+    self.__directoryOwners = {}
 
     self.__printSummary()
 
@@ -244,21 +257,120 @@ class StorageUsageAgent( AgentModule ):
 
   def __exploreDirList( self, dirList ):
     ''' collect directory size for directory in :dirList: '''
+    # Normalise dirList first
+    dirList = [os.path.realpath( d ) for d in dirList]
     self.log.notice( "Retrieving info for %s dirs" % len( dirList ) )
-    res = self.catalog.getDirectorySize( dirList )
-    if not res['OK']:
-      self.log.error( "Completely failed to get usage.", "%s %s" % ( dirList, res['Message'] ) )
-    else:
-      for dirPath in dirList:
-        if dirPath in res['Value']['Failed']:
-          self.log.error( "Failed to get usage.", "%s %s" % ( dirPath, res['Value']['Failed'][ dirPath ] ) )
+    # For top directories, no files anyway, hence no need to get full size
+    dirContents = {}
+    failed = {}
+    successfull = {}
+    startTime = time.time()
+    nbDirs = len( dirList )
+    chunkSize = 10
+    if self.__catalogType == 'DFC' or dirList == [self.__baseDir]:
+      # Get the content of the directory as anyway this is needed
+      for dirChunk in breakListIntoChunks( dirList, chunkSize ):
+        res = self.catalog.listDirectory( dirChunk, True, timeout = 600 )
+        if not res['OK']:
+          failed.update( dict.fromkeys( dirChunk, res['Message'] ) )
         else:
-          self.__processDir( dirPath, res['Value']['Successful'][dirPath] )
+          failed.update( res['Value']['Failed'] )
+          dirContents.update( res['Value']['Successful'] )
+      self.log.info( 'Time to retrieve content of %d directories: %.1f seconds' % ( nbDirs, time.time() - startTime ) )
+      for dirPath in failed:
+        dirList.remove( dirPath )
+    # We don't need to get the storage usage if there are no files...
+    dirListSize = [d for d in dirList if dirContents.get( d, {} ).get( 'Files' )]
 
-  def __processDir( self, dirPath, directoryMetadata ):
+    startTime1 = time.time()
+    for args in [( d, True, False ) for d in breakListIntoChunks( dirListSize, chunkSize )]:
+      res = self.catalog.getDirectorySize( *args, timeout = 600 )
+      if not res['OK']:
+        failed.update( dict.fromkeys( args[0], res['Message'] ) )
+      else:
+        failed.update( res['Value']['Failed'] )
+        successfull.update( res['Value']['Successful'] )
+    errorReason = {}
+    for dirPath in failed:
+      error = str( failed[dirPath] )
+      errorReason.setdefault( error, [] ).append( dirPath )
+    for error in errorReason:
+      self.log.error( 'Failed to get directory info', '- %s for:\n\t%s' % ( error, '\n\t'.join( errorReason[error] ) ) )
+    self.log.info( 'Time to retrieve size of %d directories: %.1f seconds' % ( len( dirListSize ), time.time() - startTime1 ) )
+    for dirPath in [d for d in dirList if d not in failed]:
+      metadata = successfull.get( dirPath, {} )
+      if 'SubDirs' in metadata:
+        self.__processDir( dirPath, metadata )
+      else:
+        if not self.__catalogType:
+          self.log.info( 'Catalog type determined to be DFC' )
+          self.__catalogType = 'DFC'
+        self.__processDirDFC( dirPath, metadata, dirContents[ dirPath ] )
+    self.log.info( 'Time to process %d directories: %.1f seconds' % ( nbDirs, time.time() - startTime ) )
+    notCommited = len( self.__publishDirQueue ) + len( self.__dirsToPublish )
+    self.log.notice( "%d dirs to be explored, %d done. %d not yet committed." % \
+                     ( self.__dirExplorer.getNumRemainingDirs(), self.__processedDirs, notCommited ) )
+
+
+  def __processDirDFC( self, dirPath, metadata, subDirectories ):
+    ''' gets the list of subdirs that the DFC doesn't return, set the metadata like the LFC
+    and then call the same method as for the LFC '''
+    if 'SubDirs' not in subDirectories:
+      self.log.error( 'No subdirectory item for directory', dirPath )
+      return
+    dirMetadata = {'Files': 0, 'TotalSize': 0, 'ClosedDirs':[], 'SiteUsage':{}}
+    if 'PhysicalSize' in metadata:
+      dirMetadata['Files'] = metadata['LogicalFiles']
+      dirMetadata['TotalSize'] = metadata['LogicalSize']
+      dirMetadata['SiteUsage'] = metadata['PhysicalSize'].copy()
+      dirMetadata['SiteUsage'].pop( 'TotalFiles', None )
+      dirMetadata['SiteUsage'].pop( 'TotalSize', None )
+    subDirs = subDirectories['SubDirs'].copy()
+    dirMetadata['SubDirs'] = subDirs
+    dirUsage = dirMetadata['SiteUsage']
+    errorReason = {}
+    for subDir in subDirs:
+      self.__directoryOwners.setdefault( subDir, ( subDirs[subDir]['Owner'], subDirs[subDir]['OwnerGroup'] ) )
+      subDirs[subDir] = subDirs[subDir].get( 'CreationTime', dateTime() )
+      if dirUsage:
+        # This part here is for removing the recursivity introduced by the DFC
+        args = [subDir]
+        if len( subDir.split( '/' ) ) > self.__keepDirLevels:
+          args += [True, False]
+        result = self.catalog.getDirectorySize( *args )
+        if not result['OK']:
+          errorReason.setdefault( str( result['Message'] ), [] ).append( subDir )
+        else:
+          metadata = result['Value']['Successful'].get( subDir )
+          if metadata:
+            dirMetadata['Files'] -= metadata['LogicalFiles']
+            dirMetadata['TotalSize'] -= metadata['LogicalSize']
+          else:
+            errorReason.setdefault( str( result['Value']['Failed'][subDir], [] ) ).append( subDir )
+        if 'PhysicalSize' in metadata and dirUsage:
+          seUsage = metadata['PhysicalSize']
+          seUsage.pop( 'TotalFiles', None )
+          seUsage.pop( 'TotalSize', None )
+          for se in seUsage:
+            if se not in dirUsage:
+              self.log.error( 'SE used in subdir but not in dir', se )
+            else:
+              dirUsage[se]['Files'] -= seUsage[se]['Files']
+              dirUsage[se]['Size'] -= seUsage[se]['Size']
+    for error in errorReason:
+      self.log.error( 'Failed to get directory info', '- %s for:\n\t%s' % ( error, '\n\t'.join( errorReason[error] ) ) )
+    for se, usage in dirUsage.items():
+      # Both info should be 0 or #0
+      if not usage['Files'] and not usage['Size']:
+        dirUsage.pop( se )
+      elif not usage['Files'] * usage['Size']:
+        self.log.error( 'Directory inconsistent', '%s @ %s: %s' % ( dirPath, se, str( usage ) ) )
+    return self.__processDir( dirPath, dirMetadata )
+
+  def __processDir( self, dirPath, dirMetadata ):
     ''' calculate nb of files and size of :dirPath:, remove it if it's empty '''
-    subDirs = directoryMetadata['SubDirs']
-    closedDirs = directoryMetadata['ClosedDirs']
+    subDirs = dirMetadata['SubDirs']
+    closedDirs = dirMetadata['ClosedDirs']
     ##############################
     # FIXME: Until we understand while closed dirs are not working...
     ##############################
@@ -268,8 +380,8 @@ class StorageUsageAgent( AgentModule ):
       prStr += ", %s are closed (ignored)" % len( closedDirs )
     for rmDir in closedDirs + self.__ignoreDirsList:
       subDirs.pop( rmDir, None )
-    numberOfFiles = long( directoryMetadata['Files'] )
-    totalSize = long( directoryMetadata['TotalSize'] )
+    numberOfFiles = long( dirMetadata['Files'] )
+    totalSize = long( dirMetadata['TotalSize'] )
     if numberOfFiles:
       prStr += " and %s files (%s bytes)" % ( numberOfFiles, totalSize )
     else:
@@ -277,7 +389,7 @@ class StorageUsageAgent( AgentModule ):
     self.log.notice( prStr )
     if closedDirs:
       self.log.verbose( "Closed dirs:\n %s" % '\n'.join( closedDirs ) )
-    siteUsage = directoryMetadata['SiteUsage']
+    siteUsage = dirMetadata['SiteUsage']
     if numberOfFiles > 0:
       dirData = { 'Files' : numberOfFiles, 'TotalSize' : totalSize, 'SEUsage' : siteUsage }
       self.__addDirToPublishQueue( dirPath, dirData )
@@ -288,42 +400,65 @@ class StorageUsageAgent( AgentModule ):
         self.log.verbose( "%-40s %20s %20s" % ( storageElement, str( usageDict['Files'] ), str( usageDict['Size'] ) ) )
     # If it's empty delete it
     elif len( subDirs ) == 0 and len( closedDirs ) == 0:
-      if not dirPath == self.__baseDir:
+      if dirPath != self.__baseDir:
         self.removeEmptyDir( dirPath )
         return
+    # We don't need the cached information about owner
+    self.__directoryOwners.pop( dirPath, None )
     rightNow = dateTime()
     chosenDirs = [subDir for subDir in subDirs
                   if not self.activePeriod or
                   timeInterval( subDirs[subDir], self.activePeriod * week ).includes( rightNow )]
 
     self.__dirExplorer.addDirList( chosenDirs )
-    notCommited = len( self.__publishDirQueue ) + len( self.__dirsToPublish )
-    self.log.notice( "%d dirs to be explored. %d not yet commited." % ( self.__dirExplorer.getNumRemainingDirs(),
-                                                                        notCommited ) )
+    self.__processedDirs += 1
 
   def __getOwnerProxy( self, dirPath ):
     ''' get owner creds for :dirPath: '''
     self.log.verbose( "Retrieving dir metadata..." )
-    result = returnSingleResult( self.catalog.getDirectoryMetadata( dirPath ) )
-    if not result[ 'OK' ]:
-      self.log.error( "Could not get metadata info", result[ 'Message' ] )
-      return result
-    ownerRole = result[ 'Value' ][ 'OwnerRole' ]
-    ownerDN = result[ 'Value' ][ 'OwnerDN' ]
-    if ownerRole[0] != "/":
-      ownerRole = "/%s" % ownerRole
+    # get owner form the cached information, if not, try getDirectoryMetadata
+    ownerName, ownerGroup = self.__directoryOwners.pop( dirPath, ( None, None ) )
+    if not ownerName or not ownerGroup:
+      result = returnSingleResult( self.catalog.getDirectoryMetadata( dirPath ) )
+      if not result[ 'OK' ] or 'OwnerRole' not in result['Value']:
+        self.log.error( "Could not get metadata info", result[ 'Message' ] )
+        return result
+      ownerRole = result[ 'Value' ][ 'OwnerRole' ]
+      ownerDN = result[ 'Value' ][ 'OwnerDN' ]
+      if ownerRole[0] != "/":
+        ownerRole = "/%s" % ownerRole
+      cacheKey = ( ownerDN, ownerRole )
+      ownerName = 'unknown'
+      byGroup = False
+    else:
+      ownerDN = Registry.getDNForUsername( ownerName )
+      if not ownerDN['OK']:
+        self.log.error( "Could not get DN from user name", ownerDN['Message'] )
+        return ownerDN
+      ownerDN = ownerDN['Value'][0]
+      # This bloody method returns directly a string!!!!
+      ownerRole = Registry.getVOMSAttributeForGroup( ownerGroup )
+      byGroup = True
+      # Get all groups for that VOMS Role, and add lhcb_user as in DFC this is a safe value
+    ownerGroups = Registry.getGroupsWithVOMSAttribute( ownerRole ) + ['lhcb_user']
 
-    # Getting the proxy...
-    cacheKey = ( ownerDN, ownerRole )
-    if cacheKey in self.__noProxy:
-      return S_ERROR( "Proxy not available" )
-    upFile = self.proxyCache.get( cacheKey, 3600 )
-    if upFile and os.path.exists( upFile ):
-      return S_OK( upFile )
     downErrors = []
-    for ownerGroup in Registry.getGroupsWithVOMSAttribute( ownerRole ):
-      result = gProxyManager.downloadVOMSProxy( ownerDN, ownerGroup, limited = True,
-                                                requiredVOMSAttribute = ownerRole )
+    for ownerGroup in ownerGroups:
+      if byGroup:
+        ownerRole = None
+        cacheKey = ( ownerDN, ownerGroup )
+      if cacheKey in self.__noProxy:
+        return S_ERROR( "Proxy not available" )
+        # Getting the proxy...
+      upFile = self.proxyCache.get( cacheKey, 3600 )
+      if upFile and os.path.exists( upFile ):
+        self.log.verbose( 'Returning cached proxy for %s %s@%s [%s] in %s' % ( ownerName, ownerDN, ownerGroup, ownerRole, upFile ) )
+        return S_OK( upFile )
+      if ownerRole:
+        result = gProxyManager.downloadVOMSProxy( ownerDN, ownerGroup, limited = False,
+                                                  requiredVOMSAttribute = ownerRole )
+      else:
+        result = gProxyManager.downloadProxy( ownerDN, ownerGroup, limited = False )
       if not result[ 'OK' ]:
         downErrors.append( "%s : %s" % ( cacheKey, result[ 'Message' ] ) )
         continue
@@ -333,22 +468,20 @@ class StorageUsageAgent( AgentModule ):
       if upFile['OK']:
         upFile = upFile['Value']
       else:
-        return result
+        return upFile
       self.proxyCache.add( cacheKey, secsLeft, upFile )
-      self.log.verbose( "Got proxy for %s@%s [%s]" % ( ownerDN, ownerGroup, ownerRole ) )
+      self.log.info( "Got proxy for %s %s@%s [%s]" % ( ownerName, ownerDN, ownerGroup, ownerRole ) )
       return S_OK( upFile )
     self.__noProxy.add( cacheKey )
     return S_ERROR( "Could not download proxy for user (%s, %s):\n%s " % ( ownerDN, ownerRole, "\n ".join( downErrors ) ) )
 
   def removeEmptyDir( self, dirPath ):
     ''' unlink empty folder :dirPath: '''
-    if len( List.fromChar( dirPath, "/" ) ) <= self.__keepDirLevels:
+    from DIRAC.ConfigurationSystem.Client.ConfigurationData import gConfigurationData
+    if len( List.fromChar( dirPath, "/" ) ) < self.__keepDirLevels:
       return S_OK()
 
-    res = self.storageUsage.removeDirectory( dirPath )
-    if not res['OK']:
-      self.log.error( "Failed to remove empty directory from Storage Usage database.", res[ 'Message' ] )
-      return S_OK()
+    self.log.notice( "Deleting empty directory %s" % dirPath )
 
     result = self.__getOwnerProxy( dirPath )
     if not result[ 'OK' ]:
@@ -356,20 +489,27 @@ class StorageUsageAgent( AgentModule ):
         self.log.error( result[ 'Message' ] )
       return result
 
-    self.log.notice( "Deleting empty directory %s" % dirPath )
     upFile = result[ 'Value' ]
     prevProxyEnv = os.environ[ 'X509_USER_PROXY' ]
     os.environ[ 'X509_USER_PROXY' ] = upFile
     try:
-      res = self.catalog.removeDirectory( dirPath )
+      gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'false' )
+      # res = self.catalog.removeDirectory( dirPath )
+      res = self.catalog.writeCatalogs[0][1].removeDirectory( dirPath )
       if not res['OK']:
-        self.log.error( "Failed to remove empty directory from File Catalog.", res[ 'Message' ] )
+        self.log.error( "Error removing empty directory from File Catalog.", res[ 'Message' ] )
       elif dirPath in res['Value']['Failed']:
         self.log.error( "Failed to remove empty directory from File Catalog.", res[ 'Value' ][ 'Failed' ][ dirPath ] )
+        self.log.debug( str( res ) )
       else:
         self.log.info( "Successfully removed empty directory from File Catalog." )
+      res = self.storageUsage.removeDirectory( dirPath )
+      if not res['OK']:
+        self.log.error( "Failed to remove empty directory from Storage Usage database.", res[ 'Message' ] )
+        return res
       return S_OK()
     finally:
+      gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'true' )
       os.environ[ 'X509_USER_PROXY' ] = prevProxyEnv
 
   def __addDirToPublishQueue( self, dirName, dirData ):

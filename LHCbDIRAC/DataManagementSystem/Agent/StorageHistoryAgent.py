@@ -371,11 +371,11 @@ class StorageHistoryAgent( AgentModule ):
       if notInCache:
         cachedFromBK = []
         self.log.info( "Directory metadata cache missed for %d directories => query BK and cache" % len( notInCache ) )
-        for dirChunk in breakListIntoChunks( notInCache, 1000 ):
+        for dirChunk in breakListIntoChunks( notInCache, 200 ):
           self.callsToBkkgetDirectoryMetadata += 1
           res = self.__bkClient.getDirectoryMetadata( dirChunk )
           if not res[ 'OK' ]:
-            self.log.error( "Totally failed to query Bookkeeping %s" % res[ 'Message' ] )
+            self.log.error( "Totally failed to query Bookkeeping", res[ 'Message' ] )
             failedBK += dirChunk
             for dirName in dirChunk:
               metaForDir = metaForList[dirName]
@@ -387,8 +387,8 @@ class StorageHistoryAgent( AgentModule ):
               metaForDir = metaForList[dirName]
               # BK returns a list of metadata, chose the first one...
               metadata = bkMetadata['Successful'].get( dirName, [{}] )[0]
-              metadata['Visibility'] = metadata.pop( 'VisibilityFlag', metadata.get( 'Visibility', 'na' ) )
               if metadata:
+                metadata['Visibility'] = metadata.pop( 'VisibilityFlag', metadata.get( 'Visibility', 'na' ) )
                 # All is OK, directory found
                 _fillMetadata( metaForDir, metadata )
                 self.log.verbose( "Cache entry %s in DirMetadata table.." % dirName )
