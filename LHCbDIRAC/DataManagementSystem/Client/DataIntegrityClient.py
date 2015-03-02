@@ -379,7 +379,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     """
     gLogger.info( 'Obtaining the catalog contents for %s directories' % len( lfnDir ) )
 
-    activeDirs = lfnDir
+    activeDirs = list( lfnDir )
     allFiles = {}
     while len( activeDirs ) > 0:
       currentDir = activeDirs[0]
