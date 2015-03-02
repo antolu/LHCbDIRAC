@@ -1256,6 +1256,23 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
 
   gLogger.always( "Execution completed in %.2f seconds" % ( time.time() - startTime ) )
 
+def __dfcGetDirectoryMetadata( catalog, dirList ):
+  success = {}
+  failed = {}
+  for d in dirList:
+    sup = os.path.dirname( d )
+    res = catalog.listDirectory( sup, True )
+    if res['OK']:
+      metadata = res['Value']['Successful'].get( sup, {} ).get( 'SubDirs', {} ).get( d )
+      if metadata:
+        metadata['isDirectory'] = True
+        success[d] = metadata
+      else:
+        failed[d] = 'No such file or directory'
+    else:
+      failed[d] = res['Message']
+  return S_OK( { 'Successful': success, 'Failed':failed} )
+
 def executeLfnMetadata( dmScript ):
   """
   Print out the FC metadata of a list of LFNs
@@ -1266,13 +1283,33 @@ def executeLfnMetadata( dmScript ):
     Script.showHelp()
     DIRACExit( 0 )
 
+  catalog = FileCatalog()
   gLogger.setLevel( "FATAL" )
-  res = FileCatalog().getFileMetadata( lfnList )
-  if res['OK']:
-    printDMResult( res, empty = "File not in FC" )
-  else:
-    gLogger.fatal( "Error getting metadata for %s" % ( lfnList ), res['Message'] )
-    printDMResult( res, empty = "File not in FC", script = "dirac-dms-lfn-metadata" )
+  filesList = [lfn for lfn in lfnList if
+               catalog.isFile( lfn ).get( 'Value', {} ).get( 'Successful', {} ).get( lfn )]
+  dirList = list( set( lfnList ) - set( filesList ) )
+  success = {}
+  failed = {}
+  if filesList:
+    res = catalog.getFileMetadata( filesList )
+    if res['OK']:
+      success.update( res['Value']['Successful'] )
+      failed.update( res['Value']['Failed'] )
+    else:
+      failed.update( dict.fromkeys( filesList, res['Message'] ) )
+  if dirList:
+    res = catalog.getDirectoryMetadata( dirList )
+    if res['OK']:
+      success.update( res['Value']['Successful'] )
+      failed.update( res['Velue']['Failed'] )
+    else:
+      res = __dfcGetDirectoryMetadata( catalog, dirList )
+      success.update( res['Value']['Successful'] )
+      failed.update( res['Value']['Failed'] )
+  for metadata in success.values():
+    if 'Mode' in metadata:
+      metadata['Mode'] = '%o' % metadata['Mode']
+  printDMResult( S_OK( {'Successful':success, 'Failed':failed} ), empty = "File not in FC", script = "dirac-dms-lfn-metadata" )
   DIRACExit( 0 )
 
 def executeGetFile( dmScript ):
