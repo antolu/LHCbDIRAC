@@ -139,8 +139,7 @@ class LHCbJob( Job ):
                                         ( 'inputData', 'string', '', 'Input Data' ),
                                         ( 'numberOfEvents', 'string', '', 'Events treated' ),
                                         ( 'extraPackages', 'string', '', 'ExtraPackages' ),
-                                        ( 'SystemConfig', 'string', '', 'CMT Config' )]
-                     ):
+                                        ( 'SystemConfig', 'string', '', 'CMT Config' )] ):
     """Specifies gaudi application for DIRAC workflows, executed via gaudirun.
 
        For LHCb these could be e.g. Gauss, Boole, Brunel, DaVinci, LHCb, etc.
@@ -286,8 +285,7 @@ class LHCbJob( Job ):
                                               ( 'inputDataType', 'string', '', 'Input Data Type' ),
                                               ( 'inputData', 'string', '', 'Input Data' ),
                                               ( 'extraPackages', 'string', '', 'extraPackages' ),
-                                              ( 'SystemConfig', 'string', '', 'CMT Config' )]
-                           ):
+                                              ( 'SystemConfig', 'string', '', 'CMT Config' )] ):
     """Specifies application environment and script to be executed.
 
        For LHCb these could be e.g. Gauss, Boole, Brunel,
@@ -544,12 +542,11 @@ class LHCbJob( Job ):
                                                 'FileUsage',
                                                 'UserJobFinalization'],
                              parametersList = [( 'rootVersion', 'string', '', 'Root version' ),
-                                              ( 'rootScript', 'string', '', 'Root script' ),
-                                              ( 'rootType', 'string', '', 'Root type' ),
-                                              ( 'arguments', 'list', [], 'Optional arguments for payload' ),
-                                              ( 'applicationLog', 'string', '', 'Log file name' ),
-                                              ( 'SystemConfig', 'string', '', 'CMT Config' )]
-                            ):
+                                               ( 'rootScript', 'string', '', 'Root script' ),
+                                               ( 'rootType', 'string', '', 'Root type' ),
+                                               ( 'arguments', 'list', [], 'Optional arguments for payload' ),
+                                               ( 'applicationLog', 'string', '', 'Log file name' ),
+                                               ( 'SystemConfig', 'string', '', 'CMT Config' )] ):
     """ Internal function.
 
         Supports the root macro, python and executable wrapper functions.
@@ -757,7 +754,7 @@ class LHCbJob( Job ):
     if filePrepend:
       keepcharacters = ( '.', '_' )
       prependString = str( filePrepend ).join( c for c in filePrepend if c.isalnum() or c in keepcharacters ).rstrip()
-      self.addParameter( self.workflow, 'UserOutputLFNPrepend', 'string', prependString, "String to prepend to " )
+      self._addParameter( self.workflow, 'UserOutputLFNPrepend', 'string', prependString, "String to prepend to " )
 
     return S_OK()
 
@@ -772,8 +769,7 @@ class LHCbJob( Job ):
                                        ( 'executable', 'string', '', 'Executable Script' ),
                                        ( 'arguments', 'string', '', 'Arguments for executable Script' ),
                                        ( 'applicationLog', 'string', '', 'Log file name' ),
-                                       ( 'SystemConfig', 'string', '', 'CMT Config' )]
-                    ):
+                                       ( 'SystemConfig', 'string', '', 'CMT Config' )] ):
     """Specifies executable script to run with optional arguments and log file
        for standard output.
 
@@ -870,8 +866,7 @@ class LHCbJob( Job ):
                                                ( 'applicationLog', 'string', '', 'Log file name' ),
                                                ( 'applicationVersion', 'string', '', 'DaVinci version' ),
                                                ( 'rootVersion', 'string', '', 'ROOT version' ),
-                                               ( 'inputData', 'string', '', 'Input Data' ), ]
-                            ):
+                                               ( 'inputData', 'string', '', 'Input Data' )] ):
     """Performs a protocol access test at an optional site with the input data specified.
 
        Example usage:
