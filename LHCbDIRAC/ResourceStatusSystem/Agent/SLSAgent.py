@@ -16,14 +16,12 @@
     LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase
   LogSETest.__bases__: 
     LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase  
-  LFCTest.__bases__: 
-    LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase
   SLSAgent.__bases__:
     DIRAC.Core.Base.AgentModule.AgentModule
     
 '''
 
-#TODO: make this agent readable and undestandable. Right not, it is not very much.
+# TODO: make this agent readable and understandable. Right not, it is not very much.
 
 import os
 import string
@@ -31,8 +29,6 @@ import time
 import xml.dom, xml.sax
 import urllib
 import urlparse
-
-import lfc2
 
 from datetime import datetime, timedelta
 
@@ -450,129 +446,129 @@ class LOGSETest( TestBase ):
       if self.inside_d:
         self.cur_list.append( content )
 
-class LFCTest( TestBase ):
-  def __init__( self, am ):
-    super( LFCTest, self ).__init__( am )
-
-    self.mirrors = [
-                     'prod-lfc-lhcb-ro.cern.ch',
-                     'lhcb-lfc.gridpp.rl.ac.uk',
-                     'lfc-lhcb-ro.in2p3.fr',
-                     'lhcb-lfc-fzk.gridka.de',
-                     'lfc-lhcb.grid.sara.nl',
-                     'lfclhcb.pic.es',
-                     'lfc-lhcb-ro.cr.cnaf.infn.it',
-                     'lfc-lhcb-ro.cern.ch',
-                   ]
-
-    self.master = 'lfc-lhcb.cern.ch'
-
-    self.xmlPath = rootPath + "/" + self.getAgentValue( "webRoot" ) + self.getTestValue( "dir" )
-
-    from DIRAC.Interfaces.API.Dirac import Dirac
-    self.diracAPI = Dirac()
-    self.workdir = am.am_getWorkDirectory()
-
-    try:
-      os.makedirs( self.xmlPath )
-    except OSError:
-      pass # The dir exist already, or cannot be created: do nothi
-
-    _register = False
-    try:
-      lfn = self.runMasterTest()
-      _register = True
-    except Exception, e:
-      pass
-
-    if not _register:
-      gLogger.error( 'Skipping tests, file not registered' )
-      raise ValueError( 'Error registering file' )
-
-    self.cleanMasterTest( lfn )
-
-  def runMasterTest( self ):
-
-    os.environ[ 'LFC_HOST' ] = self.master
-
-    lfnDir = '/lhcb/test/lfc_mirror_test/streams_propagation_test'
-    gridDir = '/grid' + lfnDir
-
-    _create, _remove = False, False
-
-    try:
-      lfc2.lfc_rmdir( gridDir )
-    except:
-      pass
-
-    try:
-
-      lfc2.lfc_mkdir( gridDir , 0777 )
-      _create = True
-      gLogger.info( 'created %s' % gridDir )
-      lfc2.lfc_rmdir( gridDir )
-      _remove = True
-      gLogger.info( 'removed %s' % gridDir )
-
-    except ValueError:
-      _lfcMsg = 'Error manipulating directory, are you sure it does not exist ?'
-      gLogger.error( _lfcMsg )
-    except Exception, e:
-      gLogger.error( e )
-
-    lfnPath = '/lhcb/test/lfc-replication/%s/' % self.master
-    fileName = 'testFile.%s' % time.time()
-
-    lfn = lfnPath + fileName
-    fullPath = self.workdir + '/' + fileName
-    diracSE = 'CERN-USER'
-
-    gLogger.info( 'Getting time till file %s exists' % lfn )
-
-    f = open( fullPath, 'w' )
-    f.write( 'SLSAgent' )
-    f.write( str( time.time() ) )
-    f.close()
-
-    gLogger.info( 'Registering file %s at %s' % ( lfn, diracSE ) )
-
-    gLogger.info( fullPath )
-
-    res = self.diracAPI.addFile( lfn, fullPath, diracSE )
-
-    if not res[ 'OK' ]:
-      gLogger.error( res[ 'Message' ] )
-      res = False
-    else:
-      if res[ 'Value' ][ 'Successful' ].has_key( lfn ):
-        res = True
-      else:
-        gLogger.warn( res[ 'Value' ] )
-        res = False
-
-    res = res and _create and _remove
-
-    doc = impl.createDocument( "http://sls.cern.ch/SLS/XML/update",
-                              "serviceupdate",
-                              None )
-    doc.documentElement.setAttribute( "xmlns", "http://sls.cern.ch/SLS/XML/update" )
-    doc.documentElement.setAttribute( "xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance' )
-    doc.documentElement.setAttribute( "xsi:schemaLocation",
-                                     "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd" )
-
-    xml_append( doc, "id", "LHCb_LFC_Master" )
-    xml_append( doc, "availability", ( res and 100 ) or 0 )
-    xml_append( doc, "validityduration", "PT2H" )
-    xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
-    xml_append( doc, "notes", "Either 0 or 100, 0 no basic operations performed, 100 all working." )
-
-    xmlfile = open( self.xmlPath + "LHCb_LFC_Master.xml", "w" )
-    try:
-      xmlfile.write( doc.toxml() )
-    finally:
-      xmlfile.close()
-
-    return lfn
+# class LFCTest( TestBase ):
+#   def __init__( self, am ):
+#     super( LFCTest, self ).__init__( am )
+#
+#     self.mirrors = [
+#                      'prod-lfc-lhcb-ro.cern.ch',
+#                      'lhcb-lfc.gridpp.rl.ac.uk',
+#                      'lfc-lhcb-ro.in2p3.fr',
+#                      'lhcb-lfc-fzk.gridka.de',
+#                      'lfc-lhcb.grid.sara.nl',
+#                      'lfclhcb.pic.es',
+#                      'lfc-lhcb-ro.cr.cnaf.infn.it',
+#                      'lfc-lhcb-ro.cern.ch',
+#                    ]
+#
+#     self.master = 'lfc-lhcb.cern.ch'
+#
+#     self.xmlPath = rootPath + "/" + self.getAgentValue( "webRoot" ) + self.getTestValue( "dir" )
+#
+#     from DIRAC.Interfaces.API.Dirac import Dirac
+#     self.diracAPI = Dirac()
+#     self.workdir = am.am_getWorkDirectory()
+#
+#     try:
+#       os.makedirs( self.xmlPath )
+#     except OSError:
+#       pass # The dir exist already, or cannot be created: do nothi
+#
+#     _register = False
+#     try:
+#       lfn = self.runMasterTest()
+#       _register = True
+#     except Exception, e:
+#       pass
+#
+#     if not _register:
+#       gLogger.error( 'Skipping tests, file not registered' )
+#       raise ValueError( 'Error registering file' )
+#
+#     self.cleanMasterTest( lfn )
+#
+#   def runMasterTest( self ):
+#
+#     os.environ[ 'LFC_HOST' ] = self.master
+#
+#     lfnDir = '/lhcb/test/lfc_mirror_test/streams_propagation_test'
+#     gridDir = '/grid' + lfnDir
+#
+#     _create, _remove = False, False
+#
+#     try:
+#       lfc2.lfc_rmdir( gridDir )
+#     except:
+#       pass
+#
+#     try:
+#
+#       lfc2.lfc_mkdir( gridDir , 0777 )
+#       _create = True
+#       gLogger.info( 'created %s' % gridDir )
+#       lfc2.lfc_rmdir( gridDir )
+#       _remove = True
+#       gLogger.info( 'removed %s' % gridDir )
+#
+#     except ValueError:
+#       _lfcMsg = 'Error manipulating directory, are you sure it does not exist ?'
+#       gLogger.error( _lfcMsg )
+#     except Exception, e:
+#       gLogger.error( e )
+#
+#     lfnPath = '/lhcb/test/lfc-replication/%s/' % self.master
+#     fileName = 'testFile.%s' % time.time()
+#
+#     lfn = lfnPath + fileName
+#     fullPath = self.workdir + '/' + fileName
+#     diracSE = 'CERN-USER'
+#
+#     gLogger.info( 'Getting time till file %s exists' % lfn )
+#
+#     f = open( fullPath, 'w' )
+#     f.write( 'SLSAgent' )
+#     f.write( str( time.time() ) )
+#     f.close()
+#
+#     gLogger.info( 'Registering file %s at %s' % ( lfn, diracSE ) )
+#
+#     gLogger.info( fullPath )
+#
+#     res = self.diracAPI.addFile( lfn, fullPath, diracSE )
+#
+#     if not res[ 'OK' ]:
+#       gLogger.error( res[ 'Message' ] )
+#       res = False
+#     else:
+#       if res[ 'Value' ][ 'Successful' ].has_key( lfn ):
+#         res = True
+#       else:
+#         gLogger.warn( res[ 'Value' ] )
+#         res = False
+#
+#     res = res and _create and _remove
+#
+#     doc = impl.createDocument( "http://sls.cern.ch/SLS/XML/update",
+#                               "serviceupdate",
+#                               None )
+#     doc.documentElement.setAttribute( "xmlns", "http://sls.cern.ch/SLS/XML/update" )
+#     doc.documentElement.setAttribute( "xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance' )
+#     doc.documentElement.setAttribute( "xsi:schemaLocation",
+#                                      "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd" )
+#
+#     xml_append( doc, "id", "LHCb_LFC_Master" )
+#     xml_append( doc, "availability", ( res and 100 ) or 0 )
+#     xml_append( doc, "validityduration", "PT2H" )
+#     xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
+#     xml_append( doc, "notes", "Either 0 or 100, 0 no basic operations performed, 100 all working." )
+#
+#     xmlfile = open( self.xmlPath + "LHCb_LFC_Master.xml", "w" )
+#     try:
+#       xmlfile.write( doc.toxml() )
+#     finally:
+#       xmlfile.close()
+#
+#     return lfn
 
   def cleanMasterTest( self, lfn ):
 
@@ -619,10 +615,6 @@ class SLSAgent( AgentModule ):
       LOGSETest( self )
     except Exception, e:
       gLogger.warn( 'LOGSETest crashed with %s' % e )
-    try:
-      LFCTest( self )
-    except Exception, e:
-      gLogger.warn( 'LFCTest crashed with %s' % e )
 
     return S_OK()
 
