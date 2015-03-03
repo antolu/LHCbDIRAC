@@ -219,6 +219,7 @@ class PluginUtilities( object ):
     self.notProcessed = {}
     self.cacheHitFrequency = max( 0., 1 - self.getPluginParam( 'RunCacheUpdateFrequency', 0.05 ) )
     self.runExpiredCache = {}
+    self.__recoType = ''
 
   def logVerbose( self, message, param = '' ):
     if self.debug:
@@ -518,11 +519,11 @@ class PluginUtilities( object ):
 
     targetSEs = []
     self.logVerbose( "Selecting SEs from %s, %s, %s, %s (%d copies) for files in %s" % ( archive1ActiveSEs,
-                                                                                           archive2ActiveSEs,
-                                                                                           mandatorySEs,
-                                                                                           secondaryActiveSEs,
-                                                                                           numberOfCopies,
-                                                                                           existingSEs ) )
+                                                                                         archive2ActiveSEs,
+                                                                                         mandatorySEs,
+                                                                                         secondaryActiveSEs,
+                                                                                         numberOfCopies,
+                                                                                         existingSEs ) )
     # Ensure that we have a archive1 copy
     archive1Existing = [se for se in archive1SEs if se in existingSEs and se not in archive1ActiveSEs]
     ses = self.selectSEs( archive1Existing + self.rankSEs( archive1ActiveSEs ), nbArchive1, existingSEs )
