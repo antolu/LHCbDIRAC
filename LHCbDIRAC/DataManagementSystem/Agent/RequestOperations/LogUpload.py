@@ -9,10 +9,10 @@
 
 # # imports
 import os
-from DIRAC                                                      import S_OK, S_ERROR, gMonitor
-from DIRAC.RequestManagementSystem.private.OperationHandlerBase import OperationHandlerBase
+from DIRAC import S_OK, S_ERROR, gMonitor
+from DIRAC.DataManagementSystem.Agent.RequestOperations.DMSRequestOperationsBase import DMSRequestOperationsBase
 
-class LogUpload( OperationHandlerBase ):
+class LogUpload( DMSRequestOperationsBase ):
   """
   .. class:: LogUpload
 
@@ -27,7 +27,7 @@ class LogUpload( OperationHandlerBase ):
     :param str csPath: CS path for this handler
     """
     # # base class ctor
-    OperationHandlerBase.__init__( self, operation, csPath )
+    super( LogUpload, self ).__init__( operation = operation, csPath = csPath )
     # # gMonitor stuff
     gMonitor.registerActivity( "LogUploadAtt", "Log upload attempted",
                                "RequestExecutingAgent", "Files/min", gMonitor.OP_SUM )
