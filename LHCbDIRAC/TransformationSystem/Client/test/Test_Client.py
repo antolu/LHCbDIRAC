@@ -396,15 +396,15 @@ class PluginsUtilitiesSuccess( ClientTestCase ):
 #     self.assertEqual( res, 0 )
 
     # some files
-    tsMock = MagicMock()
-    tsMock.getTransformationFiles.return_value = S_OK( [{'LFN':'this/is/at_1', 'Status':'Unused'},
-                                                        {'LFN':'this/is/not_here', 'Status':'MissingInFC'}] )
-    bkMock = MagicMock()
-    bkMock.getFileAncestors.return_value = 
-    pu = PluginUtilities( transClient = tsMock, fc = self.fcMock, dataManager = MagicMock(), rmClient = MagicMock() )
-    res = pu.getRAWAncestorsForRun( 1 )
-    self.assertEqual( res, 0 )
-
+#     tsMock = MagicMock()
+#     tsMock.getTransformationFiles.return_value = S_OK( [{'LFN':'this/is/at_1', 'Status':'Unused'},
+#                                                         {'LFN':'this/is/not_here', 'Status':'MissingInFC'}] )
+#     bkMock = MagicMock()
+#     bkMock.getFileAncestors.return_value = 
+#     pu = PluginUtilities( transClient = tsMock, fc = self.fcMock, dataManager = MagicMock(), rmClient = MagicMock() )
+#     res = pu.getRAWAncestorsForRun( 1 )
+#     self.assertEqual( res, 0 )
+    pass
 
 
 
