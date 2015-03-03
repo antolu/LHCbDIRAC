@@ -4,9 +4,9 @@
     USED at OnLine
 """
 
-from DIRAC                                     import S_OK, gLogger
-from DIRAC.ConfigurationSystem.Client          import PathFinder
-from DIRAC.Resources.Utilities.Utils           import checkArgumentFormat
+from DIRAC import S_OK, gLogger
+from DIRAC.ConfigurationSystem.Client import PathFinder
+from DIRAC.Resources.Utilities import checkArgumentFormat
 from DIRAC.Core.Base.Client import Client
 
 __RCSID__ = '$Id$'
@@ -69,10 +69,8 @@ class RAWIntegrityClient( Client ):
       else:
         successful[lfn] = True
 
-    resDict = {
-               'Failed'     : failed,
-               'Successful' : successful
-               }
+    resDict = {'Failed': failed,
+               'Successful': successful}
     return S_OK( resDict )
 
   @staticmethod
