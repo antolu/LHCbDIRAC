@@ -23,7 +23,7 @@ class LHCbOnlineStorage( StorageBase ):
     self.wspath       = wspath
     self.spaceToken   = spaceToken
     self.cwd          = self.path
-    apply( StorageBase.__init__, ( self, self.name, self.path ) )
+#     super( LHCbOnlineStorage, self ).__init__( self.name,  )
 
     self.timeout = 100
     
