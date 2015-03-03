@@ -1436,7 +1436,7 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
   """
   emptyDirsFlag = False
   outputFlag = False
-  depth = 999999
+  depth = 0
   if wildcard == None:
     wildcard = '*'
   for switch in Script.getUnprocessedSwitches():
@@ -1490,13 +1490,15 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
       else:
         dirContents = res['Value']['Successful'][currentDir]
         empty = True
-        for subdir, metadata in dirContents['SubDirs'].items():
+        for subdir in sorted( dirContents['SubDirs'] ):
+          metadata = dirContents['SubDirs'][subdir]
           d = len( subdir.replace( baseDir, '' ).split( '/' ) )
           # print subdir, baseDir, subdir.replace( baseDir, '' ).split( '/' ), d
           if ( d < depth + 2 ) and ( not verbose or __isOlderThan( metadata['CreationDate'], totalDays ) ):
             activeDirs.append( subdir )
           empty = False
-        for filename, fileInfo in dirContents['Files'].items():
+        for filename in sorted( dirContents['Files'] ):
+          fileInfo = dirContents['Files'][filename]
           metadata = fileInfo['MetaData']
           if ( not verbose ) or __isOlderThan( metadata['CreationDate'], totalDays ):
             if fnmatch.fnmatch( filename, wildcard ):
