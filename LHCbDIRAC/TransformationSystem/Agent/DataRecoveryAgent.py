@@ -19,7 +19,7 @@
     - Mark the recovered input file status as 'Unused' in the ProductionDB
 """
 
-__RCSID__ = '$Id:  $'
+__RCSID__ = '$Id$'
 
 import datetime
 
@@ -299,7 +299,7 @@ class DataRecoveryAgent( AgentModule ):
     """
     jobs = jobFileDict.keys()
 
-    result = self.reqClient.getRequestNamesForJobs( jobs )
+    result = self.reqClient.getRequestIDsForJobs( jobs )
     if not result['OK']:
       return result
 
@@ -307,10 +307,10 @@ class DataRecoveryAgent( AgentModule ):
       self.log.verbose( 'None of the jobs have pending requests' )
       return S_OK( jobFileDict )
 
-    for jobID, requestName in result['Value']['Successful'].items():
-      res = self.reqClient.getRequestStatus( requestName )
+    for jobID, requestID in result['Value']['Successful'].items():
+      res = self.reqClient.getRequestStatus( requestID )
       if not res['OK']:
-        self.log.error( 'Failed to get Status for Request', '%s:%s' % ( requestName, res['Message'] ) )
+        self.log.error( 'Failed to get Status for Request', '%s:%s' % ( requestID, res['Message'] ) )
       else:
         if res['Value'] == 'Done':
           continue

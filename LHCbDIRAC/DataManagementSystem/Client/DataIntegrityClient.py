@@ -271,42 +271,33 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
   def __checkPhysicalFiles( self, replicas, catalogMetadata, ses = [], fixIt = False ):
     """ This obtains the physical file metadata and checks the metadata against the catalog entries
     """
-    sePfns = {}
-    pfnLfns = {}
+    seLfns = {}
     for lfn, replicaDict in replicas.items():
-      for se, pfn in replicaDict.items():
+      for se, _pfn in replicaDict.items():
         if ( ses ) and ( se not in ses ):
           continue
-        if not sePfns.has_key( se ):
-          sePfns[se] = []
-        sePfns[se].append( pfn )
-        pfnLfns[pfn] = lfn
+        seLfns.setdefault( se, [] ).append( lfn )
     gLogger.info( '%s %s' % ( 'Storage Element'.ljust( 20 ), 'Replicas'.rjust( 20 ) ) )
-    for site in sorted( sePfns ):
-      files = len( sePfns[site] )
-      gLogger.info( '%s %s' % ( site.ljust( 20 ), str( files ).rjust( 20 ) ) )
 
-    for se in sorted( sePfns ):
-      pfns = sePfns[se]
-      pfnDict = {}
-      for pfn in pfns:
-        pfnDict[pfn] = pfnLfns[pfn]
+    for se in sorted( seLfns ):
+      lfns = seLfns[se]
+
       sizeMismatch = []
       checksumMismatch = []
       checksumBadInFC = []
-      res = self.__checkPhysicalFileMetadata( pfnDict, se )
+      res = self.__checkPhysicalFileMetadata( lfns, se )
       if not res['OK']:
         gLogger.error( 'Failed to get physical file metadata.', res['Message'] )
         return res
-      for pfn, metadata in res['Value'].items():
-        if pfnLfns[pfn] in catalogMetadata:
-          if ( metadata['Size'] != catalogMetadata[pfnLfns[pfn]]['Size'] ) and ( metadata['Size'] != 0 ):
-            sizeMismatch.append( ( pfnLfns[pfn], pfn, se, 'CatalogPFNSizeMismatch' ) )
-          if metadata['Checksum'] != catalogMetadata[pfnLfns[pfn]]['Checksum']:
-            if metadata['Checksum'].replace( 'x', '0' ) == catalogMetadata[pfnLfns[pfn]]['Checksum'].replace( 'x', '0' ):
-              checksumBadInFC.append( ( pfnLfns[pfn], pfn, se, "%s %s" % ( metadata['Checksum'], catalogMetadata[pfnLfns[pfn]]['Checksum'] ) ) )
+      for lfn, metadata in res['Value'].items():
+        if lfn in catalogMetadata:
+          if ( metadata['Size'] != catalogMetadata[lfn]['Size'] ) and ( metadata['Size'] != 0 ):
+            sizeMismatch.append( ( lfn, 'deprecatedUrl', se, 'CatalogPFNSizeMismatch' ) )
+          if metadata['Checksum'] != catalogMetadata[lfn]['Checksum']:
+            if metadata['Checksum'].replace( 'x', '0' ) == catalogMetadata[lfn]['Checksum'].replace( 'x', '0' ):
+              checksumBadInFC.append( ( lfn, 'deprecatedUrl', se, "%s %s" % ( metadata['Checksum'], catalogMetadata[lfn]['Checksum'] ) ) )
             else:
-              checksumMismatch.append( ( pfnLfns[pfn], pfn, se, "%s %s" % ( metadata['Checksum'], catalogMetadata[pfnLfns[pfn]]['Checksum'] ) ) )
+              checksumMismatch.append( ( lfn, 'deprecatedUrl', se, "%s %s" % ( metadata['Checksum'], catalogMetadata[lfn]['Checksum'] ) ) )
       if sizeMismatch:
         self.__reportProblematicReplicas( sizeMismatch, se, 'CatalogPFNSizeMismatch', fixIt = fixIt )
       if checksumMismatch:
@@ -315,34 +306,34 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
         self.__reportProblematicReplicas( checksumBadInFC, se, 'CatalogChecksumToBeFixed', fixIt = fixIt )
     return S_OK()
 
-  def __checkPhysicalFileMetadata( self, pfnLfns, se ):
+  def __checkPhysicalFileMetadata( self, lfns, se ):
     """ Check obtain the physical file metadata and check the files are available
     """
-    gLogger.info( 'Checking the integrity of %s physical files at %s' % ( len( pfnLfns ), se ) )
+    gLogger.info( 'Checking the integrity of %s physical files at %s' % ( len( lfns ), se ) )
 
-    res = StorageElement( se ).getFileMetadata( pfnLfns.keys() )
+    res = StorageElement( se ).getFileMetadata( lfns )
     if not res['OK']:
-      gLogger.error( 'Failed to get metadata for pfns.', res['Message'] )
+      gLogger.error( 'Failed to get metadata for lfns.', res['Message'] )
       return res
-    pfnMetadataDict = res['Value']['Successful']
+    lfnMetadataDict = res['Value']['Successful']
     # If the replicas are completely missing
     missingReplicas = []
-    for pfn, reason in res['Value']['Failed'].items():
+    for lfn, reason in res['Value']['Failed'].items():
       if re.search( 'File does not exist', reason ):
-        missingReplicas.append( ( pfnLfns[pfn], pfn, se, 'PFNMissing' ) )
+        missingReplicas.append( ( lfn, 'deprecatedUrl', se, 'PFNMissing' ) )
     if missingReplicas:
       self.__reportProblematicReplicas( missingReplicas, se, 'PFNMissing' )
     lostReplicas = []
     unavailableReplicas = []
     zeroSizeReplicas = []
     # If the files are not accessible
-    for pfn, pfnMetadata in pfnMetadataDict.items():
-      if pfnMetadata['Lost']:
-        lostReplicas.append( ( pfnLfns[pfn], pfn, se, 'PFNLost' ) )
-      if pfnMetadata['Unavailable']:
-        unavailableReplicas.append( ( pfnLfns[pfn], pfn, se, 'PFNUnavailable' ) )
-      if pfnMetadata['Size'] == 0:
-        zeroSizeReplicas.append( ( pfnLfns[pfn], pfn, se, 'PFNZeroSize' ) )
+    for lfn, lfnMetadata in lfnMetadataDict.items():
+      if lfnMetadata['Lost']:
+        lostReplicas.append( ( lfn, se, 'PFNLost' ) )
+      if lfnMetadata['Unavailable']:
+        unavailableReplicas.append( ( lfn, 'deprecatedUrl', se, 'PFNUnavailable' ) )
+      if lfnMetadata['Size'] == 0:
+        zeroSizeReplicas.append( ( lfn, 'deprecatedUrl', se, 'PFNZeroSize' ) )
     if lostReplicas:
       self.__reportProblematicReplicas( lostReplicas, se, 'PFNLost' )
     if unavailableReplicas:
@@ -350,7 +341,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     if zeroSizeReplicas:
       self.__reportProblematicReplicas( zeroSizeReplicas, se, 'PFNZeroSize' )
     gLogger.info( 'Checking the integrity of physical files at %s complete' % se )
-    return S_OK( pfnMetadataDict )
+    return S_OK( lfnMetadataDict )
 
   def __reportProblematicReplicas( self, replicaTuple, se, reason, fixIt = False ):
     """ Simple wrapper function around setReplicaProblematic """

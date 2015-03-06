@@ -107,10 +107,10 @@ for lfn, lfnDict in allFiles.items():
     print '%d LFNs processed so far. %d left' %(totalSoFar, len(LFNsInLFC)-totalSoFar)
   if verbose:
     fp.write("LFN: %s\n" % lfn )
-  lfnReplicas = {}
+  lfnReplicas = []
   for se, replicaDict in lfnDict['Replicas'].items():
     #print 'SE: %s -- replica: %s ' % ( se, replicaDict )
-    lfnReplicas[se] = replicaDict['PFN']
+    lfnReplicas.append( se )
     if not lfnReplicas:
       zeroReplicaFiles.append( lfn )
   allReplicaDict[lfn] = lfnReplicas
@@ -123,27 +123,26 @@ for lfn, lfnDict in allFiles.items():
   for se in lfnReplicas:
     if se not in replicasPerSE.keys():
       replicasPerSE[ se ] = []
-    pfn = lfnReplicas[ se ]
-    replicasPerSE[ se ].append( pfn )
+    replicasPerSE[ se ].append( lfn )
     if verbose:
-      fp.write("Checking on storage PFN, SE: %s %s\n" % ( pfn, se ) )
-    res = StorageElement( se ).getFileMetadata( pfn )
+      fp.write( "Checking on storage LFN, SE: %s %s\n" % ( lfn, se ) )
+    res = StorageElement( se ).getFileMetadata( lfn )
     if not res['OK']:
-      fp.write("ERROR: could not get storage file metadata! %s - %s \n" %(pfn, se))
+      fp.write( "ERROR: could not get storage file metadata! %s - %s \n" % ( lfn, se ) )
       if lfn not in problematicFiles.keys():
         problematicFiles[lfn] = {}
       if 'BadReplicas' not in problematicFiles[lfn]:
          problematicFiles[lfn]['BadReplicas'] = []
-      problematicFiles[lfn]['BadReplicas'].append( pfn )
+      problematicFiles[lfn]['BadReplicas'].append( se )
       continue
-    if pfn in res['Value']['Failed']:
-      fp.write("ERROR: bad PFN! %s\n" % pfn )
+    if lfn in res['Value']['Failed']:
+      fp.write( "ERROR: bad LFN! %s\n" % lfn )
       if lfn not in problematicFiles.keys():
         problematicFiles[lfn] = {}
         if 'BadPFN' not in problematicFiles[lfn]:
            problematicFiles[lfn]['BadPFN'] = []
-        problematicFiles[lfn]['BadPFN'].append( pfn ) 
-    elif pfn in res['Value']['Successful']:
+        problematicFiles[lfn]['BadPFN'].append( se )
+    elif lfn in res['Value']['Successful']:
       if verbose:
         fp.write("Replica is ok\n")
   fp.flush()

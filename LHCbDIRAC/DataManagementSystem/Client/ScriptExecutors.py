@@ -373,49 +373,48 @@ def removeReplicasNoFC( lfnList, seList ):
           lfnsToRemove += res['Value']['Failed'].keys()
       if not lfnsToRemove:
         continue
-      pfnsToRemove = {}
+#       pfnsToRemove = {}
       gLogger.verbose( '%d replicas NOT registered in FC: removing physical file at %s.. Get the PFNs' \
         % ( len( lfnsToRemove ), seName ) )
-      for lfn in lfnsToRemove:
-        res = se.getPfnForLfn( lfn )
-        if not res['OK'] or lfn not in res['Value']['Successful']:
-          reason = res.get( 'Message', res.get( 'Value', {} ).get( 'Failed', {} ).get( lfn ) )
-          errorReasons.setdefault( str( reason ), {} ).setdefault( seName, [] ).append( lfn )
-          gLogger.error( 'ERROR getting LFN: %s' % lfn, res['Message'] )
-        else:
-          pfn = res['Value']['Successful'].get( lfn )
-          if pfn:
-            pfnsToRemove[pfn] = lfn
-          else:
-            reason = res['Value']['Failed'].get( lfn, 'Unknown error' )
-            errorReasons.setdefault( str( reason ), {} ).setdefault( seName, [] ).append( lfn )
-      if not pfnsToRemove:
-        continue
-      gLogger.verbose( "List of urls: %s" % '\n'.join( pfnsToRemove ) )
-      res = se.exists( pfnsToRemove.keys() )
+#       for lfn in lfnsToRemove:
+#         res = se.getURL( lfn )
+#         if not res['OK'] or lfn not in res['Value']['Successful']:
+#           reason = res.get( 'Message', res.get( 'Value', {} ).get( 'Failed', {} ).get( lfn ) )
+#           errorReasons.setdefault( str( reason ), {} ).setdefault( seName, [] ).append( lfn )
+#           gLogger.error( 'ERROR getting LFN: %s' % lfn, res['Message'] )
+#         else:
+#           pfn = res['Value']['Successful'].get( lfn )
+#           if pfn:
+#             pfnsToRemove[pfn] = lfn
+#           else:
+#             reason = res['Value']['Failed'].get( lfn, 'Unknown error' )
+#             errorReasons.setdefault( str( reason ), {} ).setdefault( seName, [] ).append( lfn )
+#       if not pfnsToRemove:
+#         continue
+#       gLogger.verbose( "List of urls: %s" % '\n'.join( pfnsToRemove ) )
+      res = se.exists( lfnsToRemove )
       if not res['OK']:
         gLogger.error( 'ERROR checking file:', res['Message'] )
         continue
-      pfns = [pfn for pfn, exists in res['Value']['Successful'].items() if exists]
-      if not pfns:
+      lfns = [lfn for lfn, exists in res['Value']['Successful'].items() if exists]
+      if not lfns:
         gLogger.always( "No files found for removal at %s" % seName )
         continue
-      gLogger.always( "Removing %d files from %s" % ( len( pfns ), seName ) )
+      gLogger.always( "Removing %d files from %s" % ( len( lfns ), seName ) )
       gLogger.setLevel( 'FATAL' )
-      res = se.removeFile( pfns )
+      res = se.removeFile( lfns )
       gLogger.setLevel( 'ERROR' )
       if not res['OK']:
         gLogger.error( 'ERROR removing storage file: ', res['Message'] )
       else:
         gLogger.verbose( "StorageElement.removeFile returned: ", res )
         failed = res['Value']['Failed']
-        for pfn, reason in failed.items():
-          lfn = pfnsToRemove[pfn]
+        for lfn, reason in failed.items():
           if 'No such file or directory' in str( reason ):
             successfullyRemoved.setdefault( seName, [] ).append( lfn )
           else:
             errorReasons.setdefault( str( reason ), {} ).setdefault( seName, [] ).append( lfn )
-        successfullyRemoved.setdefault( seName, [] ).extend( [pfnsToRemove[pfn] for pfn in res['Value']['Successful']] )
+        successfullyRemoved.setdefault( seName, [] ).extend( [lfn for lfn in res['Value']['Successful']] )
     if showProgress:
       gLogger.always( '' )
   return S_OK( {'Successful': successfullyRemoved, 'Failed': errorReasons} )
@@ -460,7 +459,7 @@ def getAccessURL( lfnList, seList, protocol = None ):
   for se in seList:
     lfns = [lfn for lfn in lfnList if se in replicas.get( lfn, [] )]
     if lfns:
-      res = StorageElement( se ).getAccessUrl( lfns, protocol = protocol )
+      res = StorageElement( se ).getURL( lfns, protocol = protocol )
       success = res.get( 'Value', {} ).get( 'Successful' )
       failed = res.get( 'Value', {} ).get( 'Failed' )
       if res['OK']:
@@ -697,7 +696,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
 
   fc = FileCatalog()
 
-  gLogger.setLevel( "FATAL" )
+  # gLogger.setLevel( "FATAL" )
   metadata = {'Successful':{}, 'Failed':{}}
   replicas = {}
   # restrict seList to those where the replicas are

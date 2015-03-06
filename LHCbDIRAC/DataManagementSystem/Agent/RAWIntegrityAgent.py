@@ -135,30 +135,26 @@ class RAWIntegrityAgent( AgentModule ):
     # Obtain the physical file metadata for the files awating migration
     #
     self.log.info( "Obtaining physical file metadata." )
-    sePfns = {}
-    pfnDict = {}
+    seLfns = {}
     for lfn, metadataDict in activeFiles.items():
-      pfn = metadataDict['PFN']
-      pfnDict[pfn] = lfn
       se = metadataDict['SE']
-      if se not in sePfns:
-        sePfns[se] = []
-      sePfns[se].append( pfn )
-    pfnMetadata = { 'Successful':{}, 'Failed':{} }
-    for se, pfnList in sePfns.items():
-      res = StorageElement( se ).getFileMetadata( pfnList )
+      seLfns.setdefault( se, [] ).append( lfn )
+
+    lfnMetadata = { 'Successful':{}, 'Failed':{} }
+    for se, lfnList in seLfns.items():
+      res = StorageElement( se ).getFileMetadata( lfnList )
       if not res['OK']:
         errStr = "Failed to obtain physical file metadata."
         self.log.error( errStr, res['Message'] )
-        for pfn in pfnList:
-          pfnMetadata['Failed'][pfn] = errStr
+        for lfn in lfnList:
+          lfnMetadata['Failed'][lfn] = errStr
       else:
-        pfnMetadata['Successful'].update( res['Value']['Successful'] )
-        pfnMetadata['Failed'].update( res['Value']['Failed'] )
-    if len( pfnMetadata['Failed'] ) > 0:
-      self.log.info( "Failed to obtain physical file metadata for %s files." % len( pfnMetadata['Failed'] ) )
-    self.log.info( "Obtained physical file metadata for %s files." % len( pfnMetadata['Successful'] ) )
-    if not len( pfnMetadata['Successful'] ) > 0:
+        lfnMetadata['Successful'].update( res['Value']['Successful'] )
+        lfnMetadata['Failed'].update( res['Value']['Failed'] )
+    if len( lfnMetadata['Failed'] ) > 0:
+      self.log.info( "Failed to obtain physical file metadata for %s files." % len( lfnMetadata['Failed'] ) )
+    self.log.info( "Obtained physical file metadata for %s files." % len( lfnMetadata['Successful'] ) )
+    if not len( lfnMetadata['Successful'] ) > 0:
       return S_OK()
 
     ############################################################
@@ -168,27 +164,26 @@ class RAWIntegrityAgent( AgentModule ):
     filesToRemove = []
     filesToTransfer = []
     filesMigrated = []
-    for pfn, pfnMetadataDict in pfnMetadata['Successful'].items():
-      if pfnMetadataDict.get( 'Migrated', False ):
-        lfn = pfnDict[pfn]
+    for lfn, lfnMetadataDict in lfnMetadata['Successful'].items():
+      if lfnMetadataDict.get( 'Migrated', False ):
         filesMigrated.append( lfn )
         self.log.info( "%s is newly migrated." % lfn )
-        if "Checksum" not in pfnMetadataDict:
+        if "Checksum" not in lfnMetadataDict:
           self.log.error( "No checksum information available.", lfn )
-          comm = "nsls -lT --checksum /castor/%s" % pfn.split( '/castor/' )[-1]
+          comm = "nsls -lT --checksum /castor/%s" % lfn
           res = shellCall( 180, comm )
           returnCode, stdOut, stdErr = res['Value']
           if not returnCode:
-            pfnMetadataDict['Checksum'] = stdOut.split()[9]
+            lfnMetadataDict['Checksum'] = stdOut.split()[9]
           else:
-            pfnMetadataDict['Checksum'] = 'Not available'
-        castorChecksum = pfnMetadataDict['Checksum']
+            lfnMetadataDict['Checksum'] = 'Not available'
+        castorChecksum = lfnMetadataDict['Checksum']
         onlineChecksum = activeFiles[lfn]['Checksum']
         if castorChecksum.lower().lstrip( '0' ) == onlineChecksum.lower().lstrip( '0' ).lstrip( 'x' ):
           self.log.info( "%s migrated checksum match." % lfn )
           filesToRemove.append( lfn )
           activeFiles[lfn]['Checksum'] = castorChecksum
-        elif pfnMetadataDict['Checksum'] == 'Not available':
+        elif lfnMetadataDict['Checksum'] == 'Not available':
           self.log.info( "Unable to determine checksum.", lfn )
         else:
           self.log.error( "Migrated checksum mis-match.", "%s %s %s" % ( lfn, castorChecksum.lstrip( '0' ), 
@@ -295,13 +290,13 @@ class RAWIntegrityAgent( AgentModule ):
         size = activeFiles[lfn]['Size']
         se = activeFiles[lfn]['SE']
         guid = activeFiles[lfn]['GUID']
-        res = StorageElement( se ).removeFile( pfn )
+        res = StorageElement( se ).removeFile( lfn )
         if not res['OK']:
-          self.log.error( "Completely failed to remove pfn from the storage element.", res['Message'] )
-        elif pfn not in res['Value']['Successful']:
-          self.log.error( "Failed to remove pfn from the storage element.", res['Value']['Failed'][pfn] )
+          self.log.error( "Completely failed to remove lfn from the storage element.", res['Message'] )
+        elif lfn not in res['Value']['Successful']:
+          self.log.error( "Failed to remove lfn from the storage element.", res['Value']['Failed'][lfn] )
         else:
-          self.log.info( "Successfully removed pfn from the storage element." )
+          self.log.info( "Successfully removed lfn from the storage element." )
           ############################################################
           #
           # Create a transfer request for the files incorrectly migrated

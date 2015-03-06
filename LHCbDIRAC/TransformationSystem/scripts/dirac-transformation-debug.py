@@ -303,13 +303,15 @@ listOfAssignedRequests = {}
 def __getAssignedRequests( client ):
   global listOfAssignedRequests
   if not listOfAssignedRequests:
-    res = client.getRequestNamesList( ['Assigned'], limit = 10000 )
+    res = client.getRequestIDsList( ['Assigned'], limit = 10000 )
     if res['OK']:
-      listOfAssignedRequests = [reqName for reqName, _x, _y in res['Value']]
+      listOfAssignedRequests = [reqID for reqID , _x, _y in res['Value']]
   return listOfAssignedRequests
 
 def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRequests, cleanOld = False ):
   requestID = int( task['ExternalID'] )
+  taskID = task['TaskID']
+  taskName = '%08d_%08d' % ( transID, taskID )
   client, requestName = __getRequestClient( requestID )
   if not client:
     if not kickRequests:
@@ -328,7 +330,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     else:
       print "\tTask is failed: %d files could be reset Unused: use --KickRequests option" % len( lfnsInTask )
   if taskCompleted and ( task['ExternalStatus'] not in ( 'Done', 'Failed' ) or status in ( 'Assigned', 'Problematic' ) ):
-    prString = "\tTask %s is completed: no %s replicas" % ( requestName, dmFileStatusComment )
+    prString = "\tTask %s is completed: no %s replicas" % ( taskName, dmFileStatusComment )
     if kickRequests:
       res = transClient.setFileStatusForTransformation( transID, 'Processed', lfnsInTask, force = True )
       if res['OK']:
@@ -340,10 +342,10 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     print prString
   if isinstance( client, ReqClient ):
     assignedRequests = __getAssignedRequests( client )
-    res = client.peekRequest( requestName )
+    res = client.peekRequest( requestID )
     if res['OK']:
       request = res['Value']
-      requestStatus = request.Status if request.RequestName not in assignedRequests else 'Assigned'
+      requestStatus = request.Status if request.RequestID not in assignedRequests else 'Assigned'
       if requestStatus != task['ExternalStatus']:
         print '\tRequest status:', requestStatus, 'updated last', request.LastUpdate
     else:
@@ -372,7 +374,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
           res = client.putRequest( request )
         else:
           failedFiles += reqFiles.keys()
-          res = client.setRequestStatus( requestName, 'Failed' )
+          res = client.setRequestStatus( requestID, 'Failed' )
         if res['OK']:
           prString += ": request set to Failed"
         else:
@@ -394,8 +396,8 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
   # Kicking stuck requests in status Assigned
   toBeKicked = 0
   if request:
-    if request.RequestName in assignedRequests and request.LastUpdate < assignedReqLimit:
-      print "\tRequest stuck:", request.RequestName, 'Updated', request.LastUpdate
+    if request.RequestID in assignedRequests and request.LastUpdate < assignedReqLimit:
+      print "\tRequest stuck:", request.RequestID, 'Updated', request.LastUpdate
       toBeKicked += 1
       if kickRequests:
         res = client.putRequest( request )
@@ -422,7 +424,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
           print subReqStr
           toBeKicked += 1
           if kickRequests:
-            res = client.setRequestStatus( subReqDict['RequestName'], 'Waiting' )
+            res = client.setRequestStatus( requestID, 'Waiting' )
             if res['OK']:
               print '\tRequest %d reset Waiting' % requestID
             else:
@@ -1031,9 +1033,9 @@ def __checkWaitingTasks( transID ):
         if client and requestName:
           res = transClient.setTaskStatus( transID, taskID, status )
           if not res['OK']:
-            print "Error setting task %s to %s" % ( requestname, status ), res['Message']
+            print "Error setting task %s to %s" % ( requestID, status ), res['Message']
           if isinstance( client, ReqClient ):
-            res = client.peekRequest( requestName )
+            res = client.peekRequest( requestID )
             if res['OK']:
               request = res['Value']
               request.Status = status
@@ -1041,13 +1043,13 @@ def __checkWaitingTasks( transID ):
               if res['OK']:
                 fixed += 1
             if not res['OK']:
-              print "Error setting %s to %s" % ( requestName, status ), res['Message']
+              print "Error setting %s to %s" % ( requestID, status ), res['Message']
           else:
-            res = client.setRequestStatus( requestName, status )
+            res = client.setRequestStatus( requestID, status )
             if res['OK']:
               fixed += 1
             else:
-              print "Error setting %s to %s" % ( requestName, status ), res['Message']
+              print "Error setting %s to %s" % ( requestID, status ), res['Message']
       print '\t%d requests set to status %s' % ( fixed, status )
   if not kickRequests:
     print 'Use --KickRequests to fix them'

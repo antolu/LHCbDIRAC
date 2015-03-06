@@ -223,19 +223,13 @@ class TargzJobLogAgent( AgentModule ):
     tarname = self.tempDirectory + "/" + prod + "_" + sub + ".tgz"
     destFile = self.destDirectory + "/" + prod + "_" + sub + "_" + date + ".tgz"
 
-    res = self.storageElement.getPfnForLfn( destFile )
-    if res['OK'] and destFile in res['Value']['Successful']:
-      pfn = res["Value"]['Successful'][destFile]
-    else:
-      self.log.error( "getPfnForLfnfor file %s" % destFile, res.get( 'Message', res.get( 'Value', {} ).get( 'Failed', {} ).get( pfn ) ) )
-      return S_ERROR()
 
-    res = self.storageElement.exists( pfn )
+    res = self.storageElement.exists( destFile )
     if not res['OK']:
-      self.log.error( "Can not check file exists %s" % pfn, res['Message'] )
+      self.log.error( "Can not check file exists %s" % destFile, res['Message'] )
       return S_ERROR()
-    if res['Value']['Successful'].get( pfn, False ):
-      self.log.error( "file exists ", pfn )
+    if res['Value']['Successful'].get( destFile, False ):
+      self.log.error( "file exists ", destFile )
       return S_ERROR()
 
     tared = False
@@ -255,7 +249,7 @@ class TargzJobLogAgent( AgentModule ):
       return S_ERROR()
 
     putok = False
-    fileDict = {pfn:tarname}
+    fileDict = {destFile:tarname}
     self.log.info( "putFile", fileDict )
     res = self.storageElement.putFile( fileDict )
     if res['OK']:
