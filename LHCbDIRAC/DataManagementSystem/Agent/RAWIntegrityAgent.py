@@ -26,6 +26,9 @@ from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.File import File
 
+from DIRAC.ConfigurationSystem.Client.ConfigurationData import gConfigurationData
+
+
 AGENT_NAME = 'DataManagement/RAWIntegrityAgent'
 
 class RAWIntegrityAgent( AgentModule ):
@@ -97,7 +100,7 @@ class RAWIntegrityAgent( AgentModule ):
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
     # the shifterProxy option in the Configuration can be used to change this default.
-    self.am_setOption( 'shifterProxy', 'DataManager' )
+    res = self.am_setOption( 'shifterProxy', 'DataProcessing' )
 
     return S_OK()
 
@@ -106,6 +109,10 @@ class RAWIntegrityAgent( AgentModule ):
     
     TODO: needs some refactoring and splitting, it's just way too long
     """
+
+    # Don't use the server certificate otherwise the DFC wont let us write
+    gConfigurationData.setOptionInCFG( '/DIRAC/Security/UseServerCertificate', 'false' )
+
     gMonitor.addMark( "Iteration", 1 )
 
     ############################################################
