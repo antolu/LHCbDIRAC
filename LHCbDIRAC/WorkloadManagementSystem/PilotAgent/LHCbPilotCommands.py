@@ -139,7 +139,7 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
     else:
       self.log.debug( "X509_VOMS_DIR is not set in the host environment" )
       # try and find it
-      candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/certificates', '$VO_LHCB_SW_DIR/etc/grid-security/certificates']
+      candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/vomsdir', '$VO_LHCB_SW_DIR/etc/grid-security/vomsdir']
       for candidate in candidates:
         self.log.debug( "Candidate directory for X509_VOMS_DIR is %s" % candidate )
         if os.path.isdir( os.path.expandvars( candidate ) ):
@@ -160,7 +160,7 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
     else:
       self.log.debug( "DIRAC_VOMSES is not set in the host environment" )
       # try and find it
-      candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/certificates', '$VO_LHCB_SW_DIR/etc/grid-security/certificates']
+      candidates = ['/cvmfs/lhcb.cern.ch/etc/grid-security/vomses', '$VO_LHCB_SW_DIR/etc/grid-security/vomses']
       for candidate in candidates:
         self.log.debug( "Candidate directory for DIRAC_VOMSES is %s" % candidate )
         if os.path.isdir( os.path.expandvars( candidate ) ):
