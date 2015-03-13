@@ -10,6 +10,8 @@ parseCommandLine( ignoreErrors = True )
 import sys, platform
 from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getDIRACPlatform
 
+from DIRAC import exit as dExit
+
 if __name__ == "__main__" :
   dist = platform.linux_distribution()
   if not dist[0]:
@@ -32,8 +34,6 @@ if __name__ == "__main__" :
   else:
     msg = res['Value'][0]
     
-  print msg
-  
   if error:
     from DIRAC import gConfig
     from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
@@ -50,3 +50,7 @@ if __name__ == "__main__" :
     for mA in mailAddress.replace( ' ', '' ).split( ',' ):
       NotificationClient().sendMail( mailAddress, "Problem with DIRAC architecture",
                                      body, 'federico.stagni@cern.ch', localAttempt = False )
+    print msg
+    dExit( 1 )
+
+  print msg
