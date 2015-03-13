@@ -148,7 +148,7 @@ def createDebugScript( name, command, env = None, postExecution = '',
   fopen = open( name, 'w' )
   fopen.write( '%s\n' % ( '\n'.join( script ) ) )
   fopen.close()
-  os.chmod( name, 0755 )
+  os.chmod( name, stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH + stat.S_IXOTH )
   return S_OK( name )
 
 #############################################################################

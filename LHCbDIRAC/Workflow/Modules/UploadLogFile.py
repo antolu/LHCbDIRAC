@@ -4,7 +4,11 @@
 
 __RCSID__ = "$Id$"
 
-import os, shutil, glob, random
+import os
+import shutil
+import glob
+import random
+import stat
 
 from DIRAC                                              import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess                    import shellCall
@@ -280,7 +284,7 @@ class UploadLogFile( ModuleBase ):
     # Set proper permissions
     self.log.info( 'Changing log directory permissions to 0755' )
     try:
-      os.chmod( self.logdir, 0755 )
+      os.chmod( self.logdir, stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH + stat.S_IXOTH )
     except OSError, x:
       self.log.error( 'Could not set logdir permissions to 0755:', '%s (%s)' % ( self.logdir, str( x ) ) )
     # Populate the temporary directory
@@ -337,7 +341,7 @@ class UploadLogFile( ModuleBase ):
       for toChange in os.listdir( logDir ):
         if not os.path.islink( '%s/%s' % ( logDir, toChange ) ):
           self.log.debug( 'Changing permissions of %s/%s to 0755' % ( logDir, toChange ) )
-          os.chmod( '%s/%s' % ( logDir, toChange ), 0755 )
+          os.chmod( '%s/%s' % ( logDir, toChange ), stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH + stat.S_IXOTH )
     except OSError, x:
       self.log.error( 'Problem changing shared area permissions', str( x ) )
       return S_ERROR( x )

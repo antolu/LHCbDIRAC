@@ -6,6 +6,7 @@ __RCSID__ = ""
 
 # First, pythonic stuff
 import os
+import stat
 
 # Second, DIRAC stuff
 from DIRAC                                      import S_OK, S_ERROR
@@ -69,7 +70,7 @@ class LHCbPRProxyAgent( AgentModule ):
       os.environ[ 'X509_USER_PROXY' ] = '/opt/dirac/pro/work/ResourceStatus/LHCbPRProxyAgent/.shifterCred'
       import shutil
       shutil.copyfile( diracCred, lhcbprCred )
-      os.chmod( lhcbprCred, 0660 )
+      os.chmod( lhcbprCred, stat.S_IRUSR | stat.S_IWUSR )
 
       self.log.info( 'Loop' )
       self.log.info( os.environ[ 'X509_USER_PROXY' ] )
