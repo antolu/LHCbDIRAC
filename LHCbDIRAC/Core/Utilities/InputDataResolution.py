@@ -28,8 +28,6 @@ class InputDataResolution ( DIRACInputDataResolution ):
     """
     super( InputDataResolution, self ).__init__( argumentsDict )
 
-    self.arguments.setdefault( 'Configuration', {} )['AllReplicas'] = True
-
     if not bkkClient:
       from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
       self.bkkClient = BookkeepingClient()
@@ -83,9 +81,9 @@ class InputDataResolution ( DIRACInputDataResolution ):
     if not typeVersions['OK']:
       return typeVersions
     typeVersions = typeVersions['Value']
-    
+
     for lfn, mdataList in resolvedData.items():
-      
+
       if type( mdataList ) != types.ListType:
         mdataList = [mdataList]
       if lfn not in typeVersions:
@@ -97,7 +95,7 @@ class InputDataResolution ( DIRACInputDataResolution ):
       else:
         self.log.verbose( 'Adding PFN file type %s for %s' % ( typeVersions[lfn], lfn ) )
         lfnType = typeVersions[lfn]
-      
+
       for mdata in mdataList:
         mdata['pfntype'] = lfnType
 
