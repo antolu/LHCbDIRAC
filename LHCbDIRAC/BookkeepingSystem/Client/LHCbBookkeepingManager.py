@@ -1895,10 +1895,10 @@ class LHCbBookkeepingManager( BaseESManager ):
       # This variable contains the file type version, if it is empty I check in the bkk
     
       for lfns in savePfn:
-        for lfn in savePfn[lfns]:
-          if lfn['pfntype'].upper() == 'ROOT_ALL':
-            rootFormat = False
-          filesandformats[lfns] = lfn['pfntype']
+        if savePfn[lfns]['pfntype'].upper() == 'ROOT_ALL':
+          rootFormat = False
+        filesandformats[lfns] = savePfn[lfns]['pfntype']
+        
     else:
       retVal = self.db_.getFileTypeVersion( files.keys() )
       if retVal['OK']:
