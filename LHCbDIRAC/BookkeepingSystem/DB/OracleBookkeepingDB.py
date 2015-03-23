@@ -1,21 +1,20 @@
 """
 Queries creation
 """
-########################################################################
-# $Id$
-########################################################################
 
 __RCSID__ = "$Id$"
 
-from types                                                           import LongType, StringType, IntType
+import datetime
+import types
+import re
+
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 from DIRAC.ConfigurationSystem.Client.PathFinder                     import getDatabaseSection
 # from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
 from LHCbDIRAC.BookkeepingSystem.DB.OracleDB                         import OracleDB
 from DIRAC.Core.Utilities.List                                       import breakListIntoChunks
-import datetime
-import types, re
+
 global ALLOWED_ALL
 ALLOWED_ALL = 2
 
@@ -102,7 +101,7 @@ class OracleBookkeepingDB:
       outfiletypes = in_dict.get( 'OutputFileTypes', default )
       matching = in_dict.get( 'Equal', 'YES' )
 
-      if ( type( matching ) == types.BooleanType ):
+      if isinstance( matching, bool ):
         if matching:
           matching = "YES"
         else:
@@ -111,9 +110,9 @@ class OracleBookkeepingDB:
         return S_ERROR ( 'Wrong Equal value!' )
 
       if infiletypes != default or outfiletypes != default:
-        if type( infiletypes ) == types.StringType:
+        if isinstance( infiletypes, str ):
           infiletypes = []
-        if type( outfiletypes ) == types.StringType:
+        if isinstance( outfiletypes, str ):
           outfiletypes = []
         infiletypes.sort()
         outfiletypes.sort()
@@ -140,9 +139,9 @@ class OracleBookkeepingDB:
 
       stepName = in_dict.get( 'StepName', default )
       if stepName != default:
-        if type( stepName ) == types.StringType:
+        if isinstance( stepName, str ):
           condition += " and s.stepname='%s'" % ( stepName )
-        elif type( stepName ) == types.ListType:
+        elif isinstance( stepName, list ):
           values = ' and ('
           for i in stepName:
             values += " s.stepname='%s' or " % ( i )
@@ -150,9 +149,9 @@ class OracleBookkeepingDB:
 
       appName = in_dict.get( 'ApplicationName', default )
       if appName != default:
-        if type( appName ) == types.StringType:
+        if isinstance( appName, str ):
           condition += " and s.applicationName='%s'" % ( appName )
-        elif type( appName ) == types.ListType:
+        elif isinstance( appName, list ):
           values = ' and ('
           for i in appName:
             values += " s.applicationName='%s' or " % ( i )
@@ -160,9 +159,9 @@ class OracleBookkeepingDB:
 
       appVersion = in_dict.get( 'ApplicationVersion', default )
       if appVersion != default:
-        if type( appVersion ) == types.StringType:
+        if isinstance( appVersion, str ):
           condition += " and s.applicationversion='%s'" % ( appVersion )
-        elif type( appVersion ) == types.ListType:
+        elif isinstance( appVersion, list ):
           values = ' and ('
           for i in appVersion:
             values += " s.applicationversion='%s' or " % ( i )
@@ -170,9 +169,9 @@ class OracleBookkeepingDB:
 
       optFile = in_dict.get( 'OptionFiles', default )
       if optFile != default:
-        if type( optFile ) == types.StringType:
+        if isinstance( optFile, str ):
           condition += " and s.optionfiles='%s'" % ( optFile )
-        elif type( optFile ) == types.ListType:
+        elif isinstance( optFile, list ):
           values = ' and ('
           for i in optFile:
             values += " s.optionfiles='%s' or " % ( i )
@@ -180,9 +179,9 @@ class OracleBookkeepingDB:
 
       dddb = in_dict.get( 'DDDB', default )
       if dddb != default:
-        if type( dddb ) == types.StringType:
+        if isinstance( dddb, str ):
           condition += " and s.dddb='%s'" % ( dddb )
-        elif type( dddb ) == types.ListType:
+        elif isinstance( dddb, list ):
           values = ' and ('
           for i in dddb:
             values += " s.dddb='%s' or " % ( i )
@@ -190,9 +189,9 @@ class OracleBookkeepingDB:
 
       conddb = in_dict.get( 'CONDDB', default )
       if conddb != default:
-        if type( conddb ) == types.StringType:
+        if isinstance( conddb, str ):
           condition += " and s.conddb='%s'" % ( conddb )
-        elif type( conddb ) == types.ListType:
+        elif isinstance( conddb, list ):
           values = ' and ('
           for i in conddb:
             values += " s.conddb='%s' or " % ( i )
@@ -200,9 +199,9 @@ class OracleBookkeepingDB:
 
       extraP = in_dict.get( 'ExtraPackages', default )
       if extraP != default:
-        if type( extraP ) == types.StringType:
+        if isinstance( extraP, str ):
           condition += " and s.extrapackages='%s'" % ( extraP )
-        elif type( extraP ) == types.ListType:
+        elif isinstance( extraP, list ):
           values = ' and ('
           for i in extraP:
             values += " s.extrapackages='%s' or " % ( i )
@@ -210,9 +209,9 @@ class OracleBookkeepingDB:
 
       visible = in_dict.get( 'Visible', default )
       if visible != default:
-        if type( visible ) == types.StringType:
+        if isinstance( visible, str ):
           condition += " and s.visible='%s'" % ( visible )
-        elif type( visible ) == types.ListType:
+        elif isinstance( visible, list ):
           values = ' and ('
           for i in visible:
             values += " s.visible='%s' or " % ( i )
@@ -220,9 +219,9 @@ class OracleBookkeepingDB:
 
       procPass = in_dict.get( 'ProcessingPass', default )
       if procPass != default:
-        if type( procPass ) == types.StringType:
+        if isinstance( procPass, str ):
           condition += " and s.processingpass='%s'" % ( procPass )
-        elif type( procPass ) == types.ListType:
+        elif isinstance( procPass, list ):
           values = ' and ('
           for i in procPass:
             values += " s.processingpass='%s' or " % ( i )
@@ -230,9 +229,9 @@ class OracleBookkeepingDB:
 
       usable = in_dict.get( 'Usable', default )
       if usable != default:
-        if type( usable ) == types.StringType:
+        if isinstance( usable, str ):
           condition += " and s.usable='%s'" % ( usable )
-        elif type( usable ) == types.ListType:
+        elif isinstance( usable, list ):
           values = ' and ('
           for i in usable:
             values += " s.usable='%s' or " % ( i )
@@ -244,9 +243,9 @@ class OracleBookkeepingDB:
 
       dqtag = in_dict.get( 'DQTag', default )
       if dqtag != default:
-        if type( dqtag ) == types.StringType:
+        if isinstance( dqtag, str ):
           condition += " and s.dqtag='%s'" % ( dqtag )
-        elif type( dqtag ) == types.ListType:
+        elif isinstance( dqtag, list ):
           values = ' and ('
           for i in dqtag:
             values += "  s.dqtag='%s' or " % ( i )
@@ -254,9 +253,9 @@ class OracleBookkeepingDB:
 
       optsf = in_dict.get( 'OptionsFormat', default )
       if optsf != default:
-        if type( optsf ) == types.StringType:
+        if isinstance( optsf, str ):
           condition += " and s.optionsFormat='%s'" % ( optsf )
-        elif type( optsf ) == types.ListType:
+        elif isinstance( optsf, list ):
           values = ' and ('
           for i in optsf:
             values += " s.optionsFormat='%s' or " % ( i )
@@ -283,12 +282,12 @@ class OracleBookkeepingDB:
         if order.upper() not in ['ASC', 'DESC']:
           return S_ERROR( "wrong sorting order!" )
         items = sort.get( 'Items', default )
-        if type( items ) == types.ListType:
+        if isinstance( items, list ):
           order = ''
           for item in items:
             order += 's.%s,' % ( item )
           condition += ' %s %s' % ( order[:-1], order )
-        elif type( items ) == types.StringType:
+        elif isinstance( items, str):
           condition += ' s.%s %s' % ( items, order )
         else:
           result = S_ERROR( 'SortItems is not properly defined!' )
@@ -488,7 +487,7 @@ class OracleBookkeepingDB:
   #############################################################################
   def insertFileTypes( self, ftype, desc, fileType ):
     """inserts a given file type"""
-    return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertFileTypes', LongType, [ftype, desc, fileType] )
+    return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertFileTypes', types.LongType, [ftype, desc, fileType] )
 
   #############################################################################
   def insertStep( self, in_dict ):
@@ -641,7 +640,7 @@ class OracleBookkeepingDB:
         condition = " where stepid=%s" % ( str( stepid ) )
         command = 'update steps set '
         for i in in_dict:
-          if type( in_dict[i] ) == types.StringType:
+          if isinstance( in_dict[i], str):
             command += " %s='%s'," % ( i, str( in_dict[i] ) )
           else:
             if len( in_dict[i] ) > 0:
@@ -991,9 +990,9 @@ class OracleBookkeepingDB:
     if not visible.upper().startswith( 'Y' ):
       defaultTable = 'j'
 
-    if production != default and type( production ) in [types.StringType, types.LongType, types.IntType]:
+    if production != default and isinstance( production, ( str, long, int ) ):
       condition += ' and %s.production=%d' % ( defaultTable, int( production ) )
-    elif production != default and type( production ) == types.ListType:
+    elif production != default and isinstance( production, list ):
       cond = ' and ('
       for i in production:
         cond += ' %s.production=%d or ' % ( defaultTable, i )
@@ -1109,7 +1108,7 @@ class OracleBookkeepingDB:
     if filetype != default and visible.upper().startswith( 'Y' ):
       if tables.find( 'bview' ) > -1:
         condition += " and bview.filetypeid=ftypes.filetypeid "
-      if type( filetype ) == types.ListType:
+      if isinstance( filetype, list ):
         values = ' and ftypes.name in ('
         for i in filetype:
           values += " '%s'," % ( i )
@@ -1117,7 +1116,7 @@ class OracleBookkeepingDB:
       else:
         condition += " and ftypes.name='%s' " % ( str( filetype ) )
     else:
-      if type( filetype ) == types.ListType:
+      if isinstance( filetype, list ):
         values = ' and ftypes.name in ('
         for i in filetype:
           values += " '%s'," % ( i )
@@ -1171,18 +1170,18 @@ class OracleBookkeepingDB:
   #############################################################################
   def getProductionProcessingPass( self, prodid ):
     """returns the processing pass of a given production"""
-    return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProductionProcessingPass', StringType, [prodid] )
+    return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProductionProcessingPass', types.StringType, [prodid] )
 
   #############################################################################
   def getRunProcessingPass( self, runnumber ):
     """returns the processing pass for a given run"""
     return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProductionProcessingPass',
-                                            StringType, [-1 * runnumber] )
+                                            types.StringType, [-1 * runnumber] )
 
   #############################################################################
   def getProductionProcessingPassID( self, prodid ):
     """returns the processing pass identifier of a production"""
-    return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProductionProcessingPassId', LongType, [prodid] )
+    return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProductionProcessingPassId', types.LongType, [prodid] )
 
   #############################################################################
   def getMoreProductionInformations( self, prodid ):
@@ -1318,16 +1317,16 @@ class OracleBookkeepingDB:
     tables = ' jobs j, files f'
     result = None
     if production != default:
-      if type( production ) in [ types.StringType, types.IntType, types.LongType] :
+      if isinstance( production, ( str, long, int ) ) :
         condition += " and j.production=%d " % ( int( production ) )
-      elif type( production ) == types.ListType:
+      elif isinstance( production, list ):
         condition += ' and j.production in ( ' + ','.join( [str( p ) for p in production] ) + ')'
       else:
         result = S_ERROR( "The production type is invalid. It can be a list, integer or string!" )
     elif lfn != default:
-      if type( lfn ) == types.StringType:
+      if isinstance( lfn, str ):
         condition += " and f.filename='%s' " % ( lfn )
-      elif type( lfn ) == types.ListType:
+      elif isinstance( lfn, list ):
         condition += ' and (' + ' or '.join( ["f.filename='%s'" % l for l in lfn] ) + ')'
       else:
         result = S_ERROR( "You must provide an LFN or a list of LFNs!" )
@@ -1356,7 +1355,7 @@ class OracleBookkeepingDB:
   #############################################################################
   def getRunNumber( self, lfn ):
     """returns the run number of a given file"""
-    return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getRunNumber', LongType, [lfn] )
+    return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getRunNumber', types.LongType, [lfn] )
 
   #############################################################################
   def getRunNbAndTck( self, lfn ):
@@ -1496,7 +1495,7 @@ class OracleBookkeepingDB:
   def  __getProcessingPassId( self, root, fullpath ):
     """returns the processing pass identifier for a given root and fullpath.
     for example root is 'Real Data' fullpath is '/Real Data/Reco11'"""
-    return  self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProcessingPassId', LongType, [root, fullpath] )
+    return  self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProcessingPassId', types.LongType, [root, fullpath] )
 
   #############################################################################
   def getProcessingPassId( self, fullpath ):
@@ -1506,7 +1505,7 @@ class OracleBookkeepingDB:
   #############################################################################
   def __getDataQualityId( self, name ):
     """returns the quality identifire for a given data quality"""
-    return  self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getDataQualityId', LongType, [name] )
+    return  self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getDataQualityId', types.LongType, [name] )
 
   #############################################################################
   def setRunAndProcessingPassDataQuality( self, runNB, procpass, flag ):
@@ -1628,7 +1627,7 @@ class OracleBookkeepingDB:
     
     if counter < depth:
       counter += 1
-      result = self.dbR_.executeStoredFunctions( 'BKK_MONITORING.getJobIdWithoutReplicaCheck', LongType, [fileName] )
+      result = self.dbR_.executeStoredFunctions( 'BKK_MONITORING.getJobIdWithoutReplicaCheck', types.LongType, [fileName] )
 
       if not result["OK"]:
         gLogger.error( 'Ancestor', result['Message'] )
@@ -1696,7 +1695,7 @@ class OracleBookkeepingDB:
     
     if counter < depth:
       counter += 1
-      res = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getFileID', LongType, [fileName] )
+      res = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getFileID', types.LongType, [fileName] )
       if not res["OK"]:
         gLogger.error( 'Ancestor', res['Message'] )
       elif res['Value'] == None:
@@ -1790,7 +1789,7 @@ class OracleBookkeepingDB:
   def checkFileTypeAndVersion( self, filetype, version ):  # fileTypeAndFileTypeVersion(self, type, version):
     """checks the the format and the version"""
     result = self.dbR_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.checkFileTypeAndVersion',
-                                               LongType, [filetype, version] )
+                                               types.LongType, [filetype, version] )
     return result
 
   #############################################################################
@@ -1871,7 +1870,7 @@ class OracleBookkeepingDB:
 
 
     result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertJobsRow',
-                                              LongType, [ attrList['ConfigName'],
+                                              types.LongType, [ attrList['ConfigName'],
                                                          attrList['ConfigVersion'],
                                                          attrList['DiracJobId'],
                                                          attrList['DiracVersion'],
@@ -1941,7 +1940,7 @@ class OracleBookkeepingDB:
         attrList[param] = fileobject[param]
     utctime = datetime.datetime.utcnow()
 
-    result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertFilesRow', LongType, [  attrList['Adler32'], \
+    result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertFilesRow', types.LongType, [  attrList['Adler32'], \
                   attrList['CreationDate'], \
                   attrList['EventStat'], \
                   attrList['EventTypeId'], \
@@ -2003,7 +2002,7 @@ class OracleBookkeepingDB:
     g4settings = in_dict.get( 'G4settings', None )
     visible = in_dict.get( 'Visible', 'Y' )
     return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertSimConditions',
-                                            LongType, [simdesc, beamCond, beamEnergy,
+                                            types.LongType, [simdesc, beamCond, beamEnergy,
                                                        generator, magneticField,
                                                        detectorCond, luminosity, g4settings, visible] )
 
@@ -2040,7 +2039,7 @@ class OracleBookkeepingDB:
       datataking[param] = conditions[param]
 
     res = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertDataTakingCond',
-                                            LongType, [datataking['Description'],
+                                            types.LongType, [datataking['Description'],
                                                        datataking['BeamCond'],
                                                        datataking['BeamEnergy'],
                                                        datataking['MagneticField'],
@@ -2325,7 +2324,7 @@ class OracleBookkeepingDB:
     """checks the files in the databse"""
     result = {}
     for lfn in lfns:
-      res = self.dbR_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.fileExists', LongType, [lfn] )
+      res = self.dbR_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.fileExists', types.LongType, [lfn] )
       if not res['OK']:
         return S_ERROR( res['Message'] )
       if res['Value'] == 0:
@@ -2447,7 +2446,7 @@ class OracleBookkeepingDB:
     if runnb == default:
       result = S_ERROR ( 'The RunNumber must be given!' )
     else:
-      if type( runnb ) in [types.StringType, types.IntType, types.LongType]:
+      if isinstance( runnb, ( str, int, long ) ):
         runnb = [runnb]
       runs = ''
       for i in runnb:
@@ -2817,7 +2816,7 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def getProductionProcessedEvents( self, prodid ):
     """returns the processed event by a production"""
-    return self.dbR_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProcessedEvents', LongType, [prodid] )
+    return self.dbR_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProcessedEvents', types.LongType, [prodid] )
 
   #############################################################################
   def getRunsForAGivenPeriod( self, in_dict ):
@@ -2916,7 +2915,7 @@ and files.qualityid= dataquality.qualityid'
   def getRunAndProcessingPassDataQuality( self, runnb, processing ):
     """returns the data qaulity for a given run and processing pass"""
     return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getQFlagByRunAndProcId',
-                                            StringType, [runnb, processing] )
+                                            types.StringType, [runnb, processing] )
 
   #############################################################################
   def getRunWithProcessingPassAndDataQuality( self, procpass, flag = default ):
@@ -3060,14 +3059,14 @@ and files.qualityid= dataquality.qualityid'
   def __buildProduction( production, condition, tables ):
     """it adds the production which can be a list or string to the jobs table"""
     if production not in [default, None]:
-      if type( production ) == types.ListType and len( production ) > 0:
+      if isinstance( production, list ) and len( production ) > 0:
         condition += ' and '
         cond = ' ( '
         for i in production:
           cond += ' j.production=%s or ' % str( i )
         cond = cond[:-3] + ')'
         condition += cond
-      elif type( production ) in [types.StringType, types.LongType, types.IntType]:
+      elif isinstance( production, ( str, int, long ) ):
         condition += ' and j.production=%s' % str( production )
     return S_OK( ( condition, tables ) )
 
@@ -3077,14 +3076,14 @@ and files.qualityid= dataquality.qualityid'
     """ it adds the tck to the jobs table"""
 
     if tcks not in [None, default]:
-      if type( tcks ) == types.ListType:
+      if isinstance( tcks, list ):
         if len( tcks ) > 0:
           cond = '('
           for i in tcks:
             cond += "j.tck='%s' or " % ( i )
           cond = cond[:-3] + ')'
           condition = " and %s " % ( cond )
-      elif type( tcks ) == types.StringType:
+      elif isinstance( tcks, str ):
         condition += " and j.tck='%s'" % ( tcks )
       else:
         return S_ERROR( 'The TCK should be a list or a string' )
@@ -3126,14 +3125,14 @@ and files.qualityid= dataquality.qualityid'
     """it adds the file type to the files list"""
     if ftype not in [default, None]:
       tables += ' ,filetypes ft'
-      if type( ftype ) == types.ListType and len( ftype ) > 0:
+      if isinstance( ftype, list ) and len( ftype ) > 0:
         condition += ' and '
         cond = ' ( '
         for i in ftype:
           cond += " ft.name='%s' or " % ( i )
         cond = cond[:-3] + ')'
         condition += cond
-      elif type( ftype ) == types.StringType:
+      elif isinstance( ftype, str ):
         condition += " and ft.name='%s'" % ( ftype )
       else:
         return S_ERROR( 'File type problem!' )
@@ -3145,11 +3144,11 @@ and files.qualityid= dataquality.qualityid'
   def __buildRunnumbers( runnumbers, startRunID, endRunID, condition, tables ):
     """it adds the run numbers or start end run to the jobs table"""
     cond = None
-    if type( runnumbers ) in [IntType, LongType]:
+    if isinstance( runnumbers, ( int, long ) ):
       condition = ' and j.runnumber=%s' % ( str( runnumbers ) )
-    elif type( runnumbers ) == types.StringType and runnumbers.upper() != default:
+    elif isinstance( runnumbers, str ) and runnumbers.upper() != default:
       condition = ' and j.runnumber=%s' % ( str( runnumbers ) )
-    elif type( runnumbers ) == types.ListType and len( runnumbers ) > 0:
+    elif isinstance( runnumbers, list ) and len( runnumbers ) > 0:
       cond = ' ( '
       for i in runnumbers:
         cond += ' j.runnumber=' + str( i ) + ' or '
@@ -3161,11 +3160,11 @@ and files.qualityid= dataquality.qualityid'
       elif startRunID == None or endRunID == None:
         condition += " and %s " % ( cond )
     else:
-      if ( type( startRunID ) == StringType and startRunID.upper() != default ) or\
-         ( type( startRunID ) in [IntType, LongType] and startRunID != None ):
+      if ( isinstance( startRunID, str ) and startRunID.upper() != default ) or\
+         ( isinstance( startRunID, ( int, long ) ) and startRunID != None ):
         condition += ' and j.runnumber>=' + str( startRunID )
-      if ( type( endRunID ) == StringType and endRunID.upper() != default ) or\
-         ( type( endRunID ) in [IntType, LongType] and endRunID != None ) :
+      if ( isinstance( endRunID, str ) and endRunID.upper() != default ) or\
+         ( isinstance( endRunID, ( int, long ) ) and endRunID != None ) :
         condition += ' and j.runnumber<=' + str( endRunID )
     return S_OK( ( condition, tables ) )
 
@@ -3174,14 +3173,14 @@ and files.qualityid= dataquality.qualityid'
   def __buildEventType( evt, condition, tables ):
     """adds the event type to the files table"""
     if evt not in [0, None, default]:
-      if type( evt ) in ( types.ListType, types.TupleType ) and len( evt ) > 0:
+      if isinstance( evt, ( list, tuple ) ) and len( evt ) > 0:
         condition += ' and '
         cond = ' ( '
         for i in evt:
           cond += " f.eventtypeid=%s or " % ( str( i ) )
         cond = cond[:-3] + ')'
         condition += cond
-      elif type( evt ) in ( types.StringTypes + ( types.IntType, types.LongType ) ):
+      elif isinstance( evt, ( str, int, long ) ):
         condition += ' and f.eventtypeid=' + str( evt )
     return S_OK( ( condition, tables ) )
 
@@ -3203,7 +3202,7 @@ and files.qualityid= dataquality.qualityid'
   def __buildDataquality( self, flag, condition, tables ):
     """it adds the data quality to the files table"""
     if flag not in [default, None]:
-      if type( flag ) in ( types.ListType, types.TupleType ):
+      if isinstance( flag, ( list, tuple ) ):
         conds = ' ('
         for i in flag:
           quality = None
@@ -3305,7 +3304,7 @@ and files.qualityid= dataquality.qualityid'
         return retVal
 
     if production != default:
-      if type( production ) == types.ListType:
+      if isinstance( production, list ):
         condition += ' and '
         cond = ' ( '
         for i in production:
@@ -3316,7 +3315,7 @@ and files.qualityid= dataquality.qualityid'
         condition += ' and j.production=' + str( production )
 
     if len( runnumbers ) > 0:
-      if type( runnumbers ) == types.ListType:
+      if isinstance( runnumbers, list ):
         condition += ' and '
         cond = ' ( '
         for i in runnumbers:
@@ -3329,34 +3328,34 @@ and files.qualityid= dataquality.qualityid'
     tables2 = ' ,filetypes ftypes '
     tables += ' ,filetypes ftypes '
     if ftype != 'ALL':
-      if type( ftype ) == types.ListType:
+      if isinstance( ftype, list ):
         for i in ftype:
           condition += " and ftypes.Name='%s'" % ( str( i ) )
           fcond += " and ftypes.Name='%s'" % ( str( i ) )
 
-      elif type( ftype ) == types.StringType:
+      elif isinstance( ftype, str ):
         condition += " and ftypes.Name='%s'" % ( str( ftype ) )
         fcond += " and ftypes.Name='%s'" % ( str( ftype ) )
       fcond += 'and bview.filetypeid=ftypes.filetypeid '
       condition += ' and f.filetypeid=ftypes.filetypeid '
     econd = ''
     if evt != 0:
-      if type( evt ) in ( types.ListType, types.TupleType ):
+      if isinstance( evt, (list, tuple)):
         econd += " and bview.eventtypeid=%s" % ( str( i ) )
         condition += " and f.eventtypeid=%s" % ( str( i ) )
 
-      elif type( evt ) in ( types.StringTypes + ( types.IntType, types.LongType ) ):
+      elif isinstance( evt, ( str, int, long ) ):
         econd += " and bview.eventtypeid='%s'" % ( str( evt ) )
         condition += " and f.eventtypeid=%s" % ( str( evt ) )
 
     if len( tcks ) > 0:
-      if type( tcks ) == types.ListType:
+      if isinstance( tcks, list ):
         cond = '('
         for i in tcks:
           cond += "j.tck='%s' or " % ( i )
         cond = cond[:-3] + ')'
         condition = " and %s " % ( cond )
-      elif type( tcks ) == types.StringType:
+      elif isinstance( tcks, str ):
         condition += " and j.tck='%s'" % ( tcks )
       else:
         return S_ERROR( 'The TCK should be a list or a string' )
@@ -3385,7 +3384,7 @@ and files.qualityid= dataquality.qualityid'
       condition += " and f.inserttimestamp <= TO_TIMESTAMP ('%s','YYYY-MM-DD HH24:MI:SS')" % ( str( currentTimestamp ) )
 
     if flag != default:
-      if type( flag ) in ( types.ListType, types.TupleType ):
+      if isinstance( flag, ( list, tuple ) ):
         conds = ' ('
         for i in flag:
           quality = None
@@ -3500,7 +3499,7 @@ and files.qualityid= dataquality.qualityid'
       condition += " and bview.filetypeid=ftypes.filetypeid and bview.production=j.production and bview.eventtypeid=f.eventtypeid"
       fcond += " and bview.production=prod.production and ftypes.Name='%s'" % ( str( filetype ) )
       fcond += 'and bview.filetypeid=ftypes.filetypeid '
-      if type( filetype ) == types.ListType:
+      if isinstance( filetype, list ):
         values = ' and ftypes.name in ('
         for i in filetype:
           values += " '%s'," % ( i )
@@ -3508,7 +3507,7 @@ and files.qualityid= dataquality.qualityid'
       else:
         condition += " and ftypes.name='%s' " % ( str( filetype ) )
     else:
-      if type( filetype ) == types.ListType:
+      if isinstance( filetype, list ):
         values = ' and ftypes.name in ('
         for i in filetype:
           values += " '%s'," % ( i )
@@ -3522,7 +3521,7 @@ and files.qualityid= dataquality.qualityid'
 
     if quality != default:
       tables += ' , dataquality d'
-      if type( quality ) == types.StringType:
+      if isinstance( quality, str ):
         command = "select QualityId from dataquality where dataqualityflag='%s'" % ( quality )
         res = self.dbR_.query( command )
         if not res['OK']:
@@ -3610,7 +3609,7 @@ and files.qualityid= dataquality.qualityid'
     if quality != 'ALL':
       tables += ' ,dataquality d '
       condition += 'and d.qualityid=f.qualityid '
-      if type( quality ) == types.StringType:
+      if isinstance( quality, str ):
         command = "select QualityId from dataquality where dataqualityflag='%s'" % ( quality )
         res = self.dbR_.query( command )
         if not res['OK']:
@@ -3621,7 +3620,7 @@ and files.qualityid= dataquality.qualityid'
           quality = res['Value'][0][0]
         condition += ' and f.qualityid=' + str( quality )
       else:
-        if type( quality ) == types.ListType and len( quality ) > 0:
+        if isinstance( quality, list ) and len( quality ) > 0:
           conds = ' ('
           for i in quality:
             quality = None
@@ -3677,7 +3676,7 @@ and files.qualityid= dataquality.qualityid'
     """returns the data taking conditions identifier"""
     command = 'select DaqPeriodId from data_taking_conditions where '
     for param in condition:
-      if type( condition[param] ) == types.StringType and len( condition[param].strip() ) == 0:
+      if isinstance( condition[param], str ) and len( condition[param].strip() ) == 0:
         command += str( param ) + ' is NULL and '
       elif condition[param] != None:
         command += str( param ) + '=\'' + condition[param] + '\' and '
@@ -3691,7 +3690,7 @@ and files.qualityid= dataquality.qualityid'
         command = 'select DaqPeriodId from data_taking_conditions where '
         for param in condition:
           if param != 'Description':
-            if type( condition[param] ) == types.StringType and len( condition[param].strip() ) == 0:
+            if isinstance( condition[param], str ) and len( condition[param].strip() ) == 0:
               command += str( param ) + ' is NULL and '
             elif condition[param] != None:
               command += str( param ) + '=\'' + condition[param] + '\' and '
@@ -3711,7 +3710,7 @@ and files.qualityid= dataquality.qualityid'
     """return the data taking description which adequate a given conditions."""
     command = 'select description from data_taking_conditions where '
     for param in condition:
-      if type( condition[param] ) == types.StringType and len( condition[param].strip() ) == 0:
+      if isinstance( condition[param], str ) and len( condition[param].strip() ) == 0:
         command += str( param ) + ' is NULL and '
       elif condition[param] != None:
         command += str( param ) + '=\'' + condition[param] + '\' and '
@@ -3725,7 +3724,7 @@ and files.qualityid= dataquality.qualityid'
         command = 'select DaqPeriodId from data_taking_conditions where '
         for param in condition:
           if param != 'Description':
-            if type( condition[param] ) == types.StringType and len( condition[param].strip() ) == 0:
+            if isinstance( condition[param], str ) and len( condition[param].strip() ) == 0:
               command += str( param ) + ' is NULL and '
             elif condition[param] != None:
               command += str( param ) + '=\'' + condition[param] + '\' and '
@@ -4209,7 +4208,7 @@ and files.qualityid= dataquality.qualityid'
       condition += " and ftypes.name='%s' and bview.filetypeid=ftypes.filetypeid " % ( str( filetype ) )
 
     if quality != default:
-      if type( quality ) == types.StringType:
+      if isinstance( quality, str ):
         command = "select QualityId from dataquality where dataqualityflag='" + str( quality ) + "'"
         res = self.dbR_.query( command )
         if not res['OK']:
@@ -4479,7 +4478,7 @@ and files.qualityid= dataquality.qualityid'
   def getFilesForGUID( self, guid ):
     """returns the file for a given GUID"""
     result = S_ERROR()
-    retVal = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getFilesForGUID', StringType, [guid] )
+    retVal = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getFilesForGUID', types.StringType, [guid] )
     if retVal['OK']:
       result = S_OK( retVal['Value'] )
     else:
@@ -4627,7 +4626,7 @@ and files.qualityid= dataquality.qualityid'
         else:
           return retVal
 
-      if type( quality ) == types.StringType:
+      if isinstance( quality, str ):
         command = "select QualityId from dataquality where dataqualityflag='%s'" % ( quality )
         res = self.dbR_.query( command )
         if not res['OK']:
@@ -4707,12 +4706,12 @@ and files.qualityid= dataquality.qualityid'
       if order.upper() not in ['ASC', 'DESC']:
         return S_ERROR( "wrong sorting order!" )
       items = sort.get( 'Items', default )
-      if type( items ) == types.ListType:
+      if isinstance( items, list ):
         order = ''
         for item in items:
           order += 'sim.%s,' % ( item )
         condition += ' %s' % order[:-1]
-      elif type( items ) == types.StringType:
+      elif isinstance( items, str ):
         condition += ' sim.%s %s' % ( items, order )
       else:
         result = S_ERROR( 'SortItems is not properly defined!' )
