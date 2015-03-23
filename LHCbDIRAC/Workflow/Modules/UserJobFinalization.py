@@ -290,6 +290,7 @@ class UserJobFinalization( ModuleBase ):
   def _getOrderedSEsList( self ):
     """ Returns list of ordered SEs to which trying to upload
     """
+    # FIXME: remove all banned SEs (not the force ones)
     # First get the local (or assigned) SE to try first for upload and others in random fashion
     localSEs = set( getDestinationSEList( 'Tier1-USER', self.siteName, outputmode = 'local' ) )
     self.log.verbose( "Site Local SE for user outputs is: %s" % ( list( localSEs ) ) )
