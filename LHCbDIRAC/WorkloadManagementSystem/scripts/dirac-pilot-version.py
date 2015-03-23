@@ -2,6 +2,8 @@
 """ Show/set the pilot version. In the CS and/or in the JSON file that might be used.
 """
 
+# FIXME: gConfig.getValue( '/DIRAC/Extensions' ) to move to Extensions().getCSExtensions() from CSGlobals as of v6r14
+
 __RCSID__ = "$Id$"
 
 # Usual script stuff
