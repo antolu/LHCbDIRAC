@@ -6,7 +6,9 @@
 
 __RCSID__ = "$Id$"
 
-import os, shutil
+import os
+import shutil
+import stat
 from distutils.version import LooseVersion
 
 import DIRAC
@@ -301,7 +303,7 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
   cmd.append( '--debug' )
 
   if extraPackages:
-    if not type( extraPackages ) == type( [] ) and extraPackages:
+    if not isinstance( extraPackages, list ) and extraPackages:
       extraPackages = [extraPackages]
 
     gLogger.verbose( 'Requested extra package versions: %s' % ( ', '.join( extraPackages ) ) )
@@ -430,7 +432,7 @@ def getCMTConfigsCompatibleWithPlatforms( originalPlatforms ):
   """ Get a list of platforms compatible with the given list
       Looks into operation section PlatformsToConfigs
   """
-  if type( originalPlatforms ) == type( ' ' ):
+  if isinstance( originalPlatforms, str ):
     platforms = [originalPlatforms]
   else:
     platforms = originalPlatforms

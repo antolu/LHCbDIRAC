@@ -64,7 +64,7 @@ class UploadLogFile( ModuleBase ):
         return result
       self.logLFNPath = result['Value']['LogTargetPath'][0]
 
-    if not type( self.logLFNPath ) == type( ' ' ):
+    if not isinstance( self.logLFNPath, str ):
       self.logLFNPath = self.logLFNPath[0]
 
 ######################################################################

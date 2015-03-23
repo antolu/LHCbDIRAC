@@ -4,7 +4,9 @@
 
 __RCSID__ = "$Id$"
 
-import os, copy, time
+import os
+import copy
+import time
 
 from DIRAC                                                    import gLogger, siteName
 from DIRAC.Core.Utilities.Adler                               import fileAdler
@@ -196,7 +198,7 @@ class ModuleBase( object ):
 
     if self._checkWFAndStepStatus( noPrint = True ):
       # The application status won't be updated in case the workflow or the step is failed already
-      if not type( status ) == type( '' ):
+      if not isinstance( status, str ):
         status = str( status )
       self.log.verbose( 'setJobApplicationStatus(%d, %s)' % ( self.jobID, status ) )
       jobStatus = self.jobReport.setApplicationStatus( status, sendFlag )
@@ -257,7 +259,7 @@ class ModuleBase( object ):
     if self.workflow_commons.has_key( 'ParametricInputData' ):
       pID = copy.deepcopy( self.workflow_commons['ParametricInputData'] )
       if pID:
-        if type( pID ) == type( [] ):
+        if isinstance( pID, list ):
           pID = ';'.join( pID )
   #      self.InputData += ';' + pID
         self.InputData = pID
@@ -292,7 +294,7 @@ class ModuleBase( object ):
 
     if self.workflow_commons.has_key( 'outputDataFileMask' ):
       self.outputDataFileMask = self.workflow_commons['outputDataFileMask']
-      if not type( self.outputDataFileMask ) == type( [] ):
+      if not isinstance( self.outputDataFileMask, list ):
         self.outputDataFileMask = [i.lower().strip() for i in self.outputDataFileMask.split( ';' )]
 
     if self.workflow_commons.has_key( 'gaudiSteps' ):
@@ -309,7 +311,7 @@ class ModuleBase( object ):
 
     if self.workflow_commons.has_key( 'LogFilePath' ):
       self.logFilePath = self.workflow_commons['LogFilePath']
-      if type( self.logFilePath ) == type( [] ):
+      if isinstance( self.logFilePath, list ):
         self.logFilePath = self.logFilePath[0]
     else:
       if 'PRODUCTION_ID' and 'JOB_ID' and 'configVersion' and 'configName' in self.workflow_commons:
@@ -417,7 +419,7 @@ class ModuleBase( object ):
     if self.step_commons.has_key( 'extraPackages' ):
       self.extraPackages = self.step_commons['extraPackages']
       if not self.extraPackages == '':
-        if type( self.extraPackages ) != type( [] ):
+        if not isinstance( self.extraPackages, list ):
           self.extraPackages = self.extraPackages.split( ';' )
 
     stepInputData = []
@@ -630,11 +632,11 @@ class ModuleBase( object ):
     """
     candidateFiles = copy.deepcopy( candidateFilesIn )
 
-    if fileMask and type( fileMask ) != type( [] ):
+    if fileMask and not isinstance( fileMask, list ):
       fileMask = [fileMask]
-    if type( stepMask ) == type( 1 ):
+    if isinstance( stepMask, int ):
       stepMask = str( stepMask )
-    if stepMask and type( stepMask ) != type( [] ):
+    if stepMask and isinstance( stepMask, list ):
       stepMask = [stepMask]
 
     if fileMask and fileMask != ['']:
@@ -1060,7 +1062,7 @@ class ModuleBase( object ):
 
   # properties
   def set_jobID( self, value ):
-    if type( value ) == type( "" ):
+    if isinstance( value, str ):
       if value:
         value = int( value )
       else:

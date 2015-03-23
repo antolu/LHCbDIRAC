@@ -9,7 +9,10 @@
 
 __RCSID__ = "$Id$"
 
-import re, os, types, datetime, copy
+import re
+import os
+import datetime
+import copy
 
 from DIRAC import S_OK, S_ERROR, gLogger
 
@@ -33,7 +36,7 @@ def constructProductionLFNs( paramDict, bkClient = None, quick = True ):
     wfConfigName = paramDict['configName']
     wfConfigVersion = paramDict['configVersion']
     wfMask = paramDict['outputDataFileMask']
-    if not type( wfMask ) == type( [] ):
+    if not isinstance( wfMask, list ):
       wfMask = [i.lower().strip() for i in wfMask.split( ';' )]
     outputList = paramDict['outputList']
 
@@ -123,7 +126,7 @@ def _applyMask( mask, dataTuplesList ):
 
   maskedData = copy.deepcopy( dataTuplesList )
 
-  if type( mask ) != type( [] ):
+  if not isinstance( mask, list ):
     mask = [mask]
 
   if mask != ['']:
@@ -191,7 +194,7 @@ def constructUserLFNs( jobID, owner, outputFiles, outputPath = '', prependString
         newPath.append( i )
     outputPathStr = ( os.sep ).join( newPath )
 
-  if not type( outputFiles ) == types.ListType:
+  if not isinstance( outputFiles, list ):
     outputFiles = [outputFiles]
 
   if prependString:

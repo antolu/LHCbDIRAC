@@ -3,7 +3,9 @@
 
 __RCSID__ = "$Id$"
 
-import os, random, glob
+import os
+import random
+import glob
 from operator import itemgetter
 
 from DIRAC                                                    import S_OK, S_ERROR, gLogger, gConfig

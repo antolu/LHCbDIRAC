@@ -4,7 +4,9 @@
 
 __RCSID__ = "$Id$"
 
-import os, random, re
+import os
+import random
+import re
 
 from DIRAC                                                    import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.File                                import getGlobbedFiles

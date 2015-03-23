@@ -56,15 +56,13 @@ class ProductionRequestSIM():
        Active Simulation Request with 2 subrequests, 2 transformations in each (pr 2,(3,4) t (14 MCSimulation, 15 MCMerge), (16,17) )
        Active Stripping Request with 2 transformations. (pr 5, t (18 DataStripping, 19 MCMerge))
     """
-    self.pr = {
-      1 : { 'state': 'Active', 'type': 'Simulation', 'master': 0, 'rqTotal': 10000,  'prods': { 11 : { 'Used': 0, 'Events': 0 }, 
-                                                                                                12 : { 'Used': 0, 'Events': 0 },
-                                                                                                13 : { 'Used': 1, 'Events': 0 } } },
-      2 : { 'state': 'Active', 'type': 'Simulation', 'master': 0, 'rqTotal': 50000, 'prods': {} },
-      3 : { 'state': '', 'type': '', 'master': 2, 'rqTotal': 20000, 'prods': { 14 : { 'Used': 0, 'Events': 0 }, 15 : { 'Used': 1, 'Events': 0 } } },
-      4 : { 'state': '', 'type': '', 'master': 2, 'rqTotal': 30000, 'prods': { 16 : { 'Used': 0, 'Events': 0 }, 17 : { 'Used': 1, 'Events': 0 } } },
-      5 : { 'state': 'Active', 'type': 'Stripping', 'master': 0, 'rqTotal': 0, 'prods': { 18 : { 'Used': 0, 'Events': 0 }, 19 : { 'Used': 1, 'Events': 0 } } },
-      }
+    self.pr = {1 : { 'state': 'Active', 'type': 'Simulation', 'master': 0, 'rqTotal': 10000, 'prods': { 11 : { 'Used': 0, 'Events': 0 },
+                                                                                                        12 : { 'Used': 0, 'Events': 0 },
+                                                                                                        13 : { 'Used': 1, 'Events': 0 } } },
+               2 : { 'state': 'Active', 'type': 'Simulation', 'master': 0, 'rqTotal': 50000, 'prods': {} },
+               3 : { 'state': '', 'type': '', 'master': 2, 'rqTotal': 20000, 'prods': { 14 : { 'Used': 0, 'Events': 0 }, 15 : { 'Used': 1, 'Events': 0 } } },
+               4 : { 'state': '', 'type': '', 'master': 2, 'rqTotal': 30000, 'prods': { 16 : { 'Used': 0, 'Events': 0 }, 17 : { 'Used': 1, 'Events': 0 } } },
+               5 : { 'state': 'Active', 'type': 'Stripping', 'master': 0, 'rqTotal': 0, 'prods': { 18 : { 'Used': 0, 'Events': 0 }, 19 : { 'Used': 1, 'Events': 0 } } }}
 
   def getAllProductionProgress( self ):
     """ Returns all known productions
@@ -687,7 +685,6 @@ class ProductionStatusAgent( AgentModule ):
         oldUnused['NotChanged'] = 0
         oldUnused['Number'] = unused
       assigned = filesStats.get( 'Assigned', 0 )
-      processed = filesStats.get( 'Processed', 0 )
       isProcIdle = ( ( assigned == 0 ) and ( ( unused == 0 ) or ( oldUnused['NotChanged'] >= self.cyclesTillIdle ) ) )
       if isProcIdle:
         tStats = self.__getTransformationTaskStats( tID )

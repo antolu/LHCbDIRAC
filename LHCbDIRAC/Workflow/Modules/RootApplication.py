@@ -56,7 +56,7 @@ class RootApplication( ModuleBase ):
       self.arguments = self.step_commons['arguments']
       tmp = []
       for argument in self.arguments:
-        if argument or type( argument ) != type( ' ' ):
+        if argument or not isinstance( argument, list ):
           tmp.append( argument )
       self.arguments = tmp
     else:
@@ -115,7 +115,7 @@ class RootApplication( ModuleBase ):
         if self.arguments:
           escapedArgs = []
           for arg in self.arguments:
-            if type( arg ) == type( ' ' ):
+            if isinstance( arg, str ):
               escapedArgs.append( '\'"%s"\'' % ( arg ) )
             else:
               escapedArgs.append( '%s' % ( arg ) )

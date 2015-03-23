@@ -9,7 +9,9 @@
 
 __RCSID__ = "$Id$"
 
-import re, os, sys
+import re
+import os
+import sys
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
