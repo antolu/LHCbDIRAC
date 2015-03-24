@@ -18,7 +18,7 @@ class UsersAndGroups( AgentModule ):
   def initialize( self ):
     ''' Initialize method
     '''
-    
+
     self.am_setOption( "PollingTime", 3600 * 6 ) # Every 6 hours
     self.vomsSrv = VOMSService()
     self.proxyLocation = os.path.join( self.am_getWorkDirectory(), ".volatileId" )
@@ -27,89 +27,89 @@ class UsersAndGroups( AgentModule ):
 
   def __generateProxy( self ):
     ''' Generate proxy, returns False if it fails.
-    ''' 
-    
+    '''
+
     self.log.info( "Generating proxy..." )
     certLoc = Locations.getHostCertificateAndKeyLocation()
     if not certLoc:
       self.log.error( "Can not find certificate!" )
       return False
-    
+
     chain = X509Chain.X509Chain()
     result = chain.loadChainFromFile( certLoc[0] )
     if not result[ 'OK' ]:
       self.log.error( "Can not load certificate file", "%s : %s" % ( certLoc[0], result[ 'Message' ] ) )
       return False
-    
+
     result = chain.loadKeyFromFile( certLoc[1] )
     if not result[ 'OK' ]:
       self.log.error( "Can not load key file", "%s : %s" % ( certLoc[1], result[ 'Message' ] ) )
       return False
-    
+
     result = chain.generateProxyToFile( self.proxyLocation, 3600 )
     if not result[ 'OK' ]:
       self.log.error( "Could not generate proxy file", result[ 'Message' ] )
       return False
-    
+
     self.log.info( "Proxy generated" )
     return True
 
   def getLFCRegisteredDNs( self ):
     ''' Gets list of users registered with their DNs
     '''
-    
+
     retlfc = Subprocess.systemCall( 0, ( 'lfc-listusrmap', ), env = self.cmdEnv )
     if not retlfc[ 'OK' ]:
       self.log.fatal( 'Can not get LFC User List', retlfc['Message'] )
       return retlfc
-    
+
     if retlfc[ 'Value' ][ 0 ]:
       self.log.fatal( 'Can not get LFC User List', retlfc[ 'Value' ][ 2 ] )
       return S_ERROR( "lfc-listusrmap failed" )
-    
+
     lfcUIDs = {}
-    
+
     for item in List.fromChar( retlfc[ 'Value' ][ 1 ], '\n' ):
       dn  = item.split( ' ', 1 )[ 1 ]
       uid = item.split( ' ', 1 )[ 0 ]
       lfcUIDs[ dn ] = uid
-      
+
     return S_OK( lfcUIDs )
 
   def getLFCRegisteredBANDNs( self ):
     ''' Gets list of users registered and banned with their DNs
-    '''   
-    
+    '''
+
     retlfc = Subprocess.systemCall( 0, ( 'lfc-listusrmap', ), env = self.cmdEnv )
     if not retlfc[ 'OK' ]:
       self.log.fatal( 'Can not get LFC User List', retlfc[ 'Message' ] )
       return retlfc
-    
+
     if retlfc[ 'Value' ][ 0 ]:
       self.log.fatal( 'Can not get LFC User List', retlfc[ 'Value' ][ 2 ] )
       return S_ERROR( "lfc-listusrmap failed" )
-    
+
     lfcBANUIDs = {}
-    
+
     for item in List.fromChar( retlfc[ 'Value' ][ 1 ], '\n' ):
       dn = item.split( ' ', 1 )[ 1 ]
       if str( dn ).find( 'LOCAL_BAN' ) != -1:
         uid = item.split( ' ', 1 )[ 0 ]
         lfcBANUIDs[ dn ] = uid
-    
+
     return S_OK( lfcBANUIDs )
 
   def checkLFCRegisteredUsers( self, usersData ):
     ''' Registers and re-registers users in the LFC
     '''
-    
+
     self.log.info( "Checking LFC registered users" )
     result = self.getLFCRegisteredDNs()
     if not result[ 'OK' ]:
       self.log.error( "Could not get a list of registered DNs from LFC", result[ 'Message' ] )
       return result
     self.lfcDNs = result[ 'Value' ]
-    
+
     self.log.info( "Checking LFC registered but BAN users" )
     result = self.getLFCRegisteredBANDNs()
     if not result[ 'OK' ]:
@@ -120,7 +120,7 @@ class UsersAndGroups( AgentModule ):
     usersToBeRegistered      = {}
     usersToBeRegisteredAgain = {}
     found                    = False
-    
+
     for user in usersData:
       for userDN in usersData[ user ][ 'DN' ]:
         for dn in self.lfcBANDNs:
@@ -160,14 +160,19 @@ class UsersAndGroups( AgentModule ):
       subject = 'New LFC Users found'
       self.log.info( subject, ", ".join( registerUsers ) )
       body = 'Command to add new entries into LFC: \n'
+      bodyDFC = 'Command to add new entries into DFC: \n'
       body += 'login to lbvoboxXX as root and run : \n'
+      bodyDFC += 'login to lxplus  run : \n'
       body += 'source /opt/dirac/bashrc \n\n'
+      bodyDFC += 'SetupProject LHCbDirac ; lhcb-proxy-init -g lhcb_admin \n\n'
       for lfcuser in registerUsers:
         for lfc_dn in registerUsers[lfcuser]:
           print lfc_dn
           body += 'add_DN_LFC --userDN="' + lfc_dn.strip() + '" --nickname=' + lfcuser + '\n'
+          bodyDFC += 'add-user-DFC --UserDN "' + lfcuser + '\n'
 
       NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
+      NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, bodyDFC, fromAddress )
 
     if action == "change":
       subject = 'New LFC Users found but BANNED'
@@ -239,16 +244,16 @@ class UsersAndGroups( AgentModule ):
   def execute( self ):
     ''' Main method: execute
     '''
-    
+
     result = self.__syncCSWithVOMS()
-    
+
     mailMsg = ""
     if self.__adminMsgs[ 'Errors' ]:
       mailMsg += "\nErrors list:\n  %s" % "\n  ".join( self.__adminMsgs[ 'Errors' ] )
-      
+
     if self.__adminMsgs[ 'Info' ]:
       mailMsg += "\nRun result:\n  %s" % "\n  ".join( self.__adminMsgs[ 'Info' ] )
-      
+
     NotificationClient().sendMail( self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' ),
                                    "UsersAndGroupsAgent run log", mailMsg,
                                    self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' ) )
@@ -272,6 +277,8 @@ class UsersAndGroups( AgentModule ):
     result = self.vomsSrv.admGetVOName()
     if not result['OK']:
       self.log.fatal( 'Could not retrieve VOMS VO name' )
+      return S_ERROR( 'Could not retrieve VOMS VO name' )
+
     voNameInVOMS = result[ 'Value' ]
     self.log.info( "VOMS VO Name is %s" % voNameInVOMS )
 
@@ -321,6 +328,24 @@ class UsersAndGroups( AgentModule ):
     self.__adminMsgs[ 'Info' ].append( "There are %s registered user entries in VOMS" % len( usersInVOMS ) )
     self.log.info( "There are %s registered user entries in VOMS" % len( usersInVOMS ) )
 
+    usersTmpInVOMS = []
+    for checkUser in usersInVOMS:
+      self.log.info( "jj %s", checkUser )
+      result = self.vomsSrv.admListCertificates( checkUser['DN'], checkUser['CA'] )
+      self.log.info( "jojo resu %s", result )
+      if not result['OK']:
+        self.__adminMsgs[ 'Errors' ].append( "Could not retrieve info for DN %s" % chekUser[ 'DN' ] )
+        self.log.error( "Could not get nickname for DN %s" % checkUser[ 'DN' ] )
+        return result
+      for userDN in result['Value']:
+        userNewDN = {}
+        if userDN['subject'] != checkUser['DN']:
+          userNewDN['DN'] = userDN['subject']
+          userNewDN['CA'] = userDN['issuer']
+          userNewDN['mail'] = userDN['mail']
+          usersTmpInVOMS.append( userNewDN )
+
+    usersInVOMS += usersTmpInVOMS
     #Consolidate users by nickname
     usersData = {}
     newUserNames = []
