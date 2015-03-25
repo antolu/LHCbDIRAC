@@ -53,13 +53,13 @@ class UserJobFinalization( ModuleBase ):
     # Use LHCb utility for local running via dirac-jobexec
     if self.workflow_commons.has_key( 'UserOutputData' ):
       userOutputData = self.workflow_commons[ 'UserOutputData' ]
-      if not isinstance( userOutputData, list ):  # type( userOutputData ) == type( [] ):
+      if not isinstance( userOutputData, list ):
         userOutputData = [ i.strip() for i in userOutputData.split( ';' ) ]
       self.userOutputData = userOutputData
 
     if self.workflow_commons.has_key( 'UserOutputSE' ):
       specifiedSE = self.workflow_commons['UserOutputSE']
-      if not type( specifiedSE ) == type( [] ):
+      if not isinstance( specifiedSE, list ):
         self.userOutputSE = [i.strip() for i in specifiedSE.split( ';' )]
     else:
       self.log.verbose( 'No UserOutputSE specified, using default value: %s' % ( ', '.join( self.defaultOutputSE ) ) )

@@ -66,10 +66,10 @@ class DiracProduction( DiracLHCb ):
     """Returns the metadata associated with a given production ID. Protects against
        LFN: being prepended and different types of production ID.
     """
-    if type( productionID ) == type( 2 ):
+    if isinstance( productionID, int ):
       productionID = int( productionID )
-    if not type( productionID ) == type( long( 1 ) ):
-      if not type( productionID ) == type( " " ):
+    if not isinstance( productionID, long ):
+      if not isinstance( productionID, str ):
         return self._errorReport( 'Expected string, long or int for production ID' )
 
     result = self.transformationClient.getTransformation( int( productionID ) )
@@ -100,10 +100,10 @@ class DiracProduction( DiracLHCb ):
        the operation performed, any messages associated with the operation and the
        DN of the production manager performing it.
     """
-    if type( productionID ) == type( 2 ):
+    if isinstance( productionID, int ):
       productionID = long( productionID )
-    if not type( productionID ) == type( long( 1 ) ):
-      if not type( productionID ) == type( " " ):
+    if not isinstance( productionID, long ):
+      if not isinstance( productionID, str ):
         return self._errorReport( 'Expected string, long or int for production ID' )
 
     result = self.transformationClient.getTransformationLogging( long( productionID ) )
@@ -134,11 +134,11 @@ class DiracProduction( DiracLHCb ):
        specified, the result is restricted to this value. If printOutput is specified,
        the result is printed to the screen.
     """
-    if type( productionID ) == type( 2 ):
+    if isinstance( productionID, int ):
       productionID = long( productionID )
     if productionID:
-      if not type( productionID ) == type( long( 1 ) ):
-        if not type( productionID ) == type( " " ):
+      if not isinstance( productionID, long ):
+        if not isinstance( productionID, str ):
           return self._errorReport( 'Expected string or long for production ID' )
 
     result = self.transformationClient.getTransformationSummary()
@@ -168,10 +168,10 @@ class DiracProduction( DiracLHCb ):
        for the given productionID and provides an up-to-date snapshot of the application status
        combinations and associated WMS JobIDs.
     """
-    if type( productionID ) == type( 2 ):
+    if isinstance( productionID, int ):
       productionID = long( productionID )
-    if not type( productionID ) == type( long( 1 ) ):
-      if not type( productionID ) == type( " " ):
+    if not isinstance( productionID, long ):
+      if not isinstance( productionID, str ):
         return self._errorReport( 'Expected string, long or int for production ID' )
 
     statusDict = self.getProdJobMetadata( productionID, status, minorStatus )
@@ -294,10 +294,10 @@ class DiracProduction( DiracLHCb ):
        for the given productionID and provides an up-to-date snapshot of the job status
        combinations and associated WMS JobIDs.
     """
-    if type( productionID ) == type( 2 ):
+    if isinstance( productionID, int ):
       productionID = long( productionID )
-    if not type( productionID ) == type( long( 1 ) ):
-      if not type( productionID ) == type( " " ):
+    if not isinstance( productionID, long ):
+      if not isinstance( productionID, str ):
         return self._errorReport( 'Expected string, long or int for production ID' )
 
     statusDict = self.getProdJobMetadata( productionID, status, minorStatus )
@@ -394,10 +394,10 @@ class DiracProduction( DiracLHCb ):
        for the given productionID and provides an up-to-date snapshot of the sites
        that jobs were submitted to.
     """
-    if type( productionID ) == type( 2 ):
+    if isinstance( productionID, int ):
       productionID = long( productionID )
-    if not type( productionID ) == type( long( 1 ) ):
-      if not type( productionID ) == type( " " ):
+    if not isinstance( productionID, long ):
+      if not isinstance( productionID, str ):
         return self._errorReport( 'Expected string, long or int for production ID' )
 
     statusDict = self.getProdJobMetadata( productionID, None, None, site )
@@ -493,11 +493,11 @@ class DiracProduction( DiracLHCb ):
   def getProductionProgress( self, productionID = None, printOutput = False ):
     """Returns the status of jobs as seen by the production management infrastructure.
     """
-    if type( productionID ) == type( 2 ):
+    if isinstance( productionID, int ):
       productionID = long( productionID )
     if productionID:
-      if not type( productionID ) == type( long( 1 ) ):
-        if not type( productionID ) == type( " " ):
+      if not isinstance( productionID, long ):
+        if not isinstance( productionID, str ):
           return self._errorReport( 'Expected string, long or int for production ID' )
 
     if not productionID:
@@ -575,13 +575,13 @@ class DiracProduction( DiracLHCb ):
        - manual: set produciton submission mode to manual, e.g. dirac-production-submit
     """
     commands = self.commands
-    if type( productionID ) == type( 2 ):
+    if isinstance( productionID, int ):
       productionID = long( productionID )
-    if not type( productionID ) == type( long( 1 ) ):
-      if not type( productionID ) == type( " " ):
+    if not isinstance( productionID, long ):
+      if not isinstance( productionID, str ):
         return self._errorReport( 'Expected string, long or int for production ID' )
 
-    if not type( command ) == type( " " ):
+    if not isinstance( command, str ):
       return self._errorReport( 'Expected string, for command' )
     if not command.lower() in commands.keys():
       return self._errorReport( 'Expected one of: %s for command string' % ( ', '.join( commands.keys() ) ) )
@@ -698,18 +698,18 @@ class DiracProduction( DiracLHCb ):
     """Checks the given LFN(s) status in the productionDB.  All productions
        are considered by default but can restrict to productionID.
     """
-    if type( productionID ) == type( 2 ):
+    if isinstance( productionID, int ):
       productionID = long( productionID )
-    if not type( productionID ) == type( long( 1 ) ):
-      if not type( productionID ) == type( " " ):
+    if not isinstance( productionID, long ):
+      if not isinstance( productionID, str ):
         return self._errorReport( 'Expected string, long or int for production ID' )
 
-    if type( lfns ) == type( " " ):
+    if isinstance( lfns, str ):
       lfns = lfns.replace( 'LFN:', '' )
-    elif type( lfns ) == type( [] ):
+    elif isinstance( lfns, list ):
       try:
         lfns = [str( lfnName.replace( 'LFN:', '' ) ) for lfnName in lfns]
-      except Exception, x:
+      except Exception as x:
         return self._errorReport( str( x ), 'Expected strings for LFN(s)' )
     else:
       return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
@@ -771,16 +771,16 @@ class DiracProduction( DiracLHCb ):
     """ Extend Simulation type Production by number of jobs.
         Usage: extendProduction <ProductionNameOrID> nJobs
     """
-    if type( productionID ) == type( 2 ):
+    if isinstance( productionID, int ):
       productionID = long( productionID )
-    if not type( productionID ) == type( long( 1 ) ):
-      if not type( productionID ) == type( " " ):
+    if not isinstance( productionID, long ):
+      if not isinstance( productionID, str ):
         return self._errorReport( 'Expected string or long for production ID' )
 
-    if type( numberOfJobs ) == type( " " ):
+    if isinstance( numberOfJobs, str ):
       try:
         numberOfJobs = int( numberOfJobs )
-      except Exception, x:
+      except Exception as x:
         return self._errorReport( str( x ), 'Expected integer or string for number of jobs to submit' )
 
     result = self.transformationClient.extendTransformation( long( productionID ), numberOfJobs )

@@ -7,7 +7,10 @@
 
 __RCSID__ = "$Id$"
 
-import os, glob, fnmatch, time, types
+import os
+import glob
+import fnmatch
+import time
 
 from DIRAC                                               import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
@@ -228,7 +231,7 @@ class DiracLHCb( Dirac ):
     if not selection in runSelection:
       return S_ERROR( 'Expected one of %s not "%s" for selection' % ( ', '.join( runSelection ), selection ) )
 
-    if not type( bkPath ) == type( ' ' ):
+    if not isinstance( bkPath, str ):
       return S_ERROR( 'Expected string for bkPath' )
 
     # remove any double slashes, spaces must be preserved
@@ -240,7 +243,7 @@ class DiracLHCb( Dirac ):
     if not startDate or not endDate:
       return S_ERROR( 'Expected both start and end dates to be defined in format: yyyy-mm-dd' )
 
-    if not type( startDate ) == type( ' ' ) or not type( endDate ) == type( ' ' ):
+    if not isinstance( startDate, str ) or not isinstance( endDate, str ):
       return S_ERROR( 'Expected yyyy-mm-dd string for start and end dates' )
 
     if not len( startDate.split( '-' ) ) == 3 or not len( endDate.split( '-' ) ) == 3:
@@ -321,7 +324,7 @@ class DiracLHCb( Dirac ):
        @type dqFlag: string
        @return: S_OK,S_ERROR
     """
-    if not type( bkPath ) == type( ' ' ):
+    if not isinstance( bkPath, str ):
       return S_ERROR( 'Expected string for bkPath' )
 
     # remove any double slashes, spaces must be preserved
@@ -396,7 +399,7 @@ class DiracLHCb( Dirac ):
        @type dqFlag: string
        @return: S_OK,S_ERROR
     """
-    if not type( bkPath ) == type( ' ' ):
+    if not isinstance( bkPath, str ):
       return S_ERROR( 'Expected string for bkPath' )
 
     # remove any double slashes, spaces must be preserved
@@ -451,7 +454,7 @@ class DiracLHCb( Dirac ):
        @type dqFlag: string
        @return: S_OK,S_ERROR
     """
-    if not type( bkPath ) == type( ' ' ):
+    if not isinstance( bkPath, str ):
       return S_ERROR( 'Expected string for bkPath' )
 
     # remove any double slashes, spaces must be preserved
@@ -604,7 +607,7 @@ class DiracLHCb( Dirac ):
         possible DQ flag statuses from the Bookkeeping.
     """
     dqFlags = []
-    if type( flags ) == type( [] ):
+    if isinstance( flags, list ):
       dqFlags = flags
     else:
       dqFlags = [flags]
@@ -675,12 +678,12 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    if type( lfns ) == type( " " ):
+    if isinstance( lfns, str ):
       lfns = [lfns.replace( 'LFN:', '' )]
-    elif type( lfns ) == type( [] ):
+    elif isinstance( lfns, list ):
       try:
         lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
-      except Exception, x:
+      except Exception as x:
         return self._errorReport( str( x ), 'Expected strings for LFNs' )
     else:
       return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
@@ -722,12 +725,12 @@ class DiracLHCb( Dirac ):
        @type printOutput: boolean
        @return: S_OK,S_ERROR
     """
-    if type( lfns ) == type( " " ):
+    if isinstance( lfns, str ):
       lfns = [lfns.replace( 'LFN:', '' )]
-    elif type( lfns ) == type( [] ):
+    elif isinstance( lfns, list ):
       try:
         lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
-      except Exception, x:
+      except Exception as x:
         return self._errorReport( str( x ), 'Expected strings for LFNs' )
     else:
       return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
@@ -929,20 +932,20 @@ class DiracLHCb( Dirac ):
        @return: S_OK,S_ERROR
     """
     sitesForSE = {}
-    if type( lfns ) == type( " " ):
+    if isinstance( lfns, str ):
       lfns = [lfns.replace( 'LFN:', '' )]
-    elif type( lfns ) == type( [] ):
+    elif isinstance( lfns, list ):
       try:
         lfns = [str( lfn.replace( 'LFN:', '' ) ) for lfn in lfns]
-      except Exception, x:
+      except Exception as x:
         return self._errorReport( str( x ), 'Expected strings for LFNs' )
     else:
       return self._errorReport( 'Expected single string or list of strings for LFN(s)' )
 
-    if not type( maxSizePerJob ) == types.IntType:
+    if not isinstance( maxSizePerJob, int ):
       try:
         maxSizePerJob = int( maxSizePerJob )
-      except Exception, x:
+      except Exception as x:
         return self._errorReport( str( x ), 'Expected integer for maxSizePerJob' )
     maxSizePerJob *= 1000 * 1000 * 1000
 

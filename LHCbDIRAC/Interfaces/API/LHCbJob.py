@@ -90,7 +90,8 @@
 
 """
 
-import os, types, re
+import os
+import re
 from distutils.version import LooseVersion
 
 from DIRAC                                                import S_OK, S_ERROR, gConfig
@@ -185,18 +186,18 @@ class LHCbJob( Job ):
     """
     kwargs = {'appName':appName, 'appVersion':appVersion, 'optionsFiles':optionsFiles,
               'inputData':inputData, 'optionsLine':optionsLine, 'inputDataType':inputDataType, 'logFile':logFile}
-    if not type( appName ) in types.StringTypes or not type( appVersion ) in types.StringTypes:
+    if not isinstance( appName, str ) or not isinstance( appVersion, str ):
       return self._reportError( 'Expected strings for application name and version', __name__, **kwargs )
 
     if logFile:
-      if type( logFile ) in types.StringTypes:
+      if isinstance( logFile, str ):
         logName = logFile
       else:
         return self._reportError( 'Expected string for log file name', __name__, **kwargs )
     else:
       logName = '%s_%s.log' % ( appName, appVersion )
 
-    if not type( inputDataType ) in types.StringTypes:
+    if not isinstance( inputDataType, str ):
       return self._reportError( 'Expected string for input data type', __name__, **kwargs )
     if not inputDataType:
       inputDataType = self.inputDataType
@@ -204,9 +205,9 @@ class LHCbJob( Job ):
     optionsFile = None
     if not optionsFiles:
       return self._reportError( 'Expected string or list for optionsFiles', __name__, **kwargs )
-    if type( optionsFiles ) in types.StringTypes:
+    if isinstance( optionsFiles, str ):
       optionsFiles = [optionsFiles]
-    if not type( optionsFiles ) == type( [] ):
+    if not isinstance( optionsFiles, list ):
       return self._reportError( 'Expected string or list for optionsFiles', __name__, **kwargs )
     for optsFile in optionsFiles:
       if not optionsFile:
@@ -228,7 +229,7 @@ class LHCbJob( Job ):
     optionsFile = ';'.join( list( set( tmpList ) ) )
     self.log.verbose( 'Final options list is: %s' % optionsFile )
     if inputData:
-      if type( inputData ) in types.StringTypes:
+      if isinstance( inputData, str ):
         inputData = [inputData]
       if inputData != ['previousStep']:
         for i in xrange( len( inputData ) ):
@@ -327,17 +328,17 @@ class LHCbJob( Job ):
     """
     kwargs = {'appName':appName, 'appVersion':appVersion, 'script':script, 'arguments':arguments,
               'inputData':inputData, 'inputDataType':inputDataType, 'poolXMLCatalog':poolXMLCatalog, 'logFile':logFile}
-    if not type( appName ) in types.StringTypes or not type( appVersion ) in types.StringTypes:
+    if not isinstance( appName, str ) or not isinstance( appVersion, str ):
       return self._reportError( 'Expected strings for application name and version', __name__, **kwargs )
 
-    if not script or not type( script ) == type( ' ' ):
+    if not script or not isinstance( script, str ):
       return self._reportError( 'Expected strings for script name', __name__, **kwargs )
 
     if not os.path.exists( script ):
       return self._reportError( 'Script must exist locally', __name__, **kwargs )
 
     if logFile:
-      if type( logFile ) == type( ' ' ):
+      if isinstance( logFile, str ):
         logName = logFile
       else:
         return self._reportError( 'Expected string for log file name', __name__, **kwargs )
@@ -348,16 +349,16 @@ class LHCbJob( Job ):
     self.addToInputSandbox.append( script )
 
     if arguments:
-      if not type( arguments ) == type( ' ' ):
+      if not isinstance( arguments, str ):
         return self._reportError( 'Expected string for optional script arguments', __name__, **kwargs )
 
-    if not type( poolXMLCatalog ) == type( " " ):
+    if not isinstance( poolXMLCatalog, str ):
       return self._reportError( 'Expected string for POOL XML Catalog name', __name__, **kwargs )
 
     if inputData:
-      if type( inputData ) in types.StringTypes:
+      if isinstance( inputData, str ):
         inputData = [inputData]
-      if not type( inputData ) == type( [] ):
+      if not isinstance( inputData, list ):
         return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
       for i in xrange( len( inputData ) ):
         inputData[i] = inputData[i].replace( 'LFN:', '' )
@@ -419,19 +420,19 @@ class LHCbJob( Job ):
     """
     kwargs = {'benderVersion':benderVersion, 'modulePath':modulePath,
               'inputData':inputData, 'numberOfEvents':numberOfEvents}
-    if not type( benderVersion ) == type( ' ' ):
+    if not isinstance( benderVersion, str ):
       return self._reportError( 'Bender version should be a string', __name__, **kwargs )
-    if not type( modulePath ) == type( ' ' ):
+    if not isinstance( modulePath, str ):
       return self._reportError( 'Bender module path should be a string', __name__, **kwargs )
-    if not type( numberOfEvents ) == type( 2 ):
+    if not isinstance( numberOfEvents, int ):
       try:
         numberOfEvents = int( numberOfEvents )
-      except Exception, _x:
+      except Exception as _x:
         return self._reportError( 'Number of events should be an integer or convertible to an integer',
                                    __name__, **kwargs )
-    if type( inputData ) == type( " " ):
+    if isinstance( inputData, str ):
       inputData = [inputData]
-    if not type( inputData ) == type( [] ):
+    if not isinstance( inputData, list ):
       return self._reportError( 'Input data should be specified as a list or a string', __name__, **kwargs )
 
     poolCatName = 'xmlcatalog_file:pool_xml_catalog.xml'
@@ -553,11 +554,11 @@ class LHCbJob( Job ):
     """
     kwargs = {'rootVersion':rootVersion, 'rootScript':rootScript, 'rootType':rootType,
               'arguments':arguments, 'logFile':logFile}
-    if not type( arguments ) == types.ListType:
+    if not isinstance( arguments, list ):
       arguments = [arguments]
 
     for param in [rootVersion, rootScript, rootType, logFile]:
-      if not type( param ) in types.StringTypes:
+      if not isinstance( param, str ):
         return self._reportError( 'Expected strings for Root application input parameters', __name__, **kwargs )
 
     if not os.path.exists( rootScript ):
@@ -623,12 +624,12 @@ class LHCbJob( Job ):
     """
     kwargs = {'depth':depth}
     description = 'Level at which ancestor files are retrieved from the bookkeeping'
-    if type( depth ) == type( " " ):
+    if isinstance( depth, str ):
       try:
         self._addParameter( self.workflow, 'AncestorDepth', 'JDL', int( depth ), description )
-      except Exception, _x:
+      except Exception as _x:
         return self._reportError( 'Expected integer for Ancestor Depth', __name__, **kwargs )
-    elif type( depth ) == type( 1 ):
+    elif isinstance( depth, int ):
       self._addParameter( self.workflow, 'AncestorDepth', 'JDL', depth, description )
     else:
       return self._reportError( 'Expected integer for Ancestor Depth', __name__, **kwargs )
@@ -653,10 +654,10 @@ class LHCbJob( Job ):
 
     """
     description = 'User specified input data type'
-    if not type( inputDataType ) == type( " " ):
+    if not isinstance( inputDataType, str ):
       try:
         inputDataType = str( inputDataType )
-      except Exception, _x:
+      except Exception as _x:
         return self._reportError( 'Expected string for input data type', __name__, **{'inputDataType':inputDataType} )
 
     self.inputDataType = inputDataType
@@ -681,7 +682,7 @@ class LHCbJob( Job ):
        :type condDict: Dict of DB, tag pairs
     """
     kwargs = {'condDict':condDict}
-    if not type( condDict ) == type( {} ):
+    if not isinstance( condDict, dict ):
       return self._reportError( 'Expected dictionary for CondDB tags', __name__, **kwargs )
 
     conditions = []
@@ -690,7 +691,7 @@ class LHCbJob( Job ):
         db = str( db )
         tag = str( tag )
         conditions.append( '.'.join( [db, tag] ) )
-      except Exception, _x:
+      except Exception as _x:
         return self._reportError( 'Expected string for conditions', __name__, **kwargs )
 
     condStr = ';'.join( conditions )
@@ -722,11 +723,11 @@ class LHCbJob( Job ):
     # If we remove this method (which is totally similar to the Job() one, the output data will be 
     # treated by the JobWrapper. So, can and maybe should be done, but have to pat attention
     kwargs = {'lfns':lfns, 'OutputSE':OutputSE, 'OutputPath':OutputPath}
-    if type( lfns ) == list and len( lfns ):
+    if isinstance( lfns, list ) and len( lfns ):
       outputDataStr = ';'.join( lfns )
       description = 'List of output data files'
       self._addParameter( self.workflow, 'UserOutputData', 'JDL', outputDataStr, description )
-    elif type( lfns ) == type( " " ):
+    elif isinstance( lfns, str ):
       description = 'Output data file'
       self._addParameter( self.workflow, 'UserOutputData', 'JDL', lfns, description )
     else:
@@ -734,16 +735,16 @@ class LHCbJob( Job ):
 
     if OutputSE:
       description = 'User specified Output SE'
-      if type( OutputSE ) in types.StringTypes:
+      if isinstance( OutputSE, str ):
         OutputSE = [OutputSE]
-      elif type( OutputSE ) != types.ListType:
+      elif not isinstance( OutputSE, list ):
         return self._reportError( 'Expected string or list for OutputSE', **kwargs )
       OutputSE = ';'.join( OutputSE )
       self._addParameter( self.workflow, 'UserOutputSE', 'JDL', OutputSE, description )
 
     if OutputPath:
       description = 'User specified Output Path'
-      if not type( OutputPath ) in types.StringTypes:
+      if not isinstance( OutputPath, str ):
         return self._reportError( 'Expected string for OutputPath', **kwargs )
       # Remove leading "/" that might cause problems with os.path.join
       while OutputPath[0] == '/': OutputPath = OutputPath[1:]
@@ -792,7 +793,7 @@ class LHCbJob( Job ):
        :type logFile: string
     """
     kwargs = {'executable':executable, 'arguments':arguments, 'applicationLog':logFile}
-    if not type( executable ) == type( ' ' ) or not type( arguments ) == type( ' ' ) or not type( logFile ) == type( ' ' ):
+    if not isinstance( executable, str ) or not isinstance( arguments, str ) or not isinstance( logFile, str ):
       return self._reportError( 'Expected strings for executable and arguments', **kwargs )
 
     if os.path.exists( executable ):
@@ -806,7 +807,7 @@ class LHCbJob( Job ):
       moduleName = 'CodeSegment'
 
     if logFile:
-      if type( logFile ) == type( ' ' ):
+      if isinstance( logFile, str ):
         logName = str( logFile )
 
     self.stepCount += 1
@@ -853,7 +854,7 @@ class LHCbJob( Job ):
     else:
       try:
         platform = getPlatformFromConfig( listOfCMTConfigs[0] )[0]
-      except ValueError, error:
+      except ValueError as error:
         self.log.warn( error )
         platform = 'ANY'
       return super( LHCbJob, self ).setPlatform( platform )
@@ -894,11 +895,11 @@ class LHCbJob( Job ):
     if not protocols:
       return self._reportError( 'A list of protocols is required for this test', __name__, **kwargs )
 
-    if not type( logFile ) == type( ' ' ) or not type( rootVersion ) == type( ' ' ):
+    if not isinstance( logFile, str ) or not isinstance( rootVersion, str ):
       return self._reportError( 'Expected strings for input parameters', __name__, **kwargs )
 
     if logFile:
-      if not type( logFile ) in types.StringTypes:
+      if not isinstance( logFile, str ):
         return self._reportError( 'Expected string for log file name', __name__, **kwargs )
       logPrefix = 'Step%s_' % ( self.stepCount )
       logFile = '%s%s' % ( logPrefix, logFile )
@@ -908,9 +909,9 @@ class LHCbJob( Job ):
     self.addToOutputSandbox.append( '*.readtimes' )
 
     if inputData:
-      if type( inputData ) in types.StringTypes:
+      if isinstance( inputData, str ):
         inputData = [inputData]
-      if not type( inputData ) == type( [] ):
+      if not isinstance( inputData, list ):
         return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
       for i in xrange( len( inputData ) ):
         inputData[i] = inputData[i].replace( 'LFN:', '' )
@@ -918,7 +919,7 @@ class LHCbJob( Job ):
       inputDataStr = ';'.join( inputData )
       self.addToInputData.append( inputDataStr )
 
-    if type( protocols ) == type( ' ' ):
+    if isinstance( protocols, str ):
       protocols = [protocols]
     protocols = ';'.join( protocols )
 

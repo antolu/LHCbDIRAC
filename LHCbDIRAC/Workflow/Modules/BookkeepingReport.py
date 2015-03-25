@@ -4,7 +4,10 @@
 
 __RCSID__ = "$Id$"
 
-import os, time, re, socket
+import os
+import time
+import re
+import socket
 from xml.dom.minidom import Document, DocumentType
 
 import DIRAC
@@ -122,7 +125,7 @@ class BookkeepingReport( ModuleBase ):
       logFilePath = self.workflow_commons['LogFilePath']
       bkLFNs = self.workflow_commons['BookkeepingLFNs']
 
-      if not type( bkLFNs ) == type( [] ):
+      if not isinstance( bkLFNs, list ):
         bkLFNs = [i.strip() for i in bkLFNs.split( ';' )]
 
     else:
@@ -400,7 +403,7 @@ class BookkeepingReport( ModuleBase ):
       count = count + 1
     outputs.append( ( ( self.applicationLog ), ( 'LOG' ) ) )
     self.log.info( outputs )
-    if type( logFilePath ) == type( [] ):
+    if isinstance( logFilePath, list ):
       logFilePath = logFilePath[ 0 ]
 
     for output, outputtype in list( outputs ):
