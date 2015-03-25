@@ -518,9 +518,9 @@ class OracleBookkeepingDB:
       selection += ',InputFileTypes'
       for i in inFileTypes:
         values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', None ).strip() if i.get( 'FileType', None )
-                                           else i.get( 'FileType', None ) ),
+                                             else i.get( 'FileType', None ) ),
                                           ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
-                                           else i.get( 'Visible', None ) ) )
+                                            else i.get( 'Visible', None ) ) )
       values = values[:-1]
       values += ')'
 
@@ -722,7 +722,7 @@ class OracleBookkeepingDB:
 
   #############################################################################
   def getProcessingPass( self, configName, configVersion, conddescription,
-                        runnumber, production, eventType = default, path = '/' ):
+                         runnumber, production, eventType = default, path = '/' ):
     """returns the processing pass for a given dataset"""
     erecords = []
     eparameters = []
@@ -807,11 +807,11 @@ class OracleBookkeepingDB:
       return retVal
 
     return S_OK( [{'ParameterNames':pparameters,
-                  'Records':precords,
-                  'TotalRecords':len( precords )},
-                 {'ParameterNames':eparameters,
-                  'Records':erecords,
-                  'TotalRecords':len( erecords )}] )
+                   'Records':precords,
+                   'TotalRecords':len( precords )},
+                  {'ParameterNames':eparameters,
+                   'Records':erecords,
+                   'TotalRecords':len( erecords )}] )
 
   #############################################################################
   def __getConditionString( self, conddescription, table = 'productionscontainer' ):
@@ -862,8 +862,8 @@ class OracleBookkeepingDB:
 
   #############################################################################
   def getProductions( self, configName = default, configVersion = default,
-                     conddescription = default, processing = default, evt = default,
-                     visible = default ):
+                      conddescription = default, processing = default, evt = default,
+                      visible = default ):
     """return the production for a given dataset"""
     #### MUST BE REIMPLEMNETED!!!!!!
     ####
@@ -951,8 +951,8 @@ class OracleBookkeepingDB:
 
   #############################################################################
   def getFileTypes( self, configName, configVersion, conddescription = default,
-                   processing = default, evt = default, runnb = default, production = default,
-                   visible = default ):
+                    processing = default, evt = default, runnb = default, production = default,
+                    visible = default ):
     """returns the available file types"""
     condition = ''
     tables = ''
@@ -1043,11 +1043,11 @@ class OracleBookkeepingDB:
 
   #############################################################################
   def getFilesWithMetadata( self, configName, configVersion, conddescription = default,
-                           processing = default, evt = default, production = default,
-                           filetype = default, quality = default,
-                           visible = default, replicaflag = default,
-                           startDate = None, endDate = None, runnumbers = list(),
-                           startRunID = default, endRunID = default ):
+                            processing = default, evt = default, production = default,
+                            filetype = default, quality = default,
+                            visible = default, replicaflag = default,
+                            startDate = None, endDate = None, runnumbers = list(),
+                            startRunID = default, endRunID = default ):
     """return a list of files with their metadata"""
     condition = ''
 
@@ -1176,7 +1176,7 @@ class OracleBookkeepingDB:
   def getRunProcessingPass( self, runnumber ):
     """returns the processing pass for a given run"""
     return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProductionProcessingPass',
-                                            types.StringType, [-1 * runnumber] )
+                                             types.StringType, [-1 * runnumber] )
 
   #############################################################################
   def getProductionProcessingPassID( self, prodid ):
