@@ -15,14 +15,24 @@ __RCSID__ = "$Id$"
 
 class UsersAndGroups( AgentModule ):
 
+  def __init__( self ):
+    """
+    c'tor
+    """
+
+    self.vomsSrv = None
+    self.proxyLocation = ".volatileId"
+    self.__adminMsgs = {}
+    self.lfcDNs = None
+    self.lfcBANDNs = None
+
   def initialize( self ):
     ''' Initialize method
     '''
 
     self.am_setOption( "PollingTime", 3600 * 6 ) # Every 6 hours
     self.vomsSrv = VOMSService()
-    self.proxyLocation = os.path.join( self.am_getWorkDirectory(), ".volatileId" )
-    self.__adminMsgs = {}
+    self.proxyLocation = os.path.join( self.am_getWorkDirectory() )
     return S_OK()
 
   def __generateProxy( self ):
