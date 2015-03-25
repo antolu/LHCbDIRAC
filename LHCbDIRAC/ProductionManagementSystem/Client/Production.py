@@ -12,7 +12,10 @@
 
 __RCSID__ = "$Id$"
 
-import shutil, re, os, copy
+import shutil
+import re
+import os
+import copy
 
 from DIRAC                                                        import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Workflow.Workflow                                 import Workflow, fromXMLString
@@ -190,9 +193,9 @@ class Production( object ):
     mcTCK = stepDict['mcTCK']
 
     if extraPackages:
-      if type( extraPackages ) == type( [] ):
+      if isinstance( extraPackages, list ):
         extraPackages = ';'.join( extraPackages )
-      if type( extraPackages ) != type( '' ):
+      if not isinstance( extraPackages, str ):
         raise TypeError( "extraPackages is not a string (nor a list)" )
       if ',' in extraPackages:
         extraPackages = ';'.join( extraPackages.split( ',' ) )
@@ -578,7 +581,7 @@ class Production( object ):
 
       try:
         fileName = self.__createWorkflow()
-      except Exception, x:
+      except Exception as x:
         gLogger.error( x )
         return S_ERROR( 'Could not create workflow' )
 
@@ -718,12 +721,12 @@ class Production( object ):
     """ Output data related parameters.
     """
     if fileMask:
-      if type( fileMask ) == type( [] ):
+      if isinstance( fileMask, list ):
         fileMask = ';'.join( fileMask )
       self.setParameter( 'outputDataFileMask', 'string', fileMask, 'outputDataFileMask' )
 
     if stepMask:
-      if type( stepMask ) == type( [] ):
+      if isinstance( stepMask, list ):
         stepMask = ';'.join( stepMask )
       self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputDataStep', 'string', stepMask, 'outputDataStep Mask' )
 
@@ -770,7 +773,7 @@ class Production( object ):
   # properties
 
   def set_transformationFamily( self, value ):
-    if type( value ) == type( 1 ):
+    if isinstance( value, int ):
       value = str( value )
     self._transformationFamily = value
   def get_transformationFamily( self ):

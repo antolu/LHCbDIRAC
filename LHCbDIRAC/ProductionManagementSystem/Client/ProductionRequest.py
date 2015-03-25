@@ -3,7 +3,8 @@
 
 __RCSID__ = "$Id$"
 
-import itertools, copy
+import itertools
+import copy
 
 from DIRAC import gLogger, S_OK
 
@@ -597,7 +598,7 @@ class ProductionRequest( object ):
     if outputFileMask:
       outputFileMask = [m.lower() for m in outputFileMask.replace( ' ', '' ).split( ',' )]
     if outputFileStep:
-      if type( outputFileStep ) == type( '' ):
+      if isinstance( outputFileStep, str ):
         outputFileStep = [m.lower() for m in outputFileStep.replace( ' ', '' ).split( ',' )]
     prod.setFileMask( outputFileMask, outputFileStep )
     if target:
@@ -727,7 +728,7 @@ class ProductionRequest( object ):
   stepsList = property( get_stepsList, set_stepsList )
 
   def set_startRun( self, value ):
-    if type( value ) == type( '' ):
+    if isinstance( value, str ):
       value = int( value )
     if value < 0:
       raise ValueError( "startRun can not be negative" )
@@ -737,7 +738,7 @@ class ProductionRequest( object ):
   startRun = property( get_startRun, set_startRun )
 
   def set_endRun( self, value ):
-    if type( value ) == type( '' ):
+    if isinstance( value, str ):
       value = int( value )
     if value < 0:
       raise ValueError( "endRun can not be negative" )
@@ -749,7 +750,7 @@ class ProductionRequest( object ):
   def set_requestID( self, value ):
     if value == '':
       value = 0
-    if type( value ) == type( '' ):
+    if isinstance( value, str ):
       value = int( value )
     if value < 0:
       raise ValueError( "requestID can not be negative" )
@@ -761,7 +762,7 @@ class ProductionRequest( object ):
   def set_parentRequestID( self, value ):
     if value == '':
       value = 0
-    if type( value ) == type( '' ):
+    if isinstance( value , str ):
       value = int( value )
     if value < 0:
       raise ValueError( "parentRequestID can not be negative" )
@@ -771,7 +772,7 @@ class ProductionRequest( object ):
   parentRequestID = property( get_parentRequestID, set_parentRequestID )
 
   def set_bkFileType( self, value ):
-    if type( value ) == type( '' ):
+    if isinstance( value, str ):
       value = value.replace( ' ', '' ).split( ',' )
     self._bkFileType = value
   def get_bkFileType( self ):

@@ -27,6 +27,7 @@
 __RCSID__ = "$Id$"
 
 import time
+
 from DIRAC                                                      import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule                                import AgentModule
 from DIRAC.Core.DISET.RPCClient                                 import RPCClient
@@ -614,7 +615,7 @@ class ProductionStatusAgent( AgentModule ):
           else:
             notPrList = self.notPrTrans.setdefault( state, [] )
             notPrList.append( tID )
-    except RuntimeError, error:
+    except RuntimeError as error:
       self.log.error( error )
 
     for tID, prID in self.prProds.iteritems():
@@ -708,7 +709,7 @@ class ProductionStatusAgent( AgentModule ):
           tInfo['isIdle'] = 'Yes' if isIdle else 'No'
           tInfo['isProcIdle'] = 'Yes' if isProcIdle else 'No'
           tInfo['isSimulation'] = isSimulation
-        except RuntimeError, error:
+        except RuntimeError as error:
           self.log.error( error )
           tInfo['isIdle'] = 'Unknown'
           tInfo['isProcIdle'] = 'Unknown'
@@ -785,7 +786,7 @@ class ProductionStatusAgent( AgentModule ):
         self.log.error( "Failed to update status of transformation", "%s from %s to %s" % ( tID, origStatus, status ) )
       else:
         updatedT[tID] = {'to':status, 'from':origStatus}
-    except RuntimeError, error:
+    except RuntimeError as error:
       self.log.error( error )
 
   def _mailProdManager( self, updatedT, updatedPr ):
@@ -847,7 +848,7 @@ class ProductionStatusAgent( AgentModule ):
           isIdle, _isProcIdle, _isSimulation = self.__isIdle( tID )
           if isIdle:
             self.__updateTransformationStatus( tID, 'Active', 'Idle', updatedT )
-        except RuntimeError, error:
+        except RuntimeError as error:
           self.log.error( error )
 
     if 'Idle' in self.notPrTrans:
@@ -858,7 +859,7 @@ class ProductionStatusAgent( AgentModule ):
           isIdle, _isProcIdle, _isSimulation = self.__isIdle( tID )
           if not isIdle:
             self.__updateTransformationStatus( tID, 'Idle', 'Active', updatedT )
-        except RuntimeError, error:
+        except RuntimeError as error:
           self.log.error( error )
 
     self.log.verbose( 'Requests unrelated transformations update is finished' )

@@ -7,6 +7,7 @@ import os
 import re
 import tempfile
 import threading
+
 from types import IntType, LongType, StringTypes, DictType, ListType, BooleanType, StringType
 
 from DIRAC                            import gLogger, gConfig, S_OK, S_ERROR
