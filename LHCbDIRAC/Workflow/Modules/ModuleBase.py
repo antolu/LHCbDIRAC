@@ -636,7 +636,7 @@ class ModuleBase( object ):
       fileMask = [fileMask]
     if isinstance( stepMask, int ):
       stepMask = str( stepMask )
-    if stepMask and isinstance( stepMask, list ):
+    if stepMask and not isinstance( stepMask, list ):
       stepMask = [stepMask]
 
     if fileMask and fileMask != ['']:

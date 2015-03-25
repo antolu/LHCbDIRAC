@@ -292,11 +292,11 @@ class UploadOutputData( ModuleBase ):
         self.log.info( "There are no files to perform the BK registration for, all are in failover" )
       else:
         result = FileCatalog( catalogs = ['BookkeepingDB'] ).addFile( [lfnMeta['lfn'] for lfnMeta in performBKRegistration] )
-        self.log.verbose( result )
+        self.log.verbose( "BookkeepingDB.addFile: %s" % result )
         if not result['OK']:
           self.log.error( result )
           return S_ERROR( "Could Not Perform BK Registration" )
-        if result['Value']['Failed']:
+        if 'Failed' in result['Value'] and result['Value']['Failed']:
           for lfn, error in result['Value']['Failed'].items():
             lfnMetadata = {}
             for lfnMD in performBKRegistration:
