@@ -1,7 +1,8 @@
 """ An agent to extend MC productions based on the remaning events to produce.
 """
 
-import math, datetime
+import math
+import datetime
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient                                       import RPCClient

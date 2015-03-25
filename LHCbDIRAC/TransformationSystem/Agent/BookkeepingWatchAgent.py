@@ -7,6 +7,12 @@
 
 __RCSID__ = "$Id$"
 
+import os
+import time
+import datetime
+import pickle
+import Queue
+
 from DIRAC                                                                import S_OK, gLogger, gMonitor
 from DIRAC.Core.Base.AgentModule                                          import AgentModule
 from DIRAC.Core.Utilities.ThreadPool                                      import ThreadPool
@@ -15,7 +21,6 @@ from DIRAC.TransformationSystem.Agent.TransformationAgentsUtilities       import
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 from DIRAC.Core.Utilities.List                                            import breakListIntoChunks
-import os, time, datetime, pickle, Queue
 
 AGENT_NAME = 'Transformation/BookkeepingWatchAgent'
 
@@ -95,11 +100,11 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
         pickle.dump( self.fullTimeLog, pf )
         pickle.dump( self.bkQueries, pf )
         self._logVerbose( "successfully dumped Log into %s" % self.pickleFile )
-      except IOError, e:
+      except IOError as e:
         self._logError( "fail to open %s: %s" % ( self.pickleFile, e ) )
-      except pickle.PickleError, e:
+      except pickle.PickleError as e:
         self._logError( "fail to dump %s: %s" % ( self.pickleFile, e ) )
-      except ValueError, e:
+      except ValueError as e:
         self._logError( "fail to close %s: %s" % ( self.pickleFile, e ) )
       finally:
         try:
@@ -175,7 +180,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
         try:
           files = self.__getFiles( transID, bkQuery, now )
-        except RuntimeError, e:
+        except RuntimeError as e:
           # In case we failed a full query, we should retry full query until successful
           if 'StartDate' not in bkQuery:
             self.bkQueries.pop( transID, None )
@@ -226,11 +231,11 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
             try:
               self.__addRunsMetadata( transID, runDict.keys() )
-            except RuntimeError, e:
+            except RuntimeError as e:
               self._logError( "Failure adding runs metadata: %s" % e, "", "__addRunsMetadata", transID )
               continue
 
-      except Exception, x:
+      except Exception as x:
         gLogger.exception( '[%s] %s._execute %s' % ( str( transID ), AGENT_NAME, x ) )
       finally:
         self._logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID = transID )

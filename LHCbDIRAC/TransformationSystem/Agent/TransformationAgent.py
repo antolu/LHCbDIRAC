@@ -51,7 +51,7 @@ class TransformationAgent( DIRACTransformationAgent ):
     """
     try:
       plugModule = __import__( self.pluginLocation, globals(), locals(), ['TransformationPlugin'] )
-    except Exception, x:
+    except Exception as x:
       gLogger.exception( "%s.__generatePluginObject: Failed to import 'TransformationPlugin'" % AGENT_NAME, '', x )
       return S_ERROR()
     try:
@@ -62,7 +62,7 @@ class TransformationAgent( DIRACTransformationAgent ):
                                                                rmClient = clients['ResourceManagementClient'],
                                                                rss = clients['ResourceStatus'],
                                                                transInThread = self.transInThread )
-    except Exception, x:
+    except Exception as x:
       gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ), '', x )
       return S_ERROR()
     oPlugin.workDirectory = self.workDirectory

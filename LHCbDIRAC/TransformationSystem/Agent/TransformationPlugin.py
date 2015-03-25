@@ -3,7 +3,10 @@
 
 __RCSID__ = "$Id$"
 
-import time, datetime, os, random
+import time
+import datetime
+import os
+import random
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize, uniqueElements
@@ -468,7 +471,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _ByRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
     try:
       return self.__byRun( param, plugin, requireFlush )
-    except Exception, x:
+    except Exception as x:
       self.util.logException( "Exception in _ByRun plugin:", '', x )
       return S_ERROR( [] )
 
@@ -1321,7 +1324,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
       if not storageElementGroups:
         return S_OK( [] )
-    except Exception, e:
+    except Exception as e:
       self.util.logException( 'Exception while executing the plugin' )
       return S_ERROR( e )
     finally:

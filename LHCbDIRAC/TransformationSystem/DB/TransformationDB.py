@@ -8,9 +8,9 @@
 
 __RCSID__ = "$Id$"
 
-import threading, copy, re
-
-from types import IntType, LongType, FloatType, ListType, TupleType, StringTypes
+import threading
+import copy
+import re
 
 from DIRAC                                              import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.DB.TransformationDB     import TransformationDB as DIRACTransformationDB
@@ -290,9 +290,9 @@ class TransformationDB( DIRACTransformationDB ):
       else:
         value = queryDict[field]
 
-        if type( value ) in ( IntType, LongType, FloatType ):
+        if isinstance( value, ( int, long, float ) ):
           value = str( value )
-        if type( value ) in ( ListType, TupleType ):
+        if isinstance( value ( list, tuple ) ):
           value = [str( x ) for x in value]
           value = ';;;'.join( value )
       values.append( value )
@@ -339,9 +339,9 @@ class TransformationDB( DIRACTransformationDB ):
         if re.search( ';;;', str( value ) ):
           value = value.split( ';;;' )
         if parameter in self.intFields:
-          if type( value ) in StringTypes:
+          if isinstance( value, str ):
             value = long( value )
-          if type( value ) == ListType:
+          if isinstance( value, list ):
             value = [int( x ) for x in value]
           if not value:
             continue
@@ -489,7 +489,7 @@ class TransformationDB( DIRACTransformationDB ):
       for item in row:
         transDict[self.transRunParams[count]] = item
         count += 1
-        if type( item ) not in [IntType, LongType]:
+        if not isinstance( item, ( int, long ) ):
           rList.append( str( item ) )
         else:
           rList.append( item )
@@ -560,7 +560,7 @@ class TransformationDB( DIRACTransformationDB ):
     """
     if not runIDs:
       return S_OK()
-    if type( runIDs ) != ListType:
+    if not isinstance( runIDs, list ):
       runIDs = [runIDs]
     res = self._getConnectionTransID( connection, transID )
     if not res['OK']:
@@ -636,7 +636,7 @@ class TransformationDB( DIRACTransformationDB ):
     return S_OK()
 
   def __insertRunMetadata( self, runID, name, value, connection ):
-    if type( runID ) in StringTypes:
+    if isinstance( runID, str ):
       runID = int( runID )
     req = "INSERT INTO RunsMetadata (RunNumber, Name, Value) VALUES(%d, '%s', '%s')" % ( runID, name, value )
     res = self._update( req, connection )
@@ -651,7 +651,7 @@ class TransformationDB( DIRACTransformationDB ):
     return S_OK()
 
   def __updateRunMetadata( self, runID, name, value, connection ):
-    if type( runID ) in StringTypes:
+    if isinstance( runID, str ):
       runID = int( runID )
     req = "UPDATE RunsMetadata SET Value = %s WHERE RunNumber = %d AND Name = '%s'" % ( value , runID, name )
     res = self._update( req, connection )
@@ -666,7 +666,7 @@ class TransformationDB( DIRACTransformationDB ):
     """ get meta of a run. RunIDs can be a list.
     """
     connection = self.__getConnection( connection )
-    if type( runIDs ) in ( StringTypes, IntType ):
+    if isinstance( runIDs, ( str, int ) ):
       runIDs = [runIDs]
     runIDs = [str( x ) for x in runIDs]
     runIDs = ', '.join( runIDs )

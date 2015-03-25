@@ -23,7 +23,7 @@ __RCSID__ = '$Id$'
 
 import datetime
 
-from DIRAC                                                       import S_OK, S_ERROR
+from DIRAC                                                       import S_OK
 from DIRAC.Core.Base.AgentModule                                 import AgentModule
 from DIRAC.Core.Utilities.Time                                   import dateTime
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations         import Operations

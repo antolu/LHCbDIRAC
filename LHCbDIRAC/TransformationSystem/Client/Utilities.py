@@ -4,8 +4,11 @@
 
 __RCSID__ = "$Id$"
 
-import os, time, datetime
+import os
+import time
+import datetime
 import random
+
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR, exit as DIRACExit
 from DIRAC.Core.Base import Script
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -22,8 +25,10 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, convertSEs
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-# Function to be used as a decorator for timing other functions
 def timeThis( method ):
+  """
+  Function to be used as a decorator for timing other functions
+  """
 
   def timed( *args, **kw ):
     ts = time.time()
@@ -273,13 +278,13 @@ class PluginUtilities( object ):
     value = self.params.get( name, default )
     self.logVerbose( "Transformation plugin param %s: '%s'" % ( name, value ) )
     if valueType and type( value ) != valueType:
-      if valueType == type( [] ):
+      if valueType is list:
         value = getListFromString( value )
-      elif valueType == type( 0 ):
+      elif valueType is int:
         value = int( value )
-      elif valueType == type( 0. ):
+      elif valueType is int:
         value = float( value )
-      elif valueType == type( True ):
+      elif valueType is bool:
         if value in ( 'False', 'No' ):
           value = False
         else:
@@ -743,7 +748,7 @@ class PluginUtilities( object ):
         try:
           recoProduction = res['Value'][0][18]
           self.logVerbose( 'Reconstruction production is %d' % recoProduction )
-        except Exception, _e:
+        except Exception as _e:
           self.logException( "Exception extracting reco production from %s" % str( res['Value'] ) )
           recoProduction = None
       else:
@@ -920,7 +925,7 @@ class PluginUtilities( object ):
     for ( cacheFile, prefixes ) in cacheFiles:
       if not cacheFile:
         continue
-      if type( prefixes ) == type( '' ):
+      if isinstance( prefixes, str ):
         prefixes = [prefixes]
       for node in prefixes:
         cacheFile = os.path.join( cacheFile, node )
@@ -1167,8 +1172,7 @@ def getListFromString( strParam ):
   """ Converts a string representing a list into a list
       The string may have [] or not, quotes or not around members
   """
-  import types
-  if type( strParam ) == types.StringType:
+  if isinstance( strParam, str ):
     if strParam == "[]" or strParam == '':
       return []
     if strParam[0] == '[' and strParam[-1] == ']':
