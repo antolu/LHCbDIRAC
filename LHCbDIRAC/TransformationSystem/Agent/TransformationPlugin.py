@@ -290,8 +290,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         runUpdate[runID] = False
       else:
         res = self.transClient.getTransformationFiles( condDict = {'TransformationID':self.transID,
-                                                                 'RunNumber':runID,
-                                                                 'Status':['Assigned', 'Processed']} )
+                                                                   'RunNumber':runID,
+                                                                   'Status':['Assigned', 'Processed']} )
         if not res['OK']:
           self.util.logError( "Failed to get transformation files for run", "%s %s" % ( runID, res['Message'] ) )
         else:
@@ -398,7 +398,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Now adjust taking into account the files already submitted
         runFraction = min( max( 0., ( runFraction * nbRaw - nbSubmitted ) / nbNew ), 1. )
         self.util.logInfo( 'Run %s: %d RAW files, %d submitted, will process %.1f%% of %d new files'
-                        % ( runID, nbRaw, nbSubmitted, 100. * runFraction, nbNew ) )
+                           % ( runID, nbRaw, nbSubmitted, 100. * runFraction, nbNew ) )
       if runFraction == 0.:
         # No need to group, just create a fake task for all files
         res = { 'OK': True, 'Value':[( '', lfns )]}
@@ -575,8 +575,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               runEvtType[paramValue] = res['Value'].get( lfn, 90000000 )
               self.util.logDebug( 'Event type%s: %s' % ( paramStr, str( runEvtType[paramValue] ) ) )
             else:
-              self.util.logWarn( "Can't determine event type for transformation%s, can't flush" % paramStr,
-                              res['Message'] )
+              self.util.logWarn( "Can't determine event type for transformation%s, can't flush" % paramStr, res['Message'] )
               runEvtType[paramValue] = None
           evtType = runEvtType[paramValue]
           if not evtType:
@@ -639,8 +638,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.util.logVerbose( "Set target SEs for run %s as %s" % ( str( runID ), str( targetSEs ) ) )
           res = self.transClient.setTransformationRunsSite( self.transID, runID, ','.join( targetSEs ) )
           if not res['OK']:
-            self.util.logError( "Failed to set target SEs to run %s as %s" % ( str( runID ), str( targetSEs ) ),
-                             res['Message'] )
+            self.util.logError( "Failed to set target SEs to run %s as %s" % ( str( runID ), str( targetSEs ) ), res['Message'] )
         self.util.setCachedRunLfns( runID, paramValue, [lfn for lfn in runParamLfns if lfn not in taskLfns] )
       # # # # # # # # # # #
       # End of param loop #
@@ -716,6 +714,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _ByRunEventTypeWithFlush( self ):
     # If groupSize is 1, no need to flush!
     groupSize = self.util.getPluginParam( 'GroupSize' )
+    if groupSize == 1:
+      return self._ByRun( param = 'EventTypeId' )
     return self._ByRun( param = 'EventTypeId', requireFlush = True )
 
   def _ByRunEventTypeSize( self ):
@@ -1068,8 +1068,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ Plugin used to remove disk replicas, keeping some (e.g. archives)
     """
     keepSEs = self.util.getPluginParam( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
-                                                 'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE',
-                                                 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+                                                    'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE',
+                                                    'PIC-ARCHIVE', 'RAL-ARCHIVE', 'RRCKI-ARCHIVE'] )
     return self._removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
   def _DeleteReplicas( self ):
@@ -1078,7 +1078,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     fromSEs = self.util.getPluginParam( 'FromSEs', [] )
     keepSEs = self.util.getPluginParam( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
                                                     'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE',
-                                                    'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+                                                    'PIC-ARCHIVE', 'RAL-ARCHIVE', 'RRCKI-ARCHIVE'] )
     mandatorySEs = self.util.getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] )
     # Allow removing explicitly from SEs in mandatorySEs
     mandatorySEs = [se for se in mandatorySEs if se not in fromSEs]
@@ -1132,7 +1132,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               # we should keep some in fromSEs, too bad
               targetSEs = randomize( targetSEs )[0:minKeep - nLeft]
               self.util.logInfo( "Found %d files that could only be deleted in %d of the requested SEs" % ( len( lfns ),
-                                                                                                    minKeep - nLeft ) )
+                                                                                                            minKeep - nLeft ) )
               self.util.logVerbose( "Target SEs, 2nd level: %s" % targetSEs )
           else:
             # Here the fromSEs are only a preference
@@ -1144,7 +1144,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             targetSEs = targetSEs[0:-minKeep]
         elif [se for se in fromSEs if se in existingSEs]:
           nLeft = len( [se for se in existingSEs if se not in fromSEs] )
-          self.util.logInfo( "Found %d files at requested SEs with not enough replicas (%d left, %d requested)" % ( len( lfns ), nLeft, minKeep ) )
+          self.util.logInfo( "Found %d files at requested SEs with not enough replicas (%d left, %d requested)" % ( len( lfns ),
+                                                                                                                    nLeft, minKeep ) )
           self.util.logVerbose( "First file at %s are: %s" % ( str( existingSEs ), lfns[0] ) )
           self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
           continue
@@ -1256,7 +1257,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               elif status != "Cleaned":
                 activeProds[procPass].append( int( prod ) )
           self.util.logInfo( "For procPass %s, found productions: %s, archived %s"
-                          % ( procPass, activeProds[procPass], archivedProds[procPass] ) )
+                             % ( procPass, activeProds[procPass], archivedProds[procPass] ) )
         productions = {'Active':activeProds, 'Archived':archivedProds}
         productions['CacheTime'] = now
 
@@ -1350,8 +1351,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
         if not res['OK']:
           self.util.logError( "Can't set %d files of transformation %s to 'Processed: %s'" % ( len( lfns ),
-                                                                                            str( self.transID ),
-                                                                                            res['Message'] ) )
+                                                                                               str( self.transID ),
+                                                                                                res['Message'] ) )
           return res
         continue
       targetSEs = [se for se in destSEs if se not in replicaSE]
@@ -1405,8 +1406,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', noOtherReplica )
         if not res['OK']:
           self.util.logError( "Can't set %d files of transformation %s to 'Problematic': %s" % ( len( noOtherReplica ),
-                                                                                               str( self.transID ),
-                                                                                               res['Message'] ) )
+                                                                                                 str( self.transID ),
+                                                                                                 res['Message'] ) )
       if noMissingSE:
         self.util.logInfo( "Found %d files that are already present in the destination SEs (set Processed)" % len( noMissingSE ) )
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', noMissingSE )

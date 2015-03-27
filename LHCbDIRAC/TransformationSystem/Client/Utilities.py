@@ -31,6 +31,9 @@ def timeThis( method ):
   """
 
   def timed( *args, **kw ):
+    """
+    times a function
+    """
     ts = time.time()
     result = method( *args, **kw )
     te = time.time()
@@ -165,8 +168,8 @@ class PluginUtilities( object ):
   """
 
   def __init__( self, plugin = 'LHCbStandard', transClient = None, dataManager = None, fc = None,
-                 bkClient = None, rmClient = None, resourceStatus = None,
-                 debug = False, transInThread = None, transID = None ):
+                bkClient = None, rmClient = None, resourceStatus = None,
+                debug = False, transInThread = None, transID = None ):
     """
     c'tor
     """
@@ -506,8 +509,7 @@ class PluginUtilities( object ):
       weightForSEs.pop( se )
     return rankedSEs
 
-  def setTargetSEs( self, numberOfCopies, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, existingSEs,
-                      exclusiveSEs = False ):
+  def setTargetSEs( self, numberOfCopies, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = False ):
     """ Decide on which SEs to target from lists and current status of replication
         Policy is max one archive1, one archive 2, all mandatory SEs and required number of copies elsewhere
     """

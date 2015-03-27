@@ -37,30 +37,37 @@ class TransformationManagerHandler( TManagerBase ):
 
 
   types_addBookkeepingQuery = [ [LongType, IntType], DictType ]
+  @classmethod
   def export_addBookkeepingQuery( self, transID, queryDict ):
     return database.addBookkeepingQuery( transID, queryDict )
 
   types_deleteBookkeepingQuery = [ [LongType, IntType] ]
+  @classmethod
   def export_deleteBookkeepingQuery( self, transID ):
     return database.deleteBookkeepingQuery( transID )
 
   types_getBookkeepingQuery = [ [LongType, IntType] ]
+  @classmethod
   def export_getBookkeepingQuery( self, transID ):
     return database.getBookkeepingQuery( transID )
   
   types_getTransformationsWithBkQueries = [ ListType ]
+  @classmethod
   def export_getTransformationsWithBkQueries(self, transIDs):
     return database.getTransformationsWithBkQueries( transIDs )
   
   types_setBookkeepingQueryEndRun = [ [LongType, IntType] , [LongType, IntType]]
+  @classmethod
   def export_setBookkeepingQueryEndRun( self, transID, runNumber ):
     return database.setBookkeepingQueryEndRun( transID, runNumber )
   
   types_setBookkeepingQueryStartRun = [ [LongType, IntType] , [LongType, IntType]]
+  @classmethod
   def export_setBookkeepingQueryStartRun( self, transID, runNumber ):
     return database.setBookkeepingQueryStartRun( transID, runNumber )
   
   types_addBookkeepingQueryRunList = [ [LongType, IntType] , [ListType]]
+  @classmethod
   def export_addBookkeepingQueryRunList( self, transID, runList ):
     return  database.addBookkeepingQueryRunList( transID, runList )
 
@@ -70,28 +77,34 @@ class TransformationManagerHandler( TManagerBase ):
   #
 
   types_getTransformationRuns = []
+  @classmethod
   def export_getTransformationRuns( self, condDict = {}, orderAttribute = None, limit = None ):
     return database.getTransformationRuns( condDict, orderAttribute = orderAttribute, limit = limit )
 
   types_insertTransformationRun = [[IntType, LongType], [IntType, LongType], StringTypes]
+  @classmethod
   def export_insertTransformationRun( self, transID, runID, selectedSite = '' ):
     return database.insertTransformationRun( transID, runID, selectedSite = '' )
 
   types_getTransformationRunStats = [[IntType, LongType, ListType]]
+  @classmethod
   def export_getTransformationRunStats( self, transIDs ):
-    if type( transIDs ) in ( int, long ):
+    if isinstance( transIDs, ( int, long ) ):
       transIDs = [transIDs]
     return database.getTransformationRunStats( transIDs )
 
   types_addTransformationRunFiles = [[LongType, IntType], [LongType, IntType], ListType]
+  @classmethod
   def export_addTransformationRunFiles( self, transID, runID, lfns ):
     return database.addTransformationRunFiles( transID, runID, lfns )
 
   types_setTransformationRunStatus = [[LongType, IntType], [LongType, IntType, ListType], StringTypes]
+  @classmethod
   def export_setTransformationRunStatus( self, transID, runID, status ):
     return database.setTransformationRunStatus( transID, runID, status )
 
   types_setTransformationRunsSite = [[LongType, IntType], [LongType, IntType], StringTypes]
+  @classmethod
   def export_setTransformationRunsSite( self, transID, runID, assignedSE ):
     return database.setTransformationRunsSite( transID, runID, assignedSE )
 
@@ -217,30 +230,35 @@ class TransformationManagerHandler( TManagerBase ):
   #
 
   types_addRunsMetadata = [[LongType, IntType], DictType]
+  @classmethod
   def export_addRunsMetadata( self, runID, metadataDict ):
     """ insert run metadata
     """
     return database.setRunsMetadata( runID, metadataDict )
 
   types_updateRunsMetadata = [[LongType, IntType], DictType]
+  @classmethod
   def export_updateRunsMetadata( self, runID, metadataDict ):
     """ insert run metadata
     """
     return database.updateRunsMetadata( runID, metadataDict )
 
   types_getRunsMetadata = [[LongType, IntType]]
+  @classmethod
   def export_getRunsMetadata( self, runID ):
     """ retrieve run metadata
     """
     return database.getRunsMetadata( runID )
 
   types_deleteRunsMetadata = [[LongType, IntType]]
+  @classmethod
   def export_deleteRunsMetadata( self, runID ):
     """ delete run metadata
     """
     return database.deleteRunsMetadata( runID )
 
   types_getRunsInCache = [DictType]
+  @classmethod
   def export_getRunsInCache( self, condDict ):
     """ gets what's in
     """
@@ -252,12 +270,14 @@ class TransformationManagerHandler( TManagerBase ):
   #
 
   types_getDestinationForRun = [[LongType, IntType]]
+  @classmethod
   def export_getDestinationForRun( self, runID ):
     """ retrieve run destination
     """
     return database.getDestinationForRun( runID )
 
   types_setDestinationForRun = [[LongType, IntType], StringType]
+  @classmethod
   def export_setDestinationForRun( self, runID, destination ):
     """ set run destination
     """
@@ -271,18 +291,21 @@ class TransformationManagerHandler( TManagerBase ):
   #
   
   types_addStoredJobDescription = [LongType, StringTypes]
+  @classmethod
   def export_addStoredJobDescription( self, transformationID, jobDescription ):
     return database.addStoredJobDescription( transformationID, jobDescription )
 
   types_getStoredJobDescription = [LongType]
+  @classmethod
   def export_getStoredJobDescription( self, transformationID ):
     return database.getStoredJobDescription( transformationID )
   
   types_removeStoredJobDescription = [LongType]
+  @classmethod
   def export_removeStoredJobDescription( self, transformationID ):
     return database.removeStoredJobDescription( transformationID )
 
   types_getStoredJobDescriptionIDs = []
+  @classmethod
   def export_getStoredJobDescriptionIDs( self ):
     return database.getStoredJobDescriptionIDs()
-
