@@ -297,6 +297,8 @@ class UsersAndGroups( AgentModule ):
     result = self.vomsSrv.admListRoles()
     if not result['OK']:
       self.log.fatal( 'Could not retrieve registered roles in VOMS' )
+      return S_ERROR( 'Could not retrieve registered roles in VOMS' )
+
     rolesInVOMS = result[ 'Value' ]
     self.log.info( "There are %s registered roles in VOMS" % len( rolesInVOMS ) )
 
