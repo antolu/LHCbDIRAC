@@ -342,11 +342,9 @@ class UsersAndGroups( AgentModule ):
 
     usersTmpInVOMS = []
     for checkUser in usersInVOMS:
-      self.log.info( "jj %s", checkUser )
       result = self.vomsSrv.admListCertificates( checkUser['DN'], checkUser['CA'] )
-      self.log.info( "jojo resu %s", result )
       if not result['OK']:
-        self.__adminMsgs[ 'Errors' ].append( "Could not retrieve info for DN %s" % chekUser[ 'DN' ] )
+        self.__adminMsgs[ 'Errors' ].append( "Could not retrieve info for DN %s" % checkUser[ 'DN' ] )
         self.log.error( "Could not get nickname for DN %s" % checkUser[ 'DN' ] )
         return result
       for userDN in result['Value']:
@@ -354,7 +352,7 @@ class UsersAndGroups( AgentModule ):
         if userDN['subject'] != checkUser['DN']:
           userNewDN['DN'] = userDN['subject']
           userNewDN['CA'] = userDN['issuer']
-          userNewDN['mail'] = userDN['mail']
+          userNewDN['mail'] = checkUser['mail']
           usersTmpInVOMS.append( userNewDN )
 
     usersInVOMS += usersTmpInVOMS
