@@ -23,10 +23,10 @@ class StorageUsageDB( DB ):
   """ .. class:: StorageUsageDB
   """
 
-  def __init__( self, maxQueueSize = 10 ):
+  def __init__( self ):
     """ Standard Constructor
     """
-    DB.__init__( self, 'StorageUsageDB', 'DataManagement/StorageUsageDB', maxQueueSize )
+    DB.__init__( self, 'StorageUsageDB', 'DataManagement/StorageUsageDB' )
     self.__initializeDB()
 
   def __initializeDB( self ):

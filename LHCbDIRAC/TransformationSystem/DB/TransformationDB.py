@@ -20,11 +20,11 @@ class TransformationDB( DIRACTransformationDB ):
   """ Extension of the DIRAC Transformation DB
   """
 
-  def __init__( self, dbname = None, dbconfig = None, maxQueueSize = 10, dbIn = None ):
+  def __init__( self, dbname = None, dbconfig = None, dbIn = None ):
     """ The standard constructor takes the database name (dbname) and the name of the
         configuration section (dbconfig)
     """
-    DIRACTransformationDB.__init__( self, dbname, dbconfig, maxQueueSize, dbIn )
+    DIRACTransformationDB.__init__( self, dbname, dbconfig, dbIn )
     self.lock = threading.Lock()
     self.queryFields = ['SimulationConditions', 'DataTakingConditions', 'ProcessingPass', 'FileType',
                         'EventType', 'ConfigName', 'ConfigVersion', 'ProductionID', 'DataQualityFlag',

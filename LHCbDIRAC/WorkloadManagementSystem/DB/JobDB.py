@@ -14,11 +14,11 @@ class JobDB( DIRACJobDB ):
   """ Extension of the DIRAC Job DB
   """
 
-  def __init__( self, maxQueueSize = 10 ):
+  def __init__( self ):
     """ The standard constructor takes the database name (dbname) and the name of the
         configuration section (dbconfig)
     """
-    DIRACJobDB.__init__( self, maxQueueSize )
+    DIRACJobDB.__init__( self )
 
   def getTimings( self, site, period = 3600 ):
     """ Get CPU and wall clock times for the jobs finished in the last hour

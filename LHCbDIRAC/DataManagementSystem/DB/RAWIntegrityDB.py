@@ -40,8 +40,8 @@ class RAWIntegrityDB( DB ):
                                  } 
 
 
-  def __init__( self, systemInstance = 'Default', maxQueueSize = 10 ):
-    DB.__init__( self, 'RAWIntegrityDB', 'DataManagement/RAWIntegrityDB', maxQueueSize )
+  def __init__( self, systemInstance = 'Default' ):
+    DB.__init__( self, 'RAWIntegrityDB', 'DataManagement/RAWIntegrityDB' )
 
 
   def _checkTable( self ):

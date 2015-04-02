@@ -31,10 +31,10 @@ class ProductionRequestDB( DB ):
   """ DB class for ProductionManagement/ProductionRequestDB
   """
 
-  def __init__( self, maxQueueSize = 10 ):
+  def __init__( self ):
     ''' Constructor
     '''
-    DB.__init__( self, 'ProductionRequestDB', 'ProductionManagement/ProductionRequestDB', maxQueueSize )
+    DB.__init__( self, 'ProductionRequestDB', 'ProductionManagement/ProductionRequestDB' )
     self.lock = threading.Lock()
 
 #################### Production Requests table ########################
