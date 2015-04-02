@@ -179,9 +179,9 @@ class UsersAndGroups( AgentModule ):
         for lfc_dn in registerUsers[lfcuser]:
           print lfc_dn
           body += 'add_DN_LFC --userDN="' + lfc_dn.strip() + '" --nickname=' + lfcuser + '\n'
-          bodyDFC += 'add-user-DFC --User "' + lfcuser + '\n'
+          bodyDFC += 'add-user-DFC --User ' + lfcuser + '\n'
 
-      body += bodyDFC
+      body += '\n\n' + bodyDFC
       NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
 
     if action == "change":
