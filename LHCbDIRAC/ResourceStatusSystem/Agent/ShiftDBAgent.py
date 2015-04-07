@@ -239,7 +239,7 @@ class ShiftDBAgent( AgentModule ):
     # Clear e-Group before inserting anything
     # self.__deleteMembers( client, wgroup )
 
-    self.log.info( 'Adding member %s to eGroup' % email )
+    self.log.info( 'Adding member %s to eGroup %s' % ( email, wgroup ) )
 
     members = []
     newmember = client.factory.create( 'ns0:MemberType' )
@@ -249,7 +249,7 @@ class ShiftDBAgent( AgentModule ):
     members.append( newmember )
     try:
       # The last boolean flag is to overwrite
-      client.service.AddEgroupMembers( wgroup, 'True', members )
+      client.service.AddEgroupMembers( wgroup, True, members )
     except suds.WebFault, wError:
       return S_ERROR( wError )
     return S_OK()
