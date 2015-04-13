@@ -15,11 +15,11 @@ __RCSID__ = "$Id$"
 
 class UsersAndGroups( AgentModule ):
 
-  def __init__( self ):
+  def __init__( self, *args, **kwargs ):
     """
     c'tor
     """
-
+    AgentModule.__init__( self, *args, **kwargs )
     self.vomsSrv = None
     self.proxyLocation = ".volatileId"
     self.__adminMsgs = {}
