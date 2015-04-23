@@ -1899,7 +1899,7 @@ class LHCbBookkeepingManager( BaseESManager ):
           for lfn in savePfn[lfns]:
             if lfn['pfntype'].upper() == 'ROOT_ALL':
               rootFormat = False
-              filesandformats[lfns] = lfn['pfntype']
+            filesandformats[lfns] = lfn['pfntype']
         elif savePfn[lfns]['pfntype'].upper() == 'ROOT_ALL':
           rootFormat = False
           filesandformats[lfns] = savePfn[lfns]['pfntype']
