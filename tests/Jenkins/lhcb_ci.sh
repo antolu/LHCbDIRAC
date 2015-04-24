@@ -186,7 +186,7 @@ function fullPilot(){
 	mv $WORKSPACE/etc/dirac.cfg $WORKSPACE/etc/dirac.cfg-not-here
 	
 	#Configure for CPUTimeLeft
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update.py $PILOTCFG -o /DIRAC/Security/UseServerCertificate=True $DEBUG
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update.py -F $PILOTCFG -o /DIRAC/Security/UseServerCertificate=True $DEBUG
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
 	#Set not to use the server certificate for running the jobs 
