@@ -165,7 +165,7 @@ function LHCbDIRACPilotInstall(){
 }
 
 
-function fullPilot(){
+function fullLHCbPilot(){
 
 	if [ ! -z "$DEBUG" ]
 	then
