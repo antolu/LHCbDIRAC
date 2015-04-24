@@ -21,6 +21,7 @@ LHCbDIRAC_PILOT_COMMANDS='http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIR
 #install file
 INSTALL_CFG_FILE='$WORKSPACE/LHCbTestDirac/Jenkins/install.cfg'
 
+
 #.............................................................................
 #
 # findRelease for LHCbDIRAC:
@@ -130,21 +131,6 @@ function diracInstall(){
 }
 
 
-#.............................................................................
-#
-# downloadProxy:
-#
-#   dowloads a proxy from the ProxyManager into a file
-#
-#.............................................................................
-
-function downloadProxy(){
-	echo '[downloadProxy]'
-	
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-proxy-download.py -o /DIRAC/Security/UseServerCertificate=True pilot.cfg $DEBUG
-}
-
-
 #-------------------------------------------------------------------------------
 # Here is where the real functions start
 #-------------------------------------------------------------------------------
@@ -194,17 +180,17 @@ function fullPilot(){
 	source bashrc
 	
 	#Adding the LocalSE and the CPUTimeLeft, for the subsequent tests
-	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O pilot.cfg pilot.cfg $DEBUG
+	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTCFG $PILOTCFG $DEBUG
 	
 	#be sure we only have pilot.cfg
 	mv $WORKSPACE/etc/dirac.cfg $WORKSPACE/etc/dirac.cfg-not-here
 	
 	#Configure for CPUTimeLeft
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update.py pilot.cfg -o /DIRAC/Security/UseServerCertificate=True $DEBUG
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update.py $PILOTCFG -o /DIRAC/Security/UseServerCertificate=True $DEBUG
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
 	#Set not to use the server certificate for running the jobs 
-	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O pilot.cfg pilot.cfg $DEBUG
+	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O $PILOTCFG $PILOTCFG $DEBUG
 }
 
 
@@ -226,11 +212,11 @@ function submitAndMatch(){
 	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-test-job.py
 
 	#put pilot cfg in, and modify the necessary
-	cp $WORKSPACE/LHCbTestDirac/Jenkins/pilot.cfg $WORKSPACE
-	sed -i s/VAR_ReleaseVersion/`cat project.version`/g $WORKSPACE/pilot.cfg
+	cp $WORKSPACE/LHCbTestDirac/Jenkins/$PILOTCFG $WORKSPACE
+	sed -i s/VAR_ReleaseVersion/`cat project.version`/g $WORKSPACE/$PILOTCFG
 	
 	#try running the job agent. The job should be matched and everything should be "ok"
-	dirac-agent WorkloadManagement/JobAgent -o MaxCycles=1 -s /Resources/Computing/CEDefaults -o WorkingDirectory=$PWD -o TotalCPUs=1 -o MaxCPUTime=47520 -o CPUTime=47520 -o MaxRunningJobs=1 -o MaxTotalJobs=10 -o /LocalSite/InstancePath=$PWD -o /AgentJobRequirements/ExtraOptions=pilot.cfg pilot.cfg $DEBUG
+	dirac-agent WorkloadManagement/JobAgent -o MaxCycles=1 -s /Resources/Computing/CEDefaults -o WorkingDirectory=$PWD -o TotalCPUs=1 -o MaxCPUTime=47520 -o CPUTime=47520 -o MaxRunningJobs=1 -o MaxTotalJobs=10 -o /LocalSite/InstancePath=$PWD -o /AgentJobRequirements/ExtraOptions=$PILOTCFG $PILOTCFG $DEBUG
 }
 
 
