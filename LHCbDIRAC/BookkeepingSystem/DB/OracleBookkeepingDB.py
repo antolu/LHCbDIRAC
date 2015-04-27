@@ -3657,7 +3657,7 @@ and files.qualityid= dataquality.qualityid'
     jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst, jtck from \
               (select rownum r, fname, fstat, fsize, fcreation, jstat, jend, jnode, ftypen,\
                evttypeid, jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst, jtck from \
-                  (select /*+PARALLEL(bview)*/ ROWNUM r, f.FileName fname, f.EventStat fstat, f.FileSize fsize, \
+                  (select /*+NOPARALLEL(bview)*/ ROWNUM r, f.FileName fname, f.EventStat fstat, f.FileSize fsize, \
                   f.CreationDate fcreation, j.JobStart jstat, j.JobEnd jend, j.WorkerNode jnode, \
                   ftypes.Name ftypen, f.eventtypeid evttypeid, j.runnumber jrun, j.fillnumber jfill,\
                    f.fullstat ffull, d.dataqualityflag dflag,j.eventinputstat jevent, j.totalluminosity jtotal,\
