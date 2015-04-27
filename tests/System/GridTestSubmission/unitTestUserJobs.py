@@ -32,7 +32,7 @@ class GridSubmissionTestCase( unittest.TestCase ):
       
     result = ResourceStatus().getStorageElementStatus( 'PIC-USER', 'WriteAccess' )
     if result['Value']['PIC-USER']['WriteAccess'].lower() != 'banned':
-      print "BAN PIC-USER in writing!"
+      print "BAN PIC-USER in writing! and then restart this test"
       exit( 1 )
 
   def tearDown( self ):
@@ -54,7 +54,8 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
     helloJ.setCPUTime( 17800 )
-    tier1s = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl']
+    tier1s = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.NIKHEF.nl',
+              'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl', 'LCG.RRCKI.ru']
     helloJ.setBannedSites( tier1s )
     result = self.dirac.submit( helloJ )
     gLogger.info( "Hello world job: ", result )
