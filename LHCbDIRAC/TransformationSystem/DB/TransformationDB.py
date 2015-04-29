@@ -292,7 +292,7 @@ class TransformationDB( DIRACTransformationDB ):
 
         if isinstance( value, ( int, long, float ) ):
           value = str( value )
-        if isinstance( value ( list, tuple ) ):
+        if isinstance( value, ( list, tuple ) ):
           value = [str( x ) for x in value]
           value = ';;;'.join( value )
       values.append( value )
