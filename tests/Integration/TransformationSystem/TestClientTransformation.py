@@ -32,10 +32,8 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
                                                                        'EventType': 12345} )
     self.assert_( res['OK'] )
     transID = res['Value']
-
     res = self.transClient.getBookkeepingQuery( transID )
     self.assert_( res['OK'] )
-
     res = self.transClient.setBookkeepingQueryStartRun( transID, 1 )
     self.assert_( res['OK'] )
     res = self.transClient.setBookkeepingQueryEndRun( transID, 10 )
@@ -44,7 +42,6 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     self.assert_( res['OK'] )
     self.assertEqual( res['Value'], {'StartRun': 1L, 'EndRun': 10L,
                                      'EventType': 12345L, 'DataTakingConditions':'DataTakingConditions'} )
-
     res = self.transClient.addBookkeepingQueryRunList( transID, [2, 3, 4, 5] )
     self.assert_( res['OK'] )
     res = self.transClient.getBookkeepingQuery( transID )
@@ -72,11 +69,16 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
 
      # test managing RunDestination table
     res = self.transClient.setDestinationForRun( 1, 'CERN-RAW' )
+    self.assert_( res )
+    res = self.transClient.getDestinationForRun( [1] )
     self.assert_( res['OK'] )
-    res = self.transClient.getDestinationForRun( 1 )
+    self.assertEqual( res['Value'], ( 1, 'CERN-RAW' ) )
+    res = self.transClient.getDestinationForRun( [ 111, 113, 116 ] )
     self.assert_( res['OK'] )
-    self.assert_( res['Value'], 'CERN-RAW' )
-
+    self.assertEqual( res['Value'], ( ( 111, 'CERN' ), ( 113, 'italy' ), ( 116, 'germany' ) ) )
+    res = self.transClient.getDestinationForRun( [ 360] )
+    self.assertEqual( res['Value'], "" )
+    self.assert_( res['OK'] )
     # FIXME: first, I should add some...
     res = self.transClient.insertTransformationRun( transID, 767, 'PIPPO_SE' )
     self.assert_( res['OK'] )
