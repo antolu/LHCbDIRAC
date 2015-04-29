@@ -31,6 +31,8 @@ class UserJobTestCase( IntegrationTest ):
     del self.lhcbJob
 
 class HelloWorldSuccess( UserJobTestCase ):
+  """ Simple hello world
+  """
   def test_Integration_User( self ):
 
     self.lhcbJob.setName( "helloWorld-test" )
@@ -39,6 +41,8 @@ class HelloWorldSuccess( UserJobTestCase ):
     self.assertTrue( res['OK'] )
 
 class HelloWorldSuccessWithJobID( UserJobTestCase ):
+  """ Simple hello world, but with a fake JobID
+  """
   def test_Integration_User( self ):
 
     os.environ['JOBID'] = '12345'
@@ -51,6 +55,8 @@ class HelloWorldSuccessWithJobID( UserJobTestCase ):
     del os.environ['JOBID']
 
 class HelloWorldSuccessOutput( UserJobTestCase ):
+  """ Hello world that produces an output
+  """
   def test_Integration_User( self ):
 
     self.lhcbJob.setName( "helloWorld-test" )
@@ -60,6 +66,8 @@ class HelloWorldSuccessOutput( UserJobTestCase ):
     self.assertTrue( res['OK'] )
 
 class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
+  """ Hello world that produces an output and has a jobID (it will try to upload)
+  """
   def test_Integration_User( self ):
 
     os.environ['JOBID'] = '12345'
@@ -74,6 +82,8 @@ class HelloWorldSuccessOutputWithJobID( UserJobTestCase ):
 
 class GaudirunSuccess( UserJobTestCase ):
   def test_Integration_User_mc( self ):
+    """ A MC production job, run as a user job
+    """
 
     self.lhcbJob.setName( "gaudirun-test" )
     self.lhcbJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'Integration' )[0],
@@ -96,6 +106,8 @@ class GaudirunSuccess( UserJobTestCase ):
     self.assertTrue( res['OK'] )
 
   def test_Integration_User_boole( self ):
+    """ A Boole production job, run as a user job
+    """
 
     # get a shifter proxy
     setupShifterProxyInEnv( 'ProductionManager' )
@@ -143,15 +155,23 @@ class GaudirunSuccess( UserJobTestCase ):
 class UserJobsFailingLocalSuccess( FailingUserJobTestCase ):
 
   def test_Integration_User_Failing( self ):
+    """ This job will fail everything that can fail
+    """
+
     print "Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info"
     print "This will generate a local job"
     os.environ['JOBID'] = '12345'
 
     gaudirunJob = createJob()
     result = DiracLHCb().submit( gaudirunJob, mode = 'Local' )
-    self.assertTrue( result['OK'] )
+    self.assertFalse( result['OK'] )
 
     del os.environ['JOBID']
+
+
+########################################################################################################################
+########################################################################################################################
+
 
 def createJob( local = True ):
 
@@ -226,6 +246,8 @@ def createJob( local = True ):
 
   return gaudirunJob
 
+########################################################################################################################
+########################################################################################################################
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( UserJobTestCase )
