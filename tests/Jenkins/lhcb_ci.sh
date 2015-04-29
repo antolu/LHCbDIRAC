@@ -111,22 +111,14 @@ function findRelease(){
 
 #.............................................................................
 #
-# diracInstall:
+# diracInstallCommand:
 #
-#   This function gets the DIRAC install script defined on $DIRAC_INSTAll and
-#   runs it with some hardcoded options. The only option that varies is the 
-#   project version, in this case LHCb project version, obtained from the file
-#   'project.version'.
+#   Specialized command: 
+#	LHCb project version, obtained from the file 'project.version'.
 #
 #.............................................................................
 
-function diracInstall(){
-	echo '[diracInstall]'
-
-	cd $WORKSPACE
-
-	wget --no-check-certificate -O dirac-install $DIRAC_INSTALL
-	chmod +x dirac-install
+function diracInstallCommand(){
 	./dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
 }
 
