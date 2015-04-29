@@ -55,9 +55,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.transFiles = []
     self.transID = None
     self.debug = debug
-    self.util = PluginUtilities( plugin, self.transClient, self.dm, self.bkClient,
-                                 self.rmClient, self.resourceStatus, debug,
-                                 transInThread if transInThread else {} )
+    self.util = PluginUtilities( plugin = plugin,
+                                 transClient = self.transClient, dataManager = self.dm,
+                                 bkClient = self.bkClient, rmClient = self.rmClient, resourceStatus = self.resourceStatus,
+                                 debug = debug, transInThread = transInThread if transInThread else {} )
     self.setDebug( self.util.getPluginParam( 'Debug', False ) )
 
   def voidMethod( self, _id, invalidateCache = False ):
