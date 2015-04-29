@@ -60,7 +60,7 @@ class NagiosTopologyAgent( AgentModule ):
 
     # loop over sites
 
-    for middleware in ['LCG', 'ARC']:
+    for middleware in ['LCG']:
 
       sites = gConfig.getSections( 'Resources/Sites/%s' % middleware )
       if not sites[ 'OK' ]:
