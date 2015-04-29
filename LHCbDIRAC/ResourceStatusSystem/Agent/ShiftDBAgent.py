@@ -164,11 +164,11 @@ class ShiftDBAgent( AgentModule ):
         morning, afternoon, evening = line.split( '|' )[ 4 : 7 ]
 
         if morning != '':
-           email = morning
+          email = morning
         elif afternoon != '':
-           email = afetrnoon
+          email = afternoon
         else:
-           email = evening
+          email = evening
 
         if now > 22 or now < 6:
           email = evening
