@@ -22,7 +22,7 @@ def checkEnv():
 
 
 def checkDN ( userDN, nickname ):
-  statement = "voms-admin --vo lhcb --host voms.cern.ch list-users |grep '" + userDN + "'"
+  statement = "voms-admin --vo lhcb --host voms2.cern.ch list-users |grep '" + userDN + "'"
   res = os.popen( statement )
   s = res.readline()
   dn_info = s.split( ',' )
@@ -32,7 +32,7 @@ def checkDN ( userDN, nickname ):
     return -1
   res.close()
   userCA = dn_info[1].strip()
-  statement = "voms-admin --host voms.cern.ch --vo lhcb --nousercert list-user-attributes '" + userDN + "'" + " '" + userCA + "'"
+  statement = "voms-admin --host voms2.cern.ch --vo lhcb --nousercert list-user-attributes '" + userDN + "'" + " '" + userCA + "'"
   print statement
   res = os.popen( statement )
   s = res.readline()
