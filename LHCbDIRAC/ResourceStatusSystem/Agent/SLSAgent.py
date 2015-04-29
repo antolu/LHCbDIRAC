@@ -569,26 +569,26 @@ class LOGSETest( TestBase ):
 #       xmlfile.close()
 #
 #     return lfn
-
-  def cleanMasterTest( self, lfn ):
-
-    try:
-
-      res = self.diracAPI.removeFile( lfn )
-
-      if not res['OK']:
-        gLogger.error( res['Message'] )
-        return False
-
-      if res['Value']['Successful'].has_key( lfn ):
-        return True
-
-      gLogger.warn( res[ 'Value' ] )
-      return False
-
-    except Exception, e:
-      gLogger.error( e )
-      return False
+#
+#   def cleanMasterTest( self, lfn ):
+#
+#     try:
+#
+#       res = self.diracAPI.removeFile( lfn )
+#
+#       if not res['OK']:
+#         gLogger.error( res['Message'] )
+#         return False
+#
+#       if res['Value']['Successful'].has_key( lfn ):
+#         return True
+#
+#       gLogger.warn( res[ 'Value' ] )
+#       return False
+#
+#     except Exception, e:
+#       gLogger.error( e )
+#       return False
 
 
 class SLSAgent( AgentModule ):
