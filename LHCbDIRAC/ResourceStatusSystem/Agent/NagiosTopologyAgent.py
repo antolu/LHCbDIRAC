@@ -60,7 +60,14 @@ class NagiosTopologyAgent( AgentModule ):
 
     # loop over sites
 
-    for middleware in ['LCG']:
+    middlewareTypes = []
+    ret = gConfig.getSections('Resources/Sites') 
+    if not ret[ 'OK' ] : 
+       gLogger.error( ret[ 'Message' ] )
+       return ret
+    else : middlewareTypes = ret['Value']
+
+    for middleware in middlewareTypes :
 
       sites = gConfig.getSections( 'Resources/Sites/%s' % middleware )
       if not sites[ 'OK' ]:
@@ -78,51 +85,51 @@ class NagiosTopologyAgent( AgentModule ):
 
         site_name = site_opts.get( 'Name' )
         site_tier = site_opts.get( 'MoUTierLevel', 'None' )
-        has_grid_elem = False
-        xml_site = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
+        # we are only interested in sites with a MoUTierLevel, i.e. WLCG sites, for the WLCG topology map
+        if site_tier != 'None' :  
+          site_subtier = site_opts.get( 'SubTier', 'None' )
+          has_grid_elem = False
+          xml_site = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
 
-        # CE info
-        ces = gConfig.getSections( 'Resources/Sites/%s/%s/CEs' % ( middleware, site ) )
-        if ces[ 'OK' ]:
-          res = self.__writeCEInfo( xml_doc, middleware, xml_site, site, ces[ 'Value' ] )
-          # Update has_grid_elem
-          has_grid_elem = res or has_grid_elem
+          # CE info
+          ces = gConfig.getSections( 'Resources/Sites/%s/%s/CEs' % ( middleware, site ) )
+          if ces[ 'OK' ]:
+            res = self.__writeCEInfo( xml_doc, middleware, xml_site, site, ces[ 'Value' ] )
+            # Update has_grid_elem
+            has_grid_elem = res or has_grid_elem
 
-        # SE info
-        if site_opts.has_key( 'SE' ) and site_tier in [ '0', '1', '2' ]:
-          res = self.__writeSEInfo( xml_doc, xml_site, site )
-          # Update has_grid_elem
-          has_grid_elem = res or has_grid_elem
+          # SE info
+          if site_opts.has_key( 'SE' ) and  ( site_tier in [ '0', '1', '2' ] or site_subtier in ['T2-D'] ):
+            res = self.__writeSEInfo( xml_doc, xml_site, site )
+            # Update has_grid_elem
+            has_grid_elem = res or has_grid_elem
 
-        # FileCatalog info
-#         sites = gConfig.getSections( 'Resources/FileCatalogs/LcgFileCatalogCombined' )
-#         if sites['OK'] and site in sites['Value']:
-#           res = self.__writeFileCatalogInfo( xml_doc, xml_site, site )
-#           # Update has_grid_elem
-#           has_grid_elem = res or has_grid_elem
+          # Site info will be put if we found at least one CE, SE or LFC element
+          if has_grid_elem:
+            xml_append( xml_doc, xml_site, 'group', name = 'Tier ' + site_tier, type = 'LHCb_Tier' )
+            xml_append( xml_doc, xml_site, 'group', name = site, type = 'LHCb_Site' )
+            xml_append( xml_doc, xml_site, 'group', name = site, type = 'All Sites' )
+            try:
+              if site_subtier == 'T2-D':
+                xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2D' )
+                xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 2D' )
 
-        # Site info will be put if we found at least one CE, SE or LFC element
-        if has_grid_elem:
-          xml_append( xml_doc, xml_site, 'group', name = 'Tier ' + site_tier, type = 'LHCb_Tier' )
-          xml_append( xml_doc, xml_site, 'group', name = site, type = 'LHCb_Site' )
-          xml_append( xml_doc, xml_site, 'group', name = site, type = 'All Sites' )
-          try:
-            if int( site_tier ) == 2:
-              xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2' )
+              elif int( site_tier ) == 2:
+                xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 2' )
 
-            else:  # site_tier can be only 1 or 0, (see site_tier def above to convince yourself.)
-              # If site_type is None, then we go to the exception.
-              xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2' )
-              xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1' )
+              else:  # site_tier can be only 1 or 0, (see site_tier def above to convince yourself.)
+                # If site_type is None, then we go to the exception.
+                xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1/2D' )
+                xml_append( xml_doc, xml_site, 'group', name = site, type = 'Tier 0/1' )
 
-          except ValueError:  # Site tier is None, do nothing
-            pass
+            except ValueError:  # Site tier is None, do nothing
+              pass
 
-        else :
-          _msg = "Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml"
-          _msg = _msg % ( site, site_name )
-          self.log.warn( _msg )
-          xml_root.removeChild( xml_site )
+          else :
+            _msg = "Site %s, (WLCG Name: %s) has no CE, SE or LFC, thus will not be put into the xml"
+            _msg = _msg % ( site, site_name )
+            self.log.warn( _msg )
+            xml_root.removeChild( xml_site )
 
     # produce the xml
     xmlf = open( self.xmlPath + "lhcb_topology.xml", 'w' )
@@ -191,13 +198,8 @@ class NagiosTopologyAgent( AgentModule ):
     """
     has_grid_elem = True
 
-    splittedSite = site.split( "." )[ 1 ]
-    if splittedSite != 'NIKHEF':
-      real_site_name = splittedSite
-    else:
-      real_site_name = 'SARA'
-
-    site_se_opts = gConfig.getOptionsDict( 'Resources/StorageElements/%s-RAW/AccessProtocol.1' % real_site_name )
+    real_site_name = site.split( "." )[ 1 ]
+    site_se_opts = gConfig.getOptionsDict( 'Resources/StorageElements/%s-DST/AccessProtocol.1' % real_site_name )
 
     if not site_se_opts[ 'OK' ]:
       gLogger.error( site_se_opts[ 'Message' ] )
@@ -214,32 +216,6 @@ class NagiosTopologyAgent( AgentModule ):
 
     xml_append( xml_doc, xml_site, 'service', hostname = site_se_name,
                      flavour = site_se_type )
-
-    return has_grid_elem
-
-  @staticmethod
-  def __writeFileCatalogInfo( xml_doc, xml_site, site ):
-    """
-      Writes FileCatalog information in the XML Document
-    """
-
-    has_grid_elem = True
-
-    site_fc_opts = gConfig.getOptionsDict( 'Resources/FileCatalogs/LcgFileCatalogCombined/%s' % site )
-    if not site_fc_opts[ 'OK' ]:
-      gLogger.error( site_fc_opts[ 'Message' ] )
-      return False
-    site_fc_opts = site_fc_opts[ 'Value' ]
-
-    if site_fc_opts.has_key( 'ReadWrite' ):
-      xml_append( xml_doc, xml_site, 'service',
-                       hostname = site_fc_opts.get( 'ReadWrite' ),
-                       flavour = 'Central-LFC' )
-
-    if site_fc_opts.has_key( 'ReadOnly' ):
-      xml_append( xml_doc, xml_site, 'service',
-                       hostname = site_fc_opts.get( 'ReadOnly' ),
-                       flavour = 'Local-LFC' )
 
     return has_grid_elem
 
