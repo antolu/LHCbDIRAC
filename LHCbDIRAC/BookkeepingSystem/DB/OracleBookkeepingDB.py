@@ -1047,7 +1047,7 @@ class OracleBookkeepingDB:
                             filetype = default, quality = default,
                             visible = default, replicaflag = default,
                             startDate = None, endDate = None, runnumbers = list(),
-                            startRunID = default, endRunID = default ):
+                            startRunID = None, endRunID = None ):
     """return a list of files with their metadata"""
     condition = ''
 
