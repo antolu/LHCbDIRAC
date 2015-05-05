@@ -11,7 +11,8 @@ if __name__ == "__main__":
 
   import DIRAC
   from DIRAC.Core.Base import Script
-  from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript, getRemovalPlugins, getReplicationPlugins
+  from LHCbDIRAC.TransformationSystem.Utilities.PluginScript import PluginScript
+  from LHCbDIRAC.TransformationSystem.Client.Utilities import getRemovalPlugins, getReplicationPlugins
   import time
 
   pluginScript = PluginScript()

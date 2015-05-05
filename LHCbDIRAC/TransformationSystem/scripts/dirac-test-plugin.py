@@ -183,7 +183,7 @@ def printFinalSEs( transType, location, targets ):
 if __name__ == "__main__":
   import DIRAC
   from DIRAC.Core.Base import Script
-  from LHCbDIRAC.TransformationSystem.Client.Utilities   import PluginScript
+  from LHCbDIRAC.TransformationSystem.Utilities.PluginScript import PluginScript
 
   pluginScript = PluginScript()
   pluginScript.registerPluginSwitches()
