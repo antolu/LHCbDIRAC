@@ -75,17 +75,23 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     self.assertEqual( res['Value'], ( 1, 'CERN-RAW' ) )
     res = self.transClient.getDestinationForRun( [ 111, 113, 116 ] )
     self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], ( ( 111, 'CERN' ), ( 113, 'italy' ), ( 116, 'germany' ) ) )
-    res = self.transClient.getDestinationForRun( [ 360] )
-    self.assertEqual( res['Value'], "" )
+    self.assertEqual( res['Value'], [] )
+    # now, let's insert them...
+    self.transClient.setDestinationForRun( 111, 'CERN' )
+    self.transClient.setDestinationForRun( 113, 'italy' )
+    self.transClient.setDestinationForRun( 116, 'germany' )
+    res = self.transClient.getDestinationForRun( [ 111, 113, 116 ] )
     self.assert_( res['OK'] )
-    # FIXME: first, I should add some...
+    self.assertEqual( res['Value'], [ ( 111, 'CERN' ), ( 113, 'italy' ), ( 116, 'germany' ) ] )
+    res = self.transClient.getDestinationForRun( '360' )
+    self.assert_( res['OK'] )
+    self.assertEqual( res['Value'], [] )
+
+    # test managing TransformationRuns table
     res = self.transClient.insertTransformationRun( transID, 767, 'PIPPO_SE' )
     self.assert_( res['OK'] )
-
     res = self.transClient.insertTransformationRun( transID, 768, 'PIPPO_SE' )
     self.assert_( res['OK'] )
-
     res = self.transClient.getTransformationRuns()
     runs = [element['RunNumber'] for element in res ['Value']]
     self.assert_( res['OK'] )
