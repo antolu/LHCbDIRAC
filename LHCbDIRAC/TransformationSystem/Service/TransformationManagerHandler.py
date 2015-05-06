@@ -269,11 +269,16 @@ class TransformationManagerHandler( TManagerBase ):
   # Managing the RunDestination table
   #
 
-  types_getDestinationForRun = [ListType]
+  types_getDestinationForRun = [LongType, IntType, StringTypes, ListType]
   @classmethod
   def export_getDestinationForRun( self, runIDs ):
     """ retrieve run destination for a single run or a list of runs
     """
+    if isinstance( runIDs, ( int, long ) ):
+      runIDs = [runIDs]
+    if isinstance( runIDs, str ):
+      runIDs = [long( runIDs )]
+    # expecting a list of long integers
     return database.getDestinationForRun( runIDs )
 
   types_setDestinationForRun = [[LongType, IntType], StringType]

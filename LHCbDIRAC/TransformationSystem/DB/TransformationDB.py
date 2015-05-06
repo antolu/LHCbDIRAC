@@ -715,10 +715,6 @@ class TransformationDB( DIRACTransformationDB ):
     """ get destination of a run or a list of runs.
     """
     connection = self.__getConnection( connection )
-    if isinstance( runIDs, int ):
-      runIDs = [runIDs]
-    if isinstance( runIDs, str ):
-      runIDs = [int( runIDs )]
     req = "SELECT * FROM RunDestination WHERE RunNumber IN (%s)" % ( ', '.join( [str( runID ) for runID in runIDs] ) )
     res = self._query( req, connection )
     if not res['OK']:
