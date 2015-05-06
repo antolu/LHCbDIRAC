@@ -715,18 +715,18 @@ class TransformationDB( DIRACTransformationDB ):
     """ get destination of a run or a list of runs.
     """
     connection = self.__getConnection( connection )
-    req = "SELECT * FROM RunDestination WHERE RunNumber IN (%s)" % ( ', '.join( [str( t ) for t in runIDs] ) )
+    if isinstance( runIDs, int ):
+      runIDs = [runIDs]
+    if isinstance( runIDs, str ):
+      runIDs = [int( runIDs )]
+    req = "SELECT * FROM RunDestination WHERE RunNumber IN (%s)" % ( ', '.join( [str( runID ) for runID in runIDs] ) )
     res = self._query( req, connection )
     if not res['OK']:
       gLogger.error( "Failure executing %s" % str( req ) )
       return res
     if not res['Value']:
-      return S_OK( "" )
-    elif len( runIDs ) == 1:
-      return S_OK( res['Value'][0] )
-    else:
-      return S_OK( res['Value'] )
-
+      return S_OK( [] )
+    return S_OK( [runDest for runDest in res['Value']] )
 
   def setDestinationForRun( self, runID, destination, connection = False ):
     """ set destination of a run.
