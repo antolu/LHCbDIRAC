@@ -178,6 +178,9 @@ function fullLHCbPilot(){
 	mv $WORKSPACE/etc/dirac.cfg $WORKSPACE/etc/dirac.cfg-not-here
 	
 	getUserProxy
+
+	#Set not to use the server certificate for running the jobs 
+	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O $PILOTCFG $PILOTCFG $DEBUG
 }
 
 function getUserProxy(){
@@ -186,8 +189,6 @@ function getUserProxy(){
 	python $WORKSPACE/TestDIRAC/Jenkins/dirac-cfg-update.py -F $PILOTCFG -o /DIRAC/Security/UseServerCertificate=True $DEBUG
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
-	#Set not to use the server certificate for running the jobs 
-	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O $PILOTCFG $PILOTCFG $DEBUG
 
 }
 
@@ -227,7 +228,7 @@ function submitJob(){
 	source LHCbTestDirac/Jenkins/lhcb_ci.sh
 	
 	#Setup Release
-	preReleaseValue = $PRERELEASE
+	export PRERELEASEVALUE=$PRERELEASE
 	PRERELEASE=''
 	findRelease
 	SetupProject LHCbDIRAC `cat project.version`
@@ -235,10 +236,10 @@ function submitJob(){
 	
 	#Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
 	getUserProxy
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-test-job.py $PILOTCFG $DEBUG
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-test-job.py $DEBUG
 	
 	#reset
-	export PRERELEASE=$preReleaseValue
+	export PRERELEASE=$PRERELEASEVALUE
 }
 
 
