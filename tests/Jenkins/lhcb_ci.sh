@@ -210,6 +210,8 @@ function submitAndMatch(){
 	#cp $WORKSPACE/LHCbTestDirac/Jenkins/$PILOTCFG $WORKSPACE
 	sed -i s/VAR_ReleaseVersion/`cat project.version`/g $WORKSPACE/$PILOTCFG
 	
+	sleep 60
+	
 	#try running the job agent. The job should be matched and everything should be "ok"
 	dirac-agent WorkloadManagement/JobAgent -o MaxCycles=1 -s /Resources/Computing/CEDefaults -o WorkingDirectory=$PWD -o TotalCPUs=1 -o MaxCPUTime=47520 -o CPUTime=47520 -o MaxRunningJobs=1 -o MaxTotalJobs=10 -o /LocalSite/InstancePath=$PWD -o /AgentJobRequirements/ExtraOptions=$PILOTCFG $PILOTCFG $DEBUG
 }
