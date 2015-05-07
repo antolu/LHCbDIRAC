@@ -177,14 +177,19 @@ function fullLHCbPilot(){
 	#be sure we only have pilot.cfg
 	mv $WORKSPACE/etc/dirac.cfg $WORKSPACE/etc/dirac.cfg-not-here
 	
+	getUserProxy
+}
+
+function getUserProxy(){
+
 	#Configure for CPUTimeLeft
 	python $WORKSPACE/TestDIRAC/Jenkins/dirac-cfg-update.py -F $PILOTCFG -o /DIRAC/Security/UseServerCertificate=True $DEBUG
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
 	#Set not to use the server certificate for running the jobs 
 	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O $PILOTCFG $PILOTCFG $DEBUG
-}
 
+}
 
 function submitAndMatch(){
 	
@@ -197,23 +202,43 @@ function submitAndMatch(){
 	#Here, since I have CVMFS only, I can't use the "latest" pre-release, because won't be on CVMFS
 	# I execute in a subshell 
 	(
-		source LHCbTestDirac/Jenkins/lhcb_ci.sh
-		findRelease
-		SetupProject LHCbDIRAC `cat project.version`
-		export PYTHONPATH=$PYTHONPATH:$WORKSPACE
-		downloadProxy
-		#submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
-		python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-test-job.py $PILOTCFG $DEBUG
+		submitJob
 	)
 
 	#put pilot cfg in, and modify the necessary
 	#cp $WORKSPACE/LHCbTestDirac/Jenkins/$PILOTCFG $WORKSPACE
-	sed -i s/VAR_ReleaseVersion/`cat project.version`/g $WORKSPACE/$PILOTCFG
+	#sed -i s/VAR_ReleaseVersion/`cat project.version`/g $WORKSPACE/$PILOTCFG
 	
-	sleep 60
+	#Run the full pilot, including the JobAgent
+	python dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -C $CSURL -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG
+
+		#try running the job agent. The job should be matched and everything should be "ok"
+	#dirac-agent WorkloadManagement/JobAgent -o MaxCycles=1 -s /Resources/Computing/CEDefaults -o WorkingDirectory=$PWD -o TotalCPUs=1 -o MaxCPUTime=47520 -o CPUTime=47520 -o MaxRunningJobs=1 -o MaxTotalJobs=10 -o /LocalSite/InstancePath=$PWD -o /AgentJobRequirements/ExtraOptions=$PILOTCFG $PILOTCFG $DEBUG
+}
+
+function submitJob(){
+
+	if [ ! -z "$DEBUG" ]
+	then
+		echo 'Running in DEBUG mode'
+		export DEBUG='-ddd'
+	fi  
 	
-	#try running the job agent. The job should be matched and everything should be "ok"
-	dirac-agent WorkloadManagement/JobAgent -o MaxCycles=1 -s /Resources/Computing/CEDefaults -o WorkingDirectory=$PWD -o TotalCPUs=1 -o MaxCPUTime=47520 -o CPUTime=47520 -o MaxRunningJobs=1 -o MaxTotalJobs=10 -o /LocalSite/InstancePath=$PWD -o /AgentJobRequirements/ExtraOptions=$PILOTCFG $PILOTCFG $DEBUG
+	source LHCbTestDirac/Jenkins/lhcb_ci.sh
+	
+	#Setup Release
+	preReleaseValue = $PRERELEASE
+	PRERELEASE=''
+	findRelease
+	SetupProject LHCbDIRAC `cat project.version`
+	export PYTHONPATH=$PYTHONPATH:$WORKSPACE
+	
+	#Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
+	getUserProxy
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-test-job.py $PILOTCFG $DEBUG
+	
+	#reset
+	export PRERELEASE=$preReleaseValue
 }
 
 
