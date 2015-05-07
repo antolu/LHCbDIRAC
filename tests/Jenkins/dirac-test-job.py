@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
@@ -15,7 +16,7 @@ gLogger.setLevel( 'DEBUG' )
 
 cwd = os.path.realpath( '.' )
 
-gLogger.info( "\n Submitting hello world job targeting DIRAC.Test.ch" )
+gLogger.info( "\n Submitting hello world job targeting DIRAC.Jenkins.ch" )
 
 helloJ = LHCbJob()
 dirac = DiracLHCb()
@@ -25,6 +26,6 @@ helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
-helloJ.setDestination( 'DIRAC.Test.ch' )
+helloJ.setDestination( 'DIRAC.Jenkins.ch' )
 result = dirac.submit( helloJ )
 gLogger.info( "Hello world job: ", result )

@@ -178,7 +178,7 @@ function fullLHCbPilot(){
 	mv $WORKSPACE/etc/dirac.cfg $WORKSPACE/etc/dirac.cfg-not-here
 	
 	#Configure for CPUTimeLeft
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-cfg-update.py -F $PILOTCFG -o /DIRAC/Security/UseServerCertificate=True $DEBUG
+	python $WORKSPACE/TestDIRAC/Jenkins/dirac-cfg-update.py -F $PILOTCFG -o /DIRAC/Security/UseServerCertificate=True $DEBUG
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
 	#Set not to use the server certificate for running the jobs 
@@ -194,17 +194,20 @@ function submitAndMatch(){
 		export DEBUG='-ddd'
 	fi  
 
-	findRelease
-	
-	#Here, since I have CVMFS only, I can't use the "latest" pre-release, because won't be on CVMFS 
-	#FIXME!
-	#SetupProject LHCbDIRAC v0r94
-	downloadProxy	
-	#submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-test-job.py
+	#Here, since I have CVMFS only, I can't use the "latest" pre-release, because won't be on CVMFS
+	# I execute in a subshell 
+	(
+		source LHCbTestDirac/Jenkins/lhcb_ci.sh
+		findRelease
+		SetupProject LHCbDIRAC `cat project.version`
+		export PYTHONPATH=$PYTHONPATH:$WORKSPACE
+		downloadProxy
+		#submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
+		python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-test-job.py $PILOTCFG $DEBUG
+	)
 
 	#put pilot cfg in, and modify the necessary
-	cp $WORKSPACE/LHCbTestDirac/Jenkins/$PILOTCFG $WORKSPACE
+	#cp $WORKSPACE/LHCbTestDirac/Jenkins/$PILOTCFG $WORKSPACE
 	sed -i s/VAR_ReleaseVersion/`cat project.version`/g $WORKSPACE/$PILOTCFG
 	
 	#try running the job agent. The job should be matched and everything should be "ok"
