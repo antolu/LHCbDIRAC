@@ -11,7 +11,10 @@ from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
 from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveSEGroup
+try:
+  from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveSEGroup
+except:
+  pass
 
 from LHCbDIRAC.TransformationSystem.Client.Utilities \
      import PluginUtilities, getFileGroups, groupByRun, isArchive, isFailover, \
