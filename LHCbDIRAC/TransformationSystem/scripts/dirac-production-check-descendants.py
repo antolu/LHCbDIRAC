@@ -75,7 +75,18 @@ if __name__ == '__main__':
 
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
   from LHCbDIRAC.BookkeepingSystem.Client.BKQuery              import BKQuery
+  from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+  tr = TransformationClient()
   for id in idList:
+    res = tr.getTransformation( id )
+    if not res['OK']:
+      gLogger.fatal( "Error getting info for transformation", '%d: %s' % ( id, res['Message'] ) )
+      continue
+    if fileType:
+      if res['Value']['Type'] in ( 'Merge', 'MCMerge' ):
+        gLogger.always( "It is not allowed to select file type for merging transformation", id )
+        continue
+
     startTime = time.time()
     cc = ConsistencyChecks()
     cc.prod = id
@@ -83,8 +94,6 @@ if __name__ == '__main__':
     gLogger.always( "Processing %s production %d" % ( cc.transType, cc.prod ) )
 
     if status:
-      from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-      tr = TransformationClient()
       res = tr.getTransformationFiles( {'TransformationID':id, 'Status':status} )
       if res['OK']:
         lfnList = [trFile['LFN'] for trFile in res['Value']]
