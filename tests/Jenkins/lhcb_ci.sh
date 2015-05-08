@@ -185,8 +185,9 @@ function fullLHCbPilot(){
 
 function getUserProxy(){
 
+	touch $PILOTCFG
 	#Configure for CPUTimeLeft
-	python $WORKSPACE/TestDIRAC/Jenkins/dirac-cfg-update.py -F $PILOTCFG -o /DIRAC/Security/UseServerCertificate=True $DEBUG
+	python $WORKSPACE/TestDIRAC/Jenkins/dirac-cfg-update.py -F $PILOTCFG -S $DIRACSETUP -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem $DEBUG
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
 
@@ -206,14 +207,12 @@ function submitAndMatch(){
 		submitJob
 	)
 
-	#put pilot cfg in, and modify the necessary
-	#cp $WORKSPACE/LHCbTestDirac/Jenkins/$PILOTCFG $WORKSPACE
-	#sed -i s/VAR_ReleaseVersion/`cat project.version`/g $WORKSPACE/$PILOTCFG
-	
 	#Run the full pilot, including the JobAgent
+	prepareForPilot
+	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
 	python dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -C $CSURL -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG
 
-		#try running the job agent. The job should be matched and everything should be "ok"
+	#try running the job agent. The job should be matched and everything should be "ok"
 	#dirac-agent WorkloadManagement/JobAgent -o MaxCycles=1 -s /Resources/Computing/CEDefaults -o WorkingDirectory=$PWD -o TotalCPUs=1 -o MaxCPUTime=47520 -o CPUTime=47520 -o MaxRunningJobs=1 -o MaxTotalJobs=10 -o /LocalSite/InstancePath=$PWD -o /AgentJobRequirements/ExtraOptions=$PILOTCFG $PILOTCFG $DEBUG
 }
 
@@ -225,8 +224,6 @@ function submitJob(){
 		export DEBUG='-ddd'
 	fi  
 	
-	source LHCbTestDirac/Jenkins/lhcb_ci.sh
-	
 	#Setup Release
 	export PRERELEASEVALUE=$PRERELEASE
 	PRERELEASE=''
@@ -235,11 +232,14 @@ function submitJob(){
 	export PYTHONPATH=$PYTHONPATH:$WORKSPACE
 	
 	#Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
-	getUserProxy
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-test-job.py $DEBUG
+	getUserProxy #this won't really download the proxy, so that's why the next command is needed
+	python $WORKSPACE/TestDIRAC/Jenkins/dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification $PILOTCFG -ddd
+	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-test-job.py -o /DIRAC/Setup=LHCb-Certification $DEBUG
 	
 	#reset
 	export PRERELEASE=$PRERELEASEVALUE
+	
+	rm $PILOTCFG
 }
 
 
