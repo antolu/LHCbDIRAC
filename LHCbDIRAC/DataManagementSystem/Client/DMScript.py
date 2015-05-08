@@ -226,7 +226,7 @@ class DMScript( object ):
   def setSites( self, arg ):
     siteShortNames = { 'CERN':'LCG.CERN.ch', 'CNAF':'LCG.CNAF.it', 'GRIDKA':'LCG.GRIDKA.de',
                       'NIKHEF':'LCG.NIKHEF.nl', 'SARA':'LCG.SARA.nl', 'PIC':'LCG.PIC.es',
-                      'RAL':'LCG.RAL.uk', 'IN2P3':'LCG.IN2P3.fr' }
+                      'RAL':'LCG.RAL.uk', 'IN2P3':'LCG.IN2P3.fr', 'RRCKI':'LCG.RRCKI.ru' }
     sites = arg.split( ',' )
     self.options['Sites'] = [siteShortNames.get( site.upper(), site ) for site in sites]
     return DIRAC.S_OK()
