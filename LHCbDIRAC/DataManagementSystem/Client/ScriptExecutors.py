@@ -580,8 +580,10 @@ def removeFiles( lfnList, setProcessed = False ):
 
   if successfullyRemoved:
     gLogger.always( "Successfully removed %d files" % len( successfullyRemoved ) )
+  maxLfns = 20
   for reason, lfns in errorReasons.items():
-    gLogger.always( "Failed to remove %d files with error: %s" % ( len( lfns ), reason ) )
+    nbLfns = len( lfns )
+    gLogger.always( "Failed to remove %d files with error: %s%s" % ( nbLfns, reason, ' (first %d)' % maxLfns if nbLfns > maxLfns else '' ) )
     gLogger.always( '\n'.join( lfns ) )
 
 def removeFilesInTransformations( lfns, setProcessed = False ):
@@ -1429,13 +1431,12 @@ def __isOlderThan( cTimeStruct, days ):
   from datetime import datetime, timedelta
   return cTimeStruct < ( datetime.utcnow() - timedelta( days = days ) )
 
-def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = None ):
+def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = None, depth = 0 ):
   """
   List a FC directory contents recursively
   """
   emptyDirsFlag = False
   outputFlag = False
-  depth = 0
   if wildcard == None:
     wildcard = '*'
   for switch in Script.getUnprocessedSwitches():
@@ -1453,6 +1454,8 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
       outputFlag = True
     elif switch[0] == 'Depth':
       depth = int( switch[1] )
+    elif switch[0] == 'r':
+      depth = sys.maxint
 
 
   verbose = False
