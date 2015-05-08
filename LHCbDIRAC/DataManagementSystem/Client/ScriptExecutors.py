@@ -1454,7 +1454,7 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
       outputFlag = True
     elif switch[0] == 'Depth':
       depth = int( switch[1] )
-    elif switch[0] == 'r':
+    elif switch[0] in ( 'r', 'Recursive' ):
       depth = sys.maxint
 
 
