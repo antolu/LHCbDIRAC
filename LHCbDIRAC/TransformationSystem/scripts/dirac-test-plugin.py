@@ -39,10 +39,10 @@ class fakeClient:
       condDict['TransformationID'] = self.asIfProd
     if condDict['TransformationID'] != self.transID:
       return self.transClient.getCounters( table, attrList, condDict )
-    possibleTargets = ['CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'SARA-RAW', 'PIC-RAW', 'RAL-RAW']
+    possibleTargets = ['CERN-RAW', 'CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'SARA-RAW', 'PIC-RAW', 'RAL-RAW', 'RRCKI-RAW']
     counters = []
     for se in possibleTargets:
-      counters.append( ( {'UsedSE':se}, 1 ) )
+      counters.append( ( {'UsedSE':se}, 0 ) )
     return DIRAC.S_OK( counters )
 
   def getBookkeepingQuery( self, transID ):
@@ -55,11 +55,10 @@ class fakeClient:
       condDict['TransformationID'] = self.asIfProd
     if condDict['TransformationID'] == self.transID:
       transRuns = []
-      if condDict.has_key( 'RunNumber' ):
-        runs = condDict['RunNumber']
-        for run in runs:
-          transRuns.append( {'RunNumber':run, 'Status':"Active", "SelectedSite":None} )
-        return DIRAC.S_OK( transRuns )
+      runs = condDict.get( 'RunNumber', [] )
+      for run in runs:
+        transRuns.append( {'RunNumber':run, 'Status':"Active", "SelectedSite":None} )
+      return DIRAC.S_OK( transRuns )
     else:
       return self.transClient.getTransformationRuns( condDict )
 
@@ -128,6 +127,12 @@ class fakeClient:
 
   def addTransformationRunFiles( self, transID, run, lfns ):
     return DIRAC.S_OK()
+
+  def setDestinationForRun( self, runID, site ):
+    return DIRAC.S_OK()
+
+  def getDestinationForRun( self, runID ):
+    return self.transClient.getDestinationForRun( runID )
 
   def prepareForPlugin( self, lfns ):
     import time
@@ -318,7 +323,7 @@ if __name__ == "__main__":
   from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   oplugin = TransformationPlugin( plugin, transClient = fakeClient, dataManager = DataManager(), bkkClient = BookkeepingClient() )
   pluginParams['TransformationID'] = transID
-  oplugin.params = pluginParams
+  oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()
   # Special case of RAW files registered in CERN-RDST...
   if plugin == "AtomicRun":
@@ -336,6 +341,7 @@ if __name__ == "__main__":
     DIRAC.exit( 2 )
   oplugin.setInputData( replicas )
   oplugin.setTransformationFiles( files )
+  oplugin.setDebug( pluginScript.getOption( 'Debug', False ) )
   import time
   startTime = time.time()
   res = oplugin.run()

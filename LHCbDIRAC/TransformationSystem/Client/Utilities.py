@@ -180,9 +180,9 @@ class PluginUtilities( object ):
     return self.getShares( transID = transID, backupSE = backupSE )
 
   def getShares( self, section = None, transID = None, backupSE = None ):
-    if not transID:
+    if transID is None:
       transID = self.transID
-    if not section:
+    if section is None:
       sharesSections = { 'DataReconstruction': 'CPUforRAW', 'DataReprocessing' : 'CPUforReprocessing'}
       res = self.transClient.getTransformation( transID )
       if not res['OK']:
@@ -220,7 +220,7 @@ class PluginUtilities( object ):
         self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), shares[se] ) )
 
     # Get the existing destinations from the transformationDB, just for printing
-    res = self.getExistingCounters( transID, requestedSEs = sorted( shares ) )
+    res = self.getExistingCounters( transID, requestedSEs = sorted( shares ), shares = shares )
     if not res['OK']:
       self.logError( "Failed to get used share", res['Message'] )
       return res
@@ -238,7 +238,7 @@ class PluginUtilities( object ):
     else:
       return S_OK( ( existingCount, shares ) )
 
-  def getExistingCounters( self, transID, normalise = False, requestedSEs = None ):
+  def getExistingCounters( self, transID, normalise = False, requestedSEs = None, shares = None ):
     """
     Used by RAWShares and AtomicRun, gets what has been done up to now while distributing runs
     """
@@ -248,8 +248,13 @@ class PluginUtilities( object ):
     if not res['OK']:
       return res
     usageDict = {}
+    if shares is None:
+      shares = {}
+    total = sum( [count for _usedDict, count in res['Value']] )
     for usedDict, count in res['Value']:
       usedSE = usedDict['UsedSE']
+      if not total:
+        count = shares.get( usedSE, 0 )
       if usedSE != 'Unknown':
         usageDict[usedSE] = count
     if requestedSEs:
@@ -652,7 +657,7 @@ class PluginUtilities( object ):
     return self.bkClient.getFileAncestors( lfns, depth, replica )
 
   @timeThis
-  def getTransformationRuns(self, runs):
+  def getTransformationRuns( self, runs ):
     return self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runs} )
 
   @timeThis
@@ -948,7 +953,7 @@ def getRemovalPlugins():
            'DeleteReplicasWhenProcessed', 'DestroyDatasetWhenProcessed' )
 def getReplicationPlugins():
   return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom", "ArchiveDataset", "ReplicateDataset",
-           "RAWShares", 'FakeReplication', 'ReplicateToLocalSE', 'Healing' )
+           "RAWShares", 'FakeReplication', 'ReplicateToLocalSE', 'Healing', 'RAWReplication' )
 
 def getShares( sType, normalise = False ):
   """
@@ -974,13 +979,14 @@ def getShares( sType, normalise = False ):
 
 def normaliseShares( shares ):
   total = 0.0
+  normShares = shares.copy()
   for site in shares:
     total += float( shares[site] )
   if not total:
-    return None
+    return shares
   for site in shares:
-    shares[site] = 100.0 * ( float( shares[site] ) / total )
-  return shares
+    normShares[site] = 100.0 * ( float( shares[site] ) / total )
+  return normShares
 
 def sortExistingSEs( lfnSEs, lfns = None ):
   """ Sort SEs according to the number of files in each (most first)

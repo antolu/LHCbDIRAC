@@ -1,6 +1,5 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
-
 __RCSID__ = "$Id$"
 
 import time
@@ -9,9 +8,10 @@ import os
 import random
 
 from DIRAC import S_OK, S_ERROR
-from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize, uniqueElements
+from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
 from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveSEGroup
 
 from LHCbDIRAC.TransformationSystem.Client.Utilities \
      import PluginUtilities, getFileGroups, groupByRun, isArchive, isFailover, \
@@ -60,6 +60,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                                  bkClient = self.bkClient, rmClient = self.rmClient, resourceStatus = self.resourceStatus,
                                  debug = debug, transInThread = transInThread if transInThread else {} )
     self.setDebug( self.util.getPluginParam( 'Debug', False ) )
+
+    self.dmsHelper = None
+    self.processingShares = ( None, None )
 
   def voidMethod( self, _id, invalidateCache = False ):
     return
@@ -142,9 +145,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     Plugin for replicating RAW data to Tier1s according to shares, excluding CERN which is the source of transfers...
     """
+    # Specify no staging
+    self.params['PrestageShares'] = ''
+    return self._RAWReplication()
+
+  def _RAWSharesOld( self ):
+    """
+    Plugin for replicating RAW data to Tier1s according to shares, excluding CERN which is the source of transfers...
+    """
     self.util.logInfo( "Starting execution of plugin" )
-    possibleTargets = ['CNAF-RAW', 'GRIDKA-RAW', 'IN2P3-RAW', 'PIC-RAW', 'RAL-RAW', 'SARA-RAW']
     sourceSE = 'CERN-RAW'
+    rawTargets = self.util.getPluginParam( 'RAWStorageElements', ['Tier1-RAW'] )
+    rawTargets = set( resolveSEGroup( rawTargets ) ) - set( [sourceSE] )
 
     # Get the requested shares from the CS
     res = self.util.getShares( section = 'RAW' )
@@ -199,7 +211,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if assignedSE:
             self.util.logVerbose( "Run %d (%d files) assigned to %s" % ( runID, len( runLfns ), assignedSE ) )
 
-      if assignedSE in possibleTargets:
+      if assignedSE in rawTargets:
         # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
         if update:
           res = self.transClient.setTransformationRunsSite( self.transID, runID, assignedSE )
@@ -209,6 +221,219 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Create the tasks
         tasks.append( ( assignedSE, runLfns ) )
     return S_OK( tasks )
+
+  def _RAWReplication( self ):
+    """
+    Plugin for replicating RAW data to Tier1s according to shares, and defining the processing destination site
+    """
+    self.util.logInfo( "Starting execution of plugin" )
+    sourceSE = 'CERN-RAW'
+    rawTargets = self.util.getPluginParam( 'RAWStorageElements', ['Tier1-RAW'] )
+    rawTargets = set( resolveSEGroup( rawTargets ) ) - set( [sourceSE] )
+    bufferTargets = self.util.getPluginParam( 'ProcessingStorageElements', ['Tier1-BUFFER'] )
+    bufferTargets = set( resolveSEGroup( bufferTargets ) )
+    useRunDestination = self.util.getPluginParam( 'UseRunDestination', False )
+    preStageShares = self.util.getPluginParam( 'PrestageShares', 'CPUforRAW' )
+    if preStageShares not in ( 'CPUforRAW', 'CPUforReprocessing' ) or not bufferTargets:
+      self.util.logInfo( 'No prestaging required' )
+      preStageShares = None
+    self.util.logVerbose( 'Targets for replication are %s and %s' % ( sorted( rawTargets ), sorted( bufferTargets ) ) )
+    if preStageShares:
+      self.util.logInfo( "Using prestage shares from %s" % preStageShares )
+
+    # Get the requested shares from the CS
+    res = self.util.getShares( section = 'RAW' )
+    if not res['OK']:
+      self.util.logError( "Section RAW in Shares not available" )
+      return res
+    existingCount, targetShares = res['Value']
+
+    # Split the file in run groups
+    res = groupByRun( self.transFiles )
+    if not res['OK']:
+      self.util.logError( "Error splitting by run", res['Message'] )
+      return res
+    runFileDict = res['Value']
+    if not runFileDict:
+      # No files, no tasks!
+      self.util.logVerbose( "No runs found!" )
+      return S_OK( [] )
+    self.util.logVerbose( 'Obtained %d runs' % len( runFileDict ) )
+
+    # For each of the runs determine the destination of any previous files
+    res = self.util.getTransformationRuns( runFileDict.keys() )
+    if not res['OK']:
+      self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
+      return res
+    runSEDict = dict( [( runDict['RunNumber'], runDict['SelectedSite'] ) for runDict in res['Value']] )
+
+    # Choose the destination SE
+    tasks = []
+    alreadyReplicated = []
+    for runID in [run for run in runFileDict if run in runSEDict]:
+      runLfns = runFileDict[runID]
+      assignedSE = runSEDict[runID]
+      if assignedSE:
+        # We already know where this run should go
+        ses = set( assignedSE.split( ',' ) )
+        assignedRAW = ses & rawTargets
+        assignedBuffer = ses & bufferTargets
+      else:
+        assignedRAW = None
+        assignedBuffer = None
+      # Now determine where these files should go
+      # Group by location
+      replicaGroups = getFileGroups( dict( [( lfn, self.transReplicas[lfn] ) for lfn in runLfns] ) )
+      runSEs = set()
+      for replicaSE in replicaGroups:
+        # Get all locations where files are
+        ses = set( replicaSE.split( ',' ) )
+        runSEs.update( ses )
+      # Find potential locations
+      if not assignedRAW:
+        assignedRAW = runSEs & rawTargets
+      if assignedRAW:
+        assignedRAW = list( assignedRAW )[0]
+      if not assignedBuffer and preStageShares:
+        assignedBuffer = runSEs & bufferTargets
+      if assignedBuffer:
+        assignedBuffer = list( assignedBuffer )[0]
+      updated = False
+      for replicaSE, lfns in replicaGroups.items():
+        replicaSE = set( replicaSE.split( ',' ) )
+        if assignedRAW:
+          self.util.logVerbose( 'RAW replica existing for run %d: %s' % ( runID, assignedRAW ) )
+        else:
+          # Files are not yet at a Tier1-RAW
+          if useRunDestination:
+            assignedRAW = self.__getSEForDestination( runID, rawTargets )
+          if assignedRAW:
+            self.util.logVerbose( 'RAW destination obtained from run %d destination: %s' % ( runID, assignedRAW ) )
+          else:
+            res = self._getNextSite( existingCount, targetShares )
+            if not res['OK']:
+              self.util.logError( "Failed to get next destination SE", res['Message'] )
+              return res
+            else:
+              assignedRAW = res['Value']
+              self.util.logVerbose( "Run %d (%d files) assigned to %s" % ( runID, len( runLfns ), assignedRAW ) )
+
+        # # Now get a buffer destination is prestaging is required
+        if preStageShares and not assignedBuffer:
+          if useRunDestination:
+            assignedBuffer = self.__getSEForDestination( runID, bufferTargets )
+          if assignedBuffer:
+            self.util.logVerbose( 'Buffer destination obtained from run %d destination: %s' % ( runID, assignedBuffer ) )
+          else:
+            # Files are not at a buffer for processing
+            res = self._selectRunSite( runID, sourceSE, replicaSE | set( [assignedRAW] ), bufferTargets, preStageShares = preStageShares, useRunDestination = useRunDestination )
+            if not res['OK']:
+              self.util.logError( "Error selecting the destination site", res['Message'] )
+              return res
+            assignedBuffer = res['Value']
+            if assignedBuffer:
+              self.util.logVerbose( 'Selected destination SE for run %d: %s' % ( runID, assignedBuffer ) )
+            else:
+              self.util.logWarn( 'Failed to find destination SE for run', str( runID ) )
+        elif assignedBuffer:
+          self.util.logVerbose( 'Buffer destination existing for run %d: %s' % ( runID, assignedBuffer ) )
+
+        # # Find out if the replication is necessary
+        assignedSE = [assignedRAW, assignedBuffer] if assignedBuffer else [assignedRAW]
+        if not updated:
+          updated = True
+          res = self.transClient.setTransformationRunsSite( self.transID, runID, ','.join( assignedSE ) )
+          if not res['OK']:
+            self.util.logError( "Failed to assign TransformationRun SE", res['Message'] )
+            return res
+        ses = sorted( set( assignedSE ) - replicaSE )
+        # Update the counters as we know the number of files
+        if assignedRAW in ses:
+          existingCount[assignedRAW] += len( lfns )
+        assignedSE = ','.join( ses )
+        if assignedSE:
+          self.util.logVerbose( 'Creating a task for SEs %s' % assignedSE )
+          tasks.append( ( assignedSE, lfns ) )
+        else:
+          alreadyReplicated += lfns
+          self.util.logVerbose( '%d files found already replicated at %s' % ( len( lfns ), replicaSE ) )
+
+    if alreadyReplicated:
+      for lfn in alreadyReplicated:
+        self.transReplicas.pop( lfn )
+      self.__cleanFiles( 'Processed' )
+
+    return S_OK( tasks )
+
+  def __getSEForDestination( self, runID, targets ):
+    # Try and get a run destination from TS
+    if not self.dmsHelper:
+      self.dmsHelper = DMSHelpers()
+    res = self.transClient.getDestinationForRun( runID )
+    if res['OK']:
+      site = res['Value']
+      if site:
+        if isinstance( site, tuple ):
+          site = site[0]
+        self.util.logVerbose( 'Destination found for run %d: %s' % ( runID, site ) )
+        res = self.dmsHelper.getSEInGroupAtSite( targets, site )
+        return res.get( 'Value' )
+    return None
+
+  def _selectRunSite( self, runID, backupSE, rawSEs, bufferTargets, preStageShares = None, useRunDestination = False ):
+    if not preStageShares:
+      return S_OK()
+    if not self.dmsHelper:
+      self.dmsHelper = DMSHelpers()
+
+    if self.processingShares[0] is None:
+      res = self.util.getShares( section = preStageShares, transID = self.transID, backupSE = backupSE )
+      if not res['OK']:
+        self.util.logError( "Error getting CPU shares for RAW processing", res['Message'] )
+        return res
+      else:
+        self.processingShares = res['Value']
+
+    self.util.logVerbose( "Select processing SE for run %d within %s" % ( runID, sorted( rawSEs ) ) )
+    rawFraction, cpuShares = self.processingShares
+    if len( rawSEs ) == 1:
+      selectedSE = list( rawSEs )[0]
+    else:
+      existingSEs = set( cpuShares ) & rawSEs
+      if not existingSEs:
+        errStr = "Could not find shares for SEs"
+        self.util.logError( errStr, sorted( rawSEs ) )
+        return S_ERROR( errStr )
+
+      prob = 0
+      seProbs = {}
+      rawSEs = sorted( ( rawSEs & set( rawFraction ) ) - set( [backupSE] ) )
+      for se in rawSEs:
+        prob += rawFraction[se] / len( rawSEs )
+        seProbs[se] = prob
+      rawSEs.append( backupSE )
+      seProbs[backupSE] = 1.
+      rand = random.uniform( 0., 1. )
+      strProbs = ','.join( [' %s:%.3f' % ( se, seProbs[se] ) for se in rawSEs] )
+      self.util.logInfo( "For run %d, SE integrated fraction =%s, random number = %.3f" % ( runID, strProbs, rand ) )
+      selectedSE = None
+      for se in rawSEs:
+        prob = seProbs[se]
+        if rand <= prob:
+          selectedSE = se
+          break
+
+    # Find out the site associated to that SE
+    res = self.dmsHelper.getLocalSiteForSE( selectedSE )
+    if not res['OK']:
+      return res
+    site = res['Value']
+    res = self.transClient.setDestinationForRun( runID, site )
+    if not res['OK']:
+      return res
+    self.util.logVerbose( 'Successfully set destination for run %d: %s' % ( runID, site ) )
+
+    return self.dmsHelper.getSEInGroupAtSite( bufferTargets, site )
 
   def _AtomicRun( self ):
     """
@@ -920,8 +1145,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ Actually creates the replication tasks for replication plugins
     """
     self.util.logInfo( "Starting execution of plugin" )
-    mandatorySEs = uniqueElements( mandatorySEs )
-    secondarySEs = [se for se in uniqueElements( secondarySEs ) if se not in mandatorySEs]
+    mandatorySEs = set( mandatorySEs )
+    secondarySEs = [se for se in set( secondarySEs ) if se not in mandatorySEs]
     if not numberOfCopies:
       numberOfCopies = len( secondarySEs ) + len( mandatorySEs )
       activeSecondarySEs = secondarySEs
