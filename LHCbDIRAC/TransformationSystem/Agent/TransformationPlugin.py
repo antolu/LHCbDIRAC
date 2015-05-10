@@ -374,13 +374,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.dmsHelper = DMSHelpers()
     res = self.transClient.getDestinationForRun( runID )
     if res['OK']:
-      site = res['Value']
-      if site:
-        if isinstance( site, tuple ):
-          site = site[0]
-        self.util.logVerbose( 'Destination found for run %d: %s' % ( runID, site ) )
-        res = self.dmsHelper.getSEInGroupAtSite( targets, site )
-        return res.get( 'Value' )
+      dest = res['Value']
+      if dest:
+        if isinstance( dest, tuple ):
+          site = dest[1] if dest[0] == runID else dest[0]
+        elif isinstance( dest, list ):
+          dest = dict( dest )
+        if isinstance( dest, dict ):
+          site = dest.get( runID )
+        if site:
+          self.util.logVerbose( 'Destination found for run %d: %s' % ( runID, site ) )
+          res = self.dmsHelper.getSEInGroupAtSite( targets, site )
+          return res.get( 'Value' )
     return None
 
   def _selectRunSite( self, runID, backupSE, rawSEs, bufferTargets, preStageShares = None, useRunDestination = False ):
@@ -956,25 +961,20 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _LHCbDSTBroadcast( self ):
     """ Usually for replication of real data (4 copies)
     """
-    archive1SEs = self.util.getPluginParam( 'Archive1SEs', ['CERN-ARCHIVE'] )
-    archive2SEs = self.util.getPluginParam( 'Archive2SEs', ['CNAF-ARCHIVE', 'GRIDKA-ARCHIVE', 'IN2P3-ARCHIVE',
-                                                            'SARA-ARCHIVE', 'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    mandatorySEs = self.util.getPluginParam( 'MandatorySEs', ['CERN-DST'] )
-    secondarySEs = self.util.getPluginParam( 'SecondarySEs', ['CNAF-DST', 'GRIDKA-DST', 'IN2P3-DST', 'SARA-DST',
-                                                              'PIC-DST', 'RAL-DST'] )
+    archive1SEs = resolveSEGroup( self.util.getPluginParam( 'Archive1SEs', [] ) )
+    archive2SEs = resolveSEGroup( self.util.getPluginParam( 'Archive2SEs', [] ) )
+    mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
+    secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 4 )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun = True )
 
   def _LHCbMCDSTBroadcast( self ):
     """ For replication of MC data (3 copies)
     """
-    archive1SEs = self.util.getPluginParam( 'Archive1SEs', [] )
-    archive2SEs = self.util.getPluginParam( 'Archive2SEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
-                                                            'IN2P3-ARCHIVE', 'SARA-ARCHIVE',
-                                                            'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    mandatorySEs = self.util.getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST'] )
-    secondarySEs = self.util.getPluginParam( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST',
-                                                              'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
+    archive1SEs = resolveSEGroup( self.util.getPluginParam( 'Archive1SEs', [] ) )
+    archive2SEs = resolveSEGroup( self.util.getPluginParam( 'Archive2SEs', [] ) )
+    mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
+    secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 3 )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
 
@@ -1085,13 +1085,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
 
     self.util.logInfo( "Starting execution of plugin" )
-    archive1SEs = self.util.getPluginParam( 'Archive1SEs', [] )
-    archive2SEs = self.util.getPluginParam( 'Archive2SEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
-                                                            'IN2P3-ARCHIVE', 'SARA-ARCHIVE',
-                                                            'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
-    mandatorySEs = self.util.getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST'] )
-    secondarySEs = self.util.getPluginParam( 'SecondarySEs', ['CNAF_MC-DST', 'GRIDKA_MC-DST', 'IN2P3_MC-DST',
-                                                              'SARA_MC-DST', 'PIC_MC-DST', 'RAL_MC-DST'] )
+    archive1SEs = resolveSEGroup( self.util.getPluginParam( 'Archive1SEs', [] ) )
+    archive2SEs = resolveSEGroup( self.util.getPluginParam( 'Archive2SEs', [] ) )
+    mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
+    secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 3 )
 
     # We need at least all mandatory copies
