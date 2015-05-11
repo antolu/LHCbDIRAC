@@ -721,8 +721,8 @@ class TransformationDB( DIRACTransformationDB ):
       gLogger.error( "Failure executing %s" % str( req ) )
       return res
     if not res['Value']:
-      return S_OK( [] )
-    return S_OK( [runDest for runDest in res['Value']] )
+      return S_OK( {} )
+    return S_OK( dict( runDest for runDest in res['Value'] ) )
 
   def setDestinationForRun( self, runID, destination, connection = False ):
     """ set destination of a run.
