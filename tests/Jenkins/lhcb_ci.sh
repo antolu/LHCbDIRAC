@@ -230,8 +230,8 @@ function submitJob(){
 	export PRERELEASE=''
 	findRelease
 	
-	/cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r3p1/InstallArea/scripts/SetupProject.sh
-	/cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r3p1/InstallArea/scripts/SetupProject.sh LHCbDIRAC `cat project.version`
+	. /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r3p1/InstallArea/scripts/SetupProject.sh
+	. /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r3p1/InstallArea/scripts/SetupProject.sh LHCbDIRAC `cat project.version`
 	export PYTHONPATH=$PYTHONPATH:$WORKSPACE
 	
 	#Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
