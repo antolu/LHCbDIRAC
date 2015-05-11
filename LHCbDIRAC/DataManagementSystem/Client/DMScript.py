@@ -39,7 +39,7 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
         print '%s%s : ' % ( offset * ' ', key )
         for val in sorted( value ):
           print '%s%s' % ( newOffset * ' ', val )
-    elif isinstance( value, dict ):
+    elif not isinstance( value, dict ):
       print '%s : %s' % ( key.rjust( center ), str( value ) )
 
 def printDMResult( result, shift = 4, empty = "Empty directory", script = None, depth = 999, offset = 0 ):
