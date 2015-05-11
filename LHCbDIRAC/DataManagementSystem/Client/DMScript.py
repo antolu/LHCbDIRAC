@@ -28,19 +28,19 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
       if not depth:
         value = value.keys()
       elif value != {}:
-        print '%s%s : ' % ( offset * ' ', key )
+        gLogger.notice( '%s%s : ' % ( offset * ' ', key ) )
         __printDictionary( value, offset = newOffset, shift = shift, empty = empty, depth = depth - 1 )
       elif key not in ( 'Failed', 'Successful' ):
-        print '%s%s : %s' % ( offset * ' ', key, empty )
+        gLogger.notice( '%s%s : %s' % ( offset * ' ', key, empty ) )
     if isinstance( value, ( list, set ) ):
       if not value:
-        print '%s%s : %s' % ( offset * ' ', key, '[]' )
+        gLogger.notice( '%s%s : %s' % ( offset * ' ', key, '[]' ) )
       else:
-        print '%s%s : ' % ( offset * ' ', key )
+        gLogger.notice( '%s%s : ' % ( offset * ' ', key ) )
         for val in sorted( value ):
-          print '%s%s' % ( newOffset * ' ', val )
+          gLogger.notice( '%s%s' % ( newOffset * ' ', val ) )
     elif not isinstance( value, dict ):
-      print '%s : %s' % ( key.rjust( center ), str( value ) )
+      gLogger.notice( '%s : %s' % ( key.rjust( center ), str( value ) ) )
 
 def printDMResult( result, shift = 4, empty = "Empty directory", script = None, depth = 999, offset = 0 ):
   """ Printing results returned with 'Successful' and 'Failed' items """
@@ -51,11 +51,11 @@ def printDMResult( result, shift = 4, empty = "Empty directory", script = None, 
       __printDictionary( result['Value'], offset = offset, shift = shift, empty = empty, depth = depth )
       return 0
     else:
-      print "Error in", script, ":", result['Message']
+      gLogger.notice( "Error in %s :" % script, result['Message'] )
       return 2
   except:
-    print "Exception while printing results in", script, "- Results:"
-    print result
+    gLogger.notice( "Exception while printing results in %s - Results:" % script )
+    gLogger.notice( result )
     return 2
 
 def convertSEs( ses ):
