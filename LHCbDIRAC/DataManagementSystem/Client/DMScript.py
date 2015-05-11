@@ -314,8 +314,8 @@ class DMScript( object ):
       self.options.setdefault( 'LFNs', set() ).update( lfns )
     if nfiles:
       gLogger.always( "Got %d LFNs" % nfiles )
-    if arg != self.lastFile:
-      open( self.lastFile, 'w' ).write( '\n'.join( sorted( self.options['LFNs'] ) ) )
+      if arg != self.lastFile:
+        open( self.lastFile, 'w' ).write( '\n'.join( sorted( self.options['LFNs'] ) ) )
     return DIRAC.S_OK()
 
   def getOptions( self ):
