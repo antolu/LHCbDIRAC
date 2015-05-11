@@ -24,7 +24,7 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
   newOffset = offset + ( shift if shift else key_max )
   for key in sorted( dictionary ):
     value = dictionary[key]
-    if type( value ) == type( {} ):
+    if isinstance( value, dict ):
       if not depth:
         value = value.keys()
       elif value != {}:
@@ -32,14 +32,14 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
         __printDictionary( value, offset = newOffset, shift = shift, empty = empty, depth = depth - 1 )
       elif key not in ( 'Failed', 'Successful' ):
         print '%s%s : %s' % ( offset * ' ', key, empty )
-    if type( value ) == type( [] ) or type( value ) == type( set() ):
+    if isinstance( value, ( list, set ) ):
       if not value:
         print '%s%s : %s' % ( offset * ' ', key, '[]' )
       else:
         print '%s%s : ' % ( offset * ' ', key )
         for val in sorted( value ):
           print '%s%s' % ( newOffset * ' ', val )
-    elif type( value ) != type( {} ):
+    elif isinstance( value, dict ):
       print '%s : %s' % ( key.rjust( center ), str( value ) )
 
 def printDMResult( result, shift = 4, empty = "Empty directory", script = None, depth = 999, offset = 0 ):
@@ -59,6 +59,12 @@ def printDMResult( result, shift = 4, empty = "Empty directory", script = None, 
     return 2
 
 def convertSEs( ses ):
+  try:
+    from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
+    return resolveSEGroup( ses )
+  except:
+    pass
+  # FIXME: remove when DIRAC is released
   seList = []
   for se in ses:
     seConfig = gConfig.getValue( '/Resources/StorageElementGroups/%s' % se, se )
@@ -250,11 +256,11 @@ class DMScript( object ):
     return self.setLFNsFromFile( arg )
 
   def getLFNsFromList( self, lfns, directories = False ):
-    if type( lfns ) == type( {} ):
+    if isinstance( lfns, dict ):
       lfnList = [lfn.strip() for lfn in lfns]
-    elif type( lfns ) == type( '' ):
+    elif isinstance( lfns, basestring ):
       lfnList = lfns.split( ',' )
-    elif type( lfns ) == type( [] ):
+    elif isinstance( lfns , list ):
       lfnList = [lfn.strip() for lfn1 in lfns for lfn in lfn1.split( ',' )]
     else:
       gLogger.error( 'getLFNsFromList: invalid type %s' % type( lfns ) )
@@ -271,9 +277,9 @@ class DMScript( object ):
   def getJobIDsFromList( jobids ):
     """it returns a list of jobids using a string"""
     jobidsList = []
-    if type( jobids ) == type( '' ):
+    if isinstance( jobids, basestring ):
       jobidsList = jobids.split( ',' )
-    elif type( jobids ) == type( [] ):
+    elif isinstance( jobids, list ):
       jobidsList = [lfn for lfn1 in jobids for lfn in lfn1.split( ',' )]
     jobidsList = [ jobid for jobid in jobidsList if jobid != '']
     return jobidsList
@@ -285,12 +291,12 @@ class DMScript( object ):
     DIRAC.exit( 2 )
 
   def setLFNsFromFile( self, arg ):
-    if type( arg ) == type( '' ) and arg.lower() == 'last':
+    if isinstance( arg, basestring ) and arg.lower() == 'last':
       arg = self.lastFile
     # Make a list of files
-    if type( arg ) == type( '' ):
+    if isinstance( arg, basestring ):
       files = arg.split( ',' )
-    elif type( arg ) == type( [] ):
+    elif isinstance( arg, list ):
       files = arg
     elif not arg:
       files = [arg]
@@ -324,7 +330,7 @@ class DMScript( object ):
       if not sys.stdin.isatty():
         self.setLFNsFromTerm()
         value = self.options.get( switch, default )
-    if type( value ) == type( set() ):
+    if isinstance( value, set ):
       value = sorted( value )
     return value
 
@@ -362,7 +368,7 @@ class DMScript( object ):
     if not prod:
       prod = self.options.get( 'Productions', [] )
     requestID = None
-    if type( prod ) == type( '' ):
+    if isinstance( prod, basestring ):
       prods = [prod]
     else:
       prods = prod
