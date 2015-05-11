@@ -48,7 +48,7 @@ def getSEs( seGroup ):
   dmScript.setSEs( seGroup )
   return set( dmScript.getOption( 'SEs', [] ) )
 
-def parseArguments( dmScript, allSEs = False, visible = None ):
+def parseArguments( dmScript, allSEs = False ):
   # seList passes as option arguments
   if allSEs:
     seList = getAllSEs()
@@ -717,7 +717,6 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
       replicas.pop( lfn )
       lfnList.remove( lfn )
   metadata['Failed'].update( dict.fromkeys( [url for url in lfnList if url not in replicas and url not in metadata['Failed']], 'FC: No active replicas' ) )
-  result = None
   if not seList:
     # take all seList in replicas and add a fake '' to printout the SE name
     seList = [''] + sorted( list( set( [se for lfn in replicas for se in replicas[lfn]] ) ) )
