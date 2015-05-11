@@ -201,7 +201,6 @@ function submitAndMatch(){
 		export DEBUG='-ddd'
 	fi  
 
-	#Here, since I have CVMFS only, I can't use the "latest" pre-release, because won't be on CVMFS
 	# I execute in a subshell 
 	(
 		submitJob
@@ -218,15 +217,16 @@ function submitAndMatch(){
 
 function submitJob(){
 
+	#Here, since I have CVMFS only, I can't use the "latest" pre-release, because won't be on CVMFS
 	if [ ! -z "$DEBUG" ]
 	then
 		echo 'Running in DEBUG mode'
 		export DEBUG='-ddd'
 	fi  
 	
-	#Setup Release
+	#Setup Release (saving what's there before - most probably PRERELEASE=True)
 	export PRERELEASEVALUE=$PRERELEASE
-	PRERELEASE=''
+	export PRERELEASE=''
 	findRelease
 	SetupProject LHCbDIRAC `cat project.version`
 	export PYTHONPATH=$PYTHONPATH:$WORKSPACE
