@@ -209,7 +209,8 @@ function submitAndMatch(){
 	#Run the full pilot, including the JobAgent
 	prepareForPilot
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
-	python dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -C $CSURL -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG
+	python dirac-pilot.py -S $DIRACSET
+	UP -l LHCb $installVersion -C $CSURL -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert --certLocation=/home/dirac/certs/ -M 1 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG
 
 	#try running the job agent. The job should be matched and everything should be "ok"
 	#dirac-agent WorkloadManagement/JobAgent -o MaxCycles=1 -s /Resources/Computing/CEDefaults -o WorkingDirectory=$PWD -o TotalCPUs=1 -o MaxCPUTime=47520 -o CPUTime=47520 -o MaxRunningJobs=1 -o MaxTotalJobs=10 -o /LocalSite/InstancePath=$PWD -o /AgentJobRequirements/ExtraOptions=$PILOTCFG $PILOTCFG $DEBUG
@@ -228,7 +229,9 @@ function submitJob(){
 	export PRERELEASEVALUE=$PRERELEASE
 	export PRERELEASE=''
 	findRelease
-	SetupProject LHCbDIRAC `cat project.version`
+	
+	LbLogin.sh
+	SetupProject.sh LHCbDIRAC `cat project.version`
 	export PYTHONPATH=$PYTHONPATH:$WORKSPACE
 	
 	#Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
