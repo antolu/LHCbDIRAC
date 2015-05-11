@@ -209,7 +209,7 @@ function submitAndMatch(){
 	#Run the full pilot, including the JobAgent
 	prepareForPilot
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
-	python dirac-pilot.py -S $DIRACSET
+	python dirac-pilot.py -S $DIRACSETUP
 	UP -l LHCb $installVersion -C $CSURL -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert --certLocation=/home/dirac/certs/ -M 1 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG
 
 	#try running the job agent. The job should be matched and everything should be "ok"
