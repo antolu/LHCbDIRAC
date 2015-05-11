@@ -812,7 +812,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             runFlush = False
         runParamReplicas = {}
         for lfn in runParamLfns & setInputData:
-          runParamReplicas[lfn ] = [se for se in inputData[lfn] if not self.dmsHelper.isSEArchive( se )]
+          runParamReplicas[lfn ] = [se for se in inputData[lfn] if self.dmsHelper.isSEForJobs( se, checkSE = False )]
         # We need to replace the input replicas by those of this run before calling the helper plugin
         # As it may use self.data, set both transReplicas and data members
         self.transReplicas = runParamReplicas
