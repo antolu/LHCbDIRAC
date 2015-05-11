@@ -17,7 +17,7 @@ except:
   pass
 
 from LHCbDIRAC.TransformationSystem.Client.Utilities \
-     import PluginUtilities, getFileGroups, groupByRun, isArchive, isFailover, \
+     import PluginUtilities, getFileGroups, groupByRun, \
      sortExistingSEs, getRemovalPlugins, closerSEs, timeThis
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -64,7 +64,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                                  debug = debug, transInThread = transInThread if transInThread else {} )
     self.setDebug( self.util.getPluginParam( 'Debug', False ) )
 
-    self.dmsHelper = None
+    self.dmsHelper = DMSHelpers()
     self.processingShares = ( None, None )
 
   def voidMethod( self, _id, invalidateCache = False ):
@@ -370,8 +370,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __getSEForDestination( self, runID, targets ):
     # Try and get a run destination from TS
-    if not self.dmsHelper:
-      self.dmsHelper = DMSHelpers()
     res = self.transClient.getDestinationForRun( runID )
     if res['OK']:
       dest = res['Value']
@@ -391,8 +389,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _selectRunSite( self, runID, backupSE, rawSEs, bufferTargets, preStageShares = None, useRunDestination = False ):
     if not preStageShares:
       return S_OK()
-    if not self.dmsHelper:
-      self.dmsHelper = DMSHelpers()
 
     if self.processingShares[0] is None:
       res = self.util.getShares( section = preStageShares, transID = self.transID, backupSE = backupSE )
@@ -816,7 +812,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             runFlush = False
         runParamReplicas = {}
         for lfn in runParamLfns & setInputData:
-          runParamReplicas[lfn ] = [se for se in inputData[lfn] if not isArchive( se )]
+          runParamReplicas[lfn ] = [se for se in inputData[lfn] if not self.dmsHelper.isSEArchive( se )]
         # We need to replace the input replicas by those of this run before calling the helper plugin
         # As it may use self.data, set both transReplicas and data members
         self.transReplicas = runParamReplicas
@@ -1096,7 +1092,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     storageElementGroups = {}
     for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).items():
-      existingSEs = [se for se in replicaSE.split( ',' ) if not isFailover( se )]
+      existingSEs = [se for se in replicaSE.split( ',' ) if not self.dmsHelper.isSEFailover( se )]
       for lfns in breakListIntoChunks( lfnGroup, 100 ):
 
         stringTargetSEs = self.util.setTargetSEs( numberOfCopies, archive1SEs, archive2SEs,
@@ -1146,7 +1142,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     self.util.logInfo( "Starting execution of plugin" )
     mandatorySEs = set( mandatorySEs )
-    secondarySEs = [se for se in set( secondarySEs ) if se not in mandatorySEs]
+    secondarySEs = [se for se in set( secondarySEs ) - mandatorySEs]
     if not numberOfCopies:
       numberOfCopies = len( secondarySEs ) + len( mandatorySEs )
       activeSecondarySEs = secondarySEs
@@ -1160,7 +1156,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     alreadyCompleted = []
     fileTargetSEs = {}
     for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).items():
-      existingSEs = [se for se in replicaSE.split( ',' ) if not isFailover( se )]
+      existingSEs = [se for se in replicaSE.split( ',' ) if not self.dmsHelper.isSEFailover( se )]
       # If a FromSEs parameter is given, only keep the files that are at one of those SEs, mark the others NotProcessed
       if fromSEs:
         if not [se for se in existingSEs if se in fromSEs]:
@@ -1335,7 +1331,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if not [se for se in replicaSE if se in keepSEs]:
           notInKeepSEs.extend( lfns )
           continue
-      existingSEs = [se for se in replicaSE if se not in keepSEs and not isFailover( se )]
+      existingSEs = [se for se in replicaSE if se not in keepSEs and not self.dmsHelper.isSEFailover( se )]
       if minKeep == 0:
         # We only keep the replicas in keepSEs
         targetSEs = [se for se in existingSEs]
@@ -1565,11 +1561,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     destSEs = self.util.getPluginParam( 'DestinationSEs', [] )
     watermark = self.util.getPluginParam( 'MinFreeSpace', 30 )
+    if not destSEs:
+      self.util.logWarn( 'No destination SE given' )
+      return S_OK( [] )
 
     storageElementGroups = {}
 
     for replicaSE, lfns in getFileGroups( self.transReplicas ).items():
-      replicaSE = [se for se in replicaSE.split( ',' ) if not isFailover( se ) and not isArchive( se )]
+      replicaSE = [se for se in replicaSE.split( ',' ) if not self.dmsHelper.isSEFailover( se ) and not self.dmsHelper.isSEArchive( se )]
       if not replicaSE:
         continue
       if [se for se in replicaSE if se in destSEs]:
@@ -1603,7 +1602,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     storageElementGroups = {}
 
     for replicaSE, lfns in getFileGroups( self.transReplicas ).items():
-      replicaSE = set( [se for se in replicaSE.split( ',' ) if not isFailover( se ) and not isArchive( se )] )
+      replicaSE = set( [se for se in replicaSE.split( ',' ) if not self.dmsHelper.isSEFailover( se ) and not self.dmsHelper.isSEArchive( se )] )
       if not replicaSE:
         self.util.logInfo( "Found %d files that don't have a suitable source replica. Set Problematic" % len( lfns ) )
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )

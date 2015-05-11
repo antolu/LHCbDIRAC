@@ -12,7 +12,7 @@ import random
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR, exit as DIRACExit
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.Core.Utilities.SiteSEMapping import getSitesForSE
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
@@ -1022,10 +1022,10 @@ def groupByRun( files ):
   return S_OK( runDict )
 
 def isArchive( se ):
-  return se.endswith( "-ARCHIVE" )
+  return DMSHelpers().isSEArchive( se )
 
 def isFailover( se ):
-  return se.endswith( "-FAILOVER" )
+  return DMSHelpers().isSEFailover( se )
 
 def getFileGroups( fileReplicas, groupSE = True ):
   """
@@ -1087,9 +1087,11 @@ def closerSEs( existingSEs, targetSEs, local = False ):
   targetSEs = setTarget - set( existingSEs )
   if targetSEs:
     # Some SEs are left, look for sites
-    existingSites = set( [site for se in existingSEs if not isArchive( se )
-                         for site in getSitesForSE( se ).get( 'Value', [] ) ] )
-    closeSEs = set( [se for se in targetSEs if set( getSitesForSE( se ).get( 'Value', [] ) ) & existingSites] )
+    dmsHelper = DMSHelpers()
+    existingSites = [dmsHelper.getLocalSiteForSE( se ).get( 'Value' ) for se in existingSEs if not isArchive( se ) ]
+    existingSites = set( [site for site in existingSites if site] )
+    closeSEs = set( [se for se in targetSEs if dmsHelper.getLocalSiteForSE( se ).get( 'Value' ) in existingSites] )
+    # print existingSEs, existingSites, targetSEs, closeSEs
     otherSEs = targetSEs - closeSEs
     targetSEs = list( closeSEs )
     random.shuffle( targetSEs )
