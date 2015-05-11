@@ -103,6 +103,11 @@ class DMScript( object ):
     self.options = {}
     self.lastFile = os.path.join( os.environ.get( 'TMPDIR', '/tmp' ), '%d.lastLFNs' % os.getppid() )
     self.voName = None
+    from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
+    localCfg = LocalConfiguration()
+    localCfg.disableParsingCommandLine()
+    localCfg.loadUserData()
+    gLogger.setLevel( 'NOTICE' )
 
   def __voName( self ):
     if self.voName is None:
