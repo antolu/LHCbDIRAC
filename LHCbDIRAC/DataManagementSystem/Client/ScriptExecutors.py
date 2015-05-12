@@ -193,7 +193,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
   errorReasons = {}
   successfullyRemoved = {}
   notExisting = {}
-  gLogger.setLevel( 'FATAL' )
+  savedLevel = gLogger.getLevel()
   seList = set( seList )
   chunkSize = 500
   showProgress = len( lfnList ) > 3 * chunkSize
@@ -238,7 +238,9 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
         seString = ','.join( sorted( rep ) )
         seReps.setdefault( seString, [] ).append( lfn )
     if filesToRemove:
+      gLogger.setLevel( 'FATAL' )
       res = dm.removeFile( filesToRemove )
+      gLogger.setLevel( savedLevel )
       if not res['OK']:
         gLogger.fatal( "Failed to remove files", res['Message'] )
         DIRACExit( -2 )
@@ -256,7 +258,9 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
         # Not enough replicas outside seList, remove only part, otherwisae remove all
         removeSEs = random.shuffle( removeSEs )[0:remaining - minReplicas]
       for seName in sorted( removeSEs ):
+        gLogger.setLevel( 'FATAL' )
         res = dm.removeReplica( seName, lfns )
+        gLogger.setLevel( savedLevel )
         if not res['OK']:
           gLogger.verbose( "Failed to remove replica", res['Message'] )
           errorReasons.setdefault( res['Message'], {} ).setdefault( seName, [] ).extend( lfns )
@@ -270,7 +274,6 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
           successfullyRemoved.setdefault( seName, [] ).extend( res['Value']['Successful'].keys() )
   if showProgress:
     gLogger.always( '' )
-  gLogger.setLevel( 'ERROR' )
   if notExisting:
     res = dm.getReplicas( notExisting.keys() )
     if not res['OK']:
@@ -302,10 +305,11 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
 def removeReplicasNoFC( lfnList, seList ):
   dm = DataManager()
   bk = BookkeepingClient()
+  savedLevel = gLogger.getLevel()
   ##################################
   # Try and remove PFNs if not in FC
   ##################################
-  gLogger.always( 'Removing %d physical replica from %s, for replicas not in the FC' \
+  gLogger.notice( 'Removing %d physical replica from %s, for replicas not in the FC' \
     % ( len( lfnList ), str( seList ) ) )
   # Remove the replica flag in BK just in case
   errorReasons = {}
@@ -343,9 +347,9 @@ def removeReplicasNoFC( lfnList, seList ):
   if showProgress:
     gLogger.always( '' )
   for reason, lfns in notInBK.items():
-    gLogger.always( "Failed to remove replica flag in BK for %d files with error: %s" % ( len( lfns ), reason ) )
+    gLogger.notice( "Failed to remove replica flag in BK for %d files with error: %s" % ( len( lfns ), reason ) )
   if bkOK:
-    gLogger.always( "Replica flag was removed in BK for %d files" % bkOK )
+    gLogger.notice( "Replica flag was removed in BK for %d files" % bkOK )
   notInFC = set( notInFC )
   for seName in seList:
     se = StorageElement( seName )
@@ -363,7 +367,7 @@ def removeReplicasNoFC( lfnList, seList ):
       if toCheck:
         gLogger.setLevel( 'FATAL' )
         res = dm.getReplicaIsFile( toCheck, seName )
-        gLogger.setLevel( 'ERROR' )
+        gLogger.setLevel( savedLevel )
         if not res['OK']:
           lfnsToRemove += toCheck
         else:
@@ -403,7 +407,7 @@ def removeReplicasNoFC( lfnList, seList ):
       gLogger.always( "Removing %d files from %s" % ( len( lfns ), seName ) )
       gLogger.setLevel( 'FATAL' )
       res = se.removeFile( lfns )
-      gLogger.setLevel( 'ERROR' )
+      gLogger.setLevel( savedLevel )
       if not res['OK']:
         gLogger.error( 'ERROR removing storage file: ', res['Message'] )
       else:
@@ -448,10 +452,9 @@ def getAccessURL( lfnList, seList, protocol = None ):
     if len( seList ) > 1:
       gLogger.always( "Using the following list of SEs: %s" % str( seList ) )
   bk = BookkeepingClient()
-  # gLogger.setLevel( "FATAL" )
   notFoundLfns = set( lfnList )
   results = {'OK':True, 'Value':{'Successful':{}, 'Failed':{}}}
-  level = gLogger.getLevel()
+  savedLevel = gLogger.getLevel()
   gLogger.setLevel( 'FATAL' )
   # Check if files are MDF
   bkRes = bk.getFileTypeVersion( lfnList )
@@ -472,7 +475,7 @@ def getAccessURL( lfnList, seList, protocol = None ):
           results['Value']['Failed'].setdefault( se, {} ).update( failed )
       else:
         results['Value']['Failed'].setdefault( se, {} ).update( dict.fromkeys( lfns, res['Message'] ) )
-  gLogger.setLevel( level )
+  gLogger.setLevel( savedLevel )
 
   for se, failed in results['Value']['Failed'].items():
     for lfn in list( failed ):
@@ -505,7 +508,7 @@ def removeFiles( lfnList, setProcessed = False ):
   successfullyRemoved = []
   notExisting = []
   # Avoid spurious error messages
-  gLogger.setLevel( 'FATAL' )
+  savedLevel = gLogger.getLevel()
   chunkSize = 100
   verbose = len( lfnList ) >= 5 * chunkSize
   if verbose:
@@ -514,7 +517,9 @@ def removeFiles( lfnList, setProcessed = False ):
     if verbose:
       sys.stdout.write( '.' )
       sys.stdout.flush()
+    gLogger.setLevel( 'FATAL' )
     res = dm.removeFile( lfnChunk, force = False )
+    gLogger.setLevel( savedLevel )
     if not res['OK']:
       gLogger.error( "%sFailed to remove data" % '\n' if verbose else '', res['Message'] )
       continue
@@ -529,7 +534,6 @@ def removeFiles( lfnList, setProcessed = False ):
     successfullyRemoved += res['Value']['Successful'].keys()
   if verbose:
     gLogger.always( '' )
-  gLogger.setLevel( 'ERROR' )
 
   if successfullyRemoved + notExisting:
     removeFilesInTransformations( successfullyRemoved + notExisting, setProcessed = setProcessed )
@@ -1176,6 +1180,7 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
   # Now take actions and print results
   if putDots:
     gLogger.always( '' )
+  savedLevel = gLogger.getLevel()
   gLogger.setLevel( 'INFO' if fullInfo else 'WARNING' )
   if notFound:
     gLogger.always( "\n%d files not found in FC" % len( notFound ) )
@@ -1241,6 +1246,7 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
       for lfn in lfns:
         gLogger.info( '\t\t%s' % lfn )
 
+  gLogger.setLevel( savedLevel )
   if transNotSet:
     n = 0
     for lfns in transNotSet.values():
@@ -1286,6 +1292,7 @@ def executeLfnMetadata( dmScript ):
     DIRACExit( 0 )
 
   catalog = FileCatalog()
+  savedLevel = gLogger.getLevel()
   gLogger.setLevel( "FATAL" )
   filesList = [lfn for lfn in lfnList if
                catalog.isFile( lfn ).get( 'Value', {} ).get( 'Successful', {} ).get( lfn )]
@@ -1311,6 +1318,7 @@ def executeLfnMetadata( dmScript ):
   for metadata in success.values():
     if 'Mode' in metadata:
       metadata['Mode'] = '%o' % metadata['Mode']
+  gLogger.setLevel( savedLevel )
   printDMResult( S_OK( {'Successful':success, 'Failed':failed} ), empty = "File not in FC", script = "dirac-dms-lfn-metadata" )
   DIRACExit( 0 )
 
