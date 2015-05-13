@@ -12,7 +12,6 @@ if __name__ == "__main__":
   import DIRAC
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.TransformationSystem.Utilities.PluginScript import PluginScript
-  from LHCbDIRAC.TransformationSystem.Client.Utilities import getRemovalPlugins, getReplicationPlugins
   import time
 
   pluginScript = PluginScript()
@@ -82,6 +81,7 @@ if __name__ == "__main__":
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   from DIRAC.Core.Utilities.List import breakListIntoChunks
+  from LHCbDIRAC.TransformationSystem.Client.Utilities import getRemovalPlugins, getReplicationPlugins
 
   transType = None
   if plugin in getRemovalPlugins():
