@@ -6,7 +6,7 @@
 import DIRAC
 from DIRAC           import gLogger, gConfig
 from DIRAC.Core.Base import Script
-import os
+import os, sys
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
@@ -102,16 +102,13 @@ class DMScript( object ):
     self.bkQueryDict = {}
     self.options = {}
     self.lastFile = os.path.join( os.environ.get( 'TMPDIR', '/tmp' ), '%d.lastLFNs' % os.getppid() )
+    self.setLastFile = False
     self.voName = None
-    from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
-    localCfg = LocalConfiguration()
-    localCfg.disableParsingCommandLine()
-    localCfg.loadUserData()
-    gLogger.setLevel( 'NOTICE' )
 
   def __voName( self ):
     if self.voName is None:
       self.voName = gConfig.getValue( '/DIRAC/VirtualOrganization', '' )
+    gLogger.verbose( 'VO', self.voName )
     return self.voName
 
   def registerDMSwitches( self ) :
@@ -232,11 +229,11 @@ class DMScript( object ):
   def setDirectory( self, arg ):
     if os.path.exists( arg ) and not os.path.isdir( arg ):
       f = open( arg, 'r' )
-      directories = self.getLFNsFromList( f.read().splitlines(), directories = True )
+      directories = f.read().splitlines()
       if arg:
         f.close()
     else:
-      directories = self.getLFNsFromList( arg, directories = True )
+      directories = arg
     self.options.setdefault( 'Directory', set() ).update( directories )
     return DIRAC.S_OK()
 
@@ -254,7 +251,7 @@ class DMScript( object ):
 
   def setLFNs( self, arg ):
     if arg:
-      self.options.setdefault( 'LFNs', set() ).update( self.getLFNsFromList( arg ) )
+      self.options.setdefault( 'LFNs', set() ).update( arg.split( ',' ) )
     return DIRAC.S_OK()
 
   def setLFNsFromTerm( self, arg = None ):
@@ -267,13 +264,17 @@ class DMScript( object ):
       lfnList = lfns.split( ',' )
     elif isinstance( lfns , list ):
       lfnList = [lfn.strip() for lfn1 in lfns for lfn in lfn1.split( ',' )]
+    elif isinstance( lfns, set ):
+      lfnList = sorted( lfns )
     else:
       gLogger.error( 'getLFNsFromList: invalid type %s' % type( lfns ) )
       return []
-    vo = '/%s' % self.__voName()
-    lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
-    lfnList = [ vo + lfn.split( vo )[-1].split()[0] if '%s/' % vo in lfn else lfn if lfn == vo else '' for lfn in lfnList]
-    lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
+    vo = self.__voName()
+    if vo:
+      vo = '/%s' % vo
+      lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
+      lfnList = [ vo + lfn.split( vo )[-1].split()[0] if '%s/' % vo in lfn else lfn if lfn == vo else '' for lfn in lfnList]
+      lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
     if not directories:
       lfnList = [lfn for lfn in lfnList if not lfn.endswith( '/' )]
     return sorted( [lfn for lfn in set( lfnList ) if lfn] )
@@ -308,19 +309,16 @@ class DMScript( object ):
     nfiles = 0
     for fName in files:
       try:
-        import sys
         f = open( fName, 'r' ) if fName else sys.stdin
-        lfns = self.getLFNsFromList( f.read().splitlines() )
+        lfns = f.read().splitlines()
         if fName:
           f.close()
         nfiles += len( lfns )
       except:
-        lfns = self.getLFNsFromList( fName )
+        lfns = fName.split( ',' )
       self.options.setdefault( 'LFNs', set() ).update( lfns )
     if nfiles:
-      gLogger.always( "Got %d LFNs" % nfiles )
-      if arg != self.lastFile:
-        open( self.lastFile, 'w' ).write( '\n'.join( sorted( self.options['LFNs'] ) ) )
+      self.setLastFile = arg if arg else 'term'
     return DIRAC.S_OK()
 
   def getOptions( self ):
@@ -330,11 +328,18 @@ class DMScript( object ):
     if switch == 'SEs':
       return convertSEs( self.options.get( switch, default ) )
     value = self.options.get( switch, default )
-    if switch == 'LFNs' and not value:
-      import sys
-      if not sys.stdin.isatty():
-        self.setLFNsFromTerm()
-        value = self.options.get( switch, default )
+    if switch in ( 'LFNs', 'Directory' ):
+      if not value:
+        if not sys.stdin.isatty():
+          self.setLFNsFromTerm()
+          value = self.options.get( switch, default )
+      if value:
+        value = self.getLFNsFromList( value, directories = switch == 'Directory' )
+      if value and self.setLastFile and switch == 'LFNs':
+        gLogger.always( "Got %d LFNs" % len( value ) )
+        if self.setLastFile != self.lastFile:
+          self. setLastFile = False
+          open( self.lastFile, 'w' ).write( '\n'.join( sorted( value ) ) )
     if isinstance( value, set ):
       value = sorted( value )
     return value
