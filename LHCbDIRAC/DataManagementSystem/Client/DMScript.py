@@ -233,7 +233,7 @@ class DMScript( object ):
       if arg:
         f.close()
     else:
-      directories = arg
+      directories = arg.split( ',' )
     self.options.setdefault( 'Directory', set() ).update( directories )
     return DIRAC.S_OK()
 
@@ -269,14 +269,14 @@ class DMScript( object ):
     else:
       gLogger.error( 'getLFNsFromList: invalid type %s' % type( lfns ) )
       return []
-    vo = self.__voName()
-    if vo:
-      vo = '/%s' % vo
-      lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
-      lfnList = [ vo + lfn.split( vo )[-1].split()[0] if '%s/' % vo in lfn else lfn if lfn == vo else '' for lfn in lfnList]
-      lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
     if not directories:
-      lfnList = [lfn for lfn in lfnList if not lfn.endswith( '/' )]
+      vo = self.__voName()
+      if vo:
+        vo = '/%s' % vo
+        lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
+        lfnList = [ vo + lfn.split( vo )[-1].split()[0] if '%s/' % vo in lfn else lfn if lfn == vo else '' for lfn in lfnList]
+        lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
+        lfnList = [lfn for lfn in lfnList if not lfn.endswith( '/' )]
     return sorted( [lfn for lfn in set( lfnList ) if lfn] )
 
   @staticmethod
