@@ -4,7 +4,8 @@
 from DIRAC import S_OK, gLogger
 from DIRAC.Core.Base import Script
 
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, convertSEs
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 
 class Setter( object ):
   def __init__( self, obj, name ):
@@ -124,6 +125,6 @@ class PluginScript( DMScript ):
     for key in [k for k in self.options if k in pluginParams]:
       params[key] = self.options[key]
     for key in [k for k in self.options if k.endswith( 'SE' ) or k.endswith( 'SEs' )]:
-      params[key] = convertSEs( self.options[key] )
+      params[key] = resolveSEGroup( self.options[key] )
     return params
 
