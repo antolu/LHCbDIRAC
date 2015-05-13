@@ -16,9 +16,9 @@ try:
 except:
   pass
 
-from LHCbDIRAC.TransformationSystem.Client.Utilities \
+from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities \
      import PluginUtilities, getFileGroups, groupByRun, \
-     sortExistingSEs, getRemovalPlugins, closerSEs, timeThis
+     sortExistingSEs, getRemovalPlugins, closerSEs, timeThis, optimizeTasks
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
@@ -66,6 +66,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     self.dmsHelper = DMSHelpers()
     self.processingShares = ( None, None )
+    self.runDestinations = {}
 
   def voidMethod( self, _id, invalidateCache = False ):
     return
@@ -198,7 +199,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     # Choose the destination SE
     tasks = []
-    for runID in [run for run in runFileDict if run in runSEDict]:
+    for runID in set( runFileDict ) & set( runSEDict ):
       runLfns = runFileDict[runID]
       assignedSE = runSEDict[runID]
       if assignedSE:
@@ -251,7 +252,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return res
     existingCount, targetShares = res['Value']
 
-    # Split the file in run groups
+    # Split the files in run groups
     res = groupByRun( self.transFiles )
     if not res['OK']:
       self.util.logError( "Error splitting by run", res['Message'] )
@@ -273,7 +274,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Choose the destination SE
     tasks = []
     alreadyReplicated = []
-    for runID in [run for run in runFileDict if run in runSEDict]:
+    for runID in set( runFileDict ) & set( runSEDict ):
       runLfns = runFileDict[runID]
       assignedSE = runSEDict[runID]
       if assignedSE:
@@ -368,22 +369,92 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     return S_OK( tasks )
 
+  def _RAWProcessing( self ):
+    """
+    Create tasks for RAW data processing using the run destination table
+    """
+    fromSEs = set( self.util.getPluginParam( 'FromSEs', [] ) )
+    if not fromSEs:
+      self.util.logWarn( 'No processing SEs are provided' )
+      return S_OK( [] )
+
+    # Split the files in run groups
+    res = groupByRun( self.transFiles )
+    if not res['OK']:
+      self.util.logError( "Error splitting by run", res['Message'] )
+      return res
+    runFileDict = res['Value']
+    if not runFileDict:
+      # No files, no tasks!
+      self.util.logVerbose( "No runs found!" )
+      return S_OK( [] )
+    self.util.logVerbose( 'Obtained %d runs' % len( runFileDict ) )
+
+    # For each of the runs determine the destination of any previous files
+    res = self.util.getTransformationRuns( runFileDict.keys() )
+    if not res['OK']:
+      self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
+      return res
+    runSEDict = dict( [( runDict['RunNumber'], runDict['SelectedSite'] ) for runDict in res['Value']] )
+
+    # Choose the destination SE
+    tasks = []
+    for runID in set( runFileDict ) & set( runSEDict ):
+      runLfns = runFileDict[runID]
+      assignedSE = runSEDict[runID]
+      runSEs = set( assignedSE.split( ',' ) ) if isinstance( assignedSE, basestring ) else set()
+      # Now determine where these files should go
+      # Group by location
+      update = False
+      replicaGroups = getFileGroups( dict( [( lfn, self.transReplicas[lfn] ) for lfn in runLfns] ) )
+      notAtSE = 0
+      for replicaSE, lfns in replicaGroups.items():
+        targetSEs = set( replicaSE.split( ',' ) ) & fromSEs
+        if targetSEs:
+          # The files are at at least one of the requested SEs, set in run site for transformation
+          #   and create task
+          update = targetSEs - runSEs
+          if update:
+            runSEs |= targetSEs
+          targetSEs = ','.join( sorted( targetSEs ) )
+          self.util.logVerbose( 'Creating a task with %d files for run %s at %s' % ( len( lfns ), runID, targetSEs ) )
+          tasks.append( ( targetSEs, lfns ) )
+        else:
+          notAtSE += len( lfns )
+      if notAtSE:
+        self.util.logVerbose( 'Found %d files not yet at required SEs for run %d' % ( notAtSE, runID ) )
+      # If there are new run site destination SEs, set them
+      if update:
+        res = self.transClient.setTransformationRunsSite( self.transID, runID, ','.join( sorted( runSEs ) ) )
+        if not res['OK']:
+          self.util.logError( "Failed to assign TransformationRun SE", res['Message'] )
+          return res
+
+    if self.pluginCallback:
+      self.pluginCallback( self.transID, invalidateCache = True )
+    return S_OK( optimizeTasks( tasks ) )
+
+  def __getRunDestinations( self, runIDList ):
+    runSet = set( runIDList ) - set( self.runDestinations )
+    if runSet:
+      # Try and get a run destination from TS
+      res = self.transClient.getDestinationForRun( list( runSet ) )
+      if res['OK']:
+        dest = res['Value']
+        if dest:
+          if isinstance( dest, list ):
+            dest = dict( dest )
+          for runID in [runID for runID in runSet if dest.get( runID )]:
+            self.runDestinations[runID] = dest[runID]
+
   def __getSEForDestination( self, runID, targets ):
-    # Try and get a run destination from TS
-    res = self.transClient.getDestinationForRun( runID )
-    if res['OK']:
-      dest = res['Value']
-      if dest:
-        if isinstance( dest, tuple ):
-          site = dest[1] if dest[0] == runID else dest[0]
-        elif isinstance( dest, list ):
-          dest = dict( dest )
-        if isinstance( dest, dict ):
-          site = dest.get( runID )
-        if site:
-          self.util.logVerbose( 'Destination found for run %d: %s' % ( runID, site ) )
-          res = self.dmsHelper.getSEInGroupAtSite( targets, site )
-          return res.get( 'Value' )
+    """ get the information on destination SE from within a list """
+    self.__getRunDestinations( [runID] )
+    site = self.runDestinations.get( runID )
+    if site:
+      self.util.logVerbose( 'Destination found for run %d: %s' % ( runID, site ) )
+      res = self.dmsHelper.getSEInGroupAtSite( targets, site )
+      return res.get( 'Value' )
     return None
 
   def _selectRunSite( self, runID, backupSE, rawSEs, bufferTargets, preStageShares = None, useRunDestination = False ):
@@ -1287,6 +1358,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( tasks )
 
   def _DeleteDataset( self ):
+    return self._RemoveDataset()
+  def _RemoveDataset( self ):
     """ Plugin used to remove disk replicas, keeping some (e.g. archives)
     """
     keepSEs = self.util.getPluginParam( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
@@ -1295,6 +1368,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self._removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
   def _DeleteReplicas( self ):
+    return self._RemoveReplicas()
+  def _RemoveReplicas( self ):
     """ Plugin for removing replicas from specific SEs or reduce the number of replicas
     """
     fromSEs = self.util.getPluginParam( 'FromSEs', [] )
@@ -1389,6 +1464,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
   def _DeleteReplicasWhenProcessed( self ):
+    return self._RemoveReplicasWhenProcessed()
+  def _RemoveReplicasWhenProcessed( self ):
     """ This plugin considers files and checks whether they were processed for a list of processing passes
         For files that were processed, it sets replica removal tasks from a set of SEs
     """
