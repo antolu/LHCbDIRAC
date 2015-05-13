@@ -1330,8 +1330,8 @@ def executeGetFile( dmScript ):
     gLogger.fatal( "Not allowed to specify more than one destination directory" )
     DIRACExit( 2 )
 
-  dm = DataManager()
-  res = dm.getFile( lfnList, destinationDir = dirList[0] )
+  gLogger.notice( 'Downloading %s to %s' % ( '%d files' if len( lfnList ) > 1 else 'file', dirList[0] ) )
+  res = DataManager().getFile( lfnList, destinationDir = dirList[0] )
   DIRACExit( printDMResult( res,
                              empty = "No allowed replica found", script = "dirac-dms-get-file" ) )
 
