@@ -224,7 +224,7 @@ if __name__ == "__main__":
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
   from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-  from LHCbDIRAC.TransformationSystem.Client.Utilities   import getRemovalPlugins, getReplicationPlugins
+  from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities   import getRemovalPlugins, getReplicationPlugins
   from DIRAC import gLogger
   gLogger.setLevel( 'INFO' )
   # Create the transformation

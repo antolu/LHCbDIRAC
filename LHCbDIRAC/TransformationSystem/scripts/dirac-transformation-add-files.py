@@ -28,7 +28,7 @@ if __name__ == "__main__":
   from DIRAC import gLogger
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-  from LHCbDIRAC.TransformationSystem.Client.Utilities   import addFilesToTransformation
+  from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities   import addFilesToTransformation
 
   dmScript = DMScript()
   dmScript.registerFileSwitches()
@@ -40,7 +40,6 @@ if __name__ == "__main__":
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
                                        '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
-
 
   runInfo = True
   switches = Script.getUnprocessedSwitches()

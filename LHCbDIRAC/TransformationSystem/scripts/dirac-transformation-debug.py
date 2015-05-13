@@ -1178,13 +1178,13 @@ if __name__ == "__main__":
 
   transList = __getTransformations( Script.getPositionalArgs() )
 
-  from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-  from DIRAC.RequestManagementSystem.Client.ReqClient           import ReqClient
+  from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+  from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
   from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
-  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
-  from LHCbDIRAC.TransformationSystem.Client.Utilities import PluginUtilities
-  from DIRAC.Core.Utilities.List                                         import breakListIntoChunks
+  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+  from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities
+  from DIRAC.Core.Utilities.List import breakListIntoChunks
   from DIRAC import gLogger
   import DIRAC
   import datetime
