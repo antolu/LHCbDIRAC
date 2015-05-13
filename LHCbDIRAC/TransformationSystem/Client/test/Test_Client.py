@@ -5,11 +5,9 @@ from mock import MagicMock
 
 from DIRAC import S_OK, S_ERROR, gLogger
 
-from LHCbDIRAC.TransformationSystem.Client.Utilities import closerSEs
-
 from LHCbDIRAC.TransformationSystem.Client.TaskManager import LHCbWorkflowTasks
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from LHCbDIRAC.TransformationSystem.Client.Utilities import PluginUtilities, getFileGroups, groupByRun
+from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, getFileGroups, groupByRun, closerSEs
 
 def getSitesForSE( ses ):
   if ses == 'pippo':
@@ -400,7 +398,7 @@ class PluginsUtilitiesSuccess( ClientTestCase ):
 #     tsMock.getTransformationFiles.return_value = S_OK( [{'LFN':'this/is/at_1', 'Status':'Unused'},
 #                                                         {'LFN':'this/is/not_here', 'Status':'MissingInFC'}] )
 #     bkMock = MagicMock()
-#     bkMock.getFileAncestors.return_value = 
+#     bkMock.getFileAncestors.return_value =
 #     pu = PluginUtilities( transClient = tsMock, fc = self.fcMock, dataManager = MagicMock(), rmClient = MagicMock() )
 #     res = pu.getRAWAncestorsForRun( 1 )
 #     self.assertEqual( res, 0 )
