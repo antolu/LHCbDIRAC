@@ -10,6 +10,7 @@ import os, sys
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 
 __RCSID__ = "$Id$"
 
@@ -57,33 +58,6 @@ def printDMResult( result, shift = 4, empty = "Empty directory", script = None, 
     gLogger.notice( "Exception while printing results in %s - Results:" % script )
     gLogger.notice( result )
     return 2
-
-def convertSEs( ses ):
-  try:
-    from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
-    return resolveSEGroup( ses )
-  except:
-    pass
-  # FIXME: remove when DIRAC is released
-  seList = []
-  for se in ses:
-    seConfig = gConfig.getValue( '/Resources/StorageElementGroups/%s' % se, se )
-    if seConfig != se:
-      seList += [se.strip() for se in seConfig.split( ',' )]
-      # print seList
-    else:
-      seList.append( se )
-    res = gConfig.getSections( '/Resources/StorageElements' )
-    if not res['OK']:
-      gLogger.fatal( 'Error getting list of SEs from CS', res['Message'] )
-      DIRAC.exit( 1 )
-    for se in seList:
-      if se not in res['Value']:
-        gLogger.fatal( '%s is not a valid SE' % se )
-        seList = []
-        break
-
-  return seList
 
 class DMScript( object ):
   """ DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
@@ -326,7 +300,7 @@ class DMScript( object ):
 
   def getOption( self, switch, default = None ):
     if switch == 'SEs':
-      return convertSEs( self.options.get( switch, default ) )
+      return resolveSEGroup( self.options.get( switch, default ) )
     value = self.options.get( switch, default )
     if switch in ( 'LFNs', 'Directory' ):
       if not value:
