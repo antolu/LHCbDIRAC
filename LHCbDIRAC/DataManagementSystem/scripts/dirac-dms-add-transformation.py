@@ -81,7 +81,7 @@ if __name__ == "__main__":
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   from DIRAC.Core.Utilities.List import breakListIntoChunks
-  from LHCbDIRAC.TransformationSystem.Client.Utilities import getRemovalPlugins, getReplicationPlugins
+  from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import getRemovalPlugins, getReplicationPlugins
 
   transType = None
   if plugin in getRemovalPlugins():
@@ -329,7 +329,7 @@ if __name__ == "__main__":
         errMsg = "Error getting transformationID: %s" % res['Message']
         break
       if requestedLFNs:
-        from LHCbDIRAC.TransformationSystem.Client.Utilities import addFilesToTransformation
+        from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import addFilesToTransformation
         res = addFilesToTransformation( transID, requestedLFNs, addRunInfo = ( transType != 'Removal' ) )
         if not res['OK']:
           errMsg = "Could not add %d files to transformation: %s" % ( len( requestedLFNs ), res['Message'] )
