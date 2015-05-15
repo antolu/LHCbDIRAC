@@ -1310,7 +1310,7 @@ def executeLfnMetadata( dmScript ):
     res = catalog.getDirectoryMetadata( dirList )
     if res['OK']:
       success.update( res['Value']['Successful'] )
-      failed.update( res['Velue']['Failed'] )
+      failed.update( res['Value']['Failed'] )
     else:
       res = __dfcGetDirectoryMetadata( catalog, dirList )
       success.update( res['Value']['Successful'] )
