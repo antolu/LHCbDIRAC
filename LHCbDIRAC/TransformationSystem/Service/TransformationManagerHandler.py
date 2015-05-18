@@ -98,6 +98,12 @@ class TransformationManagerHandler( TManagerBase ):
   def export_addTransformationRunFiles( self, transID, runID, lfns ):
     return database.addTransformationRunFiles( transID, runID, lfns )
 
+  types_setParameterToTransformationFiles = [[LongType, IntType], DictType]
+  @classmethod
+  def export_setParameterToTransformationFiles( self, transID, lfnsDict ):
+    return database.setParameterToTransformationFiles( transID, lfnsDict )
+
+
   types_setTransformationRunStatus = [[LongType, IntType], [LongType, IntType, ListType], StringTypes]
   @classmethod
   def export_setTransformationRunStatus( self, transID, runID, status ):
@@ -269,7 +275,7 @@ class TransformationManagerHandler( TManagerBase ):
   # Managing the RunDestination table
   #
 
-  types_getDestinationForRun = [LongType, IntType, StringTypes, ListType]
+  types_getDestinationForRun = [[LongType, IntType, StringTypes, ListType]]
   @classmethod
   def export_getDestinationForRun( self, runIDs ):
     """ retrieve run destination for a single run or a list of runs
