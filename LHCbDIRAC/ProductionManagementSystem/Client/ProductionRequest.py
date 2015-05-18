@@ -293,8 +293,12 @@ class ProductionRequest( object ):
     # add '1' to the stepMask and add GAUSSHIST to the fileMask
     fileTypesOutLastStep = prod.LHCbJob.workflow.step_instances[-2].findParameter( 'listoutput' ).getValue()[0]['outputDataType']
     newFileMask = ['GAUSSHIST'] + [ftOut.upper() for ftOut in fileTypesOutLastStep.split( ';' )]
-    stepMask = prod.LHCbJob.workflow.findParameter( 'outputDataStep' ).getValue().replace( ' ', '' ).split( ';' )
-    newOutputFileStep = ';'.join( sorted( list( set( ['1'] ).union( set( stepMask ) ) ) ) )
+    stepMaskParameter = prod.LHCbJob.workflow.findParameter( 'outputDataStep' )
+    if stepMaskParameter:
+      stepMask = stepMaskParameter.getValue().replace( ' ', '' ).split( ';' )
+      newOutputFileStep = ';'.join( sorted( list( set( ['1'] ).union( set( stepMask ) ) ) ) )
+    else:
+      newOutputFileStep = '1'
     prod.setFileMask( newFileMask, newOutputFileStep )
     
     # find the file types out already built, append GAUSSHIST and set the new listoutput

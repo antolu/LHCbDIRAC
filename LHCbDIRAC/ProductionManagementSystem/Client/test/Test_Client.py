@@ -219,6 +219,27 @@ class ProductionRequestSuccess( ClientTestCase ):
       if par.getName() == 'Priority':
         self.assertEqual( par.value, '1' )
 
+    # And again re-prepare the test case
+    prod = Production()
+    prod.setParameter( 'ProcessingType', 'JDL', 'Test', 'ProductionGroupOrType' )
+    prod.addApplicationStep( stepDict = step1Dict,
+                             inputData = 'previousStep',
+                             modules = ['GaudiApplication', 'AnalyseLogFile'] )
+    prod.addFinalizationStep()
+    prod.setFileMask( '' )
+
+    pr._mcSpecialCase( prod, {'tracking':0} )
+    for par in prod.LHCbJob.workflow.parameters:
+      if par.getName() == 'Site':
+        self.assertEqual( par.value, 'ANY' )
+      if par.getName() == 'listoutput':
+        self.assert_( 'gausshist' not in dict( par.value ).values() )
+      if par.getName() == 'outputDataFileMask':
+        self.assertEqual( par.value, '' )
+      if par.getName() == 'Priority':
+        self.assertEqual( par.value, '1' )
+
+
   def test_resolveStepsSuccess( self ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
