@@ -14,7 +14,7 @@ import re
 
 from DIRAC                                              import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.DB.TransformationDB     import TransformationDB as DIRACTransformationDB
-from DIRAC.Core.Utilities.List                          import intListToString, breakListIntoChunks
+from DIRAC.Core.Utilities.List                          import intListToString, breakListIntoChunks, stringListToString
 
 class TransformationDB( DIRACTransformationDB ):
   """ Extension of the DIRAC Transformation DB
@@ -33,7 +33,7 @@ class TransformationDB( DIRACTransformationDB ):
     self.transRunParams = ['TransformationID', 'RunNumber', 'SelectedSite', 'Status', 'LastUpdate']
     self.allowedStatusForTasks = ( 'Unused', 'ProbInFC' )
     self.TRANSPARAMS.append( 'Hot' )
-    self.TRANSFILEPARAMS.append( 'RunNumber' )
+    self.TRANSFILEPARAMS.extend( ['RunNumber', 'FileSize', 'FileType', 'NumberOfRAWAncestors'] )
     self.TASKSPARAMS.append( 'RunNumber' )
 
 # FIXME: not compatible with DIRAC v6r11, but will be compatible with DIRAC v7r0
@@ -526,16 +526,11 @@ class TransformationDB( DIRACTransformationDB ):
     res = self._getConnectionTransID( connection, transID )
     if not res['OK']:
       return res
-    connection = res['Value']['Connection']
-    res = self.__getFileIDsForLfns( lfns, connection = connection )
+    lfnsDict = dict( ( item, {'RunNumber': runID} ) for item in lfns )
+    res = self.setParameterToTransformationFiles( transID, lfnsDict )
     if not res['OK']:
       return res
-    fileIDs, _lfnFilesIDs = res['Value']
-    req = "UPDATE TransformationFiles SET RunNumber = %d \
-    WHERE TransformationID = %d AND FileID IN (%s)" % ( runID, transID, intListToString( fileIDs.keys() ) )
-    res = self._update( req, connection )
-    if not res['OK']:
-      return res
+    fileIDs = res ['Value']
     successful = {}
     failed = {}
     for fileID in fileIDs.keys():
@@ -554,6 +549,30 @@ class TransformationDB( DIRACTransformationDB ):
       self.insertTransformationRun( transID, runID, connection = connection )
     resDict = {'Successful':successful, 'Failed':failed}
     return S_OK( resDict )
+  
+  def setParameterToTransformationFiles( self, transID, lfnsDict, connection = False ):
+    """ Sets a parameter in the TransformationFiles table
+    """
+    res = self._getConnectionTransID( connection, transID )
+    if not res['OK']:
+      return res
+    connection = res['Value']['Connection']
+    res = self.__getFileIDsForLfns( lfnsDict.keys(), connection = connection )
+    if not res['OK']:
+      return res
+    fileIDs, _lfnFilesIDs = res['Value']
+    rDict = {}
+    for fileID, lfn in fileIDs.items():
+      rDict[fileID] = lfnsDict[lfn]
+    for id, param in rDict.items():
+     req = "UPDATE TransformationFiles SET %s = %s \
+     WHERE TransformationID = %d AND FileID = %d" % ( ','.join( param.keys() ), stringListToString( param.values() ), transID, id )
+     res = self._update( req, connection )
+     if not res['OK']:
+       gLogger.error( "Failed to update TransformationFiles table", res['Message'] )
+       return  res
+    return S_OK( fileIDs )
+
 
   def setTransformationRunStatus( self, transID, runIDs, status, connection = False ):
     """ Sets a status in the TransformationRuns table
