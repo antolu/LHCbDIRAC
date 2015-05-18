@@ -26,6 +26,8 @@ class TestClientTransformationTestCase( unittest.TestCase ):
 class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTransformationClientChain ):
 
   def test_LHCbOnly( self ):
+
+
     # add
     res = self.transClient.addTransformation( 'transNameLHCb', 'description', 'longDescription', 'MCSimulation', 'Standard',
                                               'Manual', '', bkQuery = {'DataTakingConditions':'DataTakingConditions',
@@ -118,11 +120,21 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     res = self.transClient.removeStoredJobDescription( transID )
     self.assert_( res ['OK'] )
 
+    lfn = ['/aa/lfn.1.txt', '/aa/lfn.2.txt', '/aa/lfn.3.txt']
+    res = self.transClient.addTransformationRunFiles( transID, 22222, lfn )
+    self.assert_( res['OK'] )
+
+#     # test setParameterToTransformationFiles
+    lfnsDict = {'/aa/lfn.1.txt': {'FileSize': 276386386}, '/aa/lfn.2.txt': {'FileType': 'Pippo'}, '/aa/lfn.3.txt':{'NumberOfRAWAncestors': 3}}
+    res = self.transClient.setParameterToTransformationFiles( transID, lfnsDict )
+    self.assert_( res['OK'] )
 
     # clean
     res = self.transClient.cleanTransformation( transID )
     self.assert_( res['OK'] )
+    print res
     res = self.transClient.getTransformationParameters( transID, 'Status' )
+    print res
     self.assert_( res['OK'] )
     self.assertEqual( res['Value'], 'TransformationCleaned' )
 
