@@ -7,7 +7,7 @@ from DIRAC                                           import S_OK, S_ERROR, gConf
 from DIRAC.Core.Base.AgentModule                     import AgentModule
 from DIRAC.Core.Security.VOMSService                 import VOMSService
 from DIRAC.Core.Security                             import Locations, X509Chain
-from DIRAC.Core.Utilities                            import List, Subprocess
+from DIRAC.Core.Utilities                            import List
 from DIRAC.ConfigurationSystem.Client.CSAPI          import CSAPI
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 
@@ -17,7 +17,7 @@ class UsersAndGroups( AgentModule ):
 
   def __init__( self, *args, **kwargs ):
     """
-    c'tor
+    Initialisation of the Users and Groups agent
     """
     AgentModule.__init__( self, *args, **kwargs )
     self.vomsSrv = None
@@ -71,7 +71,6 @@ class UsersAndGroups( AgentModule ):
     self.log.info( "Checking DFC registered users" )
 
     usersToBeRegistered      = {}
-    usersToBeRegisteredAgain = {}
     found                    = False
 
     for user in usersData:
@@ -91,10 +90,10 @@ class UsersAndGroups( AgentModule ):
     return S_OK()
 
   def changeLFCRegisteredUsers( self, registerUsers, action ):
+    '''
+    add user to DFC
+    '''
     self.log.info( "Changing DFC registered users" )
-
-    address = self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' )
-    fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
 
     if action == "add":
       subject = 'New DFC Users found'
@@ -107,7 +106,7 @@ class UsersAndGroups( AgentModule ):
           print lfc_dn
           bodyDFC += 'add-user-DFC --User ' + lfcuser + '\n'
 
-      NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, bodyDFC, fromAddress )
+      NotificationClient().sendMail( self.address, 'UsersAndGroupsAgent: %s' % subject, bodyDFC, self.fromAddress )
 
 
     return S_OK()
@@ -135,6 +134,8 @@ class UsersAndGroups( AgentModule ):
     self.__adminMsgs = { 'Errors' : [], 'Info' : [] }
 
     #Get DIRAC VOMS Mapping
+    self.address = self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' )
+    self.fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
     self.log.info( "Getting DIRAC VOMS mapping" )
     mappingSection = '/Registry/VOMS/Mapping'
     ret = gConfig.getOptionsDict( mappingSection )
@@ -367,7 +368,7 @@ class UsersAndGroups( AgentModule ):
         self.__adminMsgs[ 'Info' ].append( "    + EMail: %s" % usersData[newUser][ 'Email' ] )
         bodyDFC += 'add-user-DFC --User ' + newUser + '\n'
 
-      NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, bodyDFC, fromAddress )
+      NotificationClient().sendMail( self.address, 'UsersAndGroupsAgent: %s' % subject, bodyDFC, self.fromAddress )
 
 
 
@@ -381,8 +382,6 @@ class UsersAndGroups( AgentModule ):
 
     if obsoleteUserNames:
       self.__adminMsgs[ 'Info' ].append( "\nObsolete users:" )
-      address = self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' )
-      fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
       subject = 'Obsolete DFC Users found'
       body = 'Ban entries into DFC: \n'
       for obsoleteUser in obsoleteUserNames:
@@ -390,7 +389,7 @@ class UsersAndGroups( AgentModule ):
         body += 'Ban user ' + obsoleteUser + '\n'
         self.__adminMsgs[ 'Info' ].append( "  %s" % obsoleteUser )
       self.log.info( "Banning %s users" % len( obsoleteUserNames ) )
-      NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
+      NotificationClient().sendMail( self.address, 'UsersAndGroupsAgent: %s' % subject, body, self.fromAddress )
       csapi.deleteUsers( obsoleteUserNames )
 
     result = csapi.commitChanges()
