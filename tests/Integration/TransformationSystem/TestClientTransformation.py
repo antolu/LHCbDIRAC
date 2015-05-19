@@ -125,8 +125,8 @@ class LHCbTransformationClientChain( TestClientTransformationTestCase, DIRACTran
     self.assert_( res['OK'] )
 
 #     # test setParameterToTransformationFiles
-    lfnsDict = {'/aa/lfn.1.txt': {'FileSize': 276386386}, '/aa/lfn.2.txt': {'FileType': 'Pippo'}, '/aa/lfn.3.txt':{'NumberOfRAWAncestors': 3}}
-    res = self.transClient.setParameterToTransformationFiles( transID, lfnsDict )
+    lfnsDict = {'/aa/lfn.1.txt': {'Size': 276386386}, '/aa/lfn.2.txt': {'FileType': 'Pippo'}, '/aa/lfn.3.txt':{'RAWAncestors': 3}}
+    res = self.transClient.addTransformationFileParameter( transID, lfnsDict )
     self.assert_( res['OK'] )
 
     # clean
