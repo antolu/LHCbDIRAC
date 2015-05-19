@@ -33,7 +33,7 @@ class TransformationDB( DIRACTransformationDB ):
     self.transRunParams = ['TransformationID', 'RunNumber', 'SelectedSite', 'Status', 'LastUpdate']
     self.allowedStatusForTasks = ( 'Unused', 'ProbInFC' )
     self.TRANSPARAMS.append( 'Hot' )
-    self.TRANSFILEPARAMS.extend( ['RunNumber', 'FileSize', 'FileType', 'NumberOfRAWAncestors'] )
+    self.TRANSFILEPARAMS.extend( ['RunNumber', 'Size', 'FileType', 'RAWAncestors'] )
     self.TASKSPARAMS.append( 'RunNumber' )
 
 # FIXME: not compatible with DIRAC v6r11, but will be compatible with DIRAC v7r0
@@ -527,7 +527,7 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return res
     lfnsDict = dict( ( item, {'RunNumber': runID} ) for item in lfns )
-    res = self.setParameterToTransformationFiles( transID, lfnsDict )
+    res = self.addTransformationFileParameter( transID, lfnsDict )
     if not res['OK']:
       return res
     fileIDs = res ['Value']
@@ -550,7 +550,7 @@ class TransformationDB( DIRACTransformationDB ):
     resDict = {'Successful':successful, 'Failed':failed}
     return S_OK( resDict )
   
-  def setParameterToTransformationFiles( self, transID, lfnsDict, connection = False ):
+  def addTransformationFileParameter( self, transID, lfnsDict, connection = False ):
     """ Sets a parameter in the TransformationFiles table
     """
     res = self._getConnectionTransID( connection, transID )
