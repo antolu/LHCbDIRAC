@@ -98,7 +98,7 @@ class TransformationManagerHandler( TManagerBase ):
   def export_addTransformationRunFiles( self, transID, runID, lfns ):
     return database.addTransformationRunFiles( transID, runID, lfns )
 
-  types_setParameterToTransformationFiles = [[LongType, IntType], DictType]
+  types_addTransformationFileParameter = [[LongType, IntType], DictType]
   @classmethod
   def export_addTransformationFileParameter( self, transID, lfnsDict ):
     return database.addTransformationFileParameter( transID, lfnsDict )
