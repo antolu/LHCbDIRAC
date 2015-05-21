@@ -105,7 +105,7 @@ class TransformationDB( DIRACTransformationDB ):
 #
 #    return S_OK( tables )
 
-  def deleteTransformation(self, transID, author = '', connection = False):
+  def deleteTransformation( self, transID, author = '', connection = False ):
     """ Small extension to not forget to delete the BkQueries
     """
     res = self.deleteBookkeepingQuery( transID, connection )
@@ -303,12 +303,12 @@ class TransformationDB( DIRACTransformationDB ):
     for i in range ( len( self.queryFields ) ):
       req = req + "(%d,'%s',%s), " % ( transID, self.queryFields[i], values[i] )
     req = req.strip().rstrip( ',' )
-    
+
     res = self._update( req, connection )
     if not res['OK']:
       return res
     return S_OK( transID )
-    
+
   def getTransformationsWithBkQueries( self, transIDs = [], connection = False ):
     """ Get those Transformations that have a BkQuery
     """
@@ -527,7 +527,7 @@ class TransformationDB( DIRACTransformationDB ):
     if not res['OK']:
       return res
     lfnsDict = dict( ( item, {'RunNumber': runID} ) for item in lfns )
-    res = self.addTransformationFileParameter( transID, lfnsDict )
+    res = self.setParameterToTransformationFiles( transID, lfnsDict )
     if not res['OK']:
       return res
     fileIDs = res ['Value']
@@ -549,8 +549,8 @@ class TransformationDB( DIRACTransformationDB ):
       self.insertTransformationRun( transID, runID, connection = connection )
     resDict = {'Successful':successful, 'Failed':failed}
     return S_OK( resDict )
-  
-  def addTransformationFileParameter( self, transID, lfnsDict, connection = False ):
+
+  def setParameterToTransformationFiles( self, transID, lfnsDict, connection = False ):
     """ Sets a parameter in the TransformationFiles table
     """
     res = self._getConnectionTransID( connection, transID )
@@ -565,12 +565,13 @@ class TransformationDB( DIRACTransformationDB ):
     for fileID, lfn in fileIDs.items():
       rDict[fileID] = lfnsDict[lfn]
     for fID, param in rDict.items():
-     req = "UPDATE TransformationFiles SET %s = %s \
-     WHERE TransformationID = %d AND FileID = %d" % ( ','.join( param.keys() ), stringListToString( param.values() ), transID, fID )
-     res = self._update( req, connection )
-     if not res['OK']:
-       gLogger.error( "Failed to update TransformationFiles table", res['Message'] )
-       return  res
+      req = "UPDATE TransformationFiles SET %s \
+       WHERE TransformationID = %d AND FileID = %d" % \
+       ( ','.join( "`%s` = '%s'" % ( param.keys() , stringListToString( param.values() ) ) ), transID, fID )
+      res = self._update( req, connection )
+      if not res['OK']:
+        gLogger.error( "Failed to update TransformationFiles table", res['Message'] )
+        return  res
     return S_OK( fileIDs )
 
 

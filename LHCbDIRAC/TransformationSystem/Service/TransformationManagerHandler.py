@@ -50,22 +50,22 @@ class TransformationManagerHandler( TManagerBase ):
   @classmethod
   def export_getBookkeepingQuery( self, transID ):
     return database.getBookkeepingQuery( transID )
-  
+
   types_getTransformationsWithBkQueries = [ ListType ]
   @classmethod
-  def export_getTransformationsWithBkQueries(self, transIDs):
+  def export_getTransformationsWithBkQueries( self, transIDs ):
     return database.getTransformationsWithBkQueries( transIDs )
-  
+
   types_setBookkeepingQueryEndRun = [ [LongType, IntType] , [LongType, IntType]]
   @classmethod
   def export_setBookkeepingQueryEndRun( self, transID, runNumber ):
     return database.setBookkeepingQueryEndRun( transID, runNumber )
-  
+
   types_setBookkeepingQueryStartRun = [ [LongType, IntType] , [LongType, IntType]]
   @classmethod
   def export_setBookkeepingQueryStartRun( self, transID, runNumber ):
     return database.setBookkeepingQueryStartRun( transID, runNumber )
-  
+
   types_addBookkeepingQueryRunList = [ [LongType, IntType] , [ListType]]
   @classmethod
   def export_addBookkeepingQueryRunList( self, transID, runList ):
@@ -98,10 +98,10 @@ class TransformationManagerHandler( TManagerBase ):
   def export_addTransformationRunFiles( self, transID, runID, lfns ):
     return database.addTransformationRunFiles( transID, runID, lfns )
 
-  types_addTransformationFileParameter = [[LongType, IntType], DictType]
+  types_setParameterToTransformationFilesr = [[LongType, IntType], DictType]
   @classmethod
-  def export_addTransformationFileParameter( self, transID, lfnsDict ):
-    return database.addTransformationFileParameter( transID, lfnsDict )
+  def export_setParameterToTransformationFiles( self, transID, lfnsDict ):
+    return database.setParameterToTransformationFiles( transID, lfnsDict )
 
 
   types_setTransformationRunStatus = [[LongType, IntType], [LongType, IntType, ListType], StringTypes]
@@ -153,8 +153,8 @@ class TransformationManagerHandler( TManagerBase ):
     resultDict['ParameterNames'] = paramNames
 
     # Add the job states to the ParameterNames entry
-    #taskStateNames   = ['Created','Running','Submitted','Failed','Waiting','Done','Stalled']
-    #resultDict['ParameterNames'] += ['Jobs_'+x for x in taskStateNames]
+    # taskStateNames   = ['Created','Running','Submitted','Failed','Waiting','Done','Stalled']
+    # resultDict['ParameterNames'] += ['Jobs_'+x for x in taskStateNames]
     # Add the file states to the ParameterNames entry
     fileStateNames = ['PercentProcessed', 'Processed', 'Unused', 'Assigned',
                       'Total', 'Problematic', 'ApplicationCrash', 'MaxReset']
@@ -215,11 +215,11 @@ class TransformationManagerHandler( TManagerBase ):
           transRun.append( 0 )
 
       # Get the statistics on the number of jobs for the transformation
-      #res = database.getTransformationTaskRunStats(transID)
-      #taskDict = {}
-      #if res['OK'] and res['Value']:
+      # res = database.getTransformationTaskRunStats(transID)
+      # taskDict = {}
+      # if res['OK'] and res['Value']:
       #  taskDict = res['Value']
-      #for state in taskStateNames:
+      # for state in taskStateNames:
       #  if taskDict and taskDict.has_key(state):
       #    trans.append(taskDict[state])
       #  else:
@@ -269,7 +269,7 @@ class TransformationManagerHandler( TManagerBase ):
     """ gets what's in
     """
     return database.getRunsInCache( condDict )
-  
+
   #############################################################################
   #
   # Managing the RunDestination table
@@ -300,7 +300,7 @@ class TransformationManagerHandler( TManagerBase ):
   #
   # Managing the StoredJobDescription table
   #
-  
+
   types_addStoredJobDescription = [LongType, StringTypes]
   @classmethod
   def export_addStoredJobDescription( self, transformationID, jobDescription ):
@@ -310,7 +310,7 @@ class TransformationManagerHandler( TManagerBase ):
   @classmethod
   def export_getStoredJobDescription( self, transformationID ):
     return database.getStoredJobDescription( transformationID )
-  
+
   types_removeStoredJobDescription = [LongType]
   @classmethod
   def export_removeStoredJobDescription( self, transformationID ):
