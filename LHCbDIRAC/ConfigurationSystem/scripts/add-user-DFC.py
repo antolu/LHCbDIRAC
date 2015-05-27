@@ -5,17 +5,21 @@ from DIRAC import exit, gLogger, S_OK
 import os, sys
 from time import time
 
-def chown( directories, user, recursive = False, ndirs = None ):
+def chown( directories, user, group = 'lhcb_user', recursive = False, ndirs = None ):
   if isinstance( directories, basestring ):
     directories = [directories]
   if ndirs is None:
     ndirs = 0
   res = dfc.changePathOwner( dict.fromkeys( directories, user ) )
   if not res['OK']:
-    return res
-  res = dfc.changePathGroup( dict.fromkeys( directories, 'lhcb_user' ) )
+    res = dfc.changePathOwner( dict.fromkeys( directories, {'Owner' : user} ) )
+    if not res['OK']:
+      return res
+  res = dfc.changePathGroup( dict.fromkeys( directories, group ) )
   if not res['OK']:
-    return res
+    res = dfc.changePathGroup( dict.fromkeys( directories, {'Group':group} ) )
+    if not res['OK']:
+      return res
   if recursive:
     for subDir in directories:
       if ndirs % 10 == 0:
@@ -36,20 +40,24 @@ def chown( directories, user, recursive = False, ndirs = None ):
 
 Script.registerSwitch( '', 'User=', '  User name' )
 Script.registerSwitch( '', 'Recursive', '  Set ownership recursively' )
+Script.registerSwitch( '', 'Directory=', '   Directory to change the ownership of' )
+Script.registerSwitch( '', 'Group=', '   Group name (default lhcb_user)' )
 
 Script.parseCommandLine()
 
 user = None
 recursive = False
+group = 'lhcb_user'
+baseDir = None
 for switch in Script.getUnprocessedSwitches():
   if switch[0] == 'User':
     user = switch[1].lower()
   elif switch[0] == 'Recursive':
     recursive = True
-
-if not user:
-  Script.showHelp()
-  exit( 1 )
+  elif switch[0] == 'Directory':
+    baseDir = switch[1]
+  elif switch[0] == 'Group':
+    group = switch[1]
 
 from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 res = getProxyInfo()
@@ -62,9 +70,32 @@ if not 'FileCatalogManagement' in properties:
   exit( 5 )
 
 from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
+dfc = FileCatalogClient()
+if baseDir:
+  if not baseDir.startswith( '/lhcb' ):
+    gLogger.fatal( "This is not a valid directory", directory )
+    exit ( 1 )
+  if not group.startswith( 'lhcb_' ):
+    gLogger.fatal( "This is not a valid group", group )
+    exit( 1 )
+  if not dfc.isDirectory( baseDir ).get( 'Value', {} ).get( 'Successful', {} ).get( baseDir ):
+    gLogger.fatal( "Directory doesn't exist", baseDir )
+    exit( 1 )
+  startTime = time()
+  res = chown( baseDir, user, group = group, recursive = recursive )
+  if not res['OK']:
+    gLogger.fatal( 'Error changing directory owner', res['Message'] )
+    exit( 2 )
+  gLogger.always( 'Successfully changed owner in %d directories in %.1f seconds' % ( res['Value'], time() - startTime ) )
+  exit( 0 )
+
+
+if user is None:
+  Script.showHelp()
+  exit( 1 )
+
 exists = False
 initial = user[0]
-dfc = FileCatalogClient()
 baseDir = os.path.join( '/lhcb', 'user', initial, user )
 subDirectories = []
 if dfc.isDirectory( baseDir ).get( 'Value', {} ).get( 'Successful', {} ).get( baseDir ):
