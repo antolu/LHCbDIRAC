@@ -34,8 +34,7 @@ class ProductionLog( object ):
     }
 
     # Well known Gaudi Errors
-    self.__GAUDI_ERRORS__ = {'Cannot connect to database'  : 'error database connection',
-                             'Could not connect' : 'CASTOR error connection',
+    self.__GAUDI_ERRORS__ = {'Could not connect' : 'CASTOR error connection',
                              'SysError in <TDCacheFile::ReadBuffer>: error reading from file' : 'DCACHE connection error',
                              'Failed to resolve' : 'IODataManager error',
                              'Error: connectDataIO' : 'connectDataIO error',
