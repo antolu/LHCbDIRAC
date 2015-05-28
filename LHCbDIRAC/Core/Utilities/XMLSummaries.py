@@ -166,7 +166,9 @@ class XMLSummary( object ):
     for inputF in summary.childrens( 'input' ):
       for filename in inputF.childrens( 'file' ):
         try:
-          files.append( ( filename.attributes[ 'name' ], filename.attributes[ 'status' ] ) )
+          fileName = filename.attributes['name']
+          if 'LFN:' in fileName:
+            files.append( ( filename.attributes['name'], filename.attributes['status'] ) )
         except Exception:
           raise XMLSummaryError( "Bad formatted file keys" )
 
