@@ -1,3 +1,6 @@
+""" This submits user jobs and then starts a thread that checks their results
+"""
+
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
@@ -153,12 +156,36 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     print "**********************************************************************************************************"
 
+    gLogger.info( "\n Submitting a job that uploads an output using the prependString (new v8r1)" )
+
+    helloJ = LHCbJob()
+
+    helloJ.setName( "upload-Output-test" )
+    helloJ.setInputSandbox( [find_all( 'testFileUploadNewPath.txt', '.', 'GridTestSubmission' )[0]] + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+    helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
+
+    helloJ.setCPUTime( 17800 )
+
+    helloJ.setOutputData( ['testFileUploadNewPath.txt'], filePrepend = 'testFilePrepend' )
+
+    result = self.dirac.submit( helloJ )
+    gLogger.info( "Hello world with output: ", result )
+
+    jobID = int( result['Value'] )
+    jobsSubmittedList.append( jobID )
+
+    self.assert_( result['OK'] )
+
+
+    print "**********************************************************************************************************"
+
     gLogger.info( "\n Submitting a job that uploads an output and replicates it" )
 
     helloJ = LHCbJob()
 
     helloJ.setName( "upload-Output-test-with-replication" )
-    helloJ.setInputSandbox( [find_all( 'testFileReplication.txt', '.', 'GridTestSubmission' )[0]] + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+    helloJ.setInputSandbox( [find_all( 'testFileReplication.txt', '.', 'GridTestSubmission' )[0]] + \
+                            [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
     helloJ.setCPUTime( 17800 )
@@ -187,7 +214,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
     helloJ.setCPUTime( 17800 )
-    gaudirunJob.setConfigArgs( 'partialConfig.cfg' )
+    helloJ.setConfigArgs( 'partialConfig.cfg' )
 
     helloJ.setDestination( 'LCG.PIC.es' )
     helloJ.setOutputData( ['testFileUploadBanned-1.txt', 'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
