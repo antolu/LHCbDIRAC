@@ -353,7 +353,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         ses = sorted( set( assignedSE ) - replicaSE )
         # Update the counters as we know the number of files
         if assignedRAW in ses:
-          existingCount[assignedRAW] += len( lfns )
+          existingCount[assignedRAW] = existingCount.setdefault( assignedRAW, 0 ) + len( lfns )
         assignedSE = ','.join( ses )
         if assignedSE:
           self.util.logVerbose( 'Creating a task for SEs %s' % assignedSE )
