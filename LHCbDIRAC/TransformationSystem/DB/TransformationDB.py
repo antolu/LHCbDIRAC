@@ -567,7 +567,7 @@ class TransformationDB( DIRACTransformationDB ):
     for fID, param in rDict.items():
       req = "UPDATE TransformationFiles SET %s \
        WHERE TransformationID = %d AND FileID = %d" % \
-       ( ','.join( "`%s` = '%s'" % ( param.keys() , stringListToString( param.values() ) ) ), transID, fID )
+       ( ','.join( ["`%s` = '%s'" % ( key, str( val ) ) for key, val in param.items()] ), transID, fID )
       res = self._update( req, connection )
       if not res['OK']:
         gLogger.error( "Failed to update TransformationFiles table", res['Message'] )
