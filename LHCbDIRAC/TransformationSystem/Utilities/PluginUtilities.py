@@ -1,7 +1,6 @@
 """
   Utilities for scripts dealing with transformations
 """
-
 __RCSID__ = "$Id$"
 
 import os
@@ -258,10 +257,13 @@ class PluginUtilities( object ):
       if usedSE != 'Unknown':
         usageDict[usedSE] = count
     if requestedSEs:
+      requestedSEs = set( requestedSEs )
       seDict = {}
       for se, count in usageDict.items():
-        if se in requestedSEs:
-          seDict[se] = seDict.setdefault( se, 0 ) + count
+        overlap = set( se.split( ',' ) ) & requestedSEs
+        if overlap:
+          for ov in overlap:
+            seDict[ov] = seDict.setdefault( ov, 0 ) + count
         else:
           self.logWarn( "%s is in counters but not in required list" % se )
       usageDict = seDict.copy()
