@@ -236,7 +236,29 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     inputJ.setName( "job-with-input-data" )
     inputJ.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
     inputJ.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
-    inputJ.setInputData( '/lhcb/user/f/fstagni/test/testInputFile.txt' )
+    inputJ.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+
+    inputJ.setCPUTime( 17800 )
+
+    result = self.dirac.submit( inputJ )
+    gLogger.info( "Hello world with output and replication: ", result )
+
+    jobID = int( result['Value'] )
+    jobsSubmittedList.append( jobID )
+
+    self.assert_( result['OK'] )
+
+
+    print "**********************************************************************************************************"
+
+    gLogger.info( "\n Submitting a job that has an input data in more than one location" )
+
+    inputJ = LHCbJob()
+
+    inputJ.setName( "job-with-input-data" )
+    inputJ.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
+    inputJ.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
+    inputJ.setInputData( '/lhcb/user/f/fstagni/test/testInputFile.txt' )  # this file should be at CERN-USER and IN2P3-USER
 
     inputJ.setCPUTime( 17800 )
 
