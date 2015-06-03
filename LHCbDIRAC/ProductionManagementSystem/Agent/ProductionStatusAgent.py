@@ -1021,7 +1021,7 @@ class ProductionStatusAgent( AgentModule ):
       for prID in prList:
         if self.prSummary[prID]['isFinished']:
           countFinished += 1
-      if countFinished == len(prList) and summary['type'] == 'Simulation':
+      if countFinished == len(prList):
         self.__updateProductionRequestStatus( masterID, 'Done', updatedPr )
 
     self.log.verbose( "Done with Production Requests logic" )
