@@ -10,6 +10,8 @@ import time
 from DIRAC import gLogger
 from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
+from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+
 
 from TestDIRAC.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
 from TestDIRAC.Utilities.utils import find_all
@@ -37,6 +39,21 @@ class GridSubmissionTestCase( unittest.TestCase ):
     if result['Value']['PIC-USER']['WriteAccess'].lower() != 'banned':
       print "BAN PIC-USER in writing! and then restart this test"
       exit( 1 )
+
+    res = DataManager().getReplicas( ['/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt',
+                                      '/lhcb/user/f/fstagni/test/testInputFile.txt'] )
+    if not res['OK']:
+      print "DATAMANAGER.getRepicas failure: %s" % res['Message']
+      exit( 1 )
+    if res['Value']['Failed']:
+      print "DATAMANAGER.getRepicas failed for someting: %s" % res['Value']['Failed']
+      exit( 1 )
+
+    replicas = res['Value']['Successful']
+    if replicas['/lhcb/user/f/fstagni/test/testInputFile.txt'].keys() != ['CERN-USER', 'IN2P3-USER']:
+      print "/lhcb/user/f/fstagni/test/testInputFile.txt locations are not correct"
+    if replicas['/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt'].keys() != ['CERN-USER']:
+      print "/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt locations are not correct"
 
   def tearDown( self ):
     pass
@@ -138,7 +155,8 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     helloJ = LHCbJob()
 
     helloJ.setName( "upload-Output-test" )
-    helloJ.setInputSandbox( [find_all( 'testFileUpload.txt', '.', 'GridTestSubmission' )[0]] + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+    helloJ.setInputSandbox( [find_all( 'testFileUpload.txt', '.', 'GridTestSubmission' )[0]] + \
+                            [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
     helloJ.setCPUTime( 17800 )
@@ -160,8 +178,9 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     helloJ = LHCbJob()
 
-    helloJ.setName( "upload-Output-test" )
-    helloJ.setInputSandbox( [find_all( 'testFileUploadNewPath.txt', '.', 'GridTestSubmission' )[0]] + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+    helloJ.setName( "upload-Output-test-with-prependString" )
+    helloJ.setInputSandbox( [find_all( 'testFileUploadNewPath.txt', '.', 'GridTestSubmission' )[0]] + \
+                            [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
     helloJ.setCPUTime( 17800 )
@@ -175,6 +194,30 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     jobsSubmittedList.append( jobID )
 
     self.assert_( result['OK'] )
+
+    print "**********************************************************************************************************"
+
+    gLogger.info( "\n Submitting a job that uploads an output using the prependString and a an _ (new v8r1)" )
+
+    helloJ = LHCbJob()
+
+    helloJ.setName( "upload-Output-test-with-prependString-and-undescore" )
+    helloJ.setInputSandbox( [find_all( 'testFileUploadNewPath.txt', '.', 'GridTestSubmission' )[0]] + \
+                            [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+    helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
+
+    helloJ.setCPUTime( 17800 )
+
+    helloJ.setOutputData( ['testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
+
+    result = self.dirac.submit( helloJ )
+    gLogger.info( "Hello world with output: ", result )
+
+    jobID = int( result['Value'] )
+    jobsSubmittedList.append( jobID )
+
+    self.assert_( result['OK'] )
+
 
 
     print "**********************************************************************************************************"
@@ -229,7 +272,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     print "**********************************************************************************************************"
 
-    gLogger.info( "\n Submitting a job that has an input data" )
+    gLogger.info( "\n Submitting a job that has an input data - use download policy" )
 
     inputJ = LHCbJob()
 
@@ -237,6 +280,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     inputJ.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
     inputJ.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
     inputJ.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
+    inputJ.setInputDataPolicy( 'download' )
 
     inputJ.setCPUTime( 17800 )
 
@@ -251,7 +295,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     print "**********************************************************************************************************"
 
-    gLogger.info( "\n Submitting a job that has an input data in more than one location" )
+    gLogger.info( "\n Submitting a job that has an input data in more than one location - use download policy" )
 
     inputJ = LHCbJob()
 
@@ -259,6 +303,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     inputJ.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
     inputJ.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
     inputJ.setInputData( '/lhcb/user/f/fstagni/test/testInputFile.txt' )  # this file should be at CERN-USER and IN2P3-USER
+    inputJ.setInputDataPolicy( 'download' )
 
     inputJ.setCPUTime( 17800 )
 
