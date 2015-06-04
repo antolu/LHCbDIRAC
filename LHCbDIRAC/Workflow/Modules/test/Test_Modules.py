@@ -420,14 +420,18 @@ class ModuleBaseSuccess( ModulesTestCase ):
   def test_getCandidateFiles( self ):
     # this needs to avoid the "checkLocalExistance"
 
-    self.mb.outputSEs = {'txt':'SE1', 'py': 'SE', 'HIST':'HIST'}
+    self.mb.outputSEs = {'txt':'SE1', 'py': 'SE', 'HIST':'HIST', 'blah':'SE2'}
 
     open( 'foo_1.txt', 'w' ).close()
     open( 'bar_2.py', 'w' ).close()
+    open( 'myfoo.blah', 'w' ).close()
 
     outputList = [{'outputDataType': 'txt', 'outputDataName': 'foo_1.txt'},
-                  {'outputDataType': 'py', 'outputDataName': 'bar_2.py'}]
-    outputLFNs = ['/lhcb/MC/2010/DST/00012345/0001/foo_1.txt', '/lhcb/MC/2010/DST/00012345/0001/bar_2.py']
+                  {'outputDataType': 'py', 'outputDataName': 'bar_2.py'},
+                  {'outputDataType': 'blah', 'outputDataName': 'myfoo.blah'}]
+    outputLFNs = ['/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
+                  '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
+                  '/lhcb/user/f/fstagni/2015_06/prepend_myfoo.blah']
     fileMask = 'txt'
     stepMask = ''
     result = {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
@@ -444,8 +448,15 @@ class ModuleBaseSuccess( ModulesTestCase ):
                              'workflowSE': 'SE1'},
               'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                            'type': outputList[1]['outputDataType'],
-                            'workflowSE': 'SE'},
-              }
+                            'workflowSE': 'SE'}}
+    res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
+    self.assertEqual( res, result )
+
+    fileMask = ['blah']
+    stepMask = None
+    result = {'myfoo.blah': {'lfn': '/lhcb/user/f/fstagni/2015_06/prepend_myfoo.blah',
+                             'type': outputList[2]['outputDataType'],
+                             'workflowSE': 'SE2'}}
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
     self.assertEqual( res, result )
 
@@ -660,13 +671,34 @@ class ModuleBaseSuccess( ModulesTestCase ):
         res = self.mb.createProdConfFile( ['DST', 'GAUSSHIST'], True, 123, 1 )
         print res
 
+class ModuleBaseFailure( ModulesTestCase ):
+
+  def test_getCandidateFiles( self ):
+    # this needs to avoid the "checkLocalExistance"
+
+    self.mb.outputSEs = {'txt':'SE1', 'py': 'SE', 'HIST':'HIST', 'blah':'SE2'}
+
+    open( 'foo_1.txt', 'w' ).close()
+    open( 'bar_2.py', 'w' ).close()
+    open( 'myfoo.blah', 'w' ).close()
+
+    outputList = [{'outputDataType': 'txt', 'outputDataName': 'foo_1.txt'},
+                  {'outputDataType': 'py', 'outputDataName': 'bar_2.py'},
+                  {'outputDataType': 'blah', 'outputDataName': 'myfoo.blah'}]
+    outputLFNs = ['/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
+                  '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
+                  '/lhcb/user/f/fstagni/2015_06/prepend_myfoo_1.blah']
+    fileMask = 'blah'
+    stepMask = ''
+
+    self.assertRaises( ValueError, self.mb.getCandidateFiles, outputList, outputLFNs, fileMask, stepMask )
+
 
 #############################################################################
 # GaudiApplication.py
 #############################################################################
 
 class GaudiApplicationSuccess( ModulesTestCase ):
-
   #################################################
 
 #  def test_execute( self ):
@@ -1612,6 +1644,7 @@ class CreateDataFileSuccess( ModulesTestCase ):
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ModulesTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModuleBaseSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModuleBaseFailure ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseXMLSummarySuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseLogFileSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationSuccess ) )

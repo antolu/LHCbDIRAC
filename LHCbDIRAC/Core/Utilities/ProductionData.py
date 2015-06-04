@@ -172,10 +172,13 @@ def getLogPath( paramDict, bkClient = None, quick = True ):
 #############################################################################
 
 def constructUserLFNs( jobID, owner, outputFiles, outputPath = '', prependString = '' ):
-  """ This method is used to supplant the standard job wrapper output data policy
-      for LHCb.  The initial convention adopted for user output files is the following:
+  """ This method is used to supplant the standard job wrapper output data policy for LHCb.
 
-      /lhcb/user/<initial e.g. p>/<owner e.g. paterson>/<outputPath>/<jobID>_<prependString>_fileName
+      The initial convention adopted for user output files is the following:
+      /lhcb/user/<initial e.g. f>/<owner e.g. fstagni>/<outputPath>/year_month/<jobID/1000>/<jobID>/fileName
+
+      But, if prependString is set, then the following is adopted:
+      /lhcb/user/<initial e.g. f>/<owner e.g. fstagni>/<outputPath>/<jobID>_<prependString>_fileName
   """
 
   initial = owner[:1]

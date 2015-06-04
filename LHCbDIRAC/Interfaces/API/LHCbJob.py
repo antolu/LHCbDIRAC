@@ -721,7 +721,7 @@ class LHCbJob( Job ):
     """
     #FIXME: the output data as specified here will be treated by the UserJobFinalization module
     # If we remove this method (which is totally similar to the Job() one, the output data will be 
-    # treated by the JobWrapper. So, can and maybe should be done, but have to pat attention
+    # treated by the JobWrapper. So, can and maybe should be done, but have to pay attention
     kwargs = {'lfns':lfns, 'OutputSE':OutputSE, 'OutputPath':OutputPath}
     if isinstance( lfns, list ) and len( lfns ):
       outputDataStr = ';'.join( lfns )

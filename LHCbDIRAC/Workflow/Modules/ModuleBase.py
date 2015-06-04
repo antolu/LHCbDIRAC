@@ -577,12 +577,15 @@ class ModuleBase( object ):
         fileType = outputFile['outputDataType']
         fileInfo[fname] = {'type':fileType}
       else:
-        self.log.error( 'Ignoring malformed output data specification', str( outputFile ) )
+        self.log.error( 'Ignoring mal-formed output data specification', str( outputFile ) )
 
     for lfn in outputLFNs:
       if os.path.basename( lfn ) in fileInfo.keys():
         fileInfo[os.path.basename( lfn )]['lfn'] = lfn
-        self.log.verbose( 'Found LFN %s for file %s' % ( lfn, os.path.basename( lfn ) ) )
+        self.log.verbose( "Found LFN %s for file %s" % ( lfn, os.path.basename( lfn ) ) )
+      elif os.path.basename(lfn).split('_')[-1] in fileInfo.keys():
+        fileInfo[os.path.basename( lfn ).split('_')[-1]]['lfn'] = lfn
+        self.log.verbose( "Found LFN %s for file %s" % ( lfn, os.path.basename( lfn ).split( '_' )[-1] ) )
 
     # check local existance
     self._checkLocalExistance( fileInfo.keys() )
