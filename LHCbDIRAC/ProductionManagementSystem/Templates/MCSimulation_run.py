@@ -192,7 +192,7 @@ elif w3:
 
   mooreStepIndex = 1
   for sld in pr.stepsListDict:
-    if sld['ApplicationName'].lower() == 'moore':
+    if sld['ApplicationName'].lower() == 'Brunel':
       break
     mooreStepIndex += 1
 
