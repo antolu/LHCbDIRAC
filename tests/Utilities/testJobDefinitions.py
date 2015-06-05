@@ -12,20 +12,20 @@ tier1s = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.NI
 def baseToAllJobs():
 
   print "**********************************************************************************************************"
-  print "\n Submitting job ", self.__name__
+  print "\n Submitting job ", __name__
 
   J = LHCbJob()
-  J.setName( self.__name__ )
+  J.setName( __name__ )
   J.setCPUTime( 17800 )
   return J
 
 
 def endOfAllJobs( J ):
   result = DiracLHCb().submit( J )
-  print self.__name__, "job submission result:", result
+  print __name__, "job submission result:", result
   if result['OK']:
     jobID = int( result['Value'] )
-    print self.__name__, "submitted with job ID:", jobID
+    print __name__, "submitted with job ID:", jobID
 
   print "**********************************************************************************************************"
 
