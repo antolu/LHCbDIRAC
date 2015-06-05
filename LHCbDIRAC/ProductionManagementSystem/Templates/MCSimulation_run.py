@@ -159,7 +159,7 @@ elif w2:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
 
-  brunelStepIndex = 0
+  brunelStepIndex = 1
   for sld in pr.stepsListDict:
     if sld['ApplicationName'].lower() == 'brunel':
       break
@@ -190,9 +190,9 @@ elif w3:
     gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
     DIRAC.exit( 2 )
 
-  brunelStepIndex = 0
+  brunelStepIndex = 1
   for sld in pr.stepsListDict:
-    if sld['ApplicationName'].lower() == 'Brunel':
+    if sld['ApplicationName'].lower() == 'brunel':
       break
     brunelStepIndex += 1
 
