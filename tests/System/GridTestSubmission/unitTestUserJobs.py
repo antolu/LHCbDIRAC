@@ -285,7 +285,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     inputJ.setCPUTime( 17800 )
 
     result = self.dirac.submit( inputJ )
-    gLogger.info( "Hello world with output and replication: ", result )
+    gLogger.info( "Hello world with with input: ", result )
 
     jobID = int( result['Value'] )
     jobsSubmittedList.append( jobID )
@@ -308,7 +308,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     inputJ.setCPUTime( 17800 )
 
     result = self.dirac.submit( inputJ )
-    gLogger.info( "Hello world with output and replication: ", result )
+    gLogger.info( "Hello world with input at multiple locations: ", result )
 
     jobID = int( result['Value'] )
     jobsSubmittedList.append( jobID )
