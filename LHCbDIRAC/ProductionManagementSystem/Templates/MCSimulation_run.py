@@ -159,14 +159,14 @@ elif w2:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
 
-  mooreStepIndex = 1
+  brunelStepIndex = 1
   for sld in pr.stepsListDict:
-    if sld['ApplicationName'].lower() == 'moore':
+    if sld['ApplicationName'].lower() == 'brunel':
       break
-    mooreStepIndex += 1
+    brunelStepIndex += 1
 
-  pr.stepsInProds = [range( 1, mooreStepIndex + 1 ),
-                     range( mooreStepIndex + 1, len( pr.stepsListDict ) ),
+  pr.stepsInProds = [range( 1, brunelStepIndex ),
+                     range( brunelStepIndex + 1, len( pr.stepsListDict ) ),
                      [len( pr.stepsListDict )]]
   pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
                         str( len( pr.stepsInProds[1] ) ),
@@ -190,14 +190,14 @@ elif w3:
     gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
     DIRAC.exit( 2 )
 
-  mooreStepIndex = 1
+  brunelStepIndex = 1
   for sld in pr.stepsListDict:
     if sld['ApplicationName'].lower() == 'Brunel':
       break
-    mooreStepIndex += 1
+    brunelStepIndex += 1
 
-  pr.stepsInProds = [range( 1, mooreStepIndex + 1 ),
-                     range( mooreStepIndex + 1, len( pr.stepsListDict ) + 1 )]
+  pr.stepsInProds = [range( 1, brunelStepIndex ),
+                     range( brunelStepIndex, len( pr.stepsListDict ) + 1 )]
   pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
                         str( len( pr.stepsInProds[1] ) )]
 
