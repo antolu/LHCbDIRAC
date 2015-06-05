@@ -46,7 +46,7 @@ def helloWorldTestT2s():
   J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setBannedSites( tier1s )
-  endOfAllJobs( J )
+  return endOfAllJobs( J )
 
 def helloWorldTestCERN():
 
@@ -54,7 +54,7 @@ def helloWorldTestCERN():
   J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setDestination( 'LCG.CERN.ch' )
-  endOfAllJobs( J )
+  return endOfAllJobs( J )
 
 def helloWorldTestSLC6():
 
@@ -62,7 +62,7 @@ def helloWorldTestSLC6():
   J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setPlatform( 'x86_64-slc6' )
-  endOfAllJobs( J )
+  return endOfAllJobs( J )
 
 def helloWorldTestSLC5():
 
@@ -70,7 +70,7 @@ def helloWorldTestSLC5():
   J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setPlatform( 'x86_64-slc5' )
-  endOfAllJobs( J )
+  return endOfAllJobs( J )
 
 def jobWithOutput():
 
@@ -79,7 +79,7 @@ def jobWithOutput():
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setOutputData( ['testFileUpload.txt'] )
-  endOfAllJobs( J )
+  return endOfAllJobs( J )
 
 def jobWithOutputAndPrepend():
 
@@ -88,7 +88,7 @@ def jobWithOutputAndPrepend():
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setOutputData( ['testFileUploadNewPath.txt'], filePrepend = 'testFilePrepend' )
-  endOfAllJobs( J )
+  return endOfAllJobs( J )
 
 def jobWithOutputAndPrependWithUnderscore():
 
@@ -97,5 +97,5 @@ def jobWithOutputAndPrependWithUnderscore():
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setOutputData( ['testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
-  endOfAllJobs( J )
+  return endOfAllJobs( J )
 
