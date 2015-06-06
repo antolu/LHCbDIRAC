@@ -14,7 +14,7 @@ if __name__ == "__main__":
   days = 0
   months = 0
   years = 0
-  depth = 0
+  depth = 1
   wildcard = '*'
   dmScript = DMScript()
   dmScript.registerNamespaceSwitches()
@@ -24,7 +24,7 @@ if __name__ == "__main__":
   Script.registerSwitch( "", "Wildcard=", "Wildcard for matching filenames [%s]" % wildcard )
   Script.registerSwitch( '', 'Output', 'Write list to an output file' )
   Script.registerSwitch( "", "EmptyDirs", "Create a list of empty directories" )
-  Script.registerSwitch( "", "Depth=", "Depth to which recursively browse (default = 0)" )
+  Script.registerSwitch( "", "Depth=", "Depth to which recursively browse (default = %d)" % depth )
   Script.registerSwitch( "r", "Recursive", "Set depth to infinite" )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
