@@ -468,7 +468,7 @@ class OracleBookkeepingDB:
   def getProductionOutputFileTypes( self, prod ):
     """returns the production output file types"""
     command = "select o.name,o.visible from steps s, table(s.outputfiletypes) o, stepscontainer st \
-            where st.stepid=s.stepid and st.production=%d" % ( int( prod ) )
+            where st.stepid=s.stepid and st.production=%d order by step" % ( int( prod ) )
     retVal = self.dbR_.query( command )
     values = {}
     if retVal['OK']:
