@@ -9,6 +9,8 @@ from TestDIRAC.Utilities.testJobDefinitions import *
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
+# FIXME: use this to submit on behalf of another user
+from DIRAC.Core.Utilities.Proxy import executeWithUserProxy
 
 # parameters
 
@@ -30,6 +32,7 @@ def helloWorldTestT2s():
   J.setBannedSites( tier1s )
   return endOfAllJobs( J )
 
+@executeWithUserProxy
 def helloWorldTestCERN():
 
   J = baseToAllJobs( 'helloWorld-test-CERN', jobClass )
@@ -38,6 +41,7 @@ def helloWorldTestCERN():
   J.setDestination( 'LCG.CERN.ch' )
   return endOfAllJobs( J )
 
+@executeWithUserProxy
 def helloWorldTestSLC6():
 
   J = baseToAllJobs( 'helloWorld-test-SLC6', jobClass )
@@ -46,6 +50,7 @@ def helloWorldTestSLC6():
   J.setPlatform( 'x86_64-slc6' )
   return endOfAllJobs( J )
 
+@executeWithUserProxy
 def helloWorldTestSLC5():
 
   J = baseToAllJobs( 'helloWorld-test-SLC5', jobClass )
@@ -54,6 +59,7 @@ def helloWorldTestSLC5():
   J.setPlatform( 'x86_64-slc5' )
   return endOfAllJobs( J )
 
+@executeWithUserProxy
 def jobWithOutput():
 
   J = baseToAllJobs( 'jobWithOutput', jobClass )
@@ -63,6 +69,7 @@ def jobWithOutput():
   J.setOutputData( ['testFileUpload.txt'] )
   return endOfAllJobs( J )
 
+@executeWithUserProxy
 def jobWithOutputAndPrepend():
 
   J = baseToAllJobs( 'jobWithOutputAndPrepend', jobClass )
@@ -72,6 +79,7 @@ def jobWithOutputAndPrepend():
   J.setOutputData( ['testFileUploadNewPath.txt'], filePrepend = 'testFilePrepend' )
   return endOfAllJobs( J )
 
+@executeWithUserProxy
 def jobWithOutputAndPrependWithUnderscore():
 
   J = baseToAllJobs( 'jobWithOutputAndPrependWithUnderscore', jobClass )
@@ -81,6 +89,7 @@ def jobWithOutputAndPrependWithUnderscore():
   J.setOutputData( ['testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
   return endOfAllJobs( J )
 
+@executeWithUserProxy
 def jobWithOutputAndReplication():
 
   J = baseToAllJobs( 'jobWithOutputAndReplication', jobClass )
@@ -90,6 +99,7 @@ def jobWithOutputAndReplication():
   J.setOutputData( ['testFileReplication.txt'], replicate = 'True' )
   return endOfAllJobs( J )
 
+@executeWithUserProxy
 def jobWith2OutputsToBannedSE():
 
   J = baseToAllJobs( 'jobWith2OutputsToBannedSE', jobClass )
@@ -103,6 +113,7 @@ def jobWith2OutputsToBannedSE():
   J.setOutputData( ['testFileUploadBanned-1.txt', 'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
   return endOfAllJobs( J )
 
+@executeWithUserProxy
 def jobWithSingleInputData():
 
   J = baseToAllJobs( 'jobWithSingleInputData', jobClass )
@@ -112,6 +123,7 @@ def jobWithSingleInputData():
   J.setInputDataPolicy( 'download' )
   return endOfAllJobs( J )
 
+@executeWithUserProxy
 def jobWithSingleInputDataSpreaded():
 
   J = baseToAllJobs( 'jobWithSingleInputDataSpreaded', jobClass )
@@ -121,6 +133,7 @@ def jobWithSingleInputDataSpreaded():
   J.setInputDataPolicy( 'download' )
   return endOfAllJobs( J )
 
+@executeWithUserProxy
 def gaussJob():
 
   J = baseToAllJobs( 'gaussJob', jobClass )
@@ -142,6 +155,7 @@ def gaussJob():
   return endOfAllJobs( J )
 
 
+@executeWithUserProxy
 def booleJob():
 
   J = baseToAllJobs( 'booleJob', jobClass )
@@ -165,6 +179,7 @@ def booleJob():
   return endOfAllJobs( J )
 
 
+@executeWithUserProxy
 def wrongJob():
 
   print "\n Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info"
