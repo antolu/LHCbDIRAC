@@ -1,29 +1,29 @@
 """ Collection of user jobs for testing purposes
 """
 
+# imports
+
 from TestDIRAC.Utilities.utils import find_all
 from TestDIRAC.Utilities.testJobDefinitions import *
 
+from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
+from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
+
+
+# parameters
+
+jobClass = LHCbJob
+diracClass = DiracLHCb
 
 tier1s = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.NIKHEF.nl',
           'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl', 'LCG.RRCKI.ru']
-
-# Common functions
-
-def getJob():
-  from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
-  return Job()
-
-def getDIRAC():
-  from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-  return Dirac()
 
 
 # List of jobs
 
 def helloWorldTestT2s():
   
-  J = baseToAllJobs( 'helloWorldTestT2s' )
+  J = baseToAllJobs( 'helloWorldTestT2s', jobClass )
   J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setBannedSites( tier1s )
@@ -31,7 +31,7 @@ def helloWorldTestT2s():
 
 def helloWorldTestCERN():
 
-  J = baseToAllJobs( 'helloWorld-test-CERN' )
+  J = baseToAllJobs( 'helloWorld-test-CERN', jobClass )
   J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setDestination( 'LCG.CERN.ch' )
@@ -39,7 +39,7 @@ def helloWorldTestCERN():
 
 def helloWorldTestSLC6():
 
-  J = baseToAllJobs( 'helloWorld-test-SLC6' )
+  J = baseToAllJobs( 'helloWorld-test-SLC6', jobClass )
   J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setPlatform( 'x86_64-slc6' )
@@ -47,7 +47,7 @@ def helloWorldTestSLC6():
 
 def helloWorldTestSLC5():
 
-  J = baseToAllJobs( 'helloWorld-test-SLC5' )
+  J = baseToAllJobs( 'helloWorld-test-SLC5', jobClass )
   J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setPlatform( 'x86_64-slc5' )
@@ -55,7 +55,7 @@ def helloWorldTestSLC5():
 
 def jobWithOutput():
 
-  J = baseToAllJobs( 'jobWithOutput' )
+  J = baseToAllJobs( 'jobWithOutput', jobClass )
   J.setInputSandbox( [find_all( 'testFileUpload.txt', '.', 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
@@ -64,7 +64,7 @@ def jobWithOutput():
 
 def jobWithOutputAndPrepend():
 
-  J = baseToAllJobs( 'jobWithOutputAndPrepend' )
+  J = baseToAllJobs( 'jobWithOutputAndPrepend', jobClass )
   J.setInputSandbox( [find_all( 'testFileUploadNewPath.txt', '.', 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
@@ -73,7 +73,7 @@ def jobWithOutputAndPrepend():
 
 def jobWithOutputAndPrependWithUnderscore():
 
-  J = baseToAllJobs( 'jobWithOutputAndPrependWithUnderscore' )
+  J = baseToAllJobs( 'jobWithOutputAndPrependWithUnderscore', jobClass )
   J.setInputSandbox( [find_all( 'testFileUploadNewPath.txt', '.', 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
@@ -82,7 +82,7 @@ def jobWithOutputAndPrependWithUnderscore():
 
 def jobWithOutputAndReplication():
 
-  J = baseToAllJobs( 'jobWithOutputAndReplication' )
+  J = baseToAllJobs( 'jobWithOutputAndReplication', jobClass )
   J.setInputSandbox( [find_all( 'testFileReplication.txt', '.', 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
@@ -91,7 +91,7 @@ def jobWithOutputAndReplication():
 
 def jobWith2OutputsToBannedSE():
 
-  J = baseToAllJobs( 'jobWith2OutputsToBannedSE' )
+  J = baseToAllJobs( 'jobWith2OutputsToBannedSE', jobClass )
   J.setInputSandbox( [find_all( 'testFileUploadBanned-1.txt', '.', 'GridTestSubmission' )[0]] \
                      + [find_all( 'testFileUploadBanned-2.txt', '.', 'GridTestSubmission' )[0]] \
                      + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] \
@@ -104,7 +104,7 @@ def jobWith2OutputsToBannedSE():
 
 def jobWithSingleInputData():
 
-  J = baseToAllJobs( 'jobWithSingleInputData' )
+  J = baseToAllJobs( 'jobWithSingleInputData', jobClass )
   J.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
   J.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
@@ -113,7 +113,7 @@ def jobWithSingleInputData():
 
 def jobWithSingleInputDataSpreaded():
 
-  J = baseToAllJobs( 'jobWithSingleInputDataSpreaded' )
+  J = baseToAllJobs( 'jobWithSingleInputDataSpreaded', jobClass )
   J.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
   J.setInputData( '/lhcb/user/f/fstagni/test/testInputFile.txt' )  # this file should be at CERN-USER and IN2P3-USER
@@ -122,7 +122,7 @@ def jobWithSingleInputDataSpreaded():
 
 def gaussJob():
 
-  J = baseToAllJobs( 'gaussJob' )
+  J = baseToAllJobs( 'gaussJob', jobClass )
   J.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
   J.setOutputSandbox( '00012345_00067890_1.sim' )
 
@@ -143,7 +143,7 @@ def gaussJob():
 
 def booleJob():
 
-  J = baseToAllJobs( 'booleJob' )
+  J = baseToAllJobs( 'booleJob', jobClass )
   J.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
   J.setOutputSandbox( '00012345_00067890_1.digi' )
 
@@ -170,7 +170,7 @@ def wrongJob():
   gLogger.info( "This will generate a job that should become Completed, use the failover, and only later it will be Done" )
 
   from LHCbTestDirac.Integration.Workflow.Test_UserJobs import createJob
-  J = baseToAllJobs( 'booleJob' )
+  J = baseToAllJobs( 'wrongJob', jobClass )
   J = createJob( local = False )
   J.setName( "gaudirun-gauss-completed-than-done" )
   return endOfAllJobs( J )
