@@ -5,9 +5,6 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-# FIXME: use this to submit on behalf of another user
-from DIRAC.Core.Utilities.Proxy import executeWithUserProxy
-
 import unittest
 import time
 
@@ -64,33 +61,65 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
   def test_LHCbsubmit( self ):
 
-    res = helloWorldTestT2s( proxyUserName = 'cluzzi', proxyUserGroup = 'lhcb_user' )
-    self.assert_( res['OK'] )
-    jobsSubmittedList.append( res['Value'] )
+    for uName, uGroup in [( 'cluzzi', 'lhcb_user' ), ( 'nraja', 'lhcb_user' ), ( 'joel', 'lhcb_admin' )]:
 
-    res = helloWorldTestCERN()
-    self.assert_( res['OK'] )
-    jobsSubmittedList.append( res['Value'] )
+      res = helloWorldTestT2s( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
 
-    res = helloWorldTestSLC6()
-    self.assert_( res['OK'] )
-    jobsSubmittedList.append( res['Value'] )
+      res = helloWorldTestCERN( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
 
-    res = helloWorldTestSLC5()
-    self.assert_( res['OK'] )
-    jobsSubmittedList.append( res['Value'] )
+      res = helloWorldTestSLC6( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
 
-    res = jobWithOutput()
-    self.assert_( res['OK'] )
-    jobsSubmittedList.append( res['Value'] )
+      res = helloWorldTestSLC5( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
 
-    res = jobWithOutputAndPrepend()
-    self.assert_( res['OK'] )
-    jobsSubmittedList.append( res['Value'] )
+      res = jobWithOutput( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
 
-    res = jobWithOutputAndPrependWithUnderscore()
-    self.assert_( res['OK'] )
-    jobsSubmittedList.append( res['Value'] )
+      res = jobWithOutputAndPrepend( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
+
+      res = jobWithOutputAndPrependWithUnderscore( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
+
+      res = jobWithOutputAndReplication( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
+
+      res = jobWith2OutputsToBannedSE( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
+
+      res = jobWithSingleInputData( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
+
+      res = jobWithSingleInputDataSpreaded( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
+
+      res = gaussJob( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
+
+      res = booleJob( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
+
+      res = wrongJob( proxyUserName = uName, proxyUserGroup = uGroup )
+      self.assert_( res['OK'] )
+      jobsSubmittedList.append( res['Value'] )
+
+
 
 #############################################################################
 # Test Suite run
