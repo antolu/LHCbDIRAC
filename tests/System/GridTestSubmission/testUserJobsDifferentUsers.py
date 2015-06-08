@@ -62,10 +62,9 @@ class GridSubmissionTestCase( unittest.TestCase ):
 
 class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
-  @executeWithUserProxy
-  def test_LHCbsubmit( self, proxyUserName = 'cluzzi', proxyUserGroup = 'lhcb_user' ):
+  def test_LHCbsubmit( self ):
 
-    res = helloWorldTestT2s()
+    res = helloWorldTestT2s( proxyUserName = 'cluzzi', proxyUserGroup = 'lhcb_user' )
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
 
