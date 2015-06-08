@@ -12,13 +12,9 @@ from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 
-
 from TestDIRAC.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
-from TestDIRAC.Utilities.utils import find_all
 
-from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
-from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-from LHCbTestDirac.Integration.Workflow.Test_UserJobs import createJob
+from TestDIRAC.Utilities.testJobDefinitions import *
 from LHCbTestDirac.Utilities.testJobDefinitions import *
 
 gLogger.setLevel( 'VERBOSE' )
@@ -29,7 +25,6 @@ class GridSubmissionTestCase( unittest.TestCase ):
   """ Base class for the Regression test cases
   """
   def setUp( self ):
-    self.dirac = DiracLHCb()
 
     result = getProxyInfo()
     if result['Value']['group'] not in ['lhcb_user', 'dirac_user']:
@@ -63,6 +58,10 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
   def test_LHCbsubmit( self ):
     
+    res = helloWorld()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
     res = helloWorldTestT2s()
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
@@ -91,224 +90,35 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
 
+    res = jobWithOutputAndReplication()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = jobWith2OutputsToBannedSE()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = jobWithSingleInputData()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = jobWithSingleInputDataSpreaded()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = gaussJob()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = booleJob()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = wrongJob()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
 
 
-#     print "**********************************************************************************************************"
-#
-#     gLogger.info( "\n Submitting a job that uploads an output and replicates it" )
-#
-#     helloJ = LHCbJob()
-#
-#     helloJ.setName( "upload-Output-test-with-replication" )
-#     helloJ.setInputSandbox( [find_all( 'testFileReplication.txt', '.', 'GridTestSubmission' )[0]] + \
-#                             [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
-#     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
-#
-#     helloJ.setCPUTime( 17800 )
-#
-#     helloJ.setOutputData( ['testFileReplication.txt'], replicate = 'True' )
-#
-#     result = self.dirac.submit( helloJ )
-#     gLogger.info( "Hello world with output and replication: ", result )
-#
-#     jobID = int( result['Value'] )
-#     jobsSubmittedList.append( jobID )
-#
-#     self.assert_( result['OK'] )
-#
-#     print "**********************************************************************************************************"
-#
-#     gLogger.info( "\n Submitting a job that uploads 2 outputs to an SE that is banned (PIC-USER)" )
-#
-#     helloJ = LHCbJob()
-#
-#     helloJ.setName( "upload-2-Output-to-banned-SE" )
-#     helloJ.setInputSandbox( [find_all( 'testFileUploadBanned-1.txt', '.', 'GridTestSubmission' )[0]] \
-#                             + [find_all( 'testFileUploadBanned-2.txt', '.', 'GridTestSubmission' )[0]] \
-#                             + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] \
-#                             + [find_all( 'partialConfig.cfg', '.', 'GridTestSubmission' )[0] ] )
-#     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
-#
-#     helloJ.setCPUTime( 17800 )
-#     helloJ.setConfigArgs( 'partialConfig.cfg' )
-#
-#     helloJ.setDestination( 'LCG.PIC.es' )
-#     helloJ.setOutputData( ['testFileUploadBanned-1.txt', 'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
-#
-#     result = self.dirac.submit( helloJ )
-#     gLogger.info( "Hello world submitting a job that uploads 2 outputs to an SE that is banned: ", result )
-#
-#     jobID = int( result['Value'] )
-#     jobsSubmittedList.append( jobID )
-#
-#     self.assert_( result['OK'] )
-#
-#     print "**********************************************************************************************************"
-#
-#     gLogger.info( "\n Submitting a job that has an input data - use download policy" )
-#
-#     inputJ = LHCbJob()
-#
-#     inputJ.setName( "job-with-input-data" )
-#     inputJ.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
-#     inputJ.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
-#     inputJ.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
-#     inputJ.setInputDataPolicy( 'download' )
-#
-#     inputJ.setCPUTime( 17800 )
-#
-#     result = self.dirac.submit( inputJ )
-#     gLogger.info( "Hello world with with input: ", result )
-#
-#     jobID = int( result['Value'] )
-#     jobsSubmittedList.append( jobID )
-#
-#     self.assert_( result['OK'] )
-#
-#
-#     print "**********************************************************************************************************"
-#
-#     gLogger.info( "\n Submitting a job that has an input data in more than one location - use download policy" )
-#
-#     inputJ = LHCbJob()
-#
-#     inputJ.setName( "job-with-input-data" )
-#     inputJ.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
-#     inputJ.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
-#     inputJ.setInputData( '/lhcb/user/f/fstagni/test/testInputFile.txt' )  # this file should be at CERN-USER and IN2P3-USER
-#     inputJ.setInputDataPolicy( 'download' )
-#
-#     inputJ.setCPUTime( 17800 )
-#
-#     result = self.dirac.submit( inputJ )
-#     gLogger.info( "Hello world with input at multiple locations: ", result )
-#
-#     jobID = int( result['Value'] )
-#     jobsSubmittedList.append( jobID )
-#
-#     self.assert_( result['OK'] )
-#
-#
-#     print "**********************************************************************************************************"
-#
-#     gLogger.info( "\n Submitting gaudiRun job (Gauss only)" )
-#
-#     gaudirunJob = LHCbJob()
-#
-#     gaudirunJob.setName( "gaudirun-Gauss-test" )
-#     gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
-#     gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
-#
-#     optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam3500GeV-md100-2011-nu2.py;"
-#     optDec = "$DECFILESROOT/options/34112104.py;"
-#     optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
-#     optOpts = "$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
-#     optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
-#     optPConf = "prodConf_Gauss_00012345_00067890_1.py"
-#     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-#     gaudirunJob.setApplication( 'Gauss', 'v45r5', options,
-#                                 extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
-#                                 systemConfig = 'x86_64-slc5-gcc43-opt' )
-#
-#     gaudirunJob.setDIRACPlatform()
-#     gaudirunJob.setCPUTime( 172800 )
-#
-#     result = self.dirac.submit( gaudirunJob )
-#     gLogger.info( 'Submission Result: ', result )
-#
-#     jobID = int( result['Value'] )
-#     jobsSubmittedList.append( jobID )
-#
-#     self.assert_( result['OK'] )
-#
-#
-# #     print "**********************************************************************************************************"
-# #
-# #     gLogger.info( "\n Submitting gaudiRun job (Gauss only) that should use TAG to run on a multi-core queue" )
-# #
-# #     gaudirunJob = LHCbJob()
-# #
-# #     gaudirunJob.setName( "gaudirun-Gauss-test-TAG-multicore" )
-# #     gaudirunJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
-# #     gaudirunJob.setOutputSandbox( '00012345_00067890_1.sim' )
-# #
-# #     optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam3500GeV-md100-2011-nu2.py;"
-# #     optDec = "$DECFILESROOT/options/34112104.py;"
-# #     optPythia = "$LBPYTHIAROOT/options/Pythia.py;"
-# #     optOpts = "$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
-# #     optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
-# #     optPConf = "prodConf_Gauss_00012345_00067890_1.py"
-# #     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-# #     gaudirunJob.setApplication( 'Gauss', 'v45r5', options,
-# #                                 extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
-# #                                 systemConfig = 'x86_64-slc5-gcc43-opt' )
-# #
-# #     gaudirunJob.setDIRACPlatform()
-# #     gaudirunJob.setCPUTime( 172800 )
-# #     gaudirunJob.setTag( ['MultiCore'] )
-# #
-# #     result = self.dirac.submit( gaudirunJob )
-# #     gLogger.info( 'Submission Result: ', result )
-# #
-# #     jobID = int( result['Value'] )
-# #     jobsSubmittedList.append( jobID )
-# #
-# #     self.assert_( result['OK'] )
-#
-#
-#     print "**********************************************************************************************************"
-#
-#     gLogger.info( "\n Submitting gaudiRun job (Boole only)" )
-#
-#     gaudirunJob = LHCbJob()
-#
-#     gaudirunJob.setName( "gaudirun-Boole-test" )
-#     gaudirunJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '.', 'GridTestSubmission' )[0]] )
-#     gaudirunJob.setOutputSandbox( '00012345_00067890_1.digi' )
-#
-#     opts = "$APPCONFIGOPTS/Boole/Default.py;"
-#     optDT = "$APPCONFIGOPTS/Boole/DataType-2011.py;"
-#     optTCK = "$APPCONFIGOPTS/Boole/Boole-SiG4EnergyDeposit.py;"
-#     optComp = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
-#     optPConf = "prodConf_Boole_00012345_00067890_1.py"
-#     options = opts + optDT + optTCK + optComp + optPConf
-#
-#     gaudirunJob.setApplication( 'Boole', 'v26r3', options,
-#                                 inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
-#                                 extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
-#                                 systemConfig = 'x86_64-slc5-gcc43-opt' )
-#
-#     gaudirunJob.setDIRACPlatform()
-#     gaudirunJob.setCPUTime( 172800 )
-#
-#     result = self.dirac.submit( gaudirunJob )
-#     gLogger.info( 'Submission Result: ', result )
-#
-#     jobID = int( result['Value'] )
-#     jobsSubmittedList.append( jobID )
-#
-#     self.assert_( result['OK'] )
-#
-#
-#     print "**********************************************************************************************************"
-#
-#     gLogger.info( "\n Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info" )
-#     gLogger.info( "This will generate a job that should become Completed, use the failover, and only later it will be Done" )
-#
-#     gaudirunJob = createJob( local = False )
-#     gaudirunJob.setName( "gaudirun-gauss-completed-than-done" )
-#     result = self.dirac.submit( gaudirunJob )
-#     gLogger.info( 'Submission Result: ', result )
-#
-#     jobID = int( result['Value'] )
-#     jobsSubmittedList.append( jobID )
-#
-#     self.assert_( result['OK'] )
-#
-#     jobID = int( result['Value'] )
-#     jobsSubmittedList.append( jobID )
-#
-#     self.assert_( result['OK'] )
 
 ########################################################################################
 #
