@@ -6,8 +6,7 @@ from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
 # FIXME: use this to submit on behalf of another user
-from DIRAC.
-from DIRAC.Core.Utilities.Proxy                                      import executeWithUserProxy
+from DIRAC.Core.Utilities.Proxy import executeWithUserProxy
 
 import unittest
 import time
@@ -21,9 +20,6 @@ from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from TestDIRAC.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
 from TestDIRAC.Utilities.utils import find_all
 
-from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
-from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-from LHCbTestDirac.Integration.Workflow.Test_UserJobs import createJob
 from LHCbTestDirac.Utilities.testJobDefinitions import *
 
 gLogger.setLevel( 'VERBOSE' )
@@ -37,8 +33,8 @@ class GridSubmissionTestCase( unittest.TestCase ):
     self.dirac = DiracLHCb()
 
     result = getProxyInfo()
-    if result['Value']['group'] not in ['lhcb_user', 'dirac_user']:
-      print "GET A USER GROUP"
+    if result['Value']['group'] not in ['diracAdmin']:
+      print "GET A ADMIN GROUP"
       exit( 1 )
 
     result = ResourceStatus().getStorageElementStatus( 'PIC-USER', 'WriteAccess' )
@@ -52,7 +48,7 @@ class GridSubmissionTestCase( unittest.TestCase ):
       print "DATAMANAGER.getRepicas failure: %s" % res['Message']
       exit( 1 )
     if res['Value']['Failed']:
-      print "DATAMANAGER.getRepicas failed for someting: %s" % res['Value']['Failed']
+      print "DATAMANAGER.getRepicas failed for something: %s" % res['Value']['Failed']
       exit( 1 )
 
     replicas = res['Value']['Successful']
@@ -66,7 +62,8 @@ class GridSubmissionTestCase( unittest.TestCase ):
 
 class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
-  def test_LHCbsubmit( self ):
+  @executeWithUserProxy
+  def test_LHCbsubmit( self, proxyUserName = 'cluzzi', proxyUserGroup = 'lhcb_user' ):
 
     res = helloWorldTestT2s()
     self.assert_( res['OK'] )

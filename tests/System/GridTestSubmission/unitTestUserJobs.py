@@ -42,7 +42,7 @@ class GridSubmissionTestCase( unittest.TestCase ):
       print "DATAMANAGER.getRepicas failure: %s" % res['Message']
       exit( 1 )
     if res['Value']['Failed']:
-      print "DATAMANAGER.getRepicas failed for someting: %s" % res['Value']['Failed']
+      print "DATAMANAGER.getRepicas failed for something: %s" % res['Value']['Failed']
       exit( 1 )
 
     replicas = res['Value']['Successful']
