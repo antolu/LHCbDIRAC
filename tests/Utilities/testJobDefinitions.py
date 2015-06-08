@@ -166,8 +166,8 @@ def booleJob():
 
 def wrongJob():
 
-  gLogger.info( "\n Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info" )
-  gLogger.info( "This will generate a job that should become Completed, use the failover, and only later it will be Done" )
+  print "\n Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info"
+  print "This will generate a job that should become Completed, use the failover, and only later it will be Done"
 
   from LHCbTestDirac.Integration.Workflow.Test_UserJobs import createJob
   J = baseToAllJobs( 'wrongJob', jobClass )
