@@ -272,6 +272,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     tasks = []
     alreadyReplicated = []
     for runID in set( runFileDict ) & set( runSEDict ):
+      bufferLogged = False
+      rawLogged = False
       runLfns = runFileDict[runID]
       assignedSE = runSEDict[runID]
       if assignedSE:
@@ -302,9 +304,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       updated = False
       for replicaSE, lfns in replicaGroups.items():
         replicaSE = set( replicaSE.split( ',' ) )
-        if assignedRAW:
-          self.util.logVerbose( 'RAW replica existing for run %d: %s' % ( runID, assignedRAW ) )
-        else:
+        if not assignedRAW:
           # Files are not yet at a Tier1-RAW
           if useRunDestination:
             assignedRAW = self.__getSEForDestination( runID, rawTargets )
@@ -317,13 +317,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               return res
             else:
               assignedRAW = res['Value']
-              self.util.logVerbose( "Run %d (%d files) assigned to %s" % ( runID, len( runLfns ), assignedRAW ) )
+              self.util.logVerbose( "RAW target assigned for run %d: %s" % ( runID, assignedRAW ) )
+          rawLogged = True
+        elif not rawLogged:
+          self.util.logVerbose( 'RAW replica existing for run %d: %s' % ( runID, assignedRAW ) )
 
         # # Now get a buffer destination is prestaging is required
         if preStageShares and not assignedBuffer:
           if useRunDestination:
             assignedBuffer = self.__getSEForDestination( runID, bufferTargets )
           if assignedBuffer:
+            bufferLogged = True
             self.util.logVerbose( 'Buffer destination obtained from run %d destination: %s' % ( runID, assignedBuffer ) )
           else:
             # Files are not at a buffer for processing
@@ -333,10 +337,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               return res
             assignedBuffer = res['Value']
             if assignedBuffer:
+              bufferLogged = True
               self.util.logVerbose( 'Selected destination SE for run %d: %s' % ( runID, assignedBuffer ) )
             else:
               self.util.logWarn( 'Failed to find destination SE for run', str( runID ) )
-        elif assignedBuffer:
+        elif assignedBuffer and not bufferLogged:
           self.util.logVerbose( 'Buffer destination existing for run %d: %s' % ( runID, assignedBuffer ) )
 
         # # Find out if the replication is necessary

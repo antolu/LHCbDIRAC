@@ -11,7 +11,7 @@ import random
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR, exit as DIRACExit
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveSEGroup
 
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
@@ -158,6 +158,11 @@ class PluginUtilities( object ):
     # Finally look at a transformation-specific parameter
     value = self.params.get( name, default )
     self.logVerbose( "Transformation plugin param %s: '%s'" % ( name, value ) )
+    if isinstance( value, basestring ):
+      listValue = getListFromString( value )
+      resolvedValue = resolveSEGroup( listValue )
+      if resolvedValue != listValue:
+        value = resolvedValue
     if valueType and type( value ) != valueType:
       if valueType is list:
         value = getListFromString( value )
