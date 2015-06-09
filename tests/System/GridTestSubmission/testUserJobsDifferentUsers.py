@@ -61,7 +61,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
   def test_LHCbsubmit( self ):
 
-    for uName, uGroup in [( 'cluzzi', 'lhcb_user' ), ( 'nraja', 'lhcb_user' ), ( 'joel', 'lhcb_admin' )]:
+    for uName, uGroup in [( 'cluzzi', 'lhcb_user' ), ( 'joel', 'lhcb_admin' )]:
 
       res = helloWorldTestT2s( proxyUserName = uName, proxyUserGroup = uGroup )
       self.assert_( res['OK'] )
