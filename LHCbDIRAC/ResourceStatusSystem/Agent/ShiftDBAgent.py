@@ -154,6 +154,8 @@ class ShiftDBAgent( AgentModule ):
       return S_ERROR( 'Cannot open URL: %s, erorr %s' % ( self.lbshiftdburl, e ) )
 
     now = datetime.datetime.now().hour
+    emaillist = []
+    emailperson = []
 
     for line in web.readlines():
 
@@ -164,20 +166,17 @@ class ShiftDBAgent( AgentModule ):
         morning, afternoon, evening = line.split( '|' )[ 4 : 7 ]
 
         if morning != '':
-          email = morning
-        elif afternoon != '':
-          email = afternoon
-        else:
-          email = evening
+          emaillist.append( morning )
+        if afternoon != '':
+          emaillist.append( afternoon )
+        if evening != '':
+          emaillist.append( evening )
 
-        if now > 22 or now < 6:
-          email = evening
-        elif now < 14:
-          email = morning
-
-        if ':' in email:
-          email = email.split( ':' )[ 1 ].strip()
-          return S_OK( email )
+        for person in emaillist:
+          if ':' in person:
+            emailperson.append( person.split( ':' )[ 1 ].strip() )
+        self.log.info( emailperson )
+        return S_OK( emailperson )
 
     return S_ERROR( 'Email not found' )
 
@@ -194,37 +193,41 @@ class ShiftDBAgent( AgentModule ):
       return S_ERROR( wError )
 
     members = []
-    lastShifterEmail = ''
+    lastShifterEmail = []
+    lastShifterList = {}
 
     if hasattr( wgroup, 'warnings' ):
       if wgroup.warnings != []:
         self.log.warn( wgroup.warnings )
     #  return S_ERROR(wgroup.warnings)
     elif wgroup.result.Members:
-      members = wgroup.result.Members[ 0 ]
-      lastShifterEmail = members.Email
+      for members in wgroup.result.Members:
+        lastShifterEmail.append( members.Email )
+        lastShifterList[members.Email] = members
 
     if email is None:
       self.log.warn( "None email. Keeping previous one till an update is found." )
       return S_OK()
 
-    if lastShifterEmail.strip().lower() == email.strip().lower():
-      self.log.info( "%s has not changed as shifter, no changes needed" % email )
-      return S_OK()
+#    if lastShifterEmail.strip().lower() == email.strip().lower():
+#      self.log.info( "%s has not changed as shifter, no changes needed" % email )
+#      return S_OK()
 
-    if lastShifterEmail != '':
-      self.log.info( "%s is not anymore shifter, deleting ..." % lastShifterEmail )
-      try:
+    for lastShifter in lastShifterEmail:
+      if email.count( lastShifter ) == 0 :
+        self.log.info( "%s is not anymore shifter, deleting ..." % lastShifter )
+        try:
         # The last boolean flag is to overwrite
-        client.service.RemoveEgroupMembers( eGroup, members )
-      except suds.WebFault, wError:
-        return S_ERROR( wError )
+          client.service.RemoveEgroupMembers( eGroup, lastShifterList[lastShifter] )
+        except suds.WebFault, wError:
+          return S_ERROR( wError )
 
     # Adding a member means it will be the only one in the eGroup, as it is overwritten
-    res = self.__addMember( email, client, eGroup )
-    if not res[ 'OK' ]:
-      self.log.error( res[ 'Message' ] )
-      return res
+    if email != []:
+      res = self.__addMember( email, client, eGroup )
+      if not res[ 'OK' ]:
+        self.log.error( res[ 'Message' ] )
+        return res
 
     self.log.info( "%s added successfully to the eGroup for role %s" % ( email, role ) )
     self.newShifters[ role ] = eGroup
@@ -242,11 +245,13 @@ class ShiftDBAgent( AgentModule ):
     self.log.info( 'Adding member %s to eGroup %s' % ( email, wgroup ) )
 
     members = []
-    newmember = client.factory.create( 'ns0:MemberType' )
-    newmember.Type  = "External"
-    newmember.Email = email
+    for personEmail in email:
+      newmember = client.factory.create( 'ns0:MemberType' )
+      newmember.Type = "External"
+      newmember.Email = personEmail
 
-    members.append( newmember )
+      members.append( newmember )
+
     try:
       # The last boolean flag is to overwrite
       client.service.AddEgroupMembers( wgroup, True, members )
