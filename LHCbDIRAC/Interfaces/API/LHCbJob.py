@@ -756,6 +756,11 @@ class LHCbJob( Job ):
       keepcharacters = ( '.', '_' )
       prependString = ''.join( c for c in filePrepend if c.isalnum() or c in keepcharacters ).rstrip()
       self._addParameter( self.workflow, 'UserOutputLFNPrepend', 'string', prependString, "String to prepend" )
+      # no '_' in lfns are allowed
+      for lfn in lfns:
+        if '_' in lfn:
+          self.log.error( "When using filePrepend, file names can't contain '_'" )
+          return S_ERROR( "When using filePrepend, file names can't contain '_'" )
 
     return S_OK()
 
