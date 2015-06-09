@@ -119,8 +119,8 @@ def jobWith2OutputsToBannedSE():
 def jobWithSingleInputData():
 
   J = baseToAllJobs( 'jobWithSingleInputData', jobClass )
-  J.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
-  J.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
+  J.setInputSandbox( [find_all( 'exe-script-with-input-single-location.py', '.', 'GridTestSubmission' )[0]] )
+  J.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
   J.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
   J.setInputDataPolicy( 'download' )
   return endOfAllJobs( J )
