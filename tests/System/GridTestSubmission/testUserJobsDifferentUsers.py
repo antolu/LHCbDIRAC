@@ -79,25 +79,25 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
       self.assert_( res['OK'] )
       jobsSubmittedList.append( res['Value'] )
 
-      res = jobWithOutput( proxyUserName = uName, proxyUserGroup = uGroup )
-      self.assert_( res['OK'] )
-      jobsSubmittedList.append( res['Value'] )
-
-      res = jobWithOutputAndPrepend( proxyUserName = uName, proxyUserGroup = uGroup )
-      self.assert_( res['OK'] )
-      jobsSubmittedList.append( res['Value'] )
-
-      res = jobWithOutputAndPrependWithUnderscore( proxyUserName = uName, proxyUserGroup = uGroup )
-      self.assert_( res['OK'] )
-      jobsSubmittedList.append( res['Value'] )
-
-      res = jobWithOutputAndReplication( proxyUserName = uName, proxyUserGroup = uGroup )
-      self.assert_( res['OK'] )
-      jobsSubmittedList.append( res['Value'] )
-
-      res = jobWith2OutputsToBannedSE( proxyUserName = uName, proxyUserGroup = uGroup )
-      self.assert_( res['OK'] )
-      jobsSubmittedList.append( res['Value'] )
+#       res = jobWithOutput( proxyUserName = uName, proxyUserGroup = uGroup )
+#       self.assert_( res['OK'] )
+#       jobsSubmittedList.append( res['Value'] )
+#
+#       res = jobWithOutputAndPrepend( proxyUserName = uName, proxyUserGroup = uGroup )
+#       self.assert_( res['OK'] )
+#       jobsSubmittedList.append( res['Value'] )
+#
+#       res = jobWithOutputAndPrependWithUnderscore( proxyUserName = uName, proxyUserGroup = uGroup )
+#       self.assert_( res['OK'] )
+#       jobsSubmittedList.append( res['Value'] )
+#
+#       res = jobWithOutputAndReplication( proxyUserName = uName, proxyUserGroup = uGroup )
+#       self.assert_( res['OK'] )
+#       jobsSubmittedList.append( res['Value'] )
+#
+#       res = jobWith2OutputsToBannedSE( proxyUserName = uName, proxyUserGroup = uGroup )
+#       self.assert_( res['OK'] )
+#       jobsSubmittedList.append( res['Value'] )
 
       res = jobWithSingleInputData( proxyUserName = uName, proxyUserGroup = uGroup )
       self.assert_( res['OK'] )
