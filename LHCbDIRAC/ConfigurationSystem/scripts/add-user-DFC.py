@@ -73,7 +73,7 @@ from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
 dfc = FileCatalogClient()
 if baseDir:
   if not baseDir.startswith( '/lhcb' ):
-    gLogger.fatal( "This is not a valid directory", directory )
+    gLogger.fatal( "%s is not a valid directory" % baseDir )
     exit ( 1 )
   if not group.startswith( 'lhcb_' ):
     gLogger.fatal( "This is not a valid group", group )
