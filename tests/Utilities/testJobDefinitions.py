@@ -86,7 +86,9 @@ def jobWithOutputAndPrependWithUnderscore():
   J.setInputSandbox( [find_all( 'testFileUploadNewPath.txt', '.', 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setOutputData( ['testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
+  res = J.setOutputData( ['testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
+  if not res['OK']:
+    return 0
   return endOfAllJobs( J )
 
 @executeWithUserProxy
