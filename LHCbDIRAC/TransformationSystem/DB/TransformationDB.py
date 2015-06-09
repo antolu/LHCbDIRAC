@@ -14,7 +14,7 @@ import re
 
 from DIRAC                                              import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.DB.TransformationDB     import TransformationDB as DIRACTransformationDB
-from DIRAC.Core.Utilities.List                          import intListToString, breakListIntoChunks, stringListToString
+from DIRAC.Core.Utilities.List                          import intListToString, breakListIntoChunks
 
 class TransformationDB( DIRACTransformationDB ):
   """ Extension of the DIRAC Transformation DB
