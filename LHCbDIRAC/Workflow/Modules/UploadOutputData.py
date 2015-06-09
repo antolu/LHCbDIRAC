@@ -45,7 +45,7 @@ class UploadOutputData( ModuleBase ):
 
     # List all parameters here
     self.outputDataFileMask = ''
-    self.outputMode = 'Any'  # or 'Local' for reco case
+    self.outputMode = 'Any'  # or 'Run', for Reco/Stripping case, or 'Local', e.g. for MCMerge
     self.outputList = []
     self.outputDataStep = ''
     self.request = None
@@ -126,7 +126,8 @@ class UploadOutputData( ModuleBase ):
 
       for fileName, metadata in fileMetadata.items():
         if not SEs:
-          resolvedSE = getDestinationSEList( metadata['workflowSE'], self.siteName, self.outputMode )
+          resolvedSE = getDestinationSEList( metadata['workflowSE'], self.siteName, self.outputMode,
+                                             self.workflow_commons.get( 'RunNumber' ) )
         else:
           resolvedSE = SEs
         final[fileName] = metadata

@@ -2,18 +2,37 @@
     of destination storage elements for uploading an output file.
 """
 
-# FIXME: this might go/use the Resources CS helper once it becomes a class (v7r0...)
-
 from random import shuffle
 
 from DIRAC                              import gLogger, gConfig
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.Core.Utilities.List          import uniqueElements
 
-def getDestinationSEList( outputSE, site, outputmode = 'Any' ):
+def getDestinationSEList( outputSE, site, outputmode = 'Any', run = None ):
   """ Evaluate the output SE list from a workflow and return the concrete list
       of SEs to upload output data.
   """
+  if outputmode.lower() not in ( 'any', 'local', 'run' ):
+    raise RuntimeError( "Unexpected outputmode" )
+
+  if outputmode.lower() == 'run':
+    gLogger.verbose( "Output mode set to 'run', thus ignoring site parameter" )
+    if not run:
+      raise RuntimeError( "Expected runNumber" )
+    try:
+      run = long( run )
+    except ValueError, ve:
+      raise RuntimeError( "Expected runNumber as a number: %s" % ve )
+
+    gLogger.debug( "RunNumber = %d" % run )
+    from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+    runDestination = TransformationClient().getDestinationForRun( run )
+    if not runDestination['OK']:
+      gLogger.error( "Issue getting destinationForRun", runDestination['Message'] )
+      raise RuntimeError( "Issue getting destinationForRun" )
+    site = runDestination['Value'][run]
+    outputmode = 'Local'
+
   # Add output SE defined in the job description
   gLogger.info( 'Resolving workflow output SE description: %s' % outputSE )
 
@@ -28,7 +47,7 @@ def getDestinationSEList( outputSE, site, outputmode = 'Any' ):
   # There is an alias defined for this Site
   alias_se = gConfig.getValue( '/Resources/Sites/%s/%s/AssociatedSEs/%s' % ( prefix, site, outputSE ), [] )
   if alias_se:
-    gLogger.info( 'Found associated SE for site %s' % ( alias_se ) )
+    gLogger.info( "Found associated SE %s for site %s" % ( alias_se, site ) )
     return alias_se
 
   localSEs = getSEsForSite( site )
@@ -46,7 +65,7 @@ def getDestinationSEList( outputSE, site, outputmode = 'Any' ):
   if outputmode.lower() == "local":
     for se in localSEs:
       if se in groupSEs:
-        gLogger.info( 'Found eligible local SE: %s' % ( se ) )
+        gLogger.info( "Found eligible local SE: %s" % ( se ) )
         return [se]
 
     # check if country is already one with associated SEs
@@ -75,10 +94,10 @@ def getDestinationSEList( outputSE, site, outputmode = 'Any' ):
     section = '/Resources/Countries/%s/AssociatedSEs/%s' % ( assignedCountry, outputSE )
     alias_se = gConfig.getValue( section, [] )
     if alias_se:
-      gLogger.info( 'Found alias SE for site: %s' % alias_se )
+      gLogger.info( "Found alias SE %s for site: %s" % ( alias_se, site ) )
       return alias_se
     else:
-      raise RuntimeError( 'Could not establish alias SE for country %s from section: %s' % ( country, section ) )
+      raise RuntimeError( "Could not establish alias SE for country %s from section: %s" % ( country, section ) )
 
   # For collective Any and All modes return the whole group
 

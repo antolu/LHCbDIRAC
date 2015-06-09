@@ -217,7 +217,7 @@ if w1:
   pr.bkQueries = ['Full']
   pr.targets = [targetSite]
   pr.multicore = [recoMulticoreFlag]
-  pr.outputModes = ['Local']
+  pr.outputModes = ['Run']
 
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -235,7 +235,7 @@ elif w2:
   pr.bkQueries = ['Full', 'fromPreviousProd']
   pr.targets = [targetSite, targetSite]
   pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag]
-  pr.outputModes = ['Local', 'Any']
+  pr.outputModes = ['Run', 'Run']
 
 elif w3:
   pr.prodsTypeList = [recoType, 'Merge']
@@ -253,7 +253,7 @@ elif w3:
   pr.bkQueries = ['Full', 'fromPreviousProd']
   pr.targets = [targetSite, targetSite]
   pr.multicore = [recoMulticoreFlag, mergeMulticoreFlag]
-  pr.outputModes = ['Local', 'Any']
+  pr.outputModes = ['Run', 'Run']
 
 elif w4:
   pr.prodsTypeList = [recoType, 'DataStripping', 'Merge']
@@ -272,7 +272,7 @@ elif w4:
   pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
   pr.targets = [targetSite, targetSite, targetSite]
   pr.multicore = [recoMulticoreFlag, strippMulticoreFlag, mergeMulticoreFlag]
-  pr.outputModes = ['Local', 'Local', 'Any']
+  pr.outputModes = ['Run', 'Run', 'Run']
 
 elif w5:
   pr.prodsTypeList = ['DataStripping', 'Merge', 'WGProduction']
@@ -291,6 +291,6 @@ elif w5:
   pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
   pr.targets = [targetSite, targetSite, targetSite]
   pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag, False]
-  pr.outputModes = ['Local', 'Any', 'Any']
+  pr.outputModes = ['Run', 'Run', 'Any']
 
 pr.buildAndLaunchRequest()
