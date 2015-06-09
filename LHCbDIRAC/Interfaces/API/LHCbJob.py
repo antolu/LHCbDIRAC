@@ -753,7 +753,7 @@ class LHCbJob( Job ):
     self._addParameter( self.workflow, 'ReplicateUserOutputData', 'string', replicate, "Flag to replicate or not" )
 
     if filePrepend:
-      keepcharacters = ( '.', '_' )
+      keepcharacters = ( '.' )
       prependString = str( filePrepend ).join( c for c in filePrepend if c.isalnum() or c in keepcharacters ).rstrip()
       self._addParameter( self.workflow, 'UserOutputLFNPrepend', 'string', prependString, "String to prepend to " )
 
