@@ -59,7 +59,7 @@ if baseDir is None or ( user is None and group is None and mode is None ):
   exit( 1 )
 
 if not baseDir.startswith( '/lhcb' ):
-  gLogger.fatal( "This is not a valid directory", directory )
+  gLogger.fatal( "Not a valid directory", baseDir )
   exit ( 1 )
 if group and not group.startswith( 'lhcb_' ):
   gLogger.fatal( "This is not a valid group", group )
