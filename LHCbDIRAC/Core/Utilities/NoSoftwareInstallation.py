@@ -34,7 +34,7 @@ class NoSoftwareInstallation( object ):
 
     # platform ...........................................................
     if 'SystemConfig' in self.job:
-      # out-dated
+      # FIXME: out-dated
       systemConfig = self.job['SystemConfig']
       if systemConfig.lower() == 'any':
         platform = 'ANY'

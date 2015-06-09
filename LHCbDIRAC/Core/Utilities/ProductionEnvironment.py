@@ -66,8 +66,10 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
   compatibleCMTConfigs = getCMTConfig( systemConfiguration )
   if not compatibleCMTConfigs['OK']:
     return compatibleCMTConfigs
-  gLogger.verbose( "Compatible CMT Configs list: %s" % ','.join( compatibleCMTConfigs['Value'] ) )
-  for compatibleCMTConfig in compatibleCMTConfigs['Value']:
+  compatibleCMTConfigs = compatibleCMTConfigs['Value']
+  compatibleCMTConfigs.sort( key = LooseVersion, reverse = True )
+  gLogger.verbose( "Compatible ordered CMT Configs list: %s" % ','.join( compatibleCMTConfigs ) )
+  for compatibleCMTConfig in compatibleCMTConfigs:
     gLogger.verbose( "Using %s for setup" % compatibleCMTConfig )
     environment['CMTCONFIG'] = compatibleCMTConfig
     result = runEnvironmentScripts( [lbLogin, setupProject], environment )
