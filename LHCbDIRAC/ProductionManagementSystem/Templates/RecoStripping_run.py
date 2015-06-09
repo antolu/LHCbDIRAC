@@ -69,7 +69,7 @@ pr.minFilesToProcess = int( '{{minFilesToProcess#GENERAL: minimum number of file
 # reco params
 recoPriority = int( '{{RecoPriority#PROD-1:RECO(Stripp): priority#2}}' )
 recoCPU = '{{RecoMaxCPUTime#PROD-1:RECO(Stripp): Max CPU time in secs#1000000}}'
-recoPlugin = '{{RecoPluginType#PROD-1:RECO(Stripp): production plugin name#AtomicRun}}'
+recoPlugin = '{{RecoPluginType#PROD-1:RECO(Stripp): production plugin name#RAWProcessing}}'
 recoFilesPerJob = '{{RecoFilesPerJob#PROD-1:RECO(Stripp): Group size or number of files per job#1}}'
 recoDataSE = '{{RecoDataSE#PROD-1:RECO(Stripp): Output Data Storage Element#Tier1-BUFFER}}'
 try:
