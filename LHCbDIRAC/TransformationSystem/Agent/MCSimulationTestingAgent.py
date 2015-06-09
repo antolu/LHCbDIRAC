@@ -108,7 +108,11 @@ class MCSimulationTestingAgent ( AgentModule ):
           else:
             # only some tasks have failed so continue but send a warn email
             self.log.warn( "Transformation " + str( transID ) + " failed partially the testing phase, continuing anyway" )
-            res = self._activateTransformation( transID, tasks )
+            doneTasks = list()
+            for d in tasks:
+              if d.get( "ExternalStatus" ) == "Done":
+                doneTasks.append( d )
+            res = self._activateTransformation( transID, doneTasks )
             if not res['OK']:
               self.log.error( "Error Activating Production", res['Message'] )
               continue
@@ -212,12 +216,14 @@ class MCSimulationTestingAgent ( AgentModule ):
       self.log.error( "There are no successful tasks" )
       return S_ERROR( "There are no successful tasks" )
 
+    events = 0
     CPUeJobTotal = 0.0
     for job in successful.itervalues():
       cpuJob = 0
       for bkJob in job:
         if bkJob['ApplicationName'] in ['Gauss', 'Boole', 'Moore', 'Brunel', 'DaVinci']:
-          events = bkJob['NumberOfEvents']
+          if not events:
+            events = bkJob['NumberOfEvents']
           timeInSeconds = bkJob['CPUTIME']
           cpuJob += timeInSeconds * bkJob['WNCPUHS06']
       CPUeJob = cpuJob / events
