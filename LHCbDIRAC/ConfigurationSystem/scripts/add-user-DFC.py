@@ -1,65 +1,30 @@
 #!/usr/bin/env python
+"""
+This script adds a user directory to the DFC or changes a user directory's ownership
+"""
 
 from DIRAC.Core.Base import Script
 from DIRAC import exit, gLogger, S_OK
 import os, sys
 from time import time
 
-def chown( directories, user, group = 'lhcb_user', recursive = False, ndirs = None ):
-  if isinstance( directories, basestring ):
-    directories = [directories]
-  if ndirs is None:
-    ndirs = 0
-  res = dfc.changePathOwner( dict.fromkeys( directories, user ) )
-  if not res['OK']:
-    res = dfc.changePathOwner( dict.fromkeys( directories, {'Owner' : user} ) )
-    if not res['OK']:
-      return res
-  res = dfc.changePathGroup( dict.fromkeys( directories, group ) )
-  if not res['OK']:
-    res = dfc.changePathGroup( dict.fromkeys( directories, {'Group':group} ) )
-    if not res['OK']:
-      return res
-  if recursive:
-    for subDir in directories:
-      if ndirs % 10 == 0:
-        sys.stdout.write( '.' )
-        sys.stdout.flush()
-      ndirs += 1
-      res = dfc.listDirectory( subDir )
-      if res['OK']:
-        subDirectories = res['Value']['Successful'][subDir]['SubDirs']
-        if subDirectories:
-          # print subDir, len( subDirectories ), ndirs
-          res = chown( subDirectories, user, recursive = True, ndirs = ndirs )
-          if not res['OK']:
-            return res
-          ndirs = res['Value']
-  return S_OK( ndirs )
-
-
-Script.registerSwitch( '', 'User=', '  User name' )
-Script.registerSwitch( '', 'Recursive', '  Set ownership recursively' )
-Script.registerSwitch( '', 'Directory=', '   Directory to change the ownership of' )
-Script.registerSwitch( '', 'Group=', '   Group name (default lhcb_user)' )
+Script.registerSwitch( '', 'User=', '  User name (no default, mandatory)' )
+Script.registerSwitch( '', 'Recursive', '  Set ownership recursively for existing user' )
 
 Script.parseCommandLine()
 
 user = None
 recursive = False
 group = 'lhcb_user'
-baseDir = None
 for switch in Script.getUnprocessedSwitches():
   if switch[0] == 'User':
     user = switch[1].lower()
   elif switch[0] == 'Recursive':
     recursive = True
-  elif switch[0] == 'Directory':
-    baseDir = switch[1]
-  elif switch[0] == 'Group':
-    group = switch[1]
 
 from DIRAC.Core.Security.ProxyInfo import getProxyInfo
+from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
+
 res = getProxyInfo()
 if not res['OK']:
   gLogger.fatal( "Can't get proxy info", res['Message'] )
@@ -71,24 +36,6 @@ if not 'FileCatalogManagement' in properties:
 
 from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
 dfc = FileCatalogClient()
-if baseDir:
-  if not baseDir.startswith( '/lhcb' ):
-    gLogger.fatal( "%s is not a valid directory" % baseDir )
-    exit ( 1 )
-  if not group.startswith( 'lhcb_' ):
-    gLogger.fatal( "This is not a valid group", group )
-    exit( 1 )
-  if not dfc.isDirectory( baseDir ).get( 'Value', {} ).get( 'Successful', {} ).get( baseDir ):
-    gLogger.fatal( "Directory doesn't exist", baseDir )
-    exit( 1 )
-  startTime = time()
-  res = chown( baseDir, user, group = group, recursive = recursive )
-  if not res['OK']:
-    gLogger.fatal( 'Error changing directory owner', res['Message'] )
-    exit( 2 )
-  gLogger.always( 'Successfully changed owner in %d directories in %.1f seconds' % ( res['Value'], time() - startTime ) )
-  exit( 0 )
-
 
 if user is None:
   Script.showHelp()
@@ -118,17 +65,19 @@ if not exists:
     exit( 2 )
 else:
   gLogger.always( 'Change%s ownership of directory' % ' recursively' if recursive else '', baseDir )
-res = chown( baseDir, user, recursive = False )
+res = chown( baseDir, user, group = 'lhcb_user', mode = 0755, recursive = False, fcClient = dfc )
 if not res['OK']:
   gLogger.fatal( 'Error changing directory owner', res['Message'] )
   exit( 2 )
-if recursive:
-  startTime = time()
-  res = chown( subDirectories, user, recursive = True, ndirs = 1 )
+startTime = time()
+if recursive and subDirectories:
+  res = chown( subDirectories, user, group = 'lhcb_user', mode = 0755, recursive = True, ndirs = 1, fcClient = dfc )
   if not res['OK']:
     gLogger.fatal( 'Error changing directory owner', res['Message'] )
     exit( 2 )
   gLogger.always( 'Successfully changed owner in %d directories in %.1f seconds' % ( res['Value'], time() - startTime ) )
+else:
+  gLogger.always( 'Successfully changed owner in directory %s in %.1f seconds' % ( baseDir, time() - startTime ) )
 
 
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
