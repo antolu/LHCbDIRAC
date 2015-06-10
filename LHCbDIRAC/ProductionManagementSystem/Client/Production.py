@@ -754,8 +754,8 @@ class Production( object ):
   def setOutputMode( self, outputMode ):
     """ Sets output mode for all jobs, this can be 'Local' or 'Any'.
     """
-    if not outputMode.lower().capitalize() in ( 'Local', 'Any' ):
-      raise TypeError( "Output mode must be Local or Any" )
+    if not outputMode.lower().capitalize() in ( 'Local', 'Any', 'Run' ):
+      raise TypeError( "Output mode must be 'Local' or 'Any' or 'Run'" )
     self.setParameter( 'outputMode', 'string', outputMode.lower().capitalize(), 'SEResolutionPolicy' )
 
   #############################################################################
