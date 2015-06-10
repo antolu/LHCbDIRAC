@@ -251,7 +251,7 @@ class DMScript( object ):
         lfnList = [ vo + lfn.split( vo )[-1].split()[0] if '%s/' % vo in lfn else lfn if lfn == vo else '' for lfn in lfnList]
         lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
         lfnList = [lfn for lfn in lfnList if not lfn.endswith( '/' )]
-    return sorted( [lfn for lfn in set( lfnList ) if lfn] )
+    return sorted( [lfn for lfn in set( lfnList ) if lfn or directories] )
 
   @staticmethod
   def getJobIDsFromList( jobids ):

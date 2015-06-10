@@ -1325,7 +1325,7 @@ def executeLfnMetadata( dmScript ):
 def executeGetFile( dmScript ):
   lfnList, _ses = parseArguments( dmScript )
 
-  dirList = dmScript.getOption( 'Directory', [''] )
+  dirList = dmScript.getOption( 'Directory', ['.'] )
   if len( dirList ) > 1:
     gLogger.fatal( "Not allowed to specify more than one destination directory" )
     DIRACExit( 2 )
