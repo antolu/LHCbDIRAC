@@ -127,7 +127,7 @@ class UploadOutputData( ModuleBase ):
       for fileName, metadata in fileMetadata.items():
         if not SEs:
           resolvedSE = getDestinationSEList( metadata['workflowSE'], self.siteName, self.outputMode,
-                                             self.workflow_commons.get( 'RunNumber' ) )
+                                             self.workflow_commons.get( 'runNumber' ) )
         else:
           resolvedSE = SEs
         final[fileName] = metadata
