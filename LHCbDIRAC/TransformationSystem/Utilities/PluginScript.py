@@ -75,10 +75,9 @@ class PluginScript( DMScript ):
 
   def setGroupSize ( self, groupSize ):
     try:
-      if float( int( groupSize ) ) == float( groupSize ):
+      groupSize = float( groupSize )
+      if int( groupSize ) == groupSize:
         groupSize = int( groupSize )
-      else:
-        groupSize = float( groupSize )
       self.options['GroupSize'] = groupSize
     except:
       pass

@@ -158,17 +158,12 @@ class PluginUtilities( object ):
     # Finally look at a transformation-specific parameter
     value = self.params.get( name, default )
     self.logVerbose( "Transformation plugin param %s: '%s'" % ( name, value ) )
-    if isinstance( value, basestring ):
-      listValue = getListFromString( value )
-      resolvedValue = resolveSEGroup( listValue )
-      if resolvedValue != listValue:
-        value = resolvedValue
     if valueType and type( value ) != valueType:
       if valueType is list:
         value = getListFromString( value )
       elif valueType is int:
         value = int( value )
-      elif valueType is int:
+      elif valueType is float:
         value = float( value )
       elif valueType is bool:
         if value in ( 'False', 'No' ):
@@ -730,17 +725,46 @@ class PluginUtilities( object ):
 
     return S_OK( tasks )
 
+  def createTasksBySize( self, lfns, replicaSE, fileSizes = None, flush = False ):
+    """
+    Split files in groups according to the size and create tasks for a given SE
+    """
+    tasks = []
+    if fileSizes is None:
+      fileSizes = self.getFileSize( lfns ).get( 'Value' )
+    if fileSizes is None:
+      self.logWarn( 'Error getting file sizes, no tasks created' )
+      return tasks
+    taskLfns = []
+    taskSize = 0
+    if not self.groupSize:
+      self.groupSize = float( self.getPluginParam( 'GroupSize', 1. ) ) * 1000 * 1000 * 1000  # input size in GB converted to bytes
+    if not self.maxFiles:
+      self.maxFiles = self.getPluginParam( 'MaxFiles', 100 )
+    lfns = sorted( lfns, key = fileSizes.get )
+    for lfn in lfns:
+      size = fileSizes.get( lfn, 0 )
+      if size:
+        if size > self.groupSize:
+          tasks.append( ( replicaSE, [lfn] ) )
+        else:
+          taskSize += size
+          taskLfns.append( lfn )
+          if ( taskSize > self.groupSize ) or ( len( taskLfns ) >= self.maxFiles ):
+            tasks.append( ( replicaSE, taskLfns ) )
+            taskLfns = []
+            taskSize = 0
+    if flush and taskLfns:
+      tasks.append( ( replicaSE, taskLfns ) )
+    return tasks
+
 
   def groupBySize( self, files, status ):
     startTime = time.time()
     if not self.groupSize:
-      self.groupSize = float( self.getPluginParam( 'GroupSize', 1 ) ) * 1000 * 1000 * 1000  # input size in GB converted to bytes
-    requestedSize = self.groupSize
+      self.groupSize = float( self.getPluginParam( 'GroupSize', 1. ) ) * 1000 * 1000 * 1000  # input size in GB converted to bytes
     flush = ( status == 'Flush' )
     self.logVerbose( "groupBySize: %d files, groupSize %d, flush %s" % ( len( files ), self.groupSize, flush ) )
-    if not self.maxFiles:
-      self.maxFiles = self.getPluginParam( 'MaxFiles', 100 )
-    maxFiles = self.maxFiles
     # Get the file sizes
     res = self.getFileSize( files.keys() )
     if not res['OK']:
@@ -756,36 +780,20 @@ class PluginUtilities( object ):
       seFiles = getFileGroups( files, groupSE = groupSE )
       for replicaSE in sorted( seFiles ) if groupSE else sortSEs( seFiles ):
         lfns = seFiles[replicaSE]
+        newTasks = self.createTasksBySize( lfns, replicaSE, fileSizes = fileSizes, flush = flush )
         lfnsInTasks = []
-        taskLfns = []
-        taskSize = 0
-        lfns = sorted( lfns, key = fileSizes.get )
-        for lfn in lfns:
-          size = fileSizes.get( lfn, 0 )
-          if size:
-            if size > requestedSize:
-              tasks.append( ( replicaSE, [lfn] ) )
-              lfnsInTasks.append( lfn )
-            else:
-              taskSize += size
-              taskLfns.append( lfn )
-              if ( taskSize > requestedSize ) or ( len( taskLfns ) >= maxFiles ):
-                tasks.append( ( replicaSE, taskLfns ) )
-                lfnsInTasks += taskLfns
-                taskLfns = []
-                taskSize = 0
-        if flush and taskLfns:
-          tasks.append( ( replicaSE, taskLfns ) )
-          lfnsInTasks += taskLfns
-        # Remove files from global list
-        for lfn in lfnsInTasks:
-          files.pop( lfn )
+        for task  in newTasks:
+          lfnsInTasks += task[1]
+        tasks += newTasks
+        # Remove the selected files from the size cache
+        self.clearCachedFileSize( lfnsInTasks )
         if not groupSE:
           # Remove files from other SEs
           for se in [se for se in seFiles if se != replicaSE]:
             seFiles[se] = [lfn for lfn in seFiles[se] if lfn not in lfnsInTasks]
-        # Remove the selected files from the size cache
-        self.clearCachedFileSize( lfnsInTasks )
+        # Remove files from global list
+        for lfn in lfnsInTasks:
+          files.pop( lfn )
       self.logVerbose( "groupBySize: %d tasks created with groupSE %s" % ( len( tasks ) - nTasks, str( groupSE ) ) )
       self.logVerbose( "groupBySize: %d files have not been included in tasks" % len( files ) )
       nTasks = len( tasks )

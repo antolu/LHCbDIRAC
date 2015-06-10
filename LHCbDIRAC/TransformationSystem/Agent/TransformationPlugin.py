@@ -15,7 +15,7 @@ from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveS
 
 from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities \
      import PluginUtilities, getFileGroups, groupByRun, \
-     sortExistingSEs, getRemovalPlugins, closerSEs, timeThis, optimizeTasks
+     sortExistingSEs, getRemovalPlugins, closerSEs, timeThis
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
@@ -375,7 +375,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     Create tasks for RAW data processing using the run destination table
     """
-    fromSEs = set( self.util.getPluginParam( 'FromSEs', [] ) )
+    fromSEs = set( resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) ) )
     if not fromSEs:
       self.util.logWarn( 'No processing SEs are provided' )
       return S_OK( [] )
@@ -419,8 +419,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           if update:
             runSEs |= targetSEs
           targetSEs = ','.join( sorted( targetSEs ) )
-          self.util.logVerbose( 'Creating a task with %d files for run %s at %s' % ( len( lfns ), runID, targetSEs ) )
-          tasks.append( ( targetSEs, lfns ) )
+          self.util.logVerbose( 'Creating tasks with %d files for run %s at %s' % ( len( lfns ), runID, targetSEs ) )
+          newTasks = self.util.createTasksBySize( lfns, targetSEs, flush = True )
+          tasks += newTasks
+          self.util.logVerbose( 'Created %d tasks' % len( newTasks ) )
         else:
           notAtSE += len( lfns )
       if notAtSE:
@@ -434,7 +436,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     if self.pluginCallback:
       self.pluginCallback( self.transID, invalidateCache = True )
-    return S_OK( optimizeTasks( tasks ) )
+    return S_OK( tasks )
 
   def __getRunDestinations( self, runIDList ):
     runSet = set( runIDList ) - set( self.runDestinations )
@@ -787,7 +789,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     allTasks = []
     groupSize = self.util.getPluginParam( 'GroupSize' )
     typesWithNoCheck = self.util.getPluginParam( 'NoCheckTypes', ['Merge', 'MCMerge', 'Replication', 'Removal'] )
-    fromSEs = set( self.util.getPluginParam( 'FromSEs', [] ) )
+    fromSEs = set( resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) ) )
     maxTime = self.util.getPluginParam( 'MaxTimeAllowed', 0 )
     self.util.readCacheFile( self.workDirectory )
     if not self.transReplicas:
@@ -1182,21 +1184,21 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _ReplicateDataset( self ):
     """ Plugin for replicating files to specified SEs
     """
-    destSEs = self.util.getPluginParam( 'DestinationSEs', [] )
+    destSEs = resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) )
     if not destSEs:
-      destSEs = self.util.getPluginParam( 'MandatorySEs', [] )
-    secondarySEs = self.util.getPluginParam( 'SecondarySEs', [] )
-    fromSEs = self.util.getPluginParam( 'FromSEs', [] )
+      destSEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
+    secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
+    fromSEs = resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 0 )
     return self._simpleReplication( destSEs, secondarySEs, numberOfCopies, fromSEs = fromSEs )
 
   def _ArchiveDataset( self ):
     """ Plugin for archiving datasets (normally 2 archives, unless one of the lists is empty)
     """
-    archive1SEs = self.util.getPluginParam( 'Archive1SEs', [] )
-    archive2SEs = self.util.getPluginParam( 'Archive2SEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
+    archive1SEs = resolveSEGroup( self.util.getPluginParam( 'Archive1SEs', [] ) )
+    archive2SEs = resolveSEGroup( self.util.getPluginParam( 'Archive2SEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
                                                             'IN2P3-ARCHIVE', 'SARA-ARCHIVE',
-                                                            'PIC-ARCHIVE', 'RAL-ARCHIVE'] )
+                                                            'PIC-ARCHIVE', 'RAL-ARCHIVE'] ) )
     archive1ActiveSEs = self.util.getActiveSEs( archive1SEs )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 1 )
     if not archive1ActiveSEs:
@@ -1364,9 +1366,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _RemoveDataset( self ):
     """ Plugin used to remove disk replicas, keeping some (e.g. archives)
     """
-    keepSEs = self.util.getPluginParam( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
-                                                    'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE',
-                                                    'PIC-ARCHIVE', 'RAL-ARCHIVE', 'RRCKI-ARCHIVE'] )
+    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', 'Tier1-ARCHIVE' ) )
     return self._removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
   def _DeleteReplicas( self ):
@@ -1374,11 +1374,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _RemoveReplicas( self ):
     """ Plugin for removing replicas from specific SEs or reduce the number of replicas
     """
-    fromSEs = self.util.getPluginParam( 'FromSEs', [] )
-    keepSEs = self.util.getPluginParam( 'KeepSEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
-                                                    'IN2P3-ARCHIVE', 'NIKHEF-ARCHIVE', 'SARA-ARCHIVE',
-                                                    'PIC-ARCHIVE', 'RAL-ARCHIVE', 'RRCKI-ARCHIVE'] )
-    mandatorySEs = self.util.getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] )
+    fromSEs = resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) )
+    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', 'Tier1-ARCHIVE' ) )
+    mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] ) )
     # Allow removing explicitly from SEs in mandatorySEs
     mandatorySEs = [se for se in mandatorySEs if se not in fromSEs]
     # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
@@ -1471,8 +1469,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ This plugin considers files and checks whether they were processed for a list of processing passes
         For files that were processed, it sets replica removal tasks from a set of SEs
     """
-    keepSEs = self.util.getPluginParam( 'KeepSEs', [] )
-    listSEs = set( self.util.getPluginParam( 'FromSEs', [] ) ) - set( keepSEs )
+    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', [] ) )
+    listSEs = set( resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) ) ) - set( keepSEs )
     if not listSEs:
       self.util.logError( 'No SEs where to delete from, check overlap with %s' % keepSEs )
       return S_OK( [] )
@@ -1638,7 +1636,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _ReplicateToLocalSE( self ):
     """ Used for example to replicate from a buffer to a tape SE on the same site
     """
-    destSEs = self.util.getPluginParam( 'DestinationSEs', [] )
+    destSEs = resolveSEGroup( self.util.getPluginParam( 'DestinationSEs', [] ) )
     watermark = self.util.getPluginParam( 'MinFreeSpace', 30 )
     if not destSEs:
       self.util.logWarn( 'No destination SE given' )
