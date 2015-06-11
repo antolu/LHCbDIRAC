@@ -196,9 +196,10 @@ class RecoSuccess( ProductionJobTestCase ):
                    ]
 
     prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
-                                     inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
+                                     outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
+    prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 154030, 'Input run number' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
@@ -219,7 +220,8 @@ class RecoSuccessMultiCore( ProductionJobTestCase ):
                    ]
 
     prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
-                                     inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
+                                     outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
+    prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 154030, 'Input run number' )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
@@ -252,7 +254,9 @@ class StrippSuccess( ProductionJobTestCase ):
                                                                 'EW.DST': 'Tier1-BUFFER',
                                                                 'LEPTONIC.MDST': 'Tier1-BUFFER',
                                                                 'SEMILEPTONIC.DST': 'Tier1-BUFFER'},
-                                     0, 100, inputDataPolicy = 'protocol', inputDataList = lfns, events = 500 )
+                                     0, 100,
+                                     outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 500 )
+    prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 154030, 'Input run number' )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
