@@ -141,7 +141,7 @@ class PluginUtilities( object ):
         Caution: the type returned is that of the default value
     """
     # get the value of a parameter looking 1st in the CS
-    if default != None:
+    if default is not None:
       valueType = type( default )
     else:
       valueType = None

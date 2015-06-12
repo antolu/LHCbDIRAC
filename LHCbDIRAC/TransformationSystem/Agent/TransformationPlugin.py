@@ -1196,9 +1196,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ Plugin for archiving datasets (normally 2 archives, unless one of the lists is empty)
     """
     archive1SEs = resolveSEGroup( self.util.getPluginParam( 'Archive1SEs', [] ) )
-    archive2SEs = resolveSEGroup( self.util.getPluginParam( 'Archive2SEs', ['CERN-ARCHIVE', 'CNAF-ARCHIVE', 'GRIDKA-ARCHIVE',
-                                                            'IN2P3-ARCHIVE', 'SARA-ARCHIVE',
-                                                            'PIC-ARCHIVE', 'RAL-ARCHIVE'] ) )
+    archive2SEs = resolveSEGroup( self.util.getPluginParam( 'Archive2SEs', [] ) )
     archive1ActiveSEs = self.util.getActiveSEs( archive1SEs )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 1 )
     if not archive1ActiveSEs:
@@ -1366,7 +1364,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _RemoveDataset( self ):
     """ Plugin used to remove disk replicas, keeping some (e.g. archives)
     """
-    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', 'Tier1-ARCHIVE' ) )
+    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-ARCHIVE'] ) )
     return self._removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
   def _DeleteReplicas( self ):
@@ -1375,7 +1373,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ Plugin for removing replicas from specific SEs or reduce the number of replicas
     """
     fromSEs = resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) )
-    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', 'Tier1-ARCHIVE' ) )
+    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-ARCHIVE'] ) )
     mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] ) )
     # Allow removing explicitly from SEs in mandatorySEs
     mandatorySEs = [se for se in mandatorySEs if se not in fromSEs]
