@@ -653,7 +653,8 @@ class ProductionRequest( object ):
     else:
       prod.addFinalizationStep()
 
-    prod.outputSEs.update( outputSE )
+    for ft, oSE in outputSE.items():
+      prod.outputSEs.setdefault( ft, oSE )
 
     prod.LHCbJob.setDIRACPlatform()
 
