@@ -383,7 +383,18 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     # If some files are Scheduled, try and get information about the FTS jobs
     if statFiles.get( 'Scheduled', 0 ) and request:
       from DIRAC.DataManagementSystem.Client.FTSClient                                  import FTSClient
+      from DIRAC.DataManagementSystem.Client.FTSFile                                    import FTSFile
       ftsClient = FTSClient()
+      res = ftsClient.getAllFTSFilesForRequest( request.RequestID )
+      if res['OK']:
+        statusCount = dict.fromkeys( FTSFile.ALL_STATES, 0 )
+        for ftsFile in res['Value']:
+          statusCount[ftsFile.Status] += 1
+        prStr = []
+        for status in FTSFile.ALL_STATES:
+          if statusCount[status]:
+            prStr.append( '%s:%d' % ( status, statusCount[status] ) )
+        print '\tFTS files statuses: %s' % ', '.join( prStr )
       res = ftsClient.getFTSJobsForRequest( request.RequestID )
       if res['OK']:
         ftsJobs = res['Value']
