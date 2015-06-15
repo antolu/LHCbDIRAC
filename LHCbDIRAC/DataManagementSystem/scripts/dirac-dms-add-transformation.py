@@ -10,9 +10,10 @@ __RCSID__ = "$Id$"
 if __name__ == "__main__":
 
   import DIRAC
+  from DIRAC import gLogger
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.TransformationSystem.Utilities.PluginScript import PluginScript
-  import time
+  import time, os
 
   pluginScript = PluginScript()
   pluginScript.registerPluginSwitches()
@@ -25,6 +26,7 @@ if __name__ == "__main__":
   unique = False
   bkQuery = None
   depth = 0
+  userGroup = None
 
   Script.registerSwitch( "", "SetInvisible", "Before creating the transformation, set the files in the BKQuery as invisible (default for DeleteDataset)" )
   Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
@@ -33,6 +35,7 @@ if __name__ == "__main__":
   Script.registerSwitch( "", "NoLFCCheck", "   Suppress the check in LFC for removal transformations" )
   Script.registerSwitch( "", "Unique", "   Refuses to create a transformation with an existing name" )
   Script.registerSwitch( "", "Depth=", "   Depth in path for replacing /... in processing pass" )
+  Script.registerSwitch( "", "Chown=", "   Give user/group for chown of the directories of files in the FC" )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -59,16 +62,33 @@ if __name__ == "__main__":
       lfcCheck = False
     elif opt == "Unique":
       unique = True
+    elif opt == 'Chown':
+      userGroup = val.split( '/' )
+      if len( userGroup ) != 2 or not userGroup[1].startswith( 'lhcb_' ):
+        gLogger.fatal( "Wrong user/group" )
+        DIRAC.exit( 2 )
     elif opt == "Depth":
       try:
         depth = int( val )
       except:
-        print "Illegal integer depth:", val
+        gLogger.fatal( "Illegal integer depth:", val )
         DIRAC.exit( 2 )
+
+  if userGroup:
+    from DIRAC.Core.Security.ProxyInfo import getProxyInfo
+    res = getProxyInfo()
+    if not res['OK']:
+      gLogger.fatal( "Can't get proxy info", res['Message'] )
+      exit( 1 )
+    properties = res['Value'].get( 'groupProperties', [] )
+    if not 'FileCatalogManagement' in properties:
+      gLogger.error( "You need to use a proxy from a group with FileCatalogManagement" )
+      exit( 5 )
+
 
   plugin = pluginScript.getOption( 'Plugin' )
   if not plugin:
-    print "ERROR: No plugin supplied..."
+    gLogger.fatal( "ERROR: No plugin supplied..." )
     Script.showHelp()
     DIRAC.exit( 0 )
   prods = pluginScript.getOption( 'Productions' )
@@ -82,6 +102,7 @@ if __name__ == "__main__":
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   from DIRAC.Core.Utilities.List import breakListIntoChunks
   from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import getRemovalPlugins, getReplicationPlugins
+  from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
 
   transType = None
   if plugin in getRemovalPlugins():
@@ -89,10 +110,10 @@ if __name__ == "__main__":
   elif plugin in getReplicationPlugins():
     transType = "Replication"
   else:
-    print "This script can only create Removal or Replication plugins"
-    print "Replication :", str( getReplicationPlugins() )
-    print "Removal     :", str( getRemovalPlugins() )
-    print "If needed, ask for adding %s to the known list of plugins" % plugin
+    gLogger.notice( "This script can only create Removal or Replication plugins" )
+    gLogger.notice( "Replication :", str( getReplicationPlugins() ) )
+    gLogger.notice( "Removal     :", str( getRemovalPlugins() ) )
+    gLogger.notice( "If needed, ask for adding %s to the known list of plugins" % plugin )
     DIRAC.exit( 2 )
 
   bk = BookkeepingClient()
@@ -107,12 +128,11 @@ if __name__ == "__main__":
     bkQuery = pluginScript.getBKQuery()
     transBKQuery = bkQuery.getQueryDict()
     if transBKQuery.keys() in ( [], ['Visible'] ):
-      print "No BK query was given..."
+      gLogger.fatal( "No BK query was given..." )
       Script.showHelp()
       DIRAC.exit( 2 )
     processingPass = transBKQuery.get( 'ProcessingPass', '' )
     if processingPass.endswith( '...' ):
-      import os
       basePass = os.path.dirname( processingPass )
       wildPass = os.path.basename( processingPass ).replace( '...', '' )
       bkQuery.setProcessingPass( basePass )
@@ -122,9 +142,10 @@ if __name__ == "__main__":
           processingPasses.remove( processingPass )
       if processingPasses:
         processingPasses.sort()
-        print "Transformations will be launched for the following list of processing passes:", '\n\t'.join( [''] + processingPasses )
+        gLogger.notice( "Transformations will be launched for the following list of processing passes:" )
+        gLogger.notice( '\n\t'.join( [''] + processingPasses ) )
       else:
-        print "No processing passes matching the request"
+        gLogger.notice( "No processing passes matching the request" )
         DIRAC.exit( 0 )
     else:
       processingPasses = [processingPass]
@@ -139,7 +160,7 @@ if __name__ == "__main__":
   transGroup = plugin
   for processingPass in processingPasses:
     if len( processingPasses ) > 1:
-      print "**************************************"
+      gLogger.notice( "**************************************" )
     # Create the transformation
     transformation = Transformation()
     transformation.setType( transType )
@@ -184,15 +205,15 @@ if __name__ == "__main__":
     if unique:
       res = tr.getTransformation( transName )
       if res['OK']:
-        print "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] )
+        gLogger.warn( "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] ) )
         continue
       res = tr.getTransformation( transName + '/' )
       if res['OK']:
-        print "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] )
+        gLogger.warn( "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] ) )
         continue
       res = tr.getTransformation( transName.replace( '-/', '-' ) )
       if res['OK']:
-        print "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] )
+        gLogger.warn( "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] ) )
         continue
     transformation.setTransformationName( transName )
     transformation.setTransformationGroup( transGroup )
@@ -219,51 +240,58 @@ if __name__ == "__main__":
         else:
           res = transformation.setAdditionalParam( key, val )
         if not res['OK']:
-          print res['Message']
+          gLogger.error( 'Error setting additional parameter', res['Message'] )
           continue
 
     transformation.setPlugin( plugin )
 
     if test:
-      print "Transformation type:", transType
-      print "Transformation Name:", transName
-      print "Transformation group:", transGroup
-      print "Long description:", longName
-      print "Transformation body:", transBody
+      gLogger.notice( "Transformation type:", transType )
+      gLogger.notice( "Transformation Name:", transName )
+      gLogger.notice( "Transformation group:", transGroup )
+      gLogger.notice( "Long description:", longName )
+      gLogger.notice( "Transformation body:", transBody )
       if transBKQuery:
-        print "BK Query:", transBKQuery
+        gLogger.notice( "BK Query:", transBKQuery )
       elif requestedLFNs:
-        print "List of%d LFNs" % len( requestedLFNs )
+        gLogger.notice( "List of%d LFNs" % len( requestedLFNs ) )
       else:
         # Should not happen here, but who knows ;-)
-        print "No BK query provided..."
+        gLogger.error( "No BK query provided..." )
         Script.showHelp()
         DIRAC.exit( 0 )
 
     if force:
       lfns = []
     elif transBKQuery:
-      print "Executing the BK query:", bkQuery
+      gLogger.notice( "Executing the BK query:", bkQuery )
       startTime = time.time()
       lfns = bkQuery.getLFNs( printSEUsage = ( transType == 'Removal' and not pluginScript.getOption( 'Runs' ) ), printOutput = test )
       bkTime = time.time() - startTime
       nfiles = len( lfns )
-      print "Found %d files in %.3f seconds" % ( nfiles, bkTime )
+      gLogger.notice( "Found %d files in %.3f seconds" % ( nfiles, bkTime ) )
     else:
       lfns = requestedLFNs
     nfiles = len( lfns )
 
     if test:
-      print "Plugin:", plugin
-      print "Parameters:", pluginParams
-      print "RequestID:", requestID
+      gLogger.notice( "Plugin:", plugin )
+      gLogger.notice( "Parameters:", pluginParams )
+      gLogger.notice( "RequestID:", requestID )
       continue
 
     if not force and nfiles == 0:
-      print "No files found from BK query %s" % str( bkQuery )
-      print "If you anyway want to submit the transformation, use option --Force"
+      gLogger.warn( "No files found from BK query %s" % str( bkQuery ) )
+      gLogger.warn( "If you anyway want to submit the transformation, use option --Force" )
       continue
 
+    if userGroup:
+      directories = set( [os.path.dirname( lfn ) for lfn in lfns] )
+      res = chown( directories, user = userGroup[0], group = userGroup[1] )
+      if not res['OK']:
+        gLogger.fatal( "Error changing ownership", res['Message'] )
+        DIRAC.exit( 3 )
+      gLogger.notice( "Successfully changed owner/group for %d directories" % res['Value'] )
     # If the transformation is a removal transformation, check all files are in the LFC. If not, remove their replica flag
     if lfcCheck and transType == 'Removal':
       from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
@@ -276,14 +304,14 @@ if __name__ == "__main__":
         if res['OK']:
           success += len ( [lfn for lfn in chunk if lfn in res['Value']['Successful'] and  res['Value']['Successful'][lfn]] )
           missingLFNs += [lfn for lfn in chunk if lfn in res['Value']['Failed']] + [lfn for lfn in chunk if lfn in res['Value']['Successful'] and not res['Value']['Successful'][lfn]]
-      print "Files checked in LFC in %.3f seconds" % ( time.time() - startTime )
+      gLogger.notice( "Files checked in LFC in %.3f seconds" % ( time.time() - startTime ) )
       if missingLFNs:
-        print '%d are in the LFC, %d are not. Attempting to remove GotReplica' % ( success, len( missingLFNs ) )
+        gLogger.notice( '%d are in the LFC, %d are not. Attempting to remove GotReplica' % ( success, len( missingLFNs ) ) )
         res = bk.removeFiles( missingLFNs )
         if res['OK']:
-          print "Replica flag successfully removed in BK"
+          gLogger.notice( "Replica flag successfully removed in BK" )
       else:
-        print 'All files are in the LFC'
+        gLogger.notice( 'All files are in the LFC' )
 
     # Prepare the transformation
     if transBKQuery:
@@ -297,16 +325,16 @@ if __name__ == "__main__":
       transformation.setBkQuery( transBKQuery )
 
     # If the transformation uses the DeleteDataset plugin, set the files invisible in the BK...
-    setInvisiblePlugins = ( "DeleteDataset" )
+    setInvisiblePlugins = ( "DeleteDataset", "RemoveDataset" )
     if invisible or plugin in setInvisiblePlugins:
       res = bk.setFilesInvisible( lfns )
       if res['OK']:
-        print "%d files were successfully set invisible in the BK" % len( lfns )
+        gLogger.notice( "%d files were successfully set invisible in the BK" % len( lfns ) )
         if transBKQuery:
           transBKQuery.pop( "Visible", None )
           transformation.setBkQuery( transBKQuery )
       else:
-        print "Failed to set the files invisible: %s" % res['Message']
+        gLogger.error( "Failed to set the files invisible:" , res['Message'] )
         continue
 
     trial = 0
@@ -334,22 +362,22 @@ if __name__ == "__main__":
         if not res['OK']:
           errMsg = "Could not add %d files to transformation: %s" % ( len( requestedLFNs ), res['Message'] )
           break
-        print "%d files successfully added to transformation" % len( res['Value'] )
+        gLogger.notice( "%d files successfully added to transformation" % len( res['Value'] ) )
       if requestID:
         transformation.setTransformationFamily( requestID )
       if start:
         transformation.setStatus( 'Active' )
         transformation.setAgentType( 'Automatic' )
-      print "Transformation %d created" % transID
-      print "Name:", transName, ", Description:", longName
-      print "Transformation body:", transBody
-      print "Plugin:", plugin
+      gLogger.notice( "Transformation %d created" % transID )
+      gLogger.notice( "Name: %s, Description:%s" % ( transName, longName ) )
+      gLogger.notice( "Transformation body:", transBody )
+      gLogger.notice( "Plugin:", plugin )
       if pluginParams:
-        print "Additional parameters:", pluginParams
+        gLogger.notice( "Additional parameters:", pluginParams )
       if requestID:
-        print "RequestID:", requestID
+        gLogger.notice( "RequestID:", requestID )
       break
     if errMsg:
-      print errMsg
+      gLogger.notice( errMsg )
 
   DIRAC.exit( 0 )
