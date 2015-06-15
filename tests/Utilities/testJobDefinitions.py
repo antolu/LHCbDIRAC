@@ -136,6 +136,18 @@ def jobWithSingleInputDataSpreaded():
   return endOfAllJobs( J )
 
 @executeWithUserProxy
+def jobWithInputDataAndAncestor():
+
+  J = baseToAllJobs( 'jobWithInputDataAndAncestor', jobClass )
+  J.setInputSandbox( [find_all( 'exe-script-with-input-and-ancestor.py', '.', 'GridTestSubmission' )[0]] )
+  J.setExecutable( "exe-script-with-input-and-ancestor.py", "", "exeWithInput.log" )
+  # WARNING: Collision10!!
+  J.setInputData( '/lhcb/data/2010/SDST/00008375/0005/00008375_00053941_1.sdst' )  # this file should be at SARA-RDST
+  J.setAncestorDepth( 1 )  # the ancestor should be /lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81616/081616_0000000213.raw (CERN and SARA)
+  J.setInputDataPolicy( 'download' )
+  return endOfAllJobs( J )
+
+@executeWithUserProxy
 def gaussJob():
 
   J = baseToAllJobs( 'gaussJob', jobClass )
