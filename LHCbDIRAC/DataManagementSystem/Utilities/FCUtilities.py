@@ -15,7 +15,7 @@ def chown( directories, user = None, group = None, mode = None, recursive = Fals
   if not directories:
     return S_OK( ndirs )
   if isinstance( directories, basestring ):
-    directories = [directories]
+    directories = directories.split( ',' )
   if fcClient is None:
     fcClient = FileCatalogClient()
   if user is not None:
@@ -52,7 +52,7 @@ def chown( directories, user = None, group = None, mode = None, recursive = Fals
             return res
           ndirs = res['Value']
   else:
-    ndirs += 1
+    ndirs += len( directories )
   return S_OK( ndirs )
 
 def createUserDirectory( user ):
