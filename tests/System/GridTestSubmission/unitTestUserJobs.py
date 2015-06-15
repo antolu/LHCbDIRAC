@@ -100,6 +100,10 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
 
+    res = jobWithInputDataAndAncestor()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
     res = jobWithSingleInputDataSpreaded()
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
