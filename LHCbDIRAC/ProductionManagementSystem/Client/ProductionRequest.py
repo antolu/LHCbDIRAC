@@ -101,6 +101,7 @@ class ProductionRequest( object ):
     self.outputSEs = []  # a list of StorageElements
     self.specialOutputSEs = []  # a list of dictionaries - might be empty
     self.outputSEsPerFileType = []  # a list of dictionaries - filled later
+    self.ancestorDepths = []
 
   #############################################################################
 
@@ -215,7 +216,8 @@ class ProductionRequest( object ):
                                     derivedProdID = prodDict['derivedProduction'],
                                     transformationFamily = prodDict['transformationFamily'],
                                     events = prodDict['events'],
-                                    multicore = prodDict['multicore'] )
+                                    multicore = prodDict['multicore'],
+                                    ancestorDepth = prodDict['ancestorDepth'] )
 
       # if the production is an MCSimulation, submit to the automated testing
       if prodDict['productionType'] == 'MCSimulation':
@@ -383,6 +385,9 @@ class ProductionRequest( object ):
     if not self.specialOutputSEs:
       self.specialOutputSEs = [{}] * len( self.prodsTypeList )
 
+    if not self.ancestorDepths:
+      self.ancestorDepths = [0] * len( self.prodsTypeList )
+
     # Checking if we need to split the merging step into many productions
     if 'merge' in [pt.lower() for pt in self.prodsTypeList]:
       i = 0
@@ -412,6 +417,7 @@ class ProductionRequest( object ):
         targets = self.targets[index]
         multicore = self.multicore[index]
         outputMode = self.outputModes[index]
+        ancestorDepth = self.ancestorDepths[index]
         if plugin.lower() != 'byrunfiletypesizewithflush':
           stepToSplit = self.stepsListDict[index]
           numberOfProdsToInsert = len( stepToSplit['fileTypesOut'] )
@@ -434,6 +440,7 @@ class ProductionRequest( object ):
           self.targets.pop( index )
           self.multicore.pop( index )
           self.outputModes.pop( index )
+          self.ancestorDepths.pop( index )
           newSteps = _splitIntoProductionSteps( stepToSplit )
           newSteps.reverse()
           self.stepsListDict.remove( stepToSplit )
@@ -460,6 +467,7 @@ class ProductionRequest( object ):
             self.targets.insert( index, targets )
             self.multicore.insert( index, multicore )
             self.outputModes.insert( index, outputMode )
+            self.ancestorDepths.insert( index, ancestorDepth )
 
     correctedStepsInProds = []
     toInsert = self.stepsInProds[0][0]
@@ -483,24 +491,25 @@ class ProductionRequest( object ):
 
     for prodType, stepsInProd, bkQuery, removeInputsFlag, outputSE, priority, \
     cpu, inputD, outputMode, outFileMask, outFileStep, target, groupSize, plugin, idp, \
-    previousProd, events, multicore in itertools.izip( self.prodsTypeList,
-                                                       self.stepsInProds,
-                                                       self.bkQueries,
-                                                       self.removeInputsFlags,
-                                                       self.outputSEsPerFileType,
-                                                       self.priorities,
-                                                       self.cpus,
-                                                       self.inputs,
-                                                       self.outputModes,
-                                                       self.outputFileMasks,
-                                                       self.outputFileSteps,
-                                                       self.targets,
-                                                       self.groupSizes,
-                                                       self.plugins,
-                                                       self.inputDataPolicies,
-                                                       self.previousProds,
-                                                       self.events,
-                                                       self.multicore ):
+    previousProd, events, multicore, ancestorDepth in itertools.izip( self.prodsTypeList,
+                                                                      self.stepsInProds,
+                                                                      self.bkQueries,
+                                                                      self.removeInputsFlags,
+                                                                      self.outputSEsPerFileType,
+                                                                      self.priorities,
+                                                                      self.cpus,
+                                                                      self.inputs,
+                                                                      self.outputModes,
+                                                                      self.outputFileMasks,
+                                                                      self.outputFileSteps,
+                                                                      self.targets,
+                                                                      self.groupSizes,
+                                                                      self.plugins,
+                                                                      self.inputDataPolicies,
+                                                                      self.previousProds,
+                                                                      self.events,
+                                                                      self.multicore,
+                                                                      self.ancestorDepths ):
 
       if not self.parentRequestID and self.requestID:
         transformationFamily = self.requestID
@@ -528,7 +537,8 @@ class ProductionRequest( object ):
                                  'previousProd': previousProd,
                                  'stepsInProd-ProdName': [str( self.stepsList[index - 1] ) + str( self.stepsListDict[index - 1]['fileTypesIn'] ) for index in stepsInProd],
                                  'events': events,
-                                 'multicore': multicore}
+                                 'multicore': multicore,
+                                 'ancestorDepth': ancestorDepth}
       prodNumber += 1
 
     # tracking the last production(s)
@@ -565,7 +575,8 @@ class ProductionRequest( object ):
                         derivedProdID = 0,
                         transformationFamily = 0,
                         events = -1,
-                        multicore = 'True' ):
+                        multicore = 'True',
+                        ancestorDepth = 0 ):
     """ Wrapper around Production API to build a production, given the needed parameters
         Returns a production object
     """
@@ -611,6 +622,8 @@ class ProductionRequest( object ):
       elif target != 'ALL':
         prod.LHCbJob.setDestination( target )
     prod.LHCbJob.setInputData( inputDataList )
+    if ancestorDepth:
+      prod.LHCbJob.setAncestorDepth( ancestorDepth )
     if derivedProdID:
       prod.ancestorProduction = derivedProdID
     if transformationFamily:

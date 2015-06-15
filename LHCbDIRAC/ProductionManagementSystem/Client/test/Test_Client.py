@@ -376,6 +376,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
     pr.outputModes = ['Local', 'Any']
+    pr.ancestorDepths = [0, 1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -397,6 +398,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2']
     multicoreExpected = ['False', 'True', 'True', 'True']
     outputModeExpected = ['Local', 'Any', 'Any', 'Any']
+    ancestorDepthsExpected = [0, 1, 1, 1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -417,6 +419,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
+    self.assertEqual( pr.ancestorDepths, ancestorDepthsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -440,6 +443,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
     pr.outputModes = ['Local', 'Any']
+    pr.ancestorDepths = [0, 0]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge']
     pluginsExpected = ['ByRun', 'ByRunFileTypeSizeWithFlush']
@@ -461,6 +465,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     targetsExpected = ['Target1', 'Target2']
     multicoreExpected = ['False', 'True']
     outputModeExpected = ['Local', 'Any']
+    ancestorDepthsExpected = [0, 0]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -481,6 +486,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
+    self.assertEqual( pr.ancestorDepths, ancestorDepthsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
@@ -503,6 +509,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
     pr.outputModes = ['Local', 'Any']
+    pr.ancestorDepths = [1, 0]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -524,6 +531,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     targetsExpected = ['Target1', 'Target1', 'Target1', 'Target2']
     multicoreExpected = ['False', 'False', 'False', 'True']
     outputModeExpected = ['Local', 'Local', 'Local', 'Any']
+    ancestorDepthsExpected = [1, 1, 1, 0]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -544,6 +552,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
+    self.assertEqual( pr.ancestorDepths, ancestorDepthsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
@@ -566,6 +575,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.targets = ['Target1']
     pr.multicore = ['False']
     pr.outputModes = ['Local']
+    pr.ancestorDepths = [1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -586,6 +596,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     targetsExpected = ['Target1']
     multicoreExpected = ['False']
     outputModeExpected = ['Local']
+    ancestorDepthsExpected = [1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -605,6 +616,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
+    self.assertEqual( pr.ancestorDepths, ancestorDepthsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge', 'Merge']
@@ -627,6 +639,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.targets = ['Target1', 'Target2', 'Target3']
     pr.multicore = ['False', 'True', 'False']
     pr.outputModes = ['Local', 'Any', 'Any']
+    pr.ancestorDepths = [1, 2, 3]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -647,6 +660,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2', 'Target3']
     multicoreExpected = ['False', 'True', 'True', 'True', 'False']
     outputModeExpected = ['Local', 'Any', 'Any', 'Any', 'Any']
+    ancestorDepthsExpected = [1, 2, 2, 2, 3]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -666,6 +680,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
+    self.assertEqual( pr.ancestorDepths, ancestorDepthsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -688,6 +703,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
     pr.outputModes = ['Local', 'Any']
+    pr.ancestorDepths = [1, 0]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['ByRun', 'BySize', 'BySize', 'BySize']
@@ -708,6 +724,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     targetsExpected = ['Target1', 'Target2', 'Target2', 'Target2']
     multicoreExpected = ['False', 'True', 'True', 'True']
     outputModeExpected = ['Local', 'Any', 'Any', 'Any']
+    ancestorDepthsExpected = [1, 0, 0, 0]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -727,6 +744,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
+    self.assertEqual( pr.ancestorDepths, ancestorDepthsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['DataStripping']
@@ -749,6 +767,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.targets = ['Target1']
     pr.multicore = ['False']
     pr.outputModes = ['Local']
+    pr.ancestorDepths = [1]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['DataStripping']
     pluginsExpected = ['ByRun']
@@ -769,6 +788,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     targetsExpected = ['Target1']
     multicoreExpected = ['False']
     outputModeExpected = ['Local']
+    ancestorDepthsExpected = [1]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -788,6 +808,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
+    self.assertEqual( pr.ancestorDepths, ancestorDepthsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['Merge', 'Merge']
@@ -809,6 +830,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
     pr.outputModes = ['Local', 'Any']
+    pr.ancestorDepths = [1, 0]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['Merge', 'Merge', 'Merge', 'Merge']
     pluginsExpected = ['BySize', 'BySize', 'BySize', 'ByRunFileTypeSizeWithFlush']
@@ -829,6 +851,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     targetsExpected = ['Target1', 'Target1', 'Target1', 'Target2']
     multicoreExpected = ['False', 'False', 'False', 'True']
     outputModeExpected = ['Local', 'Local', 'Local', 'Any']
+    ancestorDepthsExpected = [1, 1, 1, 0]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -848,6 +871,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
+    self.assertEqual( pr.ancestorDepths, ancestorDepthsExpected )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.prodsTypeList = ['MCSimulation', 'Merge']
@@ -869,6 +893,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.targets = ['Target1', 'Target2']
     pr.multicore = ['False', 'True']
     pr.outputModes = ['Local', 'Any']
+    pr.ancestorDepths = [1, 0]
     pr._applyOptionalCorrections()
     prodsTypeListExpected = ['MCSimulation', 'Merge']
     pluginsExpected = ['', 'ByRunFileTypeSizeWithFlush']
@@ -889,6 +914,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     targetsExpected = ['Target1', 'Target2']
     multicoreExpected = ['False', 'True']
     outputModeExpected = ['Local', 'Any']
+    ancestorDepthsExpected = [1, 0]
     self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
     self.assertEqual( pr.plugins, pluginsExpected )
     self.assertEqual( pr.stepsListDict, stepsListDictExpected )
@@ -908,6 +934,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.targets, targetsExpected )
     self.assertEqual( pr.multicore, multicoreExpected )
     self.assertEqual( pr.outputModes, outputModeExpected )
+    self.assertEqual( pr.ancestorDepths, ancestorDepthsExpected )
 
   def test_getProdsDescriptionDict( self ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
@@ -932,6 +959,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.events = [-1, -1, -1]
     pr.multicore = ['False', 'False', 'True']
     pr.outputModes = ['Any', 'Local', 'Any']
+    pr.ancestorDepths = [0, 0, 0]
 
     pr.stepsListDict = [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
@@ -989,7 +1017,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'stepsInProd-ProdName': ["123['SDST']", "456['BHADRON.DST']"],
                       'events':-1,
                       'multicore': 'False',
-                      'outputMode': 'Any'
+                      'outputMode': 'Any',
+                      'ancestorDepth': 0
                      },
 
                    2:{
@@ -1014,7 +1043,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'stepsInProd-ProdName': ["456['CALIBRATION.DST']"],
                       'events':-1,
                       'multicore': 'False',
-                      'outputMode': 'Local'
+                      'outputMode': 'Local',
+                      'ancestorDepth': 0
                       },
 
                    3:{
@@ -1039,7 +1069,8 @@ class ProductionRequestSuccess( ClientTestCase ):
                       'stepsInProd-ProdName': ["456['PID.MDST']"],
                       'events':-1,
                       'multicore': 'True',
-                      'outputMode': 'Any'
+                      'outputMode': 'Any',
+                      'ancestorDepth': 0
                       }
                    }
     self.maxDiff = None
