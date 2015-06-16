@@ -70,6 +70,30 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
 
+    res = helloWorldTestSSH()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = helloWorldTestSSHCondor()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = helloWorldTestARC()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = helloWorldTestVAC()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = helloWorldTestCLOUD()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
+    res = helloWorldTestBOINC()
+    self.assert_( res['OK'] )
+    jobsSubmittedList.append( res['Value'] )
+
     res = helloWorldTestSLC6()
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )
