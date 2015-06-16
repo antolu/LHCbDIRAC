@@ -42,6 +42,60 @@ def helloWorldTestCERN():
   return endOfAllJobs( J )
 
 @executeWithUserProxy
+def helloWorldTestARC():
+
+  J = baseToAllJobs( 'helloWorld-test-ARC', jobClass )
+  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  J.setDestination( ['LCG.RAL.uk'] )
+  return endOfAllJobs( J )
+
+@executeWithUserProxy
+def helloWorldTestSSH():
+
+  J = baseToAllJobs( 'helloWorld-test-SSH', jobClass )
+  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  J.setDestination( ['DIRAC.YANDEX.ru', 'DIRAC.OSC.us', 'DIRAC.Zurich.ch'] )
+  return endOfAllJobs( J )
+
+@executeWithUserProxy
+def helloWorldTestSSHCondor():
+
+  J = baseToAllJobs( 'helloWorld-test-SSHCondor', jobClass )
+  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  J.setDestination( ['DIRAC.Syracuse.us'] )
+  return endOfAllJobs( J )
+
+@executeWithUserProxy
+def helloWorldTestVAC():
+
+  J = baseToAllJobs( 'helloWorld-test-VAC', jobClass )
+  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  J.setDestination( ['VAC.Manchester.uk'] )
+  return endOfAllJobs( J )
+
+@executeWithUserProxy
+def helloWorldTestCLOUD():
+
+  J = baseToAllJobs( 'helloWorld-test-CLOUD', jobClass )
+  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  J.setDestination( ['CLOUD.CERN.ch', 'CLOUD.EGI.eu'] )
+  return endOfAllJobs( J )
+
+@executeWithUserProxy
+def helloWorldTestBOINC():
+
+  J = baseToAllJobs( 'helloWorld-test-BOINC', jobClass )
+  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  J.setDestination( ['BOINC.World.org'] )
+  return endOfAllJobs( J )
+
+@executeWithUserProxy
 def helloWorldTestSLC6():
 
   J = baseToAllJobs( 'helloWorld-test-SLC6', jobClass )
