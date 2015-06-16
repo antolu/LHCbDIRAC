@@ -445,7 +445,7 @@ def executeAccessURL( dmScript ):
 
 def getAccessURL( lfnList, seList, protocol = None ):
   dm = DataManager()
-  res = dm.getActiveReplicas( lfnList )
+  res = dm.getReplicas( lfnList )
   replicas = res.get( 'Value', {} ).get( 'Successful', {} )
   if not seList:
     seList = sorted( set( [se for lfn in lfnList for se in replicas.get( lfn, {} )] ) )
