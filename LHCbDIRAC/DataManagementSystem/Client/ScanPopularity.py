@@ -88,6 +88,9 @@ def cacheDirectories( directories ):
       metadata = res['Value'].get( longDir )
       if metadata:
         if len( metadata ) < 9 or metadata[8] != "N":
+          ft = lfn.split( '/' )[4]
+          if ft == 'DST' and ft != metadata[6]:
+            metadata[6] = 'ALL.DST,ALL.MDST'
           bkPathForLfn[lfn] = os.path.join( '/', metadata[1], metadata[2], metadata[3], metadata[4][1:], metadata[5], metadata[6] )
           processingPass[bkPathForLfn[lfn]] = metadata[4]
           prodForBKPath.setdefault( bkPathForLfn[lfn], set() ).add( metadata[7] )
