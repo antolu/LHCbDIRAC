@@ -106,6 +106,7 @@ class PluginUtilities( object ):
     self.cacheHitFrequency = max( 0., 1 - self.getPluginParam( 'RunCacheUpdateFrequency', 0.05 ) )
     self.runExpiredCache = {}
     self.__recoType = ''
+    self.dmsHelper = DMSHelpers()
 
   def logVerbose( self, message, param = '' ):
     if self.debug:
@@ -957,6 +958,29 @@ class PluginUtilities( object ):
       self.logError( "Error getting metadata for %d files" % len( lfns ), res['Message'] )
     return runFiles
 
+  def closerSEs( self, existingSEs, targetSEs, local = False ):
+    """ Order the targetSEs such that the first ones are closer to existingSEs. Keep all elements in targetSEs
+    """
+    setTarget = set( targetSEs )
+    sameSEs = set( [se1 for se1 in setTarget for se2 in existingSEs if self.isSameSE( se1, se2 )] )
+    targetSEs = setTarget - set( sameSEs )
+    if targetSEs:
+      # Some SEs are left, look for sites
+      existingSites = [self.dmsHelper.getLocalSiteForSE( se ).get( 'Value' ) for se in existingSEs if not self.dmsHelper.isSEArchive( se ) ]
+      existingSites = set( [site for site in existingSites if site] )
+      closeSEs = set( [se for se in targetSEs if self.dmsHelper.getLocalSiteForSE( se ).get( 'Value' ) in existingSites] )
+      # print existingSEs, existingSites, targetSEs, closeSEs
+      otherSEs = targetSEs - closeSEs
+      targetSEs = list( closeSEs )
+      random.shuffle( targetSEs )
+      if not local and otherSEs:
+        otherSEs = list( otherSEs )
+        random.shuffle( otherSEs )
+        targetSEs += otherSEs
+    else:
+      targetSEs = []
+    return ( targetSEs + list( sameSEs ) ) if not local else targetSEs
+
 
 #=================================================================
 # Set of utility functions used by LHCbDirac transformation system
@@ -1095,30 +1119,6 @@ def getListFromString( strParam ):
         ll.append( a )
     return ll
   return strParam
-
-def closerSEs( existingSEs, targetSEs, local = False ):
-  """ Order the targetSEs such that the first ones are closer to existingSEs. Keep all elements in targetSEs
-  """
-  setTarget = set( targetSEs )
-  sameSEs = setTarget & set( existingSEs )
-  targetSEs = setTarget - set( existingSEs )
-  if targetSEs:
-    # Some SEs are left, look for sites
-    dmsHelper = DMSHelpers()
-    existingSites = [dmsHelper.getLocalSiteForSE( se ).get( 'Value' ) for se in existingSEs if not isArchive( se ) ]
-    existingSites = set( [site for site in existingSites if site] )
-    closeSEs = set( [se for se in targetSEs if dmsHelper.getLocalSiteForSE( se ).get( 'Value' ) in existingSites] )
-    # print existingSEs, existingSites, targetSEs, closeSEs
-    otherSEs = targetSEs - closeSEs
-    targetSEs = list( closeSEs )
-    random.shuffle( targetSEs )
-    if not local:
-      otherSEs = list( otherSEs )
-      random.shuffle( otherSEs )
-      targetSEs += otherSEs
-  else:
-    targetSEs = []
-  return ( targetSEs + list( sameSEs ) ) if not local else targetSEs
 
 def addFilesToTransformation( transID, lfns, addRunInfo = True ):
   transClient = TransformationClient()
