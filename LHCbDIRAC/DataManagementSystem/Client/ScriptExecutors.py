@@ -1331,9 +1331,29 @@ def executeGetFile( dmScript ):
     DIRACExit( 2 )
 
   gLogger.notice( 'Downloading %s to %s' % ( '%d files' if len( lfnList ) > 1 else 'file', dirList[0] ) )
-  res = DataManager().getFile( lfnList, destinationDir = dirList[0] )
-  DIRACExit( printDMResult( res,
-                             empty = "No allowed replica found", script = "dirac-dms-get-file" ) )
+  result = DataManager().getFile( lfnList, destinationDir = dirList[0] )
+
+  # Prepare popularity report
+  if result['OK']:
+    popReport = {}
+    for lfn in result['Value']['Successful']:
+      dirName = os.path.join( os.path.dirname( lfn ), '' )
+      popReport[dirName] = popReport.setdefault( dirName, 0 ) + 1
+    if popReport:
+      from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient import DataUsageClient
+      localSite = gConfig.getValue( '/LocalSite/Site', 'UNKNOWN' )
+      try:
+        localSite = localSite.split( '.' )[1]
+      except:
+        pass
+      res = DataUsageClient().sendDataUsageReport( localSite, popReport )
+      if not res['OK']:
+        gLogger.error( 'Error reporting popularity', res['Message'] )
+      else:
+        gLogger.info( 'Successfully reported data usage', '(site: %s, usage: %s)' % ( localSite, str( popReport ) ) )
+
+  DIRACExit( printDMResult( result,
+                            empty = "No allowed replica found", script = "dirac-dms-get-file" ) )
 
 def __buildLfnDict( item_list ):
   """
