@@ -299,8 +299,8 @@ def scanPopularity( since, getAllDatasets ):
     nbBins = int( ( since + 6 ) / 7 )
     since = 7 * nbBins
 
-  # ignoreDirectories = ( 'user', 'test', 'debug', 'dataquality', 'software', 'database', 'swtest', 'data', 'certification', 'validation' )
-  ignoreDirectories = ( 'user', 'test', 'debug', 'dataquality', 'software', 'database', 'swtest', 'certification', 'validation' )
+  from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+  ignoreDirectories = Operations().getValue( 'DataManagement/PopularityIgnoreDirectories', ['user', 'test', 'debug', 'dataquality', 'software', 'database', 'swtest', 'certification', 'validation'] )
   nowBin = getTimeBin( datetime.now() - timedelta( days = 1 ) )
   notCached = set()
 
