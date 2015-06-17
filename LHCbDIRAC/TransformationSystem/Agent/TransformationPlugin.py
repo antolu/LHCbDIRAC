@@ -11,11 +11,11 @@ from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
 from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveSEGroup
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 
 from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities \
      import PluginUtilities, getFileGroups, groupByRun, \
-     sortExistingSEs, getRemovalPlugins, closerSEs, timeThis
+     sortExistingSEs, getRemovalPlugins, timeThis
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
@@ -61,7 +61,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                                  debug = debug, transInThread = transInThread if transInThread else {} )
     self.setDebug( self.util.getPluginParam( 'Debug', False ) )
 
-    self.dmsHelper = DMSHelpers()
     self.processingShares = ( None, None )
     self.runDestinations = {}
 
@@ -457,7 +456,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     site = self.runDestinations.get( runID )
     if site:
       self.util.logVerbose( 'Destination found for run %d: %s' % ( runID, site ) )
-      res = self.dmsHelper.getSEInGroupAtSite( targets, site )
+      res = self.util.dmsHelper.getSEInGroupAtSite( targets, site )
       return res.get( 'Value' )
     return None
 
@@ -503,7 +502,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           break
 
     # Find out the site associated to that SE
-    res = self.dmsHelper.getLocalSiteForSE( selectedSE )
+    res = self.util.dmsHelper.getLocalSiteForSE( selectedSE )
     if not res['OK']:
       return res
     site = res['Value']
@@ -512,7 +511,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return res
     self.util.logVerbose( 'Successfully set destination for run %d: %s' % ( runID, site ) )
 
-    return self.dmsHelper.getSEInGroupAtSite( bufferTargets, site )
+    return self.util.dmsHelper.getSEInGroupAtSite( bufferTargets, site )
 
   def _AtomicRun( self ):
     """
@@ -887,7 +886,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             runFlush = False
         runParamReplicas = {}
         for lfn in runParamLfns & setInputData:
-          runParamReplicas[lfn ] = [se for se in inputData[lfn] if self.dmsHelper.isSEForJobs( se, checkSE = False )]
+          runParamReplicas[lfn ] = [se for se in inputData[lfn] if self.util.dmsHelper.isSEForJobs( se, checkSE = False )]
         # We need to replace the input replicas by those of this run before calling the helper plugin
         # As it may use self.data, set both transReplicas and data members
         self.transReplicas = runParamReplicas
@@ -1167,7 +1166,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     storageElementGroups = {}
     for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).items():
-      existingSEs = [se for se in replicaSE.split( ',' ) if not self.dmsHelper.isSEFailover( se )]
+      existingSEs = [se for se in replicaSE.split( ',' ) if not self.util.dmsHelper.isSEFailover( se )]
       for lfns in breakListIntoChunks( lfnGroup, 100 ):
 
         stringTargetSEs = self.util.setTargetSEs( numberOfCopies, archive1SEs, archive2SEs,
@@ -1229,7 +1228,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     alreadyCompleted = []
     fileTargetSEs = {}
     for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).items():
-      existingSEs = [se for se in replicaSE.split( ',' ) if not self.dmsHelper.isSEFailover( se )]
+      existingSEs = [se for se in replicaSE.split( ',' ) if not self.util.dmsHelper.isSEFailover( se )]
       # If a FromSEs parameter is given, only keep the files that are at one of those SEs, mark the others NotProcessed
       if fromSEs:
         if not [se for se in existingSEs if se in fromSEs]:
@@ -1247,7 +1246,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         lfnChunks = breakListIntoChunks( lfnGroup, 100 )
 
       for lfns in lfnChunks:
-        candidateSEs = closerSEs( existingSEs, secondarySEs )
+        candidateSEs = self.util.closerSEs( existingSEs, secondarySEs )
         # Remove duplicated SEs (those that are indeed the same), but keep existing ones
         for se1 in [se for se in candidateSEs if se not in existingSEs]:
           if self.util.isSameSEInList( se1, [se for se in candidateSEs if se != se1] ):
@@ -1383,13 +1382,13 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     return self._removeReplicas( fromSEs = fromSEs, keepSEs = keepSEs, mandatorySEs = mandatorySEs, minKeep = minKeep )
 
   def _removeReplicas( self, fromSEs = None, keepSEs = None, mandatorySEs = None, minKeep = 999 ):
-    """ Utility acutally implementing the logic to remove replicas or files
+    """ Utility actually implementing the logic to remove replicas or files
     """
-    if not fromSEs:
+    if fromSEs is None:
       fromSEs = []
-    if not keepSEs:
+    if keepSEs is None:
       keepSEs = []
-    if not mandatorySEs:
+    if mandatorySEs is None:
       mandatorySEs = []
     self.util.logInfo( "Starting execution of plugin" )
     reduceSEs = minKeep < 0
@@ -1404,7 +1403,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if not [se for se in replicaSE if se in keepSEs]:
           notInKeepSEs.extend( lfns )
           continue
-      existingSEs = [se for se in replicaSE if se not in keepSEs and not self.dmsHelper.isSEFailover( se )]
+      existingSEs = [se for se in replicaSE if se not in keepSEs and not self.util.dmsHelper.isSEFailover( se )]
       if minKeep == 0:
         # We only keep the replicas in keepSEs
         targetSEs = [se for se in existingSEs]
@@ -1643,20 +1642,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     storageElementGroups = {}
 
     for replicaSE, lfns in getFileGroups( self.transReplicas ).items():
-      replicaSE = [se for se in replicaSE.split( ',' ) if not self.dmsHelper.isSEFailover( se ) and not self.dmsHelper.isSEArchive( se )]
+      replicaSE = [se for se in replicaSE.split( ',' ) if not self.util.dmsHelper.isSEFailover( se ) and not self.util.dmsHelper.isSEArchive( se )]
       if not replicaSE:
         continue
       if [se for se in replicaSE if se in destSEs]:
-        self.util.logInfo( "Found %d files that are already present in the destination SEs (status set)" % len( lfns ) )
+        self.util.logInfo( "Found %d files that are already present in the destination SEs (status set Processed)" % len( lfns ) )
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfns )
         if not res['OK']:
-          self.util.logError( "Can't set %d files of transformation %s to 'Processed: %s'" % ( len( lfns ),
-                                                                                               str( self.transID ),
-                                                                                                res['Message'] ) )
+          self.util.logError( "Can't set files to Processed", '(%d files): %s' % ( len( lfns ), res['Message'] ) )
           return res
         continue
       targetSEs = [se for se in destSEs if se not in replicaSE]
-      candidateSEs = closerSEs( replicaSE, targetSEs, local = True )
+      candidateSEs = self.util.closerSEs( replicaSE, targetSEs, local = True )
       if candidateSEs:
         freeSpace = self.util.getStorageFreeSpace( candidateSEs )
         shortSEs = [se for se in candidateSEs if freeSpace[se] < watermark]
@@ -1666,7 +1663,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         if candidateSEs:
           storageElementGroups.setdefault( candidateSEs[0], [] ).extend( lfns )
       else:
-        self.util.logWarn( "Could not find a close SE for %d files" % len( lfns ) )
+        self.util.logWarn( "Could not find a local SE for %d files, set them Problematic" % len( lfns ) )
+        res = self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
+        if not res['OK']:
+          self.util.logError( "Can't set files to Problematic", '(%d files): %s' % ( len( lfns ), res['Message'] ) )
+          return res
 
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
@@ -1677,7 +1678,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     storageElementGroups = {}
 
     for replicaSE, lfns in getFileGroups( self.transReplicas ).items():
-      replicaSE = set( [se for se in replicaSE.split( ',' ) if not self.dmsHelper.isSEFailover( se ) and not self.dmsHelper.isSEArchive( se )] )
+      replicaSE = set( [se for se in replicaSE.split( ',' ) if not self.util.dmsHelper.isSEFailover( se ) and not self.util.dmsHelper.isSEArchive( se )] )
       if not replicaSE:
         self.util.logInfo( "Found %d files that don't have a suitable source replica. Set Problematic" % len( lfns ) )
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Problematic', lfns )
