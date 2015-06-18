@@ -260,6 +260,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_OK( [] )
     self.util.logVerbose( 'Obtained %d runs' % len( runFileDict ) )
 
+    zeroRun = runFileDict.pop( 0, None )
+    if zeroRun:
+      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
+      newRuns = self.util.setRunForFiles( zeroRun )
+      for newRun, runLFNs in newRuns.items():
+        runFileDict.setdefault( newRun, [] ).extend( runLFNs )
     # For each of the runs determine the destination of any previous files
     res = self.util.getTransformationRuns( runFileDict.keys() )
     if not res['OK']:
@@ -391,6 +397,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_OK( [] )
     self.util.logVerbose( 'Obtained %d runs' % len( runFileDict ) )
 
+    zeroRun = runFileDict.pop( 0, None )
+    if zeroRun:
+      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
+      newRuns = self.util.setRunForFiles( zeroRun )
+      for newRun, runLFNs in newRuns.items():
+        runFileDict.setdefault( newRun, [] ).extend( runLFNs )
     # For each of the runs determine the destination of any previous files
     res = self.util.getTransformationRuns( runFileDict.keys() )
     if not res['OK']:
