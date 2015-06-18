@@ -651,7 +651,7 @@ class ProductionStatusAgent( AgentModule ):
     return tFilesStats
 
   def __isIdle( self, tID ):
-    """ Cheks if a transformation is idle, is procIdle and either the tranformation is simulation
+    """ Checks if a transformation is idle, is procIdle and either the transformation is simulation
     """
     self.log.debug( "Checking either transformation %d is idle" % tID )
     result = self.tClient.getTransformation( tID )
@@ -674,11 +674,12 @@ class ProductionStatusAgent( AgentModule ):
     else:
       isSimulation = False
       # other transformation type : go to Idle if
-      # 0 assigned files, unused files number was not chaning during the last cyclesTillIdle time
+      # 0 assigned files, unused files number was not changing during the last cyclesTillIdle time
       # AND only failed and done jobs
       filesStats = self.__getTransformationFilesStats( tID )
       self.log.debug( "Files stats: %s" % str( filesStats ) )
       unused = filesStats.get( 'Unused', 0 )
+      unusedInherited = filesStats.get( 'Unused-Inherited', 0 )
       oldUnused = self.filesUnused.setdefault( tID, { 'Number': -1, 'NotChanged': 0 } )
       if oldUnused['Number'] == unused:
         oldUnused['NotChanged'] += 1
@@ -693,7 +694,7 @@ class ProductionStatusAgent( AgentModule ):
         isProcIdle = all( [tStats.get( status, 0 ) == 0 for status in ['Checking', 'Completed', 'Created', 'Matched',
                                                                        'Received', 'Reserved', 'Rescheduled', 'Running',
                                                                        'Submitted', 'Waiting' ]] )
-      isIdle = isProcIdle and (unused == 0)
+      isIdle = isProcIdle and ( unused == 0 ) and ( unusedInherited == 0 )
     return (isIdle, isProcIdle, isSimulation)
 
   def _getIdleProductionRequestProductions( self ):
