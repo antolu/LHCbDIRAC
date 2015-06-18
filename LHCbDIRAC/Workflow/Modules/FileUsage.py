@@ -34,20 +34,14 @@ class FileUsage( ModuleBase ):
     dirDict = {}
     if self.inputDataList:
       for inputFile in self.inputDataList:
-        baseName = os.path.basename( inputFile )
-        in_f = copy.deepcopy( inputFile )
-        strippedDir = in_f[0:in_f.find( baseName )]
+        strippedDir = os.path.join( os.path.dirname( inputFile ), '' )
         if not strippedDir:
-          self.log.error( 'Dataset unknown for file %s, probably file specified without path! ' % ( in_f ) )
+          self.log.error( 'File specified without directory! ', inputFile )
         else:
-          if strippedDir in dirDict:
-            dirDict[strippedDir] += 1
-          else:
-            dirDict[strippedDir] = 1
+          dirDict[strippedDir] = dirDict.setdefault( strippedDir, 0 ) + 1
+      self.log.info( 'Popularity report = ', dirDict )
     else:
       self.log.info( 'No input data specified for this job' )
-
-    self.log.info( 'dirDict = ', dirDict )
 
     return S_OK( dirDict )
 
@@ -97,7 +91,7 @@ class FileUsage( ModuleBase ):
   #############################################################################
 
   def _reportFileUsage( self, dirDict ):
-    """Send the data usage report (SE,dirDict) where dirDict = {'Dataset':NumberOfHits}
+    """Send the data usage report (site,dirDict) where dirDict = {'Dataset':NumberOfHits}
     example: {'/lhcb/certification/test/ALLSTREAMS.DST/00000002/0000/': 1,
     '/lhcb/LHCb/Collision11/BHADRON.DST/00012957/0000/': 2}
     """
