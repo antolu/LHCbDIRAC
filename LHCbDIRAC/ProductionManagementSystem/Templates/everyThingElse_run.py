@@ -73,7 +73,7 @@ pr.targets = ['{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 if extraOptions:
   pr.extraOptions = eval( extraOptions )
-pr.derivedProduction = int( '{{AncestorProd#GENERAL: ancestor production if any#0}}' )
+pr.derivedProduction = int( '{{AncestorProd#GENERAL: ancestor prod to be derived#0}}' )
 pr.previousProdID = int( '{{previousProdID#GENERAL: previous prod ID (for BK query)#0}}' )
 modulesList = '{{modulesList#GENERAL: custom modules list#}}'
 enablePopularityReport = eval( '{{popularityReport#GENERAL: enable popularity report#False}}' )
