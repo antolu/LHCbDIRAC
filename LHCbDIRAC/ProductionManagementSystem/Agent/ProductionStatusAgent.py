@@ -679,7 +679,7 @@ class ProductionStatusAgent( AgentModule ):
       filesStats = self.__getTransformationFilesStats( tID )
       self.log.debug( "Files stats: %s" % str( filesStats ) )
       unused = filesStats.get( 'Unused', 0 )
-      unusedInherited = filesStats.get( 'Unused-Inherited', 0 )
+      unusedInherited = filesStats.get( 'Unused-inherited', 0 )
       oldUnused = self.filesUnused.setdefault( tID, { 'Number': -1, 'NotChanged': 0 } )
       if oldUnused['Number'] == unused:
         oldUnused['NotChanged'] += 1
