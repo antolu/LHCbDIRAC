@@ -863,90 +863,82 @@ class OracleBookkeepingDB:
   #############################################################################
   def getProductions( self, configName = default, configVersion = default,
                       conddescription = default, processing = default, evt = default,
-                      visible = default ):
+                      visible = default, fileType = default, replicaFlag = default ):
     """return the production for a given dataset"""
     #### MUST BE REIMPLEMNETED!!!!!!
     ####
     ####
-    command = ''
-    if visible.upper().startswith( 'Y' ):
-      condition = ''
-      if configName != default:
-        condition += " and bview.configname='%s'" % ( configName )
-      if configVersion != default:
-        condition += " and bview.configversion='%s'" % ( configVersion )
+    
+    condition = ''
+    tables = ' files f,jobs j '
+    
+    retVal = self.__buildConfiguration( configName, configVersion, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-      if conddescription != default:
-        retVal = self.__getConditionString( conddescription, 'pcont' )
-        if retVal['OK']:
-          condition += retVal['Value']
-        else:
-          return retVal
+    retVal = self.__buildConditions( default, conddescription, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-      if evt != default:
-        condition += ' and bview.eventtypeid=%d' % ( int( evt ) )
+    if evt != default and visible.upper().startswith( 'Y' ):
+      tables += ' ,prodview bview'
+      condition += '  and j.production=bview.production and bview.production=prod.production\
+       and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % ( str( evt ) )
+    elif evt != default:
+      if tables.upper().find( 'FILES' ) < 0:
+        tables += ' ,file f '
+      if tables.upper().find( 'JOBS' ) < 0:
+        tables += ' ,jobs j '
+      condition += '  and f.eventtypeid=%s ' % ( str( evt ) )
 
-      if processing != default:
-        command = "select /*+ NOPARALLEL(bview) */ distinct pcont.production from \
-                   productionscontainer pcont,prodview bview \
-                   where pcont.processingid in \
-                      (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-                                             FROM processing v   START WITH id in \
-                                             (select distinct id from processing where \
-                                             name='" + str( processing.split( '/' )[1] ) + "') \
-                                                CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                       where v.path='" + processing + "') \
-                    and bview.production=pcont.production " + condition
+
+    if fileType != default and visible.upper().startswith( 'Y' ):
+      if tables.find( 'bview' ) > -1:
+        condition += " and bview.filetypeid=ftypes.filetypeid "
+      if isinstance( fileType, list ):
+        values = ' and ftypes.name in ('
+        for i in fileType:
+          values += " '%s'," % ( i )
+        condition += values[:-1] + ')'
       else:
-        command = "select /*+ NOPARALLEL(bview) */ distinct pcont.production from \
-        productionscontainer pcont,prodview bview where \
-                   bview.production=pcont.production " + condition
+        condition += " and ftypes.name='%s' " % ( str( fileType ) )
     else:
-      condition = ''
-      tables = ''
-      if configName != default:
-        condition += " and c.configname='%s'" % ( configName )
-      if configVersion != default:
-        condition += " and c.configversion='%s'" % ( configVersion )
-      if condition.find( 'and c.' ) >= 0:
-        tables += ',configurations c, jobs j'
-        condition += ' and j.configurationid=c.configurationid '
+      if isinstance( fileType, list ):
+        values = ' and ftypes.name in ('
+        for i in fileType:
+          values += " '%s'," % ( i )
+        condition += values[:-1] + ')'
+      elif fileType != default:
+        condition += " and ftypes.name='%s' " % ( str( fileType ) )
+      condition += " and ftypes.filetypeid=f.filetypeid"
+    
+    if fileType != default:
+      if tables.upper().find( 'FILETYPES' ) < 0:
+        tables += ',filetypes ftypes'
 
-      if conddescription != default:
-        retVal = self.__getConditionString( conddescription, 'pcont' )
-        if retVal['OK']:
-          condition += retVal['Value']
-        else:
-          return retVal
+    retVal = self.__buildProcessingPass( processing, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-      if not visible.upper().startswith( 'A' ):
-        if tables.find( 'files' ) < 0:
-          tables += ',files f'
-        condition += " and f.jobid=j.jobid and f.visibilityflag='N' "
+    retVal = self.__buildReplicaflag( replicaFlag, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-      if evt != default:
-        if tables.find( 'files' ) < 0:
-          tables += ',files f'
-        condition += ' and f.eventtypeid=%d and j.jobid=f.jobid' % ( int( evt ) )
-        if tables.find( 'jobs' ) < 0:
-          tables += ',jobs j'
+    retVal = self.__buildVisibilityflag( visible, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
-      if tables.find( 'files' ) > 0:
-        condition += " and f.gotreplica='Yes'"
-
-      if processing != default:
-        command = "select distinct j.production from \
-                   productionscontainer pcont %s \
-                   where pcont.processingid in (select v.id from \
-                   (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
-                                             FROM processing v   START WITH id in \
-                                             (select distinct id from processing where name='%s') \
-                                                CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                       where v.path='%s') and j.production=pcont.production\
-                        %s" % ( tables, str( processing.split( '/' )[1] ), processing, condition )
-      else:
-        command = "select distinct j.production from productionscontainer pcont %s where \
-         pcont.production=j.production %s " % ( condition )
+    if tables.upper().find( 'FILES' ) > 0:
+      condition += ' and f.jobid=j.jobid '  
+            
+    command = "select distinct prod.production from %s where %s " % (tables, condition)
+     
+         
     return self.dbR_.query( command )
 
   #############################################################################
@@ -3050,7 +3042,11 @@ and files.qualityid= dataquality.qualityid'
     if configName not in [default, None, '']  and configVersion not in [default, None, '']:
       if tables.upper().find( 'CONFIGURATIONS' ) < 0:
         tables += ' ,configurations c'
-      condition += "  and c.ConfigName='%s' and c.ConfigVersion='%s' and \
+      if len(condition) == 0:
+        condition += " c.ConfigName='%s' and c.ConfigVersion='%s' and \
+      j.configurationid=c.configurationid " % ( configName, configVersion )
+    else:
+        condition += "  and c.ConfigName='%s' and c.ConfigVersion='%s' and \
       j.configurationid=c.configurationid " % ( configName, configVersion )
     return S_OK( ( condition, tables ) )
 
@@ -3248,6 +3244,10 @@ and files.qualityid= dataquality.qualityid'
         condition += " and f.visibilityflag='Y'"
       elif visible.upper().startswith( 'N' ):
         condition += " and f.visibilityflag='N'"
+    if tables.upper().find( 'FILES' ) < 0:
+        tables += ' ,file f '
+    if tables.upper().find( 'JOBS' ) < 0:
+        tables += ' ,jobs j '
     return S_OK( ( condition, tables ) )
 
   #############################################################################

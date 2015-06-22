@@ -89,9 +89,9 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getProcessingPass(configName, configVersion, conddescription, runnumber, prod, evt, path)
 
   #############################################################################
-  def getProductions(self, configName, configVersion, conddescription, processing, evt, visible):
+  def getProductions(self, configName, configVersion, conddescription, processing, evt, visible, ftype, replicaFlag):
     "more info in the BookkeepingClient.py"
-    return self.getManager().getProductions(configName, configVersion, conddescription, processing, evt, visible)
+    return self.getManager().getProductions(configName, configVersion, conddescription, processing, evt, visible, ftype, replicaFlag)
 
   #############################################################################
   def getFileTypes(self, configName, configVersion, conddescription, processing, evt, runnb, production, visible):
