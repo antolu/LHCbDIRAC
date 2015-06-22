@@ -15,7 +15,7 @@ from DIRAC.Core.Utilities.Subprocess  import shellCall
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment, addCommandDefaults, createDebugScript
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities import multicoreWN
+from LHCbDIRAC.Core.Utilities.RunApplication import _multicoreWN
 
 
 class GaudiApplication( ModuleBase ):
@@ -189,7 +189,7 @@ class GaudiApplication( ModuleBase ):
         if self.multicoreStep.upper() == 'Y':
           cpus = multiprocessing.cpu_count()
           if cpus > 1:
-            if multicoreWN():
+            if _multicoreWN():
               gaudiRunFlags = gaudiRunFlags + ' --ncpus -1 '
             else:
               self.log.info( "Would have run with option '--ncpus -1', but it is not allowed here" )

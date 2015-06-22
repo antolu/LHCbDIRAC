@@ -2,7 +2,9 @@ __RCSID__ = "$Id:  $"
 
 import unittest, itertools, os, datetime
 
-from mock import Mock
+from mock import MagicMock
+
+from DIRAC import gLogger
 
 from LHCbDIRAC.Core.Utilities.ProductionData import _makeProductionLFN, constructProductionLFNs, _getLFNRoot, _applyMask, getLogPath, constructUserLFNs
 from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
@@ -10,6 +12,7 @@ from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectCommand
 from LHCbDIRAC.Core.Utilities.GangaDataFile import GangaDataFile
 from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
+from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
 
 
 class UtilitiesTestCase( unittest.TestCase ):
@@ -17,7 +20,7 @@ class UtilitiesTestCase( unittest.TestCase ):
   """
   def setUp( self ):
 
-    self.bkClientMock = Mock()
+    self.bkClientMock = MagicMock()
     self.bkClientMock.getFileTypes.return_value = {'OK': True,
                                                    'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
                                                              'Records': [['SDST'], ['PID.MDST'], ['GEN'], ['DST'],
@@ -29,6 +32,12 @@ class UtilitiesTestCase( unittest.TestCase ):
     self.IDR = InputDataResolution( {}, self.bkClientMock )
 
     self.pc = ProdConf()
+    self.ra = RunApplication()
+    self.ra.opsH = MagicMock()
+    self.ra.opsH.getValue.return_value = 'gaudirun.py'
+    self.ra.optFile = 'optFile.py otherOptFile.py'
+
+    gLogger.setLevel( 'DEBUG' )
 
   def tearDown( self ):
     for fileProd in ['prodConf.py', 'data.py']:
@@ -54,6 +63,20 @@ class ProductionEnvironmentSuccess( UtilitiesTestCase ):
                               'DIRAC.Test.ch', 'Brunel', 'v2r1', 'bof' )
       self.assertEqual( ret['Value'], ep[1] )
 
+
+#################################################
+
+class RunApplicationSuccess( UtilitiesTestCase ):
+
+  def test_gaudiRunCommand( self ):
+
+    res = self.ra.gaudirunCommand()
+    self.assert_( 'gaudirun.py optFile.py otherOptFile.py gaudi_extra_options.py' in res )
+
+    self.ra.prodConf = True
+    self.ra.prodConfFileName = 'prodConf.py'
+    res = self.ra.gaudirunCommand()
+    self.assert_( 'gaudirun.py optFile.py otherOptFile.py prodConf.py' in res )
 
 #################################################
 
@@ -548,6 +571,7 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionDataSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProdConfSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionEnvironmentSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RunApplicationSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( InputDataResolutionSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( NagiosConnectorSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )

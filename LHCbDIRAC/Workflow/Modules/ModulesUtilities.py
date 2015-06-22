@@ -6,7 +6,6 @@ __RCSID__ = "$Id"
 import os, tarfile, math
 
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
-from DIRAC.Core.Utilities.List import fromChar
 from DIRAC.ConfigurationSystem.Client.Helpers import Resources
 from DIRAC.WorkloadManagementSystem.Client.CPUNormalization import getCPUTime
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
@@ -160,15 +159,3 @@ def getProductionParameterValue( productionXML, parameterName ):
   return None
 
 ###############################################################################
-
-def multicoreWN():
-  """ return "True" if the WN is marked as one where multicore processing is allowed
-  """
-  siteName = gConfig.getValue( '/LocalSite/Site' )
-  gridCE = gConfig.getValue( '/LocalSite/GridCE' )
-  tags = fromChar( gConfig.getValue( '/Resources/Sites/%s/%s/CEs/%s/Tag' % ( siteName.split( '.' )[0],
-                                                                             siteName, gridCE ), '' ) )
-  if 'MultiCore' in tags:
-    return True
-  else:
-    return False
