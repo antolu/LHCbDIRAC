@@ -6,11 +6,13 @@
     test jobs.
 """
 
+__RCSID__ = "$Id: $"
+
 import os, re
 
 ################################################################################
 
-class ProdConf:
+class ProdConf( object ):
   """ Class for managing ProdConf objects
   """
 
