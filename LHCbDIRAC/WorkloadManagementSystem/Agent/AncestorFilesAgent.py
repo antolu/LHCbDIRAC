@@ -104,7 +104,6 @@ class AncestorFilesAgent( OptimizerModule ):
     """Sets the new job input data requirement including ancestor files.
     """
     inputData = [ i.replace( 'LFN:', '' ) for i in inputData]
-    inputData = map( lambda x: 'LFN:' + x, inputData )
 
     result = self.jobDB.setInputData( job, inputData )
     if not result['OK']:
