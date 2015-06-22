@@ -20,6 +20,26 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
+def makeBKPath( bkDict ):
+  """
+  Builds a path from the dictionary
+  """
+  fileType = bkDict.get( 'FileType', '.' )
+  if type( fileType ) == type( [] ):
+    fileType = ','.join( fileType )
+  path = os.path.join( '/',
+                       bkDict.get( 'ConfigName', '' ),
+                       bkDict.get( 'ConfigVersion', '' ),
+                       bkDict.get( 'ConditionDescription', '.' ),
+                       bkDict.get( 'ProcessingPass', '.' )[1:],
+                       str( bkDict.get( 'EventType', '.' ) ).replace( '90000000', '.' ),
+                       fileType ).replace( '/.', '/' )
+  while True:
+    if path.endswith( '/' ):
+      path = path[:-1]
+    else:
+      return path.replace( 'RealData', 'Real Data' )
+
 class TransformationPlugin( DIRACTransformationPlugin ):
   """ Extension of DIRAC TransformationPlugin - instantiated by the TransformationAgent
   """
@@ -1472,6 +1492,26 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
+  def __getTransQuery( self ):
+    # Get BK query for this transformation as the BK path is relative to that one
+    res = self.transClient.getBookkeepingQuery( self.transID )
+    if not res['OK']:
+      self.util.logError( "Failed to get BK query for transformation", res['Message'] )
+      return S_OK( [] )
+    transQuery = res['Value']
+    if 'ProcessingPass' not in transQuery:
+      # Get processing pass of the first file... This assumes all have the same...
+      lfn = self.transReplicas.keys()[0]
+      res = self.bkClient.getDirectoryMetadata( lfn )
+      if not res['OK']:
+        self.util.logError( "Error getting directory metadata", res['Message'] )
+        return res
+      transQuery = res['Value']['Successful'].get( lfn, [{}] )[0]
+      # Strip off most of it
+      for key in ( 'ConditionDescription', 'FileType', 'Production', 'EventType' ):
+        transQuery.pop( key, None )
+    return transQuery
+
   def _DeleteReplicasWhenProcessed( self ):
     return self._RemoveReplicasWhenProcessed()
   def _RemoveReplicasWhenProcessed( self ):
@@ -1495,46 +1535,45 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logWarn( "No processing pass(es)" )
       return S_OK( [] )
     skip = False
-    try:
-      res = self.transClient.getBookkeepingQuery( self.transID )
-      if not res['OK']:
-        self.util.logError( "Failed to get BK query for transformation", res['Message'] )
-        return S_OK( [] )
-      bkQuery = BKQuery( res['Value'], visible = 'All' )
-      self.util.logVerbose( "BKQuery: %s" % bkQuery )
-      transProcPass = bkQuery.getProcessingPass()
-      if not transProcPass:
-        lfn = self.transReplicas.keys()[0]
-        res = self.bkClient.getDirectoryMetadata( lfn )
-        if not res['OK']:
-          self.util.logError( "Error getting directory metadata", res['Message'] )
-          return res
-        transQuery = res['Value']['Successful'].get( lfn, [{}] )[0]
-        for key in ( 'ConditionDescription', 'FileType', 'Production', 'EventType' ):
-          transQuery.pop( key, None )
-        bkQuery = BKQuery( transQuery, visible = 'All' )
-        transProcPass = bkQuery.getProcessingPass()
-        if not transProcPass:
-          self.util.logError( 'Unable to find processing pass for transformation nor for %s' % lfn )
-        self.util.logVerbose( "BKQuery reconstructed: %s" % bkQuery )
-      processingPasses = set( [os.path.join( transProcPass, procPass ) if not transProcPass.endswith( procPass ) else transProcPass for procPass in processingPasses] )
-      acceptMerge = transProcPass in processingPasses
 
+    transQuery = self.__getTransQuery()
+    transProcPass = transQuery['ProcessingPass']
+    if not transProcPass:
+      self.util.logError( 'Unable to find processing pass for transformation' )
+      return S_ERROR( 'No processing pass found' )
+
+    fullBKPaths = [bkPath for bkPath in processingPasses if bkPath.startswith( '/' )]
+    relBKPaths = [bkPath for bkPath in processingPasses if not bkPath.startswith( '/' )]
+    bkPathList = {}
+    if fullBKPaths:
+      # We were given full BK paths, use them
+      bkPathList.update( dict( [( bkPath.replace( 'RealData', 'Real Data' ), BKQuery( bkPath, visible = 'All' ).getQueryDict()['ProcessingPass'] ) \
+                                for bkPath in fullBKPaths] ) )
+
+    if relBKPaths:
+      for procPass in relBKPaths:
+        if not transProcPass.endswith( procPass ):
+          newPass = os.path.join( transProcPass, procPass )
+        else:
+          newPass = procPass
+        transQuery.update( {'ProcessingPass':newPass, 'Visibility':'All'} )
+        bkPathList[ makeBKPath( transQuery ) ] = procPass
+    self.util.logVerbose( 'List of BK paths:', '\n\t'.join( [''] + ['%s: %s' % ( bkPath, bkPathList[bkPath] ) for bkPath in sorted( bkPathList )] ) )
+
+    # Now we must find out whether the input files have a descendant in these bk paths
+
+    try:
       now = datetime.datetime.utcnow()
       cacheOK = False
       productions = self.util.getCachedProductions()
-      activeProds = productions.get( 'Active', {} )
-      archivedProds = productions.get( 'Archived', {} )
       if productions and ( now - productions['CacheTime'] ) < datetime.timedelta( hours = cacheLifeTime ):
-        if 'Active' not in productions:
+        if 'List' not in productions:
           cacheOK = False
         else:
           # If we haven't found productions for one of the processing passes, retry
-          activeProds = productions['Active']
-          archivedProds = productions['Archived']
           cacheOK = True
-          for procPass in processingPasses:
-            if not activeProds.get( procPass ) and not archivedProds.get( procPass ):
+          for bkPath in bkPathList:
+            if bkPath not in productions.get( 'List', [] ):
               cacheOK = False
               break
       if cacheOK:
@@ -1543,30 +1582,26 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           skip = True
           return S_OK( [] )
       else:
+        productions.setdefault( 'List', {} )
         self.util.logVerbose( "Cache is being refreshed (lifetime %d hours)" % cacheLifeTime )
-        bkQuery.setFileType( None )
-        bkQuery.setEventType( None )
-        for procPass in processingPasses:
-          bkQuery.setProcessingPass( procPass )
+        for bkPath in bkPathList:
+          bkQuery = BKQuery( bkPath, visible = 'All' )
           prods = bkQuery.getBKProductions()
           if not prods:
-            self.util.logVerbose( "For procPass %s, found no productions, wait next time" % ( procPass ) )
+            self.util.logVerbose( "For bkPath %s, found no productions, wait next time" % ( bkPath ) )
             return S_OK( [] )
-          activeProds[procPass] = []
-          archivedProds[procPass] = []
+          productions['List'][bkPath] = []
+          self.util.logVerbose( "For bkPath %s, found productions %s" % \
+                                ( bkPath, ','.join( ['%s' % prod for prod in prods] ) ) )
           for prod in prods:
             res = self.transClient.getTransformation( prod )
             if not res['OK']:
               self.util.logError( "Error getting transformation %s" % prod, res['Message'] )
-            elif ( acceptMerge and res['Value']['Type'] in ['Merge', 'MCMerge'] ) or ( not acceptMerge and res['Value']['Type'] not in ['Merge', 'MCMerge'] ):
-              status = res['Value']['Status']
-              if status == 'Archived':
-                archivedProds[procPass].append( int( prod ) )
-              elif status != "Cleaned":
-                activeProds[procPass].append( int( prod ) )
-          self.util.logInfo( "For procPass %s, found productions: %s, archived %s"
-                             % ( procPass, activeProds[procPass], archivedProds[procPass] ) )
-        productions = {'Active':activeProds, 'Archived':archivedProds}
+            else:
+              if res['Value']['Status'] != "Cleaned":
+                productions['List'][bkPath].append( int( prod ) )
+          self.util.logInfo( "For bkPath %s, selected productions: %s" % \
+                             ( bkPath, ','.join( ['%s' % prod for prod in productions['List'][bkPath] ] ) ) )
         productions['CacheTime'] = now
 
       productions['LastCall_%s' % self.transID] = now
@@ -1583,45 +1618,53 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.util.logVerbose( "%d files are not in required list (only at %s)" % ( len( lfns ), sorted( replicaSEs ) ) )
           newGroups.setdefault( ','.join( list( replicaSEs ) ), [] ).extend( lfns )
         elif not replicaSEs - listSEs :
-          self.util.logInfo( "%d files are only in required list (only at %s), don't remove yet" % ( len( lfns ), sorted( replicaSEs ) ) )
+          self.util.logInfo( "%d files are only in required list (only at %s), don't remove yet" % \
+                             ( len( lfns ), sorted( replicaSEs ) ) )
           onlyAtList = True
         else:
           newGroups.setdefault( ','.join( list( targetSEs ) ), [] ).extend( lfns )
-      # Restrict the query to the TS to the interesting productions
-      prodList = [pr for prods in activeProds.values() for pr in prods ]
-      self.util.logVerbose( "Using following list of productions: %s" % str( prodList ) )
+
+      # Restrict the query to the BK to the interesting productions
+      transPassLen = len( transProcPass.split( '/' ) )
       for stringTargetSEs, lfns in newGroups.items():
-        res = self.transClient.getTransformationFiles( {'TransformationID': prodList, 'LFN': lfns, 'Status':['Processed', 'Problematic']} )
-        if not res['OK']:
-          self.util.logError( "Failed to get transformation files for %d files" % len( lfns ) )
-          continue
-        lfnsNotProcessed = {}
-        for trDict in res['Value']:
-          trans = int( trDict['TransformationID'] )
-          lfn = trDict['LFN']
-          lfnsNotProcessed.setdefault( lfn, list( processingPasses ) )
-          for procPass in lfnsNotProcessed[lfn]:
-            if trans in activeProds[procPass]:
-              lfnsNotProcessed[lfn].remove( procPass )
-              break
-        for lfn in [lfn for lfn in lfns if lfnsNotProcessed.get( lfn, True )]:
-          lfnsNotProcessed.setdefault( lfn, list( processingPasses ) )
-        for procPass, prods in archivedProds.items():
-          lfnsToCheck = [lfn for lfn in lfnsNotProcessed if procPass in lfnsNotProcessed[lfn]]
+        # Use the cached information if any
+        lfnsNotProcessed = dict( [( lfn, self.util.cachedLFNProcessedPath.get( lfn, list( bkPathList ) ) ) for lfn in lfns] )
+        # Only check files that are not fully processed
+        lfnsToCheck = set( [lfn for lfn in lfnsNotProcessed if lfnsNotProcessed[lfn]] )
+        # Update with the cached information
+        for bkPath, prods in productions['List'].items():
+          lfnsToCheckForPath = set( lfnsToCheck )
+          depth = len( bkPathList[bkPath].split( '/' ) ) - transPassLen + 1
           for prod in sorted( prods ):
+            if not lfnsToCheckForPath:
+              break
+            self.util.logVerbose( 'Checking descendants for %d files in production %d, depth %d' % ( len( lfnsToCheckForPath ), prod, depth ) )
+            startTime = time.time()
+            processedLfns = set()
+            res = self.bkClient.getFileDescendants( list( lfnsToCheckForPath ), production = prod, depth = depth )
+            if res['OK']:
+              processedLfns.update( res['Value']['Successful'] )
+            self.util.logVerbose( 'Found %s descendants in %.1f seconds' % \
+                                  ( len( processedLfns ) if processedLfns else 'no',
+                                    time.time() - startTime ) )
+            for lfn in processedLfns:
+              if bkPath not in lfnsNotProcessed[lfn]:
+                self.util.logWarn( 'LFN not in list: %s' % lfn, str( lfnsNotProcessed[lfn] ) )
+              else:
+                lfnsNotProcessed[lfn].remove( bkPath )
+            lfnsToCheckForPath -= processedLfns
+          notProcessed = [lfn for lfn in lfnsToCheckForPath if bkPath in lfnsNotProcessed[lfn]]
+          if notProcessed:
+            self.util.logVerbose( "%d files not processed by processing pass %s, don't check further" % ( len( notProcessed ), bkPathList[bkPath] ) )
+            lfnsToCheck -= set( notProcessed )
             if not lfnsToCheck:
               break
-            res = self.bkClient.getFileDescendants( lfnsToCheck, production = prod, depth = 1 )
-            if res['OK']:
-              for lfn in [lfn for lfn in lfnsToCheck if lfn in res['Value']['Successful']]:
-                lfnsNotProcessed[lfn].remove( procPass )
-                lfnsToCheck.remove( lfn )
 
-        lfnsProcessed = [lfn for lfn in lfnsNotProcessed if not lfnsNotProcessed[lfn]]
-        lfnsNotProcessed = [lfn for lfn in lfns if lfnsNotProcessed.get( lfn, True )]
+        lfnsProcessed = [lfn for lfn in lfns if not lfnsNotProcessed[lfn]]
+        self.util.cachedLFNProcessedPath.update( lfnsNotProcessed )
         # print lfnsProcessed, lfnsNotProcessed
         self.util.logInfo( "Found %d / %d files that are processed (/ not) at %s" % ( len( lfnsProcessed ),
-                                                                                      len( lfnsNotProcessed ),
+                                                                                      len( lfnsToCheck ),
                                                                                       stringTargetSEs ) )
         if lfnsProcessed:
           targetSEs = set( stringTargetSEs.split( ',' ) )
@@ -1634,7 +1677,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if not storageElementGroups:
         return S_OK( [] )
     except Exception as e:
-      self.util.logException( 'Exception while executing the plugin' )
+      self.util.logException( 'Exception while executing the plugin', '', lException = e )
       return S_ERROR( e )
     finally:
       self.util.writeCacheFile()

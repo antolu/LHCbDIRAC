@@ -92,6 +92,7 @@ class PluginUtilities( object ):
     self.cachedRunLfns = {}
     self.cachedProductions = {}
     self.cachedLastRun = 0
+    self.cachedLFNProcessedPath = {}
     self.cacheFile = ''
     self.filesParam = {}
     self.transRunFiles = {}
@@ -843,8 +844,11 @@ class PluginUtilities( object ):
         self.cachedRunLfns = pickle.load( f )
         self.cachedProductions = pickle.load( f )
         self.cachedLastRun = pickle.load( f )
+        self.cachedLFNProcessedPath = pickle.load( f )
         f.close()
         self.logVerbose( "Cache file %s successfully loaded" % cacheFile )
+        # print '*****'
+        # print '\n'.join( ['%s %s' % ( key, val ) for key, val in self.cachedLFNProcessedPath.items()] )
         break
       except EOFError:
         f.close()
@@ -904,6 +908,7 @@ class PluginUtilities( object ):
         pickle.dump( self.cachedRunLfns, f )
         pickle.dump( self.cachedProductions, f )
         pickle.dump( self.cachedLastRun, f )
+        pickle.dump( self.cachedLFNProcessedPath, f )
         f.close()
         self.logVerbose( "Cache file %s successfully written" % self.cacheFile )
       except:
