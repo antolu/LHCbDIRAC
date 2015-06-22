@@ -910,9 +910,10 @@ class OracleBookkeepingDB:
         for i in fileType:
           values += " '%s'," % ( i )
         condition += values[:-1] + ')'
+        condition += " and ftypes.filetypeid=f.filetypeid"
       elif fileType != default:
         condition += " and ftypes.name='%s' " % ( str( fileType ) )
-      condition += " and ftypes.filetypeid=f.filetypeid"
+        condition += " and ftypes.filetypeid=f.filetypeid"
     
     if fileType != default:
       if tables.upper().find( 'FILETYPES' ) < 0:
