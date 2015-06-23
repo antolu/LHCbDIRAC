@@ -937,7 +937,7 @@ class OracleBookkeepingDB:
     if tables.upper().find( 'FILES' ) > 0:
       condition += ' and f.jobid=j.jobid '  
             
-    command = "select distinct prod.production from %s where %s " % (tables, condition)
+    command = "select distinct prod.production from %s where 1=1  %s " % (tables, condition)
      
          
     return self.dbR_.query( command )
@@ -3043,14 +3043,10 @@ and files.qualityid= dataquality.qualityid'
     if configName not in [default, None, '']  and configVersion not in [default, None, '']:
       if tables.upper().find( 'CONFIGURATIONS' ) < 0:
         tables += ' ,configurations c'
-      if len(condition) == 0:
-        condition += " c.ConfigName='%s' and c.ConfigVersion='%s' and \
-      j.configurationid=c.configurationid " % ( configName, configVersion )
-    else:
-        condition += "  and c.ConfigName='%s' and c.ConfigVersion='%s' and \
+      condition += "  and c.ConfigName='%s' and c.ConfigVersion='%s' and \
       j.configurationid=c.configurationid " % ( configName, configVersion )
     return S_OK( ( condition, tables ) )
-
+  
   #############################################################################
   @staticmethod
   def __buildProduction( production, condition, tables ):
