@@ -4,13 +4,14 @@
 __RCSID__ = "$Id: $"
 
 import sys
-import subprocess
+import re
 import multiprocessing
 from distutils.version import LooseVersion
 
 from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.List import fromChar
+from DIRAC.Core.Utilities.Subprocess import shellCall
 
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getCMTConfig, getScriptsLocation, runEnvironmentScripts, addCommandDefaults
 
@@ -29,10 +30,11 @@ class RunApplication(object):
     # What to run
     self.applicationName = 'Gauss'
     self.applicationVersion = 'v1r0'
+
     # How to run it
     self.command = 'gaudirun.py'
     self.extraPackages = []
-    self.cmtConfig = 'Any'
+    self.systemConfig = 'Any'
     self.runTimeProject = ''
     self.runTimeProjectVersion = ''
 
@@ -45,6 +47,9 @@ class RunApplication(object):
     self.prodConfFileName = ''
     self.multicore = False
 
+    self.applicationLog = 'applicationLog.txt'
+    self.stdError = 'applicationError.txt'
+
     # Utilities
     self.log = gLogger.getSubLogger( "RunApplication" )
     self.opsH = Operations()
@@ -53,6 +58,11 @@ class RunApplication(object):
   def run( self ):
     """ Invoke lb-run
     """
+    self.log.info( "Executing application %s %s for CMT configuration %s" % ( self.applicationName,
+                                                                              self.applicationVersion,
+                                                                              self.systemConfig ) )
+
+
     # First, getting lbLogin location
     result = getScriptsLocation()
     if not result['OK']:
@@ -95,7 +105,7 @@ class RunApplication(object):
       self.log.info( 'Using default externals policy for %s = %s' % ( self.site, externals ) )
 
     # Config
-    compatibleCMTConfigs = getCMTConfig( self.cmtConfig )
+    compatibleCMTConfigs = getCMTConfig( self.systemConfig )
     if not compatibleCMTConfigs['OK']:
       return compatibleCMTConfigs
     compatibleCMTConfigs = compatibleCMTConfigs['Value']
@@ -106,7 +116,7 @@ class RunApplication(object):
       command = self.gaudirunCommand()
 
     # Trying all the CMT configs available
-    lbRunResult = ''
+    runResult = ''
     for compatibleCMTConfig in compatibleCMTConfigs:
       self.log.verbose( "Using %s for setup" % compatibleCMTConfig )
       configString = "-c %s" % compatibleCMTConfig
@@ -115,17 +125,16 @@ class RunApplication(object):
                             command, runtimeProjectString, externals]
       finalCommand = ' '.join( finalCommandAsList )
 
-      try:
-        lbRunResult = self._runApp( finalCommand, compatibleCMTConfig, lbLoginEnv )
-      except OSError, osE:
-        self.log.warn( "Problem executing lb-run: %s" % osE )
+      runResult = self._runApp( finalCommand, compatibleCMTConfig, lbLoginEnv )
+      if not runResult['OK']:
+        self.log.warn( "Problem executing lb-run: %s" % runResult['Message'] )
         self.log.warn( "Can't call lb-run using %s, trying the next, if any\n\n" % compatibleCMTConfig )
         continue
 
-    if not lbRunResult:
+    if not runResult['OK']:
       raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
 
-    self.log.info( "Status after the application execution is %s" % str( lbRunResult ) )
+    self.log.info( "Status after the application execution is %s" % str( runResult ) )
 
 
 
@@ -181,24 +190,40 @@ class RunApplication(object):
     """
     self.log.verbose( "Calling %s" % finalCommand )
 
-    lbRunResult = subprocess.Popen( finalCommand, bufsize = 20971520,
-                                    shell = True, env = env,
-                                    stdout = subprocess.PIPE, stderr = subprocess.PIPE, close_fds = False )
+    res = shellCall( 0, finalCommand,
+                      env = env,
+                      callbackFunction = self.__redirectLogOutput,
+                      bufferLimit = 20971520 )
+
+    print res
+
+    return res
 
 
-    if lbRunResult.wait() != 0:
-      self.log.warn( "Problem executing %s" % finalCommand )
-      for line in lbRunResult.stderr:
-        sys.stdout.write( line )
-      raise OSError( "Can't do %s" % finalCommand )
+  def __redirectLogOutput( self, fd, message ):
+    """ Callback function for the Subprocess.shellcall
+        Manages log files
 
-    for line in lbRunResult.stdout:
-      sys.stdout.write( line )
-
-    return lbRunResult
-
-
-
+        fd is stdin/stderr
+        message is every line (?)
+    """
+    sys.stdout.flush()
+    if message:
+      if re.search( 'INFO Evt', message ):
+        print message
+      if re.search( 'Reading Event record', message ):
+        print message
+      if self.applicationLog:
+        log = open( self.applicationLog, 'a' )
+        log.write( message + '\n' )
+        log.close()
+      else:
+        log.error( "Application Log file not defined" )
+      if fd == 1:
+        if self.stdError:
+          error = open( self.stdError, 'a' )
+          error.write( message + '\n' )
+          error.close()
 
 
 def _multicoreWN():

@@ -4,9 +4,9 @@
 
 __RCSID__ = "$Id$"
 
+import sys
 import re
 import os
-import sys
 import multiprocessing
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
