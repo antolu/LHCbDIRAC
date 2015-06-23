@@ -1627,16 +1627,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       # Restrict the query to the BK to the interesting productions
       transPassLen = len( transProcPass.split( '/' ) )
       for stringTargetSEs, lfns in newGroups.items():
+        self.util.logInfo( 'Checking descendants for %d files at %s' % ( len( lfns ), stringTargetSEs ) )
         # Use the cached information if any
-        lfnsNotProcessed = dict( [( lfn, self.util.cachedLFNProcessedPath.get( lfn, list( bkPathList ) ) ) for lfn in lfns] )
+        bkPathsToCheck = dict( [( lfn, self.util.cachedLFNProcessedPath.get( lfn, list( bkPathList ) ) ) for lfn in lfns] )
         # Only check files that are not fully processed
-        lfnsToCheck = set( [lfn for lfn in lfnsNotProcessed if lfnsNotProcessed[lfn]] )
+        lfnsToCheck = set( [lfn for lfn in bkPathsToCheck if bkPathsToCheck[lfn]] )
         # Update with the cached information
         for bkPath, prods in productions['List'].items():
-          lfnsToCheckForPath = set( lfnsToCheck )
+          lfnsToCheckForPath = set( [lfn for lfn in lfnsToCheck if bkPath in bkPathsToCheck[lfn]] )
           depth = len( bkPathList[bkPath].split( '/' ) ) - transPassLen + 1
           for prod in sorted( prods ):
             if not lfnsToCheckForPath:
+              # All files have been processed, go to next bkPath
               break
             self.util.logVerbose( 'Checking descendants for %d files in production %d, depth %d' % ( len( lfnsToCheckForPath ), prod, depth ) )
             startTime = time.time()
@@ -1648,23 +1650,23 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                                   ( len( processedLfns ) if processedLfns else 'no',
                                     time.time() - startTime ) )
             for lfn in processedLfns:
-              if bkPath not in lfnsNotProcessed[lfn]:
-                self.util.logWarn( 'LFN not in list: %s' % lfn, str( lfnsNotProcessed[lfn] ) )
+              if bkPath not in bkPathsToCheck[lfn]:
+                self.util.logWarn( 'LFN not in list: %s' % lfn, str( bkPathsToCheck[lfn] ) )
               else:
-                lfnsNotProcessed[lfn].remove( bkPath )
+                bkPathsToCheck[lfn].remove( bkPath )
             lfnsToCheckForPath -= processedLfns
-          notProcessed = [lfn for lfn in lfnsToCheckForPath if bkPath in lfnsNotProcessed[lfn]]
+          notProcessed = [lfn for lfn in lfnsToCheckForPath if bkPath in bkPathsToCheck[lfn]]
           if notProcessed:
             self.util.logVerbose( "%d files not processed by processing pass %s, don't check further" % ( len( notProcessed ), bkPathList[bkPath] ) )
             lfnsToCheck -= set( notProcessed )
             if not lfnsToCheck:
               break
 
-        lfnsProcessed = [lfn for lfn in lfns if not lfnsNotProcessed[lfn]]
-        self.util.cachedLFNProcessedPath.update( lfnsNotProcessed )
-        # print lfnsProcessed, lfnsNotProcessed
+        lfnsProcessed = [lfn for lfn in lfns if not bkPathsToCheck[lfn]]
+        self.util.cachedLFNProcessedPath.update( bkPathsToCheck )
+        # print lfnsProcessed, bkPathsToCheck
         self.util.logInfo( "Found %d / %d files that are processed (/ not) at %s" % ( len( lfnsProcessed ),
-                                                                                      len( lfnsToCheck ),
+                                                                                      len( [lfn for lfn in lfns if bkPathsToCheck[lfn]] ),
                                                                                       stringTargetSEs ) )
         if lfnsProcessed:
           targetSEs = set( stringTargetSEs.split( ',' ) )
