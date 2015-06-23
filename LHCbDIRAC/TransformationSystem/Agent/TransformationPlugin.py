@@ -9,13 +9,14 @@ import random
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
-from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
-from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
+from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
+from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
+from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
+from DIRAC.TransformationSystem.Client.Utilities import getFileGroups, sortExistingSEs
 
 from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities \
-     import PluginUtilities, getFileGroups, groupByRun, \
-     sortExistingSEs, getRemovalPlugins, timeThis
+     import PluginUtilities, groupByRun, getRemovalPlugins
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
@@ -76,7 +77,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.transID = None
     self.debug = debug
     self.util = PluginUtilities( plugin = plugin,
-                                 transClient = self.transClient, dataManager = self.dm,
+                                 transClient = transClient, dataManager = dataManager,
                                  bkClient = self.bkClient, rmClient = self.rmClient, resourceStatus = self.resourceStatus,
                                  debug = debug, transInThread = transInThread if transInThread else {} )
     self.setDebug( self.util.getPluginParam( 'Debug', False ) )

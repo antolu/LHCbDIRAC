@@ -3,11 +3,11 @@ import itertools
 
 from mock import MagicMock
 
-from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC import S_OK, gLogger
 
 from LHCbDIRAC.TransformationSystem.Client.TaskManager import LHCbWorkflowTasks
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, getFileGroups, groupByRun, closerSEs
+from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, groupByRun
 
 def getSitesForSE( ses ):
   if ses == 'pippo':
@@ -39,15 +39,6 @@ class ClientTestCase( unittest.TestCase ):
 
   def tearDown( self ):
     pass
-
-class UtilitiesSuccess( ClientTestCase ):
-  def test_closerSEs( self ):
-    existingSEs = ['CERN-ARCHIVE', 'CERN-DST-EOS', 'CERN_MC_M-DST', 'GRIDKA-ARCHIVE', 'IN2P3-DST']
-    targetSEs = ['CERN-DST-EOS', 'RAL-DST', 'PIC-DST', 'CNAF-DST', 'SARA-DST', 'IN2P3-DST', 'GRIDKA-DST']
-
-    res = closerSEs( existingSEs, targetSEs, False )
-    self.assert_( type( res ) == list )
-    self.assert_( len( res ) )
 
 class TaskManagerSuccess( ClientTestCase ):
   pass
@@ -216,133 +207,6 @@ runFiles = [{'LFN':'/this/is/at_1', 'RunNumber':1},
 cachedLFNAncestors = {1:{'':1}}
 
 class PluginsUtilitiesSuccess( ClientTestCase ):
-
-  def test_getFileGroups( self ):
-
-    res = getFileGroups( data )
-    resExpected = {'SE1':['/this/is/at_1'],
-                   'SE2':['/this/is/at_2'],
-                   'SE1,SE2':sorted( ['/this/is/at_12', '/this/is/also/at_12'] ),
-                   'SE1,SE2,SE3':['/this/is/at_123'],
-                   'SE2,SE3':['/this/is/at_23'],
-                   'SE4':['/this/is/at_4']}
-    for t, tExp in itertools.izip( res.items(), resExpected.items() ):
-      self.assertEqual( t[0], tExp[0] )
-      self.assertEqual( sorted( t[1] ), tExp[1] )
-
-    res = getFileGroups( data, False )
-    resExpected = {'SE1': sorted( ['/this/is/at_1', '/this/is/at_123', '/this/is/at_12', '/this/is/also/at_12'] ),
-                   'SE2': sorted( ['/this/is/at_23', 'this/is/at_2', '/this/is/at_123', '/this/is/at_12', '/this/is/also/at_12'] ),
-                   'SE3': sorted( ['/this/is/at_23', '/this/is/at_123'] ),
-                   'SE4': sorted( ['/this/is/at_4'] )}
-
-    self.assertItemsEqual( res, resExpected )
-
-  def test_groupByReplicas( self ):
-
-    pu = PluginUtilities( rmClient = MagicMock() )
-    res = pu.groupByReplicas( data, 'Active' )
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], [] )
-
-    pu = PluginUtilities( rmClient = MagicMock() )
-    pu.params['GroupSize'] = 2
-    res = pu.groupByReplicas( data, 'Active' )
-    self.assert_( res['OK'] )
-    self.assert_( len( res['Value'] ) == 3 )
-    for t in res['Value']:
-      self.assert_( len( t[1] ) <= 2 )
-
-    pu = PluginUtilities( rmClient = MagicMock() )
-    pu.params['GroupSize'] = 2
-    res = pu.groupByReplicas( data, 'Flush' )
-    self.assert_( res['OK'] )
-    self.assert_( len( res['Value'] ) == 4 )
-
-    pu = PluginUtilities( rmClient = MagicMock() )
-    res = pu.groupByReplicas( data, 'Flush' )
-    self.assert_( res['OK'] )
-    resExpected = [( 'SE1', sorted( ['/this/is/also/at_12', '/this/is/at_1', '/this/is/at_123', '/this/is/at_12'] ) ),
-                   ( 'SE2', sorted( ['/this/is/at_23', '/this/is/at_2'] ) ),
-                   ( 'SE4', sorted( ['/this/is/at_4'] ) )]
-    for t, tExp in itertools.izip( res['Value'], resExpected ):
-      self.assertEqual( t[0], tExp[0] )
-      self.assertEqual( sorted( t[1] ), tExp[1] )
-
-  def test_groupBySize( self ):
-
-    # no files, nothing happens
-    pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
-    res = pu.groupBySize( {}, 'Active' )
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], [] )
-
-    # files, cached, nothing happens as too small
-    pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
-    pu.cachedLFNSize = dict( cachedLFNSize )
-    res = pu.groupBySize( data, 'Active' )
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], [] )
-
-    # files, cached, low GroupSize imposed
-    pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
-    pu.cachedLFNSize = dict( cachedLFNSize )
-    pu.groupSize = 10
-    res = pu.groupBySize( data, 'Active' )
-    self.assert_( res['OK'] )
-    resExpected = [( 'SE1,SE2', ['/this/is/at_12'] ),
-                   ( 'SE2,SE3', ['/this/is/at_23'] ),
-                   ( 'SE1,SE2,SE3', ['/this/is/at_123'] ),
-                   ( 'SE1,SE2', ['/this/is/also/at_12'] )]
-    for tExp in resExpected:
-      self.assert_( tExp in res['Value'] )
-
-    # files, cached, flushed
-    pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
-    pu.cachedLFNSize = dict( cachedLFNSize )
-    res = pu.groupBySize( data, 'Flush' )
-    self.assert_( res['OK'] )
-    self.assert_( len( res['Value'] ) == 6 )
-
-    # files, not cached, nothing happens as too small
-    pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
-    res = pu.groupBySize( data, 'Active' )
-    self.assert_( res['OK'] )
-    self.assertEqual( res['Value'], [] )
-
-    # files, not cached, flushed
-    pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
-
-    res = pu.groupBySize( data, 'Flush' )
-    self.assert_( res['OK'] )
-    self.assert_( len( res['Value'] ) == 6 )
-
-    # files, not cached, low GroupSize imposed
-    pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
-    pu.groupSize = 10
-    res = pu.groupBySize( data, 'Active' )
-    self.assert_( res['OK'] )
-    self.assert_( res['OK'] )
-    resExpected = [( 'SE1,SE2', ['/this/is/at_12'] ),
-                   ( 'SE2,SE3', ['/this/is/at_23'] ),
-                   ( 'SE1,SE2,SE3', ['/this/is/at_123'] ),
-                   ( 'SE1,SE2', ['/this/is/also/at_12'] )]
-    for tExp in resExpected:
-      self.assert_( tExp in res['Value'] )
-
-    # files, not cached, low GroupSize imposed, Flushed
-    pu = PluginUtilities( fc = self.fcMock, rmClient = MagicMock() )
-    pu.groupSize = 10
-    res = pu.groupBySize( data, 'Flush' )
-    self.assert_( res['OK'] )
-    self.assert_( res['OK'] )
-    resExpected = [( 'SE1,SE2', ['/this/is/at_12'] ),
-                   ( 'SE2,SE3', ['/this/is/at_23'] ),
-                   ( 'SE1,SE2,SE3', ['/this/is/at_123'] ),
-                   ( 'SE1,SE2', ['/this/is/also/at_12'] )]
-    for tExp in resExpected:
-      self.assert_( tExp in res['Value'] )
-
 
   def test_groupByRun( self ):
 
