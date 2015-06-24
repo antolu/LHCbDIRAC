@@ -9,14 +9,12 @@ import random
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
-from DIRAC.Core.Utilities.Time import timeThis
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
-from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
-from DIRAC.TransformationSystem.Client.Utilities import getFileGroups, sortExistingSEs
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 
 from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities \
-     import PluginUtilities, groupByRun, getRemovalPlugins
+     import PluginUtilities, getFileGroups, groupByRun, \
+     sortExistingSEs, getActiveSEs, getRemovalPlugins, timeThis
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
@@ -63,11 +61,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     else:
       self.rmClient = rmClient
 
-    if not rss:
-      self.resourceStatus = ResourceStatus()
-    else:
-      self.resourceStatus = rss
-
     self.params = {}
     self.workDirectory = None
     self.pluginCallback = self.voidMethod
@@ -77,8 +70,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.transID = None
     self.debug = debug
     self.util = PluginUtilities( plugin = plugin,
-                                 transClient = transClient, dataManager = dataManager,
-                                 bkClient = self.bkClient, rmClient = self.rmClient, resourceStatus = self.resourceStatus,
+                                 transClient = self.transClient, dataManager = self.dm,
+                                 bkClient = self.bkClient, rmClient = self.rmClient,
                                  debug = debug, transInThread = transInThread if transInThread else {} )
     self.setDebug( self.util.getPluginParam( 'Debug', False ) )
 
@@ -208,7 +201,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_OK( [] )
 
     # For each of the runs determine the destination of any previous files
-    res = self.util.getTransformationRuns( runFileDict.keys() )
+    res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
       self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
       return res
@@ -288,7 +281,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for newRun, runLFNs in newRuns.items():
         runFileDict.setdefault( newRun, [] ).extend( runLFNs )
     # For each of the runs determine the destination of any previous files
-    res = self.util.getTransformationRuns( runFileDict.keys() )
+    res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
       self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
       return res
@@ -425,7 +418,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for newRun, runLFNs in newRuns.items():
         runFileDict.setdefault( newRun, [] ).extend( runLFNs )
     # For each of the runs determine the destination of any previous files
-    res = self.util.getTransformationRuns( runFileDict.keys() )
+    res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
       self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
       return res
@@ -577,7 +570,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     else:
       fractionToProcess = 1.
 
-    activeRAWSEs = self.util.getActiveSEs( cpuShares.keys() )
+    activeRAWSEs = getActiveSEs( cpuShares.keys() )
     inactiveRAWSEs = [se for se in cpuShares if se not in activeRAWSEs]
     self.util.logVerbose( "Active RAW SEs: %s" % activeRAWSEs )
     if inactiveRAWSEs:
@@ -601,7 +594,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # For each of the runs determine the destination of any previous files
     runUpdate = {}
     runSEDict = {}
-    res = self.util.getTransformationRuns( runFileDict.keys() )
+    res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
       self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
       return res
@@ -849,7 +842,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logInfo( "Set run number for %d files with run #0, which means it was not set yet" % nZero )
 
     transStatus = self.params['Status']
-    res = self.util.getTransformationRuns( runDict.keys() )
+    res = self.util.getTransformationRuns( runDict )
     if not res['OK']:
       self.util.logError( "Error when getting transformation runs for runs %s" % str( runDict.keys() ) )
       return res
@@ -996,6 +989,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # # # # # # # # # #
     # End of run loop #
     # # # # # # # # # #
+    timeSpent = time.time() - pluginStartTime
     self.util.logInfo( "Processed %d files in %.1f seconds" % ( processedFiles, timeSpent ) )
     self.util.setCachedLastRun( lastRun )
     # reset the input data as it was when calling the plugin
@@ -1112,7 +1106,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     runSEDict = {}
     runUpdate = {}
     # Make a list of SEs already assigned to runs
-    res = self.util.getTransformationRuns( runFileDict.keys() )
+    res = self.util.getTransformationRuns( runFileDict )
     if not res['OK']:
       self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
       return res
@@ -1229,11 +1223,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     archive1SEs = resolveSEGroup( self.util.getPluginParam( 'Archive1SEs', [] ) )
     archive2SEs = resolveSEGroup( self.util.getPluginParam( 'Archive2SEs', [] ) )
-    archive1ActiveSEs = self.util.getActiveSEs( archive1SEs )
+    archive1ActiveSEs = getActiveSEs( archive1SEs )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 1 )
     if not archive1ActiveSEs:
       archive1ActiveSEs = archive1SEs
-    archive2ActiveSEs = self.util.getActiveSEs( archive2SEs )
+    archive2ActiveSEs = getActiveSEs( archive2SEs )
     if not archive2ActiveSEs:
       archive2ActiveSEs = archive2SEs
     if archive1ActiveSEs:
@@ -1252,7 +1246,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       numberOfCopies = len( secondarySEs ) + len( mandatorySEs )
       activeSecondarySEs = secondarySEs
     else:
-      activeSecondarySEs = self.util.getActiveSEs( secondarySEs )
+      activeSecondarySEs = getActiveSEs( secondarySEs )
       numberOfCopies = max( len( mandatorySEs ), numberOfCopies )
 
     self.util.logVerbose( "%d replicas, mandatory at %s, optional at %s" % ( numberOfCopies,
@@ -1525,8 +1519,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logError( 'No SEs where to delete from, check overlap with %s' % keepSEs )
       return S_OK( [] )
     processingPasses = self.util.getPluginParam( 'ProcessingPasses', [] )
-    period = self.util.getPluginParam( 'Period', 6 )
-    cacheLifeTime = self.util.getPluginParam( 'CacheLifeTime', 24 )
 
     transStatus = self.params['Status']
     self.util.readCacheFile( self.workDirectory )
@@ -1539,6 +1531,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     transQuery = self.__getTransQuery()
     transProcPass = transQuery['ProcessingPass']
+    eventType = transQuery['EventType']
     if not transProcPass:
       self.util.logError( 'Unable to find processing pass for transformation' )
       return S_ERROR( 'No processing pass found' )
@@ -1558,55 +1551,19 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         else:
           newPass = procPass
         transQuery.update( {'ProcessingPass':newPass, 'Visibility':'All'} )
-        bkPathList[ makeBKPath( transQuery ) ] = procPass
-    self.util.logVerbose( 'List of BK paths:', '\n\t'.join( [''] + ['%s: %s' % ( bkPath, bkPathList[bkPath] ) for bkPath in sorted( bkPathList )] ) )
+        transQuery.pop( 'FileType', None )
+        bkPathList[ makeBKPath( transQuery ) ] = newPass
+    self.util.logVerbose( 'List of BK paths:', '\n\t'.join( [''] + ['%s: %s' % \
+                                                                    ( bkPath.replace( 'Real Data', 'RealData' ), bkPathList[bkPath].replace( 'Real Data', 'RealData' ) ) \
+                                                                    for bkPath in sorted( bkPathList )] ) )
 
     # Now we must find out whether the input files have a descendant in these bk paths
 
     try:
-      now = datetime.datetime.utcnow()
-      cacheOK = False
-      productions = self.util.getCachedProductions()
-      if productions and ( now - productions['CacheTime'] ) < datetime.timedelta( hours = cacheLifeTime ):
-        if 'List' not in productions:
-          cacheOK = False
-        else:
-          # If we haven't found productions for one of the processing passes, retry
-          cacheOK = True
-          for bkPath in bkPathList:
-            if bkPath not in productions.get( 'List', [] ):
-              cacheOK = False
-              break
-      if cacheOK:
-        if transStatus != 'Flush' and ( now - productions['LastCall_%s' % self.transID] ) < datetime.timedelta( hours = period ):
-          self.util.logInfo( "Skip this loop (less than %s hours since last call)" % period )
-          skip = True
-          return S_OK( [] )
-      else:
-        productions.setdefault( 'List', {} )
-        self.util.logVerbose( "Cache is being refreshed (lifetime %d hours)" % cacheLifeTime )
-        for bkPath in bkPathList:
-          bkQuery = BKQuery( bkPath, visible = 'All' )
-          prods = bkQuery.getBKProductions()
-          if not prods:
-            self.util.logVerbose( "For bkPath %s, found no productions, wait next time" % ( bkPath ) )
-            return S_OK( [] )
-          productions['List'][bkPath] = []
-          self.util.logVerbose( "For bkPath %s, found productions %s" % \
-                                ( bkPath, ','.join( ['%s' % prod for prod in prods] ) ) )
-          for prod in prods:
-            res = self.transClient.getTransformation( prod )
-            if not res['OK']:
-              self.util.logError( "Error getting transformation %s" % prod, res['Message'] )
-            else:
-              if res['Value']['Status'] != "Cleaned":
-                productions['List'][bkPath].append( int( prod ) )
-          self.util.logInfo( "For bkPath %s, selected productions: %s" % \
-                             ( bkPath, ','.join( ['%s' % prod for prod in productions['List'][bkPath] ] ) ) )
-        productions['CacheTime'] = now
+      productions = self.util.getProductions( bkPathList, eventType, transStatus )
+      if productions is None or not productions.get( 'List' ):
+        return S_OK( [] )
 
-      productions['LastCall_%s' % self.transID] = now
-      self.util.setCachedProductions( productions )
       replicaGroups = getFileGroups( self.data )
       self.util.logVerbose( "Using %d input files, in %d groups" % ( len( self.data ), len( replicaGroups ) ) )
       storageElementGroups = {}
@@ -1630,11 +1587,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       for stringTargetSEs, lfns in newGroups.items():
         self.util.logInfo( 'Checking descendants for %d files at %s' % ( len( lfns ), stringTargetSEs ) )
         # Use the cached information if any
-        bkPathsToCheck = dict( [( lfn, self.util.cachedLFNProcessedPath.get( lfn, list( bkPathList ) ) ) for lfn in lfns] )
+        bkPathsToCheck = dict( [( lfn, set( self.util.cachedLFNProcessedPath.get( lfn, bkPathList ) ) & set( bkPathList ) ) for lfn in lfns] )
         # Only check files that are not fully processed
         lfnsToCheck = set( [lfn for lfn in bkPathsToCheck if bkPathsToCheck[lfn]] )
         # Update with the cached information
-        for bkPath, prods in productions['List'].items():
+        for bkPath in bkPathList:
+          prods = productions['List'][bkPath]
+          if not prods:
+            break
           lfnsToCheckForPath = set( [lfn for lfn in lfnsToCheck if bkPath in bkPathsToCheck[lfn]] )
           depth = len( bkPathList[bkPath].split( '/' ) ) - transPassLen + 1
           for prod in sorted( prods ):
