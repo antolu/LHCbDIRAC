@@ -358,23 +358,35 @@ class TransformationDB( DIRACTransformationDB ):
     for fileTuples in breakListIntoChunks( fileTuplesList, 10000 ):
       gLogger.verbose( "Adding first %d files in TransformationFiles (out of %d)" % ( len( fileTuples ),
                                                                                       len( fileTuplesList ) ) )
-      req = "INSERT INTO TransformationFiles (TransformationID,Status,TaskID,FileID,TargetSE,LastUpdate,RunNumber) VALUES"
+      req = "INSERT INTO TransformationFiles (TransformationID,Status,TaskID,FileID,TargetSE,LastUpdate,RunNumber,Size,FileType,RAWAncestors) VALUES"
       candidates = False
 
       for ft in fileTuples:
-        _lfn, originalID, fileID, status, taskID, targetSE, _usedSE, _errorCount, _lastUpdate, _insertTime, runNumber = ft[:11]
-        if status not in ( 'Unused', 'Removed' ):
+        _lfn, originalID, fileID, status, taskID, targetSE, _usedSE, _errorCount, _lastUpdate, _insertTime, runNumber, size, fileType, rawAncestors = ft[:14]
+        if status not in ( 'Removed', ):
           candidates = True
           if not re.search( '-', status ):
             status = "%s-inherited" % status
             if taskID:
-              taskID = str( int( originalID ) ).zfill( 8 ) + '_' + str( int( taskID ) ).zfill( 8 )
-          req = "%s (%d,'%s','%s',%d,'%s',UTC_TIMESTAMP(),%d)," % ( req, transID, status, taskID, fileID,
-                                                                    targetSE, runNumber )
+              taskID = 1000000 * int( originalID ) + int( taskID )
+          req = "%s (%d,'%s',%d,%d,'%s',UTC_TIMESTAMP(),%d,%d,'%s',%d)," % ( req, transID, status, taskID, fileID,
+                                                                    targetSE, runNumber, size, fileType, rawAncestors )
       if not candidates:
         continue
       req = req.rstrip( "," )
       res = self._update( req, connection )
+      if not res['OK']:
+        return res
+
+    # We must also copy the run table entries if any
+    result = self.getTransformationRuns( {'TransformationID': transID} )
+    if not result['OK']:
+      return result
+    for runDict in res['Value']:
+      runID = runDict['RunNumber']
+      selectedSite = runDict['SelectedSite']
+      status = runDict['Status']
+      res = self.insertTransformationRun( transID, runID, selectedSite = selectedSite, status = status, connection = connection )
       if not res['OK']:
         return res
 
@@ -610,14 +622,17 @@ class TransformationDB( DIRACTransformationDB ):
     return res
 
 
-  def insertTransformationRun( self, transID, runID, selectedSite = '', connection = False ):
+  def insertTransformationRun( self, transID, runID, selectedSite = '', status = None, connection = False ):
     """ Inserts a new Run for a specific transformation
     """
-    req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,Status,LastUpdate) \
-    VALUES (%d,%d,'Active',UTC_TIMESTAMP())" % ( transID, runID )
+    if status is None:
+      status = 'Active'
     if selectedSite:
       req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,SelectedSite,Status,LastUpdate) \
-      VALUES (%d,%d,'%s','Active',UTC_TIMESTAMP())" % ( transID, runID, selectedSite )
+      VALUES (%d,%d,'%s','%s',UTC_TIMESTAMP())" % ( transID, runID, selectedSite, status )
+    else:
+      req = "INSERT INTO TransformationRuns (TransformationID,RunNumber,Status,LastUpdate) \
+      VALUES (%d,%d,'%s',UTC_TIMESTAMP())" % ( transID, runID, status )
     res = self._update( req, connection )
     if not res['OK']:
       gLogger.error( "Failed to insert to TransformationRuns table", res['Message'] )
