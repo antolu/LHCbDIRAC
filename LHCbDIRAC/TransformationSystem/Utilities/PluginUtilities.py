@@ -182,6 +182,48 @@ class PluginUtilities( PluginUtilities ):
         return res
     return S_OK( filesParam )
 
+  def getProductions( self, bkPathList, eventType, transStatus ):
+    now = datetime.datetime.utcnow()
+    period = self.getPluginParam( 'Period', 6 )
+    cacheLifeTime = self.getPluginParam( 'CacheLifeTime', 24 )
+    productions = self.getCachedProductions()
+    if 'CacheTime' in productions and ( now - productions['CacheTime'] ) < datetime.timedelta( hours = cacheLifeTime ):
+      # If we haven't found productions for one of the processing passes, retry
+      cacheOK = len( [bkPath for bkPath in bkPathList if bkPath not in productions.get( 'List', {} )] ) != 0
+    else:
+      cacheOK = False
+    if cacheOK:
+      if transStatus != 'Flush' and ( now - productions['LastCall_%s' % self.transID] ) < datetime.timedelta( hours = period ):
+        self.logInfo( "Skip this loop (less than %s hours since last call)" % period )
+        return None
+    else:
+      productions.setdefault( 'List', {} )
+      self.logVerbose( "Cache is being refreshed (lifetime %d hours)" % cacheLifeTime )
+      for bkPath in bkPathList:
+        bkQuery = BKQuery( bkPath, visible = 'All' )
+        bkQuery.setOption( 'EventType', eventType )
+        prods = bkQuery.getBKProductions()
+        if not prods:
+          self.logVerbose( "For bkPath %s, found no productions, wait next time" % ( bkPath ) )
+          return S_OK( [] )
+        productions['List'][bkPath] = []
+        self.logVerbose( "For bkPath %s, found productions %s" % \
+                              ( bkPath, ','.join( ['%s' % prod for prod in prods] ) ) )
+        for prod in prods:
+          res = self.transClient.getTransformation( prod )
+          if not res['OK']:
+            self.logError( "Error getting transformation %s" % prod, res['Message'] )
+          else:
+            if res['Value']['Status'] != "Cleaned":
+              productions['List'][bkPath].append( int( prod ) )
+        self.logInfo( "For bkPath %s, selected productions: %s" % \
+                           ( bkPath, ','.join( ['%s' % prod for prod in productions['List'][bkPath] ] ) ) )
+      productions['CacheTime'] = now
+
+    productions['LastCall_%s' % self.transID] = now
+    self.setCachedProductions( productions )
+    return productions
+
   @timeThis
   def getFilesParam( self, lfns, param ):
     if not self.filesParam:
@@ -203,27 +245,6 @@ class PluginUtilities( PluginUtilities ):
       self.logVerbose( "Obtained BK %s of %d files" % ( param, len( newLFNs ) ) )
     return S_OK( filesParam )
 
-  def getActiveSEs( self, selist ):
-    """ Utility function - uses RSS
-    """
-    activeSE = []
-
-    if selist:
-      try:
-        res = self.resourceStatus.getStorageElementStatus( selist, statusType = 'WriteAccess' )
-        if res[ 'OK' ]:
-          for k, v in res[ 'Value' ].items():
-            if v.get( 'WriteAccess' ) in [ 'Active', 'Degraded', 'Bad' ]:
-              activeSE.append( k )
-        else:
-          self.logError( "Error getting active SEs from RSS for %s" % str( selist ), res['Message'] )
-      except:
-        for se in selist:
-          res = gConfig.getOption( '/Resources/StorageElements/%s/WriteAccess' % se, 'Unknown' )
-          if res['OK'] and res['Value'] == 'Active':
-            activeSE.append( se )
-
-    return activeSE
   def getStorageFreeSpace( self, candSEs ):
     """ Get free space in a list of SEs from the RSS
     """
@@ -299,13 +320,13 @@ class PluginUtilities( PluginUtilities ):
     # Select active SEs
     nbArchive1 = min( 1, len( archive1SEs ) )
     nbArchive2 = min( 1, len( archive2SEs ) )
-    archive1ActiveSEs = self.getActiveSEs( archive1SEs )
+    archive1ActiveSEs = getActiveSEs( archive1SEs )
     if not archive1ActiveSEs:
       archive1ActiveSEs = archive1SEs
-    archive2ActiveSEs = self.getActiveSEs( archive2SEs )
+    archive2ActiveSEs = getActiveSEs( archive2SEs )
     if not archive2ActiveSEs:
       archive2ActiveSEs = archive2SEs
-    secondaryActiveSEs = self.getActiveSEs( secondarySEs )
+    secondaryActiveSEs = getActiveSEs( secondarySEs )
 
     targetSEs = []
     self.logVerbose( "Selecting SEs from %s, %s, %s, %s (%d copies) for files in %s" % ( archive1ActiveSEs,
@@ -488,7 +509,7 @@ class PluginUtilities( PluginUtilities ):
         ancestorFullDST = lfnToCheck
       else:
         # If not, get its ancestors
-        res = self.bkClient.getFileAncestors( [lfnToCheck], depth = 10, replica = False )
+        res = self.getFileAncestors( lfnToCheck, replica = False )
         if res['OK']:
           fullDst = [f['FileName'] for f in res['Value']['Successful'].get( lfnToCheck, [{}] ) if f.get( 'FileType' ) == 'FULL.DST']
           if fullDst:
@@ -522,11 +543,27 @@ class PluginUtilities( PluginUtilities ):
 
   @timeThis
   def getFileAncestors( self, lfns, depth = 10, replica = True ):
-    return self.bkClient.getFileAncestors( lfns, depth, replica )
+    return self.bkClient.getFileAncestors( lfns, depth = depth, replica = replica )
 
   @timeThis
   def getTransformationRuns( self, runs ):
-    return self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runs} )
+    """ get the run table for a list of runs, if missing, add them """
+    if not isinstance( runs, list ):
+      runs = list( runs )
+    result = self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runs} )
+    if not result['OK']:
+      return result
+    # Check that all runs are there, if not add them
+    runsFound = set( [run['RunNumber'] for run in result['Value']] )
+    missingRuns = set( runs ) - runsFound
+    if missingRuns:
+      self.logInfo( 'Add missing runs in transformation runs table: %s' % ','.join( [str( run ) for run in sorted( missingRuns )] ) )
+      for runID in missingRuns:
+        res = self.transClient.insertTransformationRun( self.transID, runID, '' )
+        if not res['OK']:
+          return res
+      result = self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runs} )
+    return result
 
   @timeThis
   def groupByRunAndParam( self, lfns, files, param = '' ):
@@ -816,3 +853,9 @@ def optimizeTasks( tasks ):
   for ses, lfns in tasks:
     taskDict.setdefault( ses, [] ).extend( lfns )
   return taskDict.items()
+
+def getActiveSEs( seList, access = 'Write' ):
+  """ Utility function - uses the StorageElement cached status
+  """
+  return [ se for se in seList if StorageElement( se ).getStatus().get( 'Value', {} ).get( access, False )]
+
