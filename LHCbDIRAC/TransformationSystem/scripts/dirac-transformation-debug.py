@@ -1233,7 +1233,7 @@ if __name__ == "__main__":
       __checkWaitingTasks( transID )
       continue
 
-    pluginUtil = PluginUtilities( transPlugin, transClient, dm, bkClient, None, None, verbose, {}, transID = transID )  ################
+    pluginUtil = PluginUtilities( transPlugin, transClient = transClient, dataManager = dm, bkClient = bkClient, debug = verbose, transID = transID )  ################
     # Select runs, or all
     runsDictList = __getRuns( transID, runList, byRuns, seList, status )
     if runList and [run['RunNumber'] for run in runsDictList] == [None]:
