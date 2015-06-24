@@ -379,7 +379,7 @@ class TransformationDB( DIRACTransformationDB ):
         return res
 
     # We must also copy the run table entries if any
-    result = self.getTransformationRuns( {'TransformationID': transID} )
+    result = self.getTransformationRuns( {'TransformationID': originalID} )
     if not result['OK']:
       return result
     for runDict in res['Value']:
