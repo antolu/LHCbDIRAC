@@ -123,6 +123,29 @@ function diracInstallCommand(){
 }
 
 
+#.............................................................................
+#
+# updateToTrunk:
+#
+# Simply update the LHCbDIRAC code to the trunk version
+#
+#.............................................................................
+
+
+function updateToTrunk(){
+	echo '[updateToTrunk]'
+	cd $WORKSPACE/
+
+	if [ -d "LHCbDIRAC" ];
+	then
+		mv LHCbDIRAC LHCbDIRAC.bak;
+	else
+		echo "There is no previous LHCbDIRAC directory ??!!!"
+		ls
+	fi
+	svn co http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC/ -q
+}
+
 #-------------------------------------------------------------------------------
 # Here is where the real functions start
 #-------------------------------------------------------------------------------
