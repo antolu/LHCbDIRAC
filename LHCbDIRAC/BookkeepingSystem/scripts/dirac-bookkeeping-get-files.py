@@ -108,7 +108,7 @@ outputStr = '%s %s %s %s %s' % ( 'FileName'.ljust( 100 ),
                                  'Size'.ljust( 10 ),
                                  'GUID'.ljust( 40 ),
                                  'Replica'.ljust( 8 ),
-                                 'Visible'.ljust( 8 ) )
+                                 'Visibility'.ljust( 8 ) )
 gLogger.always( outputStr )
 nFiles = 0
 for lfn in sorted( fileDict ):
@@ -116,7 +116,7 @@ for lfn in sorted( fileDict ):
   size = metadata['FileSize']
   guid = metadata['GUID']
   hasReplica = metadata['GotReplica']
-  visible = metadata.get( 'Visible', '?' )
+  visible = metadata.get( 'VisibilityFlag', '?' )
   outputStr = '%s %s %s %s %s' % ( lfn.ljust( 100 ),
                                    str( size ).ljust( 10 ),
                                    guid.ljust( 40 ),
