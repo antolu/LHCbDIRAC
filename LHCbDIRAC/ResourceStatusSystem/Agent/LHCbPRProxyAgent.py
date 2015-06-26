@@ -70,7 +70,7 @@ class LHCbPRProxyAgent( AgentModule ):
       os.environ[ 'X509_USER_PROXY' ] = '/opt/dirac/pro/work/ResourceStatus/LHCbPRProxyAgent/.shifterCred'
       import shutil
       shutil.copyfile( diracCred, lhcbprCred )
-      os.chmod( lhcbprCred, stat.S_IRUSR | stat.S_IWUSR )
+      os.chmod( lhcbprCred, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP)
 
       self.log.info( 'Loop' )
       self.log.info( os.environ[ 'X509_USER_PROXY' ] )
