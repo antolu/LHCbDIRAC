@@ -205,15 +205,15 @@ if __name__ == "__main__":
     if unique:
       res = tr.getTransformation( transName )
       if res['OK']:
-        gLogger.warn( "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] ) )
+        gLogger.notice( "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] ) )
         continue
       res = tr.getTransformation( transName + '/' )
       if res['OK']:
-        gLogger.warn( "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] ) )
+        gLogger.notice( "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] ) )
         continue
       res = tr.getTransformation( transName.replace( '-/', '-' ) )
       if res['OK']:
-        gLogger.warn( "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] ) )
+        gLogger.notice( "Transformation %s already exists with ID %d" % ( transName, res['Value']['TransformationID'] ) )
         continue
     transformation.setTransformationName( transName )
     transformation.setTransformationGroup( transGroup )
