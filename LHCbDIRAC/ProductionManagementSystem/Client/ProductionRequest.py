@@ -290,6 +290,7 @@ class ProductionRequest( object ):
     extendBy = op.getValue( "Productions/MCTesting/extendBy", 20 )
 
     prod.setJobParameters( {'Destination': destination} )
+    prod.LHCbJob.workflow.removeParameter( 'BannedSites' )
     prod.setParameter( 'numberOfEvents', 'string', str( numberOfEvents ), 'Number of events to test' )
 
     # add '1' to the stepMask and add GAUSSHIST to the fileMask
