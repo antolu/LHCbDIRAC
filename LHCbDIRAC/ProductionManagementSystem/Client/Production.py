@@ -44,7 +44,7 @@ class Production( object ):
     self.opsHelper = Operations()
 
     self.histogramName = self.opsHelper.getValue( 'Productions/HistogramName',
-                                                  '@{applicationName}_@{STEP_ID}_Hist.root' )
+                                                  '@{applicationName}_@{STEP_ID}.Hist.root' )
     self.bkSteps = {}
     self.prodGroup = ''
     self.plugin = ''

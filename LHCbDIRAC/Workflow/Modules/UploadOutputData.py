@@ -71,7 +71,7 @@ class UploadOutputData( ModuleBase ):
     # Use LHCb utility for local running via jobexec
     if self.workflow_commons.has_key( 'ProductionOutputData' ):
       self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
-      if not type( self.prodOutputLFNs ) == type( [] ):
+      if isinstance( self.prodOutputLFNs, str ):
         self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )]
     else:
       self.log.info( "ProductionOutputData parameter not found, creating on the fly" )
