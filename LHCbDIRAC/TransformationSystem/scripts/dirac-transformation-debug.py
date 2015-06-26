@@ -282,28 +282,24 @@ def __fillStatsPerSE( rep, listSEs ):
 def __getRequestClient( requestID ):
   level = gLogger.getLevel()
   gLogger.setLevel( 'FATAL' )
-  if not requestID:
-    return None, None
-  for client in ( reqClient, requestClient, None ):
-    try:
-      if not client:
-        print "No such request found: %s" % requestID
-        return None, None
-      else:
-        res = client.getRequestInfo( requestID )
-        if res['OK']:
-          requestName = res['Value'][2]
-          return client, requestName
-    except:
-      pass
-    finally:
-      gLogger.setLevel( level )
+  try:
+    if not requestID:
+      return None
+    res = reqClient.getRequestInfo( requestID )
+    if res['OK']:
+      return res['Value'][2]
+    print "No such request found: %s" % requestID
+    return None
+  except:
+    return None
+  finally:
+    gLogger.setLevel( level )
 
 listOfAssignedRequests = {}
-def __getAssignedRequests( client ):
+def __getAssignedRequests():
   global listOfAssignedRequests
   if not listOfAssignedRequests:
-    res = client.getRequestIDsList( ['Assigned'], limit = 10000 )
+    res = reqClient.getRequestIDsList( ['Assigned'], limit = 10000 )
     if res['OK']:
       listOfAssignedRequests = [reqID for reqID , _x, _y in res['Value']]
   return listOfAssignedRequests
@@ -312,23 +308,8 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
   requestID = int( task['ExternalID'] )
   taskID = task['TaskID']
   taskName = '%08d_%08d' % ( transID, taskID )
-  client, requestName = __getRequestClient( requestID )
-  if not client:
-    if not kickRequests:
-      print "%d files can be reset Unused, use --KickRequest" % len( lfnsInTask )
-    else:
-      res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnsInTask, force = True )
-      if res['OK']:
-        print "\tRequest was not found: %d files were reset Unused" % len( lfnsInTask )
-    return 0
+  requestName = __getRequestClient( requestID )
 
-  if not taskCompleted and task['ExternalStatus'] == 'Failed':
-    if kickRequests:
-      res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnsInTask, force = True )
-      if res['OK']:
-        print "\tTask is failed: %d files were reset Unused" % len( lfnsInTask )
-    else:
-      print "\tTask is failed: %d files could be reset Unused: use --KickRequests option" % len( lfnsInTask )
   if taskCompleted and ( task['ExternalStatus'] not in ( 'Done', 'Failed' ) or status in ( 'Assigned', 'Problematic' ) ):
     prString = "\tTask %s is completed: no %s replicas" % ( taskName, dmFileStatusComment )
     if kickRequests:
@@ -340,22 +321,24 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     else:
         prString += " - To mark them done, use option --KickRequests"
     print prString
-  if isinstance( client, ReqClient ):
-    assignedRequests = __getAssignedRequests( client )
-    res = client.peekRequest( requestID )
-    if res['OK']:
-      request = res['Value']
-      requestStatus = request.Status if request.RequestID not in assignedRequests else 'Assigned'
-      if requestStatus != task['ExternalStatus']:
-        print '\tRequest status:', requestStatus, 'updated last', request.LastUpdate
-    else:
-      print "Failed to peek request:", res['Message']
-      requestStatus = 'Unknown'
-  else:
-    requestStatus = task['ExternalStatus']
-    request = None
+  assignedRequests = __getAssignedRequests()
+  res = reqClient.peekRequest( requestID )
+  if res['OK']:
+    request = res['Value']
+    requestStatus = request.Status if request.RequestID not in assignedRequests else 'Assigned'
+    if requestStatus != task['ExternalStatus']:
+      print '\tRequest status:', requestStatus, 'updated last', request.LastUpdate
+    if task['ExternalStatus'] == 'Failed':
+      # Find out why this task is failed
+      for i, op in enumerate( request ):
+        if op.Status == 'Failed':
+          printOperation( ( i, op ), onlyFailed = True )
 
-  res = client.getRequestFileStatus( requestID, lfnsInTask )
+  else:
+    print "Failed to peek request:", res['Message']
+    requestStatus = 'Unknown'
+
+  res = reqClient.getRequestFileStatus( requestID, lfnsInTask )
   if res['OK']:
     reqFiles = res['Value']
     statFiles = {}
@@ -369,12 +352,8 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
       if not kickRequests:
         prString += ": it should be marked as Failed, use --KickRequests"
       else:
-        if isinstance( client, ReqClient ):
-          request.Status = 'Failed'
-          res = client.putRequest( request )
-        else:
-          failedFiles += reqFiles.keys()
-          res = client.setRequestStatus( requestID, 'Failed' )
+        request.Status = 'Failed'
+        res = reqClient.putRequest( request )
         if res['OK']:
           prString += ": request set to Failed"
         else:
@@ -411,14 +390,14 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
       print "\tRequest stuck:", request.RequestID, 'Updated', request.LastUpdate
       toBeKicked += 1
       if kickRequests:
-        res = client.putRequest( request )
+        res = reqClient.putRequest( request )
         if res['OK']:
           print '\tRequest %d is reset' % requestID
         else:
           print '\tError resetting request', res['Message']
   else:
     selectDict = { 'RequestID':requestID}
-    res = client.getRequestSummaryWeb( selectDict, [], 0, 100000 )
+    res = reqClient.getRequestSummaryWeb( selectDict, [], 0, 100000 )
     if res['OK']:
       params = res['Value']['ParameterNames']
       records = res['Value']['Records']
@@ -435,7 +414,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
           print subReqStr
           toBeKicked += 1
           if kickRequests:
-            res = client.setRequestStatus( requestID, 'Waiting' )
+            res = reqClient.setRequestStatus( requestID, 'Waiting' )
             if res['OK']:
               print '\tRequest %d reset Waiting' % requestID
             else:
@@ -1040,27 +1019,20 @@ def __checkWaitingTasks( transID ):
       if status == 'Orphan':
         status = 'Failed'
       for taskID, requestID in ids:
-        client, requestName = __getRequestClient( requestID )
-        if client and requestName:
+        requestName = __getRequestClient( requestID )
+        if requestName:
           res = transClient.setTaskStatus( transID, taskID, status )
           if not res['OK']:
             print "Error setting task %s to %s" % ( requestID, status ), res['Message']
-          if isinstance( client, ReqClient ):
-            res = client.peekRequest( requestID )
-            if res['OK']:
-              request = res['Value']
-              request.Status = status
-              res = client.putRequest( request )
-              if res['OK']:
-                fixed += 1
-            if not res['OK']:
-              print "Error setting %s to %s" % ( requestID, status ), res['Message']
-          else:
-            res = client.setRequestStatus( requestID, status )
+          res = reqClient.peekRequest( requestID )
+          if res['OK']:
+            request = res['Value']
+            request.Status = status
+            res = reqClient.putRequest( request )
             if res['OK']:
               fixed += 1
-            else:
-              print "Error setting %s to %s" % ( requestID, status ), res['Message']
+          if not res['OK']:
+            print "Error setting %s to %s" % ( requestID, status ), res['Message']
       print '\t%d requests set to status %s' % ( fixed, status )
   if not kickRequests:
     print 'Use --KickRequests to fix them'
@@ -1190,7 +1162,7 @@ if __name__ == "__main__":
   transList = __getTransformations( Script.getPositionalArgs() )
 
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-  from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
+  from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient, printOperation
   from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -1203,7 +1175,6 @@ if __name__ == "__main__":
   bkClient = BookkeepingClient()
   transClient = TransformationClient()
   reqClient = ReqClient()
-  requestClient = None
   dm = DataManager()
   fc = FileCatalog()
   dmTransTypes = ( "Replication", "Removal" )
@@ -1273,7 +1244,10 @@ if __name__ == "__main__":
       # Run display
       if ( byRuns and runID ) or verbose:
         files, processed = __filesProcessed( transID, runID )
-        prString = "Run: %d" % runID
+        if runID:
+          prString = "Run: %d" % runID
+        else:
+          prString = 'No run'
         if runStatus:
           prString += " (%s)" % runStatus
         prString += " - %d files (SelectedSite: %s), %d processed, status: %s" % ( files, SEs, processed, runStatus )
@@ -1301,7 +1275,7 @@ if __name__ == "__main__":
       for fileDict in transFilesList:
         if not allTasks:
           taskDict.setdefault( fileDict['TaskID'], [] ).append( fileDict['LFN'] )
-          if status == 'Problematic' and not fileDict['TaskID']:
+          if 'Problematic' in status and not fileDict['TaskID']:
             problematicFiles.append( fileDict['LFN'] )
         else:
           # Get all tasks associated to that file
@@ -1345,7 +1319,7 @@ if __name__ == "__main__":
       # Now loop on all tasks
       jobsForLfn = {}
       if verbose:
-        print "Tasks:", ' '.join( sorted( taskDict ) )
+        print "Tasks:", ','.join( [str( taskID ) for taskID in sorted( taskDict )] )
       for taskID in sorted( taskList ) if taskList else sorted( taskDict ):
         if taskID not in taskDict:
           print 'Task %s not found in the transformation files table' % taskID
@@ -1353,7 +1327,9 @@ if __name__ == "__main__":
         else:
           lfnsInTask = taskDict[taskID]
         task = __getTask( transID, taskID )
-        if not task: continue
+        if not task:
+          continue
+        # Analyse jobs
         if byJobs and taskType == 'Job':
           job = task['ExternalID']
           lfns = set( lfnsInTask if lfnsInTask else [''] ) & set( [fileDict['LFN'] for fileDict in transFilesList] )
@@ -1375,7 +1351,7 @@ if __name__ == "__main__":
         taskCompleted = not lfnList
 
         # Check problematic files
-        if status == 'Problematic':
+        if 'Problematic' in status:
           __checkReplicasForProblematic( lfnsInTask, replicas )
 
         # Collect statistics per SE
@@ -1400,7 +1376,7 @@ if __name__ == "__main__":
           print ""
       if byJobs and jobsForLfn:
         __checkJobs( jobsForLfn, byFiles, checkLogs )
-    if status == 'Problematic' and nbReplicasProblematic:
+    if 'Problematic' in status and nbReplicasProblematic:
       __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas, failedFiles, fixIt )
     if toBeKicked:
       if kickRequests:
