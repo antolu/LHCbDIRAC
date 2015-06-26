@@ -431,7 +431,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for runID in set( runFileDict ) & set( runSEDict ):
       runLfns = runFileDict[runID]
       assignedSE = runSEDict[runID]
-      runSEs = set( assignedSE.split( ',' ) ) if isinstance( assignedSE, basestring ) else set()
+      runSEs = set( assignedSE.split( ',' ) ) if assignedSE and isinstance( assignedSE, basestring ) else set()
       # Now determine where these files should go
       # Group by location
       update = False
