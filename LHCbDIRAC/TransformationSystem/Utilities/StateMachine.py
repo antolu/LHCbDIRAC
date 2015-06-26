@@ -16,8 +16,10 @@ class TransformationFilesStateMachine( LHCbStateMachine ):
 
     super( TransformationFilesStateMachine, self ).__init__( state )
 
-    self.states = {'Unused-inherited'     : State( 13, ['Unused', 'Processed-inherited', 'MaxReset-inherited'], defState = 'Unused-inherited' ),
-                   'Assigned-inherited'   : State( 12, ['Unused', 'Processed-inherited', 'MaxReset-inherited'], defState = 'Assigned-inherited' ),
+    self.states = {'Unused-inherited'     : State( 13, ['Unused', 'Processed-inherited', 'MaxReset-inherited'],
+                                                   defState = 'Unused-inherited' ),
+                   'Assigned-inherited'   : State( 12, ['Unused', 'Processed-inherited', 'MaxReset-inherited'],
+                                                   defState = 'Assigned-inherited' ),
                    'MaxReset-inherited'   : State( 11, ['Unused'], defState = 'MaxReset-inherited' ),
                    'Processed-inherited'  : State( 10 ),  # final state
                    'Moved'        : State( 9 ),  # final state
