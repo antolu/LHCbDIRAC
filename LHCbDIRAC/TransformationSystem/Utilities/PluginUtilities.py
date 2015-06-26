@@ -275,7 +275,7 @@ class PluginUtilities( PluginUtilities ):
 
     # ubeda: I do not fully understand this 'hack'
     if token == 'LHCb-Tape':
-      self.logVerbose( 'Hardocoded LHCb-Tape space to 1000.' )
+      self.logVerbose( 'Hardcoded LHCb-Tape space to 1000.' )
       free = 1000.
 
     self.logVerbose( 'Free space for SE %s, token %s: %d' % ( se, token, free ) )
