@@ -369,8 +369,8 @@ class TransformationDB( DIRACTransformationDB ):
             status = "%s-inherited" % status
             if taskID:
               taskID = 1000000 * int( originalID ) + int( taskID )
-          req = "%s (%d,'%s',%d,%d,'%s',UTC_TIMESTAMP(),%d,%d,'%s',%d)," % ( req, transID, status, taskID, fileID,
-                                                                    targetSE, runNumber, size, fileType, rawAncestors )
+          req = "%s (%d,'%s',%s,%d,'%s',UTC_TIMESTAMP(),%s,%s,'%s',%s)," % ( req, transID, status, taskID, fileID, targetSE,
+                                                                             runNumber, size, fileType, rawAncestors )
       if not candidates:
         continue
       req = req.rstrip( "," )
