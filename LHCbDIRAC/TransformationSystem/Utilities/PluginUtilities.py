@@ -4,7 +4,6 @@
 __RCSID__ = "$Id$"
 
 import os
-import time
 import datetime
 import random
 
@@ -12,13 +11,13 @@ from DIRAC import gConfig, gLogger, S_OK, S_ERROR, exit as DIRACExit
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
-from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities, isArchive, isFailover
+from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities, isArchive, isFailover, getActiveSEs
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient, BKClientWithRetry
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 class PluginUtilities( PluginUtilities ):
@@ -67,7 +66,6 @@ class PluginUtilities( PluginUtilities ):
     self.cacheHitFrequency = max( 0., 1 - self.getPluginParam( 'RunCacheUpdateFrequency', 0.05 ) )
     self.runExpiredCache = {}
     self.__recoType = ''
-    self.dmsHelper = DMSHelpers()
 
 
   def setDebug( self, val ):
@@ -703,29 +701,6 @@ class PluginUtilities( PluginUtilities ):
       except:
         self.logError( "Could not write cache file %s" % self.cacheFile )
 
-  @timeThis
-  def getFileSize( self, lfns ):
-    """ Get file size from a cache, if not from the catalog
-    """
-    fileSizes = {}
-    for lfn in [lfn for lfn in lfns if lfn in self.cachedLFNSize]:
-      fileSizes[lfn] = self.cachedLFNSize[lfn]
-    if fileSizes:
-      self.logVerbose( "Cache hit for File size for %d files" % len( fileSizes ) )
-    lfns = [lfn for lfn in lfns if lfn not in self.cachedLFNSize]
-    if lfns:
-      startTime = time.time()
-      res = self.fc.getFileSize( lfns )
-      if not res['OK']:
-        return S_ERROR( "Failed to get sizes for all files: " % res['Message'] )
-      if res['Value']['Failed']:
-        errorReason = sorted( set( res['Value']['Failed'].values() ) )
-        self.logWarn( "Failed to get sizes for %d files:" % len( res['Value']['Failed'] ), errorReason )
-      fileSizes.update( res['Value']['Successful'] )
-      self.cachedLFNSize.update( ( res['Value']['Successful'] ) )
-      self.logVerbose( "Timing for getting size of %d files from catalog: %.3f seconds" % ( len( lfns ), ( time.time() - startTime ) ) )
-    return S_OK( fileSizes )
-
   def setRunForFiles( self, lfns ):
     res = self.bkClient.getFileMetadata( lfns )
     runFiles = {}
@@ -853,9 +828,4 @@ def optimizeTasks( tasks ):
   for ses, lfns in tasks:
     taskDict.setdefault( ses, [] ).extend( lfns )
   return taskDict.items()
-
-def getActiveSEs( seList, access = 'Write' ):
-  """ Utility function - uses the StorageElement cached status
-  """
-  return [ se for se in seList if StorageElement( se ).getStatus().get( 'Value', {} ).get( access, False )]
 
