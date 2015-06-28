@@ -11,7 +11,6 @@ from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
 from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
-from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
 from DIRAC.TransformationSystem.Client.Utilities import getFileGroups, sortExistingSEs
 

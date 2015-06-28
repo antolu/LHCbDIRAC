@@ -13,7 +13,6 @@ from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
-from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities, isArchive, isFailover, getActiveSEs
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient, BKClientWithRetry
@@ -26,7 +25,7 @@ class PluginUtilities( PluginUtilities ):
   """
 
   def __init__( self, plugin = 'LHCbStandard', transClient = None, dataManager = None, fc = None,
-                bkClient = None, rmClient = None, resourceStatus = None,
+                bkClient = None, rmClient = None,
                 debug = False, transInThread = None, transID = None ):
     """
     c'tor
@@ -43,10 +42,6 @@ class PluginUtilities( PluginUtilities ):
       self.rmClient = ReqClient()
     else:
       self.rmClient = rmClient
-    if resourceStatus is None:
-      self.resourceStatus = ResourceStatus()
-    else:
-      self.resourceStatus = resourceStatus
 
     super( PluginUtilities, self ).__init__( plugin = plugin, transClient = self.transClient,
                                              dataManager = dataManager, fc = fc,
