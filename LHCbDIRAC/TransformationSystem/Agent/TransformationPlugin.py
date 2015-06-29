@@ -14,11 +14,12 @@ from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
 from DIRAC.TransformationSystem.Client.Utilities import getFileGroups, sortExistingSEs
 
-from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities \
-     import PluginUtilities, groupByRun, getRemovalPlugins, getActiveSEs
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities \
+     import PluginUtilities, groupByRun, getRemovalPlugins, getActiveSEs
 
 def makeBKPath( bkDict ):
   """
@@ -70,6 +71,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.transFiles = []
     self.transID = None
     self.debug = debug
+    if transClient is None:
+      self.transClient = TransformationClient()
+    else:
+      self.transClient = transClient
+
     self.util = PluginUtilities( plugin = plugin,
                                  transClient = transClient, dataManager = dataManager,
                                  bkClient = self.bkClient, rmClient = self.rmClient,
