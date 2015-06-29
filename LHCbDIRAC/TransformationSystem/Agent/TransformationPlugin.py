@@ -25,7 +25,7 @@ def makeBKPath( bkDict ):
   Builds a path from the dictionary
   """
   fileType = bkDict.get( 'FileType', '.' )
-  if type( fileType ) == type( [] ):
+  if isinstance( fileType, list ):
     fileType = ','.join( fileType )
   path = os.path.join( '/',
                        bkDict.get( 'ConfigName', '' ),
@@ -46,7 +46,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __init__( self, plugin,
                 transClient = None, dataManager = None,
-                bkkClient = None, rmClient = None, rss = None,
+                bkkClient = None, rmClient = None,
                 debug = False, transInThread = None ):
     """ The clients can be passed in.
     """

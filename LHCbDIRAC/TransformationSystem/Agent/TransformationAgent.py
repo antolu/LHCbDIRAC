@@ -7,7 +7,6 @@ __RCSID__ = "$Id$"
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Agent.TransformationAgent import TransformationAgent as DIRACTransformationAgent
 from DIRAC.TransformationSystem.Agent.TransformationAgent import AGENT_NAME
-from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -36,12 +35,10 @@ class TransformationAgent( DIRACTransformationAgent ):
 
     threadTransformationClient = TransformationClient()
     threadRMClient = ResourceManagementClient()
-    threadResourceStatus = ResourceStatus()
     threadBkk = BookkeepingClient()
 
     res.update( {'TransformationClient':threadTransformationClient,
                  'ResourceManagementClient':threadRMClient,
-                 'ResourceStatus':threadResourceStatus,
                  'BookkeepingClient':threadBkk} )
 
     return res
@@ -60,7 +57,6 @@ class TransformationAgent( DIRACTransformationAgent ):
                                                                transClient = clients['TransformationClient'],
                                                                bkkClient = clients['BookkeepingClient'],
                                                                rmClient = clients['ResourceManagementClient'],
-                                                               rss = clients['ResourceStatus'],
                                                                transInThread = self.transInThread )
     except Exception as x:
       gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ), '', x )
