@@ -1,15 +1,12 @@
-########################################################################
-# $HeadURL$
-########################################################################
-
-""" File Catalog Client Command Line Interface. """
+""" File Catalog Client Command Line Interface. Extension for LHCb, for consumers.
+"""
 
 __RCSID__ = "$Id$"
 
 from DIRAC import gLogger
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClientCLI import SystemAdministratorClientCLI as DIRACSystemAdministratorClientCLI
-from LHCbDIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
+from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
 
 class SystemAdministratorClientCLI( DIRACSystemAdministratorClientCLI ):
   """
