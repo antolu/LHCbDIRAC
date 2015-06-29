@@ -13,13 +13,14 @@ from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
-from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities, isArchive, isFailover, getActiveSEs
+from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities as DIRACPluginUtilities
+from DIRAC.TransformationSystem.Client.Utilities import isArchive, isFailover, getActiveSEs
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient, BKClientWithRetry
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-class PluginUtilities( PluginUtilities ):
+class PluginUtilities( DIRACPluginUtilities ):
   """
   Utility class used by plugins
   """
