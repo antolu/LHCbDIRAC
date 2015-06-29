@@ -204,7 +204,7 @@ exec 2>&1
 """#!/bin/bash
 echo %(controlDir)s/%(system)s/%(component)s/stop_agent
 touch %(controlDir)s/%(system)s/%(component)s/stop_agent
-""" % {'controlDir': runitDir,
+""" % {'controlDir': InstallTools.runitDir,
        'system' : system,
        'component': component } )
       fd.close()
