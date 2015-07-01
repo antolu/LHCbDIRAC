@@ -62,6 +62,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.cacheHitFrequency = max( 0., 1 - self.getPluginParam( 'RunCacheUpdateFrequency', 0.05 ) )
     self.runExpiredCache = {}
     self.__recoType = ''
+    self.dmsHelper = DMSHelpers()
+    self.runDestinations = {}
 
 
   def setDebug( self, val ):
@@ -716,6 +718,68 @@ class PluginUtilities( DIRACPluginUtilities ):
     else:
       self.logError( "Error getting metadata for %d files" % len( lfns ), res['Message'] )
     return runFiles
+
+  def getTransQuery( self, transReplicas ):
+    # Get BK query for this transformation as the BK path is relative to that one
+    res = self.transClient.getBookkeepingQuery( self.transID )
+    if not res['OK']:
+      self.logError( "Failed to get BK query for transformation", res['Message'] )
+      return None
+    transQuery = res['Value']
+    if 'ProcessingPass' not in transQuery:
+      # Get processing pass of the first file... This assumes all have the same...
+      lfn = transReplicas.keys()[0]
+      res = self.bkClient.getDirectoryMetadata( lfn )
+      if not res['OK']:
+        self.logError( "Error getting directory metadata", res['Message'] )
+        return None
+      transQuery = res['Value']['Successful'].get( lfn, [{}] )[0]
+      # Strip off most of it
+      for key in ( 'ConditionDescription', 'FileType', 'Production', 'EventType' ):
+        transQuery.pop( key, None )
+    return transQuery
+
+  def cleanFiles( self, transFiles, transReplicas, status = None ):
+    """
+    Remove from transFiles all files without a replica and set their status
+    """
+    noReplicaFiles = []
+    for fileDict in [fileDict for fileDict in transFiles]:
+      if fileDict['LFN'] not in transReplicas:
+        noReplicaFiles.append( fileDict['LFN'] )
+        transFiles.remove( fileDict )
+    if noReplicaFiles:
+      if status is None:
+        status = 'Problematic' if self.plugin not in getRemovalPlugins() else 'Processed'
+      info = 'without replicas' if status == 'Problematic' else 'already processed'
+      res = self.transClient.setFileStatusForTransformation( self.transID, status, noReplicaFiles )
+      if not res['OK']:
+        self.logError( 'Error setting file status for %d files' % len( noReplicaFiles ), res['Message'] )
+      else:
+        self.logInfo( 'Found %d files %s, status set to %s' % ( len( noReplicaFiles ), info, status ) )
+
+  def __getRunDestinations( self, runIDList ):
+    runSet = set( runIDList ) - set( self.runDestinations )
+    if runSet:
+      # Try and get a run destination from TS
+      res = self.transClient.getDestinationForRun( list( runSet ) )
+      if res['OK']:
+        dest = res['Value']
+        if dest:
+          if isinstance( dest, list ):
+            dest = dict( dest )
+          for runID in [runID for runID in runSet if dest.get( runID )]:
+            self.runDestinations[runID] = dest[runID]
+
+  def getSEForDestination( self, runID, targets ):
+    """ get the information on destination SE from within a list """
+    self.__getRunDestinations( [runID] )
+    site = self.runDestinations.get( runID )
+    if site:
+      self.logVerbose( 'Destination found for run %d: %s' % ( runID, site ) )
+      res = self.dmsHelper.getSEInGroupAtSite( targets, site )
+      return res.get( 'Value' )
+    return None
 
 
 #=================================================================
