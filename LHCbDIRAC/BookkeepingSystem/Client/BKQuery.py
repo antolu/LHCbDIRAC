@@ -10,6 +10,24 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
+def makeBKPath( bkDict ):
+  """
+  Builds a path from the dictionary
+  """
+  fileType = bkDict.get( 'FileType', '.' )
+  if isinstance( fileType, list ):
+    fileType = ','.join( fileType )
+  path = os.path.join( '/',
+                       bkDict.get( 'ConfigName', '' ),
+                       bkDict.get( 'ConfigVersion', '' ),
+                       bkDict.get( 'ConditionDescription', '.' ),
+                       bkDict.get( 'ProcessingPass', '.' )[1:],
+                       str( bkDict.get( 'EventType', '.' ) ).replace( '90000000', '.' ),
+                       fileType ).replace( '/.', '/' )
+  while path.endswith( '/' ):
+    path = path[:-1]
+  return path.replace( 'RealData', 'Real Data' )
+
 class BKQuery():
   """
   It used to build a dictionary using a given Bookkeeping path
