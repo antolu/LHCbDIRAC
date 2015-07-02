@@ -43,10 +43,12 @@ def informPeople( rec, oldstate, state, author, inform ):
 
   footer = "\n\nNOTE: it is an automated notification."
   footer += " Don't reply please.\n"
-  footer += "DIRAC Web portal: https://lhcb-web-dirac.cern.ch/DIRAC/%s/" % \
+  
+  footer += "DIRAC Web portal: https://lhcb-portal-dirac.cern.ch/DIRAC/s:%s/g:" % \
            PathFinder.getDIRACSetup()
-  ppath = '/Production/ProductionRequest/display\n\n'
-
+  
+  ppath = "/?view=tabs&theme=Grey&url_state=1|*LHCbDIRAC.ProductionRequestManager.classes.ProductionRequestManager:,\n\n" 
+  
   ppath += 'The request details:\n'
   ppath += '  Type: %s' % str( rec['RequestType'] )
   ppath += '  Name: %s\n' % str( rec['RequestName'] )
