@@ -52,7 +52,7 @@ class ProductionsStateMachine( LHCbStateMachine ):
 
     # Current states
     self.states = {'Cleaned'              : State( 15 ),  # final state
-                   'Cleaning'             : State( 14, ['Cleaned'],
+                   'Cleaning'             : State( 14, ['Cleaned', 'TransformationCleaned'],
                                                    defState = 'Cleaning' ),
                    'Completing'           : State( 13, ['Validating', 'Cleaning'],
                                                    defState = 'Completing' ),
@@ -77,8 +77,8 @@ class ProductionsStateMachine( LHCbStateMachine ):
                                                    defState = 'ValidatingInput' ),
                    'Flush'                : State( 3, ['Active', 'Cleaning'],
                                                    defState = 'Active' ),
-                   'Idle'                 : State( 2, ['Active', 'ValidatingInput', 'ValidatingOutput', 'Completed',
-                                                       'Cleaning', 'Testing'],
+                   'Idle'                 : State( 2, ['Active', 'Stopped' 'ValidatingInput',
+                                                       'ValidatingOutput', 'Completed', 'Cleaning', 'Testing'],
                                                    defState = 'Idle' ),
                    'Active'               : State( 1, ['Flush', 'Idle', 'Stopped', 'Completing', 'ValidatingInput',
                                                        'ValidatingOutput', 'Cleaning', 'TransformationCleaned'],
