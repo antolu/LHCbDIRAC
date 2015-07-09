@@ -184,13 +184,6 @@ class WMSSecureGW( RequestHandler ):
     # Not authorized!
     return S_ERROR( "You can't get proxies! Bad boy!" )
 
-  ##########################################################################################
-  def transfer_fromClient( self, fileId, token, fileSize, fileHelper ):
-    """
-    Receive a file as a sandbox
-    """
-    return  SandboxStoreHandler.transfer_fromClient( self, fileId, token, fileSize, fileHelper )
-
 
  ########################################################################
 
