@@ -26,7 +26,7 @@ DASHBOARD_LINK = 'https://eindex.cern.ch/dashboard'
 
 # # SE: RAL-DST, CERN-DST-EOS, RAL-ARCHIVE, PIC-DST, SARA_M-DST
 
-SE_WEIGHTS = {'CERN.*': 10,
+SE_WEIGHTS = {'CERN.*': 0,
               '.*-ARCHIVE':-1}
 SE_DEFAULT_WEIGHT = 1
 
