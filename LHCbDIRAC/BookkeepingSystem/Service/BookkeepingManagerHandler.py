@@ -1725,12 +1725,12 @@ class BookkeepingManagerHandler( RequestHandler ):
     
     replicaFlag = in_dict.get( 'ReplicaFlag', 'Yes' )
     visible = in_dict.get( 'Visible', 'Y' )
-    
+    isFinished = in_dict.get("Finished", 'ALL')
     result = S_ERROR()
     if runnb == default and evt == default:
       result = S_ERROR( 'Run number or event type must be given!' )
     else:
-      retVal = dataMGMT_.getNbOfRawFiles( runnb, evt, replicaFlag,  visible)
+      retVal = dataMGMT_.getNbOfRawFiles( runnb, evt, replicaFlag,  visible, isFinished)
       if retVal['OK']:
         result = S_OK( retVal['Value'][0][0] )
       else:

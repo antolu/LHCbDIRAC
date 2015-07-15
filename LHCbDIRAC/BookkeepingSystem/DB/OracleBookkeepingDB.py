@@ -4120,9 +4120,10 @@ and files.qualityid= dataquality.qualityid'
     # return self.dbR_.executeStoredProcedure('BOOKKEEPINGORACLEDB.getRunProcPass', [runnb])
 
   #############################################################################
-  def getNbOfRawFiles( self, runid, eventtype, replicaFlag = 'Yes', visible = 'Y' ):
+  def getNbOfRawFiles( self, runid, eventtype, replicaFlag = 'Yes', visible = 'Y', isFinished = default):
     """retuns the number of raw files"""
     condition = ''
+    tables = 'jobs j, files f'
     if eventtype != default:
       condition = ' and f.eventtypeid=%d' % ( eventtype )
     
@@ -4132,8 +4133,12 @@ and files.qualityid= dataquality.qualityid'
     if replicaFlag != default:
       condition += " and f.gotreplica='%s'" % ( replicaFlag )
     
-    command = " select count(*) from jobs j, files f where \
-    j.jobid=f.jobid and j.production<0 and j.runnumber=%d %s " % ( runid, condition )
+    if isFinished != default:
+      tables += ' ,runstatus r'
+      condition += " and j.runnumber=r.runnumber and r.finished='%s' " % isFinished
+    
+    command = " select count(*) from %s  where \
+    j.jobid=f.jobid and j.production<0 and j.runnumber=%d %s " % ( tables, runid, condition )
     return self.dbR_.query( command )
 
   #############################################################################

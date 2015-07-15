@@ -593,9 +593,9 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getProcessingPassId(fullpath)
 
   #############################################################################
-  def getNbOfRawFiles( self, runid, eventtype, replicaFlag, visible ):
+  def getNbOfRawFiles( self, runid, eventtype, replicaFlag, visible, isFinished ):
     "more info in the BookkeepingClient.py"
-    return self.getManager().getNbOfRawFiles( runid, eventtype, replicaFlag, visible )
+    return self.getManager().getNbOfRawFiles( runid, eventtype, replicaFlag, visible, isFinished )
 
   #############################################################################
   def getFileTypeVersion(self, lfn):
