@@ -4853,3 +4853,17 @@ and files.qualityid= dataquality.qualityid'
       for i in retVal['Value']:
         result['Successful'][diracJobid]['OutputFiles'] += [i[1]]
     return S_OK( result )
+
+  #############################################################################
+  def insertRunStatus( self, runnumber, jobId, isFinished = 'N' ):
+    """inserts the run status of a give run"""
+    result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertRunStatus', [runnumber, jobId, isFinished], False )
+    return result
+  
+  #############################################################################
+  def finishedRuns( self, runnumber ):
+    result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.setRunFinished', [runnumber], False )
+    if not result['OK']:
+      return result
+    else:
+      return S_OK( '%s is finished' % ( str( runnumber ) ) )

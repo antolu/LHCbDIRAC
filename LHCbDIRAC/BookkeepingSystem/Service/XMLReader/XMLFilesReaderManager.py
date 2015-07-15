@@ -379,6 +379,18 @@ class XMLFilesReaderManager:
         errorMessage = "Unable to add %s " % ( str( inputfile.getFileName() ) )
         return S_ERROR( errorMessage )
 
+    
+    if job.exists( 'RunNumber' ):
+      runnumber = job.getParam( 'RunNumber' ).getValue()
+      finished = job.getParam( 'IsFinished' ).getValue()
+      if finished not in ['Y', 'N']:
+        finished = 'N'
+      gLogger.info( "Registering the run status: Runnumber %s , JobId %s , Finished %s " % ( str( runnumber ), str( job.getJobId() ), finished ) )
+      result = dataManager_.insertRunStatus( runnumber, job.getJobId(), finished )
+      if not result['OK']:
+        dataManager_.deleteJob( job.getJobId() )
+        errorMessage = "Unable to add %s " % ( str( inputfile.getFileName() ) )
+        return S_ERROR( errorMessage )
 
     outputFiles = job.getJobOutputFiles()
     prod = job.getParam( 'Production' ).getValue()

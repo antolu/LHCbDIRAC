@@ -56,3 +56,7 @@ create or replace type metadata_table is table of metadata0bj;
 /
 create index jobs_fill_runnumber on jobs(fillnumber,runnumber);
 create index djobid on jobs(diracjobid);
+
+CREATE TABLE runstatus(runnumber NUMBER, JOBID NUMBER, FINISHED CHAR(1 BYTE) DEFAULT 'N',  
+CONSTRAINT PK_runstatus PRIMARY KEY (Runnumber, JOBID),
+CONSTRAINT FK_runstatus FOREIGN KEY(jobid) REFERENCES jobs(jobid));

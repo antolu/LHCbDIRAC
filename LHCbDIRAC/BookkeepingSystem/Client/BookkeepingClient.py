@@ -1033,7 +1033,12 @@ class BookkeepingClient:
       value = cPickle.load( open( file_name.name ) )
       file_name.close()
       return value
-
+  
+  def finishedRuns( self, runnumber ):
+    "It is used to set the run finished..."
+    server = self.__getServer()
+    return server.finishedRuns( long(runnumber) )
+    
 
 class BKClientWithRetry():
   """

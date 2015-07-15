@@ -703,3 +703,7 @@ class IBookkeepingDatabaseClient(object):
   def getJobInputOutputFiles(self, diracjobids):
     "more info in the BookkeepingClient.py"
     return self.getManager().getJobInputOutputFiles(diracjobids)
+  
+  def finishedRuns( self, runnumber ):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().finishedRuns(runnumber)

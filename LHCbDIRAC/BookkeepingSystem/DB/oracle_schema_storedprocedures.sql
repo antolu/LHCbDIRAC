@@ -178,6 +178,8 @@ procedure getDirectoryMetadata_new(lfns varchararray, a_Cursor out udt_RefCursor
 procedure bulkJobInfo(lfns varchararray, a_Cursor out udt_RefCursor);
 procedure bulkJobInfoForJobName(jobNames varchararray, a_Cursor out udt_RefCursor);
 procedure bulkJobInfoForJobId(jobids numberarray, a_Cursor out udt_RefCursor);
+procedure insertRunStatus(v_runnumber NUMBER, v_JobId NUMBER, v_Finished varchar2);
+procedure setRunFinished(v_runnumber number);
 end;
 /
 
@@ -1900,6 +1902,31 @@ FOR i in jobids.FIRST .. jobids.LAST LOOP
 END LOOP;
 open a_Cursor for select * from table(jobmeta);
 END;
+
+procedure insertRunStatus(v_runnumber NUMBER, v_JobId NUMBER, v_Finished varchar2)is
+begin
+    insert into runstatus(
+         runnumber,
+         JobId,
+         finished
+         ) VALUES(
+                v_runnumber,
+                v_JobId,
+                v_Finished);
+  COMMIT;
+  EXCEPTION
+  WHEN DUP_VAL_ON_INDEX THEN
+    DBMS_OUTPUT.PUT_LINE('The run is already exists'|| v_runnumber);
+  end;
+
+procedure setRunFinished(
+  v_runnumber number
+ )is
+ begin
+  update runstatus set Finished='Y' where runnumber=v_runnumber;
+  commit;
+end;
+
 
 END;
 /
