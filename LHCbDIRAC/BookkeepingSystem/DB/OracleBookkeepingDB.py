@@ -4861,8 +4861,8 @@ and files.qualityid= dataquality.qualityid'
     return result
   
   #############################################################################
-  def finishedRuns( self, runnumber ):
-    result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.setRunFinished', [runnumber], False )
+  def setRunStatusFinished( self, runnumber, isFinished ):
+    result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.setRunFinished', [runnumber, isFinished], False )
     if not result['OK']:
       return result
     else:

@@ -179,7 +179,7 @@ procedure bulkJobInfo(lfns varchararray, a_Cursor out udt_RefCursor);
 procedure bulkJobInfoForJobName(jobNames varchararray, a_Cursor out udt_RefCursor);
 procedure bulkJobInfoForJobId(jobids numberarray, a_Cursor out udt_RefCursor);
 procedure insertRunStatus(v_runnumber NUMBER, v_JobId NUMBER, v_Finished varchar2);
-procedure setRunFinished(v_runnumber number);
+procedure setRunFinished(v_runnumber number, isFinished varchar2);
 end;
 /
 
@@ -1916,15 +1916,20 @@ begin
   COMMIT;
   EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
-    DBMS_OUTPUT.PUT_LINE('The run is already exists'|| v_runnumber);
+   update runstatus set Finished= v_Finished where runnumber=v_runnumber and jobid=v_JobId;
   end;
 
 procedure setRunFinished(
-  v_runnumber number
+  v_runnumber number,
+  isFinished varchar2
  )is
  begin
-  update runstatus set Finished='Y' where runnumber=v_runnumber;
-  commit;
+  update runstatus set Finished= isFinished where runnumber=v_runnumber;
+ if SQL%ROWCOUNT = 0 then
+  raise_application_error(-20088, 'The '|| v_runnumber ||' does not exists in the bookkeeping database!');
+ else
+   commit;
+ end if;
 end;
 
 

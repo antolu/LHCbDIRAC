@@ -60,3 +60,4 @@ create index djobid on jobs(diracjobid);
 CREATE TABLE runstatus(runnumber NUMBER, JOBID NUMBER, FINISHED CHAR(1 BYTE) DEFAULT 'N',  
 CONSTRAINT PK_runstatus PRIMARY KEY (Runnumber, JOBID),
 CONSTRAINT FK_runstatus FOREIGN KEY(jobid) REFERENCES jobs(jobid));
+insert into runstatus (runnumber, jobid, finished) select runnumber, jobid, 'Y' from jobs where production < 0 and runnumber is not null;

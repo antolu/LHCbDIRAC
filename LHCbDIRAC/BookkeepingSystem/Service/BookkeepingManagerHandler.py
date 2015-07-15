@@ -1923,7 +1923,17 @@ class BookkeepingManagerHandler( RequestHandler ):
     """It returns the input and output files for a given DIRAC jobid"""
     return dataMGMT_.getJobInputOutputFiles( diracjobids )
   
-  types_finishedRuns = [LongType]
+  types_setRunOnlineFinished = [LongType]
   @staticmethod
-  def export_finishedRuns( self, runnumber ):
-    return dataMGMT_.getJobInputOutputFiles( runnumber )
+  def export_setRunOnlineFinished( runnumber ):
+    """You can set the runs finished"""
+    return dataMGMT_.setRunStatusFinished( runnumber, 'Y' )
+  
+  types_setRunOnlineNotFinished = [LongType]
+  @staticmethod
+  def export_setRunOnlineNotFinished( runnumber ):
+    """You can set the runs not finished"""
+    return dataMGMT_.setRunStatusFinished( runnumber, 'N' )
+  
+  
+  

@@ -1034,10 +1034,15 @@ class BookkeepingClient:
       file_name.close()
       return value
   
-  def finishedRuns( self, runnumber ):
+  def setRunOnlineFinished( self, runnumber ):
     "It is used to set the run finished..."
     server = self.__getServer()
-    return server.finishedRuns( long(runnumber) )
+    return server.setRunOnlineFinished( long(runnumber) )
+  
+  def setRunOnlineNotFinished( self, runnumber ):
+    "It is used to set the run not finished..."
+    server = self.__getServer()
+    return server.setRunOnlineNotFinished( long(runnumber) )
     
 
 class BKClientWithRetry():

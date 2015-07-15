@@ -360,6 +360,13 @@ class XMLFilesReaderManager:
           # The files which inherits the runs can be entered to the database
           return S_ERROR( 'The run number not greater 0!' )
 
+    finished = 'N'
+    if job.getParam( 'IsFinished' ):
+      finished = job.getParam( 'IsFinished' ).getValue()
+      if finished not in ['Y', 'N']:
+        finished = 'N'
+      job.removeParam( 'IsFinished' )
+          
     result = self.__insertJob( job )
 
     if not result['OK']:
@@ -382,9 +389,6 @@ class XMLFilesReaderManager:
     
     if job.exists( 'RunNumber' ):
       runnumber = job.getParam( 'RunNumber' ).getValue()
-      finished = job.getParam( 'IsFinished' ).getValue()
-      if finished not in ['Y', 'N']:
-        finished = 'N'
       gLogger.info( "Registering the run status: Runnumber %s , JobId %s , Finished %s " % ( str( runnumber ), str( job.getJobId() ), finished ) )
       result = dataManager_.insertRunStatus( runnumber, job.getJobId(), finished )
       if not result['OK']:

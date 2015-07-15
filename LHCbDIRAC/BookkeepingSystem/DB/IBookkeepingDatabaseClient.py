@@ -704,6 +704,12 @@ class IBookkeepingDatabaseClient(object):
     "more info in the BookkeepingClient.py"
     return self.getManager().getJobInputOutputFiles(diracjobids)
   
-  def finishedRuns( self, runnumber ):
+  #############################################################################
+  def insertRunStatus( self, runnumber, jobId, isFinished ):
     "more info in the BookkeepingClient.py"
-    return self.getManager().finishedRuns(runnumber)
+    return self.getManager().insertRunStatus( runnumber, jobId, isFinished )
+  
+  #############################################################################
+  def setRunStatusFinished( self, runnumber, isFinished ):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().setRunStatusFinished( runnumber, isFinished )
