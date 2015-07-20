@@ -232,6 +232,7 @@ class UsersAndGroups( AgentModule ):
       if not result[ 'OK' ]:
         self.__adminMsgs[ 'Errors' ].append( "Could not retrieve nickname for DN %s" % user[ 'DN' ] )
         self.log.error( "Could not get nickname for DN %s" % user[ 'DN' ] )
+        continue
       else:
         userName = result[ 'Value' ]
       if not userName:
