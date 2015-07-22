@@ -127,9 +127,12 @@ nsReplicas[lfn] == [ SE1, SE2...]
     Checks if the LFNs have descendants in the same transformation. Removes them from self.transReplicas
     and sets them 'Processed'
     """
+    self.util.logVerbose( 'Checking if %d files are processed' % len( self.transReplicas ) )
     descendants = self.util.getProcessedFiles( self.transReplicas.keys() )
+    self.util.logVerbose( 'Successful check for %d files' % len( descendants ) )
     if descendants:
       processedLfns = [lfn for lfn in descendants if descendants[lfn]]
+      self.util.logVerbose( "Found %d input files that have already been processed (setting status)" % len( processedLfns ) )
       if processedLfns:
         res = self.transClient.setFileStatusForTransformation( self.transID, 'Processed', processedLfns )
         if res['OK']:
@@ -762,18 +765,22 @@ nsReplicas[lfn] == [ SE1, SE2...]
     """
     return self.util.groupByReplicas( self.transReplicas, self.params['Status'] )
 
-  def _ByRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
+  def _ByRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False, forceFlush = False ):
     try:
-      return self.__byRun( param, plugin, requireFlush )
+      return self.__byRun( param = param, plugin = plugin, requireFlush = requireFlush, forceFlush = forceFlush )
     except Exception as x:
       self.util.logException( "Exception in _ByRun plugin:", '', x )
       return S_ERROR( [] )
 
   @timeThis
-  def __byRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False ):
+  def __byRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False, forceFlush = False ):
     """ Basic plugin for when you want to group files by run
     """
     self.util.logInfo( "Starting execution of plugin" )
+    # If flush is force, it is obviously required! try and get forcing from parameter
+    if self.util.getPluginParam( 'ForceFlush', False ):
+      forceFlush = True
+    requireFlush |= forceFlush
     pluginStartTime = time.time()
     allTasks = []
     groupSize = self.util.getPluginParam( 'GroupSize' )
@@ -890,20 +897,26 @@ nsReplicas[lfn] == [ SE1, SE2...]
         if status != 'Flush' and runFlush:
           # If all files in that run have been processed and received, flush
           # Get the number of RAW files in that run
-          rawFiles = self.util.getNbRAWInRun( runID, evtType )
-          ancestorRawFiles = self.util.getRAWAncestorsForRun( runID, param, paramValue )
-          self.util.logVerbose( "Obtained %d ancestor RAW files" % ancestorRawFiles )
-          runProcessed = ( ancestorRawFiles == rawFiles )
-          if runProcessed:
-            # The whole run was processed by the parent production and we received all files
-            self.util.logInfo( "All RAW files (%d) ready for run %d%s- Flushing run" %
-                               ( rawFiles, runID, paramStr ) )
+          if not forceFlush:
+            rawFiles = self.util.getNbRAWInRun( runID, evtType )
+            ancestorRawFiles = self.util.getRAWAncestorsForRun( runID, param, paramValue )
+            self.util.logVerbose( "Obtained %d ancestor RAW files" % ancestorRawFiles )
+            runProcessed = ( ancestorRawFiles == rawFiles )
+          else:
+            runProcessed = False
+          if forceFlush or runProcessed:
+            if runProcessed:
+              # The whole run was processed by the parent production and we received all files
+              self.util.logInfo( "All RAW files (%d) ready for run %d%s- Flushing run" %
+                                 ( rawFiles, runID, paramStr ) )
             status = 'Flush'
             runStatus = status
             self.transClient.setTransformationRunStatus( self.transID, runID, 'Flush' )
-          else:
+          elif rawFiles:
             self.util.logVerbose( "Only %d ancestor RAW files (of %d) available for run %d" %
                                   ( ancestorRawFiles, rawFiles, runID ) )
+          else:
+            self.util.logVerbose( "Run %d is not finished yet" % runID )
         if runStatus == 'Flush':
           flushed.append( ( paramValue, len( self.data ) ) )
         # Now calling the helper plugin... Set status to a fake value
@@ -979,23 +992,19 @@ nsReplicas[lfn] == [ SE1, SE2...]
     groupSize = self.util.getPluginParam( 'GroupSize' )
     return self._ByRun( requireFlush = groupSize != 1 )
 
-  def _ByRunBySize( self ):
-    return self._ByRun( plugin = 'BySize' )
-
-  def _ByRunBySizeWithFlush( self ):
-    return self._ByRun( plugin = 'BySize', requireFlush = True )
+  def _ByRunForceFlush( self ):
+    # If groupSize is 1, no need to flush!
+    groupSize = self.util.getPluginParam( 'GroupSize' )
+    return self._ByRun( forceFlush = groupSize != 1 )
 
   def _ByRunSize( self ):
     return self._ByRun( plugin = 'BySize' )
 
-  def _MergeByRun( self ):
-    return self._ByRunSize()
-
   def _ByRunSizeWithFlush( self ):
     return self._ByRun( plugin = 'BySize', requireFlush = True )
 
-  def _MergeByRunWithFlush( self ):
-    return self._ByRunSizeWithFlush()
+  def _ByRunSizeForceFlush( self ):
+    return self._ByRun( plugin = 'BySize', forceFlush = True )
 
   def _ByRunFileType( self ):
     return self._ByRun( param = 'FileType' )
@@ -1005,11 +1014,19 @@ nsReplicas[lfn] == [ SE1, SE2...]
     groupSize = self.util.getPluginParam( 'GroupSize' )
     return self._ByRun( param = 'FileType', requireFlush = groupSize != 1 )
 
+  def _ByRunFileTypeForceFlush( self ):
+    # If groupSize is 1, no need to flush!
+    groupSize = self.util.getPluginParam( 'GroupSize' )
+    return self._ByRun( param = 'FileType', forceFlush = groupSize != 1 )
+
   def _ByRunFileTypeSize( self ):
     return self._ByRun( param = 'FileType', plugin = 'BySize' )
 
   def _ByRunFileTypeSizeWithFlush( self ):
     return self._ByRun( param = 'FileType', plugin = 'BySize', requireFlush = True )
+
+  def _ByRunFileTypeSizeForceFlush( self ):
+    return self._ByRun( param = 'FileType', plugin = 'BySize', forceFlush = True )
 
   def _ByRunEventType( self ):
     return self._ByRun( param = 'EventTypeId' )
@@ -1017,15 +1034,21 @@ nsReplicas[lfn] == [ SE1, SE2...]
   def _ByRunEventTypeWithFlush( self ):
     # If groupSize is 1, no need to flush!
     groupSize = self.util.getPluginParam( 'GroupSize' )
-    if groupSize == 1:
-      return self._ByRun( param = 'EventTypeId' )
-    return self._ByRun( param = 'EventTypeId', requireFlush = True )
+    return self._ByRun( param = 'EventTypeId', requireFlush = groupSize != 1 )
+
+  def _ByRunEventTypeForceFlush( self ):
+    # If groupSize is 1, no need to flush!
+    groupSize = self.util.getPluginParam( 'GroupSize' )
+    return self._ByRun( param = 'EventTypeId', forceFlush = groupSize != 1 )
 
   def _ByRunEventTypeSize( self ):
     return self._ByRun( param = 'EventTypeId', plugin = 'BySize' )
 
   def _ByRunEventTypeSizeWithFlush( self ):
     return self._ByRun( param = 'EventTypeId', plugin = 'BySize', requireFlush = True )
+
+  def _ByRunEventTypeSizeForceFlush( self ):
+    return self._ByRun( param = 'EventTypeId', plugin = 'BySize', forceFlush = True )
 
   def _LHCbDSTBroadcast( self ):
     """ Usually for replication of real data (4 copies)
