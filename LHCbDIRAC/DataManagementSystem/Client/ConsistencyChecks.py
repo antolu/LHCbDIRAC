@@ -25,15 +25,18 @@ from DIRAC.Core.Utilities.Adler import compareAdler
 # FIXME: this is quite dirty, what should be checked is exactly what it is done
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction' )
 
-def getFileDescendants( transID, lfns, transClient = None, dm = None, bkClient = None ):
+def getFileDescendants( transID, lfns, transClient = None, dm = None, bkClient = None, verbose = True ):
   cc = ConsistencyChecks( interactive = False, transClient = transClient, dm = dm, bkClient = bkClient )
   cc.prod = transID
+  cc.verbose = verbose
   cc.fileType = []
   cc.fileTypesExcluded = Operations().getValue( 'DataConsistency/IgnoreDescendantsOfType', [] )
-  savedLevel = gLogger.getLevel()
-  gLogger.setLevel( 'FATAL' )
+  if not verbose:
+    savedLevel = gLogger.getLevel()
+    gLogger.setLevel( 'FATAL' )
   descendants = cc.getDescendants( lfns )[0]
-  gLogger.setLevel( savedLevel )
+  if not verbose:
+    gLogger.setLevel( savedLevel )
   return descendants
 
 class ConsistencyChecks( object ):
@@ -46,6 +49,7 @@ class ConsistencyChecks( object ):
         One object for every production/BkQuery/directoriesList...
     """
     self.interactive = interactive
+    self.verbose = False
     self.transClient = TransformationClient() if transClient is None else transClient
     self.dm = DataManager() if dm is None else dm
     self.bkClient = BookkeepingClient() if bkClient is None else bkClient
@@ -101,6 +105,13 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
+  def __logVerbose( self, msg, msg1 = '' ):
+    if self.verbose:
+      newMsg = '[ConsistencyChecks] ' + ( '[%s] ' % str( self.prod ) ) if self.prod else '' + msg
+      gLogger.always( newMsg, msg1 )
+    else:
+      gLogger.verbose( msg, msg1 )
+
   def __getLFNsFromBK( self, checkAll = False ):
     lfnsReplicaNo, lfnsReplicaYes = ( 0, 0 )
     if self.lfns:
@@ -122,26 +133,26 @@ class ConsistencyChecks( object ):
     lfnsReplicaNo, lfnsReplicaYes = self.__getLFNsFromBK( checkAll )
 
     if self.lfns:
-      gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = No' )
+      self.__logVerbose( 'Checking the File Catalog for those files with BK ReplicaFlag = No' )
       self.existLFNsBKRepNo, self.absentLFNsBKRepNo = self.getReplicasPresence( lfnsReplicaNo )
-      gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = Yes' )
+      self.__logVerbose( 'Checking the File Catalog for those files with BK ReplicaFlag = Yes' )
       self.existLFNsBKRepYes, self.absentLFNsBKRepYes = self.getReplicasPresence( lfnsReplicaYes )
     elif self.transType not in prodsWithMerge:
       # Merging and Reconstruction
       # In principle few files without replica flag, check them in FC
       if checkAll:
-        gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = No' )
+        self.__logVerbose( 'Checking the File Catalog for those files with BK ReplicaFlag = No' )
         self.existLFNsBKRepNo, self.absentLFNsBKRepNo = self.getReplicasPresence( lfnsReplicaNo )
-      gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = Yes' )
+      self.__logVerbose( 'Checking the File Catalog for those files with BK ReplicaFlag = Yes' )
       self.existLFNsBKRepYes, self.absentLFNsBKRepYes = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaYes )
 
     else:
       # prodsWithMerge
       # In principle most files have no replica flag, start from the File Catalog files with replicas
       if checkAll:
-        gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = No' )
+        self.__logVerbose( 'Checking the File Catalog for those files with BK ReplicaFlag = No' )
         self.existLFNsBKRepNo, self.absentLFNsNotInBK = self.getReplicasPresenceFromDirectoryScan( lfnsReplicaNo )
-      gLogger.verbose( 'Checking the File Catalog for those files with BK ReplicaFlag = Yes' )
+      self.__logVerbose( 'Checking the File Catalog for those files with BK ReplicaFlag = Yes' )
       self.existLFNsBKRepYes, self.absentLFNsBKRepYes = self.getReplicasPresence( lfnsReplicaYes )
 
     if checkAll and self.existLFNsBKRepNo:
@@ -259,7 +270,7 @@ class ConsistencyChecks( object ):
       startTime1 = time.time()
       self.__write( '.' )
       lfnsFound = self._getFilesFromDirectoryScan( dirN )
-      gLogger.verbose( "Obtained %d files in %.1f seconds" % ( len( lfnsFound ), time.time() - startTime1 ) )
+      self.__logVerbose( "Obtained %d files in %.1f seconds" % ( len( lfnsFound ), time.time() - startTime1 ) )
       if compare:
         pr, notPr = self.__compareLFNLists( dirs[dirN], lfnsFound )
         notPresent += notPr
@@ -268,7 +279,7 @@ class ConsistencyChecks( object ):
         present += lfnsFound
 
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
-    gLogger.info( "Found %d files with replicas and %d without" % ( len( present ), len( notPresent ) ) )
+    self.__write( "Found %d files with replicas and %d without\n" % ( len( present ), len( notPresent ) ) )
     return present, notPresent
 
   ################################################################################
@@ -280,7 +291,7 @@ class ConsistencyChecks( object ):
     present = []
     notPresent = lfns
     startTime = time.time()
-    gLogger.verbose( "Comparing list of %d LFNs with second list of %d" % ( len( lfns ), len( lfnsFound ) ) )
+    self.__logVerbose( "Comparing list of %d LFNs with second list of %d" % ( len( lfns ), len( lfnsFound ) ) )
     if lfnsFound:
       # print sorted( lfns )
       # print sorted( lfnsFound )
@@ -290,7 +301,7 @@ class ConsistencyChecks( object ):
       notPresent = list( setLfns - setLfnsFound )
       # print sorted( present )
       # print sorted( notPresent )
-    gLogger.verbose( "End of comparison: %.1f seconds" % ( time.time() - startTime ) )
+    self.__logVerbose( "End of comparison: %.1f seconds" % ( time.time() - startTime ) )
     return present, notPresent
 
   def _getFilesFromDirectoryScan( self, dirs ):
@@ -345,19 +356,19 @@ class ConsistencyChecks( object ):
     self.descForNonPrcdLFNs = res[3]
 
     if self.prcdWithoutDesc:
-      gLogger.verbose( "For prod %s of type %s, %d files are processed, and %d of those do not have descendants" %
+      self.__logVerbose( "For prod %s of type %s, %d files are processed, and %d of those do not have descendants" %
                        ( self.prod, self.transType, len( processedLFNs ), len( self.prcdWithoutDesc ) ) )
 
     if self.prcdWithMultDesc:
-      gLogger.verbose( "For prod %s of type %s, %d files are processed, and %d of those have multiple descendants: " %
+      self.__logVerbose( "For prod %s of type %s, %d files are processed, and %d of those have multiple descendants: " %
                        ( self.prod, self.transType, len( processedLFNs ), len( self.prcdWithMultDesc ) ) )
 
     if self.nonPrcdWithDesc:
-      gLogger.verbose( "For prod %s of type %s, %d files are not processed, but %d of those have descendants" %
+      self.__logVerbose( "For prod %s of type %s, %d files are not processed, but %d of those have descendants" %
                        ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonPrcdWithDesc ) ) )
 
     if self.nonPrcdWithMultDesc:
-      gLogger.verbose( "For prod %s of type %s, %d files are not processed, but %d of those have multiple descendants: " %
+      self.__logVerbose( "For prod %s of type %s, %d files are not processed, but %d of those have multiple descendants: " %
                        ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonPrcdWithMultDesc ) ) )
 
   ################################################################################
@@ -491,6 +502,8 @@ class ConsistencyChecks( object ):
     if self.interactive:
       sys.stdout.write( text )
       sys.stdout.flush()
+    elif self.verbose and len( text ) > 1:
+      self.__logVerbose( text if text[-1] != '\n' else text[:-1] )
 
   def __getDaughtersInfo( self, lfns, status, filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants ):
     """ Get BK information about daughers of lfns """
@@ -562,6 +575,7 @@ class ConsistencyChecks( object ):
     if filesWithDescendants:
       # First check in LFC the presence of daughters
       if not self.noLFC:
+        self.__logVerbose( 'Checking presence of %d files' % len( allDaughters ) )
         present, notPresent = self.getReplicasPresenceFromDirectoryScan( allDaughters ) \
                                 if len( allDaughters ) > 10 * chunkSize and \
                                    len( inBK ) < len( allDaughters ) / 2 else \
@@ -606,7 +620,6 @@ class ConsistencyChecks( object ):
                       % ( len( filesWithDescendants ), chunkSize ) )
         i = -1
         for lfn in set( filesWithDescendants ):
-          verbose = False
           setDaughters = set( filesWithDescendants[lfn] )
           i += 1
           if i % chunkSize == 0:
@@ -615,6 +628,7 @@ class ConsistencyChecks( object ):
           daughtersNotPresent = setDaughters & setNotPresent
           if not daughtersNotPresent:
             continue
+          verbose = False
           if verbose:
             print '\n\nLFN', lfn
             print 'Daughters', sorted( filesWithDescendants[lfn] )
@@ -639,7 +653,7 @@ class ConsistencyChecks( object ):
           # Update the result dictionaries according to the final set of descendants
           if len( descToCheck ) == 0:
             # Mother has no descendant
-            gLogger.verbose( '%s has no real descendants' % lfn )
+            self.__logVerbose( '%s has no real descendants' % lfn )
             filesWithMultipleDescendants.pop( lfn, None )
             filesWithDescendants.pop( lfn, None )
             filesWithoutDescendants[lfn] = None
@@ -664,10 +678,10 @@ class ConsistencyChecks( object ):
             else:
               filesWithMultipleDescendants[lfn] = multi
               prStr = 'multiple'
-            gLogger.verbose( '%s has %s descendants: %s' % ( lfn, prStr, sorted( descToCheck ) ) )
+            self.__logVerbose( '%s has %s descendants: %s' % ( lfn, prStr, sorted( descToCheck ) ) )
         self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
         startTime = time.time()
-        gLogger.verbose( "Reduced list of descendants in %.1f seconds" % ( time.time() - startTime ) )
+        self.__logVerbose( "Reduced list of descendants in %.1f seconds" % ( time.time() - startTime ) )
     # print 'Final multiple descendants', filesWithMultipleDescendants
 
     # File files without descendants don't exist, not important
