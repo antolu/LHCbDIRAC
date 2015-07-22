@@ -60,7 +60,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.transRunFiles = {}
     self.notProcessed = {}
     self.cacheHitFrequency = max( 0., 1 - self.getPluginParam( 'RunCacheUpdateFrequency', 0.05 ) )
-    self.runExpiredCache = {}
+    self.__runExpired = {}
     self.__recoType = ''
     self.dmsHelper = DMSHelpers()
     self.runDestinations = {}
@@ -412,7 +412,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     Check which files have been processed by a given production, i.e. have a meaningful descendant
     """
     from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import getFileDescendants
-    return getFileDescendants( self.transID, lfns, transClient = self.transClient, dm = self.dm, bkClient = self.bkClient )
+    return getFileDescendants( self.transID, lfns, transClient = self.transClient, dm = self.dm, bkClient = self.bkClient, verbose = self.debug )
 
   @timeThis
   def getRAWAncestorsForRun( self, runID, param = None, paramValue = None, getFiles = False ):
@@ -659,18 +659,18 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.cachedLastRun = lastRun
 
   def cacheExpired( self, runID ):
-    if runID not in self.runExpiredCache:
-      self.runExpiredCache[runID] = ( random.uniform( 0., 1. ) > self.cacheHitFrequency )
-    return self.runExpiredCache[runID]
+    if runID not in self.__runExpired:
+      self.__runExpired[runID] = ( random.uniform( 0., 1. ) > self.cacheHitFrequency )
+    return self.__runExpired[runID]
 
   @timeThis
   def getNbRAWInRun( self, runID, evtType ):
     """ Get the number of RAW files in a run
     """
     # Every now and then refresh the cache
-    rawFiles = self.cachedNbRAWFiles.get( runID, {} ).get( evtType ) if not self.cacheExpired( runID ) else None
+    rawFiles = self.cachedNbRAWFiles.get( runID, {} ).get( evtType )
     if not rawFiles:
-      res = self.bkClient.getNbOfRawFiles( {'RunNumber':runID, 'EventTypeId':evtType} )
+      res = self.bkClient.getNbOfRawFiles( {'RunNumber':runID, 'EventTypeId':evtType, 'Finished':'Y'} )
       if not res['OK']:
         self.logError( "Cannot get number of RAW files for run %d, evttype %d" % ( runID, evtType ) )
         return 0
