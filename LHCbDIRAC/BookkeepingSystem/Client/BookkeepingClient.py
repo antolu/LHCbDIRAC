@@ -1037,13 +1037,24 @@ class BookkeepingClient:
   def setRunOnlineFinished( self, runnumber ):
     "It is used to set the run finished..."
     server = self.__getServer()
-    return server.setRunOnlineFinished( long(runnumber) )
+    return server.setRunOnlineFinished( long( runnumber ) )
   
   def setRunOnlineNotFinished( self, runnumber ):
     "It is used to set the run not finished..."
     server = self.__getServer()
-    return server.setRunOnlineNotFinished( long(runnumber) )
-    
+    return server.setRunOnlineNotFinished( long( runnumber ) )
+  
+  def getRunStatus( self, runs ):
+    "it return the status of the runs"
+    server = self.__getServer()
+    runnumbers = []
+    if isinstance( runs, str ):
+      runnumbers += [int( runs )]
+    elif isinstance( runs, int ) or isinstance( runs, long ):
+        runnumbers += [runs]
+    else:
+      runnumbers = runs
+    return server.getRunStatus( runnumbers )
 
 class BKClientWithRetry():
   """

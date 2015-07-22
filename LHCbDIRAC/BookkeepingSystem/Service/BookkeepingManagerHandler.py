@@ -1935,5 +1935,10 @@ class BookkeepingManagerHandler( RequestHandler ):
     """You can set the runs not finished"""
     return dataMGMT_.setRunStatusFinished( runnumber, 'N' )
   
+  types_getRunStatus = [ListType]
+  @staticmethod
+  def export_getRunStatus( runnumbers ):
+    """ it returns the status of the runs"""
+    return dataMGMT_.getRunStatus( runnumbers )
   
   

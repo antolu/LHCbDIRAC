@@ -661,7 +661,9 @@ class ProductionRequestDB( DB ):
 
     update = {}     # Decide what to update (and if that is required)
     for x in rec:
-      if str( rec[x] ) == str( old[x] ):
+      if x == 'ProDetail' and cPickle.loads( rec[x] ) == cPickle.loads( old[x] ):
+        continue
+      elif x != 'ProDetail' and str( rec[x] ) == str( old[x] ):
         continue
       update[x] = rec[x]
 

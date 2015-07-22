@@ -4872,3 +4872,22 @@ and files.qualityid= dataquality.qualityid'
       return result
     else:
       return S_OK( '%s is finished' % ( str( runnumber ) ) )
+
+  #############################################################################
+  def getRunStatus( self, runnumbers ):
+    status = {}
+    params = ['Finished']
+    status['Successful'] = {} 
+    status['Failed'] = []
+    for i in runnumbers:
+      command = "select Finished from runstatus where runnumber=%d" % i
+      retVal = self.dbR_.query( command )
+      if not retVal['OK']:
+        gLogger.error( i, retVal['Message'] )
+        status['Failed'] += [i]
+      else:
+        if len( retVal['Value'] ) > 0:
+          status['Successful'][i] = dict( zip( params, retVal['Value'][0] ) )
+        else:
+          status['Failed'] += [i]
+    return S_OK( status )

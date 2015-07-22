@@ -713,3 +713,8 @@ class IBookkeepingDatabaseClient(object):
   def setRunStatusFinished( self, runnumber, isFinished ):
     "more info in the BookkeepingClient.py"
     return self.getManager().setRunStatusFinished( runnumber, isFinished )
+  
+  #############################################################################
+  def getRunStatus( self, runnumbers ):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().getRunStatus( runnumbers )
