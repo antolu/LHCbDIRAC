@@ -12,7 +12,7 @@ from LHCbDIRAC.Interfaces.API.DiracLHCb import getSiteForSE
 from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient import StorageUsageClient
 from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient import DataUsageClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
-from LHCbDIRAC.BookkeepingSystem.Client.BKQuery   import BKQuery
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery   import BKQuery, makeBKPath
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from datetime import datetime, timedelta
@@ -28,26 +28,6 @@ def getTimeBin( date ):
     return day
   else:
     return week
-
-def makePath( bkDict ):
-  """
-  Builds a path from the dictionary
-  """
-  fileType = bkDict.get( 'FileType', '.' )
-  if type( fileType ) == type( [] ):
-    fileType = ','.join( fileType )
-  path = os.path.join( '/',
-                       bkDict.get( 'ConfigName', '' ),
-                       bkDict.get( 'ConfigVersion', '' ),
-                       bkDict.get( 'ConditionDescription', '.' ),
-                       bkDict.get( 'ProcessingPass', '.' )[1:],
-                       str( bkDict.get( 'EventType', '.' ) ).replace( '90000000', '.' ),
-                       fileType ).replace( '/./', '//' )
-  while True:
-    if path.endswith( '/' ):
-      path = path[:-1]
-    else:
-      return path
 
 def cacheDirectories( directories ):
   from DIRAC.Core.Utilities.List import breakListIntoChunks
