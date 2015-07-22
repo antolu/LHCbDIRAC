@@ -144,16 +144,19 @@ class BKQuery():
         if bkFields[i] == 'EventType' and bpath:
           eventTypes = []
           # print b
-          for et in bpath.split( ',' ):
-            try:
-              eventType = int( et.split( ' ' )[0] )
-              eventTypes.append( eventType )
-            except:
-              pass
-          if len( eventTypes ) == 1:
-            eventTypes = eventTypes[0]
-          bpath = eventTypes
-          gLogger.verbose( 'buildBKQuery. Event types %s' % eventTypes )
+          if bpath.upper() == 'ALL':
+            bpath = 'ALL'
+          else:
+            for et in bpath.split( ',' ):
+              try:
+                eventType = int( et.split( ' ' )[0] )
+                eventTypes.append( eventType )
+              except:
+                pass
+            if len( eventTypes ) == 1:
+              eventTypes = eventTypes[0]
+            bpath = eventTypes
+            gLogger.verbose( 'buildBKQuery. Event types %s' % eventTypes )
         # Set the BK dictionary item
         if bpath != '':
           bkQuery[bkFields[i]] = bpath
@@ -170,6 +173,8 @@ class BKQuery():
       # Set default event type to real data
       if bkQuery.get( 'ConfigName' ) != 'MC' and not bkQuery.get( 'EventType' ):
         bkQuery['EventType'] = '90000000'
+      if bkQuery.get( 'EventType' ) == 'ALL':
+        bkQuery.pop( 'EventType' )
 
     # Run limits are given
     runs = bkQuery.get( "Runs", runs )
