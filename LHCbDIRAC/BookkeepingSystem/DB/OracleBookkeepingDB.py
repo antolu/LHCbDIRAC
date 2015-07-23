@@ -2364,7 +2364,7 @@ class OracleBookkeepingDB:
     """returns the run statistics"""
     result = S_ERROR()
     command = "select distinct j.fillnumber, conf.configname, conf.configversion, \
-    daq.description, j.jobstart, j.jobend, j.tck \
+    daq.description, j.jobstart, j.jobend, j.tck, j.TOTALLUMINOSITY \
         from jobs j, configurations conf,data_taking_conditions \
         daq, productionscontainer prod where \
         j.configurationid=conf.configurationid and \
@@ -2384,6 +2384,7 @@ class OracleBookkeepingDB:
         values['RunStart'] = value[0][4]
         values['RunEnd'] = value[0][5]
         values['Tck'] = value[0][6]
+        values['TotalLuminosity'] = value[0][7]
 
         retVal = self.getRunProcessingPass( runnb )
         if not retVal['OK']:
