@@ -204,7 +204,7 @@ def execute():
     else:
       gLogger.always( "Error getting the list of PFNs:", result['Message'] )
   except Exception, e:
-    gLogger.exception( "Exception caught while creating catalog or option file:", e )
+    gLogger.exception( "Exception caught while creating catalog or option file:", '', e )
     rc = 1
 
   gLogger.info( "Total execution time for %d files: %5.2f seconds" % ( len( lfnList ), time.time() - t0 ) )
