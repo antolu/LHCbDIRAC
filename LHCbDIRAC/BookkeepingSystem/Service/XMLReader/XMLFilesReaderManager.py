@@ -393,7 +393,7 @@ class XMLFilesReaderManager:
       result = dataManager_.insertRunStatus( runnumber, job.getJobId(), finished )
       if not result['OK']:
         dataManager_.deleteJob( job.getJobId() )
-        errorMessage = "Unable to add %s " % ( str( inputfile.getFileName() ) )
+        errorMessage = "Unable to add run status %s " % ( str( runnumber ) )
         return S_ERROR( errorMessage )
 
     outputFiles = job.getJobOutputFiles()
