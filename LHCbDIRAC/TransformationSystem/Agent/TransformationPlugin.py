@@ -859,6 +859,7 @@ nsReplicas[lfn] == [ SE1, SE2...]
         cachedLfns = self.util.getCachedRunLFNs( runID, paramValue )
         newLfns = runParamLfns - cachedLfns
         if len( newLfns ) == 0 and \
+           not forceFlush and \
            self.transID > 0 and \
            runStatus != 'Flush' and \
            not self.util.cacheExpired( runID ) and \
