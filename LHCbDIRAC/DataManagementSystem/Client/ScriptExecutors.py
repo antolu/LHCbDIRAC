@@ -657,17 +657,18 @@ def printLfnReplicas( lfnList, active = True ):
       replicas = res['Value']['Successful']
       value = {'Failed': res['Value']['Failed'], 'Successful' : {}}
       for lfn in sorted( replicas ):
+        value['Successful'].setdefault( lfn, {} )
         for se in sorted( replicas[lfn] ):
           res = fc.getReplicaStatus( {lfn:se} )
           if not res['OK']:
             value['Failed'][lfn] = "Can't get replica status"
           else:
-            value['Successful'].setdefault( lfn, {} )[se] = "(%s) %s" % ( res['Value']['Successful'][lfn], replicas[lfn][se] )
+            value['Successful'][lfn][se] = "(%s) %s" % ( res['Value']['Successful'][lfn], replicas[lfn][se] )
       res = S_OK( value )
   # DIRACExit( printDMResult( dirac.getReplicas( lfnList, active=active, printOutput=False ),
   #                           empty="No allowed SE found", script="dirac-dms-lfn-replicas" ) )
   DIRACExit( printDMResult( res,
-                             empty = "No allowed replica found", script = "dirac-dms-lfn-replicas" ) )
+                             empty = "No %sreplica found" % ( 'allowed ' if active else '' ), script = "dirac-dms-lfn-replicas" ) )
 
 def executePfnMetadata( dmScript ):
 
