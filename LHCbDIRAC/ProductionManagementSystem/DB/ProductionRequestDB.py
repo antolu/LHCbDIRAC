@@ -770,7 +770,7 @@ class ProductionRequestDB( DB ):
     if not result['OK']:
       return result
     requestState, requestAuthor, _requestInform, isModel = result['Value']
-    if creds['Group'] != 'diracAdmin':
+    if creds['Group'] != 'diracAdmin' or creds['Group'] != 'lhcb_admin':
       if requestAuthor != creds['User'] and not (isModel and creds['Group'] == 'lhcb_tech'):
         self.lock.release()
         gLogger.error( "%s can't remove %s request" % ( creds['User'], requestAuthor ) )
