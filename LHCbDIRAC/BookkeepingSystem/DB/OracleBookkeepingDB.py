@@ -220,11 +220,11 @@ class OracleBookkeepingDB:
       procPass = in_dict.get( 'ProcessingPass', default )
       if procPass != default:
         if isinstance( procPass, str ):
-          condition += " and s.processingpass='%s'" % ( procPass )
+          condition += " and s.processingpass like'%%%s%%'" % ( procPass )
         elif isinstance( procPass, list ):
           values = ' and ('
           for i in procPass:
-            values += " s.processingpass='%s' or " % ( i )
+            values += " s.processingpass like '%%%s%%' or " % ( i )
           condition += values[:-3] + ')'
 
       usable = in_dict.get( 'Usable', default )
