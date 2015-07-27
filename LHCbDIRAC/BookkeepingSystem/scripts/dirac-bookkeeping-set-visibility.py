@@ -14,6 +14,7 @@ if __name__ == "__main__":
 
   dmScript = DMScript()
   dmScript.registerBKSwitches()
+  dmScript.registerFileSwitches()
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -23,17 +24,24 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = False )
 
   bkQuery = dmScript.getBKQuery()
-  if not bkQuery:
-    print "No BKQuery given..."
+  lfns = dmScript.getOption( 'LFNs', [] )
+  if not bkQuery and not lfns:
+    print "No BKQuery and no files given..."
     DIRAC.exit( 1 )
   # Invert the visibility flag as want to set Invisible those that are visible and vice-versa
-  visibilityFlag = bkQuery.isVisible()
-  bkQuery.setOption( 'Visible', 'No' if visibilityFlag else 'Yes' )
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
 
-  print "BQ query:", bkQuery
-  lfns = bkQuery.getLFNs()
+  visibilityFlag = dmScript.getOption('Visibility', None)
+  if visibilityFlag is None:
+    print 'Visibility option should be given'
+    DIRAC.exit(2)
+  visibilityFlag = True if visibilityFlag.lower() == 'Yes' else False
+  if bkQuery:
+    # Query with visibility opposite to what is requested to be set ;-)
+    bkQuery.setOption( 'Visible', 'No' if visibilityFlag else 'Yes' )
+    print "BQ query:", bkQuery
+    lfns += bkQuery.getLFNs()
   if not lfns:
     print "No files found..."
   else:
