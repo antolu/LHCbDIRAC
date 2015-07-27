@@ -407,7 +407,7 @@ class ProductionRequestDB( DB ):
       if result['Value']:
         hasSubreq = True
 
-    if creds['Group'] == 'diracAdmin':
+    if creds['Group'] == 'diracAdmin' or creds['Group'] == 'lhcb_admin':
       return S_OK( inform )
 
 
@@ -423,7 +423,7 @@ class ProductionRequestDB( DB ):
       if 'IsModel' in update:
         del update['IsModel']
 
-    if requestState in ['Done', 'Cancelled'] and creds['Group'] != 'diracAdmin':
+    if requestState in ['Done', 'Cancelled'] and (creds['Group'] != 'diracAdmin' or creds['Group'] == 'lhcb_admin'):
       self.lock.release()
       return S_ERROR( "Done or cancelled requests can't be modified" )
 
@@ -462,7 +462,7 @@ class ProductionRequestDB( DB ):
         self.lock.release()
         return S_ERROR( "Only experts are allowed to manage active request" )
     elif requestState in ['Done', 'Cancelled']:
-      if creds['Group'] != 'diracAdmin':
+      if creds['Group'] != 'diracAdmin' or creds['Group'] == 'lhcb_admin':
         self.lock.release()
         return S_ERROR( "Only admin can violate the system logic" )
     else:
@@ -1010,7 +1010,7 @@ class ProductionRequestDB( DB ):
     '''
     Check that current user is allowed to split in specified state
     '''
-    if creds['Group'] == 'diracAdmin':
+    if creds['Group'] == 'diracAdmin' or creds['Group'] == 'lhcb_admin':
       return S_OK()
     if ( requestState in [ 'Submitted', 'PPG OK', 'On-hold' ] ) \
            and creds['Group'] == 'lhcb_tech':
@@ -1510,7 +1510,7 @@ class ProductionRequestDB( DB ):
       return result
     requestState, requestAuthor, _requestInform, isModel = result['Value']
 
-    if creds['Group'] == 'diracAdmin':
+    if creds['Group'] == 'diracAdmin' or creds['Group'] == 'lhcb_admin':
       return S_OK()
 
     # Check that a person can update in general (that also means he can
