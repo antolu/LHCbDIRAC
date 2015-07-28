@@ -26,7 +26,7 @@ DASHBOARD_LINK = 'https://eindex.cern.ch/dashboard'
 
 # # SE: RAL-DST, CERN-DST-EOS, RAL-ARCHIVE, PIC-DST, SARA_M-DST
 
-SE_WEIGHTS = {'CERN.*': 0,
+SE_WEIGHTS = {'CERN.*': 10,
               '.*-ARCHIVE':-1}
 SE_DEFAULT_WEIGHT = 1
 
@@ -71,7 +71,9 @@ def get_lfn2pfn_map( dm, lfns, se_black_list = [], get_single = True ):
   for lfn, se2lfn_map in res['Value']['Successful'].iteritems():
     lfn2pfn_map[lfn] = []
     for se in sort_se_weighted( se2lfn_map.keys(), se_black_list, cut_negative = True ):
-      res_url = dm.getReplicaAccessUrl( [lfn, ], se )
+      res_url = dm.getReplicaAccessUrl( [lfn, ], se, protocol = ['root', 'xroot'] )
+      gLogger.verbose("Called dm.getReplicaAccessUrl(['%s',], '%s',"
+                      " protocol='xroot'), got response %s" % (lfn, se, str(res_url)))
       if res_url['OK']:
         if lfn in res_url['Value']['Successful']:
           pfn = res_url['Value']['Successful'][lfn]
@@ -160,8 +162,8 @@ class GridCollectorAgent( AgentModule ):
     return request
 
   def lfn2pfn_update( self, request ):
-    PFN_map = get_lfn2pfn_map( self.dataManager, [r[0] for r in request.req_list] )
-    request.lfn2pfn( PFN_map )
+    PFN_map = get_lfn2pfn_map( self.dataManager, [r[0] for r in request.req_list], get_single = False)
+    request.lfn2pfn( PFN_map, generate_explicit_pfn_req_list = False )
     request.save()
 
   def download( self, req_file, out_file ):

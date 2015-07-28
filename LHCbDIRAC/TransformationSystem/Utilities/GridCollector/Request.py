@@ -6,6 +6,7 @@ __RCSID__ = "$Id$"
 import os
 import re
 import uuid
+from itertools import imap
 import cPickle
 from datetime import datetime
 from pprint import pprint
@@ -35,6 +36,7 @@ class Request( object ):
       self.email = email
       self.type = fType
       self.pfn_req_list = None
+      self.lfn_to_pfn_map = None
       if not self.validate():
         self.id = -1
     else:
@@ -97,9 +99,22 @@ class Request( object ):
       self.details = "file not found: %s" % self.req_file
     return self.status
 
-  def lfn2pfn( self, PFN_map ):
-    self.pfn_req_list = [[PFN_map[normalize_lfns( LFN )][0], pos] for ( LFN, pos ) in self.req_list]  # TODO: remove indexing [0], make map one-2-one
-    pprint( self.pfn_req_list )
+  def lfn2pfn( self, PFN_map, generate_explicit_pfn_req_list = True ):
+    """Applies the LFN->PFN mapping.
+
+   Args:
+       PFN_map: dict with keys bing LFNs and values being lists of assotiated PFNs.
+       generate_explicit_pfn_req_list: if True, will store a request list in form
+       [[PFN_1, [list_of_positions], ...], for each LFN using the first specified LFN.
+       If False, will store the mapping as it is (dict). On by default
+       for backward compartibility.
+    """
+    if generate_explicit_pfn_req_list:
+      self.pfn_req_list = [[PFN_map[normalize_lfns( LFN )][0], pos] for ( LFN, pos ) in self.req_list]  # TODO: remove indexing [0], make map one-2-one
+      pprint( self.pfn_req_list )
+    else:
+      self.lfn_to_pfn_map = PFN_map
+
 
   def load( self ):
     assert os.path.exists( self.req_file ), "load: file not found: %s" % self.req_file
@@ -116,6 +131,10 @@ class Request( object ):
       self.pfn_req_list = None
       if 'pfn_request' in req_hash:
         self.pfn_req_list = req_hash['pfn_request']
+      if 'lfn_to_pfn_map' in req_hash:
+        self.lfn_to_pfn_map = req_hash['lfn_to_pfn_map']
+      else:
+        self.lfn_to_pfn_map = None
 
   def save( self ):
     if not os.path.exists( self.basedir ):
@@ -123,6 +142,7 @@ class Request( object ):
     with open( self.req_file, 'w' ) as request_file:
       req_hash = {'request': self.req_list,
                   'pfn_request': self.pfn_req_list,
+                  'lfn_to_pfn_map': self.lfn_to_pfn_map,
                   'details': self.details,
                   'email': self.email,
                   'type': self.type}
