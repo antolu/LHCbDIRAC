@@ -153,7 +153,7 @@ class WMSSecureGW( RequestHandler ):
     """Get the Boinc User proxy
     """
     userDN, userGroup = self.__getOwnerGroupDN( 'BoincUser' )
-    result = self.checkProperties( userDN, userGroup )
+    result = self.__checkProperties( userDN, userGroup )
     if not result[ 'OK' ]:
       return result
     forceLimited = result[ 'Value' ]
