@@ -1367,7 +1367,7 @@ procedure getSteps(
   )is
   begin
    open a_Cursor for
-    select s.stepName, s.applicationname, s.applicationversion, s.optionfiles, s.dddb, s.conddb, s.extrapackages
+    select s.stepName, s.applicationname, s.applicationversion, s.optionfiles, s.dddb, s.conddb, s.extrapackages, s.stepid, s.visible
       from steps s, stepscontainer prod where
       prod.stepid=s.stepid and
       prod.production=prodId order by prod.step;

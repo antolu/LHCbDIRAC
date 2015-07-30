@@ -2774,8 +2774,68 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def getSteps( self, prodid ):
     """returns the step used by a production"""
-    return self.dbR_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getSteps', [prodid] )
-
+    result = None
+    retVal = self.dbR_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getSteps', [prodid] )
+    if not retVal['OK']:
+      result = retVal
+    else:  
+      data = retVal['Value']
+      found = False
+      ddb = ''
+      conddb = ''
+      for i in data:
+        if i[4] != "fromPreviousStep" or i[5] != "fromPreviousStep":
+          gLogger.warn( "DB tags are not specified try to retrieve from the parent production" )
+          ddb = i[4]
+          conddb = i[5]
+          found = True
+          break
+      if found:
+        correctedValues = []
+        for i in data:
+          tmp = list(i)
+          tmp[4] = ddb
+          tmp[5] = conddb
+          correctedValues += [tuple(tmp)]
+        result = S_OK( correctedValues )
+      else:
+        retVal = self.__resolveFromPreviousStep( prodid )
+        if retVal['OK']:
+          correctedValues = []
+          for i in data:
+            tmp = list(i)
+            tmp[4] = retVal['Value'][0]
+            tmp[5] = retVal['Value'][1]
+            correctedValues += [tuple(tmp)]
+          result = S_OK( correctedValues )
+        else:
+          result = S_OK(data)
+      return result
+  
+  #############################################################################
+  def __resolveFromPreviousStep( self, production ):
+    """It returns the database tags from the ancestor"""
+    command = "select production from jobs j, files f where j.jobid=f.jobid and f.fileid=(select i.fileid from inputfiles i where i.JOBID=(select jobid from jobs j where j.production=%d and rownum <= 1) and rownum<=1)" % ( production )
+    retVal = self.dbR_.query( command )
+    if not retVal['OK']:
+      return retVal
+    prod = retVal['Value'][0][0]
+    retVal = self.dbR_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getSteps', [prod] )
+    if not retVal['OK']:
+      return retVal 
+    data = retVal['Value']
+    found = False
+    for i in data:
+      if i[4] != "fromPreviousStep" or i[5] != "fromPreviousStep":
+        ddb = i[4]
+        conddb = i[5]
+        found = True
+        break
+    if found:
+      return S_OK( [ddb, conddb] )
+    else:
+      return self.__resolveFromPreviousStep( prod )
+      
   #############################################################################
   def getNbOfJobsBySites( self, prodid ):
     """returns the number of sucessfully

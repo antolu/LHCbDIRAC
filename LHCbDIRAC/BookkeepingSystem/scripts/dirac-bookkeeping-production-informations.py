@@ -52,12 +52,14 @@ if res['OK']:
 
       print "-----------------------"
       print " StepName: %s " % ( i[0] )
+      print "    StepId             : %s" % ( i[7] )
       print "    ApplicationName    : %s" % ( i[1] )
       print "    ApplicationVersion : %s" % ( i[2] )
       print "    OptionFiles        : %s" % ( i[3] )
       print "    DDB                : %s" % ( i[4] )
       print "    CONDDB             : %s" % ( i[5] )
-      print "    ExtraPackages      :%s" % ( i[6] )
+      print "    ExtraPackages      : %s" % ( i[6] )
+      print "    Visible            : %s" % ( i[8] )
       print "-----------------------"
   print "Number of Steps  ", val["Number of jobs"][0][0]
   files = val["Number of files"]
