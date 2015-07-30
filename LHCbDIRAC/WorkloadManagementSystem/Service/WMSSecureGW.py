@@ -1,7 +1,9 @@
+""" WMSSecureGW service -  a generic gateway service """
+
 __RCSID__ = "$Id: $"
 
 import json
-from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Security import Properties
 from DIRAC.Core.Security import CS
 from types import StringType, StringTypes, IntType, LongType, ListType, DictType, FloatType
@@ -9,6 +11,7 @@ from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
+from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.Security.X509Chain import X509Chain
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.ConfigurationSystem.Client.Helpers import cfgPath
@@ -16,7 +19,8 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 
 
 class WMSSecureGW( RequestHandler ):
-
+  """ WMSSecure class
+  """
   @classmethod
   def initializeHandler( cls, serviceInfo ):
     """ Handler initialization
@@ -24,7 +28,7 @@ class WMSSecureGW( RequestHandler ):
     return S_OK()
 
 
-  types_requestJob = [ [StringType, DictType] ]
+  types_requestJob = [[StringType, DictType]]
   def export_requestJob( self, resourceDescription ):
     """ Serve a job to the request of an agent which is the highest priority
         one matching the agent's site capacity
@@ -102,7 +106,6 @@ class WMSSecureGW( RequestHandler ):
     """  Reschedule a single job. If the optional proxy parameter is given
          it will be used to refresh the proxy in the Proxy Repository
     """
-
     jobManager = RPCClient( 'WorkloadManagement/JobManager' )
     result = jobManager.rescheduleJob( jobIDs )
     return result
@@ -118,7 +121,7 @@ class WMSSecureGW( RequestHandler ):
     return result
 
   ##############################################################################
-  types_setJobForPilot = [ [StringType, IntType, LongType], StringTypes]
+  types_setJobForPilot = [[StringType, IntType, LongType], StringTypes]
   def export_setJobForPilot( self, jobID, pilotRef, destination = None ):
     """ Report the DIRAC job ID which is executed by the given pilot job
     """
@@ -137,7 +140,7 @@ class WMSSecureGW( RequestHandler ):
 
 
   ##############################################################################
-  types_getJobParameter = [ [StringType, IntType, LongType] , StringTypes ]
+  types_getJobParameter = [[StringType, IntType, LongType] , StringTypes ]
   @staticmethod
   def export_getJobParameter( jobID, parName ):
     monitoring = RPCClient( 'WorkloadManagement/JobMonitoring', timeout = 120 )
@@ -147,6 +150,8 @@ class WMSSecureGW( RequestHandler ):
   ##############################################################################
   types_getProxy = [ StringType, StringType, StringType, ( IntType, LongType ) ]
   def export_getProxy( self, userDN, userGroup, requestPem, requiredLifetime ):
+    """Get the Boinc User proxy
+    """
     userDN, userGroup = self.__getOwnerGroupDN( 'BoincUser' )
     result = self.checkProperties( userDN, userGroup )
     if not result[ 'OK' ]:
@@ -165,12 +170,11 @@ class WMSSecureGW( RequestHandler ):
     print retVal
     return S_OK( retVal[ 'Value' ] )
 
-  def checkProperties( self, requestedUserDN, requestedUserGroup ):
+  def __checkProperties( self, requestedUserDN, requestedUserGroup ):
     """
     Check the properties and return if they can only download limited proxies if authorized
     """
     credDict = self.getRemoteCredentials()
-    print credDict
     if Properties.FULL_DELEGATION in credDict[ 'properties' ]:
       return S_OK( False )
     if Properties.LIMITED_DELEGATION in credDict[ 'properties' ]:
@@ -190,7 +194,7 @@ class WMSSecureGW( RequestHandler ):
   types_hasAccess = [StringTypes, [ ListType, DictType ] + list( StringTypes ) ]
   def export_hasAccess( self, opType, paths ):
     """ Access
-    """ 
+    """
     successful = {}
     for path in paths:
       successful[path] = True
@@ -199,17 +203,17 @@ class WMSSecureGW( RequestHandler ):
 
   types_exists = [ [ ListType, DictType ] + list( StringTypes ) ]
   def export_exists( self, lfns ):
-    """ Check whether the supplied paths exists """     
+    """ Check whether the supplied paths exists """
     successful = {}
     for lfn in lfns:
       print lfn
       successful[lfn] = False
     resDict = {'Successful':successful, 'Failed':{}}
     return S_OK(resDict)
- 
+
    ########################################################################
 
-  types_addFile = [ [ ListType, DictType ] + list( StringTypes ) ]
+  types_addFile = [[ ListType, DictType ] + list( StringTypes )]
   def export_addFile( self, lfns ):
     """ Register supplied files """
     failed={}
@@ -247,5 +251,4 @@ class WMSSecureGW( RequestHandler ):
     userGroup = opsHelper.getValue( cfgPath( 'Shifter', shifterType, 'Group' ), defaultGroup )
     return userDN, userGroup
 
-    
 
