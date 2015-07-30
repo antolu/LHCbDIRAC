@@ -159,6 +159,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   #############################################################################
   def do_save(self, command):
     """save command"""
+    print command
     parameters = command.split(' ')
     filename = parameters[0]
     saveType = parameters[1]
@@ -206,8 +207,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   def do_pwd(self, path):
     """pwd command"""
     print self.getCurrentPath()
-    return self.getCurrentPath()
-
+   
   #############################################################################
   def do_queries(self, command=''):
     """execute query"""
@@ -228,7 +228,9 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   def help_use():
     """hel of use command"""
     print 'Usage:'
-    print 'use type'.rjust(10)
+    print '  use type'.rjust(10)
+    print 'Arguments:'
+    print ' type: bookkeeping query type'.rjust(10)
     print "The 'type' can be found using the 'queries' command!"
     print "EXAMPE:"
     print ' '.rjust(10)+"use 'Event type'"
@@ -238,6 +240,8 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   def help_queries():
     """help of queries command"""
     print "This method shows the available query types!"
+    print "Usage:"
+    print "  queries"
     print "You can choose a query type using the 'use' command  "
     print " NOTE: the default query type is 'Configuration'"
 
@@ -252,7 +256,9 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   def help_advanceQuery():
     """help"""
     print "It allows to see more level of the Bookkeeping Tree"
-
+    print "Usage:"
+    print "   advanceQuery"
+    
   #############################################################################
   def do_standardQuery(self, command = ''):
     """commmand"""
@@ -263,7 +269,10 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   @staticmethod
   def help_standardQuery():
     """help"""
-    print "Using this command we only can see the important level of the Bookkeeping Tree"
+    print "This is used by default"
+    print "It shows a reduced bookkeeping path."
+    print "Usage:"
+    print "   standardQuery"
 
   #############################################################################
   def do_dataQuality(self, command=''):
@@ -283,6 +292,8 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   def help_dataQuality():
     """help"""
     print 'This command shows the available data quality flags.'
+    print "Usage:"
+    print "  dataQuality"
     print 'To change the data quality flag use the setDataQualityFlags command'
 
   #############################################################################
@@ -361,6 +372,10 @@ class LHCbBookkeepingCLI(cmd.Cmd):
   def help_setDataQualityFlags():
     """help"""
     print 'This command allows to use differnt data quality flags.'
+    print "Usage:"
+    print "  setDataQualityFlags flag1 [flag2 flag3, ... flagN]"
+    print "Arguments:"
+    print "  flag[1...N]:  Data qulaity flags."
     print 'For example:'
     print ' '.ljust(10)+'setDataQualityFlags OK UNCHECKED'
 
@@ -375,3 +390,26 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     """quit command"""
     sys.exit()
 
+  
+  #############################################################################
+  @staticmethod
+  def help_save():
+    """help"""
+    print 'This command is used to save the dataset.'
+    print 'Usage:' 
+    print '  save fileName type'
+    print 'Arguments:'
+    print '  fileName: is a text for example: ex.txt'
+    print '  type: txt or py '
+    print 'For example:'
+    print ' '.ljust(10)+'save files.dat txt'
+    
+  #############################################################################
+  @staticmethod
+  def help_moreinfo():
+    """help method"""
+    print "Display the statistics of the selected data."
+    print "Usage:"
+    print "  moreinfo"
+  
+  
