@@ -123,24 +123,10 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setApplication( self, appName, appVersion, optionsFiles, inputData = '',
-                      optionsLine = '', inputDataType = '', logFile = '', events = -1,
-                      extraPackages = '', systemConfig = 'ANY',
-                      modulesNameList = ['CreateDataFile',
-                                         'GaudiApplication',
-                                         'FileUsage',
-                                         'AnalyseFileAccess',
-                                         'UserJobFinalization'],
-                      parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
-                                        ( 'applicationVersion', 'string', '', 'Application Version' ),
-                                        ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
-                                        ( 'optionsFile', 'string', '', 'Options File' ),
-                                        ( 'extraOptionsLine', 'string', '', 'This is appended to standard options' ),
-                                        ( 'inputDataType', 'string', '', 'Input Data Type' ),
-                                        ( 'inputData', 'string', '', 'Input Data' ),
-                                        ( 'numberOfEvents', 'string', '', 'Events treated' ),
-                                        ( 'extraPackages', 'string', '', 'ExtraPackages' ),
-                                        ( 'SystemConfig', 'string', '', 'CMT Config' )] ):
+  def setApplication( self, appName, appVersion, optionsFiles, inputData = None,
+                      optionsLine = None, inputDataType = None, logFile = None, events = -1,
+                      extraPackages = None, systemConfig = 'ANY',
+                      modulesNameList = None, parametersList = None ):
     """Specifies gaudi application for DIRAC workflows, executed via gaudirun.
 
        For LHCb these could be e.g. Gauss, Boole, Brunel, DaVinci, LHCb, etc.
@@ -241,6 +227,25 @@ class LHCbJob( Job ):
     self.stepCount += 1
     stepName = '%sStep%s' % ( appName, self.stepCount )
 
+    if not modulesNameList:
+      modulesNameList = ['CreateDataFile',
+                         'GaudiApplication',
+                         'FileUsage',
+                         'AnalyseFileAccess',
+                         'UserJobFinalization']
+    if not parametersList:
+      parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
+                        ( 'applicationVersion', 'string', '', 'Application Version' ),
+                        ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
+                        ( 'optionsFile', 'string', '', 'Options File' ),
+                        ( 'extraOptionsLine', 'string', '', 'This is appended to standard options' ),
+                        ( 'inputDataType', 'string', '', 'Input Data Type' ),
+                        ( 'inputData', 'string', '', 'Input Data' ),
+                        ( 'numberOfEvents', 'string', '', 'Events treated' ),
+                        ( 'extraPackages', 'string', '', 'ExtraPackages' ),
+                        ( 'SystemConfig', 'string', '', 'CMT Config' )]
+
+    
     step = getStepDefinition( stepName, modulesNameList = modulesNameList,
                               importLine = "LHCbDIRAC.Workflow.Modules", parametersList = parametersList )
 
@@ -272,21 +277,7 @@ class LHCbJob( Job ):
   def setApplicationScript( self, appName, appVersion, script, arguments = '', inputData = '',
                             inputDataType = '', poolXMLCatalog = 'pool_xml_catalog.xml', logFile = '',
                             extraPackages = '', systemConfig = 'ANY',
-                            modulesNameList = ['CreateDataFile',
-                                               'GaudiApplicationScript',
-                                               'FileUsage',
-                                               'UserJobFinalization'],
-                            parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
-                                              ( 'applicationVersion', 'string', '', 'Application Version' ),
-                                              ( 'applicationLog', 'string', '',
-                                                'Name of the output file of the application' ),
-                                              ( 'script', 'string', '', 'Script Name' ),
-                                              ( 'arguments', 'string', '', 'Arguments for executable' ),
-                                              ( 'poolXMLCatName', 'string', '', 'POOL XML Catalog file name' ),
-                                              ( 'inputDataType', 'string', '', 'Input Data Type' ),
-                                              ( 'inputData', 'string', '', 'Input Data' ),
-                                              ( 'extraPackages', 'string', '', 'extraPackages' ),
-                                              ( 'SystemConfig', 'string', '', 'CMT Config' )] ):
+                            modulesNameList = None, parametersList = None ):
     """Specifies application environment and script to be executed.
 
        For LHCb these could be e.g. Gauss, Boole, Brunel,
@@ -370,6 +361,23 @@ class LHCbJob( Job ):
 
     stepName = '%sStep%s' % ( appName, self.stepCount )
 
+    if not modulesNameList:
+      modulesNameList = ['CreateDataFile',
+                         'GaudiApplicationScript',
+                         'FileUsage',
+                         'UserJobFinalization']
+    if not parametersList:
+      parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
+                        ( 'applicationVersion', 'string', '', 'Application Version' ),
+                        ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
+                        ( 'script', 'string', '', 'Script Name' ),
+                        ( 'arguments', 'string', '', 'Arguments for executable' ),
+                        ( 'poolXMLCatName', 'string', '', 'POOL XML Catalog file name' ),
+                        ( 'inputDataType', 'string', '', 'Input Data Type' ),
+                        ( 'inputData', 'string', '', 'Input Data' ),
+                        ( 'extraPackages', 'string', '', 'extraPackages' ),
+                        ( 'SystemConfig', 'string', '', 'CMT Config' )]
+
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
     logPrefix = 'Step%s_' % ( self.stepCount )
@@ -397,7 +405,7 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setBenderModule( self, benderVersion, modulePath, inputData = '', numberOfEvents = -1 ):
+  def setBenderModule( self, benderVersion, modulePath, inputData = None, numberOfEvents = -1 ):
     """Specifies Bender module to be executed.
 
        Any additional files should be specified in the job input sandbox.  Input data for
@@ -427,9 +435,12 @@ class LHCbJob( Job ):
     if not isinstance( numberOfEvents, int ):
       try:
         numberOfEvents = int( numberOfEvents )
-      except Exception as _x:
+      except ValueError as _x:
         return self._reportError( 'Number of events should be an integer or convertible to an integer',
-                                   __name__, **kwargs )
+                                  __name__, **kwargs )
+    if not inputData:
+      return S_ERROR( "Need input data for Bender applications" )
+
     if isinstance( inputData, str ):
       inputData = [inputData]
     if not isinstance( inputData, list ):
@@ -465,7 +476,7 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setRootMacro( self, rootVersion, rootScript, arguments = '', logFile = '', systemConfig = 'ANY' ):
+  def setRootMacro( self, rootVersion, rootScript, arguments = None, logFile = None, systemConfig = 'ANY' ):
     """Specifies ROOT version and macro to be executed (e.g. root -b -f <rootScript>).
 
        Can optionally specify arguments to the script and a name for the output log file.
@@ -489,7 +500,7 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setRootPythonScript( self, rootVersion, rootScript, arguments = '', logFile = '', systemConfig = 'ANY' ):
+  def setRootPythonScript( self, rootVersion, rootScript, arguments = None, logFile = None, systemConfig = 'ANY' ):
     """Specifies ROOT version and python script to be executed (e.g. python <rootScript>).
 
        Can optionally specify arguments to the script and a name for the output log file.
@@ -513,7 +524,7 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setRootExecutable( self, rootVersion, rootScript, arguments = '', logFile = '', systemConfig = 'ANY' ):
+  def setRootExecutable( self, rootVersion, rootScript, arguments = None, logFile = None, systemConfig = 'ANY' ):
     """Specifies ROOT version and executable (e.g. ./<rootScript>).
 
        Can optionally specify arguments to the script and a name for the output log file.
@@ -538,16 +549,7 @@ class LHCbJob( Job ):
   #############################################################################
 
   def __configureRootModule( self, rootVersion, rootScript, rootType, arguments, logFile, systemConfig = 'ANY',
-                             modulesNameList = ['CreateDataFile',
-                                                'RootApplication',
-                                                'FileUsage',
-                                                'UserJobFinalization'],
-                             parametersList = [( 'rootVersion', 'string', '', 'Root version' ),
-                                               ( 'rootScript', 'string', '', 'Root script' ),
-                                               ( 'rootType', 'string', '', 'Root type' ),
-                                               ( 'arguments', 'list', [], 'Optional arguments for payload' ),
-                                               ( 'applicationLog', 'string', '', 'Log file name' ),
-                                               ( 'SystemConfig', 'string', '', 'CMT Config' )] ):
+                             modulesNameList = None, parametersList = None ):
     """ Internal function.
 
         Supports the root macro, python and executable wrapper functions.
@@ -575,6 +577,18 @@ class LHCbJob( Job ):
     self.stepCount += 1
     stepName = '%sStep%s' % ( rootName, self.stepCount )
 
+    if not modulesNameList:
+      modulesNameList = ['CreateDataFile',
+                         'RootApplication',
+                         'FileUsage',
+                         'UserJobFinalization']
+    if not parametersList:
+      parametersList = [( 'rootVersion', 'string', '', 'Root version' ),
+                        ( 'rootScript', 'string', '', 'Root script' ),
+                        ( 'rootType', 'string', '', 'Root type' ),
+                        ( 'arguments', 'list', [], 'Optional arguments for payload' ),
+                        ( 'applicationLog', 'string', '', 'Log file name' ),
+                        ( 'SystemConfig', 'string', '', 'CMT Config' )]
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
     logPrefix = 'Step%s_' % ( self.stepCount )
@@ -701,7 +715,7 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setOutputData( self, lfns, OutputSE = [], OutputPath = '', replicate = '', filePrepend = '' ):
+  def setOutputData( self, lfns, OutputSE = None, OutputPath = None, replicate = None, filePrepend = None ):
     """Helper function, used in preference to Job.setOutputData() for LHCb.
 
        For specifying user output data to be registered in Grid storage.
@@ -750,7 +764,8 @@ class LHCbJob( Job ):
       while OutputPath[0] == '/': OutputPath = OutputPath[1:]
       self._addParameter( self.workflow, 'UserOutputPath', 'JDL', OutputPath, description )
 
-    self._addParameter( self.workflow, 'ReplicateUserOutputData', 'string', replicate, "Flag to replicate or not" )
+    if replicate:
+      self._addParameter( self.workflow, 'ReplicateUserOutputData', 'string', replicate, "Flag to replicate or not" )
 
     if filePrepend:
       keepcharacters = ( '.', '_' )
@@ -766,16 +781,8 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setExecutable( self, executable, arguments = '', logFile = '', systemConfig = 'ANY',
-                     modulesNameList = ['CreateDataFile',
-                                        'Script',
-                                        'FileUsage',
-                                        'UserJobFinalization'],
-                     parametersList = [( 'name', 'string', '', 'Name of executable' ),
-                                       ( 'executable', 'string', '', 'Executable Script' ),
-                                       ( 'arguments', 'string', '', 'Arguments for executable Script' ),
-                                       ( 'applicationLog', 'string', '', 'Log file name' ),
-                                       ( 'SystemConfig', 'string', '', 'CMT Config' )] ):
+  def setExecutable( self, executable, arguments = None, logFile = None, systemConfig = 'ANY',
+                     modulesNameList = None, parametersList = None ):
     """Specifies executable script to run with optional arguments and log file
        for standard output.
 
@@ -819,6 +826,18 @@ class LHCbJob( Job ):
 
     moduleName = moduleName.replace( '.', '' )
     stepName = 'ScriptStep%s' % ( self.stepCount )
+
+    if not modulesNameList:
+      modulesNameList = ['CreateDataFile',
+                         'Script',
+                         'FileUsage',
+                         'UserJobFinalization']
+    if not parametersList:
+      parametersList = [( 'name', 'string', '', 'Name of executable' ),
+                        ( 'executable', 'string', '', 'Executable Script' ),
+                        ( 'arguments', 'string', '', 'Arguments for executable Script' ),
+                        ( 'applicationLog', 'string', '', 'Log file name' ),
+                        ( 'SystemConfig', 'string', '', 'CMT Config' )]
 
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
@@ -866,13 +885,8 @@ class LHCbJob( Job ):
 
   #############################################################################
 
-  def setProtocolAccessTest( self, protocols, rootVersion, inputData = '', logFile = '',
-                             modulesNameList = ['ProtocolAccessTest'],
-                             parametersList = [( 'protocols', 'string', '', 'List of Protocols' ),
-                                               ( 'applicationLog', 'string', '', 'Log file name' ),
-                                               ( 'applicationVersion', 'string', '', 'DaVinci version' ),
-                                               ( 'rootVersion', 'string', '', 'ROOT version' ),
-                                               ( 'inputData', 'string', '', 'Input Data' )] ):
+  def setProtocolAccessTest( self, protocols, rootVersion, inputData = None, logFile = None,
+                             modulesNameList = None, parametersList = None ):
     """Performs a protocol access test at an optional site with the input data specified.
 
        Example usage:
@@ -900,7 +914,7 @@ class LHCbJob( Job ):
     if not protocols:
       return self._reportError( 'A list of protocols is required for this test', __name__, **kwargs )
 
-    if not isinstance( logFile, str ) or not isinstance( rootVersion, str ):
+    if not isinstance( rootVersion, str ):
       return self._reportError( 'Expected strings for input parameters', __name__, **kwargs )
 
     if logFile:
@@ -942,6 +956,14 @@ class LHCbJob( Job ):
 
     stepName = 'ProtocolTestStep%s' % ( self.stepCount )
 
+    if not modulesNameList:
+      modulesNameList = ['ProtocolAccessTest'],
+    if not parametersList:
+      parametersList = [( 'protocols', 'string', '', 'List of Protocols' ),
+                        ( 'applicationLog', 'string', '', 'Log file name' ),
+                        ( 'applicationVersion', 'string', '', 'DaVinci version' ),
+                        ( 'rootVersion', 'string', '', 'ROOT version' ),
+                        ( 'inputData', 'string', '', 'Input Data' )]
     step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
 
     stepName = 'RunProtocolTestStep%s' % ( self.stepCount )
@@ -996,7 +1018,7 @@ class LHCbJob( Job ):
         try:
           if fileMeta['RunNumber'] not in runNumbers and fileMeta['RunNumber'] != None:
             runNumbers.append( fileMeta['RunNumber'] )
-        except:
+        except KeyError:
           continue
 
       if len( runNumbers ) > 1:
