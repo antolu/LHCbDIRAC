@@ -356,19 +356,19 @@ class ConsistencyChecks( object ):
 
     if self.prcdWithoutDesc:
       self.__logVerbose( "For prod %s of type %s, %d files are processed, and %d of those do not have descendants" %
-                       ( self.prod, self.transType, len( processedLFNs ), len( self.prcdWithoutDesc ) ) )
+                         ( self.prod, self.transType, len( processedLFNs ), len( self.prcdWithoutDesc ) ) )
 
     if self.prcdWithMultDesc:
       self.__logVerbose( "For prod %s of type %s, %d files are processed, and %d of those have multiple descendants: " %
-                       ( self.prod, self.transType, len( processedLFNs ), len( self.prcdWithMultDesc ) ) )
+                         ( self.prod, self.transType, len( processedLFNs ), len( self.prcdWithMultDesc ) ) )
 
     if self.nonPrcdWithDesc:
       self.__logVerbose( "For prod %s of type %s, %d files are not processed, but %d of those have descendants" %
-                       ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonPrcdWithDesc ) ) )
+                         ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonPrcdWithDesc ) ) )
 
     if self.nonPrcdWithMultDesc:
       self.__logVerbose( "For prod %s of type %s, %d files are not processed, but %d of those have multiple descendants: " %
-                       ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonPrcdWithMultDesc ) ) )
+                         ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonPrcdWithMultDesc ) ) )
 
   ################################################################################
 
@@ -521,7 +521,7 @@ class ConsistencyChecks( object ):
           descDict = self._selectByFileType( resChunk['Value']['WithMetadata'] )
           # Do the daughters have a replica flag in BK? Store file type as well... Key is daughter
           daughtersBKInfo.update( dict( ( lfn, ( desc[lfn]['GotReplica'] == 'Yes', desc[lfn]['FileType'] ) )
-                                      for desc in descDict.values() for lfn in desc ) )
+                                        for desc in descDict.values() for lfn in desc ) )
           # Count the daughters per file type (key is ancestor)
           ft_count = self._getFileTypesCount( descDict )
           for lfn in lfnChunk:
@@ -538,17 +538,16 @@ class ConsistencyChecks( object ):
               filesWithoutDescendants[lfn] = None
           break
         else:
-          gLogger.error( "\nError getting daughters for %d files, retry"
-                        % len( lfnChunk ), resChunk['Message'] )
+          gLogger.error( "\nError getting daughters for %d files, retry" % len( lfnChunk ), resChunk['Message'] )
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
     return daughtersBKInfo
 
   def getDescendants( self, lfns, status = '' ):
     """ get the descendants of a list of LFN (for the production)
     """
-    if type( lfns ) == type( '' ):
+    if isinstance( lfns, basestring ):
       lfns = [lfns]
-    elif type( lfns ) == type( {} ):
+    elif isinstance( lfns, dict ):
       lfns = lfns.keys()
     filesWithDescendants = {}
     filesWithoutDescendants = {}
@@ -780,7 +779,7 @@ class ConsistencyChecks( object ):
         msg = "For prod %s of type %s, " % ( self.prod, self.transType )
       if self.existLFNsBKRepNo:
         gLogger.warn( "%s %d files%s have replica = NO in BK" % ( msg, len( self.existLFNsBKRepNo ),
-                                                                 prStr ) )
+                                                                  prStr ) )
       if self.existLFNsNotInBK:
         gLogger.warn( "%s %d files%s not in BK" % ( msg, len( self.existLFNsNotInBK ), prStr ) )
     else:
@@ -826,7 +825,7 @@ class ConsistencyChecks( object ):
       else:
         directories = []
         dirList = res['Value']
-        if type( dirList ) == type( '' ) and dirList[0] == '[' and dirList[-1] == ']':
+        if isinstance( dirList, basestring ) and dirList[0] == '[' and dirList[-1] == ']':
           dirList = ast.literal_eval( dirList )
         for dirName in dirList:
           # There is a shortcut when multiple streams are used, only the stream name is repeated!
@@ -1091,7 +1090,7 @@ class ConsistencyChecks( object ):
 
   def set_bkQuery( self, value ):
     """ Setter """
-    if type( value ) == type( "" ):
+    if isinstance( value, basestring ):
       self._bkQuery = ast.literal_eval( value )
     else:
       self._bkQuery = value
@@ -1102,7 +1101,7 @@ class ConsistencyChecks( object ):
 
   def set_lfns( self, value ):
     """ Setter """
-    if type( value ) == type( "" ):
+    if isinstance( value, basestring ):
       value = [value]
     value = [v.replace( ' ', '' ).replace( '//', '/' ) for v in value]
     self._lfns = value
