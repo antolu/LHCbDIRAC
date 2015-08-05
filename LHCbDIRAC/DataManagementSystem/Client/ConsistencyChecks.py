@@ -284,8 +284,7 @@ class ConsistencyChecks( object ):
 
   ################################################################################
 
-  @staticmethod
-  def __compareLFNLists( lfns, lfnsFound ):
+  def __compareLFNLists( self, lfns, lfnsFound ):
     """ return files in both lists and files in lfns and not in lfnsFound
     """
     present = []
