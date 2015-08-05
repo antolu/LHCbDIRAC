@@ -11,6 +11,7 @@ from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
 from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
 from DIRAC.TransformationSystem.Client.Utilities import getFileGroups, sortExistingSEs
 
@@ -18,28 +19,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, makeBKPath
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
-from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities \
-     import PluginUtilities, groupByRun, getRemovalPlugins, getActiveSEs
-
-def makeBKPath( bkDict ):
-  """
-  Builds a path from the dictionary
-  """
-  fileType = bkDict.get( 'FileType', '.' )
-  if isinstance( fileType, list ):
-    fileType = ','.join( fileType )
-  path = os.path.join( '/',
-                       bkDict.get( 'ConfigName', '' ),
-                       bkDict.get( 'ConfigVersion', '' ),
-                       bkDict.get( 'ConditionDescription', '.' ),
-                       bkDict.get( 'ProcessingPass', '.' )[1:],
-                       str( bkDict.get( 'EventType', '.' ) ).replace( '90000000', '.' ),
-                       fileType ).replace( '/.', '/' )
-  while True:
-    if path.endswith( '/' ):
-      path = path[:-1]
-    else:
-      return path.replace( 'RealData', 'Real Data' )
+from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, groupByRun, getActiveSEs
 
 class TransformationPlugin( DIRACTransformationPlugin ):
   """ Extension of DIRAC TransformationPlugin - instantiated by the TransformationAgent
@@ -47,7 +27,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __init__( self, plugin,
                 transClient = None, dataManager = None,
-                bkkClient = None, rmClient = None,
+                bkkClient = None, rmClient = None, fc = None,
                 debug = False, transInThread = None ):
     """ The clients can be passed in.
     """
@@ -62,6 +42,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.rmClient = ResourceManagementClient()
     else:
       self.rmClient = rmClient
+
+    if not fc:
+      self.fc = FileCatalog()
+    else:
+      self.fc = fc
 
     self.params = {}
     self.workDirectory = None
@@ -793,8 +778,7 @@ nsReplicas[lfn] == [ SE1, SE2...]
       return S_OK( allTasks )
 
     self.util.logInfo( "Grouping %d files by runs %s " %
-                          ( len( self.transFiles ),
-                            'and %s' % param if param else '' ) )
+                       ( len( self.transFiles ), 'and %s' % param if param else '' ) )
     res = self.util.groupByRunAndParam( self.transReplicas, self.transFiles, param = param )
     if not res['OK']:
       self.util.logError( "Error when grouping %d files by run for param %s" % ( len( self.transReplicas ), param ) )
@@ -867,7 +851,7 @@ nsReplicas[lfn] == [ SE1, SE2...]
           self.util.logVerbose( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
           continue
         self.util.logVerbose( "Of %d files, %d are new for %d%s" % ( len( runParamLfns ),
-                                                                  len( newLfns ), runID, paramStr ) )
+                                                                     len( newLfns ), runID, paramStr ) )
         runFlush = requireFlush
         if runFlush:
           if not runEvtType.get( paramValue ):
@@ -1193,7 +1177,7 @@ nsReplicas[lfn] == [ SE1, SE2...]
       for lfns in breakListIntoChunks( lfnGroup, 100 ):
 
         stringTargetSEs = self.util.setTargetSEs( numberOfCopies, archive1SEs, archive2SEs,
-                                               mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = True )
+                                                  mandatorySEs, secondarySEs, existingSEs, exclusiveSEs = True )
         if stringTargetSEs:
           storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfns )
         else:
@@ -1232,7 +1216,7 @@ nsReplicas[lfn] == [ SE1, SE2...]
       archive1SE = []
     return self._simpleReplication( archive1SE, archive2ActiveSEs, numberOfCopies = numberOfCopies )
 
-  def _simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0, fromSEs = [] ):
+  def _simpleReplication( self, mandatorySEs, secondarySEs, numberOfCopies = 0, fromSEs = None ):
     """ Actually creates the replication tasks for replication plugins
     """
     self.util.logInfo( "Starting execution of plugin" )
@@ -1254,12 +1238,14 @@ nsReplicas[lfn] == [ SE1, SE2...]
       existingSEs = [se for se in replicaSE.split( ',' ) if not self.util.dmsHelper.isSEFailover( se )]
       # If a FromSEs parameter is given, only keep the files that are at one of those SEs, mark the others NotProcessed
       if fromSEs:
+        if not isinstance( fromSEs, list ):
+          return S_ERROR( "fromSEs parameter should be a list" )
         if not [se for se in existingSEs if se in fromSEs]:
           res = self.transClient.setFileStatusForTransformation( self.transID, 'NotProcessed', lfnGroup )
           if not res['OK']:
             self.util.logError( 'Error setting files NotProcessed', res['Message'] )
           else:
-            self.util.logVerbose( 'Found %d files that at not in %s, set NotProcessed' % ( len( lfnGroup ), fromSEs ) )
+            self.util.logVerbose( 'Found %d files that are not in %s, set NotProcessed' % ( len( lfnGroup ), fromSEs ) )
           continue
 
       # If there is no choice on the SEs, send all files at once, otherwise make chunks
