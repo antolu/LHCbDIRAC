@@ -7,6 +7,7 @@ __RCSID__ = "$Id: dirac-bookkeeping-get-stats.py 69357 2013-08-08 13:33:31Z phic
 
 import DIRAC
 from DIRAC.Core.Base import Script
+from DIRAC import gLogger
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
 def intWithQuotes( val, quote = "'" ):
@@ -22,10 +23,24 @@ def intWithQuotes( val, quote = "'" ):
   chunks.reverse()
   return quote.join( chunks )
 
+def scaleLumi( lumi ):
+  lumiUnits = ( '/microBarn', '/nb', '/pb', '/fb', '/ab' )
+  if lumi:
+    for lumiUnit in lumiUnits:
+      if lumi < 1000.:
+        break
+      lumi /= 1000.
+  else:
+    lumi = 0
+    lumiUnit = ''
+  return lumi, lumiUnit
+
 def execute():
 
+  triggerRate = False
   for switch in Script.getUnprocessedSwitches():
-    pass
+    if switch[0] == 'TriggerRate':
+      triggerRate = True
 
   lfns = dmScript.getOption( 'LFNs' )
   bkQuery = dmScript.getBKQuery()
@@ -37,8 +52,13 @@ def execute():
     if type( prodList ) != type( [] ):
       prodList = [prodList]
     bkQuery.setOption( 'ProductionID', None )
+    fileType = bkQuery.getFileTypeList()
   else:
     prodList = [None]
+    fileType = None
+  if fileType != ['RAW'] and triggerRate:
+    gLogger.notice( 'TriggerRate option ignored as not looking for RAW files' )
+    triggerRate = False
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
@@ -65,7 +85,7 @@ def execute():
         queryDict = bkQuery.getQueryDict()
 
     # Get information from BK
-    if not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
+    if not triggerRate and not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
       print "Getting info from filesSummary..."
       query = queryDict.copy()
       if len( query ) <= 3:
@@ -117,6 +137,7 @@ def execute():
       fileSize = 0
       lumi = 0
       nDatasets = 1
+      runList = {}
       if not lfns:
         fileTypes = queryDict.get( 'FileType' )
         if type( fileTypes ) == type( [] ):
@@ -127,6 +148,7 @@ def execute():
             parameterNames = res['Value']['ParameterNames']
             info = res['Value']['Records']
           else:
+            gLogger.error( 'ParameterNames not present', str( res['Value'].keys() ) if isinstance( res['Value'], dict ) else str( res['Value'] ) )
             info = []
             res = bk.getFiles( queryDict )
             if res['OK']:
@@ -140,20 +162,28 @@ def execute():
             nbEvents += metadata['EventStat']
             fileSize += metadata['FileSize']
             lumi += metadata['Luminosity']
+            run = metadata['RunNumber']
+            runList.setdefault( run, [ 0., 0. ] )
+            runList[run][0] += metadata['Luminosity']
+            runList[run][1] += metadata['EventStat']
             nbFiles += 1
-          except:
-            pass
+          except Exception as e:
+            gLogger.exception( 'Exception for %s' % lfn, str( metadata.keys() ), e )
       if lfns:
         res = bk.getFileMetadata( lfns )
         if res['OK']:
-          for lfn, metadata in res['Value'].items():
+          for lfn, metadata in res['Value']['Successful'].items():
             try:
               nbEvents += metadata['EventStat']
               fileSize += metadata['FileSize']
               lumi += metadata['Luminosity']
+              run = metadata['RunNumber']
+              runList.setdefault( run, [ 0, 0 ] )
+              runList[run][0] += metadata['Luminosity']
+              runList[run][1] += metadata['EventStat']
               nbFiles += 1
-            except:
-              pass
+            except Exception as e:
+              gLogger.exception( 'Exception for %s' % lfn, str( metadata.keys() ), e )
         else:
           print "Error getting files metadata:", res['Message']
           continue
@@ -164,7 +194,6 @@ def execute():
     # Now printout the results
     tab = 17
     sizeUnits = ( 'Bytes', 'kB', 'MB', 'GB', 'TB', 'PB' )
-    lumiUnits = ( '/microBarn', '/nb', '/pb', '/fb', '/ab' )
     nfiles = nevts = evtsPerLumi = lumi = 0
     for name, value in zip( paramNames, records ):
       if name == 'NbofFiles':
@@ -187,14 +216,7 @@ def execute():
         print '%s: %.3f %s %s' % ( 'Total size'.ljust( tab ), size, sizeUnit, sizePerEvt )
       elif name == 'Luminosity':
         lumi = value / float( nDatasets )
-        if lumi:
-          for lumiUnit in lumiUnits:
-            if lumi < 1000.:
-              break
-            lumi /= 1000.
-        else:
-          lumi = 0
-          lumiUnit = ''
+        lumi, lumiUnit = scaleLumi( lumi )
         lumiString = 'Luminosity' if nDatasets == 1 else 'Avg luminosity'
         print '%s: %.3f %s' % ( lumiString.ljust( tab ), lumi, lumiUnit )
       elif name == 'EvtsPerLumi':
@@ -207,7 +229,37 @@ def execute():
     if lumi:
       filesPerLumi = nfiles / lumi
       print "%s: %.1f" % ( ( 'Files per %s' % lumiUnit ).ljust( tab ), filesPerLumi )
+    if triggerRate:
+      from datetime import timedelta
+      # Get information from the runs
+      fullDuration = 0.
+      fullLumi = 0.
+      totalLumi = 0.
+      for run in sorted( runList ):
+        res = bk.getRunInformations( run )
+        if not res['OK']:
+          gLogger.error( 'Error from BK getting run information', res['Message'] )
+        else:
+          info = res['Value']
+          fullDuration += ( info['RunEnd'] - info['RunStart'] ).total_seconds()
+          lumiDict = dict( zip( info['Stream'], info['luminosity'] ) )
+          statDict = dict( zip( info['Stream'], info['Number of events'] ) )
+          nbEvts = statDict[90000000]
+          lumi = info['TotalLuminosity']
+          if abs( lumi - runList[run][0] ) > 1:
+            print 'Run and files luminosity mismatch (ignored): run', run, 'runLumi', lumi, 'filesLumi', runList[run][0]
+          else:
+            fullLumi += lumiDict[90000000]
+            totalLumi += lumi
+      rate = ( '%.1f events/second' % ( nevts / fullDuration ) ) if fullDuration else 'Run duration not available'
+      # fullLumi, lumiUnit = scaleLumi( fullLumi )
+      # print '%s: %.3f %s' % ( 'Runs Luminosity'.ljust( tab ), fullLumi, lumiUnit )
+      totalLumi, lumiUnit = scaleLumi( totalLumi )
+      print '%s: %.3f %s' % ( 'Total Luminosity'.ljust( tab ), totalLumi, lumiUnit )
+      print '%s: %.1f hours (%d runs)' % ( 'Run duration'.ljust( tab ), fullDuration / 3600., len( runList ) )
+      print '%s: %s' % ( 'Trigger rate'.ljust( tab ), rate )
     print ""
+
 
 if __name__ == "__main__":
 
@@ -215,7 +267,7 @@ if __name__ == "__main__":
   dmScript.registerBKSwitches()
   dmScript.registerFileSwitches()
 
-
+  Script.registerSwitch( '', 'TriggerRate', '   For RAW files, returns the trigger rate' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile]' % Script.scriptName, ] ) )
