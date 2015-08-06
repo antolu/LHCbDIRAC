@@ -203,7 +203,7 @@ class DMScript( object ):
   def setDirectory( self, arg ):
     if os.path.exists( arg ) and not os.path.isdir( arg ):
       f = open( arg, 'r' )
-      directories = f.read().splitlines()
+      directories = [line.split()[0] for line in f.read().splitlines()]
       if arg:
         f.close()
     else:
