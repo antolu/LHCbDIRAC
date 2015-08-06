@@ -28,12 +28,12 @@ if __name__ == "__main__":
   from DIRAC import gLogger
   from DIRAC.Core.Base import Script
   from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
-  from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities   import addFilesToTransformation
 
   dmScript = DMScript()
   dmScript.registerFileSwitches()
 
   Script.registerSwitch( '', 'NoRunInfo', '   Use if no run information is required' )
+  Script.registerSwitch( "", "Chown=", "   Give user/group for chown of the directories of files in the FC" )
 
   Script.parseCommandLine( ignoreErrors = True )
 
@@ -42,10 +42,28 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] ...' % Script.scriptName, ] ) )
 
   runInfo = True
+  userGroup = None
+
   switches = Script.getUnprocessedSwitches()
-  for switch in switches:
-    if switch[0] == 'NoRunInfo':
+  for opt, val in switches:
+    if opt == 'NoRunInfo':
       runInfo = False
+    elif opt == 'Chown':
+      userGroup = val.split( '/' )
+      if len( userGroup ) != 2 or not userGroup[1].startswith( 'lhcb_' ):
+        gLogger.fatal( "Wrong user/group" )
+        DIRAC.exit( 2 )
+
+  if userGroup:
+    from DIRAC.Core.Security.ProxyInfo import getProxyInfo
+    res = getProxyInfo()
+    if not res['OK']:
+      gLogger.fatal( "Can't get proxy info", res['Message'] )
+      exit( 1 )
+    properties = res['Value'].get( 'groupProperties', [] )
+    if not 'FileCatalogManagement' in properties:
+      gLogger.error( "You need to use a proxy from a group with FileCatalogManagement" )
+      exit( 5 )
 
   args = Script.getPositionalArgs()
 
@@ -64,6 +82,15 @@ if __name__ == "__main__":
     gLogger.always( 'No files to add' )
     DIRAC.exit( 1 )
 
+  from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
+  from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities   import addFilesToTransformation
+  if userGroup:
+    directories = set( [os.path.dirname( lfn ) for lfn in requestedLFNs] )
+    res = chown( directories, user = userGroup[0], group = userGroup[1] )
+    if not res['OK']:
+      gLogger.fatal( "Error changing ownership", res['Message'] )
+      DIRAC.exit( 3 )
+    gLogger.notice( "Successfully changed owner/group for %d directories" % res['Value'] )
   res = addFilesToTransformation( transID, requestedLFNs, runInfo )
   if res['OK']:
     gLogger.always( 'Successfully added %d files to transformation %d' % ( len( res['Value'] ), transID ) )
