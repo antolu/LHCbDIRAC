@@ -126,11 +126,11 @@ if __name__ == "__main__":
   processingPass = [None]
   if not requestedLFNs:
     bkQuery = pluginScript.getBKQuery()
-    transBKQuery = bkQuery.getQueryDict()
-    if transBKQuery.keys() in ( [], ['Visible'] ):
-      gLogger.fatal( "No BK query was given..." )
+    if not bkQuery:
+      gLogger.fatal( "No LFNs and no BK query were given..." )
       Script.showHelp()
       DIRAC.exit( 2 )
+    transBKQuery = bkQuery.getQueryDict()
     processingPass = transBKQuery.get( 'ProcessingPass', '' )
     if processingPass.endswith( '...' ):
       basePass = os.path.dirname( processingPass )
