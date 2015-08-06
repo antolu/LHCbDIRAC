@@ -238,7 +238,8 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
         seString = ','.join( sorted( rep ) )
         seReps.setdefault( seString, [] ).append( lfn )
     if filesToRemove:
-      gLogger.setLevel( 'FATAL' )
+      if savedLevel not in ( 'DEBUG', 'VERBOSE' ):
+        gLogger.setLevel( 'FATAL' )
       res = dm.removeFile( filesToRemove )
       gLogger.setLevel( savedLevel )
       if not res['OK']:
@@ -258,7 +259,8 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
         # Not enough replicas outside seList, remove only part, otherwisae remove all
         removeSEs = random.shuffle( removeSEs )[0:remaining - minReplicas]
       for seName in sorted( removeSEs ):
-        gLogger.setLevel( 'FATAL' )
+        if savedLevel not in ( 'DEBUG', 'VERBOSE' ):
+          gLogger.setLevel( 'FATAL' )
         res = dm.removeReplica( seName, lfns )
         gLogger.setLevel( savedLevel )
         if not res['OK']:
@@ -865,7 +867,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
         continue
       lfnReplicas.update( res['Value'] )
   elif lfnList:
-    res = dm.getReplicas( lfnList )
+    res = dm.getReplicas( lfnList, getUrl = False )
     if not res['OK']:
       gLogger.fatal( res['Message'] )
       DIRACExit( 2 )
