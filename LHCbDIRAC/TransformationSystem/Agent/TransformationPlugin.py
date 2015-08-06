@@ -75,8 +75,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def setInputData( self, data ):
     """
     self.transReplicas are the replica location of the transformation files.
-    However     However if some don't have a replica, they are not in this dictionary
-nsReplicas[lfn] == [ SE1, SE2...]
+    However if some don't have a replica, they are not in this dictionary
+    self.transReplicas[lfn] == [ SE1, SE2...]
     """
     # data is a synonym as used in DIRAC
     self.transReplicas = data.copy()
@@ -1378,15 +1378,29 @@ nsReplicas[lfn] == [ SE1, SE2...]
   def _DeleteReplicas( self ):
     return self._RemoveReplicas()
   def _RemoveReplicas( self ):
-    """ Plugin for removing replicas from specific SEs or reduce the number of replicas
+    """ Plugin for removing replicas from specific SEs specified in FromSEs
     """
     fromSEs = resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) )
     keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-ARCHIVE'] ) )
-    mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', ['CERN_MC_M-DST', 'CERN_M-DST', 'CERN-DST', 'CERN_MC-DST'] ) )
+    mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
     # Allow removing explicitly from SEs in mandatorySEs
     mandatorySEs = [se for se in mandatorySEs if se not in fromSEs]
     # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
     minKeep = self.util.getPluginParam( 'NumberOfReplicas', 1 )
+
+    return self._removeReplicas( fromSEs = fromSEs, keepSEs = keepSEs, mandatorySEs = mandatorySEs, minKeep = minKeep )
+
+  def _ReduceReplicas( self ):
+    """ Plugin for reducing the number of replicas to NumberOfReplicas
+    """
+    #
+    fromSEs = resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) )
+    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-ARCHIVE'] ) )
+    mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
+    # Allow removing explicitly from SEs in mandatorySEs
+    mandatorySEs = [se for se in mandatorySEs if se not in fromSEs]
+    # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
+    minKeep = -abs( self.util.getPluginParam( 'NumberOfReplicas', 1 ) )
 
     return self._removeReplicas( fromSEs = fromSEs, keepSEs = keepSEs, mandatorySEs = mandatorySEs, minKeep = minKeep )
 
