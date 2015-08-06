@@ -880,6 +880,21 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
             print "No error was found in XML summary files"
   if failedLfns:
     print "\nSummary of failures due to: Application Exited with non-zero status"
+    lfnDict = {}
+    partial = 'Partial (last event '
+    for ( lfn, reason ), jobs in failedLfns.items():
+      if partial not in reason:
+        continue
+      failedLfns.pop( ( lfn, reason ) )
+      otherReasons = lfnDict.get( lfn )
+      if not otherReasons:
+        lfnDict[lfn] = ( reason, jobs )
+      else:
+        lastEvent = int( reason.split( partial )[1][:-1] )
+        lfnDict[lfn] = ( otherReasons[0][:-1] + ',%d)' % lastEvent, otherReasons[1] + jobs )
+    for lfn, ( reason, jobs ) in lfnDict.items():
+      failedLfns[( lfn, reason )] = jobs
+
     for ( lfn, reason ), jobs in failedLfns.items():
       res = monitoring.getJobsSites( jobs )
       if res['OK']:
@@ -1047,7 +1062,7 @@ if __name__ == "__main__":
   byTasks = False
   byJobs = False
   dumpFiles = False
-  status = None
+  status = []
   lfnList = []
   taskList = []
   seList = []
@@ -1064,7 +1079,7 @@ if __name__ == "__main__":
   from DIRAC.Core.Base import Script
 
   infoList = ( "files", "runs", "tasks", 'jobs', 'alltasks', 'flush', 'log' )
-  statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset", "Processed", "NotProcessed", "Removed", 'ProbInFC' )
+  statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingInFC", "MaxReset", "Processed", "NotProcessed", "Removed", 'ProbInFC' )
   dmScript = DMScript()
   dmScript.registerFileSwitches()
   Script.registerSwitch( '', 'Info=', "Specify what to print out from %s" % str( infoList ) )
@@ -1120,8 +1135,6 @@ if __name__ == "__main__":
       if val:
         print "Unknown status... Select in %s" % ( sorted( val ), str( statusList ) )
         DIRAC.exit( 1 )
-      if set( status ) & set( ["MissingLFC", "MissingInFC"] ):
-        status = ["MissingLFC", "MissingInFC"]
     elif opt == 'Runs' :
       runList = val.split( ',' )
     elif opt == 'SEs':
