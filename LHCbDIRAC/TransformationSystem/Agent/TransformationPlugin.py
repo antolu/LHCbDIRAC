@@ -1583,7 +1583,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             self.util.logVerbose( 'Checking descendants for %d files in production %d, depth %d' % ( len( lfnsToCheckForPath ), prod, depth ) )
             startTime = time.time()
             processedLfns = set()
-            res = self.bkClient.getFileDescendants( list( lfnsToCheckForPath ), production = prod, depth = depth )
+            res = self.bkClient.getFileDescendants( list( lfnsToCheckForPath ), production = prod, depth = depth, checkreplica = True )
             if res['OK']:
               processedLfns.update( res['Value']['Successful'] )
             self.util.logVerbose( 'Found %s descendants in %.1f seconds' % \
