@@ -91,15 +91,17 @@ def execute():
       if len( query ) <= 3:
         query.update( {'1':1, '2':2, '3':3 } )
       fileTypes = query.get( 'FileType' )
-      if type( fileTypes ) != type( [] ):
+      if not isinstance( fileTypes, list ):
         fileTypes = [fileTypes]
       if 'FileType' in query:
         query.pop( 'FileType' )
       records = []
-      if type( fileTypes ) == type( [] ):
+      nDatasets = 1
+      if isinstance( fileTypes, list ):
         nDatasets = len( fileTypes )
-      else:
-        nDatasets = 1
+      eventTypes = query.get( 'EventType' )
+      if isinstance( eventTypes, list ):
+        nDatasets *= len( eventTypes )
       for fileType in fileTypes:
         if fileType:
           query['FileType'] = fileType
@@ -136,15 +138,10 @@ def execute():
       nbEvents = 0
       fileSize = 0
       lumi = 0
-      nDatasets = 1
+      datasets = set()
       runList = {}
       if not lfns:
         fileTypes = queryDict.get( 'FileType' )
-        if type( fileTypes ) == type( [] ):
-          nDatasets = len( fileTypes )
-        eventTypes = queryDict.get( 'EventType' )
-        if isinstance( eventTypes, list ):
-          nDatasets *= len( eventTypes )
         res = bk.getFilesWithMetadata( queryDict )
         if 'OK' in res.get( 'Value', {} ):
             res = res['Value']
@@ -160,13 +157,14 @@ def execute():
             lfns = res['Value']
         for item in info:
           metadata = dict( zip( parameterNames, item ) )
+          datasets.add( ( metadata.get( 'EventType', metadata['FileName'].split( '/' )[5] ), metadata.get( 'FileType', metadata.get( 'Name' ) ) ) )
           try:
             nbEvents += metadata['EventStat']
             fileSize += metadata['FileSize']
-            lumi += metadata['Luminosity'] / nDatasets
+            lumi += metadata['Luminosity']
             run = metadata['RunNumber']
             runList.setdefault( run, [ 0., 0. ] )
-            runList[run][0] += metadata['Luminosity'] / nDatasets
+            runList[run][0] += metadata['Luminosity']
             runList[run][1] += metadata['EventStat']
             nbFiles += 1
           except Exception as e:
@@ -175,13 +173,14 @@ def execute():
         res = bk.getFileMetadata( lfns )
         if res['OK']:
           for lfn, metadata in res['Value']['Successful'].items():
+            datasets.add( ( metadata['EventType'], metadata['FileType'] ) )
             try:
               nbEvents += metadata['EventStat']
               fileSize += metadata['FileSize']
-              lumi += metadata['Luminosity'] / nDatasets
+              lumi += metadata['Luminosity']
               run = metadata['RunNumber']
               runList.setdefault( run, [ 0, 0 ] )
-              runList[run][0] += metadata['Luminosity'] / nDatasets
+              runList[run][0] += metadata['Luminosity']
               runList[run][1] += metadata['EventStat']
               nbFiles += 1
             except Exception as e:
@@ -192,6 +191,7 @@ def execute():
       records = [nbFiles, nbEvents, fileSize, lumi,
                  nbEvents / float( lumi ) if lumi else 0.,
                  fileSize / float( lumi ) if lumi else 0.]
+      nDatasets = max( 1, len( datasets ) )
 
     # Now printout the results
     tab = 17
@@ -217,13 +217,14 @@ def execute():
           sizeUnit = ''
         print '%s: %.3f %s %s' % ( 'Total size'.ljust( tab ), size, sizeUnit, sizePerEvt )
       elif name == 'Luminosity':
-        lumi = value
+        lumi = value / nDatasets
         lumi, lumiUnit = scaleLumi( lumi )
         lumiString = 'Luminosity' if nDatasets == 1 else 'Avg luminosity'
         print '%s: %.3f %s' % ( lumiString.ljust( tab ), lumi, lumiUnit )
       elif name == 'EvtsPerLumi':
-        evtsPerLumi = value
+        evtsPerLumi = value * nDatasets
       elif name == 'SizePerLumi':
+        value *= nDatasets
         print "%s: %.1f GB" % ( ( 'Size  per %s' % '/pb' ).ljust( tab ), value * 1000000. / 1000000000. )
         # if nDatasets != 1:
         #  sizePerEvt = value / evtsPerLumi / 1000. if evtsPerLumi else 0.
@@ -248,8 +249,8 @@ def execute():
           statDict = dict( zip( info['Stream'], info['Number of events'] ) )
           nbEvts = statDict[90000000]
           lumi = info['TotalLuminosity']
-          if abs( lumi - runList[run][0] ) > 1:
-            print 'Run and files luminosity mismatch (ignored): run', run, 'runLumi', lumi, 'filesLumi', runList[run][0]
+          if abs( lumi - runList[run][0] / nDatasets ) > 1:
+            print 'Run and files luminosity mismatch (ignored): run', run, 'runLumi', lumi, 'filesLumi', runList[run][0] / nDatasets
           else:
             fullLumi += lumiDict[90000000]
             totalLumi += lumi
