@@ -562,6 +562,10 @@ class ConsistencyChecks( object ):
         allDaughters, inFCNotInBK, inBKNotInFC, removedFiles
 
     daughtersBKInfo = self.__getDaughtersInfo( lfns, status, filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants )
+    for daughter in daughtersBKInfo.keys():
+      # Ignore the daughters that have a type to ignore
+      if daughtersBKInfo[daughter][1] in fileTypesExcluded:
+        daughtersBKInfo.pop( daughter )
 
     # This is the list of all daughters, sets will contain unique entries
     setAllDaughters = set( daughtersBKInfo )
