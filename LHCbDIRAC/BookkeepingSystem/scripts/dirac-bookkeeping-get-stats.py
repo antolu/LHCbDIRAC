@@ -142,29 +142,31 @@ def execute():
         fileTypes = queryDict.get( 'FileType' )
         if type( fileTypes ) == type( [] ):
           nDatasets = len( fileTypes )
+        eventTypes = queryDict.get( 'EventType' )
+        if isinstance( eventTypes, list ):
+          nDatasets *= len( eventTypes )
         res = bk.getFilesWithMetadata( queryDict )
-        if res['OK']:
-          if 'ParameterNames' in res['Value']:
-            parameterNames = res['Value']['ParameterNames']
-            info = res['Value']['Records']
-          else:
-            gLogger.error( 'ParameterNames not present', str( res['Value'].keys() ) if isinstance( res['Value'], dict ) else str( res['Value'] ) )
-            info = []
-            res = bk.getFiles( queryDict )
-            if res['OK']:
-              lfns = res['Value']
+        if 'OK' in res.get( 'Value', {} ):
+            res = res['Value']
+        if 'ParameterNames' in res.get( 'Value', {} ):
+          parameterNames = res['Value']['ParameterNames']
+          info = res['Value']['Records']
         else:
-          print "Error getting files for %s:" % queryDict, res['Message']
-          continue
+          if 'Value' in res:
+            gLogger.error( 'ParameterNames not present:', str( res['Value'].keys() ) if isinstance( res['Value'], dict ) else str( res['Value'] ) )
+          info = []
+          res = bk.getFiles( queryDict )
+          if res['OK']:
+            lfns = res['Value']
         for item in info:
           metadata = dict( zip( parameterNames, item ) )
           try:
             nbEvents += metadata['EventStat']
             fileSize += metadata['FileSize']
-            lumi += metadata['Luminosity']
+            lumi += metadata['Luminosity'] / nDatasets
             run = metadata['RunNumber']
             runList.setdefault( run, [ 0., 0. ] )
-            runList[run][0] += metadata['Luminosity']
+            runList[run][0] += metadata['Luminosity'] / nDatasets
             runList[run][1] += metadata['EventStat']
             nbFiles += 1
           except Exception as e:
@@ -176,10 +178,10 @@ def execute():
             try:
               nbEvents += metadata['EventStat']
               fileSize += metadata['FileSize']
-              lumi += metadata['Luminosity']
+              lumi += metadata['Luminosity'] / nDatasets
               run = metadata['RunNumber']
               runList.setdefault( run, [ 0, 0 ] )
-              runList[run][0] += metadata['Luminosity']
+              runList[run][0] += metadata['Luminosity'] / nDatasets
               runList[run][1] += metadata['EventStat']
               nbFiles += 1
             except Exception as e:
@@ -188,8 +190,8 @@ def execute():
           print "Error getting files metadata:", res['Message']
           continue
       records = [nbFiles, nbEvents, fileSize, lumi,
-                 nbEvents * nDatasets / float( lumi ) if lumi else 0.,
-                 fileSize * nDatasets / float( lumi ) if lumi else 0.]
+                 nbEvents / float( lumi ) if lumi else 0.,
+                 fileSize / float( lumi ) if lumi else 0.]
 
     # Now printout the results
     tab = 17
@@ -215,7 +217,7 @@ def execute():
           sizeUnit = ''
         print '%s: %.3f %s %s' % ( 'Total size'.ljust( tab ), size, sizeUnit, sizePerEvt )
       elif name == 'Luminosity':
-        lumi = value / float( nDatasets )
+        lumi = value
         lumi, lumiUnit = scaleLumi( lumi )
         lumiString = 'Luminosity' if nDatasets == 1 else 'Avg luminosity'
         print '%s: %.3f %s' % ( lumiString.ljust( tab ), lumi, lumiUnit )
