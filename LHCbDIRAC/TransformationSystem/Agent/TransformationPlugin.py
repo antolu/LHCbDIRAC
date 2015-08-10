@@ -1462,7 +1462,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             targetSEs = randomize( existingSEs )[0:-minKeep]
           targetSEs.sort()
           self.util.logVerbose( "Remove %d replicas from %s" % ( len( lfns ), ','.join( targetSEs ) ) )
-        elif existingSet & fromSet:
+        elif not reduceSEs and ( existingSet & fromSet ):
           nLeft = len( existingSet - fromSet )
           self.util.logInfo( "Found %d files at %s with not enough replicas (%d left, %d requested), set Problematic" %
                              ( len( lfns ), ','.join( existingSEs ), nLeft, minKeep ) )
