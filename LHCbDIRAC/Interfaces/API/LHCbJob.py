@@ -22,7 +22,7 @@
      #j.setDestination('LCG.CERN.ch')
 
      dirac = DiracLHCb()
-     jobID = dirac.submit(j)
+     jobID = dirac.submitJob(j)
      print 'Submission Result: ',jobID
 
    The setDestination() method is optional and takes the DIRAC site name as an argument.
@@ -40,7 +40,7 @@
      #j.setDestination('LCG.CERN.ch')
 
      dirac = DiracLHCb()
-     jobID = dirac.submit(j)
+     jobID = dirac.submitJob(j)
      print 'Submission Result: ',jobID
 
    For execution of a python Bender module::
@@ -55,7 +55,7 @@
      j.setName('MyJobName')
 
      dirac = DiracLHCb()
-     jobID = dirac.submit(j)
+     jobID = dirac.submitJob(j)
      print 'Submission Result: ',jobID
 
    To execute a ROOT Macro, Python script and Executable consecutively an example script would be::
@@ -70,7 +70,7 @@
      j.setRootExecutable('5.18.00a','minexam')
 
      dirac = DiracLHCb()
-     jobID = dirac.submit(j,mode='local')
+     jobID = dirac.submitJob(j,mode='local')
      print 'Submission Result: ',jobID
 
    To execute a protocol access test (for experts) the following example script should suffice:
@@ -85,7 +85,7 @@
      j.setLogLevel('verbose')
 
      dirac = DiracLHCb()
-     jobID = dirac.submit(j,mode='wms')
+     jobID = dirac.submitJob(j,mode='wms')
      print 'Submission Result: ',jobID
 
 """
@@ -1104,6 +1104,6 @@ class LHCbJob( Job ):
 
         self.workflow.setValue( 'InputData', ancestorsLFNsString + lfnsString )
 
-    return diracLHCb.submit( self, mode = 'local' )
+    return diracLHCb.submitJob( self, mode = 'local' )
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
