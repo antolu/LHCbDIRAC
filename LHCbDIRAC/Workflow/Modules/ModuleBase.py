@@ -240,23 +240,17 @@ class ModuleBase( object ):
     """ Resolve the input variables that are in the workflow_commons
     """
 
-    if self.workflow_commons.has_key( 'runNumber' ):
-      self.runNumber = self.workflow_commons['runNumber']
+    self.runNumber = self.workflow_commons.get( 'runNumber', self.runNumber )
 
-    if self.workflow_commons.has_key( 'persistency' ):
-      self.persistency = self.workflow_commons['persistency']
+    self.persistency = self.workflow_commons.get( 'persistency', self.persistency )
 
-    if self.workflow_commons.has_key( 'JobType' ):
-      self.jobType = self.workflow_commons['JobType']
+    self.jobType = self.workflow_commons.get( 'JobType', self.jobType )
 
-    if self.workflow_commons.has_key( 'poolXMLCatName' ):
-      self.poolXMLCatName = self.workflow_commons['poolXMLCatName']
+    self.poolXMLCatName = self.workflow_commons.get( 'poolXMLCatName', self.poolXMLCatName )
 
-    if self.workflow_commons.has_key( 'InputData' ):
-      if self.workflow_commons['InputData']:
-        self.InputData = self.workflow_commons['InputData']
+    self.InputData = self.workflow_commons.get( 'InputData', self.InputData )
 
-    if self.workflow_commons.has_key( 'ParametricInputData' ):
+    if 'ParametricInputData' in self.workflow_commons:
       pID = copy.deepcopy( self.workflow_commons['ParametricInputData'] )
       if pID:
         if isinstance( pID, list ):
@@ -271,48 +265,39 @@ class ModuleBase( object ):
     self.inputDataList = [lfn.strip( 'LFN:' ) for lfn in self.InputData.split( ';' ) if lfn]
 
     # only required until the stripping is the same for MC / data
-    if self.workflow_commons.has_key( 'configName' ):
-      self.bkConfigName = self.workflow_commons['configName']
+    self.bkConfigName = self.workflow_commons.get( 'configName', self.bkConfigName )
 
-    if self.workflow_commons.has_key( 'simDescription' ):
-      self.simDescription = self.workflow_commons['simDescription']
+    self.simDescription = self.workflow_commons.get( 'simDescription', self.simDescription )
 
-    if self.workflow_commons.has_key( 'DDDBTag' ):
-      self.DDDBTag = self.workflow_commons['DDDBTag']
+    self.DDDBTag = self.workflow_commons.get( 'DDDBTag', self.DDDBTag )
 
-    if self.workflow_commons.has_key( 'CondDBTag' ):
-      self.condDBTag = self.workflow_commons['CondDBTag']
+    self.condDBTag = self.workflow_commons.get( 'CondDBTag', self.condDBTag )
 
-    if self.workflow_commons.has_key( 'DQTag' ):
-      self.dqTag = self.workflow_commons['DQTag']
+    self.dqTag = self.workflow_commons.get( 'DQTag', self.dqTag )
 
-    if self.workflow_commons.has_key( 'runMetadata' ):
+    if 'runMetadata' in self.workflow_commons:
       runMetadataDict = eval( self.workflow_commons['runMetadata'] )
       self.onlineDDDBTag = runMetadataDict['DDDB']
       self.onlineCondDBTag = runMetadataDict['CondDb']
       self.TCK = runMetadataDict['TCK']
 
-    if self.workflow_commons.has_key( 'outputDataFileMask' ):
+    if 'outputDataFileMask' in self.workflow_commons:
       self.outputDataFileMask = self.workflow_commons['outputDataFileMask']
       if not isinstance( self.outputDataFileMask, list ):
         self.outputDataFileMask = [i.lower().strip() for i in self.outputDataFileMask.split( ';' )]
 
-    if self.workflow_commons.has_key( 'gaudiSteps' ):
-      self.gaudiSteps = self.workflow_commons['gaudiSteps']
+    self.gaudiSteps = self.workflow_commons.get( 'gaudiSteps', self.gaudiSteps )
 
-    if self.workflow_commons.has_key( 'CPUe' ):
+    if 'CPUe' in self.workflow_commons:
       self.CPUe = int( round( float( self.workflow_commons['CPUe'] ) ) )
 
-    if self.workflow_commons.has_key( 'multicore' ):
-      self.multicoreJob = self.workflow_commons['multicore']
+    self.multicoreJob = self.workflow_commons.get( 'multicore', self.multicoreJob )
 
-    if self.workflow_commons.has_key( 'processingPass' ):
-      self.processingPass = self.workflow_commons['processingPass']
+    self.processingPass = self.workflow_commons.get( 'processingPass', self.processingPass )
 
-    if self.workflow_commons.has_key( 'LogFilePath' ):
-      self.logFilePath = self.workflow_commons['LogFilePath']
-      if isinstance( self.logFilePath, list ):
-        self.logFilePath = self.logFilePath[0]
+    self.logFilePath = self.workflow_commons.get( 'LogFilePath', self.logFilePath )
+    if isinstance( self.logFilePath, list ):
+      self.logFilePath = self.logFilePath[0]
     else:
       if 'PRODUCTION_ID' and 'JOB_ID' and 'configVersion' and 'configName' in self.workflow_commons:
         self.log.info( 'LogFilePath parameter not found, creating on the fly' )
@@ -322,21 +307,14 @@ class ModuleBase( object ):
           raise RuntimeError( result['Message'] )
         self.logFilePath = result['Value']['LogFilePath'][0]
 
-    if self.workflow_commons.has_key( 'maxNumberOfEvents' ):
-      self.maxNumberOfEvents = int( self.workflow_commons['maxNumberOfEvents'] )
+    if 'maxNumberOfEvents' in self.maxNumberOfEvents:
+      self.maxNumberOfEvents = int( self.workflow_commons[ 'maxNumberOfEvents'] )
 
-    # FIXME: for newer productions and user jobs this is found in the step parameter
-    if self.workflow_commons.has_key( 'SystemConfig' ):
-      self.systemConfig = self.workflow_commons['SystemConfig']
+    self.eventType = self.workflow_commons.get( 'eventType', self.eventType )
 
-    # for older productions these are found the step parameters
-    if self.workflow_commons.has_key( 'eventType' ):
-      self.eventType = self.workflow_commons['eventType']
+    self.numberOfEvents = self.workflow_commons.get( 'numberOfEvents', self.numberOfEvents )
 
-    if self.workflow_commons.has_key( 'numberOfEvents' ):
-      self.numberOfEvents = int( self.workflow_commons['numberOfEvents'] )
-
-    if self.workflow_commons.has_key( 'outputSEs' ):
+    if 'outputSEs' in self.workflow_commons:
       self.outputSEs = self.workflow_commons[ 'outputSEs' ]
     else:
       # this is here for backward compatibility
@@ -345,7 +323,7 @@ class ModuleBase( object ):
                                                                       'GAUSSHIST'] )
       self.outputSEs = dict( ( ht, histogramSE ) for ht in histoTypes )
     # for older productions we construct it based on what should be found in the steps
-    if self.step_commons.has_key( 'listoutput' ):
+    if 'listoutput' in self.step_commons:
       listOutputStep = self.step_commons['listoutput']
       for lOutput in listOutputStep:
         try:
@@ -364,38 +342,25 @@ class ModuleBase( object ):
 
     self.stepName = self.step_commons['STEP_INSTANCE_NAME']
 
-    if self.step_commons.has_key( 'executable' ) and self.step_commons['executable']:
-      self.executable = self.step_commons['executable']
+    self.executable = self.step_commons.get( 'executable', self.executable )
 
-    if self.step_commons.has_key( 'applicationName' ) and self.step_commons['applicationName']:
-      self.applicationName = self.step_commons['applicationName']
+    self.applicationName = self.step_commons.get( 'applicationName', self.applicationName )
 
-    if self.step_commons.has_key( 'applicationVersion' ) and self.step_commons['applicationVersion']:
-      self.applicationVersion = self.step_commons['applicationVersion']
+    self.applicationVersion = self.step_commons.get( 'applicationVersion', self.applicationVersion )
 
-    if self.step_commons.has_key( 'applicationLog' ):
-      self.applicationLog = self.step_commons['applicationLog']
+    self.applicationLog = self.step_commons.get( 'applicationLog', self.applicationLog )
 
-    if self.step_commons.has_key( 'XMLSummary' ):
-      self.XMLSummary = self.step_commons['XMLSummary']
+    self.XMLSummary = self.step_commons( 'XMLSummary', self.XMLSummary )
 
-    if self.step_commons.has_key( 'BKStepID' ):
-      self.BKstepID = self.step_commons['BKStepID']
+    self.BKstepID = self.step_commons.get( 'BKStepID', self.BKstepID )
 
-    if self.step_commons.has_key( 'StepProcPass' ):
-      self.stepProcPass = self.step_commons['StepProcPass']
+    self.stepProcPass = self.step_commons.get( 'StepProcPass', self.stepProcPass )
 
-    if self.step_commons.has_key( 'outputFilePrefix' ):
-      self.outputFilePrefix = self.step_commons['outputFilePrefix']
+    self.outputFilePrefix = self.step_commons.get( 'outputFilePrefix', self.outputFilePrefix )
 
-    if self.step_commons.has_key( 'numberOfEvents' ):
-      self.numberOfEvents = int( self.step_commons['numberOfEvents'] )
+    self.numberOfEvents = self.step_commons.get( 'numberOfEvents', self.numberOfEvents )
 
-    if self.step_commons.has_key( 'eventType' ):
-      self.eventType = self.step_commons['eventType']
-
-    if self.step_commons.has_key( 'inputDataType' ):
-      self.inputDataType = self.step_commons['inputDataType']
+    self.inputDataType = self.step_commons.get( 'inputDataType', self.inputDataType )
 
     if self.step_commons.has_key( 'HistogramName' ):
       self.histoName = self.step_commons[ 'HistogramName' ]
