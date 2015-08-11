@@ -1,5 +1,7 @@
+""" Client test
+"""
+
 import unittest
-import itertools
 
 from mock import MagicMock
 
