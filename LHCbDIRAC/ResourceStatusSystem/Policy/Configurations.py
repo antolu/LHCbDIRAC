@@ -20,12 +20,13 @@ POLICIESMETA_LHCB = {'GGUSTickets' : {'description' : "Open GGUS tickets",
                      'TransferQualitySource' :{'description' : 'Transfers from element, quality measure',
                                                'module'      : 'TransferQualityPolicy',
                                                'command'     : ( 'TransferCommand', 'TransferCommand' ),
-                                               'args'        : { 'direction' : 'Source', 'metric' : 'Quality',
+                                               'args'        : {'direction' : 'Source',
+                                                                'metric' : 'Quality',
                                                                 'hours' : 2 }},
                      'TransferQualityDestination' : {'description' : 'Transfers to element, quality measure',
                                                      'module'      : 'TransferQualityPolicy',
                                                      'command'     : ( 'TransferCommand', 'TransferCommand' ),
-                                                     'args'        : { 'direction' : 'Destination', 'metric' :
+                                                     'args'        : {'direction' : 'Destination', 'metric' :
                                                                       'Quality', 'hours' : 2 }},
 #  'PilotEfficiency' :
 #    { 
@@ -62,7 +63,7 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
             'SAM_CE' :{'description' : 'Latest SAM results on the LCG Computing Element',
                        'module'      : 'SAMResultsPolicy',
                        'command'     : ( 'SAMResultsCommand', 'SAMResultsCommand' ),
-                       'args'        : ( None, [ 'LHCb CE-lhcb-availability', 'LHCb CE-lhcb-install',
+                       'args'        : ( None, ['LHCb CE-lhcb-availability', 'LHCb CE-lhcb-install',
                                                 'LHCb CE-lhcb-job-Boole', 'LHCb CE-lhcb-job-Brunel',
                                                 'LHCb CE-lhcb-job-DaVinci', 'LHCb CE-lhcb-job-Gauss',
                                                 'LHCb CE-lhcb-os', 'LHCb CE-lhcb-queues', 'bi',
@@ -189,14 +190,14 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
                                       'command'     : ( 'PilotsCommand', 'PilotsEffSimpleCommand' ),
                                       'args'        : None,
                                       'Resource_Panel' : [ { 'FillChart - Successfull pilots in the last 24 hours':
-                                                            { 'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+                                                            {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                                                              'args':( 'Pilot', 'SuccessfullPilotsByCESplitted_24' ),
                                                              'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                                                              'argsNewRes': ( 'Pilot', 'NumberOfPilots',
                                                                              {'Format': 'LastHours', 'hours': 24},
                                                                              'GridCE', {'GridStatus':'Done'} )}},
                                                           { 'FillChart - Failed pilots in the last 24 hours':
-                                                           { 'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+                                                           {'CommandIn': ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                                                             'args': ( 'Pilot', 'FailedPilotsByCESplitted_24' ),
                                                             'CommandInNewRes': ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                                                             'argsNewRes': ( 'Pilot', 'NumberOfPilots',
@@ -260,8 +261,8 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
       'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : ( 'VO-BOX', ),
       
-      'Service_VO-BOX_Panel' : [ { 'WebLink' : { 'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
-                                                 'args'      : ( 'VO-BOX', )}     }, ]
+      'Service_VO-BOX_Panel' : [ {'WebLink' : {'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
+                                               'args'      : ( 'VO-BOX', )}     }, ]
      },
   'VOMS-SLS' :
     { 
@@ -270,53 +271,28 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
       'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : ( 'VOMS', ),
       
-      'Service_VOMS_Panel' : [ {
-                                 'WebLink': { 
-                                              'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
-                                              'args'   : ( 'VOMS', )
-                                             }
-                                },
-                              ]
-     },
-  'OnStorageElementPropagation' :
-    { 
-      'description' : 'How the storage element\'s nodes are behaving in the RSS',
-      'module'      : 'DownHillPropagationPolicy',
-      'command'     : ( 'RSCommand', 'MonitoredStatusCommand' ),
-      'args'        : ( 'Resource', ),
-      
-      'SE_Panel' : [ {
-                       'RSS' : 'ResOfStorEl'
-                       }
-                    ]
-     },
-  'TransferQuality' :
-    { 
-      'description'     : 'SE transfer quality',
+      'Service_VOMS_Panel': [ {'WebLink': {'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
+                                           'args'   : ( 'VOMS', )}}, ]},
+  'OnStorageElementPropagation': {'description' : 'How the storage element\'s nodes are behaving in the RSS',
+                                   'module'      : 'DownHillPropagationPolicy',
+                                   'command'     : ( 'RSCommand', 'MonitoredStatusCommand' ),
+                                   'args'        : ( 'Resource', ),
+                                   'SE_Panel' : [{'RSS' : 'ResOfStorEl'}]},
+  'TransferQuality':{ 'description'     : 'SE transfer quality',
       'module'          : 'TransferQualityPolicy',
       'commandInNewRes' : ( 'DIRACAccountingCommand', 'TransferQualityCommand' ),
       'argsNewRes'      : None,
       'command'         : ( 'DIRACAccountingCommand', 'TransferQualityFromCachedPlotCommand' ),
       'args'            : ( 'DataOperation', 'TransferQualityByDestSplitted_2' ),
       
-      'SE_Panel' : [ {
-                      'FillChart - Transfer quality in the last 24 hours, incoming in the space token':
-                        {
-                          'CommandIn'       : ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
-                          'args'            : ( 'DataOperation', 'TransferQualityByDestSplitted_24' ),
-                          'CommandInNewRes' : ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
-                          'argsNewRes'      : ( 'DataOperation', 'Quality',
-                                               { 
-                                                'Format' : 'LastHours', 'hours': 24
-                                               },
+      'SE_Panel' : [ {'FillChart - Transfer quality in the last 24 hours, incoming in the space token':
+                        {'CommandIn'       : ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
+                         'args'            : ( 'DataOperation', 'TransferQualityByDestSplitted_24' ),
+                         'CommandInNewRes' : ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
+                         'argsNewRes'      : ( 'DataOperation', 'Quality',
+                                               {'Format' : 'LastHours', 'hours': 24},
                                                'Destination', 
-                                               {
-                                                'OperationType' : 'putAndRegister'
-                                                } )
-                         }
-                       },
-                      ]
-     },
+                                               {'OperationType' : 'putAndRegister'} )}}, ]},
   'SEOccupancy' :
     { 
       'description' : 'SE occupancy',

@@ -424,9 +424,9 @@ class JobStepPlotter( BaseReporter ):
     baseDataDict, graphDataDict, __, unitName = suitableUnits
      
     return S_OK( {'data'          : baseDataDict,
-                 'graphDataDict' : graphDataDict,
-                 'granularity'   : granularity, 
-                 'unit'          : unitName  } )
+                  'graphDataDict' : graphDataDict,
+                  'granularity'   : granularity,
+                  'unit'          : unitName  } )
 
   def __plotNormPlot( self, reportRequest, plotInfo, filename, title ):
     
@@ -502,9 +502,9 @@ class JobStepPlotter( BaseReporter ):
     baseDataDict, graphDataDict, __, unitName = suitableUnits
      
     return S_OK( {'data'          : baseDataDict,
-                 'graphDataDict' : graphDataDict,
-                 'granularity'   : granularity, 
-                 'unit'          : unitName } )
+                  'graphDataDict' : graphDataDict,
+                  'granularity'   : granularity,
+                  'unit'          : unitName } )
 
   def __plotCumulative( self, reportRequest, plotInfo, filename, title ):
     
@@ -521,8 +521,7 @@ class JobStepPlotter( BaseReporter ):
     
     selectField  = self._getSelectStringForGrouping( reportRequest[ 'groupingFields' ] )
     selectFields = ( selectField  + ", %s, %s, SUM(%s)",
-                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength', field ]
-                   )
+                     reportRequest[ 'groupingFields' ][1] + [ 'startTime', 'bucketLength', field ] )
     
     startTime = reportRequest[ 'startTime' ]
     endTime   = reportRequest[ 'endTime' ]
@@ -562,8 +561,7 @@ class JobStepPlotter( BaseReporter ):
     granularity = plotInfo[ 'granularity' ]
     dataDict    = plotInfo[ 'data' ]
     
-    metadata = { 
-                'title'         : '%s  by %s' % (title, reportRequest[ 'grouping' ]),
+    metadata = {'title'         : '%s  by %s' % ( title, reportRequest[ 'grouping' ] ),
                 'starttime'     : startEpoch,
                 'endtime'       : endEpoch,
                 'span'          : granularity,
@@ -599,10 +597,8 @@ class JobStepPlotter( BaseReporter ):
     dataDict = self._fillWithZero( granularity, startTime, endTime, dataDict)
     dataDict = self._accumulate( granularity, startTime, endTime, dataDict)
 
-    return S_OK({ 
-                 'data'        : dataDict, 
-                 'granularity' : granularity
-                 })
+    return S_OK( {'data'        : dataDict,
+                  'granularity' : granularity } )
 
   def __plotCumulativeNumberOfField( self, reportRequest, plotInfo, filename , title, label ):
     
@@ -654,8 +650,7 @@ class JobStepPlotter( BaseReporter ):
     metadata = { 'title'     : '%s by %s' % ( title, reportRequest[ 'grouping' ] ),
                  'ylabel'    : label,
                  'starttime' : reportRequest[ 'startTime' ],
-                 'endtime'   : reportRequest[ 'endTime' ]
-                }
+                 'endtime'   : reportRequest[ 'endTime' ]}
     return self._generatePiePlot( filename, plotInfo[ 'data' ], metadata )
 
   def __report2D( self, reportRequest, field1, field2 ):
@@ -683,10 +678,8 @@ class JobStepPlotter( BaseReporter ):
     self.stripDataField( dataDict, 0 )
     
     dataDict = self._fillWithZero( granularity, startTime, endTime, dataDict )
-    return S_OK( { 
-                  'data'        : dataDict, 
-                  'granularity' : granularity 
-                  } )
+    return S_OK( {'data'        : dataDict,
+                  'granularity' : granularity} )
 
   def __plot2D( self, reportRequest, plotInfo, filename, label ):
 
