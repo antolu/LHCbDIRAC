@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 main controller of the widgets.
 """

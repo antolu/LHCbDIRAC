@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 AdvancedSave widget. It used to create a Gaudi card.
 """

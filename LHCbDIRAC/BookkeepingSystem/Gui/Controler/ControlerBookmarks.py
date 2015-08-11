@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 Controlls the Bookmarks widget
 """

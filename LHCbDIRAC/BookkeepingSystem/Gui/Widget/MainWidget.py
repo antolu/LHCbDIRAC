@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 Main bookkeeping widget
 """

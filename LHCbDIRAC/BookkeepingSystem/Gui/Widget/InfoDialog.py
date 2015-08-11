@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 This widget used to view a key/value pair dataset
 """

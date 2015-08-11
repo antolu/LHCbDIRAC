@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 It used to control the advanced save widgets
 """

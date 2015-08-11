@@ -1,4 +1,6 @@
-""""
+# pylint: skip-file
+
+"""
 Controller of the File Dialog window
 """
 ########################################################################

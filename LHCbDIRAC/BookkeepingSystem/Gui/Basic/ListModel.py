@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 List model used for all table widgets
 """

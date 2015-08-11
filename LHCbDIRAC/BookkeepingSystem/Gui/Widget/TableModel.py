@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 Table model used most of the widget
 """

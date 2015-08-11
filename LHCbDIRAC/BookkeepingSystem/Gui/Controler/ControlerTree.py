@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 Controls the Bookkeeping trees.
 """

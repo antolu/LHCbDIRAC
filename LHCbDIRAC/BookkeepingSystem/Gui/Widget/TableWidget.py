@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 Table widget used by most widgets
 """

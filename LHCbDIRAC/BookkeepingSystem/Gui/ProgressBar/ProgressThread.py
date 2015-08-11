@@ -1,12 +1,14 @@
+# pylint: skip-file
+
 """This module can be used as a progress bar."""
 ########################################################################
 # $Id$
 ########################################################################
 
+import time
+
 from PyQt4.QtCore                                                                 import QThread, QString
 from PyQt4.QtGui                                                                  import QProgressDialog
-#from DIRAC                                                                        import gLogger, S_OK, S_ERROR
-import time
 
 __RCSID__ = "$Id$"
 

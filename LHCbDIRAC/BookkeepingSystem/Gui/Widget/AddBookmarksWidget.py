@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 AddBookmarks widget
 """
@@ -8,7 +10,7 @@ from PyQt4.QtGui   import QDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_AddBookmarks           import Ui_AddBookmarks
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAddBookmarks  import ControlerAddBookmarks
 
-__RCSID__ = " $"
+__RCSID__ = "$Id$"
 
 
 #############################################################################

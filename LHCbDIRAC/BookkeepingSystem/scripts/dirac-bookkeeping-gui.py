@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 #!/usr/bin/env python
 ########################################################################
 # File :    dirac-bookkeeping-gui.py

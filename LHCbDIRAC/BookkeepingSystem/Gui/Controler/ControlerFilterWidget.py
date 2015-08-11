@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 """
 Controller of the Filter widget
 """

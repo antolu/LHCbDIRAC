@@ -1,5 +1,7 @@
+# pylint: skip-file
+
 """
-Datat quality widget
+Data quality widget
 """
 ########################################################################
 # $Id: $
