@@ -307,7 +307,7 @@ class ModuleBase( object ):
           raise RuntimeError( result['Message'] )
         self.logFilePath = result['Value']['LogFilePath'][0]
 
-    if 'maxNumberOfEvents' in self.maxNumberOfEvents:
+    if 'maxNumberOfEvents' in self.workflow_commons:
       self.maxNumberOfEvents = int( self.workflow_commons[ 'maxNumberOfEvents'] )
 
     self.eventType = self.workflow_commons.get( 'eventType', self.eventType )
@@ -350,7 +350,7 @@ class ModuleBase( object ):
 
     self.applicationLog = self.step_commons.get( 'applicationLog', self.applicationLog )
 
-    self.XMLSummary = self.step_commons( 'XMLSummary', self.XMLSummary )
+    self.XMLSummary = self.step_commons.get( 'XMLSummary', self.XMLSummary )
 
     self.BKstepID = self.step_commons.get( 'BKStepID', self.BKstepID )
 
