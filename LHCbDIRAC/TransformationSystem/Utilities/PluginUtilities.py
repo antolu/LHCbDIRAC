@@ -11,6 +11,7 @@ from DIRAC import gConfig, gLogger, S_OK, S_ERROR, exit as DIRACExit
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities as DIRACPluginUtilities
