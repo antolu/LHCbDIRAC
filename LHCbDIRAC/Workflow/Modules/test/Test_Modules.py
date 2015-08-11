@@ -298,10 +298,11 @@ class ModulesTestCase( unittest.TestCase ):
 
   def tearDown( self ):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst', 'bar.py', 'aLongLog.log', 'aLongLog.log.gz'
-                     'ccc.charm.mdst', 'prova.txt', 'aLog.log', 'BAR.txt', 'FooBAR.ext.txt', 'foo_1.txt', 'bar_2.py', 'bar.txt',
+                     'ccc.charm.mdst', 'ccc.charm.mdst', 'prova.txt', 'aLog.log', 'BAR.txt', 'FooBAR.ext.txt', 'foo_1.txt', 'bar_2.py', 'bar.txt',
                      'ErrorLogging_Step1_coredump.log', '123_00000456_request.xml', 'lfn1', 'lfn2', 'XMLSummaryFile',
                      'aaa.bhadron.dst', 'bbb.calibration.dst', 'ProductionOutputData', 'data.py', '123_00000456_request.json',
-                     '00000123_00000456.tar', 'someOtherDir', 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK',
+                     '00000123_00000456.tar', 'someOtherDir', 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'myfoo.blah',
+                     'prodConf_someApp__.py', 'prodConf_someApp___.py'
                      ]:
       try:
         os.remove( fileProd )
