@@ -183,10 +183,10 @@ class LHCbJob( Job ):
     else:
       logName = '%s_%s.log' % ( appName, appVersion )
 
-    if not isinstance( inputDataType, str ):
-      return self._reportError( 'Expected string for input data type', __name__, **kwargs )
     if not inputDataType:
       inputDataType = self.inputDataType
+    if not isinstance( inputDataType, str ):
+      return self._reportError( 'Expected string for input data type', __name__, **kwargs )
 
     optionsFile = None
     if not optionsFiles:
