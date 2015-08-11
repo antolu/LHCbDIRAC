@@ -9,7 +9,7 @@
 __RCSID__ = "$Id: dirac-bookkeeping-file-metadata.py 65177 2013-04-22 15:24:07Z phicharp $"
 import DIRAC
 import  DIRAC.Core.Base.Script as Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+
 import datetime
 
 
@@ -35,6 +35,10 @@ if __name__ == "__main__":
                                        'Usage:',
                                        '  %s [option|cfgfile] ... LFN|File' % Script.scriptName] ) )
   Script.parseCommandLine()
+  from DIRAC import gLogger
+  from DIRAC.Interfaces.API.Dirac import Dirac
+  from DIRAC.Core.DISET.RPCClient import RPCClient
+
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
     if switch[0] == 'Site':
@@ -80,9 +84,6 @@ if __name__ == "__main__":
     # status = [None]
     full = True
 
-  from DIRAC import gLogger
-  from DIRAC.Interfaces.API.Dirac import Dirac
-  from DIRAC.Core.DISET.RPCClient                          import RPCClient
   monitoring = RPCClient( 'WorkloadManagement/JobMonitoring' )
   dirac = Dirac()
 

@@ -97,7 +97,7 @@ def cacheDirectories( directories ):
       if metadata:
         if metadata.get( 'VisibilityFlag', metadata.get( 'Visibility', 'Y' ) ) == 'Y':
           bkDict = BKQuery( metadata ).getQueryDict()
-          bkPath = makePath( bkDict )
+          bkPath = makeBKPath( bkDict )
           processingPass[bkPath] = metadata['ProcessingPass']
           prodForBKPath.setdefault( bkPath, set() ).add( metadata['Production'] )
         else:

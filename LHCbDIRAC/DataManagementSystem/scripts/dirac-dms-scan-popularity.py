@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
   try:
     from ScanPopularity import scanPopularity
-  except:
+  except ImportError:
     from LHCbDIRAC.DataManagementSystem.Client.ScanPopularity import scanPopularity
   scanPopularity( since, getAllDatasets )
 
