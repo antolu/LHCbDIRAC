@@ -224,7 +224,7 @@ class TransformationDB( DIRACTransformationDB ):
       return S_ERROR( "EndRun can not be reduced!" )
     if startRun and startRun > runNumber:
       return S_ERROR( "EndRun is before StartRun!" )
-    req = "UPDATE BkQueriesNew SET ParameterValue=%d WHERE TransformationID = %d AND ParameterName='EndRun'" % ( runNumber, transID )
+    req = "INSERT INTO BkQueriesNew(TransformationID,ParameterName,ParameterValue) VALUES(%d,'EndRun',%d) ON DUPLICATE KEY UPDATE ParameterValue = %d" % ( transID, runNumber, runNumber )
     return self._update( req, connection )
 
 
@@ -244,7 +244,7 @@ class TransformationDB( DIRACTransformationDB ):
       return S_ERROR( "StartRun can not be increased!" )
     if endRun and runNumber > endRun:
       return S_ERROR( "StartRun cannot be after EndRun!" )
-    req = "UPDATE BkQueriesNew SET ParameterValue = %d WHERE TransformationID = %d and ParameterName='StartRun'" % ( runNumber, transID )
+    req = "INSERT INTO BkQueriesNew(TransformationID,ParameterName,ParameterValue) VALUES(%d,'StartRun',%d) ON DUPLICATE KEY UPDATE ParameterValue = %d" % ( transID, runNumber, runNumber )
     return self._update( req, connection )
 
 

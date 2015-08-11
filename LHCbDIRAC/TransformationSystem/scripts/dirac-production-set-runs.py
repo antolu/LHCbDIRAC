@@ -78,9 +78,9 @@ try:
 except:
   print "Error retrieving BKQuery for Production %s" % prodId
   DIRAC.exit( 2 )
-startRun = bkDict.get( 'StartRun' )
-endRun = bkDict.get( 'EndRun' )
-runNumbers = bkDict.get( 'RunNumbers' )
+startRun = bkDict.get( 'StartRun', 0 )
+endRun = bkDict.get( 'EndRun', 0 )
+runNumbers = bkDict.get( 'RunNumbers', 'All' )
 
 if ( 'start' in settings or 'end' in settings ) and runNumbers:
   print "Production %d has RunNumbers key" % prodId
