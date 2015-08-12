@@ -606,8 +606,8 @@ class ProductionRequestDB( DB ):
           self.lock.release()
           _msgTuple = ( requestState, update['RequestState'] )
           return S_ERROR( "The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
-      elif requestState == 'Active':
-        if not update['RequestState'] in ['Done', 'Cancelled', 'Completed']:
+      elif requestState == 'Active':        
+        if  (not update['RequestState'] in ['Done', 'Cancelled', 'Completed', 'Accepted']) or (update['RequestState'] != 'Accepted' and creds['Group'] != 'lhcb_prmgr'):
           self.lock.release()
           _msgTuple = ( requestState, update['RequestState'] )
           return S_ERROR( "The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
