@@ -69,7 +69,7 @@ class XMLSummary( object ):
       self.log.info( "XML Summary OK" )
       return True
     else:
-      self.log.error( "XML Summary reports errors" )
+      self.log.warn( "XML Summary reports errors" )
       return False
 
 ################################################################################
@@ -195,25 +195,25 @@ class XMLSummary( object ):
     for fileIn, status in self.inputStatus:
 
       if status == 'fail':
-        self.log.error( 'Input File %s is on status %s.' % ( fileIn, status ) )
+        self.log.warn( 'Input File %s is on status %s.' % ( fileIn, status ) )
         fileCounter[ 'fail' ] += 1
 
       elif status == 'mult':
-        self.log.error( 'Input File %s is on status %s.' % ( fileIn, status ) )
+        self.log.warn( 'Input File %s is on status %s.' % ( fileIn, status ) )
         fileCounter[ 'mult' ] += 1
 
       elif status == 'part':
-        self.log.error( 'Input File %s is on status %s.' % ( fileIn, status ) )
+        self.log.warn( 'Input File %s is on status %s.' % ( fileIn, status ) )
         fileCounter[ 'part' ] += 1
 
       elif status == 'full':
         # If it is Ok, we do not print anything
-        # self.log.error( 'File %s is on status %s.' % ( file, status ) )
+        # self.log.warn( 'File %s is on status %s.' % ( file, status ) )
         fileCounter[ 'full' ] += 1
 
       # This should never happen, but just in case
       else:
-        self.log.error( 'Input File %s is on unknown status: %s' % ( fileIn, status ) )
+        self.log.warn( 'Input File %s is on unknown status: %s' % ( fileIn, status ) )
         fileCounter[ 'other'] += 1
 
     files = [ '%d input file(s) on %s status' % ( v, k ) for k, v in fileCounter.items() if v > 0 ]
