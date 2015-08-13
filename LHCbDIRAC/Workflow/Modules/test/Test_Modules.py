@@ -1072,14 +1072,14 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
       for step_commons in self.step_commons:
         if not wf_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
           self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                            self.workflowStatus, self.stepStatus,
-                                            wf_commons, step_commons,
-                                            self.step_number, self.step_id )['OK'] )
+                                              self.workflowStatus, self.stepStatus,
+                                              wf_commons, step_commons,
+                                              self.step_number, self.step_id )['OK'] )
         else:
           self.assertTrue( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                            self.workflowStatus, self.stepStatus,
-                                            wf_commons, step_commons,
-                                            self.step_number, self.step_id )['OK'] )
+                                             self.workflowStatus, self.stepStatus,
+                                             wf_commons, step_commons,
+                                             self.step_number, self.step_id )['OK'] )
 #############################################################################
 # BookkeepingReport.py
 #############################################################################
@@ -1095,10 +1095,11 @@ class BookkeepingReportSuccess( ModulesTestCase ):
       for step_commons in self.step_commons:
         self.bkr.siteName = 'DIRAC.Test.ch'
         step_commons['XMLSummary_o'] = self.xf_o_mock
-        self.assertTrue( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                         self.workflowStatus, self.stepStatus,
-                                         wf_commons, step_commons,
-                                         self.step_number, self.step_id, False )['OK'] )
+        res = self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                self.workflowStatus, self.stepStatus,
+                                wf_commons, step_commons,
+                                self.step_number, self.step_id, False )
+        self.assertTrue( res['OK'] )
 
 
 class BookkeepingReportFailure( ModulesTestCase ):
@@ -1110,9 +1111,9 @@ class BookkeepingReportFailure( ModulesTestCase ):
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertFalse( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                          self.workflowStatus, self.stepStatus,
-                                          wf_commons, step_commons,
-                                          self.step_number, self.step_id, False )['OK'] )
+                                            self.workflowStatus, self.stepStatus,
+                                            wf_commons, step_commons,
+                                            self.step_number, self.step_id, False )['OK'] )
       step_commons_1 = copy.deepcopy( step_commons )
       step_commons_1.pop( 'XMLSummary' )
       self.assertFalse( self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,

@@ -274,6 +274,7 @@ class BookkeepingReport( ModuleBase ):
         - FirstEventNumber
         - StatisticsRequested
         - NumberOfEvents
+        - StepID
     """
 
     typedParams = []
@@ -331,6 +332,8 @@ class BookkeepingReport( ModuleBase ):
     typedParams.append( ( "FirstEventNumber", 1 ) )
 
     typedParams.append( ( "StatisticsRequested", self.numberOfEvents ) )
+
+    typedParams.append( ( "StepID", self.BKstepID ) )
 
     try:
       typedParams.append( ( "NumberOfEvents", self.xf_o.outputEventsTotal ) )
