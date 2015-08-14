@@ -44,6 +44,7 @@ class RegressionTestCase( IntegrationTest ):
 #     self.j_stripp_31017 = LHCbJob( location31017 )
 #     self.j_stripp_31017.setConfigArgs( 'pilot.cfg' )
 
+    # Turbo Stripping Collision15em
     location46403 = find_all( '46403.xml', '.', 'Regression' )[0]
     self.j_stripp_46403 = LHCbJob( location46403 )
     self.j_stripp_46403.setConfigArgs( 'pilot.cfg' )
