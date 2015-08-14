@@ -31,13 +31,14 @@ class RegressionTestCase( IntegrationTest ):
     self.j_mc_40652 = LHCbJob( location40652 )
     self.j_mc_40652.setConfigArgs( 'pilot.cfg' )
 
-    location20194 = find_all( '20194.xml', '.', 'Regression' )[0]
-    self.j_reco_20194 = LHCbJob( location20194 )
-    self.j_reco_20194.setConfigArgs( 'pilot.cfg' )
+#     location20194 = find_all( '20194.xml', '.', 'Regression' )[0]
+#     self.j_reco_20194 = LHCbJob( location20194 )
+#     self.j_reco_20194.setConfigArgs( 'pilot.cfg' )
 
-    location20194old = find_all( '20194_old.xml', '.', 'Regression' )[0]
-    self.j_reco_20194_old = LHCbJob( location20194old )
-    self.j_reco_20194_old.setConfigArgs( 'pilot.cfg' )
+    # Reco from Collision15em
+    location46146 = find_all( '46146.xml', '.', 'Regression' )[0]
+    self.j_reco_46146 = LHCbJob( location46146 )
+    self.j_reco_46146.setConfigArgs( 'pilot.cfg' )
 
     location31017 = find_all( '31017.xml', '.', 'Regression' )[0]
     self.j_stripp_31017 = LHCbJob( location31017 )
@@ -80,18 +81,11 @@ class MCReconstructionSuccess( RegressionTestCase ):
 
 class RecoSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    res = self.j_reco_20194.runLocal( self.diracLHCb, self.bkkClient )
+#     res = self.j_reco_20194.runLocal( self.diracLHCb, self.bkkClient )
+    res = self.j_reco_46146.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 #     for found, expected in getOutput( 'Reco' ):
-#       self.assertEqual( found, expected )
-
-class RecoOldSuccess( RegressionTestCase ):
-  def test_Regression_Production( self ):
-    res = self.j_reco_20194_old.runLocal( self.diracLHCb, self.bkkClient )
-    self.assertTrue( res['OK'] )
-
-#     for found, expected in getOutput( 'Reco_old' ):
 #       self.assertEqual( found, expected )
 
 class StrippSuccess( RegressionTestCase ):
