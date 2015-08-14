@@ -40,9 +40,13 @@ class RegressionTestCase( IntegrationTest ):
     self.j_reco_46146 = LHCbJob( location46146 )
     self.j_reco_46146.setConfigArgs( 'pilot.cfg' )
 
-    location31017 = find_all( '31017.xml', '.', 'Regression' )[0]
-    self.j_stripp_31017 = LHCbJob( location31017 )
-    self.j_stripp_31017.setConfigArgs( 'pilot.cfg' )
+#     location31017 = find_all( '31017.xml', '.', 'Regression' )[0]
+#     self.j_stripp_31017 = LHCbJob( location31017 )
+#     self.j_stripp_31017.setConfigArgs( 'pilot.cfg' )
+
+    location46403 = find_all( '46403.xml', '.', 'Regression' )[0]
+    self.j_stripp_46403 = LHCbJob( location46403 )
+    self.j_stripp_46403.setConfigArgs( 'pilot.cfg' )
 
     location40464 = find_all( '40464.xml', '.', 'Regression' )[0]
     self.j_merge_40464 = LHCbJob( location40464 )
@@ -90,7 +94,7 @@ class RecoSuccess( RegressionTestCase ):
 
 class StrippSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
-    res = self.j_stripp_31017.runLocal( self.diracLHCb, self.bkkClient )
+    res = self.j_stripp_46403.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
 #     for found, expected in getOutput( 'Stripp' ):
@@ -133,7 +137,6 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCReconstructionSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoOldSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
