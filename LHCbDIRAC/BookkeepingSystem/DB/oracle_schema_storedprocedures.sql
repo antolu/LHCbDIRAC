@@ -1744,6 +1744,7 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
     for ff in (select distinct ft.name from files f, jobs j, filetypes ft where j.jobid=f.jobid and j.production=c.production and ft.filetypeid=f.filetypeid and f.gotreplica='Yes') LOOP
        allfiletypes := CONCAT(allfiletypes, CONCAT(ff.name,','));
     END LOOP;
+    allfiletypes := substr(allfiletypes, 0, length(allfiletypes)-1);
     if simdesc is NULL or simdesc='' then
       lfnmeta (n):= directoryMetadata_new(lfns(i),c.production,c.configname, c.configversion, c.eventtypeid, allfiletypes, procname,daqdesc, c.VISIBILITYFLAG);
     else
