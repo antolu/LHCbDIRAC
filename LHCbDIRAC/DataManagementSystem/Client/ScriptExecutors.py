@@ -490,6 +490,8 @@ def getAccessURL( lfnList, seList, protocol = None ):
 
   printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
 
+  return results
+
 def executeRemoveFiles( dmScript ):
 
   lfnList, _ses = parseArguments( dmScript )
