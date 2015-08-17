@@ -76,7 +76,7 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
     if result['OK']:
       break
     else:
-      gLogger.verbose( "Problem executing SetupProject: %s" % result['Message'] )
+      gLogger.warn( "Problem executing SetupProject: %s" % result['Message'] )
       gLogger.warn( "Can't setup using %s, trying the next, if any" % compatibleCMTConfig )
 
   try:
@@ -175,11 +175,11 @@ def runEnvironmentScripts( commandsList, env = None ):
     exeCommand = exeCommand.split( ' ' )
     result = sourceEnv( timeout, exeCommand, env )
     if not result['OK']:
-      gLogger.error( 'Problem executing %s: %s' % ( command, result['Message'] ) )
+      gLogger.warn( 'Problem executing %s: %s' % ( command, result['Message'] ) )
       if result['stdout']:
         gLogger.info( result['stdout'] )
       if result['stderr']:
-        gLogger.error( result['stderr'] )
+        gLogger.warn( result['stderr'] )
       return S_ERROR( '%s Execution Failed' % ( name ) )
 
     env = result['outputEnv']
