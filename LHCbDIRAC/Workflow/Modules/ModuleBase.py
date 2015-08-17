@@ -103,7 +103,7 @@ class ModuleBase( object ):
     self.onlineDDDBTag = None
     self.outputSEs = {}
     self.outputDataFileMask = None
-    self.numberOfEvents = 0
+    self.numberOfEvents = -1
     self.maxNumberOfEvents = None
     self.TCK = None
     self.mcTCK = None
@@ -147,7 +147,7 @@ class ModuleBase( object ):
     else:
       self.prod_job_id = self.workflow_commons['JOB_ID']
 
-    if os.environ.has_key( 'JOBID' ):
+    if 'JOBID' in os.environ:
       self.jobID = os.environ['JOBID']
 
     if wms_job_id:
@@ -269,12 +269,6 @@ class ModuleBase( object ):
 
     self.simDescription = self.workflow_commons.get( 'simDescription', self.simDescription )
 
-    self.DDDBTag = self.workflow_commons.get( 'DDDBTag', self.DDDBTag )
-
-    self.condDBTag = self.workflow_commons.get( 'CondDBTag', self.condDBTag )
-
-    self.dqTag = self.workflow_commons.get( 'DQTag', self.dqTag )
-
     if 'runMetadata' in self.workflow_commons:
       runMetadataDict = eval( self.workflow_commons['runMetadata'] )
       self.onlineDDDBTag = runMetadataDict['DDDB']
@@ -312,7 +306,7 @@ class ModuleBase( object ):
 
     self.eventType = self.workflow_commons.get( 'eventType', self.eventType )
 
-    self.numberOfEvents = self.workflow_commons.get( 'numberOfEvents', self.numberOfEvents )
+    self.numberOfEvents = int( self.workflow_commons.get( 'numberOfEvents', self.numberOfEvents ) )
 
     if 'outputSEs' in self.workflow_commons:
       self.outputSEs = self.workflow_commons[ 'outputSEs' ]
@@ -358,37 +352,30 @@ class ModuleBase( object ):
 
     self.outputFilePrefix = self.step_commons.get( 'outputFilePrefix', self.outputFilePrefix )
 
-    self.numberOfEvents = self.step_commons.get( 'numberOfEvents', self.numberOfEvents )
-
     self.inputDataType = self.step_commons.get( 'inputDataType', self.inputDataType )
 
-    if self.step_commons.has_key( 'HistogramName' ):
-      self.histoName = self.step_commons[ 'HistogramName' ]
+    self.histoName = self.step_commons.get( 'HistogramName', self.histoName )
 
-    if self.step_commons.has_key( 'applicationType' ):
-      self.applicationType = self.step_commons['applicationType']
+    self.applicationType = self.step_commons.get( 'applicationType', self.applicationType )
 
-    if self.step_commons.has_key( 'optionsFile' ):
-      self.optionsFile = self.step_commons['optionsFile']
+    self.optionsFile = self.step_commons.get( 'optionsFile', self.optionsFile )
 
-    if self.step_commons.has_key( 'optionsLine' ):
-      self.optionsLine = self.step_commons['optionsLine']
+    self.optionsLine = self.step_commons.get( 'optionsLine', self.optionsLine )
 
-    if self.step_commons.has_key( 'extraOptionsLine' ):
-      self.extraOptionsLine = self.step_commons['extraOptionsLine']
+    self.extraOptionsLine = self.step_commons.get( 'extraOptionsLine', self.extraOptionsLine )
 
-    if self.step_commons.has_key( 'runTimeProjectName' ):
+    if 'runTimeProjectName' in self.step_commons:
       self.runTimeProjectName = self.step_commons['runTimeProjectName']
       self.runTimeProjectVersion = self.step_commons['runTimeProjectVersion']
 
-    if self.step_commons.has_key( 'extraPackages' ):
+    if 'extraPackages' in self.step_commons:
       self.extraPackages = self.step_commons['extraPackages']
       if not self.extraPackages == '':
         if not isinstance( self.extraPackages, list ):
           self.extraPackages = self.extraPackages.split( ';' )
 
     stepInputData = []
-    if self.step_commons.has_key( 'inputData' ):
+    if 'inputData' in self.step_commons:
       if self.step_commons['inputData']:
         stepInputData = self.step_commons['inputData']
     elif self.InputData:
@@ -397,27 +384,19 @@ class ModuleBase( object ):
       stepInputData = self._determineStepInputData( stepInputData, )
       self.stepInputData = [sid.strip( 'LFN:' ) for sid in stepInputData]
 
-    if self.step_commons.has_key( 'optionsFormat' ):
-      self.optionsFormat = self.step_commons['optionsFormat']
+    self.optionsFormat = self.step_commons.get( 'optionsFormat', self.optionsFormat )
 
-    if self.step_commons.has_key( 'multiCore' ):
-      self.multicoreStep = self.step_commons['multiCore']
+    self.multicoreStep = self.step_commons.get( 'multiCore', self.multicoreStep )
 
-    if self.step_commons.has_key( 'SystemConfig' ):
-      self.systemConfig = self.step_commons['SystemConfig']
+    self.systemConfig = self.step_commons.get( 'SystemConfig', self.systemConfig )
 
-    if self.step_commons.has_key( 'mcTCK' ):
-      self.mcTCK = self.step_commons['mcTCK']
+    self.mcTCK = self.step_commons.get( 'mcTCK', self.mcTCK )
 
-    # for older productions these are found in the workflow parameters
-    if self.step_commons.has_key( 'DDDBTag' ):
-      self.DDDBTag = self.step_commons['DDDBTag']
+    self.DDDBTag = self.step_commons.get( 'DDDBTag', self.DDDBTag )
 
-    if self.step_commons.has_key( 'CondDBTag' ):
-      self.condDBTag = self.step_commons['CondDBTag']
+    self.condDBTag = self.step_commons.get( 'CondDBTag', self.condDBTag )
 
-    if self.step_commons.has_key( 'DQTag' ):
-      self.dqTag = self.step_commons['DQTag']
+    self.dqTag = self.step_commons.get( 'DQTag', self.dqTag )
 
   #############################################################################
 
@@ -486,7 +465,7 @@ class ModuleBase( object ):
     """ just return the job reporter (object, always defined by dirac-jobexec)
     """
 
-    if self.workflow_commons.has_key( 'JobReport' ):
+    if 'JobReport' in self.workflow_commons:
       return self.workflow_commons['JobReport']
     else:
       jobReport = JobReport( self.jobID )
@@ -499,7 +478,7 @@ class ModuleBase( object ):
     """ just return the file reporter (object)
     """
 
-    if self.workflow_commons.has_key( 'FileReport' ):
+    if 'FileReport' in self.workflow_commons:
       return self.workflow_commons['FileReport']
     else:
       fileReport = FileReport()
@@ -512,7 +491,7 @@ class ModuleBase( object ):
     """ just return the Request reporter (object)
     """
 
-    if self.workflow_commons.has_key( 'Request' ):
+    if 'Request' in self.workflow_commons:
       return self.workflow_commons['Request']
     else:
       request = Request()
@@ -536,8 +515,7 @@ class ModuleBase( object ):
     fileInfo = {}
 
     for outputFile in outputList:
-      if outputFile.has_key( 'outputDataType' ) \
-      and outputFile.has_key( 'outputDataName' ):
+      if 'outputDataType' in outputFile and 'outputDataName' in outputFile:
         fname = outputFile['outputDataName']
         fileType = outputFile['outputDataType']
         fileInfo[fname] = {'type':fileType}
@@ -638,7 +616,7 @@ class ModuleBase( object ):
     mandatoryKeys = ['type', 'lfn']  # filedict is used for requests
     for fileName, metadata in candidateFiles.items():
       for key in mandatoryKeys:
-        if not metadata.has_key( key ):
+        if not key in metadata:
           notPresentKeys.append( ( fileName, key ) )
 
     if notPresentKeys:
@@ -697,7 +675,7 @@ class ModuleBase( object ):
     mandatoryKeys = ['guid', 'filedict']  # filedict is used for requests (this method adds guid and filedict)
     for fileName, metadata in final.items():
       for key in mandatoryKeys:
-        if not metadata.has_key( key ):
+        if not key in metadata:
           raise RuntimeError( "File %s has missing %s" % ( fileName, key ) )
 
     return final
@@ -739,7 +717,7 @@ class ModuleBase( object ):
     self.log.info( 'Final step outputs are: %s' % ( finalOutputs ) )
     self.step_commons['listoutput'] = finalOutputs
 
-    if self.workflow_commons.has_key( 'outputList' ):
+    if 'outputList' in self.workflow_commons:
       for outFile in finalOutputs:
         if outFile not in self.workflow_commons['outputList']:
           self.workflow_commons['outputList'].append( outFile )
@@ -892,7 +870,7 @@ class ModuleBase( object ):
           raise RuntimeError( requestJSON['Message'] )
 
     accountingReport = None
-    if self.workflow_commons.has_key( 'AccountingReport' ):
+    if 'AccountingReport' in self.workflow_commons:
       accountingReport = self.workflow_commons['AccountingReport']
     if accountingReport:
       result = accountingReport.commit()
