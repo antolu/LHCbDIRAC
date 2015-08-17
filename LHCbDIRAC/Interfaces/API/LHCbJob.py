@@ -805,7 +805,7 @@ class LHCbJob( Job ):
        :type logFile: string
     """
     kwargs = {'executable':executable, 'arguments':arguments, 'applicationLog':logFile}
-    if not isinstance( executable, str ) or not isinstance( arguments, str ) or not isinstance( logFile, str ):
+    if not isinstance( executable, str ):
       return self._reportError( 'Expected strings for executable and arguments', **kwargs )
 
     if os.path.exists( executable ):
