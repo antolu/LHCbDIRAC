@@ -387,7 +387,9 @@ class XMLFilesReaderManager:
         return S_ERROR( errorMessage )
 
     
-    if job.exists( 'RunNumber' ):
+    daqCond = job.getDataTakingCond()
+    if daqCond != None and job.exists( 'RunNumber' ):
+      #make sure it is a run!!!! We only send the data taking conditions for a run!!!
       runnumber = job.getParam( 'RunNumber' ).getValue()
       gLogger.info( "Registering the run status: Runnumber %s , JobId %s , Finished %s " % ( str( runnumber ), str( job.getJobId() ), finished ) )
       result = dataManager_.insertRunStatus( runnumber, job.getJobId(), finished )
