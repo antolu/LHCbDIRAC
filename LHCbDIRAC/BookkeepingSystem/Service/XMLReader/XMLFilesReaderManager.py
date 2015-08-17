@@ -360,13 +360,6 @@ class XMLFilesReaderManager:
           # The files which inherits the runs can be entered to the database
           return S_ERROR( 'The run number not greater 0!' )
 
-    finished = 'N'
-    if job.getParam( 'IsFinished' ):
-      finished = job.getParam( 'IsFinished' ).getValue()
-      if finished not in ['Y', 'N']:
-        finished = 'N'
-      job.removeParam( 'IsFinished' )
-          
     result = self.__insertJob( job )
 
     if not result['OK']:
@@ -384,18 +377,6 @@ class XMLFilesReaderManager:
       if not result['OK']:
         dataManager_.deleteJob( job.getJobId() )
         errorMessage = "Unable to add %s " % ( str( inputfile.getFileName() ) )
-        return S_ERROR( errorMessage )
-
-    
-    daqCond = job.getDataTakingCond()
-    if daqCond != None and job.exists( 'RunNumber' ):
-      #make sure it is a run!!!! We only send the data taking conditions for a run!!!
-      runnumber = job.getParam( 'RunNumber' ).getValue()
-      gLogger.info( "Registering the run status: Runnumber %s , JobId %s , Finished %s " % ( str( runnumber ), str( job.getJobId() ), finished ) )
-      result = dataManager_.insertRunStatus( runnumber, job.getJobId(), finished )
-      if not result['OK']:
-        dataManager_.deleteJob( job.getJobId() )
-        errorMessage = "Unable to add run status %s " % ( str( runnumber ) )
         return S_ERROR( errorMessage )
 
     outputFiles = job.getJobOutputFiles()
