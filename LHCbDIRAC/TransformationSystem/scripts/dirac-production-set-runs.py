@@ -82,7 +82,7 @@ startRun = bkDict.get( 'StartRun', 0 )
 endRun = bkDict.get( 'EndRun', 0 )
 runNumbers = bkDict.get( 'RunNumbers', 'All' )
 
-if ( 'start' in settings or 'end' in settings ) and runNumbers:
+if ( 'start' in settings or 'end' in settings ) and runNumbers and runNumbers != 'All':
   print "Production %d has RunNumbers key" % prodId
   settings = {'list':True}
 
