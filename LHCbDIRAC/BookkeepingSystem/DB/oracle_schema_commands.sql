@@ -32,7 +32,7 @@ create or replace type bulk_collect_directoryMet_new is table of directoryMetada
 drop type metadata_table;
 /
 create or replace type metadata0bj is object (
-  FILENAME varchar2(128),
+  FILENAME varchar2(256),
   ADLER32 varchar2(256),
   CREATIONDATE timestamp(6),
   EVENTSTAT NUMBER,

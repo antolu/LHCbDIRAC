@@ -1726,6 +1726,7 @@ n integer := 0;
 procName varchar2(256);
 simdesc varchar2(256);
 daqdesc varchar2(256);
+allfiletypes varchar2(256);
 found number := 0;
 BEGIN
 FOR i in lfns.FIRST .. lfns.LAST LOOP
@@ -1739,10 +1740,14 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
        prod.daqperiodid=daq.daqperiodid(+);
      lfnmeta.extend;
      n:=n+1;
+    allfiletypes := '';
+    for ff in (select distinct ft.name from files f, jobs j, filetypes ft where j.jobid=f.jobid and j.production=c.production and ft.filetypeid=f.filetypeid and f.gotreplica='Yes') LOOP
+       allfiletypes := CONCAT(allfiletypes, CONCAT(ff.name,','));
+    END LOOP;
     if simdesc is NULL or simdesc='' then
-      lfnmeta (n):= directoryMetadata_new(lfns(i),c.production,c.configname, c.configversion, c.eventtypeid, c.name, procname,daqdesc, c.VISIBILITYFLAG);
+      lfnmeta (n):= directoryMetadata_new(lfns(i),c.production,c.configname, c.configversion, c.eventtypeid, allfiletypes, procname,daqdesc, c.VISIBILITYFLAG);
     else
-      lfnmeta (n):= directoryMetadata_new(lfns(i),c.production,c.configname, c.configversion, c.eventtypeid, c.name, procname,simdesc, c.VISIBILITYFLAG);
+      lfnmeta (n):= directoryMetadata_new(lfns(i),c.production,c.configname, c.configversion, c.eventtypeid, allfiletypes, procname,simdesc, c.VISIBILITYFLAG);
     END if;
  END IF;
   END LOOP;
