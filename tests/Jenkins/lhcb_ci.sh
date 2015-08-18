@@ -259,7 +259,8 @@ function installLHCbDIRAC(){
 }
 
 function installLHCbDIRACClient(){
-
+	wget --no-check-certificate -O dirac-install $DIRAC_INSTALL
+	chmod +x dirac-install
 	./dirac-install -l LHCb -r `cat project.version` -e LHCb -t client $DEBUG
 	source bashrc
 
