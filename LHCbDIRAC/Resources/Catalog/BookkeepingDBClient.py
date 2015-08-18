@@ -98,6 +98,9 @@ class BookkeepingDBClient( FileCatalogueBase ):
   def setReplicaStatus( self, lfn ):
     return self.__returnSuccess( lfn )
 
+  def setReplicaProblematic( self, lfn, revert = False ):
+    return self.__returnSuccess( lfn )
+
   def setReplicaHost( self, lfn ):
     return self.__returnSuccess( lfn )
 
