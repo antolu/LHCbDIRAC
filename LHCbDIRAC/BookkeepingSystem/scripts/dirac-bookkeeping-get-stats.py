@@ -168,7 +168,7 @@ def execute():
             runList[run][1] += metadata['EventStat']
             nbFiles += 1
           except Exception as e:
-            gLogger.exception( 'Exception for %s' % str( metadata.keys() ), e )
+            gLogger.exception( 'Exception for %s' % lfn, str( metadata.keys() ), e )
       if lfns:
         res = bk.getFileMetadata( lfns )
         if res['OK']:
@@ -236,7 +236,6 @@ def execute():
       from datetime import timedelta
       # Get information from the runs
       fullDuration = 0.
-      fullLumi = 0.
       totalLumi = 0.
       for run in sorted( runList ):
         res = bk.getRunInformations( run )
@@ -247,16 +246,12 @@ def execute():
           fullDuration += ( info['RunEnd'] - info['RunStart'] ).total_seconds()
           lumiDict = dict( zip( info['Stream'], info['luminosity'] ) )
           statDict = dict( zip( info['Stream'], info['Number of events'] ) )
-          nbEvts = statDict[90000000]
           lumi = info['TotalLuminosity']
           if abs( lumi - runList[run][0] / nDatasets ) > 1:
             print 'Run and files luminosity mismatch (ignored): run', run, 'runLumi', lumi, 'filesLumi', runList[run][0] / nDatasets
           else:
-            fullLumi += lumiDict[90000000]
             totalLumi += lumi
       rate = ( '%.1f events/second' % ( nevts / fullDuration ) ) if fullDuration else 'Run duration not available'
-      # fullLumi, lumiUnit = scaleLumi( fullLumi )
-      # print '%s: %.3f %s' % ( 'Runs Luminosity'.ljust( tab ), fullLumi, lumiUnit )
       totalLumi, lumiUnit = scaleLumi( totalLumi )
       print '%s: %.3f %s' % ( 'Total Luminosity'.ljust( tab ), totalLumi, lumiUnit )
       print '%s: %.1f hours (%d runs)' % ( 'Run duration'.ljust( tab ), fullDuration / 3600., len( runList ) )
