@@ -27,16 +27,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def __init__( self, plugin,
                 transClient = None, dataManager = None,
-                bkkClient = None, rmClient = None, fc = None,
+                bkClient = None, rmClient = None, fc = None,
                 debug = False, transInThread = None ):
     """ The clients can be passed in.
     """
     DIRACTransformationPlugin.__init__( self, plugin, transClient = transClient, dataManager = dataManager )
 
-    if not bkkClient:
+    if not bkClient:
       self.bkClient = BookkeepingClient()
     else:
-      self.bkClient = bkkClient
+      self.bkClient = bkClient
 
     if not rmClient:
       self.rmClient = ResourceManagementClient()
