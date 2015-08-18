@@ -226,6 +226,7 @@ function submitAndMatch(){
 
 	# I execute in a subshell 
 	(
+		installLHCbDIRAC
 		submitJob
 	)
 
@@ -238,6 +239,40 @@ function submitAndMatch(){
 	#dirac-agent WorkloadManagement/JobAgent -o MaxCycles=1 -s /Resources/Computing/CEDefaults -o WorkingDirectory=$PWD -o TotalCPUs=1 -o MaxCPUTime=47520 -o CPUTime=47520 -o MaxRunningJobs=1 -o MaxTotalJobs=10 -o /LocalSite/InstancePath=$PWD -o /AgentJobRequirements/ExtraOptions=$PILOTCFG $PILOTCFG $DEBUG
 }
 
+function installLHCbDIRAC(){
+
+	if [ ! -z "$PRERELEASECLIENT" ]
+	then
+		echo 'Installing PRERELEASE client'
+		findRelease
+		installLHCbDIRACClient
+	else
+		#Setup Release (saving what's there before - most probably PRERELEASE=True)
+		export PRERELEASEVALUE=$PRERELEASE
+		export PRERELEASE=''
+		findRelease
+		setupLHCbDIRAC
+		#reset
+		export PRERELEASE=$PRERELEASEVALUE
+	fi
+
+}
+
+function installLHCbDIRACClient(){
+
+	./dirac-install -l LHCb -r `cat project.version` -e LHCb -t client $DEBUG
+	source bashrc
+
+}
+
+function setupLHCbDIRAC(){
+
+	. /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r3p1/InstallArea/scripts/LbLogin.sh
+	. /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r3p1/InstallArea/scripts/SetupProject.sh LHCbDIRAC `cat project.version`
+	export PYTHONPATH=$PYTHONPATH:$WORKSPACE
+}
+
+
 function submitJob(){
 
 	#Here, since I have CVMFS only, I can't use the "latest" pre-release, because won't be on CVMFS
@@ -246,26 +281,15 @@ function submitJob(){
 		echo 'Running in DEBUG mode'
 		export DEBUG='-ddd'
 	fi  
-	
-	#Setup Release (saving what's there before - most probably PRERELEASE=True)
-	export PRERELEASEVALUE=$PRERELEASE
-	export PRERELEASE=''
-	findRelease
-	
-	. /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r3p1/InstallArea/scripts/LbLogin.sh
-	. /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r3p1/InstallArea/scripts/SetupProject.sh LHCbDIRAC `cat project.version`
-	export PYTHONPATH=$PYTHONPATH:$WORKSPACE
-	
+
 	#Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
 	getUserProxy #this won't really download the proxy, so that's why the next command is needed
 	python $WORKSPACE/TestDIRAC/Jenkins/dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification $PILOTCFG -ddd
 	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-test-job.py -o /DIRAC/Setup=LHCb-Certification $DEBUG
 	
-	#reset
-	export PRERELEASE=$PRERELEASEVALUE
-	
 	rm $PILOTCFG
 }
+
 
 
 #-------------------------------------------------------------------------------
