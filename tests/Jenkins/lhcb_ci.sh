@@ -259,9 +259,14 @@ function installLHCbDIRAC(){
 }
 
 function installLHCbDIRACClient(){
+
 	wget --no-check-certificate -O dirac-install $DIRAC_INSTALL
 	chmod +x dirac-install
 	./dirac-install -l LHCb -r `cat project.version` -e LHCb -t client $DEBUG
+	
+	mkdir etc
+	ln -s /cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/etc/dirac.cfg etc/dirac.cfg
+	
 	source bashrc
 
 }
