@@ -1133,29 +1133,27 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
     gLogger.always( '' )
     putDots = False
   repsDict = {}
-  repsMultDict = {}
   transDict = {}
   notFound = []
   bkToggle = []
   notFoundAtSE = []
   transNotSet = {}
   gLogger.always( 'Checking with FC' )
+  targetSEs = set( targetSEs )
   for lfn in lfnList:
     if lfn in replicas['Failed']:
       notFound.append( lfn )
     elif lfn in replicas['Successful']:
       reps = replicas['Successful'][lfn]
-      overlapSEs = [se for se in reps if not targetSEs or se in targetSEs]
+      repsSet = set( reps )
+      overlapSEs = repsSet if not targetSEs else repsSet & targetSEs
       if not overlapSEs:
         notFoundAtSE.append( lfn )
         continue
       # Set the file problematic in the LFC
-      if len( overlapSEs ) == 1:
-        repsDict[lfn] = {'SE': overlapSEs[0], 'Status':'-' if reset else 'P', 'PFN': reps[overlapSEs[0]]}
-      else:
-        repsMultDict[lfn] = [{'SE': se, 'Status':'-' if reset else 'P', 'PFN': reps[se] } for se in overlapSEs]
+      repsDict[lfn] = dict( ( se, reps[se] ) for se in overlapSEs )
       # Now see if the file is present in a transformation
-      otherSEs = [se for se in reps if se not in overlapSEs]
+      otherSEs = repsSet - overlapSEs
       if not otherSEs or reset:
         bkToggle.append( lfn )
 
@@ -1197,26 +1195,16 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
     for lfn in notFoundAtSE:
       gLogger.info( '\t%s' % lfn )
 
-  status = '-' if reset else 'P'
+  status = 'problematic' if not reset else 'OK'
   if repsDict:
-    res = fc.setReplicaStatus( repsDict ) if action else {'OK':True}
+    nreps = 0
+    res = fc.setReplicaProblematic( repsDict, revert = reset ) if action else {'OK':True}
     if not res['OK']:
-      gLogger.error( "Error setting replica status to %s in FC for %d files" % ( status, len( repsDict ) ), res['Message'] )
+      gLogger.error( "Error setting replica %s in FC for %d files" % ( status, len( repsDict ) ), res['Message'] )
     else:
-      gLogger.always( "Replicas set (%s) in FC for %d files" % ( status, len( repsDict ) ) )
+      nreps = sum( [len( reps ) for reps in repsDict.values()] )
+      gLogger.always( "%d replicas set %s in FC for %d files" % ( nreps, status, len( repsDict ) ) )
     for lfn in repsDict:
-      gLogger.info( '\t%s' % lfn )
-  if repsMultDict:
-    nbReps = 0
-    for lfn in repsMultDict:
-      for repDict in repsMultDict[lfn]:
-        res = fc.setReplicaStatus( {lfn:repDict} ) if action else {'OK':True}
-        if not res['OK']:
-          gLogger.error( "Error setting replica status to %s in FC for %d files" % ( status, len( repsDict ) ), res['Message'] )
-        else:
-          nbReps += 1
-    gLogger.always( "%d replicas set (%s) in FC for %d files" % ( nbReps, status, len( repsMultDict ) ) )
-    for lfn in repsMultDict:
       gLogger.info( '\t%s' % lfn )
 
   if bkToggle:
@@ -1228,7 +1216,7 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
       res = bk.removeFiles( bkToggle ) if action else {'OK':True}
     if not res['OK']:
       gLogger.error( "Replica flag not %s in BK for %d files" % ( stat, len( bkToggle ) ), res['Message'] )
-    else:
+    elif 'Value' in res:
       success = res['Value']['Successful']
       if success:
         gLogger.always( "Replica flag %s in BK for %d files" % ( stat, len( success ) ) )
