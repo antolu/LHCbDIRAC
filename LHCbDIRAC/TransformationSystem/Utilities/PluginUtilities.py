@@ -13,13 +13,13 @@ from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 
-from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 from DIRAC.TransformationSystem.Client.Utilities import PluginUtilities as DIRACPluginUtilities
 from DIRAC.TransformationSystem.Client.Utilities import isArchive, isFailover, getActiveSEs
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient, BKClientWithRetry
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
 class PluginUtilities( DIRACPluginUtilities ):
   """
@@ -41,7 +41,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       bkClient = BookkeepingClient()
     self.bkClient = BKClientWithRetry( bkClient )
     if rmClient is None:
-      self.rmClient = ReqClient()
+      self.rmClient = ResourceManagementClient()
     else:
       self.rmClient = rmClient
 
