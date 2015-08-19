@@ -1090,13 +1090,10 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    if evt != default and visible.upper().startswith( 'Y' ):
-      tables += ' ,prodview bview'
-      condition += '  and j.production=bview.production and bview.production=prod.production\
-       and bview.eventtypeid=%s and f.eventtypeid=bview.eventtypeid ' % ( str( evt ) )
-    elif evt != default:
-      condition += '  and f.eventtypeid=%s ' % ( str( evt ) )
-
+    retVal = self.__buildEventType(evt, condition, tables, visible)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
     if filetype != default and visible.upper().startswith( 'Y' ):
       if tables.find( 'bview' ) > -1:
@@ -1119,7 +1116,7 @@ class OracleBookkeepingDB:
 
     command = "select /*+PARALLEL(bview)*/ distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, \
     j.WorkerNode, ftypes.Name, j.runnumber, j.fillnumber, f.fullstat, d.dataqualityflag, \
-    j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck from %s  where \
+    j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck, f.guid, f.adler32, f.eventTypeid, f.md5sum,f.visibilityflag, j.jobid, f.gotreplica, f.inserttimestamp from %s  where \
     j.jobid=f.jobid and \
     d.qualityid=f.qualityid and \
     ftypes.filetypeid=f.filetypeid   %s" % ( tables, condition )
@@ -3224,9 +3221,22 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildEventType( evt, condition, tables ):
+  def __buildEventType( evt, condition, tables, visible = 'N'):
     """adds the event type to the files table"""
-    if evt not in [0, None, default]:
+    
+    if evt != default and visible.upper().startswith( 'Y' ):
+      tables += ' ,prodview bview'
+      condition += '  and j.production=bview.production and bview.production=prod.production and f.eventtypeid=bview.eventtypeid and'
+      if isinstance( evt, ( list, tuple ) ) and len( evt ) > 0:
+        cond = ' ( '
+        for i in evt:
+          cond += " bview.eventtypeid=%s or " % ( str( i ) )
+        cond = cond[:-3] + ')'
+        condition += cond
+      elif isinstance( evt, ( str, int, long ) ):
+        condition += ' bview.eventtypeid=' + str( evt )
+      
+    elif evt not in [0, None, default]:
       if isinstance( evt, ( list, tuple ) ) and len( evt ) > 0:
         condition += ' and '
         cond = ' ( '
