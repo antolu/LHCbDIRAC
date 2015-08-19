@@ -1886,7 +1886,8 @@ class OracleBookkeepingDB:
                                                          attrList['FillNumber'],
                                                          attrList['WNCPUHS06'],
                                                          attrList['TotalLuminosity'],
-                                                         attrList['Tck'] ] )
+                                                         attrList['Tck'],
+                                                         attrList['StepID'] ] )
     return result
 
   #############################################################################

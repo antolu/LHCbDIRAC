@@ -61,3 +61,7 @@ CREATE TABLE runstatus(runnumber NUMBER, JOBID NUMBER, FINISHED CHAR(1 BYTE) DEF
 CONSTRAINT PK_runstatus PRIMARY KEY (Runnumber, JOBID),
 CONSTRAINT FK_runstatus FOREIGN KEY(jobid) REFERENCES jobs(jobid));
 insert into runstatus (runnumber, jobid, finished) select runnumber, jobid, 'Y' from jobs where production < 0 and runnumber is not null;
+
+alter table jobs add StepID number;
+alter table jobs add constraint fk_jobs_stepid FOREIGN KEY (StepId) references steps(stepid);
+

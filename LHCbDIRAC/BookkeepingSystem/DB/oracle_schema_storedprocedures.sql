@@ -66,7 +66,8 @@ function insertJobsRow (
      v_fillNumber                  NUMBER,
      v_WNCPUHS06                   FLOAT,
      v_totalLuminosity             NUMBER,
-     v_tck                         VARCHAR2
+     v_tck                         VARCHAR2,
+     v_stepid                      NUMBER
   ) return number;
 
  function insertFilesRow (
@@ -839,7 +840,8 @@ function insertJobsRow (
      v_fillNumber                  NUMBER,
      v_WNCPUHS06                   FLOAT,
      v_totalLuminosity             NUMBER,
-     v_tck                         VARCHAR2
+     v_tck                         VARCHAR2,
+     v_stepid                      NUMBER
   )return number is
   jid       number;
   configId  number;
@@ -884,7 +886,8 @@ function insertJobsRow (
          FillNumber,
          WNCPUHS06,
          TotalLuminosity,
-         Tck)
+         Tck,
+         StepID)
    values(
           jid,
           configId,
@@ -912,7 +915,8 @@ function insertJobsRow (
           v_fillNumber,
           v_WNCPUHS06,
           v_totalLuminosity,
-          v_tck);
+          v_tck,
+          v_stepid);
 
   commit;
   return jid;
@@ -953,6 +957,7 @@ function insertJobsRow (
          FillNumber=v_fillNumber,
          WNCPUHS06=v_WNCPUHS06,
          TotalLuminosity=v_totalLuminosity,
+         StepID = v_stepid,
          Tck=v_tck where jobid=jid;
       commit;
     return jid;
