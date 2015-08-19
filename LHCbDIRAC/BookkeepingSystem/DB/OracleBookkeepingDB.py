@@ -1829,7 +1829,8 @@ class OracleBookkeepingDB:
                  'FillNumber':None, \
                  'WNCPUHS06': 0, \
                  'TotalLuminosity':0, \
-                 'Tck':'None'}
+                 'Tck':'None',\
+                 'StepID': None}
 
     for param in job:
       if not attrList.__contains__( param ):
