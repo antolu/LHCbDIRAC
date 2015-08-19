@@ -2176,7 +2176,7 @@ class OracleBookkeepingDB:
                  'GUID':record[7],
                  'MD5SUM':record[8],
                  'FileSize':record[9],
-                 'DQFlag':record[11],
+                 'DataqualityFlag':record[11],
                  'JobId':record[12],
                  'RunNumber':record[13],
                  'InsertTimeStamp':record[14],
