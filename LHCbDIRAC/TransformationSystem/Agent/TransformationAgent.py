@@ -55,7 +55,7 @@ class TransformationAgent( DIRACTransformationAgent ):
       oPlugin = getattr( plugModule, 'TransformationPlugin' )( '%s' % plugin,
                                                                dataManager = clients['DataManager'],
                                                                transClient = clients['TransformationClient'],
-                                                               bkkClient = clients['BookkeepingClient'],
+                                                               bkClient = clients['BookkeepingClient'],
                                                                rmClient = clients['ResourceManagementClient'],
                                                                transInThread = self.transInThread )
     except Exception as x:
