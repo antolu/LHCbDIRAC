@@ -109,6 +109,7 @@ class MergeSuccess( RegressionTestCase ):
 #     for found, expected in getOutput( 'Merge' ):
 #       self.assertEqual( found, expected )
 
+# FIXME: to update
 class MergeMultStreamsSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
     res = self.j_merge_21211.runLocal( self.diracLHCb, self.bkkClient )
@@ -122,6 +123,7 @@ class MergeMDFSuccess( RegressionTestCase ):
     res = self.j_mergeMDF_20657.runLocal( self.diracLHCb, self.bkkClient )
     self.assertTrue( res['OK'] )
 
+# FIXME: to update
 class SwimmingSuccess( RegressionTestCase ):
   def test_Regression_Production( self ):
     res = self.j_swimming_31057.runLocal( self.diracLHCb, self.bkkClient )
@@ -139,7 +141,7 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
+#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SwimmingSuccess ) )
+#   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SwimmingSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
