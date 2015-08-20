@@ -104,8 +104,8 @@ class DMScript( object ):
     Script.registerSwitch( '', "DQFlags=", "   DQ flag used in query", self.setDQFlags )
     Script.registerSwitch( '', "StartDate=", "   Start date for the BK query", self.setStartDate )
     Script.registerSwitch( '', "EndDate=", "   End date for the BK query", self.setEndDate )
-    Script.registerSwitch( '', "Visibility=", "   Set visibility (Yes, No, All) [Yes]", self.setVisibility )
-    Script.registerSwitch( '', 'ReplicaFlag=', '   Set visibility (Yes, No, All) [Yes]', self.setReplicaFlag )
+    Script.registerSwitch( '', "Visibility=", "   Required visibility (Yes, No, All) [Yes]", self.setVisibility )
+    Script.registerSwitch( '', 'ReplicaFlag=', '   Required replica flag (Yes, No, All) [Yes]', self.setReplicaFlag )
 
 
   def registerNamespaceSwitches( self, action = 'search [ALL]' ):
