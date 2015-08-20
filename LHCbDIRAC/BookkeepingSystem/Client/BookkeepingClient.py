@@ -11,15 +11,18 @@ in_dict = {'EventTypeId': 93000000,
         'Production':7421
          }
 """
-from DIRAC                           import S_OK, S_ERROR, gLogger
+
+import cPickle
+import tempfile
+
+from DIRAC                           import S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient      import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
-import types, cPickle, tempfile
 
 
 __RCSID__ = "$Id$"
 
-class BookkeepingClient:
+class BookkeepingClient( object ):
   """ This class expose the methods of the Bookkeeping Service"""
 
   def __init__( self, rpcClient = None ):
@@ -327,9 +330,9 @@ class BookkeepingClient:
 
     """
     conditions = {}
-    if type( in_dict ) == types.StringType:
-      conditions['lfn'] = [in_dict]
-    elif type ( in_dict ) == types.ListType:
+    if isinstance( in_dict, basestring ):
+      conditions['lfn'] = in_dict.split( ';' )
+    elif isinstance( in_dict, list ):
       conditions['lfn'] = in_dict
     else:
       conditions = in_dict
@@ -395,8 +398,8 @@ class BookkeepingClient:
     """
     It is used to set the files data quality flags. The input parameters is an lfn or a list of lfns and the data quality flag.
     """
-    if type( lfns ) == types.StringType:
-      lfns = [lfns]
+    if isinstance( lfns, basestring ):
+      lfns = lfns.split( ';' )
     server = self.__getServer()
     return server.setFileDataQuality( lfns, flag )
 
@@ -437,8 +440,8 @@ class BookkeepingClient:
     """
     server = self.__getServer()
 
-    if type( lfns ) == types.StringType:
-      lfns = [lfns]
+    if isinstance( lfns, basestring ):
+      lfns = lfns.split( ';' )
     return server.getFileAncestors( lfns, depth, replica )
 
 
@@ -449,8 +452,8 @@ class BookkeepingClient:
     """
     server = self.__getServer()
 
-    if type( lfns ) == types.StringType:
-      lfns = [lfns]
+    if isinstance( lfns, basestring ):
+      lfns = lfns.split( ';' )
     return server.getFileDescendants( lfns, depth, production, checkreplica )
 
 
@@ -485,8 +488,8 @@ class BookkeepingClient:
     It sets the replica flag Yes for a given list of files.
     """
     server = self.__getServer()
-    if type( lfns ) == types.StringType:
-      lfns = [lfns]
+    if isinstance( lfns, basestring ):
+      lfns = lfns.split( ';' )
     return server.addFiles( lfns )
 
   #############################################################################
@@ -495,8 +498,8 @@ class BookkeepingClient:
     It removes the replica flag for a given list of files.
     """
     server = self.__getServer()
-    if type( lfns ) == types.StringType:
-      lfns = [lfns]
+    if isinstance( lfns, basestring ):
+      lfns = lfns.split( ';' )
     return server.removeFiles( lfns )
 
   #############################################################################
@@ -504,8 +507,8 @@ class BookkeepingClient:
     """
     It returns the metadata information for a given file or a list of files.
     """
-    if type( lfns ) == types.StringType:
-      lfns = [lfns]
+    if isinstance( lfns, basestring ):
+      lfns = lfns.split( ';' )
     server = self.__getServer()
     return server.getFileMetadata( lfns )
 
@@ -515,8 +518,8 @@ class BookkeepingClient:
     This method only used by the web portal. It is same as getFileMetadata.
     """
     server = self.__getServer()
-    if type( lfns ) == types.StringType:
-      lfns = [lfns]
+    if isinstance( lfns, basestring ):
+      lfns = lfns.split( ';' )
     return server.getFileMetaDataForWeb( lfns )
 
 
@@ -535,8 +538,8 @@ class BookkeepingClient:
     It used to check the existence of a list of files in the Bookkeeping Metadata catalogue.
     """
     server = self.__getServer()
-    if type( lfns ) == types.StringType:
-      lfns = [lfns]
+    if isinstance( lfns, basestring ):
+      lfns = lfns.split( ';' )
     return server.exists( lfns )
 
   #############################################################################
@@ -722,7 +725,9 @@ class BookkeepingClient:
     Input parameters:
     runs: list of run numbers.
     """
-    if type( runs ) in [types.StringType, types.LongType, types.IntType]:
+    if isinstance( runs, basestring ):
+      runs = runs.split( ';' )
+    elif isinstance( runs, ( int, long ) ):
       runs = [runs]
     server = self.__getServer()
     return server.getRunFilesDataQuality( runs )
@@ -736,8 +741,8 @@ class BookkeepingClient:
     """
     server = self.__getServer()
 
-    if type( lfns ) == types.StringType:
-      lfns = [lfns]
+    if isinstance( lfns, basestring ):
+      lfns = lfns.split( ';' )
     return server.setFilesInvisible( lfns )
 
 
@@ -750,8 +755,8 @@ class BookkeepingClient:
     """
     server = self.__getServer()
 
-    if type( lfns ) == types.StringType:
-      lfns = [lfns]
+    if isinstance( lfns, basestring ):
+      lfns = lfns.split( ';' )
     return server.setFilesVisible( lfns )
 
 
@@ -898,7 +903,7 @@ class BookkeepingClient:
     It returns the file type version of given lfns
     """
     server = self.__getServer()
-    if type( lfns ) == types.StringType:
+    if isinstance( lfns, basestring ):
       lfns = lfns.split( ';' )
     return server.getFileTypeVersion( lfns )
 
@@ -919,14 +924,14 @@ class BookkeepingClient:
     return server.getStepsMetadata( in_dict )
 
   #############################################################################
-  def getDirectoryMetadata( self, lfn ):
+  def getDirectoryMetadata( self, lfns ):
     """
     It returns metadata informatiom for a given directory.
     """
-    if type( lfn ) == types.StringType:
-      lfn = [lfn]
+    if isinstance( lfns, basestring ):
+      lfns = lfns.split( ';' )
     server = self.__getServer()
-    return server.getDirectoryMetadata_new( lfn )
+    return server.getDirectoryMetadata_new( lfns )
 
   #############################################################################
   def getFilesForGUID( self, guid ):
@@ -1008,7 +1013,7 @@ class BookkeepingClient:
   #############################################################################
   def getJobInputOutputFiles( self, diracjobids ):
     """It returns the input and output files for a given DIRAC jobid"""
-    if type( diracjobids ) in [ types.LongType, types.IntType]:
+    if isinstance( diracjobids, ( int, long ) ):
       diracjobids = [diracjobids]
     server = self.__getServer()
     return server.getJobInputOutputFiles( diracjobids )
@@ -1048,9 +1053,9 @@ class BookkeepingClient:
     "it return the status of the runs"
     server = self.__getServer()
     runnumbers = []
-    if isinstance( runs, str ):
-      runnumbers += [int( runs )]
-    elif isinstance( runs, int ) or isinstance( runs, long ):
+    if isinstance( runs, basestring ):
+      runnumbers = [int( run ) for run in runs.split( ';' )]
+    elif isinstance( runs, ( int, long ) ):
         runnumbers += [runs]
     else:
       runnumbers = runs
