@@ -1000,12 +1000,12 @@ class ProductionStatusAgent( AgentModule ):
           if ( summary['type'] == 'Simulation' ) and summary['isDone'] and tInfo['Used']:
             self.__updateTransformationStatus( tID, 'ValidatedOutput', 'Completed', updatedT )
           else:
-            self.log.warn( 'Logical bug: transformation %s unexpectadly has "ValidatedOutput"' & tID )
+            self.log.warn( "Logical bug: transformation %s unexpectedly has 'ValidatedOutput'" & tID )
         elif tInfo['state'] == 'ValidatingInput':
           if ( summary['type'] == 'Simulation' ) and summary['isDone'] and not tInfo['Used']:
             self.__updateTransformationStatus( tID, 'ValidatingInput', 'RemovingFiles', updatedT )
           else:
-            self.log.warn( 'Logical bug: transformation %s is unexpectadly "ValidatingInput"' & tID )
+            self.log.warn( "Logical bug: transformation %s is unexpectedly 'ValidatingInput'" & tID )
         elif tInfo['state'] == 'Testing':
           isIdle, isProcIdle, isSimulation = self.__isIdle( tID )
           self.log.verbose( "TransID %d, %s, %s, %s" % ( tID, isIdle, isProcIdle, isSimulation ) )
