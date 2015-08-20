@@ -1,5 +1,5 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent
-  
+
   xml_append
   gen_mysql
   insert_slsservice
@@ -8,17 +8,17 @@
   insert_slsstorage
   insert_slsrmstats
   gen_xml_stub
-  TestBase.__bases__: 
+  TestBase.__bases__:
     object
-  SpaceTokenOccupancyTest.__bases__: 
+  SpaceTokenOccupancyTest.__bases__:
     LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase
-  DIRACTest.__bases__: 
+  DIRACTest.__bases__:
     LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase
-  LogSETest.__bases__: 
-    LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase  
+  LogSETest.__bases__:
+    LHCbDIRAC.ResourceStatusSystem.Agent.SLSAgent.TestBase
   SLSAgent.__bases__:
     DIRAC.Core.Base.AgentModule.AgentModule
-    
+
 '''
 
 # TODO: make this agent readable and understandable. Right not, it is not very much.
@@ -85,14 +85,14 @@ def insert_slst1service( **kw ):
   '''
     #TODO: see below
     Use the client !
-  '''  
+  '''
   return rmDB._update( gen_mysql( "SLST1Service", kw, ["Site", "System"] ) )
 
 def insert_slslogse( **kw ):
   '''
     #TODO: see below
     Use the client !
-  '''  
+  '''
   return rmDB._update( gen_mysql( "SLSLogSE", kw, ["Name"] ) )
 
 def gen_xml_stub():
@@ -147,7 +147,7 @@ class SpaceTokenOccupancyTest( TestBase ):
   def __init__( self, am ):
     super( SpaceTokenOccupancyTest, self ).__init__( am )
     self.xmlPath = rootPath + "/" + self.getAgentOption( "webRoot" ) + self.getTestOption( "dir" )
-    
+
     self.rmClient = ResourceManagementClient()
     try:
       os.makedirs( self.xmlPath )
@@ -158,29 +158,29 @@ class SpaceTokenOccupancyTest( TestBase ):
     self.generate_xml_and_dashboard()
 
   def generate_xml_and_dashboard( self ):
-    
+
     oneHour = datetime.utcnow() - timedelta( hours = 1 )
-    
+
     res = self.rmClient.selectSpaceTokenOccupancyCache( meta = { 'newer' : ( 'LastCheckTime', oneHour ) } )
     if not res[ 'OK' ]:
       gLogger.error( res[ 'Message' ] )
       return
-    
+
     itemDicts = [ dict( zip( res[ 'Columns' ], item ) ) for item in res[ 'Value' ] ]
     for itemDict in itemDicts:
-      
+
       self.generate_xml( itemDict )
-  
+
   def generate_xml( self, itemDict ):
 
     endpoint = itemDict[ 'Endpoint' ]
-    
+
     site = ''
-    
+
     ses = CSHelpers.getStorageElements()
     if not ses[ 'OK' ]:
       gLogger.error( ses[ 'Message' ] )
-    
+
     for se in ses[ 'Value' ]:
       # Ugly, ugly, ugly.. waiting for DIRAC v7r0 to do it properly
       if ( not '-' in se ) or ( '_' in se ):
@@ -197,39 +197,30 @@ class SpaceTokenOccupancyTest( TestBase ):
         else:
           site = se.split( '-', 1 )[ 0 ]
         break
-    
+
     if not site:
       gLogger.error( 'Unable to find site for %s' % endpoint )
       return
-    
+
     token = itemDict[ 'Token' ]
-    
+
     # ['Endpoint', 'LastCheckTime', 'Guaranteed', 'Free', 'Token', 'Total']
     total        = itemDict[ 'Total' ]
     #guaranteed   = itemDict[ 'Guaranteed' ]
     free         = itemDict[ 'Free' ]
-    availability = 100 if free > 4 else ( free * 100 / total if total != 0 else 0 )
+#    availability = "available" if free > 4 else ( free * 100 / total if total != 0 else "unavailable" )
+    availability = "available" if free > 4 else ( "degraded" if total != 0 else "unavailable" )
     validity     = self.getTestOption( "validity" )
 
     doc = gen_xml_stub()
     xml_append( doc, "id", site + "_" + token )
-    xml_append( doc, "availability", availability )
-    elt = xml_append( doc, "availabilitythresholds" )
-    xml_append( doc, "threshold", value_ = self.getTestOption( "Thresholds/available" ), elt_ = elt, level = "available" )
-    xml_append( doc, "threshold", value_ = self.getTestOption( "Thresholds/affected" ), elt_ = elt, level = "affected" )
-    xml_append( doc, "threshold", value_ = self.getTestOption( "Thresholds/degraded" ), elt_ = elt, level = "degraded" )
+    xml_append( doc, "status", availability )
     xml_append( doc, "availabilityinfo", "Free=" + str( free ) + " Total=" + str( total ) )
     xml_append( doc, "availabilitydesc", self.getTestValue( "availabilitydesc" ) )
-    xml_append( doc, "refreshperiod", self.getTestValue( "refreshperiod" ) )
-    xml_append( doc, "validityduration", validity )
     elt = xml_append( doc, "data" )
-    elt2 = xml_append( doc, "grp", name = "Space occupancy", elt_ = elt )
-    xml_append( doc, "numericvalue", value_ = str( total - free ), elt_ = elt2, name = "Consumed" )
-    xml_append( doc, "numericvalue", value_ = str( total ), elt_ = elt2, name = "Capacity" )
     xml_append( doc, "numericvalue", value_ = str( free ), elt_ = elt, name = "Free space" )
     xml_append( doc, "numericvalue", value_ = str( total - free ), elt_ = elt, name = "Occupied space" )
     xml_append( doc, "numericvalue", value_ = str( total ), elt_ = elt, name = "Total space" )
-    xml_append( doc, "textvalue", "Storage space for the specific space token", elt_ = elt )
     xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
 
     xmlfile = open( self.xmlPath + site + "_" + token + ".xml", "w" )
@@ -284,8 +275,7 @@ class DIRACTest( TestBase ):
     if res['OK']:
       res = res['Value']
 
-      xml_append( doc, "availability", 100 )
-      xml_append( doc, "notes", "Service " + url + " completely up and running" )
+      xml_append( doc, "status", "available" )
 
       elt = xml_append( doc, "data" )
       xml_append( doc, "numericvalue", res.get( 'service uptime', 0 ), elt_ = elt,
@@ -298,7 +288,7 @@ class DIRACTest( TestBase ):
                                        ServiceUptime = int( res.get( 'service uptime', 0 ) ),
                                        HostUptime = int( res.get( 'host uptime', 0 ) ),
                                        Message = ( "Service " + url + " completely up and running" ) )
-      
+
       if not response[ 'OK' ]:
         gLogger.error( response[ 'Message' ] )
         return response
@@ -306,8 +296,7 @@ class DIRACTest( TestBase ):
       gLogger.info( "%s/%s successfully pinged" % ( site, system ) )
 
     else:
-      xml_append( doc, "availability", 0 )
-      xml_append( doc, "notes", res['Message'] )
+      xml_append( doc, "status", "unavailable" )
       response = insert_slst1service( Site = site, System = system, Availability = 0,
                                       Message = res["Message"] )
       if not response[ 'OK' ]:
@@ -355,9 +344,8 @@ class LOGSETest( TestBase ):
 
     doc = gen_xml_stub()
     xml_append( doc, "id", "log_se_partition" )
-    xml_append( doc, "validityduration", "PT12H" )
     xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S", time.gmtime( ts ) ) )
-    xml_append( doc, "availability", ( 100 if percent < 90 else ( 5 if percent < 99 else 0 ) ) )
+    xml_append( doc, "status", ( "available" if percent < 90 else ( "degraded" if percent < 99 else "unavailable" ) ) )
     elt = xml_append( doc, "data" )
     xml_append( doc, "numericvalue", percent, elt_ = elt, name = "LogSE data partition used" )
     xml_append( doc, "numericvalue", space, elt_ = elt, name = "Total space on data partition" )
@@ -369,7 +357,7 @@ class LOGSETest( TestBase ):
     if not response[ 'OK' ]:
       gLogger.error( response[ 'Message' ] )
       return response
-    
+
     gLogger.info( "LogSE partition test done" )
 
     xmlfile = open( self.xmlPath + "log_se_partition.xml", "w" )
@@ -388,7 +376,7 @@ class LOGSETest( TestBase ):
     xml_append( doc, "id", "log_se_" + name )
     xml_append( doc, "validityduration", validity_duration )
     xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S", time.gmtime( data['ts'] ) ) )
-    xml_append( doc, "availability", int( round( float( data['data'][0] ) * 100 ) ) )
+    xml_append( doc, "status", int( round( float( data['data'][0] ) * 100 ) ) )
 
     response =  insert_slslogse( Name = name, ValidityDuration = validity_duration,
                     Availability = int( round( float( data['data'][0] ) * 100 ) ) )
@@ -446,157 +434,12 @@ class LOGSETest( TestBase ):
       if self.inside_d:
         self.cur_list.append( content )
 
-# class LFCTest( TestBase ):
-#   def __init__( self, am ):
-#     super( LFCTest, self ).__init__( am )
-#
-#     self.mirrors = [
-#                      'prod-lfc-lhcb-ro.cern.ch',
-#                      'lhcb-lfc.gridpp.rl.ac.uk',
-#                      'lfc-lhcb-ro.in2p3.fr',
-#                      'lhcb-lfc-fzk.gridka.de',
-#                      'lfc-lhcb.grid.sara.nl',
-#                      'lfclhcb.pic.es',
-#                      'lfc-lhcb-ro.cr.cnaf.infn.it',
-#                      'lfc-lhcb-ro.cern.ch',
-#                    ]
-#
-#     self.master = 'lfc-lhcb.cern.ch'
-#
-#     self.xmlPath = rootPath + "/" + self.getAgentValue( "webRoot" ) + self.getTestValue( "dir" )
-#
-#     from DIRAC.Interfaces.API.Dirac import Dirac
-#     self.diracAPI = Dirac()
-#     self.workdir = am.am_getWorkDirectory()
-#
-#     try:
-#       os.makedirs( self.xmlPath )
-#     except OSError:
-#       pass # The dir exist already, or cannot be created: do nothi
-#
-#     _register = False
-#     try:
-#       lfn = self.runMasterTest()
-#       _register = True
-#     except Exception, e:
-#       pass
-#
-#     if not _register:
-#       gLogger.error( 'Skipping tests, file not registered' )
-#       raise ValueError( 'Error registering file' )
-#
-#     self.cleanMasterTest( lfn )
-#
-#   def runMasterTest( self ):
-#
-#     os.environ[ 'LFC_HOST' ] = self.master
-#
-#     lfnDir = '/lhcb/test/lfc_mirror_test/streams_propagation_test'
-#     gridDir = '/grid' + lfnDir
-#
-#     _create, _remove = False, False
-#
-#     try:
-#       lfc2.lfc_rmdir( gridDir )
-#     except:
-#       pass
-#
-#     try:
-#
-#       lfc2.lfc_mkdir( gridDir , 0777 )
-#       _create = True
-#       gLogger.info( 'created %s' % gridDir )
-#       lfc2.lfc_rmdir( gridDir )
-#       _remove = True
-#       gLogger.info( 'removed %s' % gridDir )
-#
-#     except ValueError:
-#       _lfcMsg = 'Error manipulating directory, are you sure it does not exist ?'
-#       gLogger.error( _lfcMsg )
-#     except Exception, e:
-#       gLogger.error( e )
-#
-#     lfnPath = '/lhcb/test/lfc-replication/%s/' % self.master
-#     fileName = 'testFile.%s' % time.time()
-#
-#     lfn = lfnPath + fileName
-#     fullPath = self.workdir + '/' + fileName
-#     diracSE = 'CERN-USER'
-#
-#     gLogger.info( 'Getting time till file %s exists' % lfn )
-#
-#     f = open( fullPath, 'w' )
-#     f.write( 'SLSAgent' )
-#     f.write( str( time.time() ) )
-#     f.close()
-#
-#     gLogger.info( 'Registering file %s at %s' % ( lfn, diracSE ) )
-#
-#     gLogger.info( fullPath )
-#
-#     res = self.diracAPI.addFile( lfn, fullPath, diracSE )
-#
-#     if not res[ 'OK' ]:
-#       gLogger.error( res[ 'Message' ] )
-#       res = False
-#     else:
-#       if res[ 'Value' ][ 'Successful' ].has_key( lfn ):
-#         res = True
-#       else:
-#         gLogger.warn( res[ 'Value' ] )
-#         res = False
-#
-#     res = res and _create and _remove
-#
-#     doc = impl.createDocument( "http://sls.cern.ch/SLS/XML/update",
-#                               "serviceupdate",
-#                               None )
-#     doc.documentElement.setAttribute( "xmlns", "http://sls.cern.ch/SLS/XML/update" )
-#     doc.documentElement.setAttribute( "xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance' )
-#     doc.documentElement.setAttribute( "xsi:schemaLocation",
-#                                      "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd" )
-#
-#     xml_append( doc, "id", "LHCb_LFC_Master" )
-#     xml_append( doc, "availability", ( res and 100 ) or 0 )
-#     xml_append( doc, "validityduration", "PT2H" )
-#     xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
-#     xml_append( doc, "notes", "Either 0 or 100, 0 no basic operations performed, 100 all working." )
-#
-#     xmlfile = open( self.xmlPath + "LHCb_LFC_Master.xml", "w" )
-#     try:
-#       xmlfile.write( doc.toxml() )
-#     finally:
-#       xmlfile.close()
-#
-#     return lfn
-#
-#   def cleanMasterTest( self, lfn ):
-#
-#     try:
-#
-#       res = self.diracAPI.removeFile( lfn )
-#
-#       if not res['OK']:
-#         gLogger.error( res['Message'] )
-#         return False
-#
-#       if res['Value']['Successful'].has_key( lfn ):
-#         return True
-#
-#       gLogger.warn( res[ 'Value' ] )
-#       return False
-#
-#     except Exception, e:
-#       gLogger.error( e )
-#       return False
-
-
 class SLSAgent( AgentModule ):
   def initialize( self ):
-    
+
     global rmDB
     rmDB = DB( "ResourceManagementDB", "ResourceStatus/ResourceManagementDB", 10 )
-    
+
     self.am_setOption( 'shifterProxy', 'DataManager' )
     return S_OK()
 
