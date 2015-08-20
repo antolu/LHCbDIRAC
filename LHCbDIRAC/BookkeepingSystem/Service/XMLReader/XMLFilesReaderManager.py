@@ -515,15 +515,24 @@ class XMLFilesReaderManager:
 
       if not retVal['OK']:
         return S_ERROR( retVal['Message'] )
+      stepid = retVal['Value'][0]
       steps = {'Steps':
-               [{'StepId':retVal['Value'][0],
+               [{'StepId':stepid,
                  'StepName':retVal['Value'][1],
                  'ProcessingPass':retVal['Value'][1],
                  'Visible':'Y'}]}
+      
       gLogger.debug( 'Pass_indexid', steps )
       gLogger.debug( 'Data taking', dataTackingPeriodDesc )
       gLogger.debug( 'production', production )
-
+     
+      newJobParams = JobParameters()
+      newJobParams.setName( 'StepID' )
+      newJobParams.setValue( str( stepid ) )
+      job.addJobParams( newJobParams )
+      
+      message = "StepID for run: %s" % ( str( production ) )
+      gLogger.info( message, stepid )
 
       res = dataManager_.addProduction( production,
                                        simcond = None,
