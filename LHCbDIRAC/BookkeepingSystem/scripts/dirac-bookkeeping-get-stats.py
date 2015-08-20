@@ -168,7 +168,7 @@ def execute():
             runList[run][1] += metadata['EventStat']
             nbFiles += 1
           except Exception as e:
-            gLogger.exception( 'Exception for %s' % lfn, str( metadata.keys() ), e )
+            gLogger.exception( 'Exception for %s' % str( metadata.keys() ), e )
       if lfns:
         res = bk.getFileMetadata( lfns )
         if res['OK']:
