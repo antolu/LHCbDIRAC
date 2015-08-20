@@ -858,7 +858,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
         badLfns = {}
         for lastJob in sorted( exitedJobs, reverse = True )[0:10]:
           res = monitoring.getJobParameter( int( lastJob ), 'Log URL' )
-          if res['OK']:
+          if res['OK'] and 'Log URL' in res['Value']:
             logURL = res['Value']['Log URL'].split( '"' )[1] + '/'
             jobLogURL[lastJob] = logURL
             lfns = __checkXMLSummary( lastJob, logURL )
@@ -931,6 +931,7 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
     if not res['OK']:
       print 'Error getting files metadata', res['Message']
       DIRAC.exit( 2 )
+    evtType = res['Value']['Successful'].values()[0]['EventType']
     paramValues = sorted( set( [meta[param] for meta in res['Value']['Successful'].values() if param in meta] ) )
   ancestors = {}
   for paramValue in paramValues:
@@ -967,8 +968,8 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
         print "Error getting files metadata", res['Message']
       else:
         metadata = res['Value']['Successful']
-        runRAWFiles = set( [lfn for lfn, meta in metadata.items() if meta['EventType'] == 90000000 and meta['GotReplica'] == 'Yes'] )
-        badRAWFiles = set( [lfn for lfn, meta in metadata.items() if meta['EventType'] == 90000000] ) - runRAWFiles
+        runRAWFiles = set( [lfn for lfn, meta in metadata.items() if meta['EventType'] == evtType and meta['GotReplica'] == 'Yes'] )
+        badRAWFiles = set( [lfn for lfn, meta in metadata.items() if meta['EventType'] == evtType] ) - runRAWFiles
         # print len( runRAWFiles ), 'RAW files'
         allAncestors = set()
         for paramValue in paramValues:
