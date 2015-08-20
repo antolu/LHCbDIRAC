@@ -1067,6 +1067,8 @@ def replicateLfn( lfnList, sourceSE, destList, localCache = None ):
   dm = DataManager()
   # print lfnList, destList, sourceSE, localCache
   finalResult = {'OK':True, 'Value':{"Failed":{}, "Successful":{}}}
+  if len( lfnList ) > 1 or len ( destList ) > 1:
+    gLogger.notice( 'Replicating %d files to %s' % ( len( lfnList ), ','.join( destList ) ) )
   for lfn in lfnList:
     for seName in destList:
       result = dm.replicateAndRegister( lfn, seName, sourceSE, localCache = localCache )
@@ -1323,7 +1325,8 @@ def executeGetFile( dmScript ):
     gLogger.fatal( "Not allowed to specify more than one destination directory" )
     DIRACExit( 2 )
 
-  gLogger.notice( 'Downloading %s to %s' % ( '%d files' if len( lfnList ) > 1 else 'file', dirList[0] ) )
+  nLfns = len( lfnList )
+  gLogger.notice( 'Downloading %s to %s' % ( ( '%d files' % nLfns ) if nLfns > 1 else 'file', dirList[0] ) )
   result = DataManager().getFile( lfnList, destinationDir = dirList[0] )
 
   # Prepare popularity report
@@ -1499,6 +1502,8 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
     baseDirs += arg.split( ',' )
 
   for baseDir in baseDirs:
+    if baseDir[-1] == '/':
+      baseDir = baseDir[:-1]
     gLogger.info( 'Will search for files in %s' % baseDir )
     activeDirs = [baseDir]
 
