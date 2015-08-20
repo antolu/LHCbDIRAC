@@ -321,7 +321,7 @@ if __name__ == "__main__":
   fakeClient = fakeClient( transformation, transID, lfns, asIfProd )
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   from DIRAC.DataManagementSystem.Client.DataManager import DataManager
-  oplugin = TransformationPlugin( plugin, transClient = fakeClient, dataManager = DataManager(), bkkClient = BookkeepingClient() )
+  oplugin = TransformationPlugin( plugin, transClient = fakeClient, dataManager = DataManager(), bkClient = BookkeepingClient() )
   pluginParams['TransformationID'] = transID
   oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()
