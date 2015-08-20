@@ -89,7 +89,7 @@ class AncestorFilesAgent( OptimizerModule ):
       self.log.warn( result['Message'] )
       return S_ERROR( 'No Ancestors Found For Input Data' )
 
-    ancestors = [x[0]['FileName'] for x in result['Value']['Successful'].values()]
+    ancestors = [anc['FileName'] for ancList in result['Value']['Successful'].values() for anc in ancList]
     newInputData = ancestors + inputData
     param = '%d ancestor files retrieved from BK for depth %s' % ( len( ancestors ), ancestorDepth )
 
