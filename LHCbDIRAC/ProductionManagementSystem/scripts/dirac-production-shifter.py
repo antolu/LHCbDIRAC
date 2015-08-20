@@ -30,6 +30,7 @@ from datetime                   import datetime
 from DIRAC                      import exit as DIRACExit
 from DIRAC.Core.Base            import Script
 from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 __RCSID__  = "$Id$"
 
@@ -50,7 +51,7 @@ def doParse():
   Script.registerSwitch( 'g',  'groupMerge'    , 'group merge productions' )
   Script.registerSwitch( 'x',  'omitMerge'     , 'omit all merge productions' )
   Script.registerSwitch( 'n',  'noFiles'       , 'do not show file information' )
-
+  Script.registerSwitch( 'f',  'hotProduction' , 'shows hot production only' )
   # Set script help message
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                       '\nArguments:',
@@ -100,30 +101,34 @@ def doParse():
       mergeAction = 'omit'
     elif switch[ 0 ].lower() in ( 'n', 'nofiles' ):
       noFiles = True
-    
+    elif switch[ 0 ].lower() in ( 'f' ):
+      mergeAction = 'hot'
+      params[ 'RequestState' ] = 'Active,Idle'
+     
   return params, mergeAction, noFiles, sortKey
   
 def getRequests( parsedInput, sortKey ):
   """
   Gets the requests from the database using the filters given by the user.  
   """
-    
+ 
   reqClient = RPCClient( 'ProductionManagement/ProductionRequest' )
   
   for key, value in parsedInput.items():
-    if value is None:
+    if value is None: 
       del parsedInput[ key ]    
   
   if 'RequestID' in parsedInput:
     parsedInput = { 'RequestID' : parsedInput[ 'RequestID' ] }
-      
+
   requests = reqClient.getProductionRequestList( 0, 'RequestID', 'DESC', 0, 0, parsedInput )
   if not requests[ 'OK' ]:
     print requests[ 'Message' ]
     return
-    
-  requests = requests[ 'Value' ][ 'Rows' ]
   
+  
+  requests = requests[ 'Value' ][ 'Rows' ]
+
   sortedRequests = sorted( requests, key=lambda k:k[ sortKey ] )
   
   parsedRequests = []
@@ -137,6 +142,9 @@ def getRequests( parsedInput, sortKey ):
                              'proPath'      : request[ 'ProPath' ],
                              'simCondition' : request[ 'SimCondition' ],
                              'eventType'    : request[ 'EventType' ] } )
+   
+  print request[ 'EventType' ] 
+ 
   return parsedRequests
   
 def getTransformations( transClient, requestID, noFiles ):
@@ -165,7 +173,8 @@ def getTransformations( transClient, requestID, noFiles ):
     parsedTransformations[ transformationID ] = {'transformationStatus' : transformation[ 'Status' ],
                                                  'transformationType'   : transformation[ 'Type' ],
                                                  'transformationFiles'  : transformationFiles}
-
+  
+   
   return parsedTransformations
   
 def getFiles( transClient, transformationID ):
@@ -173,18 +182,42 @@ def getFiles( transClient, transformationID ):
   """
   
   filesDict = { 'Total'     : 0,
-                'Processed' : 0}
-  
+                'Processed' : 0,
+                'Running'   : 0,  
+                'Failed'    : 0,
+                'Path'      : 0,}
+      
   files = transClient.getTransformationFilesSummaryWeb( { 'TransformationID' : transformationID }, [], 0, 1000000 )
-  
+#This gets the interesting values
+  ts = TransformationClient()
+  records = ts.getTransformationSummaryWeb({ 'TransformationID' : transformationID }, [], 0, 1000000)['Value']
+  parameters = records['ParameterNames']
+  moreValues = dict(zip(parameters, records['Records'][0]))
+  path = ts.getTransformationParameters( transformationID, ['DetailedInfo'] )
+  path = path[ 'Value' ]
+  path = path.split("BK Browsing Paths:\n",1)[1]
+ 
+ 
   if not files[ 'OK' ]:
     print files[ 'Message' ]
     return { 'Total' : -1 }
   
   files = files[ 'Value' ]
-   
+
+#This shows the interesting values
   filesDict[ 'Total' ] = files[ 'TotalRecords' ]
-  
+  filesDict[ 'Running' ] = moreValues[ 'Jobs_Running' ]
+  filesDict[ 'Failed' ] = moreValues[ 'Jobs_Failed' ]
+  filesDict[ 'Done' ] = moreValues[ 'Jobs_Done' ]
+  filesDict[ 'Waiting' ] = moreValues[ 'Jobs_Waiting' ]
+  filesDict[ 'Files_Processed' ] = moreValues[ 'Files_Processed' ]
+  filesDict[ 'Hot' ] = moreValues[ 'Hot' ] 
+  filesDict[ 'Path' ] = path
+  if filesDict[ 'Hot' ] == 1:
+    filesDict[ 'Hot' ] = 'Hot'
+  else:
+    filesDict[ 'Hot' ] = 'No'
+
   if filesDict[ 'Total' ]:
     filesDict.update( files[ 'Extras' ] )
 
@@ -225,11 +258,13 @@ def printResults( request, mergeAction ):
     the value is group.
   """
  
-  msgTuple = ( request[ 'requestID' ], request[ 'requestState' ], request[ 'requestType' ][:4], 
-               request[ 'proPath' ], request[ 'simCondition' ], request[ 'eventType' ] )
-    
-  print '  o %d [%s][ %s/%s ][ %s/%s ]' % msgTuple
-    
+# infoTuple = ( request[ 'requestID' ], request[ 'requestState' ], request[ 'requestType' ][:4],
+#              request[ 'proPath' ], request[ 'simCondition' ], request[ 'eventType' ] )
+#  infoTuple = ( request[ 'requestID' ], request[ 'requestState' ] )
+
+#  print 'Req. No (%d) [%s][ %s/%s ][ %s/%s ]' % infoTuple
+#  print '\tTransID\tStatus\t\tType\t\t\t\tCompleted\tTotal Files\t\tRunning\t\tFailed\t\tHot '
+  
   groupedMerge = [ 0, 0, 0 ]
   
   for transformationID, transformation in request[ 'transformations' ].items():
@@ -253,9 +288,32 @@ def printResults( request, mergeAction ):
           
         groupedMerge[ 1 ] += filesDict[ 'Processed' ]
         groupedMerge[ 2 ] += filesDict[ 'Total' ]
-        
+        groupedMerge[ 3 ] += filesDict[ 'Running' ]
+        groupedMerge[ 4 ] += filesDict[ 'Failed' ]
+        groupedMerge[ 5 ] += filesDict[ 'Hot' ]
+        groupedMerge[ 6 ] += filesDict[ 'Path' ]
+        groupedMerge[ 7 ] += filesDict[ 'Done' ]
+        groupedMerge[ 8 ] += filesDict[ 'Waiting' ]
+        groupedMerge[ 9 ] += filesDict[ 'Files_Processed' ] 
       continue
+ 
+    #prints only the HOT production
+    if mergeAction == 'hot':
+      if filesDict[ 'Hot' ] == 'Hot':
+        print 'BK Browsing Path: [%s]' % (filesDict[ 'Path' ]) 
+        bkpath = filesDict[ 'Path' ] 
+        
+        processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
+        filesMsg = '%.2f%%\t\t(%d)\t\t%d\t%d\t%d\t%d\t%s' % ( processed, filesDict['Total'],filesDict[ 'Done' ], filesDict['Running'],filesDict[ 'Waiting' ], filesDict['Failed'], filesDict[ 'Hot' ] )
       
+        msgTuple = ( ( '%d\t%d\t%s\t%s' % (request[ 'requestID' ], transformationID, transformation[ 'transformationStatus' ], 
+                                    transformation[ 'transformationType' ] ) ).ljust( 40, ' ' ), filesMsg )
+ 
+        print '%s\t%s' % msgTuple
+
+      continue
+
+ 
     if filesDict[ 'Total' ] == '-1':
       filesMsg = '..Internal error..'
     elif filesDict[ 'Total' ] == 0:
@@ -263,25 +321,26 @@ def printResults( request, mergeAction ):
     else:      
       try:
         processed = ( float( filesDict[ 'Processed' ] ) / float( filesDict[ 'Total' ] ) ) * 100
-        filesMsg = '%.2f %% ( %d total files )' % ( processed, filesDict['Total'] )
+        filesMsg = '%.2f%%\t\t(%d)\t\t%d\t%d\t%d\t%d\t%s' % ( processed, filesDict['Total'],filesDict[ 'Done' ], filesDict['Running'],filesDict[ 'Waiting' ], filesDict['Failed'], filesDict[ 'Hot' ] )
       except KeyError:
         print "No files processed"
 
              
-    msgTuple = ( ( '%s [%s] %s' % ( transformationID, transformation[ 'transformationStatus' ], 
+    msgTuple = ( ( '%d\t%d\t%s\t%s' % (request[ 'requestID' ], transformationID, transformation[ 'transformationStatus' ], 
                                     transformation[ 'transformationType' ] ) ).ljust( 40, ' ' ), filesMsg )
 
-    print '      %s %s' % msgTuple
+    print 'BK Browsing Path: [%s]' % (filesDict[ 'Path' ])
+    print '%s\t%s' % msgTuple
 
   if mergeAction == 'group' and groupedMerge[ 0 ]:
     
     if groupedMerge[ 2 ]:
       processed = ( float( groupedMerge[ 1 ] ) / float( groupedMerge[ 2 ] ) ) * 100
-      filesMsg = '%.2f %% ( %d total files )' % ( processed, groupedMerge[ 2 ] ) 
+      filesMsg = '%.2f%%\t\t(%d)\t\t%d\t%d\t%d\t%d\t%s' % ( processed, filesDict['Total'],filesDict[ 'Done' ], filesDict['Running'],filesDict[ 'Waiting' ], filesDict['Failed'], filesDict[ 'Hot' ] )
     else:
       filesMsg = '..No files at all..'
-  
-    print '      %s %s' % (( '%s merge prod(s) grouped' % groupedMerge[0] ).ljust( 40, ' ' ), filesMsg )
+    print 'BK Browsing Path: [%s]' % (filesDict[ 'Path' ])
+    print '%s\t%s\t' % (( '%s merge prod(s) grouped' % groupedMerge[0] ).ljust( 40, ' ' ), filesMsg )
 
   printNow()
 
@@ -304,7 +363,9 @@ if __name__ == "__main__":
 
   # Get input from command line
   _parsedInput, _mergeAction, _noFiles, _sortKey = doParse() 
- 
+#  if _mergeAction == 'hot':
+#    _sortkey = filesDict[ 'Path' ]
+  
   # Print summary header
   printSelection( _parsedInput, _mergeAction, _noFiles, _sortKey )
 
@@ -316,6 +377,8 @@ if __name__ == "__main__":
   # Print small information 
   printRequestsInfo( _requests )
   
+  print 'ReqID\tTransID\tStatus\tType\t\t\t\tCompleted\tTotal Files\tDone\tRunning\tWaiting\tFailed\tHot\n', '=' * 150
+    
   # Initialized here to avoid multiple initializations due to the for-loop
   transformationClient = RPCClient( 'Transformation/TransformationManager' )
   
@@ -323,10 +386,11 @@ if __name__ == "__main__":
   for _request in _requests:
     
     _requestID = _request[ 'requestID' ]
-    
+ 
     _transformations = getTransformations( transformationClient, _requestID, _noFiles )
     _request[ 'transformations' ] = _transformations   
-  
+
+ 
     #request = requests[ requestID ]
   
     printResults( _request, _mergeAction )
