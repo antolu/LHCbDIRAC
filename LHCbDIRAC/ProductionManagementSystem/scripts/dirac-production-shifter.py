@@ -51,7 +51,7 @@ def doParse():
   Script.registerSwitch( 'g',  'groupMerge'    , 'group merge productions' )
   Script.registerSwitch( 'x',  'omitMerge'     , 'omit all merge productions' )
   Script.registerSwitch( 'n',  'noFiles'       , 'do not show file information' )
-  Script.registerSwitch( 'f',  'hotProduction' , 'shows hot production only' )
+  Script.registerSwitch( 'f',  'hot' , 'shows hot production only' )
   # Set script help message
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                       '\nArguments:',
@@ -101,7 +101,7 @@ def doParse():
       mergeAction = 'omit'
     elif switch[ 0 ].lower() in ( 'n', 'nofiles' ):
       noFiles = True
-    elif switch[ 0 ].lower() in ( 'f' ):
+    elif switch[ 0 ].lower() in ( 'f', 'hot' ):
       mergeAction = 'hot'
       params[ 'RequestState' ] = 'Active,Idle'
      
@@ -143,7 +143,7 @@ def getRequests( parsedInput, sortKey ):
                              'simCondition' : request[ 'SimCondition' ],
                              'eventType'    : request[ 'EventType' ] } )
    
-  print request[ 'EventType' ] 
+
  
   return parsedRequests
   
