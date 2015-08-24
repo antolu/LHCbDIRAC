@@ -3174,10 +3174,21 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildFileTypes( ftype, condition, tables ):
+  def __buildFileTypes( ftype, condition, tables, visible = 'N' ):
     """it adds the file type to the files list"""
-    if ftype not in [default, None]:
-      tables += ' ,filetypes ft'
+    tables += ' ,filetypes ft'
+    if ftype != default and visible.upper().startswith( 'Y' ):
+      if tables.find( 'bview' ) > -1:
+        condition += " and bview.filetypeid=ft.filetypeid "
+      if isinstance( ftype, list ):
+        values = ' and ft.name in ('
+        for i in ftype:
+          values += " '%s'," % ( i )
+        condition += values[:-1] + ')'
+      else:
+        condition += " and ft.name='%s' " % ( str( ftype ) )
+        
+    elif ftype not in [default, None]:
       if isinstance( ftype, list ) and len( ftype ) > 0:
         condition += ' and '
         cond = ' ( '
@@ -3517,125 +3528,60 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
     
-    if not visible.upper().startswith( 'A' ):
-      if visible.upper().startswith( 'Y' ):
-        condition += "and f.visibilityFlag='Y' "
-      elif visible.upper().startswith( 'N' ):
-        condition += "and f.visibilityFlag='N' "
-
-    if configName != default and configVersion != default:
-      condition += " and j.configurationid=(select c.configurationid from \
-      configurations c  where c.configname='%s' and c.configversion='%s') " % ( configName, configVersion )
-    else:
-      if configName != default:
-        tables += ' , configurations c'
-        condition += " and c.configname='%s' " % ( configName )
-        condition += ' and j.configurationid=c.configurationid '
-      if configVersion != default:
-        condition += " and c.configversion='%s' " % ( configVersion )
-
-    sim_dq_conditions = ''
-    if conddescription != default:
-      retVal = self.__getConditionString( conddescription, 'prod' )
-      if retVal['OK']:
-        sim_dq_conditions = retVal['Value']
-      else:
-        return retVal
-
-    econd = ''
-    tables2 = ''
-    if evt != default and visible.upper().startswith( 'Y' ):
-      if tables.find( 'bview' ) < 0:
-        tables += ', prodview bview'
-      tables2 += ', prodview bview'
-      econd += " and bview.production=prod.production and bview.eventtypeid=%s" % ( str( evt ) )
-      condition += " and f.eventtypeid=bview.eventtypeid and f.eventtypeid=%s" % ( str( evt ) )
-
-    elif evt != default:
-      condition += " and f.eventtypeid=%s" % ( str( evt ) )
-
+    retVal = self.__buildConditions( default, conddescription, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
+    retVal = self.__buildVisibilityflag( visible, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
+    retVal = self.__buildConfiguration( configName, configVersion, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
+    retVal = self.__buildProduction( production, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
+    retVal = self.__buildEventType( evt, condition, tables, visible )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
     if production != default:
       condition += ' and j.production=' + str( production )
 
-  
-    tables += ' ,filetypes ftypes '
-    fcond = ''
-    if filetype != default and visible.upper().startswith( 'Y' ):
-      if tables2.find( 'bview' ) < 0:
-        tables2 += ', prodview bview'
-      if tables.find( 'bview' ) < 0:
-        tables += ', prodview bview'
-      tables2 += ' ,filetypes ftypes '
-      condition += " and bview.filetypeid=ftypes.filetypeid and bview.production=j.production and bview.eventtypeid=f.eventtypeid"
-      fcond += " and bview.production=prod.production and ftypes.Name='%s'" % ( str( filetype ) )
-      fcond += 'and bview.filetypeid=ftypes.filetypeid '
-      if isinstance( filetype, list ):
-        values = ' and ftypes.name in ('
-        for i in filetype:
-          values += " '%s'," % ( i )
-        condition += values[:-1] + ')'
-      else:
-        condition += " and ftypes.name='%s' " % ( str( filetype ) )
-    else:
-      if isinstance( filetype, list ):
-        values = ' and ftypes.name in ('
-        for i in filetype:
-          values += " '%s'," % ( i )
-        condition += values[:-1] + ')'
-      elif filetype != default:
-        condition += " and ftypes.name='%s' " % ( str( filetype ) )
+    retVal = self.__buildFileTypes( filetype, condition, tables, visible )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
+    retVal = self.__buildReplicaflag( replicaflag, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
+    retVal = self.__buildProcessingPass( processing, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
+    retVal = self.__buildDataquality( quality, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']   
 
-
-    if replicaflag.upper() != default:
-      condition += " and f.gotreplica='%s'" % ( replicaflag )
-
-    if quality != default:
-      tables += ' , dataquality d'
-      if isinstance( quality, str ):
-        command = "select QualityId from dataquality where dataqualityflag='%s'" % ( quality )
-        res = self.dbR_.query( command )
-        if not res['OK']:
-          gLogger.error( 'Data quality problem:', res['Message'] )
-        elif len( res['Value'] ) == 0:
-          return S_ERROR( 'Dataquality is missing!' )
-        else:
-          quality = res['Value'][0][0]
-        condition += ' and f.qualityid=' + str( quality )
-      else:
-        conds = ' ('
-        for i in quality:
-          quality = None
-          command = "select QualityId from dataquality where dataqualityflag='%s'" % ( str( i ) )
-          res = self.dbR_.query( command )
-          if not res['OK']:
-            gLogger.error( 'Data quality problem:', res['Message'] )
-          elif len( res['Value'] ) == 0:
-            return S_ERROR( 'Dataquality is missing!' )
-          else:
-            quality = res['Value'][0][0]
-          conds += ' f.qualityid=' + str( quality ) + ' or'
-        condition += 'and' + conds[:-3] + ')'
-      condition += ' and d.qualityid=f.qualityid '
-
-    if processing != default:
-      if not re.search( '^/', processing ):
-        processing = processing.replace( processing, '/%s' % processing )
-      condition += " and j.production in (select distinct prod.production from productionscontainer prod, \
-      ( select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
-                     START WITH id in (select distinct id from processing where name='%s') \
-                                           CONNECT BY NOCYCLE PRIOR  id=parentid) v \
-                         where v.path='%s') proc %s \
-                             where \
-                               prod.processingid=proc.id  \
-                               %s %s %s \
-                )" % ( processing.split( '/' )[1], processing, tables2, fcond, econd, sim_dq_conditions )
-
-    command = "select /*+PARALLEL(bview)*/ count(*),\
+    command = "select /*+NOPARALLEL(bview)*/ count(*),\
     SUM(f.EventStat), SUM(f.FILESIZE), \
     SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
     j.jobid=f.jobid and \
-    ftypes.filetypeid=f.filetypeid and \
-    ftypes.filetypeid=f.filetypeid  %s" % ( tables, condition )
+    ft.filetypeid=f.filetypeid and \
+    ft.filetypeid=f.filetypeid  %s" % ( tables, condition )
     return self.dbR_.query( command )
 
   #############################################################################
