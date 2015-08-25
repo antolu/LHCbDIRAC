@@ -258,49 +258,6 @@ class PublisherHandler( RequestHandler ):
     return ''
 
   # ResourceManagementClient ...................................................
-  
-  types_getDowntimes = [ str, str, str ]
-  def export_getDowntimes( self, element, elementType, name ):
-    
-    if elementType == 'StorageElement':
-      name = CSHelpers.getSEHost( name )
-    
-    return rmClient.selectDowntimeCache( element = element, name = name, 
-                                         meta = { 'columns' : [ 'StartDate', 'EndDate', 
-                                                                'Link', 'Description', 
-                                                                'Severity' ] } )
-
-  types_getCachedDowntimes = [ ( str, NoneType, list ), ( str, NoneType, list ), ( str, NoneType, list ),
-                               ( str, NoneType, list ), datetime, datetime ]
-  def export_getCachedDowntimes( self, element, elementType, name, severity, startDate, endDate ):
-    
-    if elementType == 'StorageElement':
-      name = CSHelpers.getSEHost( name )
-   
-    if startDate > endDate:
-      return S_ERROR( 'startDate > endDate' )
-    
-    res = rmClient.selectDowntimeCache( element = element, name = name, severity = severity,
-                                        meta = { 'columns' : [ 'Element', 'Name', 'StartDate',
-                                                               'EndDate', 'Severity',
-                                                               'Description', 'Link' ] } )
-    if not res[ 'OK' ]:
-      return res
-    
-    downtimes = []
-    
-    for dt in res[ 'Value' ]:
-      
-      dtDict = dict( zip( res[ 'Columns' ], dt ) ) 
-    
-      if dtDict[ 'StartDate' ] < endDate and dtDict[ 'EndDate' ] > startDate:
-        downtimes.append( dt )
-    
-    result = S_OK( downtimes )
-    result[ 'Columns' ] = res[ 'Columns' ]
-    
-    return result    
-
   types_getSpaceTokenOccupancy = [ ( str, NoneType, list ) ] * 2
   def export_getSpaceTokenOccupancy( self, site, token ):
 
