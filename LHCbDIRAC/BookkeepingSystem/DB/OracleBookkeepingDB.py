@@ -1044,7 +1044,7 @@ class OracleBookkeepingDB:
     """return a list of files with their metadata"""
     condition = ''
 
-    tables = 'files f, jobs j, productionscontainer prod, configurations c, dataquality d, filetypes ftypes'
+    tables = 'files f, jobs j, dataquality d '
     retVal = self.__buildStartenddate( startDate, endDate, condition, tables )
     if not retVal['OK']:
       return retVal
@@ -1095,31 +1095,18 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    if filetype != default and visible.upper().startswith( 'Y' ):
-      if tables.find( 'bview' ) > -1:
-        condition += " and bview.filetypeid=ftypes.filetypeid "
-      if isinstance( filetype, list ):
-        values = ' and ftypes.name in ('
-        for i in filetype:
-          values += " '%s'," % ( i )
-        condition += values[:-1] + ')'
-      else:
-        condition += " and ftypes.name='%s' " % ( str( filetype ) )
-    else:
-      if isinstance( filetype, list ):
-        values = ' and ftypes.name in ('
-        for i in filetype:
-          values += " '%s'," % ( i )
-        condition += values[:-1] + ')'
-      elif filetype != default:
-        condition += " and ftypes.name='%s' " % ( str( filetype ) )
+    
+    retVal = self.__buildFileTypes(filetype, condition, tables, visible)
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
     command = "select /*+PARALLEL(bview)*/ distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, \
-    j.WorkerNode, ftypes.Name, j.runnumber, j.fillnumber, f.fullstat, d.dataqualityflag, \
+    j.WorkerNode, ft.Name, j.runnumber, j.fillnumber, f.fullstat, d.dataqualityflag, \
     j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck, f.guid, f.adler32, f.eventTypeid, f.md5sum,f.visibilityflag, j.jobid, f.gotreplica, f.inserttimestamp from %s  where \
-    j.jobid=f.jobid and \
-    d.qualityid=f.qualityid and \
-    ftypes.filetypeid=f.filetypeid   %s" % ( tables, condition )
+    j.jobid=f.jobid  and \
+    ft.filetypeid=f.filetypeid and \
+    f.qualityid=d.qualityid %s" % ( tables, condition )
     return self.dbR_.query( command )
 
   #############################################################################
