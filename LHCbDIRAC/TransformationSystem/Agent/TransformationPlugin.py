@@ -1254,8 +1254,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       else:
         lfnChunks = breakListIntoChunks( lfnGroup, 100 )
 
+      self.util.logDebug( "Split lfns in %d chunks" % len( lfnChunks ) )
+
       for lfns in lfnChunks:
         candidateSEs = self.util.closerSEs( existingSEs, secondarySEs )
+        self.util.logDebug( "Candidate SEs = %s" % ', '.join( candidateSEs ) )
         # Remove duplicated SEs (those that are indeed the same), but keep existing ones
         for se1 in [se for se in candidateSEs if se not in existingSEs]:
           if self.util.isSameSEInList( se1, [se for se in candidateSEs if se != se1] ):
@@ -1263,6 +1266,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Remove existing SEs from list of candidates
         ncand = len( candidateSEs )
         candidateSEs = [se for se in candidateSEs if se not in existingSEs]
+        self.util.logDebug( "Candidate SEs after removal = %s" % ', '.join( candidateSEs ) )
         needToCopy = numberOfCopies - ( ncand - len( candidateSEs ) )
         stillMandatory = [se for se in mandatorySEs if se not in candidateSEs]
         candidateSEs = self.util.uniqueSEs( stillMandatory + [se for se in candidateSEs if se in activeSecondarySEs] )
@@ -1296,6 +1300,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     storageElementGroups = {}
     for lfn, stringTargetSEs in fileTargetSEs.items():
       storageElementGroups.setdefault( stringTargetSEs, [] ).append( lfn )
+      
+    self.util.logDebug( "Storage Element Groups created: %s" % storageElementGroups )
 
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
