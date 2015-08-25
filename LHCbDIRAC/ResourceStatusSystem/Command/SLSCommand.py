@@ -24,10 +24,18 @@ def slsid_of_service( granularity, name, type_ = None ):
   elif type_ == 'VOMS': 
     return 'VOMS'
   elif ( granularity, type_ ) == ( 'StorageElement', None ): 
-    return re.split( '[-_]', name )[ 0 ] + '_' + CSHelpers.getSEToken( name )
+    st = CSHelpers.getSEToken( name )
+    if not st['OK']:
+      raise RuntimeError, st['Message']
+    st = st['Value']
+    return re.split( '[-_]', name )[ 0 ] + '_' + st
   elif type_ == 'CASTOR':
     try: 
-      return 'CASTORLHCB_LHCB' + re.split( '[-_]', CSHelpers.getSEToken( name ))[1].upper()
+      st = CSHelpers.getSEToken( name )
+      if not st['OK']:
+        raise RuntimeError, st['Message']
+      st = st['Value']
+      return 'CASTORLHCB_LHCB' + re.split( '[-_]', st )[1].upper()
     except IndexError: 
       return ''
   else: 

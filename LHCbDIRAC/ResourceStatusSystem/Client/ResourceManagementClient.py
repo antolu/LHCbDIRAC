@@ -548,7 +548,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       return endpoint
     endpoint = endpoint[ 'Value' ]
     
-    spaceToken = CSHelpers.getStorageElementSpaceToken( seName )
+    spaceToken = CSHelpers.getSEToken( seName )
     if not spaceToken[ 'OK' ]:
       return spaceToken
     spaceToken = spaceToken[ 'Value']    
