@@ -248,7 +248,7 @@ class LHCbBookkeepingManager( BaseESManager ):
           if start and result:
             end = True
         except ValueError, ex:
-          gLogger.warn( str( self.__class__ ) + "__getLevel" + str( ex ) )
+          gLogger.debug( str( self.__class__ ) + "__getLevel" + str( ex ) )
         if start and not end:
           level = startlevel
           processingpath += '/' + i
