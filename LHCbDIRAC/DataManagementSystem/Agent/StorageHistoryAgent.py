@@ -594,6 +594,9 @@ class StorageHistoryAgent( AgentModule ):
       if not res[ 'OK']:
         self.log.error( "addRegister returned: %s" % res )
         return S_ERROR( "addRegister returned: %s" % res )
+      # Reset logical information to zero in order to send it only once!
+      dataRecord.setValueByKey( "LogicalSize", 0 )
+      dataRecord.setValueByKey( "LogicalFiles", 0 )
       self.totalRecords += 1
       self.recordsToCommit += 1
 
