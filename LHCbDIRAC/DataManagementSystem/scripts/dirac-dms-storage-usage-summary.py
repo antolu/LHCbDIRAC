@@ -350,6 +350,8 @@ def execute( unit, minimum ):
     else:
       prString += 'directories %s' % str( dirs )
   if not users:
+    if prString == "Storage usage for ":
+      prString += 'all SEs'
     print prString
   if full:
     dirData = {}
