@@ -215,6 +215,7 @@ class SpaceTokenOccupancyTest( TestBase ):
     doc = gen_xml_stub()
     xml_append( doc, "id", site + "_" + token )
     xml_append( doc, "status", availability )
+    xml_append( doc, "contact", "lhcb-geoc@cern.ch" )
     xml_append( doc, "availabilityinfo", "Free=" + str( free ) + " Total=" + str( total ) )
     xml_append( doc, "availabilitydesc", self.getTestValue( "availabilitydesc" ) )
     elt = xml_append( doc, "data" )
@@ -271,6 +272,7 @@ class DIRACTest( TestBase ):
     doc = gen_xml_stub()
     xml_append( doc, "id", site + "_" + system )
     xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
+    xml_append( doc, "contact", "lhcb-geoc@cern.ch" )
 
     if res['OK']:
       res = res['Value']
