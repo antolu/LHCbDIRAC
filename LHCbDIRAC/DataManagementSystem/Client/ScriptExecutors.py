@@ -220,7 +220,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
     filesToRemove = []
     for lfn in res['Value']['Successful']:
       rep = set( res['Value']['Successful'][lfn] )
-      if force and not rep & archiveSEs:
+      if allDisk and force and not rep & archiveSEs:
         # There are no archives, but remove all disk replicas, i.e. removeFile
         filesToRemove.append( lfn )
         continue
@@ -228,12 +228,16 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
         rep -= archiveSEs
       if not seList & rep:
         if allDisk:
-          errorReasons.setdefault( 'Only ARCHIVE replicas', {} ).setdefault( 'anywhere', [] ).append( lfn )
-          continue
-        errorReasons.setdefault( 'No replicas at requested sites (%d existing)' % ( len( rep ) ), {} ).setdefault( 'anywhere', [] ).append( lfn )
+          reason = 'Only ARCHIVE replicas'
+        else:
+          reason = 'No replicas at requested sites (%d existing)' % len( rep )
+        errorReasons.setdefault( reason, {} ).setdefault( 'anywhere', [] ).append( lfn )
       elif len( rep ) <= minReplicas:
-        seString = ','.join( sorted( seList & rep ) )
-        errorReasons.setdefault( 'No replicas to remove (%d existing/%d requested)' % ( len( rep ), minReplicas ), {} ).setdefault( seString, [] ).append( lfn )
+        if force and rep == seList:
+          filesToRemove.append( lfn )
+        else:
+          seString = ','.join( sorted( seList & rep ) )
+          errorReasons.setdefault( 'No replicas to remove (%d existing/%d requested)' % ( len( rep ), minReplicas ), {} ).setdefault( seString, [] ).append( lfn )
       else:
         seString = ','.join( sorted( rep ) )
         seReps.setdefault( seString, [] ).append( lfn )
@@ -834,7 +838,7 @@ def executeReplicaStats( dmScript ):
     elif switch[0] == 'DumpFailover':
       prFailover = True
     elif switch[0] == 'DumpAtSE':
-      dmScript.setSEs( switch[1].upper() )
+      dmScript.setSEs( switch[1] )
     elif switch[0] == 'DumpAtSite':
       dmScript.setSites( switch[1] )
 

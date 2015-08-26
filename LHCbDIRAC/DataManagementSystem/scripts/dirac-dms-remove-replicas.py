@@ -17,6 +17,7 @@ if __name__ == "__main__":
 
   Script.registerSwitch( "n", "NoLFC", " use this option to force the removal from storage of replicas not in FC" )
   Script.registerSwitch( '', 'ReduceReplicas=', '  specify the number of replicas you want to keep (default SE: Tier1-USER)' )
+  Script.registerSwitch( "", "Force", " use this option for force the removal of replicas even if last one" )
   Script.setUsageMessage( '\n'.join( __doc__.split( '\n' ) + [
                                        'Usage:',
                                        '  %s [option|cfgfile] ... [LFN[,LFN2[,LFN3...]]] SE[,SE2...]' % Script.scriptName,
