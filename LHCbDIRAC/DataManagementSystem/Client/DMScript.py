@@ -246,9 +246,9 @@ class DMScript( object ):
     if not directories:
       vo = self.__voName()
       if vo:
-        vo = '/%s' % vo
+        vo = '/%s/' % vo
         lfnList = [l.split( 'LFN:' )[-1].strip().replace( '"', ' ' ).replace( ',', ' ' ).replace( "'", " " ).replace( ':', ' ' ) for l in lfnList]
-        lfnList = [ vo + lfn.split( vo )[-1].split()[0] if '%s/' % vo in lfn else lfn if lfn == vo else '' for lfn in lfnList]
+        lfnList = [ vo + lfn.split( vo )[-1].split()[0] if vo in lfn else lfn if lfn == vo[:-1] else '' for lfn in lfnList]
         lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
         lfnList = [lfn for lfn in lfnList if not lfn.endswith( '/' )]
     return sorted( [lfn for lfn in set( lfnList ) if lfn or directories] )
@@ -264,7 +264,7 @@ class DMScript( object ):
     jobidsList = [ jobid for jobid in jobidsList if jobid != '']
     return jobidsList
 
-  def setLFNsFromLast( self, val ):
+  def setLFNsFromLast( self, _val ):
     if os.path.exists( self.lastFile ):
       return self.setLFNsFromFile( self.lastFile )
     gLogger.fatal( 'Last file %s does not exist' % self.lastFile )
