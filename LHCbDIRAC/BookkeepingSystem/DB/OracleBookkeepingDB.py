@@ -2801,7 +2801,7 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def __resolveFromPreviousStep( self, production ):
     """It returns the database tags from the ancestor"""
-    command = "select production from jobs j, files f where j.jobid=f.jobid and f.fileid=(select i.fileid from inputfiles i where i.JOBID=(select jobid from jobs j where j.production=%d and rownum <= 1) and rownum<=1)" % ( production )
+    command = "select distinct production from jobs j, files f where j.jobid=f.jobid and j.production!=%d and f.fileid in (select i.fileid from inputfiles i where i.JOBID in (select jobid from jobs j where j.production=%d))" % ( production, production )
     retVal = self.dbR_.query( command )
     if not retVal['OK']:
       return retVal
