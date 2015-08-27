@@ -2,6 +2,7 @@
 
 import types
 import xmlrpclib
+import copy
 
 from DIRAC                                      import gLogger, S_OK, S_ERROR
 from DIRAC.Resources.Storage.StorageBase        import StorageBase
@@ -11,38 +12,19 @@ __RCSID__ = "$Id$"
 
 class LHCbOnlineStorage( StorageBase ):
 
-  def __init__( self, storageName, protocol, path, host, port, spaceToken, wspath ):
+  def __init__( self, storageName, parameterDict ):
     self.isok = True
 
-    self.protocolName = 'LHCbOnline'
-    self.name         = storageName
-    self.protocol     = protocol
-    self.path         = path
-    self.host         = host
-    self.port         = port
-    self.wspath       = wspath
-    self.spaceToken   = spaceToken
-    self.cwd          = self.path
-#     super( LHCbOnlineStorage, self ).__init__( self.name,  )
-
+    super( LHCbOnlineStorage, self ).__init__( storageName, parameterDict )
+    self.pluginName = 'LHCbOnline'
+    self.name = storageName
     self.timeout = 100
     
-    serverString = "%s://%s:%s" % ( protocol, host, port )
+    serverString = "%s://%s:%s" % ( self.protocolParameters['Protocol'],
+                                    self.protocolParameters['Host'],
+                                    self.protocolParameters['Port'] )
     self.server  = xmlrpclib.Server( serverString )
 
-  def getParameters( self ):
-    """ This gets all the storage specific parameters pass when instantiating the storage
-    """
-    parameterDict = {}
-    parameterDict['StorageName']  = self.name
-    parameterDict['ProtocolName'] = self.protocolName
-    parameterDict['Protocol']     = self.protocol
-    parameterDict['Host']         = self.host
-    parameterDict['Path']         = self.path
-    parameterDict['Port']         = self.port
-    parameterDict['SpaceToken']   = self.spaceToken
-    parameterDict['WSUrl']        = self.wspath
-    return S_OK( parameterDict )
 
   def getProtocolPfn( self, pfnDict, withPort ):
     #FIXME: What the hell is this method doing ??
