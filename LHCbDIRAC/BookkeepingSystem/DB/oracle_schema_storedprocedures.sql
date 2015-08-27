@@ -1348,13 +1348,12 @@ procedure getConfigsAndEvtType(
   )is
   begin
     open a_Cursor for
-      select distinct configName, ConfigVersion, eventtypeid from prodview where production=prodId;
-    /*
+      /*select distinct configName, ConfigVersion, eventtypeid from prodview where production=prodId;*/
+    
      select distinct configurations.configName,configurations.ConfigVersion,files.eventtypeid from jobs,files,configurations where
        jobs.jobid=files.jobid and
-       files.gotreplica='Yes' and
        jobs.production=prodId and
-       configurations.configurationid=jobs.configurationid;*/
+       configurations.configurationid=jobs.configurationid;
   end;
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure getJobsbySites(
