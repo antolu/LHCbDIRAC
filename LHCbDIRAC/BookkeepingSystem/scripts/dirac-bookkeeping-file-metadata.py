@@ -78,7 +78,7 @@ if __name__ == "__main__":
       size = dict['FileSize']
       guid = dict['GUID']
       gotReplica = dict['GotReplica']
-      dq = dict['DQFlag']
+      dq = dict.get( 'DataqualityFlag', dict.get( 'DQFlag' ) )
       run = dict['RunNumber']
       evtStat = dict['EventStat']
       if not gotReplica:
