@@ -13,14 +13,15 @@ import datetime
 import pickle
 import Queue
 
-from DIRAC                                                                import S_OK, gLogger, gMonitor
+from DIRAC                                                                import S_OK, gLogger
 from DIRAC.Core.Base.AgentModule                                          import AgentModule
 from DIRAC.Core.Utilities.ThreadPool                                      import ThreadPool
 from DIRAC.Core.Utilities.ThreadSafe                                      import Synchronizer
+from DIRAC.Core.Utilities.List                                            import breakListIntoChunks
+from DIRAC.FrameworkSystem.Client.MonitoringClient                        import gMonitor
 from DIRAC.TransformationSystem.Agent.TransformationAgentsUtilities       import TransformationAgentsUtilities
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
-from DIRAC.Core.Utilities.List                                            import breakListIntoChunks
 
 AGENT_NAME = 'Transformation/BookkeepingWatchAgent'
 
