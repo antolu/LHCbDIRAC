@@ -148,7 +148,7 @@ class StorageUsageDB( DB ):
 
   def publishDirectories( self, directoryDict ):
     """ Inserts a group of directories with their usage """
-    self.log.info( "in publishDirectories: directoryDict is: \n %s" % str( directoryDict ) )
+    self.log.verbose( "in publishDirectories: directoryDict is: \n %s" % str( directoryDict ) )
 
     if not directoryDict:
       return S_OK()
@@ -314,7 +314,7 @@ class StorageUsageDB( DB ):
 
   def __getIDsFromProblematicDirs( self, dirList ):
     """ Get the ID from the problematicDirs table, for a given directory {Path:seInfo} """
-    self.log.info( "entry to be removed: %s" % dirList )
+    self.log.verbose( "entry to be removed: %s" % dirList )
     dirPath, dirInfo = dirList.items()[0]
     dirPath = _standardDirectory( dirPath )
     spaceToken = dirInfo[ 'SpaceToken' ]
@@ -885,7 +885,7 @@ class StorageUsageDB( DB ):
 
   def sendDataUsageReport( self, site, directoryDict, status = 'New' ):
     """ Add a new trace in the Popularity table  """
-    self.log.info( "in addPopCount: dirDict: %s site: %s" % ( directoryDict, site ) )
+    self.log.verbose( "in addPopCount: dirDict: %s site: %s" % ( directoryDict, site ) )
     if not directoryDict:
       return S_OK()
     sqlSite = self._escapeString( site )[ 'Value' ]
@@ -912,7 +912,7 @@ class StorageUsageDB( DB ):
         Each trace corresponds to a directory, and the mandatory keys are the site and the count.
         Optional keys are the status and the creation time
     """
-    self.log.info( "in addPopCount: dirDict: %s" % ( directoryDict ) )
+    self.log.verbose( "in addPopCount: dirDict: %s" % ( directoryDict ) )
     if not directoryDict:
       return S_OK()
     insertedEntries = 0
@@ -980,7 +980,7 @@ class StorageUsageDB( DB ):
     sqlStatus = self._escapeString( newStatus )['Value']
     strIdList = [ str( iD ) for iD in idList ]
     sqlIdList = ", ".join( strIdList )
-    self.log.info( "updatePopEntryStatus: sqlIdList %s " % sqlIdList )
+    self.log.verbose( "updatePopEntryStatus: sqlIdList %s " % sqlIdList )
     sqlCmd = "UPDATE `Popularity` SET Status=%s WHERE ID IN ( %s )" % ( sqlStatus, sqlIdList )
     result = self._update( sqlCmd )
     if not result[ 'OK' ]:
