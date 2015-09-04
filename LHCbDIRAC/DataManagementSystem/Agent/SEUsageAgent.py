@@ -95,7 +95,7 @@ class SEUsageAgent( AgentModule ):
     if not os.path.isdir( self.workDirectory ):
       os.makedirs( self.workDirectory )
     self.log.info( "Working directory is %s" % self.workDirectory )
-    self.inputFilesLocation = self.am_getValue( 'InputFilesLocation', '' )
+    self.inputFilesLocation = self.am_getOption( 'InputFilesLocation', '' )
     if not os.path.isdir( self.inputFilesLocation ):
       os.makedirs( self.inputFilesLocation )
     if os.path.isdir( self.inputFilesLocation ):
