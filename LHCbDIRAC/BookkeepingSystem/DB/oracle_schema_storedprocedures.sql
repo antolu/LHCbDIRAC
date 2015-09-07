@@ -1745,9 +1745,12 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
      lfnmeta.extend;
      n:=n+1;
     allfiletypes := '';
-    for ff in (select distinct ft.name from files f, jobs j, filetypes ft where j.jobid=f.jobid and j.production=c.production and ft.filetypeid=f.filetypeid and f.gotreplica='Yes') LOOP
+    --we have to make the list of file types....
+    for ff in (select distinct ft.name from files f, jobs j, filetypes ft, configurations c where
+      c.configurationid=j.configurationid and ft.filetypeid = f.filetypeid and j.jobid=f.jobid and f.gotreplica='Yes' and f.filename like lfns(i)) LOOP
        allfiletypes := CONCAT(allfiletypes, CONCAT(ff.name,','));
     END LOOP;
+    --remove the coma
     allfiletypes := substr(allfiletypes, 0, length(allfiletypes)-1);
     if simdesc is NULL or simdesc='' then
       lfnmeta (n):= directoryMetadata_new(lfns(i),c.production,c.configname, c.configversion, c.eventtypeid, allfiletypes, procname,daqdesc, c.VISIBILITYFLAG);
@@ -1757,7 +1760,8 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
  END IF;
   END LOOP;
 END LOOP;
-open a_Cursor for select * from table(lfnmeta);
+--do not return the duplicated rows.
+open a_Cursor for select distinct lfn, production, configname, configversion,eventtypeid, filetype, processingpass,ConditionDescription, VISIBILITYFLAG from table(lfnmeta);
 END;
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 function getFilesForGUID(v_guid varchar2) return varchar2 is
