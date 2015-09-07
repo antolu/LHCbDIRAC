@@ -318,9 +318,8 @@ class XMLFilesReaderManager:
         if value[fname]['EventStat'] != None:
           sumEvtStat += value[fname]['EventStat']
         if value[fname]['Luminosity'] != None:
-          sumLuminosity += value[fname]['Luminosity']
-        if dqvalue == None and value[fname].has_key( 'DataqualityFlag' ):
-          dqvalue = value[fname]['DataqualityFlag']
+          sumLuminosity += value[fname]['Luminosity']   
+        dqvalue = value[fname].get( 'DataqualityFlag', value[fname].get( 'DQFlag', None ) )
 
     evtinput = 0
     if long( sumEvtStat ) > long( sumEventInputStat ):
