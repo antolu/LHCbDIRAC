@@ -88,5 +88,14 @@ class RAWIntegrityClient( Client ):
     resDict = {'Failed':failed, 'Successful':successful}
     return S_OK( resDict )
 
+  @staticmethod
+  def hasAccess( _opType, path ):
+    """ Returns True for all path and all actions"""
+    res = checkArgumentFormat( path )
+    if not res['OK']:
+      return res
+    lfns = res['Value']
+    return S_OK( {'Failed' : {}, 'Successful' : dict.fromkeys( lfns, True )} )
+
 ################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
