@@ -983,7 +983,7 @@ class ModuleBase( object ):
       optionsDict['RunNumber'] = runNumberGauss
 
     if self.runNumber:
-      if self.runNumber != 'Unknown':
+      if self.runNumber not in ( 'Unknown', 'Multiple' ):
         optionsDict['RunNumber'] = self.runNumber
 
     if firstEventNumberGauss:
