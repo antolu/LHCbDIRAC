@@ -424,6 +424,10 @@ class XMLFilesReaderManager:
           errorMessage = "Unable to create Replica %s !" % ( str( name ) )
           return S_ERROR( errorMessage )
 
+    if runnumber != None and runnumber > 0:
+      retVal = dataManager_.insertRunStatus( runnumber, jobID, 'N' )
+      if not retVal['OK']:
+        gLogger.error( "Can not register the run status", retVal["Message"] )
     gLogger.info( "End Processing!" )
 
     return S_OK()
