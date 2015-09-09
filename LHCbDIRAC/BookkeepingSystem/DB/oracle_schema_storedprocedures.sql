@@ -1918,8 +1918,12 @@ open a_Cursor for select * from table(jobmeta);
 END;
 
 procedure insertRunStatus(v_runnumber NUMBER, v_JobId NUMBER, v_Finished varchar2)is
+nbrows number;
 begin
-    insert into runstatus(
+    nbrows := 0;
+    select count(*) into nbrows from runstatus where runnumber=v_runnumber;
+    if nbrows = 0 then
+      insert into runstatus(
          runnumber,
          JobId,
          finished
@@ -1927,7 +1931,8 @@ begin
                 v_runnumber,
                 v_JobId,
                 v_Finished);
-  COMMIT;
+   COMMIT;
+   END IF;
   EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
    update runstatus set Finished= v_Finished where runnumber=v_runnumber and jobid=v_JobId;

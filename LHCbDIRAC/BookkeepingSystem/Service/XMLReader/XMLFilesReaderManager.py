@@ -358,7 +358,7 @@ class XMLFilesReaderManager:
         if value <= 0 and len( job.getJobInputFiles() ) == 0:
           # The files which inherits the runs can be entered to the database
           return S_ERROR( 'The run number not greater 0!' )
-
+      
     result = self.__insertJob( job )
 
     if not result['OK']:
@@ -370,6 +370,16 @@ class XMLFilesReaderManager:
     else:
       jobID = long( result['Value'] )
       job.setJobId( jobID )
+    
+    if job.exists( 'RunNumber' ):
+      runnumber = job.getParam( 'RunNumber' ).getValue()
+      gLogger.info( "Registering the run status: Runnumber %s , JobId %s  " % ( str( runnumber ), str( job.getJobId() ) ) )
+      result = dataManager_.insertRunStatus( runnumber, job.getJobId(), "N" )
+      if not result['OK']:
+        dataManager_.deleteJob( job.getJobId() )
+        errorMessage = "Unable to register run status %s " % ( result['Message'] )
+        return S_ERROR( errorMessage )
+      
     inputFiles = job.getJobInputFiles()
     for inputfile in inputFiles:
       result = dataManager_.insertInputFile( job.getJobId(), inputfile.getFileID() )
@@ -424,10 +434,6 @@ class XMLFilesReaderManager:
           errorMessage = "Unable to create Replica %s !" % ( str( name ) )
           return S_ERROR( errorMessage )
 
-    if runnumber != None and runnumber > 0:
-      retVal = dataManager_.insertRunStatus( runnumber, jobID, 'N' )
-      if not retVal['OK']:
-        gLogger.error( "Can not register the run status", retVal["Message"] )
     gLogger.info( "End Processing!" )
 
     return S_OK()
