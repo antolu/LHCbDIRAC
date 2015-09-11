@@ -1061,7 +1061,8 @@ class ConsistencyChecks( object ):
       value = int( value )
       res = self.transClient.getTransformation( value, extraParams = False )
       if not res['OK']:
-        raise RuntimeError( "Couldn't find transformation %d: %s" % ( value, res['Message'] ) )
+        gLogger.error( "Couldn't find transformation", "%d: %s" % ( value, res['Message'] ) )
+        raise RuntimeError( "Couldn't find transformation" )
       else:
         self.transType = res['Value']['Type']
       if self.interactive:

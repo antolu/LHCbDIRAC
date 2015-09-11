@@ -78,11 +78,7 @@ if __name__ == "__main__":
       size = lfnMetaDict['FileSize']
       guid = lfnMetaDict['GUID']
       gotReplica = lfnMetaDict['GotReplica']
-      try:
-        dq = lfnMetaDict.get( 'DataqualityFlag', lfnMetaDict.get( 'DQFlag' ) )
-      except KeyError:
-        print "WARN: DQFlag not found"
-        dq = 'Unknown'
+      dq = lfnMetaDict.get( 'DataqualityFlag' )
       run = lfnMetaDict['RunNumber']
       evtStat = lfnMetaDict['EventStat']
       if not gotReplica:
