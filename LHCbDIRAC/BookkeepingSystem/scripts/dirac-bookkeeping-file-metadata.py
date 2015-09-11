@@ -60,40 +60,40 @@ if __name__ == "__main__":
 
   if not full:
     print '%s %s %s %s %s %s %s' % ( 'FileName'.ljust( lenName ),
-                                  'Size'.ljust( 10 ),
-                                  'GUID'.ljust( lenGUID ),
-                                  'Replica'.ljust( 8 ),
-                                  'DataQuality'.ljust( 12 ),
-                                  'RunNumber'.ljust( 10 ),
-                                  '#events'.ljust( 10 ) )
+                                     'Size'.ljust( 10 ),
+                                     'GUID'.ljust( lenGUID ),
+                                     'Replica'.ljust( 8 ),
+                                     'DataQuality'.ljust( 12 ),
+                                     'RunNumber'.ljust( 10 ),
+                                     '#events'.ljust( 10 ) )
   lfnMetadata = res['Value'].get( 'Successful', res['Value'] )
   for lfn in lfnMetadata:
-    dict = lfnMetadata[lfn]
+    lfnMetaDict = lfnMetadata[lfn]
     if full:
       print '%s%s %s' % ( sep, 'FileName'.ljust( lenItem ), lfn )
       sep = '\n'
       for item in sorted( dict ):
-        print '%s %s' % ( item.ljust( lenItem ), dict[item] )
+        print '%s %s' % ( item.ljust( lenItem ), lfnMetaDict[item] )
     else:
-      size = dict['FileSize']
-      guid = dict['GUID']
-      gotReplica = dict['GotReplica']
+      size = lfnMetaDict['FileSize']
+      guid = lfnMetaDict['GUID']
+      gotReplica = lfnMetaDict['GotReplica']
       try:
-        dq = dict.get( 'DataqualityFlag', dict.get( 'DQFlag' ) )
+        dq = lfnMetaDict.get( 'DataqualityFlag', lfnMetaDict.get( 'DQFlag' ) )
       except KeyError:
         print "WARN: DQFlag not found"
         dq = 'Unknown'
-      run = dict['RunNumber']
-      evtStat = dict['EventStat']
+      run = lfnMetaDict['RunNumber']
+      evtStat = lfnMetaDict['EventStat']
       if not gotReplica:
         gotReplica = 'No'
       print  '%s %s %s %s %s %s %s' % ( lfn.ljust( lenName ),
-                                     str( size ).ljust( 10 ),
-                                     guid.ljust( lenGUID ),
-                                     gotReplica.ljust( 8 ),
-                                     dq.ljust( 12 ),
-                                     str( run ).ljust( 10 ),
-                                     str( evtStat ).ljust( 10 ) )
+                                        str( size ).ljust( 10 ),
+                                        guid.ljust( lenGUID ),
+                                        gotReplica.ljust( 8 ),
+                                        dq.ljust( 12 ),
+                                        str( run ).ljust( 10 ),
+                                        str( evtStat ).ljust( 10 ) )
   failed = res['Value'].get( 'Failed', [] )
   if failed:
     print '\n'
