@@ -68,9 +68,6 @@ def cacheDirectories( directories ):
       metadata = res['Value'].get( longDir )
       if metadata:
         if len( metadata ) < 9 or metadata[8] != "N":
-          ft = lfn.split( '/' )[4]
-          if ft in ( 'DST', 'MDST' ) and ft != metadata[6]:
-            metadata[6] = 'ALL.DST,ALL.MDST'
           bkPathForLfn[lfn] = os.path.join( '/', metadata[1], metadata[2], metadata[3], metadata[4][1:], metadata[5], metadata[6] )
           processingPass[bkPathForLfn[lfn]] = metadata[4]
           prodForBKPath.setdefault( bkPathForLfn[lfn], set() ).add( metadata[7] )
@@ -421,7 +418,7 @@ def scanPopularity( since, getAllDatasets ):
           ','.join( [site.split( '.' )[1] for site in storageSites] ) + \
           ",Nb Replicas,Nb ArchReps,Storage,FirstUsage,LastUsage,Now"
   for binNumber in range( nbBins ):
-    title += ',%d' % ( 1 + binNumber )
+    title += ';%d' % ( 1 + binNumber )
   f.write( title.replace( ',', ';' ) + '\n' )
   TB = 1000. * 1000. * 1000. * 1000.
   for bkPath in sorted( timeUsage ) + sorted( unusedBKPaths ):
@@ -449,17 +446,17 @@ def scanPopularity( since, getAllDatasets ):
     if ',' in bkPath:
       gLogger.always( "BK path found with ',':", bkPath )
     # Name,Configuration,ProcessingPass, FileType
-    row = '%s,%s,%s,%s' % ( bkPath.replace( ',', '.' ).replace( 'Real Data', 'RealData' ), config, processingPass.get( bkPath, 'Unknown' ).replace( 'Real Data', 'RealData' ), fileType )
+    row = '%s;%s;%s;%s' % ( bkPath.replace( 'Real Data', 'RealData' ), config, processingPass.get( bkPath, 'Unknown' ).replace( 'Real Data', 'RealData' ), fileType )
     # Type
-    row += ',0' if bkPath.startswith( '/MC' ) else ',1'
+    row += ';0' if bkPath.startswith( '/MC' ) else ',1'
     # CreationTime
-    row += ',%d' % ( getTimeBin( creationTime ) )
+    row += ';%d' % ( getTimeBin( creationTime ) )
     # NbLFN,LFNSize,NbDisk,DiskSize,NbTape,TapeSize, NbArchived,ArchivedSize
     for infoType in ( 'LFN', 'Disk', 'Tape', 'Archived' ):
-      row += ',%d,%f' % tuple( info[infoType] )
+      row += ';%d;%f' % tuple( info[infoType] )
     for site in storageSites:
-      row += ',%f' % info[site][1]
-    row += ',%f,%f' % ( float( info['Disk'][0] ) / float( info['LFN'][0] ), float( info['Archived'][0] ) / float( info['LFN'][0] ) )
+      row += ';%f' % info[site][1]
+    row += ';%f;%f' % ( float( info['Disk'][0] ) / float( info['LFN'][0] ), float( info['Archived'][0] ) / float( info['LFN'][0] ) )
     if active:
       dsType = 'Active'
     else:
@@ -468,15 +465,15 @@ def scanPopularity( since, getAllDatasets ):
         if bkPath in datasetStorage[infoType]:
           dsType = infoType
           break
-    row += ',%s' % dsType
+    row += ';%s' % dsType
     bins = sorted( timeUsage.get( bkPath, {} ) )
     if not bins:
       bins = [0]
-    row += ',%d,%d,%d' % ( bins[0], bins[-1], nowBin )
+    row += ';%d;%d;%d' % ( bins[0], bins[-1], nowBin )
     usage = 0
     for binNumber in range( nbBins ):
       usage += timeUsage.get( bkPath, {} ).get( nowBin - binNumber, 0 )
-      row += ',%d' % usage
+      row += ';%d' % usage
     f.write( row.replace( ',', ';' ) + '\n' )
   f.close()
   gLogger.always( '\nSuccessfully wrote CSV file %s' % csvFile )
