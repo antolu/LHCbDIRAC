@@ -121,9 +121,9 @@ if  updatePilotScript:
   Diracsrc = "/afs/cern.ch/lhcb/software/releases/DIRAC/DIRAC_" + DiracVersion
   DiracPath = os.path.join ( Diracsrc, "DIRAC/WorkloadManagementSystem/PilotAgent/" )
   for item in os.listdir( DiracPath ):
-    dest = os.path.join( dst, item )
-    if  os.path.isfile( dest ):
-      os.symlink( os.path.join( DiracPath, item ), dest )
+    org = os.path.join( DiracPath, item )
+    if  os.path.isfile( org ):
+      os.symlink( org, os.path.join( dst, item ) )
   os.symlink( os.path.join( Diracsrc, "DIRAC/Core/scripts/dirac-install.py" ), os.path.join( dst , "dirac-install.py" ) )
   print "Pilot scripts link updated"
 
