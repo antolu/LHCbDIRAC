@@ -402,7 +402,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Get status of all runs (finished or not)
     runSet = set( runFileDict ) & set( runSEDict )
     res = self.bkClient.getRunStatus( list( runSet ) )
-    success = res.get( 'Value', {} )
+    success = res.get( 'Value', {} ).get( 'Successful', {} )
     runFinished = dict( [( runID, success[runID]['Finished'] == 'Y' ) for runID in success] )
 
     # Choose the destination SE
