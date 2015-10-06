@@ -398,26 +398,26 @@ def getScriptsLocation():
 
 
 def getSharedArea():
-  """
-      Discover location of Shared SW area. This area is populated by a tool independent from the DIRAC jobs
+  """ Discovers location of Shared SW area. This area is populated by a tool independent from the DIRAC jobs
   """
 
   sharedArea = ''
   if os.environ.has_key( 'VO_LHCB_SW_DIR' ):
     sharedArea = os.path.join( os.environ[ 'VO_LHCB_SW_DIR' ], 'lib' )
-    gLogger.debug( 'Using VO_LHCB_SW_DIR at "%s"' % sharedArea )
+    gLogger.debug( "Using VO_LHCB_SW_DIR at '%s'" % sharedArea )
     if os.environ[ 'VO_LHCB_SW_DIR' ] == '.':
       if not os.path.isdir( 'lib' ):
         os.mkdir( 'lib' )
   elif gConfig.getValue( '/LocalSite/SharedArea', '' ):
     sharedArea = gConfig.getValue( '/LocalSite/SharedArea' )
-    gLogger.debug( 'Using CE SharedArea at "%s"' % sharedArea )
+    gLogger.debug( "Using CE SharedArea at '%s'" % sharedArea )
+  else:
+    gLogger.warn( "Can't find shared area, forcing it" )
+    sharedArea = '/cvmfs/lhcb.cern.ch/lib'
 
-  if sharedArea:
-    # if defined, check that it really exists
-    if not os.path.isdir( sharedArea ):
-      gLogger.error( 'Missing Shared Area Directory:', sharedArea )
-      sharedArea = ''
+  if not os.path.isdir( sharedArea ):
+    gLogger.error( "Missing Shared Area Directory", sharedArea )
+    sharedArea = ''
 
   return sharedArea
 
