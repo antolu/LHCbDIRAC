@@ -10,6 +10,9 @@ import sys
 import smtplib
 import traceback
 import subprocess
+import glob
+import json
+from collections import defaultdict
 
 from random import randint
 from email.mime.text import MIMEText
@@ -17,199 +20,56 @@ from email.mime.text import MIMEText
 from DIRAC import S_OK, S_ERROR
 from DIRAC import gLogger
 from DIRAC.Core.Base.AgentModule import AgentModule
-from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment
 
-MAILFROM = 'EventIndex Grid Collector <dirac@eindex.cern.ch>'
-MAILHOST = 'localhost'
-DASHBOARD_LINK = 'https://eindex.cern.ch/dashboard'
+from grid_collector.status_db import StatusDB
+from grid_collector.event_index_request import EventIndexRequest
 
-# # SE: RAL-DST, CERN-DST-EOS, RAL-ARCHIVE, PIC-DST, SARA_M-DST
-
-SE_WEIGHTS = {'CERN.*': 10,
-              '.*-ARCHIVE':-1}
-SE_DEFAULT_WEIGHT = 1
-
-
-def module_dir():
-  my_dir = os.path.abspath( os.curdir )
-  return os.path.dirname( os.path.join( my_dir, __file__ ) )
-
-BASE_DIR = module_dir()
-sys.path.append(BASE_DIR)
-
-from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Config import STATUS_RUNNING, STATUS_NEW, STATUS_DONE, \
-                                                                          STATUS_FAIL, DOWNLOADS_CACHE_DIR, \
-                                                                          DOWNLOADS_REQUEST_DIR
-from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Request import Request, normalize_lfns
-from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Config import module_dir as util_module_dir
-
-UTIL_DIR = util_module_dir()
-
-def sort_se_weighted( storage_elements, black_list = [], cut_negative = True ):
-  result = {}
-  for se in storage_elements:
-    if se in black_list:
-      continue
-    for se_re in SE_WEIGHTS.keys():
-      if re.search( se_re, se ) is not None:
-        result[se] = SE_WEIGHTS[se_re]
-        break
-    if se not in result:
-      result[se] = SE_DEFAULT_WEIGHT
-    if cut_negative and result[se] < 0:
-      del result[se]
-  sorted_se = sorted( result, key = result.get, reverse = True )
-  return sorted_se
-
-
-def get_lfn2pfn_map( dm, lfns, se_black_list = [], get_single = True ):
-  lfns = normalize_lfns( lfns )
-  res = dm.getReplicas( lfns )
-  assert res['OK'] is True, "error getting catalog replicas"
-  lfn2pfn_map = {}
-  for lfn, se2lfn_map in res['Value']['Successful'].iteritems():
-    lfn2pfn_map[lfn] = []
-    for se in sort_se_weighted( se2lfn_map.keys(), se_black_list, cut_negative = True ):
-      res_url = dm.getReplicaAccessUrl( [lfn, ], se, protocol = ['root', 'xroot'] )
-      gLogger.verbose("Called dm.getReplicaAccessUrl(['%s',], '%s',"
-                      " protocol='xroot'), got response %s" % (lfn, se, str(res_url)))
-      if res_url['OK']:
-        if lfn in res_url['Value']['Successful']:
-          pfn = res_url['Value']['Successful'][lfn]
-          lfn2pfn_map[lfn].append( pfn )
-          if get_single:
-            break
-    assert len( lfn2pfn_map[lfn] ) > 0, "cannot match lfn to pfns"
-  return lfn2pfn_map
-
-
-def notify_email( request ):
-  if request.email is None:
-    return
-  subject = "EventIndex grid-collector report (%s)" % request.status
-  if request.status == STATUS_DONE:
-    body = """\
-Your download request '%s' has completed successfully.
-Please, proceed to dashboard for download (%s) or
-download results directly:
-
-%s
-
---
-Faithfully Yours,
-EventIndex
-""" % ( request.id, DASHBOARD_LINK, request.get_url() )
-  else:
-    body = """\
-There was an error proceeding your request '%s'.
-Please contact EventIndex support.
-Request processing details: %s
-
---
-Faithfully Yours,
-EventIndex
-""" % ( request.id, request.details )
-  try:
-    msg = MIMEText( body )
-    msg['To'] = request.email
-    msg['From'] = MAILFROM
-    msg['Subject'] = subject
-
-    smtpObj = smtplib.SMTP( MAILHOST )
-    smtpObj.sendmail( MAILFROM, [request.email], msg.as_string() )
-    gLogger.info( "Successfully sent email to %s" % request.email )
-  except smtplib.SMTPException, e:
-    gLogger.exception( "Error: unable to send email to '%s' (%s)" % ( request.email, str( e ) ) )
-
+CONFIG_PATH = "/home/dirac/eindex_3/grid_collector/grid_collector/lbvobox27_config.json"
 
 class GridCollectorAgent( AgentModule ):
+    def __init__( self, *args, **kwargs ):
+        with open(CONFIG_PATH) as config_file:
+            self.config = json.load(config_file)
+        AgentModule.__init__( self, *args, **kwargs )
+        self.status_db = StatusDB(self.config['StatusDB_file_name'])
 
-  def __init__( self, *args, **kwargs ):
-    """ c'tor
-    """
-    AgentModule.__init__( self, *args, **kwargs )
-    self.dataManager = None
+    def initialize(self):
+        self.am_setOption('shifterProxy', 'DataManager')
+        return S_OK()
 
-  def initialize( self ):
-    """ agent initialization
-    """
-    self.dataManager = DataManager()
-    self.am_setOption( 'shifterProxy', 'DataManager' )
-    return S_OK()
 
-  def execute( self ):
-    """ execution method.
-    """
-    r = self.get_next_request()
-    if r is None:
-      return S_OK()
-    gLogger.info( "found request: %s (%d lfns)" % ( r.req_file, len( r.req_list ) ) )
-    result = self.download( r.req_file, "%s/%s.root" % ( DOWNLOADS_CACHE_DIR, r.id ) )
-    if result == 0:
-      return S_OK()
-    else:
-      return S_ERROR()
-
-  def get_next_request( self ):
-    new_files = [f for f in os.listdir( DOWNLOADS_REQUEST_DIR ) if f.endswith( STATUS_NEW )]
-    request = None
-    if len( new_files ) > 0:
-      pos = randint( 0, len( new_files ) - 1 )
-      # TODO: check if it exists yet and rename first
-      request = Request( req_file = DOWNLOADS_REQUEST_DIR + "/" + new_files[pos] )
-      request.change_status( STATUS_RUNNING )
-    return request
-
-  def lfn2pfn_update( self, request ):
-    PFN_map = get_lfn2pfn_map( self.dataManager, [r[0] for r in request.req_list], get_single = False)
-    request.lfn2pfn( PFN_map, generate_explicit_pfn_req_list = False )
-    request.save()
-
-  def download( self, req_file, out_file ):
-    rv = 1
-    try:
-      request = Request( req_file = req_file )
-      self.lfn2pfn_update( request )
-      res = getProjectEnvironment( 'x86_64-slc6-gcc48-opt', 'Panoramix',
-                                   env = {'USER': 'dirac', 'PATH': '/usr/bin:/bin', 'HOME': '/home/dirac'} )
-      if not res['OK']:
-        return
-      panoramixEnvironment = res['Value']
-      _p = subprocess.Popen( '%s/Fetch_event.py %s %s' % ( UTIL_DIR, req_file, out_file ),
-                             shell = True, env = panoramixEnvironment,
-                             stdout = subprocess.PIPE, stderr = subprocess.PIPE, close_fds = False )
-
-      # standard output
-      outData = _p.stdout.read().strip()
-      for line in outData:
-        sys.stdout.write( line )
-      sys.stdout.write( '\n' )
-
-      for line in _p.stderr:
-        sys.stdout.write( line )
-      sys.stdout.write( '\n' )
-
-      returnCode = _p.wait()
-
-      if os.path.exists( out_file ):
-        request.change_status( STATUS_DONE, "OK" )
-        rv = 0
-      elif returnCode:
-        request.change_status( STATUS_FAIL, "error processing file '%s'\nSTDERR: %s" % ( out_file, _p.stderr ) )
-      else:
-        request.change_status( STATUS_FAIL, "error creating file '%s'\nSTDERR: %s" % ( out_file, _p.stderr ) )
-    except Exception, e:
-      gLogger.exception( traceback.format_exc() )
-      gLogger.error( "Exception: " + str( e ) )
-      request.change_status( STATUS_FAIL, "Grid-collector exception occurred: " + str( e ) )
-    notify_email( request )
-    return rv
-
-  def fake_download( self, request ):
-    outfile = "%s/%s.root" % ( DOWNLOADS_CACHE_DIR, request.id )
-    lfns = [lfn for lfn, _pos in request.req_list]
-    with open( outfile, 'w' ) as fh:
-      fh.write( '\n'.join( lfns ) )
-    gLogger.info( "created file: %s" % outfile )
-    return S_OK()
+    def execute(self):
+        request_tuple = self.status_db.pull_new_request()
+        if not request_tuple:
+            return S_OK()
+        gLogger.info("Starting processing request %s" % str(request_tuple.uuid))
+        self.status_db.set_status(request_tuple.uuid,
+                                  self.status_db.STATUS_RUNNING,
+                                  "Running SetupProject")
+        da_vinci_environment = getProjectEnvironment(
+            self.config['CMTConfig'], self.config['da_vinci_version'], 'gfal CASTOR lfc',
+            env=self.config['SetupProject_env'])
+        if not da_vinci_environment or \
+           'OK' not in da_vinci_environment or \
+           not da_vinci_environment['OK'] or \
+           'Value' not in da_vinci_environment or \
+           not da_vinci_environment['Value']:
+              self.status_db.set_status(self.uuid,
+                                        self.status_db.STATUS_FAIL,
+                                       "Failed to SetupProject")
+              return S_ERROR()
+        try:
+            request = EventIndexRequest(
+                os.path.join(self.config["requests_folder"], "%s.json" % request_tuple.uuid),
+                request_tuple.uuid,
+                da_vinci_environment['Value'],
+                self.config,
+                20)
+            request.process_event_index_request()
+        except:
+            if self.status_db.get_status(request_tuple.uuid).short != self.status_db.STATUS_FAIL:
+                self.status_db.set_status(request_tuple.uuid, self.status_db.STATUS_FAIL,
+                                          "grid_collector.event_index_request unhandled failure")
+            raise
+        return S_OK()
