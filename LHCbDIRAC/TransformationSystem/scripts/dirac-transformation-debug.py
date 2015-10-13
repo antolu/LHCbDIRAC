@@ -4,7 +4,7 @@ Debug files status for a (list of) transformations
 It is possible to do minor fixes to those files, using options
 """
 
-__RCSID__ = "$Id:$"
+__RCSID__ = "$Id$"
 
 import sys, os
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
@@ -1074,7 +1074,7 @@ def __checkWaitingTasks( transID ):
   if not kickRequests:
     print 'Use --KickRequests to fix them'
 
-#====================================
+#======================================================
 if __name__ == "__main__":
 
   transSep = ''
