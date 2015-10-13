@@ -42,6 +42,22 @@ def helloWorldTestCERN():
   return endOfAllJobs( J )
 
 @executeWithUserProxy
+def helloWorldTestIN2P3():
+  J = baseToAllJobs( 'helloWorld-test-IN2P3', jobClass )
+  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  J.setDestination( 'LCG.IN2P3.fr' )
+  return endOfAllJobs( J )
+
+@executeWithUserProxy
+def helloWorldTestGRIDKA():
+  J = baseToAllJobs( 'helloWorld-test-GRIDKA', jobClass )
+  J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+  J.setExecutable( "exe-script.py", "", "helloWorld.log" )
+  J.setDestination( 'LCG.GRIDKA.de' )
+  return endOfAllJobs( J )
+
+@executeWithUserProxy
 def helloWorldTestARC():
 
   J = baseToAllJobs( 'helloWorld-test-ARC', jobClass )
