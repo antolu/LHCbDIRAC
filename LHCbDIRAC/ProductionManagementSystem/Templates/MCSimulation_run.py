@@ -68,7 +68,6 @@ localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True for validation prod - will create histograms#False}}'
 
 pr.configName = '{{BKConfigName#GENERAL: BK configuration name e.g. MC #MC}}'
-pr.configVersion = '{{mcConfigVersion#GENERAL: BK configuration version, e.g. MC10#2012}}'
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepID:options#}}'
 
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.ch#Tier2}}'
@@ -89,6 +88,7 @@ mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
 
+pr.configVersion = '{{mcConfigVersion}}'
 pr.eventType = '{{eventType}}'
 # Often MC requests are defined with many subrequests but we want to retain
 # the parent ID for viewing on the production monitoring page. If a parent
