@@ -4,7 +4,7 @@ Debug files status for a (list of) transformations
 It is possible to do minor fixes to those files, using options
 """
 
-__RCSID__ = "$transID: dirac-transformation-debug.py 61232 2013-01-28 16:29:21Z phicharp $"
+__RCSID__ = "$Id:$"
 
 import sys, os
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
@@ -1155,7 +1155,7 @@ if __name__ == "__main__":
       status = val.split( ',' )
       val = set( status ) - set( statusList )
       if val:
-        print "Unknown status... Select in %s" % ( sorted( val ), str( statusList ) )
+        print "Unknown status %s... Select in %s" % ( sorted( val ), str( statusList ) )
         DIRAC.exit( 1 )
     elif opt == 'Runs' :
       runList = val.split( ',' )
