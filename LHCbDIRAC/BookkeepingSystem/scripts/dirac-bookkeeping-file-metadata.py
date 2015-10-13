@@ -72,7 +72,7 @@ if __name__ == "__main__":
     if full:
       print '%s%s %s' % ( sep, 'FileName'.ljust( lenItem ), lfn )
       sep = '\n'
-      for item in sorted( dict ):
+      for item in sorted( lfnMetaDict ):
         print '%s %s' % ( item.ljust( lenItem ), lfnMetaDict[item] )
     else:
       size = lfnMetaDict['FileSize']
