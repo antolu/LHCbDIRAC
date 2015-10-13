@@ -1,4 +1,4 @@
-""" An agent to extend MC productions based on the remaning events to produce.
+""" An agent to extend MC productions based on the remaining events to produce.
 """
 
 import math

@@ -58,7 +58,7 @@ def lowerExtension():
 #############################################################################
 
 def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
-                        maxNumberOfEvents = None, maxCPUTime = None ):
+                        maxNumberOfEvents = None, jobMaxCPUTime = None ):
   """ Returns the number of events to produce considering the CPU time available.
       CPUTime and CPUNormalizationFactor are taken from the LocalSite configuration if not provided.
       No checks are made on the values passed !
@@ -71,9 +71,10 @@ def getEventsToProduce( CPUe, CPUTime = None, CPUNormalizationFactor = None,
 
   if CPUTime is None:
     CPUTime = getCPUTime( CPUNormalizationFactor )
-  if maxCPUTime:
-    gLogger.verbose( "CPUTimeLeft for the queue is %d, MaxCPUTime (in seconds) is set to %d" % ( CPUTime, maxCPUTime ) )
-    CPUTime = min( CPUTime, maxCPUTime )
+  if jobMaxCPUTime:
+    gLogger.verbose( "CPUTimeLeft from the WN perspective is %d, the job maximum CPUTime (in seconds) is %d" % ( CPUTime,
+                                                                                                                 jobMaxCPUTime ) )
+    CPUTime = min( CPUTime, jobMaxCPUTime )
 
   gLogger.verbose( "CPUTime = %d, CPUNormalizationFactor = %f, CPUe = %d" % ( CPUTime,
                                                                               CPUNormalizationFactor,
