@@ -3163,8 +3163,9 @@ and files.qualityid= dataquality.qualityid'
   @staticmethod
   def __buildFileTypes( ftype, condition, tables, visible = 'N' ):
     """it adds the file type to the files list"""
-    tables += ' ,filetypes ft'
+    
     if ftype != default and visible.upper().startswith( 'Y' ):
+      tables += ' ,filetypes ft'
       if tables.find( 'bview' ) > -1:
         condition += " and bview.filetypeid=ft.filetypeid "
       if isinstance( ftype, list ):
@@ -3176,6 +3177,7 @@ and files.qualityid= dataquality.qualityid'
         condition += " and ft.name='%s' " % ( str( ftype ) )
         
     elif ftype not in [default, None]:
+      tables += ' ,filetypes ft'
       if isinstance( ftype, list ) and len( ftype ) > 0:
         condition += ' and '
         cond = ' ( '
