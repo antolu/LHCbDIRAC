@@ -156,7 +156,7 @@ def execute():
       if not result['OK']:
         gLogger.fatal( "Error getting ancestor files..." )
         DIRAC.exit( 1 )
-      lfnList = [x[0]['FileName'] for x in result['Value']['Successful'].values()] + result['Value']['Successful'].keys()
+      lfnList = [anc['FileName'] for ancestors in result['Value']['Successful'].values() for anc in ancestors] + result['Value']['Successful'].keys()
 
     from DIRAC.Interfaces.API.Dirac import Dirac
     if not verbose:
