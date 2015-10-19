@@ -38,10 +38,18 @@ def scaleLumi( lumi ):
 def execute():
 
   triggerRate = False
+  listRuns = False
+  listFills = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'TriggerRate':
       triggerRate = True
+    elif switch[0] == 'ListRuns':
+      listRuns = True
+    elif switch[0] == 'ListFills':
+      listFills = True
 
+  if listRuns:
+    listFills = False
   lfns = dmScript.getOption( 'LFNs' )
   bkQuery = dmScript.getBKQuery()
   if not bkQuery and not lfns:
@@ -163,9 +171,10 @@ def execute():
             fileSize += metadata['FileSize']
             lumi += metadata['Luminosity']
             run = metadata['RunNumber']
-            runList.setdefault( run, [ 0., 0. ] )
+            runList.setdefault( run, [ 0., 0., 0. ] )
             runList[run][0] += metadata['Luminosity']
             runList[run][1] += metadata['EventStat']
+            runList[run][2] += metadata['FileSize']
             nbFiles += 1
           except Exception as e:
             gLogger.exception( 'Exception for %s' % str( metadata.keys() ), e )
@@ -179,9 +188,10 @@ def execute():
               fileSize += metadata['FileSize']
               lumi += metadata['Luminosity']
               run = metadata['RunNumber']
-              runList.setdefault( run, [ 0, 0 ] )
+              runList.setdefault( run, [ 0, 0, 0 ] )
               runList[run][0] += metadata['Luminosity']
               runList[run][1] += metadata['EventStat']
+              runList[run][2] += metadata['FileSize']
               nbFiles += 1
             except Exception as e:
               gLogger.exception( 'Exception for %s' % lfn, str( metadata.keys() ), e )
@@ -234,30 +244,146 @@ def execute():
       print "%s: %.1f" % ( ( 'Files per %s' % lumiUnit ).ljust( tab ), filesPerLumi )
     if triggerRate:
       from datetime import timedelta
-      # Get information from the runs
-      fullDuration = 0.
-      totalLumi = 0.
-      for run in sorted( runList ):
-        res = bk.getRunInformations( run )
-        if not res['OK']:
-          gLogger.error( 'Error from BK getting run information', res['Message'] )
-        else:
-          info = res['Value']
-          fullDuration += ( info['RunEnd'] - info['RunStart'] ).total_seconds()
-          lumiDict = dict( zip( info['Stream'], info['luminosity'] ) )
-          statDict = dict( zip( info['Stream'], info['Number of events'] ) )
-          lumi = info['TotalLuminosity']
-          if abs( lumi - runList[run][0] / nDatasets ) > 1:
-            print 'Run and files luminosity mismatch (ignored): run', run, 'runLumi', lumi, 'filesLumi', runList[run][0] / nDatasets
+      # Get information from the runs, but first get those that are Finished
+      res = bk.getRunStatus( list( runList ) )
+      if not res['OK']:
+        gLogger.error( 'Error getting run status', res['Message'] )
+        runs = []
+      else:
+        success = res['Value']['Successful']
+        runs = [run for run in success if success[run].get( 'Finished' ) == 'Y']
+      notFinished = len( runList ) - len( runs )
+      if notFinished:
+        gLogger.notice( '%d runs not Finished (ignored), %s runs Finished (used for trigger rate)' % ( notFinished, str( len( runs ) if len( runs ) else 'no' ) ) )
+      if runs:
+        nevts = 0
+        size = 0
+        fullDuration = 0.
+        totalLumi = 0.
+        fills = {}
+        fillDuration = {}
+        for run in sorted( runs ):
+          res = bk.getRunInformations( run )
+          if not res['OK']:
+            gLogger.error( 'Error from BK getting run information', res['Message'] )
           else:
-            totalLumi += lumi
-      rate = ( '%.1f events/second' % ( nevts / fullDuration ) ) if fullDuration else 'Run duration not available'
-      totalLumi, lumiUnit = scaleLumi( totalLumi )
-      print '%s: %.3f %s' % ( 'Total Luminosity'.ljust( tab ), totalLumi, lumiUnit )
-      print '%s: %.1f hours (%d runs)' % ( 'Run duration'.ljust( tab ), fullDuration / 3600., len( runList ) )
-      print '%s: %s' % ( 'Trigger rate'.ljust( tab ), rate )
+            nevts += runList[run][1]
+            size += runList[run][2]
+            info = res['Value']
+            fill = info['FillNumber']
+            fills.setdefault( fill, [] ).append( str( run ) )
+            runDuration = ( info['RunEnd'] - info['RunStart'] ).total_seconds() / 3600.
+            fillDuration[fill] = fillDuration.setdefault( fill, 0 ) + runDuration
+            fullDuration += runDuration
+            lumiDict = dict( zip( info['Stream'], info['luminosity'] ) )
+            statDict = dict( zip( info['Stream'], info['Number of events'] ) )
+            lumi = info['TotalLuminosity']
+            if abs( lumi - runList[run][0] / nDatasets ) > 1:
+              print 'Run and files luminosity mismatch (ignored): run', run, 'runLumi', lumi, 'filesLumi', runList[run][0] / nDatasets
+            else:
+              totalLumi += lumi
+        rate = ( '%.1f events/second' % ( nevts / fullDuration / 3600 ) ) if fullDuration else 'Run duration not available'
+        totalLumi, lumiUnit = scaleLumi( totalLumi )
+        print '%s: %.3f %s' % ( 'Total Luminosity'.ljust( tab ), totalLumi, lumiUnit )
+        print '%s: %.1f hours (%d runs)' % ( 'Run duration'.ljust( tab ), fullDuration, len( runs ) )
+        print '%s: %s' % ( 'Trigger rate'.ljust( tab ), rate )
+        rate = ( '%.1f MB/second' % ( size / 1000000. / fullDuration / 3600. ) ) if fullDuration else 'Run duration not available'
+        print '%s: %s' % ( 'Throughput'.ljust( tab ), rate )
+        result = getCollidingBunches( min( fills.keys() ), max( fills.keys() ) )
+        collBunches = 0.
+        for fill in fillDuration:
+          if fill not in result:
+            print  "Error: no number of colliding bunches for fill %d" % fillDuration
+          else:
+            collBunches += result[fill] * fillDuration[fill]
+        collBunches /= fullDuration
+        print '%s: %.1f on average' % ( 'Colliding bunches'.ljust( tab ), collBunches )
+        if listFills:
+          print 'List of fills: ', ','.join( ["%d (%d runs, %.1f hours)" % ( fill, len( fills[fill] ), fillDuration[fill] ) for fill in sorted( fills )] )
+        if listRuns:
+          for fill in sorted( fills ):
+            print 'Fill %d (%4d bunches, %.1f hours):' % ( fill, result[fill], fillDuration[fill] ), ','.join( fills[fill] )
     print ""
 
+def getCollidingBunches( minFill, maxFill ):
+  import pycurl
+  import sys
+  from urllib import urlencode
+  from StringIO import StringIO
+  runDbUrl = 'http://lbrundb.cern.ch/rundb/export_fills_maintable'
+
+  data = urlencode( {"fill_id_min": minFill, "fill_id_max" : maxFill, "fill_flist" : "params.nCollidingBunches"} )
+  buf = StringIO()
+  c = pycurl.Curl()
+  c.setopt( pycurl.URL, runDbUrl )
+  c.setopt( pycurl.POST, 1 )
+  c.setopt( pycurl.POSTFIELDS, data )
+  c.setopt( c.WRITEFUNCTION, buf.write )
+  c.perform()
+  c.close()
+
+  body = buf.getvalue()
+
+  from HTMLParser import HTMLParser
+  class tabHolder( object ):
+
+    def __init__( self ):
+      self.listOfTabs = []
+      self.curTab = []
+
+    def nextTab( self ):
+      self.listOfTabs.append( self.curTab )
+      self.curTab = []
+      return self.curTab
+
+    def getTab( self ):
+      return self.curTab
+
+
+  tb = tabHolder()
+
+  # create a subclass and override the handler methods
+  class MyHTMLParser( HTMLParser ):
+      def handle_starttag( self, tag, attrs ):
+
+          if ( tag == 'th' or 'td' ) and len( attrs ) == 1 and "numbers" in attrs[0][1]:
+            self.toLog = True
+          elif tag == 'form' and len( attrs ) > 1 and "frmExportFills" in attrs[0][1]:
+            self.inTheForm = True
+
+      def handle_endtag( self, tag ):
+          if tag == 'tr':
+            tb.nextTab()
+          elif tag == 'th':
+            self.toLog = False
+
+      def handle_data( self, data ):
+          if getattr( self, "toLog", None ) and getattr( self, 'inTheForm', None ):
+            tb.getTab().append( data )
+
+  # instantiate the parser and fed it some HTML
+  parser = MyHTMLParser()
+  parser.feed( body )
+  wantedValues = []
+  for i, t in enumerate( tb.listOfTabs ):
+    if i == 0:
+      continue
+    elif i == 1:
+      continue
+    elif i == len( tb.listOfTabs ) - 1 :
+      continue
+    values = []
+    for v in t:
+      v = v.replace( '\\n', '' ).replace( '\\t', '' ).replace( ' ', '' )
+      if not v:
+        continue
+      values.append( v )
+    wantedValues.append( values )
+
+  result = {}
+  for line in wantedValues:
+    result[int( line[0] )] = int( line[2] )
+  return result
 
 if __name__ == "__main__":
 
@@ -266,6 +392,8 @@ if __name__ == "__main__":
   dmScript.registerFileSwitches()
 
   Script.registerSwitch( '', 'TriggerRate', '   For RAW files, returns the trigger rate' )
+  Script.registerSwitch( '', 'ListRuns', '   Give a list of runs (to be used with --Trigger)' )
+  Script.registerSwitch( '', 'ListFills', '   Give a list of fills (to be used with --Trigger)' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile]' % Script.scriptName, ] ) )
