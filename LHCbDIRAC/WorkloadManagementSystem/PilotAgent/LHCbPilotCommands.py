@@ -112,6 +112,23 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
   """
 
+  def _getBasicsCFG( self ):
+    super( LHCbConfigureBasics, self )._getBasicsCFG()
+
+    # Adding SharedArea (which should be in CVMFS)
+    if os.environ.has_key( 'VO_LHCB_SW_DIR' ):
+      sharedArea = os.path.join( os.environ[ 'VO_LHCB_SW_DIR' ], 'lib' )
+      self.log.debug( "Using VO_LHCB_SW_DIR at '%s'" % sharedArea )
+      if os.environ[ 'VO_LHCB_SW_DIR' ] == '.':
+        if not os.path.isdir( 'lib' ):
+          os.mkdir( 'lib' )
+    else: 
+      sharedArea = '/cvmfs/lhcb.cern.ch/lib'
+      self.log.warn( "Can't find shared area, forcing it to %s" % sharedArea )
+
+    self.cfg.append( '-o /LocalSite/SharedArea=%s' % sharedArea )
+
+
   def _getSecurityCFG( self ):
 
     self.log.debug( "self.pp.installEnv: %s" % str( self.pp.installEnv ) )

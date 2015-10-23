@@ -358,24 +358,21 @@ def getProjectCommand( location, applicationName, applicationVersion, extraPacka
 
 #############################################################################
 def getScriptsLocation():
-  """ This function determines the location of LbLogin / SetupProject based on the
-      local site configuration.  The order of preference for the local software
-      location is:
-        - $VO_LHCB_SW_DIR/lib - typically defined for Grid jobs
-        - LocalSite/SharedArea - for locally running jobs
-      If LbLogin / SetupProject are not found in the above locations this function
+  """ This function determines the location of LbLogin / SetupProject based on the local site configuration.
+      SharedArea is in local cfg file at /LocalSite/SharedArea and corresponds to $VO_LHCB_SW_DIR/lib for Grid jobs
+
+      If LbLogin / SetupProject are not found in the above location this function
       returns an error. Otherwise the location of the environment scripts is returned
       in a dictionary with the name as the key.
   """
-  softwareArea = getSharedArea()
+  softwareArea = gConfig.getValue( '/LocalSite/SharedArea' )
 
-  if softwareArea:
-    gLogger.verbose( 'MYSITEROOT = %s' % softwareArea )
-    if os.path.exists( os.path.join( softwareArea, groupLogin ) ):
-      gLogger.info( 'Using %s from the site shared area directory at %s' % ( groupLogin, softwareArea ) )
-    else:
-      gLogger.error( '%s not found in local area or shared area %s' % ( groupLogin, softwareArea ) )
-      return S_ERROR( '%s not found in local or shared areas' % ( groupLogin ) )
+  gLogger.verbose( 'MYSITEROOT = %s' % softwareArea )
+  if os.path.exists( os.path.join( softwareArea, groupLogin ) ):
+    gLogger.info( 'Using %s from the site shared area directory at %s' % ( groupLogin, softwareArea ) )
+  else:
+    gLogger.error( '%s not found in local area or shared area %s' % ( groupLogin, softwareArea ) )
+    return S_ERROR( '%s not found in local or shared areas' % ( groupLogin ) )
 
   gLogger.verbose( 'Using scripts from software area at %s' % softwareArea )
   groupLoginPath = os.path.join( softwareArea, groupLogin )
@@ -395,32 +392,6 @@ def getScriptsLocation():
   return S_OK( { groupLogin:groupLoginPath,
                  projectEnv:projectScriptPath,
                  'MYSITEROOT':softwareArea} )
-
-
-def getSharedArea():
-  """ Discovers location of Shared SW area. This area is populated by a tool independent from the DIRAC jobs
-  """
-
-  sharedArea = ''
-  if os.environ.has_key( 'VO_LHCB_SW_DIR' ):
-    sharedArea = os.path.join( os.environ[ 'VO_LHCB_SW_DIR' ], 'lib' )
-    gLogger.debug( "Using VO_LHCB_SW_DIR at '%s'" % sharedArea )
-    if os.environ[ 'VO_LHCB_SW_DIR' ] == '.':
-      if not os.path.isdir( 'lib' ):
-        os.mkdir( 'lib' )
-  elif gConfig.getValue( '/LocalSite/SharedArea', '' ):
-    sharedArea = gConfig.getValue( '/LocalSite/SharedArea' )
-    gLogger.debug( "Using CE SharedArea at '%s'" % sharedArea )
-  else:
-    gLogger.warn( "Can't find shared area, forcing it" )
-    sharedArea = '/cvmfs/lhcb.cern.ch/lib'
-
-  if not os.path.isdir( sharedArea ):
-    gLogger.error( "Missing Shared Area Directory", sharedArea )
-    sharedArea = ''
-
-  return sharedArea
-
 
 def getPlatformsConfigsDict():
   """ Just utility function
