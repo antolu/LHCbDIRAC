@@ -10,14 +10,13 @@
     dirac-production-runjoblocal (job ID)  -  No parenthesis
     
 '''
-from DIRAC.Core.Utilities.DErrno import DError
-
 __RCSID__ = "$transID: dirac-production-runjoblocal.py 61232 2015-09-22 16:20:00 msoares $"
 
 
 import DIRAC
 import LHCbDIRAC
 import os
+import sys
 import errno
 #from DIRAC.Core.Utilities import DError
 from DIRAC.Core.Base      import Script
@@ -25,11 +24,16 @@ from DIRAC                import S_OK, S_ERROR
 
 
 Script.parseCommandLine( ignoreErrors = False )
+Script.registerSwitch( 'D:', 'Download='    , 'Defines data acquisition as DownloadInputData' )
 Script.setUsageMessage( __doc__ )
 
-  
-_jobID = Script.getPositionalArgs()
-_jobID = _jobID[0]
+_downloadinputdata = False
+_arguments = Script.getPositionalArgs()
+if switch[ 1 ] in ( 'D', 'Download' ):
+  _downloadinputdata = True
+
+_jobID = _arguments[0]
+
 
 def __runSystemDefaults(jobID = None):
   """
@@ -37,7 +41,7 @@ def __runSystemDefaults(jobID = None):
   the path for the other functions.
   
   """
-  tempdir = "job" + str(jobID) + "temp"
+  tempdir = "LHCbjob" + str(jobID) + "temp"
   os.environ['VO_LHCB_SW_DIR'] = "/cvmfs/lhcb.cern.ch"
   try:
     os.mkdir(tempdir)
@@ -65,19 +69,20 @@ def __downloadJobDescriptionXML(jobID, basepath):
   jdXML = Dirac()
   jdXML.getInputSandbox(jobID, basepath)
 
-def __modifyJobDescription(jobID, basepath):
+def __modifyJobDescription(jobID, basepath, downloadinputdata):
   """
   Modifies the jobDescription.xml to, instead of DownloadInputData, it 
   uses InputDataByProtocol
   
   """
-  from xml.etree import ElementTree as et
-  archive = et.parse(basepath + "/InputSandbox" + str(jobID) + "/jobDescription.xml")
-  for element in archive.getiterator():
-    if element.text == "DIRAC.WorkloadManagementSystem.Client.DownloadInputData":
-      element.text = "DIRAC.WorkloadManagementSystem.Client.InputDataByProtocol"
-      archive.write(basepath + "/InputSandbox" + str(jobID) + "/jobDescription.xml")
-      return S_OK("Job parameter changed from DownloadInputData to InputDataByProtocol.")
+  if not downloadinputdata:
+    from xml.etree import ElementTree as et
+    archive = et.parse(basepath + "/InputSandbox" + str(jobID) + "/jobDescription.xml")
+    for element in archive.getiterator():
+      if element.text == "DIRAC.WorkloadManagementSystem.Client.DownloadInputData":
+        element.text = "DIRAC.WorkloadManagementSystem.Client.InputDataByProtocol"
+        archive.write(basepath + "/InputSandbox" + str(jobID) + "/jobDescription.xml")
+        return S_OK("Job parameter changed from DownloadInputData to InputDataByProtocol.")
   
 def __downloadPilotScripts(basepath):
   """
@@ -118,7 +123,11 @@ def __configurePilot(basepath):
   """
   out = os.system("python " + basepath + "/dirac-pilot.py -S LHCb-Production -l LHCb -C dips://lbvobox18.cern.ch:9135/Configuration/Server -N ce.debug.ch -Q default -n DIRAC.JobDebugger.ch -M 1 -E LHCbPilot -X LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements -dd")
   if not out:
+    dir = str(os.getcwd())
+    os.rename(dir + '/.dirac.cfg', dir + '/.dirac.cfg.old')
+    os.system("cp " + dir + "/pilot.cfg " + dir + "/.dirac.cfg")
     return S_OK("Pilot successfully configured.")
+  
 #   else:
 #     some DErrno message
 
@@ -131,20 +140,26 @@ def __runJobLocally(jobID, basepath):
   localJob = LHCbJob(basepath + "/InputSandbox" + str(jobID) + "/jobDescription.xml")
   localJob.setInputSandbox(os.getcwd()+"/pilot.cfg")
   localJob.setConfigArgs(os.getcwd()+"/pilot.cfg")
+  os.chdir(basepath)
   localJob.runLocal()
   
 if __name__ == "__main__":
-
-  _path = __runSystemDefaults(_jobID)
+  dir = os.getcwd()
+  try:
+    _path = __runSystemDefaults(_jobID)
+      
+    __downloadJobDescriptionXML(_jobID, _path)
+      
+    __modifyJobDescription(_jobID, _path, _downloadinputdata)
     
-  __downloadJobDescriptionXML(_jobID, _path)
+    __downloadPilotScripts(_path)
     
-  __modifyJobDescription(_jobID, _path)
-  
-  __downloadPilotScripts(_path)
-  
-  __configurePilot(_path)
-  
-  __runJobLocally(_jobID, _path)
+    __configurePilot(_path)
+    
+    __runJobLocally(_jobID, _path)
+    
+  finally:
+    os.chdir(dir)
+    os.rename(dir + '/.dirac.cfg.old', dir + '/.dirac.cfg')
   
   
