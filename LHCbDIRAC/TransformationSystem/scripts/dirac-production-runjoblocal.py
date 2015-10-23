@@ -40,7 +40,7 @@ for switch in Script.getUnprocessedSwitches():
   if switch [ 0 ] in ( 'D', 'Download' ):
     _downloadinputdata = True
     _jobID = switch[1]
-  if switch [ 0 ] in ( 'I', 'Protocol' ):
+  if switch [ 0 ] in ( 'P', 'Protocol' ):
     _downloadinputdata = False
     _jobID = switch[1]
 
@@ -84,11 +84,7 @@ def __modifyJobDescription(jobID, basepath, downloadinputdata):
   uses InputDataByProtocol
   
   """
-  if downloadinputdata:
-    print "%%%%%%%%%%%%%%         111111111111111111111111111                %%%%%%%%%%%%%%%%%%%%"
-    
   if not downloadinputdata:
-    print "%%%%%%%%%%%%%%%%%%%%%%%%%        222222222222222222222222            %%%%%%%%%%%%%%"
     from xml.etree import ElementTree as et
     archive = et.parse(basepath + "/InputSandbox" + str(jobID) + "/jobDescription.xml")
     for element in archive.getiterator():
@@ -158,21 +154,19 @@ def __runJobLocally(jobID, basepath):
   
 if __name__ == "__main__":
   dir = os.getcwd()
-#   try:
-  _path = __runSystemDefaults(_jobID)
+  try:
+    _path = __runSystemDefaults(_jobID)
+      
+    __downloadJobDescriptionXML(_jobID, _path)
+      
+    __modifyJobDescription(_jobID, _path, _downloadinputdata)
     
-  __downloadJobDescriptionXML(_jobID, _path)
+    __downloadPilotScripts(_path)
     
-  __modifyJobDescription(_jobID, _path, _downloadinputdata)
-  
-  __downloadPilotScripts(_path)
-  
-  __configurePilot(_path)
-  
-  __runJobLocally(_jobID, _path)
+    __configurePilot(_path)
     
-#   finally:
-#     os.chdir(dir)
-#     os.rename(dir + '/.dirac.cfg.old', dir + '/.dirac.cfg')
-   
-   
+    __runJobLocally(_jobID, _path)
+    
+  finally:
+    os.chdir(dir)
+    os.rename(dir + '/.dirac.cfg.old', dir + '/.dirac.cfg')
