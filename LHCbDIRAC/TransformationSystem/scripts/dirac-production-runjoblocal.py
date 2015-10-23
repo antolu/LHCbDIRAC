@@ -7,7 +7,7 @@
   files and runs the job
   
   Usage:
-    dirac-production-runjoblocal (job ID)  -  No parenthesis
+    dirac-production-runjoblocal (job ID) (Data imput mode) -  No parenthesis
     
 '''
 __RCSID__ = "$transID: dirac-production-runjoblocal.py 61232 2015-09-22 16:20:00 msoares $"
@@ -22,18 +22,27 @@ import errno
 from DIRAC.Core.Base      import Script
 from DIRAC                import S_OK, S_ERROR
 
-
+Script.registerSwitch( 'D:', 'Download='    , 'Defines data acquisition as DownloadInputData'   )
+Script.registerSwitch( 'P:', 'Protocol='    , 'Defines data acquisition as InputDataByProtocol' )
 Script.parseCommandLine( ignoreErrors = False )
-Script.registerSwitch( 'D:', 'Download='    , 'Defines data acquisition as DownloadInputData' )
-Script.setUsageMessage( __doc__ )
+
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                      '\nUsage:',
+                                      'dirac-production-runjoblocal [Data imput mode] [job ID]'
+                                      '\nArguments:',
+                                      '  Download (Job ID): Defines data aquisition as DownloadInputData',
+                                      '  Protocol (Job ID): Defines data acquisition as InputDataByProtocol\n'] ) )
 
 _downloadinputdata = False
-_arguments = Script.getPositionalArgs()
-if switch[ 1 ] in ( 'D', 'Download' ):
-  _downloadinputdata = True
+_jobID = None
 
-_jobID = _arguments[0]
-
+for switch in Script.getUnprocessedSwitches():
+  if switch [ 0 ] in ( 'D', 'Download' ):
+    _downloadinputdata = True
+    _jobID = switch[1]
+  if switch [ 0 ] in ( 'I', 'Protocol' ):
+    _downloadinputdata = False
+    _jobID = switch[1]
 
 def __runSystemDefaults(jobID = None):
   """
@@ -75,7 +84,11 @@ def __modifyJobDescription(jobID, basepath, downloadinputdata):
   uses InputDataByProtocol
   
   """
+  if downloadinputdata:
+    print "%%%%%%%%%%%%%%         111111111111111111111111111                %%%%%%%%%%%%%%%%%%%%"
+    
   if not downloadinputdata:
+    print "%%%%%%%%%%%%%%%%%%%%%%%%%        222222222222222222222222            %%%%%%%%%%%%%%"
     from xml.etree import ElementTree as et
     archive = et.parse(basepath + "/InputSandbox" + str(jobID) + "/jobDescription.xml")
     for element in archive.getiterator():
@@ -83,7 +96,7 @@ def __modifyJobDescription(jobID, basepath, downloadinputdata):
         element.text = "DIRAC.WorkloadManagementSystem.Client.InputDataByProtocol"
         archive.write(basepath + "/InputSandbox" + str(jobID) + "/jobDescription.xml")
         return S_OK("Job parameter changed from DownloadInputData to InputDataByProtocol.")
-  
+
 def __downloadPilotScripts(basepath):
   """
   Downloads the scripts necessary to configure the pilot
@@ -145,21 +158,21 @@ def __runJobLocally(jobID, basepath):
   
 if __name__ == "__main__":
   dir = os.getcwd()
-  try:
-    _path = __runSystemDefaults(_jobID)
-      
-    __downloadJobDescriptionXML(_jobID, _path)
-      
-    __modifyJobDescription(_jobID, _path, _downloadinputdata)
+#   try:
+  _path = __runSystemDefaults(_jobID)
     
-    __downloadPilotScripts(_path)
+  __downloadJobDescriptionXML(_jobID, _path)
     
-    __configurePilot(_path)
-    
-    __runJobLocally(_jobID, _path)
-    
-  finally:
-    os.chdir(dir)
-    os.rename(dir + '/.dirac.cfg.old', dir + '/.dirac.cfg')
+  __modifyJobDescription(_jobID, _path, _downloadinputdata)
   
+  __downloadPilotScripts(_path)
   
+  __configurePilot(_path)
+  
+  __runJobLocally(_jobID, _path)
+    
+#   finally:
+#     os.chdir(dir)
+#     os.rename(dir + '/.dirac.cfg.old', dir + '/.dirac.cfg')
+   
+   
