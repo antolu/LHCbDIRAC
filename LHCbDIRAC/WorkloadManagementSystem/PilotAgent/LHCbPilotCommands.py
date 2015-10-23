@@ -207,62 +207,7 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
 
 
 class LHCbConfigureCPURequirements( LHCbCommandBase, ConfigureCPURequirements ):
-
-  # FIXME: this is just a copy/paste from DIRAC introducing the line for avoiding too slow CPUs
-
-  def execute( self ):
-    """ Get job CPU requirement and queue normalization
-    """
-    # Determining the CPU normalization factor and updating pilot.cfg with it
-    configFileArg = ''
-    if self.pp.useServerCertificate:
-      configFileArg = '-o /DIRAC/Security/UseServerCertificate=yes'
-    if self.pp.localConfigFile:
-      configFileArg = '%s -R %s %s' % ( configFileArg, self.pp.localConfigFile, self.pp.localConfigFile )
-    retCode, cpuNormalizationFactorOutput = self.executeAndGetOutput( 'dirac-wms-cpu-normalization -U %s' % configFileArg,
-                                                                      self.pp.installEnv )
-    if retCode:
-      self.log.error( "Failed to determine cpu normalization [ERROR %d]" % retCode )
-      self.exitWithError( retCode )
-
-    # HS06 benchmark
-    # FIXME: this is a hack!
-    cpuNormalizationFactor = float( cpuNormalizationFactorOutput.split( '\n' )[0].replace( "Estimated CPU power is ",
-                                                                                           '' ).replace( " HS06", '' ) )
-    self.log.info( "Current normalized CPU as determined by 'dirac-wms-cpu-normalization' is %f" % cpuNormalizationFactor )
-    if cpuNormalizationFactor < 3.0:
-      self.log.info( "Current normalized CPU is too slow, exiting" )
-      self.exitWithError( 1 )
-
-    configFileArg = ''
-    if self.pp.useServerCertificate:
-      configFileArg = '-o /DIRAC/Security/UseServerCertificate=yes'
-    retCode, cpuTime = self.executeAndGetOutput( 'dirac-wms-get-queue-cpu-time %s %s' % ( configFileArg,
-                                                                                          self.pp.localConfigFile ),
-                                                 self.pp.installEnv )
-    if retCode:
-      self.log.error( "Failed to determine cpu time left in the queue [ERROR %d]" % retCode )
-      self.exitWithError( retCode )
-    self.log.info( "CPUTime left (in seconds) is %s" % cpuTime )
-
-    # HS06s = seconds * HS06
-    self.pp.jobCPUReq = float( cpuTime ) * float( cpuNormalizationFactor )
-    self.log.info( "Queue length (which is also set as CPUTimeLeft) is %f" % self.pp.jobCPUReq )
-
-    # now setting this value in local file
-    cfg = ['-FDMH']
-    if self.pp.useServerCertificate:
-      cfg.append( '-o  /DIRAC/Security/UseServerCertificate=yes' )
-    if self.pp.localConfigFile:
-      cfg.append( '-O %s' % self.pp.localConfigFile )  # our target file for pilots
-      cfg.append( self.pp.localConfigFile )  # this file is also input
-    cfg.append( '-o /LocalSite/CPUTimeLeft=%s' % str( int( self.pp.jobCPUReq ) ) )  # the only real option
-
-    configureCmd = "%s %s" % ( self.pp.configureScript, " ".join( cfg ) )
-    retCode, _configureOutData = self.executeAndGetOutput( configureCmd, self.pp.installEnv )
-    if retCode:
-      self.log.error( "Failed to update CFG file for CPUTimeLeft [ERROR %d]" % retCode )
-      self.exitWithError( retCode )
+  pass
 
 class LHCbConfigureSite( LHCbCommandBase, ConfigureSite ):
   pass
