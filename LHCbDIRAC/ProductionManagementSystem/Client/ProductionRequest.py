@@ -311,8 +311,8 @@ class ProductionRequest( object ):
     outputFilesList = prod._constructOutputFilesList( fileTypesOut )
     prod.LHCbJob.workflow.step_instances[0].setValue( 'listoutput', outputFilesList )
 
-    # increase the priority to the 9
-    prod.priority = 9
+    # increase the priority to 10
+    prod.priority = 10
 
     # launch the test production
     res = self.diracProduction.launchProduction( prod = prod,
