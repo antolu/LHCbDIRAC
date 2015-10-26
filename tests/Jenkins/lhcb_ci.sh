@@ -283,7 +283,14 @@ function setupLHCbDIRAC(){
 
 	. /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r3p1/InstallArea/scripts/LbLogin.sh
 	. /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r3p1/InstallArea/scripts/SetupProject.sh LHCbDIRAC `cat project.version`
-	export PYTHONPATH=$PYTHONPATH:$WORKSPACE
+	local status=$?
+	if [ $status -ne 0 ]
+	then
+		echo "Going to install client with dirac-install"
+		installLHCbDIRACClient
+	else
+		export PYTHONPATH=$PYTHONPATH:$WORKSPACE
+	fi
 }
 
 
