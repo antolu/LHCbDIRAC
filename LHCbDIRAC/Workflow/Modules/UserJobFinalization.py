@@ -33,7 +33,7 @@ class UserJobFinalization( ModuleBase ):
     self.version = __RCSID__
     self.enable = True
     self.defaultOutputSE = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-USER', [] )
-    self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-FAILOVER', [] )
+    self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
     # List all parameters here
     self.request = None
     # Always allow any files specified by users

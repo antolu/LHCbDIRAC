@@ -37,7 +37,7 @@ class UploadOutputData( ModuleBase ):
     self.version = __RCSID__
     self.commandTimeOut = 10 * 60
     self.jobID = ''
-    self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-FAILOVER', [] )
+    self.failoverSEs = gConfig.getValue( '/Resources/StorageElementGroups/Tier1-Failover', [] )
     self.existingCatalogs = []
     result = gConfig.getSections( '/Resources/FileCatalogs' )
     if result['OK']:
