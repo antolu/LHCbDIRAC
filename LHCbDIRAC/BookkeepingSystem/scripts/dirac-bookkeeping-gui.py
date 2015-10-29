@@ -17,7 +17,7 @@ Script.setUsageMessage('\n'.join([ __doc__.split('\n')[1],
 Script.parseCommandLine(ignoreErrors=True)
 
 from DIRAC.Core.Security.ProxyInfo                             import getProxyInfo
-from DIRAC.Core.Security.CS                                    import getDNForUsername
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry         import getDNForUsername
 from DIRAC                                                     import gLogger
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.MainWidget         import MainWidget
 from PyQt4.QtGui import QApplication
