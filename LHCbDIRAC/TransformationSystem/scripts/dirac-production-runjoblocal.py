@@ -133,7 +133,7 @@ def __configurePilot(basepath):
   import shutil
   out = os.system("python " + basepath + "dirac-pilot.py -S LHCb-Production -l LHCb -C dips://lbvobox18.cern.ch:9135/Configuration/Server -N ce.debug.ch -Q default -n DIRAC.JobDebugger.ch -M 1 -E LHCbPilot -X LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements -dd")
   if not out:
-    dir = str(os.getcwd()) + os.path.sep
+    dir = os.path.expanduser('~') + os.path.sep
     os.rename(dir + '.dirac.cfg', dir + '.dirac.cfg.old')
     shutil.copyfile(dir + 'pilot.cfg', dir + '.dirac.cfg')
     return S_OK("Pilot successfully configured.")
@@ -154,7 +154,7 @@ def __runJobLocally(jobID, basepath):
   localJob.runLocal()
   
 if __name__ == "__main__":
-  dir = str(os.getcwd()) + os.path.sep
+  dir = os.path.expanduser('~') + os.path.sep
   try:
     _path = __runSystemDefaults(_jobID)
       
