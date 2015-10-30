@@ -66,7 +66,7 @@ def __runSystemDefaults(jobID = None):
 
     
   basepath = os.getcwd()
-  return basepath + "/" + tempdir
+  return basepath + os.path.sep + tempdir + os.path.sep
 
 def __downloadJobDescriptionXML(jobID, basepath):
   """
@@ -86,11 +86,11 @@ def __modifyJobDescription(jobID, basepath, downloadinputdata):
   """
   if not downloadinputdata:
     from xml.etree import ElementTree as et
-    archive = et.parse(basepath + "/InputSandbox" + str(jobID) + "/jobDescription.xml")
+    archive = et.parse(basepath + "InputSandbox" + str(jobID) + os.path.sep + "jobDescription.xml")
     for element in archive.getiterator():
       if element.text == "DIRAC.WorkloadManagementSystem.Client.DownloadInputData":
         element.text = "DIRAC.WorkloadManagementSystem.Client.InputDataByProtocol"
-        archive.write(basepath + "/InputSandbox" + str(jobID) + "/jobDescription.xml")
+        archive.write(basepath + "InputSandbox" + str(jobID) + os.path.sep + "jobDescription.xml")
         return S_OK("Job parameter changed from DownloadInputData to InputDataByProtocol.")
 
 def __downloadPilotScripts(basepath):
@@ -99,25 +99,25 @@ def __downloadPilotScripts(basepath):
   
   """
   #include retry function
-  out = os.system("wget -P " + basepath +  "/ http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/LHCbPilotCommands.py")
+  out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/LHCbPilotCommands.py")
   if not out:
     S_OK("LHCbPilotCommands.py script successfully download.\n")
   else:
     print "LHCbPilotCommands.py script download error.\n"
     #DError(errno.ENETUNREACH, "LHCbPilotCommands.py script download error.\n" )
-  out = os.system("wget -P " + basepath +  "/ http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/dirac-pilot.py")
+  out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/dirac-pilot.py")
   if not out:
     S_OK("dirac-pilot.py script successfully download.\n")
   else:
     print "dirac-pilot.py script download error.\n"
     #DError(errno.ENETUNREACH, "dirac-pilot.py script download error.\n" )
-  out = os.system("wget -P " + basepath +  "/ http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/pilotCommands.py")
+  out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/pilotCommands.py")
   if not out:
     S_OK("pilotCommands.py script successfully download.\n")
   else:
     print "pilotCommands.py script download error.\n"
     #DError(errno.ENETUNREACH, "pilotCommands.py script download error.\n" )
-  out = os.system("wget -P " + basepath +  "/ http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/pilotTools.py")
+  out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/pilotTools.py")
   if not out:
     S_OK("pilotTools.py script successfully download.\n")
   else:
@@ -130,11 +130,12 @@ def __configurePilot(basepath):
   Configures the pilot.
   
   """
-  out = os.system("python " + basepath + "/dirac-pilot.py -S LHCb-Production -l LHCb -C dips://lbvobox18.cern.ch:9135/Configuration/Server -N ce.debug.ch -Q default -n DIRAC.JobDebugger.ch -M 1 -E LHCbPilot -X LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements -dd")
+  import shutil
+  out = os.system("python " + basepath + "dirac-pilot.py -S LHCb-Production -l LHCb -C dips://lbvobox18.cern.ch:9135/Configuration/Server -N ce.debug.ch -Q default -n DIRAC.JobDebugger.ch -M 1 -E LHCbPilot -X LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements -dd")
   if not out:
-    dir = str(os.getcwd())
-    os.rename(dir + '/.dirac.cfg', dir + '/.dirac.cfg.old')
-    os.system("cp " + dir + "/pilot.cfg " + dir + "/.dirac.cfg")
+    dir = str(os.getcwd()) + os.path.sep
+    os.rename(dir + '.dirac.cfg', dir + '.dirac.cfg.old')
+    shutil.copyfile(dir + 'pilot.cfg', dir + '.dirac.cfg')
     return S_OK("Pilot successfully configured.")
   
 #   else:
@@ -146,14 +147,14 @@ def __runJobLocally(jobID, basepath):
   
   """
   from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
-  localJob = LHCbJob(basepath + "/InputSandbox" + str(jobID) + "/jobDescription.xml")
-  localJob.setInputSandbox(os.getcwd()+"/pilot.cfg")
-  localJob.setConfigArgs(os.getcwd()+"/pilot.cfg")
+  localJob = LHCbJob(basepath + "InputSandbox" + str(jobID) + os.path.sep + "jobDescription.xml")
+  localJob.setInputSandbox(os.getcwd()+"pilot.cfg")
+  localJob.setConfigArgs(os.getcwd()+"pilot.cfg")
   os.chdir(basepath)
   localJob.runLocal()
   
 if __name__ == "__main__":
-  dir = os.getcwd()
+  dir = str(os.getcwd()) + os.path.sep
   try:
     _path = __runSystemDefaults(_jobID)
       
@@ -169,4 +170,4 @@ if __name__ == "__main__":
     
   finally:
     os.chdir(dir)
-    os.rename(dir + '/.dirac.cfg.old', dir + '/.dirac.cfg')
+    os.rename(dir + '.dirac.cfg.old', dir + '.dirac.cfg')
