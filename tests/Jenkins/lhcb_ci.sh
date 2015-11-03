@@ -161,6 +161,8 @@ function updateToTrunk(){
 
 function LHCbDIRACPilotInstall(){
 	
+	echo 'Starting LHCbDIRACPilotInstall'
+	
 	prepareForPilot
 	
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
@@ -177,6 +179,8 @@ function LHCbDIRACPilotInstall(){
 
 	#run the dirac-pilot script, only for installing, do not run the JobAgent here
 	python dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -C $CSURL -N jenkins.cern.ch -Q jenkins-queue_not_important -n DIRAC.Jenkins.ch --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
+	
+	echo 'Done LHCbDIRACPilotInstall'
 }
 
 
@@ -208,12 +212,15 @@ function fullLHCbPilot(){
 
 function getUserProxy(){
 
+	echo 'Started getUserProxy'
+	
 	touch $PILOTCFG
 	#Configure for CPUTimeLeft
 	python $WORKSPACE/TestDIRAC/Jenkins/dirac-cfg-update.py -F $PILOTCFG -S $DIRACSETUP -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem $DEBUG
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
 
+	echo 'Done getUserProxy'
 }
 
 function submitAndMatch(){
