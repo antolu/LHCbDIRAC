@@ -196,9 +196,10 @@ function fullLHCbPilot(){
 	LHCbDIRACPilotInstall
 
 	#this should have been created, we source it so that we can continue
+	echo 'sourcing bashrc'
 	source bashrc
 	
-	#Adding the LocalSE and the CPUTimeLeft, for the subsequent tests
+	echo 'Adding the LocalSE and the CPUTimeLeft, for the subsequent tests'
 	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTCFG $PILOTCFG $DEBUG
 	
 	#be sure we only have pilot.cfg
@@ -206,7 +207,7 @@ function fullLHCbPilot(){
 	
 	getUserProxy
 
-	#Set not to use the server certificate for running the jobs 
+	echo 'Set not to use the server certificate for running the jobs' 
 	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O $PILOTCFG $PILOTCFG $DEBUG
 }
 
