@@ -40,7 +40,7 @@ class BookkeepingClient( object ):
     """It print the string"""
     server = self.__getServer()
     res = server.echo( string )
-    print res
+    return res
 
   #############################################################################
   def sendXMLBookkeepingReport( self, xml ):
