@@ -103,7 +103,6 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
     self.assertEqual( inBKNotInFC, [] )
     self.assertEqual( removedFiles, [] )
 
-
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( UtilitiesTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ConsistencyChecksSuccess ) )

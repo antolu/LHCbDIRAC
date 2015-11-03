@@ -41,7 +41,7 @@ def __removeFile( lfns ):
       reason = res['Message']
       errors[reason] = errors.setdefault( reason, 0 ) + len( lfnChunk )
   if writeDots:
-     gLogger.always( '' )
+    gLogger.always( '' )
 
   gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if failures else '' ) )
   for reason in errors:
@@ -84,7 +84,7 @@ def __removeReplica( lfnDict ):
         reason = res['Message']
         errors[reason] = errors.setdefault( reason, 0 ) + len( lfnChunk )
   if writeDots:
-     gLogger.always( '' )
+    gLogger.always( '' )
 
   gLogger.always( "\t%d success, %d failures%s" % ( success, failures, ':' if failures else '' ) )
   for reason in errors:
