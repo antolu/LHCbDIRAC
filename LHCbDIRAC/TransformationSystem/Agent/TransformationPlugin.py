@@ -268,7 +268,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for runID in set( runFileDict ) & set( runSEDict ):
       bufferLogged = False
       rawLogged = False
-      runLfns = runFileDict[runID]
+      # It may happen that files are not in the replica dictionary
+      runLfns = set( runFileDict[runID] ) & set( self.transReplicas )
+      if not runLfns:
+        continue
       assignedSE = runSEDict[runID]
       if assignedSE:
         # We already know where this run should go
@@ -311,10 +314,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               return res
             else:
               assignedRAW = res['Value']
-              self.util.logVerbose( "RAW target assigned for run %d: %s" % ( runID, assignedRAW ) )
+              self.util.logVerbose( "RAW destination assigned for run %d: %s" % ( runID, assignedRAW ) )
           rawLogged = True
         elif not rawLogged:
-          self.util.logVerbose( 'RAW replica existing for run %d: %s' % ( runID, assignedRAW ) )
+          self.util.logVerbose( 'RAW destination existing for run %d: %s' % ( runID, assignedRAW ) )
 
         # # Now get a buffer destination is prestaging is required
         if preStageShares and not assignedBuffer:
