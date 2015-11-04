@@ -402,11 +402,15 @@ def removeReplicasNoFC( lfnList, seList ):
 #       if not pfnsToRemove:
 #         continue
 #       gLogger.verbose( "List of urls: %s" % '\n'.join( pfnsToRemove ) )
+      savedLevel = gLogger.getLevel()
+      gLogger.setLevel( 'FATAL' )
       res = se.exists( lfnsToRemove )
+      gLogger.setLevel( savedLevel )
       if not res['OK']:
         gLogger.error( 'ERROR checking file:', res['Message'] )
         continue
       lfns = [lfn for lfn, exists in res['Value']['Successful'].items() if exists]
+      lfns += [lfn for lfn, reason in res['Value']['Failed'].items() if 'SRM_FILE_BUSY' in reason]
       if not lfns:
         gLogger.always( "No files found for removal at %s" % seName )
         continue
