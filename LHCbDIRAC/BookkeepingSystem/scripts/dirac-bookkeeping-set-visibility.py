@@ -32,11 +32,11 @@ if __name__ == "__main__":
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
   bk = BookkeepingClient()
 
-  visibilityFlag = dmScript.getOption('Visibility', None)
+  visibilityFlag = dmScript.getOption( 'Visibility', None )
   if visibilityFlag is None:
     print 'Visibility option should be given'
-    DIRAC.exit(2)
-  visibilityFlag = True if visibilityFlag.lower() == 'Yes' else False
+    DIRAC.exit( 2 )
+  visibilityFlag = True if visibilityFlag.lower() == 'yes' else False
   if bkQuery:
     # Query with visibility opposite to what is requested to be set ;-)
     bkQuery.setOption( 'Visible', 'No' if visibilityFlag else 'Yes' )
