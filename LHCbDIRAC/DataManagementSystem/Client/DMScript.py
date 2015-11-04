@@ -59,6 +59,41 @@ def printDMResult( result, shift = 4, empty = "Empty directory", script = None, 
     gLogger.notice( result )
     return 2
 
+class WithDots( object ):
+  """
+  WithDots class allows to print a message and a series of dots that are erased every 'chunk' times the loop() method is called.
+  The endLoop method prints out a completion message and possibly the timing between the creation of the object and now
+  """
+  def __init__( self, items, title = None, chunk = None, mindots = None ):
+    if title is None:
+      title = ''
+    else:
+      title += ' '
+    if chunk is None:
+      chunk = 10
+    if mindots is None:
+      mindots = 0
+    self._chunk = chunk
+    self._startTime = time.time()
+    ndots = int( ( items - 1 ) / chunk + 1 )
+    self._writeDots = bool( ndots > mindots )
+    if self._writeDots:
+      sys.stdout.write( '%s%s' % ( title, ndots * '.' ) )
+    self._loopNumber = 0
+  def loop( self ):
+    if self._writeDots:
+      if self._loopNumber % self._chunk == 0:
+        sys.stdout.write( '\b \b' )
+        sys.stdout.flush()
+      self._loopNumber += 1
+  def endLoop( self, timing = True ):
+    if self._writeDots:
+      sys.stdout.write( 'completed' )
+      if timing:
+        sys.stdout.write( ' (%.1f seconds)' % ( time.time() - self._startTime ) )
+      sys.stdout.write( '\n' )
+      sys.stdout.flush()
+
 class DMScript( object ):
   """ DMScript is a class that creates default switches for DM scripts, decodes them and sets flags
   """
