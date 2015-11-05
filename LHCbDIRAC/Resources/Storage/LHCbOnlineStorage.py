@@ -1,12 +1,9 @@
 """ This is the LHCb Online storage """
 
-import types
 import xmlrpclib
-import copy
 
 from DIRAC                                      import gLogger, S_OK, S_ERROR
 from DIRAC.Resources.Storage.StorageBase        import StorageBase
-#from stat                                       import *
 
 __RCSID__ = "$Id$"
 
@@ -110,11 +107,11 @@ class LHCbOnlineStorage( StorageBase ):
     return S_OK( resDict )
 
   def __checkArgumentFormat( self, path ):
-    if type( path ) in types.StringTypes:
+    if isinstance( path, basestring ):
       urls = [path]
-    elif type( path ) == types.ListType:
+    elif isinstance( path, list ):
       urls = path
-    elif type( path ) == types.DictType:
+    elif isinstance( path, dict ):
       urls = path.keys()
     else:
       return S_ERROR( "LHCbOnline.__checkArgumentFormat: Supplied path is not of the correct format." )

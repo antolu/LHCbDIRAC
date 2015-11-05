@@ -46,36 +46,48 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     ''' tests that we can instantiate one object of the tested class
     '''  
     
-    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
+    resource = self.testClass( 'storageName', {'Protocol': 'protocol',
+                                               'Path': 'path',
+                                               'Host': 'host',
+                                               'Port': 'port',
+                                               'SpaceToken': 'spaceToken',
+                                               'WSUrl': 'wspath'} )
+
     self.assertEqual( 'LHCbOnlineStorage', resource.__class__.__name__ )
   
   def test_init( self ):
     ''' tests that the init method does what it should do
     '''
     
-    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )  
+    resource = self.testClass( 'storageName', {'Protocol': 'protocol',
+                                               'Path': 'path',
+                                               'Host': 'host',
+                                               'Port': 'port',
+                                               'SpaceToken': 'spaceToken',
+                                               'WSUrl': 'wspath'} )
       
     self.assertEqual( 'storageName', resource.name )
-    self.assertEqual( 'LHCbOnline' , resource.protocolName )
-    self.assertEqual( 'protocol'   , resource.protocol )
-    self.assertEqual( 'path'       , resource.path )
-    self.assertEqual( 'host'       , resource.host )
-    self.assertEqual( 'port'       , resource.port )
-    self.assertEqual( 'spaceToken' , resource.spaceToken )
-    self.assertEqual( 'wspath'     , resource.wspath )
+    self.assertEqual( 'protocol'   , resource.protocolParameters['Protocol'] )
+    self.assertEqual( 'path'       , resource.protocolParameters['Path'] )
+    self.assertEqual( 'host'       , resource.protocolParameters['Host'] )
+    self.assertEqual( 'port'       , resource.protocolParameters['Port'] )
+    self.assertEqual( 'spaceToken' , resource.protocolParameters['SpaceToken'] )
+    self.assertEqual( 'wspath'     , resource.protocolParameters['WSUrl'] )
 
   def test_getParameters( self ):
     ''' tests the output of getParameters method
     '''
 
-    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )  
+    resource = self.testClass( 'storageName', {'Protocol': 'protocol',
+                                               'Path': 'path',
+                                               'Host': 'host',
+                                               'Port': 'port',
+                                               'SpaceToken': 'spaceToken',
+                                               'WSUrl': 'wspath'} )
 
     res = resource.getParameters()
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
       
     self.assertEqual( 'storageName', res['StorageName'] )
-    self.assertEqual( 'LHCbOnline' , res['ProtocolName'] )
     self.assertEqual( 'protocol'   , res['Protocol'] )
     self.assertEqual( 'path'       , res['Path'] )
     self.assertEqual( 'host'       , res['Host'] )
@@ -87,7 +99,12 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     ''' tests the output of getProtocolPfn
     '''
     
-    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
+    resource = self.testClass( 'storageName', {'Protocol': 'protocol',
+                                               'Path': 'path',
+                                               'Host': 'host',
+                                               'Port': 'port',
+                                               'SpaceToken': 'spaceToken',
+                                               'WSUrl': 'wspath'} )
     
     res = resource.getProtocolPfn( { 'FileName' : 1 }, None )
     self.assertEqual( True, res['OK'] )
@@ -103,7 +120,12 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     ''' tests the output of __checkArgumentFormat
     '''
     
-    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
+    resource = self.testClass( 'storageName', {'Protocol': 'protocol',
+                                               'Path': 'path',
+                                               'Host': 'host',
+                                               'Port': 'port',
+                                               'SpaceToken': 'spaceToken',
+                                               'WSUrl': 'wspath'} )
     
     res = resource._LHCbOnlineStorage__checkArgumentFormat( 'path' )
     self.assertEqual( True, res['OK'] )
@@ -137,7 +159,12 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     ''' tests the output of getFileSize 
     '''
     
-    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
+    resource = self.testClass( 'storageName', {'Protocol': 'protocol',
+                                               'Path': 'path',
+                                               'Host': 'host',
+                                               'Port': 'port',
+                                               'SpaceToken': 'spaceToken',
+                                               'WSUrl': 'wspath'} )
     
     res = resource.getFileSize( 1 )
     self.assertEqual( False, res['OK'] )
@@ -162,7 +189,12 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     ''' tests the output of removeFile
     '''    
     
-    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
+    resource = self.testClass( 'storageName', {'Protocol': 'protocol',
+                                               'Path': 'path',
+                                               'Host': 'host',
+                                               'Port': 'port',
+                                               'SpaceToken': 'spaceToken',
+                                               'WSUrl': 'wspath'} )
     resource.server.endMigratingFile.return_value = ( 1, 0 )
     
     res = resource.removeFile( 1 )
@@ -201,7 +233,12 @@ class LHCbOnlineStorage_Success( LHCbOnlineStorage_TestCase ):
     ''' tests output of retransferOnlineFile
     '''
     
-    resource = self.testClass( 'storageName', 'protocol', 'path', 'host', 'port', 'spaceToken', 'wspath' )
+    resource = self.testClass( 'storageName', {'Protocol': 'protocol',
+                                               'Path': 'path',
+                                               'Host': 'host',
+                                               'Port': 'port',
+                                               'SpaceToken': 'spaceToken',
+                                               'WSUrl': 'wspath'} )
     resource.server.errorMigratingFile.return_value = ( 1, 0 )
     
     res = resource.retransferOnlineFile( 1 )
