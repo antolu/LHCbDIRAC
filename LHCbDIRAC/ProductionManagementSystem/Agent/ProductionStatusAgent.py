@@ -663,7 +663,7 @@ class ProductionStatusAgent( AgentModule ):
     if tInfo.get( 'Type', None ) in self.simulationTypes:
       isSimulation = True
       # simulation : go to Idle if
-      # only failed and done jobs
+      # only failed and done tasks
       # AND number of tasks created in total == number of tasks submitted
       tStats = self.__getTransformationTaskStats( tID )
       self.log.debug( "Tasks Stats: %s" % str( tStats ) )
@@ -677,7 +677,7 @@ class ProductionStatusAgent( AgentModule ):
       isSimulation = False
       # other transformation type : go to Idle if
       # 0 assigned files, unused files number was not changing during the last cyclesTillIdle time
-      # AND only failed and done jobs
+      # AND only failed and done tasks
       filesStats = self.__getTransformationFilesStats( tID )
       self.log.debug( "Files stats: %s" % str( filesStats ) )
       unused = filesStats.get( 'Unused', 0 )
