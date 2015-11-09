@@ -67,7 +67,8 @@ function insertJobsRow (
      v_WNCPUHS06                   FLOAT,
      v_totalLuminosity             NUMBER,
      v_tck                         VARCHAR2,
-     v_stepid                      NUMBER
+     v_stepid                      NUMBER,
+     v_WNMJFHS06                   FLOAT
   ) return number;
 
  function insertFilesRow (
@@ -637,7 +638,7 @@ procedure getJobInfo(
  begin
   open a_Cursor for
    select  jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER,jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS,
-                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion
+                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion, WNMJFHS06
    from jobs,files
    where files.jobid=jobs.jobid and  files.filename=lfn;
  end;
@@ -841,7 +842,8 @@ function insertJobsRow (
      v_WNCPUHS06                   FLOAT,
      v_totalLuminosity             NUMBER,
      v_tck                         VARCHAR2,
-     v_stepid                      NUMBER
+     v_stepid                      NUMBER,
+     v_WNMJFHS06                   FLOAT
   )return number is
   jid       number;
   configId  number;
@@ -887,7 +889,9 @@ function insertJobsRow (
          WNCPUHS06,
          TotalLuminosity,
          Tck,
-         StepID)
+         StepID,
+         WNMJFHS06
+         )
    values(
           jid,
           configId,
@@ -916,7 +920,8 @@ function insertJobsRow (
           v_WNCPUHS06,
           v_totalLuminosity,
           v_tck,
-          v_stepid);
+          v_stepid,
+          v_WNMJFHS06);
 
   commit;
   return jid;
@@ -958,7 +963,8 @@ function insertJobsRow (
          WNCPUHS06=v_WNCPUHS06,
          TotalLuminosity=v_totalLuminosity,
          StepID = v_stepid,
-         Tck=v_tck where jobid=jid;
+         Tck=v_tck,
+         WNMJFHS06=v_WNMJFHS06 where jobid=jid;
       commit;
     return jid;
     END IF;
@@ -1859,7 +1865,8 @@ is
   totalLuminosity             NUMBER,
   production                  NUMBER,
   ProgramName                 VARCHAR2(256),
-  ProgramVersion              VARCHAR2(256));
+  ProgramVersion              VARCHAR2(256),
+  WNMJFHS06                   FLOAT);
 create or replace
 type bulk_collect_jobMetadata is table of jobMetadata;
 */
@@ -1868,12 +1875,12 @@ jobmeta bulk_collect_jobMetadata := bulk_collect_jobMetadata();
 BEGIN
 FOR i in lfns.FIRST .. lfns.LAST LOOP
   for c in (select  jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER,jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS,
-                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion
+                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion, jobs.WNMJFHS06
    from jobs,files where files.jobid=jobs.jobid and  files.filename=lfns(i)) LOOP
      jobmeta.extend;
      n:=n+1;
     jobmeta (n):= jobMetadata(lfns(i), c.DIRACJOBID, c.DIRACVERSION, c.EVENTINPUTSTAT, c.EXECTIME, c.FIRSTEVENTNUMBER,c.LOCATION,  c.NAME, c.NUMBEROFEVENTS,
-                 c.STATISTICSREQUESTED, c.WNCPUPOWER, c.CPUTIME, c.WNCACHE, c.WNMEMORY, c.WNMODEL, c.WORKERNODE, c.WNCPUHS06, c.jobid, c.totalluminosity, c.production, c.programName, c.programVersion);
+                 c.STATISTICSREQUESTED, c.WNCPUPOWER, c.CPUTIME, c.WNCACHE, c.WNMEMORY, c.WNMODEL, c.WORKERNODE, c.WNCPUHS06, c.jobid, c.totalluminosity, c.production, c.programName, c.programVersion, c.WNMJFHS06);
   END LOOP;
 END LOOP;
 open a_Cursor for select * from table(jobmeta);
@@ -1887,12 +1894,12 @@ jobmeta bulk_collect_jobMetadata := bulk_collect_jobMetadata();
 BEGIN
 FOR i in jobNames.FIRST .. jobNames.LAST LOOP
   for c in (select  jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER,jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS,
-                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion
+                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion,WNMJFHS06
    from jobs,files where files.jobid=jobs.jobid and  jobs.name=jobNames(i)) LOOP
      jobmeta.extend;
      n:=n+1;
     jobmeta (n):= jobMetadata(jobNames(i), c.DIRACJOBID, c.DIRACVERSION, c.EVENTINPUTSTAT, c.EXECTIME, c.FIRSTEVENTNUMBER,c.LOCATION,  c.NAME, c.NUMBEROFEVENTS,
-                 c.STATISTICSREQUESTED, c.WNCPUPOWER, c.CPUTIME, c.WNCACHE, c.WNMEMORY, c.WNMODEL, c.WORKERNODE, c.WNCPUHS06, c.jobid, c.totalluminosity, c.production, c.programName, c.programVersion);
+                 c.STATISTICSREQUESTED, c.WNCPUPOWER, c.CPUTIME, c.WNCACHE, c.WNMEMORY, c.WNMODEL, c.WORKERNODE, c.WNCPUHS06, c.jobid, c.totalluminosity, c.production, c.programName, c.programVersion, c.WNMJFHS06);
   END LOOP;
 END LOOP;
 open a_Cursor for select * from table(jobmeta);
@@ -1906,12 +1913,12 @@ jobmeta bulk_collect_jobMetadata := bulk_collect_jobMetadata();
 BEGIN
 FOR i in jobids.FIRST .. jobids.LAST LOOP
   for c in (select  distinct jobs.DIRACJOBID, jobs.DIRACVERSION, jobs.EVENTINPUTSTAT, jobs.EXECTIME, jobs.FIRSTEVENTNUMBER,jobs.LOCATION,  jobs.NAME, jobs.NUMBEROFEVENTS,
-                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion
+                 jobs.STATISTICSREQUESTED, jobs.WNCPUPOWER, jobs.CPUTIME, jobs.WNCACHE, jobs.WNMEMORY, jobs.WNMODEL, jobs.WORKERNODE, jobs.WNCPUHS06, jobs.jobid, jobs.totalluminosity, jobs.production, jobs.programName, jobs.programVersion, WNMJFHS06
    from jobs,files where files.jobid=jobs.jobid and  jobs.diracjobid= jobids(i) Order by jobs.name) LOOP
      jobmeta.extend;
      n:=n+1;
     jobmeta (n):= jobMetadata(jobids(i), c.DIRACJOBID, c.DIRACVERSION, c.EVENTINPUTSTAT, c.EXECTIME, c.FIRSTEVENTNUMBER,c.LOCATION,  c.NAME, c.NUMBEROFEVENTS,
-                 c.STATISTICSREQUESTED, c.WNCPUPOWER, c.CPUTIME, c.WNCACHE, c.WNMEMORY, c.WNMODEL, c.WORKERNODE, c.WNCPUHS06, c.jobid, c.totalluminosity, c.production, c.programName, c.programVersion);
+                 c.STATISTICSREQUESTED, c.WNCPUPOWER, c.CPUTIME, c.WNCACHE, c.WNMEMORY, c.WNMODEL, c.WORKERNODE, c.WNCPUHS06, c.jobid, c.totalluminosity, c.production, c.programName, c.programVersion, c.WNMJFHS06);
   END LOOP;
 END LOOP;
 open a_Cursor for select * from table(jobmeta);
