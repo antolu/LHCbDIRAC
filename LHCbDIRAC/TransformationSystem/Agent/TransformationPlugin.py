@@ -31,7 +31,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 debug = False, transInThread = None ):
     """ The clients can be passed in.
     """
-    DIRACTransformationPlugin.__init__( self, plugin, transClient = transClient, dataManager = dataManager )
+    super( TransformationPlugin, self ).__init__( plugin, transClient = transClient, dataManager = dataManager )
 
     if not bkClient:
       self.bkClient = BookkeepingClient()
@@ -94,9 +94,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.files = self.transFiles
 
   def setParameters( self, params ):
-    self.params = params
+    super( TransformationPlugin, self ).setParameters( params )
     self.transID = params['TransformationID']
-    self.util.setParameters( params )
     self.setDebug( self.util.getPluginParam( 'Debug', False ) )
 
   def setDebug( self, val = True ):
