@@ -311,6 +311,8 @@ class BookkeepingReport( ModuleBase ):
 
     tempVar = gConfig.getValue( "/LocalSite/CPUNormalizationFactor", "1" )
     typedParams.append( ( "WNCPUHS06", tempVar ) )
+    tempVar = gConfig.getValue( "/LocalSite/CPUScalingFactor", "1" )
+    typedParams.append( ( "WNMJFHS06", tempVar ) )
     typedParams.append( ( "Production", self.production_id ) )
     typedParams.append( ( "DiracJobId", str( self.jobID ) ) )
     typedParams.append( ( "Name", self.step_id ) )
