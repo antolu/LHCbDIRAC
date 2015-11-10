@@ -1820,7 +1820,7 @@ class OracleBookkeepingDB:
                  'TotalLuminosity':0, \
                  'Tck':'None',\
                  'StepID': None,\
-                 'WNMJFHS06' : None}
+                 'WNMJFHS06' : 0}
 
     for param in job:
       if not attrList.__contains__( param ):
