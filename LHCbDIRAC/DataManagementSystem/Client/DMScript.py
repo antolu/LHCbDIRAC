@@ -6,7 +6,9 @@
 import DIRAC
 from DIRAC           import gLogger, gConfig
 from DIRAC.Core.Base import Script
-import os, sys
+import os
+import sys
+import time
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
