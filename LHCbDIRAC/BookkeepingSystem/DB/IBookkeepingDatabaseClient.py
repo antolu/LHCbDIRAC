@@ -718,3 +718,8 @@ class IBookkeepingDatabaseClient(object):
   def getRunStatus( self, runnumbers ):
     "more info in the BookkeepingClient.py"
     return self.getManager().getRunStatus( runnumbers )
+  
+  #############################################################################
+  def bulkupdateFileMetaData( self, lfnswithmeta ):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().bulkupdateFileMetaData( lfnswithmeta )

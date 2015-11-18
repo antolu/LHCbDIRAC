@@ -14,6 +14,7 @@ in_dict = {'EventTypeId': 93000000,
 
 import cPickle
 import tempfile
+import simplejson
 
 from DIRAC                           import S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient      import RPCClient
@@ -230,14 +231,13 @@ class BookkeepingClient( object ):
     """
     in_dict = dict( in_dict )
     bkk = TransferClient( 'Bookkeeping/BookkeepingManager' )
-    savedbuffer = cPickle.dumps( in_dict )
-    file_name = tempfile.NamedTemporaryFile()
-    params = str( savedbuffer )
+    params = simplejson.dumps( in_dict )
+    file_name = tempfile.NamedTemporaryFile()    
     retVal = bkk.receiveFile( file_name.name, params )
     if not retVal['OK']:
       return retVal
     else:
-      value = cPickle.load( open( file_name.name ) )
+      value = simplejson.load( open( file_name.name ) )
       file_name.close()
       return S_OK( value )
 
@@ -1018,6 +1018,11 @@ class BookkeepingClient( object ):
     server = self.__getServer()
     return server.getJobInputOutputFiles( diracjobids )
 
+  #############################################################################
+  def bulkupdateFileMetaData( self, lfnswithmeta ):
+    server = self.__getServer()
+    return server.bulkupdateFileMetaData( lfnswithmeta )
+
   # The following method names are changed in the Bookkeeping client.
 
   #############################################################################
@@ -1028,14 +1033,13 @@ class BookkeepingClient( object ):
     in_dict = dict( in_dict )
     bkk = TransferClient( 'Bookkeeping/BookkeepingManager' )
     in_dict['MethodName'] = 'getFiles'
-    savedbuffer = cPickle.dumps( in_dict )
+    params = simplejson.dumps( in_dict )
     file_name = tempfile.NamedTemporaryFile()
-    params = str( savedbuffer )
     retVal = bkk.receiveFile( file_name.name, params )
     if not retVal['OK']:
       return retVal
     else:
-      value = cPickle.load( open( file_name.name ) )
+      value = simplejson.load( open( file_name.name ) )
       file_name.close()
       return value
   

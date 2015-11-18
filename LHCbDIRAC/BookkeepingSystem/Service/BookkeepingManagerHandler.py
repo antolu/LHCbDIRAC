@@ -15,6 +15,7 @@ from DIRAC.Core.DISET.RequestHandler                                            
 from DIRAC                                                                        import gLogger, S_OK, S_ERROR
 
 import cPickle
+import simplejson
 
 from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
 from types import DictType, IntType, StringType, ListType, LongType, BooleanType
@@ -376,7 +377,12 @@ class BookkeepingManagerHandler( RequestHandler ):
     using this function: getFiles, getFilesWithMetadata
     """
     result = S_OK()
-    in_dict = cPickle.loads( parameters )
+    iscPickleFormat = False
+    try:
+      in_dict = simplejson.loads( parameters )
+    except Exception as _:
+      iscPickleFormat = True
+      in_dict = cPickle.loads( parameters )
     gLogger.debug( "The following dictionary received: %s" % in_dict )
     methodName = in_dict.get( 'MethodName', default )
     if methodName == 'getFiles':
@@ -384,7 +390,11 @@ class BookkeepingManagerHandler( RequestHandler ):
     else:
       retVal = self.__getFilesWithMetadata( in_dict )
 
-    fileString = cPickle.dumps( retVal, protocol = 2 )
+    if iscPickleFormat:
+      fileString = cPickle.dumps( retVal, protocol = 2 )
+    else:
+      fileString = simplejson.dumps( retVal )
+      
     retVal = fileHelper.stringToNetwork( fileString )
     if retVal['OK']:
       gLogger.info( 'Sent file %s of size %d' % ( str( in_dict ), len( fileString ) ) )
@@ -502,12 +512,12 @@ class BookkeepingManagerHandler( RequestHandler ):
                     'VisibilityFlag', 'JobId', 'GotReplica', 'InsertTimeStamp']
       for record in retVal['Value']:
         records += [[record[0], record[1], record[2],
-                     record[3], record[4], record[5],
+                     str(record[3]), str(record[4]), str(record[5]),
                      record[6], record[7], record[8],
                      record[9], record[10], record[11],
                      record[12], record[13], record[14],
                      record[15], record[16], record[17], record[18], record[19],
-                     record[20], record[21], record[22], record[23], record[24]]]
+                     record[20], record[21], record[22], record[23], str(record[24])]]
       retVal = {'ParameterNames':parameters, 'Records':records, 'TotalRecords':len( records )}
     return retVal
 
@@ -1943,4 +1953,8 @@ class BookkeepingManagerHandler( RequestHandler ):
     """ it returns the status of the runs"""
     return dataMGMT_.getRunStatus( runnumbers )
   
+  types_bulkupdateFileMetaData = [DictType]
+  @staticmethod
+  def export_bulkupdateFileMetaData( lfnswithmeta ):
+    return dataMGMT_.bulkupdateFileMetaData( lfnswithmeta )
   

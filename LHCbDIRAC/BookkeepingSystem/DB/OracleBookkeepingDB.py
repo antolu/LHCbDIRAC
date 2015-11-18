@@ -1404,6 +1404,24 @@ class OracleBookkeepingDB:
     return res
 
   #############################################################################
+  def bulkupdateFileMetaData( self, lfnswithmeta ):
+    """it updates the metadata a list of files"""
+    
+    utctime = datetime.datetime.utcnow().strftime( '%Y-%m-%d %H:%M:%S' )
+    sqls = []
+    for filename in lfnswithmeta:
+      command = "update files Set inserttimestamp=TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS') ," % ( str( utctime ) )
+      command += ','.join( ["%s=%s" % ( str( attribute ), str( lfnswithmeta[filename][attribute] ) ) for attribute in lfnswithmeta[filename]] )
+      command += " where fileName='%s'" % ( filename )
+      sqls += [command]
+      
+    retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkupdateFileMetaData',
+                                                parameters = [],
+                                                output = False,
+                                                array = sqls )
+    return retVal
+  
+  #############################################################################
   def renameFile( self, oldLFN, newLFN ):
     """renames a file"""
     utctime = datetime.datetime.utcnow().strftime( '%Y-%m-%d %H:%M:%S' )

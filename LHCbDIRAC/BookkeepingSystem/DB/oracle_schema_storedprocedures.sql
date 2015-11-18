@@ -8,7 +8,8 @@ CREATE OR REPLACE package BOOKKEEPINGORACLEDB as
 
   TYPE numberarray  IS TABLE OF NUMBER INDEX BY PLS_INTEGER;
   TYPE varchararray IS TABLE OF VARCHAR2(256) INDEX BY PLS_INTEGER;
-
+  TYPE bigvarchararray IS TABLE OF VARCHAR2(2000) INDEX BY PLS_INTEGER;
+  
 procedure funny(a number);
 function  ext return udt_RefCursor;
 procedure getAvailableFileTypes(a_Cursor out udt_RefCursor );
@@ -182,6 +183,7 @@ procedure bulkJobInfoForJobName(jobNames varchararray, a_Cursor out udt_RefCurso
 procedure bulkJobInfoForJobId(jobids numberarray, a_Cursor out udt_RefCursor);
 procedure insertRunStatus(v_runnumber NUMBER, v_JobId NUMBER, v_Finished varchar2);
 procedure setRunFinished(v_runnumber number, isFinished varchar2);
+procedure bulkupdateFileMetaData(files bigvarchararray);
 end;
 /
 
@@ -1958,6 +1960,12 @@ procedure setRunFinished(
  end if;
 end;
 
-
+procedure bulkupdateFileMetaData(files bigvarchararray) is
+n number;
+begin
+FOR i in files.FIRST .. files.LAST LOOP
+   EXECUTE IMMEDIATE files(i);
+END LOOP;
+end;
 END;
 /
