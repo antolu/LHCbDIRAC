@@ -184,6 +184,9 @@ procedure bulkJobInfoForJobId(jobids numberarray, a_Cursor out udt_RefCursor);
 procedure insertRunStatus(v_runnumber NUMBER, v_JobId NUMBER, v_Finished varchar2);
 procedure setRunFinished(v_runnumber number, isFinished varchar2);
 procedure bulkupdateFileMetaData(files bigvarchararray);
+procedure updateLuminosity(v_runnumber number);
+procedure updateDesLuminosity(v_fileid number, v_luminosity number);
+
 end;
 /
 
@@ -1562,11 +1565,11 @@ function getProcessedEvents(v_prodid number) return number
 is
 retVal number := 0;
 begin
-select sum(j.numberofevents) into retVal from jobs j, (select scont.production, s.applicationname, s.applicationversion
+select sum(j.numberofevents) into retVal from jobs j, (select scont.production, s.stepid
 from stepscontainer scont, steps s
 where scont.stepid = s.stepid and
 scont.production=v_prodid and
-scont.step=(select max(step) from stepscontainer where stepscontainer.production=v_prodid)) firsts where j.production=firsts.production and j.programname=firsts.applicationname and j.programversion=firsts.applicationversion;
+scont.step=(select max(step) from stepscontainer where stepscontainer.production=v_prodid)) firsts where j.production=firsts.production and j.stepid=firsts.stepid;
 return retVal;
 EXCEPTION
   WHEN OTHERS THEN
@@ -1967,5 +1970,25 @@ FOR i in files.FIRST .. files.LAST LOOP
    EXECUTE IMMEDIATE files(i);
 END LOOP;
 end;
+
+procedure updateLuminosity(v_runnumber number)is
+begin
+for c in (select f.filename, f.luminosity, f.fileid from jobs j, files f where j.jobid=f.jobid and j.runnumber=v_runnumber and j.production<0) LOOP
+  updateDesLuminosity(c.fileid, c.luminosity);
+END LOOP;
+end;
+
+procedure updateDesLuminosity(v_fileid number, v_luminosity number)is
+begin
+if v_fileid = 0 then
+  return;
+end if; 
+for c in (select f.filename, f.fileid from jobs j, files f, inputfiles i where j.jobid=f.jobid and  j.jobid=i.jobid and i.fileid=v_fileid) LOOP
+  dbms_output.put_line('update files set luminosity=' || v_luminosity || ' where filename='||c.filename);
+  update files set luminosity=v_luminosity where filename=c.filename;
+  updateDesLuminosity(c.fileid, v_luminosity);
+END LOOP;
+end;
+
 END;
 /
