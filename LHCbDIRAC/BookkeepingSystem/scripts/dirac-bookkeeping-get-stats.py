@@ -252,9 +252,10 @@ def execute():
       else:
         success = res['Value']['Successful']
         runs = [run for run in success if success[run].get( 'Finished' ) == 'Y']
-      notFinished = len( runList ) - len( runs )
+      notFinished = set( runList ) - set( runs )
       if notFinished:
-        gLogger.notice( '%d runs not Finished (ignored), %s runs Finished (used for trigger rate)' % ( notFinished, str( len( runs ) if len( runs ) else 'no' ) ) )
+        gLogger.notice( '%d runs not Finished (ignored), %s runs Finished (used for trigger rate)' % ( len( notFinished ), str( len( runs ) if len( runs ) else 'no' ) ) )
+        gLogger.notice( 'These runs are not Finished: %s' % ','.join( [str( run ) for run in sorted( notFinished )] ) )
       if runs:
         nevts = 0
         size = 0
