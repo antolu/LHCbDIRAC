@@ -512,12 +512,12 @@ class BookkeepingManagerHandler( RequestHandler ):
                     'VisibilityFlag', 'JobId', 'GotReplica', 'InsertTimeStamp']
       for record in retVal['Value']:
         records += [[record[0], record[1], record[2],
-                     str(record[3]), str(record[4]), str(record[5]),
+                     record[3], record[4], record[5],
                      record[6], record[7], record[8],
                      record[9], record[10], record[11],
                      record[12], record[13], record[14],
                      record[15], record[16], record[17], record[18], record[19],
-                     record[20], record[21], record[22], record[23], str(record[24])]]
+                     record[20], record[21], record[22], record[23], record[24]]]
       retVal = {'ParameterNames':parameters, 'Records':records, 'TotalRecords':len( records )}
     return retVal
 
