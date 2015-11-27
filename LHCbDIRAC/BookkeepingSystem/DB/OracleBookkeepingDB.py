@@ -4399,9 +4399,9 @@ and files.qualityid= dataquality.qualityid'
               condition += retVal['Value']
             else:
               return retVal
-          if len( parentprod ) < 2:
-            parentprod = str( parentprod )[:-2] + ")"
-          command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
+        
+        parentprod += production
+        command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
        s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step  from  %s \
                      where cont.stepid=s.stepid and \
                       prod.production=cont.production and\
