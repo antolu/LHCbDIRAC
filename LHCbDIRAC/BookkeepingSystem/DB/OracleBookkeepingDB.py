@@ -4923,3 +4923,14 @@ and files.qualityid= dataquality.qualityid'
         else:
           status['Failed'] += [i]
     return S_OK( status )
+  
+  #############################################################################
+  def fixRunLuminosity( self, runnumbers ):
+    status = { 'Failed' : [], 'Successful' : []}
+    for run in runnumbers:
+      result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.updateLuminosity', [run], False )
+      if result['OK']:
+        status['Successful'] += [run]
+      else:
+        status['Failed'] += [run]
+    return S_OK( status )

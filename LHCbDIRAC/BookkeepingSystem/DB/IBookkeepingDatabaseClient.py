@@ -723,3 +723,8 @@ class IBookkeepingDatabaseClient(object):
   def bulkupdateFileMetaData( self, lfnswithmeta ):
     "more info in the BookkeepingClient.py"
     return self.getManager().bulkupdateFileMetaData( lfnswithmeta )
+  
+  #############################################################################
+  def fixRunLuminosity( self, runnumbers ):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().fixRunLuminosity( runnumbers )

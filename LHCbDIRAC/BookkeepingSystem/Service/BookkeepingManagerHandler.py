@@ -1958,3 +1958,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   def export_bulkupdateFileMetaData( lfnswithmeta ):
     return dataMGMT_.bulkupdateFileMetaData( lfnswithmeta )
   
+  types_fixRunLuminosity = [ListType]
+  @staticmethod
+  def export_fixRunLuminosity( runnumbers ):
+    return dataMGMT_.fixRunLuminosity( runnumbers )

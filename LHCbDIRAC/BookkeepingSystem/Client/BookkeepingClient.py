@@ -1023,6 +1023,15 @@ class BookkeepingClient( object ):
     server = self.__getServer()
     return server.bulkupdateFileMetaData( lfnswithmeta )
 
+  def fixRunLuminosity( self, runnumbers ):
+    """
+    we can fix the luminosity of the runs/
+    """
+    if isinstance( runnumbers, ( int, long ) ):
+      runnumbers = [runnumbers]
+    server = self.__getServer()
+    return server.fixRunLuminosity( runnumbers )
+  
   # The following method names are changed in the Bookkeeping client.
 
   #############################################################################
