@@ -429,7 +429,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           targetSEs = ','.join( sorted( targetSEs ) )
           self.util.logVerbose( 'Creating tasks with %d files for run %s at %s' % ( len( lfns ), runID, targetSEs ) )
           # We flush the run only if it is finished
-          newTasks = self.util.createTasksBySize( lfns, targetSEs, flush = runFinished.get( runID, False ) )
+          toFlush = ( self.params['Status'] == 'Flush' ) or runFinished.get( runID, False )
+          newTasks = self.util.createTasksBySize( lfns, targetSEs, flush = toFlush )
           tasks += newTasks
           self.util.logVerbose( 'Created %d tasks' % len( newTasks ) )
         else:
