@@ -39,17 +39,17 @@ def getFileDescendants( transID, lfns, transClient = None, dm = None, bkClient =
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction' )
 
 class ConsistencyChecks( DiracConsistencyChecks ):
-  """ LHCb extension to ConsistencyChecks 
+  """ LHCb extension to ConsistencyChecks
   """
 
   def __init__( self, interactive = True, transClient = None, dm = None, bkClient = None, fc = None ):
     """ c'tor
     """
-    super(ConsistencyChecks, self).__init__( interactive, transClient, dm, fc )
-    
+    super( ConsistencyChecks, self ).__init__( interactive, transClient, dm, fc )
+
     self.bkClient = BookkeepingClient() if bkClient is None else bkClient
     self.transClient = TransformationClient() if transClient is None else transClient
-    
+
     # Results of the checks
     self.existLFNsBKRepNo = {}
     self.absentLFNsBKRepNo = []
@@ -58,7 +58,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self.existLFNsNotInBK = []
     self.absentLFNsNotInBK = []
     self.filesInBKNotInTS = []
-    
+
     self.inBKNotInFC = []
     self.inFCNotInBK = []
 
@@ -519,7 +519,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
       self.existLFNsBKRepYes = present
 
     ########################################################################
-    
+
   def __getDirectories( self ):
     """ get the directories where to look into (they are either given, or taken from the transformation ID
     """
@@ -586,7 +586,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
               directories.append( dirName )
         return directories
     else:
-      raise RuntimeError( "Need to specify either the directories or a production id" )    
+      raise RuntimeError( "Need to specify either the directories or a production id" )
 
     ########################################################################
 
@@ -699,39 +699,33 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     gLogger.always( "Check existence and compare checksum file by file..." )
     csDict = {}
     seFiles = {}
-    surlLfn = {}
     startTime = time.time()
     # Reverse the LFN->SE dictionary
     for lfn in replicas:
       csDict.setdefault( lfn, {} )[ 'LFCChecksum' ] = metadata.get( lfn, {} ).get( 'Checksum' )
-      replicaDict = replicas[ lfn ]
-      for se in replicaDict:
-        surl = replicaDict[ se ]
-        surlLfn[surl] = lfn
-        seFiles.setdefault( se, [] ).append( surl )
+      for se in replicas[ lfn ]:
+        seFiles.setdefault( se, [] ).append( lfn )
 
     checkSum = {}
     self.__write( 'Getting checksum of %d replicas in %d SEs (chunks of %d): ' % ( len( surlLfn ), len( seFiles ), chunkSize ) )
-    pfnNotAvailable = {}
+    lfnNotAvailable = {}
     logLevel = gLogger.getLevel()
     gLogger.setLevel( 'FATAL' )
     for num, se in enumerate( sorted( seFiles ) ):
       self.__write( '\n%d. At %s (%d files): ' % ( num, se, len( seFiles[se] ) ) )
       oSe = StorageElement( se )
-      for surlChunk in breakListIntoChunks( seFiles[se], chunkSize ):
+      for lfnChunk in breakListIntoChunks( seFiles[se], chunkSize ):
         self.__write( '.' )
-        surlRes = oSe.getFileMetadata( surlChunk )
-        if not surlRes['OK']:
-          gLogger.error( "error StorageElement.getFileMetadata returns %s" % ( surlRes['Message'] ) )
-          raise RuntimeError( "error StorageElement.getFileMetadata returns %s" % ( surlRes['Message'] ) )
-        surlRes = surlRes['Value']
-        for surl in surlRes['Failed']:
-          lfn = surlLfn[surl]
-          gLogger.info( "SURL was not found at %s! %s " % ( se, surl ) )
-          pfnNotAvailable.setdefault( lfn, [] ).append( se )
-        for surl in surlRes['Successful']:
-          lfn = surlLfn[surl]
-          checkSum.setdefault( lfn, {} )[se] = surlRes['Successful'][ surl ]['Checksum']
+        metadata = oSe.getFileMetadata( lfnChunk )
+        if not metadata['OK']:
+          gLogger.error( "error StorageElement.getFileMetadata returns %s" % ( metadata['Message'] ) )
+          raise RuntimeError( "error StorageElement.getFileMetadata returns %s" % ( metadata['Message'] ) )
+        metadata = metadata['Value']
+        for lfn in metadata['Failed']:
+          gLogger.info( "LFN was not found at %s! %s " % ( se, lfn ) )
+          lfnNotAvailable.setdefault( lfn, [] ).append( se )
+        for lfn in metadata['Successful']:
+          checkSum.setdefault( lfn, {} )[se] = metadata['Successful'][ lfn ]['Checksum']
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
     gLogger.setLevel( logLevel )
     retDict[ 'MissingPFN'] = {}
@@ -749,7 +743,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
       lfcChecksum = csDict[ lfn ].pop( 'LFCChecksum' )
       for se in replicaDict:
         # If replica doesn't exist skip check
-        if se in pfnNotAvailable.get( lfn, [] ):
+        if se in lfnNotAvailable.get( lfn, [] ):
           allGoodReplicas = False
           continue
         surl = replicaDict[ se ]
@@ -764,16 +758,16 @@ class ConsistencyChecks( DiracConsistencyChecks ):
         else:
           oneGoodReplica = True
       if not oneGoodReplica:
-        if lfn in pfnNotAvailable:
+        if lfn in lfnNotAvailable:
           gLogger.info( "=> All replicas are missing" )
           retDict['MissingPFN'][ lfn] = 'All'
         else:
           gLogger.info( "=> All replicas have bad checksum" )
           retDict['AllReplicasCorrupted'][ lfn ] = csDict[ lfn ]
       elif not allGoodReplicas:
-        if lfn in pfnNotAvailable:
+        if lfn in lfnNotAvailable:
           gLogger.info( "=> At least one replica missing" )
-          retDict['MissingPFN'][lfn] = pfnNotAvailable[lfn]
+          retDict['MissingPFN'][lfn] = lfnNotAvailable[lfn]
         else:
           gLogger.info( "=> At least one replica with good Checksum" )
           retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ]
