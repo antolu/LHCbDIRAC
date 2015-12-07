@@ -25,8 +25,11 @@ def seSvcClass( se ):
   return seSvcClassDict[se]
 
 def orderSEs( listSEs ):
-  listSEs.sort()
-  orderedSEs = ['LFN'] if 'LFN' in listSEs else []
+  """
+  Order SEs: LFNs, then tape Ses then disk SEs
+  The input list can be a list a dict, a tuple or a set
+  """
+  orderedSEs = ['LFN'] if 'LFN' in sorted( listSEs ) else []
   orderedSEs += sorted( [se for se in listSEs if se not in orderedSEs and se.endswith( '-HIST' )] )
   orderedSEs += sorted( [se for se in listSEs if se not in orderedSEs and ( seSvcClass( se ) == 'Tape' )] )
   orderedSEs += sorted( [se for se in listSEs if se not in orderedSEs] )
@@ -34,20 +37,19 @@ def orderSEs( listSEs ):
 
 def printSEUsage( totalUsage, grandTotal, scaleFactor ):
   """ Nice printout of SE usage """
-  line = '-' * 48
-  print line
+  dashes = '-' * 48
+  print dashes
   print '%s %s %s' % ( 'DIRAC SE'.ljust( 20 ), ( 'Size (%s)' % unit ).ljust( 20 ), 'Files'.ljust( 20 ) )
   form = '%.1f'
-  for se in orderSEs( totalUsage.keys() ):
-    usageDict = totalUsage[se]
-    size = usageDict['Size'] / scaleFactor
-    if size < 1.:
+  orderedSEs = orderSEs( totalUsage )
+  for se in orderedSEs:
+    if totalUsage[se]['Size'] / scaleFactor < 1.:
       form = '%.3f'
       break
   svcClass = ''
   sumFiles = 0
   sumSize = 0.
-  for se in orderSEs( totalUsage.keys() ):
+  for se in orderedSEs:
     newSvcClass = seSvcClass( se )
     if newSvcClass != svcClass:
       if svcClass:
@@ -56,7 +58,7 @@ def printSEUsage( totalUsage, grandTotal, scaleFactor ):
                              str( sumFiles ).ljust( 20 ) )
         sumFiles = 0
         sumSize = 0.
-      print line
+      print dashes
     svcClass = newSvcClass
     usageDict = totalUsage[se]
     files = usageDict['Files']
@@ -69,7 +71,7 @@ def printSEUsage( totalUsage, grandTotal, scaleFactor ):
     print "%s %s %s" % ( 'Total (disk)'.ljust( 20 ),
                          ( form % ( size ) ).ljust( 20 ),
                          str( grandTotal['Files'] ).ljust( 20 ) )
-  print line
+  print dashes
 
 def printBigTable( siteList, bigTable ):
   """ Print out THE big table of usage """
