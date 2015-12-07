@@ -299,11 +299,11 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
             else:
               checksumMismatch.append( ( lfn, 'deprecatedUrl', se, "%s %s" % ( metadata['Checksum'], catalogMetadata[lfn]['Checksum'] ) ) )
       if sizeMismatch:
-        self.__reportProblematicReplicas( sizeMismatch, se, 'CatalogPFNSizeMismatch', fixIt = fixIt )
+        self.reportProblematicReplicas( sizeMismatch, se, 'CatalogPFNSizeMismatch', fixIt = fixIt )
       if checksumMismatch:
-        self.__reportProblematicReplicas( checksumMismatch, se, 'CatalogChecksumMismatch', fixIt = fixIt )
+        self.reportProblematicReplicas( checksumMismatch, se, 'CatalogChecksumMismatch', fixIt = fixIt )
       if checksumBadInFC:
-        self.__reportProblematicReplicas( checksumBadInFC, se, 'CatalogChecksumToBeFixed', fixIt = fixIt )
+        self.reportProblematicReplicas( checksumBadInFC, se, 'CatalogChecksumToBeFixed', fixIt = fixIt )
     return S_OK()
 
   def __checkPhysicalFileMetadata( self, lfns, se ):
@@ -322,7 +322,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
       if re.search( 'File does not exist', reason ):
         missingReplicas.append( ( lfn, 'deprecatedUrl', se, 'PFNMissing' ) )
     if missingReplicas:
-      self.__reportProblematicReplicas( missingReplicas, se, 'PFNMissing' )
+      self.reportProblematicReplicas( missingReplicas, se, 'PFNMissing' )
     lostReplicas = []
     unavailableReplicas = []
     zeroSizeReplicas = []
@@ -335,15 +335,15 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
       if lfnMetadata['Size'] == 0:
         zeroSizeReplicas.append( ( lfn, 'deprecatedUrl', se, 'PFNZeroSize' ) )
     if lostReplicas:
-      self.__reportProblematicReplicas( lostReplicas, se, 'PFNLost' )
+      self.reportProblematicReplicas( lostReplicas, se, 'PFNLost' )
     if unavailableReplicas:
-      self.__reportProblematicReplicas( unavailableReplicas, se, 'PFNUnavailable' )
+      self.reportProblematicReplicas( unavailableReplicas, se, 'PFNUnavailable' )
     if zeroSizeReplicas:
-      self.__reportProblematicReplicas( zeroSizeReplicas, se, 'PFNZeroSize' )
+      self.reportProblematicReplicas( zeroSizeReplicas, se, 'PFNZeroSize' )
     gLogger.info( 'Checking the integrity of physical files at %s complete' % se )
     return S_OK( lfnMetadataDict )
 
-  def __reportProblematicReplicas( self, replicaTuple, se, reason, fixIt = False ):
+  def reportProblematicReplicas( self, replicaTuple, se, reason, fixIt = False ):
     """ Simple wrapper function around setReplicaProblematic """
     gLogger.info( 'The following %s files had %s at %s' % ( len( replicaTuple ), reason, se ) )
     for lfn, pfn, se, reason1 in sorted( replicaTuple ):

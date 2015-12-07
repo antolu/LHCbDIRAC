@@ -523,24 +523,24 @@ class ConsistencyChecks( DiracConsistencyChecks ):
   def __getDirectories( self ):
     """ get the directories where to look into (they are either given, or taken from the transformation ID
     """
-#     if self.directories:
-#       directories = []
-#       printout = False
-#       for directory in self.directories:
-#         if not directory.endswith( '...' ):
-#           directories.append( directory )
-#         else:
-#           printout = True
-#           topDir = os.path.dirname( directory )
-#           res = self.dm.getCatalogListDirectory( topDir )
-#           if not res['OK']:
-#             raise RuntimeError( res['Message'] )
-#           else:
-#             matchDir = directory.split( '...' )[0]
-#             directories += [d for d in res['Value']['Successful'].get( topDir, {} ).get( 'SubDirs', [] ) if d.startswith( matchDir )]
-#       if printout:
-#         gLogger.always( 'Expanded list of %d directories:\n%s' % ( len( directories ), '\n'.join( directories ) ) )
-#       return directories
+    if self.directories:
+      directories = []
+      printout = False
+      for directory in self.directories:
+        if not directory.endswith( '...' ):
+          directories.append( directory )
+        else:
+          printout = True
+          topDir = os.path.dirname( directory )
+          res = self.dm.getCatalogListDirectory( topDir )
+          if not res['OK']:
+            raise RuntimeError( res['Message'] )
+          else:
+            matchDir = directory.split( '...' )[0]
+            directories += [d for d in res['Value']['Successful'].get( topDir, {} ).get( 'SubDirs', [] ) if d.startswith( matchDir )]
+      if printout:
+        gLogger.always( 'Expanded list of %d directories:\n%s' % ( len( directories ), '\n'.join( directories ) ) )
+      return directories
     try:
       bkQuery = self.__getBKQuery()
     except ValueError, _e:

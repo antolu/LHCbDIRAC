@@ -6,10 +6,10 @@ __RCSID__ = "$Id$"
 from DIRAC                                                          import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient                                     import RPCClient
 from DIRAC.Core.Utilities.List                                      import breakListIntoChunks
-from DIRAC.Resources.Catalog.FileCatalogueBase                      import FileCatalogueBase
+from DIRAC.Resources.Catalog.FileCatalogClientBase                  import FileCatalogClientBase
 import types
 
-class BookkeepingDBClient( FileCatalogueBase ):
+class BookkeepingDBClient( FileCatalogClientBase ):
   """ File catalog client for bookkeeping DB
   """
   def __init__( self, url = False ):

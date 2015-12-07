@@ -163,7 +163,7 @@ def getTransformations( transClient, requestID, noFiles ):
 
   for transformation in transformations:
 
-    transformationID    = transformation[ 'TransformationID' ]
+    transformationID  = transformation[ 'TransformationID' ]
     
     if not noFiles:
       transformationFiles = getFiles( transClient, transformationID )
