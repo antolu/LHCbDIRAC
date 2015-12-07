@@ -506,7 +506,7 @@ def executeRemoveFiles( dmScript ):
   setProcessed = False
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
-    if switch[0] == 'SetProcessed':
+    if switch[0] == 'IncludeProcessedFiles':
       setProcessed = True
 
   removeFiles( lfnList, setProcessed )
@@ -600,7 +600,7 @@ def removeFiles( lfnList, setProcessed = False ):
   for reason, lfns in errorReasons.items():
     nbLfns = len( lfns )
     gLogger.always( "Failed to remove %d files with error: %s%s" % ( nbLfns, reason, ' (first %d)' % maxLfns if nbLfns > maxLfns else '' ) )
-    gLogger.always( '\n'.join( lfns ) )
+    gLogger.always( '\n'.join( lfns[:maxLfns] ) )
 
 def removeFilesInTransformations( lfns, setProcessed = False ):
   """
@@ -622,7 +622,7 @@ def removeFilesInTransformations( lfns, setProcessed = False ):
         ignoredFiles.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
       if ignoredFiles:
         for transID, lfns in ignoredFiles.items():
-          gLogger.always( 'Ignored %d files in status Processed in transformation %d' % ( len( lfns ), transID ) )
+          gLogger.always( '%d files in status Processed in transformation %d: status unchanged' % ( len( lfns ), transID ) )
 
     for fileDict in [tf for tf in transFiles if tf['Status'] not in ignoreStatus]:
       lfnsToSet.setdefault( fileDict['TransformationID'], [] ).append( fileDict['LFN'] )
