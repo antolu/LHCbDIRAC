@@ -226,7 +226,7 @@ class UsersAndGroups( AgentModule ):
     obsoleteUserNames = {}
     self.log.info( "Retrieving usernames..." )
     usersInVOMS.sort()
-    for iUPos in range( len( usersInVOMS ) ):
+    for iUPos in xrange( len( usersInVOMS ) ):
       user = usersInVOMS[ iUPos ]
       result = self.vomsSrv.attGetUserNickname( user[ 'DN' ], user[ 'CA' ] )
       if not result[ 'OK' ]:

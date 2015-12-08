@@ -14,7 +14,6 @@ import time
 
 from DIRAC                                               import gLogger, S_OK, S_ERROR, gConfig
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.Core.Utilities.List                           import removeEmptyElements
 from DIRAC.Core.Utilities.SiteSEMapping                  import getSEsForSite, getSitesForSE
 from DIRAC.Interfaces.API.Dirac                          import Dirac
 from DIRAC.Interfaces.API.DiracAdmin                     import DiracAdmin
@@ -178,7 +177,7 @@ class DiracLHCb( Dirac ):
   #############################################################################
 
   def __translateBKPath( self, bkPath, procPassID = 3 ):
-    bk = removeEmptyElements( bkPath.split( '/' ) )
+    bk = filter( None, bkPath.split( '/' ) )
     if procPassID < 0:
       return bk
     try:

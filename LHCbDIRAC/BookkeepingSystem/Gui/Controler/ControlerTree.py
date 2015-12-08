@@ -206,7 +206,7 @@ class ControlerTree(ControlerAbstract):
   def __openPath(self, name, item):
     """open a specific sub tree"""
     if item != None:
-      for i in range(item.childCount()):
+      for i in xrange(item.childCount()):
         node = item.child(i)
         userObject = node.getUserObject()
         if userObject != None:
@@ -279,7 +279,7 @@ class ControlerTree(ControlerAbstract):
     parentItem = node[0]
     self.getWidget().getTree().expandItem(parentItem)
     node = '/' + npath[1]
-    for i in range(2, len(npath)):
+    for i in xrange(2, len(npath)):
       if npath[i] != '':
         node = npath[i]
         item = self.__openPath(node, parentItem)

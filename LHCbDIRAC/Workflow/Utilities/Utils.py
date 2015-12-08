@@ -18,7 +18,7 @@ def makeRunList( runInput ):
     for part in i:
       if part.find( ':' ):
         pp = part.split( ":" )
-        for p in range( int( pp[0] ), int( pp[len( pp ) - 1] ) + 1 ):
+        for p in xrange( int( pp[0] ), int( pp[len( pp ) - 1] ) + 1 ):
           runList.append( str( p ) )
       else:
         runList.append( str( part ) )

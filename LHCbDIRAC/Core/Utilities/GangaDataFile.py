@@ -157,7 +157,7 @@ class GangaDataFile( object ):
     """
 
     r = []
-    for i in range( len( lfns ) ):
+    for i in xrange( len( lfns ) ):
       r.extend( [lfns[i], self.__typeSelectorString( lfns[i], TSDefaultStr, TSLookupMap )] )
     return tuple( r )
 

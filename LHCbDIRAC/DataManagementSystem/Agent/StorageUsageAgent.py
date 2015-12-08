@@ -228,7 +228,7 @@ class StorageUsageAgent( AgentModule ):
     iterMaxDirs = 100
     while self.__dirExplorer.isActive():
       startT = time.time()
-      d2E = [self.__dirExplorer.getNextDir() for _i in range( iterMaxDirs ) if self.__dirExplorer.isActive()]
+      d2E = [self.__dirExplorer.getNextDir() for _i in xrange( iterMaxDirs ) if self.__dirExplorer.isActive()]
       self.__exploreDirList( d2E )
       iterTime = time.time() - startT
       totalIterTime += iterTime

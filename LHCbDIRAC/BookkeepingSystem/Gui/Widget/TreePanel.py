@@ -107,7 +107,7 @@ class TreePanel(QTreeWidget):
 #    if node <> None:
 #      path = node['fullpath']
 #      if parentItem.childCount() > 0:
-#        for i in range(parentItem.childCount()):
+#        for i in xrange(parentItem.childCount()):
 #          parentItem.takeChild(0)
 #      #newPath = '/'+str(path)
 #      bkClient = self.parentWidget().getBkkClient()

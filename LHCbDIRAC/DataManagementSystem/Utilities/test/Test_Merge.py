@@ -208,7 +208,7 @@
 #    bkTree = {cfgName : {}}
 #    bkDict = {'ConfigName' : cfgName}
 #    #print "Number of available configurations", len( allConfigurationsValue )
-#    for i in range( len( allConfigurationsValue ) ):
+#    for i in xrange( len( allConfigurationsValue ) ):
 #      #print "Available Conf ", i
 #      if allConfigurationsValue[i][0] == cfgName:
 #        #print "Found configurations with ", cfgName, " ---> ", allConfigurationsValue[i]

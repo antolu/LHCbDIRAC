@@ -57,7 +57,7 @@ def __getRuns( transID, runList = None, byRuns = True, seList = None, status = N
       if len( runRange ) == 1:
         runs.append( int( runRange[0] ) )
       else:
-        for run in range( int( runRange[0] ), int( runRange[1] ) + 1 ):
+        for run in xrange( int( runRange[0] ), int( runRange[1] ) + 1 ):
           runs.append( run )
     selectDict = {'TransformationID':transID, 'RunNumber': runs}
     if runs == [0]:
@@ -202,7 +202,7 @@ def __getTransformations( args ):
     for transID in ids:
       r = transID.split( ':' )
       if len( r ) > 1:
-        for i in range( int( r[0] ), int( r[1] ) + 1 ):
+        for i in xrange( int( r[0] ), int( r[1] ) + 1 ):
           transList.append( i )
       else:
         transList.append( int( r[0] ) )
@@ -422,7 +422,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
         subReqDict = {}
         subReqStr = ''
         conj = ''
-        for i in range( len( params ) ):
+        for i in xrange( len( params ) ):
           subReqDict.update( { params[i]:rec[i] } )
           subReqStr += conj + params[i] + ': ' + rec[i]
           conj = ', '
@@ -767,7 +767,7 @@ def __checkXMLSummary( job, logURL ):
   return lfns
 
 def __checkLog( logURL ):
-  for i in range( 5, 0, -1 ):
+  for i in xrange( 5, 0, -1 ):
     logFile = __getLog( logURL, '*_%d.log' % i, debug = False )
     if logFile:
       break

@@ -428,7 +428,7 @@ class ControlerMain(ControlerAbstract):
         value = res['Value']
         files = value.split('/')
         logfile = ''
-        for i in range(len(files) - 1):
+        for i in xrange(len(files) - 1):
           if files[i] != '':
             logfile += '/' + str(files[i])
 

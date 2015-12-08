@@ -18,7 +18,7 @@ def __getTransformations( args ):
     for transID in ids:
       r = transID.split( ':' )
       if len( r ) > 1:
-        for i in range( int( r[0] ), int( r[1] ) + 1 ):
+        for i in xrange( int( r[0] ), int( r[1] ) + 1 ):
           transList.append( i )
       else:
         transList.append( int( r[0] ) )

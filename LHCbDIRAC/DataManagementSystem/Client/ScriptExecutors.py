@@ -831,12 +831,12 @@ def executeReplicaStats( dmScript ):
       prNoReplicas = True
     elif switch[0] == 'DumpWithArchives':
       if switch[1].lower() == 'any':
-        prWithArchives = range( 1, 10 )
+        prWithArchives = xrange( 1, 10 )
       else:
         prWithArchives = [int( xx ) for xx in switch[1].split( ',' )]
     elif switch[0] == 'DumpWithReplicas':
       if switch[1].lower() == 'any':
-        prWithReplicas = range( 1, 100 )
+        prWithReplicas = xrange( 1, 100 )
       else:
         prWithReplicas = [int( xx ) for xx in switch[1].split( ',' )]
     elif switch[0] == 'DumpFailover':
@@ -969,9 +969,9 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
     else:
       gLogger.always( "   ...but all of them are also somewhere else" )
   if maxArch:
-    for nrep in range( 1, maxArch + 1 ):
+    for nrep in xrange( 1, maxArch + 1 ):
       gLogger.always( "%d archives: %d files" % ( nrep - 1, repStats.setdefault( -nrep, 0 ) ) )
-  for nrep in range( maxRep + 1 ):
+  for nrep in xrange( maxRep + 1 ):
     gLogger.always( "%d replicas: %d files" % ( nrep, repStats.setdefault( nrep, 0 ) ) )
 
   gLogger.always( "\nSE statistics:" )

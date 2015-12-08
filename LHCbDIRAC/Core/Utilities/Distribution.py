@@ -280,7 +280,7 @@ class Distribution( object ):
     tmpfd, tmpname = tempfile.mkstemp()
     versionStrings = ( "majorVersion", "minorVersion", "patchLevel", "preVersion" )
     reList = []
-    for iP in range( len( versionStrings ) ):
+    for iP in xrange( len( versionStrings ) ):
       if verTup[iP]:
         replStr = "%s = %s" % ( versionStrings[iP], verTup[iP] )
       else:
@@ -325,7 +325,7 @@ def writeVersionToInit( rootPath, version ):
     return S_ERROR( "Could not open %s: %s" % ( initFile, str( e ) ) )
   versionStrings = ( "majorVersion", "minorVersion", "patchLevel", "preVersion" )
   reList = []
-  for iP in range( len( versionStrings ) ):
+  for iP in xrange( len( versionStrings ) ):
     if verTup[iP]:
       replStr = "%s = %s" % ( versionStrings[iP], verTup[iP] )
     else:

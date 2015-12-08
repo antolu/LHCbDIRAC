@@ -142,7 +142,7 @@ if w1:
   pr.prodsTypeList = ['MCSimulation', 'MCStripping', 'MCMerge']
   pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
   pr.stepsInProds = [range( 1, len( pr.stepsList ) - 1 ),
-                     range( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
+                     xrange( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
                      [len( pr.stepsList )]]
   pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
   pr.priorities = [MCPriority, selectionPriority, mergingPriority]
@@ -166,7 +166,7 @@ elif w2:
     brunelStepIndex += 1
 
   pr.stepsInProds = [range( 1, brunelStepIndex ),
-                     range( brunelStepIndex, len( pr.stepsListDict ) ),
+                     xrange( brunelStepIndex, len( pr.stepsListDict ) ),
                      [len( pr.stepsListDict )]]
   pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
                         str( len( pr.stepsInProds[1] ) ),
@@ -197,7 +197,7 @@ elif w3:
     brunelStepIndex += 1
 
   pr.stepsInProds = [range( 1, brunelStepIndex ),
-                     range( brunelStepIndex, len( pr.stepsListDict ) + 1 )]
+                     xrange( brunelStepIndex, len( pr.stepsListDict ) + 1 )]
   pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
                         str( len( pr.stepsInProds[1] ) )]
 

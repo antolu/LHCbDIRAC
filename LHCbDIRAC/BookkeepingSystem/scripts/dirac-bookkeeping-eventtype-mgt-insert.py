@@ -49,7 +49,7 @@ def process_event( eventline ):
     print "syntax error at: \n" + eventline
     Script.showHelp()
   else:
-    for i in range( 3 ):
+    for i in xrange( 3 ):
       if ma.group( 'id' + str( i ) + '0' ):
         if ma.group( 'id' + str( i ) + '0' ) in result:
           print '\nthe parameter ' + ma.group( 'id' + str( i ) + '0' ) + ' cannot appear twice!!!\n' + eventline + '\n\n'

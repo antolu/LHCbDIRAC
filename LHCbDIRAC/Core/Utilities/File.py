@@ -33,7 +33,7 @@ def getRootFileGUID( fileName ):
     branch = fr.Get( 'Refs' ).GetBranch( 'Params' )
     text = create_string_buffer( 100 )
     branch.SetAddress( text )
-    for i in range( branch.GetEntries() ):
+    for i in xrange( branch.GetEntries() ):
       branch.GetEvent( i )
       x = text.value
       if x.startswith( 'FID=' ):

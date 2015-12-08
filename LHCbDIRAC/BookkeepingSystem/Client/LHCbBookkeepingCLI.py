@@ -84,7 +84,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
         return '/'
     else:
       newpath = ''
-      for i in range(len(path) -1):
+      for i in xrange(len(path) -1):
         if path[i] != '':
           newpath += '/' + path[i]
       if newpath == '':
@@ -122,7 +122,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     if path.find('|') > -1:
       tmpPath = path.split('|')
       path = ''
-      for i in range(len(tmpPath) - 1):
+      for i in xrange(len(tmpPath) - 1):
         path += tmpPath[i].strip()
       paging = True
 
@@ -165,7 +165,7 @@ class LHCbBookkeepingCLI(cmd.Cmd):
     saveType = parameters[1]
     files = self.__bk.list(self.getCurrentPath())
     lfns = {}
-    for i in range(len(files)):
+    for i in xrange(len(files)):
       lfns[files[i]['FileName']] = files[i]
 
     if saveType == 'txt':

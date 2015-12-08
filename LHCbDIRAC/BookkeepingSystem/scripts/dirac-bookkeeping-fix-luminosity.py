@@ -18,7 +18,7 @@ def _updateFileLumi( fileDict, retries = 5 ):
   for lfn in fileDict:
     withDots.loop()
     # retry 5 times
-    for i in range( retries - 1, -1, -1 ):
+    for i in xrange( retries - 1, -1, -1 ):
       res = bk.updateFileMetaData( lfn, {'Luminosity':fileDict[lfn]} )
       if res['OK']:
         break

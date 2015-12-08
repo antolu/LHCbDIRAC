@@ -280,7 +280,7 @@ def getProcessingPasses(bkDict):
     parNames = recordList['ParameterNames']
 
     found = False
-    for thisId in range(len(parNames)):
+    for thisId in xrange(len(parNames)):
       parName = parNames[thisId]
       if parName == 'Name':
         found = True
@@ -356,7 +356,7 @@ def getProductionId(run, procPass):
   retVal['prodId'] = str(prodId)
 
   length = len(retVal['prodId'])  
-  for i in range(8-length):
+  for i in xrange(8-length):
     retVal['prodId'] = '0' + retVal['prodId']
 
   return retVal
@@ -392,7 +392,7 @@ def getRunningConditions(bkTree,cfgVersion):
     parNames = recordList['ParameterNames']
     
     descId = -1
-    for thisId in range(len(parNames)):
+    for thisId in xrange(len(parNames)):
       parName = parNames[thisId]
       if parName == 'Description':
         descId = thisId

@@ -265,7 +265,7 @@ elif w4:
   pr.outputSEs = [recoDataSE, strippDataSE, mergingDataSE]
   pr.specialOutputSEs = [recoDataSESpecial, strippDataSESpecial, mergingDataSESpecial]
   pr.stepsInProds = [range( 1, len( pr.stepsList ) - 1 ),
-                     range( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
+                     xrange( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
                      [len( pr.stepsList )]]
   pr.removeInputsFlags = [False, False, mergeRemoveInputsFlag]
   pr.priorities = [recoPriority, strippPriority, mergingPriority]
@@ -285,7 +285,7 @@ elif w5:
   pr.outputSEs = [strippDataSE, mergingDataSE, indexingDataSE]
   pr.specialOutputSEs = [strippDataSESpecial, mergingDataSESpecial, {}]
   pr.stepsInProds = [range( 1, len( pr.stepsList ) - 1 ),
-                     range( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
+                     xrange( len( pr.stepsList ) - 1, len( pr.stepsList ) ),
                      [len( pr.stepsList )]]
   pr.removeInputsFlags = [False, mergeRemoveInputsFlag, False]
   pr.priorities = [strippPriority, mergingPriority, indexingPriority]

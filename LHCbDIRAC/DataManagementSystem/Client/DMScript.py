@@ -177,7 +177,7 @@ class DMScript( object ):
       for prod in arg.split( ',' ):
         if prod.find( ":" ) > 0:
           pr = prod.split( ":" )
-          for i in range( int( pr[0] ), int( pr[1] ) + 1 ):
+          for i in xrange( int( pr[0] ), int( pr[1] ) + 1 ):
             prods.append( i )
         else:
           prods.append( prod )

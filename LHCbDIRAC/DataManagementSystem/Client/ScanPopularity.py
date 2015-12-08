@@ -307,13 +307,13 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
     startTime = endTime
     gLogger.always( 'Get popularity day-by-day' )
     stTime = time.time()
-    for _i in range( since ):
+    for _i in xrange( since ):
       endTime = startTime
       startTime = endTime - timedelta( days = 1 )
       endTimeQuery = endTime.isoformat()
       startTimeQuery = startTime.isoformat()
       status = 'Used'
-      for _i in range( 10 ):
+      for _i in xrange( 10 ):
         res = duClient.getDataUsageSummary( startTimeQuery, endTimeQuery, status, timeout = 7200 )
         if res['OK']:
           break
@@ -357,7 +357,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
       gLogger.always( '\n'.join( ["%s : %s" % ( bkPath, str( bkPathUsage.get( bkPath, {} ) ) ) for bkPath in strangeBKPaths] ) )
     gLogger.always( '\nDataset usage for %d datasets' % len( timeUsage ) )
     for infoType in ( 'All', 'LFN' ):
-      for i in range( 2 ):
+      for i in xrange( 2 ):
         counters.setdefault( infoType, [] ).append( sum( bkPathUsage.get( bkPath, {} ).get( infoType, ( 0, 0 ) )[i] for bkPath in timeUsage ) )
     for bkPath in sorted( timeUsage ):
       if bkPath not in datasetStorage['Disk'] | datasetStorage['Archived'] | datasetStorage['Tape']:
@@ -397,7 +397,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
         unusedPaths = unusedBKPaths & datasetStorage[infoType]
         counters = {}
         for t in ( 'All', 'LFN' ):
-          for i in range( 2 ):
+          for i in xrange( 2 ):
             counters.setdefault( t, [] ).append( sum( bkPathUsage.get( bkPath, {} ).get( t, ( 0, 0 ) )[i] for bkPath in unusedPaths ) )
         for bkPath in sorted( unusedPaths ):
           nLfns, lfnSize = bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )
@@ -419,7 +419,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
           "NbLFN,LFNSize,NbDisk,DiskSize,NbTape,TapeSize,NbArchived,ArchivedSize," + \
           ','.join( [site.split( '.' )[1] for site in storageSites] ) + \
           ",Nb Replicas,Nb ArchReps,Storage,FirstUsage,LastUsage,Now"
-  for binNumber in range( nbBins ):
+  for binNumber in xrange( nbBins ):
     title += ';%d' % ( 1 + binNumber )
   f.write( title.replace( ',', ';' ) + '\n' )
   TB = 1000. * 1000. * 1000. * 1000.
@@ -473,7 +473,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
       bins = [0]
     row += ';%d;%d;%d' % ( bins[0], bins[-1], nowBin )
     usage = 0
-    for binNumber in range( nbBins ):
+    for binNumber in xrange( nbBins ):
       usage += timeUsage.get( bkPath, {} ).get( nowBin - binNumber, 0 )
       row += ';%d' % usage
     f.write( row.replace( ',', ';' ) + '\n' )

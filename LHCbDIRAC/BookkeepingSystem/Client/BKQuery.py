@@ -194,7 +194,7 @@ class BKQuery():
           else:
             runRange = run.split( ':' )
             if len( runRange ) == 2 and runRange[0].isdigit() and runRange[1].isdigit():
-              runList += range( int( runRange[0] ), int( runRange[1] ) + 1 )
+              runList += xrange( int( runRange[0] ), int( runRange[1] ) + 1 )
         bkQuery['RunNumber'] = runList
       else:
         runs = runs[0].split( ':' )

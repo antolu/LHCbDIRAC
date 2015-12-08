@@ -104,7 +104,7 @@ class DataProcessingProgressAgent( AgentModule ):
           bkQuery.setConditions( cond )
           stats = self.statCollector.getFullStats( bkQuery, printResult=self.printResult )
           processingPass = bkQuery.getProcessingPass().split( '/' )
-          for ind in range( len( prodStats ) ):
+          for ind in xrange( len( prodStats ) ):
             if not prodStats[ind]:
               prodStats[ind] = stats[ind]
             else:

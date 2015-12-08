@@ -44,7 +44,7 @@ if __name__ == "__main__":
       for id_o in ids:
         r = id_o.split( ':' )
         if len( r ) > 1:
-          for i in range( int( r[0] ), int( r[1] ) + 1 ):
+          for i in xrange( int( r[0] ), int( r[1] ) + 1 ):
             idList.append( i )
         else:
           idList.append( int( r[0] ) )

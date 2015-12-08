@@ -1089,7 +1089,7 @@ class BKClientWithRetry():
     return self.__executeMethod
   def __executeMethod( self, *args, **kwargs ):
     fcn = getattr( self.bk, self.method )
-    for _i in range( self.retries ):
+    for _i in xrange( self.retries ):
       res = fcn( *args, **kwargs )
       if res['OK']:
         break

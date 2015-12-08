@@ -35,7 +35,7 @@ class BookkeepingApplication(QApplication):
     fileName = ''
     savePath = ''
     if len(args) > 1:
-      for i in range(1, len(args)):
+      for i in xrange(1, len(args)):
         arg = args[i]
         opts = arg.split('=')
         if len(opts) == 1:

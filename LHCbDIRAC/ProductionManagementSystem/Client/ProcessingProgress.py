@@ -91,7 +91,7 @@ class HTMLProgressTable( object ):
   @staticmethod
   def __sumProdStats( summaryProdStats ):
     sumStats = []
-    for ind in range( 4 ):
+    for ind in xrange( 4 ):
       info = None
       for prodStats in summaryProdStats:
         if not prodStats:
@@ -113,7 +113,7 @@ class HTMLProgressTable( object ):
     prodStats = self.__sumProdStats( summaryProdStats )
     prevProdStats = self.__sumProdStats( previousProdStats )
     diffStats = 4 * [None]
-    for ind in range( 4 ):
+    for ind in xrange( 4 ):
       diffStats[ind] = prodStats[ind] - prevProdStats[ind]
       row = self.__tableRow( diffStats[ind] )
       self.table.rows.append( row )
@@ -478,7 +478,7 @@ class ProcessingProgress( object ):
     if len( prodStats ) < 4:
       outputString += "No statistics found for this BK query"
       return outputString
-    for i in range( 4 ):
+    for i in xrange( 4 ):
       info = prodStats[i]
       if not info:
         continue
