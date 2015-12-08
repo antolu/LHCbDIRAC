@@ -123,6 +123,6 @@ EOF
     pilotOptions, newPilotsToSubmit = DIRACSiteDirector._getPilotOptions( self, queue, pilotsToSubmit )
 
     pilotOptions.append( '-E LHCbPilot' )
-    pilotOptions.append( '-X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent' )
+    pilotOptions.append( '-X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent' )
 
     return [pilotOptions, newPilotsToSubmit]
