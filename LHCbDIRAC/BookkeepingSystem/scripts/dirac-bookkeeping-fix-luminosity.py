@@ -83,7 +83,7 @@ def updateRunLumi( run, evtType, fileInfo, doIt = False, force = False ):
   info = res['Value']
   runLumi = info['TotalLuminosity']
   runEvts = dict( zip( info['Stream'], info['Number of events'] ) )[evtType]
-  filesLumi = sum( [lumi for _lfn, _evts, lumi in fileInfo] )
+  filesLumi = sum( lumi for _lfn, _evts, lumi in fileInfo )
   # Check luminosity
   error = False
   if abs( runLumi - filesLumi ) > 1:

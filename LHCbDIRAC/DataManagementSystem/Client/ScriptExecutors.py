@@ -1212,7 +1212,7 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
     if not res['OK']:
       gLogger.error( "Error setting replica %s in FC for %d files" % ( status, len( repsDict ) ), res['Message'] )
     else:
-      nreps = sum( [len( reps ) for reps in repsDict.values()] )
+      nreps = sum( len( reps ) for reps in repsDict.values() )
       gLogger.always( "%d replicas set %s in FC for %d files" % ( nreps, status, len( repsDict ) ) )
     for lfn in repsDict:
       gLogger.info( '\t%s' % lfn )

@@ -125,8 +125,8 @@ def cacheDirectories( directories ):
       infoType = 'LFN'
       gLogger.verbose( 'Directory %s: %s' % ( lfn, str( res['Value'] ) ) )
       bkPathUsage.setdefault( bkPath, {} ).setdefault( infoType, [0, 0] )
-      bkPathUsage[bkPath][infoType][0] += sum( [val.get( 'Files', 0 ) for val in res['Value'].values()] )
-      bkPathUsage[bkPath][infoType][1] += sum( [val.get( 'Size', 0 ) for val in res['Value'].values()] )
+      bkPathUsage[bkPath][infoType][0] += sum( val.get( 'Files', 0 ) for val in res['Value'].values() )
+      bkPathUsage[bkPath][infoType][1] += sum( val.get( 'Size', 0 ) for val in res['Value'].values() )
 
     # # get the PFN usage per storage type
     gLogger.always( 'Check storage type and PFN usage for %d directories' % len( dirSet ) )
@@ -141,13 +141,13 @@ def cacheDirectories( directories ):
       for infoType in storageTypes:
         # Active type will be recorded in Disk, just a special flag
         if infoType != 'LFN' and infoType not in info:
-          nf = sum( [val['Files'] for se, val in res['Value'].items() if isType( se, infoType )] )
-          size = sum( [val['Size'] for se, val in res['Value'].items() if isType( se, infoType )] )
+          nf = sum( val['Files'] for se, val in res['Value'].items() if isType( se, infoType ) )
+          size = sum( val['Size'] for se, val in res['Value'].items() if isType( se, infoType ) )
           info[infoType] = {'Files':nf, 'Size':size}
       for site in storageSites:
         if site not in info:
-          nf = sum( [val['Files'] for se, val in res['Value'].items() if isAtSite( se, site ) and isType( se, 'Disk' )] )
-          size = sum( [val['Size'] for se, val in res['Value'].items() if isAtSite( se, site ) and isType( se, 'Disk' )] )
+          nf = sum( val['Files'] for se, val in res['Value'].items() if isAtSite( se, site ) and isType( se, 'Disk' ) )
+          size = sum( val['Size'] for se, val in res['Value'].items() if isAtSite( se, site ) and isType( se, 'Disk' ) )
           info[site] = {'Files':nf, 'Size':size}
       bkPath = bkPathForLfn[lfn]
       for infoType in info:
@@ -358,7 +358,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
     gLogger.always( '\nDataset usage for %d datasets' % len( timeUsage ) )
     for infoType in ( 'All', 'LFN' ):
       for i in range( 2 ):
-        counters.setdefault( infoType, [] ).append( sum( [bkPathUsage.get( bkPath, {} ).get( infoType, ( 0, 0 ) )[i] for bkPath in timeUsage] ) )
+        counters.setdefault( infoType, [] ).append( sum( bkPathUsage.get( bkPath, {} ).get( infoType, ( 0, 0 ) )[i] for bkPath in timeUsage ) )
     for bkPath in sorted( timeUsage ):
       if bkPath not in datasetStorage['Disk'] | datasetStorage['Archived'] | datasetStorage['Tape']:
         datasetStorage[storageType( usedSEs[bkPath] )].add( bkPath )
@@ -367,7 +367,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
       gLogger.always( '%s (%d LFNs, %s), (%d PFNs, %s, %.1f replicas)' % ( bkPath, nLfns, prSize( lfnSize ), nPfns, prSize( pfnSize ), float( nPfns ) / float( nLfns ) if nLfns else 0. ) )
       bins = sorted( timeUsage[bkPath] )
       lastBin = bins[-1]
-      accesses = sum( [timeUsage[bkPath][binNumber] for binNumber in bins] )
+      accesses = sum( timeUsage[bkPath][binNumber] for binNumber in bins )
       gLogger.always( '\tUsed first in %s, %d accesses (%.1f%%), %d accesses during last %s %s' %
                       ( prBinNumber( bins[0] ), accesses,
                         accesses * 100. / nLfns if nLfns else 0.,
@@ -398,7 +398,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
         counters = {}
         for t in ( 'All', 'LFN' ):
           for i in range( 2 ):
-            counters.setdefault( t, [] ).append( sum( [bkPathUsage.get( bkPath, {} ).get( t, ( 0, 0 ) )[i] for bkPath in unusedPaths] ) )
+            counters.setdefault( t, [] ).append( sum( bkPathUsage.get( bkPath, {} ).get( t, ( 0, 0 ) )[i] for bkPath in unusedPaths ) )
         for bkPath in sorted( unusedPaths ):
           nLfns, lfnSize = bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )
           nPfns, pfnSize = bkPathUsage.get( bkPath, {} ).get( 'All', ( 0, 0 ) )

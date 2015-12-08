@@ -144,7 +144,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     usageDict = {}
     if shares is None:
       shares = {}
-    total = sum( [count for _usedDict, count in res['Value']] )
+    total = sum( count for _usedDict, count in res['Value'] )
     for usedDict, count in res['Value']:
       usedSE = usedDict['UsedSE']
       if not total:
@@ -459,7 +459,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     if hitLfns and not getFiles:
       self.logVerbose( "Ancestors cache hit for run %d: %d files cached" % \
                        ( runID, len( hitLfns ) ) )
-      ancestors += sum( [cachedLfns[lfn] for lfn in hitLfns] )
+      ancestors += sum( cachedLfns[lfn] for lfn in hitLfns )
       lfns = list( setLfns - hitLfns )
 
     # If some files are unknown, get the ancestors from BK
