@@ -13,9 +13,8 @@ from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.XMLFilesReaderManager        
 
 from DIRAC.Core.DISET.RequestHandler                                              import RequestHandler
 from DIRAC                                                                        import gLogger, S_OK, S_ERROR
-
+from LHCbDIRAC.BookkeepingSystem.Client                                           import JEncoder
 import cPickle
-import simplejson
 
 from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
 from types import DictType, IntType, StringType, ListType, LongType, BooleanType
@@ -379,7 +378,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     result = S_OK()
     iscPickleFormat = False
     try:
-      in_dict = simplejson.loads( parameters )
+      in_dict = JEncoder.loads( parameters )
     except Exception as _:
       iscPickleFormat = True
       in_dict = cPickle.loads( parameters )
@@ -393,7 +392,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     if iscPickleFormat:
       fileString = cPickle.dumps( retVal, protocol = 2 )
     else:
-      fileString = simplejson.dumps( retVal )
+      fileString = JEncoder.dumps( retVal )
       
     retVal = fileHelper.stringToNetwork( fileString )
     if retVal['OK']:

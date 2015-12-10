@@ -110,9 +110,9 @@ class OracleBookkeepingDB:
         return S_ERROR ( 'Wrong Equal value!' )
 
       if infiletypes != default or outfiletypes != default:
-        if isinstance( infiletypes, str ):
+        if isinstance( infiletypes, basestring ):
           infiletypes = []
-        if isinstance( outfiletypes, str ):
+        if isinstance( outfiletypes, basestring ):
           outfiletypes = []
         infiletypes.sort()
         outfiletypes.sort()
@@ -139,7 +139,7 @@ class OracleBookkeepingDB:
 
       stepName = in_dict.get( 'StepName', default )
       if stepName != default:
-        if isinstance( stepName, str ):
+        if isinstance( stepName, basestring ):
           condition += " and s.stepname='%s'" % ( stepName )
         elif isinstance( stepName, list ):
           values = ' and ('
@@ -149,7 +149,7 @@ class OracleBookkeepingDB:
 
       appName = in_dict.get( 'ApplicationName', default )
       if appName != default:
-        if isinstance( appName, str ):
+        if isinstance( appName, basestring ):
           condition += " and s.applicationName='%s'" % ( appName )
         elif isinstance( appName, list ):
           values = ' and ('
@@ -159,7 +159,7 @@ class OracleBookkeepingDB:
 
       appVersion = in_dict.get( 'ApplicationVersion', default )
       if appVersion != default:
-        if isinstance( appVersion, str ):
+        if isinstance( appVersion, basestring ):
           condition += " and s.applicationversion='%s'" % ( appVersion )
         elif isinstance( appVersion, list ):
           values = ' and ('
@@ -169,7 +169,7 @@ class OracleBookkeepingDB:
 
       optFile = in_dict.get( 'OptionFiles', default )
       if optFile != default:
-        if isinstance( optFile, str ):
+        if isinstance( optFile, basestring ):
           condition += " and s.optionfiles='%s'" % ( optFile )
         elif isinstance( optFile, list ):
           values = ' and ('
@@ -179,7 +179,7 @@ class OracleBookkeepingDB:
 
       dddb = in_dict.get( 'DDDB', default )
       if dddb != default:
-        if isinstance( dddb, str ):
+        if isinstance( dddb, basestring ):
           condition += " and s.dddb='%s'" % ( dddb )
         elif isinstance( dddb, list ):
           values = ' and ('
@@ -189,7 +189,7 @@ class OracleBookkeepingDB:
 
       conddb = in_dict.get( 'CONDDB', default )
       if conddb != default:
-        if isinstance( conddb, str ):
+        if isinstance( conddb, basestring ):
           condition += " and s.conddb='%s'" % ( conddb )
         elif isinstance( conddb, list ):
           values = ' and ('
@@ -199,7 +199,7 @@ class OracleBookkeepingDB:
 
       extraP = in_dict.get( 'ExtraPackages', default )
       if extraP != default:
-        if isinstance( extraP, str ):
+        if isinstance( extraP, basestring ):
           condition += " and s.extrapackages='%s'" % ( extraP )
         elif isinstance( extraP, list ):
           values = ' and ('
@@ -209,7 +209,7 @@ class OracleBookkeepingDB:
 
       visible = in_dict.get( 'Visible', default )
       if visible != default:
-        if isinstance( visible, str ):
+        if isinstance( visible, basestring ):
           condition += " and s.visible='%s'" % ( visible )
         elif isinstance( visible, list ):
           values = ' and ('
@@ -219,7 +219,7 @@ class OracleBookkeepingDB:
 
       procPass = in_dict.get( 'ProcessingPass', default )
       if procPass != default:
-        if isinstance( procPass, str ):
+        if isinstance( procPass, basestring ):
           condition += " and s.processingpass like'%%%s%%'" % ( procPass )
         elif isinstance( procPass, list ):
           values = ' and ('
@@ -229,7 +229,7 @@ class OracleBookkeepingDB:
 
       usable = in_dict.get( 'Usable', default )
       if usable != default:
-        if isinstance( usable, str ):
+        if isinstance( usable, basestring ):
           condition += " and s.usable='%s'" % ( usable )
         elif isinstance( usable, list ):
           values = ' and ('
@@ -243,7 +243,7 @@ class OracleBookkeepingDB:
 
       dqtag = in_dict.get( 'DQTag', default )
       if dqtag != default:
-        if isinstance( dqtag, str ):
+        if isinstance( dqtag, basestring ):
           condition += " and s.dqtag='%s'" % ( dqtag )
         elif isinstance( dqtag, list ):
           values = ' and ('
@@ -253,7 +253,7 @@ class OracleBookkeepingDB:
 
       optsf = in_dict.get( 'OptionsFormat', default )
       if optsf != default:
-        if isinstance( optsf, str ):
+        if isinstance( optsf, basestring ):
           condition += " and s.optionsFormat='%s'" % ( optsf )
         elif isinstance( optsf, list ):
           values = ' and ('
@@ -287,7 +287,7 @@ class OracleBookkeepingDB:
           for item in items:
             order += 's.%s,' % ( item )
           condition += ' %s %s' % ( order[:-1], order )
-        elif isinstance( items, str):
+        elif isinstance( items, basestring):
           condition += ' s.%s %s' % ( items, order )
         else:
           result = S_ERROR( 'SortItems is not properly defined!' )
@@ -640,7 +640,7 @@ class OracleBookkeepingDB:
         condition = " where stepid=%s" % ( str( stepid ) )
         command = 'update steps set '
         for i in in_dict:
-          if isinstance( in_dict[i], str):
+          if isinstance( in_dict[i], basestring):
             command += " %s='%s'," % ( i, str( in_dict[i] ) )
           else:
             if len( in_dict[i] ) > 0:
@@ -983,7 +983,7 @@ class OracleBookkeepingDB:
     if not visible.upper().startswith( 'Y' ):
       defaultTable = 'j'
 
-    if production != default and isinstance( production, ( str, long, int ) ):
+    if production != default and isinstance( production, ( basestring, long, int ) ):
       condition += ' and %s.production=%d' % ( defaultTable, int( production ) )
     elif production != default and isinstance( production, list ):
       cond = ' and ('
@@ -1296,14 +1296,14 @@ class OracleBookkeepingDB:
     tables = ' jobs j, files f'
     result = None
     if production != default:
-      if isinstance( production, ( str, long, int ) ) :
+      if isinstance( production, ( basestring, long, int ) ) :
         condition += " and j.production=%d " % ( int( production ) )
       elif isinstance( production, list ):
         condition += ' and j.production in ( ' + ','.join( [str( p ) for p in production] ) + ')'
       else:
         result = S_ERROR( "The production type is invalid. It can be a list, integer or string!" )
     elif lfn != default:
-      if isinstance( lfn, str ):
+      if isinstance( lfn, basestring ):
         condition += " and f.filename='%s' " % ( lfn )
       elif isinstance( lfn, list ):
         condition += ' and (' + ' or '.join( ["f.filename='%s'" % l for l in lfn] ) + ')'
@@ -2448,7 +2448,7 @@ class OracleBookkeepingDB:
     if runnb == default:
       result = S_ERROR ( 'The RunNumber must be given!' )
     else:
-      if isinstance( runnb, ( str, int, long ) ):
+      if isinstance( runnb, ( basestring, int, long ) ):
         runnb = [runnb]
       runs = ''
       for i in runnb:
@@ -3128,7 +3128,7 @@ and files.qualityid= dataquality.qualityid'
           cond += ' j.production=%s or ' % str( i )
         cond = cond[:-3] + ')'
         condition += cond
-      elif isinstance( production, ( str, int, long ) ):
+      elif isinstance( production, ( basestring, int, long ) ):
         condition += ' and j.production=%s' % str( production )
     return S_OK( ( condition, tables ) )
 
@@ -3145,7 +3145,7 @@ and files.qualityid= dataquality.qualityid'
             cond += "j.tck='%s' or " % ( i )
           cond = cond[:-3] + ')'
           condition = " and %s " % ( cond )
-      elif isinstance( tcks, str ):
+      elif isinstance( tcks, basestring ):
         condition += " and j.tck='%s'" % ( tcks )
       else:
         return S_ERROR( 'The TCK should be a list or a string' )
@@ -3209,7 +3209,7 @@ and files.qualityid= dataquality.qualityid'
           cond += " ft.name='%s' or " % ( i )
         cond = cond[:-3] + ')'
         condition += cond
-      elif isinstance( ftype, str ):
+      elif isinstance( ftype, basestring ):
         condition += " and ft.name='%s'" % ( ftype )
       else:
         return S_ERROR( 'File type problem!' )
@@ -3223,7 +3223,7 @@ and files.qualityid= dataquality.qualityid'
     cond = None
     if isinstance( runnumbers, ( int, long ) ):
       condition = ' and j.runnumber=%s' % ( str( runnumbers ) )
-    elif isinstance( runnumbers, str ) and runnumbers.upper() != default:
+    elif isinstance( runnumbers, basestring ) and runnumbers.upper() != default:
       condition = ' and j.runnumber=%s' % ( str( runnumbers ) )
     elif isinstance( runnumbers, list ) and len( runnumbers ) > 0:
       cond = ' ( '
@@ -3237,10 +3237,10 @@ and files.qualityid= dataquality.qualityid'
       elif startRunID == None or endRunID == None:
         condition += " and %s " % ( cond )
     else:
-      if ( isinstance( startRunID, str ) and startRunID.upper() != default ) or\
+      if ( isinstance( startRunID, basestring ) and startRunID.upper() != default ) or\
          ( isinstance( startRunID, ( int, long ) ) and startRunID != None ):
         condition += ' and j.runnumber>=' + str( startRunID )
-      if ( isinstance( endRunID, str ) and endRunID.upper() != default ) or\
+      if ( isinstance( endRunID, basestring ) and endRunID.upper() != default ) or\
          ( isinstance( endRunID, ( int, long ) ) and endRunID != None ) :
         condition += ' and j.runnumber<=' + str( endRunID )
     return S_OK( ( condition, tables ) )
@@ -3259,7 +3259,7 @@ and files.qualityid= dataquality.qualityid'
           cond += " bview.eventtypeid=%s or " % ( str( i ) )
         cond = cond[:-3] + ')'
         condition += cond
-      elif isinstance( evt, ( str, int, long ) ):
+      elif isinstance( evt, ( basestring, int, long ) ):
         condition += ' bview.eventtypeid=' + str( evt )
       
     elif evt not in [0, None, default]:
@@ -3270,7 +3270,7 @@ and files.qualityid= dataquality.qualityid'
           cond += " f.eventtypeid=%s or " % ( str( i ) )
         cond = cond[:-3] + ')'
         condition += cond
-      elif isinstance( evt, ( str, int, long ) ):
+      elif isinstance( evt, (basestring, int, long ) ):
         condition += ' and f.eventtypeid=' + str( evt )
     return S_OK( ( condition, tables ) )
 
@@ -3427,7 +3427,7 @@ and files.qualityid= dataquality.qualityid'
           condition += " and ftypes.Name='%s'" % ( str( i ) )
           fcond += " and ftypes.Name='%s'" % ( str( i ) )
 
-      elif isinstance( ftype, str ):
+      elif isinstance( ftype, basestring ):
         condition += " and ftypes.Name='%s'" % ( str( ftype ) )
         fcond += " and ftypes.Name='%s'" % ( str( ftype ) )
       fcond += 'and bview.filetypeid=ftypes.filetypeid '
@@ -3438,7 +3438,7 @@ and files.qualityid= dataquality.qualityid'
         econd += " and bview.eventtypeid=%s" % ( str( i ) )
         condition += " and f.eventtypeid=%s" % ( str( i ) )
 
-      elif isinstance( evt, ( str, int, long ) ):
+      elif isinstance( evt, ( basestring, int, long ) ):
         econd += " and bview.eventtypeid='%s'" % ( str( evt ) )
         condition += " and f.eventtypeid=%s" % ( str( evt ) )
 
@@ -3449,7 +3449,7 @@ and files.qualityid= dataquality.qualityid'
           cond += "j.tck='%s' or " % ( i )
         cond = cond[:-3] + ')'
         condition = " and %s " % ( cond )
-      elif isinstance( tcks, str ):
+      elif isinstance( tcks, basestring ):
         condition += " and j.tck='%s'" % ( tcks )
       else:
         return S_ERROR( 'The TCK should be a list or a string' )
@@ -3638,7 +3638,7 @@ and files.qualityid= dataquality.qualityid'
     if quality != 'ALL':
       tables += ' ,dataquality d '
       condition += 'and d.qualityid=f.qualityid '
-      if isinstance( quality, str ):
+      if isinstance( quality, basestring ):
         command = "select QualityId from dataquality where dataqualityflag='%s'" % ( quality )
         res = self.dbR_.query( command )
         if not res['OK']:
@@ -3705,7 +3705,7 @@ and files.qualityid= dataquality.qualityid'
     """returns the data taking conditions identifier"""
     command = 'select DaqPeriodId from data_taking_conditions where '
     for param in condition:
-      if isinstance( condition[param], str ) and len( condition[param].strip() ) == 0:
+      if isinstance( condition[param], basestring ) and len( condition[param].strip() ) == 0:
         command += str( param ) + ' is NULL and '
       elif condition[param] != None:
         command += str( param ) + '=\'' + condition[param] + '\' and '
@@ -3719,7 +3719,7 @@ and files.qualityid= dataquality.qualityid'
         command = 'select DaqPeriodId from data_taking_conditions where '
         for param in condition:
           if param != 'Description':
-            if isinstance( condition[param], str ) and len( condition[param].strip() ) == 0:
+            if isinstance( condition[param], basestring ) and len( condition[param].strip() ) == 0:
               command += str( param ) + ' is NULL and '
             elif condition[param] != None:
               command += str( param ) + '=\'' + condition[param] + '\' and '
@@ -3739,7 +3739,7 @@ and files.qualityid= dataquality.qualityid'
     """return the data taking description which adequate a given conditions."""
     command = 'select description from data_taking_conditions where '
     for param in condition:
-      if isinstance( condition[param], str ) and len( condition[param].strip() ) == 0:
+      if isinstance( condition[param], basestring ) and len( condition[param].strip() ) == 0:
         command += str( param ) + ' is NULL and '
       elif condition[param] != None:
         command += str( param ) + '=\'' + condition[param] + '\' and '
@@ -3753,7 +3753,7 @@ and files.qualityid= dataquality.qualityid'
         command = 'select DaqPeriodId from data_taking_conditions where '
         for param in condition:
           if param != 'Description':
-            if isinstance( condition[param], str ) and len( condition[param].strip() ) == 0:
+            if isinstance( condition[param], basestring ) and len( condition[param].strip() ) == 0:
               command += str( param ) + ' is NULL and '
             elif condition[param] != None:
               command += str( param ) + '=\'' + condition[param] + '\' and '
@@ -4242,7 +4242,7 @@ and files.qualityid= dataquality.qualityid'
       condition += " and ftypes.name='%s' and bview.filetypeid=ftypes.filetypeid " % ( str( filetype ) )
 
     if quality != default:
-      if isinstance( quality, str ):
+      if isinstance( quality, basestring ):
         command = "select QualityId from dataquality where dataqualityflag='" + str( quality ) + "'"
         res = self.dbR_.query( command )
         if not res['OK']:
@@ -4660,7 +4660,7 @@ and files.qualityid= dataquality.qualityid'
         else:
           return retVal
 
-      if isinstance( quality, str ):
+      if isinstance( quality, basestring ):
         command = "select QualityId from dataquality where dataqualityflag='%s'" % ( quality )
         res = self.dbR_.query( command )
         if not res['OK']:
@@ -4745,7 +4745,7 @@ and files.qualityid= dataquality.qualityid'
         for item in items:
           order += 'sim.%s,' % ( item )
         condition += ' %s' % order[:-1]
-      elif isinstance( items, str ):
+      elif isinstance( items, basestring ):
         condition += ' sim.%s %s' % ( items, order )
       else:
         result = S_ERROR( 'SortItems is not properly defined!' )
