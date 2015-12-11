@@ -19,7 +19,7 @@ from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getCMTConfig, getScri
 class RunApplication(object):
   """ Encapsulate logic for running an LHCb application
   """
-  
+
   def __init__(self):
     """ c'tor - holds common variables
     """
@@ -233,8 +233,7 @@ def _multicoreWN():
   gridCE = gConfig.getValue( '/LocalSite/GridCE' )
   tags = fromChar( gConfig.getValue( '/Resources/Sites/%s/%s/CEs/%s/Tag' % ( siteName.split( '.' )[0],
                                                                              siteName, gridCE ), '' ) )
-  if 'MultiCore' in tags:
+  if 'MultiProcessor' in tags:
     return True
   else:
     return False
-
