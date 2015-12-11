@@ -134,9 +134,9 @@ optOpts = "$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
 optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
 optPConf = "prodConf_Gauss_00012345_00067890_1.py"
 options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-gaudirunJob.addPackage( 'AppConfig', 'v3r179' )
-gaudirunJob.addPackage( 'DecFiles', 'v27r14p1' )
-gaudirunJob.addPackage( 'ProdConf', 'v1r9' )
+# gaudirunJob.addPackage( 'AppConfig', 'v3r179' )
+# gaudirunJob.addPackage( 'DecFiles', 'v27r14p1' )
+# gaudirunJob.addPackage( 'ProdConf', 'v1r9' )
 gaudirunJob.setApplication( 'Gauss', 'v45r5', options, extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
                             systemConfig = 'x86_64-slc5-gcc43-opt' )
 
@@ -163,15 +163,15 @@ optOpts = "$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py;"
 optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
 optPConf = "prodConf_Gauss_00012345_00067890_1.py"
 options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-gaudirunJob.addPackage( 'AppConfig', 'v3r179' )
-gaudirunJob.addPackage( 'DecFiles', 'v27r14p1' )
-gaudirunJob.addPackage( 'ProdConf', 'v1r9' )
+# gaudirunJob.addPackage( 'AppConfig', 'v3r179' )
+# gaudirunJob.addPackage( 'DecFiles', 'v27r14p1' )
+# gaudirunJob.addPackage( 'ProdConf', 'v1r9' )
 gaudirunJob.setApplication( 'Gauss', 'v45r5', options, extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
                             systemConfig = 'x86_64-slc5-gcc43-opt' )
 
 gaudirunJob.setDIRACPlatform()
 gaudirunJob.setCPUTime( 172800 )
-gaudirunJob.setTag( ['MultiCore'] )
+gaudirunJob.setTag( ['MultiProcessor'] )
 
 result = dirac.submit( gaudirunJob )
 gLogger.info( 'Submission Result: ', result )

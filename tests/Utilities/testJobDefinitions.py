@@ -25,7 +25,7 @@ tier1s = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.NI
 
 @executeWithUserProxy
 def helloWorldTestT2s():
-  
+
   J = baseToAllJobs( 'helloWorldTestT2s', jobClass )
   J.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
@@ -302,7 +302,7 @@ def wrongJob():
 # #
 # #     gaudirunJob.setDIRACPlatform()
 # #     gaudirunJob.setCPUTime( 172800 )
-# #     gaudirunJob.setTag( ['MultiCore'] )
+# #     gaudirunJob.setTag( ['MultiProcessor'] )
 # #
 # #     result = self.dirac.submit( gaudirunJob )
 # #     gLogger.info( 'Submission Result: ', result )

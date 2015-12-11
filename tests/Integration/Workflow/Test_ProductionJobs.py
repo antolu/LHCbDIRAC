@@ -17,7 +17,7 @@ class ProductionJobTestCase( IntegrationTest ):
   """ Base class for the ProductionJob test cases
   """
   def setUp( self ):
-    super( IntegrationTest, self ).setUp()
+    super( ProductionJobTestCase, self ).setUp()
 
     self.pr = ProductionRequest()
     self.diracProduction = DiracProduction()
