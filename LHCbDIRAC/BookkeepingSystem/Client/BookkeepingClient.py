@@ -1043,12 +1043,14 @@ class BookkeepingClient( object ):
     in_dict = dict( in_dict )
     bkk = TransferClient( 'Bookkeeping/BookkeepingManager' )
     in_dict['MethodName'] = 'getFiles'
+    #params = cPickle.dumps( in_dict )
     params = JEncoder.dumps( in_dict )
     file_name = tempfile.NamedTemporaryFile()
     retVal = bkk.receiveFile( file_name.name, params )
     if not retVal['OK']:
       return retVal
     else:
+      #value = cPickle.load( open( file_name.name ) )
       value = JEncoder.load( open( file_name.name ) )
       file_name.close()
       return value
