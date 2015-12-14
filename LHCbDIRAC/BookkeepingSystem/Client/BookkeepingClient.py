@@ -12,9 +12,8 @@ in_dict = {'EventTypeId': 93000000,
          }
 """
 
-import cPickle
+#import cPickle
 import tempfile
-import simplejson
 
 from DIRAC                           import S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient      import RPCClient
