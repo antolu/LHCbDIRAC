@@ -18,7 +18,7 @@ class JSONDateTimeEncoder( json.JSONEncoder ):
     elif isinstance( obj, datetime.time ):
       return {'t': [obj.hour, obj.minute, obj.second] }
     
-    return super( json.JSONEncoder, self ).default( obj )
+    return super( JSONDateTimeEncoder, self ).default( obj )
 
 class JSONDateTimeDecoder( json.JSONDecoder ):
 
