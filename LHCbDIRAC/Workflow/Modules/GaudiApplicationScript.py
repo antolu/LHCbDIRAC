@@ -93,9 +93,9 @@ class GaudiApplicationScript( ModuleBase ):
 
       #Now obtain the project environment for execution
       if not projectEnvironment:
-        result = getProjectEnvironment( self.systemConfig,
-                                        self.applicationName,
-                                        self.applicationVersion,
+        result = getProjectEnvironment( systemConfiguration = self.systemConfig,
+                                        applicationName = self.applicationName,
+                                        applicationVersion = self.applicationVersion,
                                         poolXMLCatalogName = self.poolXMLCatName )
         if not result['OK']:
           self.log.error( 'Could not obtain project environment with result: %s' % ( result ) )
@@ -172,7 +172,7 @@ class GaudiApplicationScript( ModuleBase ):
 
       return S_OK( '%s Successful' % os.path.basename( self.script ) )
 
-    except Exception, e:
+    except Exception as e:
       self.log.exception( e )
       self.setApplicationStatus( e )
       return S_ERROR( e )

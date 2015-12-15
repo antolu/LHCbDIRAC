@@ -450,15 +450,15 @@ class SLSAgent( AgentModule ):
     # Future me, forgive me for this. TO BE Fixed.
     try:
       SpaceTokenOccupancyTest( self )
-    except Exception, e:
+    except Exception as e:
       gLogger.warn( 'SpaceTokenOccupancyTest crashed with %s' % e )
     try:
       DIRACTest( self )
-    except Exception, e:
+    except Exception as e:
       gLogger.warn( 'DIRACTest crashed with %s' % e )
     try:
       LOGSETest( self )
-    except Exception, e:
+    except Exception as e:
       gLogger.warn( 'LOGSETest crashed with %s' % e )
 
     return S_OK()

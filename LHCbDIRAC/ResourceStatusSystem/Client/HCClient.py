@@ -115,7 +115,7 @@
 #        print res
 #      return res
 #    
-#    except Exception, e:
+#    except Exception as e:
 #      return [ False, { 'type' : 'SUBMISSION', 'response' : e } ]
 #   
 #################################################################################   
@@ -143,7 +143,7 @@
 #        print res
 #      return res
 #    
-#    except Exception, e:
+#    except Exception as e:
 #      return [ False, { 'type' : 'SUBMISSION', 'response' : e } ]
 #   
 #################################################################################   
@@ -173,7 +173,7 @@
 #        print res 
 #      return res
 #    
-#    except Exception, e:
+#    except Exception as e:
 #      return [ False, { 'type':'SUBMISSION', 'response':e }]
 #    
 #################################################################################  
@@ -198,7 +198,7 @@
 #        print res
 #      return res
 #    
-#    except Exception, e:
+#    except Exception as e:
 #      return [ False, { 'type':'SUBMISSION', 'response':e }]
 #    
 #################################################################################   
@@ -233,7 +233,7 @@
 #    try:   
 #      res = self.rpc_srv.createTest( hctest.toDict() )
 #      return res
-#    except Exception, e:
+#    except Exception as e:
 #      return [ False, { 'type':'SUBMISSION', 'response':e }]
 #    
 #################################################################################

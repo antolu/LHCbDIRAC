@@ -261,7 +261,7 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
     result = dm.put( "/lhcb/monitoring/lhcb.siteWMSmonitoring.csv", fName, 'LogSE' )
     try:
       os.unlink( fName )
-    except Exception, e:
+    except Exception as e:
       self.log.error( "Can't unlink temporal file", "%s: %s" % ( fName, str(e) ) )
     return result
 

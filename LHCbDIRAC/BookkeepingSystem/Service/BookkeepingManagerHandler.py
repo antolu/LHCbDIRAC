@@ -76,7 +76,7 @@ class BookkeepingManagerHandler( RequestHandler ):
         result = S_OK( "The send bookkeeping finished successfully!" )
       else:
         result = retVal
-    except Exception, x:
+    except Exception as x:
       errorMsg = 'The following error occurred during XML processing: %s ' % str( x )
       gLogger.error( errorMsg )
       result = S_ERROR( errorMsg )

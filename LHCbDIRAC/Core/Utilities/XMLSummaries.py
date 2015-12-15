@@ -48,7 +48,7 @@ class XMLSummary( object ):
 
     try:
       self.xmlTree = summary.parse( self.xmlFileName )
-    except Exception, e:
+    except Exception as e:
       self.log.error( "Error parsing xml summary", "%s" % str( e ) )
       raise XMLSummaryError( "Error parsing xml summary" )
 

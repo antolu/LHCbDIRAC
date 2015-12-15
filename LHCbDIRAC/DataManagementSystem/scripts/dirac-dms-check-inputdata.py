@@ -222,7 +222,7 @@ if __name__ == "__main__":
       if notFoundReplicas:
         pbFound = True
         gLogger.always( '%d files not found at SE close to %s, but have other replicas' % ( len( notFoundReplicas ), site ) )
-    except Exception, e:
+    except Exception as e:
       gLogger.always( '%s' % e )
       pass
     finally:

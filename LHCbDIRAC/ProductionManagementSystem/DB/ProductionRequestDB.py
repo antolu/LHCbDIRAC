@@ -329,7 +329,7 @@ class ProductionRequestDB( DB ):
             idFilter = True
           sfilter.append( " t.%s IN %s " % ( x, val ) )
       sfilter = " AND ".join( sfilter )
-    except Exception, e:
+    except Exception as e:
       return S_ERROR( "Bad filter content " + str( e ) )
 
     if sortBy:

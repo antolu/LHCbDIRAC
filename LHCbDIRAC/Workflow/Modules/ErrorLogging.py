@@ -153,7 +153,7 @@ class ErrorLogging( ModuleBase ):
       # TODO - report to error logging service when suitable method is available
       return S_OK()
 
-    except Exception, e:
+    except Exception as e:
       self.log.exception( e )
       return S_ERROR( e )
 

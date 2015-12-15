@@ -245,7 +245,7 @@ class LHCbJob( Job ):
                         ( 'extraPackages', 'string', '', 'ExtraPackages' ),
                         ( 'SystemConfig', 'string', '', 'CMT Config' )]
 
-    
+
     step = getStepDefinition( stepName, modulesNameList = modulesNameList,
                               importLine = "LHCbDIRAC.Workflow.Modules", parametersList = parametersList )
 
@@ -734,7 +734,7 @@ class LHCbJob( Job ):
        :type OutputPath: string
     """
     #FIXME: the output data as specified here will be treated by the UserJobFinalization module
-    # If we remove this method (which is totally similar to the Job() one, the output data will be 
+    # If we remove this method (which is totally similar to the Job() one, the output data will be
     # treated by the JobWrapper. So, can and maybe should be done, but have to pay attention
     kwargs = {'lfns':lfns, 'OutputSE':OutputSE, 'OutputPath':OutputPath}
     if isinstance( lfns, list ) and len( lfns ):

@@ -795,7 +795,7 @@ class SEUsageAgent( AgentModule ):
       if x.code == 404:
         self.log.info( "%s does not exist" % url )
         return False
-    except Exception, x:
+    except Exception as x:
       if x == 'TimeOut':
         self.log.info( 'Timeout after %s seconds on transfer request for "%s"' % ( str( timeout ), url ) )
       if timeout:
@@ -819,7 +819,7 @@ class SEUsageAgent( AgentModule ):
       if not self.urlretrieveTimeout( "%s/%s" % ( originURL, tarName ), tarPath, 300 ):
         self.log.error( "Cannot download %s" % tarName )
         return S_ERROR( "Cannot download file" )
-    except Exception, e:
+    except Exception as e:
       self.log.error( "Cannot download %s: %s" % ( tarName, str( e ) ) )
       return S_ERROR( "Cannot download file" )
     # check if the file has to be uncompressed
@@ -832,7 +832,7 @@ class SEUsageAgent( AgentModule ):
     os.chdir( targetPath )
     try:
       tf = tarfile.open( tarPath, "r" )
-    except Exception, e:
+    except Exception as e:
       self.log.error( "Cannot open file %s: %s" % ( tarPath, str( e ) ) )
       return S_ERROR( "Cannot open file" )
     for member in tf.getmembers():
@@ -853,7 +853,7 @@ class SEUsageAgent( AgentModule ):
         if not self.urlretrieveTimeout( "%s/%s" % ( originURL, fileName ), destinationPath, 300 ):
           self.log.error( "Cannot download %s" % fileName )
           return False
-      except Exception, e:
+      except Exception as e:
         self.log.error( "Cannot download %s: %s" % ( fileName, str( e ) ) )
         return False
     return True

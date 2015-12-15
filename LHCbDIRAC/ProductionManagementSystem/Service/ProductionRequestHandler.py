@@ -202,7 +202,7 @@ class ProductionRequestHandler( RequestHandler ):
       f = open( os.path.join( tplFolder, name ) )
       body = f.read()
       f.close()
-    except Exception, e:
+    except Exception as e:
       return S_ERROR( "Can't read template (%s)" % str( e ) )
     return S_OK( body )
 

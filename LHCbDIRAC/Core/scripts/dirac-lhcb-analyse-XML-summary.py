@@ -34,7 +34,7 @@ for switch in Script.getUnprocessedSwitches():
 exitCode = 0
 try:
   analyseXMLSummary( logFile, projectName )
-except Exception, x:
+except Exception as x:
   gLogger.exception( 'XML summary analysis failed with exception: "%s"' % x )
   exitCode = 2
   DIRAC.exit( exitCode )

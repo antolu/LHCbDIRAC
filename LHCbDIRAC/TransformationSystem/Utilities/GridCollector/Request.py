@@ -64,7 +64,7 @@ class Request( object ):
           if lfn is None or pos is None or len( pos ) == 0:
             self.details += "\ninvalid req record: %s" % lfn
             rv = False
-      except Exception, e:
+      except Exception as e:
         self.details += "\n%s" % e
         rv = False
     if not rv:

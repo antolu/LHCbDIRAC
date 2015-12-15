@@ -70,7 +70,7 @@ class LHCbOnlineStorage( StorageBase ):
           errStr = "LHCbOnline.requestRetransfer: Failed to request file from RunDB: %s" % error
           failed[pfn] = errStr
           gLogger.error( errStr, pfn )
-      except Exception, x:
+      except Exception as x:
         errStr = "LHCbOnline.requestRetransfer: Exception while requesting file from RunDB."
         gLogger.exception( errStr, lException = x )
         failed[pfn] = errStr
@@ -98,7 +98,7 @@ class LHCbOnlineStorage( StorageBase ):
           errStr = "LHCbOnline.getFile: Failed to issue removal to RunDB: %s" % error
           failed[pfn] = errStr
           gLogger.error( errStr, pfn )
-      except Exception, x:
+      except Exception as x:
         errStr = "LHCbOnline.getFile: Exception while issuing removal to RunDB."
         gLogger.exception( errStr, lException = x )
         failed[pfn] = errStr

@@ -32,7 +32,7 @@ if len( args ) < 1:
 if prodID:
   try:
     prodID = int( prodID )
-  except Exception, x:
+  except Exception as x:
     print 'ERROR ProductionID should be an integer'
     DIRAC.exit( 2 )
 

@@ -174,7 +174,7 @@ class RootApplication( ModuleBase ):
       self.setApplicationStatus( '%s (Root) Successful' % self.rootScript )
       return S_OK()
 
-    except Exception, e:
+    except Exception as e:
       self.log.exception( e )
       return S_ERROR( e )
 

@@ -958,7 +958,7 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
   for paramValue in paramValues:
     try:
       ancestors.setdefault( pluginUtil.getRAWAncestorsForRun( runID, param, paramValue ), [] ).append( paramValue )
-    except Exception, e:
+    except Exception as e:
       print "Exception calling pluginUtilities:", e
   prStr = ''
   for anc in sorted( ancestors ):

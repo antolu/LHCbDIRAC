@@ -324,7 +324,7 @@ class RunDBInterfaceHandler( RequestHandler ):
           states.append( runStates[runStat] )
       paramDict['State'] = states
       return S_OK( paramDict )
-    except Exception, x:
+    except Exception as x:
       errStr = "RunDBInterfaceHandler.getSelections: Exception while obtaining possible run configurations."
       gLogger.exception( errStr, '', x )
       return S_ERROR( "%s %s" % ( errStr, x ) )

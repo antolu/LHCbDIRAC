@@ -226,7 +226,7 @@ class ProtocolAccessTest( ModuleBase ):
 
       return S_OK()
 
-    except Exception, e:
+    except Exception as e:
       self.log.exception( e )
       return S_ERROR( e )
 

@@ -59,7 +59,7 @@ class JobInfoFromXML( object ):
 
     try:
       xml = open( 'InputSandbox%s/jobDescription.xml' % job ).read()
-    except Exception, x:
+    except Exception as x:
       self.message = 'Can not read XML file: %s' % x
       return
     shutil.rmtree( 'InputSandbox%s' % job )

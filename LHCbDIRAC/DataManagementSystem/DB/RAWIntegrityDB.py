@@ -101,7 +101,7 @@ class RAWIntegrityDB( DB ):
           fileDict[lfn] = {'PFN':pfn, 'Size':size, 'SE':se, 'GUID':guid, 'Checksum':checksum, 'WaitTime':waittime}
         gLogger.info( "RAWIntegrityDB.getActiveFiles: Obtained %s files awaiting migration from database." % len( fileDict.keys() ) )
         return S_OK( fileDict )
-    except Exception, x:
+    except Exception as x:
       errStr = "RAWIntegrityDB.getActiveFiles: Exception while getting files from database."
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
@@ -119,7 +119,7 @@ class RAWIntegrityDB( DB ):
       else:
         gLogger.info( "RAWIntegrityDB.setFileStatus: Successfully updated file status." )
       return res
-    except Exception, x:
+    except Exception as x:
       errStr = "RAWIntegrityDB.setFileStatus: Exception while updating file status."
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
@@ -138,7 +138,7 @@ class RAWIntegrityDB( DB ):
       else:
         gLogger.info( "RAWIntegrityDB.addFile: Successfully added file." )
       return res
-    except Exception, x:
+    except Exception as x:
       errStr = "RAWIntegrityDB.addFile: Exception while updating file status."
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
@@ -156,7 +156,7 @@ class RAWIntegrityDB( DB ):
       else:
         gLogger.info( "RAWIntegrityDB.setLastMonitorTime: Successfully updated migration marker." )
       return res
-    except Exception, x:
+    except Exception as x:
       errStr = "RAWIntegrityDB.setLastMonitorTime: Exception while updating migration marker."
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
@@ -176,7 +176,7 @@ class RAWIntegrityDB( DB ):
         gLogger.info( "RAWIntegrityDB.getLastMonitorTimeDiff: Successfully obtained migration marker." )
         timediff = res['Value'][0][0]
         return S_OK( timediff )
-    except Exception, x:
+    except Exception as x:
       errStr = "RAWIntegrityDB.getLastMonitorTimeDiff: Exception while getting migration marker."
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )

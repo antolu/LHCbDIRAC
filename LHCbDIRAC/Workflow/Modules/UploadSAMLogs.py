@@ -140,7 +140,7 @@ class UploadSAMLogs( ModuleBase ):
 
       return S_OK( 'Logs uploaded' )
 
-    except Exception, e:
+    except Exception as e:
       self.log.exception( e )
       return S_ERROR( e )
 

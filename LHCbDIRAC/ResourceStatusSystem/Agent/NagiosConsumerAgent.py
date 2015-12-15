@@ -192,7 +192,7 @@
 #
 #      return S_OK()
 #
-#    except Exception, e:
+#    except Exception as e:
 #      errorStr = where( self, self.execute )
 #      self.log.exception( errorStr, lException = e )
 #      return S_ERROR( errorStr )
@@ -217,7 +217,7 @@
 #      # the connection is closed.
 #      return self.execute()
 #
-#    except Exception, e:
+#    except Exception as e:
 #      #It may fail because it crashed on initialization
 #      self.log.error( "Failed %s" % e )
 #      return S_OK()

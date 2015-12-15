@@ -80,7 +80,7 @@ class RemoveInputData( ModuleBase ):
 
       return S_OK( 'Input Data Removed' )
 
-    except Exception, e:
+    except Exception as e:
       self.log.exception( e )
       return S_ERROR( e )
 

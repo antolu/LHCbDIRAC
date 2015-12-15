@@ -136,7 +136,7 @@ class TargzJobLogAgent( AgentModule ):
             indexHTML.write( lines )
             indexHTML.close()
             numberOfTared += 1
-          except Exception, x:
+          except Exception as x:
             self.log.warn( "Exception during taring %s " % x, "Production %s, Job %s" % ( prod, job ) )
             numberOfFailed += 1
 

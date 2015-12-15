@@ -80,7 +80,7 @@ class CVMFSCheck( ModuleBase ):
       self.log.info( 'CVMFS is present' )
       return S_OK( 'CVMFS is present' )
 
-    except Exception, e:
+    except Exception as e:
       self.workflow_commons.setdefault( 'SAMResults', {})[ 'CVMFS' ] = 'CRITICAL'
       self.workflow_commons.setdefault( 'SAMDetails', {})[ 'CVMFS' ] = e 
       self.log.exception( e )

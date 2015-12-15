@@ -31,7 +31,7 @@ if __name__ == "__main__":
             runRange = run.split( ':' )
             if len( runRange ) == 2 and runRange[0].isdigit() and runRange[1].isdigit():
               runList += xrange( int( runRange[0] ), int( runRange[1] ) + 1 )
-      except Exception, x:
+      except Exception as x:
         gLogger.exception( 'Bad run parameter', lException = x )
 
   if len( args ) != 1:

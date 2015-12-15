@@ -103,7 +103,7 @@ class MergeMDF( ModuleBase ):
 
       return S_OK( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
 
-    except Exception, e:
+    except Exception as e:
       self.log.exception( e )
       self.setApplicationStatus( e )
       return S_ERROR( e )

@@ -43,7 +43,7 @@ class RAWIntegrityHandler( RequestHandler ):
       gLogger.info( "RAWIntegrityHandler.addFile: Attempting to add %s to the gRAWIntegrityDB." % lfn )
       res = gRAWIntegrityDB.addFile( lfn, pfn, size, se, guid, checksum )
       return res
-    except Exception, x:
+    except Exception as x:
       errStr = "RAWIntegrityHandler.addFile: Exception while adding file to gRAWIntegrityDB."
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
@@ -60,7 +60,7 @@ class RAWIntegrityHandler( RequestHandler ):
       else:
         gLogger.info( "getGlobalStatistics: Obtained global statistics" )
       return res
-    except Exception, x:
+    except Exception as x:
       errStr = "getGlobalStatistics: Exception while getting global statistics."
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
@@ -78,7 +78,7 @@ class RAWIntegrityHandler( RequestHandler ):
       else:
         gLogger.info( "getFileSelections: Obtained file selections" )
       return res
-    except Exception, x:
+    except Exception as x:
       errStr = "getFileSelections: Exception while getting file selections."
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )

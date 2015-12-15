@@ -78,7 +78,7 @@ class SendBookkeeping( ModuleBase ):
 
       return S_OK( 'SendBookkeeping Module Execution Complete' )
 
-    except Exception, e:
+    except Exception as e:
       self.log.exception( e )
       return S_ERROR( e )
 

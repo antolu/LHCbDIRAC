@@ -76,7 +76,7 @@ class AncestorFilesAgent( OptimizerModule ):
     start = time.time()
     try:
       result = self.bk.getFileAncestors( inputData, ancestorDepth, replica = True )
-    except Exception, x:
+    except Exception as x:
       self.log.warn( 'getFileAncestors failed with exception:\n%s' % x )
       return S_ERROR( 'getFileAncestors failed with exception' )
 

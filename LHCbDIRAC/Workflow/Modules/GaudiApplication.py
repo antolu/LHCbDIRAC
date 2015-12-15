@@ -274,7 +274,7 @@ class GaudiApplication( ModuleBase ):
 
       return S_OK( "%s %s Successful" % ( self.applicationName, self.applicationVersion ) )
 
-    except Exception, e:
+    except Exception as e:
       exceptionString = "Exception: %s %s %s." % ( self.applicationName, self.applicationVersion, e )
       if self.jobType.lower() == 'sam':
         self.workflow_commons.setdefault( 'SAMResults', {} )[self.applicationName] = 'CRITICAL'

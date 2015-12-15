@@ -203,7 +203,7 @@ def execute():
           gLogger.always( "==> You must add %s to your list of options file" % catOption )
     else:
       gLogger.always( "Error getting the list of PFNs:", result['Message'] )
-  except Exception, e:
+  except Exception as e:
     gLogger.exception( "Exception caught while creating catalog or option file:", '', e )
     rc = 1
 

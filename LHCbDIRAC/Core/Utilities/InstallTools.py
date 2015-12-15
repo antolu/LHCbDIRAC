@@ -30,7 +30,7 @@ def startService( service ):
 
   try:
     result = subprocess.call( command, shell = True )
-  except Exception, e:
+  except Exception as e:
     return S_ERROR( e )
 
   if result == 0:
@@ -53,7 +53,7 @@ def stopService( service ):
 
   try:
     result = subprocess.call( command, shell = True )
-  except Exception, e:
+  except Exception as e:
     return S_ERROR( e )
 
   if result == 0:
@@ -76,7 +76,7 @@ def restartService( service ):
 
   try:
     result = subprocess.call( command, shell = True )
-  except Exception, e:
+  except Exception as e:
     return S_ERROR( e )
 
   if result == 0:
@@ -99,7 +99,7 @@ def statusService( service ):
 
   try:
     result = subprocess.call( command, shell = True )
-  except Exception, e:
+  except Exception as e:
     return S_ERROR( e )
 
   if result == 0:

@@ -81,7 +81,7 @@ class FileUsage( ModuleBase ):
 
       return S_OK( 'File Usage reported successfully' )
 
-    except Exception, e:
+    except Exception as e:
       self.log.exception( e )
       return S_ERROR( e )
 

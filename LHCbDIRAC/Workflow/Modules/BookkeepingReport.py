@@ -89,7 +89,7 @@ class BookkeepingReport( ModuleBase ):
 
       return S_OK()
 
-    except Exception, e:
+    except Exception as e:
       self.log.exception( e )
       return S_ERROR( e )
 
@@ -570,7 +570,7 @@ class BookkeepingReport( ModuleBase ):
       info = memInfo.readlines()
       memInfo.close()
       result["Memory(kB)"] = info[3].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
-    except Exception, x:
+    except Exception as x:
       self.log.fatal( 'BookkeepingReport failed to obtain node information with Exception:' )
       self.log.fatal( str( x ) )
       result = S_ERROR()

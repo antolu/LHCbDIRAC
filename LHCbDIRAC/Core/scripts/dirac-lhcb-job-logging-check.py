@@ -180,7 +180,7 @@ for jobID in jobIDs:
 
     if verbose:
       print jobID, node, logging[0], logging[1], eff, memory
-  except Exception, e:
+  except Exception as e:
     print e
 
 print

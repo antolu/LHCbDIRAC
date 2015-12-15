@@ -23,7 +23,7 @@ class RAWIntegrityClient( Client ):
       self.setServer( url )
       self.valid = True
       self.rawIntegritySrv = self._getRPC()
-    except Exception, x:
+    except Exception as x:
       errStr = "RAWIntegrityClient.__init__: Exception while generating server url."
       gLogger.exception( errStr, lException = x )
       self.valid = False

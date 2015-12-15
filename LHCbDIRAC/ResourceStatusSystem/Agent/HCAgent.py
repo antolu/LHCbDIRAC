@@ -90,7 +90,7 @@
 #        
 #      return S_OK()
 #
-#    except Exception, x:
+#    except Exception as x:
 #      self.log.error( "HCAgent initialization crash" )
 #      errorStr = where( self, self.initialize )
 #      self.log.exception( errorStr, lException = x )
@@ -118,7 +118,7 @@
 #      
 #      return self.mode.run()
 #                
-#    except Exception, x:
+#    except Exception as x:
 #      self.log.error( "HCAgent execution crash" )
 #      errorStr = where( self, self.execute )
 #      self.log.exception( errorStr, lException = x )

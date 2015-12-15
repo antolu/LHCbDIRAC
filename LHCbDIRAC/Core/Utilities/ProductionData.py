@@ -115,7 +115,7 @@ def constructProductionLFNs( paramDict, bkClient = None, quick = True ):
                   'DebugLFNs':debugLFNs}
     return S_OK( jobOutputs )
 
-  except Exception, e:
+  except Exception as e:
     gLogger.exception( str( e ) )
     return S_ERROR( e )
 
@@ -166,7 +166,7 @@ def getLogPath( paramDict, bkClient = None, quick = True ):
     gLogger.verbose( 'Log target path is:\n%s' % logTargetPath )
     jobOutputs = {'LogFilePath':logFilePath, 'LogTargetPath':logTargetPath}
     return S_OK( jobOutputs )
-  except Exception, e:
+  except Exception as e:
     return S_ERROR( e )
 
 #############################################################################
@@ -246,7 +246,7 @@ def preSubmissionLFNs( jobCommons, jobCode, productionID = '1', jobID = '2' ):
     if not result['OK']:
       gLogger.error( result )
     return result
-  except Exception, e:
+  except Exception as e:
     return S_ERROR( e )
 
 #############################################################################
