@@ -202,8 +202,8 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
                            transID = transID )
           else:
             _printFailed = [self._logWarn( "Failed to add %s to transformation\
-            " % lfn, error, transID = transID ) for ( lfn, error ) in result['Value']['Failed'].items()]
-            addedLfns = [lfn for ( lfn, status ) in result['Value']['Successful'].items() if status == 'Added']
+            " % lfn, error, transID = transID ) for ( lfn, error ) in result['Value']['Failed'].iteritems()]
+            addedLfns = [lfn for ( lfn, status ) in result['Value']['Successful'].iteritems() if status == 'Added']
             # There is no need to add the run information for a removal transformation
             if addedLfns and transType != 'Removal' and transPlugin not in self.pluginsWithNoRunInfo:
               self._logInfo( "Added %d files to transformation, now including run information"
@@ -216,11 +216,11 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
                                  res['Message'],
                                  transID = transID )
               else:
-                for lfn, metadata in res['Value']['Successful'].items():
+                for lfn, metadata in res['Value']['Successful'].iteritems():
                   runID = metadata.get( 'RunNumber', None )
                   if runID:
                     runDict.setdefault( int( runID ), [] ).append( lfn )
-              for runID, lfns in runDict.items():
+              for runID, lfns in runDict.iteritems():
                 lfns = [lfn for lfn in lfns if lfn in addedLfns]
                 if lfns:
                   self._logVerbose( "Associating %d files to run %d" % ( len( lfns ), runID ), transID = transID )
@@ -237,7 +237,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
               continue
 
       except Exception as x:
-        gLogger.exception( '[%s] %s._execute %s' % ( str( transID ), AGENT_NAME, x ) )
+        gLogger.exception( '[%s] %s._execute %s' % ( str( transID ), AGENT_NAME, x), lException = x )
       finally:
         self._logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID = transID )
         if transID in self.bkQueriesInCheck:
@@ -296,7 +296,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
       if not res['OK']:
         raise RuntimeError( res['Message'] )
       else:
-        for run, runMeta in res['Value'].items():
+        for run, runMeta in res['Value'].iteritems():
           res = self.transClient.addRunsMetadata( run, runMeta )
           if not res['OK']:
             raise RuntimeError( res['Message'] )
