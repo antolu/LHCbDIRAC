@@ -95,6 +95,7 @@ if __name__ == "__main__":
   requestID = pluginScript.getOption( 'RequestID' )
   fileType = pluginScript.getOption( 'FileType' )
   pluginParams = pluginScript.getPluginParameters()
+  pluginSEParams = pluginScript.getPluginSEParameters()
   requestedLFNs = pluginScript.getOption( 'LFNs' )
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
@@ -233,15 +234,18 @@ if __name__ == "__main__":
         transBody = "removal;RemoveReplica"
       transformation.setBody( transBody )
 
+    if pluginSEParams:
+      for key, val in pluginSEParams.items():
+        res = transformation.setSEParam( key, val )
+        if not res['OK']:
+          gLogger.error( 'Error setting SE parameter', res['Message'] )
+          DIRAC.exit( 1 )
     if pluginParams:
       for key, val in pluginParams.items():
-        if key.endswith( "SE" ) or key.endswith( "SEs" ):
-          res = transformation.setSEParam( key, val )
-        else:
-          res = transformation.setAdditionalParam( key, val )
+        res = transformation.setAdditionalParam( key, val )
         if not res['OK']:
           gLogger.error( 'Error setting additional parameter', res['Message'] )
-          continue
+          DIRAC.exit( 1 )
 
     transformation.setPlugin( plugin )
 
