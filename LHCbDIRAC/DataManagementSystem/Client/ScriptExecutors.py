@@ -639,22 +639,29 @@ def executeLfnReplicas( dmScript ):
   lfnList, _ses = parseArguments( dmScript )
 
   active = True
+  preferDisk = False
+  diskOnly = False
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
     if switch[0] in ( "a", "All" ):
       active = False
+    if switch[0] == 'DiskOnly':
+      diskOnly = True
+    if switch[0] == 'PreferDisk':
+      preferDisk = True
 
   if not lfnList:
     gLogger.fatal( "No LFNs supplies" )
     Script.showHelp()
     DIRACExit( 1 )
-  printLfnReplicas( lfnList, active )
+  printLfnReplicas( lfnList, active, diskOnly, preferDisk )
 
-def printLfnReplicas( lfnList, active = True ):
+def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = False ):
   dm = DataManager()
   fc = FileCatalog()
   while True:
-    res = dm.getActiveReplicas( lfnList ) if active else dm.getReplicas( lfnList )
+    dmMethod = dm.getActiveReplicas if active else dm.getReplicas
+    res = dmMethod( lfnList, diskOnly = diskOnly, preferDisk = preferDisk )
     if not res['OK']:
       break
     if active and not res['Value']['Successful'] and not res['Value']['Failed']:
@@ -680,7 +687,7 @@ def printLfnReplicas( lfnList, active = True ):
   # DIRACExit( printDMResult( dirac.getReplicas( lfnList, active=active, printOutput=False ),
   #                           empty="No allowed SE found", script="dirac-dms-lfn-replicas" ) )
   DIRACExit( printDMResult( res,
-                             empty = "No %sreplica found" % ( 'allowed ' if active else '' ), script = "dirac-dms-lfn-replicas" ) )
+                             empty = "No %sreplica found" % ( 'active disk ' if diskOnly else 'allowed ' if active else '' ), script = "dirac-dms-lfn-replicas" ) )
 
 def executePfnMetadata( dmScript ):
 
