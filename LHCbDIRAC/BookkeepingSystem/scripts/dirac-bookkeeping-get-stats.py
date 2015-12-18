@@ -8,7 +8,8 @@ __RCSID__ = "$Id: dirac-bookkeeping-get-stats.py 69357 2013-08-08 13:33:31Z phic
 import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC import gLogger
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, ProgressBar
+from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 def intWithQuotes( val, quote = "'" ):
   chunks = []
@@ -179,25 +180,30 @@ def execute():
           except Exception as e:
             gLogger.exception( 'Exception for %s' % str( metadata.keys() ), e )
       if lfns:
-        res = bk.getFileMetadata( lfns )
-        if res['OK']:
-          for lfn, metadata in res['Value']['Successful'].items():
-            datasets.add( ( metadata['EventType'], metadata['FileType'] ) )
-            try:
-              nbEvents += metadata['EventStat']
-              fileSize += metadata['FileSize']
-              lumi += metadata['Luminosity']
-              run = metadata['RunNumber']
-              runList.setdefault( run, [ 0, 0, 0 ] )
-              runList[run][0] += metadata['Luminosity']
-              runList[run][1] += metadata['EventStat']
-              runList[run][2] += metadata['FileSize']
-              nbFiles += 1
-            except Exception as e:
-              gLogger.exception( 'Exception for %s' % lfn, str( metadata.keys() ), e )
-        else:
-          print "Error getting files metadata:", res['Message']
-          continue
+        lfnChunks = breakListIntoChunk( lfns, 1000 )
+        progressBar = ProgressBar( len( lfns ), title = "Get metadata from BK", chunk = 1000 )
+        for lfnChunk in lfnChunks:
+          progressBar.loop()
+          res = bk.getFileMetadata( lfnChunk )
+          if res['OK']:
+            for lfn, metadata in res['Value']['Successful'].items():
+              datasets.add( ( metadata['EventType'], metadata['FileType'] ) )
+              try:
+                nbEvents += metadata['EventStat']
+                fileSize += metadata['FileSize']
+                lumi += metadata['Luminosity']
+                run = metadata['RunNumber']
+                runList.setdefault( run, [ 0, 0, 0 ] )
+                runList[run][0] += metadata['Luminosity']
+                runList[run][1] += metadata['EventStat']
+                runList[run][2] += metadata['FileSize']
+                nbFiles += 1
+              except Exception as e:
+                gLogger.exception( 'Exception for %s' % lfn, str( metadata.keys() ), e )
+          else:
+            print "Error getting files metadata:", res['Message']
+            continue
+        progressBar.endLoop()
       records = [nbFiles, nbEvents, fileSize, lumi,
                  nbEvents / float( lumi ) if lumi else 0.,
                  fileSize / float( lumi ) if lumi else 0.]
