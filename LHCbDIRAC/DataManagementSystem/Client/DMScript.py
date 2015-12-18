@@ -61,6 +61,59 @@ def printDMResult( result, shift = 4, empty = "Empty directory", script = None, 
     gLogger.notice( result )
     return 2
 
+class ProgressBar( object ):
+  def __init__( self, items, width = None, title = None, chunk = None, step = None ):
+    if title is None:
+      title = ''
+    else:
+      title += ' '
+    if width is None:
+      width = 50
+    if chunk is None:
+      chunk = 1
+    if step is None:
+      step = 1
+    self._step = step
+    self._width = width
+    self._loopNumber = 0
+    self._itemCounter = 0
+    self._items = items
+    self._chunk = chunk
+    self._startTime = time.time()
+    self._progress = 0
+    self._showBar = bool( items > chunk ) and bool( items > step )
+    if self._showBar:
+      sys.stdout.write( "%s[%s]%s" % ( title, width * ' ', ( width + 1 ) * '\b' ) )
+    else:
+      sys.stdout.write( title )
+    sys.stdout.flush()
+  def loop( self ):
+    showBar = self._showBar and ( self._loopNumber % self._step ) == 0
+    self._loopNumber += 1
+    self._itemCounter += self._chunk
+    if showBar:
+      fraction = min( float( self._itemCounter ) / float( self._items ), 1. )
+      progress = int( round( self._width * fraction ) )
+      sys.stdout.write( "%s%s] %5.1f%%%s" % ( ( progress - self._progress ) * '#' if progress != self._progress else '',
+                                              ( self._width - progress ) * ' ',
+                                              100. * fraction,
+                                              ( self._width + 8 - progress ) * '\b' ) )
+      self._progress = progress
+      sys.stdout.flush()
+  def endLoop( self, message = None, timing = True ):
+    if message is None:
+      message = 'completed'
+    if self._showBar:
+      sys.stdout.write( "%s] %s%s" % ( ( self._width - self._progress ) * '#',
+                                       ( self._width + 3 ) * '\b' + '\033[K',
+                                       message ) )
+    if timing:
+      if not self._showBar:
+        sys.stdout.write( ': %s' % message )
+      sys.stdout.write( ' in %.1f seconds' % ( time.time() - self._startTime ) )
+    sys.stdout.write( '\n' )
+    sys.stdout.flush()
+
 class WithDots( object ):
   """
   WithDots class allows to print a message and a series of dots that are erased every 'chunk' times the loop() method is called.
@@ -72,7 +125,7 @@ class WithDots( object ):
     else:
       title += ' '
     if chunk is None:
-      chunk = 10
+      chunk = 1
     if mindots is None:
       mindots = 0
     self._chunk = chunk
@@ -81,11 +134,15 @@ class WithDots( object ):
     self._writeDots = bool( ndots > mindots )
     if self._writeDots:
       sys.stdout.write( '%s%s' % ( title, ndots * '.' ) )
-    self._loopNumber = 0
+      sys.stdout.flush()
+    elif title:
+      gLogger.notice( title )
+    self._loopNumber = self._chunk
   def loop( self ):
     if self._writeDots:
-      if self._loopNumber % self._chunk == 0:
-        sys.stdout.write( '\b \b' )
+      if self._loopNumber == self._chunk:
+        self._loopNumber = 0
+        sys.stdout.write( '\b\033[K' )
         sys.stdout.flush()
       self._loopNumber += 1
   def endLoop( self, timing = True ):
