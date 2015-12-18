@@ -17,6 +17,8 @@ if __name__ == "__main__":
   dmScript = DMScript()
   dmScript.registerFileSwitches()
   Script.registerSwitch( 'a', "All", "  Also show inactive replicas" )
+  Script.registerSwitch( '', 'DiskOnly', '  Show only disk replicas' )
+  Script.registerSwitch( '', 'PreferDisk', "  If disk replica, don't show tape replicas" )
 
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
