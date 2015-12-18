@@ -171,7 +171,7 @@ if __name__ == '__main__':
                       '\n'.join( [''] + lfns[0:nMax] ) )
       if not fp:
         fp = open( fileName, 'w' )
-      fp.write( '\nProcMultDesc '.join( ['%s: %s' % ( lfn, str( multi ) ) \
+      fp.write( '\nProcMultDesc '.join( [''] + ['%s: %s' % ( lfn, str( multi ) ) \
                                         for lfn, multi in cc.prcdWithMultDesc.items()] ) )
       gLogger.always( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
