@@ -28,7 +28,8 @@ def __getLfnsFromFile( optFiles, gaudiVerbose ):
 
   if  os.system( "which gaudirun.py &>/dev/null" ) != 0:
     gLogger.info( "SetupProject LHCb for getting environment" )
-    rc = os.system( ". SetupProject.sh LHCb --no-user &>/dev/null;" + gaudiRun )
+    command = ". SetupProject.sh LHCb --no-user" + ( " &>/dev/null;" if not gaudiVerbose else ' ;' ) + gaudiRun
+    rc = os.system( command )
   else:
       rc = os.system( gaudiRun )
   if rc:
@@ -168,6 +169,7 @@ def execute():
     gLogger.info( "Catalog file:", catalog )
     result = Dirac().getInputDataCatalog( lfnList, site, catalog, ignoreMissing = ignore )
     if result["OK"]:
+      result = result['Value']
       if result['Failed']:
         gLogger.always( 'Only a fraction of the input files are present and available at %s (%d missing)' % ( site, len( result['Failed'] ) ) )
       if not result['Successful']:
@@ -203,7 +205,7 @@ def execute():
           gLogger.always( "==> You must add %s to your list of options file" % catOption )
     else:
       gLogger.always( "Error getting the list of PFNs:", result['Message'] )
-  except Exception as e:
+  except Exception, e:
     gLogger.exception( "Exception caught while creating catalog or option file:", '', e )
     rc = 1
 
