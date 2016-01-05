@@ -44,7 +44,7 @@ if res['OK']:
 
   steps = val['Steps']
 
-  if type( steps ) == types.StringType:
+  if isinstance( steps, basestring ):
     print steps
   else:
 
