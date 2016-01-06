@@ -7,8 +7,7 @@
     .. module: StorageUsageDB
     :synopsis: StorageUsageDB class is a front-end to the Storage Usage Database.
 """
-# # imports
-from types import StringType, IntType
+
 # # from DIRAC
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Base.DB import DB
@@ -930,7 +929,7 @@ class StorageUsageDB( DB ):
       sqlPath = self._escapeString( d )[ 'Value' ]
       sqlStatus = self._escapeString( status )[ 'Value' ]
       sqlSite = self._escapeString( site )[ 'Value' ]
-      if type( count ) != IntType:
+      if not isinstance( count, int ):
         self.log.warn( "in sendDataUsageReport: type is not correct %s" % count )
         continue
       # by default, insert the record with the current time, unless the input directoryDict specifies the creation time
@@ -952,7 +951,7 @@ class StorageUsageDB( DB ):
     """
     if startTime > endTime:
       return S_OK()
-    if type( startTime ) != StringType or type( endTime ) != StringType:
+    if not isinstance( startTime, basestring )  or not isinstance( endTime, basestring ):
       return S_ERROR( 'wrong arguments format' )
 
     sqlStartTime = self._escapeString( startTime )[ 'Value' ]

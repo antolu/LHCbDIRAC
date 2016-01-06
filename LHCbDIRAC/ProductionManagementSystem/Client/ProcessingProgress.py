@@ -285,7 +285,7 @@ class ProcessingProgress( object ):
       if prodBKDict:
         recoRunRanges[prod] = [prodBKDict.get( "StartRun", 0 ), prodBKDict.get( "EndRun", sys.maxint )]
         dqFlags = prodBKDict.get( "DataQualityFlag", ['UNCHECKED', 'EXPRESS_OK', 'OK'] )
-        if type( dqFlags ) == type( '' ):
+        if isinstance( dqFlags, basestring ):
           dqFlags = dqFlags.split( ',' )
         recoDQFlags += [fl for fl in dqFlags if fl not in recoDQFlags]
       else:
@@ -618,7 +618,7 @@ class ProcessingProgress( object ):
     cached = self.cachedInfo.get( bkStr, {} )
     cachedTime = cached.get( 'Time', None )
     cachedLfns = cached.get( 'Lfns', {} )
-    if type( fileType ) == type( '' ):
+    if isinstance( fileType, basestring ):
       fileType = [fileType]
     if set( fileType ).intersection( set( self.clearCache ) ):
       cachedTime = datetime.datetime.utcnow() - datetime.timedelta( days = 8 )

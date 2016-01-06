@@ -48,9 +48,9 @@ class BKQuery():
     self.__alreadyWarned = False
     if isinstance( bkQuery, BKQuery ):
       bkQueryDict = bkQuery.getQueryDict().copy()
-    elif type( bkQuery ) == type( {} ):
+    elif isinstance( bkQuery, dict ):
       bkQueryDict = bkQuery.copy()
-    elif type( bkQuery ) == type( '' ):
+    elif isinstance( bkQuery, basestring ):
       bkPath = bkQuery
     bkQueryDict = self.buildBKQuery( bkPath, bkQueryDict = bkQueryDict,
                                      prods = prods, runs = runs,
@@ -180,11 +180,11 @@ class BKQuery():
     runs = bkQuery.get( "Runs", runs )
     bkQuery.pop( 'Runs', None )
     if runs:
-      if type( runs ) == type( '' ):
+      if isinstance( runs, basestring ):
         runs = runs.split( ',' )
-      elif type( runs ) == type( {} ):
+      elif isinstance( runs, dict ):
         runs = runs.keys()
-      elif type( runs ) == type( 0 ):
+      elif isinstance( runs, int ):
         runs = [str( runs )]
       if len( runs ) > 1:
         runList = []
@@ -242,7 +242,7 @@ class BKQuery():
 
     # Remove all "ALL"'s in the dict, if any
     for i in self.__bkQueryDict:
-      if type( bkQuery[i] ) == type( '' ) and bkQuery[i] == 'ALL':
+      if isinstance( bkQuery[i], basestring ) and bkQuery[i] == 'ALL':
         bkQuery.pop( i )
 
     # If there is only one production, make it faster with a single value rather than a list
@@ -285,7 +285,7 @@ class BKQuery():
     # There are two items in the dictionary: ConditionDescription and Simulation/DataTaking-Conditions
     eventType = self.__bkQueryDict.get( 'EventType', 'ALL' )
     if self.__bkQueryDict.get( 'ConfigName' ) == 'MC' or \
-    ( type( eventType ) == type( '' ) and eventType.upper() != 'ALL' and \
+    ( isinstance( eventType, basestring ) and eventType.upper() != 'ALL' and \
       eventType[0] != '9' ):
       conditionsKey = 'SimulationConditions'
     else:
@@ -302,9 +302,9 @@ class BKQuery():
     """
     Sets the data quality.
     """
-    if type( dqFlag ) == type( '' ):
+    if isinstance( dqFlag, basestring ):
       dqFlag = dqFlag.upper()
-    elif type( dqFlag ) == type( [] ):
+    elif isinstance( dqFlag, list ):
       dqFlag = [dq.upper() for dq in dqFlag]
     return self.setOption( 'DataQuality', dqFlag )
 
@@ -331,9 +331,9 @@ class BKQuery():
     Sets the event type
     """
     if eventTypes:
-      if type( eventTypes ) == type( '' ):
+      if isinstance( eventTypes, basestring ):
         eventTypes = eventTypes.split( ',' )
-      elif type( eventTypes ) != type( [] ):
+      elif isinstance( eventTypes, list ):
         eventTypes = [eventTypes]
       try:
         eventTypes = [str( int( et ) ) for et in eventTypes]
@@ -341,7 +341,7 @@ class BKQuery():
         gLogger.warn( ex )
         print eventTypes, 'invalid as list of event types'
         return {}
-      if type( eventTypes ) == type( [] ) and len( eventTypes ) == 1:
+      if isinstance( eventTypes, list ) and len( eventTypes ) == 1:
         eventTypes = eventTypes[0]
     return self.setOption( 'EventType', eventTypes )
 
@@ -349,7 +349,7 @@ class BKQuery():
     """
     Sets the visibility flag
     """
-    if visible == True or ( type( visible ) == type( '' ) and visible[0].lower() == 'y' ):
+    if visible == True or ( isinstance( visible, basestring ) and visible[0].lower() == 'y' ):
       visible = 'Yes'
     if visible == False:
       visible = 'No'

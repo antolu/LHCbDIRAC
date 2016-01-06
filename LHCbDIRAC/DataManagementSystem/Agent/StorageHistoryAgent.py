@@ -9,7 +9,6 @@
 __RCSID__ = "$Id$"
 
 import os, time, copy
-from types import IntType, StringType
 
 from DIRAC                                                  import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities                                   import Time
@@ -42,10 +41,10 @@ def _fillMetadata( dictToFill, metadataValue ):
   # this is the list of attributes returned by the Bookkeeping for a given directory
   keyList = ( 'ConfigName', 'ConfigVersion', 'FileType', 'Production',
              'ProcessingPass', 'ConditionDescription', 'EventType', 'Visibility' )
-  if type( metadataValue ) == type( '' ):
+  if isinstance( metadataValue, basestring ):
     for k in keyList:
       dictToFill[ k ] = metadataValue
-  elif type( metadataValue ) == type( {} ):
+  elif isinstance( metadataValue, dict ):
     for k in keyList:
       dictToFill[k] = metadataValue.get( k, 'na' )
 

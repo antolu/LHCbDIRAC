@@ -349,7 +349,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     progressBar.endLoop()
     return daughtersBKInfo
 
- def getDescendants( self, lfns, status = '' ):
+  def getDescendants( self, lfns, status = '' ):
     """ get the descendants of a list of LFN (for the production)
     """
     if isinstance( lfns, basestring ):
@@ -570,7 +570,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
       else:
         directories = []
         dirList = res['Value']
-        if type( dirList ) == type( '' ) and dirList[0] == '[' and dirList[-1] == ']':
+        if isinstance( dirList, basestring ) and dirList[0] == '[' and dirList[-1] == ']':
           dirList = ast.literal_eval( dirList )
         for dirName in dirList:
           # There is a shortcut when multiple streams are used, only the stream name is repeated!
@@ -834,7 +834,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
   def set_bkQuery( self, value ):
     """ Setter """
-    if type( value ) == type( "" ):
+    if isinstance( value, basestring ):
       self._bkQuery = ast.literal_eval( value )
     else:
       self._bkQuery = value
@@ -845,7 +845,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
   def set_lfns( self, value ):
     """ Setter """
-    if type( value ) == type( "" ):
+    if isinstance( value, basestring ):
       value = [value]
     value = [v.replace( ' ', '' ).replace( '//', '/' ) for v in value]
     self._lfns = value

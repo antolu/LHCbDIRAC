@@ -791,7 +791,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
     counters = dict.fromkeys( counterKeys, 0 )
     for lfn, reason in metadata['Failed'].items():
       nFiles += 1
-      if type( reason ) == type( '' ):
+      if isinstance( reason, basestring ):
         if reason == 'FC: No active replicas':
           counters['No active replicas'] += 1
         elif reason.startswith( 'FC:' ):

@@ -2,7 +2,7 @@
 
 __RCSID__ = "$Id$"
 
-from types import LongType, IntType, StringType, DictType, ListType, StringTypes, BooleanType
+from types import LongType, IntType, DictType, ListType, StringTypes, BooleanType
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.TransformationSystem.Service.TransformationManagerHandler import TransformationManagerHandler as TManagerBase
@@ -287,7 +287,7 @@ class TransformationManagerHandler( TManagerBase ):
     # expecting a list of long integers
     return database.getDestinationForRun( runIDs )
 
-  types_setDestinationForRun = [[LongType, IntType], StringType]
+  types_setDestinationForRun = [[LongType, IntType], StringTypes]
   @classmethod
   def export_setDestinationForRun( self, runID, destination ):
     """ set run destination

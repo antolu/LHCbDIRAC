@@ -5,7 +5,7 @@
     :synopsis: Implementation of the Storage Usage service in the DISET framework.
 """
 ## imports
-from types import DictType, StringType, TupleType, ListType, IntType, LongType
+from types import DictType, StringTypes, TupleType, ListType, IntType, LongType
 ## from DIRAC
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -33,11 +33,11 @@ class StorageUsageHandler( RequestHandler ):
     """ export of publishDirectories """
     return gStorageUsageDB.publishDirectories( directoryDict )
 
-  types_removeDirectory = [ ( StringType, ListType, TupleType ) ]
+  types_removeDirectory = [ list( StringTypes ) + [ListType, TupleType] ]
   @staticmethod
   def export_removeDirectory( dirPaths ):
     """ export of removeDirectory """
-    if type( dirPaths ) == StringType:
+    if isinstance( dirPaths, basestring ):
       dirPaths = ( dirPaths, )
     for dirPath in dirPaths:
       result = gStorageUsageDB.removeDirectory( dirPath )
@@ -198,7 +198,7 @@ class StorageUsageHandler( RequestHandler ):
   # Catalog
   ####
 
-  types_getSummary = [ StringType ]
+  types_getSummary = [ StringTypes ]
   @staticmethod
   def export_getSummary( path, fileType = False, production = False ):
     """ export of getSummary """
@@ -214,7 +214,7 @@ class StorageUsageHandler( RequestHandler ):
   # Purge
   ####
 
-  types_purgeOutdatedEntries = [ StringType, ( IntType, LongType ) ]
+  types_purgeOutdatedEntries = [ StringTypes, ( IntType, LongType ) ]
   @staticmethod
   def export_purgeOutdatedEntries( rootDir, outdatedSeconds, preserveDirsList = None ):
     """ Purge entries that haven't been updated in the last outdated seconds """

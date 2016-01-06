@@ -8,7 +8,7 @@
     :synopsis: DISET interface to the RAWIntegrityDB.
 """
 # imports
-from types import StringType, IntType, DictType, ListType, StringTypes
+from types import IntType, DictType, ListType, StringTypes
 # from DIRAC
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -35,7 +35,7 @@ class RAWIntegrityHandler( RequestHandler ):
   .. class:: RAWIntegrityHandler
   """
 
-  types_addFile = [ StringType, StringType, IntType, StringType, StringType, StringType ]
+  types_addFile = [ StringTypes, StringTypes, IntType, StringTypes, StringTypes, StringTypes ]
   @staticmethod
   def export_addFile( lfn, pfn, size, se, guid, checksum ):
     """ Add a file to the RAW integrity DB """

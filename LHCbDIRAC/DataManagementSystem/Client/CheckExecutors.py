@@ -8,9 +8,9 @@ from DIRAC import gLogger
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 
 def __removeFile( lfns ):
-  if type( lfns ) == type( {} ):
+  if isinstance( lfns, dict ):
     lfns = lfns.keys()
-  elif type( lfns ) == type( '' ):
+  elif isinstance( lfns, basestring ):
     lfns = [lfns]
   success = 0
   failures = 0

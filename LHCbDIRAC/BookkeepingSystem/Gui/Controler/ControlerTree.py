@@ -365,10 +365,9 @@ class ControlerTree(ControlerAbstract):
   def getPageSize(self):
     """returns the size of the File dialog window"""
     value = self.getWidget().getPageSize()
-    if type(str(value)) == types.StringType:
-      if value == 'ALL':
-        self.__offset = 0
-      elif type(int(value)) == types.IntType:
-        self.__offset = int(value)
+    if value == 'ALL':
+      self.__offset = 0
+    else:
+      self.__offset = int( value )
     return self.__offset
 

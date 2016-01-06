@@ -7,7 +7,7 @@ __RCSID__ = "$transID: dirac-transformation-debug.py 61232 2013-01-28 16:29:21Z 
 
 
 def inaccessibleReplicas( lfn, se ):
-  if type( se ) == type( '' ):
+  if isinstance( se, basestring ):
     seList = [se]
   else:
     seList = se

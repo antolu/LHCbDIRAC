@@ -8,7 +8,7 @@ import re
 import tempfile
 import threading
 
-from types import IntType, LongType, StringTypes, DictType, ListType, BooleanType, StringType
+from types import IntType, LongType, StringTypes, DictType, ListType, BooleanType
 
 from DIRAC                            import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client import PathFinder
@@ -350,18 +350,18 @@ class ProductionRequestHandler( RequestHandler ):
     """
     return self.database.getProductionList( requestID )
 
-  types_getProductionRequestSummary = [ [StringTypes, StringType, ListType], [StringTypes, StringType, ListType] ]
+  types_getProductionRequestSummary = [ list( StringTypes ) + [ ListType], list( StringTypes ) + [ ListType] ]
   def export_getProductionRequestSummary( self, status, requestType ):
     """ Method to retrieve the production / request relations for a given request status.
     """
-    if type( requestType ) == type( '' ):
+    if isinstance( requestType, basestring ):
       reqTypes = [requestType]
-    elif type( requestType ) == type( [] ):
+    elif isinstance( requestType, list ):
       reqTypes = requestType
 
-    if type( status ) == type( '' ):
+    if isinstance( status, basestring ):
       selectStatus = [status]
-    elif type( status ) == type( [] ):
+    elif isinstance( status, list ):
       selectStatus = status
 
     reqList = self.database.getProductionRequest( [], long( 0 ), '', '', long( 0 ), long( 0 ) )

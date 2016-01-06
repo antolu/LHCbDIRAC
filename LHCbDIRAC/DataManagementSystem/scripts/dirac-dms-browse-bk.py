@@ -15,11 +15,11 @@ from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, BKQuery
 
 def printTree( tree, tabs = 0, depth = sys.maxint ):
-  if type( tree ) == type( {} ):
+  if isinstance( tree, dict ):
     keys = tree.keys()
-  elif type( tree ) == type( [] ):
+  elif isinstance( tree, list ):
     keys = tree
-  elif type( tree ) == type( '' ):
+  elif isinstance( tree, basestring ):
     keys = [tree]
   keys = sorted( set( keys ) )
   prStr = tabs * '   '
