@@ -9,7 +9,7 @@ import os
 
 import DIRAC
 
-from DIRAC import gLogger
+from DIRAC import gLogger, S_ERROR, S_OK
 
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 from DIRAC.DataManagementSystem.Client.ConsistencyInspector import ConsistencyInspector as DiracConsistencyChecks
@@ -646,9 +646,9 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self.checkFC2BK( bkCheck = bkCheck )
     if self.existLFNsBKRepYes or self.existLFNsBKRepNo:
       repDict = self.compareChecksum( self.existLFNsBKRepYes + self.existLFNsBKRepNo.keys() )
-      self.existLFNsNoSE = repDict['MissingPFN']
-      self.existLFNsBadReplicas = repDict['SomeReplicasCorrupted']
-      self.existLFNsBadFiles = repDict['AllReplicasCorrupted']
+      self.existLFNsNoSE = repDict['Value']['MissingPFN']
+      self.existLFNsBadReplicas = repDict['Value']['SomeReplicasCorrupted']
+      self.existLFNsBadFiles = repDict['Value']['AllReplicasCorrupted']
 
   def checkSE( self, seList ):
     lfnsReplicaNo, lfnsReplicaYes = self.__getLFNsFromBK()
@@ -790,7 +790,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
           retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ]
 
     progressBar.endLoop()
-    return retDict
+    return S_OK(retDict)
 
   ################################################################################
   # properties
