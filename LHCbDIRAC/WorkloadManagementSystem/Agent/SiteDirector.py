@@ -19,7 +19,7 @@ DIRAC_MODULES = [ os.path.join( rootPath, 'DIRAC', 'WorkloadManagementSystem', '
 class SiteDirector( DIRACSiteDirector ):
   """ Simple extension of the DIRAC site director to send LHCb specific pilots (with a custom list of commands)
   """
-  
+
   def beginExecution(self):
     """ just simple redefinition
     """
@@ -89,7 +89,7 @@ try:
   for key in os.environ.keys():
     print key + '=' + os.environ[key]
   print '==========================================================='
-except Exception as x:
+except Exception, x:
   print >> sys.stderr, x
   shutil.rmtree( pilotWorkingDirectory )
   sys.exit(-1)
