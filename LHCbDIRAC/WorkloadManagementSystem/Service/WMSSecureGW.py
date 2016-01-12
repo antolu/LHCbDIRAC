@@ -1,6 +1,6 @@
 """ WMSSecureGW service -  a generic gateway service """
 
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 import json
 from DIRAC import S_OK, S_ERROR
@@ -250,5 +250,3 @@ class WMSSecureGW( RequestHandler ):
     defaultGroup = result['Value']
     userGroup = opsHelper.getValue( cfgPath( 'Shifter', shifterType, 'Group' ), defaultGroup )
     return userDN, userGroup
-
-
