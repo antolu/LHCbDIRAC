@@ -169,7 +169,6 @@ generated-members=REQUEST,acl_users,aq_parent
 # List of ignored modules
 ignored-modules = MySQLdb
 
-
 [VARIABLES]
 
 # Tells whether we should check for unused import in __init__ files.
