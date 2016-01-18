@@ -1,4 +1,4 @@
-""" Client plug-in for the RAWIntegrity catalogue.
+""" Client plug-in for the RAWIntegrity catalog.
     This exposes a single method to add files to the RAW IntegrityDB.
 
     USED at OnLine
@@ -6,7 +6,7 @@
 
 from DIRAC import S_OK, gLogger
 from DIRAC.ConfigurationSystem.Client import PathFinder
-from DIRAC.Resources.Utilities import checkArgumentFormat
+from DIRAC.Resources.Catalog.Utilities import checkArgumentFormat
 from DIRAC.Core.Base.Client import Client
 
 __RCSID__ = '$Id$'
