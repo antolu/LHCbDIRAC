@@ -8,8 +8,8 @@ import os
 import sys
 from itertools import imap
 import logging
-from LHCbConfig import ApplicationMgr, INFO, InputCopyStream
-import GaudiPython
+from LHCbConfig import ApplicationMgr, INFO, InputCopyStream #pylint: disable=F0401
+import GaudiPython #pylint: disable=F0401
 #from LHCbDIRAC.TransformationSystem.Utilities.GridCollector.Request import Request
 from Request import Request, normalize_lfns
 
@@ -29,7 +29,7 @@ def process_pfn( sel, evt, appMgr, PFN, positions, stop_on_error=False ):
     stop_on_error: if False, will continue on an invalid event,
       and return 1, if True, will stop on an invalid event and return,
       a dict {"success": False, "position": <postion_of_the_invalid_event>}
-  
+
   Returns:
     0 on success
     1 if at least some events couldn't be read and stop_on_error is False
