@@ -76,6 +76,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': {'uploadedSE':''}}
     self.ft_mock.transferAndRegisterFileFailover.return_value = {'OK': True, 'Value': {}}
     self.ft_mock.request = rc_mock
+    self.ft_mock.FileCatalog = MagicMock()
 
     self.bkc_mock = MagicMock()
     self.bkc_mock.sendBookkeeping.return_value = {'OK': True, 'Value': ''}
@@ -350,7 +351,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
     stepMasks = ( '', '5', '', ['2'], ['1', '3'], '', '', ['6'], [],
                   ['1', '3'], )
 
-    results = ( 
+    results = (
                 {
                  '00012345_00012345_4.dst':
                    {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
@@ -1392,6 +1393,11 @@ class UploadOutputDataSuccess( ModulesTestCase ):
 
   def test_execute( self ):
 
+    sut = importlib.import_module( "LHCbDIRAC.Workflow.Modules.UploadOutputData" )
+    fcMock = MagicMock()
+    fcMock._getCatalogs.return_value = ''
+    sut.FileCatalog = fcMock
+
     self.uod.siteName = 'DIRAC.Test.ch'
 
     # no errors, no input data
@@ -1510,7 +1516,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
     removeOp.addFile( fileRemove2 )
     expected.addOperation( removeOp )
 
-    self.uod._cleanUp( {'1.txt':{'lfn':'/a/1.txt'}, 
+    self.uod._cleanUp( {'1.txt':{'lfn':'/a/1.txt'},
                         '2.txt':{'lfn':'/a/2.txt'},
                         'notPresent.txt':{'lfn':'/a/notPresent.txt' } } )
 
@@ -1564,7 +1570,7 @@ class UserJobFinalizationSuccess( ModulesTestCase ):
     self.ujf.defaultOutputSE = ['CERN']
     res = self.ujf._getOrderedSEsList()
     self.assertEqual( res, ['userSE', 'CERN'] )
-    
+
     self.getDestinationSEListMock.return_value = ['CNAF']
     res = self.ujf._getOrderedSEsList()
     self.assertEqual( res, ['CNAF', 'userSE', 'CERN'] )

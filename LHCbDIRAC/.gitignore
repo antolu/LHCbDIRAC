@@ -50,3 +50,4 @@ __pycache__
 pytests.xml
 nosetests.xml
 coverage.xml
+*.gz

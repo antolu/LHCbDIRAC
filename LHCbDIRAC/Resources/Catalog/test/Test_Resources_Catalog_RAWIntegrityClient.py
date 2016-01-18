@@ -101,7 +101,7 @@ class RAWIntegrityClient_Success( RAWIntegrityClient_TestCase ):
     self.assert_( res['OK'] )
 
     res = catalog.exists( {} )
-    self.assert_( res['OK'] )
+    self.assertFalse( res['OK'] )
     self.assertEqual( { 'Failed' : {}, 'Successful' : {} }, res['Value'] )
 
     res = catalog.exists( [ 'path1' ] )
