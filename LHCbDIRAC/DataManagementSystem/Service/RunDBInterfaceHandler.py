@@ -1,11 +1,8 @@
-########################################################################
-# File: RunDBInterfaceHandler.py
-########################################################################
 """ :mod: RunDBInterfaceHandler
     ===========================
- 
+
     .. module: RunDBInterfaceHandler
-    :synopsis: DISET request handler base class for the DatasetDB 
+    :synopsis: DISET request handler base class for the DatasetDB
 """
 # imports
 import os
@@ -18,12 +15,12 @@ from DIRAC.Core.DISET.RequestHandler import RequestHandler
 
 __RCSID__ = "$Id$"
 
-allRunFields = [ 'runID', 'fillID', 'state', 'runType', 'partitionName', 'partitionID', 
+allRunFields = [ 'runID', 'fillID', 'state', 'runType', 'partitionName', 'partitionID',
                  'startTime', 'endTime', 'destination', 'startLumi', 'endLumi', 'beamEnergy']
-allFileFields = ['fileID', 'runID', 'name', 'state', 'bytes', 
+allFileFields = ['fileID', 'runID', 'name', 'state', 'bytes',
                  'events', 'stream', 'creationTime', 'timeStamp', 'refCount']
 
-server = False
+server = None
 runStates = {}
 runStateRev = {}
 fileStates = {}
@@ -102,18 +99,18 @@ class RunDBInterfaceHandler( RequestHandler ):
       filesQueryString = "success,result = server.getFilesDirac(fields=allFileFields)"
     print filesQueryString
     exec( filesQueryString )
-    if not success:
-      return S_ERROR( result )
+    if not success: #using exec statement above -> pylint: disable=E0602
+      return S_ERROR( result ) #using exec statement above -> pylint: disable=E0602
     resultDict = {}
-    nFiles = len( result )
+    nFiles = len( result ) #using exec statement above -> pylint: disable=E0602
     resultDict['TotalRecords'] = nFiles
     if nFiles == 0:
       return S_OK( resultDict )
     if decending:
-      result.reverse()
+      result.reverse() #using exec statement above -> pylint: disable=E0602
 
     statusCountDict = {}
-    for res in result:
+    for res in result: #using exec statement above -> pylint: disable=E0602
       state = res[3]
       if state in fileStates:
         state = fileStates[state]
@@ -130,7 +127,7 @@ class RunDBInterfaceHandler( RequestHandler ):
       return S_ERROR( 'Item number out of range' )
     if lastFile > nFiles:
       lastFile = nFiles
-    fileList = result[iniFile:lastFile]
+    fileList = result[iniFile:lastFile] #using exec statement above -> pylint: disable=E0602
 
     # prepare the standard structure now
     resultDict['ParameterNames'] = allFileFields
@@ -203,8 +200,8 @@ class RunDBInterfaceHandler( RequestHandler ):
       jobsQueryString = "success,result = server.getRunsDirac(fields=allRunFields,runExtraParams=['magnetCurrent','magnetState'])"
     print jobsQueryString
     exec( jobsQueryString )
-    if not success:
-      return S_ERROR( result )
+    if not success:  #using exec statement above -> pylint: disable=E0601
+      return S_ERROR( result ) #using exec statement above -> pylint: disable=E0601
     resultDict = {}
     nRuns = len( result )
     resultDict['TotalRecords'] = nRuns
@@ -305,11 +302,11 @@ class RunDBInterfaceHandler( RequestHandler ):
         print execString
         exec( execString )
         gLogger.debug( "RunDBInterfaceHandler.getSelections: server.%s() took %.2f seconds." % ( query, time.time() - startTime ) )
-        if not success:
+	if not success: #using exec statement above -> pylint: disable=E0601
           errStr = "RunDBInterfaceHandler.getSelections: Failed to get distinct %s." % key
-          gLogger.error( errStr, result )
+	  gLogger.error( errStr, result ) #using exec statement above -> pylint: disable=E0601
           return S_ERROR( errStr )
-        paramDict[key] = [ res for res in results if res ]
+	paramDict[key] = [ res for res in result if res ]
 
       startTime = time.time()
       success, result = server.getRunStates()
