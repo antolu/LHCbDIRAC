@@ -3,6 +3,7 @@
 '''
 
 import os
+from time import time
 from DIRAC                                           import S_OK, S_ERROR, gConfig
 from DIRAC.Core.Base.AgentModule                     import AgentModule
 from DIRAC.Core.Security.VOMSService                 import VOMSService
@@ -10,6 +11,9 @@ from DIRAC.Core.Security                             import Locations, X509Chain
 from DIRAC.Core.Utilities                            import List
 from DIRAC.ConfigurationSystem.Client.CSAPI          import CSAPI
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
+from DIRAC.Core.Security.ProxyInfo import getProxyInfo
+from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
+from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
 
 __RCSID__ = "$Id$"
 
@@ -89,6 +93,7 @@ class UsersAndGroups( AgentModule ):
 
     return S_OK()
 
+
   def changeLFCRegisteredUsers( self, registerUsers, action ):
     '''
     add user to DFC
@@ -98,15 +103,50 @@ class UsersAndGroups( AgentModule ):
     if action == "add":
       subject = 'New DFC Users found'
       self.log.info( subject, ", ".join( registerUsers ) )
-      bodyDFC = 'Command to add new entries into DFC: \n'
-      bodyDFC += 'login to lxplus  run : \n'
-      bodyDFC += 'SetupProject LHCbDirac ; lhcb-proxy-init -g lhcb_admin \n\n'
+      from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
+      dfc = FileCatalogClient()
+
+
       for lfcuser in registerUsers:
         for lfc_dn in registerUsers[lfcuser]:
           print lfc_dn
-          bodyDFC += 'add-user-DFC --User ' + lfcuser + '\n'
-
-      NotificationClient().sendMail( self.address, 'UsersAndGroupsAgent: %s' % subject, bodyDFC, self.fromAddress )
+          exists = False
+          initial = lfcuser[0]
+          baseDir = os.path.join( '/lhcb', 'user', initial, lfcuser )
+          subDirectories = []
+          if dfc.isDirectory( baseDir ).get( 'Value', {} ).get( 'Successful', {} ).get( baseDir ):
+            self.log.always( 'Directory already existing', baseDir )
+            exists = True
+            res = dfc.listDirectory( baseDir )
+            if res['OK']:
+              success = res['Value']['Successful'][baseDir]
+              subDirectories = success['SubDirs']
+              if success.get( 'SubDirs' ) or success.get( 'Files' ):
+                self.log.always( 'Directory is not empty:', ' %d files / %d subdirectories' % ( len( success['Files'] ), len( success['SubDirs'] ) ) )
+              elif recursive:
+                self.log.always( "Empty directory, recursive is useless..." )
+                recursive = False
+          if not exists:
+            self.log.always( 'Creating directory', baseDir )
+            res = dfc.createDirectory( baseDir )
+            if not res['OK']:
+              self.log.fatal( 'Error creating directory', res['Message'] )
+              exit( 2 )
+          else:
+            self.log.always( 'Change%s ownership of directory' % ' recursively' if recursive else '', baseDir )
+          res = chown( baseDir, lfcuser, group = 'lhcb_user', mode = 0755, recursive = False, fcClient = dfc )
+          if not res['OK']:
+            self.log.fatal( 'Error changing directory owner', res['Message'] )
+            exit( 2 )
+          startTime = time()
+          if recursive and subDirectories:
+            res = chown( subDirectories, lfcuser, group = 'lhcb_user', mode = 0755, recursive = True, ndirs = 1, fcClient = dfc )
+            if not res['OK']:
+              self.log.fatal( 'Error changing directory owner', res['Message'] )
+              exit( 2 )
+            self.log.always( 'Successfully changed owner in %d directories in %.1f seconds' % ( res['Value'], time() - startTime ) )
+          else:
+            self.log.always( 'Successfully changed owner in directory %s in %.1f seconds' % ( baseDir, time() - startTime ) )
 
 
     return S_OK()
@@ -137,6 +177,8 @@ class UsersAndGroups( AgentModule ):
     self.address = self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' )
     self.fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
     self.log.info( "Getting DIRAC VOMS mapping" )
+    from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
+    dfc = FileCatalogClient()
     mappingSection = '/Registry/VOMS/Mapping'
     ret = gConfig.getOptionsDict( mappingSection )
     if not ret['OK']:
@@ -355,9 +397,9 @@ class UsersAndGroups( AgentModule ):
     if newUserNames:
       subject = 'New DFC Users found'
       self.log.info( subject )
-      bodyDFC = 'Command to add new entries into DFC: \n'
-      bodyDFC += 'login to lxplus  run : \n'
-      bodyDFC += 'SetupProject LHCbDirac ; lhcb-proxy-init -g lhcb_admin \n\n'
+      from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
+      dfc = FileCatalogClient()
+      recursive = False
 
       self.__adminMsgs[ 'Info' ].append( "\nNew users:" )
       for newUser in newUserNames:
@@ -367,10 +409,31 @@ class UsersAndGroups( AgentModule ):
           self.__adminMsgs[ 'Info' ].append( "      DN = %s" % DN )
           self.__adminMsgs[ 'Info' ].append( "      CA = %s" % usersData[newUser]['CA'] )
         self.__adminMsgs[ 'Info' ].append( "    + EMail: %s" % usersData[newUser][ 'Email' ] )
-        bodyDFC += 'add-user-DFC --User ' + newUser + '\n'
-
-      NotificationClient().sendMail( self.address, 'UsersAndGroupsAgent: %s' % subject, bodyDFC, self.fromAddress )
-
+        exists = False
+        initial = newUser[0]
+        baseDir = os.path.join( '/lhcb', 'user', initial, newUser )
+        subDirectories = []
+        if not exists:
+          self.log.always( 'Creating directory', baseDir )
+          res = dfc.createDirectory( baseDir )
+          if not res['OK']:
+            self.log.fatal( 'Error creating directory', res['Message'] )
+            return S_ERROR( 2 )
+        else:
+          self.log.always( 'Change%s ownership of directory' % ' recursively' if recursive else '', baseDir )
+        res = chown( baseDir, newUser, group = 'lhcb_user', mode = 0755, recursive = False, fcClient = dfc )
+        if not res['OK']:
+          self.log.fatal( 'Error changing directory owner', res['Message'] )
+          return S_ERROR( 2 )
+        startTime = time()
+        if recursive and subDirectories:
+          res = chown( subDirectories, newUser, group = 'lhcb_user', mode = 0755, recursive = True, ndirs = 1, fcClient = dfc )
+          if not res['OK']:
+            self.log.fatal( 'Error changing directory owner', res['Message'] )
+            exit( 2 )
+          self.log.always( 'Successfully changed owner in %d directories in %.1f seconds' % ( res['Value'], time() - startTime ) )
+        else:
+          self.log.always( 'Successfully changed owner in directory %s in %.1f seconds' % ( baseDir, time() - startTime ) )
 
 
     if usersWithMoreThanOneDN:
