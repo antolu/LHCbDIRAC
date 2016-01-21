@@ -185,8 +185,10 @@ procedure insertRunStatus(v_runnumber NUMBER, v_JobId NUMBER, v_Finished varchar
 procedure setRunFinished(v_runnumber number, isFinished varchar2);
 procedure bulkupdateFileMetaData(files bigvarchararray);
 procedure updateLuminosity(v_runnumber number);
-procedure updateDesLuminosity(v_fileid number, v_luminosity number);
-
+procedure updateDesLuminosity(v_fileid number);
+procedure getFileDesJobId(v_Filename varchar2, a_Cursor out udt_RefCursor);
+procedure getAllMetadata(v_jobid NUMBER, v_prod number, a_Cursor  out udt_RefCursor);
+ 
 end;
 /
 
@@ -1974,21 +1976,50 @@ end;
 procedure updateLuminosity(v_runnumber number)is
 begin
 for c in (select f.filename, f.luminosity, f.fileid from jobs j, files f where j.jobid=f.jobid and j.runnumber=v_runnumber and j.production<0) LOOP
-  updateDesLuminosity(c.fileid, c.luminosity);
+  updateDesLuminosity(c.fileid);
 END LOOP;
 end;
 
-procedure updateDesLuminosity(v_fileid number, v_luminosity number)is
+procedure updateDesLuminosity(v_fileid number)is
+lumi number;
 begin
 if v_fileid = 0 then
   return;
 end if; 
-for c in (select f.filename, f.fileid from jobs j, files f, inputfiles i where j.jobid=f.jobid and  j.jobid=i.jobid and i.fileid=v_fileid) LOOP
-  dbms_output.put_line('update files set luminosity=' || v_luminosity || ' where filename='||c.filename);
-  update files set luminosity=v_luminosity where filename=c.filename;
-  updateDesLuminosity(c.fileid, v_luminosity);
+for c in (select f.filename, f.fileid, j.jobid from jobs j, files f, inputfiles i, filetypes ft where ft.filetypeid=f.filetypeid and ft.name!='LOG' and j.jobid=f.jobid and  j.jobid=i.jobid and i.fileid=v_fileid) LOOP
+  select sum(f.luminosity) into lumi from inputfiles i, files f where f.fileid=i.fileid and i.jobid=c.jobid; 
+  IF lumi > 0 THEN
+    dbms_output.put_line('update files set luminosity=' || lumi || ' where filename='||c.filename);
+    update files set luminosity=lumi where fileid=c.fileid;
+    updateDesLuminosity(c.fileid);
+  END IF;
 END LOOP;
 end;
 
+procedure getFileDesJobId(
+   v_Filename                      varchar2,
+   a_Cursor                        out udt_RefCursor
+ ) is
+ begin
+    open a_Cursor for
+      select i.jobid from inputfiles i, files f where i.fileid=f.fileid and f.filename=v_Filename;  
+ end;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure getAllMetadata(
+   v_jobid NUMBER,
+   v_prod   number,
+   a_Cursor                        out udt_RefCursor
+ ) is
+ begin
+  if v_prod > 0  then
+    open a_Cursor for
+    select files.fileName,files.fileid,files.gotreplica, jobs.production, files.eventstat,
+           files.eventtypeid, files.luminosity, files.instLuminosity, filetypes.name from files, jobs, filetypes where files.filetypeid=filetypes.filetypeid and jobs.jobid=files.jobid and files.jobid=v_jobid and jobs.production=v_prod;
+    else
+    open a_Cursor for
+      select files.fileName,files.fileid,files.gotreplica, 0, files.eventstat,
+           files.eventtypeid, files.luminosity, files.instLuminosity, filetypes.name from files, filetypes where files.filetypeid=filetypes.filetypeid and files.jobid=v_jobid;
+  end if;
+ end;
 END;
 /

@@ -1618,30 +1618,29 @@ class OracleBookkeepingDB:
     return result
 
   #############################################################################
-  def getFileAncestorHelper( self, fileName, files, depth, counter, replica ):
+  def getFileAncestorHelper( self, fileName, files, depth, checkreplica ):
     """returns the ancestor of a file"""
     failed = []
-    
-    if counter < depth:
-      counter += 1
+
+    if depth:
+      depth -= 1
       result = self.dbR_.executeStoredFunctions( 'BKK_MONITORING.getJobIdWithoutReplicaCheck', types.LongType, [fileName] )
 
       if not result["OK"]:
-        gLogger.error( 'Ancestor', result['Message'] )
-      else:
-        job_id = int( result['Value'] )
-      if job_id != 0:
+        gLogger.error( 'Error getting jobID', result['Message'] )
+      jobID = int( result.get( 'Value', 0 ) )
+      if jobID:
         command = "select files.fileName,files.jobid, files.gotreplica, files.eventstat,\
          files.eventtypeid, files.luminosity, files.instLuminosity, filetypes.name \
         from inputfiles,files, filetypes where files.filetypeid=filetypes.filetypeid \
-         and inputfiles.fileid=files.fileid and inputfiles.jobid=%d" % ( job_id )
+         and inputfiles.fileid=files.fileid and inputfiles.jobid=%d" % ( jobID )
         res = self.dbR_.query( command )
         if not res['OK']:
-          gLogger.error( 'Ancestor', result["Message"] )
+          gLogger.error( 'Error getting job input files', result["Message"] )
         else:
           dbResult = res['Value']
           for record in dbResult:
-            if ( not replica or ( record[2] != 'No' ) ):
+            if ( not checkreplica or ( record[2] != 'No' ) ):
               files.append( {'FileName':record[0],
                             'GotReplica':record[2],
                             'EventStat':record[3],
@@ -1649,29 +1648,25 @@ class OracleBookkeepingDB:
                             'Luminosity':record[5],
                             'InstLuminosity':record[6],
                             'FileType':record[7]} )
-            previousFailed = self.getFileAncestorHelper( record[0], files, depth, counter, replica )
-            failed += previousFailed
+            if depth:
+              failed += self.getFileAncestorHelper( record[0], files, depth, checkreplica )
       else:
-        failed += [fileName]
+        failed.append( fileName )
     return failed
 
   #############################################################################
   def getFileAncestors( self, lfn, depth = 0, replica = True ):
     """"iterates on the list of lfns and prepare the ancestor list using a recusive helper function"""
-    if depth > 10:
-      depth = 10
-    elif depth < 1:
-      depth = 1
+    depth = min( 10, max( 1, depth ) )
 
-    logicalFileNames = {}
+    logicalFileNames = {'Failed':[]}
     ancestorList = {}
     filesWithMetadata = {}
-    logicalFileNames['Failed'] = []
     gLogger.debug( 'original', lfn )
     failed = []
     for fileName in lfn:
       files = []
-      failed += self.getFileAncestorHelper( fileName, files, depth, 0, replica )
+      failed += self.getFileAncestorHelper( fileName, files, depth, replica )
       logicalFileNames['Failed'] = failed
       if len( files ) > 0:
         ancestorList[fileName] = files
@@ -1685,81 +1680,65 @@ class OracleBookkeepingDB:
     return S_OK( logicalFileNames )
 
   #############################################################################
-  def getFileDescendentsHelper( self, fileName, files, depth, production, counter, checkreplica, processedFiles = [] ):
+  def getFileDescendentsHelper( self, fileName, files, depth, production, checkreplica, productionFound = False ):
     """returns the descendents of a file"""
-    failed = []
-    notprocessed = []
-    
-    if counter < depth:
-      counter += 1
-      res = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getFileID', types.LongType, [fileName] )
+    failed = set()
+    notprocessed = set()
+
+    if depth:
+      depth -= 1
+      
+      res = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getFileDesJobId', [fileName] )
       if not res["OK"]:
-        gLogger.error( 'Ancestor', res['Message'] )
-      elif res['Value'] == None:
-        failed += [fileName]
+        gLogger.error( 'Error getting jobID', res['Message'] )
+        failed.add( fileName )
+      elif not res['Value']:
+        notprocessed.add( fileName )
       else:
-        file_id = res['Value']
-        if file_id != 0:
-          res = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getJobIdFromInputFiles', [file_id] )
+        for jobID in [item[0] for item in res['Value']]:
+          getProd = bool( production )
+
+          res = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getFileAndJobMetadata', [jobID, getProd] )
           if not res["OK"]:
-            gLogger.error( 'Ancestor', res['Message'] )
-            if not fileName in failed:
-              failed += [fileName]
-          elif len( res['Value'] ) == 0:
-            if fileName not in processedFiles:
-              notprocessed += [fileName]
-          elif  len( res['Value'] ) != 0:
-            job_ids = res['Value']
-            for i in job_ids:
-              job_id = i[0]
-              getProd = False
-              if production:
-                getProd = True
+            gLogger.error( 'Error getting job output files', res['Message'] )
+            failed.add( fileName )
+          elif not res['Value']:
+            notprocessed.add( fileName )
+          else:
+            for record in res['Value']:
+              inRequestedProd = getProd and int( record[3] ) == int( production )
+              if not productionFound or inRequestedProd:
+                # If we have already found the production but we no longer are in it, break the recursive loop
+                if ( not checkreplica or ( record[2] != 'No' ) ) and ( not getProd or inRequestedProd ):
+                  files[record[0]] = {'GotReplica':record[2],
+                                      'EventStat':record[4],
+                                      'EventType':record[5],
+                                      'Luminosity':record[6],
+                                      'InstLuminosity':record[7],
+                                      'FileType':record[8]}
 
-              res = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getFileAndJobMetadata', [job_id, getProd] )
-              if not res["OK"]:
-                gLogger.error( 'Ancestor', res['Message'] )
-                if not fileName in failed:
-                  failed += [fileName]
-              elif len( res['Value'] ) == 0:
-                notprocessed += [fileName]
-              else:
-                for record in res['Value']:
-                  processedFiles += [record[0]]
-                  if ( not checkreplica or ( record[2] != 'No' ) ) and ( not production or int( record[3] ) == int( production ) ):
-                    files[record[0]] = {'GotReplica':record[2],
-                                        'EventStat':record[4],
-                                        'EventType':record[5],
-                                        'Luminosity':record[6],
-                                        'InstLuminosity':record[7],
-                                        'FileType':record[8]}
+                if depth:
+                  # Only call if we are not at the correct depth
+                  newFailed, _newNotprocessed = self.getFileDescendentsHelper( record[0], files, depth, production, checkreplica, productionFound = inRequestedProd )
+                  failed.update( newFailed )
 
-                  previousFailed, previousNotprocessed = self.getFileDescendentsHelper( record[0], files, depth, production, counter, checkreplica, processedFiles )
-                  failed += previousFailed
-                  notprocessed += previousNotprocessed
-                  
-    return failed, notprocessed
+    return sorted( failed ), sorted( notprocessed )
 
   #############################################################################
   def getFileDescendents( self, lfn, depth = 0, production = 0, checkreplica = True ):
     """iterates over a list of lfns and collects their descendents"""
-    logicalFileNames = {}
+    logicalFileNames = {'Failed':[], 'NotProcessed':[]}
     ancestorList = {}
-    logicalFileNames['Failed'] = []
-    logicalFileNames['NotProcessed'] = []
     filesWithMetadata = {}
 
-    if depth > 10:
-      depth = 10
-    elif depth < 1:
-      depth = 1
+    depth = min( 10, max( 1, depth ) )
 
     for fileName in lfn:
       files = {}
-      failed, notprocessed = self.getFileDescendentsHelper( fileName, files, depth, production, 0, checkreplica )
+      failed, notprocessed = self.getFileDescendentsHelper( fileName, files, depth, production, checkreplica )
       logicalFileNames['Failed'] += failed
       logicalFileNames['NotProcessed'] += notprocessed
-      if len( files ) > 0:
+      if files:
         ancestorList[fileName] = files.keys()
         filesWithMetadata[fileName] = files
     logicalFileNames['Successful'] = ancestorList
