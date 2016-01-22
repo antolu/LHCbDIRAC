@@ -10,6 +10,7 @@
 '''
 # # imports
 import time
+import random
 import os
 import re
 import threading
@@ -90,6 +91,9 @@ class StorageUsageAgent( AgentModule ):
     ''' agent initialisation '''
 
     self.am_setOption( "PollingTime", self.pollingTime )
+    rndSleep = random.randint( 1, self.pollingTime )
+    self.log.info( "Sleeping for %s seconds" % rndSleep )
+    time.sleep( rndSleep )
 
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
