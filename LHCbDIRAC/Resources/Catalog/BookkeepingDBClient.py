@@ -12,7 +12,7 @@ import types
 class BookkeepingDBClient( FileCatalogClientBase ):
   """ File catalog client for bookkeeping DB
   """
-  def __init__( self, url = False ):
+  def __init__( self, url = False, **kwargs ):
     """ Constructor of the Bookkeeping catalogue client
     """
     self.splitSize = 1000
