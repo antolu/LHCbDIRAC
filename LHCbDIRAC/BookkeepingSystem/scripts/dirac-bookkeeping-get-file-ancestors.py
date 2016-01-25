@@ -64,7 +64,7 @@ if __name__ == "__main__":
       okResult = result['Value']['WithMetadata']
       for lfn in okResult:
         result['Value']['Successful'][lfn] = \
-          dict( [( desc, 'Replica-%s' % meta['GotReplica'] ) for desc, meta in okResult[lfn].items()] )
+          dict( ( desc, 'Replica-%s' % meta['GotReplica'] ) for desc, meta in okResult[lfn].iteritems() )
       del result['Value']['WithMetadata']
 
   DIRAC.exit( printDMResult( result,
