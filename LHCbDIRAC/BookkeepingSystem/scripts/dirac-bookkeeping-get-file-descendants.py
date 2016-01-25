@@ -62,9 +62,6 @@ if __name__ == "__main__":
     dmScript.setLFNsFromFile( lfn )
   lfnList = dmScript.getOption( 'LFNs', [] )
 
-  if prod:
-    level = 999999
-
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   result = BookkeepingClient().getFileDescendants( lfnList, depth = level, production = prod, checkreplica = checkreplica )
   if result['OK']:
@@ -76,7 +73,7 @@ if __name__ == "__main__":
       okResult = result['Value']['WithMetadata']
       for lfn in okResult:
         result['Value']['Successful'][lfn] = \
-          dict( [( anc, 'Replica-%s' % meta['GotReplica'] ) for anc, meta in okResult[lfn].items()] )
+          dict( ( anc, 'Replica-%s' % meta['GotReplica'] ) for anc, meta in okResult[lfn].iteritems() )
       del result['Value']['WithMetadata']
     if noDescendants:
       result['Value']['NoDescendants'] = list( noDescendants )
