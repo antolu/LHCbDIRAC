@@ -36,7 +36,7 @@ if __name__ == "__main__":
   if visibilityFlag is None:
     print 'Visibility option should be given'
     DIRAC.exit( 2 )
-  visibilityFlag = True if visibilityFlag.lower() == 'yes' else False
+  visibilityFlag = bool( str( visibilityFlag ).lower() == 'yes' )
   if bkQuery:
     # Query with visibility opposite to what is requested to be set ;-)
     bkQuery.setOption( 'Visible', 'No' if visibilityFlag else 'Yes' )
