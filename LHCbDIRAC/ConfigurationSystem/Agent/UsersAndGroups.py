@@ -68,6 +68,51 @@ class UsersAndGroups( AgentModule ):
     self.log.info( "Proxy generated" )
     return True
 
+  def addEntryDFC( self, userDFC ):
+    '''
+    check and create if necessary an entry in the DFC
+    '''
+    from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
+    dfc = FileCatalogClient()
+    recursive = False
+    exists = False
+    initial = userDFC[0]
+    baseDir = os.path.join( '/lhcb', 'user', initial, userDFC )
+    subDirectories = []
+    if dfc.isDirectory( baseDir ).get( 'Value', {} ).get( 'Successful', {} ).get( baseDir ):
+      self.log.always( 'Directory already existing', baseDir )
+      exists = True
+      res = dfc.listDirectory( baseDir )
+      if res['OK']:
+        success = res['Value']['Successful'][baseDir]
+        subDirectories = success['SubDirs']
+        if success.get( 'SubDirs' ) or success.get( 'Files' ):
+          self.log.always( 'Directory is not empty:', ' %d files / %d subdirectories' % ( len( success['Files'] ), len( success['SubDirs'] ) ) )
+        elif recursive:
+          self.log.always( "Empty directory, recursive is useless..." )
+          recursive = False
+    if not exists:
+      self.log.always( 'Creating directory', baseDir )
+      res = dfc.createDirectory( baseDir )
+      if not res['OK']:
+        self.log.fatal( 'Error creating directory', res['Message'] )
+        return S_ERROR( 2 )
+    else:
+      self.log.always( 'Change%s ownership of directory' % ' recursively' if recursive else '', baseDir )
+    res = chown( baseDir, userDFC, group = 'lhcb_user', mode = 0755, recursive = False, fcClient = dfc )
+    if not res['OK']:
+      self.log.fatal( 'Error changing directory owner', res['Message'] )
+      return S_ERROR( 2 )
+    startTime = time()
+    if recursive and subDirectories:
+      res = chown( subDirectories, userDFC, group = 'lhcb_user', mode = 0755, recursive = True, ndirs = 1, fcClient = dfc )
+      if not res['OK']:
+        self.log.fatal( 'Error changing directory owner', res['Message'] )
+        return S_ERROR( 2 )
+      self.log.always( 'Successfully changed owner in %d directories in %.1f seconds' % ( res['Value'], time() - startTime ) )
+    else:
+      self.log.always( 'Successfully changed owner in directory %s in %.1f seconds' % ( baseDir, time() - startTime ) )
+
   def checkLFCRegisteredUsers( self, usersData ):
     ''' Registers and re-registers users in the LFC
     '''
@@ -105,49 +150,10 @@ class UsersAndGroups( AgentModule ):
       self.log.info( subject, ", ".join( registerUsers ) )
       from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
       dfc = FileCatalogClient()
-
-
       for lfcuser in registerUsers:
         for lfc_dn in registerUsers[lfcuser]:
           print lfc_dn
-          exists = False
-          initial = lfcuser[0]
-          baseDir = os.path.join( '/lhcb', 'user', initial, lfcuser )
-          subDirectories = []
-          if dfc.isDirectory( baseDir ).get( 'Value', {} ).get( 'Successful', {} ).get( baseDir ):
-            self.log.always( 'Directory already existing', baseDir )
-            exists = True
-            res = dfc.listDirectory( baseDir )
-            if res['OK']:
-              success = res['Value']['Successful'][baseDir]
-              subDirectories = success['SubDirs']
-              if success.get( 'SubDirs' ) or success.get( 'Files' ):
-                self.log.always( 'Directory is not empty:', ' %d files / %d subdirectories' % ( len( success['Files'] ), len( success['SubDirs'] ) ) )
-              elif recursive:
-                self.log.always( "Empty directory, recursive is useless..." )
-                recursive = False
-          if not exists:
-            self.log.always( 'Creating directory', baseDir )
-            res = dfc.createDirectory( baseDir )
-            if not res['OK']:
-              self.log.fatal( 'Error creating directory', res['Message'] )
-              exit( 2 )
-          else:
-            self.log.always( 'Change%s ownership of directory' % ' recursively' if recursive else '', baseDir )
-          res = chown( baseDir, lfcuser, group = 'lhcb_user', mode = 0755, recursive = False, fcClient = dfc )
-          if not res['OK']:
-            self.log.fatal( 'Error changing directory owner', res['Message'] )
-            exit( 2 )
-          startTime = time()
-          if recursive and subDirectories:
-            res = chown( subDirectories, lfcuser, group = 'lhcb_user', mode = 0755, recursive = True, ndirs = 1, fcClient = dfc )
-            if not res['OK']:
-              self.log.fatal( 'Error changing directory owner', res['Message'] )
-              exit( 2 )
-            self.log.always( 'Successfully changed owner in %d directories in %.1f seconds' % ( res['Value'], time() - startTime ) )
-          else:
-            self.log.always( 'Successfully changed owner in directory %s in %.1f seconds' % ( baseDir, time() - startTime ) )
-
+          self.addEntryDFC( lfcuser )
 
     return S_OK()
 
@@ -399,7 +405,6 @@ class UsersAndGroups( AgentModule ):
       self.log.info( subject )
       from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
       dfc = FileCatalogClient()
-      recursive = False
 
       self.__adminMsgs[ 'Info' ].append( "\nNew users:" )
       for newUser in newUserNames:
@@ -409,31 +414,7 @@ class UsersAndGroups( AgentModule ):
           self.__adminMsgs[ 'Info' ].append( "      DN = %s" % DN )
           self.__adminMsgs[ 'Info' ].append( "      CA = %s" % usersData[newUser]['CA'] )
         self.__adminMsgs[ 'Info' ].append( "    + EMail: %s" % usersData[newUser][ 'Email' ] )
-        exists = False
-        initial = newUser[0]
-        baseDir = os.path.join( '/lhcb', 'user', initial, newUser )
-        subDirectories = []
-        if not exists:
-          self.log.always( 'Creating directory', baseDir )
-          res = dfc.createDirectory( baseDir )
-          if not res['OK']:
-            self.log.fatal( 'Error creating directory', res['Message'] )
-            return S_ERROR( 2 )
-        else:
-          self.log.always( 'Change%s ownership of directory' % ' recursively' if recursive else '', baseDir )
-        res = chown( baseDir, newUser, group = 'lhcb_user', mode = 0755, recursive = False, fcClient = dfc )
-        if not res['OK']:
-          self.log.fatal( 'Error changing directory owner', res['Message'] )
-          return S_ERROR( 2 )
-        startTime = time()
-        if recursive and subDirectories:
-          res = chown( subDirectories, newUser, group = 'lhcb_user', mode = 0755, recursive = True, ndirs = 1, fcClient = dfc )
-          if not res['OK']:
-            self.log.fatal( 'Error changing directory owner', res['Message'] )
-            exit( 2 )
-          self.log.always( 'Successfully changed owner in %d directories in %.1f seconds' % ( res['Value'], time() - startTime ) )
-        else:
-          self.log.always( 'Successfully changed owner in directory %s in %.1f seconds' % ( baseDir, time() - startTime ) )
+        self.addEntryDFC( newUser )
 
 
     if usersWithMoreThanOneDN:
@@ -461,7 +442,6 @@ class UsersAndGroups( AgentModule ):
       self.log.error( "Could not commit configuration changes", result[ 'Message' ] )
       return result
     self.log.info( "Configuration committed" )
-
 
     return S_OK()
 
