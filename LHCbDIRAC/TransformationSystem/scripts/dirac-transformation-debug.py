@@ -9,10 +9,10 @@ __RCSID__ = "$Id$"
 import sys, os
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
-def __getFilesForRun( transID, runID = None, status = None, lfnList = None, seList = None ):
+def __getFilesForRun( transID, runID = None, status = None, lfnList = None, seList = None, taskList = None ):
   # print transID, runID, status, lfnList
   selectDict = {}
-  if runID != None:
+  if runID is not None:
     if runID:
       selectDict["RunNumber"] = runID
     else:
@@ -23,6 +23,8 @@ def __getFilesForRun( transID, runID = None, status = None, lfnList = None, seLi
     selectDict['LFN'] = lfnList
   if seList:
     selectDict['UsedSE'] = seList
+  if taskList:
+    selectDict['TaskID'] = taskList
   selectDict['TransformationID'] = transID
   res = transClient.getTransformationFiles( selectDict )
   if res['OK']:
@@ -41,10 +43,10 @@ def __filesProcessed( transID, runID ):
       processed += 1
   return ( files, processed )
 
-def __getRuns( transID, runList = None, byRuns = True, seList = None, status = None ):
+def __getRuns( transID, runList = None, byRuns = True, seList = None, status = None, taskList = None ):
   runs = []
   if status and byRuns and not runList:
-    files = __getFilesForRun( transID, status = status )
+    files = __getFilesForRun( transID, status = status, taskList = taskList )
     runList = []
     for fileDict in files:
       run = fileDict['RunNumber']
@@ -1164,7 +1166,7 @@ if __name__ == "__main__":
     elif opt in ( 'v', 'Verbose' ):
       verbose = True
     elif opt == 'Tasks':
-      taskList = val.split( ',' )
+      taskList = [int( x ) for x in val.split( ',' )]
     elif opt == 'KickRequests':
       kickRequests = True
     elif opt == 'DumpFiles':
@@ -1263,7 +1265,8 @@ if __name__ == "__main__":
       runStatus = runDict.get( 'Status' )
 
       # Get all files from TransformationDB
-      transFilesList = sorted( __getFilesForRun( transID, runID, status, lfnList, seList ) )
+      transFilesList = sorted( __getFilesForRun( transID, runID = runID, status = status,
+                                                 lfnList = lfnList, seList = seList, taskList = taskList ) )
       if lfnList:
         notFoundFiles = [lfn for lfn in lfnList if lfn not in [fileDict['LFN'] for fileDict in transFilesList]]
         if notFoundFiles:
