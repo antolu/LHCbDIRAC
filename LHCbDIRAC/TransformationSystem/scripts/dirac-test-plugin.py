@@ -56,6 +56,11 @@ class fakeClient:
     if condDict['TransformationID'] == self.transID:
       transRuns = []
       runs = condDict.get( 'RunNumber', [] )
+      if not runs and self.files:
+        res = self.bk.getFileMetadata( [fileDict['LFN'] for fileDict in self.files] )
+        if not res['OK']:
+          return res
+        runs = list( set( meta['RunNumber'] for meta in res['Value']['Successful'].itervalues() ) )
       for run in runs:
         transRuns.append( {'RunNumber':run, 'Status':"Active", "SelectedSite":None} )
       return DIRAC.S_OK( transRuns )
@@ -115,6 +120,9 @@ class fakeClient:
         else:
           return res
     return DIRAC.S_OK( counters )
+
+  def getRunsMetadata( self, runID ):
+    return self.transClient.getRunsMetadata( runID )
 
   def setTransformationRunStatus( self, transID, runID, status ):
     return DIRAC.S_OK()
@@ -375,7 +383,7 @@ if __name__ == "__main__":
             continue
           else:
             # Print out previous tasks
-            if i - previousTask['First'] == 1:
+            if previousTask['First'] == i - 1:
               print '%d' % previousTask['First'], '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
             else:
               print '%d:%d (%d tasks)' % ( previousTask['First'], i - 1, i - previousTask['First'] ), '- Target SEs:', previousTask['SEs'], "- 1 file", " - Current locations:", previousTask['Location']
