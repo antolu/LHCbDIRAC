@@ -68,7 +68,7 @@ class PluginScript( DMScript ):
     else:
       params = {}
     # print self.options
-    for key in set( self.options ) & set( self.additionalParameters ):
+    for key in set( self.options ) & set( param if not param.endswith( '=' ) else param[:-1] for param in self.additionalParameters ):
       params[key] = self.options[key]
     return params
 
