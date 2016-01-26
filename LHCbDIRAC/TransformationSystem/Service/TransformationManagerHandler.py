@@ -249,7 +249,7 @@ class TransformationManagerHandler( TManagerBase ):
     """
     return database.updateRunsMetadata( runID, metadataDict )
 
-  types_getRunsMetadata = [[LongType, IntType]]
+  types_getRunsMetadata = [[ListType, LongType, IntType]]
   @classmethod
   def export_getRunsMetadata( self, runID ):
     """ retrieve run metadata
