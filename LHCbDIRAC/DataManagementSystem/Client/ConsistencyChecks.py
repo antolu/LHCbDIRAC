@@ -53,6 +53,8 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self.bkClient = BookkeepingClient() if bkClient is None else bkClient
     self.transClient = TransformationClient() if transClient is None else transClient
 
+    self.descendantsDepth = 10
+
     # Results of the checks
     self.existLFNsBKRepNo = {}
     self.absentLFNsBKRepNo = []
@@ -64,7 +66,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
     self.inBKNotInFC = []
     self.inFCNotInBK = []
-    
+
     self._verbose = False
 
   def __logVerbose( self, msg, msg1 = '' ):
@@ -279,19 +281,19 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self.commonAncestors = {}
     self.multipleDescendants = {}
     if not getFileType and len( listAncestors ) == len( set( listAncestors ) ):
-      gLogger.info( 'Found %d ancestors, no common one' % len( listAncestors ) )
+      gLogger.notice( 'Found %d ancestors, no common one' % len( listAncestors ) )
       return
 
-    gLogger.info( 'Found files with %d file types' % len( fileTypes ) )
+    gLogger.notice( 'Found files with %d file types' % len( fileTypes ) )
     for fileType in fileTypes:
       lfns = fileTypes[fileType] & set( ancestors )
-      gLogger.info( 'File type %s, checking %d files' % ( fileType, len( lfns ) ) )
+      gLogger.notice( 'File type %s, checking %d files' % ( fileType, len( lfns ) ) )
       listAncestors = []
       for lfn in lfns:
         listAncestors += ancestors[lfn]
       setAncestors = set( listAncestors )
       if len( listAncestors ) == len( setAncestors ):
-        gLogger.info( 'Found %d ancestors for file type %s, no common one' % ( len( listAncestors ), fileType ) )
+        gLogger.notice( 'Found %d ancestors for file type %s, no common one' % ( len( listAncestors ), fileType ) )
         continue
       # There are common ancestors
       descendants = {}
@@ -303,7 +305,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
       for anc in sorted( descendants ):
         if len( descendants[anc] ) > 1:
           desc = sorted( descendants[anc] )
-          gLogger.info( 'For ancestor %s, found %d descendants: %s' % ( anc, len( desc ), desc ) )
+          gLogger.notice( 'For ancestor %s, found %d descendants: %s' % ( anc, len( desc ), desc ) )
           self.multipleDescendants[anc] = desc
           self.commonAncestors.setdefault( ','.join( sorted( desc ) ), [] ).append( anc )
 
@@ -311,23 +313,23 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
   def __getDaughtersInfo( self, lfns, status, filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants ):
     """ Get BK information about daughers of lfns """
-    chunkSize = 100 if self.transType == 'DataStripping' and len( self.fileType ) > 1 else 500
+    chunkSize = 100
     progressBar = ProgressBar( len( lfns ),
-                               title = "Now getting daughters for %d %s mothers in production %d"
-                               % ( len( lfns ), status, self.prod ),
+                               title = "Now getting daughters for %d %s mothers in production %d (depth %d)"
+                               % ( len( lfns ), status, self.prod, self.descendantsDepth ),
                                chunk = chunkSize )
     daughtersBKInfo = {}
     for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
       progressBar.loop()
       while True:
-        resChunk = self.bkClient.getFileDescendants( lfnChunk, depth = 99,
+        resChunk = self.bkClient.getFileDescendants( lfnChunk, depth = self.descendantsDepth,
                                                      production = self.prod, checkreplica = False )
         if resChunk['OK']:
           # Key is ancestor, value is metadata dictionary of daughters
           descDict = self._selectByFileType( resChunk['Value']['WithMetadata'] )
           # Do the daughters have a replica flag in BK? Store file type as well... Key is daughter
           daughtersBKInfo.update( dict( ( lfn, ( desc[lfn]['GotReplica'] == 'Yes', desc[lfn]['FileType'] ) )
-                                      for desc in descDict.values() for lfn in desc ) )
+                                      for desc in descDict.itervalues() for lfn in desc ) )
           # Count the daughters per file type (key is ancestor)
           ft_count = self._getFileTypesCount( descDict )
           for lfn in lfnChunk:
@@ -336,7 +338,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
               # Assign the daughters list to the initial LFN
               filesWithDescendants[lfn] = descDict[lfn].keys()
               # Is there a file type with more than one daughter of a given file type?
-              multi = dict( [( ft, ftc ) for ft, ftc in ft_count[lfn].items() if ftc > 1] )
+              multi = dict( ( ft, ftc ) for ft, ftc in ft_count[lfn].iteritems() if ftc > 1 )
               if multi:
                 filesWithMultipleDescendants[lfn] = multi
             else:
@@ -344,8 +346,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
               filesWithoutDescendants[lfn] = None
           break
         else:
-          gLogger.error( "\nError getting daughters for %d files, retry"
-                        % len( lfnChunk ), resChunk['Message'] )
+          progressBar.comment( "Error getting daughters for %d files, retry" % len( lfnChunk ), resChunk['Message'] )
     progressBar.endLoop()
     return daughtersBKInfo
 
@@ -377,7 +378,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     # This is the list of all daughters, sets will contain unique entries
     setAllDaughters = set( daughtersBKInfo )
     allDaughters = list( setAllDaughters )
-    inBK = set( [lfn for lfn in setAllDaughters if daughtersBKInfo[lfn][0]] )
+    inBK = set( lfn for lfn in setAllDaughters if daughtersBKInfo[lfn][0] )
     setRealDaughters = set()
     # Now check whether these daughters files have replicas or have descendants that have replicas
     chunkSize = 100 if self.transType == 'DataStripping' and len( self.fileType ) > 1 else 500
@@ -418,7 +419,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
                                                                    fileTypesExcluded = fileTypesExcluded ) )
               break
             else:
-              gLogger.error( "\nError getting descendants for %d files, retry"
+              progressBar.comment( "Error getting descendants for %d files, retry"
                              % len( lfnChunk ), res['Message'] )
         progressBar.endLoop()
         # print "%d not Present daughters, %d have a descendant" % ( len( notPresent ), len( setDaughtersWithDesc ) )
@@ -435,9 +436,9 @@ class ConsistencyChecks( DiracConsistencyChecks ):
           daughtersNotPresent = setDaughters & setNotPresent
           if not daughtersNotPresent:
             continue
-          self.__logVerbose( '\n\nLFN', lfn )
+          self.__logVerbose( '\n\nMother file:', lfn )
           self.__logVerbose( 'Daughters:', '\n'.join( sorted( filesWithDescendants[lfn] ) ) )
-          self.__logVerbose( 'Not present daughters:', '\n'.join( sorted( list( daughtersNotPresent ) ) ) )
+          self.__logVerbose( 'Not present daughters:', '\n'.join( sorted( daughtersNotPresent ) ) )
             # print 'Multiple descendants', filesWithMultipleDescendants.get( lfn )
           # Only interested in daughters without replica, so if all have one, skip
 
@@ -447,10 +448,10 @@ class ConsistencyChecks( DiracConsistencyChecks ):
           realDaughters = list( daughtersWithReplica.union( daughtersNotPresent & setDaughtersWithDesc ) )
           self.__logVerbose( 'realDaughters', realDaughters )
           # descToCheck: dictionary with key = daughter and value = dictionary of file type counts
-          daughtersDict = dict( [( daughter, {daughter:{'FileType':daughtersBKInfo[daughter][1]}} ) for daughter in realDaughters] )
-          self.__logVerbose( 'daughtersDict', daughtersDict )
+          daughtersDict = dict( ( daughter, {daughter:{'FileType':daughtersBKInfo[daughter][1]}} ) for daughter in realDaughters )
+          self.__logVerbose( 'daughtersDict:', daughtersDict )
           descToCheck = self._getFileTypesCount ( daughtersDict )
-          self.__logVerbose( 'descToCheck', descToCheck )
+          self.__logVerbose( 'descToCheck:', descToCheck )
 
           # Update the result dictionaries according to the final set of descendants
           if len( descToCheck ) == 0:
@@ -464,11 +465,11 @@ class ConsistencyChecks( DiracConsistencyChecks ):
             setRealDaughters.update( realDaughters )
             # Count the descendants by file type
             ft_count = {}
-            for counts in descToCheck.values():
+            for counts in descToCheck.itervalues():
               for ft in counts:
                 ft_count[ft] = ft_count.setdefault( ft, 0 ) + counts.get( ft, 0 )
             self.__logVerbose( 'ft_count', ft_count )
-            multi = dict( [( ft, ftc ) for ft, ftc in ft_count.iteritems() if ftc > 1] )
+            multi = dict( ( ft, ftc ) for ft, ftc in ft_count.iteritems() if ftc > 1 )
             self.__logVerbose( 'Multi', multi )
             # Mother has at least one real descendant
             # Now check whether there are more than one descendant of the same file type
@@ -619,8 +620,8 @@ class ConsistencyChecks( DiracConsistencyChecks ):
         else:
           metadata = res['Value']['Successful']
           missingLFNs += [lfn for lfn in lfnChunk if lfn not in metadata]
-          noFlagLFNs.update( dict( [( lfn, metadata[lfn]['RunNumber'] )
-                                    for lfn in metadata if metadata[lfn]['GotReplica'] == 'No'] ) )
+          noFlagLFNs.update( dict( ( lfn, metadata[lfn]['RunNumber'] )
+                                   for lfn in metadata if metadata[lfn]['GotReplica'] == 'No' ) )
           okLFNs += [lfn for lfn in metadata if metadata[lfn]['GotReplica'] == 'Yes']
           break
     progressBar.endLoop()
@@ -790,7 +791,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
           retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ]
 
     progressBar.endLoop()
-    return S_OK(retDict)
+    return S_OK( retDict )
 
   ################################################################################
   # properties
