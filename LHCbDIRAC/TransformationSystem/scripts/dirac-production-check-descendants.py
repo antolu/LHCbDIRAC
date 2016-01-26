@@ -16,6 +16,7 @@ if __name__ == '__main__':
 
   dmScript = DMScript()
   dmScript.registerFileSwitches()
+  depth = 1
 
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
@@ -27,6 +28,7 @@ if __name__ == '__main__':
   Script.registerSwitch( '', 'FixIt', '   Fix the files in transformation table' )
   Script.registerSwitch( '', 'Verbose', '   Print full list of files with error' )
   Script.registerSwitch( '', 'Status=', '   Select files with a given status in the production' )
+  Script.registerSwitch( '', 'Depth=', '   Depth to which to check descendants (default=%d)' % depth )
   Script.parseCommandLine( ignoreErrors = True )
   fileType = []
   runsList = []
@@ -37,7 +39,18 @@ if __name__ == '__main__':
   noLFC = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
-      runsList = switch[1].split( ',' )
+      try:
+        runs = switch[1].split( ',' )
+        runsList = []
+        for run in runs:
+          runRange = run.split( ':' )
+          if len( runRange ) == 2:
+            runsList += range( int( runRange[0] ), int( runRange[1] ) + 1 )
+          else:
+            runsList.append( int( run ) )
+      except Exception as e:
+        gLogger.exception( "Bad run range", switch[1], lException = e )
+        DIRAC.exit( 1 )
     elif switch[0] == 'Status':
       status = switch[1].split( ',' )
     elif switch[0] == 'Verbose':
@@ -48,6 +61,8 @@ if __name__ == '__main__':
       fixIt = True
     elif switch[0] == 'NoLFC':
       noLFC = True
+    elif switch[0] == 'Depth':
+      depth = min( 10, max( 1, int( switch[1] ) ) )
     elif switch[0] == 'ActiveRunsProduction':
       try:
         fromProd = int( switch[1] )
@@ -61,14 +76,14 @@ if __name__ == '__main__':
     DIRAC.exit( 0 )
   else:
     ids = args[0].split( "," )
-    idList = []
+    prodList = []
     for id in ids:
       r = id.split( ':' )
       if len( r ) > 1:
-        for i in xrange( int( r[0] ), int( r[1] ) + 1 ):
-          idList.append( i )
+        for i in range( int( r[0] ), int( r[1] ) + 1 ):
+          prodList.append( i )
       else:
-        idList.append( int( r[0] ) )
+        prodList.append( int( r[0] ) )
   # In case the user asked for specific LFNs
   if not status:
     lfnList = dmScript.getOption( 'LFNs', [] )
@@ -77,24 +92,28 @@ if __name__ == '__main__':
   from LHCbDIRAC.BookkeepingSystem.Client.BKQuery              import BKQuery
   from DIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
   tr = TransformationClient()
-  for id in idList:
-    res = tr.getTransformation( id )
+  for prod in prodList:
+    res = tr.getTransformation( prod )
     if not res['OK']:
-      gLogger.fatal( "Error getting info for transformation", '%d: %s' % ( id, res['Message'] ) )
+      gLogger.fatal( "Error getting info for transformation", '%d: %s' % ( prod, res['Message'] ) )
       continue
     if fileType:
       if res['Value']['Type'] in ( 'Merge', 'MCMerge' ):
-        gLogger.always( "It is not allowed to select file type for merging transformation", id )
+        gLogger.always( "It is not allowed to select file type for merging transformation", prod )
         continue
 
     startTime = time.time()
     cc = ConsistencyChecks()
-    cc.prod = id
+    cc.verbose = verbose
+    cc.prod = prod
     cc.noLFC = noLFC
+    cc.descendantsDepth = depth
+    if prod != prodList[0]:
+      gLogger.always( "====================" )
     gLogger.always( "Processing %s production %d" % ( cc.transType, cc.prod ) )
 
     if status:
-      res = tr.getTransformationFiles( {'TransformationID':id, 'Status':status} )
+      res = tr.getTransformationFiles( {'TransformationID':prod, 'Status':status} )
       if res['OK']:
         lfnList = [trFile['LFN'] for trFile in res['Value']]
         gLogger.always( 'Found %d files with status %s' % ( len( lfnList ), status ) )
@@ -106,7 +125,7 @@ if __name__ == '__main__':
 
     cc.lfns = lfnList
     if not fileType:
-      bkQuery = BKQuery( {'Production':id, 'FileType':'ALL', 'Visible':'All'} )
+      bkQuery = BKQuery( {'Production':prod, 'FileType':'ALL', 'Visible':'All'} )
       cc.fileType = bkQuery.getBKFileTypes()
       gLogger.always( "Looking for descendants of type %s" % str( cc.fileType ) )
     else:
@@ -182,7 +201,7 @@ if __name__ == '__main__':
       gLogger.always( "Processed LFNs without descendants (%d) -> ERROR!" % len( lfns ) )
       if fixIt:
         gLogger.always( "Resetting them 'Unused'" )
-        res = cc.transClient.setFileStatusForTransformation( id, 'Unused', lfns, force = True )
+        res = cc.transClient.setFileStatusForTransformation( prod, 'Unused', lfns, force = True )
         if not res['OK']:
           gLogger.always( "Error resetting files to Unused", res['Message'] )
       else:
@@ -213,7 +232,7 @@ if __name__ == '__main__':
       gLogger.always( "There are %d LFNs not marked Processed but that have descendants -> ERROR" % len( lfns ) )
       if fixIt:
         gLogger.always( "Marking them as 'Processed'" )
-        cc.transClient.setFileStatusForTransformation( id, 'Processed', lfns, force = True )
+        cc.transClient.setFileStatusForTransformation( prod, 'Processed', lfns, force = True )
       else:
         if not fp:
           fp = open( fileName, 'w' )
