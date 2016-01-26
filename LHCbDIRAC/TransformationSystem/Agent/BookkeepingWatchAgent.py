@@ -157,10 +157,10 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
       try:
 
         transID = self.bkQueriesToBeChecked.get()
+        self.transInThread[transID] = ' [Thread%d] [%s] ' % ( threadID, str( transID ) )
 
         startTime = time.time()
         self._logInfo( "Processing transformation %s." % transID, transID = transID )
-        self.transInThread[transID] = ' [Thread%d] [%s] ' % ( threadID, str( transID ) )
 
         res = self.transClient.getTransformation( transID, extraParams = False )
         if not res['OK']:
@@ -237,7 +237,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
               continue
 
       except Exception as x:
-        gLogger.exception( '[%s] %s._execute %s' % ( str( transID ), AGENT_NAME, x), lException = x )
+        gLogger.exception( '[%s] %s._execute' % ( str( transID ), AGENT_NAME), lException = x )
       finally:
         self._logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID = transID )
         if transID in self.bkQueriesInCheck:
@@ -279,7 +279,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     else:
       self.timeLog[transID] = now
       if result['Value']:
-        self._logInfo( "Obtained %d files from BK" % len( result['Value'] ) )
+        self._logInfo( "Obtained %d files from BK" % len( result['Value'] ), transID = transID )
       return result['Value']
 
 
@@ -298,6 +298,22 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
       else:
         for run, runMeta in res['Value'].iteritems():
           res = self.transClient.addRunsMetadata( run, runMeta )
+          if not res['OK']:
+            raise RuntimeError( res['Message'] )
+    # Add run duration to the metadata
+    runsInCache = self.transClient.getRunsInCache( {'Name':['Duration']} )
+    if not runsInCache['OK']:
+      raise RuntimeError( runsInCache['Message'] )
+    newRuns = list( set( runsList ) - set( runsInCache['Value'] ) )
+    if newRuns:
+      self._logVerbose( "Associating run duration to %d runs" % len( newRuns ), transID = transID )
+      res = self.bkClient.getRunInformation( {'RunNumber':newRuns, 'Fields':['JobStart', 'JobEnd']} )
+      if not res['OK']:
+        raise RuntimeError( res['Message'] )
+      else:
+        for run, runMeta in res['Value'].items():
+          duration = ( runMeta['JobEnd'] - runMeta['JobStart'] ).seconds
+          res = self.transClient.addRunsMetadata( run, {'Duration': duration} )
           if not res['OK']:
             raise RuntimeError( res['Message'] )
 
