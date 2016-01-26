@@ -190,7 +190,6 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
   """
   dm = DataManager()
   bk = BookkeepingClient()
-  dmsHelper = DMSHelpers()
   #########################
   # Normal removal using FC
   #########################
@@ -211,7 +210,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
       if not res['OK']:
         gLogger.error( "\nError setting files invisible in BK", res['Message'] )
         DIRACExit( -3 )
-    res = dm.getReplicas( lfnChunk, getURL = False )
+    res = dm.getReplicas( lfnChunk, getUrl = False )
     if not res['OK']:
       gLogger.fatal( "\nFailed to get replicas", res['Message'] )
       DIRACExit( -2 )
@@ -236,7 +235,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
           reason = 'No replicas at requested SEs (%d existing)' % len( existingReps )
         errorReasons.setdefault( reason, {} ).setdefault( 'anywhere', [] ).append( lfn )
       elif len( existingReps ) <= minReplicas:
-        if force and not ( existingReps - seList ):
+        if force and not existingReps - seList:
           filesToRemove.append( lfn )
         else:
           seString = ','.join( sorted( seList & existingReps ) )
@@ -344,7 +343,7 @@ def removeReplicasNoFC( lfnList, seList ):
   progressBar = ProgressBar( len( lfnList ), title = 'Removing replica flag in BK for files not in FC', chunk = chunkSize )
   for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
     progressBar.loop()
-    res = dm.getReplicas( lfnChunk, getURL = False )
+    res = dm.getReplicas( lfnChunk, getUrl = False )
     if res['OK'] and res['Value']['Failed']:
       bkToRemove = res['Value']['Failed'].keys()
       notInFC.update( bkToRemove )
@@ -444,7 +443,7 @@ def getAccessURL( lfnList, seList, protocol = None ):
   Get TURL at a list of SEs
   """
   dm = DataManager()
-  res = dm.getReplicas( lfnList, getURL = False )
+  res = dm.getReplicas( lfnList, getUrl = False )
   replicas = res.get( 'Value', {} ).get( 'Successful', {} )
   if not seList:
     seList = sorted( set( se for lfn in lfnList for se in replicas.get( lfn, {} ) ) )
