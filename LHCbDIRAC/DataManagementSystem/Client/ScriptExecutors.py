@@ -895,16 +895,22 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
         continue
       lfnReplicas.update( res['Value'] )
   elif lfnList:
-    res = dm.getReplicas( lfnList, getUrl = False )
-    if not res['OK']:
-      gLogger.fatal( res['Message'] )
-      DIRACExit( 2 )
-    lfnReplicas = res['Value']['Successful']
-    if res['Value']['Failed']:
-      repStats[0] = len( res['Value']['Failed'] )
-      withReplicas[0] = res['Value']['Failed'].keys()
-      for lfn in res['Value']['Failed']:
-        noReplicas[lfn] = -1
+    chunkSize = max( 50, min( 500, len( lfnList ) / 10 ) )
+    lfnReplicas = {}
+    progressBar = ProgressBar( len( lfnList ), title = 'Getting replicas for %d LFNs' % len( lfnList ), chunk = chunkSize )
+    for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
+      progressBar.loop()
+      res = dm.getReplicas( lfnChunk, getUrl = False )
+      if not res['OK']:
+        gLogger.fatal( res['Message'] )
+        DIRACExit( 2 )
+      lfnReplicas.update( res['Value']['Successful'] )
+      if res['Value']['Failed']:
+        repStats[0] = repStats.setdefault( 0, 0 ) + len( res['Value']['Failed'] )
+        withReplicas.setdefault( 0, [] ).extend( res['Value']['Failed'].keys() )
+        for lfn in res['Value']['Failed']:
+          noReplicas[lfn] = -1
+    progressBar.endLoop()
 
   if not lfnReplicas:
     gLogger.fatal( "No files found that have a replica...." )
