@@ -62,7 +62,7 @@ def printDMResult( result, shift = 4, empty = "Empty directory", script = None, 
     return 2
 
 class ProgressBar( object ):
-  def __init__( self, items, width = None, title = None, chunk = None, step = None ):
+  def __init__( self, items, width = None, title = None, chunk = None, step = None, interactive = None ):
     if title is None:
       title = ''
     else:
@@ -73,6 +73,8 @@ class ProgressBar( object ):
       chunk = 1
     if step is None:
       step = 1
+    if interactive is None:
+      interactive = True
     self._step = step
     self._width = width
     self._loopNumber = 0
@@ -81,11 +83,14 @@ class ProgressBar( object ):
     self._chunk = chunk
     self._startTime = time.time()
     self._progress = 0
-    self._showBar = bool( items > chunk ) and bool( items > step )
+    self._showBar = bool( items > chunk ) and bool( items > step ) and interactive
+    self._interactive = interactive
     self._title = title
     self._backspace = 0
     self._writeTitle()
   def _writeTitle( self ):
+    if not self._interactive:
+      return
     if self._showBar:
       sys.stdout.write( "%s|%s|" % ( self._title, self._width * ' ' ) )
       self._backspace = self._width + 1
@@ -93,19 +98,20 @@ class ProgressBar( object ):
       sys.stdout.write( self._title )
     sys.stdout.flush()
   def loop( self, increment = True ):
+    if not self._interactive:
+      return
     showBar = self._showBar and ( self._loopNumber % self._step ) == 0
-    oldFraction = min( float( self._itemCounter ) / float( self._items ), 1. )
+    fraction = min( float( self._itemCounter ) / float( self._items ), 1. )
     if increment:
       self._loopNumber += 1
       self._itemCounter += self._chunk
     else:
       showBar = self._showBar
     if showBar:
-      fraction = min( float( self._itemCounter ) / float( self._items ), 1. )
       progress = int( round( self._width * fraction ) )
       elapsed = time.time() - self._startTime
-      if elapsed > 30. and oldFraction:
-        rest = int( elapsed * ( 1 - oldFraction ) / oldFraction )
+      if elapsed > 30. and fraction:
+        rest = int( elapsed * ( 1 - fraction ) / fraction )
         estimate = ' (%d seconds left)' % rest
       else:
         estimate = ''
@@ -120,6 +126,8 @@ class ProgressBar( object ):
       self._progress = progress
       sys.stdout.flush()
   def endLoop( self, message = None, timing = True ):
+    if not self._interactive:
+      return
     if message is None:
       message = 'completed'
     if self._showBar:

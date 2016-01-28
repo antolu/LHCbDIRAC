@@ -254,7 +254,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     listAncestors = []
     progressBar = ProgressBar( len( files ),
                                title = 'Getting ancestors for %d files' % len( files ),
-                               chunk = chunkSize )
+                               chunk = chunkSize, interactive = self._interactive )
     for lfnChunk in breakListIntoChunks( files, chunkSize ):
       progressBar.loop()
       if getFileType:
@@ -317,7 +317,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     progressBar = ProgressBar( len( lfns ),
                                title = "Now getting daughters for %d %s mothers in production %d (depth %d)"
                                % ( len( lfns ), status, self.prod, self.descendantsDepth ),
-                               chunk = chunkSize )
+                               chunk = chunkSize, interactive = self._interactive )
     daughtersBKInfo = {}
     for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
       progressBar.loop()
@@ -406,7 +406,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
         chunkSize = 500
         progressBar = ProgressBar( len( setNotPresent ),
                                    title = "Now checking descendants from %d daughters without replicas" % len( setNotPresent ),
-                                   chunk = chunkSize )
+                                   chunk = chunkSize, interactive = self._interactive )
         # Get existing descendants of notPresent daughters
         setDaughtersWithDesc = set()
         for lfnChunk in breakListIntoChunks( setNotPresent, chunkSize ):
@@ -428,7 +428,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
         progressBar = ProgressBar( len( filesWithDescendants ),
                                    title = "Now establishing final list of existing descendants for %d mothers"
                                    % len( filesWithDescendants ),
-                                   step = chunkSize )
+                                   step = chunkSize, interactive = self._interactive )
         for lfn in set( filesWithDescendants ):
           setDaughters = set( filesWithDescendants[lfn] )
           progressBar.loop()
@@ -610,7 +610,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     noFlagLFNs = {}
     okLFNs = []
     chunkSize = 1000
-    progressBar = ProgressBar( len( lfns ), title = 'Getting %d files metadata from BK' % len( lfns ), chunk = chunkSize )
+    progressBar = ProgressBar( len( lfns ), title = 'Getting %d files metadata from BK' % len( lfns ), chunk = chunkSize, interactive = self._interactive )
     for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
       progressBar.loop()
       while True:
@@ -686,7 +686,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     if lfnsLeft:
       progressBar = ProgressBar( len( lfnsLeft ),
                                  title = "Get replicas for %d files" % len( lfnsLeft ),
-                                 chunk = chunkSize )
+                                 chunk = chunkSize, interactive = self._interactive )
       for lfnChunk in breakListIntoChunks( lfnsLeft, chunkSize ):
         progressBar.loop()
         replicasRes = self.dm.getReplicas( lfnChunk )
@@ -701,7 +701,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
     progressBar = ProgressBar( len( lfns ),
                                title = "Get FC metadata for %d files to be checked: " % len( lfns ),
-                               chunk = chunkSize )
+                               chunk = chunkSize, interactive = self._interactive )
     metadata = {}
     for lfnChunk in breakListIntoChunks( replicas.keys(), chunkSize ):
       progressBar.loop()
@@ -730,7 +730,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     for num, se in enumerate( sorted( seFiles ) ):
       progressBar = ProgressBar( len( seFiles[se] ),
                                  title = '%d. At %s (%d files): ' % ( num, se, len( seFiles[se] ) ),
-                                 chunk = chunkSize )
+                                 chunk = chunkSize, interactive = self._interactive )
       oSe = StorageElement( se )
       for surlChunk in breakListIntoChunks( seFiles[se], chunkSize ):
         progressBar.loop()
@@ -751,7 +751,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
     progressBar = ProgressBar( len( replicas ),
                                title = 'Verifying checksum of %d files' % len( replicas ),
-                               chunk = chunkSize )
+                               chunk = chunkSize, interactive = self._interactive )
     for num, lfn in enumerate( replicas ):
       # get the lfn checksum from the LFC
       progressBar.loop()
