@@ -167,7 +167,7 @@ def removeReplicas( lfnList, seList, minReplicas = 1, checkFC = True, allDisk = 
   if fullyRemoved or allDisk:
     lfnList = fullyRemoved
     for lfns in [lfns for reason, siteLFNs in errorReasons.iteritems() for lfns in siteLFNs.itervalues() if reason == 'Only ARCHIVE replicas']:
-      lfnList.update( lfns )
+      lfnList.update( dict.fromkeys( lfns, [] ) )
     if lfnList:
       removeFilesInTransformations( list( lfnList ) )
 
@@ -193,14 +193,14 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
   #########################
   # Normal removal using FC
   #########################
-  archiveSEs = resolveSEGroup( 'Tier1-ARCHIVE' )
+  archiveSEs = set( resolveSEGroup( 'Tier1-ARCHIVE' ) )
   errorReasons = {}
   successfullyRemoved = {}
   fullyRemoved = set()
   notExisting = {}
   savedLevel = gLogger.getLevel()
   seList = set( seList )
-  chunkSize = 500
+  chunkSize = max( 50, min( 500, len( lfnList ) / 10 ) )
   progressBar = ProgressBar( len( lfnList ), title = 'Removing replicas' + ( ' and setting them invisible in BK' if allDisk else '' ), chunk = chunkSize )
   # Set files invisible in BK if removing all disk replicas
   for lfnChunk in breakListIntoChunks( sorted( lfnList ), chunkSize ):
@@ -339,7 +339,7 @@ def removeReplicasNoFC( lfnList, seList ):
   notInFC = set()
   notInBK = {}
   bkOK = 0
-  chunkSize = 500
+  chunkSize = max( 50, min( 500, len( lfnList ) / 10 ) )
   progressBar = ProgressBar( len( lfnList ), title = 'Removing replica flag in BK for files not in FC', chunk = chunkSize )
   for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
     progressBar.loop()
@@ -516,7 +516,7 @@ def removeFiles( lfnList, setProcessed = False ):
   notExisting = []
   # Avoid spurious error messages
   savedLevel = gLogger.getLevel()
-  chunkSize = 100
+  chunkSize = max( 10, min( 100, len( lfnList ) / 10 ) )
   progressBar = ProgressBar( len( lfnList ), title = "Removing %d files" % len( lfnList ), chunk = chunkSize )
   for lfnChunk in breakListIntoChunks( lfnList, chunkSize ):
     progressBar.loop()
@@ -922,7 +922,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
   dumpFromSE = {}
   if getSize:
     lfnSize = {}
-    chunkSize = 500
+    chunkSize = max( 50, min( 500, len( lfnReplicas ) / 10 ) )
     progressBar = ProgressBar( len( lfnReplicas ), title = 'Getting size for %d LFNs' % len( lfnReplicas ), chunk = chunkSize )
     for lfns in breakListIntoChunks( lfnReplicas, chunkSize ):
       progressBar.loop()
@@ -1156,7 +1156,7 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
   bk = BookkeepingClient()
 
   gLogger.notice( "Now processing %d files" % len( lfnList ) )
-  chunkSize = 1000
+  chunkSize = max( 50, min( 500, len( lfnList ) / 10 ) )
   progressBar = ProgressBar( len( lfnList ), title = 'Getting replicas from FC ', chunk = chunkSize )
   replicas = {'Successful':{}, 'Failed':{}}
   for chunk in breakListIntoChunks( lfnList, chunkSize ):
@@ -1195,7 +1195,7 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
         bkToggle.append( lfn )
 
   if bkToggle:
-    chunkSize = 100
+    chunkSize = max( 10, min( 100, len( bkToggle ) / 10 ) )
     transStatusOK = { True:( 'Problematic', 'MissingLFC', 'MissingInFC', 'ProbInFC', 'MaxReset' ), False:( 'Unused', 'MaxReset', 'Assigned' )}
     progressBar = ProgressBar( len( bkToggle ), title = 'Checking with Transformation system', chunk = chunkSize )
     for chunk in breakListIntoChunks( bkToggle, chunkSize ):
