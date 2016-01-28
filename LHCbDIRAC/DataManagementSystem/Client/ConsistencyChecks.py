@@ -26,8 +26,12 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient import Transform
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction' )
 
 
-def getFileDescendants( transID, lfns, transClient = None, dm = None, bkClient = None ):
+def getFileDescendants( transID, lfns, transClient = None, dm = None, bkClient = None, verbose = True, descendantsDepth = None ):
   cc = ConsistencyChecks( interactive = False, transClient = transClient, dm = dm, bkClient = bkClient )
+  if descendantsDepth is not None:
+    cc.descendantsDepth = descendantsDepth
+  else:
+    cc.descendantsDepth = 1
   cc.prod = transID
   cc.fileType = []
   cc.fileTypesExcluded = Operations().getValue( 'DataConsistency/IgnoreDescendantsOfType', [] )
@@ -436,9 +440,10 @@ class ConsistencyChecks( DiracConsistencyChecks ):
           daughtersNotPresent = setDaughters & setNotPresent
           if not daughtersNotPresent:
             continue
-          self.__logVerbose( '\n\nMother file:', lfn )
+          self.__logVerbose( 'Mother file:', lfn )
           self.__logVerbose( 'Daughters:', '\n'.join( sorted( filesWithDescendants[lfn] ) ) )
           self.__logVerbose( 'Not present daughters:', '\n'.join( sorted( daughtersNotPresent ) ) )
+          self.__logVerbose( ' but with descendants:', '\n'.join( sorted( daughtersNotPresent & setDaughtersWithDesc ) ) )
             # print 'Multiple descendants', filesWithMultipleDescendants.get( lfn )
           # Only interested in daughters without replica, so if all have one, skip
 
