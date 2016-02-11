@@ -1690,7 +1690,7 @@ class OracleBookkeepingDB:
       
       res = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getFileDesJobId', [fileName] )
       if not res["OK"]:
-        gLogger.error( 'Error getting jobID', res['Message'] )
+        gLogger.error( 'Error getting fileId', res['Message'] )
         failed.add( fileName )
       elif not res['Value']:
         notprocessed.add( fileName )
