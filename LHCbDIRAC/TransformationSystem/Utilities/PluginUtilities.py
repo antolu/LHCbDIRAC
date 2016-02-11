@@ -65,18 +65,16 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.__recoType = ''
     self.dmsHelper = DMSHelpers()
     self.runDestinations = {}
-
+    self.__shareMetrics = None
 
   def setDebug( self, val ):
     self.debug = val
 
-  def getShares( self, section = None, backupSE = None ):
+  def getProcessingShares( self, backupSE, section = None ):
     """
-    Get shares from CS:
-    * If backupSE is not present: just return the CS shares as they are
-    * If backupSE is specified, the shares represent a percentage of the RAW at each site and the rest is for backupSE
+    Get shares from CS for RAW processing:
+    * The shares represent a percentage of the RAW at each site and the rest is for backupSE
     """
-    shareMetrics = self.getPluginParam( 'ShareMetrics', '' )  # 'Files' )
     if section is None:
       # This is for reconstruction shares (CU)
       sharesSections = { 'DataReconstruction': 'CPUforRAW', 'DataReprocessing' : 'CPUforReprocessing'}
@@ -91,59 +89,74 @@ class PluginUtilities( DIRACPluginUtilities ):
     if not res['OK']:
       self.logError( "There is no CS section %s" % section, res['Message'] )
       return res
-    rawFraction = None
-    if backupSE:
-      # Apply these processing fractions to the RAW distribution shares
-      rawFraction = res['Value']
-      result = getShares( 'RAW', normalise = True )
-      if result['OK']:
-        rawShares = result['Value']
-        shares = dict( ( se, rawShares[se] * rawFraction[se] ) for se in set( rawShares ) & set( rawFraction ) )
-        tier1Fraction = sum( shares.values() )
-        shares[backupSE] = 100. - tier1Fraction
-      else:
-        return res
-      self.logInfo( "Fraction of RAW (%s) to be processed at each SE (%%):" % section )
-      for se in sorted( rawFraction ):
-        self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), 100. * rawFraction[se] ) )
+    # Apply these processing fractions to the RAW distribution shares
+    rawFraction = res['Value']
+    result = getShares( 'RAW', normalise = True )
+    if result['OK']:
+      rawShares = result['Value']
+      shares = dict( ( se, rawShares[se] * rawFraction[se] ) for se in set( rawShares ) & set( rawFraction ) )
+      tier1Fraction = sum( shares.values() )
+      shares[backupSE] = 100. - tier1Fraction
     else:
-      shares = normaliseShares( res['Value'] )
-      self.logInfo( "Obtained the following target distribution shares (%):" )
-      for se in sorted( shares ):
-        self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), shares[se] ) )
+      return res
+    self.logInfo( "Fraction of RAW (%s) to be processed at each SE (%%):" % section )
+    for se in sorted( shares ):
+      self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), shares[se] ) )
+    return S_OK( ( rawFraction, shares ) )
 
+  def getReplicationShares( self, section = None ):
+    """
+    Get shares from CS for RAW replication
+    """
+    if section is None:
+      section = 'RAW'
+    res = getShares( section )
+    if not res['OK']:
+      self.logError( "There is no CS section %s" % section, res['Message'] )
+      return res
+    rawFraction = None
+
+    shares = normaliseShares( res['Value'] )
+
+    if self.__shareMetrics is None:
+      self.__shareMetrics = self.getPluginParam( 'ShareMetrics', 'Files' )
     # Get the existing destinations from the transformationDB, just for printing
-    if shareMetrics == 'Files':
+    if self.__shareMetrics == 'Files':
       res = self.getExistingCounters( requestedSEs = sorted( shares ), shares = shares )
     else:
-      res = self.getSitesRunsTime( requestedSEs = sorted( shares ) )
+      res = self.getSitesRunTime( requestedSEs = sorted( shares ) )
     if not res['OK']:
       self.logError( "Failed to get used share", res['Message'] )
       return res
     else:
       existingCount = res['Value']
       normalisedExistingCount = normaliseShares( existingCount ) if existingCount else {}
-      self.logInfo( "Target shares and usage for production (%):" )
+      self.logInfo( "Target shares and usage for replication (%):" )
       for se in sorted( shares ):
         infoStr = "%s: %4.1f |" % ( se.ljust( 15 ), shares[se] )
         if se in normalisedExistingCount:
           infoStr += " %4.1f" % normalisedExistingCount[se]
         self.logInfo( infoStr )
-    if rawFraction:
-      return S_OK( ( rawFraction, shares ) )
-    else:
-      return S_OK( ( existingCount, shares ) )
+    return S_OK( ( existingCount, shares ) )
 
-  def getSitesRunsTime( self, transID = None, normalise = False, requestedSEs = None ):
+  def updateShares( self, existingCount, se, count ):
+    if self.__shareMetrics == 'Files':
+      existingCount[se] = existingCount.setdefault( se, 0 ) + count
+
+  def getSitesRunTime( self, requestedSEs = None ):
     """
     Get per site how much time of run was assigned
     """
-    res = self.getTransformationRuns( transID = transID )
+    res = self.getTransformationRuns()
     if not res['OK']:
       return res
     runDictList = res['Value']
     # Get run metadata
-    runMetadata = dict( ( runDict['RunNumber'], self.transClient.getRunsMetadata( runDict['RunNumber'] ).get( 'Value', {} ) ) for runDict in runDictList )
+    runs = [runDict['RunNumber'] for runDict in runDictList]
+    res = self.transClient.getRunsMetadata( runs )
+    if not res['OK']:
+      return res
+    runMetadata = res['Value']
 
     seUsage = {}
     for runDict in runDictList:
@@ -163,30 +176,31 @@ class PluginUtilities( DIRACPluginUtilities ):
           start = res['Value'][runID]['JobStart']
           end = res['Value'][runID]['JobEnd']
           duration = ( end - start ).seconds
+          res = self.transClient.addRunsMetadata( runID, {'Duration': duration} )
+          if not res['OK']:
+            return res
         else:
           duration = 0
+      else:
+        duration = int( duration )
       for se in selectedSEs:
         seUsage[se] = seUsage.setdefault( se, 0 ) + duration
 
-    if normalise:
-      seUsage = normaliseShares( seUsage )
     return S_OK( seUsage )
 
 
-  def getExistingCounters( self, transID = None, normalise = False, requestedSEs = None, shares = None ):
+  def getExistingCounters( self, requestedSEs = None, shares = None ):
     """
-    Used by RAWShares and AtomicRun, gets what has been done up to now while distributing runs
+    Used by RAWReplication and RAWProcessing plugins, gets what has been done up to now while distributing runs
     """
-    if transID is None:
-      transID = self.transID
     res = self.transClient.getCounters( 'TransformationFiles', ['UsedSE'],
-                                        {'TransformationID':transID} )
+                                        {'TransformationID':self.transID} )
     if not res['OK']:
       return res
     usageDict = {}
     if shares is None:
       shares = {}
-    total = sum( count for _usedDict, count in res['Value'] )
+    total = sum( count for _uDict, count in res['Value'] )
     for usedDict, count in res['Value']:
       usedSE = usedDict['UsedSE']
       if not total:
@@ -201,11 +215,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         if overlap:
           for ov in overlap:
             seDict[ov] = seDict.setdefault( ov, 0 ) + count
-        else:
-          self.logWarn( "%s is in counters but not in required list" % se )
       usageDict = seDict
-    if normalise:
-      usageDict = normaliseShares( usageDict )
     return S_OK( usageDict )
 
   def getBookkeepingMetadata( self, lfns, param ):
@@ -548,25 +558,25 @@ class PluginUtilities( DIRACPluginUtilities ):
         # If not, get its ancestors
         res = self.getFileAncestors( lfnToCheck, replica = False )
         if res['OK']:
-          fullDst = [f['FileName'] for f in res['Value']['Successful'].get( lfnToCheck, [{}] ) if f.get( 'FileType' ) == 'FULL.DST']
+          fullDst = [f['FileName'] for f in res['Value']['Successful'].get( lfnToCheck, [{}] ) if f.get( 'FileType' ) == self.__recoType]
           if fullDst:
             ancestorFullDST = fullDst[0]
         else:
           self.logError( "Error getting ancestors of %s" % lfnToCheck, res['Message'] )
     if ancestorFullDST:
-      self.logDebug( "Ancestor FULL.DST found: %s" % ancestorFullDST )
+      self.logDebug( "Ancestor %s found: %s" % ( self.__recoType, ancestorFullDST ) )
       res = self.bkClient.getJobInfo( ancestorFullDST )
       if res['OK']:
         try:
           recoProduction = res['Value'][0][18]
           self.logVerbose( 'Reconstruction production is %d' % recoProduction )
-        except Exception as _e:
-          self.logException( "Exception extracting reco production from %s" % str( res['Value'] ) )
+        except Exception as e:
+          self.logException( "Exception extracting reco production from %s" % str( res['Value'] ), lException = e )
           recoProduction = None
       else:
         self.logError( "Error getting job information", res['Message'] )
     else:
-      self.logVerbose( "No ancestor FULL.DST file found" )
+      self.logVerbose( "No ancestor %s file found" % self.__recoType )
     if recoProduction:
       res = self.transClient.getTransformationFiles( { 'TransformationID':recoProduction, 'RunNumber':runID} )
       if res['OK']:
@@ -780,7 +790,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         return None
       transQuery = res['Value']['Successful'].get( lfn, [{}] )[0]
       # Strip off most of it
-      for key in ( 'ConditionDescription', 'FileType', 'Production', 'EventType' ):
+      for key in ( 'ConditionDescription', 'FileType', 'Production' ):
         transQuery.pop( key, None )
     return transQuery
 
