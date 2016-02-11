@@ -1098,16 +1098,67 @@ def executeReplicateLfn( dmScript ):
     gLogger.notice( "No LFNs provided..." )
     Script.showHelp()
 
-  replicateLfn( lfnList, sourceSE, destList, localCache )
+  finalResult = replicateLfn( lfnList, sourceSE, destList, localCache )
+  DIRACExit( printDMResult( finalResult ) )
 
-def replicateLfn( lfnList, sourceSE, destList, localCache = None ):
+def executeReplicateToRunDestination( dmScript ):
+  """
+  get information from file for destination according to the run destination
+  """
+  seList, args = __checkSEs( Script.getPositionalArgs(), expand = False )
+  if not seList:
+    seList = __getSEsFromOptions( dmScript )
+  if not seList:
+    gLogger.notice( "No destination SE" )
+    Script.showHelp()
+    DIRAC.exit( 1 )
+
+  for lfn in args:
+    dmScript.setLFNsFromFile( lfn )
+  lfnList = dmScript.getOption( 'LFNs', [] )
+  if not lfnList:
+    gLogger.notice( "No LFNs provided..." )
+    Script.showHelp()
+
+  bkClient = BookkeepingClient()
+  tsClient = TransformationClient()
+  finalResult = {'OK':True, 'Value':{"Failed":{}, "Successful":{}}}
+  groupByRun = {}
+  for lfn in lfnList:
+    res = bkClient.getFileMetadata( lfn )
+    if not res['OK'] or lfn in res['Value']['Failed']:
+      finaResult['Value']['Failed'][lfn] = res['Message']
+    else:
+      runNumber = res['Value']['Successful'][lfn]['RunNumber']
+      groupByRun.setdefault( runNumber, [] ).append( lfn )
+  dmsHelper = DMSHelpers()
+  groupBySE = {}
+  for runNumber, lfns in groupByRun.iteritems():
+    res = tsClient.getDestinationForRun( runNumber )
+    if not res['OK'] or runNumber not in res['Value']:
+      finalResult['Value']['Failed'].update( dict.fromkeys( lfns, res['Message'] ) )
+    else:
+      dest = res['Value'][runNumber]
+      res = dmsHelper.getSEInGroupAtSite( seList, dest )
+      if res['OK']:
+        destSE = res['Value']
+        groupBySE.setdefault( destSE, [] ).extend( lfns )
+      else:
+        finalResult['Value']['Failed'].update( dict.fromkeys( lfns, res['Message'] ) )
+  for destSE, lfns in groupBySE.iteritems():
+    result = replicateLfn( lfns, '', destSE, verbose = True )
+    finalResult['Value']['Successful'].update( result['Value']['Successful'] )
+    finalResult['Value']['Failed'].update( result['Value']['Failed'] )
+  DIRACExit( printDMResult( finalResult ) )
+
+def replicateLfn( lfnList, sourceSE, destList, localCache = None, verbose = False ):
   """
   replicate a list of LFNs to a list of SEs
   """
   dm = DataManager()
   # print lfnList, destList, sourceSE, localCache
   finalResult = {'OK':True, 'Value':{"Failed":{}, "Successful":{}}}
-  if len( lfnList ) > 1 or len ( destList ) > 1:
+  if len( lfnList ) > 1 or len ( destList ) > 1 or verbose:
     gLogger.notice( 'Replicating %d files to %s' % ( len( lfnList ), ','.join( destList ) ) +
                     ( ' from %s' % sourceSE if sourceSE else '' ) )
   for lfn in lfnList:
@@ -1124,8 +1175,7 @@ def replicateLfn( lfnList, sourceSE, destList, localCache = None ):
           if success[lfn].get( 'register' ) == 0 and success[lfn].get( 'replicate' ) == 0:
             success[lfn] = 'Already present'
           finalResult['Value']['Successful'].setdefault( seName, {} ).update( success )
-
-  DIRACExit( printDMResult( finalResult ) )
+  return finalResult
 
 def executeSetProblematicFiles( dmScript ):
   """
