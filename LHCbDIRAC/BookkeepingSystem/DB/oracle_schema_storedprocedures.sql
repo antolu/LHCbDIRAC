@@ -1989,7 +1989,7 @@ end if;
 for c in (select f.filename, f.fileid, j.jobid from jobs j, files f, inputfiles i, filetypes ft where ft.filetypeid=f.filetypeid and ft.name!='LOG' and j.jobid=f.jobid and  j.jobid=i.jobid and i.fileid=v_fileid) LOOP
   select sum(f.luminosity) into lumi from inputfiles i, files f where f.fileid=i.fileid and i.jobid=c.jobid; 
   IF lumi > 0 THEN
-    dbms_output.put_line('update files set luminosity=' || lumi || ' where filename='||c.filename);
+    --dbms_output.put_line('update files set luminosity=' || lumi || ' where filename='||c.filename);
     update files set luminosity=lumi where fileid=c.fileid;
     updateDesLuminosity(c.fileid);
   END IF;
