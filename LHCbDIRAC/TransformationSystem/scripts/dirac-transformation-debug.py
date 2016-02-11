@@ -4,7 +4,7 @@ Debug files status for a (list of) transformations
 It is possible to do minor fixes to those files, using options
 """
 
-__RCSID__ = "$Id$"
+__RCSID__ = "$transID: dirac-transformation-debug.py 61232 2013-01-28 16:29:21Z phicharp $"
 
 import sys, os
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
@@ -175,7 +175,7 @@ def __fixRunNumber( filesToFix, fixRun, noTable = False ):
     res = bkClient.getFileMetadata( filesToFix )
     if res['OK']:
       runFiles = {}
-      for lfn, metadata in res['Value']['Successful'].items():
+      for lfn, metadata in res['Value']['Successful'].iteritems():
         runFiles.setdefault( metadata['RunNumber'], [] ).append( lfn )
       for run in runFiles:
         if not run:
@@ -306,7 +306,7 @@ def __getAssignedRequests():
       listOfAssignedRequests = [reqID for reqID , _x, _y in res['Value']]
   return listOfAssignedRequests
 
-def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRequests, cleanOld = False ):
+def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRequests ):
   requestID = int( task['ExternalID'] )
   taskID = task['TaskID']
   taskName = '%08d_%08d' % ( transID, taskID )
@@ -361,7 +361,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
   if res['OK']:
     reqFiles = res['Value']
     statFiles = {}
-    for lfn, stat in reqFiles.items():
+    for lfn, stat in reqFiles.iteritems():
       statFiles[stat] = statFiles.setdefault( stat, 0 ) + 1
     for stat in sorted( statFiles ):
       print "\t%s: %d files" % ( stat, statFiles[stat] )
@@ -596,7 +596,7 @@ def __removeFilesFromTS( lfns ):
   removed = 0
   for fd in res['Value']:
     transFiles.setdefault( fd['TransformationID'], [] ).append( fd['LFN'] )
-  for transID, lfns in transFiles.items():
+  for transID, lfns in transFiles.iteritems():
     res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns, force = True )
     if not res['OK']:
       print 'Error setting %d files Removed' % len( lfns ), res['Message']
@@ -797,7 +797,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
   failedLfns = {}
   jobLogURL = {}
   jobSites = {}
-  for lfnStr, allJobs in jobsForLfn.items():
+  for lfnStr, allJobs in jobsForLfn.iteritems():
     lfnList = lfnStr.split( ',' )
     exitedJobs = []
     allJobs.sort()
@@ -891,7 +891,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
         else:
           # lfnsFound is an AND of files found bad in all jobs
           lfnsFound = set( badLfns.values()[0] )
-          for lfns in badLfns.values():
+          for lfns in badLfns.itervalues():
             lfnsFound &= set( [lfn for lfn in lfns if lfn] )
           if lfnsFound:
             for lfn, job, reason in [( lfn, job, badLfns[job][lfn] ) for job in badLfns for lfn in set( badLfns[job] ) & lfnsFound]:
@@ -912,13 +912,14 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
       else:
         lastEvent = int( reason.split( partial )[1][:-1] )
         lfnDict[lfn] = ( otherReasons[0][:-1] + ',%d)' % lastEvent, otherReasons[1] + jobs )
-    for lfn, ( reason, jobs ) in lfnDict.items():
+    for lfn, ( reason, jobs ) in lfnDict.iteritems():
       failedLfns[( lfn, reason )] = jobs
 
-    for ( lfn, reason ), jobs in failedLfns.items():
+    for ( lfn, reason ), jobs in failedLfns.iteritems():
+      jobs = sorted( set( jobs ) )
       res = monitoring.getJobsSites( jobs )
       if res['OK']:
-        sites = sorted( set( [val['Site'] for val in res['Value'].values()] ) )
+        sites = sorted( set( [val['Site'] for val in res['Value'].itervalues()] ) )
       print "ERROR ==> %s was %s during processing from jobs %s (sites %s): " % ( lfn, reason, ','.join( [str( job ) for job in jobs] ), ','.join( sites ) )
       # Get an example log if possible
       if checkLogs:
@@ -955,7 +956,7 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
       print 'Error getting files metadata', res['Message']
       DIRAC.exit( 2 )
     evtType = res['Value']['Successful'].values()[0]['EventType']
-    paramValues = sorted( set( [meta[param] for meta in res['Value']['Successful'].values() if param in meta] ) )
+    paramValues = sorted( set( [meta[param] for meta in res['Value']['Successful'].itervalues() if param in meta] ) )
   ancestors = {}
   for paramValue in paramValues:
     try:
@@ -991,8 +992,8 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
         print "Error getting files metadata", res['Message']
       else:
         metadata = res['Value']['Successful']
-        runRAWFiles = set( [lfn for lfn, meta in metadata.items() if meta['EventType'] == evtType and meta['GotReplica'] == 'Yes'] )
-        badRAWFiles = set( [lfn for lfn, meta in metadata.items() if meta['EventType'] == evtType] ) - runRAWFiles
+        runRAWFiles = set( [lfn for lfn, meta in metadata.iteritems() if meta['EventType'] == evtType and meta['GotReplica'] == 'Yes'] )
+        badRAWFiles = set( [lfn for lfn, meta in metadata.iteritems() if meta['EventType'] == evtType] ) - runRAWFiles
         # print len( runRAWFiles ), 'RAW files'
         allAncestors = set()
         for paramValue in paramValues:
@@ -1076,7 +1077,7 @@ def __checkWaitingTasks( transID ):
   if not kickRequests:
     print 'Use --KickRequests to fix them'
 
-#======================================================
+#====================================
 if __name__ == "__main__":
 
   transSep = ''
@@ -1098,8 +1099,8 @@ if __name__ == "__main__":
   fixIt = False
   checkFlush = False
   checkWaitingTasks = False
-  cleanOld = False
   checkLogs = False
+  jobList = []
   from DIRAC.Core.Base import Script
 
   infoList = ( "files", "runs", "tasks", 'jobs', 'alltasks', 'flush', 'log' )
@@ -1111,13 +1112,13 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'Runs=', "Specify a (list of) runs" )
   Script.registerSwitch( '', 'SEs=', 'Specify a (list of) target SEs' )
   Script.registerSwitch( '', 'Tasks=', "Specify a (list of) tasks" )
+  Script.registerSwitch( '', 'Jobs=', 'Specify a (list of) jobs' )
   Script.registerSwitch( '', 'DumpFiles', 'Dump the list of LFNs on stdout' )
   Script.registerSwitch( '', 'Statistics', 'Get the statistics of tasks per status and SE' )
   Script.registerSwitch( '', 'FixRun', 'Fix the run number in transformation table' )
   Script.registerSwitch( '', 'FixIt', 'Fix the FC' )
   Script.registerSwitch( '', 'KickRequests', 'Reset old Assigned requests to Waiting' )
   Script.registerSwitch( '', 'CheckWaitingTasks', 'Check if waiting tasks are failed, done or orphan' )
-  Script.registerSwitch( '', 'CleanOld', 'Clean old style requests' )
   Script.registerSwitch( 'v', 'Verbose', '' )
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
@@ -1180,8 +1181,10 @@ if __name__ == "__main__":
       runList = ['0']
     elif opt == 'CheckWaitingTasks':
       checkWaitingTasks = True
-    elif opt == 'CleanOld':
-      cleanOld = True
+    elif opt == 'Jobs':
+      jobList = [int( job ) for job in val.split( ',' ) if job.isdigit()]
+      byTasks = True
+      byFiles = True
 
   lfnList = dmScript.getOption( 'LFNs', [] )
   if lfnList:
@@ -1196,7 +1199,7 @@ if __name__ == "__main__":
   if fixRun and not status:
     status = 'Unused'
 
-  transList = __getTransformations( Script.getPositionalArgs() )
+  transList = __getTransformations( Script.getPositionalArgs() ) if not jobList else []
 
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
   from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient, printOperation
@@ -1221,7 +1224,17 @@ if __name__ == "__main__":
   # gLogger.setLevel( 'INFO' )
 
   transSep = ''
+  if jobList:
+    res = transClient.getTransformationTasks( {'ExternalID': jobList} )
+    if not res['OK']:
+      print "Error getting jobs:", res['Message']
+    else:
+      transList = {}
+      for task in res['Value']:
+        transList.setdefault( task['TransformationID'], [] ).append( task['TaskID'] )
   for transID in transList:
+    if isinstance( transList, dict ):
+      taskList = transList[transID]
     problematicReplicas = {}
     failedFiles = []
     nbReplicasProblematic = {}
@@ -1415,7 +1428,7 @@ if __name__ == "__main__":
 
           # More information from Request tasks
           if taskType == "Request":
-            toBeKicked += __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRequests, cleanOld )
+            toBeKicked += __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRequests )
 
           print ""
       if byJobs and jobsForLfn:
@@ -1452,13 +1465,6 @@ if __name__ == "__main__":
     if dumpFiles and allFiles:
       print "List of files found:"
       print "\n".join( allFiles )
-      newStatus = None
-      if newStatus:
-        res = transClient.setFileStatusForTransformation( transID, newStatus, allFiles )
-        if res['OK']:
-          print 'Of %d files, %d set to %s' % ( len( allFiles ), len( res['Value']['Successful'] ), newStatus )
-        else:
-          print "Failed to set status %s" % newStatus
 
   if improperJobs:
     print "List of %d jobs in improper status:" % len( improperJobs )
