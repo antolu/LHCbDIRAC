@@ -10,7 +10,8 @@
 __RCSID__ = "$Id$"
 
 import DIRAC
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult, ProgressBar
+from DIRAC import S_OK
 
 if __name__ == "__main__":
   dmScript = DMScript()
@@ -59,7 +60,7 @@ if __name__ == "__main__":
   bkClient = BookkeepingClient()
 
   chunkSize = 50
-  progressBar = ProgressBar( len( lfnList ), chunk = chunkSize, title = 'Getting ancestors for %d files (depth %d)' % ( len( lfnList ), level ) + ( ' for production %d' % prod if prod else '' ) )
+  progressBar = ProgressBar( len( lfnList ), chunk = chunkSize, title = 'Getting ancestors for %d files (depth %d)' % ( len( lfnList ), level ) )
   fullResult = S_OK( {} )
   for lfnChunk in breakListIntoChunks( lfnList, 50 ):
     progressBar.loop()
