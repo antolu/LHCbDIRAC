@@ -121,6 +121,9 @@ class fakeClient:
           return res
     return DIRAC.S_OK( counters )
 
+  def addRunsMetadata( self, runID, val ):
+    return self.transClient.addRunsMetadata( runID, val )
+
   def getRunsMetadata( self, runID ):
     return self.transClient.getRunsMetadata( runID )
 
