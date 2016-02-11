@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-    Set a (set of) LFNs as problematic in the LFC and in the BK and transformation system if only one replica
+    Set a (set of) LFNs as problematic in the FC and in the BK and transformation system if all replicas are problematic
 """
 __RCSID__ = "$Id$"
 __VERSION__ = "$Revision$"
