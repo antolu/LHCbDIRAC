@@ -55,18 +55,30 @@ if __name__ == "__main__":
   lfnList = dmScript.getOption( 'LFNs', [] )
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-  result = BookkeepingClient().getFileAncestors( lfnList, level, replica = checkreplica )
+  from DIRAC.Core.Utilities.List import breakListIntoChunks
+  bkClient = BookkeepingClient()
 
-  if result['OK']:
-    if full:
-      del result['Value']['Successful']
+  chunkSize = 50
+  progressBar = ProgressBar( len( lfnList ), chunk = chunkSize, title = 'Getting ancestors for %d files (depth %d)' % ( len( lfnList ), level ) + ( ' for production %d' % prod if prod else '' ) )
+  fullResult = S_OK( {} )
+  for lfnChunk in breakListIntoChunks( lfnList, 50 ):
+    progressBar.loop()
+    result = bkClient.getFileAncestors( lfnChunk, level, replica = checkreplica )
+
+    if result['OK']:
+      if full:
+        fullResult['Value'].setdefault( 'WithMetadata', {} ).update( result['Value']['WithMetadata'] )
+      else:
+        okResult = result['Value']['WithMetadata']
+        for lfn in okResult:
+          fullResult['Value'].setdefault( 'Successful', {} )[lfn] = \
+            dict( ( desc, 'Replica-%s' % meta['GotReplica'] ) for desc, meta in okResult[lfn].iteritems() )
+      fullResult['Value'].setdefault( 'Failed', {} ).update( result['Value']['Failed'] )
     else:
-      okResult = result['Value']['WithMetadata']
-      for lfn in okResult:
-        result['Value']['Successful'][lfn] = \
-          dict( ( desc, 'Replica-%s' % meta['GotReplica'] ) for desc, meta in okResult[lfn].iteritems() )
-      del result['Value']['WithMetadata']
+      fullResult = result
+      break
+  progressBar.endLoop()
 
-  DIRAC.exit( printDMResult( result,
+  DIRAC.exit( printDMResult( fullResult,
                              empty = "None", script = "dirac-bookkeeping-get-file-ancestors" ) )
 
