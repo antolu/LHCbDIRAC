@@ -1,0 +1,121 @@
+<Workflow>
+<origin></origin>
+<description><![CDATA[]]></description>
+<descr_short></descr_short>
+<version>0.0</version>
+<type></type>
+<name>TunesForMC12_24_RootMerger_Step_2</name>
+<Parameter name="JobType" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Job Type"><value><![CDATA[User]]></value></Parameter>
+<Parameter name="Priority" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User Job Priority"><value><![CDATA[1]]></value></Parameter>
+<Parameter name="JobGroup" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Name of the JobGroup"><value><![CDATA[lhcb]]></value></Parameter>
+<Parameter name="JobName" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified name"><value><![CDATA[TunesForMC12_24_RootMerger_Step_2]]></value></Parameter>
+<Parameter name="SystemConfig" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="User specified system configuration for job"><value><![CDATA[x86_64-slc5-gcc43-opt]]></value></Parameter>
+<Parameter name="Site" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Site Requirement"><value><![CDATA[ANY]]></value></Parameter>
+<Parameter name="Origin" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Origin of client"><value><![CDATA[DIRAC]]></value></Parameter>
+<Parameter name="StdOutput" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard output file"><value><![CDATA[std.out]]></value></Parameter>
+<Parameter name="StdError" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard error file"><value><![CDATA[std.err]]></value></Parameter>
+<Parameter name="InputData" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="List of input data specified by LFNs"><value><![CDATA[LFN:/lhcb/user/f/fstagni/2013_02/43484/43484847/GaussXGen_00000017.root;LFN:/lhcb/user/f/fstagni/2013_02/43484/43484847/GaussXGen_00000014.root]]></value></Parameter>
+<Parameter name="LogLevel" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Job Logging Level"><value><![CDATA[info]]></value></Parameter>
+<Parameter name="ParametricInputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input data value"><value><![CDATA[]]></value></Parameter>
+<Parameter name="ParametricInputSandbox" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input sandbox value"><value><![CDATA[]]></value></Parameter>
+<Parameter name="ParametricParameters" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input parameters value"><value><![CDATA[]]></value></Parameter>
+<Parameter name="runNumber" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Input run number"><value><![CDATA[Unknown]]></value></Parameter>
+<Parameter name="persistency" type="String" linked_module="" linked_parameter="" in="True" out="False" description="Persistency type of the inputs"><value><![CDATA[]]></value></Parameter>
+<Parameter name="TotalSteps" type="String" linked_module="" linked_parameter="" in="True" out="False" description="Total number of steps"><value><![CDATA[1]]></value></Parameter>
+<Parameter name="SoftwarePackages" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="List of LHCb Software Packages to be installed"><value><![CDATA[DaVinci.v32r1p2]]></value></Parameter>
+<Parameter name="MaxCPUTime" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="CPU time in secs"><value><![CDATA[86400]]></value></Parameter>
+<Parameter name="UserOutputData" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="List of output data files"><value><![CDATA[rootOutput_Step_2_00000001.root]]></value></Parameter>
+<Parameter name="UserOutputSE" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified Output SE"><value><![CDATA[CERN-USER]]></value></Parameter>
+<Parameter name="InputSandbox" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Input sandbox file list"><value><![CDATA[LFN:/lhcb/user/f/fstagni/2013_02/43484/43484847/GaussXGen_00000017.root;LFN:/lhcb/user/f/fstagni/2013_02/43484/43484847/GaussXGen_00000014.root]]></value></Parameter>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.CreateDataFile import CreateDataFile
+]]></body>
+<origin></origin>
+<description><![CDATA[  Prepare a file (data.py) which is consumed by Ganga, containing the input files as resolved in the workflow
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>CreateDataFile</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
+]]></body>
+<origin></origin>
+<description><![CDATA[ Module to upload specified job output files according to the parameters
+    defined in the user workflow.
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>UserJobFinalization</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.FileUsage import FileUsage
+]]></body>
+<origin></origin>
+<description><![CDATA[ Module to upload specified job output files according to the parameters
+    defined in the user workflow.
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>FileUsage</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.RootApplication import RootApplication
+]]></body>
+<origin></origin>
+<description><![CDATA[ Root Application Class ]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>RootApplication</type>
+</ModuleDefinition>
+<StepDefinition>
+<origin></origin>
+<version>0.0</version>
+<type>hadd53400Step1</type>
+<description><![CDATA[]]></description>
+<descr_short></descr_short>
+<Parameter name="rootVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Root version"><value><![CDATA[]]></value></Parameter>
+<Parameter name="rootScript" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Root script"><value><![CDATA[]]></value></Parameter>
+<Parameter name="rootType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Root type"><value><![CDATA[]]></value></Parameter>
+<Parameter name="arguments" type="list" linked_module="" linked_parameter="" in="True" out="False" description="Optional arguments for payload"><value><![CDATA[[]]]></value></Parameter>
+<Parameter name="applicationLog" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Log file name"><value><![CDATA[]]></value></Parameter>
+<ModuleInstance>
+<type>CreateDataFile</type>
+<name>CreateDataFile</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>RootApplication</type>
+<name>RootApplication</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>FileUsage</type>
+<name>FileUsage</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>UserJobFinalization</type>
+<name>UserJobFinalization</name>
+<descr_short></descr_short>
+</ModuleInstance>
+</StepDefinition>
+<StepInstance>
+<type>hadd53400Step1</type>
+<name>hadd53400Step1</name>
+<descr_short></descr_short>
+<Parameter name="rootVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Root version"><value><![CDATA[5.34.00]]></value></Parameter>
+<Parameter name="rootScript" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Root script"><value><![CDATA[hadd.5.34.00]]></value></Parameter>
+<Parameter name="rootType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Root type"><value><![CDATA[bin]]></value></Parameter>
+<Parameter name="arguments" type="list" linked_module="" linked_parameter="" in="True" out="False" description="Optional arguments for payload"><value><![CDATA[['rootOutput_Step_2_00000001.root', 'GaussXGen_00000017.root', 'GaussXGen_00000014.root']]]></value></Parameter>
+<Parameter name="applicationLog" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Log file name"><value><![CDATA[Step1_hadd53400_53400.log]]></value></Parameter>
+</StepInstance>
+</Workflow>

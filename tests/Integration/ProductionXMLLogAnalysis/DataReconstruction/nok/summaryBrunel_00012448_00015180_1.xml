@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<success>False</success>
+	<step>finalize</step>
+	<usage>
+		<stat unit="KB" useOf="MemoryMaximum">1142800.0</stat>
+	</usage>
+	<input>
+		<file GUID="" name="LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/102869/102869_0000000176.raw" status="part">1</file>
+	</input>
+	<output>
+		<file GUID="" name="PFN:00012448_00015180_1.sdst" status="full">0</file>
+	</output>
+	<counters>
+		<counter name="FilterNoBeam/#passed">0</counter>
+		<counter name="FilterBeamCrossing/#passed">0</counter>
+		<counter name="FilterBeam1/#passed">0</counter>
+		<counter name="FilterBeam2/#passed">0</counter>
+		<counter name="TimeSpanFilter/#passed">0</counter>
+		<counter name="CreateTTClusters/# valid banks">0</counter>
+		<counter name="CreateTTClusters/skipped Banks">0</counter>
+		<counter name="CreateTTLiteClusters/# valid banks">0</counter>
+		<counter name="CreateTTLiteClusters/skipped Banks">0</counter>
+		<counter name="CreateITClusters/# valid banks">0</counter>
+		<counter name="CreateITClusters/skipped Banks">0</counter>
+		<counter name="CreateITLiteClusters/# valid banks">0</counter>
+		<counter name="CreateITLiteClusters/skipped Banks">0</counter>
+		<counter name="FitBest/nTracks">0</counter>
+		<counter name="FitVelo/nTracks">0</counter>
+		<counter name="MuonTrackFitter/nTracks">0</counter>
+		<counter name="CounterSummarySvc/handled">3</counter>
+	</counters>
+	<lumiCounters />
+</summary>

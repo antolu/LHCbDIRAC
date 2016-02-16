@@ -1,0 +1,14 @@
+from ProdConf import ProdConf
+
+ProdConf(
+  NOfEvents=2,
+  DDDBTag='dddb-20130929',
+  CondDBTag='sim-20130522-vc-md100',
+  AppVersion='v26r3',
+  XMLSummaryFile='summaryBoole_00012345_00006789_2.xml',
+  Application='Boole',
+  OutputFilePrefix='00012345_00006789_2',
+  XMLFileCatalog='pool_xml_catalog.xml',
+  InputFiles=['LFN:00012345_00006789_1.sim'],
+  OutputFileTypes=['digi'],
+)

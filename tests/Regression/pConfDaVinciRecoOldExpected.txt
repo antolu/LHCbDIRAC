@@ -1,0 +1,18 @@
+from ProdConf import ProdConf
+
+ProdConf(
+  TCK='0x94003d',
+  NOfEvents=25,
+  HistogramFile='DaVinci_00020194_00106359_2_Hist.root',
+  DDDBTag='dddb-20120831',
+  CondDBTag='cond-20120831',
+  AppVersion='v32r2',
+  OptionFormat='DQ',
+  XMLSummaryFile='summaryDaVinci_00020194_00106359_2.xml',
+  Application='DaVinci',
+  OutputFilePrefix='00020194_00106359_2',
+  RunNumber=114753,
+  XMLFileCatalog='pool_xml_catalog.xml',
+  InputFiles=['LFN:00020194_00106359_1.full.dst'],
+  OutputFileTypes=[],
+)

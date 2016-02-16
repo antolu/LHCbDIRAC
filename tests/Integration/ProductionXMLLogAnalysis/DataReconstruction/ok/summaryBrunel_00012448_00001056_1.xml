@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<success>True</success>
+	<step>finalize</step>
+	<usage>
+		<stat unit="KB" useOf="MemoryMaximum">1743584.0</stat>
+	</usage>
+	<input>
+		<file GUID="" name="LFN:/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/102506/102506_0000000285.raw" status="full">11162</file>
+	</input>
+	<output>
+		<file GUID="B6B71422-D5E9-E011-A9C9-D8D385FF5AA2" name="PFN:00012448_00001056_1.sdst" status="full">8449</file>
+	</output>
+	<counters>
+		<counter name="FilterNoBeam/#passed">142</counter>
+		<counter name="FilterBeamCrossing/#passed">1895</counter>
+		<counter name="FilterBeam1/#passed">431</counter>
+		<counter name="FilterBeam2/#passed">280</counter>
+		<counter name="TimeSpanFilter/#passed">2748</counter>
+		<counter name="HltErrorFilter/#passed">8449</counter>
+		<counter name="CreateTTClusters/# banks found">405552</counter>
+		<counter name="CreateTTClusters/# valid banks">405552</counter>
+		<counter name="CreateTTClusters/skipped Banks">0</counter>
+		<counter name="CreateTTLiteClusters/# valid banks">405552</counter>
+		<counter name="CreateTTLiteClusters/# valid source ID">405552</counter>
+		<counter name="CreateTTLiteClusters/skipped Banks">0</counter>
+		<counter name="CreateITClusters/# banks found">354858</counter>
+		<counter name="CreateITClusters/# valid banks">354858</counter>
+		<counter name="CreateITClusters/skipped Banks">0</counter>
+		<counter name="CreateITLiteClusters/# valid banks">354858</counter>
+		<counter name="CreateITLiteClusters/# valid source ID">354858</counter>
+		<counter name="CreateITLiteClusters/skipped Banks">0</counter>
+		<counter name="FitBest/Downstream.badChisq">181639</counter>
+		<counter name="FitBest/Downstream.chisqprobSum">20894</counter>
+		<counter name="FitBest/Downstream.flipCharge">652</counter>
+		<counter name="FitBest/Downstream.numOutliers">423397</counter>
+		<counter name="FitBest/Long.badChisq">371766</counter>
+		<counter name="FitBest/Long.chisqprobSum">80442</counter>
+		<counter name="FitBest/Long.flipCharge">233</counter>
+		<counter name="FitBest/Long.numOutliers">967872</counter>
+		<counter name="FitBest/Ttrack.badChisq">40896</counter>
+		<counter name="FitBest/Ttrack.chisqprobSum">48365</counter>
+		<counter name="FitBest/Ttrack.flipCharge">26246</counter>
+		<counter name="FitBest/Ttrack.numOutliers">159923</counter>
+		<counter name="FitBest/Upstream.badChisq">4838</counter>
+		<counter name="FitBest/Upstream.chisqprobSum">42381</counter>
+		<counter name="FitBest/Upstream.flipCharge">774</counter>
+		<counter name="FitBest/Upstream.numOutliers">57607</counter>
+		<counter name="FitBest/nBadInput">0</counter>
+		<counter name="FitBest/nFitted">1126505</counter>
+		<counter name="FitBest/nTracks">1126628</counter>
+		<counter name="FitVelo/Velo.badChisq">12078</counter>
+		<counter name="FitVelo/Velo.chisqprobSum">40716</counter>
+		<counter name="FitVelo/Velo.flipCharge">0</counter>
+		<counter name="FitVelo/Velo.numOutliers">70489</counter>
+		<counter name="FitVelo/VeloBackward.badChisq">11767</counter>
+		<counter name="FitVelo/VeloBackward.chisqprobSum">99811</counter>
+		<counter name="FitVelo/VeloBackward.flipCharge">0</counter>
+		<counter name="FitVelo/VeloBackward.numOutliers">92904</counter>
+		<counter name="FitVelo/nBadInput">0</counter>
+		<counter name="FitVelo/nFitted">352517</counter>
+		<counter name="FitVelo/nTracks">352518</counter>
+		<counter name="TrackV0Finder/numcombinations">5484976</counter>
+		<counter name="TrackV0Finder/numnegtracks">175579</counter>
+		<counter name="TrackV0Finder/numpostracks">178362</counter>
+		<counter name="TrackV0Finder/numselected">4359</counter>
+		<counter name="OfflineENNFinderR1GasTop/# Rich1 Found Rings">7308</counter>
+		<counter name="OfflineENNFinderR1GasTop/Processed Events">884</counter>
+		<counter name="OfflineENNFinderR1GasBottom/# Rich1 Found Rings">7826</counter>
+		<counter name="OfflineENNFinderR1GasBottom/Processed Events">889</counter>
+		<counter name="OfflineENNFinderR2GasLeft/# Rich2 Found Rings">6453</counter>
+		<counter name="OfflineENNFinderR2GasLeft/Processed Events">567</counter>
+		<counter name="OfflineENNFinderR2GasRight/# Rich2 Found Rings">8409</counter>
+		<counter name="OfflineENNFinderR2GasRight/Processed Events">735</counter>
+		<counter name="OfflineBestENNRings/Selected good Aerogel rings">0</counter>
+		<counter name="OfflineBestENNRings/Selected good Rich1Gas rings">6815</counter>
+		<counter name="OfflineBestENNRings/Selected good Rich2Gas rings">7114</counter>
+		<counter name="OfflineIsolatedENNRings/Aerogel Selected isolated rings">0</counter>
+		<counter name="OfflineIsolatedENNRings/Rich1Gas &apos;Occupancy outside ring annulus too large&apos;">919</counter>
+		<counter name="OfflineIsolatedENNRings/Rich1Gas &apos;Ring Refitting&apos;">6815</counter>
+		<counter name="OfflineIsolatedENNRings/Rich1Gas &apos;Ring centre isolation&apos;">3114</counter>
+		<counter name="OfflineIsolatedENNRings/Rich1Gas &apos;Ring has some associated hits&apos;">6811</counter>
+		<counter name="OfflineIsolatedENNRings/Rich1Gas &apos;Too many pixel blobs&apos;">6138</counter>
+		<counter name="OfflineIsolatedENNRings/Rich1Gas Selected isolated rings">502</counter>
+		<counter name="OfflineIsolatedENNRings/Rich2Gas &apos;Occupancy outside ring annulus too large&apos;">596</counter>
+		<counter name="OfflineIsolatedENNRings/Rich2Gas &apos;Ring Refitting&apos;">7114</counter>
+		<counter name="OfflineIsolatedENNRings/Rich2Gas &apos;Ring centre isolation&apos;">1656</counter>
+		<counter name="OfflineIsolatedENNRings/Rich2Gas &apos;Ring has some associated hits&apos;">7112</counter>
+		<counter name="OfflineIsolatedENNRings/Rich2Gas &apos;Too many pixel blobs&apos;">6728</counter>
+		<counter name="OfflineIsolatedENNRings/Rich2Gas Selected isolated rings">222</counter>
+		<counter name="EcalClust/#clusters =&gt; &apos;Rec/Calo/EcalClusters&apos;">738049</counter>
+		<counter name="EcalClust/Clusterisation pass">26936</counter>
+		<counter name="EcalShare/#Clusters from &apos;Rec/Calo/EcalClusters&apos;">738049</counter>
+		<counter name="EcalCovar/#Clusters from &apos;Rec/Calo/EcalClusters&apos;">738049</counter>
+		<counter name="InECAL/#accept">836858</counter>
+		<counter name="InECAL/#links">1035206</counter>
+		<counter name="InECAL/#tracks">1479022</counter>
+		<counter name="InECAL/[ &apos;Rec/Track/Best&apos; ]=&gt;Rec/Calo/InAccEcal">1035206</counter>
+		<counter name="ClusterMatch/# ailure from Tool::match">363317</counter>
+		<counter name="ClusterMatch/#calos">738049</counter>
+		<counter name="ClusterMatch/#chi2">8575853372</counter>
+		<counter name="ClusterMatch/#links">18619307</counter>
+		<counter name="ClusterMatch/#overflow">72761621</counter>
+		<counter name="ClusterMatch/#tracks">836858</counter>
+		<counter name="ClusterMatch/[ &apos;Rec/Track/Best&apos; ]-&gt;[ &apos;Rec/Calo/EcalClusters&apos; ]=&gt;Rec/Calo/ClusterMatch">18619307</counter>
+		<counter name="SinglePhotonRec/Rec/Calo/EcalClusters=&gt;Rec/Calo/Photons">447064</counter>
+		<counter name="MergedPi0Rec/Rec/Calo/EcalClusters=&gt;Rec/Calo/EcalSplitClusters">15414</counter>
+		<counter name="MergedPi0Rec/Rec/Calo/EcalClusters=&gt;Rec/Calo/MergedPi0s">7707</counter>
+		<counter name="MergedPi0Rec/Rec/Calo/EcalClusters=&gt;Rec/Calo/SplitPhotons">15414</counter>
+		<counter name="SingleElectronRec/Rec/Calo/EcalClusters=&gt;Rec/Calo/Electrons">251307</counter>
+		<counter name="InSPD/#accept">875676</counter>
+		<counter name="InSPD/#links">1035206</counter>
+		<counter name="InSPD/#tracks">1479022</counter>
+		<counter name="InSPD/[ &apos;Rec/Track/Best&apos; ]=&gt;Rec/Calo/InAccSpd">1035206</counter>
+		<counter name="InPRS/#accept">873564</counter>
+		<counter name="InPRS/#links">1035206</counter>
+		<counter name="InPRS/#tracks">1479022</counter>
+		<counter name="InPRS/[ &apos;Rec/Track/Best&apos; ]=&gt;Rec/Calo/InAccPrs">1035206</counter>
+		<counter name="InHCAL/#accept">781715</counter>
+		<counter name="InHCAL/#links">1035206</counter>
+		<counter name="InHCAL/#tracks">1479022</counter>
+		<counter name="InHCAL/[ &apos;Rec/Track/Best&apos; ]=&gt;Rec/Calo/InAccHcal">1035206</counter>
+		<counter name="InBREM/#accept">607715</counter>
+		<counter name="InBREM/#links">800539</counter>
+		<counter name="InBREM/#tracks">1479022</counter>
+		<counter name="InBREM/[ &apos;Rec/Track/Best&apos; ]=&gt;Rec/Calo/InAccBrem">800539</counter>
+		<counter name="ElectronMatch/#calos">251307</counter>
+		<counter name="ElectronMatch/#chi2">7340032845</counter>
+		<counter name="ElectronMatch/#links">1648145</counter>
+		<counter name="ElectronMatch/#overflow">33671115</counter>
+		<counter name="ElectronMatch/#tracks">836858</counter>
+		<counter name="ElectronMatch/[ &apos;Rec/Track/Best&apos; ]-&gt;[ &apos;Rec/Calo/Electrons&apos; ]=&gt;Rec/Calo/ElectronMatch">1648145</counter>
+		<counter name="BremMatch/#calos">447064</counter>
+		<counter name="BremMatch/#chi2">15695980249</counter>
+		<counter name="BremMatch/#links">3205760</counter>
+		<counter name="BremMatch/#overflow">34888577</counter>
+		<counter name="BremMatch/#tracks">607715</counter>
+		<counter name="BremMatch/[ &apos;Rec/Track/Best&apos; ]-&gt;[ &apos;Rec/Calo/Photons&apos; ]=&gt;Rec/Calo/BremMatch">3205760</counter>
+		<counter name="SpdE/[ &apos;Rec/Track/Best&apos; ] ==&gt; Rec/Calo/SpdE">875676</counter>
+		<counter name="PrsE/[ &apos;Rec/Track/Best&apos; ] ==&gt; Rec/Calo/PrsE">873564</counter>
+		<counter name="EcalE/[ &apos;Rec/Track/Best&apos; ] ==&gt; Rec/Calo/EcalE">836858</counter>
+		<counter name="HcalE/[ &apos;Rec/Track/Best&apos; ] ==&gt; Rec/Calo/HcalE">781715</counter>
+		<counter name="EcalChi22ID/[ &apos;Rec/Track/Best&apos; ]-&gt;Rec/Calo/ElectronMatch=&gt;Rec/Calo/EcalChi2">1035206</counter>
+		<counter name="BremChi22ID/[ &apos;Rec/Track/Best&apos; ]-&gt;Rec/Calo/BremMatch=&gt;Rec/Calo/BremChi2">800539</counter>
+		<counter name="PrsPIDe/Rec/Calo/PrsE=&gt;Rec/Calo/PrsPIDe">873564</counter>
+		<counter name="EcalPIDe/Rec/Calo/EcalChi2=&gt;Rec/Calo/EcalPIDe">1035206</counter>
+		<counter name="BremPIDe/Rec/Calo/BremChi2=&gt;Rec/Calo/BremPIDe">800539</counter>
+		<counter name="HcalPIDe/Rec/Calo/HcalE=&gt;Rec/Calo/HcalPIDe">781715</counter>
+		<counter name="EcalPIDmu/Rec/Calo/EcalE=&gt;Rec/Calo/EcalPIDmu">836858</counter>
+		<counter name="HcalPIDmu/Rec/Calo/HcalE=&gt;Rec/Calo/HcalPIDmu">781715</counter>
+		<counter name="PhotonID/#Hypos in Rec/Calo/Photons">447064</counter>
+		<counter name="PhotonID/[ &apos;Rec/Calo/Photons&apos; ] ==&gt; Rec/Calo/PhotonID">447064</counter>
+		<counter name="PhotonID/likelihood">-576233</counter>
+		<counter name="MergedID/#Hypos in Rec/Calo/MergedPi0s">7707</counter>
+		<counter name="MergedID/[ &apos;Rec/Calo/MergedPi0s&apos; ] ==&gt; Rec/Calo/MergedID">7707</counter>
+		<counter name="MergedID/likelihood">-1216</counter>
+		<counter name="PhotonFromMergedID/#Hypos in Rec/Calo/SplitPhotons">15414</counter>
+		<counter name="PhotonFromMergedID/[ &apos;Rec/Calo/SplitPhotons&apos; ] ==&gt; Rec/Calo/PhotonFromMergedID">15414</counter>
+		<counter name="PhotonFromMergedID/likelihood">2800</counter>
+		<counter name="ChargedProtoPMaker/Rec/Track/Best ==&gt; Rec/ProtoP/Charged">741327</counter>
+		<counter name="ChargedProtoPAddEcal/EcalPIDs(Offline) ==&gt; Rec/ProtoP/Charged">741327</counter>
+		<counter name="ChargedProtoPAddBrem/BremPIDs(Offline) ==&gt; Rec/ProtoP/Charged">741327</counter>
+		<counter name="ChargedProtoPAddHcal/HcalPIDs(Offline) ==&gt; Rec/ProtoP/Charged">741327</counter>
+		<counter name="ChargedProtoPAddPrs/PrsPIDs(Offline) ==&gt; Rec/ProtoP/Charged">741327</counter>
+		<counter name="ChargedProtoPAddSpd/SpdPIDs(Offline) ==&gt; Rec/ProtoP/Charged">741327</counter>
+		<counter name="ChargedProtoPAddVeloDEDX/VeloDEDX ==&gt; Rec/ProtoP/Charged">741327</counter>
+		<counter name="ChargedProtoPAddRich/Rec/Rich/PIDs ==&gt; Rec/ProtoP/Charged">741327</counter>
+		<counter name="ChargedProtoPAddMuon/Rec/Muon/MuonPID ==&gt; Rec/ProtoP/Charged">741327</counter>
+		<counter name="ChargedProtoPCombDLLs/CombineDLL ==&gt; Rec/ProtoP/Charged">741327</counter>
+		<counter name="NeutralProtoPMaker/#protos in Rec/ProtoP/Neutrals">470185</counter>
+		<counter name="NeutralProtoPMaker/CaloDepositID for &apos;Photon&apos;">-1121512</counter>
+		<counter name="NeutralProtoPMaker/CaloDepositID for &apos;PhotonFromMergedPi0&apos;">-566072</counter>
+		<counter name="NeutralProtoPMaker/CaloDepositID for &apos;Pi0Merged&apos;">-416728</counter>
+		<counter name="NeutralProtoPMaker/ClusterMass   for &apos;Photon&apos;">0</counter>
+		<counter name="NeutralProtoPMaker/ClusterMass   for &apos;PhotonFromMergedPi0&apos;">0</counter>
+		<counter name="NeutralProtoPMaker/ClusterMass   for &apos;Pi0Merged&apos;">865633</counter>
+		<counter name="NeutralProtoPMaker/ClusterMatch  for &apos;Photon&apos;">231037596</counter>
+		<counter name="NeutralProtoPMaker/ClusterMatch  for &apos;PhotonFromMergedPi0&apos;">2433656</counter>
+		<counter name="NeutralProtoPMaker/ClusterMatch  for &apos;Pi0Merged&apos;">1216828</counter>
+		<counter name="NeutralProtoPMaker/NeutralE49   for &apos;Photon&apos;">403763</counter>
+		<counter name="NeutralProtoPMaker/NeutralE49   for &apos;PhotonFromMergedPi0&apos;">15323</counter>
+		<counter name="NeutralProtoPMaker/NeutralE49   for &apos;Pi0Merged&apos;">6851</counter>
+		<counter name="NeutralProtoPMaker/NeutralEcal   for &apos;Photon&apos;">1583326698</counter>
+		<counter name="NeutralProtoPMaker/NeutralEcal   for &apos;PhotonFromMergedPi0&apos;">358507695</counter>
+		<counter name="NeutralProtoPMaker/NeutralEcal   for &apos;Pi0Merged&apos;">352403185</counter>
+		<counter name="NeutralProtoPMaker/NeutralHcal2Ecal   for &apos;Photon&apos;">101198</counter>
+		<counter name="NeutralProtoPMaker/NeutralHcal2Ecal   for &apos;PhotonFromMergedPi0&apos;">5111</counter>
+		<counter name="NeutralProtoPMaker/NeutralHcal2Ecal   for &apos;Pi0Merged&apos;">891</counter>
+		<counter name="NeutralProtoPMaker/NeutralPrs    for &apos;Photon&apos;">16850540</counter>
+		<counter name="NeutralProtoPMaker/NeutralPrs    for &apos;PhotonFromMergedPi0&apos;">2883234</counter>
+		<counter name="NeutralProtoPMaker/NeutralPrs    for &apos;Pi0Merged&apos;">1469170</counter>
+		<counter name="NeutralProtoPMaker/NeutralSpd    for &apos;Photon&apos;">536584</counter>
+		<counter name="NeutralProtoPMaker/NeutralSpd    for &apos;PhotonFromMergedPi0&apos;">38210</counter>
+		<counter name="NeutralProtoPMaker/NeutralSpd    for &apos;Pi0Merged&apos;">19796</counter>
+		<counter name="NeutralProtoPMaker/PhotonID      for &apos;Photon&apos;">-576233</counter>
+		<counter name="NeutralProtoPMaker/PhotonID      for &apos;PhotonFromMergedPi0&apos;">2800</counter>
+		<counter name="NeutralProtoPMaker/PhotonID      for &apos;Pi0Merged&apos;">-1216</counter>
+		<counter name="NeutralProtoPMaker/Rec/Calo/MergedPi0s=&gt;Rec/ProtoP/Neutrals">7707</counter>
+		<counter name="NeutralProtoPMaker/Rec/Calo/Photons=&gt;Rec/ProtoP/Neutrals">447064</counter>
+		<counter name="NeutralProtoPMaker/Rec/Calo/SplitPhotons=&gt;Rec/ProtoP/Neutrals">15414</counter>
+		<counter name="NeutralProtoPMaker/ShowerShape   for &apos;Photon&apos;">1852194161</counter>
+		<counter name="NeutralProtoPMaker/ShowerShape   for &apos;PhotonFromMergedPi0&apos;">0</counter>
+		<counter name="NeutralProtoPMaker/ShowerShape   for &apos;Pi0Merged&apos;">35969278</counter>
+		<counter name="EcalDigitMon/Monitor Raw/Ecal/Digits">7965312</counter>
+		<counter name="HcalDigitMon/Monitor Raw/Hcal/Digits">2359613</counter>
+		<counter name="PrsDigitMon/Monitor Raw/Prs/Digits">4726885</counter>
+		<counter name="SpdDigitMon/Monitor Raw/Spd/Digits">2909695</counter>
+		<counter name="EcalEFlowMon/Monitor Raw/Ecal/Digits">7946611</counter>
+		<counter name="EcalClusterMon/Monitor Rec/Calo/EcalClusters">738048</counter>
+		<counter name="ElectronMon/Monitor Rec/Calo/Electrons">251307</counter>
+		<counter name="PhotonMon/Monitor Rec/Calo/Photons">447064</counter>
+		<counter name="SplitPhotonMon/Monitor Rec/Calo/SplitPhotons">15414</counter>
+		<counter name="MergedPi0Mon/Monitor Rec/Calo/MergedPi0s">7707</counter>
+		<counter name="ResolvedPi0Mon/Monitor Rec/Calo/Photons">444</counter>
+		<counter name="ProtoElectronMon/Monitor Rec/ProtoP/Charged">44352</counter>
+		<counter name="PhotonMatchMon/Monitor Rec/Calo/ClusterMatch">18619307</counter>
+		<counter name="PhotonMatchMon/Monitor Rec/Calo/EcalClusters">738049</counter>
+		<counter name="PhotonMatchMon/Monitor Rec/Calo/EcalSplitClusters">15414</counter>
+		<counter name="ElectronMatchMon/Monitor Rec/Calo/ElectronMatch">1648145</counter>
+		<counter name="ElectronMatchMon/Monitor Rec/Calo/Electrons">251307</counter>
+		<counter name="BremMatchMon/Monitor Rec/Calo/BremMatch">3205760</counter>
+		<counter name="BremMatchMon/Monitor Rec/Calo/Photons">447064</counter>
+		<counter name="CaloEMuPIDMonUncut/nEvents">8449</counter>
+		<counter name="CaloEMuPIDMonSoft/nEvents">8449</counter>
+		<counter name="CaloEMuPIDMonHard/nEvents">8449</counter>
+		<counter name="RichDataSizeL0Filter/#passed">11</counter>
+		<counter name="MuonTrackFitter/Muon.badChisq">38065</counter>
+		<counter name="MuonTrackFitter/Muon.chisqprobSum">17501</counter>
+		<counter name="MuonTrackFitter/Muon.flipCharge">23731</counter>
+		<counter name="MuonTrackFitter/Muon.numOutliers">0</counter>
+		<counter name="MuonTrackFitter/nBadInput">0</counter>
+		<counter name="MuonTrackFitter/nFitted">73363</counter>
+		<counter name="MuonTrackFitter/nTracks">73363</counter>
+		<counter name="VeloClusterMonitor/# VeloClusters">14881861</counter>
+		<counter name="VeloClusterMonitor/# events">8449</counter>
+		<counter name="VeloIPResolutionMonitor/Events Analysed">8449</counter>
+		<counter name="VeloIPResolutionMonitor/Events Selected">2360</counter>
+		<counter name="VeloIPResolutionMonitor/PVs Analysed">2360</counter>
+		<counter name="VeloIPResolutionMonitor/PVs Selected">1982</counter>
+		<counter name="VeloIPResolutionMonitor/Tracks selected">159873</counter>
+		<counter name="TrackMonitor/#Downstream">257090</counter>
+		<counter name="TrackMonitor/#Long">591944</counter>
+		<counter name="TrackMonitor/#Tracks">1479022</counter>
+		<counter name="TrackMonitor/#Ttrack">186172</counter>
+		<counter name="TrackMonitor/#Upstream">91299</counter>
+		<counter name="TrackMonitor/#Velo">117296</counter>
+		<counter name="TrackMonitor/#VeloBackward">235221</counter>
+		<counter name="TrackDiMuonMonitor/numcombinations">344969</counter>
+		<counter name="TrackDiMuonMonitor/numnegtracks">38026</counter>
+		<counter name="TrackDiMuonMonitor/numpostracks">35337</counter>
+		<counter name="TrackDiMuonMonitor/numselected">279</counter>
+		<counter name="TTClusterMonitor/Number of events">8449</counter>
+		<counter name="ITClusterMonitor/Number of events">8449</counter>
+		<counter name="PackTracks/# PackedTracks">1479022</counter>
+		<counter name="PackRichPIDs/# PackedData">768011</counter>
+		<counter name="PackMuonPIDs/# PackedData">849034</counter>
+		<counter name="PackPVWeights/# PackedData">18406</counter>
+		<counter name="PackMuonTracks/# PackedTracks">73363</counter>
+		<counter name="CounterSummarySvc/handled">19614</counter>
+	</counters>
+	<lumiCounters />
+</summary>

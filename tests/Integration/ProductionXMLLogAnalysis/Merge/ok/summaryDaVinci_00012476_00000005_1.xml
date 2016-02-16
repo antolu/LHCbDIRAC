@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<success>True</success>
+	<step>finalize</step>
+	<usage>
+		<stat unit="KB" useOf="MemoryMaximum">720536.0</stat>
+	</usage>
+	<input>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000104_1.Semileptonic.dst" status="full">757</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000119_1.Semileptonic.dst" status="full">810</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000105_1.Semileptonic.dst" status="full">803</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000121_1.Semileptonic.dst" status="full">800</file>
+		<file GUID="" name="LFN:/lhcb/validation/Collision11/SEMILEPTONIC.DST/00012465/0000/00012465_00000129_1.Semileptonic.dst" status="full">442</file>
+	</input>
+	<output>
+		<file GUID="7E06B0C2-F4EF-E011-9FDD-003048F0E598" name="PFN:00012476_00000005_1.semileptonic.dst" status="full">3612</file>
+	</output>
+	<counters>
+		<counter name="DaVinciInitAlg/Events">3612</counter>
+		<counter name="CounterSummarySvc/handled">7235</counter>
+	</counters>
+	<lumiCounters />
+</summary>

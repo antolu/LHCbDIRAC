@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<success>True</success>
+	<step>finalize</step>
+	<usage>
+		<stat unit="KB" useOf="MemoryMaximum">828324.0</stat>
+	</usage>
+	<input>
+		<file GUID="1ACDADC6-4BE9-E011-8F23-00266CF2E9C4" name="LFN:00012478_00000534_1.sim" status="full">200</file>
+	</input>
+	<output>
+		<file GUID="4828B3CA-77E9-E011-A82F-00266CF2E9C4" name="PFN:00012478_00000534_2.xdigi" status="full">200</file>
+	</output>
+	<counters>
+		<counter name="UnpackMCMuonHits/# UnPackedData">41251</counter>
+		<counter name="UnpackMCMuonHitsPrevPrev/# UnPackedData">33820</counter>
+		<counter name="UnpackMCVeloHits/# UnPackedData">123177</counter>
+		<counter name="UnpackMCVeloHitsPrevPrev/# UnPackedData">104989</counter>
+		<counter name="UnpackMCPuVetoHits/# UnPackedData">5798</counter>
+		<counter name="UnpackMCPuVetoHitsPrevPrev/# UnPackedData">5262</counter>
+		<counter name="UnpackMCTTHits/# UnPackedData">46936</counter>
+		<counter name="UnpackMCTTHitsPrevPrev/# UnPackedData">37951</counter>
+		<counter name="UnpackMCITHits/# UnPackedData">41976</counter>
+		<counter name="UnpackMCITHitsPrevPrev/# UnPackedData">36009</counter>
+		<counter name="UnpackMCOTHitsPrevPrev/# UnPackedData">99060</counter>
+		<counter name="UnpackMCOTHits/# UnPackedData">119223</counter>
+		<counter name="UnpackMCOTHitsNextNext/# UnPackedData">91285</counter>
+		<counter name="UnpackMCRichHits/# UnPackedData">347576</counter>
+		<counter name="UnpackMCRichHitsPrevPrev/# UnPackedData">296318</counter>
+		<counter name="UnpackMCRichHitsNextNext/# UnPackedData">258223</counter>
+		<counter name="UnpackMCSpdHits/# UnPackedData">136102</counter>
+		<counter name="UnpackMCPrsHits/# UnPackedData">227525</counter>
+		<counter name="UnpackMCEcalHits/# UnPackedData">279489</counter>
+		<counter name="UnpackMCHcalHits/# UnPackedData">38929</counter>
+		<counter name="TTClusterKiller/Dead">0</counter>
+		<counter name="TTClusterKiller/Processed">45823</counter>
+		<counter name="ITClusterKiller/Dead">52</counter>
+		<counter name="ITClusterKiller/Processed">38344</counter>
+		<counter name="RichPDSignal/Found MCRichHits at MC/Rich/Hits">200</counter>
+		<counter name="RichPDSignal/Found MCRichHits at NextNext/MC/Rich/Hits">170</counter>
+		<counter name="RichPDSignal/Found MCRichHits at PrevPrev/MC/Rich/Hits">164</counter>
+		<counter name="EcalDigitMCTruth/#Digit-&gt;MC links">506556</counter>
+		<counter name="EcalDigitMCTruth/Evts w/o links">23</counter>
+		<counter name="HcalDigitMCTruth/#Digit-&gt;MC links">58911</counter>
+		<counter name="HcalDigitMCTruth/Evts w/o links">25</counter>
+		<counter name="TTClusterMonitor/Number of events">200</counter>
+		<counter name="ITClusterMonitor/Number of events">200</counter>
+		<counter name="MCRichDigitSummaryPacker/# PackedData">340565</counter>
+		<counter name="CounterSummarySvc/handled">403</counter>
+	</counters>
+	<lumiCounters />
+</summary>

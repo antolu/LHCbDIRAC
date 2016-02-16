@@ -1,0 +1,14 @@
+from ProdConf import ProdConf
+
+ProdConf(
+  NOfEvents=2,
+  DDDBTag='dddb-20130929',
+  CondDBTag='sim-20130522-vc-md100',
+  AppVersion='v12r8g3',
+  XMLSummaryFile='summaryMoore_00012345_00006789_3.xml',
+  Application='Moore',
+  OutputFilePrefix='00012345_00006789_3',
+  XMLFileCatalog='pool_xml_catalog.xml',
+  InputFiles=['LFN:00012345_00006789_2.digi'],
+  OutputFileTypes=['digi'],
+)

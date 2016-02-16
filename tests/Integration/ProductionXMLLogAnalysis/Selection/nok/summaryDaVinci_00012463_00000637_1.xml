@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<summary version="1.0" xsi:noNamespaceSchemaLocation="$XMLSUMMARYBASEROOT/xml/XMLSummary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<success>False</success>
+	<step>execute</step>
+	<usage>
+		<stat unit="KB" useOf="MemoryMaximum">1536000.0</stat>
+	</usage>
+	<input>
+		<file GUID="" name="LFN:/lhcb/LHCb/Collision11/SDST/00012448/0000/00012448_00000259_1.sdst" status="part">50500</file>
+	</input>
+	<output>
+		<file GUID="980246DC-8EEF-E011-AAD7-003048F1C79A" name="PFN:00012463_00000637_1.fmdst" status="part">30196</file>
+	</output>
+	<counters />
+	<lumiCounters />
+</summary>

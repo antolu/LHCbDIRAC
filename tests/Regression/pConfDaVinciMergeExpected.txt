@@ -1,0 +1,16 @@
+from ProdConf import ProdConf
+
+ProdConf(
+  TCK='0xab0046',
+  NOfEvents=-1,
+  DDDBTag='dddb-20120831',
+  CondDBTag='cond-20120831',
+  AppVersion='v32r2p1',
+  OptionFormat='merge',
+  XMLSummaryFile='summaryDaVinci_00012345_00006789_1.xml',
+  Application='DaVinci',
+  OutputFilePrefix='00012345_00006789_1',
+  XMLFileCatalog='pool_xml_catalog.xml',
+  InputFiles=['LFN:/lhcb/LHCb/Collision12/LEPTONIC.MDST/00021210/0000/00021210_00002481_1.Leptonic.mdst', 'LFN:/lhcb/LHCb/Collision12/LEPTONIC.MDST/00021210/0000/00021210_00002482_1.Leptonic.mdst'],
+  OutputFileTypes=['leptonic.mdst'],
+)

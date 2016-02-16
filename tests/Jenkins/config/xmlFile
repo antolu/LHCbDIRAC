@@ -1,0 +1,592 @@
+<?xml version="1.0"?>
+<log>
+<logentry
+   revision="69298">
+<author>ubeda</author>
+<date>2013-08-05T09:54:52.978442Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/ResourceStatusSystem/Agent/SLSAgent.py</path>
+</paths>
+<msg>FIX: wrong dictionary key name
+</msg>
+</logentry>
+<logentry
+   revision="69307">
+<author>phicharp</author>
+<date>2013-08-06T17:19:52.650472Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/StorageHistoryAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/trunk/LHCbDIRAC/DataManagementSystem/Agent/StorageUsageAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/StorageUsageAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/trunk/LHCbDIRAC/DataManagementSystem/Agent/StorageHistoryAgent.py</path>
+</paths>
+<msg>FIX: use small chunks of directories to query cache DB
+FIX: handle properly error case
+</msg>
+</logentry>
+<logentry
+   revision="69310">
+<author>phicharp</author>
+<date>2013-08-06T17:22:50.007452Z</date>
+<paths>
+<path
+   kind=""
+   action="D">/LHCbDIRAC/trunk/LHCbDIRAC/Core/scripts/dirac-lhcb-generate-catalog.py</path>
+<path
+   kind=""
+   action="D">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/Core/scripts/dirac-lhcb-generate-catalog.py</path>
+</paths>
+<msg>REMOVE: useless dirac-lhcb-genCatalog
+</msg>
+</logentry>
+<logentry
+   revision="69312">
+<author>phicharp</author>
+<date>2013-08-06T17:25:20.495601Z</date>
+<paths>
+<path
+   kind=""
+   action="A">/LHCbDIRAC/trunk/LHCbDIRAC/BookkeepingSystem/scripts/dirac-bookkeeping-genXMLCatalog.py</path>
+<path
+   kind=""
+   action="A">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/BookkeepingSystem/scripts/dirac-bookkeeping-genXMLCatalog.py</path>
+</paths>
+<msg>NEW: new script replacing genXMLCatalog
+</msg>
+</logentry>
+<logentry
+   revision="69315">
+<author>phicharp</author>
+<date>2013-08-06T17:28:21.536871Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/trunk/LHCbDIRAC/TransformationSystem/Client/Utilities.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Client/Utilities.py</path>
+</paths>
+<msg>FIX: handle error when adding files
+</msg>
+</logentry>
+<logentry
+   revision="69337">
+<author>phicharp</author>
+<date>2013-08-08T13:02:58.421173Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>CHANGE: split execute() from main
+</msg>
+</logentry>
+<logentry
+   revision="69338">
+<author>phicharp</author>
+<date>2013-08-08T13:03:55.751668Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69339">
+<author>phicharp</author>
+<date>2013-08-08T13:04:25.293561Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69340">
+<author>phicharp</author>
+<date>2013-08-08T13:04:51.073926Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69341">
+<author>phicharp</author>
+<date>2013-08-08T13:07:03.261146Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69342">
+<author>phicharp</author>
+<date>2013-08-08T13:08:04.912319Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69343">
+<author>phicharp</author>
+<date>2013-08-08T13:09:12.565432Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69344">
+<author>phicharp</author>
+<date>2013-08-08T13:10:29.996267Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69345">
+<author>phicharp</author>
+<date>2013-08-08T13:11:09.925663Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69346">
+<author>phicharp</author>
+<date>2013-08-08T13:11:37.319540Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69347">
+<author>phicharp</author>
+<date>2013-08-08T13:12:28.077301Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69348">
+<author>phicharp</author>
+<date>2013-08-08T13:13:21.262504Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69349">
+<author>phicharp</author>
+<date>2013-08-08T13:14:38.375800Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-add-replication.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69350">
+<author>phicharp</author>
+<date>2013-08-08T13:15:23.307647Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69351">
+<author>phicharp</author>
+<date>2013-08-08T13:16:08.409007Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69352">
+<author>phicharp</author>
+<date>2013-08-08T13:19:03.772286Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69353">
+<author>phicharp</author>
+<date>2013-08-08T13:20:13.546868Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69354">
+<author>phicharp</author>
+<date>2013-08-08T13:22:06.404686Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-remove-replicas.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69355">
+<author>phicharp</author>
+<date>2013-08-08T13:23:06.493857Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-remove-replicas.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69356">
+<author>phicharp</author>
+<date>2013-08-08T13:24:15.611123Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Client/DMScript.py</path>
+</paths>
+<msg>
+</msg>
+</logentry>
+<logentry
+   revision="69357">
+<author>phicharp</author>
+<date>2013-08-08T13:33:31.145984Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/LogUploadAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-check-bkk2fc.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-check-fc2bkk.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/StorageUsageAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/SEUsageAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Client/DataUsageClient.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Client/__init__.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-replicate-lfn.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-bookkeeping-set-visibility.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/DB/RAWIntegrityDB.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-browse-bk.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-check-directory-integrity.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-get-storage-directories.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/DB/StorageUsageDB.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Service/StorageUsageHandler.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-storage-usage-summary.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-accessURL.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Service/RunDBInterfaceHandler.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/UserStorageQuotaAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/DB/StorageUsageDB.sql</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Service/DataUsageHandler.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/__init__.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Service/__init__.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-replica-stats.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Client/Dataset.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/StorageHistoryAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/UserStorageUsageAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/RAWIntegrityAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-dq-monitor-runs.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Client/StorageUsageClient.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-replicas.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/ConfigTemplate.cfg</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-spaceTokens-usage.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-bookkeeping-get-stats.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-check-directory-content.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-set-problematic-files.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/DB/__init__.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-get-file.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/PopularityAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Client/DataIntegrityClient.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-lfn-metadata.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-remove-files.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Service/RAWIntegrityHandler.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-add-replication.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-pfn-metadata.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/DB/RAWIntegrityDB.sql</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-gridify-castor-file.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-check-inputdata.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-remove-failover-logs.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-check-file-integrity.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/__init__.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/scripts/dirac-dms-show-ftschannels-status.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Client/ConsistencyChecks.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/MergingForDQAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/DataManagementSystem/Agent/TargzJobLogAgent.py</path>
+</paths>
+<msg>FIX: Set keywords on all files
+</msg>
+</logentry>
+<logentry
+   revision="69358">
+<author>phicharp</author>
+<date>2013-08-08T13:34:12.822238Z</date>
+<paths>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-transformation-add-files.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Agent/DataRecoveryAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/DB/TransformationDB.sql</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Agent/WorkflowTaskAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-production-set-runs.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Client/TaskManager.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-production-archive.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-transformation-update-derived.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-production-clean.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Client/__init__.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-kick-request.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-transformation-flush-runs.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Agent/ValidateOutputDataAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-test-plugin.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Agent/TransformationPlugin.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Client/TransformationClient.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Agent/TransformationAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/DB/__init__.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Client/Transformation.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Agent/TransformationCleaningAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-production-remove-output.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-production-verify-outputdata.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Client/Utilities.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Agent/__init__.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-transformation-reset-files.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/DB/TransformationDB.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/Agent/BookkeepingWatchAgent.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-production-check-descendants.py</path>
+<path
+   kind=""
+   action="M">/LHCbDIRAC/branches/LHCbDIRAC_v7r14_branch/TransformationSystem/scripts/dirac-transformation-debug.py</path>
+</paths>
+<msg>FIX: Set keywords on all files
+</msg>
+</logentry>
+</log>

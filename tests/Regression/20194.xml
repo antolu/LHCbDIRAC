@@ -1,0 +1,331 @@
+<Workflow>
+<origin></origin>
+<description><![CDATA[Reco14RealdataFULLreconstructionproduction.]]></description>
+<descr_short></descr_short>
+<version>0.0</version>
+<type></type>
+<name>00012345_00006789</name>
+<Parameter name="JobType" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified type"><value><![CDATA[DataReprocessing]]></value></Parameter>
+<Parameter name="Priority" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="UserPriority"><value><![CDATA[2]]></value></Parameter>
+<Parameter name="JobGroup" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified job group"><value><![CDATA[00012345]]></value></Parameter>
+<Parameter name="JobName" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified name"><value><![CDATA[00012345_00006789]]></value></Parameter>
+<Parameter name="SystemConfig" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="User specified system configuration for job"><value><![CDATA[x86_64-slc5-gcc46-opt]]></value></Parameter>
+<Parameter name="Site" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="List of sites selected by user"><value><![CDATA[LCG.JINR.ru;LCG.Dortmund.de;LCG.KIAE.ru;LCG.GRIDKA.de;LCG.ITEP.ru;LCG.IHEP.su;LCG.DESY.de]]></value></Parameter>
+<Parameter name="Origin" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Origin of client"><value><![CDATA[DIRAC]]></value></Parameter>
+<Parameter name="StdOutput" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard output file"><value><![CDATA[std.out]]></value></Parameter>
+<Parameter name="StdError" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Standard error file"><value><![CDATA[std.err]]></value></Parameter>
+<Parameter name="InputData" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Input data specified by LFN"><value><![CDATA[/lhcb/data/2012/RAW/FULL/LHCb/COLLISION12/114753/114753_0000000296.raw]]></value></Parameter>
+<Parameter name="LogLevel" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified logging level"><value><![CDATA[verbose]]></value></Parameter>
+<Parameter name="ParametricInputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input data value"><value><![CDATA[]]></value></Parameter>
+<Parameter name="ParametricInputSandbox" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input sandbox value"><value><![CDATA[]]></value></Parameter>
+<Parameter name="InputSandbox" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Input sandbox file list"><value><![CDATA[pilot.cfg]]></value></Parameter>
+<Parameter name="ParametricParameters" type="string" linked_module="" linked_parameter="" in="True" out="False" description="Default null parametric input parameters value"><value><![CDATA[]]></value></Parameter>
+<Parameter name="OutputSandbox" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Output sandbox file list"><value><![CDATA[std.out;std.err]]></value></Parameter>
+<Parameter name="MaxCPUTime" type="JDLReqt" linked_module="" linked_parameter="" in="True" out="False" description="CPU time in secs"><value><![CDATA[1400000]]></value></Parameter>
+<Parameter name="outputDataFileMask" type="string" linked_module="" linked_parameter="" in="True" out="False" description="outputDataFileMask"><value><![CDATA[full.dst;HIST]]></value></Parameter>
+<Parameter name="outputDataStep" type="string" linked_module="" linked_parameter="" in="True" out="False" description="outputDataStep Mask"><value><![CDATA[]]></value></Parameter>
+<Parameter name="productionVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdAPIVersion"><value><![CDATA[$Id: Production.py 55813 2012-09-04 16:48:03Z fstagni $]]></value></Parameter>
+<Parameter name="PRODUCTION_ID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProductionID"><value><![CDATA[00012345]]></value></Parameter>
+<Parameter name="JOB_ID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProductionJobID"><value><![CDATA[00006789]]></value></Parameter>
+<Parameter name="poolXMLCatName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="POOLXMLCatalogName"><value><![CDATA[pool_xml_catalog.xml]]></value></Parameter>
+<Parameter name="outputMode" type="string" linked_module="" linked_parameter="" in="True" out="False" description="SEResolutionPolicy"><value><![CDATA[Local]]></value></Parameter>
+<Parameter name="CondDBTag" type="string" linked_module="" linked_parameter="" in="True" out="False" description="CondDBTag"><value><![CDATA[cond-20120831]]></value></Parameter>
+<Parameter name="DDDBTag" type="string" linked_module="" linked_parameter="" in="True" out="False" description="DetDescTag"><value><![CDATA[dddb-20120831]]></value></Parameter>
+<Parameter name="DQTag" type="string" linked_module="" linked_parameter="" in="True" out="False" description="DQTag"><value><![CDATA[]]></value></Parameter>
+<Parameter name="EventMaxDefault" type="string" linked_module="" linked_parameter="" in="True" out="False" description="DefaultNumberOfEvents"><value><![CDATA[-1]]></value></Parameter>
+<Parameter name="configName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ConfigName"><value><![CDATA[LHCb]]></value></Parameter>
+<Parameter name="configVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ConfigVersion"><value><![CDATA[Collision12]]></value></Parameter>
+<Parameter name="conditions" type="string" linked_module="" linked_parameter="" in="True" out="False" description="SimOrDataTakingCondsString"><value><![CDATA[Beam4000GeV-VeloClosed-MagDown]]></value></Parameter>
+<Parameter name="groupDescription" type="string" linked_module="" linked_parameter="" in="True" out="False" description="GroupDescription"><value><![CDATA[Reco14]]></value></Parameter>
+<Parameter name="simDescription" type="string" linked_module="" linked_parameter="" in="True" out="False" description="SimDescription"><value><![CDATA[Beam4000GeV-VeloClosed-MagDown]]></value></Parameter>
+<Parameter name="SoftwarePackages" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="LHCbSoftwarePackages"><value><![CDATA[AppConfig.v3r149;SQLDDDB.v7r9;ProdConf;Brunel.v43r2p2;DaVinci.v32r2]]></value></Parameter>
+<Parameter name="BKProcessingPass" type="dict" linked_module="" linked_parameter="" in="True" out="False" description="BKProcessingPassInfo"><value><![CDATA[{'Step1': {'ApplicationName': 'DaVinci', 'ExtraPackages': 'AppConfig.v3r149;SQLDDDB.v7r9;ProdConf', 'DDDb': '@{DDDBTag}', 'ApplicationVersion': 'v32r2', 'OptionFiles': '$APPCONFIGOPTS/DaVinci/DVMonitor-RealData.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/DaVinci-InputType-SDST.py', 'BKStepID': '38510', 'DQTag': '@{DQTag}', 'StepName': 'DataQuality-FULL-2012-cond-20120831', 'CondDb': '@{CondDBTag}', 'StepVisible': 'N'}, 'Step0': {'ApplicationName': 'Brunel', 'ExtraPackages': 'AppConfig.v3r149;SQLDDDB.v7r9;ProdConf', 'DDDb': '@{DDDBTag}', 'ApplicationVersion': 'v43r2p2', 'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2012.py', 'BKStepID': '38427', 'DQTag': '@{DQTag}', 'StepName': 'FULL-Reco14', 'CondDb': '@{CondDBTag}', 'StepVisible': 'Y'}}]]></value></Parameter>
+<Parameter name="ProcessingType" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="ProductionGroupOrType"><value><![CDATA[Reco14]]></value></Parameter>
+<Parameter name="InputDataPolicy" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified input data policy"><value><![CDATA[DIRAC.WorkloadManagementSystem.Client.InputDataByProtocol]]></value></Parameter>
+<Parameter name="TransformationFamily" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ParentRequestID"><value><![CDATA[8772]]></value></Parameter>
+<Parameter name="Owner" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified ID"><value><![CDATA[rgracian]]></value></Parameter>
+<Parameter name="OwnerGroup" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified owner group."><value><![CDATA[lhcb_data]]></value></Parameter>
+<Parameter name="runNumber" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Input run rumber"><value><![CDATA[114753]]></value></Parameter>
+<Parameter name="persistency" type="String" linked_module="" linked_parameter="" in="True" out="False" description="Persistency type of the inputs"><value><![CDATA[]]></value></Parameter>
+<Parameter name="Status" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[Created]]></value></Parameter>
+<Parameter name="TransformationID" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[12345]]></value></Parameter>
+<Parameter name="TaskID" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[106359]]></value></Parameter>
+<Parameter name="LogTargetPath" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/LHCb/Collision12/LOG/00012345/0010/00012345_00006789.tar]]></value></Parameter>
+<Parameter name="LogFilePath" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/LHCb/Collision12/LOG/00012345/0010/00006789]]></value></Parameter>
+<Parameter name="DebugLFNs" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/debug/Collision12/FULL.DST/00012345/0010/00012345_00006789_1.full.dst;/lhcb/debug/Collision12/HIST/00012345/0010/Brunel_00012345_00006789_1_Hist.root;/lhcb/debug/Collision12/HIST/00012345/0010/DaVinci_00012345_00006789_2_Hist.root;/lhcb/debug/Collision12/CORE/00012345/0010/00006789_core]]></value></Parameter>
+<Parameter name="BookkeepingLFNs" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/LHCb/Collision12/FULL.DST/00012345/0010/00012345_00006789_1.full.dst;/lhcb/LHCb/Collision12/HIST/00012345/0010/Brunel_00012345_00006789_1_Hist.root;/lhcb/LHCb/Collision12/HIST/00012345/0010/DaVinci_00012345_00006789_2_Hist.root]]></value></Parameter>
+<Parameter name="ProductionOutputData" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="Optional JDL parameter added"><value><![CDATA[/lhcb/LHCb/Collision12/FULL.DST/00012345/0010/00012345_00006789_1.full.dst;/lhcb/LHCb/Collision12/HIST/00012345/0010/Brunel_00012345_00006789_1_Hist.root;/lhcb/LHCb/Collision12/HIST/00012345/0010/DaVinci_00012345_00006789_2_Hist.root]]></value></Parameter>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
+]]></body>
+<origin></origin>
+<description><![CDATA[ UploadLogFile module is used to upload the files present in the working
+    directory.
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>UploadLogFile</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.GaudiApplication import GaudiApplication
+]]></body>
+<origin></origin>
+<description><![CDATA[ Gaudi Application module - main module: creates the environment,
+    executes gaudirun with the right options
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>GaudiApplication</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.AnalyseLogFile import AnalyseLogFile
+]]></body>
+<origin></origin>
+<description><![CDATA[ Analyse log file(s) module
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>AnalyseLogFile</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.ErrorLogging import ErrorLogging
+]]></body>
+<origin></origin>
+<description><![CDATA[ The ErrorLogging module is used to perform error analysis using AppConfig
+    utilities. This occurs at the end of each workflow step such that the
+    step_commons dictionary can be utilized.
+
+    Since not all projects are instrumented to work with the AppConfig
+    error suite any failures will not be propagated to the workflow.
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>ErrorLogging</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.UploadOutputData import UploadOutputData
+]]></body>
+<origin></origin>
+<description><![CDATA[ Module to upload specified job output files according to the parameters
+    defined in the production workflow.
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>UploadOutputData</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.AnalyseXMLSummary import AnalyseXMLSummary
+]]></body>
+<origin></origin>
+<description><![CDATA[ Analyse log file(s) module
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>AnalyseXMLSummary</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.FailoverRequest import FailoverRequest
+]]></body>
+<origin></origin>
+<description><![CDATA[ Create and send a combined request for any pending operations at
+    the end of a job:
+      fileReport (for the transformation)
+      jobReport (for jobs)
+      accounting
+      request (for failover)
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>FailoverRequest</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.BookkeepingReport import BookkeepingReport
+]]></body>
+<origin></origin>
+<description><![CDATA[  Bookkeeping Reporting module (just prepare the files, do not send them 
+    (which is done in the uploadOutput) 
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>BookkeepingReport</type>
+</ModuleDefinition>
+<ModuleDefinition>
+<body><![CDATA[
+from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
+]]></body>
+<origin></origin>
+<description><![CDATA[ StepAccounting module performs several common operations at the end of
+    a workflow step, in particular prepares and sends the step accounting
+    data
+]]></description>
+<descr_short></descr_short>
+<required></required>
+<version>0.0</version>
+<type>StepAccounting</type>
+</ModuleDefinition>
+<StepDefinition>
+<origin></origin>
+<version>0.0</version>
+<type>Gaudi_App_Step</type>
+<description><![CDATA[]]></description>
+<descr_short></descr_short>
+<Parameter name="inputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="StepInputData"><value><![CDATA[]]></value></Parameter>
+<Parameter name="inputDataType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="InputDataType"><value><![CDATA[]]></value></Parameter>
+<Parameter name="eventType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="EventType"><value><![CDATA[]]></value></Parameter>
+<Parameter name="outputFilePrefix" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OutputFilePrefix"><value><![CDATA[]]></value></Parameter>
+<Parameter name="outputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OutputData"><value><![CDATA[]]></value></Parameter>
+<Parameter name="generatorName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="GeneratorName"><value><![CDATA[]]></value></Parameter>
+<Parameter name="applicationName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ApplicationName"><value><![CDATA[]]></value></Parameter>
+<Parameter name="applicationVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ApplicationVersion"><value><![CDATA[]]></value></Parameter>
+<Parameter name="runTimeProjectName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="runTimeProjectName"><value><![CDATA[]]></value></Parameter>
+<Parameter name="runTimeProjectVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="runTimeProjectVersion"><value><![CDATA[]]></value></Parameter>
+<Parameter name="applicationType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ApplicationType"><value><![CDATA[]]></value></Parameter>
+<Parameter name="applicationLog" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ApplicationLogFile"><value><![CDATA[]]></value></Parameter>
+<Parameter name="XMLSummary" type="string" linked_module="" linked_parameter="" in="True" out="False" description="XMLSummaryFile"><value><![CDATA[]]></value></Parameter>
+<Parameter name="optionsFile" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OptionsFile"><value><![CDATA[]]></value></Parameter>
+<Parameter name="extraOptionsLine" type="string" linked_module="" linked_parameter="" in="True" out="False" description="extraOptionsLines"><value><![CDATA[]]></value></Parameter>
+<Parameter name="optionsLinePrev" type="string" linked_module="" linked_parameter="" in="True" out="False" description="PreviousOptionsLines"><value><![CDATA[]]></value></Parameter>
+<Parameter name="numberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEvents"><value><![CDATA[]]></value></Parameter>
+<Parameter name="numberOfEventsInput" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEventsInput"><value><![CDATA[]]></value></Parameter>
+<Parameter name="listoutput" type="list" linked_module="" linked_parameter="" in="True" out="False" description="StepOutputList"><value><![CDATA[[]]]></value></Parameter>
+<Parameter name="extraPackages" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ExtraPackages"><value><![CDATA[]]></value></Parameter>
+<Parameter name="firstEventNumber" type="string" linked_module="" linked_parameter="" in="True" out="False" description="FirstEventNumber"><value><![CDATA[int]]></value></Parameter>
+<Parameter name="BKStepID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="BKKStepID"><value><![CDATA[]]></value></Parameter>
+<Parameter name="StepProcPass" type="string" linked_module="" linked_parameter="" in="True" out="False" description="StepProcessingPass"><value><![CDATA[]]></value></Parameter>
+<Parameter name="HistogramName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NameOfHistogram"><value><![CDATA[]]></value></Parameter>
+<Parameter name="optionsFormat" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdConf configuration"><value><![CDATA[]]></value></Parameter>
+<ModuleInstance>
+<type>GaudiApplication</type>
+<name>GaudiApplication</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>AnalyseLogFile</type>
+<name>AnalyseLogFile</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>AnalyseXMLSummary</type>
+<name>AnalyseXMLSummary</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>ErrorLogging</type>
+<name>ErrorLogging</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>BookkeepingReport</type>
+<name>BookkeepingReport</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>StepAccounting</type>
+<name>StepAccounting</name>
+<descr_short></descr_short>
+</ModuleInstance>
+</StepDefinition>
+<StepDefinition>
+<origin></origin>
+<version>0.0</version>
+<type>Job_Finalization</type>
+<description><![CDATA[]]></description>
+<descr_short></descr_short>
+<ModuleInstance>
+<type>UploadOutputData</type>
+<name>UploadOutputData</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>UploadLogFile</type>
+<name>UploadLogFile</name>
+<descr_short></descr_short>
+</ModuleInstance>
+<ModuleInstance>
+<type>FailoverRequest</type>
+<name>FailoverRequest</name>
+<descr_short></descr_short>
+</ModuleInstance>
+</StepDefinition>
+<StepInstance>
+<type>Gaudi_App_Step</type>
+<name>Brunel_1</name>
+<descr_short></descr_short>
+<Parameter name="inputData" type="string" linked_module="self" linked_parameter="InputData" in="True" out="False" description="StepInputData"><value><![CDATA[]]></value></Parameter>
+<Parameter name="inputDataType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="InputDataType"><value><![CDATA[MDF]]></value></Parameter>
+<Parameter name="eventType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="EventType"><value><![CDATA[90000000]]></value></Parameter>
+<Parameter name="outputFilePrefix" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OutputFilePrefix"><value><![CDATA[@{STEP_ID}]]></value></Parameter>
+<Parameter name="outputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OutputData"><value><![CDATA[@{STEP_ID}.@{applicationType}]]></value></Parameter>
+<Parameter name="generatorName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="GeneratorName"><value><![CDATA[]]></value></Parameter>
+<Parameter name="applicationName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ApplicationName"><value><![CDATA[Brunel]]></value></Parameter>
+<Parameter name="applicationVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ApplicationVersion"><value><![CDATA[v43r2p2]]></value></Parameter>
+<Parameter name="runTimeProjectName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="runTimeProjectName"><value><![CDATA[]]></value></Parameter>
+<Parameter name="runTimeProjectVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="runTimeProjectVersion"><value><![CDATA[]]></value></Parameter>
+<Parameter name="applicationType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ApplicationType"><value><![CDATA[full.dst]]></value></Parameter>
+<Parameter name="applicationLog" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ApplicationLogFile"><value><![CDATA[@{applicationName}_@{STEP_ID}.log]]></value></Parameter>
+<Parameter name="XMLSummary" type="string" linked_module="" linked_parameter="" in="True" out="False" description="XMLSummaryFile"><value><![CDATA[summary@{applicationName}_@{STEP_ID}.xml]]></value></Parameter>
+<Parameter name="optionsFile" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OptionsFile"><value><![CDATA[$APPCONFIGOPTS/Brunel/DataType-2012.py]]></value></Parameter>
+<Parameter name="extraOptionsLine" type="string" linked_module="" linked_parameter="" in="True" out="False" description="extraOptionsLines"><value><![CDATA[]]></value></Parameter>
+<Parameter name="optionsLinePrev" type="string" linked_module="" linked_parameter="" in="True" out="False" description="PreviousOptionsLines"><value><![CDATA[None]]></value></Parameter>
+<Parameter name="numberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEvents"><value><![CDATA[25]]></value></Parameter>
+<Parameter name="numberOfEventsInput" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEventsInput"><value><![CDATA[]]></value></Parameter>
+<Parameter name="listoutput" type="list" linked_module="" linked_parameter="" in="True" out="False" description="StepOutputList"><value><![CDATA[[{'outputDataType': 'full.dst', 'outputDataSE': 'Tier1-BUFFER', 'outputDataName': '@{STEP_ID}.full.dst'}, {'outputDataType': 'HIST', 'outputDataSE': 'CERN-HIST', 'outputDataName': '@{applicationName}_@{STEP_ID}_Hist.root'}]]]></value></Parameter>
+<Parameter name="extraPackages" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ExtraPackages"><value><![CDATA[AppConfig.v3r149;SQLDDDB.v7r9;ProdConf]]></value></Parameter>
+<Parameter name="firstEventNumber" type="string" linked_module="" linked_parameter="" in="True" out="False" description="FirstEventNumber"><value><![CDATA[int]]></value></Parameter>
+<Parameter name="BKStepID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="BKKStepID"><value><![CDATA[38427]]></value></Parameter>
+<Parameter name="StepProcPass" type="string" linked_module="" linked_parameter="" in="True" out="False" description="StepProcessingPass"><value><![CDATA[Reco14]]></value></Parameter>
+<Parameter name="HistogramName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NameOfHistogram"><value><![CDATA[@{applicationName}_@{STEP_ID}_Hist.root]]></value></Parameter>
+<Parameter name="optionsFormat" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdConf configuration"><value><![CDATA[]]></value></Parameter>
+</StepInstance>
+<StepInstance>
+<type>Gaudi_App_Step</type>
+<name>DaVinci_2</name>
+<descr_short></descr_short>
+<Parameter name="inputData" type="string" linked_module="Brunel_1" linked_parameter="outputData" in="True" out="False" description="StepInputData"><value><![CDATA[]]></value></Parameter>
+<Parameter name="inputDataType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="InputDataType"><value><![CDATA[FULL.DST]]></value></Parameter>
+<Parameter name="eventType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="EventType"><value><![CDATA[90000000]]></value></Parameter>
+<Parameter name="outputFilePrefix" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OutputFilePrefix"><value><![CDATA[@{STEP_ID}]]></value></Parameter>
+<Parameter name="outputData" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OutputData"><value><![CDATA[@{STEP_ID}.@{applicationType}]]></value></Parameter>
+<Parameter name="generatorName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="GeneratorName"><value><![CDATA[]]></value></Parameter>
+<Parameter name="applicationName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ApplicationName"><value><![CDATA[DaVinci]]></value></Parameter>
+<Parameter name="applicationVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ApplicationVersion"><value><![CDATA[v32r2]]></value></Parameter>
+<Parameter name="runTimeProjectName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="runTimeProjectName"><value><![CDATA[]]></value></Parameter>
+<Parameter name="runTimeProjectVersion" type="string" linked_module="" linked_parameter="" in="True" out="False" description="runTimeProjectVersion"><value><![CDATA[]]></value></Parameter>
+<Parameter name="applicationType" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ApplicationType"><value><![CDATA[davincihist]]></value></Parameter>
+<Parameter name="applicationLog" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ApplicationLogFile"><value><![CDATA[@{applicationName}_@{STEP_ID}.log]]></value></Parameter>
+<Parameter name="XMLSummary" type="string" linked_module="" linked_parameter="" in="True" out="False" description="XMLSummaryFile"><value><![CDATA[summary@{applicationName}_@{STEP_ID}.xml]]></value></Parameter>
+<Parameter name="optionsFile" type="string" linked_module="" linked_parameter="" in="True" out="False" description="OptionsFile"><value><![CDATA[$APPCONFIGOPTS/DaVinci/DVMonitor-RealData.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/DaVinci-InputType-SDST.py]]></value></Parameter>
+<Parameter name="extraOptionsLine" type="string" linked_module="" linked_parameter="" in="True" out="False" description="extraOptionsLines"><value><![CDATA[]]></value></Parameter>
+<Parameter name="optionsLinePrev" type="string" linked_module="" linked_parameter="" in="True" out="False" description="PreviousOptionsLines"><value><![CDATA[None]]></value></Parameter>
+<Parameter name="numberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEvents"><value><![CDATA[25]]></value></Parameter>
+<Parameter name="numberOfEventsInput" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEventsInput"><value><![CDATA[]]></value></Parameter>
+<Parameter name="listoutput" type="list" linked_module="" linked_parameter="" in="True" out="False" description="StepOutputList"><value><![CDATA[[{'outputDataType': 'HIST', 'outputDataSE': 'CERN-HIST', 'outputDataName': '@{applicationName}_@{STEP_ID}_Hist.root'}]]]></value></Parameter>
+<Parameter name="extraPackages" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ExtraPackages"><value><![CDATA[AppConfig.v3r149;SQLDDDB.v7r9;ProdConf]]></value></Parameter>
+<Parameter name="firstEventNumber" type="string" linked_module="" linked_parameter="" in="True" out="False" description="FirstEventNumber"><value><![CDATA[int]]></value></Parameter>
+<Parameter name="BKStepID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="BKKStepID"><value><![CDATA[38510]]></value></Parameter>
+<Parameter name="StepProcPass" type="string" linked_module="" linked_parameter="" in="True" out="False" description="StepProcessingPass"><value><![CDATA[DataQuality-FULL]]></value></Parameter>
+<Parameter name="HistogramName" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NameOfHistogram"><value><![CDATA[@{applicationName}_@{STEP_ID}_Hist.root]]></value></Parameter>
+<Parameter name="optionsFormat" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ProdConf configuration"><value><![CDATA[DQ]]></value></Parameter>
+</StepInstance>
+<StepInstance>
+<type>Job_Finalization</type>
+<name>finalization</name>
+<descr_short></descr_short>
+</StepInstance>
+</Workflow>

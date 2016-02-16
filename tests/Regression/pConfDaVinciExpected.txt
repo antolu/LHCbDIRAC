@@ -1,0 +1,14 @@
+from ProdConf import ProdConf
+
+ProdConf(
+  NOfEvents=2,
+  DDDBTag='dddb-20130929',
+  CondDBTag='sim-20130522-vc-md100',
+  AppVersion='v32r2p3',
+  XMLSummaryFile='summaryDaVinci_00012345_00006789_5.xml',
+  Application='DaVinci',
+  OutputFilePrefix='00012345_00006789_5',
+  XMLFileCatalog='pool_xml_catalog.xml',
+  InputFiles=['LFN:00012345_00006789_4.dst'],
+  OutputFileTypes=['allstreams.dst'],
+)
