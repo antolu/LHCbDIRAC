@@ -279,7 +279,7 @@ def __fillStatsPerSE( rep, listSEs ):
         SEStat[se] = SEStat.setdefault( se, 0 ) + 1
   return completed
 
-def __getRequestClient( requestID ):
+def __getRequestName( requestID ):
   level = gLogger.getLevel()
   gLogger.setLevel( 'FATAL' )
   try:
@@ -308,7 +308,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
   requestID = int( task['ExternalID'] )
   taskID = task['TaskID']
   taskName = '%08d_%08d' % ( transID, taskID )
-  requestName = __getRequestClient( requestID )
+  requestName = __getRequestName( requestID )
 
   if taskCompleted and ( task['ExternalStatus'] not in ( 'Done', 'Failed' ) or status in ( 'Assigned', 'Problematic' ) ):
     prString = "\tTask %s is completed: no %s replicas" % ( taskName, dmFileStatusComment )
@@ -319,21 +319,38 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
       else:
         prString += " - Failed to set %d files Processed (%s)" % ( len( lfnsInTask ), res['Message'] )
     else:
-        prString += " - To mark them done, use option --KickRequests"
+        prString += " - To mark files Processed, use option --KickRequests"
     print prString
+
+  if not requestID:
+    if task['ExternalStatus'] == 'Submitted' and not taskCompleted:
+      prString = "\tTask %s is submitted but has no external ID" % taskName
+      if kickRequests:
+        res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnsInTask )
+        if res['OK']:
+          prString += " - %d files set Unused" % len( lfnsInTask )
+        else:
+          prString += " - Failed to set %d files Unused (%s)" % ( len( lfnsInTask ), res['Message'] )
+      else:
+          prString += " - To mark files Unused, use option --KickRequests"
+      print prString
+    return 0
   assignedRequests = __getAssignedRequests()
+  request = None
   res = reqClient.peekRequest( requestID )
   if res['OK']:
-    request = res['Value']
-    requestStatus = request.Status if request.RequestID not in assignedRequests else 'Assigned'
-    if requestStatus != task['ExternalStatus']:
-      print '\tRequest status:', requestStatus, 'updated last', request.LastUpdate
-    if task['ExternalStatus'] == 'Failed':
-      # Find out why this task is failed
-      for i, op in enumerate( request ):
-        if op.Status == 'Failed':
-          printOperation( ( i, op ), onlyFailed = True )
-
+    if res['Value'] is not None:
+      request = res['Value']
+      requestStatus = request.Status if request.RequestID not in assignedRequests else 'Assigned'
+      if requestStatus != task['ExternalStatus']:
+        print '\tRequest %d status:' % requestID, requestStatus, 'updated last', request.LastUpdate
+      if task['ExternalStatus'] == 'Failed':
+        # Find out why this task is failed
+        for i, op in enumerate( request ):
+          if op.Status == 'Failed':
+            printOperation( ( i, op ), onlyFailed = True )
+    else:
+      requestStatus = 'NotExisting'
   else:
     print "Failed to peek request:", res['Message']
     requestStatus = 'Unknown'
@@ -366,11 +383,11 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
       ftsClient = FTSClient()
       res = ftsClient.getAllFTSFilesForRequest( request.RequestID )
       if res['OK']:
-        statusCount = dict.fromkeys( FTSFile.ALL_STATES, 0 )
+        statusCount = {}
         for ftsFile in res['Value']:
-          statusCount[ftsFile.Status] += 1
+          statusCount[ftsFile.Status] = statusCount.setdefault( ftsFile.Status, 0 ) + 1
         prStr = []
-        for status in FTSFile.ALL_STATES:
+        for status in statusCount:
           if statusCount[status]:
             prStr.append( '%s:%d' % ( status, statusCount[status] ) )
         print '\tFTS files statuses: %s' % ', '.join( prStr )
@@ -1035,7 +1052,7 @@ def __checkWaitingTasks( transID ):
       if status == 'Orphan':
         status = 'Failed'
       for taskID, requestID in ids:
-        requestName = __getRequestClient( requestID )
+        requestName = __getRequestName( requestID )
         if requestName:
           res = transClient.setTaskStatus( transID, taskID, status )
           if not res['OK']:

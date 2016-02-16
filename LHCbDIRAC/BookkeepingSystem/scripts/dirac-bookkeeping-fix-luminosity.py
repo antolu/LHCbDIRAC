@@ -72,7 +72,7 @@ def updateRunLumi( run, evtType, fileInfo, doIt = False ):
   # Check luminosity
   if abs( runLumi - filesLumi ) > 1:
     prStr = 'Updating' if doIt else 'Would update'
-    gLogger.notice( "%s %d files as run %d and files lumi don't match: runLumi %d, filesLumi %d" % ( prStr, run, len( fileInfo ), runLumi, filesLumi ) )
+    gLogger.notice( "%s %d files as run %d and files lumi don't match: runLumi %d, filesLumi %d" % ( prStr, len( fileInfo ), run, runLumi, filesLumi ) )
     for info in fileInfo:
       # Split the luminosity according to nb of events
       info[2] = float( runLumi ) * info[1] / runEvts

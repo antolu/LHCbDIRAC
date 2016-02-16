@@ -100,11 +100,17 @@ WARNING :
 1 - check that all update went properly
 2 - check that agents/services have restarted properly
 
+Deployment on all the VOBOX in production of the LHCbDIRAC release by using the web portal
+==================================================================
+go to the SystemAdministrator page of the web portal, insert the version in the dedicated field and press Update.
+
 Then eLOG the installation of the new LHCbDirac release
 
 Update the Pilot version
 ========================
-Once the tar ball has been created, you could update the pilot version with the following command:
+From  lxplus, once the tar ball has been created, you could update the pilot version with the following command:
+- SetupProject LHCbDirac
+- lhcb-proxy-init -g lhcb_admin
 - dirac-pilot-version (will show the current version)
 - dirac-pilot-version -S vArBpC (will update the version in the CS and in the JSON version use by VM)
 

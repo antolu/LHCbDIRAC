@@ -14,24 +14,35 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      '  %s [option|cfgfile]' % Script.scriptName ] ) )
 Script.registerSwitch( 'S:', 'set=', "set the pilot version to use for the current setup. Requires write permission." )
 Script.registerSwitch( 'F:', 'file=', "file location. If not set, what is found here is used" )
+Script.registerSwitch( 'U:', 'update=', "Update the symbolic links on the web area to the current release scripts" )
+
 
 Script.parseCommandLine( ignoreErrors = True )
 args = Script.getPositionalArgs()
 
 setVersion = False
 fileLocation = ''
+updatePilotScript = False
+global LHCbVn
+LHCbVn = ''
 
 for unprocSw in Script.getUnprocessedSwitches():
   if unprocSw[0] in ( "S", "set" ):
     setVersion = True
     version = unprocSw[1].replace( ' ', '' ).split( ',' )
+    LHCbVn = version[0]
   elif unprocSw[0] in ( "F", "file" ):
     fileLocation = unprocSw[1]
+  elif unprocSw[0] in ( "U", "update" ):
+    updatePilotScript = True
+    DiracVersion = unprocSw[1].replace( ' ', '' ).split( ',' )[0]
 
 
 # Actual logic
 import urllib2
 import json
+import os
+# import re
 from DIRAC import gConfig, gLogger
 from DIRAC import exit as DIRACExit
 from DIRAC.ConfigurationSystem.Client.CSAPI import CSAPI
@@ -47,9 +58,12 @@ def showVersion():
   """ show the pilot versions set right now
   """
   # CS version
+  global LHCbVn
   csVersion = Operations().getValue( "Pilot/Version", [] )
   print "Version specified in the CS: %s" % ', '.join( csVersion )
   # file version
+  if not LHCbVn:
+    LHCbVn = csVersion[0]
   try:
     remoteFD = urllib2.urlopen( fileLocation )
     fileV = json.load( remoteFD )
@@ -91,3 +105,28 @@ if setVersion:
 
   print "Versions set now:"
   showVersion()
+
+if  updatePilotScript:
+  LHCbsrc = os.path.join( "/afs/cern.ch/lhcb/software/releases/LHCBDIRAC/LHCBDIRAC_" + LHCbVn, "LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py" )
+  dst = "/afs/cern.ch/lhcb/project/web/lbdirac/Operations/VM/pilotscripts/"
+  for item in os.listdir( dst ):
+    os.unlink( os.path.join( dst, item ) )
+  os.symlink( LHCbsrc, os.path.join ( dst, "LHCbPilotCommands.py" ) )
+  # try:
+  #  releases = urllib2.urlopen( "http://svnweb.cern.ch/world/wsvn/dirac/LHCbDIRAC/trunk/LHCbDIRAC/releases.cfg" )
+  #  releases = re.findall( "\sDIRAC:.+", releases.read() )
+  #  DiracVersion = ( releases[1].split( ':' ) )[1]
+  # except urllib2.HTTPError, x:
+  #  print "Can't find the DiracVersion", x
+  Diracsrc = "/afs/cern.ch/lhcb/software/releases/DIRAC/DIRAC_" + DiracVersion
+  DiracPath = os.path.join ( Diracsrc, "DIRAC/WorkloadManagementSystem/PilotAgent/" )
+  for item in os.listdir( DiracPath ):
+    dest = os.path.join( dst, item )
+    if  os.path.isfile( dest ):
+      os.symlink( os.path.join( DiracPath, item ), dest )
+  os.symlink( os.path.join( Diracsrc, "DIRAC/Core/scripts/dirac-install.py" ), os.path.join( dst , "dirac-install.py" ) )
+  print "Pilot scripts link updated"
+
+
+
+

@@ -2,13 +2,18 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p3
+Version v8r2p4
 --------------
+
+CHANGE
+::::::
+
+ WorkloadManagementSystem
+  - add option for linking in diraca-pilot-version
 
 BUGFIX
 ::::::
 
  BookkeepingSystem
-  - By default the run is not finished
-  - DQFlag changed to DataQualityFlag...
+  - Do not execute the query parallel.
 

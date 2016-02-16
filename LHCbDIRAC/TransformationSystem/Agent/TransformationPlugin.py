@@ -1,6 +1,6 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
-__RCSID__ = "$Id: TransformationPlugin.py 85254 2015-08-25 14:32:00Z fstagni $"
+__RCSID__ = "$Id: TransformationPlugin.py 85626 2015-09-21 13:27:46Z phicharp $"
 
 import time
 import datetime
@@ -399,9 +399,15 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return res
     runSEDict = dict( [( runDict['RunNumber'], runDict['SelectedSite'] ) for runDict in res['Value']] )
 
+    # Get status of all runs (finished or not)
+    runSet = set( runFileDict ) & set( runSEDict )
+    res = self.bkClient.getRunStatus( list( runSet ) )
+    success = res.get( 'Value', {} )
+    runFinished = dict( [( runID, success[runID]['Finished'] == 'Y' ) for runID in success] )
+
     # Choose the destination SE
     tasks = []
-    for runID in set( runFileDict ) & set( runSEDict ):
+    for runID in runSet:
       runLfns = runFileDict[runID]
       assignedSE = runSEDict[runID]
       runSEs = set( assignedSE.split( ',' ) ) if assignedSE and isinstance( assignedSE, basestring ) else set()
@@ -420,7 +426,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             runSEs |= targetSEs
           targetSEs = ','.join( sorted( targetSEs ) )
           self.util.logVerbose( 'Creating tasks with %d files for run %s at %s' % ( len( lfns ), runID, targetSEs ) )
-          newTasks = self.util.createTasksBySize( lfns, targetSEs, flush = True )
+          # We flush the run only if it is finished
+          newTasks = self.util.createTasksBySize( lfns, targetSEs, flush = runFinished.get( runID, False ) )
           tasks += newTasks
           self.util.logVerbose( 'Created %d tasks' % len( newTasks ) )
         else:
@@ -1300,7 +1307,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     storageElementGroups = {}
     for lfn, stringTargetSEs in fileTargetSEs.items():
       storageElementGroups.setdefault( stringTargetSEs, [] ).append( lfn )
-      
+
     self.util.logDebug( "Storage Element Groups created: %s" % storageElementGroups )
 
     return S_OK( self.util.createTasks( storageElementGroups ) )

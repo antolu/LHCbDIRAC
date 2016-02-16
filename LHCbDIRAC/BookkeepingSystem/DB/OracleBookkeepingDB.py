@@ -2,7 +2,7 @@
 Queries creation
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py 85536 2015-09-07 20:49:16Z zmathe $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py 85615 2015-09-14 15:15:24Z zmathe $"
 
 import datetime
 import types
@@ -3431,7 +3431,7 @@ and files.qualityid= dataquality.qualityid'
     if procPass != default:
       if not re.search( '^/', procPass ):
         procPass = procPass.replace( procPass, '/%s' % procPass )
-      condition += " and j.production in (select bview.production from productionscontainer prod,\
+      condition += " and j.production in (select  /*+ NOPARALLEL(bview) */ bview.production from productionscontainer prod,\
        ( select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
                      START WITH id in (select distinct id from processing where name='%s') \
                                            CONNECT BY NOCYCLE PRIOR  id=parentid) v \
