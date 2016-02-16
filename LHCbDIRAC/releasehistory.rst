@@ -2,14 +2,14 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p24
+Version v8r2p25
 ---------------
 
-BUGFIX
+CHANGE
 ::::::
 
  BookkeepingSystem
-  - JEncode added to the branch.
+  - correct the inheritance…
 
 Version v8r2p22
 ---------------

@@ -11,8 +11,8 @@ branches          cmt doc src
 
 include_path      none
 
-use   LHCbDiracPolicy              v8r2p24      
-use   LHCbDiracConfig              v8r2p24      
+use   LHCbDiracPolicy              v8r2p25      
+use   LHCbDiracConfig              v8r2p25      
 
 # The following section is only for the check out and build
 private
@@ -20,7 +20,7 @@ private
 # LHCbDIRAC subsystems
 #============================================================================
 use   AccountingSystem             ac_2015040101   LHCbDIRAC
-use   BookkeepingSystem            bk_2015121402   LHCbDIRAC
+use   BookkeepingSystem            bk_2015121403   LHCbDIRAC
 use   ConfigurationSystem          cs_2015081301   LHCbDIRAC
 use   Core                         co_2015120901   LHCbDIRAC
 use   DataManagementSystem         dm_2015120701   LHCbDIRAC
