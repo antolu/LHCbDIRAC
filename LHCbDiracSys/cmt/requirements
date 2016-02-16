@@ -11,8 +11,8 @@ branches          cmt doc src
 
 include_path      none
 
-use   LHCbDiracPolicy              v8r2p6       
-use   LHCbDiracConfig              v8r2p6       
+use   LHCbDiracPolicy              v8r2p7       
+use   LHCbDiracConfig              v8r2p7       
 
 # The following section is only for the check out and build
 private
