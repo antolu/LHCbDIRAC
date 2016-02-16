@@ -2,12 +2,12 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p23
+Version v8r2p24
 ---------------
 
-CHANGE
+BUGFIX
 ::::::
 
  BookkeepingSystem
-  - JSON is enabled.
+  - JEncode added to the branch.
 
