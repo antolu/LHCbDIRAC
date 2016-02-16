@@ -25,7 +25,7 @@ C_list=['lbvobox30.cern.ch','lbvobox31.cern.ch','lbvobox32.cern.ch','lbvobox33.c
 file_D=os.path.join(HOME_DIR,'vobox_update_D')
 D_list=['lbvobox06.cern.ch','lbvobox07.cern.ch','lbvobox08.cern.ch','lbvobox09.cern.ch']
 file_E=os.path.join(HOME_DIR,'vobox_update_E')
-E_list=['lbvobox40.cern.ch','lbvobox41.cern.ch','lbvobox42.cern.ch','lbvobox43.cern.ch','lbvobox44.cern.ch','lbvobox80.cern.ch','lbvobox81.cern.ch','volhcb04.cern.ch','volhcb05.cern.ch']
+E_list = ['lbvobox40.cern.ch', 'lbvobox41.cern.ch', 'lbvobox42.cern.ch', 'lbvobox43.cern.ch', 'lbvobox44.cern.ch', 'lbvobox45.cern.ch', 'lbvobox46.cern.ch', 'lbvobox47.cern.ch', 'lbvobox48.cern.ch', 'lbvobox49.cern.ch', 'lbvobox80.cern.ch', 'lbvobox81.cern.ch', 'volhcb04.cern.ch', 'volhcb05.cern.ch']
 
 for machine in T1_list:
   print machine

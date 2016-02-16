@@ -6,7 +6,7 @@
 """
   Retrieve metadata from the Bookkeeping for the given files
 """
-__RCSID__ = "$Id: dirac-bookkeeping-file-metadata.py 85477 2015-09-07 12:29:42Z fstagni $"
+__RCSID__ = "$Id: dirac-bookkeeping-file-metadata.py 86003 2015-10-13 14:06:15Z phicharp $"
 import  DIRAC.Core.Base.Script as Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     if full:
       print '%s%s %s' % ( sep, 'FileName'.ljust( lenItem ), lfn )
       sep = '\n'
-      for item in sorted( dict ):
+      for item in sorted( lfnMetaDict ):
         print '%s %s' % ( item.ljust( lenItem ), lfnMetaDict[item] )
     else:
       size = lfnMetaDict['FileSize']

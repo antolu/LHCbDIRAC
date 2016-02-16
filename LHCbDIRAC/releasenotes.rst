@@ -2,12 +2,14 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p9
---------------
+Version v8r2p10
+---------------
 
 BUGFIX
 ::::::
 
- WorkloadManagementSystem
-  - introduced temporary check for avoiding to match jobs on too slow CPUs (default limit is 3 HS06)
+ ProductionManagementSystem
+  - Priority of MC testing jobs increased to 10
+ BookkeepingSystem
+  - If no file type provided, the file types table must not used in the join condition.
 
