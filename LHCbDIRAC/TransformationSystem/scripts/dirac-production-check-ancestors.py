@@ -136,12 +136,14 @@ if __name__ == '__main__':
   dmScript = DMScript()
   dmScript.registerFileSwitches()
   dmScript.registerBKSwitches()
+  depth = 10
+  Script.registerSwitch( '', 'Depth=', 'Depth to which one should check ancestors (default %d)' % depth )
   Script.registerSwitch( '', 'FixIt', 'Remove the files that only have the common ancestors' )
   Script.registerSwitch( '', 'Verbose', 'Set script level to INFO' )
 
   Script.setUsageMessage( '\n'.join( [ __doc__,
                                        'Usage:',
-                                       '  %s [option|cfgfile] [ProdIDs]' % Script.scriptName, ] ) )
+                                       '  %s [option|cfgfile]' % Script.scriptName, ] ) )
   Script.parseCommandLine( ignoreErrors = True )
 
   fixIt = False
@@ -150,6 +152,8 @@ if __name__ == '__main__':
       gLogger.setLevel( 'INFO' )
     elif switch[0] == 'FixIt':
       fixIt = True
+    elif switch[0] == 'Depth':
+      depth = int( switch[1] )
 
   # In case the user asked for specific LFNs
   lfnList = dmScript.getOption( 'LFNs', [] )
@@ -165,6 +169,7 @@ if __name__ == '__main__':
   cc = ConsistencyChecks( transClient = transClient, dm = dm, bkClient = bkClient )
   cc.bkQuery = dmScript.getBKQuery()
   cc.lfns = lfnList
+  cc.ancestorsDepth = depth
   startTime = time.time()
   cc.checkAncestors()
 

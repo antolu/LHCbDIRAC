@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p32/DataManagementSystem/scripts/dirac-dms-replicate-lfn.py $
+# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/branches/LHCbDIRAC_v8r2_branch/DataManagementSystem/scripts/dirac-dms-replicate-lfn.py $
 # File :    dirac-dms-replicate-lfn
 # Author  : Stuart Paterson
 ########################################################################

@@ -73,6 +73,7 @@ class ConsistencyChecks( object ):
     self.noLFC = False
     self.directories = []
     self.descendantsDepth = 10
+    self.ancestorsDepth = 10
 
     # Accessory elements
     self.runsList = []
@@ -420,7 +421,7 @@ class ConsistencyChecks( object ):
           if fileType is None:
             gLogger.notice( "File type unavailable for %s" % lfn, str( metadata ) )
           fileTypes.setdefault( fileType, set() ).add( lfn )
-      res = self.bkClient.getFileAncestors( lfnChunk, depth = 10 )
+      res = self.bkClient.getFileAncestors( lfnChunk, depth = self.ancestorsDepth, replica = ( self.ancestorsDepth == 10 ) )
       if not res['OK']:
         gLogger.fatal( 'Error getting file ancestors', res['Message'] )
         DIRAC.exit( 2 )

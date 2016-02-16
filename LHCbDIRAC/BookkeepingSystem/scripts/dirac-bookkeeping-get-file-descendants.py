@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p32/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-descendants.py $
+# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/branches/LHCbDIRAC_v8r2_branch/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-descendants.py $
 # File :    dirac-bookkeeping-get-file-descendants
 # Author :  Zoltan Mathe
 ########################################################################
 """
   Returns descendants for a (list of) LFN(s)
 """
-__RCSID__ = "$Id: dirac-bookkeeping-get-file-descendants.py 87261 2016-02-11 11:50:11Z phicharp $"
+__RCSID__ = "$Id: dirac-bookkeeping-get-file-descendants.py 87349 2016-02-16 08:56:59Z phicharp $"
 
 import DIRAC
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult, ProgressBar
@@ -86,7 +86,7 @@ if __name__ == "__main__":
           fullResult['Value'].setdefault( 'Successful', {} )[lfn] = \
             dict( ( desc, 'Replica-%s' % meta['GotReplica'] ) for desc, meta in okResult[lfn].iteritems() )
       fullResult['Value'].setdefault( 'Failed', {} ).update( result['Value']['Failed'] )
-      fullResult['Value'].setdefault( 'NotProcessed', {} ).update( result['Value']['NotProcessed'] )
+      fullResult['Value'].setdefault( 'NotProcessed', [] ).extend( result['Value']['NotProcessed'] )
     else:
       fullResult = result
       break

@@ -1146,7 +1146,7 @@ def executeReplicateToRunDestination( dmScript ):
       else:
         finalResult['Value']['Failed'].update( dict.fromkeys( lfns, res['Message'] ) )
   for destSE, lfns in groupBySE.iteritems():
-    result = replicateLfn( lfns, '', destSE, verbose = True )
+    result = replicateLfn( lfns, '', [destSE], verbose = True )
     finalResult['Value']['Successful'].update( result['Value']['Successful'] )
     finalResult['Value']['Failed'].update( result['Value']['Failed'] )
   DIRACExit( printDMResult( finalResult ) )
