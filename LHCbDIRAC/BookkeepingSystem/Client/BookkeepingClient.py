@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py 86445 2015-12-01 15:26:12Z zmathe $
+# $Id: BookkeepingClient.py 86588 2015-12-08 16:07:03Z zmathe $
 ########################################################################
 
 """
@@ -14,14 +14,14 @@ in_dict = {'EventTypeId': 93000000,
 
 import cPickle
 import tempfile
-import simplejson
+#import simplejson
 
 from DIRAC                           import S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient      import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
 
 
-__RCSID__ = "$Id: BookkeepingClient.py 86445 2015-12-01 15:26:12Z zmathe $"
+__RCSID__ = "$Id: BookkeepingClient.py 86588 2015-12-08 16:07:03Z zmathe $"
 
 class BookkeepingClient( object ):
   """ This class expose the methods of the Bookkeeping Service"""
@@ -231,13 +231,13 @@ class BookkeepingClient( object ):
     """
     in_dict = dict( in_dict )
     bkk = TransferClient( 'Bookkeeping/BookkeepingManager' )
-    params = simplejson.dumps( in_dict )
+    params = cPickle.dumps( in_dict )
     file_name = tempfile.NamedTemporaryFile()    
     retVal = bkk.receiveFile( file_name.name, params )
     if not retVal['OK']:
       return retVal
     else:
-      value = simplejson.load( open( file_name.name ) )
+      value = cPickle.load( open( file_name.name ) )
       file_name.close()
       return S_OK( value )
 
@@ -1042,13 +1042,13 @@ class BookkeepingClient( object ):
     in_dict = dict( in_dict )
     bkk = TransferClient( 'Bookkeeping/BookkeepingManager' )
     in_dict['MethodName'] = 'getFiles'
-    params = simplejson.dumps( in_dict )
+    params = cPickle.dumps( in_dict )
     file_name = tempfile.NamedTemporaryFile()
     retVal = bkk.receiveFile( file_name.name, params )
     if not retVal['OK']:
       return retVal
     else:
-      value = simplejson.load( open( file_name.name ) )
+      value = cPickle.load( open( file_name.name ) )
       file_name.close()
       return value
   

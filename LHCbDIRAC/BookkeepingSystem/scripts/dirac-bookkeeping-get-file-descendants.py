@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p19/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-descendants.py $
+# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p20/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-descendants.py $
 # File :    dirac-bookkeeping-get-file-descendants
 # Author :  Zoltan Mathe
 ########################################################################

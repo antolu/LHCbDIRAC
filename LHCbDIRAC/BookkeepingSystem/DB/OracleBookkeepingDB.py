@@ -2,7 +2,7 @@
 Queries creation
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py 86501 2015-12-07 11:01:34Z zmathe $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py 86500 2015-12-07 11:01:10Z zmathe $"
 
 import datetime
 import types

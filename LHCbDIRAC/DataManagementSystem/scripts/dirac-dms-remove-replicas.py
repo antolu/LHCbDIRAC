@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p19/DataManagementSystem/scripts/dirac-dms-remove-replicas.py $
+# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p20/DataManagementSystem/scripts/dirac-dms-remove-replicas.py $
 ########################################################################
 """
 Remove replicas of a (list of) LFNs at a list of sites. It is possible to request a minimum of remaining replicas
