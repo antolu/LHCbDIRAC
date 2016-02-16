@@ -4,29 +4,45 @@
     USED at OnLine
 """
 
-from DIRAC import S_OK, gLogger
-from DIRAC.ConfigurationSystem.Client import PathFinder
-from DIRAC.Resources.Catalog.Utilities import checkArgumentFormat
-from DIRAC.Core.Base.Client import Client
+from DIRAC import S_OK
+from DIRAC.Resources.Catalog.Utilities                              import checkCatalogArguments
+from DIRAC.Resources.Catalog.FileCatalogClientBase import FileCatalogClientBase
+
 
 __RCSID__ = '$Id$'
 
-class RAWIntegrityClient( Client ):
+READ_METHODS = []
 
-  def __init__( self, url = '' ):
-    Client.__init__( self )
-    try:
-      if url:
-        self.url = url
-      else:
-        self.url = PathFinder.getServiceURL( 'DataManagement/RAWIntegrity' )
-      self.setServer( url )
-      self.valid = True
-      self.rawIntegritySrv = self._getRPC()
-    except Exception as x:
-      errStr = "RAWIntegrityClient.__init__: Exception while generating server url."
-      gLogger.exception( errStr, lException = x )
-      self.valid = False
+WRITE_METHODS = [ 'addFile' ]
+
+NO_LFN_METHODS = []
+
+
+class RAWIntegrityClient( FileCatalogClientBase ):
+
+  def __init__( self, url = '', **kwargs ):
+
+    self.serverURL = 'DataManagement/RAWIntegrity' if not url else url
+    super( RAWIntegrityClient, self ).__init__( self.serverURL, **kwargs )
+    self.rawIntegritySrv = self._getRPC()
+
+      
+  @staticmethod
+  def getInterfaceMethods():
+    """ Get the methods implemented by the File Catalog client
+
+    :return tuple: ( read_methods_list, write_methods_list, nolfn_methods_list )
+    """
+    return ( READ_METHODS, WRITE_METHODS, NO_LFN_METHODS )
+
+  @staticmethod
+  def hasCatalogMethod( methodName ):
+    """ Check of a method with the given name is implemented
+    :param str methodName: the name of the method to check
+    :return: boolean Flag
+    """
+    return methodName in ( READ_METHODS + WRITE_METHODS + NO_LFN_METHODS )
+
 
   def isOK( self ):
     """
@@ -34,28 +50,18 @@ class RAWIntegrityClient( Client ):
     """
     return self.valid
 
-  def exists( self, lfn ):
+
+  @checkCatalogArguments
+  def exists( self, lfns ):
     """ LFN may be a string or list of strings
     """
-    res = checkArgumentFormat( lfn )
-    if not res['OK']:
-      return res
-    lfns = res['Value']
-    successful = {}
-    failed = {}
-    for lfn in lfns.keys():
-      successful[lfn] = False
-    resDict = {'Failed'     : failed,
-               'Successful' : successful}
-    return S_OK( resDict )
+    return S_OK( {'Failed' : {}, 'Successful' : dict.fromkeys( lfns, False )} )
 
-  def addFile( self, lfn ):
-    res = checkArgumentFormat( lfn )
-    if not res['OK']:
-      return res
+  @checkCatalogArguments
+  def addFile( self, lfns ):
     failed = {}
     successful = {}
-    for lfn, info in res['Value'].items():
+    for lfn, info in lfns.items():
       pfn = str( info['PFN'] )
       size = int( info['Size'] )
       se = str( info['SE'] )
@@ -74,28 +80,17 @@ class RAWIntegrityClient( Client ):
     return S_OK( resDict )
 
   @staticmethod
-  def getPathPermissions( path ):
+  @checkCatalogArguments
+  def getPathPermissions( paths ):
     """ Determine the VOMs based ACL information for a supplied path
     """
-    res = checkArgumentFormat( path )
-    if not res['OK']:
-      return res
-    lfns = res['Value']
-    failed = {}
-    successful = {}
-    for lfn in lfns.keys():
-      successful[lfn] = {'Write':True}
-    resDict = {'Failed':failed, 'Successful':successful}
-    return S_OK( resDict )
+    return S_OK( {'Failed' : {}, 'Successful' : dict.fromkeys( paths, {'Write':True} )} )
 
   @staticmethod
-  def hasAccess( _opType, path ):
+  @checkCatalogArguments
+  def hasAccess( _opType, paths ):
     """ Returns True for all path and all actions"""
-    res = checkArgumentFormat( path )
-    if not res['OK']:
-      return res
-    lfns = res['Value']
-    return S_OK( {'Failed' : {}, 'Successful' : dict.fromkeys( lfns, True )} )
+    return S_OK( {'Failed' : {}, 'Successful' : dict.fromkeys( paths, True )} )
 
 ################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
