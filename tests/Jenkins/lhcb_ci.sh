@@ -1,7 +1,7 @@
-#!/bin/sh 
+#!/bin/sh
 #-------------------------------------------------------------------------------
 # lhcb_ci
-#  
+#
 # Collection of utilities and functions for automated tests (using Jenkins)
 #
 # Requires dirac_ci.sh where most generic utility functions are
@@ -16,10 +16,10 @@
 source $WORKSPACE/TestDIRAC/Jenkins/dirac_ci.sh
 
 # URLs where to get scripts
-LHCbDIRAC_PILOT_COMMANDS='http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py'
+LHCbDIRAC_PILOT_COMMANDS='https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py'
 
 #install file
-INSTALL_CFG_FILE='$WORKSPACE/LHCbTestDirac/Jenkins/install.cfg'
+INSTALL_CFG_FILE='$WORKSPACE/LHCbDIRAC/tests/Jenkins/install.cfg'
 
 
 #.............................................................................
@@ -28,12 +28,12 @@ INSTALL_CFG_FILE='$WORKSPACE/LHCbTestDirac/Jenkins/install.cfg'
 #
 #   If the environment variable "PRERELEASE" exists, we use a LHCb prerelease
 #   instead of a regular release ( production-like ).
-#   If any parameter is passed, we assume we are on pre-release mode, otherwise, 
+#   If any parameter is passed, we assume we are on pre-release mode, otherwise,
 #   we assume production. It reads from releases.cfg and picks the latest version
 #   which is written to {project,dirac,lhcbdirac}.version
 #
 #.............................................................................
-  
+
 function findRelease(){
 	echo '[findRelease]'
 
@@ -41,14 +41,14 @@ function findRelease(){
 
     PRE='p[[:digit:]]*'
 
-  
+
     # Create temporary directory where to store releases.cfg ( will be deleted at
     # the end of the function )
     #tmp_dir=`mktemp -d -q`
     #echo 'Moving to'
     #echo $tmp_dir
     #cd $tmp_dir
-    wget http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC/releases.cfg
+    wget https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/LHCbDIRAC/releases.cfg
 
     # Match project ( LHCbDIRAC, soon BeautyDirac ) version from releases.cfg
     # Example releases.cfg
@@ -58,7 +58,7 @@ function findRelease(){
     #   Depends = DIRAC:v6r10-pre12
     #   LcgVer = 2013-09-24
     # }
-    
+
 	if [ ! -z "$LHCBDIRAC_RELEASE" ]
 	then
 		echo 'Specified release'
@@ -74,20 +74,20 @@ function findRelease(){
 		fi
 		# projectVersion := v7r15-pre2 ( if we are in PRERELEASE mode )
 		projectVersion=`cat releases.cfg | grep [^:]v[[:digit:]]r[[:digit:]]*$PRE | head -1 | sed 's/ //g'`
-	fi  
+	fi
 
 	echo PROJECT:$projectVersion && echo $projectVersion > project.version
 
 	# projectVersionLine : line number where v7r15-pre2 is
     projectVersionLine=`cat releases.cfg | grep -n $projectVersion | cut -d ':' -f 1 | head -1`
-    # start := line number after "{"  
+    # start := line number after "{"
     start=$(($projectVersionLine+2))
     # end   := line number after "}"
     end=$(($start+2))
     # versions :=
     #   Modules = LHCbDIRAC:v7r15-pre2, LHCbWebDIRAC:v3r3p5
     #   Depends = DIRAC:v6r10-pre12
-    #   LcgVer = 2013-09-24    
+    #   LcgVer = 2013-09-24
     versions=`sed -n "$start,$end p" releases.cfg`
 
     # Extract DIRAC version
@@ -96,11 +96,11 @@ function findRelease(){
     lhcbdiracVersion=`echo $versions | tr ' ' '\n' | grep ^LHCbDIRAC:v* | sed 's/,//g' | cut -d ':' -f2`
     # Extract LCG version
 	lcgVersion=`echo $versions | sed s/' = '/'='/g | tr ' ' '\n' | grep LcgVer | cut -d '=' -f2`
-  
+
     # Back to $WORKSPACE and clean tmp_dir
     cd $WORKSPACE
     #rm -r $tmp_dir
-    
+
     # PrintOuts
     echo DIRAC:$diracVersion && echo $diracVersion > dirac.version
     echo LHCbDIRAC:$lhcbdiracVersion && echo $lhcbdiracVersion > lhcbdirac.version
@@ -113,7 +113,7 @@ function findRelease(){
 #
 # diracInstallCommand:
 #
-#   Specialized command: 
+#   Specialized command:
 #	LHCb project version, obtained from the file 'project.version'.
 #
 #.............................................................................
@@ -143,7 +143,8 @@ function updateToTrunk(){
 		echo "There is no previous LHCbDIRAC directory ??!!!"
 		ls
 	fi
-	svn co http://svn.cern.ch/guest/dirac/LHCbDIRAC/trunk/LHCbDIRAC/ -q
+	git clone https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git
+	cd LHCbDIRAC
 }
 
 #-------------------------------------------------------------------------------
@@ -155,17 +156,17 @@ function updateToTrunk(){
 # LHCbDIRACPilotInstall:
 #
 #   This function uses the pilot code to make a DIRAC pilot installation
-#   The JobAgent is not run here 
+#   The JobAgent is not run here
 #
 #...............................................................................
 
 function LHCbDIRACPilotInstall(){
-	
+
 	echo 'Starting LHCbDIRACPilotInstall'
-	
+
 	prepareForPilot
 	default
-	
+
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
 
 	if [ ! -z "$LHCBDIRAC_RELEASE" ]
@@ -180,7 +181,7 @@ function LHCbDIRACPilotInstall(){
 
 	#run the dirac-pilot script, only for installing, do not run the JobAgent here
 	python dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
-	
+
 	echo 'Done LHCbDIRACPilotInstall'
 }
 
@@ -191,7 +192,7 @@ function fullLHCbPilot(){
 	then
 		echo 'Running in DEBUG mode'
 		export DEBUG='-ddd'
-	fi  
+	fi
 
 	#first simply install via the pilot
 	LHCbDIRACPilotInstall
@@ -199,23 +200,23 @@ function fullLHCbPilot(){
 	#this should have been created, we source it so that we can continue
 	echo 'sourcing bashrc'
 	source bashrc
-	
+
 	echo 'Adding the LocalSE and the CPUTimeLeft, for the subsequent tests'
 	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTCFG $PILOTCFG $DEBUG
-	
+
 	#be sure we only have pilot.cfg
 	mv $WORKSPACE/etc/dirac.cfg $WORKSPACE/etc/dirac.cfg-not-here
-	
+
 	getUserProxy
 
-	echo 'Set not to use the server certificate for running the jobs' 
+	echo 'Set not to use the server certificate for running the jobs'
 	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O $PILOTCFG $PILOTCFG $DEBUG
 }
 
 function getUserProxy(){
 
 	echo 'Started getUserProxy'
-	
+
 	touch $PILOTCFG
 	#Configure for CPUTimeLeft
 	python $WORKSPACE/TestDIRAC/Jenkins/dirac-cfg-update.py -F $PILOTCFG -S $DIRACSETUP -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem $DEBUG
@@ -226,14 +227,14 @@ function getUserProxy(){
 }
 
 function submitAndMatch(){
-	
+
 	if [ ! -z "$DEBUG" ]
 	then
 		echo 'Running in DEBUG mode'
 		export DEBUG='-ddd'
-	fi  
+	fi
 
-	# I execute in a subshell 
+	# I execute in a subshell
 	(
 		installLHCbDIRAC
 		submitJob
@@ -243,7 +244,7 @@ function submitAndMatch(){
 	prepareForPilot
 	default
 	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
-	
+
 	if [ ! -z "$PILOT_VERSION" ]
 	then
 		echo "Running python dirac-pilot.py -S $DIRACSETUP -l LHCb -r $PILOT_VERSION -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 2 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG"
@@ -281,10 +282,10 @@ function installLHCbDIRACClient(){
 	wget --no-check-certificate -O dirac-install $DIRAC_INSTALL
 	chmod +x dirac-install
 	./dirac-install -l LHCb -r `cat project.version` -e LHCb -t client $DEBUG
-	
+
 	mkdir etc
 	ln -s /cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/etc/dirac.cfg etc/dirac.cfg
-	
+
 	source bashrc
 
 }
@@ -311,13 +312,13 @@ function submitJob(){
 	then
 		echo 'Running in DEBUG mode'
 		export DEBUG='-ddd'
-	fi  
+	fi
 
 	#Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
 	getUserProxy #this won't really download the proxy, so that's why the next command is needed
 	python $WORKSPACE/TestDIRAC/Jenkins/dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification $PILOTCFG -ddd
 	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-test-job.py -o /DIRAC/Setup=LHCb-Certification $DEBUG
-	
+
 	rm $PILOTCFG
 }
 

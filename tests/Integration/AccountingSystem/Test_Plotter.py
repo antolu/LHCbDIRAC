@@ -312,4 +312,3 @@ class StoragePlotterUnitTest( PlotterTestCase ):
 
     res = compare( '%s.png' % plotName, 'LHCbTestDirac/Integration/AccountingSystem/png/%s.png' % plotName )
     self.assertEquals( 0.0, res )
-

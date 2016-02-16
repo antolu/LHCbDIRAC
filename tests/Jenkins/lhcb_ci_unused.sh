@@ -212,7 +212,7 @@ function runTest(){
 
   source $WORKSPACE/bashrc
 
-  export PYTHONPATH=$PYTHONPATH:$WORKSPACE/LHCbTestDirac/Jenkins
+  export PYTHONPATH=$PYTHONPATH:$WORKSPACE/LHCbDIRAC/tests/Jenkins
   export LHCB_CI_DEBUG=$WORKSPACE/lhcb_ci/${TEST_MODE}.log
 
   echo "########################################################"
@@ -220,7 +220,7 @@ function runTest(){
   echo "log file: $LHCB_CI_DEBUG"
   echo "########################################################"
 
-  nosetests -a $TEST_MODE --with-xunit LHCbTestDirac/Jenkins/lhcb_ci/test -v --xunit-file=nosetests_${TEST_MODE}.xml --with-coverage --cover-package=DIRAC,LHCbDIRAC
+  nosetests -a $TEST_MODE --with-xunit LHCbDIRAC/tests/Jenkins/lhcb_ci/test -v --xunit-file=nosetests_${TEST_MODE}.xml --with-coverage --cover-package=DIRAC,LHCbDIRAC
   mv .coverage .coverage.${TEST_MODE}
 
   set -o errexit
