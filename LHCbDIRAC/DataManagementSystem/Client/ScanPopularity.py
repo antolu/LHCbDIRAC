@@ -33,7 +33,7 @@ def cacheDirectories( directories ):
   from DIRAC.Core.Utilities.List import breakListIntoChunks
 
   # Ignore cached directories
-  dirSet = directories - set( bkPathForLfn )
+  dirSet = directories - set( bkPathForLfn ) - cachedInvisible
   if not dirSet:
     return
   startTime = time.time()
@@ -107,10 +107,11 @@ def cacheDirectories( directories ):
         bkPathUsage.setdefault( bkPath, {} ).setdefault( 'LFN', [0, 0] )
   if invisible:
     gLogger.always( 'The following %d paths are ignored as invisible:\n' % len( invisible ), '\n'.join( sorted( invisible ) ) )
+    cachedInvisible.update( invisible )
   dirSet -= invisible
 
   if dirSet:
-    missingSU = set( [dirLong2Short[lfn] for lfn in dirSet] )
+    missingSU = set( dirLong2Short[lfn] for lfn in dirSet )
     gLogger.always( 'Get LFN Storage Usage for %d directories' % len( missingSU ) )
     gLogger.info( '\n'.join( sorted( missingSU ) ) )
     for lfn in missingSU:
@@ -242,8 +243,9 @@ def storageType( seList ):
 
 def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
 
-  global bkPathForLfn, prodForBKPath, bkPathUsage, processingPass
+  global bkPathForLfn, cachedInvisible, prodForBKPath, bkPathUsage, processingPass
   bkPathForLfn = {}
+  cachedInvisible = set()
   prodForBKPath = {}
   bkPathUsage = {}
   processingPass = {}
@@ -263,7 +265,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
   # set of used directories
   usedDirectories = set()
   storageTypes = ( 'Disk', 'Tape', 'Archived', 'All', 'LFN' )
-  storageSites = ( 'LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl' )
+  storageSites = ( 'LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.RRCKI.ru', 'LCG.SARA.nl' )
   cachedSESites = {}
   datasetStorage = {}
   for infoType in storageTypes:
@@ -290,9 +292,9 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
     if not res['OK']:
       gLogger.fatal( "Cannot get list of directories", res['Message'] )
       DIRAC.exit( 1 )
-    directories = set( [ subDir for subDir in res['Value']['Successful'][topDirectory]['SubDirs']
+    directories = set( subDir for subDir in res['Value']['Successful'][topDirectory]['SubDirs']
                         if subDir.split( '/' )[2] not in ignoreDirectories and
-                        'RAW' not in subDir and 'RDST' not in subDir and 'SDST' not in subDir] )
+                        'RAW' not in subDir and 'RDST' not in subDir and 'SDST' not in subDir )
     allDirectoriesSet = set()
     for baseDir in directories:
       allDirectoriesSet.update( getPhysicalUsage( baseDir ) )
@@ -325,7 +327,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
       entries += len( val )
 
       # Get information on useful directories
-      directories = set( [row[1] for row in val if row[1].split( '/' )[2] not in ignoreDirectories] )
+      directories = set( row[1] for row in val if row[1].split( '/' )[2] not in ignoreDirectories )
       usedDirectories.update( directories )
       cacheDirectories( directories )
 
@@ -351,7 +353,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
     gLogger.always( "Retrieved %d entries from Popularity table in %.1f seconds" % ( entries, time.time() - stTime ) )
     gLogger.always( 'Found %d datasets used since %d days' % ( len( timeUsage ), since ) )
     counters = {}
-    strangeBKPaths = set( [bkPath for bkPath in timeUsage if not bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )[0]] )
+    strangeBKPaths = set( bkPath for bkPath in timeUsage if not bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )[0] )
     if strangeBKPaths:
       gLogger.always( '%d used datasets do not have an LFN count:' % len( strangeBKPaths ) )
       gLogger.always( '\n'.join( ["%s : %s" % ( bkPath, str( bkPathUsage.get( bkPath, {} ) ) ) for bkPath in strangeBKPaths] ) )
@@ -381,13 +383,13 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
       gLogger.always( "\n=============================================================" )
       gLogger.always( '%d directories have not been used' % len( unusedDirectories ) )
       # Remove the used datasets (from other directories)
-      unusedBKPaths = set( [bkPathForLfn[lfn] for lfn in unusedDirectories if lfn in bkPathForLfn] ) - set( timeUsage )
+      unusedBKPaths = set( bkPathForLfn[lfn] for lfn in unusedDirectories if lfn in bkPathForLfn ) - set( timeUsage )
       # Remove empty datasets
-      strangeBKPaths = set( [bkPath for bkPath in unusedBKPaths if not bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )[0]] )
+      strangeBKPaths = set( bkPath for bkPath in unusedBKPaths if not bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )[0] )
       if strangeBKPaths:
         gLogger.always( '%d unused datasets do not have an LFN count:' % len( strangeBKPaths ) )
         gLogger.always( '\n'.join( ["%s : %s" % ( bkPath, str( bkPathUsage.get( bkPath, {} ) ) ) for bkPath in strangeBKPaths] ) )
-      unusedBKPaths = set( [bkPath for bkPath in unusedBKPaths if bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )[0]] )
+      unusedBKPaths = set( bkPath for bkPath in unusedBKPaths if bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )[0] )
 
       # In case there are datasets both on tape and disk, priviledge tape
       datasetStorage['Disk'] -= datasetStorage['Tape']
@@ -415,13 +417,13 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
   gLogger.always( "\n=============================================================" )
   gLogger.always( 'Creating %s file with %d datasets' % ( csvFile, len( timeUsage ) + len( unusedBKPaths ) ) )
   f = open( csvFile, 'w' )
-  title = "Name,Configuration,ProcessingPass,FileType,Type,Creation-%s," % binSize + \
-          "NbLFN,LFNSize,NbDisk,DiskSize,NbTape,TapeSize,NbArchived,ArchivedSize," + \
-          ','.join( [site.split( '.' )[1] for site in storageSites] ) + \
-          ",Nb Replicas,Nb ArchReps,Storage,FirstUsage,LastUsage,Now"
+  title = "Name;Configuration;ProcessingPass;FileType;Type;Creation-%s;" % binSize + \
+          "NbLFN;LFNSize;NbDisk;DiskSize;NbTape;TapeSize;NbArchived;ArchivedSize;" + \
+          ';'.join( [site.split( '.' )[1] for site in storageSites] ) + \
+          ";Nb Replicas;Nb ArchReps;Storage;FirstUsage;LastUsage;Now"
   for binNumber in range( nbBins ):
     title += ';%d' % ( 1 + binNumber )
-  f.write( title.replace( ',', ';' ) + '\n' )
+  f.write( title + '\n' )
   TB = 1000. * 1000. * 1000. * 1000.
   for bkPath in sorted( timeUsage ) + sorted( unusedBKPaths ):
     if bkPath.startswith( 'Unknown-' ):
@@ -476,7 +478,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
     for binNumber in range( nbBins ):
       usage += timeUsage.get( bkPath, {} ).get( nowBin - binNumber, 0 )
       row += ';%d' % usage
-    f.write( row.replace( ',', ';' ) + '\n' )
+    f.write( row + '\n' )
   f.close()
   gLogger.always( '\nSuccessfully wrote CSV file %s' % csvFile )
 

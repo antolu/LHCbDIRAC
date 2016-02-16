@@ -1,6 +1,6 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
-__RCSID__ = "$Id: TransformationPlugin.py 87193 2016-01-26 09:29:54Z phicharp $"
+__RCSID__ = "$Id: TransformationPlugin.py 87265 2016-02-11 12:16:52Z phicharp $"
 
 import time
 import datetime
@@ -171,7 +171,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if zeroRun:
       self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
       newRuns = self.util.setRunForFiles( zeroRun )
-      for newRun, runLFNs in newRuns.items():
+      for newRun, runLFNs in newRuns.iteritems():
         runFileDict.setdefault( newRun, [] ).extend( runLFNs )
     # For each of the runs determine the destination of any previous files
     res = self.util.getTransformationRuns( runFileDict )
@@ -217,7 +217,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if assignedBuffer:
         assignedBuffer = list( assignedBuffer )[0]
       updated = False
-      for replicaSE, lfns in replicaGroups.items():
+      for replicaSE, lfns in replicaGroups.iteritems():
         replicaSE = set( replicaSE.split( ',' ) )
         if not assignedRAW:
           # Files are not yet at a Tier1-RAW
@@ -312,7 +312,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if zeroRun:
       self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
       newRuns = self.util.setRunForFiles( zeroRun )
-      for newRun, runLFNs in newRuns.items():
+      for newRun, runLFNs in newRuns.iteritems():
         runFileDict.setdefault( newRun, [] ).extend( runLFNs )
     # For each of the runs determine the destination of any previous files
     res = self.util.getTransformationRuns( runFileDict )
@@ -338,7 +338,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       update = False
       replicaGroups = getFileGroups( dict( ( lfn, self.transReplicas[lfn] ) for lfn in runLfns ) )
       notAtSE = 0
-      for replicaSE, lfns in replicaGroups.items():
+      for replicaSE, lfns in replicaGroups.iteritems():
         targetSEs = set( replicaSE.split( ',' ) ) & fromSEs
         if targetSEs:
           # The files are at at least one of the requested SEs, set in run site for transformation
@@ -421,249 +421,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     return self.util.dmsHelper.getSEInGroupAtSite( bufferTargets, site )
 
-  def _AtomicRun( self ):
-    """
-    Plugin for Reconstruction and reprocessing
-    It uses the assigned shares per site and waits for files to be replicated
-    """
-    self.util.logInfo( "Starting execution of plugin" )
-    delay = self.util.getPluginParam( 'RunDelay', 1 )
-    minNbReplicas = 2
-    self._removeProcessedFiles()
-    # Get the requested shares from the CS
-    backupSE = 'CERN-RAW'
-    res = self.util.getShares( backupSE = backupSE )
-    if not res['OK']:
-      return res
-    else:
-      rawFraction, cpuShares = res['Value']
-      outsideFraction = 0.
-      for frac in rawFraction.values():
-        outsideFraction += frac
-      if outsideFraction == 0.:
-        minNbReplicas = 1
-
-    transType = self.util.getPluginParam( 'Type' )
-
-    if transType == 'DataReconstruction':
-      fractionToProcess = self.util.getPluginParam( 'FractionToProcess', 1. )
-      if fractionToProcess != 1.:
-        minFilesToProcess = self.util.getPluginParam( 'MinFilesToProcess', 100 )
-    else:
-      fractionToProcess = 1.
-
-    activeRAWSEs = getActiveSEs( cpuShares.keys() )
-    inactiveRAWSEs = [se for se in cpuShares if se not in activeRAWSEs]
-    self.util.logVerbose( "Active RAW SEs: %s" % activeRAWSEs )
-    if inactiveRAWSEs:
-      self.util.logInfo( "Some RAW SEs are not active: %s" % inactiveRAWSEs )
-
-    # Group the remaining data by run
-    res = groupByRun( self.transFiles )
-    if not res['OK']:
-      return res
-    runFileDict = res['Value']
-    if not runFileDict:
-      return S_OK()
-    zeroRun = runFileDict.pop( 0, None )
-    if zeroRun:
-      self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
-      newRuns = self.util.setRunForFiles( zeroRun )
-      for newRun, runLFNs in newRuns.items():
-        runFileDict.setdefault( newRun, [] ).extend( runLFNs )
-
-
-    # For each of the runs determine the destination of any previous files
-    runUpdate = {}
-    runSEDict = {}
-    res = self.util.getTransformationRuns( runFileDict )
-    if not res['OK']:
-      self.util.logError( "Failed to obtain TransformationRuns", res['Message'] )
-      return res
-    for runDict in res['Value']:
-      runID = runDict['RunNumber']
-      if transType == 'DataReconstruction':
-        # Wait for 'delay' hours before starting the task
-        res = self.bkClient.getRunInformations( int( runID ) )
-        if res['OK']:
-          endDate = res['Value']['RunEnd']
-          if datetime.datetime.now() - endDate < datetime.timedelta( hours = delay ):
-            self.util.logInfo( 'Run %d was taken less than %d hours ago, skip...' % ( runID, delay ) )
-            if runID in runFileDict:
-              runFileDict.pop( runID )
-            continue
-          else:
-            self.util.logVerbose( 'Run %d was taken more than %d hours ago, we take!' % ( runID, delay ) )
-        else:
-          self.util.logError( "Error getting run information for run %d (skipped):" % runID, res['Message'] )
-          continue
-      if runDict['SelectedSite']:
-        runSEDict[runID] = runDict['SelectedSite']
-        runUpdate[runID] = False
-      else:
-        res = self.transClient.getTransformationFiles( condDict = {'TransformationID':self.transID,
-                                                                   'RunNumber':runID,
-                                                                   'Status':['Assigned', 'Processed']} )
-        if not res['OK']:
-          self.util.logError( "Failed to get transformation files for run", "%s %s" % ( runID, res['Message'] ) )
-        else:
-          if res['Value']:
-            lfnSEs = dict( ( tDict['LFN'], tDict['UsedSE'] ) for tDict in res['Value'] )
-            sortedSEs = sortExistingSEs( lfnSEs )
-            if len( sortedSEs ) > 1:
-              self.util.logWarn( 'For run %d, files are assigned to more than one site: %s' % ( runID, sortedSEs ) )
-            runSEDict[runID] = sortedSEs[0]
-            runUpdate[runID] = True
-
-    # Choose the destination site for new runs
-    for runID in [run for run in sorted( runFileDict ) if run not in runSEDict]:
-      runLfns = runFileDict[runID]
-      distinctSEs = []
-      for lfn in runLfns:
-        distinctSEs += [se for se in self.transReplicas.get( lfn, {} ) if se not in distinctSEs and se in activeRAWSEs]
-      if len( distinctSEs ) < minNbReplicas:
-        self.util.logInfo( "Not found %d active candidate SEs for run %d, skipped" \
-                           % ( minNbReplicas, runID ) )
-        continue
-      seProbs = {}
-      prob = 0.
-      if backupSE not in distinctSEs:
-        self.util.logWarn( " %s not in the SEs for run %d" % ( backupSE, runID ) )
-        backupSE = None
-      distinctSEs = sorted( [se for se in distinctSEs if se in rawFraction and se != backupSE] )
-      selectedSE = None
-      if not distinctSEs:
-        # If the file is at a single SE, and OK, it must be backupSE
-        selectedSE = backupSE
-      else:
-        for se in distinctSEs:
-          prob += rawFraction[se] / len( distinctSEs )
-          seProbs[se] = prob
-        if backupSE:
-          seProbs[backupSE] = 1.
-          distinctSEs.append( backupSE )
-        # get a random number between 0 and 1
-        rand = random.uniform( 0., 1. )
-        strProbs = ','.join( [' %s:%.3f' % ( se, seProbs[se] ) for se in distinctSEs] )
-        self.util.logInfo( "For run %d, SE integrated fraction =%s, random number = %.3f" % ( runID, strProbs, rand ) )
-        for se in distinctSEs:
-          prob = seProbs[se]
-          if rand <= prob:
-            selectedSE = se
-            break
-        self.util.logVerbose( "Selected SE for reconstruction is %s" % selectedSE )
-      if selectedSE:
-        runSEDict[runID] = selectedSE
-        runUpdate[runID] = True
-        self.util.logInfo( "Run %d (%d files) assigned to %s" % ( runID, len( runLfns ), selectedSE ) )
-
-    # Create the tasks
-    tasks = []
-    for runID in sorted( runSEDict ):
-      selectedSE = runSEDict[runID]
-      nbNew = len( runFileDict[runID] )
-      self.util.logInfo( "Creating tasks for run %d, targetSE %s (%d files)" % ( runID, selectedSE, nbNew ) )
-      if not selectedSE:
-        self.util.logWarn( "Run %d has no targetSE, skipped..." % runID )
-        continue
-      if runUpdate[runID]:
-        self.util.logVerbose( "Assign run site for run %d: %s" % ( runID, selectedSE ) )
-        # Update the TransformationRuns table with the assigned (if this fails do not create the tasks)
-        res = self.transClient.setTransformationRunsSite( self.transID, runID, selectedSE )
-        if not res['OK']:
-          self.util.logError( "Failed to assign TransformationRun site", res['Message'] )
-          continue
-      status = self.params['Status']
-      self.params['Status'] = 'Flush'
-      lfns = [lfn for lfn in runFileDict[runID] \
-              if len( self.transReplicas.get( lfn, [] ) ) >= minNbReplicas]
-      notConsidered = [lfn for lfn in runFileDict[runID] if lfn not in lfns]
-      if notConsidered:
-        self.util.logVerbose( "Run %s: %d files are not considered (not %d replicas)" %
-                              ( runID, len( notConsidered ), minNbReplicas ) )
-      if not lfns:
-        continue
-      if fractionToProcess == 1.:
-        runFraction = 1.
-      else:
-        res = self.transClient.getTransformationFiles( condDict = {'TransformationID':self.transID, 'RunNumber':runID} )
-        if not res['OK']:
-          self.util.logError( "Failed to get transformation files for run", "%s %s" % ( runID, res['Message'] ) )
-          continue
-        else:
-          nbRaw = len( res['Value'] )
-        res = self.transClient.getTransformationFiles( condDict = {'TransformationID':self.transID,
-                                                                   'RunNumber':runID,
-                                                                   'Status':['Assigned', 'Processed']} )
-        if not res['OK']:
-          self.util.logError( "Failed to get transformation files for run", "%s %s" % ( runID, res['Message'] ) )
-          continue
-        else:
-          nbSubmitted = len( res['Value'] )
-        # Let's compute which fraction should be processed
-        if nbRaw <= minFilesToProcess:
-          runFraction = 1.
-        elif nbRaw < minFilesToProcess / fractionToProcess:
-          runFraction = float( minFilesToProcess ) / nbRaw
-        else:
-          runFraction = fractionToProcess
-        # Now adjust taking into account the files already submitted
-        runFraction = min( max( 0., ( runFraction * nbRaw - nbSubmitted ) / nbNew ), 1. )
-        self.util.logInfo( 'Run %s: %d RAW files, %d submitted, will process %.1f%% of %d new files'
-                           % ( runID, nbRaw, nbSubmitted, 100. * runFraction, nbNew ) )
-      if runFraction == 0.:
-        # No need to group, just create a fake task for all files
-        res = { 'OK': True, 'Value':[( '', lfns )]}
-      else:
-        res = self._groupBySize( lfns )
-      self.params['Status'] = status
-      if res['OK']:
-        notProcessed = 0
-        total = 0
-        self.util.logVerbose( "groupBySize returned %d tasks for %d files" % ( len( res['Value'] ), len( lfns ) ) )
-        for task in res['Value']:
-          total += len( task[1] )
-          if runFraction != 1.:
-            # Decide whether the files should be processed or not
-            rand = random.uniform( 0., 1. )
-            if rand > runFraction:
-              # Don't process this/these file
-              notProcessed += len( task[1] )
-              res = self.transClient.setFileStatusForTransformation( self.transID, 'NotProcessed', task[1] )
-              if not res['OK']:
-                self.util.logError( "Error setting file status NotProcessed for %d files" % len( task[1] ),
-                                    res['Message'] )
-              else:
-                res = self.bkClient.setFilesInvisible( task[1] )
-                if not res['OK']:
-                  self.util.logError( "Error setting %d files invisible in BK" % len( task[1] ), res['Message'] )
-              continue
-          finalSE = selectedSE if selectedSE in task[0].split( ',' ) else backupSE
-          if finalSE in task[0].split( ',' ):
-            if finalSE != selectedSE:
-              self.util.logVerbose( "Using backup SE %s as target as file not available at %s" % ( backupSE, selectedSE ) )
-            # Set the RAW files visible in the BK (only needed for reprocessing)
-            if transType == 'DataReprocessing':
-              res = self.bkClient.setFilesVisible( task[1] )
-              if not res['OK']:
-                self.util.logError( "Error setting %d files visible in BK" % len( task[1] ), res['Message'] )
-            else:
-              res = {'OK': True}
-            if res['OK']:
-              tasks.append( ( finalSE, task[1] ) )
-          else:
-            self.util.logVerbose( 'Task not created: %s' % str( task ) )
-        if notProcessed:
-          self.util.logVerbose( 'Run %s: of %d files, only %d will be processed (requested %.1f%%, min %d)' \
-                             % ( runID, total, total - notProcessed, 100. * runFraction, minFilesToProcess ) )
-      else:
-        self.util.logError( 'Error grouping files by size', res['Message'] )
-
-    if self.pluginCallback:
-      self.pluginCallback( self.transID, invalidateCache = True )
-    return S_OK( tasks )
-
-
   def _groupBySize( self, files = None ):
     """
     Generate a task for a given amount of data at a (set of) SE
@@ -719,9 +476,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     zeroRunDict = runDict.pop( 0, None )
     if zeroRunDict:
       nZero = 0
-      for paramValue, zeroRun in zeroRunDict.items():
+      for paramValue, zeroRun in zeroRunDict.iteritems():
         newRuns = self.util.setRunForFiles( zeroRun )
-        for newRun, runLFNs in newRuns.items():
+        for newRun, runLFNs in newRuns.iteritems():
           runDict.setdefault( newRun, {} ).setdefault( paramValue, [] ).extend( runLFNs )
           nZero += len( runLFNs )
       self.util.logInfo( "Set run number for %d files with run #0, which means it was not set yet" % nZero )
@@ -1007,7 +764,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       if zeroRun:
         self.util.logInfo( "Setting run number for files with run #0, which means it was not set yet" )
         newRuns = self.util.setRunForFiles( zeroRun )
-        for newRun, runLFNs in newRuns.items():
+        for newRun, runLFNs in newRuns.iteritems():
           runFileDict.setdefault( newRun, [] ).extend( runLFNs )
     if not runFileDict:
       return S_OK( [] )
@@ -1082,7 +839,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     # Now group all of the files by their target SEs
     storageElementGroups = {}
-    for lfn, stringTargetSEs in fileTargetSEs.items():
+    for lfn, stringTargetSEs in fileTargetSEs.iteritems():
       storageElementGroups.setdefault( stringTargetSEs, [] ).append( lfn )
 
     return S_OK( self.util.createTasks( storageElementGroups ) )
@@ -1102,7 +859,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     numberOfCopies = max( numberOfCopies, len( mandatorySEs ) )
 
     storageElementGroups = {}
-    for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).items():
+    for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).iteritems():
       existingSEs = [se for se in replicaSE.split( ',' ) if not self.util.dmsHelper.isSEFailover( se )]
       for lfns in breakListIntoChunks( lfnGroup, 100 ):
 
@@ -1164,7 +921,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     alreadyCompleted = []
     fileTargetSEs = {}
-    for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).items():
+    for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).iteritems():
       existingSEs = [se for se in replicaSE.split( ',' ) if not self.util.dmsHelper.isSEFailover( se )]
       # If a FromSEs parameter is given, only keep the files that are at one of those SEs, mark the others NotProcessed
       if fromSEs:
@@ -1228,7 +985,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     # Now group all of the files by their target SEs
     storageElementGroups = {}
-    for lfn, stringTargetSEs in fileTargetSEs.items():
+    for lfn, stringTargetSEs in fileTargetSEs.iteritems():
       storageElementGroups.setdefault( stringTargetSEs, [] ).append( lfn )
 
     self.util.logDebug( "Storage Element Groups created: %s" % storageElementGroups )
@@ -1239,7 +996,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ Creates replication tasks for to the existing SEs. Used only for tests!
     """
     storageElementGroups = {}
-    for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).items():
+    for replicaSE, lfnGroup in getFileGroups( self.transReplicas ).iteritems():
       existingSEs = replicaSE.split( ',' )
       for lfns in breakListIntoChunks( lfnGroup, 100 ):
         stringTargetSEs = existingSEs[0]
@@ -1286,7 +1043,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.util.logVerbose( "No files to be set Removed in other transformations" )
         if processedFiles:
           self.util.logInfo( "%d files are being removed but were already Processed or Removed" % len( processedFiles ) )
-        for trans, lfns in transDict.items():
+        for trans, lfns in transDict.iteritems():
           if self.transID > 0:
             # Do not actually take action for a fake transformation (dirac-test-plugin)
             res = self.transClient.setFileStatusForTransformation( trans, 'Removed', lfns )
@@ -1355,7 +1112,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     storageElementGroups = {}
     notInKeepSEs = []
-    for replicaSE, lfns in getFileGroups( self.transReplicas ).items():
+    for replicaSE, lfns in getFileGroups( self.transReplicas ).iteritems():
       replicaSE = replicaSE.split( ',' )
       if minKeep == 0 and keepSEs:
         # Check that the dataset exists at least at 1 keepSE
@@ -1483,23 +1240,24 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logVerbose( "Using %d input files, in %d groups" % ( len( self.data ), len( replicaGroups ) ) )
       storageElementGroups = {}
       newGroups = {}
-      for stringSEs, lfns in replicaGroups.items():
+      for stringSEs, lfns in replicaGroups.iteritems():
         replicaSEs = set( stringSEs.split( ',' ) )
         targetSEs = fromSEs & replicaSEs
         if not targetSEs:
           # This is a fake to have a placeholder for the replica location... Later it is not used
-          self.util.logVerbose( "%d files are not in required list (only at %s)" % ( len( lfns ), sorted( replicaSEs ) ) )
-          newGroups.setdefault( ','.join( list( replicaSEs ) ), [] ).extend( lfns )
+          self.util.logVerbose( "%d files are not in required list (only at %s)" % ( len( lfns ), ','.join( sorted( replicaSEs ) ) ) )
+          newGroups.setdefault( ','.join( sorted( replicaSEs ) ), [] ).extend( lfns )
         elif not replicaSEs - fromSEs :
           self.util.logInfo( "%d files are only in required list (only at %s), don't remove (yet)" % \
-                             ( len( lfns ), sorted( replicaSEs ) ) )
+                             ( len( lfns ), ','.join( sorted( replicaSEs ) ) ) )
           onlyAtList = True
         else:
-          newGroups.setdefault( ','.join( list( targetSEs ) ), [] ).extend( lfns )
+          newGroups.setdefault( ','.join( sorted( targetSEs ) ), [] ).extend( lfns )
 
       # Restrict the query to the BK to the interesting productions
       transPassLen = len( transProcPass.split( '/' ) )
-      for stringTargetSEs, lfns in newGroups.items():
+      for stringTargetSEs in sorted( newGroups ):
+        lfns = newGroups[stringTargetSEs]
         self.util.logInfo( 'Checking descendants for %d files at %s' % ( len( lfns ), stringTargetSEs ) )
         # Use the cached information if any
         bkPathsToCheck = dict( ( lfn, set( self.util.cachedLFNProcessedPath.get( lfn, bkPathList ) ) & set( bkPathList ) ) for lfn in lfns )
@@ -1508,20 +1266,22 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # Update with the cached information
         for bkPath in bkPathList:
           prods = productions['List'][bkPath]
-          if not prods:
+          # If there is nothing left to do, exit
+          if not prods or not lfnsToCheck:
             break
           lfnsToCheckForPath = set( lfn for lfn in lfnsToCheck if bkPath in bkPathsToCheck[lfn] )
           depth = len( bkPathList[bkPath].split( '/' ) ) - transPassLen + 1
-          for prod in sorted( prods ):
+          for prod in sorted( prods, reverse = True ):
             if not lfnsToCheckForPath:
               # All files have been processed, go to next bkPath
               break
             self.util.logVerbose( 'Checking descendants for %d files in production %d, depth %d' % ( len( lfnsToCheckForPath ), prod, depth ) )
             startTime = time.time()
             processedLfns = set()
-            res = self.bkClient.getFileDescendants( list( lfnsToCheckForPath ), production = prod, depth = depth, checkreplica = True )
-            if res['OK']:
-              processedLfns.update( res['Value']['Successful'] )
+            for lfnChunk in breakListIntoChunks( lfnsToCheckForPath, 20 ):
+              res = self.bkClient.getFileDescendants( lfnChunk, production = prod, depth = depth, checkreplica = True )
+              if res['OK']:
+                processedLfns.update( res['Value']['Successful'] )
             self.util.logVerbose( 'Found %s descendants in %.1f seconds' % \
                                   ( len( processedLfns ) if processedLfns else 'no',
                                     time.time() - startTime ) )
@@ -1531,12 +1291,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               else:
                 bkPathsToCheck[lfn].remove( bkPath )
             lfnsToCheckForPath -= processedLfns
-          notProcessed = [lfn for lfn in lfnsToCheckForPath if bkPath in bkPathsToCheck[lfn]]
+          notProcessed = set( lfn for lfn in lfnsToCheckForPath if bkPath in bkPathsToCheck[lfn] )
           if notProcessed:
             self.util.logVerbose( "%d files not processed by processing pass %s, don't check further" % ( len( notProcessed ), bkPathList[bkPath] ) )
-            lfnsToCheck -= set( notProcessed )
-            if not lfnsToCheck:
-              break
+            lfnsToCheck -= notProcessed
 
         lfnsProcessed = [lfn for lfn in lfns if not bkPathsToCheck[lfn]]
         self.util.cachedLFNProcessedPath.update( bkPathsToCheck )
@@ -1574,7 +1332,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     storageElementGroups = {}
 
-    for replicaSE, lfns in getFileGroups( self.transReplicas ).items():
+    for replicaSE, lfns in getFileGroups( self.transReplicas ).iteritems():
       replicaSE = [se for se in replicaSE.split( ',' ) if not self.util.dmsHelper.isSEFailover( se ) and not self.util.dmsHelper.isSEArchive( se )]
       if not replicaSE:
         continue
@@ -1610,7 +1368,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     self.util.cleanFiles( self.transFiles, self.transReplicas )
     storageElementGroups = {}
 
-    for replicaSE, lfns in getFileGroups( self.transReplicas ).items():
+    for replicaSE, lfns in getFileGroups( self.transReplicas ).iteritems():
       replicaSE = set( se for se in replicaSE.split( ',' ) if not self.util.dmsHelper.isSEFailover( se ) and not self.util.dmsHelper.isSEArchive( se ) )
       if not replicaSE:
         self.util.logInfo( "Found %d files that don't have a suitable source replica. Set Problematic" % len( lfns ) )

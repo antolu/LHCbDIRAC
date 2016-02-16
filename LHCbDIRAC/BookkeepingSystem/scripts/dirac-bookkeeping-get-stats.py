@@ -180,7 +180,7 @@ def execute():
           except Exception as e:
             gLogger.exception( 'Exception for %s' % str( metadata.keys() ), e )
       if lfns:
-        lfnChunks = breakListIntoChunk( lfns, 1000 )
+        lfnChunks = breakListIntoChunks( lfns, 1000 )
         progressBar = ProgressBar( len( lfns ), title = "Get metadata from BK", chunk = 1000 )
         for lfnChunk in lfnChunks:
           progressBar.loop()

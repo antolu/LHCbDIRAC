@@ -14,8 +14,10 @@ from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
 from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
+from DIRAC.Core.Utilities.Proxy import executeWithUserProxy
 
-__RCSID__ = "$Id: UsersAndGroups.py 87207 2016-01-26 13:24:27Z joel $"
+
+__RCSID__ = "$Id: UsersAndGroups.py 87278 2016-02-11 13:56:43Z joel $"
 
 class UsersAndGroups( AgentModule ):
 
@@ -68,6 +70,7 @@ class UsersAndGroups( AgentModule ):
     self.log.info( "Proxy generated" )
     return True
 
+  @executeWithUserProxy
   def addEntryDFC( self, userDFC ):
     '''
     check and create if necessary an entry in the DFC
@@ -153,7 +156,7 @@ class UsersAndGroups( AgentModule ):
       for lfcuser in registerUsers:
         for lfc_dn in registerUsers[lfcuser]:
           print lfc_dn
-          self.addEntryDFC( lfcuser )
+          self.addEntryDFC( lfcuser, proxyUserName = 'joel', proxyUserGroup = 'lhcb_admin' )
 
     return S_OK()
 
@@ -414,7 +417,7 @@ class UsersAndGroups( AgentModule ):
           self.__adminMsgs[ 'Info' ].append( "      DN = %s" % DN )
           self.__adminMsgs[ 'Info' ].append( "      CA = %s" % usersData[newUser]['CA'] )
         self.__adminMsgs[ 'Info' ].append( "    + EMail: %s" % usersData[newUser][ 'Email' ] )
-        self.addEntryDFC( newUser )
+        self.addEntryDFC( newUser, proxyUserName = 'joel', proxyUserGroup = 'lhcb_admin' )
 
 
     if usersWithMoreThanOneDN:

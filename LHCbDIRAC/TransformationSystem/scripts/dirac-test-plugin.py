@@ -4,7 +4,7 @@
  Test a plugin
 """
 
-__RCSID__ = "$Id: dirac-test-plugin.py 87198 2016-01-26 09:44:53Z phicharp $"
+__RCSID__ = "$Id: dirac-test-plugin.py 87266 2016-02-11 12:17:43Z phicharp $"
 
 class fakeClient:
   def __init__( self, trans, transID, lfns, asIfProd ):
@@ -120,6 +120,9 @@ class fakeClient:
         else:
           return res
     return DIRAC.S_OK( counters )
+
+  def addRunsMetadata( self, runID, val ):
+    return self.transClient.addRunsMetadata( runID, val )
 
   def getRunsMetadata( self, runID ):
     return self.transClient.getRunsMetadata( runID )

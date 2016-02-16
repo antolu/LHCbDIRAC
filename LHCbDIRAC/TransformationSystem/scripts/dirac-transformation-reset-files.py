@@ -14,9 +14,11 @@ if __name__ == "__main__":
 
   dmScript = DMScript()
   dmScript.registerFileSwitches()
+  newStatus = 'Unused'
   statusList = ( "Unused", "Assigned", "Done", "Problematic", "MissingLFC", "MissingInFC", "MaxReset",
                  "Processed", "NotProcessed", "Removed", 'ProbInFC' )
   Script.registerSwitch( '', 'Status=', "Select files with a given status from %s" % str( statusList ) )
+  Script.registerSwitch( '', 'NewStatus=', "New status to be set (default: %s)" % newStatus )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] <TransID> <Status>' % Script.scriptName, ] ) )
@@ -31,6 +33,12 @@ if __name__ == "__main__":
         Script.showHelp()
         DIRAC.exit( 1 )
       status = val
+    elif opt == 'NewStatus':
+      if val not in statusList:
+        print "Unknown status %s... Select in %s" % ( val, str( statusList ) )
+        Script.showHelp()
+        DIRAC.exit( 1 )
+      newStatus = val
 
   args = Script.getPositionalArgs()
 
@@ -44,7 +52,7 @@ if __name__ == "__main__":
       for id_o in ids:
         r = id_o.split( ':' )
         if len( r ) > 1:
-          for i in range( int( r[0] ), int( r[1] ) + 1 ):
+          for i in xrange( int( r[0] ), int( r[1] ) + 1 ):
             idList.append( i )
         else:
           idList.append( int( r[0] ) )
@@ -84,7 +92,7 @@ if __name__ == "__main__":
       resetFiles = 0
       failed = {}
       for lfnChunk in breakListIntoChunks( lfns, 10000 ):
-        res = transClient.setFileStatusForTransformation( transID, 'Unused', lfnChunk,
+        res = transClient.setFileStatusForTransformation( transID, newStatus, lfnChunk,
                                              force = ( status == 'MaxReset' or status == 'Processed' ) or lfnsExplicit )
         if res['OK']:
           resetFiles += len( res['Value'].get( 'Successful', res['Value'] ) )

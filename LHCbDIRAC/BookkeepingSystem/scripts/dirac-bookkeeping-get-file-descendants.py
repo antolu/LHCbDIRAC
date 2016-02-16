@@ -1,32 +1,33 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p30/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-descendants.py $
+# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p31/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-descendants.py $
 # File :    dirac-bookkeeping-get-file-descendants
 # Author :  Zoltan Mathe
 ########################################################################
 """
   Returns descendants for a (list of) LFN(s)
 """
-__RCSID__ = "$Id: dirac-bookkeeping-get-file-descendants.py 87138 2016-01-25 17:16:26Z phicharp $"
+__RCSID__ = "$Id: dirac-bookkeeping-get-file-descendants.py 87261 2016-02-11 11:50:11Z phicharp $"
 
 import DIRAC
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult, ProgressBar
+from DIRAC import S_OK
 
 if __name__ == "__main__":
   dmScript = DMScript()
   dmScript.registerFileSwitches()
   Script.registerSwitch( '', 'All', 'Do not restrict to descendants with replicas' )
-  Script.registerSwitch( '', 'Full', 'Get full metadata information on ancestors' )
+  Script.registerSwitch( '', 'Full', 'Get full metadata information on descendants' )
   level = 1
   Script.registerSwitch( '', 'Depth=', 'Number of processing levels (default:%d)' % level )
   Script.registerSwitch( '', 'Production=', 'Restrict to descendants in a given production (at any depth)' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
-                                       '  %s [option|cfgfile] ... [LFN|File] [Level]' % Script.scriptName,
+                                       '  %s [option|cfgfile] ... [LFN|File] [Depth]' % Script.scriptName,
                                        'Arguments:',
                                        '  LFN:      Logical File Name',
                                        '  File:     Name of the file with a list of LFNs',
-                                       '  Level:    Number of levels to search (default: 1)' ] ) )
+                                       '  Depth:    Number of levels to search (default: %d)' % level ] ) )
 
   Script.parseCommandLine( ignoreErrors = True )
 
@@ -63,22 +64,35 @@ if __name__ == "__main__":
   lfnList = dmScript.getOption( 'LFNs', [] )
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-  result = BookkeepingClient().getFileDescendants( lfnList, depth = level, production = prod, checkreplica = checkreplica )
-  if result['OK']:
-    noDescendants = set( lfnList ) - set( result['Value']['Successful'] ) - set( result['Value']['Failed'] ) - \
-                    set( result['Value']['NotProcessed'] )
-    if full:
-      del result['Value']['Successful']
-    else:
-      okResult = result['Value']['WithMetadata']
-      for lfn in okResult:
-        result['Value']['Successful'][lfn] = \
-          dict( ( anc, 'Replica-%s' % meta['GotReplica'] ) for anc, meta in okResult[lfn].iteritems() )
-      del result['Value']['WithMetadata']
-    if noDescendants:
-      result['Value']['NoDescendants'] = list( noDescendants )
+  from DIRAC.Core.Utilities.List import breakListIntoChunks
+  bkClient = BookkeepingClient()
 
-  DIRAC.exit( printDMResult( result,
+  chunkSize = 50
+  progressBar = ProgressBar( len( lfnList ), chunk = chunkSize, title = 'Getting descendants for %d files (depth %d)' % ( len( lfnList ), level ) + ( ' for production %d' % prod if prod else '' ) )
+  fullResult = S_OK( {} )
+  for lfnChunk in breakListIntoChunks( lfnList, 50 ):
+    progressBar.loop()
+    result = bkClient.getFileDescendants( lfnChunk, depth = level, production = prod, checkreplica = checkreplica )
+    if result['OK']:
+      noDescendants = set( lfnChunk ) - set( result['Value']['Successful'] ) - set( result['Value']['Failed'] ) - \
+                      set( result['Value']['NotProcessed'] )
+      if noDescendants:
+        fullResult['Value'].setdefault( 'NoDescendants', [] ).extend( sorted( noDescendants ) )
+      if full:
+        fullResult['Value'].setdefault( 'WithMetadata', {} ).update( result['Value']['WithMetadata'] )
+      else:
+        okResult = result['Value']['WithMetadata']
+        for lfn in okResult:
+          fullResult['Value'].setdefault( 'Successful', {} )[lfn] = \
+            dict( ( desc, 'Replica-%s' % meta['GotReplica'] ) for desc, meta in okResult[lfn].iteritems() )
+      fullResult['Value'].setdefault( 'Failed', {} ).update( result['Value']['Failed'] )
+      fullResult['Value'].setdefault( 'NotProcessed', {} ).update( result['Value']['NotProcessed'] )
+    else:
+      fullResult = result
+      break
+  progressBar.endLoop()
+
+  DIRAC.exit( printDMResult( fullResult,
                              empty = "None", script = "dirac-bookkeeping-get-file-descendants" ) )
 
 
