@@ -2,13 +2,13 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p2
+Version v8r2p3
 --------------
 
 BUGFIX
 ::::::
 
- Resources
-  - LHCbOnline plugin fixed
-  - Add hasAccess interface to the RAWIntegrityClient
+ BookkeepingSystem
+  - By default the run is not finished
+  - DQFlag changed to DataQualityFlag...
 

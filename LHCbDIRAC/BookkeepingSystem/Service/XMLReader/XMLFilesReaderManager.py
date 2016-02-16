@@ -3,7 +3,7 @@ It interprets the XML reports and make a job, file, or replica object
 """
 
 ########################################################################
-# $Id: XMLFilesReaderManager.py 85131 2015-08-20 13:16:43Z zmathe $
+# $Id: XMLFilesReaderManager.py 85548 2015-09-09 21:30:43Z zmathe $
 ########################################################################
 
 from xml.parsers.expat                                                                  import ExpatError
@@ -32,7 +32,7 @@ from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter              
                                                                                           VeloPosition, \
                                                                                           Context
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py 85131 2015-08-20 13:16:43Z zmathe $"
+__RCSID__ = "$Id: XMLFilesReaderManager.py 85548 2015-09-09 21:30:43Z zmathe $"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()
@@ -318,9 +318,9 @@ class XMLFilesReaderManager:
         if value[fname]['EventStat'] != None:
           sumEvtStat += value[fname]['EventStat']
         if value[fname]['Luminosity'] != None:
-          sumLuminosity += value[fname]['Luminosity']
-        if dqvalue == None and value[fname].has_key( 'DQFlag' ):
-          dqvalue = value[fname]['DQFlag']
+          sumLuminosity += value[fname]['Luminosity']   
+        if dqvalue == None:
+          dqvalue = value[fname].get( 'DataqualityFlag', value[fname].get( 'DQFlag', None ) )
 
     evtinput = 0
     if long( sumEvtStat ) > long( sumEventInputStat ):
@@ -371,6 +371,16 @@ class XMLFilesReaderManager:
     else:
       jobID = long( result['Value'] )
       job.setJobId( jobID )
+    
+    if job.exists( 'RunNumber' ):
+      runnumber = job.getParam( 'RunNumber' ).getValue()
+      gLogger.info( "Registering the run status: Runnumber %s , JobId %s  " % ( str( runnumber ), str( job.getJobId() ) ) )
+      result = dataManager_.insertRunStatus( runnumber, job.getJobId(), "N" )
+      if not result['OK']:
+        dataManager_.deleteJob( job.getJobId() )
+        errorMessage = "Unable to register run status %s " % ( result['Message'] )
+        return S_ERROR( errorMessage )
+      
     inputFiles = job.getJobInputFiles()
     for inputfile in inputFiles:
       result = dataManager_.insertInputFile( job.getJobId(), inputfile.getFileID() )
