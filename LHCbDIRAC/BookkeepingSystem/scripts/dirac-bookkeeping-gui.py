@@ -1,5 +1,3 @@
-# pylint: skip-file
-
 #!/usr/bin/env python
 ########################################################################
 # File :    dirac-bookkeeping-gui.py
@@ -8,7 +6,7 @@
 """
   Command to invoke the LHCb Bookkeeping Database graphical user interface
 """
-__RCSID__ = "$Id: dirac-bookkeeping-gui.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id: dirac-bookkeeping-gui.py 85405 2015-08-28 13:42:52Z joel $"
 
 from DIRAC.Core.Base import Script
 

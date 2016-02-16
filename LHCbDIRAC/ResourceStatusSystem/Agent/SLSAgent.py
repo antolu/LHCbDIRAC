@@ -40,7 +40,7 @@ from DIRAC.Core.Base.DB                                         import DB
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from DIRAC.ResourceStatusSystem.Utilities                       import CSHelpers
 
-__RCSID__  = "$Id: SLSAgent.py 85141 2015-08-20 14:54:17Z joel $"
+__RCSID__ = "$Id: SLSAgent.py 85441 2015-09-02 05:54:48Z joel $"
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 
 rmDB = None
@@ -215,6 +215,8 @@ class SpaceTokenOccupancyTest( TestBase ):
     doc = gen_xml_stub()
     xml_append( doc, "id", site + "_" + token )
     xml_append( doc, "status", availability )
+    xml_append( doc, "contact", "lhcb-geoc@cern.ch" )
+    xml_append( doc, "webpage", "lhcb-portal-dirac.cern.ch" )
     xml_append( doc, "availabilityinfo", "Free=" + str( free ) + " Total=" + str( total ) )
     xml_append( doc, "availabilitydesc", self.getTestValue( "availabilitydesc" ) )
     elt = xml_append( doc, "data" )
@@ -271,6 +273,9 @@ class DIRACTest( TestBase ):
     doc = gen_xml_stub()
     xml_append( doc, "id", site + "_" + system )
     xml_append( doc, "timestamp", time.strftime( "%Y-%m-%dT%H:%M:%S" ) )
+    xml_append( doc, "contact", "lhcb-geoc@cern.ch" )
+    xml_append( doc, "availabilitydesc", "T1 VOBOXes test" )
+    xml_append( doc, "webpage", "lhcb-portal-dirac.cern.ch" )
 
     if res['OK']:
       res = res['Value']
