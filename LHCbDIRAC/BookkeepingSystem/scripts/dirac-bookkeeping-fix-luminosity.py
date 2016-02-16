@@ -8,16 +8,35 @@ __RCSID__ = "$Id: dirac-bookkeeping-get-stats.py 69357 2013-08-08 13:33:31Z phic
 import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC import gLogger
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, WithDots
+import time
+import sys
 
-def updateDescendantsLumi( parentLumi, doIt = False ):
+def _updateFileLumi( fileDict, retries = 5 ):
+  error = False
+  withDots = WithDots( len( fileDict ), title = 'Updating luminosity', chunk = 10, mindots = 5 )
+  for lfn in fileDict:
+    withDots.loop()
+    # retry 5 times
+    for i in range( retries - 1, -1, -1 ):
+      res = bk.updateFileMetaData( lfn, {'Luminosity':fileDict[lfn]} )
+      if res['OK']:
+        break
+      elif i == 0:
+        error = True
+        gLogger.error( 'Error setting Luminosity', res['Message'] )
+  withDots.endLoop()
+  return error
+
+def updateDescendantsLumi( parentLumi, doIt = False, force = False ):
   if not parentLumi:
-    return
+    return None
   # Get descendants:
+  error = False
   res = bk.getFileDescendants( parentLumi.keys(), depth = 1, checkreplica = False )
   if not res['OK']:
     gLogger.error( 'Error getting descendants', res['Message'] )
-    return
+    return True
   success = res['Value']['WithMetadata']
   descLumi = {}
   fileTypes = {}
@@ -25,16 +44,17 @@ def updateDescendantsLumi( parentLumi, doIt = False ):
   for lfn in success:
     for desc in success[lfn]:
       fileType = success[lfn][desc]['FileType']
-      if fileType not in ( 'LOG', ):
+      if fileType not in ( 'LOG', ) and 'HIST' not in fileType:
         descLumi.setdefault( desc, 0. )
         descLumi[desc] += parentLumi[lfn]
         fileTypes[desc] = fileType
         fileLumi[desc] = success[lfn][desc]['Luminosity']
   if not descLumi:
-    return
+    return None
 
   prStr = 'Updating' if doIt else 'Would update'
   nDesc = len( descLumi )
+  saveLumi = descLumi.copy()
   for lfn in fileLumi:
     if abs( fileLumi[lfn] - descLumi[lfn] ) < 1:
       descLumi.pop( lfn, None )
@@ -42,19 +62,14 @@ def updateDescendantsLumi( parentLumi, doIt = False ):
     gLogger.notice( '%s lumi of %d descendants out of %d (file types: %s) of %d files' % ( prStr, len( descLumi ), nDesc, ','.join( sorted( set( fileTypes.values() ) ) ), len( parentLumi ) ) )
   else:
     gLogger.notice( 'All %d descendants (file types: %s) of %d files are OK' % ( nDesc, ','.join( sorted( set( fileTypes.values() ) ) ), len( parentLumi ) ) )
-    return
+    if not force:
+      return None
   if doIt:
-    for desc in descLumi:
-      res = bk.updateFileMetaData( desc, {'Luminosity':descLumi[desc]} )
-      if not res['OK']:
-        gLogger.error( 'Error setting Luminosity', res['Message'] )
-  # Ignore now histogram files
-  for desc in fileTypes:
-    if 'HIST' in fileTypes[desc]:
-      descLumi.pop( desc, None )
-  updateDescendantsLumi( descLumi, doIt = doIt )
+    error = _updateFileLumi( descLumi )
+  result = updateDescendantsLumi( descLumi if not force else saveLumi, doIt = doIt, force = force )
+  return error or bool( result )
 
-def updateRunLumi( run, evtType, fileInfo, doIt = False ):
+def updateRunLumi( run, evtType, fileInfo, doIt = False, force = False ):
   """
   Updates the files luminosity from the run nformation and the files statistics
   run : run number (int)
@@ -70,29 +85,34 @@ def updateRunLumi( run, evtType, fileInfo, doIt = False ):
   runEvts = dict( zip( info['Stream'], info['Number of events'] ) )[evtType]
   filesLumi = sum( [lumi for _lfn, _evts, lumi in fileInfo] )
   # Check luminosity
+  error = False
   if abs( runLumi - filesLumi ) > 1:
     prStr = 'Updating' if doIt else 'Would update'
-    gLogger.notice( "%s %d files as run %d and files lumi don't match: runLumi %d, filesLumi %d" % ( prStr, len( fileInfo ), run, runLumi, filesLumi ) )
+    gLogger.notice( "%s %d files as run %d and files lumi don't match: runLumi %.1f, filesLumi %.1f" % ( prStr, len( fileInfo ), run, runLumi, filesLumi ) )
+    fileDict = {}
     for info in fileInfo:
       # Split the luminosity according to nb of events
       info[2] = float( runLumi ) * info[1] / runEvts
-      if doIt:
-        res = bk.updateFileMetaData( info[0], {'Luminosity':info[2]} )
-        if not res['OK']:
-          gLogger.error( 'Error setting Luminosity', res['Message'] )
+      fileDict[info[0]] = info[2]
+    if doIt:
+      error = _updateFileLumi( fileDict )
   else:
     gLogger.notice( 'Run %d: %d RAW files are OK' % ( run, len( fileInfo ) ) )
 
   # Now update descendants
   fileLumi = dict( [( lfn, lumi ) for lfn, _evts, lumi in fileInfo] )
-  updateDescendantsLumi( fileLumi, doIt = doIt )
+  result = updateDescendantsLumi( fileLumi, doIt = doIt, force = force )
+  return error or result
 
 def execute():
 
   doIt = False
+  force = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'DoIt':
       doIt = True
+    elif switch[0] == 'Force':
+      force = True
     pass
 
   bkQuery = dmScript.getBKQuery()
@@ -140,7 +160,10 @@ def execute():
         gLogger.notice( 'No Finished run found' )
         DIRAC.exit( 0 )
     for run in runFinished:
-      updateRunLumi( run, int( evtType ), runFiles[run], doIt = doIt )
+      result = updateRunLumi( run, int( evtType ), runFiles[run], doIt = doIt, force = force )
+      if doIt:
+        if result is not None:
+          gLogger.notice( 'Update done %s' % ( 'with errors' if result else 'successfully' ) )
 
 if __name__ == "__main__":
 
@@ -148,6 +171,7 @@ if __name__ == "__main__":
   dmScript.registerBKSwitches()
 
   Script.registerSwitch( '', 'DoIt', '   Fix the BK database (default No)' )
+  Script.registerSwitch( '', 'Force', '   Force checking all descendants and not only those of files with bad lumi (default No)' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile]' % Script.scriptName, ] ) )

@@ -112,6 +112,7 @@ def cacheDirectories( directories ):
   if dirSet:
     missingSU = set( [dirLong2Short[lfn] for lfn in dirSet] )
     gLogger.always( 'Get LFN Storage Usage for %d directories' % len( missingSU ) )
+    gLogger.info( '\n'.join( sorted( missingSU ) ) )
     for lfn in missingSU:
       # LFN usage
       while True:
@@ -122,6 +123,7 @@ def cacheDirectories( directories ):
           break
       bkPath = bkPathForLfn[dirShort2Long[lfn]]
       infoType = 'LFN'
+      gLogger.verbose( 'Directory %s: %s' % ( lfn, str( res['Value'] ) ) )
       bkPathUsage.setdefault( bkPath, {} ).setdefault( infoType, [0, 0] )
       bkPathUsage[bkPath][infoType][0] += sum( [val.get( 'Files', 0 ) for val in res['Value'].values()] )
       bkPathUsage[bkPath][infoType][1] += sum( [val.get( 'Size', 0 ) for val in res['Value'].values()] )
@@ -238,7 +240,7 @@ def storageType( seList ):
   return 'Disk'
 
 
-def scanPopularity( since, getAllDatasets ):
+def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
 
   global bkPathForLfn, prodForBKPath, bkPathUsage, processingPass
   bkPathForLfn = {}
@@ -284,11 +286,11 @@ def scanPopularity( since, getAllDatasets ):
   if getAllDatasets:
     # Get list of directories
     startTime = time.time()
-    res = FileCatalog().listDirectory( '/lhcb' )
+    res = FileCatalog().listDirectory( topDirectory if topDirectory[-1] == '/' else topDirectory + '/' )
     if not res['OK']:
       gLogger.fatal( "Cannot get list of directories", res['Message'] )
       DIRAC.exit( 1 )
-    directories = set( [ subDir for subDir in res['Value']['Successful']['/lhcb']['SubDirs']
+    directories = set( [ subDir for subDir in res['Value']['Successful'][topDirectory]['SubDirs']
                         if subDir.split( '/' )[2] not in ignoreDirectories and
                         'RAW' not in subDir and 'RDST' not in subDir and 'SDST' not in subDir] )
     allDirectoriesSet = set()

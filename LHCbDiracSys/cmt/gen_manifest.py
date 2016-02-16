@@ -22,7 +22,7 @@ dest = sys.argv[1]
 
 # decode project version
 m = re.search(r"\$[^$]*/tags.*/(v\d+r\d+(p\d+)?)/[^$]* \$",
-              '''$URL: http://svn.cern.ch/guest/dirac/LHCbDirac/tags/LHCbDiracSys/v8r2p13/cmt/gen_manifest.py $''')
+              '''$URL: http://svn.cern.ch/guest/dirac/LHCbDirac/tags/LHCbDiracSys/v8r2p14/cmt/gen_manifest.py $''')
 if not m:
     version = 'head'
 else:

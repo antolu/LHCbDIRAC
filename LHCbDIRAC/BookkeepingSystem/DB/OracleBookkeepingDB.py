@@ -2,7 +2,7 @@
 Queries creation
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py 86027 2015-10-19 14:15:11Z zmathe $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py 86266 2015-11-09 16:37:12Z zmathe $"
 
 import datetime
 import types
@@ -1096,6 +1096,7 @@ class OracleBookkeepingDB:
     condition, tables = retVal['Value']
 
     
+    tables += ',filetypes ft'
     retVal = self.__buildFileTypes(filetype, condition, tables, visible)
     if not retVal['OK']:
       return retVal
@@ -1269,7 +1270,8 @@ class OracleBookkeepingDB:
                               'TotalLumonosity',
                               'Production',
                               'ApplicationName',
-                              'ApplicationVersion' ), i[1:] ) )
+                              'ApplicationVersion',
+                              'WNMJFHS06' ), i[1:] ) )
         j = 0
         if i[0] not in records:
           records[i[0]] = [record]
@@ -1312,7 +1314,7 @@ class OracleBookkeepingDB:
       command = " select  distinct j.DIRACJOBID, j.DIRACVERSION, j.EVENTINPUTSTAT, j.EXECTIME,\
       j.FIRSTEVENTNUMBER,j.LOCATION,  j.NAME, j.NUMBEROFEVENTS, \
                  j.STATISTICSREQUESTED, j.WNCPUPOWER, j.CPUTIME, j.WNCACHE, j.WNMEMORY, j.WNMODEL, \
-                 j.WORKERNODE, j.WNCPUHS06, j.jobid, j.totalluminosity, j.production\
+                 j.WORKERNODE, j.WNCPUHS06, j.jobid, j.totalluminosity, j.production, j.WNMJFHS06\
                  from %s where f.jobid=j.jobid %s" % ( tables, condition )
       retVal = self.dbR_.query( command )
       if retVal['OK']:
@@ -1320,7 +1322,7 @@ class OracleBookkeepingDB:
         parameters = ['DiracJobID', 'DiracVersion', 'EventInputStat', 'Exectime', 'FirstEventNumber',
                       'Location', 'JobName', 'NumberOfEvents', 'StatisticsRequested', 'WNCPUPower',
                       'CPUTime', 'WNCache', 'WNMemory', 'WNModel', 'WorkerNode', 'WNCPUHS06',
-                      'JobId', 'TotalLuminosity', 'Production']
+                      'JobId', 'TotalLuminosity', 'Production','WNMJFHS06']
         for i in retVal['Value']:
           records += [dict( zip( parameters, i ) )]
         result = S_OK( records )
@@ -1817,7 +1819,8 @@ class OracleBookkeepingDB:
                  'WNCPUHS06': 0, \
                  'TotalLuminosity':0, \
                  'Tck':'None',\
-                 'StepID': None}
+                 'StepID': None,\
+                 'WNMJFHS06' : 0}
 
     for param in job:
       if not attrList.__contains__( param ):
@@ -1875,7 +1878,8 @@ class OracleBookkeepingDB:
                                                          attrList['WNCPUHS06'],
                                                          attrList['TotalLuminosity'],
                                                          attrList['Tck'],
-                                                         attrList['StepID'] ] )
+                                                         attrList['StepID'],
+                                                         attrList['WNMJFHS06'] ] )
     return result
 
   #############################################################################
@@ -3165,7 +3169,8 @@ and files.qualityid= dataquality.qualityid'
     """it adds the file type to the files list"""
     
     if ftype != default and visible.upper().startswith( 'Y' ):
-      tables += ' ,filetypes ft'
+      if tables.lower().find( 'filetypes' ) < 0:
+        tables += ' ,filetypes ft'
       if tables.find( 'bview' ) > -1:
         condition += " and bview.filetypeid=ft.filetypeid "
       if isinstance( ftype, list ):
@@ -3177,7 +3182,8 @@ and files.qualityid= dataquality.qualityid'
         condition += " and ft.name='%s' " % ( str( ftype ) )
         
     elif ftype not in [default, None]:
-      tables += ' ,filetypes ft'
+      if tables.lower().find( 'filetypes' ) < 0:
+        tables += ' ,filetypes ft'
       if isinstance( ftype, list ) and len( ftype ) > 0:
         condition += ' and '
         cond = ' ( '

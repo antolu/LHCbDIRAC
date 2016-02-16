@@ -2,12 +2,14 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p13
+Version v8r2p14
 ---------------
 
-BUGFIX
-::::::
+NEW
+:::
 
  WorkloadManagementSystem
-  - Added RunNumber to the list of JDL parameters to be saved in the DB
+  - Added CheckCECapabilities and CheckWNCapabilities
+ BookkeepingSystem
+  - WNMJFHS06 added to the jobs table FIX (scripts): add functionality to -fix-luminosity
 

@@ -1,6 +1,6 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
-__RCSID__ = "$Id: TransformationPlugin.py 85685 2015-09-25 09:10:51Z chaen $"
+__RCSID__ = "$Id: TransformationPlugin.py 86244 2015-11-04 17:16:11Z phicharp $"
 
 import time
 import datetime
@@ -268,7 +268,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for runID in set( runFileDict ) & set( runSEDict ):
       bufferLogged = False
       rawLogged = False
-      runLfns = runFileDict[runID]
+      # It may happen that files are not in the replica dictionary
+      runLfns = set( runFileDict[runID] ) & set( self.transReplicas )
+      if not runLfns:
+        continue
       assignedSE = runSEDict[runID]
       if assignedSE:
         # We already know where this run should go
@@ -311,10 +314,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               return res
             else:
               assignedRAW = res['Value']
-              self.util.logVerbose( "RAW target assigned for run %d: %s" % ( runID, assignedRAW ) )
+              self.util.logVerbose( "RAW destination assigned for run %d: %s" % ( runID, assignedRAW ) )
           rawLogged = True
         elif not rawLogged:
-          self.util.logVerbose( 'RAW replica existing for run %d: %s' % ( runID, assignedRAW ) )
+          self.util.logVerbose( 'RAW destination existing for run %d: %s' % ( runID, assignedRAW ) )
 
         # # Now get a buffer destination is prestaging is required
         if preStageShares and not assignedBuffer:

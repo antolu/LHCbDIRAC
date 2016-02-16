@@ -2,7 +2,7 @@
     (which is done in the uploadOutput)
 """
 
-__RCSID__ = "$Id: BookkeepingReport.py 84874 2015-08-13 12:29:52Z fstagni $"
+__RCSID__ = "$Id: BookkeepingReport.py 86262 2015-11-09 16:18:11Z phicharp $"
 
 import os
 import time
@@ -311,6 +311,8 @@ class BookkeepingReport( ModuleBase ):
 
     tempVar = gConfig.getValue( "/LocalSite/CPUNormalizationFactor", "1" )
     typedParams.append( ( "WNCPUHS06", tempVar ) )
+    tempVar = gConfig.getValue( "/LocalSite/CPUScalingFactor", "1" )
+    typedParams.append( ( "WNMJFHS06", tempVar ) )
     typedParams.append( ( "Production", self.production_id ) )
     typedParams.append( ( "DiracJobId", str( self.jobID ) ) )
     typedParams.append( ( "Name", self.step_id ) )

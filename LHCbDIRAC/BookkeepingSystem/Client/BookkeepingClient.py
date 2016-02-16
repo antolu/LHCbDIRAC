@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py 85140 2015-08-20 14:29:47Z fstagni $
+# $Id: BookkeepingClient.py 86266 2015-11-09 16:37:12Z zmathe $
 ########################################################################
 
 """
@@ -20,7 +20,7 @@ from DIRAC.Core.DISET.RPCClient      import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
 
 
-__RCSID__ = "$Id: BookkeepingClient.py 85140 2015-08-20 14:29:47Z fstagni $"
+__RCSID__ = "$Id: BookkeepingClient.py 86266 2015-11-09 16:37:12Z zmathe $"
 
 class BookkeepingClient( object ):
   """ This class expose the methods of the Bookkeeping Service"""
@@ -40,7 +40,7 @@ class BookkeepingClient( object ):
     """It print the string"""
     server = self.__getServer()
     res = server.echo( string )
-    print res
+    return res
 
   #############################################################################
   def sendXMLBookkeepingReport( self, xml ):
