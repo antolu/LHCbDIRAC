@@ -2,7 +2,7 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p21
+Version v8r2p22
 ---------------
 
 BUGFIX
