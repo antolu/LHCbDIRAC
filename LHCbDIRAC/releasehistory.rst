@@ -2,7 +2,7 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p31
+Version v8r2p32
 ---------------
 
 CHANGE

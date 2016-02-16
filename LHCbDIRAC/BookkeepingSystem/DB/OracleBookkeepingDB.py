@@ -2,7 +2,7 @@
 Queries creation
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py 87074 2016-01-19 16:55:01Z phicharp $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py 87272 2016-02-11 13:08:46Z zmathe $"
 
 import datetime
 import types
@@ -1687,45 +1687,40 @@ class OracleBookkeepingDB:
 
     if depth:
       depth -= 1
-      res = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getFileID', types.LongType, [fileName] )
+      
+      res = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getFileDesJobId', [fileName] )
       if not res["OK"]:
-        gLogger.error( 'Error getting fileID', res['Message'] )
-      elif res['Value'] is None:
+        gLogger.error( 'Error getting jobID', res['Message'] )
         failed.add( fileName )
-      elif res['Value']:
-        res = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getJobIdFromInputFiles', [res['Value']] )
-        if not res["OK"]:
-          gLogger.error( 'Error getting jobID', res['Message'] )
-          failed.add( fileName )
-        elif not res['Value']:
-          notprocessed.add( fileName )
-        else:
-          for jobID in [item[0] for item in res['Value']]:
-            getProd = bool( production )
+      elif not res['Value']:
+        notprocessed.add( fileName )
+      else:
+        for jobID in [item[0] for item in res['Value']]:
+          getProd = bool( production )
 
-            res = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getFileAndJobMetadata', [jobID, getProd] )
-            if not res["OK"]:
-              gLogger.error( 'Error getting job output files', res['Message'] )
-              failed.add( fileName )
-            elif not res['Value']:
-              notprocessed.add( fileName )
-            else:
-              for record in res['Value']:
-                inRequestedProd = getProd and int( record[3] ) == int( production )
-                if not productionFound or inRequestedProd:
-                  # If we have already found the production but we no longer are in it, break the recursive loop
-                  if ( not checkreplica or ( record[2] != 'No' ) ) and ( not getProd or inRequestedProd ):
-                    files[record[0]] = {'GotReplica':record[2],
-                                        'EventStat':record[4],
-                                        'EventType':record[5],
-                                        'Luminosity':record[6],
-                                        'InstLuminosity':record[7],
-                                        'FileType':record[8]}
+          res = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getFileAndJobMetadata', [jobID, getProd] )
+          if not res["OK"]:
+            gLogger.error( 'Error getting job output files', res['Message'] )
+            failed.add( fileName )
+          elif not res['Value']:
+            notprocessed.add( fileName )
+          else:
+            for record in res['Value']:
+              inRequestedProd = getProd and int( record[3] ) == int( production )
+              if not productionFound or inRequestedProd:
+                # If we have already found the production but we no longer are in it, break the recursive loop
+                if ( not checkreplica or ( record[2] != 'No' ) ) and ( not getProd or inRequestedProd ):
+                  files[record[0]] = {'GotReplica':record[2],
+                                      'EventStat':record[4],
+                                      'EventType':record[5],
+                                      'Luminosity':record[6],
+                                      'InstLuminosity':record[7],
+                                      'FileType':record[8]}
 
-                  if depth:
-                    # Only call if we are not at the correct depth
-                    newFailed, _newNotprocessed = self.getFileDescendentsHelper( record[0], files, depth, production, checkreplica, productionFound = inRequestedProd )
-                    failed.update( newFailed )
+                if depth:
+                  # Only call if we are not at the correct depth
+                  newFailed, _newNotprocessed = self.getFileDescendentsHelper( record[0], files, depth, production, checkreplica, productionFound = inRequestedProd )
+                  failed.update( newFailed )
 
     return sorted( failed ), sorted( notprocessed )
 
