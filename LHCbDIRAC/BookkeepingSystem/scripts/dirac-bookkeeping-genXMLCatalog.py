@@ -2,7 +2,7 @@
 """
   Create a pool xml catalog slice for the specified LFNs
 """
-__RCSID__ = "$Id: dirac-bookkeeping-genXMLCatalog.py 84480 2015-07-23 12:47:43Z phicharp $"
+__RCSID__ = "$Id: dirac-bookkeeping-genXMLCatalog.py 86030 2015-10-19 17:10:41Z phicharp $"
 
 import sys, os, time
 
@@ -156,7 +156,7 @@ def execute():
       if not result['OK']:
         gLogger.fatal( "Error getting ancestor files..." )
         DIRAC.exit( 1 )
-      lfnList = [x[0]['FileName'] for x in result['Value']['Successful'].values()] + result['Value']['Successful'].keys()
+      lfnList = [anc['FileName'] for ancestors in result['Value']['Successful'].values() for anc in ancestors] + result['Value']['Successful'].keys()
 
     from DIRAC.Interfaces.API.Dirac import Dirac
     if not verbose:

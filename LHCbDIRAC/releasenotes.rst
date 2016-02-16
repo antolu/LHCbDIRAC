@@ -2,14 +2,20 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p10
+Version v8r2p11
 ---------------
 
-BUGFIX
+NEW
+:::
+
+ TransformationSystem
+  - script for re-running a DIRAC job locally (needs access to software, so e.g. on lxplus)
+
+CHANGE
 ::::::
 
- ProductionManagementSystem
-  - Priority of MC testing jobs increased to 10
- BookkeepingSystem
-  - If no file type provided, the file types table must not used in the join condition.
+ Core
+  - /LocalSite/SharedArea is filled by the pilot
+ WorkloadManagementSystem
+  - /LocalSite/SharedArea is filled by the pilot
 

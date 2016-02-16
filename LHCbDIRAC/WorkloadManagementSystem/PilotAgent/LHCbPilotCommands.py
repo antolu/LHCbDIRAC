@@ -112,6 +112,23 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
   """
 
+  def _getBasicsCFG( self ):
+    super( LHCbConfigureBasics, self )._getBasicsCFG()
+
+    # Adding SharedArea (which should be in CVMFS)
+    if os.environ.has_key( 'VO_LHCB_SW_DIR' ):
+      sharedArea = os.path.join( os.environ[ 'VO_LHCB_SW_DIR' ], 'lib' )
+      self.log.debug( "Using VO_LHCB_SW_DIR at '%s'" % sharedArea )
+      if os.environ[ 'VO_LHCB_SW_DIR' ] == '.':
+        if not os.path.isdir( 'lib' ):
+          os.mkdir( 'lib' )
+    else: 
+      sharedArea = '/cvmfs/lhcb.cern.ch/lib'
+      self.log.warn( "Can't find shared area, forcing it to %s" % sharedArea )
+
+    self.cfg.append( '-o /LocalSite/SharedArea=%s' % sharedArea )
+
+
   def _getSecurityCFG( self ):
 
     self.log.debug( "self.pp.installEnv: %s" % str( self.pp.installEnv ) )
@@ -190,7 +207,6 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
 
 
 class LHCbConfigureCPURequirements( LHCbCommandBase, ConfigureCPURequirements ):
-  pass
 
   # FIXME# FIXME# FIXME# FIXME# FIXME# FIXME# FIXME# FIXME# FIXME# FIXME# FIXME# FIXME# FIXME# FIXME
   # FIXME: this is just a copy/paste from DIRAC introducing the line for avoiding too slow CPUs
@@ -216,6 +232,7 @@ class LHCbConfigureCPURequirements( LHCbCommandBase, ConfigureCPURequirements ):
                                                                                            '' ).replace( " HS06", '' ) )
     self.log.info( "Current normalized CPU as determined by 'dirac-wms-cpu-normalization' is %f" % cpuNormalizationFactor )
     from DIRAC import gConfig
+    gConfig.forceRefresh()
     slowCPU = float( gConfig.getValue( "Resources/Computing/CEDefaults/SlowCPULimit", 3.0 ) )
     if cpuNormalizationFactor < slowCPU:
       self.log.info( "Current normalized CPU is too slow, exiting" )
