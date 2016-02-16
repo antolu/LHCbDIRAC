@@ -428,6 +428,9 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
   for bkPath in sorted( timeUsage ) + sorted( unusedBKPaths ):
     if bkPath.startswith( 'Unknown-' ):
       continue
+    fileType = bkPath.split( '/' )[-1]
+    if 'HIST' in fileType:
+      continue
     info = bkPathUsage.get( bkPath, {} )
     # check if the production is still active
     prods = prodForBKPath[bkPath]
@@ -446,13 +449,14 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
       info[infoType][1] /= TB
     # Some BK paths contain a , to be replaces by a . for the CSV file!!
     config = '/'.join( bkPath.split( '/' )[0:3] )
-    fileType = bkPath.split( '/' )[-1]
     if ',' in bkPath:
       gLogger.always( "BK path found with ',':", bkPath )
     # Name,Configuration,ProcessingPass, FileType
     row = '%s;%s;%s;%s' % ( bkPath.replace( 'Real Data', 'RealData' ), config, processingPass.get( bkPath, 'Unknown' ).replace( 'Real Data', 'RealData' ), fileType )
     # Type
-    row += ';0' if bkPath.startswith( '/MC' ) else ',1'
+    configTypes = { '/MC/Dev':2, '/MC/Upgrade':3}
+    type = configTypes.get( config, 0 if bkPath.startswith( '/MC' ) else 1 )
+    row += ';%d' % type
     # CreationTime
     row += ';%d' % ( getTimeBin( creationTime ) )
     # NbLFN,LFNSize,NbDisk,DiskSize,NbTape,TapeSize, NbArchived,ArchivedSize
