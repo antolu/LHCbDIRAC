@@ -1,12 +1,12 @@
 
 ########################################################################
-# $Id: BookkeepingManagerHandler.py 85008 2015-08-19 08:13:20Z zmathe $
+# $Id: BookkeepingManagerHandler.py 86445 2015-12-01 15:26:12Z zmathe $
 ########################################################################
 
 """ BookkeepingManaher service is the front-end to the Bookkeeping database
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py 85008 2015-08-19 08:13:20Z zmathe $"
+__RCSID__ = "$Id: BookkeepingManagerHandler.py 86445 2015-12-01 15:26:12Z zmathe $"
 
 from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                           import BookkeepingDatabaseClient
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager
@@ -15,6 +15,7 @@ from DIRAC.Core.DISET.RequestHandler                                            
 from DIRAC                                                                        import gLogger, S_OK, S_ERROR
 
 import cPickle
+import simplejson
 
 from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
 from types import DictType, IntType, StringType, ListType, LongType, BooleanType
@@ -376,7 +377,12 @@ class BookkeepingManagerHandler( RequestHandler ):
     using this function: getFiles, getFilesWithMetadata
     """
     result = S_OK()
-    in_dict = cPickle.loads( parameters )
+    iscPickleFormat = False
+    try:
+      in_dict = simplejson.loads( parameters )
+    except Exception as _:
+      iscPickleFormat = True
+      in_dict = cPickle.loads( parameters )
     gLogger.debug( "The following dictionary received: %s" % in_dict )
     methodName = in_dict.get( 'MethodName', default )
     if methodName == 'getFiles':
@@ -384,7 +390,11 @@ class BookkeepingManagerHandler( RequestHandler ):
     else:
       retVal = self.__getFilesWithMetadata( in_dict )
 
-    fileString = cPickle.dumps( retVal, protocol = 2 )
+    if iscPickleFormat:
+      fileString = cPickle.dumps( retVal, protocol = 2 )
+    else:
+      fileString = simplejson.dumps( retVal )
+      
     retVal = fileHelper.stringToNetwork( fileString )
     if retVal['OK']:
       gLogger.info( 'Sent file %s of size %d' % ( str( in_dict ), len( fileString ) ) )
@@ -1943,4 +1953,12 @@ class BookkeepingManagerHandler( RequestHandler ):
     """ it returns the status of the runs"""
     return dataMGMT_.getRunStatus( runnumbers )
   
+  types_bulkupdateFileMetaData = [DictType]
+  @staticmethod
+  def export_bulkupdateFileMetaData( lfnswithmeta ):
+    return dataMGMT_.bulkupdateFileMetaData( lfnswithmeta )
   
+  types_fixRunLuminosity = [ListType]
+  @staticmethod
+  def export_fixRunLuminosity( runnumbers ):
+    return dataMGMT_.fixRunLuminosity( runnumbers )

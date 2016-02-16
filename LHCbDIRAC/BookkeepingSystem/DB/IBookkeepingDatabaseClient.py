@@ -1,11 +1,11 @@
 """
 Database interface
 """
-# $Id: IBookkeepingDatabaseClient.py 84385 2015-07-22 12:55:47Z zmathe $
+# $Id: IBookkeepingDatabaseClient.py 86445 2015-12-01 15:26:12Z zmathe $
 ########################################################################
 
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py 84385 2015-07-22 12:55:47Z zmathe $"
+__RCSID__ = "$Id: IBookkeepingDatabaseClient.py 86445 2015-12-01 15:26:12Z zmathe $"
 
 class IBookkeepingDatabaseClient(object):
   """stores a Entity manager and expose its method"""
@@ -718,3 +718,13 @@ class IBookkeepingDatabaseClient(object):
   def getRunStatus( self, runnumbers ):
     "more info in the BookkeepingClient.py"
     return self.getManager().getRunStatus( runnumbers )
+  
+  #############################################################################
+  def bulkupdateFileMetaData( self, lfnswithmeta ):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().bulkupdateFileMetaData( lfnswithmeta )
+  
+  #############################################################################
+  def fixRunLuminosity( self, runnumbers ):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().fixRunLuminosity( runnumbers )

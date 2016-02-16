@@ -6,13 +6,15 @@
 import DIRAC
 from DIRAC           import gLogger, gConfig
 from DIRAC.Core.Base import Script
-import os, sys
+import os
+import sys
+import time
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 
-__RCSID__ = "$Id: DMScript.py 86243 2015-11-04 17:06:26Z phicharp $"
+__RCSID__ = "$Id: DMScript.py 86380 2015-11-10 16:38:01Z phicharp $"
 
 def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directory", depth = 9999 ):
   """ Dictionary pretty printing """

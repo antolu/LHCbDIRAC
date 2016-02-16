@@ -2,7 +2,7 @@
 Queries creation
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py 86266 2015-11-09 16:37:12Z zmathe $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py 86445 2015-12-01 15:26:12Z zmathe $"
 
 import datetime
 import types
@@ -1403,6 +1403,24 @@ class OracleBookkeepingDB:
     res = self.dbW_.query( command )
     return res
 
+  #############################################################################
+  def bulkupdateFileMetaData( self, lfnswithmeta ):
+    """it updates the metadata a list of files"""
+    
+    utctime = datetime.datetime.utcnow().strftime( '%Y-%m-%d %H:%M:%S' )
+    sqls = []
+    for filename in lfnswithmeta:
+      command = "update files Set inserttimestamp=TO_TIMESTAMP('%s','YYYY-MM-DD HH24:MI:SS') ," % ( str( utctime ) )
+      command += ','.join( ["%s=%s" % ( str( attribute ), str( lfnswithmeta[filename][attribute] ) ) for attribute in lfnswithmeta[filename]] )
+      command += " where fileName='%s'" % ( filename )
+      sqls += [command]
+      
+    retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkupdateFileMetaData',
+                                                parameters = [],
+                                                output = False,
+                                                array = sqls )
+    return retVal
+  
   #############################################################################
   def renameFile( self, oldLFN, newLFN ):
     """renames a file"""
@@ -4381,9 +4399,9 @@ and files.qualityid= dataquality.qualityid'
               condition += retVal['Value']
             else:
               return retVal
-          if len( parentprod ) < 2:
-            parentprod = str( parentprod )[:-2] + ")"
-          command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
+        
+        parentprod += production
+        command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
        s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step  from  %s \
                      where cont.stepid=s.stepid and \
                       prod.production=cont.production and\
@@ -4904,4 +4922,15 @@ and files.qualityid= dataquality.qualityid'
           status['Successful'][i] = dict( zip( params, retVal['Value'][0] ) )
         else:
           status['Failed'] += [i]
+    return S_OK( status )
+  
+  #############################################################################
+  def fixRunLuminosity( self, runnumbers ):
+    status = { 'Failed' : [], 'Successful' : []}
+    for run in runnumbers:
+      result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.updateLuminosity', [run], False )
+      if result['OK']:
+        status['Successful'] += [run]
+      else:
+        status['Failed'] += [run]
     return S_OK( status )

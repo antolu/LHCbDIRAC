@@ -2,7 +2,7 @@
     common utility methods
 """
 
-__RCSID__ = "$Id: ModuleBase.py 85471 2015-09-07 09:30:22Z fstagni $"
+__RCSID__ = "$Id: ModuleBase.py 86393 2015-11-26 10:07:07Z phicharp $"
 
 import os
 import copy
@@ -412,20 +412,20 @@ class ModuleBase( object ):
       if not res['OK']:
         raise RuntimeError( res['Message'] )
 
-      outputTypes = []
-      if len( res['Value']['Successful'] ) != len( self.stepInputData ):
+      outputTypes = set()
+      success = res['Value']['Successful']
+      for mdDict in success.values():
+        outputTypes.add( mdDict['FileType'] )
+      if len( success ) != len( self.stepInputData ):
         self.log.warn( "Some inputs are not in BKK, trying to parse the file names" )
-        for sid in self.stepInputData:
-          fType = '.'.join( os.path.basename( sid ).split( '.' )[1:] ).lower()
-          if fType not in outputTypes:
-            outputTypes.append( fType )
-      else:
-        for mdDict in res['Value']['Successful'].values():
-          if mdDict['FileType'] not in outputTypes:
-            outputTypes.append( mdDict['FileType'] )
+        for sid in set( self.stepInputData ) - set( success ):
+          # File types in the BK are upper case
+          fType = '.'.join( os.path.basename( sid ).split( '.' )[1:] ).upper()
+          outputTypes.add( fType )
 
+      outputTypes = list( outputTypes )
       if len( outputTypes ) > 1:
-        raise ValueError( "Not all input files have the same type" )
+        raise ValueError( "Not all input files have the same type (%s)" % ','.join( outputTypes ) )
       outputType = outputTypes[0].lower()
       stepOutTypes = [outputType.lower()]
       stepOutputs = [{'outputDataName': self.step_id + '.' + outputType.lower(),
@@ -523,11 +523,11 @@ class ModuleBase( object ):
         self.log.error( 'Ignoring mal-formed output data specification', str( outputFile ) )
 
     for lfn in outputLFNs:
-      if os.path.basename( lfn ) in fileInfo.keys():
+      if os.path.basename( lfn ) in fileInfo:
         fileInfo[os.path.basename( lfn )]['lfn'] = lfn
         self.log.verbose( "Found LFN %s for file %s" % ( lfn, os.path.basename( lfn ) ) )
-      elif os.path.basename(lfn).split('_')[-1] in fileInfo.keys():
-        fileInfo[os.path.basename( lfn ).split('_')[-1]]['lfn'] = lfn
+      elif os.path.basename( lfn ).split( '_' )[-1] in fileInfo:
+        fileInfo[os.path.basename( lfn ).split( '_' )[-1]]['lfn'] = lfn
         self.log.verbose( "Found LFN %s for file %s" % ( lfn, os.path.basename( lfn ).split( '_' )[-1] ) )
 
     # check local existance
@@ -969,10 +969,10 @@ class ModuleBase( object ):
 
     if self.applicationName.lower() == 'gauss':
       if self.CPUe and self.maxNumberOfEvents:
-        # Here we set maxCPUTime to 1 day, which seems reasonable
+        # Here we set maxCPUTime to 48 hours, which seems reasonable
         eventsToProduce = getEventsToProduce( self.CPUe,
                                               maxNumberOfEvents = self.maxNumberOfEvents,
-                                              maxCPUTime = 86400 )
+                                              jobMaxCPUTime = 172800 )
       else:
         eventsToProduce = self.numberOfEvents
     else:

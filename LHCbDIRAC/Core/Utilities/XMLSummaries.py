@@ -1,7 +1,7 @@
 """ Utilities to check the XML summary files
 """
 
-__RCSID__ = "$Id: XMLSummaries.py 84875 2015-08-13 13:48:17Z fstagni $"
+__RCSID__ = "$Id: XMLSummaries.py 86374 2015-11-10 14:02:34Z fstagni $"
 
 import os
 from DIRAC import gLogger
@@ -37,17 +37,20 @@ class XMLSummary( object ):
     self.xmlFileName = xmlFileName
 
     if not os.path.exists( self.xmlFileName ):
-      raise XMLSummaryError( "XML Summary %s Not Available" % self.xmlFileName )
+      self.log.error( "XML Summary Not Available", "%s" % self.xmlFileName )
+      raise XMLSummaryError( "XML Summary Not Available" )
 
     if os.stat( self.xmlFileName )[6] == 0:
-      raise XMLSummaryError( "Requested XML summary file '%s' is empty" % self.xmlFileName )
+      self.log.error( "Requested XML summary file is empty", "%s" % self.xmlFileName )
+      raise XMLSummaryError( "Requested XML summary file is empty" )
 
     summary = XMLTreeParser()
 
     try:
       self.xmlTree = summary.parse( self.xmlFileName )
     except Exception, e:
-      raise XMLSummaryError( 'Error parsing xml summary: %s' % str( e ) )
+      self.log.error( "Error parsing xml summary", "%s" % str( e ) )
+      raise XMLSummaryError( "Error parsing xml summary" )
 
     self.success = self.__getSuccess()
     self.step = self.__getStep()
@@ -269,7 +272,7 @@ class XMLSummary( object ):
         try:
           files.append( ( fileIn.attributes[ 'name' ], fileIn.attributes[ 'status' ] ) )
         except Exception:
-          raise XMLSummaryError( "Bad formatted file keys. %s" )
+          raise XMLSummaryError( "Bad formatted file keys" )
 
     return files
 
