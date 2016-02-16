@@ -23,7 +23,7 @@ from DIRAC.Interfaces.API.Dirac import Dirac
 # # from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
-__RCSID__ = "$Id: SEUsageAgent.py 85253 2015-08-25 14:31:57Z fstagni $"
+__RCSID__ = "$Id: SEUsageAgent.py 85467 2015-09-04 14:49:38Z joel $"
 
 AGENT_NAME = 'DataManagement/SEUsageAgent'
 
@@ -95,7 +95,7 @@ class SEUsageAgent( AgentModule ):
     if not os.path.isdir( self.workDirectory ):
       os.makedirs( self.workDirectory )
     self.log.info( "Working directory is %s" % self.workDirectory )
-    self.inputFilesLocation = self.am_getValue( 'InputFilesLocation', '' )
+    self.inputFilesLocation = self.am_getOption( 'InputFilesLocation', '' )
     if not os.path.isdir( self.inputFilesLocation ):
       os.makedirs( self.inputFilesLocation )
     if os.path.isdir( self.inputFilesLocation ):

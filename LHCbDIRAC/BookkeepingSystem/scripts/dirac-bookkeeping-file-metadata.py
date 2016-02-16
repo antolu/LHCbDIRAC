@@ -6,7 +6,7 @@
 """
   Retrieve metadata from the Bookkeeping for the given files
 """
-__RCSID__ = "$Id: dirac-bookkeeping-file-metadata.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id: dirac-bookkeeping-file-metadata.py 85477 2015-09-07 12:29:42Z fstagni $"
 import  DIRAC.Core.Base.Script as Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
@@ -60,36 +60,36 @@ if __name__ == "__main__":
 
   if not full:
     print '%s %s %s %s %s %s %s' % ( 'FileName'.ljust( lenName ),
-                                  'Size'.ljust( 10 ),
-                                  'GUID'.ljust( lenGUID ),
-                                  'Replica'.ljust( 8 ),
-                                  'DataQuality'.ljust( 12 ),
-                                  'RunNumber'.ljust( 10 ),
-                                  '#events'.ljust( 10 ) )
+                                     'Size'.ljust( 10 ),
+                                     'GUID'.ljust( lenGUID ),
+                                     'Replica'.ljust( 8 ),
+                                     'DataQuality'.ljust( 12 ),
+                                     'RunNumber'.ljust( 10 ),
+                                     '#events'.ljust( 10 ) )
   lfnMetadata = res['Value'].get( 'Successful', res['Value'] )
   for lfn in lfnMetadata:
-    dict = lfnMetadata[lfn]
+    lfnMetaDict = lfnMetadata[lfn]
     if full:
       print '%s%s %s' % ( sep, 'FileName'.ljust( lenItem ), lfn )
       sep = '\n'
       for item in sorted( dict ):
-        print '%s %s' % ( item.ljust( lenItem ), dict[item] )
+        print '%s %s' % ( item.ljust( lenItem ), lfnMetaDict[item] )
     else:
-      size = dict['FileSize']
-      guid = dict['GUID']
-      gotReplica = dict['GotReplica']
-      dq = dict['DQFlag']
-      run = dict['RunNumber']
-      evtStat = dict['EventStat']
+      size = lfnMetaDict['FileSize']
+      guid = lfnMetaDict['GUID']
+      gotReplica = lfnMetaDict['GotReplica']
+      dq = lfnMetaDict.get( 'DataqualityFlag' )
+      run = lfnMetaDict['RunNumber']
+      evtStat = lfnMetaDict['EventStat']
       if not gotReplica:
         gotReplica = 'No'
       print  '%s %s %s %s %s %s %s' % ( lfn.ljust( lenName ),
-                                     str( size ).ljust( 10 ),
-                                     guid.ljust( lenGUID ),
-                                     gotReplica.ljust( 8 ),
-                                     dq.ljust( 12 ),
-                                     str( run ).ljust( 10 ),
-                                     str( evtStat ).ljust( 10 ) )
+                                        str( size ).ljust( 10 ),
+                                        guid.ljust( lenGUID ),
+                                        gotReplica.ljust( 8 ),
+                                        dq.ljust( 12 ),
+                                        str( run ).ljust( 10 ),
+                                        str( evtStat ).ljust( 10 ) )
   failed = res['Value'].get( 'Failed', [] )
   if failed:
     print '\n'

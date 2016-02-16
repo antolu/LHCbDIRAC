@@ -2,7 +2,7 @@
     common utility methods
 """
 
-__RCSID__ = "$Id: ModuleBase.py 84921 2015-08-17 14:15:50Z fstagni $"
+__RCSID__ = "$Id: ModuleBase.py 85471 2015-09-07 09:30:22Z fstagni $"
 
 import os
 import copy
@@ -983,7 +983,7 @@ class ModuleBase( object ):
       optionsDict['RunNumber'] = runNumberGauss
 
     if self.runNumber:
-      if self.runNumber != 'Unknown':
+      if self.runNumber not in ( 'Unknown', 'Multiple' ):
         optionsDict['RunNumber'] = self.runNumber
 
     if firstEventNumberGauss:

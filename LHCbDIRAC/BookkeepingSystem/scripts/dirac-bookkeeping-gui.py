@@ -6,7 +6,7 @@
 """
   Command to invoke the LHCb Bookkeeping Database graphical user interface
 """
-__RCSID__ = "$Id: dirac-bookkeeping-gui.py 85405 2015-08-28 13:42:52Z joel $"
+__RCSID__ = "$Id: dirac-bookkeeping-gui.py 85404 2015-08-28 13:41:28Z joel $"
 
 from DIRAC.Core.Base import Script
 

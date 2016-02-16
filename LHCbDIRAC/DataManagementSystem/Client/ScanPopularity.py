@@ -422,7 +422,7 @@ def scanPopularity( since, getAllDatasets ):
           ",Nb Replicas,Nb ArchReps,Storage,FirstUsage,LastUsage,Now"
   for binNumber in range( nbBins ):
     title += ',%d' % ( 1 + binNumber )
-  f.write( title + '\n' )
+  f.write( title.replace( ',', ';' ) + '\n' )
   TB = 1000. * 1000. * 1000. * 1000.
   for bkPath in sorted( timeUsage ) + sorted( unusedBKPaths ):
     if bkPath.startswith( 'Unknown-' ):
@@ -477,7 +477,7 @@ def scanPopularity( since, getAllDatasets ):
     for binNumber in range( nbBins ):
       usage += timeUsage.get( bkPath, {} ).get( nowBin - binNumber, 0 )
       row += ',%d' % usage
-    f.write( row + '\n' )
+    f.write( row.replace( ',', ';' ) + '\n' )
   f.close()
   gLogger.always( '\nSuccessfully wrote CSV file %s' % csvFile )
 

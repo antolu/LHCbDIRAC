@@ -9,7 +9,7 @@ from DIRAC.ConfigurationSystem.Client import PathFinder
 from DIRAC.Resources.Utilities import checkArgumentFormat
 from DIRAC.Core.Base.Client import Client
 
-__RCSID__ = '$Id: RAWIntegrityClient.py 81779 2015-03-03 16:35:56Z fstagni $'
+__RCSID__ = '$Id: RAWIntegrityClient.py 85474 2015-09-07 11:50:44Z chaen $'
 
 class RAWIntegrityClient( Client ):
 
@@ -87,6 +87,15 @@ class RAWIntegrityClient( Client ):
       successful[lfn] = {'Write':True}
     resDict = {'Failed':failed, 'Successful':successful}
     return S_OK( resDict )
+
+  @staticmethod
+  def hasAccess( _opType, path ):
+    """ Returns True for all path and all actions"""
+    res = checkArgumentFormat( path )
+    if not res['OK']:
+      return res
+    lfns = res['Value']
+    return S_OK( {'Failed' : {}, 'Successful' : dict.fromkeys( lfns, True )} )
 
 ################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

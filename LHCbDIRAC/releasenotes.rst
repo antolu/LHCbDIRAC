@@ -2,20 +2,13 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p1
+Version v8r2p2
 --------------
-
-CHANGE
-::::::
-
- ResourceStatusSystem
-  - adapt SLS for the new dashboard
 
 BUGFIX
 ::::::
 
- BookkeepingSystem
-  - bad line in dirac-bookkeeping-gui script
  Resources
   - LHCbOnline plugin fixed
+  - Add hasAccess interface to the RAWIntegrityClient
 
