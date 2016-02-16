@@ -1,5 +1,5 @@
 project LHCbDirac
-use DIRAC DIRAC_v6r14p6
+use DIRAC DIRAC_v6r14p7
 use LHCBGRID LHCBGRID_v9r*
 use LCGCMT LCGCMT_79
 
