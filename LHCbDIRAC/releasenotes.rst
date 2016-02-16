@@ -2,12 +2,12 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p22
+Version v8r2p23
 ---------------
 
-BUGFIX
+CHANGE
 ::::::
 
- Core
-  - re-set dirac-architecture
+ BookkeepingSystem
+  - JSON is enabled.
 

@@ -1,5 +1,5 @@
 ########################################################################
-# $Id: BookkeepingClient.py 86588 2015-12-08 16:07:03Z zmathe $
+# $Id: BookkeepingClient.py 86697 2015-12-14 08:35:38Z zmathe $
 ########################################################################
 
 """
@@ -12,16 +12,16 @@ in_dict = {'EventTypeId': 93000000,
          }
 """
 
-import cPickle
+#import cPickle
 import tempfile
-#import simplejson
 
 from DIRAC                           import S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient      import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
+from LHCbDIRAC.BookkeepingSystem.Client                                           import JEncoder
 
 
-__RCSID__ = "$Id: BookkeepingClient.py 86588 2015-12-08 16:07:03Z zmathe $"
+__RCSID__ = "$Id: BookkeepingClient.py 86697 2015-12-14 08:35:38Z zmathe $"
 
 class BookkeepingClient( object ):
   """ This class expose the methods of the Bookkeeping Service"""
@@ -231,13 +231,15 @@ class BookkeepingClient( object ):
     """
     in_dict = dict( in_dict )
     bkk = TransferClient( 'Bookkeeping/BookkeepingManager' )
-    params = cPickle.dumps( in_dict )
+    params = JEncoder.dumps( in_dict )
+    #params = cPickle.dumps( in_dict )
     file_name = tempfile.NamedTemporaryFile()    
     retVal = bkk.receiveFile( file_name.name, params )
     if not retVal['OK']:
       return retVal
     else:
-      value = cPickle.load( open( file_name.name ) )
+      value = JEncoder.load( open( file_name.name ) )
+      #value = cPickle.load( open( file_name.name ) )
       file_name.close()
       return S_OK( value )
 
@@ -1042,13 +1044,15 @@ class BookkeepingClient( object ):
     in_dict = dict( in_dict )
     bkk = TransferClient( 'Bookkeeping/BookkeepingManager' )
     in_dict['MethodName'] = 'getFiles'
-    params = cPickle.dumps( in_dict )
+    #params = cPickle.dumps( in_dict )
+    params = JEncoder.dumps( in_dict )
     file_name = tempfile.NamedTemporaryFile()
     retVal = bkk.receiveFile( file_name.name, params )
     if not retVal['OK']:
       return retVal
     else:
-      value = cPickle.load( open( file_name.name ) )
+      #value = cPickle.load( open( file_name.name ) )
+      value = JEncoder.load( open( file_name.name ) )
       file_name.close()
       return value
   
