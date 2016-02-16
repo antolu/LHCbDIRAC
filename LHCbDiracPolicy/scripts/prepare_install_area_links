@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [ -z "$1" ] ; then
+  echo "Error: usage: $0 <path_to_install_area>"
+  exit 1
+fi
+
+install_area=$1
+
+if ! [ -r $install_area/scripts ]; then
+  ln -sv ../scripts $install_area/scripts
+fi
+
+if ! [ -r $install_area/python ]; then
+  ln -sv .. $install_area/python
+fi

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+#
+# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DiracSys/dirac-make,v 1.2 2009/10/05 06:13:08 rgracian Exp $
+#
+# preliminary version to prepare external package needed for DIRAC3
+#
+function canonicalize
+{
+  cd -P -- "$(dirname -- "$1")" &&
+  printf '%s\n' "$(pwd -P)/$(basename -- "$1")"
+}
+basedir=`canonicalize $0`
+basedir=`dirname $basedir`
+basedir=`canonicalize $basedir/..`
+ext_ver="v6r2"
+
+cd $basedir
+
+#tar zxvf $LHCBTAR/DIRAC3/DIRAC-external-client-v4r0-${DIRACPLAT}-python25.tar.gz $DIRACPLAT/lib/python2.5/site-packages/GSI/
+fullname=`tar ztvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz | grep GSI | grep '__init__.py' | tail -1 | awk '{print $6}'`
+fullpath=`dirname $fullname`
+#fullpath=$DIRACPLAT/lib/python2.5/site-packages/GSI
+
+tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz $fullpath
+tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz -C $basedir/InstallArea/$CMTCONFIG/lib --strip-components 2 ${DIRACPLAT}/lib/libssl*
+tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz -C $basedir/InstallArea/$CMTCONFIG/lib --strip-components 2 ${DIRACPLAT}/lib/libcrypto*
+#tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-v5r0-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz $fullpath
+
+
+if ! [ -r $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION} ]; then
+  mkdir $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}
+fi
+
+ln -sf ../../../$fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/
+
+#

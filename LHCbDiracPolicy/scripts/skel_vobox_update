@@ -1,0 +1,7 @@
+#
+set host LHCB_MACHINE_NAME
+show info
+update LHCB_VERSION
+exec lhcb-restart-agent-service
+restart Framework SystemAdministrator
+#
