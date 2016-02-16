@@ -1,0 +1,15 @@
+        self.fileExitAction = QAction(self,"fileExitAction")
+
+        self.MenuBar = QMenuBar(self.frame3,"MenuBar")
+
+
+        self.fileMenu = QPopupMenu(self.frame3)
+        self.fileExitAction.addTo(self.fileMenu)
+        self.MenuBar.insertItem(QString(""),self.fileMenu,1)
+       
+        self.connect(self.fileExitAction,SIGNAL("activated()"),self.fileExiit)
+        
+        self.fileExitAction.setText(self.__tr("Exit"))
+        self.fileExitAction.setMenuText(self.__tr("&Exit"))
+        if self.MenuBar.findItem(1):
+            self.MenuBar.findItem(1).setText(self.__tr("&File"))

@@ -1,0 +1,3 @@
+package Workflow
+
+use LHCbDiracPolicy *

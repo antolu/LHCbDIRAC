@@ -1,0 +1,13 @@
+#!/bin/bash
+#$Header: /afs/cern.ch/project/cvs/reps/lhcb/LbRelease/scripts/add_DN_LFC,v 1.2 2009-07-13 07:23:54 joel Exp $
+
+#
+# add the DN of user into the LFC
+#
+source /opt/dirac/bashrc
+export X509_USER_CERT=/opt/dirac/etc/grid-security/hostcert.pem
+export X509_USER_KEY=/opt/dirac/etc/grid-security/hostkey.pem
+export LFC_HOST=lfc-lhcb.cern.ch
+python /opt/dirac/pro/LHCbDIRAC/ConfigurationSystem/Agent/add_DN_LFC.py "${@}"
+
+exit 0

@@ -1,0 +1,52 @@
+#============================================================================
+# Created    : 2008-09-23
+# Maintainer : Joel Closier
+#============================================================================
+package           LHCbDiracSys
+
+#============================================================================
+# Structure, i.e. directories to process.
+#============================================================================
+branches          cmt doc src
+
+include_path      none
+
+use   LHCbDiracPolicy              v8r2         
+use   LHCbDiracConfig              v8r2         
+
+# The following section is only for the check out and build
+private
+#============================================================================
+# LHCbDIRAC subsystems
+#============================================================================
+use   AccountingSystem             ac_2015040101   LHCbDIRAC
+use   BookkeepingSystem            bk_2015082601   LHCbDIRAC
+use   ConfigurationSystem          cs_2015081301   LHCbDIRAC
+use   Core                         co_2015081801   LHCbDIRAC
+use   DataManagementSystem         dm_2015082603   LHCbDIRAC
+use   FrameworkSystem              fw_2015070701   LHCbDIRAC
+use   Interfaces                   if_2015081801   LHCbDIRAC
+use   ProductionManagementSystem   pm_2015082501   LHCbDIRAC
+use   Resources                    re_2015082501   LHCbDIRAC
+use   ResourceStatusSystem         rs_2015082501   LHCbDIRAC
+use   TransformationSystem         ts_2015082501   LHCbDIRAC
+use   WorkloadManagementSystem     wm_2015082501   LHCbDIRAC
+use   Workflow                     wo_2015081801   LHCbDIRAC
+
+# Avoid the installation of __init__.py in the parent directory.
+ignore_pattern install_python_init
+end_private
+
+#action DiracMake "$(DIRACROOT)/Core/scripts/dirac-deploy-scripts.py"
+#macro_append constituents " DiracMake "
+#macro_remove cmt_actions_constituents 'DiracMake'
+
+action DiracGSI "$(LHCBDIRACSYSROOT)/dirac-GSI"
+macro_append constituents " DiracGSI "
+macro_remove cmt_actions_constituents 'DiracGSI'
+
+action manifest.xml "python gen_manifest.py $(CMTINSTALLAREA)/$(tag)/manifest.xml"
+macro_append constituents " manifest.xml "
+macro_remove cmt_actions_constituents "manifest.xml"
+
+path_remove LD_LIBRARY_PATH '/zlib/'

@@ -1,0 +1,3 @@
+SOURCE DIRAC/WorkloadManagementSystem/DB/JobDB.sql
+
+ALTER TABLE Jobs ADD COLUMN RunNumber INT(11) UNSIGNED NOT NULL DEFAULT 0;

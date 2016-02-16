@@ -1,0 +1,28 @@
+<RCC>
+  <qresource prefix="icons" >
+    <file>add.png</file>
+    <file>favorites.png</file>
+    <file>file-save-as-48x48.png</file>
+    <file>reloadpage.png</file>
+    <file>back.png</file>
+    <file>files.png</file>
+    <file>files1.png</file>
+    <file>files2.png</file>
+    <file>files3.png</file>
+    <file>files4.png</file>
+    <file>files5.png</file>
+    <file>reload.png</file>
+    <file>bookmarks1.png</file>
+    <file>bookmarks2.png</file>
+    <file>bookmarks.png</file>
+    <file>filter.png</file>
+    <file>remove.png</file>
+    <file>info1.png</file>
+    <file>save.png</file>
+    <file>close.png</file>
+    <file>next.png</file>
+    <file>stop.png</file>
+    <file>ok.png</file>
+    <file>User-Info-48x48.png</file>
+  </qresource>
+</RCC>
