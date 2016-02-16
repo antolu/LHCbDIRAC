@@ -86,7 +86,7 @@ if __name__ == "__main__":
           fullResult['Value'].setdefault( 'Successful', {} )[lfn] = \
             dict( ( desc, 'Replica-%s' % meta['GotReplica'] ) for desc, meta in okResult[lfn].iteritems() )
       fullResult['Value'].setdefault( 'Failed', {} ).update( result['Value']['Failed'] )
-      fullResult['Value'].setdefault( 'NotProcessed', {} ).update( result['Value']['NotProcessed'] )
+      fullResult['Value'].setdefault( 'NotProcessed', [] ).extend( result['Value']['NotProcessed'] )
     else:
       fullResult = result
       break
