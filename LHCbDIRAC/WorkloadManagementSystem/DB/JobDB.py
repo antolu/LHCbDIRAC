@@ -5,7 +5,8 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC import S_OK, Time
+from DIRAC import S_OK
+from DIRAC.Core.Utilities import Time
 
 from DIRAC.WorkloadManagementSystem.DB.JobDB import JobDB as DIRACJobDB
 
@@ -19,6 +20,7 @@ class JobDB( DIRACJobDB ):
         configuration section (dbconfig)
     """
     DIRACJobDB.__init__( self )
+    self.jdl2DBParameters += ['runNumber']
 
   def getTimings( self, site, period = 3600 ):
     """ Get CPU and wall clock times for the jobs finished in the last hour
