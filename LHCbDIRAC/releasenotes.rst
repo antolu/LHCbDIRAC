@@ -2,12 +2,12 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p7
+Version v8r2p8
 --------------
 
 BUGFIX
 ::::::
 
- TransformationSystem
-  - correctly retrieve the bkk output in the RAWProcessing plugin FIX (script): in transformation-debug for checking flush
+ WorkloadManagementSystem
+  - introduced temporary check for avoiding to match jobs on too slow CPUs (default limit is 3 HS06)
 

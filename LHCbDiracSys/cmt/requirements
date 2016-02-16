@@ -11,8 +11,8 @@ branches          cmt doc src
 
 include_path      none
 
-use   LHCbDiracPolicy              v8r2p7       
-use   LHCbDiracConfig              v8r2p7       
+use   LHCbDiracPolicy              v8r2p8       
+use   LHCbDiracConfig              v8r2p8       
 
 # The following section is only for the check out and build
 private
@@ -29,8 +29,8 @@ use   Interfaces                   if_2015081801   LHCbDIRAC
 use   ProductionManagementSystem   pm_2015082501   LHCbDIRAC
 use   Resources                    re_2015090801   LHCbDIRAC
 use   ResourceStatusSystem         rs_2015090201   LHCbDIRAC
-use   TransformationSystem         ts_2015092701   LHCbDIRAC
-use   WorkloadManagementSystem     wm_2015092401   LHCbDIRAC
+use   TransformationSystem         ts_2015100901   LHCbDIRAC
+use   WorkloadManagementSystem     wm_2015100901   LHCbDIRAC
 use   Workflow                     wo_2015090701   LHCbDIRAC
 
 # Avoid the installation of __init__.py in the parent directory.
