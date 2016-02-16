@@ -107,7 +107,8 @@ class ConsistencyChecks( object ):
 
   def __logVerbose( self, msg, msg1 = '' ):
     if self.verbose:
-      newMsg = '[ConsistencyChecks] ' + ( '[%s] ' % str( self.prod ) ) if self.prod else '' + msg
+      newMsg = '[ConsistencyChecks] ' + ( '[%s] ' % str( self.prod ) ) if self.prod else ''
+      newMsg += msg
       gLogger.always( newMsg, msg1 )
     else:
       gLogger.verbose( msg, msg1 )

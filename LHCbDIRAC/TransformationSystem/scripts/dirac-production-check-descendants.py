@@ -185,9 +185,6 @@ if __name__ == '__main__':
         res = cc.transClient.setFileStatusForTransformation( id, 'Unused', lfns, force = True )
         if not res['OK']:
           gLogger.always( "Error resetting files to Unused", res['Message'] )
-        else:
-          if res['Value']['Failed']:
-            gLogger.always( "Those files could not be reset Unused:", '\n'.join( res['Value']['Failed'] ) )
       else:
         if not fp:
           fp = open( fileName, 'w' )
