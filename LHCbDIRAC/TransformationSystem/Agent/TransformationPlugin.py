@@ -1,6 +1,6 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
-__RCSID__ = "$Id: TransformationPlugin.py 85626 2015-09-21 13:27:46Z phicharp $"
+__RCSID__ = "$Id: TransformationPlugin.py 85685 2015-09-25 09:10:51Z chaen $"
 
 import time
 import datetime
@@ -402,7 +402,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     # Get status of all runs (finished or not)
     runSet = set( runFileDict ) & set( runSEDict )
     res = self.bkClient.getRunStatus( list( runSet ) )
-    success = res.get( 'Value', {} )
+    success = res.get( 'Value', {} ).get( 'Successful', {} )
     runFinished = dict( [( runID, success[runID]['Finished'] == 'Y' ) for runID in success] )
 
     # Choose the destination SE

@@ -2,18 +2,12 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p4
+Version v8r2p5
 --------------
-
-CHANGE
-::::::
-
- WorkloadManagementSystem
-  - add option for linking in diraca-pilot-version
 
 BUGFIX
 ::::::
 
- BookkeepingSystem
-  - Do not execute the query parallel.
+ TransformationSystem
+  - correctly retrieve the bkk output in the RAWProcessing plugin FIX (script): in transformation-debug for checking flush
 

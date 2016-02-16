@@ -446,7 +446,8 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
   lfnsInFC = set()
   for n in sorted( nbReplicasProblematic ):
     print "   %d replicas in FC: %d files" % ( n, nbReplicasProblematic[n] )
-  gLogger.setLevel( 'FATAL' )
+  # level = gLogger.getLevel()
+  # gLogger.setLevel( 'FATAL' )
   lfnCheckSum = {}
   badChecksum = {}
   for se in problematicReplicas:
@@ -936,6 +937,9 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
     print "Cannot check flush status for run", runID
     return
   rawFiles = pluginUtil.getNbRAWInRun( runID, evtType )
+  if not rawFiles:
+    print 'Run %s is not finished...' % runID
+    return
   if 'FileType' in transPlugin:
     param = 'FileType'
   elif 'EventType' in transPlugin:
@@ -1212,7 +1216,7 @@ if __name__ == "__main__":
   assignedReqLimit = datetime.datetime.utcnow() - datetime.timedelta( hours = 2 )
   improperJobs = []
   pluginUtil = None
-  gLogger.setLevel( 'INFO' )
+  # gLogger.setLevel( 'INFO' )
 
   transSep = ''
   for transID in transList:
@@ -1287,7 +1291,13 @@ if __name__ == "__main__":
       if checkFlush or ( ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in transPlugin ) :
         if runStatus != 'Flush':
           # Check if the run should be flushed
-          __checkRunsToFlush( runID, transFilesList, runStatus )
+          lfn = transFilesList[0]['LFN']
+          res = pluginUtil.getBookkeepingMetadata( lfn, 'EventType' )
+          if res['OK']:
+            evtType = res['Value'][lfn]
+          else:
+            evtType = 90000000
+          __checkRunsToFlush( runID, transFilesList, runStatus, evtType = evtType )
         else:
           print 'Run %d is already flushed' % runID
 
