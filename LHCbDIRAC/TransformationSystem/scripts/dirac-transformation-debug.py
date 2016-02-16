@@ -1268,7 +1268,6 @@ if __name__ == "__main__":
     SEStat = {"Total":0}
     allFiles = []
     toBeKicked = 0
-    jobList = []
 
     # Loop over all requested runs or just all in one go (runID == None)
     runsInTable = {}
@@ -1280,6 +1279,8 @@ if __name__ == "__main__":
       # Get all files from TransformationDB
       transFilesList = sorted( __getFilesForRun( transID, runID = runID, status = status,
                                                  lfnList = lfnList, seList = seList, taskList = taskList ) )
+      if jobList and allTasks:
+        taskList = []
       if lfnList:
         notFoundFiles = [lfn for lfn in lfnList if lfn not in [fileDict['LFN'] for fileDict in transFilesList]]
         if notFoundFiles:
@@ -1391,8 +1392,6 @@ if __name__ == "__main__":
           job = task['ExternalID']
           lfns = set( lfnsInTask if lfnsInTask else [''] ) & set( [fileDict['LFN'] for fileDict in transFilesList] )
           jobsForLfn.setdefault( ','.join( sorted( lfns ) ), [] ).append( job )
-          if job not in jobList:
-            jobList.append( job )
           if not byFiles and not byTasks:
             continue
         nfiles = len( lfnsInTask )
