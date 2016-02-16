@@ -232,6 +232,7 @@ class DMScript( object ):
     Script.registerSwitch( '', "EndDate=", "   End date for the BK query", self.setEndDate )
     Script.registerSwitch( '', "Visibility=", "   Required visibility (Yes, No, All) [Yes]", self.setVisibility )
     Script.registerSwitch( '', 'ReplicaFlag=', '   Required replica flag (Yes, No, All) [Yes]', self.setReplicaFlag )
+    Script.registerSwitch( '', 'TCK=', '   Get files with a given TCK', self.setTCK )
 
 
   def registerNamespaceSwitches( self, action = 'search [ALL]' ):
@@ -308,6 +309,11 @@ class DMScript( object ):
   def setDQFlags( self, arg ):
     dqFlags = arg.split( ',' )
     self.options['DQFlags'] = dqFlags
+    return DIRAC.S_OK()
+
+  def setTCK( self, arg ):
+    tcks = arg.split( ',' )
+    self.options['TCK'] = tcks
     return DIRAC.S_OK()
 
   def setVisibility( self, arg ):
@@ -470,6 +476,8 @@ class DMScript( object ):
       self.bkQuery.setOption( 'EndDate', self.options['EndDate'] )
     if 'ReplicaFlag' in self.options:
       self.bkQuery.setOption( 'ReplicaFlag', self.options['ReplicaFlag'] )
+    if 'TCK' in self.options:
+      self.bkQuery.setOption( 'TCK', self.options['TCK'] )
     return self.bkQuery
 
   def getRequestID( self, prod = None ):
