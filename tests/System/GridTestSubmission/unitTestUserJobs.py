@@ -12,10 +12,10 @@ from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 
-from TestDIRAC.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
+from DIRAC.tests.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
 
-from TestDIRAC.Utilities.testJobDefinitions import *
-from LHCbTestDirac.Utilities.testJobDefinitions import *
+from DIRAC.tests.Utilities.testJobDefinitions import *
+from LHCbDIRAC.tests.Utilities.testJobDefinitions import *
 
 gLogger.setLevel( 'VERBOSE' )
 
@@ -30,7 +30,7 @@ class GridSubmissionTestCase( unittest.TestCase ):
     if result['Value']['group'] not in ['lhcb_user', 'dirac_user']:
       print "GET A USER GROUP"
       exit( 1 )
-      
+
     result = ResourceStatus().getStorageElementStatus( 'PIC-USER', 'WriteAccess' )
     if result['Value']['PIC-USER']['WriteAccess'].lower() != 'banned':
       print "BAN PIC-USER in writing! and then restart this test"
@@ -57,7 +57,7 @@ class GridSubmissionTestCase( unittest.TestCase ):
 class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
   def test_LHCbsubmit( self ):
-    
+
     res = helloWorld()
     self.assert_( res['OK'] )
     jobsSubmittedList.append( res['Value'] )

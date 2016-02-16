@@ -4,10 +4,10 @@ parseCommandLine()
 
 import unittest, os, shutil
 
-from TestDIRAC.Utilities.utils import find_all
+from DIRAC.tests.Utilities.utils import find_all
 
-from LHCbTestDirac.Utilities.utils import getOutput
-from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
+from LHCbDIRAC.tests.Utilities.utils import getOutput
+from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb

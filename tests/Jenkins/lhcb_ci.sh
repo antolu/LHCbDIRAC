@@ -13,7 +13,7 @@
 #set -o errexit
 
 # first first: sourcing dirac_ci file
-source $WORKSPACE/TestDIRAC/Jenkins/dirac_ci.sh
+source $WORKSPACE/DIRAC/tests/Jenkins/dirac_ci.sh
 
 # URLs where to get scripts
 LHCbDIRAC_PILOT_COMMANDS='https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py'
@@ -219,7 +219,7 @@ function getUserProxy(){
 
 	touch $PILOTCFG
 	#Configure for CPUTimeLeft
-	python $WORKSPACE/TestDIRAC/Jenkins/dirac-cfg-update.py -F $PILOTCFG -S $DIRACSETUP -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem $DEBUG
+	python $WORKSPACE/DIRAC/tests/Jenkins/dirac-cfg-update.py -F $PILOTCFG -S $DIRACSETUP -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem $DEBUG
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
 
@@ -316,8 +316,8 @@ function submitJob(){
 
 	#Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
 	getUserProxy #this won't really download the proxy, so that's why the next command is needed
-	python $WORKSPACE/TestDIRAC/Jenkins/dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification $PILOTCFG -ddd
-	python $WORKSPACE/LHCbTestDirac/Jenkins/dirac-test-job.py -o /DIRAC/Setup=LHCb-Certification $DEBUG
+	python $WORKSPACE/DIRAC/test/Jenkins/dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification $PILOTCFG -ddd
+	python $WORKSPACE/LHCbDIRAC/tests/Jenkins/dirac-test-job.py -o /DIRAC/Setup=LHCb-Certification $DEBUG
 
 	rm $PILOTCFG
 }

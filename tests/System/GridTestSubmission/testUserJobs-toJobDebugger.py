@@ -7,12 +7,12 @@ import time
 from DIRAC import gLogger
 from DIRAC.Core.Security.ProxyInfo import getProxyInfo
 
-from TestDIRAC.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
-from TestDIRAC.Utilities.utils import find_all
+from DIRAC.tests.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
+from DIRAC.tests.Utilities.utils import find_all
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-from LHCbTestDirac.Integration.Workflow.Test_UserJobs import createJob
+from LHCbDIRAC.tests.Integration.Workflow.Test_UserJobs import createJob
 
 gLogger.setLevel( 'VERBOSE' )
 

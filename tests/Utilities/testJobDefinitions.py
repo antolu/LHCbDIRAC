@@ -3,8 +3,8 @@
 
 # imports
 
-from TestDIRAC.Utilities.utils import find_all
-from TestDIRAC.Utilities.testJobDefinitions import *
+from DIRAC.tests.Utilities.utils import find_all
+from DIRAC.tests.Utilities.testJobDefinitions import *
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
@@ -269,7 +269,7 @@ def wrongJob():
   print "\n Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info"
   print "This will generate a job that should become Completed, use the failover, and only later it will be Done"
 
-  from LHCbTestDirac.Integration.Workflow.Test_UserJobs import createJob
+  from LHCbDIRAC.tests.Integration.Workflow.Test_UserJobs import createJob
   J = baseToAllJobs( 'wrongJob', jobClass )
   J = createJob( local = False )
   J.setName( "gaudirun-gauss-completed-than-done" )

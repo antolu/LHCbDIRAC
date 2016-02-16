@@ -14,10 +14,10 @@ from DIRAC.ResourceStatusSystem.Client.ResourceStatus import ResourceStatus
 from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 
 
-from TestDIRAC.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
-from TestDIRAC.Utilities.utils import find_all
+from DIRAC.tests.System.unitTestUserJobs import GridSubmissionTestCase as DIRACGridSubmissionTestCase
+from DIRAC.tests.Utilities.utils import find_all
 
-from LHCbTestDirac.Utilities.testJobDefinitions import *
+from LHCbDIRAC.tests.Utilities.testJobDefinitions import *
 
 gLogger.setLevel( 'VERBOSE' )
 
