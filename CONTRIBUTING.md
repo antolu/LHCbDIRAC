@@ -1,7 +1,7 @@
 LHCbDIRAC is the LHCb extension of [DIRAC](https://github.com/DIRACGrid/DIRAC).
 
 Repository structure
-=================
+====================
 
 Due to the fact that we support only the production and the development versions,
 only 2 branchs are present: *master*, and *devel*.
@@ -13,8 +13,16 @@ The following diagram highlights the interactions between the branches and the m
 ![LHCbDIRAC branches](https://docs.google.com/drawings/d/14UPBPGW2R8d7JBO9eHWw2tyD3ApEuUBmlDEFicoBs1U/pub?w=1011&h=726)
 
 
+Repositories
+============
+
+Developers should have 2 remote repositories (which is the typical GitHub/GitLab workflow):
+
+* *origin* : cloned from your private fork done on GitLab
+* *upstream* : add it via git remote add upstream and pointing to the blessed repository (https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git)
+
 Code quality
-==========
+============
 
 The contributions are subject to reviews.
 
