@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p29/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-ancestors.py $
+# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p30/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-ancestors.py $
 # File :    dirac-bookkeeping-get-file-ancestors
 # Author :  Zoltan Mathe
 ########################################################################
 """
   returns ancestors for a (list of) LFN(s)
 """
-__RCSID__ = "$Id: dirac-bookkeeping-get-file-ancestors.py 69961 2013-09-12 10:36:33Z phicharp $"
+__RCSID__ = "$Id: dirac-bookkeeping-get-file-ancestors.py 87137 2016-01-25 17:15:08Z phicharp $"
 
 import DIRAC
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult
@@ -64,7 +64,7 @@ if __name__ == "__main__":
       okResult = result['Value']['WithMetadata']
       for lfn in okResult:
         result['Value']['Successful'][lfn] = \
-          dict( [( desc, 'Replica-%s' % meta['GotReplica'] ) for desc, meta in okResult[lfn].items()] )
+          dict( ( desc, 'Replica-%s' % meta['GotReplica'] ) for desc, meta in okResult[lfn].iteritems() )
       del result['Value']['WithMetadata']
 
   DIRAC.exit( printDMResult( result,

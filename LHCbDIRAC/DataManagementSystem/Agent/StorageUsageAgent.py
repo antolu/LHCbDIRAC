@@ -10,6 +10,7 @@
 '''
 # # imports
 import time
+import random
 import os
 import re
 import threading
@@ -30,7 +31,7 @@ from DIRAC.Core.Utilities.List import breakListIntoChunks
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
 
-__RCSID__ = "$Id: StorageUsageAgent.py 81704 2015-03-02 22:15:31Z phicharp $"
+__RCSID__ = "$Id: StorageUsageAgent.py 87200 2016-01-26 11:58:58Z phicharp $"
 
 AGENT_NAME = "DataManagement/StorageUsageAgent"
 
@@ -89,6 +90,9 @@ class StorageUsageAgent( AgentModule ):
     ''' agent initialisation '''
 
     self.am_setOption( "PollingTime", self.pollingTime )
+    rndSleep = random.randint( 1, self.pollingTime )
+    self.log.info( "Sleeping for %s seconds" % rndSleep )
+    time.sleep( rndSleep )
 
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager

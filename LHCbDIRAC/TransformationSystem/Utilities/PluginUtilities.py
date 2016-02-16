@@ -1,7 +1,7 @@
 """
   Utilities for scripts dealing with transformations
 """
-__RCSID__ = "$Id: PluginUtilities.py 84930 2015-08-18 11:38:03Z phicharp $"
+__RCSID__ = "$Id: PluginUtilities.py 87195 2016-01-26 09:37:08Z phicharp $"
 
 import os
 import datetime
@@ -70,15 +70,17 @@ class PluginUtilities( DIRACPluginUtilities ):
   def setDebug( self, val ):
     self.debug = val
 
-  def getCPUShares( self , transID = None, backupSE = None ):
-    return self.getShares( transID = transID, backupSE = backupSE )
-
-  def getShares( self, section = None, transID = None, backupSE = None ):
-    if transID is None:
-      transID = self.transID
+  def getShares( self, section = None, backupSE = None ):
+    """
+    Get shares from CS:
+    * If backupSE is not present: just return the CS shares as they are
+    * If backupSE is specified, the shares represent a percentage of the RAW at each site and the rest is for backupSE
+    """
+    shareMetrics = self.getPluginParam( 'ShareMetrics', '' )  # 'Files' )
     if section is None:
+      # This is for reconstruction shares (CU)
       sharesSections = { 'DataReconstruction': 'CPUforRAW', 'DataReprocessing' : 'CPUforReprocessing'}
-      res = self.transClient.getTransformation( transID )
+      res = self.transClient.getTransformation( self.transID )
       if not res['OK']:
         self.logError( "Cannot get information on transformation" )
         return res
@@ -89,32 +91,32 @@ class PluginUtilities( DIRACPluginUtilities ):
     if not res['OK']:
       self.logError( "There is no CS section %s" % section, res['Message'] )
       return res
+    rawFraction = None
     if backupSE:
+      # Apply these processing fractions to the RAW distribution shares
       rawFraction = res['Value']
-      targetSEs = sorted( rawFraction )
       result = getShares( 'RAW', normalise = True )
       if result['OK']:
         rawShares = result['Value']
-        tier1Fraction = 0.
-        shares = {}
-        for se in [se for se in rawShares if se in rawFraction]:
-          shares[se] = rawShares[se] * rawFraction[se]
-          tier1Fraction += shares[se]
+        shares = dict( ( se, rawShares[se] * rawFraction[se] ) for se in set( rawShares ) & set( rawFraction ) )
+        tier1Fraction = sum( shares.values() )
         shares[backupSE] = 100. - tier1Fraction
       else:
-        rawShares = None
+        return res
       self.logInfo( "Fraction of RAW (%s) to be processed at each SE (%%):" % section )
-      for se in targetSEs:
+      for se in sorted( rawFraction ):
         self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), 100. * rawFraction[se] ) )
     else:
       shares = normaliseShares( res['Value'] )
-      rawFraction = None
       self.logInfo( "Obtained the following target distribution shares (%):" )
       for se in sorted( shares ):
         self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), shares[se] ) )
 
     # Get the existing destinations from the transformationDB, just for printing
-    res = self.getExistingCounters( transID, requestedSEs = sorted( shares ), shares = shares )
+    if shareMetrics == 'Files':
+      res = self.getExistingCounters( requestedSEs = sorted( shares ), shares = shares )
+    else:
+      res = self.getSitesRunsTime( requestedSEs = sorted( shares ) )
     if not res['OK']:
       self.logError( "Failed to get used share", res['Message'] )
       return res
@@ -132,11 +134,51 @@ class PluginUtilities( DIRACPluginUtilities ):
     else:
       return S_OK( ( existingCount, shares ) )
 
-  def getExistingCounters( self, transID, normalise = False, requestedSEs = None, shares = None ):
+  def getSitesRunsTime( self, transID = None, normalise = False, requestedSEs = None ):
+    """
+    Get per site how much time of run was assigned
+    """
+    res = self.getTransformationRuns( transID = transID )
+    if not res['OK']:
+      return res
+    runDictList = res['Value']
+    # Get run metadata
+    runMetadata = dict( ( runDict['RunNumber'], self.transClient.getRunsMetadata( runDict['RunNumber'] ).get( 'Value', {} ) ) for runDict in runDictList )
+
+    seUsage = {}
+    for runDict in runDictList:
+      runID = runDict['RunNumber']
+      selectedSEs = runDict['SelectedSite']
+      selectedSEs = set( selectedSEs.split( ',' ) ) if selectedSEs is not None else set()
+      if requestedSEs:
+        selectedSEs &= set( requestedSEs )
+        if not selectedSEs:
+          continue
+      duration = runMetadata.get( runID, {} ).get( 'Duration' )
+      if duration is None:
+        res = self.bkClient.getRunInformation( { 'RunNumber':[runID], 'Fields':['JobStart', 'JobEnd']} )
+        if not res['OK']:
+          return res
+        if runID in res['Value']:
+          start = res['Value'][runID]['JobStart']
+          end = res['Value'][runID]['JobEnd']
+          duration = ( end - start ).seconds
+        else:
+          duration = 0
+      for se in selectedSEs:
+        seUsage[se] = seUsage.setdefault( se, 0 ) + duration
+
+    if normalise:
+      seUsage = normaliseShares( seUsage )
+    return S_OK( seUsage )
+
+
+  def getExistingCounters( self, transID = None, normalise = False, requestedSEs = None, shares = None ):
     """
     Used by RAWShares and AtomicRun, gets what has been done up to now while distributing runs
     """
-
+    if transID is None:
+      transID = self.transID
     res = self.transClient.getCounters( 'TransformationFiles', ['UsedSE'],
                                         {'TransformationID':transID} )
     if not res['OK']:
@@ -144,7 +186,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     usageDict = {}
     if shares is None:
       shares = {}
-    total = sum( [count for _usedDict, count in res['Value']] )
+    total = sum( count for _uDict, count in res['Value'] )
     for usedDict, count in res['Value']:
       usedSE = usedDict['UsedSE']
       if not total:
@@ -154,14 +196,14 @@ class PluginUtilities( DIRACPluginUtilities ):
     if requestedSEs:
       requestedSEs = set( requestedSEs )
       seDict = {}
-      for se, count in usageDict.items():
+      for se, count in usageDict.iteritems():
         overlap = set( se.split( ',' ) ) & requestedSEs
         if overlap:
           for ov in overlap:
             seDict[ov] = seDict.setdefault( ov, 0 ) + count
         else:
           self.logWarn( "%s is in counters but not in required list" % se )
-      usageDict = seDict.copy()
+      usageDict = seDict
     if normalise:
       usageDict = normaliseShares( usageDict )
     return S_OK( usageDict )
@@ -172,9 +214,9 @@ class PluginUtilities( DIRACPluginUtilities ):
       res = self.bkClient.getFileMetadata( chunk )
       if res['OK']:
         success = res['Value']['Successful']
-        filesParam.update( dict( [( lfn, success[lfn].get( param ) ) for lfn in success] ) )
+        filesParam.update( dict( ( lfn, success[lfn].get( param ) ) for lfn in success ) )
         # Always cache the size, will be useful
-        self.cachedLFNSize.update( dict( [( lfn, success[lfn].get( 'FileSize' ) ) for lfn in success] ) )
+        self.cachedLFNSize.update( dict( ( lfn, success[lfn].get( 'FileSize' ) ) for lfn in success ) )
       else:
         return res
     return S_OK( filesParam )
@@ -231,7 +273,7 @@ class PluginUtilities( DIRACPluginUtilities ):
             self.filesParam[lfn] = paramValue
             nCached += 1
       self.logVerbose( 'Found %d files cached for param %s' % ( nCached, param ) )
-    filesParam = dict( [( lfn, self.filesParam.get( lfn ) ) for lfn in lfns] )
+    filesParam = dict( ( lfn, self.filesParam.get( lfn ) ) for lfn in lfns )
     newLFNs = [lfn for lfn in lfns if not filesParam[lfn]]
     if newLFNs:
       res = self.getBookkeepingMetadata( newLFNs, param )
@@ -255,11 +297,9 @@ class PluginUtilities( DIRACPluginUtilities ):
     """ Get free space in an SE from the RSS
     """
 
-    # FIXME: Philippe, I do not know exactly how this method is used. I'm not sure
-    # if 12 hours will make sense, or we need a longer / shorter period of time.
-    CACHE_LIMIT = datetime.datetime.utcnow() - datetime.timedelta( hours = 12 )
+    cacheLimit = datetime.datetime.utcnow() - datetime.timedelta( hours = 12 )
 
-    if not ( se in self.freeSpace ) or self.freeSpace[ se ][ 'LastCheckTime' ] < CACHE_LIMIT:
+    if not ( se in self.freeSpace ) or self.freeSpace[ se ][ 'LastCheckTime' ] < cacheLimit:
       res = self.rmClient.getSEStorageSpace( se )
       if not res[ 'OK' ]:
         self.logError( 'Error when getting space for SE %s' % ( se, ), res[ 'Message' ] )
@@ -272,10 +312,10 @@ class PluginUtilities( DIRACPluginUtilities ):
 
     # ubeda: I do not fully understand this 'hack'
     if token == 'LHCb-Tape':
-      self.logVerbose( 'Hardcoded LHCb-Tape space to 1000.' )
+      self.logDebug( 'Hardcoded LHCb-Tape space to 1000.' )
       free = 1000.
 
-    self.logVerbose( 'Free space for SE %s, token %s: %d' % ( se, token, free ) )
+    self.logDebug( 'Free space for SE %s, token %s: %d' % ( se, token, free ) )
     return free
 
   def rankSEs( self, candSEs ):
@@ -293,7 +333,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         weights = weightForSEs.copy()
         total = 0.
         orderedSEs = []
-        for se, w in weights.items():
+        for se, w in weights.iteritems():
           # Minimum space 1 GB in case all are 0
           total += max( w, 0.001 )
           weights[se] = total
@@ -378,7 +418,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       targetSEs.append( se )
       needToCopy -= 1
     if needToCopy > 0:
-      for se in [se for se in candSEs if se not in existingSEs]:
+      for se in [s for s in candSEs if s not in existingSEs]:
         if needToCopy <= 0:
           break
         if not self.isSameSEInList( se, existingSEs ):
@@ -445,7 +485,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         self.logError( "Error getting BK param %s:" % param, res['Message'] )
         return 0
       paramValues = res['Value']
-      lfns = [f for f, v in paramValues.items() if v == paramValue]
+      lfns = [f for f, v in paramValues.iteritems() if v == paramValue]
 #     else:
 #       paramStr = ''
     if lfns:
@@ -543,23 +583,27 @@ class PluginUtilities( DIRACPluginUtilities ):
     return self.bkClient.getFileAncestors( lfns, depth = depth, replica = replica )
 
   @timeThis
-  def getTransformationRuns( self, runs ):
+  def getTransformationRuns( self, runs = None, transID = None ):
     """ get the run table for a list of runs, if missing, add them """
-    if not isinstance( runs, list ):
-      runs = list( runs )
-    result = self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runs} )
+    if transID is None:
+      transID = self.transID
+    condDict = {'TransformationID':transID}
+    if isinstance( runs, ( dict, list, tuple, set ) ):
+      condDict['RunNumber'] = list( runs )
+    result = self.transClient.getTransformationRuns( condDict )
     if not result['OK']:
       return result
     # Check that all runs are there, if not add them
-    runsFound = set( [run['RunNumber'] for run in result['Value']] )
-    missingRuns = set( runs ) - runsFound
-    if missingRuns:
-      self.logInfo( 'Add missing runs in transformation runs table: %s' % ','.join( [str( run ) for run in sorted( missingRuns )] ) )
-      for runID in missingRuns:
-        res = self.transClient.insertTransformationRun( self.transID, runID, '' )
-        if not res['OK']:
-          return res
-      result = self.transClient.getTransformationRuns( {'TransformationID':self.transID, 'RunNumber':runs} )
+    runsFound = set( run['RunNumber'] for run in result['Value'] )
+    if runs:
+      missingRuns = set( runs ) - runsFound
+      if missingRuns:
+        self.logInfo( 'Add missing runs in transformation runs table: %s' % ','.join( [str( run ) for run in sorted( missingRuns )] ) )
+        for runID in missingRuns:
+          res = self.transClient.insertTransformationRun( transID, runID, '' )
+          if not res['OK']:
+            return res
+        result = self.transClient.getTransformationRuns( condDict )
     return result
 
   @timeThis
@@ -704,7 +748,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     res = self.bkClient.getFileMetadata( lfns )
     runFiles = {}
     if res['OK']:
-      for lfn, metadata in res['Value']['Successful'].items():
+      for lfn, metadata in res['Value']['Successful'].iteritems():
         runFiles.setdefault( metadata['RunNumber'], [] ).append( lfn )
       for run in sorted( runFiles ):
         if not run:
@@ -810,7 +854,7 @@ def getShares( sType, normalise = False ):
   if not res['Value']:
     return S_ERROR( "/Resources/Shares/%s option contains no shares" % sType )
   shares = res['Value']
-  for site, value in shares.items():
+  for site, value in shares.iteritems():
     shares[site] = float( value )
   if normalise:
     shares = normaliseShares( shares )
@@ -859,7 +903,7 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
       res = bk.getFileMetadata( lfnChunk )
       if res['OK']:
         resMeta = res['Value'].get( 'Successful', res['Value'] )
-        for lfn, metadata in resMeta.items():
+        for lfn, metadata in resMeta.iteritems():
           runID = metadata.get( 'RunNumber' )
           if runID:
             runDict.setdefault( int( runID ), [] ).append( lfn )
@@ -869,10 +913,10 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
     if not res['OK']:
       gLogger.fatal( "Error adding %d files to transformation" % len( lfnChunk ), res['Message'] )
       DIRACExit( 2 )
-    added = [lfn for ( lfn, status ) in res['Value']['Successful'].items() if status == 'Added']
+    added = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added']
     addedLfns += added
     if addRunInfo and res['OK']:
-      for runID, runLfns in runDict.items():
+      for runID, runLfns in runDict.iteritems():
         runLfns = [lfn for lfn in runLfns if lfn in added]
         if runLfns:
           res = transClient.addTransformationRunFiles( transID, runID, runLfns )

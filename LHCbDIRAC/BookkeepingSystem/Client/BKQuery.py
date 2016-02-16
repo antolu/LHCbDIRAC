@@ -2,7 +2,7 @@
 BKQuery is a class that decodes BK paths, queries the BK at a high level
 """
 
-__RCSID__ = "$Id: BKQuery.py 84387 2015-07-22 16:08:57Z phicharp $"
+__RCSID__ = "$Id: BKQuery.py 87136 2016-01-25 17:13:53Z phicharp $"
 
 import os, sys
 from DIRAC import gLogger
@@ -48,9 +48,9 @@ class BKQuery():
     self.__alreadyWarned = False
     if isinstance( bkQuery, BKQuery ):
       bkQueryDict = bkQuery.getQueryDict().copy()
-    elif type( bkQuery ) == type( {} ):
+    elif isinstance( bkQuery, dict ):
       bkQueryDict = bkQuery.copy()
-    elif type( bkQuery ) == type( '' ):
+    elif isinstance( bkQuery, basestring ):
       bkPath = bkQuery
     bkQueryDict = self.buildBKQuery( bkPath, bkQueryDict = bkQueryDict,
                                      prods = prods, runs = runs,
@@ -69,7 +69,7 @@ class BKQuery():
     """
     bkQueryDict = bkQueryDict if bkQueryDict is not None else {}
     prods = prods if prods is not None else []
-    if type( prods ) != type( [] ):
+    if not isinstance( prods, list ):
       prods = [prods]
     runs = runs if runs is not None else []
     fileTypes = fileTypes if fileTypes is not None else []
@@ -180,11 +180,11 @@ class BKQuery():
     runs = bkQuery.get( "Runs", runs )
     bkQuery.pop( 'Runs', None )
     if runs:
-      if type( runs ) == type( '' ):
+      if isinstance( runs, basestring ):
         runs = runs.split( ',' )
-      elif type( runs ) == type( {} ):
+      elif isinstance( runs, dict ):
         runs = runs.keys()
-      elif type( runs ) == type( 0 ):
+      elif isinstance( runs, int ):
         runs = [str( runs )]
       if len( runs ) > 1:
         runList = []
@@ -194,7 +194,7 @@ class BKQuery():
           else:
             runRange = run.split( ':' )
             if len( runRange ) == 2 and runRange[0].isdigit() and runRange[1].isdigit():
-              runList += range( int( runRange[0] ), int( runRange[1] ) + 1 )
+              runList += xrange( int( runRange[0] ), int( runRange[1] ) + 1 )
         bkQuery['RunNumber'] = runList
       else:
         runs = runs[0].split( ':' )
@@ -242,12 +242,12 @@ class BKQuery():
 
     # Remove all "ALL"'s in the dict, if any
     for i in self.__bkQueryDict:
-      if type( bkQuery[i] ) == type( '' ) and bkQuery[i] == 'ALL':
+      if isinstance( bkQuery[i], basestring ) and bkQuery[i] == 'ALL':
         bkQuery.pop( i )
 
     # If there is only one production, make it faster with a single value rather than a list
     prodList = bkQuery.get( 'Production' )
-    if type( prodList ) == type( [] ) and len( prodList ) == 1:
+    if isinstance( prodList, list ) and len( prodList ) == 1:
       bkQuery['Production'] = prodList[0]
     self.__bkQueryDict = bkQuery.copy()
     self.setVisible( visible )
@@ -285,7 +285,7 @@ class BKQuery():
     # There are two items in the dictionary: ConditionDescription and Simulation/DataTaking-Conditions
     eventType = self.__bkQueryDict.get( 'EventType', 'ALL' )
     if self.__bkQueryDict.get( 'ConfigName' ) == 'MC' or \
-    ( type( eventType ) == type( '' ) and eventType.upper() != 'ALL' and \
+    ( isinstance( eventType, basestring ) and eventType.upper() != 'ALL' and \
       eventType[0] != '9' ):
       conditionsKey = 'SimulationConditions'
     else:
@@ -302,9 +302,9 @@ class BKQuery():
     """
     Sets the data quality.
     """
-    if type( dqFlag ) == type( '' ):
+    if isinstance( dqFlag, basestring ):
       dqFlag = dqFlag.upper()
-    elif type( dqFlag ) == type( [] ):
+    elif isinstance( dqFlag, list ):
       dqFlag = [dq.upper() for dq in dqFlag]
     return self.setOption( 'DataQuality', dqFlag )
 
@@ -331,9 +331,9 @@ class BKQuery():
     Sets the event type
     """
     if eventTypes:
-      if type( eventTypes ) == type( '' ):
+      if isinstance( eventTypes, basestring ):
         eventTypes = eventTypes.split( ',' )
-      elif type( eventTypes ) != type( [] ):
+      elif not isinstance( eventTypes, list ):
         eventTypes = [eventTypes]
       try:
         eventTypes = [str( int( et ) ) for et in eventTypes]
@@ -341,7 +341,7 @@ class BKQuery():
         gLogger.warn( ex )
         print eventTypes, 'invalid as list of event types'
         return {}
-      if type( eventTypes ) == type( [] ) and len( eventTypes ) == 1:
+      if isinstance( eventTypes, list ) and len( eventTypes ) == 1:
         eventTypes = eventTypes[0]
     return self.setOption( 'EventType', eventTypes )
 
@@ -349,7 +349,7 @@ class BKQuery():
     """
     Sets the visibility flag
     """
-    if visible == True or ( type( visible ) == type( '' ) and visible[0].lower() == 'y' ):
+    if visible == True or ( isinstance( visible, basestring ) and visible[0].lower() == 'y' ):
       visible = 'Yes'
     if visible == False:
       visible = 'No'
@@ -359,7 +359,7 @@ class BKQuery():
     """
     Sets the expected file types
     """
-    if type( fileTypes ) != type( [] ):
+    if not isinstance( fileTypes, list ):
       fileTypes = [fileTypes]
     self.__exceptFileTypes.update( fileTypes )
     self.setFileType( [t for t in self.getFileTypeList() if t not in fileTypes] )
@@ -382,7 +382,7 @@ class BKQuery():
     """
     bk = self.__bkQueryDict
     fileType = bk.get( 'FileType', '' )
-    if type( fileType ) == type( [] ):
+    if isinstance( fileType, list ):
       fileType = ','.join( fileType )
     path = os.path.join( '/',
                          bk.get( 'ConfigName', '' ),
@@ -402,7 +402,7 @@ class BKQuery():
     Returns the file types
     """
     fileTypes = self.__bkQueryDict.get( 'FileType', [] )
-    if type( fileTypes ) != type( [] ):
+    if not isinstance( fileTypes, list ):
       fileTypes = [fileTypes]
     return fileTypes
 
@@ -412,7 +412,7 @@ class BKQuery():
     """
     eventType = self.__bkQueryDict.get( "EventType", [] )
     if eventType:
-      if type( eventType ) != type( [] ):
+      if not isinstance( eventType, list ):
         eventType = [eventType]
     return eventType
 
@@ -452,7 +452,7 @@ class BKQuery():
     if not fileType:
       return []
     self.__getAllBKFileTypes()
-    if type( fileType ) == type( [] ):
+    if isinstance( fileType, list ):
       fileTypes = fileType
     else:
       fileTypes = fileType.split( ',' )
@@ -528,34 +528,34 @@ class BKQuery():
     if not res['OK']:
       print "Error from BK for %s:" % self.__bkQueryDict, res['Message']
     else:
-      lfns = res['Value']
+      lfns = set( res['Value'] )
       exceptFiles = list( self.__exceptFileTypes )
       if exceptFiles and not self.__bkQueryDict.get( 'FileType' ):
         res = self.__bkClient.getFiles( BKQuery( self.__bkQueryDict ).setOption( 'FileType', exceptFiles ) )
         if res['OK']:
-          lfnsExcept = [lfn for lfn in res['Value'] if lfn in lfns]
+          lfnsExcept = set( res['Value'] ) & lfns
         else:
           print "***** ERROR ***** Error in getting dataset from BK for %s files:" % exceptFiles, res['Message']
-          lfnsExcept = []
+          lfnsExcept = set()
         if lfnsExcept:
           print "***** WARNING ***** Found %d files in BK query that will be \
           excluded (file type in %s)!" % ( len( lfnsExcept ), str( exceptFiles ) )
           print "                    If creating a transformation, set '--FileType ALL'"
-          lfns = [lfn for lfn in lfns if lfn not in lfnsExcept]
+          lfns = lfns - lfnsExcept
         else:
           exceptFiles = False
       query = BKQuery( self.__bkQueryDict )
       query.setOption( "FileSize", True )
       res = self.__bkClient.getFiles( query.getQueryDict() )
-      if res['OK'] and type( res['Value'] ) == type( [] ) and res['Value'][0]:
+      if res['OK'] and isinstance( res['Value'], list ) and res['Value'][0]:
         lfnSize = res['Value'][0]
       if exceptFiles and not self.__bkQueryDict.get( 'FileType' ):
         res = self.__bkClient.getFiles( query.setOption( 'FileType', exceptFiles ) )
-        if res['OK'] and type( res['Value'] ) == type( [] ) and res['Value'][0]:
+        if res['OK'] and isinstance( res['Value'], list ) and res['Value'][0]:
           lfnSize -= res['Value'][0]
 
       lfnSize /= 1000000000000.
-    return { 'LFNs' : lfns, 'LFNSize' : lfnSize }
+    return { 'LFNs' : list( lfns ), 'LFNSize' : lfnSize }
 
   def getLFNSize( self, visible = None ):
     """
@@ -564,7 +564,7 @@ class BKQuery():
     if visible == None:
       visible = self.isVisible()
     res = self.__bkClient.getFiles( BKQuery( self.__bkQueryDict, visible = visible ).setOption( 'FileSize', True ) )
-    if res['OK'] and type( res['Value'] ) == type( [] ) and res['Value'][0]:
+    if res['OK'] and isinstance( res['Value'], list ) and res['Value'][0]:
       lfnSize = res['Value'][0]
     else:
       lfnSize = 0
@@ -610,7 +610,7 @@ class BKQuery():
       query = BKQuery( self.__bkQueryDict, visible = visible )
     else:
       query = self
-    if prods and type( prods ) == type( [] ):
+    if prods and isinstance( prods, list ):
       # It's faster to loop on a list of prods than query the BK with a list as argument
       lfns = []
       lfnSize = 0
@@ -699,14 +699,14 @@ class BKQuery():
       visible = self.isVisible()
     prodList = self.__bkQueryDict.get( 'Production' )
     if prodList:
-      if type( prodList ) != type( [] ):
+      if not isinstance( prodList, list ):
         prodList = [prodList]
       return sorted( prodList )
     if not self.getProcessingPass():
       gLogger.fatal( 'Impossible to get a list of productions without the Processing Pass' )
       return []
     eventTypes = self.__bkQueryDict.get( 'EventType' )
-    if type( eventTypes ) != type( [] ):
+    if not isinstance( eventTypes, list ):
       eventTypes = [eventTypes]
     fullList = []
     for eventType in eventTypes:
@@ -727,7 +727,7 @@ class BKQuery():
           for prod in prodList:
             res = transClient.getBookkeepingQuery( prod )
             if res['OK'] and res['Value']['FileType'] in fileTypes:
-              if type( prod ) != type( [] ):
+              if not isinstance( prod, list ):
                 prod = [prod]
               pList += [p for p in prod if p not in pList]
         if not pList:
@@ -747,7 +747,7 @@ class BKQuery():
     """
     conditions = self.__bkQueryDict.get( 'ConditionDescription' )
     if conditions:
-      if type( conditions ) != type( [] ):
+      if not isinstance( conditions, list ):
         conditions = [conditions]
       return conditions
     res = self.__bkClient.getConditions( self.__bkQueryDict )
@@ -790,7 +790,7 @@ class BKQuery():
       bkDict.pop( 'RunNumber', None )
       fileTypes = []
       eventTypes = bkDict.get( 'EventType' )
-      if type( eventTypes ) == type( [] ):
+      if isinstance( eventTypes, list ):
         for et in eventTypes:
           bkDict['EventType'] = et
           fileTypes += self.getBKFileTypes( bkDict )

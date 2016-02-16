@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p29/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-descendants.py $
+# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p30/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-descendants.py $
 # File :    dirac-bookkeeping-get-file-descendants
 # Author :  Zoltan Mathe
 ########################################################################
 """
   Returns descendants for a (list of) LFN(s)
 """
-__RCSID__ = "$Id: dirac-bookkeeping-get-file-descendants.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id: dirac-bookkeeping-get-file-descendants.py 87138 2016-01-25 17:16:26Z phicharp $"
 
 import DIRAC
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult
@@ -62,9 +62,6 @@ if __name__ == "__main__":
     dmScript.setLFNsFromFile( lfn )
   lfnList = dmScript.getOption( 'LFNs', [] )
 
-  if prod:
-    level = 999999
-
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   result = BookkeepingClient().getFileDescendants( lfnList, depth = level, production = prod, checkreplica = checkreplica )
   if result['OK']:
@@ -76,7 +73,7 @@ if __name__ == "__main__":
       okResult = result['Value']['WithMetadata']
       for lfn in okResult:
         result['Value']['Successful'][lfn] = \
-          dict( [( anc, 'Replica-%s' % meta['GotReplica'] ) for anc, meta in okResult[lfn].items()] )
+          dict( ( anc, 'Replica-%s' % meta['GotReplica'] ) for anc, meta in okResult[lfn].iteritems() )
       del result['Value']['WithMetadata']
     if noDescendants:
       result['Value']['NoDescendants'] = list( noDescendants )

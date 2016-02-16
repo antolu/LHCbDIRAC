@@ -1,8 +1,8 @@
 """ DISET request handler for the LHCbDIRAC/TransformationDB. """
 
-__RCSID__ = "$Id: TransformationManagerHandler.py 82904 2015-05-21 12:50:05Z phicharp $"
+__RCSID__ = "$Id: TransformationManagerHandler.py 87196 2016-01-26 09:40:10Z phicharp $"
 
-from types import LongType, IntType, StringType, DictType, ListType, StringTypes, BooleanType
+from types import LongType, IntType, DictType, ListType, StringTypes, BooleanType
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.TransformationSystem.Service.TransformationManagerHandler import TransformationManagerHandler as TManagerBase
@@ -249,7 +249,7 @@ class TransformationManagerHandler( TManagerBase ):
     """
     return database.updateRunsMetadata( runID, metadataDict )
 
-  types_getRunsMetadata = [[LongType, IntType]]
+  types_getRunsMetadata = [[ListType, LongType, IntType]]
   @classmethod
   def export_getRunsMetadata( self, runID ):
     """ retrieve run metadata
@@ -287,7 +287,7 @@ class TransformationManagerHandler( TManagerBase ):
     # expecting a list of long integers
     return database.getDestinationForRun( runIDs )
 
-  types_setDestinationForRun = [[LongType, IntType], StringType]
+  types_setDestinationForRun = [[LongType, IntType], StringTypes]
   @classmethod
   def export_setDestinationForRun( self, runID, destination ):
     """ set run destination

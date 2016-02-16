@@ -14,7 +14,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 
-__RCSID__ = "$Id: DMScript.py 86914 2015-12-18 15:43:58Z phicharp $"
+__RCSID__ = "$Id: DMScript.py 87139 2016-01-25 17:18:57Z phicharp $"
 
 def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directory", depth = 9999 ):
   """ Dictionary pretty printing """
@@ -82,37 +82,61 @@ class ProgressBar( object ):
     self._startTime = time.time()
     self._progress = 0
     self._showBar = bool( items > chunk ) and bool( items > step )
+    self._title = title
+    self._backspace = 0
+    self._writeTitle()
+  def _writeTitle( self ):
     if self._showBar:
-      sys.stdout.write( "%s[%s]%s" % ( title, width * ' ', ( width + 1 ) * '\b' ) )
+      sys.stdout.write( "%s|%s|" % ( self._title, self._width * ' ' ) )
+      self._backspace = self._width + 1
     else:
-      sys.stdout.write( title )
+      sys.stdout.write( self._title )
     sys.stdout.flush()
-  def loop( self ):
+  def loop( self, increment = True ):
     showBar = self._showBar and ( self._loopNumber % self._step ) == 0
-    self._loopNumber += 1
-    self._itemCounter += self._chunk
+    oldFraction = min( float( self._itemCounter ) / float( self._items ), 1. )
+    if increment:
+      self._loopNumber += 1
+      self._itemCounter += self._chunk
+    else:
+      showBar = self._showBar
     if showBar:
       fraction = min( float( self._itemCounter ) / float( self._items ), 1. )
       progress = int( round( self._width * fraction ) )
-      sys.stdout.write( "%s%s] %5.1f%%%s" % ( ( progress - self._progress ) * '#' if progress != self._progress else '',
-                                              ( self._width - progress ) * ' ',
-                                              100. * fraction,
-                                              ( self._width + 8 - progress ) * '\b' ) )
+      elapsed = time.time() - self._startTime
+      if elapsed > 30. and oldFraction:
+        rest = int( elapsed * ( 1 - oldFraction ) / oldFraction )
+        estimate = ' (%d seconds left)' % rest
+      else:
+        estimate = ''
+      blockBlue = '\033[46m'
+      endblock = '\033[0m'
+      sys.stdout.write( "%s%s%s| %5.1f%%%s\033[K" % ( self._backspace * '\b',
+                                                  blockBlue + ( progress - self._progress ) * ' ' + endblock,
+                                                  ( self._width - progress ) * ' ',
+                                                  100. * fraction,
+                                                  estimate ) )
+      self._backspace = self._width + 8 - progress + len( estimate )
       self._progress = progress
       sys.stdout.flush()
   def endLoop( self, message = None, timing = True ):
     if message is None:
       message = 'completed'
     if self._showBar:
-      sys.stdout.write( "%s] %s%s" % ( ( self._width - self._progress ) * '#',
-                                       ( self._width + 3 ) * '\b' + '\033[K',
-                                       message ) )
+      sys.stdout.write( "%s\033[K: %s" % ( ( self._progress + self._backspace + 1 ) * '\b',
+                                          message ) )
     if timing:
       if not self._showBar:
         sys.stdout.write( ': %s' % message )
       sys.stdout.write( ' in %.1f seconds' % ( time.time() - self._startTime ) )
     sys.stdout.write( '\n' )
     sys.stdout.flush()
+  def comment( self, message, optMsg = '' ):
+    fullMsg = '\n' + message + ' %s' % optMsg if optMsg else ''
+    gLogger.notice( fullMsg )
+    self._writeTitle()
+    self.loop( increment = False )
+
 
 class WithDots( object ):
   """
@@ -234,7 +258,7 @@ class DMScript( object ):
       for prod in arg.split( ',' ):
         if prod.find( ":" ) > 0:
           pr = prod.split( ":" )
-          for i in range( int( pr[0] ), int( pr[1] ) + 1 ):
+          for i in xrange( int( pr[0] ), int( pr[1] ) + 1 ):
             prods.append( i )
         else:
           prods.append( prod )
