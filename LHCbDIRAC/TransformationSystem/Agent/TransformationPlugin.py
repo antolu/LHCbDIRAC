@@ -1,6 +1,6 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
-__RCSID__ = "$Id: TransformationPlugin.py 86244 2015-11-04 17:16:11Z phicharp $"
+__RCSID__ = "$Id: TransformationPlugin.py 86494 2015-12-02 16:52:26Z phicharp $"
 
 import time
 import datetime
@@ -430,7 +430,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           targetSEs = ','.join( sorted( targetSEs ) )
           self.util.logVerbose( 'Creating tasks with %d files for run %s at %s' % ( len( lfns ), runID, targetSEs ) )
           # We flush the run only if it is finished
-          newTasks = self.util.createTasksBySize( lfns, targetSEs, flush = runFinished.get( runID, False ) )
+          toFlush = ( self.params['Status'] == 'Flush' ) or runFinished.get( runID, False )
+          newTasks = self.util.createTasksBySize( lfns, targetSEs, flush = toFlush )
           tasks += newTasks
           self.util.logVerbose( 'Created %d tasks' % len( newTasks ) )
         else:

@@ -2,7 +2,7 @@
 Queries creation
 """
 
-__RCSID__ = "$Id: OracleBookkeepingDB.py 86445 2015-12-01 15:26:12Z zmathe $"
+__RCSID__ = "$Id: OracleBookkeepingDB.py 86501 2015-12-07 11:01:34Z zmathe $"
 
 import datetime
 import types
@@ -769,7 +769,7 @@ class OracleBookkeepingDB:
 
       if pro == '':
         return S_ERROR( 'Empty Directory' )
-      command = 'select  /*+ NOPARALLEL(prodview) */ distinct eventTypes.EventTypeId,\
+      command = 'select distinct eventTypes.EventTypeId,\
        eventTypes.Description from eventtypes,prodview,productionscontainer,processing %s where \
         prodview.production=productionscontainer.production and \
         eventTypes.EventTypeId=prodview.eventtypeid and \
@@ -786,14 +786,14 @@ class OracleBookkeepingDB:
 
       command = "SELECT distinct name \
       FROM processing   where parentid in (%s) \
-      START WITH id in (select /*+ NOPARALLEL(prodview) */ distinct productionscontainer.processingid \
+      START WITH id in (select distinct productionscontainer.processingid \
       from productionscontainer,prodview %s where \
       productionscontainer.production=prodview.production  %s )  CONNECT BY NOCYCLE PRIOR  parentid=id \
       order by name desc" % ( pro, tables, condition )
     else:
       command = 'SELECT distinct name \
       FROM processing  where parentid is null START WITH id in \
-      (select /*+ NOPARALLEL(prodview) */ distinct productionscontainer.processingid \
+      (select distinct productionscontainer.processingid \
       from productionscontainer, prodview %s where \
       productionscontainer.production=prodview.production %s ) CONNECT BY NOCYCLE PRIOR  parentid=id \
       order by name desc' % ( tables, condition )
@@ -1013,7 +1013,7 @@ class OracleBookkeepingDB:
       pro = pro[:-1]
       pro += ( ')' )
       if visible.upper().startswith( 'Y' ):
-        command = "select /*+ NOPARALLEL(bview) */ distinct ftypes.name from \
+        command = "select distinct ftypes.name from \
                  productionscontainer pcont,prodview bview, filetypes ftypes  %s \
                  where pcont.processingid in %s \
                   and bview.production=pcont.production and\
@@ -1024,7 +1024,7 @@ class OracleBookkeepingDB:
                     pcont.processingid in %s %s " % ( tables, pro, condition )
     else:
       if visible.upper().startswith( 'Y' ):
-        command = "select /*+ NOPARALLEL(bview) */ distinct ftypes.name  from \
+        command = "select distinct ftypes.name  from \
       productionscontainer pcont, prodview bview,  filetypes ftypes %s where \
                  bview.production=pcont.production and bview.filetypeId=ftypes.filetypeid %s" % ( tables, condition )
       else:
@@ -1102,7 +1102,7 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    command = "select /*+PARALLEL(bview)*/ distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, \
+    command = "select distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, \
     j.WorkerNode, ft.Name, j.runnumber, j.fillnumber, f.fullstat, d.dataqualityflag, \
     j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck, f.guid, f.adler32, f.eventTypeid, f.md5sum,f.visibilityflag, j.jobid, f.gotreplica, f.inserttimestamp from %s  where \
     j.jobid=f.jobid  and \
@@ -3457,7 +3457,7 @@ and files.qualityid= dataquality.qualityid'
     if procPass != default:
       if not re.search( '^/', procPass ):
         procPass = procPass.replace( procPass, '/%s' % procPass )
-      condition += " and j.production in (select  /*+ NOPARALLEL(bview) */ bview.production from productionscontainer prod,\
+      condition += " and j.production in (select  bview.production from productionscontainer prod,\
        ( select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID FROM processing v \
                      START WITH id in (select distinct id from processing where name='%s') \
                                            CONNECT BY NOCYCLE PRIOR  id=parentid) v \
@@ -3589,7 +3589,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']   
 
-    command = "select /*+NOPARALLEL(bview)*/ count(*),\
+    command = "select count(*),\
     SUM(f.EventStat), SUM(f.FILESIZE), \
     SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
     j.jobid=f.jobid and \
@@ -3686,7 +3686,7 @@ and files.qualityid= dataquality.qualityid'
     jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst, jtck from \
               (select rownum r, fname, fstat, fsize, fcreation, jstat, jend, jnode, ftypen,\
                evttypeid, jrun, jfill, ffull, dflag,   jevent, jtotal, flum, finst, jtck from \
-                  (select /*+NOPARALLEL(bview)*/ ROWNUM r, f.FileName fname, f.EventStat fstat, f.FileSize fsize, \
+                  (select ROWNUM r, f.FileName fname, f.EventStat fstat, f.FileSize fsize, \
                   f.CreationDate fcreation, j.JobStart jstat, j.JobEnd jend, j.WorkerNode jnode, \
                   ftypes.Name ftypen, f.eventtypeid evttypeid, j.runnumber jrun, j.fillnumber jfill,\
                    f.fullstat ffull, d.dataqualityflag dflag,j.eventinputstat jevent, j.totalluminosity jtotal,\
@@ -4628,7 +4628,7 @@ and files.qualityid= dataquality.qualityid'
         condition += ' and bview.eventtypeid=%d' % ( int( evt ) )
 
       if processing != default:
-        command = "select /*+ NOPARALLEL(bview) */ distinct rview.runnumber from \
+        command = "select distinct rview.runnumber from \
                    productionscontainer pcont,prodview bview, prodrunview rview \
                    where pcont.processingid in \
                       (select v.id from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID \
@@ -4639,7 +4639,7 @@ and files.qualityid= dataquality.qualityid'
                        where v.path='" + processing + "') \
                     and bview.production=pcont.production  and bview.production=rview.production" + condition
       else:
-        command = "select /*+ NOPARALLEL(bview) */ distinct rview.runnumber from \
+        command = "select distinct rview.runnumber from \
         productionscontainer pcont,prodview bview, prodrunview rview where \
                    bview.production=pcont.production and bview.production=rview.production " + condition
     else:

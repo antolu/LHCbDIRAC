@@ -19,7 +19,6 @@ class LHCbCommandBase( CommandBase ):
     super( LHCbCommandBase, self ).__init__( pilotParams )
     pilotParams.pilotCFGFile = 'LHCb-pilot.json'
     pilotParams.localConfigFile = 'pilot.cfg'
-    pilotParams.architectureScript = 'dirac-architecture'
 
 class LHCbGetPilotVersion( LHCbCommandBase, GetPilotVersion ):
   pass
@@ -271,7 +270,7 @@ class LHCbConfigureSite( LHCbCommandBase, ConfigureSite ):
   pass
 
 class LHCbConfigureArchitecture( LHCbCommandBase, ConfigureArchitecture ):
-  """ just fix the script to be used
+  """ just sets the CMTCONFIG variable
   """
 
   def execute( self ):

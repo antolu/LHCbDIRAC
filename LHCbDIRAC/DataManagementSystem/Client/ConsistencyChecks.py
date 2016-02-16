@@ -975,15 +975,12 @@ class ConsistencyChecks( object ):
     # Reverse the LFN->SE dictionary
     for lfn in replicas:
       csDict.setdefault( lfn, {} )[ 'LFCChecksum' ] = metadata.get( lfn, {} ).get( 'Checksum' )
-      replicaDict = replicas[ lfn ]
-      for se in replicaDict:
-        surl = replicaDict[ se ]
-        surlLfn[surl] = lfn
-        seFiles.setdefault( se, [] ).append( surl )
+      for se in replicas[ lfn ]:
+        seFiles.setdefault( se, [] ).append( lfn )
 
     checkSum = {}
     self.__write( 'Getting checksum of %d replicas in %d SEs (chunks of %d): ' % ( len( surlLfn ), len( seFiles ), chunkSize ) )
-    pfnNotAvailable = {}
+    lfnNotAvailable = {}
     logLevel = gLogger.getLevel()
     gLogger.setLevel( 'FATAL' )
     for num, se in enumerate( sorted( seFiles ) ):
@@ -991,18 +988,17 @@ class ConsistencyChecks( object ):
       oSe = StorageElement( se )
       for surlChunk in breakListIntoChunks( seFiles[se], chunkSize ):
         self.__write( '.' )
-        surlRes = oSe.getFileMetadata( surlChunk )
-        if not surlRes['OK']:
-          gLogger.error( "error StorageElement.getFileMetadata returns %s" % ( surlRes['Message'] ) )
-          raise RuntimeError( "error StorageElement.getFileMetadata returns %s" % ( surlRes['Message'] ) )
-        surlRes = surlRes['Value']
-        for surl in surlRes['Failed']:
-          lfn = surlLfn[surl]
-          gLogger.info( "SURL was not found at %s! %s " % ( se, surl ) )
-          pfnNotAvailable.setdefault( lfn, [] ).append( se )
-        for surl in surlRes['Successful']:
-          lfn = surlLfn[surl]
-          checkSum.setdefault( lfn, {} )[se] = surlRes['Successful'][ surl ]['Checksum']
+        metadata = oSe.getFileMetadata( surlChunk )
+        if not metadata['OK']:
+          gLogger.error( "error StorageElement.getFileMetadata returns %s" % ( metadata['Message'] ) )
+          raise RuntimeError( "error StorageElement.getFileMetadata returns %s" % ( metadata['Message'] ) )
+        metadata = metadata['Value']
+        # print metadata
+        for lfn in metadata['Failed']:
+          gLogger.info( "LFN was not found at %s! %s " % ( se, lfn ) )
+          lfnNotAvailable.setdefault( lfn, [] ).append( se )
+        for lfn in metadata['Successful']:
+          checkSum.setdefault( lfn, {} )[se] = metadata['Successful'][ lfn ]['Checksum']
     self.__write( ' (%.1f seconds)\n' % ( time.time() - startTime ) )
     gLogger.setLevel( logLevel )
     retDict[ 'MissingPFN'] = {}
@@ -1020,7 +1016,7 @@ class ConsistencyChecks( object ):
       lfcChecksum = csDict[ lfn ].pop( 'LFCChecksum' )
       for se in replicaDict:
         # If replica doesn't exist skip check
-        if se in pfnNotAvailable.get( lfn, [] ):
+        if se in lfnNotAvailable.get( lfn, [] ):
           allGoodReplicas = False
           continue
         surl = replicaDict[ se ]
@@ -1035,16 +1031,16 @@ class ConsistencyChecks( object ):
         else:
           oneGoodReplica = True
       if not oneGoodReplica:
-        if lfn in pfnNotAvailable:
+        if lfn in lfnNotAvailable:
           gLogger.info( "=> All replicas are missing" )
           retDict['MissingPFN'][ lfn] = 'All'
         else:
           gLogger.info( "=> All replicas have bad checksum" )
           retDict['AllReplicasCorrupted'][ lfn ] = csDict[ lfn ]
       elif not allGoodReplicas:
-        if lfn in pfnNotAvailable:
+        if lfn in lfnNotAvailable:
           gLogger.info( "=> At least one replica missing" )
-          retDict['MissingPFN'][lfn] = pfnNotAvailable[lfn]
+          retDict['MissingPFN'][lfn] = lfnNotAvailable[lfn]
         else:
           gLogger.info( "=> At least one replica with good Checksum" )
           retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ]

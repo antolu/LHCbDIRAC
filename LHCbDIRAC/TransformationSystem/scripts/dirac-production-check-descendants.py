@@ -147,7 +147,7 @@ if __name__ == '__main__':
         fp.write( '\nInFCNotInBK '.join( [''] + lfns ) )
         gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
                        '\n'.join( [''] + lfns[0:nMax] ) )
-        gLogger.always( "Use --FixIt for fixing it (or dirac-dms-check-fc2bkk --Term and paste the list)" )
+        gLogger.always( "Use --FixIt for setting replica flag in BK (or dirac-dms-check-fc2bkk --File %s)" % fileName )
 
     if cc.removedFiles:
       from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -194,7 +194,7 @@ if __name__ == '__main__':
         fp.write( '\nProcNoDesc '.join( [''] + lfns ) )
         gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
                         '\n'.join( [''] + lfns[0:nMax] ) )
-        gLogger.always( "Use --FixIt for fixing" )
+        gLogger.always( "Use --FixIt for resetting files Unused in TS" )
     else:
       gLogger.always( "No processed LFNs without descendants found -> OK!" )
 
@@ -223,7 +223,7 @@ if __name__ == '__main__':
         fp.write( '\nNotProcWithDesc '.join( [''] + lfns ) )
         gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
                         '\n'.join( [''] + lfns[0:nMax] ) )
-        gLogger.always( "Use --FixIt for fixing" )
+        gLogger.always( "Use --FixIt for setting files Processed in TS" )
     else:
       gLogger.always( "No non processed LFNs with descendants found -> OK!" )
     if fp:
