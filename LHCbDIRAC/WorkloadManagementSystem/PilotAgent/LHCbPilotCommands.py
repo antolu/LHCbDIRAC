@@ -231,10 +231,7 @@ class LHCbConfigureCPURequirements( LHCbCommandBase, ConfigureCPURequirements ):
     cpuNormalizationFactor = float( cpuNormalizationFactorOutput.split( '\n' )[0].replace( "Estimated CPU power is ",
                                                                                            '' ).replace( " HS06", '' ) )
     self.log.info( "Current normalized CPU as determined by 'dirac-wms-cpu-normalization' is %f" % cpuNormalizationFactor )
-    from DIRAC import gConfig
-    gConfig.forceRefresh()
-    slowCPU = float( gConfig.getValue( "Resources/Computing/CEDefaults/SlowCPULimit", 3.0 ) )
-    if cpuNormalizationFactor < slowCPU:
+    if cpuNormalizationFactor < 3.0:
       self.log.info( "Current normalized CPU is too slow, exiting" )
       self.exitWithError( 1 )
 
