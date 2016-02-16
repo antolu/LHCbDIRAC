@@ -2,12 +2,12 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p20
+Version v8r2p21
 ---------------
 
-CHANGE
+BUGFIX
 ::::::
 
- BookkeepingSystem
-  - Use cPickle instead of simplejson
+ Core
+  - re-set dirac-architecture
 

@@ -19,6 +19,7 @@ class LHCbCommandBase( CommandBase ):
     super( LHCbCommandBase, self ).__init__( pilotParams )
     pilotParams.pilotCFGFile = 'LHCb-pilot.json'
     pilotParams.localConfigFile = 'pilot.cfg'
+    pilotParams.architectureScript = 'dirac-architecture'
 
 class LHCbGetPilotVersion( LHCbCommandBase, GetPilotVersion ):
   pass

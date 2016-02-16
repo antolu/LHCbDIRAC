@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p20/DataManagementSystem/scripts/dirac-dms-get-file.py $
+# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/tags/LHCbDIRAC/v8r2p21/DataManagementSystem/scripts/dirac-dms-get-file.py $
 # File :    dirac-dms-get-file
 # Author :  Stuart Paterson
 ########################################################################
