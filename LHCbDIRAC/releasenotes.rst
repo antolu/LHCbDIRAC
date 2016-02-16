@@ -2,12 +2,12 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p27
+Version v8r2p28
 ---------------
 
 BUGFIX
 ::::::
 
- BookkeepingSystem
-  - Make unicode aware the input of the stored procedures
+ DataManagementSystem
+  - add a random sleep in the StorageUageAgent
 
