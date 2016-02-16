@@ -4,7 +4,7 @@
  Create a new dataset replication or removal transformation according to plugin
 """
 
-__RCSID__ = "$Id: dirac-dms-add-transformation.py 84632 2015-08-06 13:11:01Z phicharp $"
+__RCSID__ = "$Id: dirac-dms-add-transformation.py 86917 2015-12-18 16:16:04Z phicharp $"
 
 
 if __name__ == "__main__":
@@ -95,6 +95,7 @@ if __name__ == "__main__":
   requestID = pluginScript.getOption( 'RequestID' )
   fileType = pluginScript.getOption( 'FileType' )
   pluginParams = pluginScript.getPluginParameters()
+  pluginSEParams = pluginScript.getPluginSEParameters()
   requestedLFNs = pluginScript.getOption( 'LFNs' )
 
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
@@ -233,15 +234,18 @@ if __name__ == "__main__":
         transBody = "removal;RemoveReplica"
       transformation.setBody( transBody )
 
+    if pluginSEParams:
+      for key, val in pluginSEParams.items():
+        res = transformation.setSEParam( key, val )
+        if not res['OK']:
+          gLogger.error( 'Error setting SE parameter', res['Message'] )
+          DIRAC.exit( 1 )
     if pluginParams:
       for key, val in pluginParams.items():
-        if key.endswith( "SE" ) or key.endswith( "SEs" ):
-          res = transformation.setSEParam( key, val )
-        else:
-          res = transformation.setAdditionalParam( key, val )
+        res = transformation.setAdditionalParam( key, val )
         if not res['OK']:
           gLogger.error( 'Error setting additional parameter', res['Message'] )
-          continue
+          DIRAC.exit( 1 )
 
     transformation.setPlugin( plugin )
 

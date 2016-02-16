@@ -6,7 +6,7 @@
 """
   Retrieve information from the Bookkeeping for a given production
 """
-__RCSID__ = "$Id: dirac-bookkeeping-production-informations.py 84542 2015-07-30 11:33:45Z zmathe $"
+__RCSID__ = "$Id: dirac-bookkeeping-production-informations.py 86931 2016-01-05 10:32:25Z zmathe $"
 import DIRAC
 from DIRAC.Core.Base import Script
 
@@ -44,7 +44,7 @@ if res['OK']:
 
   steps = val['Steps']
 
-  if type( steps ) == types.StringType:
+  if isinstance( steps, basestring ):
     print steps
   else:
 

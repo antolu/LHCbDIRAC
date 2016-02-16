@@ -2,12 +2,12 @@
 Package LHCbDIRAC
 -----------------
 
-Version v8r2p26
+Version v8r2p27
 ---------------
 
-CHANGE
+BUGFIX
 ::::::
 
  BookkeepingSystem
-  - correct the inheritance…
+  - Make unicode aware the input of the stored procedures
 

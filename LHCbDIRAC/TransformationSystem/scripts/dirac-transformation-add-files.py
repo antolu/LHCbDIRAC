@@ -4,22 +4,26 @@
  Add files to a transformation
 """
 
-__RCSID__ = "$Id: dirac-transformation-add-files.py 84676 2015-08-06 15:59:57Z phicharp $"
+__RCSID__ = "$Id: dirac-transformation-add-files.py 86921 2015-12-18 16:19:54Z phicharp $"
 
 def __getTransformations( args ):
+  transList = []
   if not len( args ):
     print "Specify transformation number..."
     Script.showHelp()
   else:
     ids = args[0].split( "," )
-    transList = []
-    for transID in ids:
-      r = transID.split( ':' )
-      if len( r ) > 1:
-        for i in range( int( r[0] ), int( r[1] ) + 1 ):
-          transList.append( i )
-      else:
-        transList.append( int( r[0] ) )
+    try:
+      for transID in ids:
+        r = transID.split( ':' )
+        if len( r ) > 1:
+          for i in xrange( int( r[0] ), int( r[1] ) + 1 ):
+            transList.append( i )
+        else:
+          transList.append( int( r[0] ) )
+    except Exception as e:
+      gLogger.exception( "Invalid transformation", lException = e )
+      transList = []
   return transList
 
 if __name__ == "__main__":
@@ -59,25 +63,17 @@ if __name__ == "__main__":
     res = getProxyInfo()
     if not res['OK']:
       gLogger.fatal( "Can't get proxy info", res['Message'] )
-      exit( 1 )
+      DIRAC.exit( 1 )
     properties = res['Value'].get( 'groupProperties', [] )
     if not 'FileCatalogManagement' in properties:
       gLogger.error( "You need to use a proxy from a group with FileCatalogManagement" )
-      exit( 5 )
+      DIRAC.exit( 5 )
 
-  args = Script.getPositionalArgs()
+  transList = __getTransformations( Script.getPositionalArgs() )
+  if not transList:
+    DIRAC.exit( 1 )
 
   requestedLFNs = dmScript.getOption( 'LFNs' )
-  if not args:
-    gLogger.always( 'No transformation specified' )
-    Script.showHelp()
-    DIRAC.exit( 1 )
-  else:
-    try:
-      transID = int( args[0] )
-    except:
-      gLogger.always( 'Invalid transformation ID' )
-      DIRAC.exit( 1 )
   if not requestedLFNs:
     gLogger.always( 'No files to add' )
     DIRAC.exit( 1 )
@@ -91,11 +87,13 @@ if __name__ == "__main__":
       gLogger.fatal( "Error changing ownership", res['Message'] )
       DIRAC.exit( 3 )
     gLogger.notice( "Successfully changed owner/group for %d directories" % res['Value'] )
-  res = addFilesToTransformation( transID, requestedLFNs, runInfo )
-  if res['OK']:
-    gLogger.always( 'Successfully added %d files to transformation %d' % ( len( res['Value'] ), transID ) )
-    rc = 0
-  else:
-    gLogger.always( 'Failed to add %d files to transformation %d' % ( len( requestedLFNs ), transID ), res['Message'] )
-    rc = 2
+
+  rc = 0
+  for transID in transList:
+    res = addFilesToTransformation( transID, requestedLFNs, runInfo )
+    if res['OK']:
+      gLogger.always( 'Successfully added %d files to transformation %d' % ( len( res['Value'] ), transID ) )
+    else:
+      gLogger.always( 'Failed to add %d files to transformation %d' % ( len( requestedLFNs ), transID ), res['Message'] )
+      rc = 2
   DIRAC.exit( rc )

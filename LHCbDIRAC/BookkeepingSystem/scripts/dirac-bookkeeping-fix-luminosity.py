@@ -8,15 +8,15 @@ __RCSID__ = "$Id: dirac-bookkeeping-get-stats.py 69357 2013-08-08 13:33:31Z phic
 import DIRAC
 from DIRAC.Core.Base import Script
 from DIRAC import gLogger
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, WithDots
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, ProgressBar
 import time
 import sys
 
 def _updateFileLumi( fileDict, retries = 5 ):
   error = False
-  withDots = WithDots( len( fileDict ), title = 'Updating luminosity', chunk = 10, mindots = 5 )
+  progressBar = ProgressBar( len( fileDict ), title = 'Updating luminosity', step = 10 )
   for lfn in fileDict:
-    withDots.loop()
+    progressBar.loop()
     # retry 5 times
     for i in range( retries - 1, -1, -1 ):
       res = bk.updateFileMetaData( lfn, {'Luminosity':fileDict[lfn]} )
@@ -25,7 +25,7 @@ def _updateFileLumi( fileDict, retries = 5 ):
       elif i == 0:
         error = True
         gLogger.error( 'Error setting Luminosity', res['Message'] )
-  withDots.endLoop()
+  progressBar.endLoop()
   return error
 
 def updateDescendantsLumi( parentLumi, doIt = False, force = False ):

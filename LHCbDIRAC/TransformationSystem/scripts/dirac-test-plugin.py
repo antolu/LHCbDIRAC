@@ -4,7 +4,7 @@
  Test a plugin
 """
 
-__RCSID__ = "$Id: dirac-test-plugin.py 85137 2015-08-20 14:29:43Z fstagni $"
+__RCSID__ = "$Id: dirac-test-plugin.py 86920 2015-12-18 16:18:30Z phicharp $"
 
 class fakeClient:
   def __init__( self, trans, transID, lfns, asIfProd ):
@@ -218,7 +218,6 @@ if __name__ == "__main__":
   # print pluginScript.getOptions()
   plugin = pluginScript.getOption( 'Plugin' )
   requestID = pluginScript.getOption( 'RequestID', 0 )
-  pluginParams = pluginScript.getPluginParameters()
   requestedLFNs = pluginScript.getOption( 'LFNs' )
   # print pluginParams
 
@@ -262,12 +261,17 @@ if __name__ == "__main__":
   if not requestID and reqID:
     requestID = reqID
 
+  pluginParams = pluginScript.getPluginParameters()
+  pluginSEParams = pluginScript.getPluginSEParameters()
+  if pluginSEParams:
+    for key, val in pluginSEParams.items():
+      res = transformation.setSEParam( key, val )
+      if not res['OK']:
+        print res['Message']
+        DIRAC.exit( 2 )
   if pluginParams:
     for key, val in pluginParams.items():
-      if ( key.endswith( "SE" ) or key.endswith( "SEs" ) ) and val:
-        res = transformation.setSEParam( key, val )
-      else:
-        res = transformation.setAdditionalParam( key, val )
+      res = transformation.setAdditionalParam( key, val )
       if not res['OK']:
         print res['Message']
         DIRAC.exit( 2 )
@@ -279,6 +283,8 @@ if __name__ == "__main__":
     print "BK Query:", bkQueryDict
   print "Plugin:", plugin
   print "Parameters:", pluginParams
+  if pluginSEParams:
+    print "SE parameters:", pluginSEParams
   if requestID:
     print "RequestID:", requestID
   # get the list of files from BK
@@ -323,6 +329,7 @@ if __name__ == "__main__":
   from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   oplugin = TransformationPlugin( plugin, transClient = fakeClient, dataManager = DataManager(), bkClient = BookkeepingClient() )
   pluginParams['TransformationID'] = transID
+  pluginParams.update( pluginSEParams )
   oplugin.setParameters( pluginParams )
   replicas = fakeClient.getReplicas()
   # Special case of RAW files registered in CERN-RDST...

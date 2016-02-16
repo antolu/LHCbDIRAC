@@ -2,7 +2,7 @@
 """
   Create a pool xml catalog slice for the specified LFNs
 """
-__RCSID__ = "$Id: dirac-bookkeeping-genXMLCatalog.py 86030 2015-10-19 17:10:41Z phicharp $"
+__RCSID__ = "$Id: dirac-bookkeeping-genXMLCatalog.py 86927 2016-01-04 09:07:47Z phicharp $"
 
 import sys, os, time
 
@@ -28,7 +28,8 @@ def __getLfnsFromFile( optFiles, gaudiVerbose ):
 
   if  os.system( "which gaudirun.py &>/dev/null" ) != 0:
     gLogger.info( "SetupProject LHCb for getting environment" )
-    rc = os.system( ". SetupProject.sh LHCb --no-user &>/dev/null;" + gaudiRun )
+    command = ". SetupProject.sh LHCb --no-user" + ( " &>/dev/null;" if not gaudiVerbose else ' ;' ) + gaudiRun
+    rc = os.system( command )
   else:
       rc = os.system( gaudiRun )
   if rc:
@@ -168,6 +169,7 @@ def execute():
     gLogger.info( "Catalog file:", catalog )
     result = Dirac().getInputDataCatalog( lfnList, site, catalog, ignoreMissing = ignore )
     if result["OK"]:
+      result = result['Value']
       if result['Failed']:
         gLogger.always( 'Only a fraction of the input files are present and available at %s (%d missing)' % ( site, len( result['Failed'] ) ) )
       if not result['Successful']:

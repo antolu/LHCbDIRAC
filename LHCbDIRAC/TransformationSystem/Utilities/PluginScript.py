@@ -12,11 +12,10 @@ class Setter( object ):
     self.name = name
     self.obj = obj
   def setOption( self, val ):
-    if val:
-      val = val.split( ',' )
+    if self.name.endswith( '=' ):
+      self.obj.options[self.name[:-1]] = val
     else:
-      val = []
-    self.obj.options[self.name] = val
+      self.obj.options[self.name] = True
 
     return S_OK()
 
@@ -26,104 +25,61 @@ class PluginScript( DMScript ):
 
   def __init__( self ):
     super( PluginScript, self ).__init__()
+    self.pluginParameters = {"Plugin=": "   Plugin name (mandatory)",
+                             "Type=": "   Transformation type [Replication] (Removal automatic)",
+                             "Parameters=": "   Additional plugin parameters ({<key>:<val>,[<key>:val>]}",
+                             "RequestID=": "   Sets the request ID (default 0)"
+                            }
+    self.seParameters = ( "KeepSEs", "Archive1SEs", "Archive2SEs",
+                     "MandatorySEs", "SecondarySEs", "DestinationSEs", "FromSEs",
+                     "RAWStorageElements", "ProcessingStorageElements" )
+    self.additionalParameters = {"GroupSize=": "   GroupSize parameter for merging (GB) or nb of files",
+                                 "NumberOfReplicas=": "   Number of copies to create or to remove",
+                                 "ProcessingPasses=": "   List of processing passes for the DeleteReplicasWhenProcessed plugin",
+                                 "Period=": "   minimal period at which a plugin is executed (if instrumented)",
+                                 "CleanTransformations": "   (only for DestroyDataset) clean transformations from the files being destroyed",
+                                 'Debug': '   Sets a debug flag in the plugin',
+                                 "UseRunDestination": "   for RAWReplication plugin, use the already defined run destination as storage"
+    }
+    self.setters = {}
 
   def registerPluginSwitches( self ):
     self.registerBKSwitches()
-    self.setSEs = {}
-    parameterSEs = ( "KeepSEs", "Archive1SEs", "Archive2SEs",
-                     "MandatorySEs", "SecondarySEs", "DestinationSEs", "FromSEs" )
 
-    Script.registerSwitch( "", "Plugin=",
-                           "   Plugin name (mandatory)", self.setPlugin )
-    Script.registerSwitch( "t:", "Type=",
-                           "   Transformation type [Replication] (Removal automatic)", self.setTransType )
-    Script.registerSwitch( "", "NumberOfReplicas=",
-                           "   Number of copies to create or to remove", self.setReplicas )
-    for param in parameterSEs:
-      self.setSEs[param] = Setter( self, param )
-      Script.registerSwitch( "", param + '=',
+    for option in self.pluginParameters:
+      self.setters[option] = Setter( self, option )
+      Script.registerSwitch( '', option, self.pluginParameters[option], self.setters[option].setOption )
+
+    for param in self.seParameters:
+      param += '='
+      self.setters[param] = Setter( self, param )
+      Script.registerSwitch( "", param,
                              "   List of SEs for the corresponding parameter of the plugin",
-                             self.setSEs[param].setOption )
-    Script.registerSwitch( "g:", "GroupSize=",
-                           "   GroupSize parameter for merging (GB) or nb of files" , self.setGroupSize )
-    Script.registerSwitch( "", "Parameters=",
-                           "   Additional plugin parameters ({<key>:<val>,[<key>:val>]}", self.setParameters )
-    Script.registerSwitch( "", "RequestID=",
-                           "   Sets the request ID (default 0)", self.setRequestID )
-    Script.registerSwitch( "", "ProcessingPasses=",
-                           "   List of processing passes for the DeleteReplicasWhenProcessed plugin",
-                           self.setProcessingPasses )
-    Script.registerSwitch( "", "Period=",
-                           "   minimal period at which a plugin is executed (if instrumented)", self.setPeriod )
-    Script.registerSwitch( "", "CacheLifeTime=", "   plugin cache life time", self.setCacheLifeTime )
-    Script.registerSwitch( "", "CleanTransformations",
-                           "   (only for DestroyDataset) clean transformations from the files being destroyed",
-                           self.setCleanTransformations )
-    Script.registerSwitch( '', 'Debug', '   Sets a debug flag in the plugin', self.setDebug )
+                             self.setters[param].setOption )
 
-  def setPlugin( self, val ):
-    self.options['Plugin'] = val
-    return S_OK()
+    for option in self.additionalParameters:
+      self.setters[option] = Setter( self, option )
+      Script.registerSwitch( '', option, self.additionalParameters[option], self.setters[option].setOption )
 
-  def setTransType( self, val ):
-    self.options['Type'] = val
-    return S_OK()
-
-  def setReplicas ( self, val ):
-    self.options['NumberOfReplicas'] = val
-    return S_OK()
-
-  def setGroupSize ( self, groupSize ):
-    try:
-      groupSize = float( groupSize )
-      if int( groupSize ) == groupSize:
-        groupSize = int( groupSize )
-      self.options['GroupSize'] = groupSize
-    except:
-      pass
-    return S_OK()
-
-  def setParameters ( self, val ):
-    self.options['Parameters'] = val
-    return S_OK()
-
-  def setRequestID ( self, val ):
-    self.options['RequestID'] = val
-    return S_OK()
-
-  def setProcessingPasses( self, val ):
-    self.options['ProcessingPasses'] = val.split( ',' )
-    return S_OK()
-
-  def setCacheLifeTime( self, val ):
-    try:
-      self.options['CacheLifeTime'] = int( val )
-    except:
-      gLogger.error( 'Invalid value for CacheLifeTime: %s' % val )
-    return S_OK()
-
-  def setPeriod( self, val ):
-    self.options['Period'] = val
-    return S_OK()
-
-  def setCleanTransformations( self, val ):
-    self.options['CleanTransformations'] = True
-    return S_OK()
-
-  def setDebug( self, val ):
-    self.options['Debug'] = True
-    return S_OK()
 
   def getPluginParameters( self ):
     if 'Parameters' in self.options:
       params = eval( self.options['Parameters'] )
     else:
       params = {}
-    pluginParams = ( 'NumberOfReplicas', 'GroupSize', 'ProcessingPasses', 'Period', 'CleanTransformations', 'Debug', 'CacheLifeTime' )
     # print self.options
-    for key in [k for k in self.options if k in pluginParams]:
+    for key in set( self.options ) & set( self.additionalParameters ):
       params[key] = self.options[key]
-    for key in [k for k in self.options if k.endswith( 'SE' ) or k.endswith( 'SEs' )]:
-      params[key] = resolveSEGroup( self.options[key] )
     return params
 
+  def getPluginSEParameters( self ):
+    params = {}
+    # print self.options
+    for key in set( self.options ) & set( self.seParameters ):
+      val = self.options[key]
+      if val:
+        val = resolveSEGroup( val.split( ',' ) )
+      else:
+        val = []
+      params[key] = val
+    return params
