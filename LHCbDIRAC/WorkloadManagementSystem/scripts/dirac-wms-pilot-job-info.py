@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/DIRAC/trunk/DIRAC/Interfaces/scripts/dirac-wms-pilot-job-info.py $
 # File :    dirac-wms-pilot-job-info
 # Author :  Philippe Charpentier
 ########################################################################
