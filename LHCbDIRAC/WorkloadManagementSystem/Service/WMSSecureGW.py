@@ -1,6 +1,6 @@
 """ WMSSecureGW service -  a generic gateway service """
 
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 import json
 from DIRAC import S_OK, S_ERROR

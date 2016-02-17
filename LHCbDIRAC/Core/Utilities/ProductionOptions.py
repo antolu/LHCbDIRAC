@@ -4,7 +4,7 @@
     test jobs.
 """
 
-__RCSID__ = "$Id: ProductionOptions.py 73468 2014-01-18 12:32:13Z fstagni $"
+__RCSID__ = "$Id$"
 
 import re
 from DIRAC import S_OK, gLogger

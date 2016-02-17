@@ -10,7 +10,7 @@
 #from LHCbDIRAC.ResourceStatusSystem.Client.HCClient                 import HCClient
 #from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 #
-#__RCSID__ = '$Id: HCCommand.py 58924 2012-11-27 10:37:30Z ubeda $'
+#__RCSID__ = "$Id$"
 #
 #class HCCommand( Command ):
 #  

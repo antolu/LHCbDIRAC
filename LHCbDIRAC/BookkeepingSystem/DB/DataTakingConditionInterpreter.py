@@ -1,5 +1,5 @@
 """interpret the data taking conditions"""
-__RCSID__ = "$Id: DataTakingConditionInterpreter.py 54197 2012-07-04 13:53:48Z zmathe $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class Context:

@@ -32,7 +32,7 @@ from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter              
                                                                                           VeloPosition, \
                                                                                           Context
 
-__RCSID__ = "$Id: XMLFilesReaderManager.py 85548 2015-09-09 21:30:43Z zmathe $"
+__RCSID__ = "$Id$"
 
 global dataManager_
 dataManager_ = BookkeepingDatabaseClient()

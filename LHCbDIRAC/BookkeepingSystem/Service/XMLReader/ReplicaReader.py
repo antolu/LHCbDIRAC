@@ -10,7 +10,7 @@ from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Replica.Replica      import R
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Replica.ReplicaParam import ReplicaParam
 from DIRAC                                                        import gLogger
 
-__RCSID__ = "$Id: ReplicaReader.py 54167 2012-07-03 14:25:07Z zmathe $"
+__RCSID__ = "$Id$"
 
 class ReplicaReader:
   """

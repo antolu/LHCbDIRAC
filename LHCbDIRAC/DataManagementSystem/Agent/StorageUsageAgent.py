@@ -31,7 +31,7 @@ from DIRAC.Core.Utilities.List import breakListIntoChunks
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
 
-__RCSID__ = "$Id: StorageUsageAgent.py 87200 2016-01-26 11:58:58Z phicharp $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = "DataManagement/StorageUsageAgent"
 

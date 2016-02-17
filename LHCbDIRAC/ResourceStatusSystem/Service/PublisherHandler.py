@@ -16,7 +16,7 @@ from DIRAC.ResourceStatusSystem.Utilities                   import CSHelpers
 
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
-__RCSID__ = '$Id: PublisherHandler.py 85255 2015-08-25 16:45:15Z fstagni $'
+__RCSID__ = "$Id$"
 rsClient  = None
 rmClient  = None
 

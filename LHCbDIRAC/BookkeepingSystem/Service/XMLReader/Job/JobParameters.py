@@ -6,7 +6,7 @@
 stores the job parameters
 """
 
-__RCSID__ = "$Id: JobParameters.py 54098 2012-07-02 16:43:53Z zmathe $"
+__RCSID__ = "$Id$"
 
 class JobParameters:
   """

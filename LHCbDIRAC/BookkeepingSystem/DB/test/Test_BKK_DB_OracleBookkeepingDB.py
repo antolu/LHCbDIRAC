@@ -8,7 +8,7 @@ import LHCbDIRAC.BookkeepingSystem.DB.OracleBookkeepingDB as moduleTested
 from LHCbDIRAC.BookkeepingSystem.DB.OracleDB                      import OracleDB
 from DIRAC.ConfigurationSystem.Client.Config                import gConfig
 
-__RCSID__ = ''
+__RCSID__ = "$Id$"
 
 ################################################################################
 

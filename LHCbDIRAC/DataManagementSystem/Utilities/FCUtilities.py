@@ -1,7 +1,7 @@
 """
    This modules contains utility functions for LHCb DM
 """
-__RCSID__ = "$Id $"
+__RCSID__ = "$Id$"
 from DIRAC import S_OK, S_ERROR, gLogger
 import sys, os
 from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient

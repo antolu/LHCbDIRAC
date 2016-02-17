@@ -8,7 +8,7 @@
 #from DIRAC                                              import S_OK
 #from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 #
-#__RCSID__ = '$Id: PilotWebSummaryEfficiencyPolicy.py 66379 2013-05-28 07:55:57Z ubeda $'
+#__RCSID__ = "$Id$"
 #
 #class PilotWebSummaryEfficiencyPolicy( PolicyBase ):
 #  '''

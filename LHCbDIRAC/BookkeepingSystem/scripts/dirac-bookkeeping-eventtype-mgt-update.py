@@ -9,7 +9,7 @@
     Each line must have the following format:
     EVTTYPEID="<evant id>", DESCRIPTION="<description>", PRIMARY="<primary description>"
 """
-__RCSID__ = "$Id: dirac-bookkeeping-eventtype-mgt-update.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 
 import re
 import DIRAC

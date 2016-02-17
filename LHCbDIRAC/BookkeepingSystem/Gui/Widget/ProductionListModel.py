@@ -7,7 +7,7 @@ Production list model
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.ListModel                   import ListModel
 
 
-__RCSID__ = "$Id: ProductionListModel.py 55878 2012-09-05 16:08:28Z zmathe $"
+__RCSID__ = "$Id$"
 
 class ProductionListModel(ListModel):
   """

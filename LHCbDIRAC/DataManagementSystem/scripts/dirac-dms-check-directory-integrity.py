@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-__RCSID__ = "$Id: dirac-dms-check-directory-integrity.py 74045 2014-02-10 12:27:34Z chaen $"
+__RCSID__ = "$Id$"
 
 if __name__ == "__main__":
   from DIRAC.Core.Base import Script

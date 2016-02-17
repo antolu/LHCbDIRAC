@@ -1,6 +1,6 @@
 """ Definition of all the method to create tar ball for distribution """
 
-__RCSID__ = "$Id: Distribution.py 76564 2014-06-26 09:30:04Z fstagni $"
+__RCSID__ = "$Id$"
 
 import urllib2, re, tarfile, os, types, sys, subprocess, urlparse, tempfile
 

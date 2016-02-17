@@ -10,7 +10,7 @@
     - Uses __getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id: Production.py 83927 2015-06-26 11:49:31Z fstagni $"
+__RCSID__ = "$Id$"
 
 import shutil
 import re

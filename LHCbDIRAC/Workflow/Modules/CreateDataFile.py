@@ -1,7 +1,7 @@
 """  Prepare a file (data.py) which is consumed by Ganga, containing the input files as resolved in the workflow
 """
 
-__RCSID__ = "$Id: CreateDataFile.py 74045 2014-02-10 12:27:34Z chaen $"
+__RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gLogger
 

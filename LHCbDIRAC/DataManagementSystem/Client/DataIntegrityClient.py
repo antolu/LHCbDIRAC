@@ -11,7 +11,7 @@ from DIRAC.Resources.Catalog.FileCatalog                    import FileCatalog
 from DIRAC.Resources.Storage.StorageElement                 import StorageElement
 from DIRAC.Core.Utilities.ReturnValues                  import returnSingleResult
 
-__RCSID__ = "$Id: DataIntegrityClient.py 81845 2015-03-06 15:32:57Z chaen $"
+__RCSID__ = "$Id$"
 
 class DataIntegrityClient( DIRACDataIntegrityClient ):
 

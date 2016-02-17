@@ -12,7 +12,7 @@ from PyQt4.QtCore                                                             im
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_DataQualityDialog              import Ui_DataQualityDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerDataQualityDialog     import ControlerDataQualityDialog
 
-__RCSID__ = "$ $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class DataQualityDialog(QDialog, Ui_DataQualityDialog):

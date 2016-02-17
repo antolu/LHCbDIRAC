@@ -8,7 +8,7 @@ Implementation of the ListModel
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.ListModel                   import ListModel
 
 
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 class FilterListModel(ListModel):
   """

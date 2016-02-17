@@ -13,7 +13,7 @@ from DIRAC.Interfaces.API.Dirac  import Dirac
 
 from LHCbDIRAC.ResourceStatusSystem.Client.DiracSAM import DiracSAM
 
-__RCSID__  = "$Id: SAMAgent.py 80176 2014-12-16 17:36:39Z fstagni $"
+__RCSID__ = "$Id$"
 AGENT_NAME = 'SAM/SAMAgent'
 
 class SAMAgent( AgentModule ):  

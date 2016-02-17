@@ -6,7 +6,7 @@
     databases
 """
 
-__RCSID__ = "$Id: TransformationDB.py 84832 2015-08-11 08:14:03Z fstagni $"
+__RCSID__ = "$Id$"
 
 import threading
 import copy

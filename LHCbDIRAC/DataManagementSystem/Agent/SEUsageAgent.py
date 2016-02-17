@@ -23,7 +23,7 @@ from DIRAC.Interfaces.API.Dirac import Dirac
 # # from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
-__RCSID__ = "$Id: SEUsageAgent.py 85467 2015-09-04 14:49:38Z joel $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'DataManagement/SEUsageAgent'
 

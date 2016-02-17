@@ -5,7 +5,7 @@
     A pickle file is used as a cache.
 """
 
-__RCSID__ = "$Id: BookkeepingWatchAgent.py 87192 2016-01-26 09:26:32Z phicharp $"
+__RCSID__ = "$Id$"
 
 import os
 import time

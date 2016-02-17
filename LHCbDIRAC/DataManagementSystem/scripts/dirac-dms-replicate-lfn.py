@@ -7,7 +7,7 @@
 """
   Replicate a (list of) existing LFN(s) to (set of) Storage Element(s)
 """
-__RCSID__ = "$Id: dirac-dms-replicate-lfn.py 79816 2014-12-03 09:11:02Z phicharp $"
+__RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 

@@ -2,7 +2,7 @@
 """
     Set a (set of) LFNs as problematic in the FC and in the BK and transformation system if all replicas are problematic
 """
-__RCSID__ = "$Id: dirac-dms-set-problematic-files.py 87258 2016-02-11 10:14:54Z phicharp $"
+__RCSID__ = "$Id$"
 __VERSION__ = "$Revision: 87258 $"
 
 from DIRAC.Core.Base import Script

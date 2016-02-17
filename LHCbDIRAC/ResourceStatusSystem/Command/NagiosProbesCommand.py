@@ -9,7 +9,7 @@ from DIRAC                                                          import S_OK,
 from DIRAC.ResourceStatusSystem.Command.Command                     import Command
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
-__RCSID__ = '$Id:  $'
+__RCSID__ = "$Id$"
 
 class NagiosProbesCommand( Command ):
   

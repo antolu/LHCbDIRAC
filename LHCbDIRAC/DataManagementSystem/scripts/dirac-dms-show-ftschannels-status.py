@@ -19,7 +19,7 @@ Output:
  glite-transfer-channel-set and glite-transfer-channel-setvoshare for more information.
 """
 
-__RCSID__ = "$Id: dirac-dms-show-ftschannels-status.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 
 import sys
 from DIRAC.Core.Base import Script

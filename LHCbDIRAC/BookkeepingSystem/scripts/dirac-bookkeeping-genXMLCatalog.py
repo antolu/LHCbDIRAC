@@ -2,7 +2,7 @@
 """
   Create a pool xml catalog slice for the specified LFNs
 """
-__RCSID__ = "$Id: dirac-bookkeeping-genXMLCatalog.py 86927 2016-01-04 09:07:47Z phicharp $"
+__RCSID__ = "$Id$"
 
 import sys, os, time
 

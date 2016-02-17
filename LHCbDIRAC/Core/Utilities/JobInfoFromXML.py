@@ -5,7 +5,7 @@
 """ Return the INFO a a given job from the XML file
 """
 
-__RCSID__ = "$Id: JobInfoFromXML.py 76566 2014-06-26 09:48:30Z fstagni $"
+__RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR
 import shutil, os

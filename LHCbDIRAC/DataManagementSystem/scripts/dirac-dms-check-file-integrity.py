@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-__RCSID__ = "$Id: dirac-dms-check-file-integrity.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript

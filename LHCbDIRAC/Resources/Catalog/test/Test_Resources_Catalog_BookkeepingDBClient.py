@@ -6,7 +6,7 @@ import unittest
 
 import LHCbDIRAC.Resources.Catalog.BookkeepingDBClient as moduleTested
 
-__RCSID__ = '$Id: $'
+__RCSID__ = "$Id$"
 
 ################################################################################
 

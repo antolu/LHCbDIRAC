@@ -7,7 +7,7 @@
   Start or stop the production(s)
 """
 
-__RCSID__   = "$Id: dirac-production-action.py 71758 2013-11-19 17:26:25Z fstagni $"
+__RCSID__ = "$Id$"
 __VERSION__ = "$Revision: 71758 $"
 
 import DIRAC

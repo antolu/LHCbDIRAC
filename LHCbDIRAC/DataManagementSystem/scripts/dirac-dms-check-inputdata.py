@@ -3,7 +3,7 @@
 Check input files availability for a (list of) jobs
 """
 
-__RCSID__ = "$transID: dirac-transformation-debug.py 61232 2013-01-28 16:29:21Z phicharp $"
+__RCSID__ = "$Id$"
 
 
 def inaccessibleReplicas( lfn, se ):

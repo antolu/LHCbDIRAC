@@ -6,7 +6,7 @@
 stores the job options
 """
 
-__RCSID__ = "$Id: JobOption.py 54098 2012-07-02 16:43:53Z zmathe $"
+__RCSID__ = "$Id$"
 
 class JobOption:
   """

@@ -8,7 +8,7 @@ stores the replica readed from an xml
 
 from DIRAC                                                    import gLogger
 
-__RCSID__ = "$Id: Replica.py 54098 2012-07-02 16:43:53Z zmathe $"
+__RCSID__ = "$Id$"
 
 class Replica:
   """

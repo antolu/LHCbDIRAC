@@ -1,7 +1,7 @@
 """ CVMFSCheck module for SAM jobs
 """
 
-__RCSID__ = '$Id: $'
+__RCSID__ = "$Id$"
 
 import os
 

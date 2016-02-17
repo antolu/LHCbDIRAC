@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-__RCSID__   = "$Id: dirac-production-change-status.py 76778 2014-07-24 08:58:06Z fstagni $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script

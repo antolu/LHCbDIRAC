@@ -15,7 +15,7 @@ from DIRAC.Core.DISET.RequestHandler import RequestHandler
 # from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB import RAWIntegrityDB
 
-__RCSID__ = "$Id: RAWIntegrityHandler.py 79431 2014-11-25 11:47:43Z zmathe $"
+__RCSID__ = "$Id$"
 
 ## global instance of the RAWIntegrityDB
 gRAWIntegrityDB  = False

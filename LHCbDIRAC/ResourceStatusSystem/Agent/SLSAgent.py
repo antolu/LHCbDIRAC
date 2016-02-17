@@ -40,7 +40,7 @@ from DIRAC.Core.Base.DB                                         import DB
 from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from DIRAC.ResourceStatusSystem.Utilities                       import CSHelpers
 
-__RCSID__ = "$Id: SLSAgent.py 85441 2015-09-02 05:54:48Z joel $"
+__RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatus/SLSAgent'
 
 rmDB = None

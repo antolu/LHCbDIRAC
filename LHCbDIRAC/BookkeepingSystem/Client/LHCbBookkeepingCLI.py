@@ -1,7 +1,7 @@
 """Bookkeeping file system"""
 import sys, cmd, pydoc
 
-__RCSID__ = ""
+__RCSID__ = "$Id$"
 
 from LHCbDIRAC.BookkeepingSystem.Client.LHCB_BKKDBClient  import LHCB_BKKDBClient
 

@@ -3,7 +3,7 @@
 Gets all Assigned files in a transformation and reports by target SE
 """
 
-__RCSID__ = "$transID: dirac-transformation-debug.py 61232 2013-01-28 16:29:21Z phicharp $"
+__RCSID__ = "$Id$"
 
 import sys, os
 from DIRAC.Core.Base import Script

@@ -8,7 +8,7 @@
 Script to check the status of merged histograms for a given data taking configuration
 """
 
-__RCSID__ = "$Id: dirac-dms-dq-monitor-runs.py 76842 2014-07-25 08:24:53Z fstagni $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 

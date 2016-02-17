@@ -1,7 +1,7 @@
 ''' DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 '''
-__RCSID__ = "$Id: ProductionRequestDB.py 84870 2015-08-12 10:16:21Z zmathe $"
+__RCSID__ = "$Id$"
 
 # Defined states:
 #'New'

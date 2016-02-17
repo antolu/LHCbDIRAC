@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
-__RCSID__ = "$Id: dirac-production-verify-outputdata.py 80051 2014-12-11 15:34:23Z fstagni $"
+__RCSID__ = "$Id$"
 
 import sys
 if len( sys.argv ) < 2:

@@ -30,7 +30,7 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-__RCSID__  = "$Id$"
+__RCSID__ = "$Id$"
 
 def doParse():
   """

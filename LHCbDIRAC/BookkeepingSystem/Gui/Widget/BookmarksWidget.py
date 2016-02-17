@@ -13,7 +13,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerBookmarks               
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel                              import TableModel
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.AddBookmarksWidget                      import AddBookmarksWidget
 
-__RCSID__ = " $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class BookmarksWidget(QWidget, Ui_BookmarksWidget):

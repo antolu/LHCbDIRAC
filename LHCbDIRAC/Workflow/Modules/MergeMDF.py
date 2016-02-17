@@ -1,7 +1,7 @@
 """ Simple merging module for MDF files.
 """
 
-__RCSID__ = "$Id: MergeMDF.py 78673 2014-10-23 08:06:38Z fstagni $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                               import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities.Subprocess                     import shellCall

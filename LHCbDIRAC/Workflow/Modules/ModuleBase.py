@@ -2,7 +2,7 @@
     common utility methods
 """
 
-__RCSID__ = "$Id: ModuleBase.py 86393 2015-11-26 10:07:07Z phicharp $"
+__RCSID__ = "$Id$"
 
 import os
 import copy

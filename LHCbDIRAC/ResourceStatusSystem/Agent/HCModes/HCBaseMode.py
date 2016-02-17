@@ -2,7 +2,7 @@
 #LHCbDIRAC/ResourceStatusSystem/Agent/HCModes/HCBaseMode.py
 #"""
 #
-#__RCSID__ = "$Id: HCBaseMode.py 60775 2013-01-18 12:13:43Z ubeda $"
+#__RCSID__ = "$Id$"
 #
 ## First, pythonic stuff
 #from datetime import datetime, timedelta

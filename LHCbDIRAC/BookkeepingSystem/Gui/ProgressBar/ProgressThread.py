@@ -10,7 +10,7 @@ import time
 from PyQt4.QtCore                                                                 import QThread, QString
 from PyQt4.QtGui                                                                  import QProgressDialog
 
-__RCSID__ = "$Id: ProgressThread.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 class ProgressThread(QThread):
   """" ProgressThread class"""

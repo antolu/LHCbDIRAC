@@ -8,7 +8,7 @@ Controller of the Log widget
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract import ControlerAbstract
 
-__RCSID__ = "$Id: ControlerLogInfo.py 54002 2012-06-29 09:01:26Z zmathe $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerLogInfo(ControlerAbstract):

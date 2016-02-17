@@ -7,7 +7,7 @@
 #
 #from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 #
-#__RCSID__ = '$Id: HCPolicy.py 61970 2013-02-20 14:47:21Z ubeda $'
+#__RCSID__ = "$Id$"
 
 #...............................................................................
 #

@@ -19,7 +19,7 @@ from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 
-__RCSID__ = "$Id: TargzJobLogAgent.py 81845 2015-03-06 15:32:57Z chaen $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = "DataManagement/TargzJobLogAgent"
 

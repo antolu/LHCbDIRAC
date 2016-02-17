@@ -7,7 +7,7 @@
 
 import unittest
 
-__RCSID__ = '$Id: Test_RSS_Policy_SLSPolicy.py 60771 2013-01-18 11:56:57Z ubeda $'
+__RCSID__ = "$Id$"
 
 class PolicyBase( object ):
   

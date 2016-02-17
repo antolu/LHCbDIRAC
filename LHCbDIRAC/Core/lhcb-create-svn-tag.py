@@ -6,7 +6,7 @@
 """
   Tag a new release in SVN
 """
-__RCSID__ = "$Id: lhcb-create-svn-tag.py 58933 2012-11-27 11:39:12Z ubeda $"
+__RCSID__ = "$Id$"
 
 from DIRAC import S_OK, gLogger
 from DIRAC.Core.Base      import Script

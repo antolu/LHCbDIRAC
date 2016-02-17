@@ -5,7 +5,7 @@
     :synopsis: clean up of finalised transformations
 """
 
-__RCSID__ = "$Id: TransformationCleaningAgent.py 80545 2015-01-09 09:58:02Z fstagni $"
+__RCSID__ = "$Id$"
 
 # # from DIRAC
 from DIRAC                                                        import S_OK, S_ERROR, gConfig

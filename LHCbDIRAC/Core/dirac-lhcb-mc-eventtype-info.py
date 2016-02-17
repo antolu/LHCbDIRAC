@@ -7,7 +7,7 @@
 """
   Report sisters (i.e. descendant of ancestor) for the given LFNs
 """
-__RCSID__ = "$Id: dirac-bookkeeping-get-file-sisters.py 60156 2012-12-19 14:48:55Z phicharp $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script

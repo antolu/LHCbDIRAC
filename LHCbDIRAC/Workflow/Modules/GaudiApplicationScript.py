@@ -7,7 +7,7 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id: GaudiApplicationScript.py 82023 2015-03-23 14:22:01Z fstagni $"
+__RCSID__ = "$Id$"
 
 import re
 import os

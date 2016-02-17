@@ -2,7 +2,7 @@
     (which is done in the uploadOutput)
 """
 
-__RCSID__ = "$Id: BookkeepingReport.py 86262 2015-11-09 16:18:11Z phicharp $"
+__RCSID__ = "$Id$"
 
 import os
 import time

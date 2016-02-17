@@ -4,7 +4,7 @@ Debug files status for a (list of) transformations
 It is possible to do minor fixes to those files, using options
 """
 
-__RCSID__ = "$transID: dirac-transformation-debug.py 61232 2013-01-28 16:29:21Z phicharp $"
+__RCSID__ = "$Id$"
 
 import sys, os
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript

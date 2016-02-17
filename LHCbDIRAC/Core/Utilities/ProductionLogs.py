@@ -1,7 +1,7 @@
 """ Utilities to check the application log files (for production jobs)
 """
 
-__RCSID__ = "$Id: ProductionLogs.py 82907 2015-05-28 15:30:44Z fstagni $"
+__RCSID__ = "$Id$"
 
 import re, os
 from DIRAC import gLogger

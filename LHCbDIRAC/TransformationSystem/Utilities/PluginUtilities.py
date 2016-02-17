@@ -1,7 +1,7 @@
 """
   Utilities for scripts dealing with transformations
 """
-__RCSID__ = "$Id: PluginUtilities.py 87195 2016-01-26 09:37:08Z phicharp $"
+__RCSID__ = "$Id$"
 
 import os
 import datetime

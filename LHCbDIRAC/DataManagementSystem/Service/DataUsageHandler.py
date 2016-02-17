@@ -16,7 +16,7 @@ from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
 # # RCSID
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 # global instance of the StorageUsageDB class
 gStorageUsageDB = False

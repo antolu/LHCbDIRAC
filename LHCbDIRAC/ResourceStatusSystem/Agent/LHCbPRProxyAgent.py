@@ -2,7 +2,7 @@
 LHCbDIRAC/ResourceStatusSystem/Agent/LHCbPRProxyAgent.py
 """
 
-__RCSID__ = ""
+__RCSID__ = "$Id$"
 
 # First, pythonic stuff
 import os

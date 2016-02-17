@@ -17,7 +17,7 @@ from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
 from DIRAC.Core.Utilities.Proxy import executeWithUserProxy
 
 
-__RCSID__ = "$Id: UsersAndGroups.py 87277 2016-02-11 13:52:52Z joel $"
+__RCSID__ = "$Id$"
 
 class UsersAndGroups( AgentModule ):
 

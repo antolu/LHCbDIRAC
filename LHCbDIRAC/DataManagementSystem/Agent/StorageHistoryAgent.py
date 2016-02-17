@@ -6,7 +6,7 @@
       can be inserted in a new DB table and made visible via the web portal.
 '''
 
-__RCSID__ = "$Id: StorageHistoryAgent.py 85276 2015-08-26 12:26:03Z phicharp $"
+__RCSID__ = "$Id$"
 
 import os, time, copy
 from types import IntType, StringType

@@ -9,7 +9,7 @@ Base Entity System Manager
 
 from DIRAC                                                                import gLogger, S_OK, S_ERROR
 import os
-__RCSID__ = "$Id: BaseESManager.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class BaseESManager:

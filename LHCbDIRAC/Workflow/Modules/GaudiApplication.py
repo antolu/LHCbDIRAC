@@ -2,7 +2,7 @@
     executes gaudirun with the right options
 """
 
-__RCSID__ = "$Id: GaudiApplication.py 83760 2015-06-23 17:12:39Z fstagni $"
+__RCSID__ = "$Id$"
 
 import sys
 import re

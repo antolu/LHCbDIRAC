@@ -24,7 +24,7 @@
      AZ 10.14: merged with a part from RequestTrackingAgent to avoid race conditions
 """
 
-__RCSID__ = "$Id: ProductionStatusAgent.py 85139 2015-08-20 14:29:46Z fstagni $"
+__RCSID__ = "$Id$"
 
 import time
 

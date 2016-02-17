@@ -12,7 +12,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import 
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 from PyQt4.QtGui                                                         import QMessageBox
 
-__RCSID__ = "$Id: ControlerAdvancedSave.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerAdvancedSave(ControlerAbstract):

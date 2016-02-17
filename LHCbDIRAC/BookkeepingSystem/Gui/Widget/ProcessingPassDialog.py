@@ -13,7 +13,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_ProcessingPassDialog           im
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TabWidget                         import TabWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerProcessingPassDialog  import ControlerProcessingPassDialog
 
-__RCSID__ = "$Id: ProcessingPassDialog.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ProcessingPassDialog(QDialog, Ui_ProcessingPassDialog):

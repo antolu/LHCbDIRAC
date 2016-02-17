@@ -10,7 +10,7 @@ from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
 
 from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage  import DataStorage
 
-__RCSID__ = "$Id: DataStoragePlotter.py 76559 2014-06-26 08:08:07Z fstagni $"
+__RCSID__ = "$Id$"
 
 #FIXME: refactor _reportMethods
 #FIXME: refactor _plotMethods

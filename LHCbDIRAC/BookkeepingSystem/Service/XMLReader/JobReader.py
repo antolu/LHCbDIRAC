@@ -21,7 +21,7 @@ from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.Quality                  
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.QualityParameters          import QualityParameters
 from DIRAC                                                                        import gLogger
 
-__RCSID__ = "$Id: JobReader.py 55878 2012-09-05 16:08:28Z zmathe $"
+__RCSID__ = "$Id$"
 
 
 class JobReader:

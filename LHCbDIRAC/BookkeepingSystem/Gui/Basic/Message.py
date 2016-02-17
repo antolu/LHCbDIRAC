@@ -5,7 +5,7 @@ This Message used by the controllers to deliver information
 # $Id: Message.py 54002 2012-06-29 09:01:26Z zmathe $
 ########################################################################
 
-__RCSID__ = "$Id: Message.py 54002 2012-06-29 09:01:26Z zmathe $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class Message(dict):

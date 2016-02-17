@@ -19,7 +19,7 @@
     - Mark the recovered input file status as 'Unused' in the ProductionDB
 """
 
-__RCSID__ = '$Id: DataRecoveryAgent.py 84918 2015-08-17 14:15:46Z fstagni $'
+__RCSID__ = "$Id$"
 
 import datetime
 

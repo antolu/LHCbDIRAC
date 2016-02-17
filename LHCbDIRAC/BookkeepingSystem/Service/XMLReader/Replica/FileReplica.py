@@ -9,7 +9,7 @@ stores the file parameters
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Replica.Replica    import Replica
 from DIRAC                                                               import gLogger
 
-__RCSID__ = "$Id: FileReplica.py 54098 2012-07-02 16:43:53Z zmathe $"
+__RCSID__ = "$Id$"
 
 class FileReplica(Replica):
   """

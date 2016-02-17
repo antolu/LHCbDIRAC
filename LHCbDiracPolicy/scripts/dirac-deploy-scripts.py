@@ -3,7 +3,7 @@
 """
 Deploy all scripts and extensions
 """
-__RCSID__ = "$Id: dirac-deploy-scripts.py 53280 2012-06-18 08:58:37Z joel $"
+__RCSID__ = "$Id$"
 
 import os
 import shutil

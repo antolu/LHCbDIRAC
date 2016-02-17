@@ -10,7 +10,7 @@ from DIRAC.ResourceStatusSystem.Client.ResourceManagementClient import \
      ResourceManagementClient as DIRACResourceManagementClient
 from DIRAC.ResourceStatusSystem.Utilities import CSHelpers
 
-__RCSID__ = '$Id: ResourceManagementClient.py 85256 2015-08-25 16:45:17Z fstagni $'
+__RCSID__ = "$Id$"
 
 class ResourceManagementClient( DIRACResourceManagementClient ):
   """

@@ -1,6 +1,6 @@
 """ File utilities module (e.g. make GUIDs)
 """
-__RCSID__ = "$Id: File.py 42387 2011-09-07 13:53:37Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.File              import makeGuid as DIRACMakeGUID

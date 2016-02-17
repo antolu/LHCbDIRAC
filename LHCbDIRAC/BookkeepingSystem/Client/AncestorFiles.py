@@ -10,7 +10,7 @@
       and new BK but now could most likely be refactored into the BK client.
 """
 
-__RCSID__ = "$Id: AncestorFiles.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC import gLogger, S_OK, S_ERROR
 

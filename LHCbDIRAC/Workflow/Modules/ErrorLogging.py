@@ -6,7 +6,7 @@
     error suite any failures will not be propagated to the workflow.
 """
 
-__RCSID__ = "$Id: ErrorLogging.py 74045 2014-02-10 12:27:34Z chaen $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Utilities.Subprocess                       import shellCall
 

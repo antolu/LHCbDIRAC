@@ -12,7 +12,7 @@ from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
 from LHCbDIRAC.AccountingSystem.Client.Types.SpaceToken   import SpaceToken
 
 
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 
 
 class SpaceTokenPlotter( BaseReporter ):

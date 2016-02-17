@@ -15,7 +15,7 @@ from DIRAC                                                               import 
 from PyQt4.QtGui   import QMessageBox
 from PyQt4.QtCore  import Qt
 import types
-__RCSID__ = "$Id: ControlerTree.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerTree(ControlerAbstract):

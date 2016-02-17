@@ -2,7 +2,7 @@
     defined in the user workflow.
 """
 
-__RCSID__ = "$Id: UserJobFinalization.py 82048 2015-03-25 09:15:43Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os
 import random

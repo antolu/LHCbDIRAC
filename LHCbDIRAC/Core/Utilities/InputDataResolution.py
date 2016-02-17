@@ -8,7 +8,7 @@
 
 """
 
-__RCSID__ = "$Id: InputDataResolution.py 81968 2015-03-18 07:33:27Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                                          import S_OK
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice

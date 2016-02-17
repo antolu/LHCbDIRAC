@@ -4,7 +4,7 @@
     use by workflow modules or client tools.
 """
 
-__RCSID__ = "$Id: ProductionEnvironment.py 86093 2015-10-23 15:29:47Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os
 import shutil
@@ -129,7 +129,7 @@ def createDebugScript( name, command, env = None, postExecution = '',
   if not env:
     env = dict( os.environ )
 
-  version = __RCSID__
+  version = "$Id$"
   if os.path.exists( name ):
     os.remove( name )
 

@@ -16,7 +16,7 @@ from types import DictType, ListType, IntType, StringTypes
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 
-__RCSID__ = "$Id: RunDBInterfaceHandler.py 58955 2012-11-27 11:58:17Z ubeda $"
+__RCSID__ = "$Id$"
 
 allRunFields = [ 'runID', 'fillID', 'state', 'runType', 'partitionName', 'partitionID', 
                  'startTime', 'endTime', 'destination', 'startLumi', 'endLumi', 'beamEnergy']

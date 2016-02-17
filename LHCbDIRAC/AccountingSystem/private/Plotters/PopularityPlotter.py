@@ -10,7 +10,7 @@ from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
 
 from LHCbDIRAC.AccountingSystem.Client.Types.Popularity import Popularity
 
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 
 #FIXME: refactor _reportMethods
 #FIXME: refactor _plotMethods

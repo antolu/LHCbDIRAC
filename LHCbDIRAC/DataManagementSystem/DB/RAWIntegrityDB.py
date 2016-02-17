@@ -2,7 +2,7 @@
     It offers a simple interface to add files, get files and modify their status.
 """
 
-__RCSID__ = "$Id: RAWIntegrityDB.py 82170 2015-04-02 13:16:39Z fstagni $"
+__RCSID__ = "$Id$"
 
 import types
 

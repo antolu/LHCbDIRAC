@@ -1,7 +1,7 @@
 """ Module to upload specified job output files according to the parameters defined in the production workflow.
 """
 
-__RCSID__ = "$Id: UploadOutputData.py 83927 2015-06-26 11:49:31Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os
 import random

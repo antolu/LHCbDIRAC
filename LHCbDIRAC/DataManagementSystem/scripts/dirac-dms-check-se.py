@@ -3,7 +3,7 @@
     Check if all files have a replica in a certain (set of) SE )Tier1-ARCHIVE default)
     List the files that don't have a replica in the specified SE (group)
 '''
-__RCSID__ = "$Id: dirac-dms-check-fc2se.py 69455 2013-08-14 08:42:29Z phicharp $"
+__RCSID__ = "$Id$"
 
 
 

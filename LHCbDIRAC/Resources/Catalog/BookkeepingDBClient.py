@@ -1,7 +1,7 @@
 """ Client for BookkeepingDB file catalog
 """
 
-__RCSID__ = "$Id: BookkeepingDBClient.py 84995 2015-08-18 15:04:55Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                                          import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient                                     import RPCClient

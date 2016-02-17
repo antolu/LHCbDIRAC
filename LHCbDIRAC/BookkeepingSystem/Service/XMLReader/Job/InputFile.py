@@ -8,7 +8,7 @@ stores the input files
 
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.File                       import File
 
-__RCSID__ = "$Id: InputFile.py 54098 2012-07-02 16:43:53Z zmathe $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class InputFile(File):

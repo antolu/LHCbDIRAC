@@ -2,7 +2,7 @@
 """ Get statistics on productions related to a given processing pass
 """
 
-__RCSID__ = "$Id: dirac-production-stats.py 76600 2014-06-27 08:49:36Z fstagni $"
+__RCSID__ = "$Id$"
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProcessingProgress import ProcessingProgress, HTMLProgressTable
 

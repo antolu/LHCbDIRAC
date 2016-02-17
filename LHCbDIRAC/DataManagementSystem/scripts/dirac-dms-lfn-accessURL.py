@@ -4,7 +4,7 @@
   Retrieve an access URL for an LFN replica given a valid DIRAC SE.
 """
 
-__RCSID__ = "$Id: dirac-dms-lfn-accessURL.py 77198 2014-08-11 14:19:06Z phicharp $"
+__RCSID__ = "$Id$"
 
 
 from DIRAC.Core.Base import Script

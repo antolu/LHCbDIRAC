@@ -3,7 +3,7 @@
 Get the GUID of a (set of) ROOT file
 The file can be either local, an LFN or an xrootd URL (root:...)
 """
-__RCSID__ = "$Id: dirac-lhcb-get-root-guid.py 74028 2014-02-06 14:55:53Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base                                      import Script
 Script.setUsageMessage( '\n'.join( [ __doc__,

@@ -6,7 +6,7 @@ import unittest
 
 import LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient as moduleTested
 
-__RCSID__ = '$Id: Test_RSS_Client_ResourceManagementClient.py 60774 2013-01-18 12:09:07Z ubeda $'
+__RCSID__ = "$Id$"
 
 ################################################################################
 

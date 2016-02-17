@@ -7,7 +7,7 @@
 """
   returns ancestors for a (list of) LFN(s)
 """
-__RCSID__ = "$Id: dirac-bookkeeping-get-file-ancestors.py 87262 2016-02-11 11:54:10Z phicharp $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult, ProgressBar

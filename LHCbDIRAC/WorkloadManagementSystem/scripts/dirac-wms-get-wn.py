@@ -6,7 +6,7 @@
 """
   Get WNs for a selection of jobs
 """
-__RCSID__ = "$Id: dirac-bookkeeping-file-metadata.py 65177 2013-04-22 15:24:07Z phicharp $"
+__RCSID__ = "$Id$"
 import DIRAC
 import  DIRAC.Core.Base.Script as Script
 

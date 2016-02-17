@@ -2,7 +2,7 @@
 """
   For a given LFN directory, check the files that are registered in the LFC and checks that they exist on the SE, and in Bookkeeping, with the  correct ReplicaFlag """
 
-__RCSID__ = "$Id: dirac-dms-check-directory-content.py 81845 2015-03-06 15:32:57Z chaen $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script

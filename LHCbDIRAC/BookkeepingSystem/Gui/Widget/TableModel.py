@@ -11,7 +11,7 @@ from PyQt4.QtCore                import Qt, SIGNAL, QAbstractTableModel, QVarian
 
 import operator, datetime
 
-__RCSID__ = "$Id: TableModel.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class TableModel(QAbstractTableModel):

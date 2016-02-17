@@ -8,7 +8,7 @@ from DIRAC.Core.Base.AgentModule                          import AgentModule
 from DIRAC.Core.DISET.RPCClient                           import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 
-__RCSID__ = "$Id: RequestTrackingAgent.py 79845 2014-12-04 10:15:58Z fstagni $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'ProductionManagement/RequestTrackingAgent'
 

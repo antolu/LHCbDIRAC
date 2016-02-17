@@ -6,7 +6,7 @@ import json
 import datetime
 
 
-__RCSID__ = " "
+__RCSID__ = "$Id$"
 
 class JSONDateTimeEncoder( json.JSONEncoder ):
     

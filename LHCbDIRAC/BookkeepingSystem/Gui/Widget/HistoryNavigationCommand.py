@@ -6,7 +6,7 @@ history navigation command
 ########################################################################
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Command                      import Command
-__RCSID__ = "$Id: HistoryNavigationCommand.py 54014 2012-06-29 14:05:43Z zmathe $"
+__RCSID__ = "$Id$"
 
 
 ########################################################################

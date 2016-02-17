@@ -1,4 +1,4 @@
-#__RCSID__ = "$Id:  $"
+#__RCSID__ = "$Id$"
 #
 #import unittest, itertools, copy
 #import re

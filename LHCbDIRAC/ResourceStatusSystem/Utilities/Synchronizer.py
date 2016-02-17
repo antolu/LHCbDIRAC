@@ -7,7 +7,7 @@
 
 from DIRAC.ResourceStatusSystem.Utilities.Synchronizer   import Synchronizer as DIRACSyncrhonizer
 
-__RCSID__  = '$Id: Synchronizer.py 80175 2014-12-16 17:36:38Z fstagni $'
+__RCSID__ = "$Id$"
 
 class Synchronizer( DIRACSyncrhonizer ):
   '''

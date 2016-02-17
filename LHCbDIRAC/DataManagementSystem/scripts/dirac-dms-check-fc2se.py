@@ -12,7 +12,7 @@
       Not existing in SE: remove replica or file from the catalog
       Bad checksum: remove replica or file from SE and catalogs if no good replica
 '''
-__RCSID__ = "$Id: dirac-dms-check-fc2se.py 69455 2013-08-14 08:42:29Z phicharp $"
+__RCSID__ = "$Id$"
 
 
 

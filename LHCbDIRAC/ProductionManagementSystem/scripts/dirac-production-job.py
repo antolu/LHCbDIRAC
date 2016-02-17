@@ -25,7 +25,7 @@ from DIRAC.Core.Base import Script
 from DIRAC           import gLogger, exit as DiracExit
 
 
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 
 
 # Place holders for lazy imports................................................

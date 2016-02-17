@@ -21,7 +21,7 @@ from DIRAC.Core.DISET.TransferClient import TransferClient
 from LHCbDIRAC.BookkeepingSystem.Client                                           import JEncoder
 
 
-__RCSID__ = "$Id: BookkeepingClient.py 86697 2015-12-14 08:35:38Z zmathe $"
+__RCSID__ = "$Id$"
 
 class BookkeepingClient( object ):
   """ This class expose the methods of the Bookkeeping Service"""

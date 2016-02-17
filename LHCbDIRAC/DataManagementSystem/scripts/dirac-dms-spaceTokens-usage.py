@@ -4,7 +4,7 @@
       File Catalogue, Storage dumps, SRM interface
 """
 
-__RCSID__ = "$Id: dirac-dms-spaceTokens-usage.py 78957 2014-10-31 11:02:44Z fstagni $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 unit = 'TB'

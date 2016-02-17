@@ -9,7 +9,7 @@ from DIRAC.ConfigurationSystem.Client import PathFinder
 from DIRAC.Resources.Utilities import checkArgumentFormat
 from DIRAC.Core.Base.Client import Client
 
-__RCSID__ = '$Id: RAWIntegrityClient.py 85474 2015-09-07 11:50:44Z chaen $'
+__RCSID__ = "$Id$"
 
 class RAWIntegrityClient( Client ):
 

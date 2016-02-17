@@ -1,7 +1,7 @@
 """ Simple extension of base class
 """
 
-__RCSID__ = "$Id: ValidateOutputDataAgent.py 77919 2014-09-16 16:39:02Z fstagni $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'Transformation/ValidateOutputDataAgent'
 

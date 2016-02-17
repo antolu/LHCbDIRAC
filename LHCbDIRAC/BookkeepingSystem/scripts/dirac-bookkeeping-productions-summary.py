@@ -6,7 +6,7 @@
 """
   Retrieve production summary from the Bookkeeping
 """
-__RCSID__ = "$Id: dirac-bookkeeping-productions-summary.py 79954 2014-12-08 10:18:59Z phicharp $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script

@@ -1,7 +1,7 @@
 """ Extension of DIRAC Task Manager
 """
 
-__RCSID__ = "$Id: TaskManager.py 80982 2015-01-22 17:59:35Z fstagni $"
+__RCSID__ = "$Id$"
 
 COMPONENT_NAME = 'LHCbTaskManager'
 

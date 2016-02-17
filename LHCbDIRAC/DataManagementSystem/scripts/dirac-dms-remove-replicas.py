@@ -6,7 +6,7 @@
 Remove replicas of a (list of) LFNs at a list of sites. It is possible to request a minimum of remaining replicas
 """
 
-__RCSID__ = "$Id: dirac-dms-remove-replicas.py 85269 2015-08-26 07:58:09Z phicharp $"
+__RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 

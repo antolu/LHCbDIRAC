@@ -4,7 +4,7 @@
 
 from DIRAC.AccountingSystem.Client.Types.BaseAccountingType import BaseAccountingType
 
-__RCSID__ = "$Id: DataStorage.py 72479 2013-12-11 09:50:20Z zmathe $"
+__RCSID__ = "$Id$"
 
 class DataStorage( BaseAccountingType ):
   '''

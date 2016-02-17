@@ -1,7 +1,7 @@
 """ ProductionRequestHandler is the implementation of the Production Request service
 """
 
-__RCSID__ = "$Id: ProductionRequestHandler.py 82050 2015-03-25 10:13:19Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os
 import re

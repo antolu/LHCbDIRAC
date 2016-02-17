@@ -9,7 +9,7 @@
 from DIRAC.AccountingSystem.Client.Types.BaseAccountingType import BaseAccountingType
 
 
-__RCSID__ = '$Id: $'
+__RCSID__ = "$Id$"
 
 
 class SpaceToken( BaseAccountingType ):
