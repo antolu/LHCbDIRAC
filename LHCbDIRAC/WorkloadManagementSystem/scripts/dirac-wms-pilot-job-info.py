@@ -7,7 +7,7 @@
 """
   Retrieve info about jobs run by the given pilot
 """
-__RCSID__ = "$Id: dirac-admin-get-pilot-output.py 18161 2009-11-11 12:07:09Z acasajus $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script

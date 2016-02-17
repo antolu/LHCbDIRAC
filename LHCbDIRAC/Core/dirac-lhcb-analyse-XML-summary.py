@@ -2,7 +2,7 @@
 """
   Perform comprehensive checks on the supplied log file if it exists.
 """
-__RCSID__ = "$Id: dirac-lhcb-analyse-XML-summary.py 69533 2013-08-19 15:23:57Z fstagni $"
+__RCSID__ = "$Id$"
 
 
 import DIRAC

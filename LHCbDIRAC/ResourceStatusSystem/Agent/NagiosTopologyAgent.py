@@ -13,7 +13,7 @@ import xml.dom.minidom
 from DIRAC                                               import S_OK, rootPath, gLogger, gConfig
 from DIRAC.Core.Base.AgentModule                         import AgentModule
 
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
 
 class NagiosTopologyAgent( AgentModule ):

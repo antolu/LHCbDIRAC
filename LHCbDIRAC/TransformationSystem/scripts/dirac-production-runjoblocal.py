@@ -10,7 +10,7 @@
     dirac-production-runjoblocal (job ID) (Data imput mode) -  No parenthesis
     
 '''
-__RCSID__ = "$transID: dirac-production-runjoblocal.py 61232 2015-09-22 16:20:00 msoares $"
+__RCSID__ = "$Id$"
 
 
 import DIRAC

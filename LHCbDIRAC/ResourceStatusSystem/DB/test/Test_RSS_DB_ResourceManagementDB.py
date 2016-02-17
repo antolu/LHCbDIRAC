@@ -6,7 +6,7 @@ import unittest
 
 import LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB as moduleTested
 
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 
 ################################################################################
 

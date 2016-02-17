@@ -8,7 +8,7 @@
 from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import \
   ResourceManagementDB as DIRACResourceManagementDB
   
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 
 class ResourceManagementDB( DIRACResourceManagementDB ):
   '''

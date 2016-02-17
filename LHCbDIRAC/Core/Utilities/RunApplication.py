@@ -1,7 +1,7 @@
 """ Utility for invoking running LHCb applications
 """
 
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 import sys
 import re

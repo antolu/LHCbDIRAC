@@ -4,7 +4,7 @@
  Set files Removed in a transformation
 """
 
-__RCSID__ = "$Id: dirac-transformation-remove-files.py 84676 2015-08-06 15:59:57Z phicharp $"
+__RCSID__ = "$Id$"
 
 def __getTransformations( args ):
   transList = []

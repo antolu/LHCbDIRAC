@@ -8,7 +8,7 @@ List model used for all table widgets
 ########################################################################
 from PyQt4.QtCore import Qt, QVariant, QAbstractListModel, QModelIndex
 from DIRAC import gLogger
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 class ListModel(QAbstractListModel):
   """List Model class"""

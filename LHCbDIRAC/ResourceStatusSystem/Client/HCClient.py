@@ -8,7 +8,7 @@
 #
 #from datetime import datetime
 #
-#__RCSID__ = '$Id$'
+#__RCSID__ = "$Id$"
 #
 #def checkInt( name, value ):
 #  '''

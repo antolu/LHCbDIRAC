@@ -4,7 +4,7 @@
 """
 
 
-__RCSID__ = "$Id: "
+__RCSID__ = "$Id$"
 
 import os, sys
 if os.getenv( 'X509_CERT_DIR' ) == None:

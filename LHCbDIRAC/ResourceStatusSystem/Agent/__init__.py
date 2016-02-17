@@ -1,7 +1,7 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Agent package
 '''
 
-__RCSID__  = '$Id$'
+__RCSID__ = "$Id$"
 
 #...............................................................................
 #EOF

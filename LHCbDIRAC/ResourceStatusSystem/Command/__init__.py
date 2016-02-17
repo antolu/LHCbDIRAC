@@ -2,7 +2,7 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Command package
 '''
 
-__RCSID__  = '$Id$'
+__RCSID__ = "$Id$"
 
 #...............................................................................
 #EOF

@@ -129,7 +129,7 @@ def createDebugScript( name, command, env = None, postExecution = '',
   if not env:
     env = dict( os.environ )
 
-  version = __RCSID__
+  version = "$Id$"
   if os.path.exists( name ):
     os.remove( name )
 

@@ -7,7 +7,7 @@
 """
   It returns the job meta data for a given list of LFNs
 """
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult

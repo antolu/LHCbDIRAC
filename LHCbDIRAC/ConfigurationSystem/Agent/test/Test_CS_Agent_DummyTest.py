@@ -4,7 +4,7 @@
 
 import unittest
 
-__RCSID__ = '$Id: $'
+__RCSID__ = "$Id$"
 
 class DummyTest_TestCase( unittest.TestCase ): pass
 

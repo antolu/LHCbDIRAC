@@ -23,7 +23,7 @@ DATA_JOB_TYPES = [ '^Data' ]
 USER_JOB_TYPES = [ 'user' ]
 SAM_JOB_TYPES = [ 'sam', 'test' ]
 
-__RCSID__  = '$Id$'
+__RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatusSystem/GridSiteWMSMonitoringAgent'
 
 class GridSiteWMSMonitoringAgent( AgentModule ):

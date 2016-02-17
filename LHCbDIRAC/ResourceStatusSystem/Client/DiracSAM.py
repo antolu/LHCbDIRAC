@@ -3,7 +3,7 @@
     The Dirac SAM class inherits generic VO functionality from the Dirac API base class.
 """
 
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteCEMapping                  import getCESiteMapping

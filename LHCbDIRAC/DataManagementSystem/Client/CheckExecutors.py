@@ -2,7 +2,7 @@
 Set of functions used by the DMS checking scripts
 """
 
-__RCSID__ = "$Id: CheckExecutors.py 76721 2014-07-22 08:05:22Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC import gLogger
 from DIRAC.Core.Utilities.List import breakListIntoChunks

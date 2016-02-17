@@ -16,7 +16,7 @@ from DIRAC.ResourceStatusSystem.Utilities                          import CSHelp
 from LHCbDIRAC.AccountingSystem.Client.Types.SpaceToken            import SpaceToken
 
 
-__RCSID__ = '$Id:  $'
+__RCSID__ = "$Id$"
 
 
 class SpaceTokenOccupancyCommand( STOC ):

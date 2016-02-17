@@ -8,7 +8,7 @@
 
 from DIRAC.ResourceStatusSystem.Policy.Configurations import POLICIESMETA
 
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 
 #...............................................................................
 # LHCb Policies

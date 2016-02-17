@@ -2,7 +2,7 @@
 
 """
 
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 
 import glob
 import os

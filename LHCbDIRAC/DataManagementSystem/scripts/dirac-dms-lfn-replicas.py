@@ -7,7 +7,7 @@
     Show replicas for a (set of) LFNs
 """
 __RCSID__ = "$Id$"
-__VERSION__ = "$Revision$"
+__VERSION__ = "$Revision: 86918 $"
 
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript

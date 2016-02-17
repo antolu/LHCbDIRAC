@@ -3,7 +3,7 @@
     Set a (set of) LFNs as problematic in the FC and in the BK and transformation system if all replicas are problematic
 """
 __RCSID__ = "$Id$"
-__VERSION__ = "$Revision$"
+__VERSION__ = "$Revision: 87258 $"
 
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript

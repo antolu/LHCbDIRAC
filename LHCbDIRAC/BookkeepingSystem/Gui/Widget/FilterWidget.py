@@ -13,7 +13,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.FilterListModel                impor
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerFilterWidget       import ControlerFilterWidget
 
 
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class FilterWidget(QWidget, Ui_FilterWidget):

@@ -10,7 +10,7 @@
 #from LHCbDIRAC.ResourceStatusSystem.Client.HCClient                 import HCClient
 #from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 #
-#__RCSID__ = '$Id$'
+#__RCSID__ = "$Id$"
 #
 #class HCCommand( Command ):
 #  

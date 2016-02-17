@@ -7,7 +7,7 @@
 
 import unittest
 
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 
 class PolicyBase( object ):
   

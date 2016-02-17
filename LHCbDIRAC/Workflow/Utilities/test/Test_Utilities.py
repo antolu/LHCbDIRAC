@@ -1,7 +1,7 @@
 """ UnitTest class for LHCbDIRAC Interfaces/API
 """
 
-__RCSID__ = "$Id"
+__RCSID__ = "$Id$"
 
 import unittest
 

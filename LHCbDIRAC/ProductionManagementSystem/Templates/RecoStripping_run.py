@@ -13,7 +13,7 @@
     * run only part of the request on the Grid:
 """
 
-__RCSID__ = "$Id: RecoStripping_run.py 53649 2012-06-25 12:23:13Z fstagni $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()

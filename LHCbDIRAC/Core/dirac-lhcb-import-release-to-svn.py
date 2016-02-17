@@ -5,7 +5,7 @@
 """
   Import DIRAC releases from git into SVN
 """
-__RCSID__ = "$Id: dirac-lhcb-import-release-to-svn.py 58933 2012-11-27 11:39:12Z ubeda $"
+__RCSID__ = "$Id$"
 
 import sys, tempfile, os, imp, shutil
 

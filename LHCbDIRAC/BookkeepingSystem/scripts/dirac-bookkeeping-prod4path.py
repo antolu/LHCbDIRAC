@@ -3,7 +3,7 @@
    Get production numbers given a dataset path
 """
 
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 from DIRAC import gLogger, exit

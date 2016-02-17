@@ -6,8 +6,8 @@
 """
   Set the Agent Type for a(the) given transformation(s)
 """
-__RCSID__   = "$Id$"
-__VERSION__ = "$Revision$"
+__RCSID__ = "$Id$"
+__VERSION__ = "$Revision: 71758 $"
 import DIRAC
 from DIRAC.Core.Base import Script
 

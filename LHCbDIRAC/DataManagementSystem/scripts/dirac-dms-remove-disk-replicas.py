@@ -6,7 +6,7 @@
 Remove replicas of a (list of) LFNs from all non-ARCHIVE storage elements
 """
 
-__RCSID__ = "$Id: dirac-dms-remove-replicas.py 75301 2014-03-28 17:14:33Z phicharp $"
+__RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 

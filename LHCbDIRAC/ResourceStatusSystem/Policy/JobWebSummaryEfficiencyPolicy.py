@@ -8,7 +8,7 @@
 from DIRAC                                              import S_OK
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 
 class JobWebSummaryEfficiencyPolicy( PolicyBase ):
   '''

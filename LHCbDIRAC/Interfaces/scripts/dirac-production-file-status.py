@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 __RCSID__ = "$Id$"
-__VERSION__ = "$Revision$"
+__VERSION__ = "$Revision: 69333 $"
 import DIRAC
 from DIRAC.Core.Base import Script
 

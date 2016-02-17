@@ -20,6 +20,7 @@ from DIRAC.Core.DISET.RPCClient      import RPCClient
 from DIRAC.Core.DISET.TransferClient import TransferClient
 from LHCbDIRAC.BookkeepingSystem.Client                                           import JEncoder
 
+
 __RCSID__ = "$Id$"
 
 class BookkeepingClient( object ):

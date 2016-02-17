@@ -5,7 +5,7 @@
 import unittest
 import LHCbDIRAC.BookkeepingSystem.Client.BaseESManager as moduleTested
 
-__RCSID__ = '$Id: $'
+__RCSID__ = "$Id$"
 
 ################################################################################
 

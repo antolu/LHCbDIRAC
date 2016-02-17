@@ -14,7 +14,7 @@ from DIRAC.ResourceStatusSystem.Service.ResourceManagementHandler import Resourc
 from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB
 from LHCbDIRAC.ResourceStatusSystem.Utilities               import Synchronizer
 
-__RCSID__ = '$Id: $'
+__RCSID__ = "$Id$"
 db        = False
 
 def initializeResourceManagementHandler( _serviceInfo ):

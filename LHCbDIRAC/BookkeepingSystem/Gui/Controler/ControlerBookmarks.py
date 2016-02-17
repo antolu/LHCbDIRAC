@@ -6,7 +6,7 @@ Controlls the Bookmarks widget
 ########################################################################
 
 
-__RCSID__ = "$Id:$"
+__RCSID__ = "$Id$"
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message

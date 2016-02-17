@@ -19,7 +19,7 @@
     - Mark the recovered input file status as 'Unused' in the ProductionDB
 """
 
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 
 import datetime
 

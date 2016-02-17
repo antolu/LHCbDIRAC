@@ -7,8 +7,8 @@
   Start or stop the production(s)
 """
 
-__RCSID__   = "$Id$"
-__VERSION__ = "$Revision$"
+__RCSID__ = "$Id$"
+__VERSION__ = "$Revision: 71758 $"
 
 import DIRAC
 from DIRAC.Core.Base import Script

@@ -12,7 +12,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import 
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 
 from PyQt4.QtGui                                                         import QMessageBox
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerFilterWidget(ControlerAbstract):
