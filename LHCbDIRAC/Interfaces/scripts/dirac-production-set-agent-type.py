@@ -6,7 +6,7 @@
 """
   Set the Agent Type for a(the) given transformation(s)
 """
-__RCSID__   = "$Id: dirac-production-set-agent-type.py 71758 2013-11-19 17:26:25Z fstagni $"
+__RCSID__ = "$Id$"
 __VERSION__ = "$Revision: 71758 $"
 import DIRAC
 from DIRAC.Core.Base import Script

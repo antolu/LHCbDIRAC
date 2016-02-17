@@ -1,7 +1,7 @@
 """ LHCbDIRAC.ProductionManagementSystem.Utilities package
 """
 
-__RCSID__  = '$Id: $'
+__RCSID__ = "$Id$"
 
 #...............................................................................
 #EOF

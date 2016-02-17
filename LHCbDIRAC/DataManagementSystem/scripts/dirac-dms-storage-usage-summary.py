@@ -3,7 +3,7 @@
 """
   Get the storage usage summary for the given directories
 """
-__RCSID__ = "$Id: dirac-dms-storage-usage-summary.py 86556 2015-12-07 13:54:57Z phicharp $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script

@@ -8,7 +8,7 @@
     :synopsis: Lightweight possbile client to the StorageUsageDB.
 """
 
-__RCSID__ = "$Id: StorageUsageClient.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.Client import Client
 

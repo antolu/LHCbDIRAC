@@ -6,7 +6,7 @@
     DIRAC assumes an execute() method will exist during usage.
 """
 
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 
 from DIRAC import gConfig, gLogger, S_ERROR, S_OK

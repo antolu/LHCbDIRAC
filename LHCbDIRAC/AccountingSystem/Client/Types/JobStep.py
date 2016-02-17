@@ -4,7 +4,7 @@
 
 from DIRAC.AccountingSystem.Client.Types.BaseAccountingType import BaseAccountingType
 
-__RCSID__ = "$Id: JobStep.py 69325 2013-08-07 14:29:32Z ubeda $"
+__RCSID__ = "$Id$"
 
 class JobStep( BaseAccountingType ):
   '''

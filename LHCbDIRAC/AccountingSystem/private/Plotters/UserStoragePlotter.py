@@ -7,7 +7,7 @@ from DIRAC.AccountingSystem.private.Plotters.BaseReporter import BaseReporter
 
 from LHCbDIRAC.AccountingSystem.Client.Types.UserStorage  import UserStorage
 
-__RCSID__ = "$Id: UserStoragePlotter.py 79649 2014-11-28 11:42:09Z fstagni $"
+__RCSID__ = "$Id$"
 
 class UserStoragePlotter( BaseReporter ):
   """

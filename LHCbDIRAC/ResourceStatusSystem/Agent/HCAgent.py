@@ -2,7 +2,7 @@
 #LHCbDIRAC/ResourceStatusSystem/Agent/HCAgent.py
 #"""
 #
-#__RCSID__ = "$Id: HCAgent.py 48767 2012-03-15 11:12:46Z ubeda $"
+#__RCSID__ = "$Id$"
 #
 ## First, pythonic stuff
 ## ...

@@ -2,7 +2,7 @@
     for use after merged outputs have been successfully uploaded to an SE.
 """
 
-__RCSID__ = "$Id: RemoveInputData.py 76563 2014-06-26 09:22:49Z fstagni $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                          import S_OK, S_ERROR, gLogger
 from DIRAC.RequestManagementSystem.Client.Operation import Operation

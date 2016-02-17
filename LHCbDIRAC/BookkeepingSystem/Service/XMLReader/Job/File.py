@@ -6,7 +6,7 @@
 stores a file
 """
 
-__RCSID__ = "$Id: File.py 54098 2012-07-02 16:43:53Z zmathe $"
+__RCSID__ = "$Id$"
 
 class File:
   """

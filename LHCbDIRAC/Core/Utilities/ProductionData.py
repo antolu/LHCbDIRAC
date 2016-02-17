@@ -7,7 +7,7 @@
 
 """
 
-__RCSID__ = "$Id: ProductionData.py 83087 2015-06-04 15:50:01Z fstagni $"
+__RCSID__ = "$Id$"
 
 import re
 import os

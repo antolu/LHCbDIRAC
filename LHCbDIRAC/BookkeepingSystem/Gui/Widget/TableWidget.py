@@ -13,7 +13,7 @@ from PyQt4.QtGui   import QWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_TableWidget     import Ui_TableWidget
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerTable  import ControlerTable
 
-__RCSID__ = "$Id: TableWidget.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class TableWidget(QWidget, Ui_TableWidget):

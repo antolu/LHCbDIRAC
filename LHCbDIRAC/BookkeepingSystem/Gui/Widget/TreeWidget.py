@@ -16,7 +16,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.InfoDialog                 import In
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProcessingPassDialog       import ProcessingPassDialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.FileDialog                 import FileDialog
 
-__RCSID__ = "$Id: TreeWidget.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreePanel    import TreePanel
 

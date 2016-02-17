@@ -5,7 +5,7 @@
 """
   Remove the given file or a list of files from the File Catalog and from the storage
 """
-__RCSID__ = "$Id: dirac-dms-remove-files.py 86555 2015-12-07 13:53:50Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript

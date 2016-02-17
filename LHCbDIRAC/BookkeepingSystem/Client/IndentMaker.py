@@ -5,7 +5,7 @@
 Its ident the debug message
 """
 
-__RCSID__ = "$Id: IndentMaker.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 TAB = "\t"
 SPACE = " "
 DEFAULT = "___"

@@ -16,7 +16,7 @@ from DIRAC.Interfaces.API.DiracAdmin                 import DiracAdmin
 
 from LHCbDIRAC.ResourceStatusSystem.Agent.ShiftEmail import getBodyEmail
 
-__RCSID__  = '$Id: ShiftDBAgent.py 83225 2015-06-09 07:57:12Z joel $'
+__RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatus/ShiftDBAgent'
 
 class ShiftDBAgent( AgentModule ):

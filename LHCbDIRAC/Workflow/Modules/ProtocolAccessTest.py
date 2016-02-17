@@ -3,7 +3,7 @@
     It produced statistics on the observed performance of each of the protocols.
 """
 
-__RCSID__ = "$Id: ProtocolAccessTest.py 76842 2014-07-25 08:24:53Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os, shutil
 

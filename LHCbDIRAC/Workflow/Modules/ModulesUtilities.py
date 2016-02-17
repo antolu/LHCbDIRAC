@@ -1,7 +1,7 @@
 """ Just a module with some utilities
 """
 
-__RCSID__ = "$Id"
+__RCSID__ = "$Id$"
 
 import os, tarfile, math
 

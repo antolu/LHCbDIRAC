@@ -7,7 +7,7 @@ Controlles a table widget
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract import ControlerAbstract
 
-__RCSID__ = "$Id: ControlerTable.py 54002 2012-06-29 09:01:26Z zmathe $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerTable(ControlerAbstract):

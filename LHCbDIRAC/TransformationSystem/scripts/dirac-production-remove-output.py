@@ -2,7 +2,7 @@
 """ remove output of production
 """
 
-__RCSID__ = "$Id: dirac-production-remove-output.py 76577 2014-06-26 13:51:25Z fstagni $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()

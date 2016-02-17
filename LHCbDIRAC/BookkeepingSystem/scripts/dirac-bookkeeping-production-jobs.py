@@ -6,7 +6,7 @@
 """
   Retrieve from Bookkeeping the number of Jobs at each Site for a given Production
 """
-__RCSID__ = "$Id: dirac-bookkeeping-production-jobs.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 import DIRAC

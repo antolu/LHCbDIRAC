@@ -9,7 +9,7 @@ stores the data taking conditions
 
 from DIRAC                                                                  import gLogger
 
-__RCSID__ = "$Id: DataTakingConditions.py 54098 2012-07-02 16:43:53Z zmathe $"
+__RCSID__ = "$Id$"
 
 
 class DataTakingConditions:

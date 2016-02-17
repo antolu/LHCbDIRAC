@@ -2,7 +2,7 @@
    pythonic style. A tree ox XMLNodes.
 """
 
-__RCSID__ = "$Id: XMLTreeParser.py 76553 2014-06-25 15:06:20Z fstagni $"
+__RCSID__ = "$Id$"
 
 
 import xml.dom.minidom

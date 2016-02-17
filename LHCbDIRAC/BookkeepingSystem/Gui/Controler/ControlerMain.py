@@ -18,7 +18,7 @@ import sys
 
 from PyQt4.QtGui                                                         import QMessageBox
 
-__RCSID__ = "$Id: ControlerMain.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerMain(ControlerAbstract):

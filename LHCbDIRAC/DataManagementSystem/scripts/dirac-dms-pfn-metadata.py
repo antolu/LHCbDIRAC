@@ -7,7 +7,7 @@
   Gets the metadata of a (list of) LHCb LFNs/PFNs given a valid DIRAC SE.
   Only the LFN contained in the PFN is considered, unlike the DIRAC similar script
 """
-__RCSID__ = "$Id: dirac-dms-pfn-metadata.py 77175 2014-08-11 13:32:45Z phicharp $"
+__RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult
 

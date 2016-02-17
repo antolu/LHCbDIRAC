@@ -27,7 +27,7 @@ from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient import DataUsageClien
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 
-__RCSID__ = "$Id: PopularityAgent.py 80488 2015-01-07 08:44:08Z phicharp $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = "DataManagement/PopularityAgent"
 

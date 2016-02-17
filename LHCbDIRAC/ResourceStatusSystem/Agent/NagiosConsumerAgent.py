@@ -2,7 +2,7 @@
 #LHCbDIRAC/ResourceStatusSystem/Agent/NagiosConsumerAgent.py
 #"""
 #
-#__RCSID__ = "$Id: NagiosConsumerAgent.py 73285 2014-01-15 16:34:21Z fstagni $"
+#__RCSID__ = "$Id$"
 #
 ## First, pythonic stuff
 ## External package that allows to connect to ActiveMQ using stomp protocol

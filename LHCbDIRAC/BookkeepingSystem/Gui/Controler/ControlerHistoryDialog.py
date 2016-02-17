@@ -4,7 +4,7 @@ Controller of the history dialog window
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerHistoryDialog.py 58957 2012-11-27 12:07:05Z ubeda $"
+__RCSID__ = "$Id$"
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message

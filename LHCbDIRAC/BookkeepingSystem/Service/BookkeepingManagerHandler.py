@@ -6,7 +6,7 @@
 """ BookkeepingManaher service is the front-end to the Bookkeeping database
 """
 
-__RCSID__ = "$Id: BookkeepingManagerHandler.py 86697 2015-12-14 08:35:38Z zmathe $"
+__RCSID__ = "$Id$"
 
 from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                           import BookkeepingDatabaseClient
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.XMLFilesReaderManager                import XMLFilesReaderManager

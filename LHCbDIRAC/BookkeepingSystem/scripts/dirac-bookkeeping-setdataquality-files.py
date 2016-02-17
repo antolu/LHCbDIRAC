@@ -6,7 +6,7 @@
 """
   Set Quality Flag for the given files
 """
-__RCSID__ = "$Id: dirac-bookkeeping-setdataquality-files.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script

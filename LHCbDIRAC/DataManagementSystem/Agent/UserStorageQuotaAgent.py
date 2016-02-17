@@ -12,7 +12,7 @@ from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
-__RCSID__ = "$Id: UserStorageQuotaAgent.py 76842 2014-07-25 08:24:53Z fstagni $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'DataManagement/UserStorageQuotaAgent'
 

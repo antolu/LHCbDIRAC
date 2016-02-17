@@ -14,7 +14,7 @@ from LHCbDIRAC.Interfaces.API.LHCbJob                           import LHCbJob
 from LHCbDIRAC.TransformationSystem.Client.TaskManager          import LHCbWorkflowTasks
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
-__RCSID__ = "$Id: WorkflowTaskAgent.py 76585 2014-06-26 14:35:18Z fstagni $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'Transformation/WorkflowTaskAgent'
 

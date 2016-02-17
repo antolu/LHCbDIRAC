@@ -8,7 +8,7 @@ from DIRAC                                      import gLogger, S_OK, S_ERROR
 from DIRAC.Resources.Storage.StorageBase        import StorageBase
 #from stat                                       import *
 
-__RCSID__ = "$Id: LHCbOnlineStorage.py 85541 2015-09-08 12:20:34Z chaen $"
+__RCSID__ = "$Id$"
 
 class LHCbOnlineStorage( StorageBase ):
 

@@ -14,7 +14,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Item                          import 
 
 from PyQt4.QtGui                                                         import QMessageBox
 
-__RCSID__ = "$Id: ControlerProductionLookup.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerProductionLookup(ControlerAbstract):

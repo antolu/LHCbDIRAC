@@ -9,7 +9,7 @@ necessary mocks.
 import mock
 import unittest
 
-__RCSID__ = '$Id: $'
+__RCSID__ = "$Id$"
 
 # The following is the check to make sure it is in place
 #if mock.__version__ < '1.0.1':

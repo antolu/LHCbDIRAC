@@ -10,7 +10,7 @@ from DIRAC.Core.LCG.SAMResultsClient             import SAMResultsClient
 from DIRAC.Core.Utilities.SitesDIRACGOCDBmapping import getGOCSiteName
 from DIRAC.ResourceStatusSystem.Command.Command  import Command
 
-__RCSID__ = '$Id:  $'
+__RCSID__ = "$Id$"
 
 class SAMResultsCommand( Command ):
   '''

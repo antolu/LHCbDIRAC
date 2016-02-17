@@ -18,7 +18,7 @@ try:
 except AttributeError:
   _fromUtf8 = lambda s: s
 
-__RCSID__ = "$Id: TreePanel.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class TreePanel(QTreeWidget):

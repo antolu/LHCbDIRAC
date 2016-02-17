@@ -15,7 +15,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel                 import Ta
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerHistoryDialog  import ControlerHistoryDialog
 
 
-__RCSID__ = "$Id: HistoryDialog.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class HistoryDialog(QDialog, Ui_HistoryDialog):

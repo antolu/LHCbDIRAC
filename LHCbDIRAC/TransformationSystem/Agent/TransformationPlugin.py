@@ -1,6 +1,6 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
-__RCSID__ = "$Id: TransformationPlugin.py 87265 2016-02-11 12:16:52Z phicharp $"
+__RCSID__ = "$Id$"
 
 import time
 import datetime

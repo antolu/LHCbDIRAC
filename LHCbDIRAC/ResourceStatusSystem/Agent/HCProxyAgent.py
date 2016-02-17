@@ -2,7 +2,7 @@
 LHCbDIRAC/ResourceStatusSystem/Agent/HCProxyAgent.py
 """
 
-__RCSID__ = "$Id: HCProxyAgent.py 69322 2013-08-07 14:00:23Z ubeda $"
+__RCSID__ = "$Id$"
 
 # First, pythonic stuff
 import os

@@ -5,7 +5,7 @@ basic controller used
 # $Id: ControlerAbstract.py 54002 2012-06-29 09:01:26Z zmathe $
 ########################################################################
 
-__RCSID__ = "$Id: ControlerAbstract.py 54002 2012-06-29 09:01:26Z zmathe $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerAbstract(object):

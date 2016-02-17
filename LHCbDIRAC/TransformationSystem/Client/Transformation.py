@@ -1,7 +1,7 @@
 """ Client module to deal with transformations, but mostly dedicated to DataManipulation (e.g.: replications)
 """
 
-__RCSID__ = "$Id: Transformation.py 76242 2014-06-05 09:27:10Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                                      import gLogger, S_OK
 from DIRAC.TransformationSystem.Client.Transformation           import Transformation as DIRACTransformation

@@ -3,7 +3,7 @@ from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 import DIRAC
 
-__RCSID__ = "$Id: dirac-transformation-archive.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 
 import sys
 if len( sys.argv ) < 2:

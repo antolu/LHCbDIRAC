@@ -6,7 +6,7 @@
 """
   Retrieve files of a given type for a production
 """
-__RCSID__ = "$Id: dirac-bookkeeping-production-files.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Usage:',

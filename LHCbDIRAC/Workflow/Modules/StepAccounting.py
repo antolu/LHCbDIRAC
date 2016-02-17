@@ -3,7 +3,7 @@
     data
 """
 
-__RCSID__ = "$Id: StepAccounting.py 79727 2014-12-01 15:17:34Z fstagni $"
+__RCSID__ = "$Id$"
 
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.Utilities import Time

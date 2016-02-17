@@ -6,7 +6,7 @@
 reads the data quality
 """
 
-__RCSID__ = "$Id: Quality.py 54098 2012-07-02 16:43:53Z zmathe $"
+__RCSID__ = "$Id$"
 
 class Quality:
   """

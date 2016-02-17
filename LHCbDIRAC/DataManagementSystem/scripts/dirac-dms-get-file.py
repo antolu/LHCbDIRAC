@@ -7,7 +7,7 @@
 """
   Retrieve a single file or list of files from Grid storage to the current directory.
 """
-__RCSID__ = "$Id: dirac-dms-get-file.py 78038 2014-09-22 13:53:58Z chaen $"
+__RCSID__ = "$Id$"
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 from DIRAC.Core.Base import Script
 import os

@@ -6,7 +6,7 @@
 """
   Retrieve files of a BK query
 """
-__RCSID__ = "$Id: dirac-bookkeeping-get-files.py 83859 2015-06-25 12:12:40Z phicharp $"
+__RCSID__ = "$Id$"
 import DIRAC
 import os
 from DIRAC import gLogger

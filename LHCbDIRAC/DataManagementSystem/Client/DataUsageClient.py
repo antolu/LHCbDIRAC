@@ -14,7 +14,7 @@ from types import DictType, StringType, ListType, TupleType
 from DIRAC import S_ERROR
 from DIRAC.Core.Base.Client import Client
 
-__RCSID__ = "$Id: DataUsageClient.py 77691 2014-08-29 08:35:44Z phicharp $"
+__RCSID__ = "$Id$"
 
 class DataUsageClient( Client ):
   """

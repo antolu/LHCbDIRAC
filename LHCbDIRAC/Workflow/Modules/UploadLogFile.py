@@ -2,7 +2,7 @@
     directory.
 """
 
-__RCSID__ = "$Id: UploadLogFile.py 82023 2015-03-23 14:22:01Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os
 import shutil

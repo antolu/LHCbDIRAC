@@ -6,7 +6,7 @@
 """
   Retrieve files for a given run
 """
-__RCSID__ = "$Id: dirac-bookkeeping-run-files.py 76842 2014-07-25 08:24:53Z fstagni $"
+__RCSID__ = "$Id$"
 import DIRAC
 from DIRAC.Core.Base import Script
 

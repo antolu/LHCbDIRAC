@@ -12,7 +12,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_ProductionLookup               im
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProductionListModel               import ProductionListModel
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerProductionLookup      import ControlerProductionLookup
 
-__RCSID__ = "$Id: ProductionLookup.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ProductionLookup(QDialog, Ui_ProductionLookup):

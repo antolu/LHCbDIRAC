@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """ Fix incorrect file GUIDs
 """
-__RCSID__ = "$Id: dirac-lhcb-fix-file-guid.py 76566 2014-06-26 09:48:30Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os
 

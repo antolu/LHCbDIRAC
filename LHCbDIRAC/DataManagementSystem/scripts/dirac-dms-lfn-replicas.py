@@ -6,7 +6,7 @@
 """
     Show replicas for a (set of) LFNs
 """
-__RCSID__ = "$Id: dirac-dms-lfn-replicas.py 86918 2015-12-18 16:16:35Z phicharp $"
+__RCSID__ = "$Id$"
 __VERSION__ = "$Revision: 86918 $"
 
 from DIRAC.Core.Base import Script

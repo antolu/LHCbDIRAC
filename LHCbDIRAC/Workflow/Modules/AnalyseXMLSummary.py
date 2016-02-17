@@ -1,7 +1,7 @@
 """ Analyse XMLSummary module
 """
 
-__RCSID__ = "$Id: AnalyseXMLSummary.py 76848 2014-07-25 10:16:44Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os
 

@@ -2,7 +2,7 @@
   Methods for scanning the popularity table
   """
 
-__RCSID__ = "$Id: ScanPopularity.py 76721 2014-07-22 08:05:22Z phicharp $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 import os, time

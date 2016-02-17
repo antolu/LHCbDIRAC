@@ -6,7 +6,7 @@
       'genCatalog' utility but this will be updated in due course.
 """
 
-__RCSID__ = "$Id: AncestorFilesAgent.py 85123 2015-08-20 09:29:34Z phicharp $"
+__RCSID__ = "$Id$"
 
 import time
 from DIRAC import S_OK, S_ERROR

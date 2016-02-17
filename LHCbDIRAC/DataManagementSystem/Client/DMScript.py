@@ -14,7 +14,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 
-__RCSID__ = "$Id: DMScript.py 87351 2016-02-16 09:00:02Z phicharp $"
+__RCSID__ = "$Id$"
 
 def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directory", depth = 9999 ):
   """ Dictionary pretty printing """

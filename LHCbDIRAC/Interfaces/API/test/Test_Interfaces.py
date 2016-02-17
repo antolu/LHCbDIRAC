@@ -8,7 +8,7 @@ import os
 import LHCbDIRAC.Interfaces.API.DiracProduction as moduleTested 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 
-__RCSID__ = '$Id: $'
+__RCSID__ = "$Id$"
 
 ################################################################################
 

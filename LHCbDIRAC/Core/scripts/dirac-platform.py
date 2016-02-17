@@ -2,7 +2,7 @@
 """ Returns the architecture tag to be used for CMTCONFIG or architecture
 """
 
-__RCSID__ = "$Id"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine( ignoreErrors = True )

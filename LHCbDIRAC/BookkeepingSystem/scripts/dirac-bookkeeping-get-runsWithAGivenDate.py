@@ -6,7 +6,7 @@
 """
   Retrieve from the Bookkeeping runs from a given date range
 """
-__RCSID__ = "$Id: dirac-bookkeeping-get-runsWithAGivenDate.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.DISET.RPCClient import RPCClient
 

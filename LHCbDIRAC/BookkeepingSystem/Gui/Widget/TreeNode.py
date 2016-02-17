@@ -7,7 +7,7 @@
 
 from PyQt4.QtGui           import QTreeWidgetItem
 
-__RCSID__ = "$Id: TreeNode.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class TreeNode(QTreeWidgetItem):

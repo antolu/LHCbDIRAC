@@ -5,7 +5,7 @@
 
 from DIRAC                                           import gLogger
 
-__RCSID__ = "$Id: ReplicaParam.py 54167 2012-07-03 14:25:07Z zmathe $"
+__RCSID__ = "$Id$"
 
 class ReplicaParam:
   """

@@ -16,7 +16,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerMain              import
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.ProductionLookup              import ProductionLookup
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.DataQualityDialog             import DataQualityDialog
 
-__RCSID__ = "$Id: MainWidget.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TreeWidget import TreeWidget
 

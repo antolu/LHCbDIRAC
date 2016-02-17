@@ -12,7 +12,7 @@
       - set replicaFlag = No in the BK for those files that are not in the FC
 '''
 
-__RCSID__ = "$Id: dirac-dms-check-bkk2fc.py 77905 2014-09-16 09:17:20Z phicharp $"
+__RCSID__ = "$Id$"
 
 # Code
 

@@ -2,7 +2,7 @@
 """
   Set the Start or End Run for a given Transformation of add a set runs.
 """
-__RCSID__ = '$Id: dirac-production-set-run.py$'
+__RCSID__ = "$Id$"
 """
 Examples of Usage :
   with 1234 = ProdID

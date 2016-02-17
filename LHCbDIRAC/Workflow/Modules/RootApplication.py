@@ -1,6 +1,6 @@
 """ Root Application Class """
 
-__RCSID__ = "$Id: RootApplication.py 82023 2015-03-23 14:22:01Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os, sys, fnmatch
 

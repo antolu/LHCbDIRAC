@@ -9,7 +9,7 @@
 from LHCbDIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from LHCbDIRAC.BookkeepingSystem.Client.LHCbBookkeepingManager              import LHCbBookkeepingManager
 
-__RCSID__ = "$Id: LHCB_BKKDBClient.py 76074 2014-05-17 10:32:43Z zmathe $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class LHCB_BKKDBClient( BaseESClient ):

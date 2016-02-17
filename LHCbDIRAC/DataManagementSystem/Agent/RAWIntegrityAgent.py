@@ -7,7 +7,7 @@
     .. module: RAWIntegrityAgent
     :synopsis: RAWIntegrityAgent determines whether RAW files in CASTOR were migrated correctly.
 """
-__RCSID__ = "$Id $"
+__RCSID__ = "$Id$"
 ## imports
 import os
 ## from DIRAC

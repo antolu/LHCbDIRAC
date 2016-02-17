@@ -6,7 +6,7 @@
     test jobs.
 """
 
-__RCSID__ = "$Id: ProdConf.py 83672 2015-06-22 14:13:18Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os, re
 

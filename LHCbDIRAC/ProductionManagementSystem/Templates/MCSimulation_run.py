@@ -15,7 +15,7 @@
       - for the merge and/or stripping: set pr.prodsToLaunch, then set pr.previousProdID
 """
 
-__RCSID__ = "$Id: MCSimulation_run.py 53649 2012-06-25 12:23:13Z fstagni $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()

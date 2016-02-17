@@ -4,7 +4,7 @@
    Get statistics on number of replicas for a given directory or production
 """
 
-__RCSID__ = "$Id: dirac-dms-replica-stats.py 80998 2015-01-23 10:20:37Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript

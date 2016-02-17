@@ -12,7 +12,7 @@ from DIRAC.Core.LCG                             import SLSClient
 from DIRAC.ResourceStatusSystem.Command.Command import Command
 from DIRAC.ResourceStatusSystem.Utilities       import CSHelpers
 
-__RCSID__ = '$Id: $'
+__RCSID__ = "$Id$"
 
 def slsid_of_service( granularity, name, type_ = None ):
   '''

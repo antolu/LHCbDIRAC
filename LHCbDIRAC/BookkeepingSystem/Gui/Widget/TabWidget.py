@@ -16,7 +16,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import Table
 
 from DIRAC                                                          import gLogger
 
-__RCSID__ = "$Id: TabWidget.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class TabWidget(QWidget):

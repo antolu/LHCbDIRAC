@@ -4,7 +4,7 @@
  Create a new dataset replication or removal transformation according to plugin
 """
 
-__RCSID__ = "$Id: dirac-dms-add-transformation.py 86917 2015-12-18 16:16:04Z phicharp $"
+__RCSID__ = "$Id$"
 
 
 if __name__ == "__main__":

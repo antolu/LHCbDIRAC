@@ -4,7 +4,7 @@
     no application crashes have been observed.
 """
 
-__RCSID__ = "$Id: SendBookkeeping.py 75630 2014-04-15 09:44:18Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os, glob
 from DIRAC                                                 import S_OK, S_ERROR, gLogger

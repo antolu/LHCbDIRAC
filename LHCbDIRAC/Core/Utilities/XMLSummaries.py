@@ -1,7 +1,7 @@
 """ Utilities to check the XML summary files
 """
 
-__RCSID__ = "$Id: XMLSummaries.py 86374 2015-11-10 14:02:34Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os
 from DIRAC import gLogger

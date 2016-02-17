@@ -8,7 +8,7 @@
 #
 #from datetime import datetime
 #
-#__RCSID__ = '$Id: HCClient.py 58924 2012-11-27 10:37:30Z ubeda $'
+#__RCSID__ = "$Id$"
 #
 #def checkInt( name, value ):
 #  '''

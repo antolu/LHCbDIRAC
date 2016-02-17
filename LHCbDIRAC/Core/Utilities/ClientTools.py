@@ -1,7 +1,7 @@
 """  The ClientTools module provides additional functions for use by users
      of the DIRAC client in the LHCb environment.
 """
-__RCSID__ = "$Id: ClientTools.py 76842 2014-07-25 08:24:53Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os, tempfile, time
 

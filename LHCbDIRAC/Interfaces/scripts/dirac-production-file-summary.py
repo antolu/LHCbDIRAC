@@ -3,7 +3,7 @@
 # File :   dirac-production-file-summary
 # Author : Stuart Paterson
 ########################################################################
-__RCSID__   = "$Id: dirac-production-file-summary.py 69333 2013-08-07 15:20:55Z ubeda $"
+__RCSID__ = "$Id$"
 __VERSION__ = "$Revision: 69333 $"
 
 import DIRAC

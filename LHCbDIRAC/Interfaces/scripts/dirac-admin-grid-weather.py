@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-__RCSID__ = "$Id: dirac-admin-grid-weather.py 60160 2012-12-19 14:53:31Z phicharp $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 

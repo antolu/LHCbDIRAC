@@ -4,7 +4,7 @@
 #""" UnitTest class for policy classes
 #"""
 #
-#__RCSID__ = "$Id: "
+#__RCSID__ = "$Id$"
 #
 #import unittest
 #from datetime import datetime

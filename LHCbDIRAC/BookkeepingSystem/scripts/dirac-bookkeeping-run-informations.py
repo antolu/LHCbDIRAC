@@ -6,7 +6,7 @@
 """
   Retrieve from Bookkeeping information for a given run
 """
-__RCSID__ = "$Id: dirac-bookkeeping-run-informations.py 84402 2015-07-23 08:12:54Z zmathe $"
+__RCSID__ = "$Id$"
 import DIRAC
 from DIRAC.Core.Base import Script
 

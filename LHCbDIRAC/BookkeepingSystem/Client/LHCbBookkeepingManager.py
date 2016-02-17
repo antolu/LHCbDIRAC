@@ -17,7 +17,7 @@ import os
 import types
 import time
 
-__RCSID__ = "$Id: LHCbBookkeepingManager.py 85273 2015-08-26 09:13:55Z zmathe $"
+__RCSID__ = "$Id$"
 
 INTERNAL_PATH_SEPARATOR = "/"
 

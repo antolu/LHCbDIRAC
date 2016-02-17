@@ -13,7 +13,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_InfoDialog           import Ui_In
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.TableModel              import TableModel
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerInfoDialog  import ControlerInfoDialog
 
-__RCSID__ = "$Id: InfoDialog.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class InfoDialog(QDialog, Ui_InfoDialog):

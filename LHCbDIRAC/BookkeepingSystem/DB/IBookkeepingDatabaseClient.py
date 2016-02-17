@@ -5,7 +5,7 @@ Database interface
 ########################################################################
 
 
-__RCSID__ = "$Id: IBookkeepingDatabaseClient.py 86445 2015-12-01 15:26:12Z zmathe $"
+__RCSID__ = "$Id$"
 
 class IBookkeepingDatabaseClient(object):
   """stores a Entity manager and expose its method"""

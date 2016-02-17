@@ -6,7 +6,7 @@
 stores the data quality informations
 """
 
-__RCSID__ = "$Id: QualityParameters.py 54098 2012-07-02 16:43:53Z zmathe $"
+__RCSID__ = "$Id$"
 
 class QualityParameters:
   """

@@ -7,7 +7,7 @@
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
 
-__RCSID__ = '$Id: DownHillPropagationPolicy.py 69323 2013-08-07 14:08:03Z ubeda $'
+__RCSID__ = "$Id$"
 
 #...............................................................................
 #

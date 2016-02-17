@@ -6,7 +6,7 @@
       request (for failover)
 """
 
-__RCSID__ = "$Id: FailoverRequest.py 75913 2014-05-07 07:59:04Z fstagni $"
+__RCSID__ = "$Id$"
 
 from DIRAC                                                      import S_OK, S_ERROR, gLogger
 from LHCbDIRAC.Workflow.Modules.ModuleBase                      import ModuleBase

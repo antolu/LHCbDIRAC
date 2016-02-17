@@ -6,7 +6,7 @@ Controller of the File Dialog window
 ########################################################################
 
 
-__RCSID__ = "$Id: ControlerFileDialog.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message

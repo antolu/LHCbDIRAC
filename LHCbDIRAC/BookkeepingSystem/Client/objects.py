@@ -13,7 +13,7 @@ import types
 global VERBOSE
 VERBOSE = True
 
-__RCSID__ = "$Id: objects.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 #############################################################################
 class odict(UserDict):
   """user defined dictionary"""

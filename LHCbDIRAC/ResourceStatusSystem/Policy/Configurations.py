@@ -8,7 +8,7 @@
 
 from DIRAC.ResourceStatusSystem.Policy.Configurations import POLICIESMETA
 
-__RCSID__ = '$Id: Configurations.py 84848 2015-08-11 17:22:58Z fstagni $'
+__RCSID__ = "$Id$"
 
 #...............................................................................
 # LHCb Policies

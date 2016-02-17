@@ -3,7 +3,7 @@
 
 """
 
-__RCSID__ = "$Id: BKInputDataAgent.py 80020 2014-12-09 09:18:33Z fstagni $"
+__RCSID__ = "$Id$"
 
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule  import OptimizerModule
 from DIRAC.Core.DISET.RPCClient                            import RPCClient

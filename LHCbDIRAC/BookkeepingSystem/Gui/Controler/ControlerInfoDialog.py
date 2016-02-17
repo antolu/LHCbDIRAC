@@ -9,7 +9,7 @@ Controller of the Info dialog window
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract    import ControlerAbstract
 from DIRAC                                                          import gLogger
 
-__RCSID__ = "$Id: ControlerInfoDialog.py 54002 2012-06-29 09:01:26Z zmathe $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerInfoDialog(ControlerAbstract):

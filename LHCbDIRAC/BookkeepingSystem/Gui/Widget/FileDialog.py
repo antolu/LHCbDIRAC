@@ -20,7 +20,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerFileDialog  import Contr
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.HistoryDialog           import HistoryDialog
 from DIRAC                                                          import gLogger
 
-__RCSID__ = "$Id: FileDialog.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class FileDialog(QDialog, Ui_FileDialog):

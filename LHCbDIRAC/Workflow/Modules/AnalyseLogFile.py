@@ -1,7 +1,7 @@
 """ Analyse log file(s) module
 """
 
-__RCSID__ = "$Id: AnalyseLogFile.py 76374 2014-06-13 10:40:45Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os, re, glob
 

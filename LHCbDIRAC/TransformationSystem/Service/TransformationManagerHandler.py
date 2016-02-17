@@ -1,6 +1,6 @@
 """ DISET request handler for the LHCbDIRAC/TransformationDB. """
 
-__RCSID__ = "$Id: TransformationManagerHandler.py 87196 2016-01-26 09:40:10Z phicharp $"
+__RCSID__ = "$Id$"
 
 from types import LongType, IntType, DictType, ListType, StringTypes, BooleanType
 

@@ -13,7 +13,7 @@ from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_AdvancedSave                   im
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAdvancedSave          import ControlerAdvancedSave
 
 
-__RCSID__ = "$Id: AdvancedSave.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class AdvancedSave(QDialog, Ui_AdvancedSave):

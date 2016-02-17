@@ -2,7 +2,7 @@
 BKQuery is a class that decodes BK paths, queries the BK at a high level
 """
 
-__RCSID__ = "$Id: BKQuery.py 87136 2016-01-25 17:13:53Z phicharp $"
+__RCSID__ = "$Id$"
 
 import os, sys
 from DIRAC import gLogger

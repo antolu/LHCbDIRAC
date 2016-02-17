@@ -10,7 +10,7 @@ from DIRAC                                                                   imp
 from LHCbDIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
 
 
-__RCSID__ = "$Id: BaseESClient.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class BaseESClient:

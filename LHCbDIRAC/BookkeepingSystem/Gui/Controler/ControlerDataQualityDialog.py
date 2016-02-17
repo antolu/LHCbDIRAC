@@ -12,7 +12,7 @@ from PyQt4.QtCore                                                             im
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 
-__RCSID__ = "$Id: $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerDataQualityDialog(ControlerAbstract):

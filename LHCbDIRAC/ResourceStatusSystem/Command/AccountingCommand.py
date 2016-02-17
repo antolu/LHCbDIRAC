@@ -12,7 +12,7 @@ from DIRAC.ResourceStatusSystem.Utilities                       import CSHelpers
 
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
-__RCSID__ = '$Id:  $'  
+__RCSID__ = "$Id$"
 
 class AccountingCommand( Command ):
   '''

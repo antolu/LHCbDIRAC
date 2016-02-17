@@ -7,7 +7,7 @@
 """
   It returns the input and output files of a given list of DIRAC Jobids
 """
-__RCSID__ = "$Id:  $"
+__RCSID__ = "$Id$"
 
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, printDMResult

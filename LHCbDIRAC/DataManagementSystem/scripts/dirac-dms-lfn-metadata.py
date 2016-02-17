@@ -6,7 +6,7 @@
 """
   Get the metadata of a (list of) LFNs from the FC
 """
-__RCSID__ = "$Id: dirac-dms-lfn-metadata.py 77175 2014-08-11 13:32:45Z phicharp $"
+__RCSID__ = "$Id$"
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 

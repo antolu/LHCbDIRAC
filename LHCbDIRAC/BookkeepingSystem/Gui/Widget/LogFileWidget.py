@@ -7,7 +7,7 @@ Log widget
 # $Id: LogFileWidget.py 84842 2015-08-11 13:47:15Z fstagni $
 ########################################################################
 
-__RCSID__ = "$Id: LogFileWidget.py 84842 2015-08-11 13:47:15Z fstagni $"
+__RCSID__ = "$Id$"
 
 
 from PyQt4                                                               import QtCore, QtGui

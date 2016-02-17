@@ -12,7 +12,7 @@ from DIRAC.Core.DISET.RequestHandler import RequestHandler
 ## from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
-__RCSID__ = "$Id: StorageUsageHandler.py 76687 2014-07-16 12:53:06Z fstagni $"
+__RCSID__ = "$Id$"
 
 gStorageUsageDB = False
 

@@ -6,7 +6,7 @@
 """
   Set Data Quality Flag for the given run
 """
-__RCSID__ = "$Id: dirac-bookkeeping-setdataquality-run.py 69359 2013-08-08 13:57:13Z phicharp $"
+__RCSID__ = "$Id$"
 
 import DIRAC
 from DIRAC.Core.Base import Script

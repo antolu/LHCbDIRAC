@@ -9,7 +9,7 @@
       Missing files: remove from SE and FC
       No replica flag: set it (in the BK)
 '''
-__RCSID__ = "$Id: dirac-dms-check-fc2bkk.py 80728 2015-01-14 16:09:10Z phicharp $"
+__RCSID__ = "$Id$"
 
 # Code
 

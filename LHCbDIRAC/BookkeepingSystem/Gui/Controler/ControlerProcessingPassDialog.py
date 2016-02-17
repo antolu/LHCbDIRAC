@@ -9,7 +9,7 @@ It controlles the Processing Pass dialog
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message
 
-__RCSID__ = "$Id: ControlerProcessingPassDialog.py 73269 2014-01-13 15:29:11Z zmathe $"
+__RCSID__ = "$Id$"
 
 #############################################################################
 class ControlerProcessingPassDialog(ControlerAbstract):

@@ -11,7 +11,7 @@ from DIRAC.TransformationSystem.Agent.MCExtensionAgent                import MCE
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient       import TransformationClient
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities                      import getCPUNormalizationFactorAvg, getEventsToProduce, getProductionParameterValue
 
-__RCSID__ = "$Id: MCExtensionAgent.py 82052 2015-03-25 13:39:28Z fstagni $"
+__RCSID__ = "$Id$"
 
 AGENT_NAME = 'Transformation/MCExtensionAgent'
 

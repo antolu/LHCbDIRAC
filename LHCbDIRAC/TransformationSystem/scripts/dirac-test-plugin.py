@@ -4,7 +4,7 @@
  Test a plugin
 """
 
-__RCSID__ = "$Id: dirac-test-plugin.py 87266 2016-02-11 12:17:43Z phicharp $"
+__RCSID__ = "$Id$"
 
 class fakeClient:
   def __init__( self, trans, transID, lfns, asIfProd ):

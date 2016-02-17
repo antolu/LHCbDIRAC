@@ -12,7 +12,7 @@
     FileCatalog().Catalogs = ["xmlcatalog_file:pool_xml_catalog.xml"]
 """
 
-__RCSID__ = "$Id: GangaDataFile.py 76553 2014-06-25 15:06:20Z fstagni $"
+__RCSID__ = "$Id$"
 
 import os, fnmatch
 from DIRAC import gLogger

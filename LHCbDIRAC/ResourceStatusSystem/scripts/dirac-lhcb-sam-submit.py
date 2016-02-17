@@ -16,7 +16,7 @@
 
 """
 
-__RCSID__ = '$Id$'
+__RCSID__ = "$Id$"
 
 # Module variables used along the functions
 diracSAM = None

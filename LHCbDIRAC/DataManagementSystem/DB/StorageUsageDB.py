@@ -13,7 +13,7 @@ from types import StringType, IntType
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Base.DB import DB
 
-__RCSID__ = "$Id: StorageUsageDB.py 85464 2015-09-04 12:19:19Z phicharp $"
+__RCSID__ = "$Id$"
 
 def _standardDirectory( dirPath ):
   return dirPath if dirPath[-1] == '/' else dirPath + '/'
