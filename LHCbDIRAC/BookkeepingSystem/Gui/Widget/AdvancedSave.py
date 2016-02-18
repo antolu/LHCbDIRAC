@@ -3,9 +3,7 @@
 """
 AdvancedSave widget. It used to create a Gaudi card.
 """
-########################################################################
-# $Id$
-########################################################################
+
 from PyQt4.QtGui                                                              import QDialog
 from PyQt4.QtCore                                                             import SIGNAL, QVariant, Qt
 

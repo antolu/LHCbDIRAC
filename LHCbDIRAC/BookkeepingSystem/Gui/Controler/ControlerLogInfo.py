@@ -1,10 +1,6 @@
 """
 Controller of the Log widget
 """
-########################################################################
-# $Id$
-########################################################################
-
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract import ControlerAbstract
 

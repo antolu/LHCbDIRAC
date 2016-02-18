@@ -3,9 +3,7 @@
 """
 Data quality widget
 """
-########################################################################
-# $Id: $
-########################################################################
+
 from PyQt4.QtGui                                                              import QCheckBox, QDialog, QApplication
 from PyQt4.QtCore                                                             import SIGNAL
 

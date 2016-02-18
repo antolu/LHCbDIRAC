@@ -2,10 +2,6 @@
  LHCb Bookkeeping database client
 """
 
-########################################################################
-# $Id$
-########################################################################
-
 from LHCbDIRAC.BookkeepingSystem.Client.BaseESClient                        import BaseESClient
 from LHCbDIRAC.BookkeepingSystem.Client.LHCbBookkeepingManager              import LHCbBookkeepingManager
 

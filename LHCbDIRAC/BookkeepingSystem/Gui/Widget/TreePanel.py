@@ -3,9 +3,6 @@
 """
 Tree panel
 """
-########################################################################
-# $Id$
-########################################################################
 
 from PyQt4.QtCore import SIGNAL, QString, Qt
 from PyQt4.QtGui import QTreeWidget, QIcon, QStyle, QAbstractItemView, QPixmap, QCursor, QMenu, QAction

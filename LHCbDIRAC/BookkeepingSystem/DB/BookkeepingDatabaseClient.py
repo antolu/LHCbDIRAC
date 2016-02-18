@@ -1,7 +1,4 @@
 """interface for the database"""
-########################################################################
-# $Id$
-########################################################################
 
 from LHCbDIRAC.BookkeepingSystem.DB.IBookkeepingDatabaseClient             import IBookkeepingDatabaseClient
 from LHCbDIRAC.BookkeepingSystem.DB.OracleBookkeepingDB                    import OracleBookkeepingDB

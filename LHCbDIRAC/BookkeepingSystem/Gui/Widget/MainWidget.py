@@ -3,10 +3,6 @@
 """
 Main bookkeeping widget
 """
-########################################################################
-# $Id$
-########################################################################
-
 
 from PyQt4.QtCore import SIGNAL, SLOT, Qt
 from PyQt4.QtGui  import QMainWindow

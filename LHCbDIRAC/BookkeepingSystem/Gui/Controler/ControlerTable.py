@@ -1,9 +1,6 @@
 """
 Controlles a table widget
 """
-########################################################################
-# $Id$
-########################################################################
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract import ControlerAbstract
 

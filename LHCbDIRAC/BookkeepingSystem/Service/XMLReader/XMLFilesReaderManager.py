@@ -2,10 +2,6 @@
 It interprets the XML reports and make a job, file, or replica object
 """
 
-########################################################################
-# $Id$
-########################################################################
-
 from xml.parsers.expat                                                                  import ExpatError
 from xml.dom.minidom                                                                    import parse, parseString
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.JobReader                            import JobReader

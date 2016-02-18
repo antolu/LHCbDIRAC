@@ -1,10 +1,6 @@
 """
 Controller of the Info dialog window
 """
-########################################################################
-# $Id$
-########################################################################
-
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract    import ControlerAbstract
 from DIRAC                                                          import gLogger
