@@ -3,10 +3,6 @@
 """
 Controller of the Filter widget
 """
-########################################################################
-# $Id: $
-########################################################################
-
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Controler.ControlerAbstract         import ControlerAbstract
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.Message                       import Message

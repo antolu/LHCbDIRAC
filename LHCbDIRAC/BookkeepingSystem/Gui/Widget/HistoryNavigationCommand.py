@@ -1,9 +1,6 @@
 """
 history navigation command
 """
-########################################################################
-# $Id$
-########################################################################
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Command                      import Command
 __RCSID__ = "$Id$"

@@ -1,10 +1,6 @@
 """
 It stores the job related information
 """
-########################################################################
-# $Id$
-########################################################################
-
 
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.JobConfiguration           import JobConfiguration
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.JobOption                  import JobOption

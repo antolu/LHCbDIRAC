@@ -3,9 +3,6 @@
 """
 This widget used to view a key/value pair dataset
 """
-########################################################################
-# $Id$
-########################################################################
 
 from PyQt4.QtGui                                import QDialog
 from PyQt4.QtCore                               import SIGNAL

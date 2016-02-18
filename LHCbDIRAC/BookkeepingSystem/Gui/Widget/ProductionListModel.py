@@ -1,9 +1,7 @@
 """
 Production list model
 """
-########################################################################
-# $Id$
-########################################################################
+
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.ListModel                   import ListModel
 
 

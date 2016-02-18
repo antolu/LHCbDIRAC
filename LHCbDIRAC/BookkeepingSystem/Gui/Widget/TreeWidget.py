@@ -3,9 +3,6 @@
 """
 Tree widget
 """
-########################################################################
-# $Id$
-########################################################################
 
 from PyQt4.QtCore  import SIGNAL, Qt
 from PyQt4.QtGui   import QWidget, QHeaderView

@@ -1,11 +1,6 @@
 """
 LHCb Bookkeeping database manager
 """
-########################################################################
-# $Id$
-########################################################################
-
-
 
 from DIRAC                                                                      import gLogger, S_OK, S_ERROR
 from LHCbDIRAC.BookkeepingSystem.Client.BaseESManager                        import BaseESManager
