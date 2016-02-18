@@ -21,6 +21,13 @@ Developers should have 2 remote repositories (which is the typical GitHub/GitLab
 * *origin* : cloned from your private fork done on GitLab
 * *upstream* : add it via git remote add upstream and pointing to the blessed repository (https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git)
 
+
+Issue Tracking
+==============
+
+Issue tracking is [LHCbDIRAC JIRA](https://its.cern.ch/jira/browse/LHCBDIRAC)
+
+
 Code quality
 ============
 
