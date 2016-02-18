@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r10_branch/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-sisters.py $
 # File :    dirac-bookkeeping-get-file-sisters
 # Author :  Zoltan Mathe
 ########################################################################
@@ -45,5 +44,5 @@ for prod in prods:
          print nf[0],
     for ne in value['Number of events']:
        if ne[0] == fileType:
-         print ne[1],	 
+         print ne[1],
     print ""

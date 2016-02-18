@@ -43,6 +43,7 @@ pip-log.txt
 .*.sw[a-z]
 *.un~
 Session.vim
+*~
 
 # test stuff
 .cache

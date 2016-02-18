@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/branches/LHCbDIRAC_v8r2_branch/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-descendants.py $
 # File :    dirac-bookkeeping-get-file-descendants
 # Author :  Zoltan Mathe
 ########################################################################
@@ -94,5 +93,3 @@ if __name__ == "__main__":
 
   DIRAC.exit( printDMResult( fullResult,
                              empty = "None", script = "dirac-bookkeeping-get-file-descendants" ) )
-
-

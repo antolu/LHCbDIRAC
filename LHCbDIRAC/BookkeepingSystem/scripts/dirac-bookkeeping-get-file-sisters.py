@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/branches/LHCbDIRAC_v8r2_branch/BookkeepingSystem/scripts/dirac-bookkeeping-get-file-sisters.py $
 # File :    dirac-bookkeeping-get-file-sisters
 # Author :  Zoltan Mathe
 ########################################################################

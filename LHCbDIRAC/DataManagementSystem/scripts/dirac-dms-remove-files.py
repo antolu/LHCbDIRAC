@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-########################################################################
-# $HeadURL: http://svn.cern.ch/guest/dirac/LHCbDIRAC/branches/LHCbDIRAC_v8r2_branch/DataManagementSystem/scripts/dirac-dms-remove-files.py $
-########################################################################
 """
   Remove the given file or a list of files from the File Catalog and from the storage
 """
