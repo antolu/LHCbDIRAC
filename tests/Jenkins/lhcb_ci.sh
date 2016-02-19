@@ -37,27 +37,26 @@ INSTALL_CFG_FILE='$WORKSPACE/LHCbDIRAC/tests/Jenkins/install.cfg'
 function findRelease(){
 	echo '[findRelease]'
 
+	cd $WORKSPACE/LHCbDIRAC
+	# store the current branch
+	currentBranch=`git rev-parse --abbrev-ref HEAD`
+	# get the releases.cfg file
+	git checkout devel
+	cp $WORKSPACE/LHCbDIRAC/LHCbDIRAC/releases.cfg $WORKSPACE/releases.cfg
+	# reset the branch
+	git checkout $currentBranch
 	cd $WORKSPACE
 
-    PRE='p[[:digit:]]*'
+  # Match project ( LHCbDIRAC ) version from releases.cfg
+  # Example releases.cfg
+  # v7r15-pre2
+  # {
+  #   Modules = LHCbDIRAC:v7r15-pre2, LHCbWebDIRAC:v3r3p5
+  #   Depends = DIRAC:v6r10-pre12
+  #   LcgVer = 2013-09-24
+  # }
 
-
-    # Create temporary directory where to store releases.cfg ( will be deleted at
-    # the end of the function )
-    #tmp_dir=`mktemp -d -q`
-    #echo 'Moving to'
-    #echo $tmp_dir
-    #cd $tmp_dir
-    wget https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/LHCbDIRAC/releases.cfg
-
-    # Match project ( LHCbDIRAC, soon BeautyDirac ) version from releases.cfg
-    # Example releases.cfg
-    # v7r15-pre2
-    # {
-    #   Modules = LHCbDIRAC:v7r15-pre2, LHCbWebDIRAC:v3r3p5
-    #   Depends = DIRAC:v6r10-pre12
-    #   LcgVer = 2013-09-24
-    # }
+	PRE='p[[:digit:]]*'
 
 	if [ ! -z "$LHCBDIRAC_RELEASE" ]
 	then
@@ -79,32 +78,28 @@ function findRelease(){
 	echo PROJECT:$projectVersion && echo $projectVersion > project.version
 
 	# projectVersionLine : line number where v7r15-pre2 is
-    projectVersionLine=`cat releases.cfg | grep -n $projectVersion | cut -d ':' -f 1 | head -1`
-    # start := line number after "{"
-    start=$(($projectVersionLine+2))
-    # end   := line number after "}"
-    end=$(($start+2))
-    # versions :=
-    #   Modules = LHCbDIRAC:v7r15-pre2, LHCbWebDIRAC:v3r3p5
-    #   Depends = DIRAC:v6r10-pre12
-    #   LcgVer = 2013-09-24
-    versions=`sed -n "$start,$end p" releases.cfg`
+  projectVersionLine=`cat releases.cfg | grep -n $projectVersion | cut -d ':' -f 1 | head -1`
+  # start := line number after "{"
+  start=$(($projectVersionLine+2))
+  # end   := line number after "}"
+  end=$(($start+2))
+  # versions :=
+  #   Modules = LHCbDIRAC:v7r15-pre2, LHCbWebDIRAC:v3r3p5
+  #   Depends = DIRAC:v6r10-pre12
+  #   LcgVer = 2013-09-24
+  versions=`sed -n "$start,$end p" releases.cfg`
 
-    # Extract DIRAC version
-    diracVersion=`echo $versions | tr ' ' '\n' | grep ^DIRAC:v*[^,] | sed 's/,//g' | cut -d ':' -f2`
-    # Extract LHCbDIRAC version
-    lhcbdiracVersion=`echo $versions | tr ' ' '\n' | grep ^LHCbDIRAC:v* | sed 's/,//g' | cut -d ':' -f2`
-    # Extract LCG version
+  # Extract DIRAC version
+  diracVersion=`echo $versions | tr ' ' '\n' | grep ^DIRAC:v*[^,] | sed 's/,//g' | cut -d ':' -f2`
+  # Extract LHCbDIRAC version
+  lhcbdiracVersion=`echo $versions | tr ' ' '\n' | grep ^LHCbDIRAC:v* | sed 's/,//g' | cut -d ':' -f2`
+  # Extract LCG version
 	lcgVersion=`echo $versions | sed s/' = '/'='/g | tr ' ' '\n' | grep LcgVer | cut -d '=' -f2`
 
-    # Back to $WORKSPACE and clean tmp_dir
-    cd $WORKSPACE
-    #rm -r $tmp_dir
-
-    # PrintOuts
-    echo DIRAC:$diracVersion && echo $diracVersion > dirac.version
-    echo LHCbDIRAC:$lhcbdiracVersion && echo $lhcbdiracVersion > lhcbdirac.version
-    echo LCG:$lcgVersion && echo $lcgVersion > lcg.version
+  # PrintOuts
+  echo DIRAC:$diracVersion && echo $diracVersion > dirac.version
+  echo LHCbDIRAC:$lhcbdiracVersion && echo $lhcbdiracVersion > lhcbdirac.version
+  echo LCG:$lcgVersion && echo $lcgVersion > lcg.version
 
 }
 
