@@ -56,3 +56,7 @@ pytests.xml
 nosetests.xml
 coverage.xml
 *.gz
+
+# CMT junk
+/*/*/x86_64-*-*-*/
+*/*/cmt/Makefile
