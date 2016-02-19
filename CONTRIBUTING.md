@@ -21,11 +21,14 @@ Developers should have 2 remote repositories (which is the typical GitHub/GitLab
 * *origin* : cloned from your private fork done on GitLab
 * *upstream* : add it via git remote add upstream and pointing to the blessed repository (https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git)
 
+a full explanation of actions can be found in [this KB](https://cern.service-now.com/service-portal/article.do?n=KB0003137)
+
 
 Issue Tracking
 ==============
 
-Issue tracking is [LHCbDIRAC JIRA](https://its.cern.ch/jira/browse/LHCBDIRAC)
+Issue tracking for the project is [LHCbDIRAC JIRA](https://its.cern.ch/jira/browse/LHCBDIRAC). 
+This [KB](https://cern.service-now.com/service-portal/article.do?n=KB0003166) explains how to link a Jira issue to a commit that mentions it. Please note that closing a Jira issue with a commit message is instead not allowed.
 
 
 Code quality
