@@ -1,8 +1,8 @@
 # $HeadURL: $
 ''' SLSCommand
-  
+
   The Command class is a command class to properly interrogate the SLS.
-  
+
 '''
 
 import re
@@ -18,34 +18,34 @@ def slsid_of_service( granularity, name, type_ = None ):
   '''
     Return the SLS id of various services.
   '''
-  
-  if type_ == 'VO-BOX': 
+
+  if type_ == 'VO-BOX':
     return name.split( '.' )[ 1 ] + '_VOBOX'
-  elif type_ == 'VOMS': 
+  elif type_ == 'VOMS':
     return 'VOMS'
-  elif ( granularity, type_ ) == ( 'StorageElement', None ): 
+  elif ( granularity, type_ ) == ( 'StorageElement', None ):
     st = CSHelpers.getSEToken( name )
     if not st['OK']:
       raise RuntimeError, st['Message']
     st = st['Value']
     return re.split( '[-_]', name )[ 0 ] + '_' + st
   elif type_ == 'CASTOR':
-    try: 
+    try:
       st = CSHelpers.getSEToken( name )
       if not st['OK']:
         raise RuntimeError, st['Message']
       st = st['Value']
       return 'CASTORLHCB_LHCB' + re.split( '[-_]', st )[1].upper()
-    except IndexError: 
+    except IndexError:
       return ''
-  else: 
+  else:
     return ''
 
 class SLSStatusCommand( Command ):
   '''
     SLSStatusCommand
   '''
-  
+
   def doCommand( self ):
     '''
     Return getAvailabilityStatus from SLS Client
@@ -57,19 +57,19 @@ class SLSStatusCommand( Command ):
     '''
 
     super( SLSStatusCommand, self ).doCommand()
-      
+
     res = SLSClient.getAvailabilityStatus( slsid_of_service( *self.args ) )
 
     if res[ 'OK' ]:
       res = S_OK( res[ 'Value' ][ 'Availability' ] )
-        
-    return { 'Result' : res }    
+
+    return { 'Result' : res }
 
 class SLSLinkCommand( Command ):
   '''
     SLSLinkCommand
   '''
-  
+
   def doCommand( self ):
     '''
     Return getStatus from SLS Client
@@ -87,7 +87,7 @@ class SLSLinkCommand( Command ):
     if res[ 'OK' ]:
       res = S_OK( res[ 'Value' ][ 'Weblink' ] )
 
-    return { 'Result' : res }    
+    return { 'Result' : res }
 
 class SLSServiceInfoCommand( Command ):
   '''
@@ -104,7 +104,7 @@ class SLSServiceInfoCommand( Command ):
     '''
 
     super( SLSServiceInfoCommand, self ).doCommand()
-       
+
     if self.args[ 0 ] == 'StorageElement':
       slsName = slsid_of_service( self.args[ 0 ], self.args[ 1 ], 'CASTOR' )
     else:
@@ -112,7 +112,7 @@ class SLSServiceInfoCommand( Command ):
 
     res = SLSClient.getServiceInfo( slsName )
 
-    return { 'Result' : res }    
+    return { 'Result' : res }
 
 #...............................................................................
 #EOF

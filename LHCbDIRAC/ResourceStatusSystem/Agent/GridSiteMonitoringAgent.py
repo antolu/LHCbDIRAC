@@ -166,8 +166,8 @@
 #    subMetricName = "%s,total_files" % metricName
 #    self.__addWithMissing( finalData, subMetricName, allSites, totalFilesData, startEpoch, endEpoch, extraURL, groupBy, -1 )
 #    return S_OK( finalData )
-#    
-#  def __addWithMissing( self, finalData, subMetricName, allSites, data, 
+#
+#  def __addWithMissing( self, finalData, subMetricName, allSites, data,
 #                        startEpoch, endEpoch, extraURL, groupBy, max ):
 #    for channel in data:
 #      self._appendToFinalData( finalData, channel, subMetricName, data[ channel ], max,
@@ -234,7 +234,7 @@
 #      else:
 #        baseReportDesc[ "_%s" % key ] = ",".join( value )
 #    return "%s#%s" % ( baseURL, DEncode.encode( baseReportDesc ) )
-#  
+#
 #  def _generateRunningJobsExtraURL( self, reportName, reportCond, groupBy = 'Site' ):
 #    baseURL = "http://lhcbweb.pic.es/DIRAC/%s/visitor/systems/accountingPlots/WMSHistory" % gConfig.getValue( "/DIRAC/Setup" )
 #    baseReportDesc = { '_plotName': reportName, '_grouping': groupBy, '_typeName': 'DataOperation', '_timeSelector': '86400' }
@@ -245,7 +245,7 @@
 #      else:
 #        baseReportDesc[ "_%s" % key ] = ",".join( value )
 #    return "%s#%s" % ( baseURL, DEncode.encode( baseReportDesc ) )
-#  
+#
 #  def _retrieveStartedJobs( self ):
 #    rC = ReportsClient()
 #    endT = Time.dateTime()
@@ -253,7 +253,7 @@
 #    reportCond = { 'Status' : [ 'Running' ] }
 #    result = rC.getReport( "WMSHistory", 'NumberOfJobs', startT, endT,
 #                          reportCond, 'Site' )
-#    
+#
 #    if not result[ 'OK' ]:
 #      return result
 #    acData = result[ 'Value' ][ 'data' ]
@@ -288,9 +288,9 @@
 #      gridName = site[ :site.find(".") ]
 #      site = gConfig.getValue( "/Resources/Sites/%s/%s/Name" %( gridName, site ), site )
 #      cvsLines.append( "%s,job_processing,started_jobs,%d,-1,unknown,%d,%d,%s" % ( site, startedJobs,
-#                                                                                startEpoch, endEpoch, 
+#                                                                                startEpoch, endEpoch,
 #                                                                                url ) )
-#    return S_OK( cvsLines ) 
-#  
+#    return S_OK( cvsLines )
+#
 #################################################################################
-##EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF  
+##EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

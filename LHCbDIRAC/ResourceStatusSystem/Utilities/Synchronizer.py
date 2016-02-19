@@ -20,14 +20,14 @@ class Synchronizer( DIRACSyncrhonizer ):
 
   def __init__( self, rStatus = None, rManagement = None ):
     super( Synchronizer, self ).__init__( rStatus, rManagement )
-  
+
   #FIXME: VOBOX ?
   #FIXME: CONDDB ?
   #FIXME: DISET ?
 
 ################################################################################
 #EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
-    
+
 #  def _syncVOBOX( self ):
 #    '''
 #    Sync DB content with VOBoxes
@@ -38,16 +38,16 @@ class Synchronizer( DIRACSyncrhonizer ):
 #
 #    # services in the DB now
 #    voBoxInCS = set(CS.getT1s())
-#    
+#
 #    #voBOXInDB = set(Utils.list_flatten(Utils.unpack(self.rsClient.getServicePresent(
 #    #      serviceType = "VO-BOX", meta = { 'columns' : "SiteName" } ))))
-#    
-#    voBOXInDB = self.rsClient.getServicePresent( serviceType = "VO-BOX", 
+#
+#    voBOXInDB = self.rsClient.getServicePresent( serviceType = "VO-BOX",
 #                                                 meta = { 'columns' : "SiteName" } )
 #    if not voBOXInDB[ 'OK' ]:
 #      gLogger.error( voBOXInDB[ 'Message' ] )
 #      return voBOXInDB
-#    
+#
 #    voBOXInDB = set( Utils.list_flatten( voBOXInDB[ 'Value' ] ) )
 #
 #    gLogger.info( "Updating %d VOBOXes on DB" % len(voBoxInCS - voBOXInDB) )
@@ -79,4 +79,4 @@ class Synchronizer( DIRACSyncrhonizer ):
 #        if knownSE[ 'OK' ] and not knownSE[ 'Value' ]:
 #          res = self.rsClient.addOrModifyStorageElement( se, 'VOBOX', 'DISET' )
 #          if not res[ 'OK' ]:
-#            gLogger.error( res[ 'Message' ] )            
+#            gLogger.error( res[ 'Message' ] )

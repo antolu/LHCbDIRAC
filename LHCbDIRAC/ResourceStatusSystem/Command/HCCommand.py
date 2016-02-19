@@ -13,12 +13,12 @@
 #__RCSID__ = "$Id$"
 #
 #class HCCommand( Command ):
-#  
+#
 #  def doCommand( self, site = None ):
-#    """ 
+#    """
 #      Gets from HCAgent table the last test for that site.
 #      Depending on the status and/or 'age', decide what to
-#      do. 
+#      do.
 #    """
 #    super( HCCommand, self ).doCommand()
 #
@@ -26,27 +26,27 @@
 #
 #    '''
 #      This is a nice example of spaghetti code.
-#      Think how to configure the agent. Maybe in the CS. 
+#      Think how to configure the agent. Maybe in the CS.
 #    '''
-#    
-#    rm  = ResourceManagementClient()       
+#
+#    rm  = ResourceManagementClient()
 #    res = rm.getLastHCTest( self.args[1], 'HClastfinished' )
-#    
+#
 #    if res:
-#      
+#
 #      res = res[-1]
-#           
+#
 #      hc = HCClient()
-#                    
+#
 #      sum = hc.getSummarizedResults( res[0], detailed = 1 )
 #      if sum[0]:
 #        gLogger.debug( 'HC_command %s ' % str(sum) )
-#        result = S_OK( sum[1]['response']['summary'][0] ) 
+#        result = S_OK( sum[1]['response']['summary'][0] )
 #      else:
 #        gLogger.info( 'Something went wrong' )
-#        result = S_ERROR( sum ) 
+#        result = S_ERROR( sum )
 #
 #    return { 'Result' : result }
-#  
+#
 #################################################################################
 ##EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

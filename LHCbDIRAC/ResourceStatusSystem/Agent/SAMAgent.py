@@ -16,16 +16,16 @@ from LHCbDIRAC.ResourceStatusSystem.Client.DiracSAM import DiracSAM
 __RCSID__ = "$Id$"
 AGENT_NAME = 'SAM/SAMAgent'
 
-class SAMAgent( AgentModule ):  
-  
+class SAMAgent( AgentModule ):
+
   def __init__( self, *args, **kwargs ):
-    
+
     AgentModule.__init__( self, *args, **kwargs )
-    
+
     self.days = 2
-    
+
   def initialize( self ):
-    
+
     self.days = self.am_getOption( 'days', self.days )
 
     self.am_setOption( 'shifterProxy', 'TestManager' )
@@ -45,13 +45,13 @@ class SAMAgent( AgentModule ):
       return res
 
     diracSAM = DiracSAM()
-   
+
     ceSites = diracSAM.getSuitableCEs()
     if not ceSites[ 'OK' ]:
       self.log.error( ceSites[ 'Message' ] )
       return ceSites
     ceSites = ceSites[ 'Value' ]
-  
+
     for ce, site in ceSites:
       result = diracSAM.submitNewSAMJob( ce = ce, site = site )
       if not result[ 'OK' ]:
@@ -69,12 +69,12 @@ class SAMAgent( AgentModule ):
     allces     = []
     jobIDs     = []
     conditions = { 'JobGroup' : 'Test' }
-    
+
     sites = gConfig.getSections( '/Resources/Sites/LCG' )
     if not sites[ 'OK' ]:
       return sites
-    sites = sites[ 'Value' ]   
-    
+    sites = sites[ 'Value' ]
+
     monitoring = RPCClient( 'WorkloadManagement/JobMonitoring' )
     cutDate = ( date.today() - timedelta( days = self.days ) ).strftime( '%Y-%m-%d' )
 
@@ -85,13 +85,13 @@ class SAMAgent( AgentModule ):
       allces += ces
 
       conditions[ 'Site' ] = site
-      
+
       result = monitoring.getJobs( conditions, cutDate )
-      
+
       if not result[ 'OK' ]:
         self.log.warn( "Error getJobs for site %s. %s" % ( site, result[ 'Message' ] ) )
         continue
-      
+
       self.log.debug( "Jobs for site %s" % site, repr( result[ 'Value' ] ) )
       jobIDs += result[ 'Value' ]
 
@@ -128,10 +128,10 @@ class SAMAgent( AgentModule ):
       self.log.debug( "Kill Old SAM Job", repr( job ) )
       dirac.delete( int( job ) )
     self.log.info( "%s:" % ( AGENT_NAME ), " %d SAM jobs were deleted" % ( len( oldWaitingJobs ) ) )
-    
+
     ceOldWaitingJobs = ceOldWaitingJobs.keys()
     ceNewStartedJobs = ceNewStartedJobs.keys()
-    
+
     self.log.info( "ceOldWaitingJobs", repr( ceOldWaitingJobs ) )
     self.log.info( "ceNewStartedJobs", repr( ceNewStartedJobs ) )
 

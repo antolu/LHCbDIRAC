@@ -115,7 +115,7 @@ def submit( ceSites, number ):
   """ Submit <number> of jobs to each ce/site combination in <ceSites>. Also passing switches as keyword arguments to diracSAM.
   """
 
-  # If local is in switchDict, we run jobs locally 
+  # If local is in switchDict, we run jobs locally
   runLocal = 'local' in switchDict
 
   subLogger.info( 'Submitting %d jobs to each ce' % number )

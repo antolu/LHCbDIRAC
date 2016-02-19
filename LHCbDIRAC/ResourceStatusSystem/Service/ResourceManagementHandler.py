@@ -8,9 +8,9 @@
 # DIRAC
 from DIRAC                                                        import gConfig, S_OK
 from DIRAC.ResourceStatusSystem.Service.ResourceManagementHandler import ResourceManagementHandler \
-     as DIRACResourceManagementHandler    
+     as DIRACResourceManagementHandler
 
-# LHCbDIRAC     
+# LHCbDIRAC
 from LHCbDIRAC.ResourceStatusSystem.DB.ResourceManagementDB import ResourceManagementDB
 from LHCbDIRAC.ResourceStatusSystem.Utilities               import Synchronizer
 
@@ -21,11 +21,11 @@ def initializeResourceManagementHandler( _serviceInfo ):
   """
     Handler initialization, where we set the ResourceManagementDB as global db.
   """
-  
+
   global db
   db = ResourceManagementDB()
 
-  # Regenerates DB tables if needed  
+  # Regenerates DB tables if needed
   db._checkTable()
 
   syncObject = Synchronizer.Synchronizer()

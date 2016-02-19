@@ -2,8 +2,8 @@
 
    POLICIESMETA_LHCB
    policies
-   POLICIESMETA 
-    
+   POLICIESMETA
+
 '''
 
 from DIRAC.ResourceStatusSystem.Policy.Configurations import POLICIESMETA
@@ -29,12 +29,12 @@ POLICIESMETA_LHCB = {'GGUSTickets' : {'description' : "Open GGUS tickets",
                                                      'args'        : {'direction' : 'Destination', 'metric' :
                                                                       'Quality', 'hours' : 2 }},
 #  'PilotEfficiency' :
-#    { 
+#    {
 #      'description'     : 'Pilots efficiency extracted from WMS',
 #      'module'          : 'PilotEfficiencyPolicy',
 #      'command'         : ( 'PilotCommand', 'PilotCommand' ),
 #      'args'            : None,
-#    }                                    
+#    }
 }
 
 ################################################################################
@@ -255,22 +255,22 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
 #                                  ]
 #      },
   'VOBOX-SLS' :
-    { 
+    {
       'description' : 'How the VO-Box is behaving in the SLS',
       'module'      : 'SLSPolicy',
       'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : ( 'VO-BOX', ),
-      
+
       'Service_VO-BOX_Panel' : [ {'WebLink' : {'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
                                                'args'      : ( 'VO-BOX', )}     }, ]
      },
   'VOMS-SLS' :
-    { 
+    {
       'description' : 'How the VOMS service is behaving in the SLS',
       'module'      : 'SLSPolicy',
       'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
       'args'        : ( 'VOMS', ),
-      
+
       'Service_VOMS_Panel': [ {'WebLink': {'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
                                            'args'   : ( 'VOMS', )}}, ]},
   'OnStorageElementPropagation': {'description' : 'How the storage element\'s nodes are behaving in the RSS',
@@ -284,17 +284,17 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
       'argsNewRes'      : None,
       'command'         : ( 'DIRACAccountingCommand', 'TransferQualityFromCachedPlotCommand' ),
       'args'            : ( 'DataOperation', 'TransferQualityByDestSplitted_2' ),
-      
+
       'SE_Panel' : [ {'FillChart - Transfer quality in the last 24 hours, incoming in the space token':
                         {'CommandIn'       : ( 'DIRACAccountingCommand', 'CachedPlotCommand' ),
                          'args'            : ( 'DataOperation', 'TransferQualityByDestSplitted_24' ),
                          'CommandInNewRes' : ( 'DIRACAccountingCommand', 'DIRACAccountingCommand' ),
                          'argsNewRes'      : ( 'DataOperation', 'Quality',
                                                {'Format' : 'LastHours', 'hours': 24},
-                                               'Destination', 
+                                               'Destination',
                                                {'OperationType' : 'putAndRegister'} )}}, ]},
   'SEOccupancy' :
-    { 
+    {
       'description' : 'SE occupancy',
       'module'      : 'SEOccupancyPolicy',
       'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
@@ -305,17 +305,17 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
                         'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
                         'args'      : None
                                   }
-                      }, 
+                      },
                    ]
      },
   'SEQueuedTransfers' :
-    { 
+    {
       'description' : 'Queued transfers on the SE',
       'module'      : 'SEQueuedTransfersPolicy',
       'command'     : ( 'SLSCommand', 'SLSServiceInfoCommand' ),
       'args'        : None,
-      
-      'SE_Panel' : [ { 
+
+      'SE_Panel' : [ {
                        'WebLink' : {
                           'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
                           'args'      : None
