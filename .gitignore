@@ -45,6 +45,10 @@ pip-log.txt
 Session.vim
 *~
 
+# Intellij
+.idea/
+LHCbDIRAC.iml
+
 # test stuff
 .cache
 __pycache__
