@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :    dirac-dms-get-file
 # Author :  Stuart Paterson
 ########################################################################
@@ -23,6 +22,6 @@ if __name__ == "__main__":
                                        '  %s [option|cfgfile] [<LFN>] [<LFN>...]' % Script.scriptName, ] ) )
 
   Script.parseCommandLine( ignoreErrors = False )
-  
+
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeGetFile
   executeGetFile( dmScript )

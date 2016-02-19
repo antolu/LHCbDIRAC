@@ -20,7 +20,7 @@ def makeBKPath( bkDict ):
   path = os.path.join( '/',
                        bkDict.get( 'ConfigName', '' ),
                        bkDict.get( 'ConfigVersion', '' ),
-                       bkDict.get( 'ConditionDescription', '.' ),
+                       bkDict.get( 'ConditionDescription', bkDict.get( 'DataTakingConditions', bkDict.get( 'SimulationConditions', '.' ) ) ),
                        bkDict.get( 'ProcessingPass', '.' )[1:],
                        str( bkDict.get( 'EventType', '.' ) ).replace( '90000000', '.' ),
                        fileType ).replace( '/.', '/' )

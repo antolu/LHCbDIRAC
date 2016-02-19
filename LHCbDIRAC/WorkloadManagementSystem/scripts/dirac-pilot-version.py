@@ -113,7 +113,7 @@ if  updatePilotScript:
     os.unlink( os.path.join( dst, item ) )
   os.symlink( LHCbsrc, os.path.join ( dst, "LHCbPilotCommands.py" ) )
   # try:
-  #  releases = urllib2.urlopen( "http://svnweb.cern.ch/world/wsvn/dirac/LHCbDIRAC/trunk/LHCbDIRAC/releases.cfg" )
+  #  releases = urllib2.urlopen( "https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/LHCbDIRAC/releases.cfg" )
   #  releases = re.findall( "\sDIRAC:.+", releases.read() )
   #  DiracVersion = ( releases[1].split( ':' ) )[1]
   # except urllib2.HTTPError, x:
@@ -126,7 +126,3 @@ if  updatePilotScript:
       os.symlink( org, os.path.join( dst, item ) )
   os.symlink( os.path.join( Diracsrc, "DIRAC/Core/scripts/dirac-install.py" ), os.path.join( dst , "dirac-install.py" ) )
   print "Pilot scripts link updated"
-
-
-
-

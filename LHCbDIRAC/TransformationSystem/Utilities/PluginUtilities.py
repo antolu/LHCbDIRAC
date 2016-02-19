@@ -790,7 +790,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         return None
       transQuery = res['Value']['Successful'].get( lfn, [{}] )[0]
       # Strip off most of it
-      for key in ( 'ConditionDescription', 'FileType', 'Production' ):
+      for key in ( 'FileType', 'Production' ):
         transQuery.pop( key, None )
     return transQuery
 

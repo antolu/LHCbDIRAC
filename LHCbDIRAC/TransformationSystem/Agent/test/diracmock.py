@@ -1,4 +1,3 @@
-# $HeadURL: $
 """ diracmock
 
 This module must be imported before running any unit tests. It provides all the
@@ -21,28 +20,28 @@ __RCSID__ = "$Id$"
 # * Agents test case
 
 class DIRAC_TestCase( unittest.TestCase ):
-  
+
   sutPath = ''
-  
+
   def setUp( self ):
-    
+
     self.moduleTested = sut( self.sutPath )
-  
+
   def tearDown( self ):
-    
+
     del self.moduleTested
 
 
 class DIRACAgent_TestCase( unittest.TestCase ):
-  
+
   sutPath = ''
 
   def setUp( self ):
-    
-    self.moduleTested = mockAgent( self.sutPath )   
-  
+
+    self.moduleTested = mockAgent( self.sutPath )
+
   def tearDown( self ):
-    
+
     del self.moduleTested
     unmock()
 
@@ -61,12 +60,12 @@ def sut( sutPath ):
     path to the module to be tested
 
   """
-  
+
   return __import__( sutPath, globals(), locals(), '*' )
 
 
 def mockAgentModule():
-  
+
   patcher  = mock.patch( 'DIRAC.Core.Base.AgentModule.AgentModule', autospec = True )
   # The patcher needs to be started...
   pStarted = patcher.start()
@@ -80,42 +79,42 @@ def mockAgentModule():
       self.log = mock.Mock()
   for k, v in pStarted.__dict__.iteritems():
     setattr( AgentModule, k, v )
-    
+
   return AgentModule
 
 
 def mockAgent( sutPath ):
-  
+
   moduleTested = sut( sutPath )
   agentClass   = getattr( moduleTested, sutPath.split( '.' )[ -1 ] )
-  
+
   if hasattr( moduleTested, 'AgentModule' ):
-  
+
     AgentModule = mockAgentModule()
-    
+
     moduleTested.AgentModule = AgentModule
-    
+
     baseClassBuffer = []
-    
+
     for baseClass in agentClass.__bases__:
       if baseClass.__name__ == 'AgentModule':
-        baseClassBuffer.append( AgentModule )    
+        baseClassBuffer.append( AgentModule )
       else:
-        baseClassBuffer.append( baseClass ) 
-    
+        baseClassBuffer.append( baseClass )
+
     newBases = tuple( baseClassBuffer )
     if agentClass.__bases__ != newBases:
-      agentClass.__bases__ = newBases      
-  
+      agentClass.__bases__ = newBases
+
   else:
     for baseClass in agentClass.__bases__:
       mockAgent( baseClass.__module__ )
-      
-  return moduleTested    
-          
+
+  return moduleTested
+
 
 def unmock():
-  
+
   mock.patch.stopall()
 
 #...............................................................................

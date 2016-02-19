@@ -43,6 +43,11 @@ pip-log.txt
 .*.sw[a-z]
 *.un~
 Session.vim
+*~
+
+# Intellij
+.idea/
+LHCbDIRAC.iml
 
 # test stuff
 .cache
@@ -51,3 +56,7 @@ pytests.xml
 nosetests.xml
 coverage.xml
 *.gz
+
+# CMT junk
+/*/*/x86_64-*-*-*/
+*/*/cmt/Makefile

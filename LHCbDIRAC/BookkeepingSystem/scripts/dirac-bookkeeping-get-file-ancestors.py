@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :    dirac-bookkeeping-get-file-ancestors
 # Author :  Zoltan Mathe
 ########################################################################
@@ -82,4 +81,3 @@ if __name__ == "__main__":
 
   DIRAC.exit( printDMResult( fullResult,
                              empty = "None", script = "dirac-bookkeeping-get-file-ancestors" ) )
-

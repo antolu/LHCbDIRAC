@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-########################################################################
-# $HeadURL$
-########################################################################
 """
 Remove replicas of a (list of) LFNs at a list of sites. It is possible to request a minimum of remaining replicas
 """
@@ -28,4 +25,3 @@ if __name__ == "__main__":
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeRemoveReplicas
   executeRemoveReplicas( dmScript )
-

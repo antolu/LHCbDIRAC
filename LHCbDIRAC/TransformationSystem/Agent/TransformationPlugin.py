@@ -274,11 +274,11 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           self.util.updateShares( existingCount, assignedRAW, len( lfns ) )
         assignedSE = ','.join( ses )
         if assignedSE:
-          self.util.logVerbose( 'Creating a task for SEs %s' % assignedSE )
+          self.util.logVerbose( 'Creating a task (%d files, run %d) for SEs %s' % ( len( lfns ), runID, assignedSE ) )
           tasks.append( ( assignedSE, lfns ) )
         else:
           alreadyReplicated += lfns
-          self.util.logVerbose( '%d files found already replicated at %s' % ( len( lfns ), replicaSE ) )
+          self.util.logVerbose( '%d files in run %d found already replicated at %s' % ( len( lfns ), runID, ','.join( sorted( replicaSE ) ) ) )
 
     if alreadyReplicated:
       for lfn in alreadyReplicated:
