@@ -2,7 +2,7 @@
 
    PropagationPolicy.__bases__:
      DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
-  
+
 '''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
@@ -53,13 +53,13 @@ __RCSID__ = "$Id$"
 #
 #    commandResult = commandResult[ 'Value' ]
 #
-#    if ( commandResult[ 'Active' ] > 0 and commandResult[ 'Probing' ] == 0 and 
+#    if ( commandResult[ 'Active' ] > 0 and commandResult[ 'Probing' ] == 0 and
 #         commandResult[ 'Bad' ] == 0 and commandResult[ 'Banned' ] == 0 ):
 #      status = 'Active'
-#    elif ( commandResult[ 'Active' ] == 0 and commandResult[ 'Probing' ] == 0 and 
+#    elif ( commandResult[ 'Active' ] == 0 and commandResult[ 'Probing' ] == 0 and
 #           commandResult[ 'Bad' ] == 0 and commandResult[ 'Banned' ] > 0 ):
 #      status = 'Banned'
-#    elif ( commandResult[ 'Active' ] > 0 or commandResult[ 'Probing' ] > 0 or 
+#    elif ( commandResult[ 'Active' ] > 0 or commandResult[ 'Probing' ] > 0 or
 #           commandResult[ 'Bad' ] > 0 or commandResult[ 'Banned' ] > 0 ):
 #      status = 'Bad'
 #    else:
@@ -68,8 +68,8 @@ __RCSID__ = "$Id$"
 #    result[ 'Status' ] = status
 #    # TODO: Check that self.args[2] is correct, in the future, use
 #    # named fields instead of numbers
-#    _msg = '%s: Active:%d, Probing :%d, Bad: %d, Banned:%d' 
-#    result[ 'Reason' ] = _msg % ( self.args[ 2 ], commandResult[ 'Active' ], 
+#    _msg = '%s: Active:%d, Probing :%d, Bad: %d, Banned:%d'
+#    result[ 'Reason' ] = _msg % ( self.args[ 2 ], commandResult[ 'Active' ],
 #                                  commandResult[ 'Probing' ], commandResult[ 'Bad' ],
 #                                  commandResult[ 'Banned' ] )
 #

@@ -2,7 +2,7 @@
 
    SAMResultsPolicy.__bases__:
      DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
-  
+
 '''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
@@ -50,7 +50,7 @@ class SAMResultsPolicy( PolicyBase ):
       return result
 
     commandResult = commandResult[ 'Value' ]
-    
+
     result[ 'Status' ] = 'Active'
     status             = 'ok'
 

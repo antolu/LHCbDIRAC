@@ -7,13 +7,13 @@
 
 from DIRAC.ResourceStatusSystem.DB.ResourceManagementDB import \
   ResourceManagementDB as DIRACResourceManagementDB
-  
+
 __RCSID__ = "$Id$"
 
 class ResourceManagementDB( DIRACResourceManagementDB ):
   '''
    Module that extends basic methods to access the ResourceManagementDB.
-  
+
     Extension of ResourceManagementDB, adding the following tables:
     - HammerCloudTest
     - MonitoringTest
@@ -21,7 +21,7 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
     - SLSLogSE
     - SLSStorage
   '''
-  
+
   _tablesDB    = DIRACResourceManagementDB._tablesDB
   _tablesDB[ 'EnvironmentCache' ] = { 'Fields' : { 'HashKey'       : 'VARCHAR(64) NOT NULL',
                                                     'Environment'   : 'TEXT',
@@ -51,7 +51,7 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                                                 'Timestamp'      : 'DATETIME NOT NULL',
                                                 'LastCheckTime'  : 'DATETIME NOT NULL'},
                                    'PrimaryKey' : [ 'MetricName', 'ServiceURI' ]}
-  _tablesDB[ 'JobAccountingCache' ] = { 'Fields' : 
+  _tablesDB[ 'JobAccountingCache' ] = { 'Fields' :
                      {'Name'          : 'VARCHAR(64) NOT NULL',
                        'Checking'      : 'DOUBLE NOT NULL DEFAULT 0',
                        'Completed'     : 'DOUBLE NOT NULL DEFAULT 0',
@@ -62,23 +62,23 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                        'Running'       : 'DOUBLE NOT NULL DEFAULT 0',
                        'Stalled'       : 'DOUBLE NOT NULL DEFAULT 0',
                        'LastCheckTime' : 'DATETIME NOT NULL'},
-                      'PrimaryKey' : [ 'Name' ]                                            
+                      'PrimaryKey' : [ 'Name' ]
                                 }
-  
-  _tablesDB[ 'PilotAccountingCache' ] = { 'Fields' : 
+
+  _tablesDB[ 'PilotAccountingCache' ] = { 'Fields' :
                      { 'Name'          : 'VARCHAR(64) NOT NULL',
                        'Aborted'       : 'DOUBLE NOT NULL DEFAULT 0',
                        'Deleted'       : 'DOUBLE NOT NULL DEFAULT 0',
                        'Done'          : 'DOUBLE NOT NULL DEFAULT 0',
                        'Failed'        : 'DOUBLE NOT NULL DEFAULT 0',
                        'LastCheckTime' : 'DATETIME NOT NULL'},
-                      'PrimaryKey' : [ 'Name' ]                                            
+                      'PrimaryKey' : [ 'Name' ]
                                 }
 
-  
+
   # TABLES THAT WILL EVENTUALLY BE DELETED
-  
-  _tablesDB[ 'SLST1Service' ] = { 'Fields' : 
+
+  _tablesDB[ 'SLST1Service' ] = { 'Fields' :
                      { 'Site'          : 'VARCHAR(64) NOT NULL',
                        'System'        : 'VARCHAR(32) NOT NULL',
                        'Availability'  : 'TINYINT UNSIGNED NOT NULL',
@@ -87,21 +87,21 @@ class ResourceManagementDB( DIRACResourceManagementDB ):
                        'ServiceUptime' : 'INT UNSIGNED',
                        'HostUptime'    : 'INT UNSIGNED',
                        'Message'       : 'TEXT' },
-                      'PrimaryKey' : [ 'Site', 'System' ]                                            
+                      'PrimaryKey' : [ 'Site', 'System' ]
                                 }
-  _tablesDB[ 'SLSLogSE' ] = { 'Fields' : 
+  _tablesDB[ 'SLSLogSE' ] = { 'Fields' :
                      { 'Name'               : 'VARCHAR(32)',
                        'Availability'       : 'TINYINT UNSIGNED NOT NULL',
                        'TimeStamp'          : 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
                        'ValidityDuration'   : 'VARCHAR(32) NOT NULL',
                        'DataPartitionUsed'  : 'TINYINT UNSIGNED',
                        'DataPartitionTotal' : 'BIGINT UNSIGNED'},
-                      'PrimaryKey' : [ 'Name' ]                                            
+                      'PrimaryKey' : [ 'Name' ]
                                 }
 
-  
+
   #_tablesLike  = DIRACResourceManagementDB._tablesLike
   #_likeToTable = DIRACResourceManagementDB._likeToTable
-  
+
 #...............................................................................
 #EOF

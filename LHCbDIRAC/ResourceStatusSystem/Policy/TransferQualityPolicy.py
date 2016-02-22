@@ -2,7 +2,7 @@
 
    TransferQualityPolicy.__bases__:
      DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
- 
+
 '''
 
 from DIRAC                                              import S_OK
@@ -31,23 +31,23 @@ class TransferQualityPolicy( PolicyBase ):
         }
     '''
 
-    result = { 
+    result = {
               'Status' : None,
               'Reason' : None
               }
-    
+
     if not commandResult[ 'OK' ]:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = commandResult[ 'Message' ]
       return S_OK( result )
-    
+
     commandResult = commandResult[ 'Value' ]
 
     if not commandResult:
       result[ 'Status' ] = 'Unknown'
       result[ 'Reason' ] = 'No values to take a decision'
       return S_OK( result )
-        
+
     if not 'Name' in commandResult:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Missing "Name" key'
@@ -61,19 +61,19 @@ class TransferQualityPolicy( PolicyBase ):
       return S_OK( result )
 
     mean = commandResult[ 'Mean' ]
-    
+
     if mean is None:
       result[ 'Status' ] = 'Unknown'
       result[ 'Reason' ] = 'No values to take a decision'
-      return S_OK( result )  
+      return S_OK( result )
 
-    
+
     result[ 'Reason' ] = 'TransferQuality: %d -> ' % mean
 
     # FIXME: policyParameters = Configurations.getPolicyParameters()
 
-    policyParameters = { 
-                        'Transfer_QUALITY_LOW'  : 60,  
+    policyParameters = {
+                        'Transfer_QUALITY_LOW'  : 60,
                         'Transfer_QUALITY_HIGH' : 90
                         }
 

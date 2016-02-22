@@ -1,8 +1,8 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Policy.JobEfficiencyPolicy
-  
+
    JobWebSummaryEfficiencyPolicy.__bases__:
-     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase  
-  
+     DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
+
 '''
 
 from DIRAC                                              import S_OK
@@ -12,13 +12,13 @@ __RCSID__ = "$Id$"
 
 class JobWebSummaryEfficiencyPolicy( PolicyBase ):
   '''
-  The JobEfficiencyPolicy class is a policy that checks the efficiency of the 
+  The JobEfficiencyPolicy class is a policy that checks the efficiency of the
   jobs according to what is on WMS.
 
 
     Evaluates the JobEfficiency results given by the JobCommand.JobCommand
   '''
-  
+
   @staticmethod
   def _evaluate( commandResult ):
     '''
@@ -31,7 +31,7 @@ class JobWebSummaryEfficiencyPolicy( PolicyBase ):
       }
     '''
 
-    result = { 
+    result = {
               'Status' : None,
               'Reason' : None
               }
@@ -51,24 +51,24 @@ class JobWebSummaryEfficiencyPolicy( PolicyBase ):
     # The command returns a list of dictionaries, with only one if thre is something,
     # otherwise an empty list.
     commandResult = commandResult[ 0 ]
-      
+
     if 'Status' not in commandResult:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = '"Status" key missing'
-      return S_OK( result )  
-    
+      return S_OK( result )
+
     if 'Efficiency' not in commandResult:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = '"Efficiency" key missing'
-      return S_OK( result )  
-          
+      return S_OK( result )
+
     status     = commandResult[ 'Status' ]
-    efficiency = commandResult[ 'Efficiency' ]      
-          
+    efficiency = commandResult[ 'Efficiency' ]
+
     if status == 'Good':
       result[ 'Status' ] = 'Active'
     elif status == 'Fair':
-      result[ 'Status' ] = 'Active'   
+      result[ 'Status' ] = 'Active'
     elif status == 'Poor':
       result[ 'Status' ] = 'Degraded'
     elif status == 'Idle':
@@ -78,7 +78,7 @@ class JobWebSummaryEfficiencyPolicy( PolicyBase ):
     else:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Unknown status "%s"' % status
-      return S_OK( result )   
+      return S_OK( result )
 
     result[ 'Reason' ] = 'Jobs Efficiency: %s with status %s' % ( efficiency, status )
 

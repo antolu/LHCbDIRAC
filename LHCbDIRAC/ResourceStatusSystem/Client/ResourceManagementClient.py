@@ -2,7 +2,7 @@
 
    ResourceManagementClient.__bases__:
      DIRAC.ResourceStatusSystem.Client.ResourceManagementClient.ResourceManagementClient
-  
+
 """
 
 from DIRAC import S_ERROR, S_OK, gLogger
@@ -15,7 +15,7 @@ __RCSID__ = "$Id$"
 class ResourceManagementClient( DIRACResourceManagementClient ):
   """
   Extension for the DIRAC version of the ResourceManagementClient.
-  
+
   The :class:`ResourceManagementClient` class extends the client on DIRAC.
 
   It has the 'direct-db-access' functions, the ones of the type:
@@ -46,15 +46,15 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
   ##############################################################################
   # MONITORING TEST METHODS
 
-#  def insertMonitoringTest( self, metricName, serviceURI, siteName, serviceFlavour, 
-#                            metricStatus, summaryData, timestamp, lastCheckTime, 
+#  def insertMonitoringTest( self, metricName, serviceURI, siteName, serviceFlavour,
+#                            metricStatus, summaryData, timestamp, lastCheckTime,
 #                            meta = None ):
 #    """
 #    Inserts on MonitoringTest a new row with the arguments given.
-#    
+#
 #    :Parameters:
 #      **metricName** - `string`
-#        name of the metric 
+#        name of the metric
 #      **serviceURI** - `string`
 #        URI of the service
 #      **siteName** - `string`
@@ -68,7 +68,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #      **timestamp** - `datetime`
 #        timestamp of the test
 #      **lastCheckTime** - `datetime`
-#        last time it was cheched      
+#        last time it was cheched
 #      **meta** - `[, dict]`
 #        meta-data for the MySQL query. It will be filled automatically with the\
 #       `table` key and the proper table name.
@@ -78,15 +78,15 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #    # Unused argument
 #    return self._query( 'insert', 'MonitoringTest', locals() )
 
-#  def updateMonitoringTest( self, metricName, serviceURI, siteName, serviceFlavour, 
-#                            metricStatus, summaryData, timestamp, lastCheckTime, 
+#  def updateMonitoringTest( self, metricName, serviceURI, siteName, serviceFlavour,
+#                            metricStatus, summaryData, timestamp, lastCheckTime,
 #                            meta = None ):
 #    """
 #    Updates on MonitoringTest a new row with the arguments given.
-#    
+#
 #    :Parameters:
 #      **metricName** - `string`
-#        name of the metric 
+#        name of the metric
 #      **serviceURI** - `string`
 #        URI of the service
 #      **siteName** - `string`
@@ -100,7 +100,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #      **timestamp** - `datetime`
 #        timestamp of the test
 #      **lastCheckTime** - `datetime`
-#        last time it was cheched      
+#        last time it was cheched
 #      **meta** - `[, dict]`
 #        meta-data for the MySQL query. It will be filled automatically with the\
 #       `table` key and the proper table name.
@@ -110,16 +110,16 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #    # Unused argument
 #    return self._query( 'update', 'MonitoringTest', locals() )
 
-  def selectMonitoringTest( self, metricName = None, serviceURI = None, 
+  def selectMonitoringTest( self, metricName = None, serviceURI = None,
                             siteName = None, serviceFlavour = None,
                             metricStatus = None, summaryData = None,
                             timestamp = None, lastCheckTime = None, meta = None ):
     """
     Gets from MonitoringTest all rows that match the parameters given.
-    
+
     :Parameters:
       **metricName** - `[, string, list]`
-        name of the metric 
+        name of the metric
       **serviceURI** - `[, string, list]`
         URI of the service
       **siteName** - `[, string, list]`
@@ -133,7 +133,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       **timestamp** - `[, datetime, list]`
         timestamp of the test
       **lastCheckTime** - `[, datetime, list]`
-        last time it was cheched      
+        last time it was cheched
       **meta** - `[, dict]`
         meta-data for the MySQL query. It will be filled automatically with the\
        `table` key and the proper table name.
@@ -144,15 +144,15 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     return self._query( 'select', 'MonitoringTest', locals() )
 
   def deleteMonitoringTest( self, metricName = None, serviceURI = None,
-                            siteName = None, serviceFlavour = None, 
+                            siteName = None, serviceFlavour = None,
                             metricStatus = None, summaryData = None,
                             timestamp = None, lastCheckTime = None, meta = None ):
     """
     Deletes from MonitoringTest all rows that match the parameters given.
-    
+
     :Parameters:
       **metricName** - `[, string, list]`
-        name of the metric 
+        name of the metric
       **serviceURI** - `[, string, list]`
         URI of the service
       **siteName** - `[, string, list]`
@@ -166,7 +166,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       **timestamp** - `[, datetime, list]`
         timestamp of the test
       **lastCheckTime** - `[, datetime, list]`
-        last time it was cheched      
+        last time it was cheched
       **meta** - `[, dict]`
         meta-data for the MySQL query. It will be filled automatically with the\
        `table` key and the proper table name.
@@ -180,12 +180,12 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
                                  serviceFlavour, metricStatus, summaryData,
                                  timestamp, lastCheckTime ):
     """
-    Using `metricName` and `serviceURI` to query the database, decides whether 
+    Using `metricName` and `serviceURI` to query the database, decides whether
     to insert or update the table.
-    
+
     :Parameters:
       **metricName** - `string`
-        name of the metric 
+        name of the metric
       **serviceURI** - `string`
         URI of the service
       **siteName** - `string`
@@ -199,27 +199,27 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       **timestamp** - `datetime`
         timestamp of the test
       **lastCheckTime** - `datetime`
-        last time it was cheched    
+        last time it was cheched
 
     :return: S_OK() || S_ERROR()
     """
     # Unused argument
-    meta = { 'onlyUniqueKeys' : True } 
+    meta = { 'onlyUniqueKeys' : True }
     return self._query( 'addOrModify', 'MonitoringTest', locals() )
 
   ##############################################################################
   # JOB ACCOUNTING CACHE METHODS
 
   def selectJobAccountingCache( self, name = None, checking = None, completed = None,
-                                done = None, failed = None, killed = None, 
+                                done = None, failed = None, killed = None,
                                 matched = None, running = None, stalled = None,
                                 lastCheckTime = None, meta = None ):
     """
     Selects from JobAccountingCach all rows that match the parameters given.
-    
+
     :Parameters:
       **name** - [, `string`, `list` ]
-        name of the element 
+        name of the element
       **checking** - [, `float`, `list` ]
         number of checking jobs
       **completed** - [, `float`, `list` ]
@@ -227,7 +227,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       **done** - [, `float`, `list` ]
         number of done jobs
       **failed** - [, `float`, `list` ]
-        number of failed jobs    
+        number of failed jobs
       **killed** - [, `float`, `list` ]
         number of killed jobs
       **matched** - [, `float`, `list` ]
@@ -235,9 +235,9 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       **running** - [, `float`, `list` ]
         number of running jobs
       **stalled** - [, `float`, `list` ]
-        number of stalled jobs     
+        number of stalled jobs
       **lastCheckTime** - `datetime`
-        last time it was cheched    
+        last time it was cheched
       **meta** - `[, dict]`
         meta-data for the MySQL query. It will be filled automatically with the\
        `table` key and the proper table name.
@@ -247,15 +247,15 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 
     return self._query( 'select', 'JobAccountingCache', locals() )
   def deleteJobAccountingCache( self, name = None, checking = None, completed = None,
-                                done = None, failed = None, killed = None, 
+                                done = None, failed = None, killed = None,
                                 matched = None, running = None, stalled = None,
                                 lastCheckTime = None, meta = None ):
     """
     Deletes from JobAccountingCach all rows that match the parameters given.
-    
+
     :Parameters:
       **name** - [, `string`, `list` ]
-        name of the element 
+        name of the element
       **checking** - [, `float`, `list` ]
         number of checking jobs
       **completed** - [, `float`, `list` ]
@@ -263,7 +263,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       **done** - [, `float`, `list` ]
         number of done jobs
       **failed** - [, `float`, `list` ]
-        number of failed jobs    
+        number of failed jobs
       **killed** - [, `float`, `list` ]
         number of killed jobs
       **matched** - [, `float`, `list` ]
@@ -271,9 +271,9 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       **running** - [, `float`, `list` ]
         number of running jobs
       **stalled** - [, `float`, `list` ]
-        number of stalled jobs     
+        number of stalled jobs
       **lastCheckTime** - `datetime`
-        last time it was cheched    
+        last time it was cheched
       **meta** - `[, dict]`
         meta-data for the MySQL query. It will be filled automatically with the\
        `table` key and the proper table name.
@@ -282,16 +282,16 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     """
     return self._query( 'delete', 'JobAccountingCache', locals() )
   def addOrModifyJobAccountingCache( self, name = None, checking = None, completed = None,
-                                     done = None, failed = None, killed = None, 
+                                     done = None, failed = None, killed = None,
                                      matched = None, running = None, stalled = None,
                                      lastCheckTime = None, meta = None ):
     """
     Using `name` to query the database, decides whether to insert or update the t
     table.
-    
+
     :Parameters:
       **name** - `string`
-        name of the element 
+        name of the element
       **checking** - `float`
         number of checking jobs
       **completed** - `float`
@@ -299,7 +299,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       **done** - `float`
         number of done jobs
       **failed** - `float`
-        number of failed jobs    
+        number of failed jobs
       **killed** - `float`
         number of killed jobs
       **matched** - `float`
@@ -307,41 +307,41 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       **running** - `float`
         number of running jobs
       **stalled** - `float`
-        number of stalled jobs     
+        number of stalled jobs
       **lastCheckTime** - `datetime`
-        last time it was cheched    
+        last time it was cheched
       **meta** - `[, dict]`
         meta-data for the MySQL query. It will be filled automatically with the\
        `table` key and the proper table name.
 
     :return: S_OK() || S_ERROR()
     """
-    
+
     meta = { 'onlyUniqueKeys' : True }
-    return self._query( 'addOrModify', 'JobAccountingCache', locals() )     
+    return self._query( 'addOrModify', 'JobAccountingCache', locals() )
 
   ##############################################################################
   # PILOT ACCOUNTING CACHE METHODS
 
-  def selectPilotAccountingCache( self, name = None, aborted = None, deleted = None, 
-                                  done = None, failed = None, lastCheckTime = None, 
+  def selectPilotAccountingCache( self, name = None, aborted = None, deleted = None,
+                                  done = None, failed = None, lastCheckTime = None,
                                   meta = None ):
     """
     Selects from PilotAccountingCache all rows that match the parameters given.
-    
+
     :Parameters:
       **name** - [, `string`, `list` ]
-        name of the element 
+        name of the element
       **aborted** - [, `float`, `list` ]
         number of aborted pilots
       **deleted** - [, `float`, `list` ]
         number of deleted pilots
       **done** - [, `float`, `list` ]
-        number of done pilots  
+        number of done pilots
       **failed** - [, `float`, `list` ]
-        number of failed pilots    
+        number of failed pilots
       **lastCheckTime** - `datetime`
-        last time it was cheched    
+        last time it was cheched
       **meta** - `[, dict]`
         meta-data for the MySQL query. It will be filled automatically with the\
        `table` key and the proper table name.
@@ -350,25 +350,25 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     """
 
     return self._query( 'select', 'PilotAccountingCache', locals() )
-  def deletePilotAccountingCache( self, name = None, aborted = None, deleted = None, 
-                                  done = None, failed = None, lastCheckTime = None, 
+  def deletePilotAccountingCache( self, name = None, aborted = None, deleted = None,
+                                  done = None, failed = None, lastCheckTime = None,
                                   meta = None ):
     """
     Deletes from PilotAccountingCache all rows that match the parameters given.
-    
+
     :Parameters:
       **name** - [, `string`, `list` ]
-        name of the element 
+        name of the element
       **aborted** - [, `float`, `list` ]
         number of aborted pilots
       **deleted** - [, `float`, `list` ]
         number of deleted pilots
       **done** - [, `float`, `list` ]
-        number of done pilots  
+        number of done pilots
       **failed** - [, `float`, `list` ]
-        number of failed pilots    
+        number of failed pilots
       **lastCheckTime** - `datetime`
-        last time it was cheched    
+        last time it was cheched
       **meta** - `[, dict]`
         meta-data for the MySQL query. It will be filled automatically with the\
        `table` key and the proper table name.
@@ -376,49 +376,49 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     :return: S_OK() || S_ERROR()
     """
     return self._query( 'delete', 'PilotAccountingCache', locals() )
-  def addOrModifyPilotAccountingCache( self, name = None, aborted = None, deleted = None, 
-                                       done = None, failed = None, lastCheckTime = None, 
+  def addOrModifyPilotAccountingCache( self, name = None, aborted = None, deleted = None,
+                                       done = None, failed = None, lastCheckTime = None,
                                        meta = None ):
     """
     Using `name` to query the database, decides whether to insert or update the t
     table.
-    
+
     :Parameters:
       **name** - `string`
-        name of the element 
+        name of the element
       **aborted** - `float`
         number of aborted pilots
       **deleted** - `float`
         number of deleted pilots
       **done** - `float`
-        number of done pilots  
+        number of done pilots
       **failed** - `float`
-        number of failed pilots    
+        number of failed pilots
       **lastCheckTime** - `datetime`
-        last time it was cheched    
+        last time it was cheched
       **meta** - `[, dict]`
         meta-data for the MySQL query. It will be filled automatically with the\
        `table` key and the proper table name.
 
     :return: S_OK() || S_ERROR()
     """
-    
+
     meta = { 'onlyUniqueKeys' : True }
-    return self._query( 'addOrModify', 'PilotAccountingCache', locals() )     
+    return self._query( 'addOrModify', 'PilotAccountingCache', locals() )
 
   #..................
   # ENVIRONMENT CACHE methods
 
-  def selectEnvironmentCache( self, hashKey = None, environment = None, 
+  def selectEnvironmentCache( self, hashKey = None, environment = None,
                               siteName = None, arguments = None,
-                              dateEffective = None, lastCheckTime = None, 
+                              dateEffective = None, lastCheckTime = None,
                               meta = None ):
     """
     Gets from EnvironmentCache all rows that match the parameters given.
-    
+
     :Parameters:
       **hashKey** - `[, string, list]`
-        hash of the environment 
+        hash of the environment
       **environment** - `[, string, list]`
         string with the environment dump
       **siteName** - `[, string, list]`
@@ -428,7 +428,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       **dateEffective** - `[, datetime, list]`
         creation time of the hash
       **lastCheckTime** - `[, datetime, list]`
-        last time it was cheched      
+        last time it was cheched
       **meta** - `[, dict]`
         meta-data for the MySQL query. It will be filled automatically with the\
        `table` key and the proper table name.
@@ -438,16 +438,16 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     # Unused argument
     return self._query( 'select', 'EnvironmentCache', locals() )
 
-  def deleteEnvironmentCache( self, hashKey = None, environment = None, 
+  def deleteEnvironmentCache( self, hashKey = None, environment = None,
                               siteName = None, arguments = None,
-                              dateEffective = None, lastCheckTime = None, 
+                              dateEffective = None, lastCheckTime = None,
                               meta = None ):
     """
     Deletes from EnvironmentCache all rows that match the parameters given.
-    
+
     :Parameters:
       **hashKey** - `[, string, list]`
-        hash of the environment 
+        hash of the environment
       **environment** - `[, string, list]`
         string with the environment dump
       **siteName** - `[, string, list]`
@@ -457,7 +457,7 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       **dateEffective** - `[, datetime, list]`
         creation time of the hash
       **lastCheckTime** - `[, datetime, list]`
-        last time it was cheched      
+        last time it was cheched
       **meta** - `[, dict]`
         meta-data for the MySQL query. It will be filled automatically with the\
        `table` key and the proper table name.
@@ -467,15 +467,15 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
     # Unused argument
     return self._query( 'delete', 'EnvironmentCache', locals() )
 
-  def addOrModifyEnvironmentCache( self, hashKey, environment, siteName, 
+  def addOrModifyEnvironmentCache( self, hashKey, environment, siteName,
                                    arguments, dateEffective, lastCheckTime ):
     """
-    Using `hashKey` to query the database, decides whether to insert or update 
+    Using `hashKey` to query the database, decides whether to insert or update
     the table.
-    
+
     :Parameters:
       **hashKey** - `string`
-        hash of the environment 
+        hash of the environment
       **environment** - `string`
         string with the environment dump
       **siteName** - `string`
@@ -485,80 +485,80 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
       **dateEffective** - `datetime`
         creation time of the hash
       **lastCheckTime** - `datetime`
-        last time it was cheched      
+        last time it was cheched
 
     :return: S_OK() || S_ERROR()
     """
     # Unused argument
-    meta = { 'onlyUniqueKeys' : True } 
+    meta = { 'onlyUniqueKeys' : True }
     return self._query( 'addOrModify', 'EnvironmentCache', locals() )
 
   #.............................................................................
-  # 
+  #
 
   def getSLSStorage( self, site = None, token = None,
                      availability = None, refreshPeriod = None,
                      validityDuration = None, totalSpace = None,
                      guaranteedSpace = None, freeSpace = None, meta = None ):
-    
+
     # Deprecation warning
     gLogger.warn( "DEPRECATED: use getSEStorageSpace" )
     return self._query( 'select', 'SLSStorage', locals() )
 
   def getSEStorageSpace( self, seName ):
     """ getSEStorageSpace
-    
-    Given a SE, returns a dictionary with the Total, Free and Guaranteed Space. 
-    This last one, is still unclear what represents ( so far, is equal to Total 
+
+    Given a SE, returns a dictionary with the Total, Free and Guaranteed Space.
+    This last one, is still unclear what represents ( so far, is equal to Total
     space, but that might change ).
-    
+
     This new method returns a similar dictionary to getSLSStorage. However, some
     of the keys in the dictionary have different values. Check them carefully !.
-        
+
     >>> res = self.getSLSStorage( site = 'CERN', token = 'LHCb-Tape' )
     >>> dict( zip( res['Columns'], res['Value'][0] ) )
-    >>> { 'FreeSpace'        : 60L, 
-          'RefreshPeriod'    : 'PT27M', 
-          'TotalSpace'       : 465L, 
-          'TimeStamp'        : datetime.datetime(2013, 10, 24, 12, 53, 27), 
-          'GuaranteedSpace'  : 465L, 
-          'Site'             : 'CERN', 
-          'Token'            : 'LHCb-Tape', 
-          'ValidityDuration' : 'PT13H', 
+    >>> { 'FreeSpace'        : 60L,
+          'RefreshPeriod'    : 'PT27M',
+          'TotalSpace'       : 465L,
+          'TimeStamp'        : datetime.datetime(2013, 10, 24, 12, 53, 27),
+          'GuaranteedSpace'  : 465L,
+          'Site'             : 'CERN',
+          'Token'            : 'LHCb-Tape',
+          'ValidityDuration' : 'PT13H',
           'Availability'     : 100
         }
-    
+
     This is how this new method should be used, and also what it returns ( returns
     a dictionary, so there is no need to generate it - dict( zip ( ... ) ) ).
-    
+
     >>> res = self.getSEStorageSpace( 'CERN-RAW' )
-    >>> { 'Endpoint'      : 'httpg://srm-lhcb.cern.ch:8443/srm/managerv2', 
-          'LastCheckTime' : datetime.datetime(2013, 10, 24, 12, 2, 17), 
-          'Guaranteed'    : 465L, 
-          'Free'          : 60L, 
-          'Token'         : 'LHCb-Tape', 
+    >>> { 'Endpoint'      : 'httpg://srm-lhcb.cern.ch:8443/srm/managerv2',
+          'LastCheckTime' : datetime.datetime(2013, 10, 24, 12, 2, 17),
+          'Guaranteed'    : 465L,
+          'Free'          : 60L,
+          'Token'         : 'LHCb-Tape',
           'Total'         : 465L
          }
-        
+
     """
-    
+
     # Given a SE, we need to find its endpoint
     endpoint = CSHelpers.getStorageElementEndpoint( seName )
     if not endpoint[ 'OK' ]:
       return endpoint
     endpoint = endpoint[ 'Value' ]
-    
+
     spaceToken = CSHelpers.getSEToken( seName )
     if not spaceToken[ 'OK' ]:
       return spaceToken
-    spaceToken = spaceToken[ 'Value']    
-    
+    spaceToken = spaceToken[ 'Value']
+
     res = self.selectSpaceTokenOccupancyCache( endpoint, spaceToken )
     if not res[ 'OK' ]:
       return res
     if not res[ 'Value' ]:
       return S_ERROR( "Empty result" )
-    
+
     return S_OK( dict( zip( res[ 'Columns' ], res[ 'Value' ][ 0 ] ) ) )
 
 
@@ -570,10 +570,10 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #                             agentStatus, formerAgentStatus, counter, meta = None ):
 #    """
 #    Inserts on HammerCloud a new row with the arguments given.
-#    
+#
 #    :Parameters:
 #      **testID** - `integer`
-#        ID given to the test by HammerCloud 
+#        ID given to the test by HammerCloud
 #      **siteName** - `string`
 #        name of the site
 #      **resourceName** - `string`
@@ -589,11 +589,11 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #      **counterTime** - `datetime`
 #        timestamp associated to the counter
 #      **agentStatus** - `string`
-#        status associated to the agent      
+#        status associated to the agent
 #      **formerAgentStatus** - `string`
-#        previous status associated to the agent      
+#        previous status associated to the agent
 #      **counter** - `integer`
-#        counter assigned by the agent                   
+#        counter assigned by the agent
 #      **meta** - `[, dict]`
 #        meta-data for the MySQL query. It will be filled automatically with the\
 #       `table` key and the proper table name.
@@ -607,10 +607,10 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #                             agentStatus, formerAgentStatus, counter, meta = None ):
 #    """
 #    Updates on HammerCloud a new row with the arguments given.
-#    
+#
 #    :Parameters:
 #      **testID** - `integer`
-#        ID given to the test by HammerCloud 
+#        ID given to the test by HammerCloud
 #      **siteName** - `string`
 #        name of the site
 #      **resourceName** - `string`
@@ -626,11 +626,11 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #      **counterTime** - `datetime`
 #        timestamp associated to the counter
 #      **agentStatus** - `string`
-#        status associated to the agent      
+#        status associated to the agent
 #      **formerAgentStatus** - `string`
-#        previous status associated to the agent      
+#        previous status associated to the agent
 #      **counter** - `integer`
-#        counter assigned by the agent                   
+#        counter assigned by the agent
 #      **meta** - `[, dict]`
 #        meta-data for the MySQL query. It will be filled automatically with the\
 #       `table` key and the proper table name.
@@ -640,16 +640,16 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #    # Unused argument
 #    return self._query( 'update', 'HammerCloudTest', locals() )
 
-#  def selectHammerCloudTest( self, testID = None, siteName = None, resourceName = None, 
+#  def selectHammerCloudTest( self, testID = None, siteName = None, resourceName = None,
 #                             testStatus = None, submissionTime = None, startTime = None,
-#                             endTime = None, counterTime = None, agentStatus = None, 
+#                             endTime = None, counterTime = None, agentStatus = None,
 #                             formerAgentStatus = None, counter = None, meta = None ):
 #    """
 #    Gets from HammerCloud all rows that match the parameters given.
-#    
+#
 #    :Parameters:
 #      **testID** - `[, integer, list]`
-#        ID given to the test by HammerCloud 
+#        ID given to the test by HammerCloud
 #      **siteName** - `[, string, list]`
 #        name of the site
 #      **resourceName** - `[, string, list]`
@@ -665,11 +665,11 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #      **counterTime** - `[, datetime, list]`
 #        timestamp associated to the counter
 #      **agentStatus** - `[, string, list]`
-#        status associated to the agent      
+#        status associated to the agent
 #      **formerAgentStatus** - `[, string, list]`
-#        previous status associated to the agent      
+#        previous status associated to the agent
 #      **counter** - `[, integer, list]`
-#        counter assigned by the agent                   
+#        counter assigned by the agent
 #      **meta** - `[, dict]`
 #        meta-data for the MySQL query. It will be filled automatically with the\
 #       `table` key and the proper table name.
@@ -679,16 +679,16 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #    # Unused argument
 #    return self._query( 'select', 'HammerCloudTest', locals() )
 
-#  def deleteHammerCloudTest( self, testID = None, siteName = None, resourceName = None, 
+#  def deleteHammerCloudTest( self, testID = None, siteName = None, resourceName = None,
 #                             testStatus = None, submissionTime = None, startTime = None,
-#                             endTime = None, counterTime = None, agentStatus = None, 
+#                             endTime = None, counterTime = None, agentStatus = None,
 #                             formerAgentStatus = None, counter = None, meta = None ):
 #    """
 #    Deletes from HammerCloud all rows that match the parameters given.
-#    
+#
 #    :Parameters:
 #      **testID** - `[, integer, list]`
-#        ID given to the test by HammerCloud 
+#        ID given to the test by HammerCloud
 #      **siteName** - `[, string, list]`
 #        name of the site
 #      **resourceName** - `[, string, list]`
@@ -704,11 +704,11 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #      **counterTime** - `[, datetime, list]`
 #        timestamp associated to the counter
 #      **agentStatus** - `[, string, list]`
-#        status associated to the agent      
+#        status associated to the agent
 #      **formerAgentStatus** - `[, string, list]`
-#        previous status associated to the agent      
+#        previous status associated to the agent
 #      **counter** - `[, integer, list]`
-#        counter assigned by the agent                   
+#        counter assigned by the agent
 #      **meta** - `[, dict]`
 #        meta-data for the MySQL query. It will be filled automatically with the\
 #       `table` key and the proper table name.
@@ -723,12 +723,12 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #                                  endTime, counterTime, agentStatus,
 #                                  formerAgentStatus, counter ):
 #    """
-#    Using `submissionTime` to query the database, decides whether 
+#    Using `submissionTime` to query the database, decides whether
 #    to insert or update the table.
-#    
+#
 #    :Parameters:
 #      **testID** - `integer`
-#        ID given to the test by HammerCloud 
+#        ID given to the test by HammerCloud
 #      **siteName** - `string`
 #        name of the site
 #      **resourceName** - `string`
@@ -744,16 +744,16 @@ class ResourceManagementClient( DIRACResourceManagementClient ):
 #      **counterTime** - `datetime`
 #        timestamp associated to the counter
 #      **agentStatus** - `string`
-#        status associated to the agent      
+#        status associated to the agent
 #      **formerAgentStatus** - `string`
-#        previous status associated to the agent      
+#        previous status associated to the agent
 #      **counter** - `integer`
-#        counter assigned by the agent                   
+#        counter assigned by the agent
 #
 #    :return: S_OK() || S_ERROR()
 #    """
 #    # Unused argument
-#    meta = { 'onlyUniqueKeys' : True }   
+#    meta = { 'onlyUniqueKeys' : True }
 #    return self._query( 'addOrModify', 'HammerCloudTest', locals() )
 
 #...............................................................................
