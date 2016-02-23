@@ -114,3 +114,5 @@ create or replace type bulk_collect_jobMetadata is table of jobMetadata;
 
 ALTER TABLE productionscontainer ADD configurationid number;
 ALTER TABLE productionscontainer ADD FOREIGN KEY (CONFIGURATIONID) REFERENCES configurations(CONFIGURATIONID);
+
+alter table jobs ADD CONSTRAINT FK_Prodcont_prod FOREIGN KEY(production) REFERENCES productionscontainer(production);
