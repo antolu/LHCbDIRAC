@@ -1,0 +1,18 @@
+from ProdConf import ProdConf
+
+ProdConf(
+  TCK='0x94003d',
+  NOfEvents=25,
+  HistogramFile='Brunel_00020194_00106359_1_Hist.root',
+  DDDBTag='dddb-20120831',
+  CondDBTag='cond-20120831',
+  AppVersion='v43r2p2',
+  OptionFormat='None',
+  XMLSummaryFile='summaryBrunel_00020194_00106359_1.xml',
+  Application='Brunel',
+  OutputFilePrefix='00020194_00106359_1',
+  RunNumber=114753,
+  XMLFileCatalog='pool_xml_catalog.xml',
+  InputFiles=['LFN:/lhcb/data/2012/RAW/FULL/LHCb/COLLISION12/114753/114753_0000000296.raw'],
+  OutputFileTypes=['full.dst'],
+)
