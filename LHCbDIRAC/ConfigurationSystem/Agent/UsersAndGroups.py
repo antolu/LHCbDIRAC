@@ -11,10 +11,9 @@ from DIRAC.Core.Security                             import Locations, X509Chain
 from DIRAC.Core.Utilities                            import List
 from DIRAC.ConfigurationSystem.Client.CSAPI          import CSAPI
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
-from DIRAC.Core.Security.ProxyInfo import getProxyInfo
+from DIRAC.Core.Utilities.Proxy                      import executeWithUserProxy
+from DIRAC.Resources.Catalog.FileCatalogClient       import FileCatalogClient
 from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
-from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
-from DIRAC.Core.Utilities.Proxy import executeWithUserProxy
 
 
 __RCSID__ = "$Id$"
@@ -29,8 +28,6 @@ class UsersAndGroups( AgentModule ):
     self.vomsSrv = None
     self.proxyLocation = ".volatileId"
     self.__adminMsgs = {}
-    self.lfcDNs = None
-    self.lfcBANDNs = None
 
   def initialize( self ):
     ''' Initialize method
@@ -75,7 +72,6 @@ class UsersAndGroups( AgentModule ):
     '''
     check and create if necessary an entry in the DFC
     '''
-    from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
     dfc = FileCatalogClient()
     recursive = False
     exists = False
@@ -90,7 +86,8 @@ class UsersAndGroups( AgentModule ):
         success = res['Value']['Successful'][baseDir]
         subDirectories = success['SubDirs']
         if success.get( 'SubDirs' ) or success.get( 'Files' ):
-          self.log.always( 'Directory is not empty:', ' %d files / %d subdirectories' % ( len( success['Files'] ), len( success['SubDirs'] ) ) )
+          self.log.always( 'Directory is not empty:', ' %d files / %d subdirectories' % ( len( success['Files'] ),
+                                                                                          len( success['SubDirs'] ) ) )
         elif recursive:
           self.log.always( "Empty directory, recursive is useless..." )
           recursive = False
@@ -116,50 +113,6 @@ class UsersAndGroups( AgentModule ):
     else:
       self.log.always( 'Successfully changed owner in directory %s in %.1f seconds' % ( baseDir, time() - startTime ) )
 
-  def checkLFCRegisteredUsers( self, usersData ):
-    ''' Registers and re-registers users in the LFC
-    '''
-
-    self.log.info( "Checking DFC registered users" )
-
-    usersToBeRegistered      = {}
-    found                    = False
-
-    for user in usersData:
-      for userDN in usersData[ user ][ 'DN' ]:
-        if not found:
-          if userDN not in self.lfcDNs:
-            self.log.info( 'DN "%s" need to be registered in LFC for user %s' % ( userDN, user ) )
-            if user not in usersToBeRegistered:
-              usersToBeRegistered[ user ] = []
-            usersToBeRegistered[ user ].append( userDN )
-
-    if usersToBeRegistered:
-      result = self.changeLFCRegisteredUsers( usersToBeRegistered, 'add' )
-      if not result[ 'OK' ]:
-        self.log.error( 'Problem to add a new user : %s' % result[ 'Message' ] )
-
-    return S_OK()
-
-
-  def changeLFCRegisteredUsers( self, registerUsers, action ):
-    '''
-    add user to DFC
-    '''
-    self.log.info( "Changing DFC registered users" )
-
-    if action == "add":
-      subject = 'New DFC Users found'
-      self.log.info( subject, ", ".join( registerUsers ) )
-      from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
-      dfc = FileCatalogClient()
-      for lfcuser in registerUsers:
-        for lfc_dn in registerUsers[lfcuser]:
-          print lfc_dn
-          self.addEntryDFC( lfcuser, proxyUserName = 'joel', proxyUserGroup = 'lhcb_admin' )
-
-    return S_OK()
-
 
   def execute( self ):
     ''' Main method: execute
@@ -183,11 +136,10 @@ class UsersAndGroups( AgentModule ):
     self.__adminMsgs = { 'Errors' : [], 'Info' : [] }
 
     #Get DIRAC VOMS Mapping
-    self.address = self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' )
-    self.fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
+    address = self.am_getOption( 'MailTo', 'lhcb-vo-admin@cern.ch' )
+    fromAddress = self.am_getOption( 'mailFrom', 'Joel.Closier@cern.ch' )
     self.log.info( "Getting DIRAC VOMS mapping" )
-    from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
-    dfc = FileCatalogClient()
+
     mappingSection = '/Registry/VOMS/Mapping'
     ret = gConfig.getOptionsDict( mappingSection )
     if not ret['OK']:
@@ -406,7 +358,6 @@ class UsersAndGroups( AgentModule ):
     if newUserNames:
       subject = 'New DFC Users found'
       self.log.info( subject )
-      from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
       dfc = FileCatalogClient()
 
       self.__adminMsgs[ 'Info' ].append( "\nNew users:" )
@@ -437,7 +388,7 @@ class UsersAndGroups( AgentModule ):
         body += 'Ban user ' + obsoleteUser + '\n'
         self.__adminMsgs[ 'Info' ].append( "  %s" % obsoleteUser )
       self.log.info( "Banning %s users" % len( obsoleteUserNames ) )
-      NotificationClient().sendMail( self.address, 'UsersAndGroupsAgent: %s' % subject, body, self.fromAddress )
+      NotificationClient().sendMail( address, 'UsersAndGroupsAgent: %s' % subject, body, fromAddress )
       csapi.deleteUsers( obsoleteUserNames )
 
     result = csapi.commitChanges()
