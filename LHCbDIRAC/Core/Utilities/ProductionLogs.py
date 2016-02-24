@@ -104,7 +104,7 @@ class ProductionLog( object ):
     guess = guess.split( '_' )
 
     if len( guess ) != 4:
-      raise LogError( 'LogError', "Could not guess production, job and step from %s" % self.fileName )
+      raise LogError( "Could not guess production, job and step from %s" % self.fileName )
 
     self.prodName = guess[ 1 ]
     self.jobName = guess[ 2 ]
