@@ -15,9 +15,6 @@
 # first first: sourcing dirac_ci file
 source $WORKSPACE/DIRAC/tests/Jenkins/dirac_ci.sh
 
-# URLs where to get scripts
-LHCbDIRAC_PILOT_COMMANDS='https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py'
-
 #install file
 INSTALL_CFG_FILE='$WORKSPACE/LHCbDIRAC/tests/Jenkins/install.cfg'
 
@@ -162,7 +159,7 @@ function LHCbDIRACPilotInstall(){
 	prepareForPilot
 	default
 
-	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
+	cp $WORKSPACE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py $WORKSPACE/LHCbPilotCommands.py
 
 	if [ ! -z "$LHCBDIRAC_RELEASE" ]
 	then
@@ -238,7 +235,7 @@ function submitAndMatch(){
 	#Run the full pilot, including the JobAgent
 	prepareForPilot
 	default
-	wget --no-check-certificate -O LHCbPilotCommands.py $LHCbDIRAC_PILOT_COMMANDS
+	cp $WORKSPACE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py $WORKSPACE/LHCbPilotCommands.py
 
 	if [ ! -z "$PILOT_VERSION" ]
 	then
