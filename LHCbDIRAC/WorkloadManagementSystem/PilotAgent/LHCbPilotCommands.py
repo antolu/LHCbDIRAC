@@ -107,6 +107,13 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     for line in cmdExecution.stdout:
       sys.stdout.write( line )
 
+class LHCbCreatePilotcfg ( LHCbCommandBase ):
+
+  def execute( self ):
+    checkCmd = 'dirac-create-pilot-cfg -C %s -N %s' % ( self.pp.configServer, self.pp.localConfigFile )
+    retCode = self.executeAndGetOutput( checkCmd, self.pp.installEnv )
+    if retCode:
+      self.log.warn( "Could not create pilot.cfg [ERROR %d]" % retCode )
 
 class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
