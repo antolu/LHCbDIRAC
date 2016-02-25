@@ -3,7 +3,7 @@ parseCommandLine()
 
 import unittest
 
-from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
+from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest
 
 from DIRAC import gLogger, gConfig
 
@@ -13,7 +13,7 @@ class SAMJobTestCase( IntegrationTest ):
   """ Base class for the SAMJob test cases
   """
   def setUp( self ):
-    super( IntegrationTest, self ).setUp()
+    super( SAMJobTestCase, self ).setUp()
 
     self.diracSAM = DiracSAM()
     self.subLogger = gLogger.getSubLogger( __file__ )

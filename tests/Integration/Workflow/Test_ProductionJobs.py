@@ -4,9 +4,9 @@ parseCommandLine()
 
 import unittest
 
-from TestDIRAC.Utilities.utils import find_all
+from DIRAC.tests.Utilities.utils import find_all
 
-from LHCbTestDirac.Utilities.IntegrationTest import IntegrationTest
+from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest
 
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
