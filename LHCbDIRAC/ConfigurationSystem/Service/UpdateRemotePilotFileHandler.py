@@ -4,8 +4,8 @@
 
 '''
 
-from DIRAC                                    import gConfig, S_OK
-from DIRAC.Core.DISET.RequestHandler          import RequestHandler
+from DIRAC                                        import gConfig, S_OK
+from DIRAC.Core.DISET.RequestHandler              import RequestHandler
 from LHCbDIRAC.WorkloadManagementSystem.Utilities import pilotSynchronizer
 
 
@@ -20,7 +20,6 @@ def initializeUpdateRemotePilotFileHandler( _serviceInfo ):
 
   syncObject = pilotSynchronizer.pilotSynchronizer()
   gConfig.addListenerToNewVersionEvent( syncObject.sync )
-  print "in initialize"
   return S_OK()
 
 class UpdateRemotePilotFileHandler( RequestHandler ):
