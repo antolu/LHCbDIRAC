@@ -25,6 +25,7 @@ class pilotSynchronizer( object ):
     '''
     '''
     self.pilotFileName = 'LHCb-pilot.json'
+     # FIXME: pilotFileServer should contain the url of the web server where we will upload the LHCb-Pilot.json file
     self.pilotFileServer = '128.141.170.61'
 
 
