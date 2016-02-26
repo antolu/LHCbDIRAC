@@ -21,7 +21,7 @@ class pilotSynchronizer( object ):
 
   '''
 
-  def __init__( self, pStatus = None, pManagement = None ):
+  def __init__( self ):
     '''
     '''
     self.pilotFileName = 'LHCb-pilot.json'
@@ -36,6 +36,7 @@ class pilotSynchronizer( object ):
     syncFile = self._syncFile()
     if not syncFile[ 'OK' ]:
       gLogger.error( syncFile[ 'Message' ] )
+      return S_ERROR()
     return S_OK()
 
   def _syncFile( self ):
