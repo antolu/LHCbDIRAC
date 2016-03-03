@@ -28,20 +28,20 @@ class ConfigureTest( lhcb_ci.basecase.DBTestCase ):
     """ test_configure_mysql_passwords
     
     Makes sure the passwords are properly set on the dirac.cfg and accessed via
-    the InstallTools module.
+    the gComponentInstaller module.
     
     """
     
     self.logTestName()
         
-    self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
-    self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )
+    self.assertEquals( lhcb_ci.db.gComponentInstaller.mysqlRootPwd,  self.rootPass )
+    self.assertEquals( lhcb_ci.db.gComponentInstaller.mysqlPassword, self.userPass )
     
-    res = lhcb_ci.db.InstallTools.getMySQLPasswords()
+    res = lhcb_ci.db.gComponentInstaller.getMySQLPasswords()
     self.assertEquals( res[ 'OK' ], True )
     
-    self.assertEquals( lhcb_ci.db.InstallTools.mysqlRootPwd,  self.rootPass )
-    self.assertEquals( lhcb_ci.db.InstallTools.mysqlPassword, self.userPass )       
+    self.assertEquals( lhcb_ci.db.gComponentInstaller.mysqlRootPwd,  self.rootPass )
+    self.assertEquals( lhcb_ci.db.gComponentInstaller.mysqlPassword, self.userPass )       
   
   @lhcb_ci.basecase.timeDecorator
   def test_configure_dbs( self ):

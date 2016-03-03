@@ -8,7 +8,7 @@
 
 
 from DIRAC                import gConfig
-from DIRAC.Core.Utilities import InstallTools
+from DIRAC.Core.Utilities import gComponentInstaller
 
 # lhcb_ci
 from lhcb_ci            import logger
@@ -24,7 +24,7 @@ def getSoftwareAgents():
   logger.debug( 'getSoftwareAgents' )
   
   extensions = getCSExtensions()
-  res = InstallTools.getSoftwareComponents( extensions )
+  res = gComponentInstaller.getSoftwareComponents( extensions )
   # Always return S_OK
   agentDict = res[ 'Value' ][ 'Agents' ]
   # The method is a bit buggy, so we have to fix it here.
@@ -44,7 +44,7 @@ def getSoftwareAgents():
 #  
 #  extensions = getCSExtensions()
 #  
-#  return InstallTools.setupComponent( 'agent', system, agent, extensions )
+#  return gComponentInstaller.setupComponent( 'agent', system, agent, extensions )
 
 
 #def uninstallAgent( system, agent ):
@@ -55,7 +55,7 @@ def getSoftwareAgents():
 #
 #  logger.debug( 'uninstallAgent for %s/%s' % ( system, agent ) )
 #  
-#  return InstallTools.uninstallComponent( system, agent )
+#  return gComponentInstaller.uninstallComponent( system, agent )
 
 
 def getInstalledAgents():
@@ -66,7 +66,7 @@ def getInstalledAgents():
 
   logger.debug( 'getInstalledAgents' )
   
-  res = InstallTools.getInstalledComponents()
+  res = gComponentInstaller.getInstalledComponents()
   # Always return S_OK
   return res[ 'Value' ][ 'Agents' ]
 

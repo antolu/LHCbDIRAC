@@ -9,26 +9,20 @@ from LHCbDIRAC.FrameworkSystem.Client.ComponentInstaller import gComponentInstal
 
 class SystemAdministratorHandler( DIRACSystemAdministratorHandler ):
 
-  types_startService = [ StringTypes ]
-  def export_startService( self, service ):
-    """ Start the specified service
+  types_startComponent = [ StringTypes, StringTypes ]
+  def export_startComponent( self, system, component ):
+    """ Start the specified component, running with the runsv daemon
     """
-    return gComponentInstaller.runsvctrlComponent( service )
+    return gComponentInstaller.runsvctrlComponent( system, component, 'u' )
 
-  types_stopService = [ StringTypes ]
-  def export_stopService( self, service ):
-    """ Stop the specified service
+  types_stopComponent = [ StringTypes, StringTypes ]
+  def export_stopComponent( self, system, component ):
+    """ Stop the specified component, running with the runsv daemon
     """
-    return gComponentInstaller.stopService( service )
+    return gComponentInstaller.runsvctrlComponent( system, component, 'd' )
 
-  types_restartService = [ StringTypes ]
-  def export_restartService( self, service ):
-    """ Restart the specified service
+  types_restartComponent = [ StringTypes, StringTypes ]
+  def export_restartComponent( self, system, component ):
+    """ Restart the specified component, running with the runsv daemon
     """
-    return gComponentInstaller.restartService( service )
-
-  types_statusService = [ StringTypes ]
-  def export_statusService( self, service ):
-    """ Check the status of the specified service
-    """
-    return gComponentInstaller.statusService( service )
+    return gComponentInstaller.runsvctrlComponent( system, component, 't' )

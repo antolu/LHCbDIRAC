@@ -24,7 +24,7 @@ from DIRAC.Core.DISET.private.Service              import Service
 from DIRAC.Core.DISET.private.ServiceConfiguration import ServiceConfiguration
 from DIRAC.Core.DISET.RPCClient                    import RPCClient
 from DIRAC.Core.DISET.ServiceReactor               import ServiceReactor
-from DIRAC.Core.Utilities                          import InstallTools
+from DIRAC.Core.Utilities                          import gComponentInstaller
 
 
 class Component( object ):
@@ -154,7 +154,7 @@ class DBComponent( Component ):
     """
     super( DBComponent, self ).configure()
   
-    return InstallTools.addDatabaseOptionsToCS( gConfig, self._systemName(), self.name )
+    return gComponentInstaller.addDatabaseOptionsToCS( gConfig, self._systemName(), self.name )
     
     
   def install( self ):
@@ -166,10 +166,10 @@ class DBComponent( Component ):
     """
     super( DBComponent, self ).install()
     
-    # Makes sure InstallTools is aware of the MySQLPasswords
-    InstallTools.getMySQLPasswords()
+    # Makes sure gComponentInstaller is aware of the MySQLPasswords
+    gComponentInstaller.getMySQLPasswords()
     
-    return InstallTools.installDatabase( self.name )
+    return gComponentInstaller.installDatabase( self.name )
 
   # Run method in DBComponent does not make much sense. For completeness, we 
   # link it to install.  
@@ -245,7 +245,7 @@ class ServiceComponent( Component ):
     
     super( ServiceComponent, self ).configure()
     
-    return InstallTools.addDefaultOptionsToCS( gConfig, 'service', self._systemName(), 
+    return gComponentInstaller.addDefaultOptionsToCS( gConfig, 'service', self._systemName(), 
                                                self.name, self.extensions, 
                                                specialOptions = { 'LogBackend' : 'file' } )
   
@@ -254,7 +254,7 @@ class ServiceComponent( Component ):
     
     super( ServiceComponent, self ).install()
   
-    return InstallTools.setupComponent( 'service', self._systemName(), self.name, self.extensions )
+    return gComponentInstaller.setupComponent( 'service', self._systemName(), self.name, self.extensions )
   
   
   def uninstall( self ):
@@ -265,7 +265,7 @@ class ServiceComponent( Component ):
     if self.name in [ 'Configuration', 'ProxyManager' ]:
       return { 'OK' : True, 'Value' : 'We keep %s' % self.name }
     
-    return InstallTools.uninstallComponent( self._systemName(), self.name )
+    return gComponentInstaller.uninstallComponent( self._systemName(), self.name )
   
   def run( self ):
     
@@ -380,14 +380,14 @@ class AgentComponent( Component ):
     
     super( AgentComponent, self ).configure()
     
-    return InstallTools.addDefaultOptionsToCS( gConfig, 'agent', self._systemName(), 
+    return gComponentInstaller.addDefaultOptionsToCS( gConfig, 'agent', self._systemName(), 
                                                self.name, self.extensions )
 
   def install( self ):
 
     super( AgentComponent, self ).install()
     
-    return InstallTools.setupComponent( 'agent', self._systemName(), self.name, self.extensions )
+    return gComponentInstaller.setupComponent( 'agent', self._systemName(), self.name, self.extensions )
 
   # FIXME: implement proper method
   run = install
@@ -395,7 +395,7 @@ class AgentComponent( Component ):
   def uninstall( self ):
 
     super( AgentComponent, self ).uninstall()
-    return InstallTools.uninstallComponent( self._systemName(), self.name )
+    return gComponentInstaller.uninstallComponent( self._systemName(), self.name )
 
   # FIXME: implement proper method
   stop = uninstall

@@ -102,10 +102,10 @@ print '  Max. Hours'.ljust( 22, ' ' )           + ( ': %s' % maxHours )
 print '  Last Release'.ljust( 22, ' ' )         + ( ': %s' % lastRelease )
 print ''
 
-from DIRAC.Core.Utilities import InstallTools
+from DIRAC.Core.Utilities import gComponentInstaller
 
 extensions2 = [ ext.replace( 'DIRAC', '' ) for ext in extensions ]
-status = InstallTools.getOverallStatus( extensions2 )
+status = gComponentInstaller.getOverallStatus( extensions2 )
 
 if not status[ 'OK' ]:
   print 'Something went wrong: /n %s' % status[ 'Message' ]
@@ -140,7 +140,7 @@ def checkProperties( properties ):
 
 def checkLogs( systemName, element ):
 
-  logs = InstallTools.getLogTail( systemName, element, length = logsSize )
+  logs = gComponentInstaller.getLogTail( systemName, element, length = logsSize )
 
   if not logs[ 'OK' ]:
     print logs[ 'Message' ]
@@ -197,7 +197,7 @@ def parseLogs( loglines, error_keywords ):
 
 errorsDict = {}
 
-# Copied from InstallTools
+# Copied from gComponentInstaller
 def printOverallStatus( rDict ):
   """
   Print in nice format the return dictionary from getOverallStatus
