@@ -18,7 +18,7 @@ class UserJobTestCase( IntegrationTest ):
   """ Base class for the UserJob test cases
   """
   def setUp( self ):
-    super( IntegrationTest, self ).setUp()
+    super( UserJobTestCase, self ).setUp()
 
     self.dLHCb = DiracLHCb()
     self.exeScriptLocation = find_all( 'exe-script.py', '.', 'Integration' )[0]
