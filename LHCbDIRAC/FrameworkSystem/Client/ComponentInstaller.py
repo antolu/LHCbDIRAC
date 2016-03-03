@@ -34,3 +34,6 @@ class ComponentInstaller(DIRACComponentInstaller):
 
     else:
       super(ComponentInstaller).runsvctrlComponent(system, component, mode)
+
+
+gComponentInstaller = ComponentInstaller()
