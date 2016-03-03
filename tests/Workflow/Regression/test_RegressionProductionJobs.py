@@ -2,11 +2,10 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-import unittest, os, shutil
+import unittest
 
 from DIRAC.tests.Utilities.utils import find_all
 
-from LHCbDIRAC.tests.Utilities.utils import getOutput
 from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
@@ -18,7 +17,7 @@ class RegressionTestCase( IntegrationTest ):
   """ Base class for the Regression test cases
   """
   def setUp( self ):
-    super( IntegrationTest, self ).setUp()
+    super( RegressionTestCase, self ).setUp()
 
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()

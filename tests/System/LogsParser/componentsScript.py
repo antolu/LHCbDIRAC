@@ -11,7 +11,7 @@ bccolors = {
              'purple': '\033[95m',
              'green' : '\033[92m',
              'blue'  : '\033[94m',
-             'yellow': '\033[93m',  
+             'yellow': '\033[93m',
              'red'   : '\033[91m',
              'end'   : '\033[0m'
 
@@ -35,7 +35,7 @@ SEPARATOR = '.'
 import os
 from datetime import datetime
 import DIRAC
-from DIRAC           import gLogger  
+from DIRAC           import gLogger
 from DIRAC.Core.Base import Script
 
 Script.registerSwitch( "g", "logs"         ,"      print logs" )
@@ -51,10 +51,10 @@ Script.setUsageMessage( '\n'.join( [ '\nUsage:',
                                      '  logs: print logs\n',
                                      '  logsize (integer): size of logs going to be analized\n',
                                      '  module (string)  : module to be analized\n',
-                                     '  type (string) : type of components to be analized\n', 
+                                     '  type (string) : type of components to be analized\n',
                                      '  hours (intefer) : max number of hours of logs to be considered\n',
-                                     '  lastRelease: analyse only since last release' 
-                                   ] 
+                                     '  lastRelease: analyse only since last release'
+                                   ]
                                   ) )
 Script.parseCommandLine()
 
@@ -102,7 +102,7 @@ print '  Max. Hours'.ljust( 22, ' ' )           + ( ': %s' % maxHours )
 print '  Last Release'.ljust( 22, ' ' )         + ( ': %s' % lastRelease )
 print ''
 
-from DIRAC.Core.Utilities import gComponentInstaller
+from LHCbDIRAC.FrameworkSystem.Client.ComponentInstaller import gComponentInstaller
 
 extensions2 = [ ext.replace( 'DIRAC', '' ) for ext in extensions ]
 status = gComponentInstaller.getOverallStatus( extensions2 )
@@ -114,7 +114,7 @@ if not status[ 'OK' ]:
 status = status[ 'Value' ]
 
 def checkProperties( properties ):
-  
+
   printFlag = False
 
   if properties[ 'Setup' ] == False:
@@ -131,7 +131,7 @@ def checkProperties( properties ):
   _msg = ''
 
   if not printFlag:
-    return _msg   
+    return _msg
 
   for k, v in properties.items():
     _msg += ( '        %s' % k ).ljust( 20, ' ' ) + ( ' : %s' % v ) + '\n'
@@ -149,7 +149,7 @@ def checkLogs( systemName, element ):
 
   splittedlogs = logs.split( '\n' )
   lowerlogs    = logs.lower()
-  
+
   ERROR_KEYWORDS = [ "ERROR", "EXCEPTION", "'Message'" ]
 
   LERROR_KEYWORDS = [ kw.lower() for kw in ERROR_KEYWORDS ]
@@ -178,22 +178,22 @@ def parseLogs( loglines, error_keywords ):
   timeWindow = datetime.utcnow() - timedelta( hours = maxHours )
 
   for _l in xrange( 0, len( loglines ) ):
-      
+
     for error_keyword in error_keywords:
 
       if error_keyword in lowerloglines[ _l ]:
         try:
           t = datetime.strptime( loglines[ _l ].rsplit( ' UTC' )[ 0 ], '%Y-%m-%d %H:%M:%S' )
         except:
-          errorbuffer.append( loglines[ _l ] ) 
+          errorbuffer.append( loglines[ _l ] )
           continue
-        
+
         if t < timeWindow:
           continue
-        
-        errorbuffer.append( loglines[ _l ] ) 
 
-  return errorbuffer 
+        errorbuffer.append( loglines[ _l ] )
+
+  return errorbuffer
 
 errorsDict = {}
 
@@ -226,8 +226,8 @@ def printOverallStatus( rDict ):
           installed   = rDict[compType][system][component]['Installed']
           runitstatus = rDict[compType][system][component]['RunitStatus'] != 'Unknown'
           timeup      = rDict[compType][system][component]['Timeup'] != 0
-          pid         = rDict[compType][system][component]['PID'] != 0 
- 
+          pid         = rDict[compType][system][component]['PID'] != 0
+
           _output = ''
 
 
@@ -236,7 +236,7 @@ def printOverallStatus( rDict ):
           else:
             errorLogs = checkLogs( system, component )
             if errorLogs == '':
-              errorlogs = 'no' 
+              errorlogs = 'no'
               color = bccolors[ 'green' ]
             else:
               errorlogs = 'yes'
@@ -250,7 +250,7 @@ def printOverallStatus( rDict ):
 
             _output += color + system.ljust( 28, SEPARATOR ) + bccolors[ 'end' ] + component.ljust( 28, SEPARATOR ) + compType.lower()[:-1].ljust( 11, SEPARATOR )
 
-          if setup:           
+          if setup:
             _output += 'SetUp'.rjust( 10, SEPARATOR )
           else:
             _output += bccolors[ 'yellow' ] + 'NotSetup'.rjust( 10, SEPARATOR ) + bccolors[ 'end' ]
@@ -260,7 +260,7 @@ def printOverallStatus( rDict ):
             _output += bccolors[ 'yellow' ] + 'NotInstalled'.rjust( 15, SEPARATOR ) + bccolors[ 'end' ]
           if runitstatus:
             _output += rDict[compType][system][component]['RunitStatus'].rjust( 8, SEPARATOR )
-          else:  
+          else:
             _output += bccolors[ 'yellow' ] + rDict[compType][system][component]['RunitStatus'].rjust( 8, SEPARATOR ) + bccolors[ 'end' ]
           if timeup:
             _output += str( rDict[compType][system][component]['Timeup'] ).rjust( 8, SEPARATOR )

@@ -17,7 +17,7 @@ class RegressionTestCase( IntegrationTest ):
   """ Base class for the Regression test cases
   """
   def setUp( self ):
-    super( IntegrationTest, self ).setUp()
+    super( RegressionTestCase, self ).setUp()
 
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
