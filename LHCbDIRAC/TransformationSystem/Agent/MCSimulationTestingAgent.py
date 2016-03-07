@@ -29,7 +29,7 @@ class MCSimulationTestingAgent ( AgentModule ):
      Productions that have the status Idle and are also in the table StoredJobDescription have undergone testing.
      A report is created by the agent from the results of the test phase and emailed to the Production Manager
   """
-  
+
   def __init__( self, *args, **kwargs ):
     """ c'tor
     """

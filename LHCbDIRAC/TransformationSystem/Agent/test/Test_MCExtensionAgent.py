@@ -1,58 +1,73 @@
-import diracmock
+# import diracmock
 import datetime
 import copy
-from mock import Mock, call
-from DIRAC import S_OK, S_ERROR
+import importlib
+import unittest
 
-class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
-  ''' Test for MCExtensionAgent
-  '''
-  sutPath = 'LHCbDIRAC.TransformationSystem.Agent.MCExtensionAgent'
+from mock import Mock, MagicMock, call
+from DIRAC import S_OK, S_ERROR, gLogger
+
+from LHCbDIRAC.TransformationSystem.Agent.MCExtensionAgent import MCExtensionAgent
+
+# class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
+#   ''' Test for MCExtensionAgent
+#   '''
+#   sutPath = 'LHCbDIRAC.TransformationSystem.self.agent.MCExtensionAgent'
+
+class MCExtensionAgentTestCase( unittest.TestCase ):
+
+  def setUp( self ):
+    self.mockAM = MagicMock()
+    self.mockAM.am_getOption.return_value = 'True'
+    self.agent = importlib.import_module( 'LHCbDIRAC.TransformationSystem.Agent.MCExtensionAgent' )
+    self.agent.DIRACMCExtensionAgent = self.mockAM
+    self.agent = MCExtensionAgent()
+    self.agent.log = gLogger
 
   def test_execute( self ):
-    agent = self.moduleTested.MCExtensionAgent( 'MCExtensionAgent', 'MCExtensionAgent', 'MCExtensionAgent' )
-    agent.transformationTypes = ['MCSimulation', 'Simulation']
-    agent.rpcProductionRequest = Mock()
-    agent._checkProductionRequest = Mock()
+    # self.agent = self.moduleTested.MCExtensionAgent( 'MCExtensionAgent', 'MCExtensionAgent', 'MCExtensionAgent' )
+    self.agent.transformationTypes = ['MCSimulation', 'Simulation']
+    self.agent.rpcProductionRequest = Mock()
+    self.agent._checkProductionRequest = Mock()
 
     ###########################################################################
 
     # disabled by configuration
-    agent.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'False'}[( optionName, defaultValue )]
+    self.mockAM.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'False'}[( optionName, defaultValue )]
 
-    ret = agent.execute()
+    ret = self.agent.execute()
     self.assertTrue( ret['OK'] )
 
     ###########################################################################
 
     # bad request
-    agent.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'True'}[( optionName, defaultValue )]
-    agent.rpcProductionRequest.getProductionRequestSummary.return_value = S_ERROR()
+    # self.mockAM.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'True'}[( optionName, defaultValue )]
+    self.agent.rpcProductionRequest.getProductionRequestSummary.return_value = S_ERROR()
 
-    ret = agent.execute()
+    ret = self.agent.execute()
     self.assertFalse( ret['OK'] )
 
     ###########################################################################
 
     # normal operation
-    agent.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'True'}[( optionName, defaultValue )]
+    # self.mockAM.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'True'}[( optionName, defaultValue )]
     productionRequests = {10964: {'bkTotal': 259499L, 'master': 10960, 'reqTotal': 500000L},
                           10965: {'bkTotal': 610999L, 'master': 10960, 'reqTotal': 1000000L},
                           10966: {'bkTotal': 660995L, 'master': 10959, 'reqTotal': 1000000L}}
-    agent.rpcProductionRequest.getProductionRequestSummary.return_value = S_OK( productionRequests )
-    agent._checkProductionRequest.return_value = S_OK()
+    self.agent.rpcProductionRequest.getProductionRequestSummary.return_value = S_OK( productionRequests )
+    self.agent._checkProductionRequest.return_value = S_OK()
 
-    ret = agent.execute()
+    ret = self.agent.execute()
     self.assertTrue( ret['OK'] )
-    self.assertEqual( agent._checkProductionRequest.call_count, len( productionRequests ) )
-    agent._checkProductionRequest.assert_has_calls( [call( ID, summary ) for ID, summary in productionRequests.items()] )
+    self.assertEqual( self.agent._checkProductionRequest.call_count, len( productionRequests ) )
+    self.agent._checkProductionRequest.assert_has_calls( [call( ID, summary ) for ID, summary in productionRequests.items()] )
 
   def test__checkProductionRequest( self ):
-    agent = self.moduleTested.MCExtensionAgent( 'MCExtensionAgent', 'MCExtensionAgent', 'MCExtensionAgent' )
-    agent.transformationTypes = ['MCSimulation', 'Simulation']
-    agent.rpcProductionRequest = Mock()
-    agent.transClient = Mock()
-    agent._extendProduction = Mock()
+    # self.agent = self.moduleTested.MCExtensionAgent( 'MCExtensionAgent', 'MCExtensionAgent', 'MCExtensionAgent' )
+    self.agent.transformationTypes = ['MCSimulation', 'Simulation']
+    self.agent.rpcProductionRequest = Mock()
+    self.agent.transClient = Mock()
+    self.agent._extendProduction = Mock()
 
     completeProductionRequestID = 12417
     completeProductionRequestSummary = {'bkTotal': 503999L, 'master': 12415, 'reqTotal': 500000L}
@@ -112,94 +127,94 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
     ###########################################################################
 
     # complete production request, no extension needed
-    ret = agent._checkProductionRequest( completeProductionRequestID, completeProductionRequestSummary )
+    ret = self.agent._checkProductionRequest( completeProductionRequestID, completeProductionRequestSummary )
     self.assertTrue( ret['OK'] )
-    self.assertFalse( agent._extendProduction.called )
-    agent._extendProduction.reset_mock()
+    self.assertFalse( self.agent._extendProduction.called )
+    self.agent._extendProduction.reset_mock()
 
     ###########################################################################
 
     # failed request for production progress
-    agent.rpcProductionRequest.getProductionProgressList.return_value = S_ERROR()
+    self.agent.rpcProductionRequest.getProductionProgressList.return_value = S_ERROR()
 
-    ret = agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    ret = self.agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
     self.assertFalse( ret['OK'] )
-    self.assertFalse( agent._extendProduction.called )
-    agent._extendProduction.reset_mock()
+    self.assertFalse( self.agent._extendProduction.called )
+    self.agent._extendProduction.reset_mock()
 
     ###########################################################################
 
     # failed request for production
-    agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressNoStripping )
-    agent.transClient.getTransformation.return_value = S_ERROR()
+    self.agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressNoStripping )
+    self.agent.transClient.getTransformation.return_value = S_ERROR()
 
-    ret = agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    ret = self.agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
     self.assertFalse( ret['OK'] )
-    self.assertFalse( agent._extendProduction.called )
-    agent._extendProduction.reset_mock()
+    self.assertFalse( self.agent._extendProduction.called )
+    self.agent._extendProduction.reset_mock()
 
     ###########################################################################
 
     # simulation production not found
-    agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressNoStripping )
+    self.agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressNoStripping )
     noSimulationTransformations = copy.deepcopy( transformations )
     for t in noSimulationTransformations.values():
       t['Type'] = 'Merge'
-    agent.transClient.getTransformation.side_effect = lambda transformationID : S_OK( noSimulationTransformations[transformationID] )
+    self.agent.transClient.getTransformation.side_effect = lambda transformationID : S_OK( noSimulationTransformations[transformationID] )
 
-    ret = agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    ret = self.agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
     self.assertFalse( ret['OK'] )
-    self.assertFalse( agent._extendProduction.called )
-    agent._extendProduction.reset_mock()
+    self.assertFalse( self.agent._extendProduction.called )
+    self.agent._extendProduction.reset_mock()
 
     ###########################################################################
 
     # non idle simulation
-    agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressNoStripping )
+    self.agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressNoStripping )
     nonIdleSimulationTransformations = copy.deepcopy( transformations )
     for t in nonIdleSimulationTransformations.values():
       if t['Type'] == 'MCSimulation':
         t['Status'] = 'Active'
-    agent.transClient.getTransformation.side_effect = lambda transformationID : S_OK( nonIdleSimulationTransformations[transformationID] )
+    self.agent.transClient.getTransformation.side_effect = lambda transformationID : S_OK( nonIdleSimulationTransformations[transformationID] )
 
-    ret = agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+    ret = self.agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
     self.assertTrue( ret['OK'] )
-    self.assertFalse( agent._extendProduction.called )
-    agent._extendProduction.reset_mock()
+    self.assertFalse( self.agent._extendProduction.called )
+    self.agent._extendProduction.reset_mock()
 
     ###########################################################################
 
     # no stripping production (no extension factor)
-    agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressNoStripping )
-    agent.transClient.getTransformation.side_effect = lambda transformationID : S_OK( transformations[transformationID] )
-    agent._extendProduction.return_value = S_OK()
+    self.agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressNoStripping )
+    self.agent.transClient.getTransformation.side_effect = lambda transformationID : S_OK( transformations[transformationID] )
+    self.agent._extendProduction.return_value = S_OK()
 
-#     ret = agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+#     ret = self.agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
 #     self.assertTrue( ret['OK'] )
-#     agent._extendProduction.assert_called_once_with( simulation, 1.0, missingEventsExp )
-#     agent._extendProduction.reset_mock()
+#     self.agent._extendProduction.assert_called_once_with( simulation, 1.0, missingEventsExp )
+#     self.agent._extendProduction.reset_mock()
 
     ###########################################################################
 
     # stripping production (extension factor)
-    agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressWithStripping )
-    agent.transClient.getTransformation.side_effect = lambda transformationID : S_OK( transformations[transformationID] )
-    agent._extendProduction.return_value = S_OK()
+    self.agent.rpcProductionRequest.getProductionProgressList.return_value = S_OK( productionsProgressWithStripping )
+    self.agent.transClient.getTransformation.side_effect = lambda transformationID : S_OK( transformations[transformationID] )
+    self.agent._extendProduction.return_value = S_OK()
 
-#     ret = agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
+#     ret = self.agent._checkProductionRequest( incompleteProductionRequestID, incompleteProductionRequestSummary )
 #     self.assertTrue( ret['OK'] )
-#     agent._extendProduction.assert_called_once_with( simulation, extensionFactorExp, missingEventsExp )
-#     agent._extendProduction.reset_mock()
+#     self.agent._extendProduction.assert_called_once_with( simulation, extensionFactorExp, missingEventsExp )
+#     self.agent._extendProduction.reset_mock()
 
   def test__extendProduction( self ):
-    agent = self.moduleTested.MCExtensionAgent( 'MCExtensionAgent', 'MCExtensionAgent', 'MCExtensionAgent' )
-    agent.transformationTypes = ['MCSimulation', 'Simulation']
-    agent.transClient = Mock()
-    agent.transClient.extendTransformation.return_value = S_OK()
-    agent.transClient.setTransformationParameter.return_value = S_OK()
+    # self.agent = self.moduleTested.MCExtensionAgent( 'MCExtensionAgent', 'MCExtensionAgent', 'MCExtensionAgent' )
+    self.agent.transformationTypes = ['MCSimulation', 'Simulation']
+    self.agent.transClient = Mock()
+    self.agent.transClient.extendTransformation.return_value = S_OK()
+    self.agent.transClient.setTransformationParameter.return_value = S_OK()
 
-    agent.cpuTimeAvg = 1000000
-    agent.cpuNormalizationFactorAvg = 1.0
+    self.agent.cpuTimeAvg = 1000000
+    self.agent.cpuNormalizationFactorAvg = 1.0
 
     production = {'AgentType': 'Automatic',
       'AuthorDN': '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=romanov/CN=427293/CN=Vladimir Romanovskiy',
@@ -239,6 +254,6 @@ class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
     productionIDExp = 24614L
     numberOfTasksExp = 25
 
-    ret = agent._extendProduction( production, extensionFactor, eventsNeeded )
+    ret = self.agent._extendProduction( production, extensionFactor, eventsNeeded )
     self.assertTrue( ret['OK'] )
-    agent.transClient.extendTransformation.assert_called_once_with( productionIDExp, numberOfTasksExp )
+    self.agent.transClient.extendTransformation.assert_called_once_with( productionIDExp, numberOfTasksExp )
