@@ -1,9 +1,11 @@
+""" doc here
+"""
 
 import unittest
 
 import math
 import operator
-import Image
+from PIL import Image
 
 from LHCbDIRAC.AccountingSystem.private.Plotters.DataStoragePlotter import DataStoragePlotter
 from LHCbDIRAC.AccountingSystem.private.Plotters.StoragePlotter import StoragePlotter

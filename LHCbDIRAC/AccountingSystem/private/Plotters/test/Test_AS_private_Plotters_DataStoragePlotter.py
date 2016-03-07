@@ -18,7 +18,8 @@ from decimal import Decimal
 
 import math
 import operator
-import Image
+from PIL import Image
+
 def compare( file1Path, file2Path ):
   '''
     Function used to compare two plots
