@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+
+#pylint: disable=W0212
+
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
@@ -8,8 +11,7 @@ from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 
 from DIRAC.tests.Utilities.utils import find_all
 
-from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest
-from LHCbDIRAC.tests.Utilities.IntegrationTest import FailingUserJobTestCase
+from tests.Utilities.IntegrationTest import IntegrationTest, FailingUserJobTestCase
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
@@ -98,8 +100,8 @@ class GaudirunSuccess( UserJobTestCase ):
     options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
 
     self.lhcbJob.setApplication( 'Gauss', 'v45r3', options,
-                            extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
-                            events = '3' )
+                                 extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
+                                 events = '3' )
     self.lhcbJob.setDIRACPlatform()
 
     res = self.lhcbJob.runLocal( self.dLHCb )
@@ -199,25 +201,23 @@ def createJob( local = True ):
   gaudirunJob.setApplication( 'Gauss', 'v45r5', options, extraPackages = 'AppConfig.v3r171;DecFiles.v27r14p1;ProdConf.v1r9',
                               systemConfig = 'x86_64-slc5-gcc43-opt',
                               modulesNameList = ['CreateDataFile',
-                                                  'GaudiApplication',
-                                                  'FileUsage',
-                                                  'UploadOutputData',
-                                                  'UploadLogFile',
-                                                  'FailoverRequest',
-                                                  'UserJobFinalization'],
-                             parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
-                                               ( 'applicationVersion', 'string', '', 'Application Version' ),
-                                               ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
-                                               ( 'optionsFile', 'string', '', 'Options File' ),
-                                               ( 'extraOptionsLine', 'string', '', 'This is appended to standard options' ),
-                                               ( 'inputDataType', 'string', '', 'Input Data Type' ),
-                                               ( 'inputData', 'string', '', 'Input Data' ),
-                                               ( 'numberOfEvents', 'string', '', 'Events treated' ),
-                                               ( 'extraPackages', 'string', '', 'ExtraPackages' ),
-                                               ( 'listoutput', 'list', [], 'StepOutputList' ),
-                                               ( 'SystemConfig', 'string', '', 'CMT Config' ),
-                                               ]
- )
+                                                 'GaudiApplication',
+                                                 'FileUsage',
+                                                 'UploadOutputData',
+                                                 'UploadLogFile',
+                                                 'FailoverRequest',
+                                                 'UserJobFinalization'],
+                              parametersList = [( 'applicationName', 'string', '', 'Application Name' ),
+                                                ( 'applicationVersion', 'string', '', 'Application Version' ),
+                                                ( 'applicationLog', 'string', '', 'Name of the output file of the application' ),
+                                                ( 'optionsFile', 'string', '', 'Options File' ),
+                                                ( 'extraOptionsLine', 'string', '', 'This is appended to standard options' ),
+                                                ( 'inputDataType', 'string', '', 'Input Data Type' ),
+                                                ( 'inputData', 'string', '', 'Input Data' ),
+                                                ( 'numberOfEvents', 'string', '', 'Events treated' ),
+                                                ( 'extraPackages', 'string', '', 'ExtraPackages' ),
+                                                ( 'listoutput', 'list', [], 'StepOutputList' ),
+                                                ( 'SystemConfig', 'string', '', 'CMT Config' )])
 
   gaudirunJob._addParameter( gaudirunJob.workflow, 'PRODUCTION_ID', 'string', '00012345', 'ProductionID' )
   gaudirunJob._addParameter( gaudirunJob.workflow, 'JOB_ID', 'string', '00067890', 'JobID' )

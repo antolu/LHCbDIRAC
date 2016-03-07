@@ -1,12 +1,18 @@
 #!/usr/bin/env python
-from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
+
+""" Regression production jobs are "real" XMLs of production jobs that ran in production
+"""
+
+#pylint: disable=C0111
 
 import unittest
 
+from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
+
 from DIRAC.tests.Utilities.utils import find_all
 
-from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest
+from tests.Utilities.IntegrationTest import IntegrationTest
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb

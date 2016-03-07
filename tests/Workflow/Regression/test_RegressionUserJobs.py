@@ -1,16 +1,23 @@
 #!/usr/bin/env python
+
+""" Testings XMLs of user jobs that ran before
+"""
+
+import unittest
+import os
+import shutil
+
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-import unittest, os, shutil
 
 from DIRAC.tests.Utilities.utils import find_all
-
-from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+
+from tests.Utilities.IntegrationTest import IntegrationTest
 
 
 class RegressionTestCase( IntegrationTest ):
