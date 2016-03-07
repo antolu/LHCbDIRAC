@@ -215,7 +215,8 @@ def jobWithInputDataAndAncestor():
   J.setExecutable( "exe-script-with-input-and-ancestor.py", "", "exeWithInput.log" )
   # WARNING: Collision10!!
   J.setInputData( '/lhcb/data/2010/SDST/00008375/0005/00008375_00053941_1.sdst' )  # this file should be at SARA-RDST
-  J.setAncestorDepth( 1 )  # the ancestor should be /lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81616/081616_0000000213.raw (CERN and SARA)
+  # the ancestor should be /lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81616/081616_0000000213.raw (CERN and SARA)
+  J.setAncestorDepth( 1 )  #pylint: disable=E1101
   J.setInputDataPolicy( 'download' )
   return endOfAllJobs( J )
 
@@ -233,10 +234,10 @@ def gaussJob():
   optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
   optPConf = "prodConf_Gauss_00012345_00067890_1.py"
   options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-  J.setApplication( 'Gauss', 'v45r5', options,
+  J.setApplication( 'Gauss', 'v45r5', options, #pylint: disable=E1101
                     extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
                     systemConfig = 'x86_64-slc5-gcc43-opt' )
-  J.setDIRACPlatform()
+  J.setDIRACPlatform()  #pylint: disable=E1101
   J.setCPUTime( 172800 )
   return endOfAllJobs( J )
 
@@ -255,12 +256,12 @@ def booleJob():
   optPConf = "prodConf_Boole_00012345_00067890_1.py"
   options = opts + optDT + optTCK + optComp + optPConf
 
-  J.setApplication( 'Boole', 'v26r3', options,
+  J.setApplication( 'Boole', 'v26r3', options, #pylint: disable=E1101
                     inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
                     extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
                     systemConfig = 'x86_64-slc5-gcc43-opt' )
 
-  J.setDIRACPlatform()
+  J.setDIRACPlatform() #pylint: disable=E1101
   J.setCPUTime( 172800 )
   return endOfAllJobs( J )
 

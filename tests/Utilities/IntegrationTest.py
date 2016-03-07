@@ -30,7 +30,7 @@ class FailingUserJobTestCase( IntegrationTest ):
     dm = DataManager()
     res = dm.removeFile( ['/lhcb/testCfg/testVer/LOG/00012345/0006/00012345_00067890.tar',
                           '/lhcb/testCfg/testVer/SIM/00012345/0006/00012345_00067890_1.sim'],
-                        force = True )
+                         force = True )
     if not res['OK']:
       print "Could not remove files", res['Message']
       exit( 1 )
