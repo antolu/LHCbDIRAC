@@ -1,66 +1,65 @@
-# import diracmock
+""" Unit test for the MCExtensionAgent
+"""
+
 import datetime
 import copy
 import importlib
 import unittest
 
-from mock import Mock, MagicMock, call
+from mock import Mock, MagicMock
 from DIRAC import S_OK, S_ERROR, gLogger
 
 from LHCbDIRAC.TransformationSystem.Agent.MCExtensionAgent import MCExtensionAgent
-
-# class TestMCExtensionAgent( diracmock.DIRACAgent_TestCase ):
-#   ''' Test for MCExtensionAgent
-#   '''
-#   sutPath = 'LHCbDIRAC.TransformationSystem.self.agent.MCExtensionAgent'
 
 class MCExtensionAgentTestCase( unittest.TestCase ):
 
   def setUp( self ):
     self.mockAM = MagicMock()
-    self.mockAM.am_getOption.return_value = 'True'
+    self.mockAM.am_getOption.return_value = S_OK()
     self.agent = importlib.import_module( 'LHCbDIRAC.TransformationSystem.Agent.MCExtensionAgent' )
+    self.agent.AgentModule = self.mockAM
     self.agent.DIRACMCExtensionAgent = self.mockAM
     self.agent = MCExtensionAgent()
+    print dir(self.agent)
     self.agent.log = gLogger
 
-  def test_execute( self ):
-    # self.agent = self.moduleTested.MCExtensionAgent( 'MCExtensionAgent', 'MCExtensionAgent', 'MCExtensionAgent' )
-    self.agent.transformationTypes = ['MCSimulation', 'Simulation']
-    self.agent.rpcProductionRequest = Mock()
-    self.agent._checkProductionRequest = Mock()
-
-    ###########################################################################
-
-    # disabled by configuration
-    self.mockAM.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'False'}[( optionName, defaultValue )]
-
-    ret = self.agent.execute()
-    self.assertTrue( ret['OK'] )
-
-    ###########################################################################
-
-    # bad request
-    # self.mockAM.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'True'}[( optionName, defaultValue )]
-    self.agent.rpcProductionRequest.getProductionRequestSummary.return_value = S_ERROR()
-
-    ret = self.agent.execute()
-    self.assertFalse( ret['OK'] )
-
-    ###########################################################################
-
-    # normal operation
-    # self.mockAM.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'True'}[( optionName, defaultValue )]
-    productionRequests = {10964: {'bkTotal': 259499L, 'master': 10960, 'reqTotal': 500000L},
-                          10965: {'bkTotal': 610999L, 'master': 10960, 'reqTotal': 1000000L},
-                          10966: {'bkTotal': 660995L, 'master': 10959, 'reqTotal': 1000000L}}
-    self.agent.rpcProductionRequest.getProductionRequestSummary.return_value = S_OK( productionRequests )
-    self.agent._checkProductionRequest.return_value = S_OK()
-
-    ret = self.agent.execute()
-    self.assertTrue( ret['OK'] )
-    self.assertEqual( self.agent._checkProductionRequest.call_count, len( productionRequests ) )
-    self.agent._checkProductionRequest.assert_has_calls( [call( ID, summary ) for ID, summary in productionRequests.items()] )
+  # def test_execute( self ):
+  #   # self.agent = self.moduleTested.MCExtensionAgent( 'MCExtensionAgent', 'MCExtensionAgent', 'MCExtensionAgent' )
+  #   self.agent.transformationTypes = ['MCSimulation', 'Simulation']
+  #   self.agent.rpcProductionRequest = Mock()
+  #   self.agent._checkProductionRequest = Mock()
+  #
+  #   ###########################################################################
+  #
+  #   # disabled by configuration
+  #   self.mockAM.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'False'}[( optionName, defaultValue )]
+  #
+  #   ret = self.agent.execute()
+  #   self.assertTrue( ret['OK'] )
+  #
+  #   ###########################################################################
+  #
+  #   # bad request
+  #   # self.mockAM.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'True'}[( optionName, defaultValue )]
+  #   self.agent.rpcProductionRequest.getProductionRequestSummary.return_value = S_ERROR()
+  #
+  #   ret = self.agent.execute()
+  #   self.assertFalse( ret['OK'] )
+  #
+  #   ###########################################################################
+  #
+  #   # normal operation
+  #   # self.mockAM.am_getOption.side_effect = lambda optionName, defaultValue: {( 'EnableFlag', 'True' ) : 'True'}[( optionName, defaultValue )]
+  #   productionRequests = {10964: {'bkTotal': 259499L, 'master': 10960, 'reqTotal': 500000L},
+  #                         10965: {'bkTotal': 610999L, 'master': 10960, 'reqTotal': 1000000L},
+  #                         10966: {'bkTotal': 660995L, 'master': 10959, 'reqTotal': 1000000L}}
+  #   self.agent.rpcProductionRequest.getProductionRequestSummary.return_value = S_OK( productionRequests )
+  #   self.agent._checkProductionRequest.return_value = S_OK()
+  #
+  #   ret = self.agent.execute()
+  #   self.assertTrue( ret['OK'] )
+  #   self.assertEqual( self.agent._checkProductionRequest.call_count, len( productionRequests ) )
+  #   self.agent._checkProductionRequest.assert_has_calls( [call( ID, summary ) for ID, summary in productionRequests.items()] )
 
   def test__checkProductionRequest( self ):
     # self.agent = self.moduleTested.MCExtensionAgent( 'MCExtensionAgent', 'MCExtensionAgent', 'MCExtensionAgent' )
