@@ -2,12 +2,13 @@
 """ Returns the architecture tag to be used for CMTCONFIG or architecture
 """
 
-__RCSID__ = "$Id$"
+import platform
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine( ignoreErrors = True )
 
-import sys, platform
+__RCSID__ = "$Id$"
+
 from DIRAC.ConfigurationSystem.Client.Helpers.Resources import getDIRACPlatform
 
 from DIRAC import exit as dExit
@@ -33,7 +34,7 @@ if __name__ == "__main__" :
     error = True
   else:
     msg = res['Value'][0]
-    
+
   if error:
     from DIRAC import gConfig
     from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
