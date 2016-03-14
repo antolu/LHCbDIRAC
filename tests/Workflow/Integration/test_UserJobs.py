@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#pylint: disable=W0212
+#pylint: disable=protected-access
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()

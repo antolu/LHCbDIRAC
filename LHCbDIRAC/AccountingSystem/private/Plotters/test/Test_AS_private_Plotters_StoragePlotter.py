@@ -11,7 +11,7 @@
   IMPORTANT: the test MUST be pylint compliant !
 '''
 
-#pylint: disable=W0212
+#pylint: disable=protected-access
 
 import mock
 import unittest
@@ -36,14 +36,14 @@ class StoragePlotterTestCase( unittest.TestCase ):
     # Tries to get the mocks of the parent TestCases ( if any )
     for baseClass in self.__class__.__bases__:
       try:
-        #pylint: disable=E1101
+        #pylint: disable=no-member
         moduleTested = baseClass.mockModuleTested( moduleTested )
       except TypeError:
         continue
 
     # And then makes its own mock
     class MockStorage(object):
-      #pylint: disable=C0111,R0903,W0232
+      #pylint: disable=missing-docstring,min-public-methods,no-init
       definitionKeyFields = ( 'StorageElement', 'Directory' )
 
     moduleTested.Storage = mock.Mock( return_value = MockStorage() )
