@@ -10,7 +10,7 @@
     dirac-production-runjoblocal (job ID) (Data imput mode) -  No parenthesis
     
 '''
-__RCSID__ = "$transID: dirac-production-runjoblocal.py 61232 2015-09-22 16:20:00 msoares $"
+__RCSID__ = "$Id:$"
 
 
 import DIRAC
@@ -112,29 +112,18 @@ def __downloadPilotScripts(basepath):
   shutil.copyfile("/cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/DIRAC_" + version + "/DIRAC/WorkloadManagementSystem/PilotAgent/pilotTools.py"    , basepath + "pilotTools.py")
   
   
-#    I decided to keep this comment just in case this comes in production:
+#    I decided to keep this comment just in case this comes in production again:
 #
-#     #DError(errno.ENETUNREACH, "LHCbPilotCommands.py script download error.\n" )
 #   out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/dirac-pilot.py")
 #   if not out:
 #     S_OK("dirac-pilot.py script successfully download.\n")
-#   else:
-#     print "dirac-pilot.py script download error.\n"
-#     #DError(errno.ENETUNREACH, "dirac-pilot.py script download error.\n" )
 #   out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/pilotCommands.py")
 #   if not out:
 #     S_OK("pilotCommands.py script successfully download.\n")
-#   else:
-#     print "pilotCommands.py script download error.\n"
-#     #DError(errno.ENETUNREACH, "pilotCommands.py script download error.\n" )
 #   out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/pilotTools.py")
 #   if not out:
 #     S_OK("pilotTools.py script successfully download.\n")
-#   else:
-#     print "pilotTools.py script download error.\n"
-#     #DError(errno.ENETUNREACH, "pilotTools.py script download error.\n" )
-    
-    
+   
 def __configurePilot(basepath):
   """
   Configures the pilot.
