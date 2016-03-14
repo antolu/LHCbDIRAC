@@ -492,7 +492,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
     # File files without descendants don't exist, not important
     if filesWithoutDescendants:
-      present, removedFiles = self.getReplicasPresence( filesWithoutDescendants.keys(), ignoreFailover = True )
+      present, removedFiles = self.getReplicasPresence( filesWithoutDescendants.keys() )
       filesWithoutDescendants = dict.fromkeys( present )
     else:
       removedFiles = []
@@ -502,7 +502,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
       filesWithDescendants.pop( lfn, None )
     # For files in FC and not in BK, ignore if they are not active
     if inFCNotInBK:
-      inFCNotInBK = self.getReplicasPresence( inFCNotInBK )[0]
+      inFCNotInBK = self.getReplicasPresence( inFCNotInBK, ignoreFailover = True )[0]
     return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
       list( setRealDaughters ), inFCNotInBK, inBKNotInFC, removedFiles
 
