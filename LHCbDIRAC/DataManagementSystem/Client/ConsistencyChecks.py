@@ -492,7 +492,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
     # File files without descendants don't exist, not important
     if filesWithoutDescendants:
-      present, removedFiles = self.getReplicasPresence( filesWithoutDescendants.keys() )
+      present, removedFiles = self.getReplicasPresence( filesWithoutDescendants.keys(), ignoreFailover = True )
       filesWithoutDescendants = dict.fromkeys( present )
     else:
       removedFiles = []
