@@ -10,7 +10,7 @@ from DIRAC.FrameworkSystem.Client.ComponentInstaller import ComponentInstaller a
 class ComponentInstaller(DIRACComponentInstaller):
 
   def runsvctrlComponent( self, system, component, mode ):
-    if component.lower() == 'vcycle' or component.lower() == 'squid':
+    if component.lower() in ('vcycle', 'squid'):
       if mode == 'u':
         command = 'start'
       elif mode == 't':
