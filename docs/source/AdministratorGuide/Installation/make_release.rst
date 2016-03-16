@@ -5,14 +5,6 @@ LHCbDIRAC Releases
 The following procedure applies fully to LHCbDIRAC production releases, like patches.
 For pre-releases (AKA certification releases, there are some minor changes to consider).
 
-The release manager of LHCbDIRAC has the triple role of:
-
-- creating the release
-- making basic verifications
-- deploying it in production
-
-
-
 Prerequisites
 ====================
 
@@ -29,16 +21,23 @@ as highlighted in the  `contribution guide <https://gitlab.cern.ch/lhcb-dirac/LH
 - have "lhcb_admin" or "diracAdmin" role.
 - have a Proxy
 
-Creating the release
-====================
+The release manager of LHCbDIRAC has the triple role of:
+
+1. creating the release
+2. making basic verifications
+3. deploying it in production
+
+
+1. Creating the release
+=======================
 
 Unless otherwise specified, (patch) releases of LHCbDIRAC are usually done "on top" of the latest production release of DIRAC.
-The following of this guide assume the above is true.
+The following of this guide assumes the above is true.
 
 Creating a release of LHCbDIRAC means creating a tarball that contains the release code. This is done in 3 steps:
 
 1. Merging "Merge Requests"
-2. Propagate to the devel branch
+2. Propagating to the devel branch
 3. Creating the release tarball, add uploading it to the LHCb web service
 
 But before:
@@ -60,8 +59,8 @@ that should also be a tarball uploaded in the same location as above.
 If all the above is ok, we can start creating the LHCbDIRAC release.
 
 
-Merging "Merge Requests" and make a tag
-`````````````````````````````````````````
+Merging "Merge Requests"
+````````````````````````
 
 `Merge Requests (MR) <https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/merge_requests>`_ that are targeted to the master branch
 and that have been approved by a reviewer are ready to be merged
@@ -76,21 +75,21 @@ Then, from the LHCbDIRAC local fork::
   git fetch upstream
   # determine the tag you're going to create by checking what was the last one from the following list (and 1 to the "p"):
   git describe --tags $(git rev-list --tags --max-count=5)
-  # make the tag
-  git -a -m <YourNewTag>
+  # Update the version in the __init__ file:
+  vim LHCbDIRAC/__init__.py
+  # Update the version in the releases.cfg file:
+  vim LHCbDIRAC/releases.cfg
 
-
-Update the CHANGELOG
-````````````````````
-
-From the LHCbDIRAC local fork::
+For updating the CHANGELOG::
 
   # get what's changed since the last tag:
   t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
-
-Copy what comes out of it and add it to the `CHANGELOG <https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/CHANGELOG>`_
-under the tag we're creating (avoid the "just fix" or "typo" or "pylint" lines).
-Please also add the DIRAC version used, in case it's changed. Commit.
+  # get what's in, add it to the CHANGELOG (please also add the DIRAC version):
+  vim CHANGELOG
+  # Commit
+  git add -A && git commit -av -m "<YourNewTag>"
+  # make the tag
+  git -a -m <YourNewTag>
 
 
 Propagate to the devel branch and push
@@ -110,23 +109,9 @@ Now, you need to make sure that what's merged in master is propagated to the dev
   git branch -d newDevel
 
 
+Creating the release tarball, add uploading it to the LHCb web service
+```````````````````````````````````````````````````````````````````````
 
-
-
-release for service and agent
------------------------------
-
-Prepare the versions.cfg located in svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/trunk/LHCbDIRAC/versions.cfg
-Don't forget to modify the __init.py__
-
-After you have committed your change, you should  modify the releases.cfg located in svn+ssh://svn.cern.ch/reps/dirac/trunk/releases.cfg
-
-Then create the tag for LHCbDIRAC on lxplus. (The one for DIRAC should have been done by the DIRAC release manager)
-
-::
-
-  SetupProject LHCbDirac
-  dirac-create-svn-tag -p LHCbDIRAC -v v7r0
   dirac-distribution -r LHCb-v7r1 -t client,server -El
 
 Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like
@@ -135,6 +120,22 @@ Don't forget to read the last line of the previous command to copy the generated
 
   ( cd /tmp/joel/tmpxg8UuvDiracDist ; tar -cf - *.tar.gz *.md5 *.cfg ) | ssh lhcbprod@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3/tars &&  tar -xvf - && ls *.tar.gz > tars.list'
 
+
+
+
+
+Making basic verifications
+==========================
+
+<Jenkins stuff>
+
+
+
+Deploying the release
+==========================
+
+VOBOXes
+```````
 
 
 To install it on the VOBOXes from lxplus:
@@ -153,7 +154,8 @@ Agents run on volhcb20, and services on volhcb18 and volhcb17
 
 
 release for client
--------------------
+`````````````````````
+
 please refer to this TWIKI page https://twiki.cern.ch/twiki/bin/view/LHCb/ProjectRelease#LHCbDirac
 a quick test to validate the installation is to run the SHELL script $LHCBRELEASE/LHCBDIRAC/LHCBDIRAC_vXrY/LHCbDiracSys/test/client_test.csh
 
