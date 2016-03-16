@@ -1,6 +1,117 @@
-=============================
-Make a release for LHCbDirac
-=============================
+==================
+LHCbDIRAC Releases
+==================
+
+The following procedure applies fully to LHCbDIRAC production releases, like patches.
+For pre-releases (AKA certification releases, there are some minor changes to consider).
+
+The release manager of LHCbDIRAC has the triple role of:
+
+- creating the release
+- making basic verifications
+- deploying it in production
+
+
+
+Prerequisites
+====================
+
+The release manager needs to:
+
+- be aware of the LHCbDIRAC repository structure and branching,
+as highlighted in the  `contribution guide <https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/CONTRIBUTING.md>`_.
+- have forked LHCbDIRAC on GitLab as a "personal project" (called "origin" from now on)
+- have cloned origin locally
+- have added `<https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC>`_ as "upstream" repository to the local clone
+- have push access to the master branch of "upstream" (being part of the project "owners")
+- have DIRAC installed
+- have been grated write access to <webService>
+- have "lhcb_admin" or "diracAdmin" role.
+- have a Proxy
+
+Creating the release
+====================
+
+Unless otherwise specified, (patch) releases of LHCbDIRAC are usually done "on top" of the latest production release of DIRAC.
+The following of this guide assume the above is true.
+
+Creating a release of LHCbDIRAC means creating a tarball that contains the release code. This is done in 3 steps:
+
+1. Merging "Merge Requests"
+2. Propagate to the devel branch
+3. Creating the release tarball, add uploading it to the LHCb web service
+
+But before:
+
+Pre
+```
+
+Verify what is the last tag of DIRAC::
+
+  # it should be in this list:
+  git describe --tags $(git rev-list --tags --max-count=10)
+
+A tarball containing it is should be already
+uploaded `here <http://lhcbproject.web.cern.ch/lhcbproject/dist/Dirac_project/installSource/>`_
+
+You may also look inside the .cfg file for the DIRAC release you're looking for: it will contain an "Externals" version number,
+that should also be a tarball uploaded in the same location as above.
+
+If all the above is ok, we can start creating the LHCbDIRAC release.
+
+
+Merging "Merge Requests" and make a tag
+`````````````````````````````````````````
+
+`Merge Requests (MR) <https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/merge_requests>`_ that are targeted to the master branch
+and that have been approved by a reviewer are ready to be merged
+
+If there are no MRs, or none ready: please skip to the "update the CHANGELOG" subsection.
+
+Otherwise, simply click the "Accept merge request" button for each of them.
+
+Then, from the LHCbDIRAC local fork::
+
+  # update your "local" /upstream/master branch
+  git fetch upstream
+  # determine the tag you're going to create by checking what was the last one from the following list (and 1 to the "p"):
+  git describe --tags $(git rev-list --tags --max-count=5)
+  # make the tag
+  git -a -m <YourNewTag>
+
+
+Update the CHANGELOG
+````````````````````
+
+From the LHCbDIRAC local fork::
+
+  # get what's changed since the last tag:
+  t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
+
+Copy what comes out of it and add it to the `CHANGELOG <https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/CHANGELOG>`_
+under the tag we're creating (avoid the "just fix" or "typo" or "pylint" lines).
+Please also add the DIRAC version used, in case it's changed. Commit.
+
+
+Propagate to the devel branch and push
+``````````````````````````````````````
+
+Now, you need to make sure that what's merged in master is propagated to the devel branch. From the local fork::
+
+  # get the updated CHANGELOG
+  git fetch upstream
+  # create a "newDevel" branch which from the /upstream/devel branch
+  git co -b newDevel upstream/devel
+  # merge in newDevel the content of upstream/master (fix possible conflicts)
+  git merge /upstream/master
+  # push "newDevel" to upstream/devel
+  git push --tags upstream newDevel:devel
+  # delete your local newDevel
+  git branch -d newDevel
+
+
+
+
 
 release for service and agent
 -----------------------------
@@ -59,5 +170,3 @@ If you need to install a new version in the development environment, follow thes
   getpack -Pr LHCbDirac vXrY
   cd $LHCBDEV/LHCBDIRAC/LHCBDIRAC_vXrY
   make
-
-
