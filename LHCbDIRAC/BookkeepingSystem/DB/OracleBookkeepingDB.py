@@ -3030,7 +3030,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildFileTypes( ftype, condition, tables )
+    retVal = self.__buildFileTypes( ftype, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3040,7 +3040,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildEventType( evt, condition, tables )
+    retVal = self.__buildEventType( evt, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3168,8 +3168,9 @@ and files.qualityid= dataquality.qualityid'
     if ftype != default and visible.upper().startswith( 'Y' ):
       if tables.lower().find( 'filetypes' ) < 0:
         tables += ' ,filetypes ft'
-      if tables.find( 'bview' ) > -1:
-        condition += " and bview.filetypeid=ft.filetypeid "
+      if tables.find( 'bview' ) < 0:
+        tables += ' ,prodview bview'
+      condition += " and bview.filetypeid=ft.filetypeid "
       if isinstance( ftype, list ):
         values = ' and ft.name in ('
         for i in ftype:
@@ -3230,7 +3231,8 @@ and files.qualityid= dataquality.qualityid'
     """adds the event type to the files table"""
 
     if evt != default and visible.upper().startswith( 'Y' ):
-      tables += ' ,prodview bview'
+      if tables.find( 'bview' ) < 0:   
+        tables += ' ,prodview bview'
       condition += '  and j.production=bview.production and bview.production=prod.production and f.eventtypeid=bview.eventtypeid and'
       if isinstance( evt, ( list, tuple ) ) and len( evt ) > 0:
         cond = ' ( '
