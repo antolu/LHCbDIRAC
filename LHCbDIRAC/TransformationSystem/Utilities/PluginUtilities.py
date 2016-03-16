@@ -887,6 +887,9 @@ class PluginUtilities( DIRACPluginUtilities ):
 
 
   def __getProduction( self, lfns ):
+    """
+    Returns the production that was used to create each LFN
+    """
     directories = {}
     lfnDirs = {}
     # Get the directories
