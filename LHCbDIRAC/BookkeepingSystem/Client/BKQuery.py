@@ -605,19 +605,27 @@ class BKQuery():
     if visible == None:
       visible = self.isVisible()
 
-    prods = self.__bkQueryDict.get( 'Production' )
     if self.isVisible() != visible:
       query = BKQuery( self.__bkQueryDict, visible = visible )
     else:
       query = self
+    loopItem = None
+    prods = self.__bkQueryDict.get( 'Production' )
+    eventTypes = self.__bkQueryDict.get( 'EventType' )
     if prods and isinstance( prods, list ):
-      # It's faster to loop on a list of prods than query the BK with a list as argument
+      loopItem = 'Production'
+      loopList = prods
+    elif eventTypes and isinstance( eventTypes, list ):
+      loopItem = 'EventType'
+      loopList = eventTypes
+    if loopItem:
+      # It's faster to loop on a list of prods or event types than query the BK with a list as argument
       lfns = []
       lfnSize = 0
       if query == self:
         query = BKQuery( self.__bkQueryDict, visible = visible )
-      for prod in prods:
-        query.setOption( 'Production', prod )
+      for item in loopList:
+        query.setOption( loopItem, item )
         lfnsAndSize = query.getLFNsAndSize()
         lfns += lfnsAndSize['LFNs']
         lfnSize += lfnsAndSize['LFNSize']

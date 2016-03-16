@@ -359,7 +359,7 @@ class StorageHistoryAgent( AgentModule ):
             metaTuple = res['Value'][0]
           else:
             metaTuple = ()
-          if metaTuple:
+          if metaTuple and metaTuple[3] is not None:
             metaForDir = metaForList[dirName]
             _dirID, metaForDir[ 'DataType' ], metaForDir[ 'Activity' ], metaForDir[ 'Conditions' ], metaForDir[ 'ProcessingPass' ], \
               metaForDir[ 'EventType' ], metaForDir[ 'FileType' ], metaForDir[ 'Production' ], metaForDir['Visibility'] = metaTuple
@@ -386,7 +386,7 @@ class StorageHistoryAgent( AgentModule ):
               metaForDir = metaForList[dirName]
               # BK returns a list of metadata, chose the first one...
               metadata = bkMetadata['Successful'].get( dirName, [{}] )[0]
-              if metadata:
+              if metadata and metadata.get( 'ConditionDescription' ) is not None:
                 metadata['Visibility'] = metadata.pop( 'VisibilityFlag', metadata.get( 'Visibility', 'na' ) )
                 # All is OK, directory found
                 _fillMetadata( metaForDir, metadata )

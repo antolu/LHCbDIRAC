@@ -1,0 +1,3 @@
+[v8r2p35]
+* CHANGE: use DIRAC v6r14p22
+* FIX: removed dirac-platform script from LHCbDIRAC

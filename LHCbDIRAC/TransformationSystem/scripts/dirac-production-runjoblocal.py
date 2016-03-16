@@ -10,7 +10,7 @@
     dirac-production-runjoblocal (job ID) (Data imput mode) -  No parenthesis
     
 '''
-__RCSID__ = "$Id$"
+__RCSID__ = "$Id:$"
 
 
 import DIRAC
@@ -98,39 +98,37 @@ def __downloadPilotScripts(basepath):
   Downloads the scripts necessary to configure the pilot
   
   """
+  from DIRAC.Core.Utilities.Version import getVersion
+  version = getVersion()['Value']['DIRAC']
+  
   #include retry function
   out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/LHCbPilotCommands.py")
   if not out:
     S_OK("LHCbPilotCommands.py script successfully download.\n")
   else:
     print "LHCbPilotCommands.py script download error.\n"
-    #DError(errno.ENETUNREACH, "LHCbPilotCommands.py script download error.\n" )
-  out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/dirac-pilot.py")
-  if not out:
-    S_OK("dirac-pilot.py script successfully download.\n")
-  else:
-    print "dirac-pilot.py script download error.\n"
-    #DError(errno.ENETUNREACH, "dirac-pilot.py script download error.\n" )
-  out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/pilotCommands.py")
-  if not out:
-    S_OK("pilotCommands.py script successfully download.\n")
-  else:
-    print "pilotCommands.py script download error.\n"
-    #DError(errno.ENETUNREACH, "pilotCommands.py script download error.\n" )
-  out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/pilotTools.py")
-  if not out:
-    S_OK("pilotTools.py script successfully download.\n")
-  else:
-    print "pilotTools.py script download error.\n"
-    #DError(errno.ENETUNREACH, "pilotTools.py script download error.\n" )
-    
-    
+  shutil.copyfile("/cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/DIRAC_" + version + "/DIRAC/WorkloadManagementSystem/PilotAgent/dirac-pilot.py"   , basepath + "dirac-pilot.py")
+  shutil.copyfile("/cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/DIRAC_" + version + "/DIRAC/WorkloadManagementSystem/PilotAgent/pilotCommands.py" , basepath + "pilotCommands.py")
+  shutil.copyfile("/cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/DIRAC_" + version + "/DIRAC/WorkloadManagementSystem/PilotAgent/pilotTools.py"    , basepath + "pilotTools.py")
+  
+  
+#    I decided to keep this comment just in case this comes in production again:
+#
+#   out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/dirac-pilot.py")
+#   if not out:
+#     S_OK("dirac-pilot.py script successfully download.\n")
+#   out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/pilotCommands.py")
+#   if not out:
+#     S_OK("pilotCommands.py script successfully download.\n")
+#   out = os.system("wget -P " + basepath +  " http://lhcbproject.web.cern.ch/lhcbproject/Operations/VM/pilotscripts/pilotTools.py")
+#   if not out:
+#     S_OK("pilotTools.py script successfully download.\n")
+   
 def __configurePilot(basepath):
   """
   Configures the pilot.
   
   """
-  import shutil
   out = os.system("python " + basepath + "dirac-pilot.py -S LHCb-Production -l LHCb -C dips://lbvobox18.cern.ch:9135/Configuration/Server -N ce.debug.ch -Q default -n DIRAC.JobDebugger.ch -M 1 -E LHCbPilot -X LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements -dd")
   if not out:
     dir = os.path.expanduser('~') + os.path.sep
@@ -154,6 +152,7 @@ def __runJobLocally(jobID, basepath):
   localJob.runLocal()
   
 if __name__ == "__main__":
+  import shutil
   dir = os.path.expanduser('~') + os.path.sep
   try:
     _path = __runSystemDefaults(_jobID)

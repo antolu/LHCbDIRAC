@@ -1214,7 +1214,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     bkPathList = {}
     if fullBKPaths:
       # We were given full BK paths, use them
-      bkPathList.update( dict( ( bkPath.replace( 'RealData', 'Real Data' ), BKQuery( bkPath, visible = 'All' ).getQueryDict()['ProcessingPass'] ) \
+      bkQuery = BKQuery( bkPath, visible = 'All' )
+      eventType = bkQuery.getEventTypeList()
+      bkPathList.update( dict( ( bkPath.replace( 'RealData', 'Real Data' ), bkQuery.getQueryDict()['ProcessingPass'] ) \
                                 for bkPath in fullBKPaths ) )
 
     if relBKPaths:
@@ -1256,6 +1258,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
       # Restrict the query to the BK to the interesting productions
       transPassLen = len( transProcPass.split( '/' ) )
+      newMethod = False
       for stringTargetSEs in sorted( newGroups ):
         lfns = newGroups[stringTargetSEs]
         self.util.logInfo( 'Checking descendants for %d files at %s' % ( len( lfns ), stringTargetSEs ) )
@@ -1271,15 +1274,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             break
           lfnsToCheckForPath = set( lfn for lfn in lfnsToCheck if bkPath in bkPathsToCheck[lfn] )
           depth = len( bkPathList[bkPath].split( '/' ) ) - transPassLen + 1
-          for prod in sorted( prods, reverse = True ):
+          self.util.logVerbose( 'Checking descendants for %d files in productions %s, depth %d' % ( len( lfnsToCheckForPath ), ','.join( str( prod ) for prod in prods ), depth ) )
+          for prod in sorted( prods, reverse = True ) if not newMethod else ['']:
             if not lfnsToCheckForPath:
               # All files have been processed, go to next bkPath
               break
-            self.util.logVerbose( 'Checking descendants for %d files in production %d, depth %d' % ( len( lfnsToCheckForPath ), prod, depth ) )
+            if prod:
+              self.util.logVerbose( 'Checking descendants for %d files in production %d, depth %d' % ( len( lfnsToCheckForPath ), prod, depth ) )
             startTime = time.time()
             processedLfns = set()
             for lfnChunk in breakListIntoChunks( lfnsToCheckForPath, 20 ):
-              res = self.bkClient.getFileDescendants( lfnChunk, production = prod, depth = depth, checkreplica = True )
+              res = self.util.checkForDescendants( lfnChunk, prods ) if newMethod else self.bkClient.getFileDescendants( lfnChunk, production = prod, depth = depth, checkreplica = True )
               if res['OK']:
                 processedLfns.update( res['Value']['Successful'] )
             self.util.logVerbose( 'Found %s descendants in %.1f seconds' % \
