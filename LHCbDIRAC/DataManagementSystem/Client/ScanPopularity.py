@@ -426,10 +426,15 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
   f.write( title + '\n' )
   TB = 1000. * 1000. * 1000. * 1000.
   for bkPath in sorted( timeUsage ) + sorted( unusedBKPaths ):
+    # Skip unknown datasets
     if bkPath.startswith( 'Unknown-' ):
       continue
+    # Not interested in histograms
     fileType = bkPath.split( '/' )[-1]
     if 'HIST' in fileType:
+      continue
+    # Only RAW for partition LHCb may be of interest (and even...)
+    if fileType == 'RAW' and not bkPath.startswith( '/LHCb' ):
       continue
     info = bkPathUsage.get( bkPath, {} )
     # check if the production is still active

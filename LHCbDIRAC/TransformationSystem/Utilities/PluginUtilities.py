@@ -65,6 +65,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.__recoType = ''
     self.dmsHelper = DMSHelpers()
     self.runDestinations = {}
+    self.cachedDirMetadata = {}
 
 
   def setDebug( self, val ):
@@ -538,23 +539,23 @@ class PluginUtilities( DIRACPluginUtilities ):
     recoProduction = None
     notProcessed = 0
     if not self.__recoType:
-      self.__recoType = self.getPluginParam( 'RecoFileType', 'FULL.DST' )
+      self.__recoType = self.getPluginParam( 'RecoFileType', ['FULL.DST'] )
     # Check if the file itself is a FULL.DST
     res = self.bkClient.getFileMetadata( lfnToCheck )
     if res['OK']:
-      if res['Value']['Successful'].get( lfnToCheck, {} ).get( 'FileType' ) == self.__recoType:
+      if res['Value']['Successful'].get( lfnToCheck, {} ).get( 'FileType' ) in self.__recoType:
         ancestorFullDST = lfnToCheck
       else:
         # If not, get its ancestors
         res = self.getFileAncestors( lfnToCheck, replica = False )
         if res['OK']:
-          fullDst = [f['FileName'] for f in res['Value']['Successful'].get( lfnToCheck, [{}] ) if f.get( 'FileType' ) == 'FULL.DST']
+          fullDst = [f['FileName'] for f in res['Value']['Successful'].get( lfnToCheck, [{}] ) if f.get( 'FileType' ) in self.__recoType]
           if fullDst:
             ancestorFullDST = fullDst[0]
         else:
           self.logError( "Error getting ancestors of %s" % lfnToCheck, res['Message'] )
     if ancestorFullDST:
-      self.logDebug( "Ancestor FULL.DST found: %s" % ancestorFullDST )
+      self.logDebug( "Ancestor reco file found: %s" % ancestorFullDST )
       res = self.bkClient.getJobInfo( ancestorFullDST )
       if res['OK']:
         try:
@@ -566,7 +567,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       else:
         self.logError( "Error getting job information", res['Message'] )
     else:
-      self.logVerbose( "No ancestor FULL.DST file found" )
+      self.logVerbose( "No ancestor reco file found" )
     if recoProduction:
       res = self.transClient.getTransformationFiles( { 'TransformationID':recoProduction, 'RunNumber':runID} )
       if res['OK']:
@@ -769,8 +770,9 @@ class PluginUtilities( DIRACPluginUtilities ):
     res = self.transClient.getBookkeepingQuery( self.transID )
     if not res['OK']:
       self.logError( "Failed to get BK query for transformation", res['Message'] )
-      return None
-    transQuery = res['Value']
+      transQuery = {}
+    else:
+      transQuery = res['Value']
     if 'ProcessingPass' not in transQuery:
       # Get processing pass of the first file... This assumes all have the same...
       lfn = transReplicas.keys()[0]
@@ -826,6 +828,88 @@ class PluginUtilities( DIRACPluginUtilities ):
       return res.get( 'Value' )
     return None
 
+  def checkForDescendants( self, lfns, prodList, level = 0 ):
+    """ check the files if they have an existing descendant in the list of productions """
+    excludeTypes = ( 'LOG', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'HIST', 'INDEX.ROOT' )
+    finalResult = set()
+    if isinstance( lfns, basestring ):
+      lfns = [lfns]
+    # Get daughters
+    res = self.bkClient.getFileDescendants( lfns, depth = 1, checkreplica = False )
+    if not res['OK']:
+      return res
+    success = res['Value']['WithMetadata']
+    descToCheck = {}
+    # Invert list of descendants
+    descMetadata = {}
+    for lfn in lfns:
+      descendants = success.get( lfn, {} )
+      descMetadata.update( descendants )
+      for desc, metadata in descendants.iteritems():
+        if metadata['FileType'] not in excludeTypes:
+          descToCheck.setdefault( desc, [] ).append( lfn )
+    res = self.__getProduction( descToCheck )
+    if not res['OK']:
+      return res
+    descProd = res['Value']
+    prodDesc = {}
+    # Check if we found a descendant in the requested productions
+    foundProds = {}
+    for desc in descToCheck.keys():
+      prod = descProd[desc]
+      # If we found an existing descendant in the list of productions, all OK
+      if descMetadata[desc]['GotReplica'] == 'Yes' and prod in prodList:
+        foundProds[prod] = foundProds.setdefault( prod, 0 ) + len( descToCheck )
+        finalResult.update( descToCheck[desc] )
+        del descToCheck[desc]
+      else:
+        # Sort remaining descendants in productions
+        prodDesc.setdefault( prod, [] ).append( desc )
+    for prod in foundProds:
+      self.logVerbose( "Found %d files with descendants in production %d at level %d" % ( foundProds[prod], prod, level + 1 ) )
+
+    # Check descendants in reverse order of productions
+    for prod in sorted( prodDesc, reverse = True ):
+      # Check descendants whose parent was not yet found processed
+      ndesc = 0
+      for desc in prodDesc[prod]:
+        if not set( descToCheck[desc] ) & finalResult:
+          ndesc += 1
+          res = self.checkForDescendants( desc, prodList, level = level + 1 )
+          if not res['OK']:
+            return res
+          if desc in res['Value']['Successful']:
+            self.logVerbose( "Found descendants at rank %d, depth %d" % ( ndesc, level + 2 ) )
+            # print prod, prodDesc[prod], desc
+            finalResult.update( descToCheck[desc] )
+
+    return S_OK( {'Successful': finalResult} )
+
+
+  def __getProduction( self, lfns ):
+    """
+    Returns the production that was used to create each LFN
+    """
+    directories = {}
+    lfnDirs = {}
+    # Get the directories
+    for lfn in lfns:
+      dir = os.path.dirname( lfn )
+      last = os.path.basename( dir )
+      if len( last ) == 4 and last.isdigit():
+        dir = os.path.dirname( dir )
+      directories.setdefault( dir, lfn )
+      lfnDirs[lfn] = dir
+
+    dirList = [dir for dir in directories if dir not in self.cachedDirMetadata]
+    for dir in dirList:
+      res = self.bkClient.getJobInfo( directories[dir] )
+      if not res['OK']:
+        return res
+      self.cachedDirMetadata.update( {dir : res['Value'][0][18]} )
+
+    lfnProd = dict( ( lfn, self.cachedDirMetadata.get( lfnDirs[lfn], 0 ) ) for lfn in lfns )
+    return S_OK( lfnProd )
 
 #=================================================================
 # Set of utility functions used by LHCbDirac transformation system

@@ -287,7 +287,8 @@ class StorageUsageAgent( AgentModule ):
     dirListSize = [d for d in dirList if dirContents.get( d, {} ).get( 'Files' )]
 
     startTime1 = time.time()
-    for args in [( d, True, False ) for d in breakListIntoChunks( dirListSize, chunkSize )]:
+    # FIXME: this should be changed to (d, True, False) when the DFC is fixed
+    for args in [( d, True, True ) for d in breakListIntoChunks( dirListSize, chunkSize )]:
       res = self.catalog.getDirectorySize( *args, timeout = 600 )
       if not res['OK']:
         failed.update( dict.fromkeys( args[0], res['Message'] ) )

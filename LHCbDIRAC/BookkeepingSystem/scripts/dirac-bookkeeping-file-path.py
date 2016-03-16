@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
   dirMetadata = ( 'Production', 'ConfigName', 'ConditionDescription', 'EventType',
                  'FileType', 'ConfigVersion', 'ProcessingPass', 'Path' )
-  fileMetadata = ( 'EventType', 'FileType', 'RunNumber', 'JobId', 'DQFlag', 'GotReplica' )
+  fileMetadata = ( 'EventType', 'FileType', 'RunNumber', 'JobId', 'DataqualityFlag', 'GotReplica' )
   if groupBy and groupBy not in dirMetadata:
     if groupBy not in fileMetadata:
       gLogger.always( 'Invalid metata item', groupBy )

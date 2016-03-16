@@ -22,7 +22,7 @@ if __name__ == "__main__":
   start = False
   force = False
   invisible = False
-  lfcCheck = True
+  fcCheck = True
   unique = False
   bkQuery = None
   depth = 0
@@ -32,7 +32,7 @@ if __name__ == "__main__":
   Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
   Script.registerSwitch( "", "Force", "   Force transformation to be submitted even if no files found" )
   Script.registerSwitch( "", "Test", "   Just print out but not submit" )
-  Script.registerSwitch( "", "NoLFCCheck", "   Suppress the check in LFC for removal transformations" )
+  Script.registerSwitch( "", "NoFCCheck", "   Suppress the check in LFC for removal transformations" )
   Script.registerSwitch( "", "Unique", "   Refuses to create a transformation with an existing name" )
   Script.registerSwitch( "", "Depth=", "   Depth in path for replacing /... in processing pass" )
   Script.registerSwitch( "", "Chown=", "   Give user/group for chown of the directories of files in the FC" )
@@ -58,8 +58,8 @@ if __name__ == "__main__":
       force = True
     elif opt == "SetInvisible":
       invisible = True
-    elif opt == "NoLFCCheck":
-      lfcCheck = False
+    elif opt == "NoFCCheck":
+      fcCheck = False
     elif opt == "Unique":
       unique = True
     elif opt == 'Chown':
@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
   if plugin in ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ) or prods:
     # visible = 'All'
-    lfcCheck = False
+    fcCheck = False
 
   processingPass = [None]
   if not requestedLFNs:
@@ -297,7 +297,7 @@ if __name__ == "__main__":
         DIRAC.exit( 3 )
       gLogger.notice( "Successfully changed owner/group for %d directories" % res['Value'] )
     # If the transformation is a removal transformation, check all files are in the LFC. If not, remove their replica flag
-    if lfcCheck and transType == 'Removal':
+    if fcCheck and transType == 'Removal':
       from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
       fc = FileCatalog()
       success = 0
@@ -320,12 +320,9 @@ if __name__ == "__main__":
     # Prepare the transformation
     if transBKQuery:
       #### !!!! Hack in order to remain compatible with hte BKQuery table...
-      if 'Production' in transBKQuery:
-        transBKQuery['ProductionID'] = transBKQuery['Production']
-        transBKQuery.pop( 'Production' )
-      if 'RunNumber' in transBKQuery:
-        transBKQuery['RunNumbers'] = transBKQuery['RunNumber']
-        transBKQuery.pop( 'RunNumber' )
+      for transKey, bkKey in ( ( 'ProductionID', 'Production' ), ( 'RunNumbers', 'RunNumber' ), ( 'DataQualityFlag', 'DataQuality' ) ):
+        if bkKey in transBKQuery:
+          transBKQuery[transKey] = transBKQuery.pop( bkKey )
       transformation.setBkQuery( transBKQuery )
 
     # If the transformation uses the DeleteDataset plugin, set the files invisible in the BK...
