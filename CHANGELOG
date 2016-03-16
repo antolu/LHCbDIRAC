@@ -1,3 +1,20 @@
+[v8r2p36]
+* Use Dirac v6r14p24
+* Make a look on eventTypes rather than a query with a list, it is faster
+* Add dock string
+* adding to release notes
+* Added release guide
+* Add changelog
+* For some reason the dirac-production-runjobloca script was sent to gitlab in an ond version
+* use the bookkeeping view
+* Skip RAW data but for /LHCb
+* Temporary fix for recalculating the directory size
+* Fix doc string and comments
+* Add a new method for checking a file was processed (inactive)
+* Fix DQFlag as name is # in TS and BK
+* Protect agains Conditions == None
+* Fix DQFlag -> DataqualityFlag as metadata
+
 [v8r2p35]
 * CHANGE: use DIRAC v6r14p22
 * FIX: removed dirac-platform script from LHCbDIRAC
