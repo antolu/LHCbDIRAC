@@ -69,44 +69,64 @@ If there are no MRs, or none ready: please skip to the "update the CHANGELOG" su
 
 Otherwise, simply click the "Accept merge request" button for each of them.
 
-Then, from the LHCbDIRAC local fork::
+Then, from the LHCbDIRAC local fork you need to update some files::
 
-  # update your "local" /upstream/master branch
+  # update your "local" upstream/master branch
   git fetch upstream
-  # determine the tag you're going to create by checking what was the last one from the following list (and 1 to the "p"):
+  # create a "newMaster" branch which from the upstream/master branch
+  git checkout -b newMaster upstream/master
+  # determine the tag you're going to create by checking what was the last one from the following list (add 1 to the "p"):
   git describe --tags $(git rev-list --tags --max-count=5)
   # Update the version in the __init__ file:
   vim LHCbDIRAC/__init__.py
   # Update the version in the releases.cfg file:
   vim LHCbDIRAC/releases.cfg
-
-For updating the CHANGELOG::
-
-  # get what's changed since the last tag:
+  # For updating the CHANGELOG, get what's changed since the last tag
   t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
-  # get what's in, add it to the CHANGELOG (please also add the DIRAC version):
-  vim CHANGELOG
-  # Commit
+  # copy the output, add it to the CHANGELOG (please also add the DIRAC version)
+  vim CHANGELOG # please, remove comments like "fix" or "pylint" or "typo"...
+  # Commit in your local newMaster branch the 3 files you modified
   git add -A && git commit -av -m "<YourNewTag>"
+
+
+Time to tag and push::
+
   # make the tag
-  git -a -m <YourNewTag>
+  git tag -a <YourNewTag> -m <YourNewTag>
+  # push "newMaster" to upstream/master
+  git push --tags upstream newMaster:master
+  # delete your local newMaster
+  git branch -d newMaster
 
 
-Propagate to the devel branch and push
-``````````````````````````````````````
+Remember: you can use "git status" at any point in time to make sure what's the current status.
+
+
+
+Propagate to the devel branch
+`````````````````````````````
 
 Now, you need to make sure that what's merged in master is propagated to the devel branch. From the local fork::
 
-  # get the updated CHANGELOG
+  # get the updates (this never hurts!)
   git fetch upstream
-  # create a "newDevel" branch which from the /upstream/devel branch
-  git co -b newDevel upstream/devel
-  # merge in newDevel the content of upstream/master (fix possible conflicts)
-  git merge /upstream/master
+  # create a "newDevel" branch which from the upstream/devel branch
+  git checkout -b newDevel upstream/devel
+  # merge in newDevel the content of upstream/master
+  git merge upstream/master
+
+The last operation may result in potential conflicts.
+If happens, you'll need to manually update the conflicting files (see e.g. this `guide <https://githowto.com/resolving_conflicts>`_).
+As a general rule, prefer the master fixes to the "HEAD" (devel) fixes. Remember to add and commit once fixed.
+
+Conflicts or not, you'll need to push back to upstream::
+
   # push "newDevel" to upstream/devel
-  git push --tags upstream newDevel:devel
+  git push upstream newDevel:devel
   # delete your local newDevel
   git branch -d newDevel
+  # keep your repo up-to-date
+  git fetch upstream
 
 
 Creating the release tarball, add uploading it to the LHCb web service
@@ -124,14 +144,14 @@ Don't forget to read the last line of the previous command to copy the generated
 
 
 
-Making basic verifications
-==========================
-
-<Jenkins stuff>
+2. Making basic verifications
+==============================
 
 
 
-Deploying the release
+
+
+3. Deploying the release
 ==========================
 
 VOBOXes
