@@ -10,8 +10,7 @@ Prerequisites
 
 The release manager needs to:
 
-- be aware of the LHCbDIRAC repository structure and branching,
-as highlighted in the  `contribution guide <https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/CONTRIBUTING.md>`_.
+- be aware of the LHCbDIRAC repository structure and branching as highlighted in the  `contribution guide <https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/CONTRIBUTING.md>`_.
 - have forked LHCbDIRAC on GitLab as a "personal project" (called "origin" from now on)
 - have cloned origin locally
 - have added `<https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC>`_ as "upstream" repository to the local clone
@@ -131,12 +130,13 @@ Conflicts or not, you'll need to push back to upstream::
 
 Creating the release tarball, add uploading it to the LHCb web service
 ```````````````````````````````````````````````````````````````````````
+Login on lxplus, run SetupProject LHCbDIRAC, then run the following::
 
-  dirac-distribution -r LHCb-v7r1 -t client,server -El
+  dirac-distribution bla bla
 
-Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like
+(this may take some time)
 
-::
+Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like::
 
   ( cd /tmp/joel/tmpxg8UuvDiracDist ; tar -cf - *.tar.gz *.md5 *.cfg ) | ssh lhcbprod@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3/tars &&  tar -xvf - && ls *.tar.gz > tars.list'
 
@@ -147,6 +147,30 @@ Don't forget to read the last line of the previous command to copy the generated
 2. Making basic verifications
 ==============================
 
+Once the tarball is done and uploaded, the release manager is asked to make basic verifications, via Jenkins,
+if the release has been correctly created.
+
+At this `link <https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
+Please start all of the Jenkins jobs whose name start with "RELEASE" and come back in about an hour to see the results for all of them.
+
+1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__pylint_unit/
+
+This job will: run pylint (errors only), run all the unit tests found in the system, assess the coverage.
+The job should be considered successful if:
+
+- the pylint error report didn't increase from the previous job run
+- the test results didn't get worse from the previous job run
+- the coverage didn't drop from the previous job run
+
+
+2. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__pilot/
+
+This job will simply install the pilot. Please just check if the result does not show in an "unstable" status
+
+
+3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__/ 
+
+   TODO
 
 
 
