@@ -993,10 +993,12 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
             runDict.setdefault( int( runID ), [] ).append( lfn )
       else:
         return res
-    res = transClient.addFilesToTransformation( transID, lfnChunk )
-    if not res['OK']:
-      gLogger.fatal( "Error adding %d files to transformation" % len( lfnChunk ), res['Message'] )
-      DIRACExit( 2 )
+    while True:
+      res = transClient.addFilesToTransformation( transID, lfnChunk )
+      if not res['OK']:
+        gLogger.error( "Error adding %d files to transformation, retry..." % len( lfnChunk ), res['Message'] )
+      else:
+        break
     added = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added']
     addedLfns += added
     if addRunInfo and res['OK']:
