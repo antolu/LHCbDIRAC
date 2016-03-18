@@ -3170,7 +3170,7 @@ and files.qualityid= dataquality.qualityid'
         tables += ' ,filetypes ft'
       if tables.find( 'bview' ) < 0:
         tables += ' ,prodview bview'
-      condition += " and bview.filetypeid=ft.filetypeid "
+      condition += " and bview.filetypeid=ft.filetypeid and bview.filetypeid=f.filetypeid "
       if isinstance( ftype, list ):
         values = ' and ft.name in ('
         for i in ftype:
