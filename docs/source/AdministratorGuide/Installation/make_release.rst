@@ -111,8 +111,9 @@ Now, you need to make sure that what's merged in master is propagated to the dev
 
 Creating the release tarball, add uploading it to the LHCb web service
 ```````````````````````````````````````````````````````````````````````
-
-  dirac-distribution -r LHCb-v7r1 -t client,server -El
+  SetupProject LHCbDirac
+  git archive --remote ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
+  dirac-distribution -r v8r2p36 -l LHCb -C file:///`pwd`/releases.cfg
 
 Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like
 
