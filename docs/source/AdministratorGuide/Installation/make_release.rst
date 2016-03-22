@@ -130,9 +130,11 @@ Conflicts or not, you'll need to push back to upstream::
 
 Creating the release tarball, add uploading it to the LHCb web service
 ```````````````````````````````````````````````````````````````````````
-Login on lxplus, run SetupProject LHCbDIRAC, then run the following::
+  Login on lxplus, run ::
 
-  dirac-distribution bla bla
+  SetupProject LHCbDirac
+  git archive --remote ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
+  dirac-distribution -r v8r2p36 -l LHCb -C file:///`pwd`/releases.cfg
 
 (this may take some time)
 
@@ -168,7 +170,7 @@ The job should be considered successful if:
 This job will simply install the pilot. Please just check if the result does not show in an "unstable" status
 
 
-3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__/ 
+3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__/
 
    TODO
 
