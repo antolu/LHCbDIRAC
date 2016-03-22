@@ -10,8 +10,7 @@ Prerequisites
 
 The release manager needs to:
 
-- be aware of the LHCbDIRAC repository structure and branching,
-as highlighted in the  `contribution guide <https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/CONTRIBUTING.md>`_.
+- be aware of the LHCbDIRAC repository structure and branching as highlighted in the  `contribution guide <https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/CONTRIBUTING.md>`_.
 - have forked LHCbDIRAC on GitLab as a "personal project" (called "origin" from now on)
 - have cloned origin locally
 - have added `<https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC>`_ as "upstream" repository to the local clone
@@ -69,54 +68,75 @@ If there are no MRs, or none ready: please skip to the "update the CHANGELOG" su
 
 Otherwise, simply click the "Accept merge request" button for each of them.
 
-Then, from the LHCbDIRAC local fork::
+Then, from the LHCbDIRAC local fork you need to update some files::
 
-  # update your "local" /upstream/master branch
+  # update your "local" upstream/master branch
   git fetch upstream
-  # determine the tag you're going to create by checking what was the last one from the following list (and 1 to the "p"):
+  # create a "newMaster" branch which from the upstream/master branch
+  git checkout -b newMaster upstream/master
+  # determine the tag you're going to create by checking what was the last one from the following list (add 1 to the "p"):
   git describe --tags $(git rev-list --tags --max-count=5)
   # Update the version in the __init__ file:
   vim LHCbDIRAC/__init__.py
   # Update the version in the releases.cfg file:
   vim LHCbDIRAC/releases.cfg
-
-For updating the CHANGELOG::
-
-  # get what's changed since the last tag:
+  # For updating the CHANGELOG, get what's changed since the last tag
   t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
-  # get what's in, add it to the CHANGELOG (please also add the DIRAC version):
-  vim CHANGELOG
-  # Commit
+  # copy the output, add it to the CHANGELOG (please also add the DIRAC version)
+  vim CHANGELOG # please, remove comments like "fix" or "pylint" or "typo"...
+  # Commit in your local newMaster branch the 3 files you modified
   git add -A && git commit -av -m "<YourNewTag>"
+
+
+Time to tag and push::
+
   # make the tag
-  git -a -m <YourNewTag>
+  git tag -a <YourNewTag> -m <YourNewTag>
+  # push "newMaster" to upstream/master
+  git push --tags upstream newMaster:master
+  # delete your local newMaster
+  git branch -d newMaster
 
 
-Propagate to the devel branch and push
-``````````````````````````````````````
+Remember: you can use "git status" at any point in time to make sure what's the current status.
+
+
+
+Propagate to the devel branch
+`````````````````````````````
 
 Now, you need to make sure that what's merged in master is propagated to the devel branch. From the local fork::
 
-  # get the updated CHANGELOG
+  # get the updates (this never hurts!)
   git fetch upstream
-  # create a "newDevel" branch which from the /upstream/devel branch
-  git co -b newDevel upstream/devel
-  # merge in newDevel the content of upstream/master (fix possible conflicts)
-  git merge /upstream/master
+  # create a "newDevel" branch which from the upstream/devel branch
+  git checkout -b newDevel upstream/devel
+  # merge in newDevel the content of upstream/master
+  git merge upstream/master
+
+The last operation may result in potential conflicts.
+If happens, you'll need to manually update the conflicting files (see e.g. this `guide <https://githowto.com/resolving_conflicts>`_).
+As a general rule, prefer the master fixes to the "HEAD" (devel) fixes. Remember to add and commit once fixed.
+
+Conflicts or not, you'll need to push back to upstream::
+
   # push "newDevel" to upstream/devel
-  git push --tags upstream newDevel:devel
+  git push upstream newDevel:devel
   # delete your local newDevel
   git branch -d newDevel
+  # keep your repo up-to-date
+  git fetch upstream
 
 
 Creating the release tarball, add uploading it to the LHCb web service
 ```````````````````````````````````````````````````````````````````````
+Login on lxplus, run SetupProject LHCbDIRAC, then run the following::
 
-  dirac-distribution -r LHCb-v7r1 -t client,server -El
+  dirac-distribution bla bla
 
-Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like
+(this may take some time)
 
-::
+Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like::
 
   ( cd /tmp/joel/tmpxg8UuvDiracDist ; tar -cf - *.tar.gz *.md5 *.cfg ) | ssh lhcbprod@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3/tars &&  tar -xvf - && ls *.tar.gz > tars.list'
 
@@ -124,14 +144,38 @@ Don't forget to read the last line of the previous command to copy the generated
 
 
 
-Making basic verifications
-==========================
+2. Making basic verifications
+==============================
 
-<Jenkins stuff>
+Once the tarball is done and uploaded, the release manager is asked to make basic verifications, via Jenkins,
+if the release has been correctly created.
+
+At this `link <https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
+Please start all of the Jenkins jobs whose name start with "RELEASE" and come back in about an hour to see the results for all of them.
+
+1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__pylint_unit/
+
+This job will: run pylint (errors only), run all the unit tests found in the system, assess the coverage.
+The job should be considered successful if:
+
+- the pylint error report didn't increase from the previous job run
+- the test results didn't get worse from the previous job run
+- the coverage didn't drop from the previous job run
+
+
+2. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__pilot/
+
+This job will simply install the pilot. Please just check if the result does not show in an "unstable" status
+
+
+3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__/ 
+
+   TODO
 
 
 
-Deploying the release
+
+3. Deploying the release
 ==========================
 
 VOBOXes
