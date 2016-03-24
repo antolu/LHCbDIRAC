@@ -2,42 +2,49 @@
 
 import os
 import logging
+import sys
+import getopt
 
-_lbconf_dir = '/afs/cern.ch/user/j/joel/work/certification/testMakefile/LHCbDirac'
-_prj_dir = '/afs/cern.ch/user/j/joel/work/certification/testMakefile/LHCbDirac/InstallArea'
+optList, args = getopt.getopt( sys.argv[1:], "f:", ["filename"] )
 
-def generateEnvXML():
-    '''
-    Generate the Manifest.xml and xenv file for LbScripts
-    '''
-    # Checking the environment
-    log = logging.getLogger()
+for optKey, optVal in optList:
+   if optKey in ( "-f", "filename" ):
+       xenv_file = optVal
 
-    # Building the paths for the input and output files
-    jsonMetadataDir = os.path.join( _lbconf_dir , "cmt" )
-    mxmlFullname = os.path.join( _prj_dir, "manifest.xml" )
-    xenvFullname = os.path.join( _prj_dir, "LHCbDirac.xenv" )
 
-    # Now import the code to generate the XML files
-    from LbUtils.LbRunConfigTools import prettify, loadConfig
-    from LbUtils.LbRunConfigTools import ManifestGenerator, XEnvGenerator
-    log.info( "Loading projectConfig.json from %s" % jsonMetadataDir )
-    config = loadConfig( jsonMetadataDir )
+base = os.path.dirname( xenv_file )
+nameManifest = os.path.join( base, 'manifest.xml' )
 
-    # the manifest.xml
-    log.info( "Generating %s" % mxmlFullname )
-    mg = ManifestGenerator( config )
-    manifest = mg.getDocument()
-    with open( mxmlFullname, "w" ) as f:
-        f.write( prettify( manifest ) )
+_lbconf_dir = '.'
 
-    # Now the xenv file
-    log.info( "Generating %s" % xenvFullname )
-    xg = XEnvGenerator( config )
-    xe = xg.getDocument()
-    with open( xenvFullname, "w" ) as f:
-        f.write( prettify( xe ) )
+'''
+Generate the Manifest.xml and xenv file for LbScripts
+'''
+# Checking the environment
+log = logging.getLogger()
 
-    return 0
+# Building the paths for the input and output files
+jsonMetadataDir = os.path.join( _lbconf_dir , "cmt" )
+mxmlFullname = nameManifest
+xenvFullname = xenv_file
 
-generateEnvXML()
+# Now import the code to generate the XML files
+from LbUtils.LbRunConfigTools import prettify, loadConfig
+from LbUtils.LbRunConfigTools import ManifestGenerator, XEnvGenerator
+log.info( "Loading projectConfig.json from %s" % jsonMetadataDir )
+config = loadConfig( jsonMetadataDir )
+
+# the manifest.xml
+log.info( "Generating %s" % mxmlFullname )
+mg = ManifestGenerator( config )
+manifest = mg.getDocument()
+with open( mxmlFullname, "w" ) as f:
+    f.write( prettify( manifest ) )
+
+# Now the xenv file
+log.info( "Generating %s" % xenvFullname )
+xg = XEnvGenerator( config )
+xe = xg.getDocument()
+with open( xenvFullname, "w" ) as f:
+    f.write( prettify( xe ) )
+
