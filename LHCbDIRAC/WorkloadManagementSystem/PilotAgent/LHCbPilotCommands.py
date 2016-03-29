@@ -108,9 +108,12 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       sys.stdout.write( line )
 
 class LHCbCreatePilotcfg ( LHCbCommandBase ):
+  """Create the pilot.cfg before the basic configuration command in order to avoid using the CS server address we have on cvmfs
+     which would not work for some resources, e.g. BOINC.
+  """
 
   def execute( self ):
-    checkCmd = 'dirac-create-pilot-cfg -C %s -N %s' % ( self.pp.configServer, self.pp.localConfigFile )
+    checkCmd = 'dirac-create-pilot-cfg -C %s -N %s' % ( self.pp.configServer, self.pp.localConfigFile, self.pp.releaseVersion )
     retCode = self.executeAndGetOutput( checkCmd, self.pp.installEnv )
     if retCode:
       self.log.warn( "Could not create pilot.cfg [ERROR %d]" % retCode )

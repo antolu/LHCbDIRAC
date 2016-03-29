@@ -25,12 +25,17 @@ def setcfgName( args ):
   global cfgName
   cfgName = args
 
+def setReleaseVersion( args ):
+  global releaseVersion
+  releaseVersion = args
 
 Script.registerSwitch( "C:", "ConfigurationServer=", "ConfigurationServer address (Mandatory)", setCSAddress )
 Script.registerSwitch( "N:", "cfgFileName=", "Cfg file name (Mandatory)", setcfgName )
+Script.registerSwitch( "N:", "ReleaseVersion=", "ReleaseVersion (Mandatory)", setReleaseVersion )
 Script.parseCommandLine( ignoreErrors = True )
 
-gConfig.setOptionValue( '/DIRAC/Configuration/Servers', self.pp.configServer )
-gConfig.setOptionValue( '/LocalInstallation/ConfigurationServer', self.pp.configServer )
+gConfig.setOptionValue( '/DIRAC/Configuration/Servers', csAddress )
+gConfig.setOptionValue( '/LocalInstallation/ConfigurationServer', csAddress )
+gConfig.setOptionValue( '/LocalSite/ReleaseVersion', releaseVersion )
 gConfig.dumpLocalCFGToFile( cfgName )
 
