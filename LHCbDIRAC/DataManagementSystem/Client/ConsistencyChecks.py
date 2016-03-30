@@ -107,7 +107,7 @@ class ConsistencyChecks( object ):
     self.existLFNsNoSE = {}
     self.existLFNsBadReplicas = {}
     self.existLFNsBadFiles = {}
-
+    self.existLFNsNotExisting = {}
     self.commonAncestors = {}
     self.multipleDescendants = {}
     self.ancestors = {}
@@ -129,7 +129,7 @@ class ConsistencyChecks( object ):
       lfnsReplicaNo = lfnsReplicaNo.keys() + lfnsNotInBK
     else:
       bkQuery = self.__getBKQuery()
-      gLogger.always( 'Getting files for BK query %s...' % str( bkQuery ) )
+      gLogger.notice( 'Getting files for BK query %s...' % str( bkQuery ) )
       if checkAll:
         lfnsReplicaNo = self._getBKFiles( bkQuery, 'No' )
       lfnsReplicaYes = self._getBKFiles( bkQuery, 'Yes' )
@@ -230,7 +230,7 @@ class ConsistencyChecks( object ):
     present = set()
     notPresent = set()
 
-    chunkSize = 1000
+    chunkSize = 100
     progressBar = ProgressBar( len( lfns ),
                                title = "Checking replicas for %d files" % len( lfns ),
                                chunk = chunkSize, interactive = self.interactive )
@@ -289,8 +289,7 @@ class ConsistencyChecks( object ):
       else:
         present += lfnsFound
 
-    progressBar.endLoop()
-    gLogger.notice( "Found %d files with replicas and %d without" % ( len( present ), len( notPresent ) ) )
+    progressBar.endLoop( "found %d files with replicas and %d without" % ( len( present ), len( notPresent ) ) )
     return present, notPresent
 
   ################################################################################
@@ -341,10 +340,10 @@ class ConsistencyChecks( object ):
     if not self.prod:
       raise ValueError( "You need a transformationID" )
 
-    gLogger.always( 'Getting files from the TransformationSystem...' )
+    gLogger.notice( 'Getting files from the TransformationSystem...' )
     startTime = time.time()
     processedLFNs, nonProcessedLFNs, statuses = self._getTSFiles()
-    gLogger.always( 'Found %d processed files and %d non processed%s files (%.1f seconds)' %
+    gLogger.notice( 'Found %d processed files and %d non processed%s files (%.1f seconds)' %
                     ( len( processedLFNs ),
                       len( nonProcessedLFNs ),
                       ' (%s)' % ','.join( statuses ) if statuses else '',
@@ -392,7 +391,7 @@ class ConsistencyChecks( object ):
       fileType = []
     else:
       bkQuery = self.__getBKQuery()
-      gLogger.always( "Getting files for BK query: %s" % bkQuery )
+      gLogger.notice( "Getting files for BK query: %s" % bkQuery )
       fileType = bkQuery.getFileTypeList()
       files = self._getBKFiles( bkQuery )
 
@@ -479,9 +478,9 @@ class ConsistencyChecks( object ):
       else:
         if res['Value']:
           self.runsList.extend( [run['RunNumber'] for run in res['Value'] if run['RunNumber'] not in self.runsList] )
-          gLogger.always( "%d runs selected" % len( res['Value'] ) )
+          gLogger.notice( "%d runs selected" % len( res['Value'] ) )
         elif not self.runsList:
-          gLogger.always( "No runs selected, check completed" )
+          gLogger.notice( "No runs selected, check completed" )
           DIRAC.exit( 0 )
     if not self._lfns and self.runsList:
       selectDict['RunNumber'] = self.runsList
@@ -492,7 +491,7 @@ class ConsistencyChecks( object ):
       return [], [], []
     status = res['Value']['Status']
     if status not in ( 'Active', 'Stopped', 'Completed', 'Idle' ):
-      gLogger.always( "Transformation %s in status %s, will not check if files are processed" % ( self.prod, status ) )
+      gLogger.notice( "Transformation %s in status %s, will not check if files are processed" % ( self.prod, status ) )
       processedLFNs = []
       nonProcessedLFNs = []
       nonProcessedStatuses = []
@@ -750,11 +749,8 @@ class ConsistencyChecks( object ):
           dirName += '/'
         directories.append( dirName )
       present, notPresent = self.getReplicasPresenceFromDirectoryScan( directories )
-      gLogger.always( '%d files found in the FC' % len( present ) )
     else:
       present, notPresent = self.getReplicasPresence( self.lfns )
-      gLogger.always( 'Out of %d files, %d are in the FC, %d are not' \
-                      % ( len( self.lfns ), len( present ), len( notPresent ) ) )
     return present, notPresent
 
   ################################################################################
@@ -768,7 +764,7 @@ class ConsistencyChecks( object ):
     else:
       if not present:
         if bkCheck:
-          gLogger.always( 'No files are in the FC, no check in the BK. Use dirac-dms-check-bkk2fc instead' )
+          gLogger.notice( 'No files are in the FC, no check in the BK. Use dirac-dms-check-bkk2fc instead' )
         return
       prStr = ''
 
@@ -809,7 +805,7 @@ class ConsistencyChecks( object ):
             matchDir = directory.split( '...' )[0]
             directories += [d for d in res['Value']['Successful'].get( topDir, {} ).get( 'SubDirs', [] ) if d.startswith( matchDir )]
       if printout:
-        gLogger.always( 'Expanded list of %d directories:\n%s' % ( len( directories ), '\n'.join( directories ) ) )
+        gLogger.notice( 'Expanded list of %d directories:\n%s' % ( len( directories ), '\n'.join( directories ) ) )
       return directories
     try:
       bkQuery = self.__getBKQuery()
@@ -904,7 +900,8 @@ class ConsistencyChecks( object ):
     self.checkFC2BK( bkCheck = bkCheck )
     if self.existLFNsBKRepYes or self.existLFNsBKRepNo:
       repDict = self.compareChecksum( self.existLFNsBKRepYes + self.existLFNsBKRepNo.keys() )
-      self.existLFNsNoSE = repDict['MissingPFN']
+      self.existLFNsNoSE = repDict['MissingReplica']
+      self.existLFNsNotExisting = repDict['MissingAllReplicas']
       self.existLFNsBadReplicas = repDict['SomeReplicasCorrupted']
       self.existLFNsBadFiles = repDict['AllReplicasCorrupted']
 
@@ -915,7 +912,7 @@ class ConsistencyChecks( object ):
     else:
       lfns = lfnsReplicaYes
       notPresent = []
-    gLogger.always( "Checking presence of %d files at %s" % ( len( lfns ), ', '.join( seList ) ) )
+    gLogger.notice( "Checking presence of %d files at %s" % ( len( lfns ), ', '.join( seList ) ) )
     replicaRes = self.dm.getReplicas( lfns )
     if not replicaRes['OK']:
       gLogger.error( 'Error getting replicas', replicaRes['Message'] )
@@ -931,9 +928,9 @@ class ConsistencyChecks( object ):
        files with all replicas corrupted, and one with files with some replicas corrupted and at least
        one good replica
     """
-    retDict = {'AllReplicasCorrupted' : {}, 'SomeReplicasCorrupted': {}, 'MissingPFN':{}, 'NoReplicas':{}}
+    retDict = {'AllReplicasCorrupted' : {}, 'SomeReplicasCorrupted': {}, 'MissingReplica':{}, 'MissingAllReplicas':{}, 'NoReplicas':{}}
 
-    chunkSize = 1000
+    chunkSize = 100
     replicas = {}
     setLfns = set( lfns )
     cachedLfns = setLfns & set( self.cachedReplicas )
@@ -956,8 +953,8 @@ class ConsistencyChecks( object ):
         replicas.update( replicasRes['Successful'] )
       progressBar.endLoop()
 
-    progressBar = ProgressBar( len( lfns ),
-                               title = "Get FC metadata for %d files to be checked: " % len( lfns ),
+    progressBar = ProgressBar( len( replicas ),
+                               title = "Get FC metadata for %d files to be checked: " % len( replicas ),
                                chunk = chunkSize, interactive = self.interactive )
     metadata = {}
     for lfnChunk in breakListIntoChunks( replicas.keys(), chunkSize ):
@@ -968,86 +965,93 @@ class ConsistencyChecks( object ):
       metadata.update( res['Value']['Successful'] )
     progressBar.endLoop()
 
-    gLogger.always( "Check existence and compare checksum file by file..." )
+    gLogger.notice( "Check existence and compare checksum file by file..." )
     csDict = {}
     seFiles = {}
-    surlLfn = {}
     # Reverse the LFN->SE dictionary
+    nReps = 0
     for lfn in replicas:
       csDict.setdefault( lfn, {} )[ 'LFCChecksum' ] = metadata.get( lfn, {} ).get( 'Checksum' )
       for se in replicas[ lfn ]:
         seFiles.setdefault( se, [] ).append( lfn )
+        nReps += 1
 
+    gLogger.notice( 'Getting checksum of %d replicas in %d SEs' % ( nReps, len( seFiles ) ) )
     checkSum = {}
-    gLogger.notice( 'Getting checksum of %d replicas in %d SEs' % ( len( surlLfn ), len( seFiles ) ) )
-    lfnNotAvailable = {}
+    lfnNotExisting = {}
+    lfnNoInfo = {}
     logLevel = gLogger.getLevel()
     gLogger.setLevel( 'FATAL' )
-    progressBar = None
     for num, se in enumerate( sorted( seFiles ) ):
       progressBar = ProgressBar( len( seFiles[se] ),
-                                 title = '%d. At %s (%d files): ' % ( num, se, len( seFiles[se] ) ),
+                                 title = '%d. At %s (%d files)' % ( num, se, len( seFiles[se] ) ),
                                  chunk = chunkSize, interactive = self.interactive )
       oSe = StorageElement( se )
+      errMsg = None
+      notFound = 0
       for surlChunk in breakListIntoChunks( seFiles[se], chunkSize ):
         progressBar.loop()
         metadata = oSe.getFileMetadata( surlChunk )
         if not metadata['OK']:
-          gLogger.error( "error StorageElement.getFileMetadata returns %s" % ( metadata['Message'] ) )
-          raise RuntimeError( "error StorageElement.getFileMetadata returns %s" % ( metadata['Message'] ) )
-        metadata = metadata['Value']
-        # print metadata
-        for lfn in metadata['Failed']:
-          gLogger.info( "LFN was not found at %s! %s " % ( se, lfn ) )
-          lfnNotAvailable.setdefault( lfn, [] ).append( se )
-        for lfn in metadata['Successful']:
-          checkSum.setdefault( lfn, {} )[se] = metadata['Successful'][ lfn ]['Checksum']
-      progressBar.endLoop( timing = bool( num == len( seFiles ) - 1 ) )
+          errMsg = "Error: getFileMetadata returns %s. Ignore those replicas" % ( metadata['Message'] )
+          # Remove from list of replicas as we don't know whether it is OK or not
+          for lfn in seFiles[se]:
+            lfnNoInfo.setdefault( lfn, [] ).append( se )
+        else:
+          # raise RuntimeError( "error StorageElement.getFileMetadata returns %s" % ( metadata['Message'] ) )
+          metadata = metadata['Value']
+          # print metadata
+          notFound += len( metadata['Failed'] )
+          for lfn in metadata['Failed']:
+            lfnNotExisting.setdefault( lfn, [] ).append( se )
+          for lfn in metadata['Successful']:
+            checkSum.setdefault( lfn, {} )[se] = metadata['Successful'][ lfn ]['Checksum']
+      if notFound:
+        errMsg = '%d files not found' % notFound
+      progressBar.endLoop( errMsg )
     gLogger.setLevel( logLevel )
-    retDict[ 'MissingPFN'] = {}
 
-    progressBar = ProgressBar( len( replicas ),
-                               title = 'Verifying checksum of %d files' % len( replicas ),
-                               chunk = chunkSize, interactive = self.interactive )
-    for num, lfn in enumerate( replicas ):
+    gLogger.notice( 'Verifying checksum of %d files' % len( replicas ) )
+    for lfn in replicas:
       # get the lfn checksum from the LFC
-      progressBar.loop()
       replicaDict = replicas[ lfn ]
       oneGoodReplica = False
       allGoodReplicas = True
       lfcChecksum = csDict[ lfn ].pop( 'LFCChecksum' )
       for se in replicaDict:
         # If replica doesn't exist skip check
-        if se in lfnNotAvailable.get( lfn, [] ):
+        if se in lfnNotExisting.get( lfn, [] ):
           allGoodReplicas = False
           continue
-        surl = replicaDict[ se ]
+        if se in lfnNoInfo.get( lfn, [] ):
+          # If there is no info, a priori it could be good
+          oneGoodReplica = True
+          continue
         # get the surls metadata and compare the checksum
         surlChecksum = checkSum.get( lfn, {} ).get( se, '' )
         if not surlChecksum or not compareAdler( lfcChecksum , surlChecksum ):
           # if lfcChecksum does not match surlChecksum
-          csDict[ lfn ][ se ] = {'SURL':surl, 'PFNChecksum': surlChecksum}
+          csDict[ lfn ][ se ] = {'PFNChecksum': surlChecksum}
           gLogger.info( "ERROR!! checksum mismatch at %s for LFN %s:  LFC checksum: %s , PFN checksum : %s "
                         % ( se, lfn, lfcChecksum, surlChecksum ) )
           allGoodReplicas = False
         else:
           oneGoodReplica = True
       if not oneGoodReplica:
-        if lfn in lfnNotAvailable:
-          gLogger.info( "=> All replicas are missing" )
-          retDict['MissingPFN'][ lfn] = 'All'
+        if lfn in lfnNotExisting:
+          gLogger.info( "=> All replicas are missing", lfn )
+          retDict['MissingAllReplicas'][ lfn] = 'All'
         else:
-          gLogger.info( "=> All replicas have bad checksum" )
+          gLogger.info( "=> All replicas have bad checksum", lfn )
           retDict['AllReplicasCorrupted'][ lfn ] = csDict[ lfn ]
       elif not allGoodReplicas:
-        if lfn in lfnNotAvailable:
-          gLogger.info( "=> At least one replica missing" )
-          retDict['MissingPFN'][lfn] = lfnNotAvailable[lfn]
+        if lfn in lfnNotExisting:
+          gLogger.info( "=> At least one replica missing", lfn )
+          retDict['MissingReplica'][lfn] = lfnNotExisting[lfn]
         else:
-          gLogger.info( "=> At least one replica with good Checksum" )
+          gLogger.info( "=> At least one replica with good Checksum", lfn )
           retDict['SomeReplicasCorrupted'][ lfn ] = csDict[ lfn ]
 
-    progressBar.endLoop()
     return retDict
 
   ################################################################################
