@@ -5,12 +5,15 @@ import logging
 import sys
 import getopt
 
-optList, args = getopt.getopt( sys.argv[1:], "f:", ["filename"] )
+optList, args = getopt.getopt( sys.argv[1:], "c:f:p:", ["config", "filename", "python"] )
 
 for optKey, optVal in optList:
+   if optKey in ( "-c", "config" ):
+       cmtconfig = optVal
    if optKey in ( "-f", "filename" ):
        xenv_file = optVal
-
+   if optKey in ( "-p", "python" ):
+       python_ver = optVal
 
 base = os.path.dirname( xenv_file )
 nameManifest = os.path.join( base, 'manifest.xml' )
@@ -33,6 +36,11 @@ from LbUtils.LbRunConfigTools import prettify, loadConfig
 from LbUtils.LbRunConfigTools import ManifestGenerator, XEnvGenerator
 log.info( "Loading projectConfig.json from %s" % jsonMetadataDir )
 config = loadConfig( jsonMetadataDir )
+if not config.has_key( 'cmtconfig' ):
+  config['cmtconfig'] = cmtconfig
+
+if not config.has_key( 'python_version' ):
+  config['python_version'] = python_ver
 
 # the manifest.xml
 log.info( "Generating %s" % mxmlFullname )

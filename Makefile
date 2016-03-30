@@ -13,11 +13,6 @@ PYTHON_VERSION=2.7.9.p1
 PYTHON_VERSION_TWO=2.7
 PYTHON_VERSION_TWODIGIT=27
 LCGCMT_VERSION=83
-PYGRAPHICS_VERSION=1.5_python$(PYTHON_VERSION_TWO)
-GCC_VERSION=4.9.3
-QT_VERSION=4.8.4
-PYTOOLS_VERSION=1.9_python$(PYTHON_VERSION_TWO)
-MYSQL_VERSION=5.5.27
 
 LCG_VER=2015-01-09
 ifeq ($(OS),slc6)
@@ -40,7 +35,7 @@ gsi:
 	LHCbDiracConfig/gen_GSI $(DIRACPLAT) $(PYTHON_VERSION_TWODIGIT)
         
 $(XENV): Makefile
-	python LHCbDiracConfig/gen_xenv.py -f $@
+	python LHCbDiracConfig/gen_xenv.py -c $(CMTCONFIG) -f $@ -p $(PYTHON_VERSION_TWO)
 
 $(XENV)c: $(XENV)
 	xenv --xml $(XENV) true
