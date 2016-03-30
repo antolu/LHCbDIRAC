@@ -107,16 +107,6 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
     for line in cmdExecution.stdout:
       sys.stdout.write( line )
 
-class LHCbCreatePilotcfg ( LHCbCommandBase ):
-  """Create the pilot.cfg before the basic configuration command in order to avoid using the CS server address we have on cvmfs
-     which would not work for some resources, e.g. BOINC.
-  """
-
-  def execute( self ):
-    checkCmd = 'dirac-create-pilot-cfg -C %s -N %s' % ( self.pp.configServer, self.pp.localConfigFile, self.pp.releaseVersion )
-    retCode = self.executeAndGetOutput( checkCmd, self.pp.installEnv )
-    if retCode:
-      self.log.warn( "Could not create pilot.cfg [ERROR %d]" % retCode )
 
 class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
   """ Only case here, for now, is if to set or not the CAs and VOMS location, that should be found in CVMFS
@@ -215,6 +205,20 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
 
     super( LHCbConfigureBasics, self )._getSecurityCFG()
 
+class LHCbCleanPilotEnv ( LHCbConfigureBasics ):
+  """Delete the pilot.cfg and the pilot.json, needed for VMs.
+     Force the use of the CS given by command line. The command avoids the use of the CS server address (lhcb-conf2)
+     which would not work for some resources, e.g. BOINC.
+  """
+
+  def _getBasicsCFG( self ):
+    super( LHCbCleanPilotEnv, self )._getBasicsCFG()
+    if os.path.exists( self.pp.localConfigFile ):
+      os.remove( self.pp.localConfigFile )
+    localPilotCFGFile = self.pp.pilotCFGFile + "-local"
+    if os.path.exists( localPilotCFGFile ):
+      os.remove( localPilotCFGFile )
+    self.cfg.append( " -o /DIRAC/Configuration/Servers=%s" % self.pp.configServer )
 
 class LHCbConfigureCPURequirements( LHCbCommandBase, ConfigureCPURequirements ):
 
