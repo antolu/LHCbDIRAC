@@ -1,3 +1,4 @@
+  from DIRAC import exit
 #!/usr/bin/env python
 ########################################################################
 # File :    dirac-dms-replicate-lfn
@@ -25,4 +26,5 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = True )
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeReplicateLfn
-  executeReplicateLfn( dmScript )
+  from DIRAC import exit
+  exit( executeReplicateLfn( dmScript ) )

@@ -1,3 +1,4 @@
+  from DIRAC import exit
 #!/usr/bin/env python
 ########################################################################
 # File :    dirac-dms-pfn-metadata.py
@@ -28,5 +29,6 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = True )
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executePfnMetadata
-  executePfnMetadata( dmScript )
+  from DIRAC import exit
+  exit( executePfnMetadata( dmScript ) )
 
