@@ -4,7 +4,7 @@ Set of functions used by the DMS scripts
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                  import gLogger, gConfig, S_OK, exit as DIRACExit
+from DIRAC                                                  import gLogger, gConfig, S_OK
 from DIRAC.Core.Utilities.List                              import breakListIntoChunks
 from DIRAC.DataManagementSystem.Client.DataManager          import DataManager
 from DIRAC.Resources.Catalog.FileCatalog                    import FileCatalog
@@ -104,7 +104,7 @@ def executeRemoveReplicas( dmScript, allDisk = False ):
   lfnList, seList = parseArguments( dmScript, allSEs = allDisk )
   if not lfnList:
     gLogger.fatal( "No LFNs have been supplied" )
-    DIRACExit( 1 )
+    return 1
   if not allDisk:
     # Only remove from selected seList
     minReplicas = 1
@@ -128,15 +128,15 @@ def executeRemoveReplicas( dmScript, allDisk = False ):
           seList = dmScript.getOption( 'SEs', [] )
       except:
         gLogger.fatal( "Invalid number of replicas:", switch[1] )
-        DIRACExit( 1 )
+        return 1
 
   # This should be improved, with disk seList first...
   if not seList:
     gLogger.fatal( "Provide SE name (list) as last argument or with --SE option" )
     Script.showHelp()
-    DIRACExit( -1 )
+    return -1
 
-  removeReplicas( lfnList, seList, minReplicas, checkFC, allDisk, force )
+  return removeReplicas( lfnList, seList, minReplicas, checkFC, allDisk, force )
 
 def removeReplicas( lfnList, seList, minReplicas = 1, checkFC = True, allDisk = False, force = False ):
   """
@@ -148,7 +148,7 @@ def removeReplicas( lfnList, seList, minReplicas = 1, checkFC = True, allDisk = 
     res = removeReplicasNoFC( lfnList, sorted( seList ) )
     if not res['OK']:
       gLogger.fatal( "Completely failed removing replicas without FC", res['Message'] )
-      DIRACExit( -1 )
+      return -1
     successfullyRemoved = res['Value']['Successful']
     fullyRemoved = res['Value']['FullyRemoved']
     errorReasons = res['Value']['Failed']
@@ -156,7 +156,7 @@ def removeReplicas( lfnList, seList, minReplicas = 1, checkFC = True, allDisk = 
     res = removeReplicasWithFC( lfnList, sorted( seList ), minReplicas, allDisk, force )
     if not res['OK']:
       gLogger.fatal( "Completely failed removing replicas with FC", res['Message'] )
-      DIRACExit( -1 )
+      return -1
     successfullyRemoved = res['Value']['Successful']
     if allDisk:
       fullyRemoved = successfullyRemoved
@@ -182,7 +182,7 @@ def removeReplicas( lfnList, seList, minReplicas = 1, checkFC = True, allDisk = 
       gLogger.notice( "Failed to remove %d replicas from %s with reason: %s" % ( len( lfns ), se, reason ) )
   if not successfullyRemoved and not errorReasons and not checkFC:
     gLogger.notice( "Replicas were found at no SE in %s" % str( seList ) )
-  DIRACExit( 0 )
+  return 0
 
 def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, force = False ):
   """
@@ -209,11 +209,11 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
       res = bk.setFilesInvisible( lfnChunk )
       if not res['OK']:
         gLogger.error( "\nError setting files invisible in BK", res['Message'] )
-        DIRACExit( -3 )
+        return -3
     res = dm.getReplicas( lfnChunk, getUrl = False )
     if not res['OK']:
       gLogger.fatal( "\nFailed to get replicas", res['Message'] )
-      DIRACExit( -2 )
+      return -2
     if res['Value']['Failed']:
       successfullyRemoved.setdefault( 'SEs (not in FC)', set() ).update( res['Value']['Failed'] )
       fullyRemoved.update( res['Value']['Failed'] )
@@ -261,7 +261,7 @@ def removeReplicasWithFC( lfnList, seList, minReplicas = 1, allDisk = False, for
       gLogger.setLevel( savedLevel )
       if not res['OK']:
         gLogger.fatal( "Failed to remove files", res['Message'] )
-        DIRACExit( -2 )
+        return -2
       for lfn, reason in res['Value']['Failed'].iteritems():
         reason = str( reason )
         if 'File does not exist' not in reason:
@@ -434,9 +434,9 @@ def executeAccessURL( dmScript ):
   if not lfnList:
     gLogger.notice( "No list of LFNs provided" )
     Script.showHelp()
+    return 1
   else:
-    getAccessURL( lfnList, seList, protocol )
-  DIRACExit( 0 )
+    return getAccessURL( lfnList, seList, protocol )
 
 def getAccessURL( lfnList, seList, protocol = None ):
   """
@@ -484,9 +484,7 @@ def getAccessURL( lfnList, seList, protocol = None ):
   if notFoundLfns:
     results['Value']['Failed'] = dict.fromkeys( sorted( notFoundLfns ), 'File not found in required seList' )
 
-  printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
-
-  return results
+  return printDMResult( results, empty = "File not at SE", script = "dirac-dms-lfn-accessURL" )
 
 def executeRemoveFiles( dmScript ):
   """
@@ -500,8 +498,7 @@ def executeRemoveFiles( dmScript ):
     if switch[0] == 'IncludeProcessedFiles':
       setProcessed = True
 
-  removeFiles( lfnList, setProcessed )
-  DIRACExit( 0 )
+  return removeFiles( lfnList, setProcessed )
 
 def removeFiles( lfnList, setProcessed = False ):
   """
@@ -587,6 +584,7 @@ def removeFiles( lfnList, setProcessed = False ):
     nbLfns = len( lfns )
     gLogger.notice( "Failed to remove %d files with error: %s%s" % ( nbLfns, reason, ' (first %d)' % maxLfns if nbLfns > maxLfns else '' ) )
     gLogger.notice( '\n'.join( lfns[:maxLfns] ) )
+  return 0
 
 def removeFilesInTransformations( lfns, setProcessed = False ):
   """
@@ -642,8 +640,8 @@ def executeLfnReplicas( dmScript ):
   if not lfnList:
     gLogger.fatal( "No LFNs supplies" )
     Script.showHelp()
-    DIRACExit( 1 )
-  printLfnReplicas( lfnList, active, diskOnly, preferDisk )
+    return 1
+  return printLfnReplicas( lfnList, active, diskOnly, preferDisk )
 
 def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = False ):
   """
@@ -676,10 +674,7 @@ def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = Fal
           else:
             value['Successful'][lfn][se] = "(%s) %s" % ( res['Value']['Successful'][lfn], replicas[lfn][se] )
       res = S_OK( value )
-  # DIRACExit( printDMResult( dirac.getReplicas( lfnList, active=active, printOutput=False ),
-  #                           empty="No allowed SE found", script="dirac-dms-lfn-replicas" ) )
-  DIRACExit( printDMResult( res,
-                             empty = "No %sreplica found" % ( 'active disk ' if diskOnly else 'allowed ' if active else '' ), script = "dirac-dms-lfn-replicas" ) )
+  return printDMResult( res, empty = "No %sreplica found" % ( 'active disk ' if diskOnly else 'allowed ' if active else '' ), script = "dirac-dms-lfn-replicas" )
 
 def executePfnMetadata( dmScript ):
   """
@@ -704,9 +699,8 @@ def executePfnMetadata( dmScript ):
 
   if not lfnList:
     Script.showHelp()
-    DIRACExit( 1 )
-  printPfnMetadata( lfnList, seList, check, exists, summary )
-  DIRACExit( 0 )
+    return 1
+  return printPfnMetadata( lfnList, seList, check, exists, summary )
 
 def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = False ):
   """
@@ -730,7 +724,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
     res = fc.getReplicas( lfnChunk, allStatus = True )
     if not res['OK']:
       gLogger.fatal( 'Error getting replicas for %d files' % len( lfnChunk ), res['Message'] )
-      DIRACExit( 2 )
+      return 2
     else:
       replicas.update( res['Value']['Successful'] )
     for lfn in res['Value']['Failed']:
@@ -784,7 +778,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
             metadata['Failed'][url] = res['Message'] + ' at %s' % se
 
   if not summary:
-    printDMResult( S_OK( metadata ), empty = "File not at SE" )
+    return printDMResult( S_OK( metadata ), empty = "File not at SE" )
   else:
     nFiles = 0
     counterKeys = ['Not in FC', 'No active replicas', 'Not existing', 'Exists', 'Checksum OK', 'Checksum bad']
@@ -815,8 +809,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
     for key in counterKeys:
       if counters[key]:
         gLogger.notice( '%s: %d' % ( key.rjust( 20 ), counters[key] ) )
-
-  DIRACExit( 0 )
+  return 0
 
 def orderSEs( listSEs ):
   """
@@ -864,9 +857,8 @@ def executeReplicaStats( dmScript ):
   directories = dmScript.getOption( 'Directory' )
   lfnList, prSEList = parseArguments( dmScript )
 
-  printReplicaStats( directories, lfnList, getSize, prNoReplicas,
+  return printReplicaStats( directories, lfnList, getSize, prNoReplicas,
                      prWithReplicas, prWithArchives, prFailover, prSEList )
-  DIRACExit( 0 )
 
 def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = False,
                        prWithReplicas = False, prWithArchives = False, prFailover = False, prSEList = None ):
@@ -903,7 +895,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
       res = dm.getReplicas( lfnChunk, getUrl = False )
       if not res['OK']:
         gLogger.fatal( res['Message'] )
-        DIRACExit( 2 )
+        return 2
       lfnReplicas.update( res['Value']['Successful'] )
       if res['Value']['Failed']:
         repStats[0] = repStats.setdefault( 0, 0 ) + len( res['Value']['Failed'] )
@@ -1060,7 +1052,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
       gLogger.notice( 'At %s' % se )
       for lfn in dumpFromSE[se]:
         gLogger.notice( '\t%s' % lfn )
-  DIRACExit( 0 )
+  return 0
 
 def executeReplicateLfn( dmScript ):
   """
@@ -1099,7 +1091,7 @@ def executeReplicateLfn( dmScript ):
     Script.showHelp()
 
   finalResult = replicateLfn( lfnList, sourceSE, destList, localCache )
-  DIRACExit( printDMResult( finalResult ) )
+  return printDMResult( finalResult )
 
 def executeReplicateToRunDestination( dmScript ):
   """
@@ -1111,7 +1103,7 @@ def executeReplicateToRunDestination( dmScript ):
   if not seList:
     gLogger.notice( "No destination SE" )
     Script.showHelp()
-    DIRAC.exit( 1 )
+    return 1
 
   for lfn in args:
     dmScript.setLFNsFromFile( lfn )
@@ -1149,7 +1141,7 @@ def executeReplicateToRunDestination( dmScript ):
     result = replicateLfn( lfns, '', [destSE], verbose = True )
     finalResult['Value']['Successful'].update( result['Value']['Successful'] )
     finalResult['Value']['Failed'].update( result['Value']['Failed'] )
-  DIRACExit( printDMResult( finalResult ) )
+  return printDMResult( finalResult )
 
 def replicateLfn( lfnList, sourceSE, destList, localCache = None, verbose = False ):
   """
@@ -1197,10 +1189,9 @@ def executeSetProblematicFiles( dmScript ):
   lfnList, targetSEs = parseArguments( dmScript )
   if len( lfnList ) == 0:
     gLogger.fatal( "There are no files to process... check parameters..." )
-    DIRACExit( 0 )
-
-  setProblematicFiles( lfnList, targetSEs, reset, fullInfo, action )
-  DIRACExit( 0 )
+    return 1
+  else:
+    return setProblematicFiles( lfnList, targetSEs, reset, fullInfo, action )
 
 def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, action = True ):
   """
@@ -1220,7 +1211,7 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
     res = fc.getReplicas( chunk, allStatus = True )
     if not res['OK']:
       gLogger.error( "Error getting file replicas:", res['Message'] )
-      DIRACExit( 1 )
+      return 1
     replicas['Successful'].update( res['Value']['Successful'] )
     replicas['Failed'].update( res['Value']['Failed'] )
 
@@ -1344,6 +1335,7 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
           gLogger.verbose( '\t\t%s' % lfn )
 
   gLogger.notice( "Execution completed in %.2f seconds" % ( time.time() - startTime ) )
+  return 0
 
 def __dfcGetDirectoryMetadata( catalog, dirList ):
   success = {}
@@ -1370,7 +1362,7 @@ def executeLfnMetadata( dmScript ):
   if not lfnList:
     gLogger.fatal( "No list of LFNs provided" )
     Script.showHelp()
-    DIRACExit( 0 )
+    return 0
 
   catalog = FileCatalog()
   savedLevel = gLogger.getLevel()
@@ -1400,8 +1392,7 @@ def executeLfnMetadata( dmScript ):
     if 'Mode' in metadata:
       metadata['Mode'] = '%o' % metadata['Mode']
   gLogger.setLevel( savedLevel )
-  printDMResult( S_OK( {'Successful':success, 'Failed':failed} ), empty = "File not in FC", script = "dirac-dms-lfn-metadata" )
-  DIRACExit( 0 )
+  return printDMResult( S_OK( {'Successful':success, 'Failed':failed} ), empty = "File not in FC", script = "dirac-dms-lfn-metadata" )
 
 def executeGetFile( dmScript ):
   """
@@ -1412,7 +1403,7 @@ def executeGetFile( dmScript ):
   dirList = dmScript.getOption( 'Directory', ['.'] )
   if len( dirList ) > 1:
     gLogger.fatal( "Not allowed to specify more than one destination directory" )
-    DIRACExit( 2 )
+    return 2
 
   nLfns = len( lfnList )
   gLogger.notice( 'Downloading %s to %s' % ( ( '%d files' % nLfns ) if nLfns > 1 else 'file', dirList[0] ) )
@@ -1437,8 +1428,7 @@ def executeGetFile( dmScript ):
       else:
         gLogger.info( 'Successfully reported data usage', '(site: %s, usage: %s)' % ( localSite, str( popReport ) ) )
 
-  DIRACExit( printDMResult( result,
-                            empty = "No allowed replica found", script = "dirac-dms-get-file" ) )
+  return printDMResult( result, empty = "No allowed replica found", script = "dirac-dms-get-file" )
 
 def __buildLfnDict( item_list ):
   """
@@ -1461,7 +1451,7 @@ def executeAddFile():
   args = Script.getPositionalArgs()
   if len( args ) < 1 or len( args ) > 4:
     Script.showHelp()
-    DIRACExit( 1 )
+    return 1
   lfnList = []
   if len( args ) == 1:
     inputFileName = args[0]
@@ -1478,7 +1468,7 @@ def executeAddFile():
   if not lfnList:
     gLogger.fatal( "No arguments given" )
     Script.showHelp()
-    DIRACExit( 2 )
+    return 2
 
   exitCode = 0
 
@@ -1542,7 +1532,7 @@ def executeAddFile():
     if remoteFile:
       os.remove( localFile )
 
-  DIRACExit( exitCode )
+  return exitCode
 
 def __isOlderThan( cTimeStruct, days ):
   from datetime import datetime, timedelta
@@ -1593,6 +1583,7 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
   for arg in args:
     baseDirs += arg.split( ',' )
 
+  wildcardSplit = wildcard.split( '/' )
   for baseDir in baseDirs:
     if baseDir[-1] == '/':
       baseDir = baseDir[:-1]
@@ -1603,6 +1594,10 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
     emptyDirs = set()
     while len( activeDirs ) > 0:
       currentDir = activeDirs.pop( 0 )
+      # Does this directory match tthe wildcard?
+      matchLen = len( currentDir.split( '/' ) )
+      if not fnmatch.fnmatch( currentDir, '/'.join( wildcardSplit[:matchLen] ) ):
+        continue
       res = fc.listDirectory( currentDir, verbose )
       if not res['OK']:
         gLogger.error( "Error retrieving directory contents", "%s %s" % ( currentDir, res['Message'] ) )
@@ -1645,4 +1640,4 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
       outputFile.close()
       gLogger.notice( '%d empty directories have been put in %s' % ( len( emptyDirs ), outputFileName ) )
 
-  DIRACExit( 0 )
+  return 0
