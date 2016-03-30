@@ -35,7 +35,7 @@ gsi:
 	LHCbDiracConfig/gen_GSI $(DIRACPLAT) $(PYTHON_VERSION_TWODIGIT)
         
 $(XENV): Makefile
-	python LHCbDiracConfig/gen_xenv.py -c $(CMTCONFIG) -f $@ -p $(PYTHON_VERSION_TWO)
+	python LHCbDiracConfig/gen_xenv.py -c $(CMTCONFIG) -f $@ -p $(PYTHON_VERSION_TWO) -d $(LHCBRELEASES)
 
 $(XENV)c: $(XENV)
 	xenv --xml $(XENV) true

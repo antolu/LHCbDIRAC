@@ -5,7 +5,7 @@ import logging
 import sys
 import getopt
 
-optList, args = getopt.getopt( sys.argv[1:], "c:f:p:", ["config", "filename", "python"] )
+optList, args = getopt.getopt( sys.argv[1:], "c:f:p:d:", ["config", "filename", "python", "dir_base"] )
 
 for optKey, optVal in optList:
    if optKey in ( "-c", "config" ):
@@ -14,6 +14,8 @@ for optKey, optVal in optList:
        xenv_file = optVal
    if optKey in ( "-p", "python" ):
        python_ver = optVal
+   if optKey in ( "-d", "dir_base" ):
+       dir_base = optVal
 
 base = os.path.dirname( xenv_file )
 nameManifest = os.path.join( base, 'manifest.xml' )
@@ -41,6 +43,9 @@ if not config.has_key( 'cmtconfig' ):
 
 if not config.has_key( 'python_version' ):
   config['python_version'] = python_ver
+
+if not config.has_key( 'dir_base' ):
+  config['dir_base'] = dir_base
 
 # the manifest.xml
 log.info( "Generating %s" % mxmlFullname )
