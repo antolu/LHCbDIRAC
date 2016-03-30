@@ -261,10 +261,13 @@ class TransformationDB( DIRACTransformationDB ):
     if 'StartRun' in res['Value'] or 'EndRun' in res['Value']:
       return S_ERROR( "RunList incompatible with start or end run" )
     runsInQuery = set()
-    if 'RunNumbers' in res['Value']:
-      if res['Value']['RunNumbers'] != 'All':
-        runsInQuery = set( int( run ) for run in res['Value']['RunNumbers'] )
-    runsInQuery |= set( runList )
+    try:
+      if 'RunNumbers' in res['Value']:
+        if res['Value']['RunNumbers'] != 'All':
+          runsInQuery = set( int( run ) for run in res['Value']['RunNumbers'] )
+      runsInQuery |= set( int( run ) for run in runList )
+    except ValueError as e:
+      return S_ERROR( "RunList invalid: %s" % repr( e ) )
     if len( runsInQuery ) > 999:
       return S_ERROR( "RunList bigger the 1000 not allowed because of Oracle limitations!!!" )
     value = ';;;'.join( [str( x ) for x in sorted( runsInQuery )] )
