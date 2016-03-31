@@ -27,6 +27,7 @@ from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 from DIRAC.Core.Utilities.DictCache import DictCache
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 # # from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
@@ -85,6 +86,7 @@ class StorageUsageAgent( AgentModule ):
     self.proxyCache = DictCache( removeProxy )
     self.__noProxy = set()
     self.__catalogType = None
+    self.__recalculateUsage = Operations().getValue( 'DataManagement/RecalculateDirSize', False )
 
   def initialize( self ):
     ''' agent initialisation '''
@@ -288,7 +290,7 @@ class StorageUsageAgent( AgentModule ):
 
     startTime1 = time.time()
     # FIXME: this should be changed to (d,True, False) when the DFC is fixed
-    for args in [( d, True, True ) for d in breakListIntoChunks( dirListSize, chunkSize )]:
+    for args in [( d, True, self.__recalculateUsage ) for d in breakListIntoChunks( dirListSize, chunkSize )]:
       res = self.catalog.getDirectorySize( *args, timeout = 600 )
       if not res['OK']:
         failed.update( dict.fromkeys( args[0], res['Message'] ) )
@@ -341,7 +343,7 @@ class StorageUsageAgent( AgentModule ):
         # This part here is for removing the recursivity introduced by the DFC
         args = [subDir]
         if len( subDir.split( '/' ) ) > self.__keepDirLevels:
-          args += [True, True]
+          args += [True, self.__recalculateUsage]
         result = self.catalog.getDirectorySize( *args )
         if not result['OK']:
           errorReason.setdefault( str( result['Message'] ), [] ).append( subDir )
