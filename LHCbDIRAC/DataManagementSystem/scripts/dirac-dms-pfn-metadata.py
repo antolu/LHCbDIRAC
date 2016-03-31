@@ -1,4 +1,3 @@
-  from DIRAC import exit
 #!/usr/bin/env python
 ########################################################################
 # File :    dirac-dms-pfn-metadata.py
