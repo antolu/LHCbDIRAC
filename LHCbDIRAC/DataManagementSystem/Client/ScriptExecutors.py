@@ -906,7 +906,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
 
   if not lfnReplicas:
     gLogger.fatal( "No files found that have a replica...." )
-    return
+    return 0
 
   if repStats.get( 0 ):
     gLogger.notice( "%d files found without a replica" % repStats[0] )
