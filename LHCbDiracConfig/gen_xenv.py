@@ -6,6 +6,7 @@ import sys
 import getopt
 
 optList, args = getopt.getopt( sys.argv[1:], "c:f:p:d:", ["config", "filename", "python", "dir_base"] )
+dir_base = ''
 
 for optKey, optVal in optList:
    if optKey in ( "-c", "config" ):
@@ -29,7 +30,7 @@ Generate the Manifest.xml and xenv file for LbScripts
 log = logging.getLogger()
 
 # Building the paths for the input and output files
-jsonMetadataDir = os.path.join( _lbconf_dir , "cmt" )
+jsonMetadataDir = _lbconf_dir
 mxmlFullname = nameManifest
 xenvFullname = xenv_file
 

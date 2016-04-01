@@ -2,10 +2,8 @@ OS = $(word 2,$(subst -, ,$(CMTCONFIG)))
 
 MANIFEST = InstallArea/$(CMTCONFIG)/manifest.xml
 XENV = InstallArea/$(CMTCONFIG)/LHCbDirac.xenv
-
-
-REQUIREMENTS_TGTS = LHCbGridConfig/cmt/requirements LHCbGridSys/cmt/requirements
-
+#MANIFEST = manifest.xml
+#XENV = LHCbDirac.xenv
 
 RUNIT_TOOLS = runit runit-init runsv runsvchdir runsvctrl runsvdir runsvstat chpst
 
@@ -28,8 +26,6 @@ DIRAC_BUNDLE=$(LHCBTAR)/DIRAC3/lcgBundles/DIRAC-lcg-$(LCG_VER)-$(DIRACPLAT)-pyth
 #all: $(MANIFEST) requirements runit_tools $(XENV) $(XENV)c
 all: gsi $(XENV) $(XENV)c
 
-requirements: $(REQUIREMENTS_TGTS)
-
 gsi:
 	mkdir -p InstallArea/$(CMTCONFIG)/lib
 	LHCbDiracConfig/gen_GSI $(DIRACPLAT) $(PYTHON_VERSION_TWODIGIT)
@@ -45,7 +41,7 @@ runit_tools:
 	tar -x -v -f $(DIRAC_BUNDLE) --xform='s#.*/\([^/]\+\)#InstallArea/$(CMTCONFIG)/bin/\1#' --show-transformed-names $(patsubst %,*/%,$(RUNIT_TOOLS))
 
 clean:
-	$(RM) $(MANIFEST) $(REQUIREMENTS_TGTS) $(patsubst %,InstallArea/$(CMTCONFIG)/bin/%,$(RUNIT_TOOLS))
+	$(RM) $(XENV) $(XENV)c $(MANIFEST) $(patsubst %,InstallArea/$(CMTCONFIG)/bin/%,$(RUNIT_TOOLS))
 purge: clean
 	$(RM) -r InstallArea/$(CMTCONFIG)
 
