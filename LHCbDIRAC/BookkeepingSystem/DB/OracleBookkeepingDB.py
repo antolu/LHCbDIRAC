@@ -1070,7 +1070,7 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables )
+    retVal = self.__buildProduction( production, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3015,7 +3015,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables )
+    retVal = self.__buildProduction( production, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3097,7 +3097,7 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildProduction( production, condition, tables ):
+  def __buildProduction( production, condition, tables, visible = default ):
     """it adds the production which can be a list or string to the jobs table"""
     if production not in [default, None]:
       if isinstance( production, list ) and len( production ) > 0:
@@ -3109,6 +3109,10 @@ and files.qualityid= dataquality.qualityid'
         condition += cond
       elif isinstance( production, ( basestring, int, long ) ):
         condition += ' and j.production=%s' % str( production )
+    
+    if production not in [default, None] and visible.upper().startswith( 'Y' ):
+      condition += ' and j.production=bview.production '
+    
     return S_OK( ( condition, tables ) )
 
   #############################################################################
@@ -3162,7 +3166,7 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildFileTypes( ftype, condition, tables, visible = 'N' ):
+  def __buildFileTypes( ftype, condition, tables, visible = default ):
     """it adds the file type to the files list"""
 
     if ftype != default and visible.upper().startswith( 'Y' ):
@@ -3227,13 +3231,18 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildEventType( evt, condition, tables, visible = 'N' ):
+  def __buildEventType( evt, condition, tables, visible = default):
     """adds the event type to the files table"""
 
-    if evt != default and visible.upper().startswith( 'Y' ):
+    if evt not in [0, None, default] and visible.upper().startswith( 'Y' ):
       if tables.find( 'bview' ) < 0:   
         tables += ' ,prodview bview'
-      condition += '  and j.production=bview.production and bview.production=prod.production and f.eventtypeid=bview.eventtypeid and'
+      
+      if tables.upper().find( 'PRODUCTIONSCONTAINER' ) > 0:
+        condition += '  and j.production=bview.production and bview.production=prod.production and f.eventtypeid=bview.eventtypeid and'
+      else:
+        condition += '  and j.production=bview.production and f.eventtypeid=bview.eventtypeid and'
+      
       if isinstance( evt, ( list, tuple ) ) and len( evt ) > 0:
         cond = ' ( '
         for i in evt:
@@ -3537,7 +3546,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables )
+    retVal = self.__buildProduction( production, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
