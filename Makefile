@@ -2,6 +2,8 @@ OS = $(word 2,$(subst -, ,$(CMTCONFIG)))
 
 MANIFEST = InstallArea/$(CMTCONFIG)/manifest.xml
 XENV = InstallArea/$(CMTCONFIG)/LHCbDirac.xenv
+DIST-TOOLS=dist-tools
+
 #MANIFEST = manifest.xml
 #XENV = LHCbDirac.xenv
 
@@ -24,14 +26,16 @@ DIRAC_BUNDLE=$(LHCBTAR)/DIRAC3/lcgBundles/DIRAC-lcg-$(LCG_VER)-$(DIRACPLAT)-pyth
 
 
 #all: $(MANIFEST) requirements runit_tools $(XENV) $(XENV)c
-all: gsi $(XENV) $(XENV)c
+all: gsi $(XENV) $(XENV)c scripts
 
+scripts:
+	$(DIST-TOOLS)/gen_scripts.py
 gsi:
 	mkdir -p InstallArea/$(CMTCONFIG)/lib
-	LHCbDiracConfig/gen_GSI $(DIRACPLAT) $(PYTHON_VERSION_TWODIGIT)
+	$(DIST-TOOLS)/gen_GSI $(DIRACPLAT) $(PYTHON_VERSION_TWODIGIT) $(PYTHON_VERSION_TWO)
         
-$(XENV): Makefile
-	python LHCbDiracConfig/gen_xenv.py -c $(CMTCONFIG) -f $@ -p $(PYTHON_VERSION_TWO) -d $(LHCBRELEASES)
+$(XENV) $(MANIFEST): Makefile
+	python $(DIST-TOOLS)/gen_xenv.py -c $(CMTCONFIG) -f $(XENV) -m $(MANIFEST) -p $(PYTHON_VERSION_TWO) -d $(LHCBRELEASES)
 
 $(XENV)c: $(XENV)
 	xenv --xml $(XENV) true
@@ -42,8 +46,10 @@ runit_tools:
 
 clean:
 	$(RM) $(XENV) $(XENV)c $(MANIFEST) $(patsubst %,InstallArea/$(CMTCONFIG)/bin/%,$(RUNIT_TOOLS))
+	
 purge: clean
 	$(RM) -r InstallArea/$(CMTCONFIG)
+	$(RM) -r scripts
 
 # fake targets to respect the interface of the Gaudi wrapper to CMake
 configure:

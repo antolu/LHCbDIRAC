@@ -17,6 +17,7 @@ ext_ver="v6r3p3"
 
 DIRACPLAT=$1
 PYTHON_VERSION_TWODIGIT=$2
+PYTHON_CONFIG_VERSION=$3
 
 cd $basedir
 
@@ -36,6 +37,6 @@ if ! [ -r $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION} ]; then
   mkdir $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}
 fi
 
-ln -sf ../../../$fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/
+mv $fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/
 
 #
