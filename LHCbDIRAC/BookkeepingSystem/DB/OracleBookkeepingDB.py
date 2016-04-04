@@ -877,7 +877,7 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables )
+    retVal = self.__buildConditions( default, conddescription, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -1065,7 +1065,7 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables )
+    retVal = self.__buildConditions( default, conddescription, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3065,7 +3065,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( simdesc, datataking, condition, tables )
+    retVal = self.__buildConditions( simdesc, datataking, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3335,7 +3335,7 @@ and files.qualityid= dataquality.qualityid'
     return S_OK( ( condition, tables ) )
 
   #############################################################################
-  def __buildConditions( self, simdesc, datataking, condition, tables ):
+  def __buildConditions( self, simdesc, datataking, condition, tables, visible=default ):
     """adds the data taking or simulation conditions to the query"""
     if simdesc != default or datataking != default:
       conddesc = simdesc if simdesc != default else datataking
@@ -3346,6 +3346,10 @@ and files.qualityid= dataquality.qualityid'
       condition += ' and prod.production=j.production '
       if tables.upper().find( 'PRODUCTIONSCONTAINER' ) < 0:
         tables += ' ,productionscontainer prod '
+      
+      if simdesc != default or datataking != default and visible.upper().startswith( 'Y' ):
+        condition += ' and bview.production=prod.production'
+        
     return S_OK( ( condition, tables ) )
 
   #############################################################################
@@ -3531,7 +3535,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables )
+    retVal = self.__buildConditions( default, conddescription, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
