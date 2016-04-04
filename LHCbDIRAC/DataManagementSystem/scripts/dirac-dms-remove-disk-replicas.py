@@ -19,4 +19,5 @@ if __name__ == "__main__":
   Script.parseCommandLine()
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeRemoveReplicas
-  executeRemoveReplicas( dmScript, allDisk = True )
+  from DIRAC import exit
+  exit( executeRemoveReplicas( dmScript, allDisk = True ) )

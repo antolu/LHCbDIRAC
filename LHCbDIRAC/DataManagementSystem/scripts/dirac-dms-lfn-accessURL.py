@@ -26,5 +26,6 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = True )
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeAccessURL
-  executeAccessURL( dmScript )
+  from DIRAC import exit
+  exit( executeAccessURL( dmScript ) )
 

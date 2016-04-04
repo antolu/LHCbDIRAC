@@ -25,5 +25,6 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = False )
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeSetProblematicFiles
-  executeSetProblematicFiles( dmScript )
+  from DIRAC import exit
+  exit( executeSetProblematicFiles( dmScript ) )
 

@@ -201,7 +201,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         assignedBuffer = None
       # Now determine where these files should go
       # Group by location
-      replicaGroups = getFileGroups( dict( ( lfn, self.transReplicas[lfn] ) for lfn in runLfns ) )
+      replicaGroups = getFileGroups( dict( ( lfn, self.transReplicas[lfn] ) for lfn in runLfns if lfn in self.transReplicas ) )
       runSEs = set()
       for replicaSE in replicaGroups:
         # Get all locations where files are
@@ -336,7 +336,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       # Now determine where these files should go
       # Group by location
       update = False
-      replicaGroups = getFileGroups( dict( ( lfn, self.transReplicas[lfn] ) for lfn in runLfns ) )
+      replicaGroups = getFileGroups( dict( ( lfn, self.transReplicas[lfn] ) for lfn in runLfns if lfn in self.transReplicas ) )
       notAtSE = 0
       for replicaSE, lfns in replicaGroups.iteritems():
         targetSEs = set( replicaSE.split( ',' ) ) & fromSEs
