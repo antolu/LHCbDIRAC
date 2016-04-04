@@ -3347,7 +3347,7 @@ and files.qualityid= dataquality.qualityid'
       if tables.upper().find( 'PRODUCTIONSCONTAINER' ) < 0:
         tables += ' ,productionscontainer prod '
       
-      if simdesc != default or datataking != default and visible.upper().startswith( 'Y' ):
+      if ( simdesc != default or datataking != default ) and visible.upper().startswith( 'Y' ):
         condition += ' and bview.production=prod.production'
         
     return S_OK( ( condition, tables ) )
