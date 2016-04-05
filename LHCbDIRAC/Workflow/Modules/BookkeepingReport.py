@@ -47,7 +47,6 @@ class BookkeepingReport( ModuleBase ):
     self.jobType = ''
     self.stepOutputs = []
     self.histogram = False
-    self.eventsN = 0
     self.xf_o = None
 
     self.ldate = None
@@ -337,17 +336,8 @@ class BookkeepingReport( ModuleBase ):
 
     typedParams.append( ( "StepID", self.BKstepID ) )
 
-    try:
-      typedParams.append( ( "NumberOfEvents", self.xf_o.inputEventsTotal ) )
-    except AttributeError:
-      if self.jobType.lower() == 'merge':
-        res = self.bkClient.getFileMetadata( self.stepInputData )
-        if not res['OK']:
-          raise AttributeError( "Can't get the BKK file metadata" )
-        self.eventsN = sum( [fileMeta['EventStat'] for fileMeta in res['Value']['Successful'].values()] )
-        typedParams.append( ( "NumberOfEvents", self.eventsN ) )
-      else:
-        raise XMLSummaryError
+    typedParams.append( ( "NumberOfEvents",
+                          self.xf_o.inputEventsTotal if self.xf_o.inputEventsTotal else self.xf_o.outputEventsTotal) )
 
     # Add TypedParameters to the XML file
     for typedParam in typedParams:
@@ -430,11 +420,6 @@ class BookkeepingReport( ModuleBase ):
             fileStats = 'Unknown'
           else:
             raise KeyError( e )
-        except AttributeError:
-          if self.jobType.lower() == 'merge':
-            fileStats = str( self.eventsN )
-          else:
-            fileStats = 'Unknown'
 
       if not os.path.exists( output ):
         self.log.error( 'File does not exist:' , output )
