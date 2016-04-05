@@ -84,6 +84,15 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
   # copy the output, add it to the CHANGELOG (please also add the DIRAC version)
   vim CHANGELOG # please, remove comments like "fix" or "pylint" or "typo"...
+  #modify the DIRAC version
+  vim cmt/project.cmt
+  
+    project LHCbDirac
+    use DIRAC DIRAC_v6r14p25
+    #use DIRAC DIRAC_v6r15-pre*
+    use LHCBGRID LHCBGRID_v9r*
+    use LCGCMT LCGCMT_79
+  
   # Commit in your local newMaster branch the 3 files you modified
   git add -A && git commit -av -m "<YourNewTag>"
 
