@@ -33,5 +33,6 @@ if __name__ == "__main__":
 
   Script.parseCommandLine( ignoreErrors = False )
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeListDirectory
+  from DIRAC import exit
 
-  executeListDirectory( dmScript, days, months, years, wildcard, depth )
+  exit( executeListDirectory( dmScript, days, months, years, wildcard, depth ) )

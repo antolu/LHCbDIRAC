@@ -83,7 +83,7 @@ class ProgressBar( object ):
     self._chunk = chunk
     self._startTime = time.time()
     self._progress = 0
-    self._showBar = bool( items > chunk ) and bool( items > step ) and interactive
+    self._showBar = bool( items > chunk ) and bool( items > step ) and interactive and sys.stdout.isatty()
     self._interactive = interactive
     self._title = title
     self._backspace = 0

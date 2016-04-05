@@ -33,4 +33,5 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = True )
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeAddFile
-  executeAddFile()
+  from DIRAC import exit
+  exit( executeAddFile() )

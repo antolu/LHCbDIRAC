@@ -20,4 +20,5 @@ if __name__ == "__main__":
   Script.parseCommandLine()
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeRemoveFiles
-  executeRemoveFiles( dmScript )
+  from DIRAC import exit
+  exit( executeRemoveFiles( dmScript ) )
