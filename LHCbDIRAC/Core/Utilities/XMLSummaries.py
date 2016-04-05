@@ -1,12 +1,11 @@
 """ Utilities to check the XML summary files
 """
 
-__RCSID__ = "$Id$"
-
 import os
 from DIRAC import gLogger
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
 
+__RCSID__ = "$Id$"
 
 class XMLSummaryError( Exception ):
   """ Define error for XML summary """
@@ -192,8 +191,7 @@ class XMLSummary( object ):
                    'part'  : 0,
                    'mult'  : 0,
                    'fail'  : 0,
-                   'other' : 0
-                   }
+                   'other' : 0}
 
     for fileIn, status in self.inputStatus:
 
@@ -318,8 +316,7 @@ class XMLSummary( object ):
                    'part'  : 0,
                    'mult'  : 0,
                    'fail'  : 0,
-                   'other' : 0
-                   }
+                   'other' : 0}
 
     for filename, status in res:
 

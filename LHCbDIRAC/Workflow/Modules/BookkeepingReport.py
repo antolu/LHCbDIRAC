@@ -2,8 +2,6 @@
     (which is done in the uploadOutput)
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import time
 import re
@@ -22,6 +20,8 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary, XMLSummaryError
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import addChildNode
+
+__RCSID__ = "$Id$"
 
 class BookkeepingReport( ModuleBase ):
   """ BookkeepingReport class
@@ -387,8 +387,6 @@ class BookkeepingReport( ModuleBase ):
        </OutputFile>
     '''
 
-    statistics = "0"
-
     if self.eventType != None:
       eventtype = self.eventType
     else:
@@ -415,7 +413,7 @@ class BookkeepingReport( ModuleBase ):
       self.log.info( 'Looking at output %s %s' % ( output, outputtype ) )
       typeName = outputtype.upper()
       typeVersion = '1'
-      fileStats = statistics
+      fileStats = '0'
       if bkTypeDict.has_key( output ):
         typeVersion = getOutputType( output, self.stepInputData )[output]
         self.log.info( 'Setting POOL XML catalog type for %s to %s' % ( output, typeVersion ) )
@@ -425,7 +423,7 @@ class BookkeepingReport( ModuleBase ):
                                                                                                typeName ) )
 
         try:
-          fileStats = self.xf_o.outputsEvents[output]
+          fileStats = str( self.xf_o.outputsEvents[output] )
         except KeyError, e:
           if ( 'hist' in outputtype.lower() ) or ( '.root' in outputtype.lower() ):
             self.log.warn( 'HIST file %s not found in XML summary, event stats set to "Unknown"' % output )
@@ -434,7 +432,7 @@ class BookkeepingReport( ModuleBase ):
             raise KeyError( e )
         except AttributeError:
           if self.jobType.lower() == 'merge':
-            fileStats = self.eventsN
+            fileStats = str( self.eventsN )
           else:
             fileStats = 'Unknown'
 
@@ -515,7 +513,7 @@ class BookkeepingReport( ModuleBase ):
       if outputtype != 'LOG':
         oFile = addChildNode( oFile, "Parameter", 0, ( "EventTypeId", eventtype ) )
         if fileStats != 'Unknown':
-          oFile = addChildNode( oFile, "Parameter", 0, ( "EventStat", str( fileStats ) ) )
+          oFile = addChildNode( oFile, "Parameter", 0, ( "EventStat", fileStats ) )
 
       oFile = addChildNode( oFile, "Parameter", 0, ( "FileSize", outputsize ) )
 
