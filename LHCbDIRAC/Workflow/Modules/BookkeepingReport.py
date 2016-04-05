@@ -338,7 +338,7 @@ class BookkeepingReport( ModuleBase ):
     typedParams.append( ( "StepID", self.BKstepID ) )
 
     try:
-      typedParams.append( ( "NumberOfEvents", self.xf_o.outputEventsTotal ) )
+      typedParams.append( ( "NumberOfEvents", self.xf_o.inputEventsTotal ) )
     except AttributeError:
       if self.jobType.lower() == 'merge':
         res = self.bkClient.getFileMetadata( self.stepInputData )
