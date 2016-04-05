@@ -877,7 +877,7 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables )
+    retVal = self.__buildConditions( default, conddescription, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -1065,12 +1065,12 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables )
+    retVal = self.__buildConditions( default, conddescription, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables )
+    retVal = self.__buildProduction( production, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3015,7 +3015,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables )
+    retVal = self.__buildProduction( production, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3065,7 +3065,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( simdesc, datataking, condition, tables )
+    retVal = self.__buildConditions( simdesc, datataking, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3097,7 +3097,7 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildProduction( production, condition, tables ):
+  def __buildProduction( production, condition, tables, visible = default ):
     """it adds the production which can be a list or string to the jobs table"""
     if production not in [default, None]:
       if isinstance( production, list ) and len( production ) > 0:
@@ -3109,6 +3109,10 @@ and files.qualityid= dataquality.qualityid'
         condition += cond
       elif isinstance( production, ( basestring, int, long ) ):
         condition += ' and j.production=%s' % str( production )
+    
+    if production not in [default, None] and visible.upper().startswith( 'Y' ):
+      condition += ' and j.production=bview.production '
+    
     return S_OK( ( condition, tables ) )
 
   #############################################################################
@@ -3162,7 +3166,7 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildFileTypes( ftype, condition, tables, visible = 'N' ):
+  def __buildFileTypes( ftype, condition, tables, visible = default ):
     """it adds the file type to the files list"""
 
     if ftype != default and visible.upper().startswith( 'Y' ):
@@ -3170,7 +3174,7 @@ and files.qualityid= dataquality.qualityid'
         tables += ' ,filetypes ft'
       if tables.find( 'bview' ) < 0:
         tables += ' ,prodview bview'
-      condition += " and bview.filetypeid=ft.filetypeid "
+      condition += " and bview.filetypeid=ft.filetypeid and bview.filetypeid=f.filetypeid "
       if isinstance( ftype, list ):
         values = ' and ft.name in ('
         for i in ftype:
@@ -3227,13 +3231,18 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildEventType( evt, condition, tables, visible = 'N' ):
+  def __buildEventType( evt, condition, tables, visible = default):
     """adds the event type to the files table"""
 
-    if evt != default and visible.upper().startswith( 'Y' ):
+    if evt not in [0, None, default] and visible.upper().startswith( 'Y' ):
       if tables.find( 'bview' ) < 0:   
         tables += ' ,prodview bview'
-      condition += '  and j.production=bview.production and bview.production=prod.production and f.eventtypeid=bview.eventtypeid and'
+      
+      if tables.upper().find( 'PRODUCTIONSCONTAINER' ) > 0:
+        condition += '  and j.production=bview.production and bview.production=prod.production and f.eventtypeid=bview.eventtypeid and'
+      else:
+        condition += '  and j.production=bview.production and f.eventtypeid=bview.eventtypeid and'
+      
       if isinstance( evt, ( list, tuple ) ) and len( evt ) > 0:
         cond = ' ( '
         for i in evt:
@@ -3326,7 +3335,7 @@ and files.qualityid= dataquality.qualityid'
     return S_OK( ( condition, tables ) )
 
   #############################################################################
-  def __buildConditions( self, simdesc, datataking, condition, tables ):
+  def __buildConditions( self, simdesc, datataking, condition, tables, visible=default ):
     """adds the data taking or simulation conditions to the query"""
     if simdesc != default or datataking != default:
       conddesc = simdesc if simdesc != default else datataking
@@ -3337,6 +3346,10 @@ and files.qualityid= dataquality.qualityid'
       condition += ' and prod.production=j.production '
       if tables.upper().find( 'PRODUCTIONSCONTAINER' ) < 0:
         tables += ' ,productionscontainer prod '
+      
+      if ( simdesc != default or datataking != default ) and visible.upper().startswith( 'Y' ):
+        condition += ' and bview.production=prod.production'
+        
     return S_OK( ( condition, tables ) )
 
   #############################################################################
@@ -3522,7 +3535,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables )
+    retVal = self.__buildConditions( default, conddescription, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3537,7 +3550,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables )
+    retVal = self.__buildProduction( production, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']

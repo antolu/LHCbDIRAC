@@ -410,7 +410,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     datataking = in_dict.get( 'DataTakingConditions', default )
     procPass = in_dict.get( 'ProcessingPass', default )
     ftype = in_dict.get( 'FileType', default )
-    evt = in_dict.get( 'EventType', 0 )
+    evt = in_dict.get( 'EventType', default )
     configname = in_dict.get( 'ConfigName', default )
     configversion = in_dict.get( 'ConfigVersion', default )
     prod = in_dict.get( 'Production', in_dict.get( 'ProductionID', default ) )
