@@ -216,12 +216,18 @@ release for client
 please refer to this TWIKI page https://twiki.cern.ch/twiki/bin/view/LHCb/ProjectRelease#LHCbDirac
 a quick test to validate the installation is to run the SHELL script $LHCBRELEASE/LHCBDIRAC/LHCBDIRAC_vXrY/LHCbDiracSys/test/client_test.csh
 
-go to the web page : https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/
-- in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"
-- in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
-Then click on the "BUILD" button
-- within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/
-- if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
+    go to the web page : https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/
+    
+    - in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"
+    
+    - in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
+    
+    Then click on the "BUILD" button
+    
+    - within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/
+    
+    - if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
+
 
 If it is the production release, and only in this case, once satisfied by the build, take note of the build id (you can use the direct link icon) and make the request via https://sft.its.cern.ch/jira/browse/LHCBDEP
 
