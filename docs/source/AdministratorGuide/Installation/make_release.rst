@@ -246,3 +246,10 @@ If you need to install a new version in the development environment, follow thes
   getpack -Pr LHCbDirac vXrY
   cd $LHCBDEV/LHCBDIRAC/LHCBDIRAC_vXrY
   make
+
+4. Advertise the new release
+==========================
+
+Before you start the release you must write an Eloog entry 1 hour before you start the deployment.
+You have to select Production and Release tick boxes. 
+When the intervention is over you must notify the users (replay to the Eloog message). 
