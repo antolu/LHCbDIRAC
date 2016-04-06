@@ -186,9 +186,15 @@ This job will simply install the pilot. Please just check if the result does not
    TODO
 
 
+3. Advertise the new release
+==========================
+
+Before you start the release you must write an Eloog entry 1 hour before you start the deployment.
+You have to select Production and Release tick boxes. 
+When the intervention is over you must notify the users (replay to the Eloog message). 
 
 
-3. Deploying the release
+4. Deploying the release
 ==========================
 
 VOBOXes
@@ -247,9 +253,4 @@ If you need to install a new version in the development environment, follow thes
   cd $LHCBDEV/LHCBDIRAC/LHCBDIRAC_vXrY
   make
 
-4. Advertise the new release
-==========================
 
-Before you start the release you must write an Eloog entry 1 hour before you start the deployment.
-You have to select Production and Release tick boxes. 
-When the intervention is over you must notify the users (replay to the Eloog message). 
