@@ -139,21 +139,17 @@ Conflicts or not, you'll need to push back to upstream::
 
 Creating the release tarball, add uploading it to the LHCb web service
 ```````````````````````````````````````````````````````````````````````
-  Login on lxplus, run ::
+Login on lxplus, run ::
 
   SetupProject LHCbDirac
-  
   git archive --remote ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
-  
-  dirac-distribution -r v8r2p36 -l LHCb -C file:///`pwd`/releases.cfg
-
-(this may take some time)
+  dirac-distribution -r v8r2p36 -l LHCb -C file:///`pwd`/releases.cfg (this may take some time)
 
 Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like::
 
   ( cd /tmp/joel/tmpxg8UuvDiracDist ; tar -cf - *.tar.gz *.md5 *.cfg ) | ssh lhcbprod@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3/tars &&  tar -xvf - && ls *.tar.gz > tars.list'
 
-
+And just copy/paste/execute it.
 
 
 
@@ -187,61 +183,45 @@ This job will simply install the pilot. Please just check if the result does not
 
 
 3. Advertise the new release
-==========================
+==============================
 
-Before you start the release you must write an Eloog entry 1 hour before you start the deployment.
-You have to select Production and Release tick boxes. 
-When the intervention is over you must notify the users (replay to the Eloog message). 
+Before you start the release you must write an Elog entry 1 hour before you start the deployment.
+You have to select Production and Release tick boxes. When the intervention is over you must notify the users (reply to the Elog message). 
 
 
 4. Deploying the release
 ==========================
 
-VOBOXes
-```````
+Deploying a release means deploying it for the various installations::
 
-
-To install it on the VOBOXes from lxplus:
-
-::
-
-  lhcb-proxy-init  -g diracAdmin
-  dirac-admin-sysadmin-cli --host volhcbXX.cern.ch
-  >update LHCb-v7r1
-  >restart *
-
-if you modify the machine where run the Agents, you should modify the PilotVersion in the CS before you retsart the services.
-The location in the CS is /Operations/lhcb/LHCb-<setup>/Version/PilotVersion
-
-Agents run on volhcb20, and services on volhcb18 and volhcb17
+* client
+* server
+* pilot
 
 
 release for client
 `````````````````````
 
-please refer to this TWIKI page https://twiki.cern.ch/twiki/bin/view/LHCb/ProjectRelease#LHCbDirac
+Please refer to this `TWIKI page <https://twiki.cern.ch/twiki/bin/view/LHCb/ProjectRelease#LHCbDirac>`_
 a quick test to validate the installation is to run the SHELL script $LHCBRELEASE/LHCBDIRAC/LHCBDIRAC_vXrY/LHCbDiracSys/test/client_test.csh
 
-    go to the web page : https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/
+go to this `web page <https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/>`_ for asking to install the client reelease in AFS and CVMFS:
     
-    - in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"
+* in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"
+* in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
+
+Then click on the "BUILD" button
     
-    - in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
-    
-    Then click on the "BUILD" button
-    
-    - within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/
-    
-    - if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
+* within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/   
+* if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
 
 
-If it is the production release, and only in this case, once satisfied by the build, take note of the build id (you can use the direct link icon) and make the request via https://sft.its.cern.ch/jira/browse/LHCBDEP
+If it is the production release, and only in this case, once satisfied by the build, 
+take note of the build id (you can use the direct link icon) and make the request via https://sft.its.cern.ch/jira/browse/LHCBDEP
 
 The LHCb Deployement shifter will deploy the release on AFS/CVMFS
 
-If you need to install a new version in the development environment, follow these steps:
-
-::
+If you need to install a new version in the development environment, follow these steps::
 
   cd $LHCBDEV
   setenv CMTPROJECTPATH ${LHCBDEV}:${CMTPROJECTPATH}
@@ -252,5 +232,33 @@ If you need to install a new version in the development environment, follow thes
   getpack -Pr LHCbDirac vXrY
   cd $LHCBDEV/LHCBDIRAC/LHCBDIRAC_vXrY
   make
+
+
+
+Server
+```````
+
+To install it on the VOBOXes from lxplus::
+
+  lhcb-proxy-init  -g diracAdmin
+  dirac-admin-sysadmin-cli --host volhcbXX.cern.ch
+  >update LHCbDIRAC-v8r3p32
+  >restart *
+
+The (better) alternative is using the web portal.
+
+
+
+Pilot
+``````
+
+Use the following script (from, e.g., lxplus after having run lb-run LHCbDIRAC)::
+
+  dirac-pilot-version
+
+for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin). 
+This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum.
+
+
 
 
