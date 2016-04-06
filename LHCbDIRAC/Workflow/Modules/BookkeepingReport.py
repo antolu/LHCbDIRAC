@@ -78,17 +78,14 @@ class BookkeepingReport( ModuleBase ):
 
       if saveOnFile:
         bfilename = 'bookkeeping_' + self.step_id + '.xml'
-        # bfilename = '%s_Bookkeeping_Step%d.xml' % ( self.applicationName, self.step_number )
-        # bfilename = '%s_%s_Bookkeeping.xml' % ( self.step_id, self.applicationName )
-        bfile = open( bfilename, 'w' )
-        print >> bfile, doc
-        bfile.close()
+        with open( bfilename, 'w' ) as bfile:
+          print >> bfile, doc
       else:
         print doc
 
       return S_OK()
 
-    except Exception, e:
+    except Exception as e:
       self.log.exception( e )
       return S_ERROR( e )
 
@@ -414,9 +411,9 @@ class BookkeepingReport( ModuleBase ):
 
         try:
           fileStats = str( self.xf_o.outputsEvents[output] )
-        except KeyError, e:
+        except KeyError as e:
           if ( 'hist' in outputtype.lower() ) or ( '.root' in outputtype.lower() ):
-            self.log.warn( 'HIST file %s not found in XML summary, event stats set to "Unknown"' % output )
+            self.log.warn( "HIST file %s not found in XML summary, event stats set to 'Unknown'" % output )
             fileStats = 'Unknown'
           else:
             raise KeyError( e )
@@ -428,7 +425,7 @@ class BookkeepingReport( ModuleBase ):
       if not self.step_commons.has_key( 'size' ) or output not in self.step_commons[ 'size' ]:
         try:
           outputsize = str( os.path.getsize( output ) )
-        except:
+        except OSError:
           outputsize = '0'
       else:
         outputsize = self.step_commons[ 'size' ][ output ]
@@ -542,18 +539,16 @@ class BookkeepingReport( ModuleBase ):
     try:
       result[ "HostName"  ] = socket.gethostname()
 
-      cpuInfo = open ( "/proc/cpuinfo", "r" )
-      info = cpuInfo.readlines()
-      cpuInfo.close()
+      with open ( "/proc/cpuinfo", "r" ) as cpuInfo:
+        info = cpuInfo.readlines()
       result[ "CPU(MHz)"  ] = info[6].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
       result[ "ModelName" ] = info[4].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
       result[ "CacheSize(kB)" ] = info[7].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
 
-      memInfo = open ( "/proc/meminfo", "r" )
-      info = memInfo.readlines()
-      memInfo.close()
+      with open( "/proc/meminfo", "r" ) as memInfo:
+        info = memInfo.readlines()
       result["Memory(kB)"] = info[3].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
-    except Exception, x:
+    except Exception as x:
       self.log.fatal( 'BookkeepingReport failed to obtain node information with Exception:' )
       self.log.fatal( str( x ) )
       result = S_ERROR()
