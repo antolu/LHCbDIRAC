@@ -32,6 +32,8 @@ if ! [ -r $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION} ]; then
   mkdir $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}
 fi
 
-ln -sf ../../../$fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/
+if ! [ -d $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/ ]; then
+  ln -sf ../../../$fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/
+fi
 
 #
