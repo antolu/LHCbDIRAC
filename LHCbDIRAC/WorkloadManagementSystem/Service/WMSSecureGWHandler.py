@@ -8,7 +8,6 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Security import Properties
 from DIRAC.Core.Security import CS
 from DIRAC.Core.Utilities.Subprocess import pythonCall
-from types import StringType, StringTypes, IntType, LongType, ListType, DictType, FloatType
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
@@ -33,7 +32,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return S_OK()
 
 
-  types_requestJob = [[StringType, DictType]]
+  types_requestJob = [[basestring, dict]]
   def export_requestJob( self, resourceDescription ):
     """ Serve a job to the request of an agent which is the highest priority
         one matching the agent's site capacity
@@ -43,7 +42,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return result
 
   ##########################################################################################
-  types_setJobStatus = [[StringType, IntType, LongType], StringType, StringType, StringType]
+  types_setJobStatus = [[basestring, int, long], basestring, basestring, basestring]
   def export_setJobStatus( self, jobID, status, minorStatus, source = 'Unknown', datetime = None ):
     """ Set the major and minor status for job specified by its JobId.
         Set optionally the status date and source component which sends the
@@ -54,7 +53,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return jobStatus
 
   ###########################################################################
-  types_setJobSite = [[StringType, IntType, LongType], StringType]
+  types_setJobSite = [[basestring, int, long], basestring]
   def export_setJobSite( self, jobID, site ):
     """Allows the site attribute to be set for a job specified by its jobID.
     """
@@ -63,7 +62,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return jobSite
 
   ###########################################################################
-  types_setJobParameter = [[StringType, IntType, LongType], StringType, StringType]
+  types_setJobParameter = [[basestring, int, long], basestring, basestring]
   def export_setJobParameter( self, jobID, name, value ):
     """ Set arbitrary parameter specified by name/value pair
         for job specified by its JobId
@@ -73,7 +72,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return jobParam
 
   ###########################################################################
-  types_setJobStatusBulk = [[StringType, IntType, LongType], DictType]
+  types_setJobStatusBulk = [[basestring, int, long], dict]
   def export_setJobStatusBulk( self, jobID, statusDict ):
     """ Set various status fields for job specified by its JobId.
         Set only the last status in the JobDB, updating all the status
@@ -85,7 +84,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return jobStatus
 
     ###########################################################################
-  types_setJobParameters = [[StringType, IntType, LongType], ListType]
+  types_setJobParameters = [[basestring, int, long], list]
   def export_setJobParameters( self, jobID, parameters ):
     """ Set arbitrary parameters specified by a list of name/value pairs
         for job specified by its JobId
@@ -96,7 +95,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
 
   ###########################################################################
-  types_sendHeartBeat = [[StringType, IntType, LongType], DictType, DictType]
+  types_sendHeartBeat = [[basestring, int, long], dict, dict]
   def export_sendHeartBeat( self, jobID, dynamicData, staticData ):
     """ Send a heart beat sign of life for a job jobID
     """
@@ -116,7 +115,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return result
 
   ##########################################################################################
-  types_setPilotStatus = [StringTypes, StringTypes]
+  types_setPilotStatus = [basestring, basestring]
   def export_setPilotStatus( self, pilotRef, status, destination = None, reason = None, gridSite = None, queue = None ):
     """ Set the pilot agent status
     """
@@ -126,7 +125,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return result
 
   ##############################################################################
-  types_setJobForPilot = [[StringType, IntType, LongType], StringTypes]
+  types_setJobForPilot = [[basestring, int, long], basestring]
   def export_setJobForPilot( self, jobID, pilotRef, destination = None ):
     """ Report the DIRAC job ID which is executed by the given pilot job
     """
@@ -135,7 +134,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return result
 
   ##########################################################################################
-  types_setPilotBenchmark = [StringTypes, FloatType]
+  types_setPilotBenchmark = [basestring, float]
   def export_setPilotBenchmark( self, pilotRef, mark ):
     """ Set the pilot agent benchmark
     """
@@ -145,7 +144,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
 
   ##############################################################################
-  types_getJobParameter = [[StringType, IntType, LongType] , StringTypes ]
+  types_getJobParameter = [[basestring, int, long] , basestring ]
   @staticmethod
   def export_getJobParameter( jobID, parName ):
     monitoring = RPCClient( 'WorkloadManagement/JobMonitoring', timeout = 120 )
@@ -153,7 +152,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return result
 
   ##############################################################################
-  types_getVOMSProxy = [ StringType, StringType, StringType, ( IntType, LongType ) ]
+  types_getVOMSProxy = [ basestring, basestring, basestring, ( int, long ) ]
   def export_getVOMSProxy( self, userDN, userGroup, requestPem, requiredLifetime, vomsAttribute = False ):
     """
     Always return the Boinc proxy.
@@ -162,7 +161,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
 
   ##############################################################################
-  types_getProxy = [ StringType, StringType, StringType, ( IntType, LongType ) ]
+  types_getProxy = [ basestring, basestring, basestring, ( int, long ) ]
   def export_getProxy( self, userDN, userGroup, requestPem, requiredLifetime ):
     """Get the Boinc User proxy
     """
@@ -178,9 +177,8 @@ class WMSSecureGWHandler( RequestHandler ):
       return result
     forceLimited = result[ 'Value' ]
     chain = X509Chain()
-    f = open( '/tmp/x509up_u25133', 'r' )
-    proxy = f.read()
-    retVal = chain.loadProxyFromString( proxy )
+    proxyFile = "/tmp/x509up_u" + str( os.getuid() )
+    retVal = chain.loadProxyFromFile( proxyFile )
     if not retVal[ 'OK' ]:
       return retVal
     retVal = chain.generateChainFromRequestString( requestPem,
@@ -213,7 +211,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
   ########################################################################
 
-  types_hasAccess = [StringTypes, [ ListType, DictType ] + list( StringTypes ) ]
+  types_hasAccess = [basestring, [ list, dict ] + list( basestring ) ]
   def export_hasAccess( self, opType, paths ):
     """ Access
     """
@@ -223,7 +221,7 @@ class WMSSecureGWHandler( RequestHandler ):
     resDict = {'Successful':successful, 'Failed':{}}
     return S_OK( resDict )
 
-  types_exists = [ [ ListType, DictType ] + list( StringTypes ) ]
+  types_exists = [ [ list, dict ] + list( basestring ) ]
   def export_exists( self, lfns ):
     """ Check whether the supplied paths exists """
     successful = {}
@@ -234,7 +232,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
   ########################################################################
 
-  types_addFile = [[ ListType, DictType ] + list( StringTypes )]
+  types_addFile = [[ list, dict ] + list( basestring )]
   def export_addFile( self, lfns ):
     """ Register supplied files """
     failed={}
@@ -242,7 +240,7 @@ class WMSSecureGWHandler( RequestHandler ):
       failed [lfn]=True
     return S_OK({'Successful':{}, 'Failed':failed} )
 
-  types_putRequest = [ StringTypes ]
+  types_putRequest = [ basestring ]
   def export_putRequest( self, requestJSON ):
     """ put a new request into RequestDB """
 
@@ -275,7 +273,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
 
   ################################################################################
-  types_prepareFile = [ StringType, StringType ]
+  types_prepareFile = [ basestring, basestring ]
   def export_prepareFile(self, se, pfn):
     """ This method simply gets the file to the local storage area
     """
@@ -292,19 +290,14 @@ class WMSSecureGWHandler( RequestHandler ):
     res = self.__prepareSecurityDetails()
     if not res['OK']:
       return res
-   # Clear the local ache
+    # Clear the local ache
     base = gConfig.getValue( "Systems/DataManagement/boincInstance/Services/StorageElementProxy/BasePath" )
     getFileDir = "%s/getFile" % base
     if not os.path.exists(getFileDir):
       os.mkdir(getFileDir)        
     # Get the file to the cache 
-    try:
-      storageElement = StorageElement(se)
-    except AttributeError, x:
-      errStr = "prepareFile: Exception while instantiating the Storage Element."
-      gLogger.exception( errStr, se, str(x) )
-      return S_ERROR(errStr)
-    res = returnSingleResult(storageElement.getFile( pfn, localPath = "%s/getFile" % base ))
+    storageElement = StorageElement( se )
+    res = returnSingleResult( storageElement.getFile( pfn, localPath = getFileDir ) )
     if not res['OK']:
       gLogger.error( "prepareFile: Failed to get local copy of file.", res['Message'] )
       return res

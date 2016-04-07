@@ -9,7 +9,7 @@ __RCSID__ = "$Id $"
 
 
 # # imports
-from DIRAC import S_OK, S_ERROR
+from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import DEncode
 from DIRAC.FrameworkSystem.Client.MonitoringClient import gMonitor
 from DIRAC.RequestManagementSystem.private.OperationHandlerBase import OperationHandlerBase
@@ -37,12 +37,10 @@ class WMSSecureOutputData( OperationHandlerBase ):
     """ It expects to find the reqID in operation.Arguments
     """
     try:
-      #requestID = DEncode.decode( self.operation.Arguments )[0]
       decode = DEncode.decode( self.operation.Arguments )
       self.log.debug (decode)
-      #self.log.debug( "decoded requestID=%s" % str( requestID ) )
-      print "in validate request;"
-    except ValueError, error:
+      gLogger.debug ( "Validating output" )
+    except ValueError as error:
       self.log.exception( error )
       self.operation.Error = str( error )
       self.operation.Status = "Failed"
