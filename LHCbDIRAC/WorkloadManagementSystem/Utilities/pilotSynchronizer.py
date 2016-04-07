@@ -25,7 +25,7 @@ class pilotSynchronizer( object ):
     '''
     '''
     self.pilotFileName = 'LHCb-pilot.json'
-     # FIXME: pilotFileServer should contain the url of the web server where we will upload the LHCb-Pilot.json file
+    # FIXME: pilotFileServer should contain the url of the web server where we will upload the LHCb-Pilot.json file
     self.pilotFileServer = '128.141.170.61'
 
 
@@ -61,6 +61,8 @@ class pilotSynchronizer( object ):
       commands = gConfig.getOptionsDict( 'Operations/%s/Pilot/Commands' % setup )
       if commands['OK']:
         pilotDict[setup]['Commands'] = commands['Value']
+      else:
+        gLogger.debug( "List of commands not found: %s" % commands['Message'] )
     result = self._upload( pilotDict )
     if not result['OK']:
       gLogger.error( "Error uploading the pilot file" )
