@@ -3,21 +3,28 @@ LHCbDIRAC Certification (development) Releases
 ======================================================
 
 The following procedure applies to pre-releases (AKA certification releases) 
-and it is a simpler version of what applies to production releases.
+and it is a simpler version of what applies to production releases. 
+
+This page details the duty of the release manager. 
+The certification manager duties are detailed in the next page.
+
 
 What for
 ====================
 
-The certification manager of LHCbDIRAC has the role of:
+The *release manager* of LHCbDIRAC has the role of:
 
-1. creating the release
+1. creating the pre-release
 2. making basic tests
 3. deploying it in the certification setup
+
+The *certification manager* would then follow-up on this by:
 4. making even more tests
 
-Several iterations of the above, before:
-
+And, after several iterations of the above, before:
 5. merging in the production branch
+
+Points 4 and 5 won't anyway be part of this first document.
 
 
 1. Creating the release
@@ -100,11 +107,87 @@ Login on lxplus, run ::
 
   SetupProject LHCbDirac
   git archive --remote ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
-  dirac-distribution -r v8r2p36 -l LHCb -C file:///`pwd`/releases.cfg (this may take some time)
+  dirac-distribution -r v8r3-pre5 -l LHCb -C file:///`pwd`/releases.cfg (this may take some time)
 
 Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like::
 
   ( cd /tmp/joel/tmpxg8UuvDiracDist ; tar -cf - *.tar.gz *.md5 *.cfg ) | ssh lhcbprod@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3/tars &&  tar -xvf - && ls *.tar.gz > tars.list'
 
 And just copy/paste/execute it.
+
+
+
+
+2. Making basic verifications
+==============================
+
+Once the tarball is done and uploaded, the release manager is asked to make basic verifications, via Jenkins,
+if the release has been correctly created.
+
+At this `link <https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
+Please start the following Jenkins jobs and come back in about an hour to see the results for all of them.
+
+1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/PRERELEASE__pylint_unit/
+
+This job will: run pylint (errors only), run all the unit tests found in the system, assess the coverage.
+The job should be considered successful if:
+
+- the pylint error report didn't increase from the previous job run
+- the test results didn't get worse from the previous job run
+- the coverage didn't drop from the previous job run
+
+
+2. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/PRERELEASE__pilot/
+
+This job will simply install the pilot. Please just check if the result does not show in an "unstable" status
+
+
+3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__/
+
+   TODO
+
+
+3. Deploying the release
+==========================
+
+Deploying a release means deploying it for some installation::
+
+* client
+* server
+* pilot
+
+
+release for client
+`````````````````````
+
+The deployment of pre-releases version in the client are only possible (and necessary) in the case of AFS. 
+A CVMFS may be added at some point by using a "trick", but this should be done only if specifically requested to.
+
+
+
+Server
+```````
+
+To install it on the VOBOXes (certification only) from lxplus::
+
+  lhcb-proxy-init  -g diracAdmin
+  dirac-admin-sysadmin-cli --host volhcbXX.cern.ch
+  >update LHCbDIRAC-v8r3-pre5
+  >restart *
+
+The (better) alternative is using the web portal.
+
+
+
+Pilot
+``````
+
+Use the following script (from, e.g., lxplus after having run `lb-run --dev LHCbDIRAC tcsh`)::
+
+  dirac-pilot-version
+
+for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin). 
+This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum.
+
+Make sure that you are in the certification setup (e.g. check the content of your .dirac.cfg file)
 

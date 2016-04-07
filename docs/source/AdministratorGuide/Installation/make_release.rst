@@ -160,7 +160,7 @@ Once the tarball is done and uploaded, the release manager is asked to make basi
 if the release has been correctly created.
 
 At this `link <https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
-Please start all of the Jenkins jobs whose name start with "RELEASE" and come back in about an hour to see the results for all of them.
+Please start the following Jenkins jobs and come back in about an hour to see the results for all of them.
 
 1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__pylint_unit/
 
@@ -205,7 +205,7 @@ release for client
 Please refer to this `TWIKI page <https://twiki.cern.ch/twiki/bin/view/LHCb/ProjectRelease#LHCbDirac>`_
 a quick test to validate the installation is to run the SHELL script $LHCBRELEASE/LHCBDIRAC/LHCBDIRAC_vXrY/LHCbDiracSys/test/client_test.csh
 
-go to this `web page <https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/>`_ for asking to install the client reelease in AFS and CVMFS:
+go to this `web page <https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/>`_ for asking to install the client release in AFS and CVMFS:
     
 * in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"
 * in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
@@ -252,7 +252,7 @@ The (better) alternative is using the web portal.
 Pilot
 ``````
 
-Use the following script (from, e.g., lxplus after having run lb-run LHCbDIRAC)::
+Use the following script (from, e.g., lxplus after having run `lb-run LHCbDIRAC tcsh`)::
 
   dirac-pilot-version
 
