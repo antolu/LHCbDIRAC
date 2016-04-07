@@ -62,7 +62,7 @@ class WMSSecureGWHandler( RequestHandler ):
     jobSite = jobReport.setJobSite( jobID, site )
     return jobSite
 
-     ###########################################################################
+  ###########################################################################
   types_setJobParameter = [[StringType, IntType, LongType], StringType, StringType]
   def export_setJobParameter( self, jobID, name, value ):
     """ Set arbitrary parameter specified by name/value pair
@@ -72,7 +72,7 @@ class WMSSecureGWHandler( RequestHandler ):
     jobParam = jobReport.setJobParameter( jobID, name, value )
     return jobParam
 
-   ###########################################################################
+  ###########################################################################
   types_setJobStatusBulk = [[StringType, IntType, LongType], DictType]
   def export_setJobStatusBulk( self, jobID, statusDict ):
     """ Set various status fields for job specified by its JobId.
@@ -134,7 +134,7 @@ class WMSSecureGWHandler( RequestHandler ):
     result = wmsAdmin.setJobForPilot( jobID , pilotRef, destination )
     return result
 
-   ##########################################################################################
+  ##########################################################################################
   types_setPilotBenchmark = [StringTypes, FloatType]
   def export_setPilotBenchmark( self, pilotRef, mark ):
     """ Set the pilot agent benchmark
@@ -152,33 +152,28 @@ class WMSSecureGWHandler( RequestHandler ):
     result = monitoring.getJobParameter( jobID, parName )
     return result
 
+  ##############################################################################
   types_getVOMSProxy = [ StringType, StringType, StringType, ( IntType, LongType ) ]
   def export_getVOMSProxy( self, userDN, userGroup, requestPem, requiredLifetime, vomsAttribute = False ):
     """
-    Get a proxy for a userDN/userGroup
-      - requestPem : PEM encoded request object for delegation
-      - requiredLifetime: Argument for length of proxy
-      - vomsAttribute : VOMS attr to add to the proxy
-      * Properties :
-        FullDelegation <- permits full delegation of proxies
-        LimitedDelegation <- permits downloading only limited proxies
-        PrivateLimitedDelegation <- permits downloading only limited proxies for one self
+    Always return the Boinc proxy.
     """
-    userDN, userGroup, userName = self.__getOwnerGroupDN( 'ProductionManager' )
-    gLogger.debug( "Getting proxy for %s %s" % (userGroup, userDN ) )
-    pManager = RPCClient( 'Framework/ProxyManager' )
-    result = pManager.getVOMSProxy( userDN, userGroup, requestPem, requiredLifetime, vomsAttribute)
-    return result
-    
+    return self.__getProxy( requestPem, requiredLifetime )
+
 
   ##############################################################################
   types_getProxy = [ StringType, StringType, StringType, ( IntType, LongType ) ]
   def export_getProxy( self, userDN, userGroup, requestPem, requiredLifetime ):
     """Get the Boinc User proxy
     """
+    return self.__getProxy( requestPem, requiredLifetime )
+
+
+  def __getProxy ( self, requestPem, requiredLifetime ):
+    """Get the Boinc User proxy
+    """
     userDN, userGroup, userName = self.__getOwnerGroupDN( 'BoincUser' )
     result = self.__checkProperties( userDN, userGroup )
-    print ("dopo check",result)
     if not result[ 'OK' ]:
       return result
     forceLimited = result[ 'Value' ]
@@ -186,21 +181,22 @@ class WMSSecureGWHandler( RequestHandler ):
     f = open( '/tmp/x509up_u25133', 'r' )
     proxy = f.read()
     retVal = chain.loadProxyFromString( proxy )
-    print ("dopo chain",retVal)
     if not retVal[ 'OK' ]:
       return retVal
     retVal = chain.generateChainFromRequestString( requestPem,
                                                    lifetime = requiredLifetime,
                                                    requireLimited = forceLimited )
-    print ("dopo generate",retVal)
+    gLogger.debug( "Got the proxy" )
     return S_OK( retVal[ 'Value' ] )
+
+
 
   def __checkProperties( self, requestedUserDN, requestedUserGroup ):
     """
     Check the properties and return if they can only download limited proxies if authorized
     """
     credDict = self.getRemoteCredentials()
-    print ("in credDict", credDict[ 'properties' ])
+    gLogger.debug ( "in credDict %s" % credDict[ 'properties' ] )
     if Properties.FULL_DELEGATION in credDict[ 'properties' ]:
       return S_OK( False )
     if Properties.LIMITED_DELEGATION in credDict[ 'properties' ]:
@@ -215,7 +211,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return S_ERROR( "You can't get proxies! Bad boy!" )
 
 
- ########################################################################
+  ########################################################################
 
   types_hasAccess = [StringTypes, [ ListType, DictType ] + list( StringTypes ) ]
   def export_hasAccess( self, opType, paths ):
@@ -232,12 +228,11 @@ class WMSSecureGWHandler( RequestHandler ):
     """ Check whether the supplied paths exists """
     successful = {}
     for lfn in lfns:
-      print lfn
       successful[lfn] = False
     resDict = {'Successful':successful, 'Failed':{}}
     return S_OK(resDict)
 
-   ########################################################################
+  ########################################################################
 
   types_addFile = [[ ListType, DictType ] + list( StringTypes )]
   def export_addFile( self, lfns ):
@@ -250,6 +245,7 @@ class WMSSecureGWHandler( RequestHandler ):
   types_putRequest = [ StringTypes ]
   def export_putRequest( self, requestJSON ):
     """ put a new request into RequestDB """
+
     requestDict = json.loads( requestJSON )
     requestName = requestDict.get( "RequestID", requestDict.get( 'RequestName', "***UNKNOWN***" ) )
     request = Request( requestDict )
@@ -262,25 +258,19 @@ class WMSSecureGWHandler( RequestHandler ):
     return ReqClient().putRequest( request )
 
   def __getOwnerGroupDN ( self, shifterType ):
-    print ("in get owner", shifterType)
     opsHelper = Operations()
     userName = opsHelper.getValue( cfgPath( 'Shifter',shifterType, 'User' ), '' )
-    print userName
     if not userName:
       return S_ERROR( "No shifter User defined for %s" % shifterType )
     result = CS.getDNForUsername( userName )
-    print result
     if not result[ 'OK' ]:
       return result
     userDN = result[ 'Value' ][0]
-    print userDN
     result = CS.findDefaultGroupForDN( userDN )
-    print result
     if not result['OK']:
       return result
     defaultGroup = result['Value']
     userGroup = opsHelper.getValue( cfgPath( 'Shifter', shifterType, 'Group' ), defaultGroup )
-    print userGroup
     return userDN, userGroup, userName
 
 
@@ -291,21 +281,19 @@ class WMSSecureGWHandler( RequestHandler ):
     """
     print (se, pfn)
     res = pythonCall( 300, self.__prepareFile, se, pfn )
-    print("ecco res", res)
+    gLogger.debug( "Preparing File %s" % res )
     if res['OK']:
       return res['Value']
     return res 
 
   def __prepareFile( self, se, pfn ):
     """ proxied prepare file """
-    print ("again")
+
     res = self.__prepareSecurityDetails()
     if not res['OK']:
       return res
-    print res
    # Clear the local ache
     base = gConfig.getValue( "Systems/DataManagement/boincInstance/Services/StorageElementProxy/BasePath" )
-    print base
     getFileDir = "%s/getFile" % base
     if not os.path.exists(getFileDir):
       os.mkdir(getFileDir)        
@@ -317,7 +305,6 @@ class WMSSecureGWHandler( RequestHandler ):
       gLogger.exception( errStr, se, str(x) )
       return S_ERROR(errStr)
     res = returnSingleResult(storageElement.getFile( pfn, localPath = "%s/getFile" % base ))
-    print ("dopo getFile", res)
     if not res['OK']:
       gLogger.error( "prepareFile: Failed to get local copy of file.", res['Message'] )
       return res
@@ -329,10 +316,8 @@ class WMSSecureGWHandler( RequestHandler ):
     try:
       print (" in prepare")
       clientDN, clientGroup, clientUserName = self.__getOwnerGroupDN('ProductionManager')
-      #clientUsername = credDict['username']
       gLogger.debug( "Getting proxy for %s %s" % (clientGroup, clientDN ) )
       res = gProxyManager.downloadVOMSProxy( clientDN, clientGroup )
-      print res 
       if not res['OK']:
         return res
       chain = res['Value']
