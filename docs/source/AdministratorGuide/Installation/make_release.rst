@@ -104,6 +104,7 @@ Time to tag and push::
   # push "newMaster" to upstream/master
   git push --tags upstream newMaster:master
   # delete your local newMaster
+  # before chanhe your branch git checkout "existing branch name"
   git branch -d newMaster
 
 
