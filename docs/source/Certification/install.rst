@@ -182,12 +182,13 @@ The (better) alternative is using the web portal.
 Pilot
 ``````
 
-Use the following script (from, e.g., lxplus after having run `lb-run --dev LHCbDIRAC tcsh`)::
+Use the following script (from, e.g., lxplus after having run `lb-run --dev LHCbDIRAC bash`)::
 
   dirac-pilot-version
 
 for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin). 
-This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum.
+This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum. The command to update is 
+  dirac-pilot-version -S v8r3-pre5
 
 Make sure that you are in the certification setup (e.g. check the content of your .dirac.cfg file)
 
