@@ -128,6 +128,10 @@ The last operation may result in potential conflicts.
 If happens, you'll need to manually update the conflicting files (see e.g. this `guide <https://githowto.com/resolving_conflicts>`_).
 As a general rule, prefer the master fixes to the "HEAD" (devel) fixes. Remember to add and commit once fixed.
 
+Plase fix the conflict if some files are conflictiong. Do not forget to to execute the following::
+
+  git add -A && git commit -m " message"
+
 Conflicts or not, you'll need to push back to upstream::
 
   # push "newDevel" to upstream/devel
