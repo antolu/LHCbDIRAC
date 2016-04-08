@@ -8,8 +8,6 @@ from DIRAC import S_OK
 from DIRAC.Resources.Catalog.Utilities                              import checkCatalogArguments
 from DIRAC.Resources.Catalog.FileCatalogClientBase import FileCatalogClientBase
 
-__RCSID__ = "$Id$"
-
 __RCSID__ = '$Id$'
 
 READ_METHODS = []
@@ -27,7 +25,7 @@ class RAWIntegrityClient( FileCatalogClientBase ):
     super( RAWIntegrityClient, self ).__init__( self.serverURL, **kwargs )
     self.rawIntegritySrv = self._getRPC()
 
-      
+
   @staticmethod
   def getInterfaceMethods():
     """ Get the methods implemented by the File Catalog client

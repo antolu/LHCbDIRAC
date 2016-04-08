@@ -9,7 +9,7 @@ from DIRAC.tests.Utilities.utils import find_all
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-from LHCbDIRAC.tests.Integration.Workflow.Test_UserJobs import createJob
+from tests.Workflow.Integration.test_UserJobs import createJob
 
 gLogger.setLevel( 'DEBUG' )
 
@@ -193,7 +193,7 @@ optComp = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
 optPConf = "prodConf_Boole_00012345_00067890_1.py"
 options = opts + optDT + optTCK + optComp + optPConf
 
-gaudirunJob.addPackage( 'AppConfig', 'v3r171' )
+# gaudirunJob.addPackage( 'AppConfig', 'v3r171' )
 gaudirunJob.setApplication( 'Boole', 'v26r3', options,
                             inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
                             extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',

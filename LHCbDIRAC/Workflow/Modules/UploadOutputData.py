@@ -72,7 +72,7 @@ class UploadOutputData( ModuleBase ):
     if self.workflow_commons.has_key( 'ProductionOutputData' ):
       self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
       if isinstance( self.prodOutputLFNs, basestring ):
-        self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )] #pylint: disable=E1101
+        self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )] #pylint: disable=no-member
     else:
       self.log.info( "ProductionOutputData parameter not found, creating on the fly" )
       result = constructProductionLFNs( self.workflow_commons, self.bkClient )

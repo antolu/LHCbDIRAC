@@ -12,7 +12,7 @@ import MySQLdb
 import os
 
 # DIRAC
-from DIRAC.Core.Utilities import InstallTools
+from DIRAC.Core.Utilities import gComponentInstaller
 
 # lhcb_ci
 from lhcb_ci import logger, workspace
@@ -131,12 +131,12 @@ def __getCursor( dbName ):
   Given a dbName, get a connection and a cursor to execute queries.
   """
 
-  InstallTools.getMySQLPasswords()
+  gComponentInstaller.getMySQLPasswords()
   
-  conn = MySQLdb.connect( host   = InstallTools.mysqlHost,
-                          port   = InstallTools.mysqlPort,
-                          user   = InstallTools.mysqlRootUser,
-                          passwd = InstallTools.mysqlRootPwd,
+  conn = MySQLdb.connect( host   = gComponentInstaller.mysqlHost,
+                          port   = gComponentInstaller.mysqlPort,
+                          user   = gComponentInstaller.mysqlRootUser,
+                          passwd = gComponentInstaller.mysqlRootPwd,
                           db     = dbName )
   
   cursor = conn.cursor()

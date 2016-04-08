@@ -9,7 +9,7 @@ import os
 
 import DIRAC
 
-from DIRAC import gLogger, S_ERROR, S_OK
+from DIRAC import gLogger, S_OK
 
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 from DIRAC.DataManagementSystem.Client.ConsistencyInspector import ConsistencyInspector as DiracConsistencyChecks
@@ -339,19 +339,19 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
     if self.prcdWithoutDesc:
       self.__logVerbose( "For prod %s of type %s, %d files are processed, and %d of those do not have descendants" %
-                       ( self.prod, self.transType, len( processedLFNs ), len( self.prcdWithoutDesc ) ) )
+                         ( self.prod, self.transType, len( processedLFNs ), len( self.prcdWithoutDesc ) ) )
 
     if self.prcdWithMultDesc:
       self.__logVerbose( "For prod %s of type %s, %d files are processed, and %d of those have multiple descendants: " %
-                       ( self.prod, self.transType, len( processedLFNs ), len( self.prcdWithMultDesc ) ) )
+                         ( self.prod, self.transType, len( processedLFNs ), len( self.prcdWithMultDesc ) ) )
 
     if self.nonPrcdWithDesc:
       self.__logVerbose( "For prod %s of type %s, %d files are not processed, but %d of those have descendants" %
-                       ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonPrcdWithDesc ) ) )
+                         ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonPrcdWithDesc ) ) )
 
     if self.nonPrcdWithMultDesc:
       self.__logVerbose( "For prod %s of type %s, %d files are not processed, but %d of those have multiple descendants: " %
-                       ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonPrcdWithMultDesc ) ) )
+                         ( self.prod, self.transType, len( nonProcessedLFNs ), len( self.nonPrcdWithMultDesc ) ) )
 
   ################################################################################
 
@@ -502,7 +502,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
           descDict = self._selectByFileType( resChunk['Value']['WithMetadata'] )
           # Do the daughters have a replica flag in BK? Store file type as well... Key is daughter
           daughtersBKInfo.update( dict( ( lfn, ( desc[lfn]['GotReplica'] == 'Yes', desc[lfn]['FileType'] ) )
-                                      for desc in descDict.itervalues() for lfn in desc ) )
+                                        for desc in descDict.itervalues() for lfn in desc ) )
           # Count the daughters per file type (key is ancestor)
           ft_count = self._getFileTypesCount( descDict )
           for lfn in lfnChunk:
@@ -542,7 +542,8 @@ class ConsistencyChecks( DiracConsistencyChecks ):
       return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
         allDaughters, inFCNotInBK, inBKNotInFC, removedFiles
 
-    daughtersBKInfo = self.__getDaughtersInfo( lfns, status, filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants )
+    daughtersBKInfo = self.__getDaughtersInfo( lfns, status, filesWithDescendants,
+                                               filesWithoutDescendants, filesWithMultipleDescendants )
     for daughter in daughtersBKInfo.keys():
       # Ignore the daughters that have a type to ignore
       if daughtersBKInfo[daughter][1] in fileTypesExcluded:
@@ -593,7 +594,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
               break
             else:
               progressBar.comment( "Error getting descendants for %d files, retry"
-                             % len( lfnChunk ), res['Message'] )
+                                   % len( lfnChunk ), res['Message'] )
         progressBar.endLoop()
         # print "%d not Present daughters, %d have a descendant" % ( len( notPresent ), len( setDaughtersWithDesc ) )
 
@@ -750,7 +751,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
         msg = "For prod %s of type %s, " % ( self.prod, self.transType )
       if self.existLFNsBKRepNo:
         gLogger.warn( "%s %d files%s have replica = NO in BK" % ( msg, len( self.existLFNsBKRepNo ),
-                                                                 prStr ) )
+                                                                  prStr ) )
       if self.existLFNsNotInBK:
         gLogger.warn( "%s %d files%s not in BK" % ( msg, len( self.existLFNsNotInBK ), prStr ) )
     else:
@@ -835,7 +836,8 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     noFlagLFNs = {}
     okLFNs = []
     chunkSize = 1000
-    progressBar = ProgressBar( len( lfns ), title = 'Getting %d files metadata from BK' % len( lfns ), chunk = chunkSize, interactive = self.interactive )
+    progressBar = ProgressBar( len( lfns ), title = 'Getting %d files metadata from BK' % len( lfns ),
+                               chunk = chunkSize, interactive = self.interactive )
     for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
       progressBar.loop()
       while True:

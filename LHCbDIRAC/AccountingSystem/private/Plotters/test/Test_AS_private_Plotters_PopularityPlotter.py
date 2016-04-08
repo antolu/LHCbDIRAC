@@ -32,14 +32,14 @@ class PopularityPlotterTestCase( unittest.TestCase ):
     # Tries to get the mocks of the parent TestCases ( if any )
     for baseClass in self.__class__.__bases__:
       try:
-        #pylint: disable=E1101
+        #pylint: disable=no-member
         moduleTested = baseClass.mockModuleTested( moduleTested )
       except TypeError:
         continue  
     
     # And then makes its own mock
     class MockPopularity:
-      #pylint: disable=C0111,R0903,W0232
+      #pylint: disable=missing-docstring,min-public-methods,no-init
       definitionKeyFields = ( 'DataType', 'Activity', 'FileType', 'Production',
                               'ProcessingPass', 'Conditions', 'EventType', 'StorageElement' )
         
