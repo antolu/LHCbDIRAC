@@ -32,7 +32,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return S_OK()
 
 
-  types_requestJob = [[basestring, dict]]
+  types_requestJob = [[str, dict]]
   def export_requestJob( self, resourceDescription ):
     """ Serve a job to the request of an agent which is the highest priority
         one matching the agent's site capacity
@@ -42,7 +42,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return result
 
   ##########################################################################################
-  types_setJobStatus = [[basestring, int, long], basestring, basestring, basestring]
+  types_setJobStatus = [[str, int, long], str, str, str]
   def export_setJobStatus( self, jobID, status, minorStatus, source = 'Unknown', datetime = None ):
     """ Set the major and minor status for job specified by its JobId.
         Set optionally the status date and source component which sends the
@@ -53,7 +53,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return jobStatus
 
   ###########################################################################
-  types_setJobSite = [[basestring, int, long], basestring]
+  types_setJobSite = [[str, int, long], str]
   def export_setJobSite( self, jobID, site ):
     """Allows the site attribute to be set for a job specified by its jobID.
     """
@@ -62,7 +62,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return jobSite
 
   ###########################################################################
-  types_setJobParameter = [[basestring, int, long], basestring, basestring]
+  types_setJobParameter = [[str, int, long], str, str]
   def export_setJobParameter( self, jobID, name, value ):
     """ Set arbitrary parameter specified by name/value pair
         for job specified by its JobId
@@ -72,7 +72,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return jobParam
 
   ###########################################################################
-  types_setJobStatusBulk = [[basestring, int, long], dict]
+  types_setJobStatusBulk = [[str, int, long], dict]
   def export_setJobStatusBulk( self, jobID, statusDict ):
     """ Set various status fields for job specified by its JobId.
         Set only the last status in the JobDB, updating all the status
@@ -84,7 +84,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return jobStatus
 
     ###########################################################################
-  types_setJobParameters = [[basestring, int, long], list]
+  types_setJobParameters = [[str, int, long], list]
   def export_setJobParameters( self, jobID, parameters ):
     """ Set arbitrary parameters specified by a list of name/value pairs
         for job specified by its JobId
@@ -95,7 +95,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
 
   ###########################################################################
-  types_sendHeartBeat = [[basestring, int, long], dict, dict]
+  types_sendHeartBeat = [[str, int, long], dict, dict]
   def export_sendHeartBeat( self, jobID, dynamicData, staticData ):
     """ Send a heart beat sign of life for a job jobID
     """
@@ -115,7 +115,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return result
 
   ##########################################################################################
-  types_setPilotStatus = [basestring, basestring]
+  types_setPilotStatus = [str, str]
   def export_setPilotStatus( self, pilotRef, status, destination = None, reason = None, gridSite = None, queue = None ):
     """ Set the pilot agent status
     """
@@ -125,7 +125,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return result
 
   ##############################################################################
-  types_setJobForPilot = [[basestring, int, long], basestring]
+  types_setJobForPilot = [[str, int, long], str]
   def export_setJobForPilot( self, jobID, pilotRef, destination = None ):
     """ Report the DIRAC job ID which is executed by the given pilot job
     """
@@ -134,7 +134,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return result
 
   ##########################################################################################
-  types_setPilotBenchmark = [basestring, float]
+  types_setPilotBenchmark = [str, float]
   def export_setPilotBenchmark( self, pilotRef, mark ):
     """ Set the pilot agent benchmark
     """
@@ -144,7 +144,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
 
   ##############################################################################
-  types_getJobParameter = [[basestring, int, long] , basestring ]
+  types_getJobParameter = [[str, int, long] , str ]
   @staticmethod
   def export_getJobParameter( jobID, parName ):
     monitoring = RPCClient( 'WorkloadManagement/JobMonitoring', timeout = 120 )
@@ -152,7 +152,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return result
 
   ##############################################################################
-  types_getVOMSProxy = [ basestring, basestring, basestring, ( int, long ) ]
+  types_getVOMSProxy = [ str, str, str, ( int, long ) ]
   def export_getVOMSProxy( self, userDN, userGroup, requestPem, requiredLifetime, vomsAttribute = False ):
     """
     Always return the Boinc proxy.
@@ -161,7 +161,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
 
   ##############################################################################
-  types_getProxy = [ basestring, basestring, basestring, ( int, long ) ]
+  types_getProxy = [ str, str, str, ( int, long ) ]
   def export_getProxy( self, userDN, userGroup, requestPem, requiredLifetime ):
     """Get the Boinc User proxy
     """
@@ -211,7 +211,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
   ########################################################################
 
-  types_hasAccess = [basestring, [ list, dict ] + list( basestring ) ]
+  types_hasAccess = [str, [ list, dict, str ]]
   def export_hasAccess( self, opType, paths ):
     """ Access
     """
@@ -221,7 +221,7 @@ class WMSSecureGWHandler( RequestHandler ):
     resDict = {'Successful':successful, 'Failed':{}}
     return S_OK( resDict )
 
-  types_exists = [ [ list, dict ] + list( basestring ) ]
+  types_exists = [ list, dict, str  ]
   def export_exists( self, lfns ):
     """ Check whether the supplied paths exists """
     successful = {}
@@ -232,7 +232,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
   ########################################################################
 
-  types_addFile = [[ list, dict ] + list( basestring )]
+  types_addFile = [[ list, dict, str ]]
   def export_addFile( self, lfns ):
     """ Register supplied files """
     failed={}
@@ -240,7 +240,7 @@ class WMSSecureGWHandler( RequestHandler ):
       failed [lfn]=True
     return S_OK({'Successful':{}, 'Failed':failed} )
 
-  types_putRequest = [ basestring ]
+  types_putRequest = [ str ]
   def export_putRequest( self, requestJSON ):
     """ put a new request into RequestDB """
 
@@ -273,11 +273,11 @@ class WMSSecureGWHandler( RequestHandler ):
 
 
   ################################################################################
-  types_prepareFile = [ basestring, basestring ]
+  types_prepareFile = [ str, str ]
   def export_prepareFile(self, se, pfn):
     """ This method simply gets the file to the local storage area
     """
-    print (se, pfn)
+    gLogger.debug( "se %s, pfn %s" % ( se, pfn ) )
     res = pythonCall( 300, self.__prepareFile, se, pfn )
     gLogger.debug( "Preparing File %s" % res )
     if res['OK']:
@@ -307,7 +307,6 @@ class WMSSecureGWHandler( RequestHandler ):
     """ Obtains the connection details for the client
     """
     try:
-      print (" in prepare")
       clientDN, clientGroup, clientUserName = self.__getOwnerGroupDN('ProductionManager')
       gLogger.debug( "Getting proxy for %s %s" % (clientGroup, clientDN ) )
       res = gProxyManager.downloadVOMSProxy( clientDN, clientGroup )
@@ -317,16 +316,11 @@ class WMSSecureGWHandler( RequestHandler ):
       base = ""
       base = gConfig.getValue( "Systems/DataManagement/boincInstance/Services/StorageElementProxy/BasePath" )
       proxyBase = "%s/proxies" % base
-      print proxyBase
       if not os.path.exists(proxyBase):
-        print "no directory"
         os.makedirs(proxyBase)
       proxyLocation = "%s/proxies/%s-%s" % ( base, clientUserName, clientGroup )
       gLogger.debug("Obtained proxy chain, dumping to %s." % proxyLocation)
-      print chain
-      print proxyLocation
       res = gProxyManager.dumpProxyToFile( chain, proxyLocation )
-      print res
       if not res['OK']:
         return res
       gLogger.debug("Updating environment.")
