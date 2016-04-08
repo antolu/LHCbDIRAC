@@ -47,11 +47,11 @@ class pilotSynchronizer( object ):
 
     gLogger.info( '-- Synchronizing the file --' )
     pilotDict = {}
-    setups = gConfig.getSections( 'DIRAC/Setups' )
+    setups = gConfig.getSections( '/Operations/' )
     if not setups['OK']:
       gLogger.error( setups['Message'] )
       return setups
-    setups['Value'].append( 'Defaults' )
+    setups['Value'].remove( 'SoftwareDistribution' )
     for setup in setups['Value']:
       options = gConfig.getOptionsDict( 'Operations/%s/Pilot' % setup )
       if not options['OK']:
