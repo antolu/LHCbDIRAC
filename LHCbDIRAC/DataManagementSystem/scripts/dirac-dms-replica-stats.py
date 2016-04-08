@@ -32,5 +32,6 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = False )
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeReplicaStats
-  executeReplicaStats( dmScript )
+  from DIRAC import exit
+  exit( executeReplicaStats( dmScript ) )
 

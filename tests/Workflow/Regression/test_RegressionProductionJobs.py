@@ -1,13 +1,18 @@
 #!/usr/bin/env python
+
+""" Regression production jobs are "real" XMLs of production jobs that ran in production
+"""
+
+#pylint: disable=missing-docstring
+
+import unittest
+
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-import unittest, os, shutil
-
 from DIRAC.tests.Utilities.utils import find_all
 
-from LHCbDIRAC.tests.Utilities.utils import getOutput
-from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest
+from tests.Utilities.IntegrationTest import IntegrationTest
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
@@ -18,7 +23,7 @@ class RegressionTestCase( IntegrationTest ):
   """ Base class for the Regression test cases
   """
   def setUp( self ):
-    super( IntegrationTest, self ).setUp()
+    super( RegressionTestCase, self ).setUp()
 
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()

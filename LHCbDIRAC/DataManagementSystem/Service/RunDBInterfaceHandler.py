@@ -99,18 +99,18 @@ class RunDBInterfaceHandler( RequestHandler ):
       filesQueryString = "success,result = server.getFilesDirac(fields=allFileFields)"
     print filesQueryString
     exec( filesQueryString )
-    if not success: #using exec statement above -> pylint: disable=E0602
-      return S_ERROR( result ) #using exec statement above -> pylint: disable=E0602
+    if not success: #using exec statement above -> pylint: disable=undefined-variable
+      return S_ERROR( result ) #using exec statement above -> pylint: disable=undefined-variable
     resultDict = {}
-    nFiles = len( result ) #using exec statement above -> pylint: disable=E0602
+    nFiles = len( result ) #using exec statement above -> pylint: disable=undefined-variable
     resultDict['TotalRecords'] = nFiles
     if nFiles == 0:
       return S_OK( resultDict )
     if decending:
-      result.reverse() #using exec statement above -> pylint: disable=E0602
+      result.reverse() #using exec statement above -> pylint: disable=undefined-variable
 
     statusCountDict = {}
-    for res in result: #using exec statement above -> pylint: disable=E0602
+    for res in result: #using exec statement above -> pylint: disable=undefined-variable
       state = res[3]
       if state in fileStates:
         state = fileStates[state]
@@ -127,7 +127,7 @@ class RunDBInterfaceHandler( RequestHandler ):
       return S_ERROR( 'Item number out of range' )
     if lastFile > nFiles:
       lastFile = nFiles
-    fileList = result[iniFile:lastFile] #using exec statement above -> pylint: disable=E0602
+    fileList = result[iniFile:lastFile] #using exec statement above -> pylint: disable=undefined-variable
 
     # prepare the standard structure now
     resultDict['ParameterNames'] = allFileFields

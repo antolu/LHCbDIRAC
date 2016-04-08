@@ -1,6 +1,8 @@
 """ Collection of user jobs for testing purposes
 """
 
+#pylint: disable=missing-docstring
+
 # imports
 
 from DIRAC.tests.Utilities.utils import find_all
@@ -213,7 +215,8 @@ def jobWithInputDataAndAncestor():
   J.setExecutable( "exe-script-with-input-and-ancestor.py", "", "exeWithInput.log" )
   # WARNING: Collision10!!
   J.setInputData( '/lhcb/data/2010/SDST/00008375/0005/00008375_00053941_1.sdst' )  # this file should be at SARA-RDST
-  J.setAncestorDepth( 1 )  # the ancestor should be /lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81616/081616_0000000213.raw (CERN and SARA)
+  # the ancestor should be /lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81616/081616_0000000213.raw (CERN and SARA)
+  J.setAncestorDepth( 1 )  #pylint: disable=no-member
   J.setInputDataPolicy( 'download' )
   return endOfAllJobs( J )
 
@@ -231,10 +234,10 @@ def gaussJob():
   optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
   optPConf = "prodConf_Gauss_00012345_00067890_1.py"
   options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-  J.setApplication( 'Gauss', 'v45r5', options,
+  J.setApplication( 'Gauss', 'v45r5', options, #pylint: disable=no-member
                     extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
                     systemConfig = 'x86_64-slc5-gcc43-opt' )
-  J.setDIRACPlatform()
+  J.setDIRACPlatform()  #pylint: disable=no-member
   J.setCPUTime( 172800 )
   return endOfAllJobs( J )
 
@@ -253,12 +256,12 @@ def booleJob():
   optPConf = "prodConf_Boole_00012345_00067890_1.py"
   options = opts + optDT + optTCK + optComp + optPConf
 
-  J.setApplication( 'Boole', 'v26r3', options,
+  J.setApplication( 'Boole', 'v26r3', options, #pylint: disable=no-member
                     inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
                     extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
                     systemConfig = 'x86_64-slc5-gcc43-opt' )
 
-  J.setDIRACPlatform()
+  J.setDIRACPlatform() #pylint: disable=no-member
   J.setCPUTime( 172800 )
   return endOfAllJobs( J )
 
@@ -269,7 +272,7 @@ def wrongJob():
   print "\n Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info"
   print "This will generate a job that should become Completed, use the failover, and only later it will be Done"
 
-  from LHCbDIRAC.tests.Integration.Workflow.Test_UserJobs import createJob
+  from tests.Workflow.Integration.test_UserJobs import createJob
   J = baseToAllJobs( 'wrongJob', jobClass )
   J = createJob( local = False )
   J.setName( "gaudirun-gauss-completed-than-done" )

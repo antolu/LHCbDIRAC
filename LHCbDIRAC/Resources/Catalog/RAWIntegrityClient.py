@@ -11,6 +11,7 @@ from DIRAC.Resources.Catalog.FileCatalogClientBase import FileCatalogClientBase
 __RCSID__ = "$Id$"
 
 
+
 class RAWIntegrityClient( FileCatalogClientBase ):
 
   # List of common File Catalog methods implemented by this client

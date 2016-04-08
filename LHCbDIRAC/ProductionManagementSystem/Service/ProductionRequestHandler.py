@@ -222,12 +222,12 @@ class ProductionRequestHandler( RequestHandler ):
       if not result['OK']:
         return result
       body = result['Value']
-      m = re.search( "\$\Id: ([^$]*) \$", body )
+      m = re.search( "__RCSID__ = \"([^$]*)\"", body )
       ptime = ''
       author = ''
       ver = ''
       if m:
-        m = re.match( "[^ ]+ ([^ ]+) ([^ ]+ [^ ]+) ([^ ]+)", m.group( 1 ) )
+        m = re.match( "([^ ]+) \((.*)\) (.*)", m.group( 1 ))
         if m:
           ptime = m.group( 2 )
           author = m.group( 3 )

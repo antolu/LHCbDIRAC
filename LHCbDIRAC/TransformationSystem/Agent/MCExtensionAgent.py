@@ -92,7 +92,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       self.log.verbose( "cpuNormalizationFactorAvg = %d" % self.cpuNormalizationFactorAvg )
     except RuntimeError:
       self.log.info( "Could not get CPUNormalizationFactorAvg from config, defaulting to %d" % self.cpuNormalizationFactorAvg )
- 
+
   #############################################################################
   def _checkProductionRequest( self, productionRequestID, productionRequestSummary ):
     """ Check if a production request need to be extended and do it if needed

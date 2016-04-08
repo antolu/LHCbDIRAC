@@ -209,7 +209,7 @@ class NagiosTopologyAgent( AgentModule ):
     site_se_name = site_se_opts.get( 'Host' )
     site_se_type = site_se_opts.get( 'ProtocolName' )
 
-    if site_se_type == 'SRM2':
+    if site_se_type in ( 'SRM2', 'GFAL2_SRM2' ) :
       site_se_type = 'SRMv2'
     elif not site_se_type:
       site_se_type = 'UNDEFINED'

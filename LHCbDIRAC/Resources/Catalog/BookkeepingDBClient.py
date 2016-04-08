@@ -3,7 +3,7 @@
 
 __RCSID__ = "$Id$"
 
-from DIRAC                                                          import gLogger, S_OK, S_ERROR
+from DIRAC                                                          import gLogger, S_OK
 from DIRAC.Core.DISET.RPCClient                                     import RPCClient
 from DIRAC.Core.Utilities.List                                      import breakListIntoChunks
 from DIRAC.Resources.Catalog.FileCatalogClientBase                  import FileCatalogClientBase

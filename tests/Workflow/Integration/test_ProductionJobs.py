@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+
+""" "Integration" production jobs. StepIDs are taken from REAL productions that ran "recently"
+"""
+
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
@@ -6,7 +10,7 @@ import unittest
 
 from DIRAC.tests.Utilities.utils import find_all
 
-from LHCbDIRAC.tests.Utilities.IntegrationTest import IntegrationTest
+from tests.Utilities.IntegrationTest import IntegrationTest
 
 from LHCbDIRAC.Interfaces.API.DiracProduction import DiracProduction
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
@@ -60,8 +64,7 @@ class MCSuccess( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2015.py;$APPCONFIGOPTS/Brunel/MC-WithTruth.py;$APPCONFIGOPTS/Brunel/ldst.py;$APPCONFIGOPTS/Brunel/patchUpgrade1.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['DIGI'],
-                    'fileTypesOut':['LDST']}
-                   ]
+                    'fileTypesOut':['LDST']}]
 
     # First create the production object
     prod = self.pr._buildProduction( prodType = 'MCSimulation', stepsInProd = stepsInProd, outputSE = {'LDST': 'Tier1_MC-DST'},
@@ -115,8 +118,7 @@ class MCSuccessMultiProcessor( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/DaVinci/DV-Stripping20-Stripping-MC-NoPrescaling.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/InputType-DST.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'isMulticore': 'Y', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['DST'],
-                    'fileTypesOut':['ALLSTREAMS.DST']},
-                   ]
+                    'fileTypesOut':['ALLSTREAMS.DST']}]
 
     # First create the production object
     prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, {'ALLSTREAMS.DST': 'Tier1_MC-DST'}, 0, 100,
@@ -156,8 +158,7 @@ class MCSuccess_new( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/Moore/MooreSimProductionWithL0Emulation.py;$APPCONFIGOPTS/Conditions/TCK-0x409f0045.py;$APPCONFIGOPTS/Moore/DataType-2012.py;$APPCONFIGOPTS/L0/L0TCK-0x0045.py',
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['DIGI'],
-                    'fileTypesOut':['DIGI']},
-                   ]
+                    'fileTypesOut':['DIGI']}]
 
     # First create the production object
     prod = self.pr._buildProduction( 'MCSimulation', stepsInProd, {'DIGI':'Tier1_MC-DST'}, 0, 100,
@@ -191,8 +192,7 @@ class RecoSuccess( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/DaVinci/DVMonitor-RealData.py;$APPCONFIGOPTS/DaVinci/DataType-2012.py;$APPCONFIGOPTS/DaVinci/DaVinci-InputType-SDST.py',
                     'isMulticore': 'N', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['FULL.DST'],
-                    'fileTypesOut':['DAVINCIHIST']}
-                   ]
+                    'fileTypesOut':['DAVINCIHIST']}]
 
     prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
@@ -215,8 +215,7 @@ class RecoSuccessMultiProcessor( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/Brunel/DataType-2011.py', 'mcTCK': '', 'ExtraOptions': '',
                     'isMulticore': 'Y', 'SystemConfig': '',
                     'fileTypesIn':['RAW'],
-                    'fileTypesOut':['BRUNELHIST', 'FULL.DST']}
-                   ]
+                    'fileTypesOut':['BRUNELHIST', 'FULL.DST']}]
 
     prod = self.pr._buildProduction( 'Reconstruction', stepsInProd, {'FULL.DST': 'Tier1-BUFFER'}, 0, 100,
                                      outputMode = 'Run', inputDataPolicy = 'protocol', inputDataList = lfns, events = 25 )
@@ -241,8 +240,8 @@ class StrippSuccess( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/DaVinci/DV-Stripping20r1p2-Stripping.py;$APPCONFIGOPTS/DaVinci/DataType-2011.py;$APPCONFIGOPTS/DaVinci/InputType-DST.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['FULL.DST'],
-                    'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST', 'DIMUON.DST', 'EW.DST', 'LEPTONIC.MDST', 'SEMILEPTONIC.DST']},
-                   ]
+                    'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST',
+                                    'CHARMCOMPLETEEVENT.DST', 'DIMUON.DST', 'EW.DST', 'LEPTONIC.MDST', 'SEMILEPTONIC.DST']}]
 
     prod = self.pr._buildProduction( 'Stripping', stepsInProd, {'BHADRON.MDST': 'Tier1-BUFFER',
                                                                 'BHADRONCOMPLETEEVENT.DST': 'Tier1-BUFFER',
@@ -275,8 +274,7 @@ class MergeSuccess( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/Merging/CopyDST.py', 'mcTCK': '', 'ExtraOptions': '',
                     'isMulticore': 'N', 'SystemConfig': '',
                     'fileTypesIn':['MCFILTER.LDST'],
-                    'fileTypesOut':['MCFILTER.LDST']},
-                   ]
+                    'fileTypesOut':['MCFILTER.LDST']}]
 
     prod = self.pr._buildProduction( 'Merge', stepsInProd, {'MCFILTER.LDST': 'Tier1_MC-DST'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns )
@@ -302,9 +300,8 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
                                    'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'DIMUON.DST', 'EW.DST',
                                    'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST'],
                     'fileTypesOut':['BHADRON.MDST', 'BHADRONCOMPLETEEVENT.DST', 'CALIBRATION.DST', 'CHARM.MDST',
-                                   'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'DIMUON.DST', 'EW.DST',
-                                   'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST']},
-                   ]
+                                    'CHARMCOMPLETEEVENT.DST', 'CHARMCONTROL.DST', 'DIMUON.DST', 'EW.DST',
+                                    'LEPTONIC.MDST', 'MINIBIAS.DST', 'PID.MDST', 'RADIATIVE.DST', 'SEMILEPTONIC.DST']}]
 
     prod = self.pr._buildProduction( 'Merge', stepsInProd, {'BHADRON.MDST': 'Tier1-BUFFER',
                                                             'BHADRONCOMPLETEEVENT.DST': 'Tier1-BUFFER',
@@ -318,8 +315,7 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
                                                             'MINIBIAS.DST': 'Tier1-BUFFER',
                                                             'PID.MDST':'Tier1-BUFFER',
                                                             'RADIATIVE.DST': 'Tier1-BUFFER',
-                                                            'SEMILEPTONIC.DST': 'Tier1-BUFFER',
-                                                            },
+                                                            'SEMILEPTONIC.DST': 'Tier1-BUFFER'},
                                     0, 100, inputDataPolicy = 'protocol', inputDataList = lfns )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
@@ -340,8 +336,7 @@ class MergeMDFSuccess( ProductionJobTestCase ):
                     'OptionFiles': '', 'SystemConfig': '', 'mcTCK': '', 'ExtraOptions': '',
                     'isMulticore': 'N',
                     'fileTypesIn':['RAW'],
-                    'fileTypesOut':['RAW']},
-                   ]
+                    'fileTypesOut':['RAW']}]
     self.pr.modulesList = ['MergeMDF', 'BookkeepingReport']
     prod = self.pr._buildProduction( 'Merge', stepsInProd, {'RAW':'Tier1-BUFFER'}, 0, 100,
                                      inputDataPolicy = 'download', inputDataList = lfns )
@@ -371,8 +366,7 @@ class SwimmingSuccess( ProductionJobTestCase ):
                     'OptionFiles': '$APPCONFIGOPTS/EnableCustomMainLoop.py;$CHARMCONFIGROOT/scripts/SwimStrippingD2KSkk.py',
                     'isMulticore': 'N', 'SystemConfig': 'x86_64-slc5-gcc43-opt', 'mcTCK': '', 'ExtraOptions': '',
                     'fileTypesIn':['SWIMTRIGGERD02KSKK.DST'],
-                    'fileTypesOut':['SWIMSTRIPPINGD02KSKK.MDST']}
-                   ]
+                    'fileTypesOut':['SWIMSTRIPPINGD02KSKK.MDST']}]
     prod = self.pr._buildProduction( 'Swimming', stepsInProd, {'SWIMTRIGGERD02KSKK.DST':'Tier1-DST',
                                                                'SWIMSTRIPPINGD02KSKK.MDST':'Tier1-DST'}, 0, 100,
                                       inputDataPolicy = 'protocol', inputDataList = lfns, events = 10 )

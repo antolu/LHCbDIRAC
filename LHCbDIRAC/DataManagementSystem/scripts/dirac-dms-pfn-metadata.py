@@ -28,5 +28,6 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = True )
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executePfnMetadata
-  executePfnMetadata( dmScript )
+  from DIRAC import exit
+  exit( executePfnMetadata( dmScript ) )
 

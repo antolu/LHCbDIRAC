@@ -1,4 +1,24 @@
 [v8r2p36]
+* Use DIRAC v6r14p25
+* Change parsing of template information.
+* use the view for building the sim/datataking descriptions
+* take into account the visibility flag...
+* set the flag to recompute the directory size an option in Operations
+* Add a 1 second sleep in case of failure to add files in TS
+* Fix addBookkeepingQueryRunList() when runs exist
+* Add protection against removed files
+* Replace gLogger.always() with notice() Add some logic for FC2SE in order to take into account banned SEs
+* Use ScriptExecutors methods for removing files/replicas Replace gLogger.always() with gLogger.notice() as advised for scripts
+* Replace DIRAC.exit() with return <statusCode>
+* add DIRAC exit code from execute method
+* Add new instruction sto make the LHCbDirac distribution
+* Don't stop if error
+* @%@%## of bug in the DFC, one call was not fixed properly
+* When the view is used, we have to join to the table
+* Added initial doc on Jenkins
+* FIX: Various fixes to the release guide for prod
+
+[v8r2p36]
 * Use Dirac v6r14p24
 * Make a look on eventTypes rather than a query with a list, it is faster
 * Add dock string

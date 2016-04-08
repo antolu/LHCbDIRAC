@@ -6,6 +6,7 @@ __RCSID__ = "$Id$"
 import os
 import datetime
 import random
+import time
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR, exit as DIRACExit
 from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -1002,10 +1003,13 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
             runDict.setdefault( int( runID ), [] ).append( lfn )
       else:
         return res
-    res = transClient.addFilesToTransformation( transID, lfnChunk )
-    if not res['OK']:
-      gLogger.fatal( "Error adding %d files to transformation" % len( lfnChunk ), res['Message'] )
-      DIRACExit( 2 )
+    while True:
+      res = transClient.addFilesToTransformation( transID, lfnChunk )
+      if not res['OK']:
+        gLogger.error( "Error adding %d files to transformation, retry..." % len( lfnChunk ), res['Message'] )
+        time.sleep( 1 )
+      else:
+        break
     added = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added']
     addedLfns += added
     if addRunInfo and res['OK']:

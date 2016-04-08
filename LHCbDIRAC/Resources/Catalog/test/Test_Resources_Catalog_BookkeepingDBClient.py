@@ -4,6 +4,7 @@
 import mock
 import unittest
 
+from DIRAC import gLogger
 import LHCbDIRAC.Resources.Catalog.BookkeepingDBClient as moduleTested
 
 __RCSID__ = "$Id$"
@@ -16,6 +17,7 @@ class BookkeepingDBClientt_TestCase( unittest.TestCase ):
     '''
     Setup
     '''
+    gLogger.setLevel('DEBUG')
 
 #    # Mock external libraries / modules not interesting for the unit test
 #    mock_pathFinder = mock.Mock()
@@ -90,45 +92,6 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     catalog.valid = 'Banzai !'
     res = catalog.isOK()
     self.assertEqual( 'Banzai !', res )
-
-  def test___checkArgumentFormat( self ):
-    ''' tests the output of __checkArgumentFormat
-    '''
-
-    catalog = self.testClass()
-
-    res = catalog._BookkeepingDBClient__checkArgumentFormat( 'path' )
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
-    self.assertEqual( ['path'], res )
-
-    res = catalog._BookkeepingDBClient__checkArgumentFormat( [] )
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
-    self.assertEqual( [], res )
-
-    res = catalog._BookkeepingDBClient__checkArgumentFormat( [ 'path' ] )
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
-    self.assertEqual( ['path'], res )
-
-    res = catalog._BookkeepingDBClient__checkArgumentFormat( [ 'path', 'path2' ] )
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
-    self.assertEqual( ['path','path2'], res )
-
-    res = catalog._BookkeepingDBClient__checkArgumentFormat( {} )
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
-    self.assertEqual( [], res )
-
-    res = catalog._BookkeepingDBClient__checkArgumentFormat( { 'A' : 1, 'B' : 2 } )
-    self.assertEqual( True, res['OK'] )
-    res = res[ 'Value' ]
-    self.assertEqual( [ 'A', 'B'], res )
-
-    res = catalog._BookkeepingDBClient__checkArgumentFormat( 1 )
-    self.assertEqual( False, res['OK'] )
 
   def test__setHasReplicaFlag(self):
     ''' test the output of __setHasReplicaFlag
@@ -350,9 +313,9 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
 
     catalog = self.testClass()
 
-    res = catalog._BookkeepingDBClient__getFileMetadata( [] )
+    res = catalog._BookkeepingDBClient__getFileMetadata( ['A', 'B'] )
     self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res[ 'Value' ] )
+    self.assertEqual( { 'Successful' : {'A': {'FileSize': 1}, 'B': {'FileSize': 2}}, 'Failed' : {} }, res[ 'Value' ] )
 
     res = catalog._BookkeepingDBClient__getFileMetadata( ['A', 'B'] )
     self.assertEqual( True, res['OK'] )
@@ -438,12 +401,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.addFile( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.addFile( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.addFile( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -467,12 +428,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.addReplica( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.addReplica( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.addReplica( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -496,12 +455,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.removeFile( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.removeFile( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.removeFile( [ 'A', 'B', 'C' ] )
     self.assertEqual( True, res['OK'] )
@@ -524,12 +481,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.removeReplica( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.removeReplica( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.removeReplica( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -553,12 +508,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.setReplicaStatus( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.setReplicaStatus( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.setReplicaStatus( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -582,12 +535,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.setReplicaHost( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.setReplicaHost( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.setReplicaHost( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -611,12 +562,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.removeDirectory( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.removeDirectory( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.removeDirectory( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -640,12 +589,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.createDirectory( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.createDirectory( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.createDirectory( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -669,12 +616,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.removeLink( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.removeLink( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.removeLink( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -698,12 +643,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.createLink( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.createLink( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.createLink( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -727,12 +670,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.exists( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.exists( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.exists( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -756,12 +697,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.getFileMetadata( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.getFileMetadata( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.getFileMetadata( [ 'path' ] )
     self.assertEqual( True, res['OK'] )
@@ -787,12 +726,10 @@ class BookkeepingDBClient_Success( BookkeepingDBClientt_TestCase ):
     self.assertEqual( False, res['OK'] )
 
     res = catalog.getFileSize( [] )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.getFileSize( {} )
-    self.assertEqual( True, res['OK'] )
-    self.assertEqual( { 'Successful' : {}, 'Failed' : {} }, res['Value'] )
+    self.assertEqual( False, res['OK'] )
 
     res = catalog.getFileSize( [ 'path' ] )
     self.assertEqual( True, res['OK'] )

@@ -99,7 +99,7 @@ class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
             ports[ 'xxxx' ].append( serviceName )              
           continue  
         
-        port = service.getServicePort() #pylint: disable=E1101
+        port = service.getServicePort() #pylint: disable=no-member
         
         _msg = '%s:%s already taken by %s' % ( serviceName, port, ports.get( port,'' ) )
         
@@ -141,7 +141,7 @@ class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
         
         service = lhcb_ci.component.Component( system, 'Service', serviceName )
         
-        fullServiceName = service.composeServiceName() #pylint: disable=E1101
+        fullServiceName = service.composeServiceName() #pylint: disable=no-member
         
         if self.isException( serviceName ):
           authRules[ fullServiceName ] = { 'xxxx' : 'skipped' }
@@ -150,7 +150,7 @@ class InstallationTest( lhcb_ci.basecase.ServiceTestCase ):
         
         self.log.debug( '%s authorization rules' % fullServiceName )
         
-        res = service.getServiceAuthorization()        #pylint: disable=E1101
+        res = service.getServiceAuthorization()        #pylint: disable=no-member
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         authorization = res[ 'Value' ]
         
@@ -408,11 +408,11 @@ class SmokeTest( lhcb_ci.basecase.ServiceTestCase ):
         res     = service.run()  
         self.assertDIRACEquals( res[ 'OK' ], True, res )
           
-        res = service.ping()                                                        #pylint: disable=E1101
+        res = service.ping()                                                        #pylint: disable=no-member
         self.log.debug( str( res ) )
         self.assertDIRACEquals( res[ 'OK' ], True, res )
         
-        self.assertEquals( res[ 'Value' ][ 'name' ], service.composeServiceName() ) #pylint: disable=E1101
+        self.assertEquals( res[ 'Value' ][ 'name' ], service.composeServiceName() ) #pylint: disable=no-member
         # If everything is OK, the ping should be done within the first 10 seconds
         self.assertEquals( res[ 'Value' ][ 'service uptime' ] < 10, True )
         

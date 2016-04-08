@@ -1,36 +1,28 @@
-# $HeadURL$
-
 """ SystemAdministrator service is a tool to control and monitor the DIRAC services and agents
 """
 
 __RCSID__ = "$Id$"
 
-from types import *
+from types import StringTypes
 from DIRAC.FrameworkSystem.Service.SystemAdministratorHandler import SystemAdministratorHandler as DIRACSystemAdministratorHandler
-from LHCbDIRAC.Core.Utilities import InstallTools
+from LHCbDIRAC.FrameworkSystem.Client.ComponentInstaller import gComponentInstaller
 
 class SystemAdministratorHandler( DIRACSystemAdministratorHandler ):
 
-  types_startService = [ StringTypes ]
-  def export_startService( self, service ):
-    """ Start the specified service
+  types_startComponent = [ StringTypes, StringTypes ]
+  def export_startComponent( self, system, component ):
+    """ Start the specified component, running with the runsv daemon
     """
-    return InstallTools.startService( service )
+    return gComponentInstaller.runsvctrlComponent( system, component, 'u' )
 
-  types_stopService = [ StringTypes ]
-  def export_stopService( self, service ):
-    """ Stop the specified service
+  types_stopComponent = [ StringTypes, StringTypes ]
+  def export_stopComponent( self, system, component ):
+    """ Stop the specified component, running with the runsv daemon
     """
-    return InstallTools.stopService( service )
+    return gComponentInstaller.runsvctrlComponent( system, component, 'd' )
 
-  types_restartService = [ StringTypes ]
-  def export_restartService( self, service ):
-    """ Restart the specified service
+  types_restartComponent = [ StringTypes, StringTypes ]
+  def export_restartComponent( self, system, component ):
+    """ Restart the specified component, running with the runsv daemon
     """
-    return InstallTools.restartService( service )
-
-  types_statusService = [ StringTypes ]
-  def export_statusService( self, service ):
-    """ Check the status of the specified service
-    """
-    return InstallTools.statusService( service )
+    return gComponentInstaller.runsvctrlComponent( system, component, 't' )
