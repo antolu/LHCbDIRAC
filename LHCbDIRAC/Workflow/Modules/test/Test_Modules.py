@@ -1,3 +1,6 @@
+""" Unit tests for Workflo Modules
+"""
+
 import unittest
 import itertools
 import os
@@ -16,6 +19,9 @@ from DIRAC.RequestManagementSystem.Client.File import File
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce, getCPUNormalizationFactorAvg, getProductionParameterValue
 
 # from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
+
+__RCSID__ = "$Id$"
+
 
 class ModulesTestCase( unittest.TestCase ):
   """ Base class for the Modules test cases
@@ -82,16 +88,15 @@ class ModulesTestCase( unittest.TestCase ):
     self.bkc_mock.sendBookkeeping.return_value = {'OK': True, 'Value': ''}
     self.bkc_mock.getFileTypes.return_value = {'OK': True,
                                                'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
-                                                            {'skipCACheck': False, 'delegatedGroup': 'diracAdmin',
-                                                            'timeout': 3600} ), 'getFileTypes', ( {}, ) ),
+                                                              {'skipCACheck': False, 'delegatedGroup': 'diracAdmin',
+                                                               'timeout': 3600} ), 'getFileTypes', ( {}, ) ),
                                                'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
                                                          'Records': [['DAVINCIHIST'], ['DIELECTRON.DST'], ['BU2JPSIK.MDST'],
                                                                      ['SIM'], ['BD2JPSIKS.MDST'],
                                                                      ['BU2JPSIK.DST'], ['BUBDBSSELECTION.DST'],
                                                                      ['LAMBDA.DST'], ['BSMUMUBLIND.DST'], ['HADRONIC.DST']]}}
     self.bkc_mock.getFileMetadata.return_value = {'OK': True,
-                                                  'Value': {'Successful':{
-                                                                          'foo': {'ADLER32': None,
+                                                  'Value': {'Successful':{'foo': {'ADLER32': None,
                                                                                   'FileType': 'SDST',
                                                                                   'FullStat': None,
                                                                                   'GotReplica': 'Yes',
@@ -100,10 +105,8 @@ class ModulesTestCase( unittest.TestCase ):
                                                                                   'FileType': 'SDST',
                                                                                   'FullStat': None,
                                                                                   'GotReplica': 'Yes',
-                                                                                  'RunNumber': 93720}}
-                                                            },
-                                                  'rpcStub': ( ( 'Bookkeeping/BookkeepingManager', ) )
-                                                  }
+                                                                                  'RunNumber': 93720}}},
+                                                  'rpcStub': ( ( 'Bookkeeping/BookkeepingManager', ) )}
 
     self.nc_mock = MagicMock()
     self.nc_mock.sendMail.return_value = {'OK': True, 'Value': ''}
@@ -206,25 +209,25 @@ class ModulesTestCase( unittest.TestCase ):
                         'gaudiSteps': ['someApp_1'], 'outputSEs':{"DAVINCIHIST":"CERN-HIST", "TXT":"SE1"}}, ]
 
     self.step_commons = [{'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
-                         'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
-                         'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
-                         'STEP_INSTANCE_NAME':'someApp_1', 'inputData':'/for/bar/',
-                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
-                                       'outputDataType':'bbb'}]},
+                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
+                          'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
+                          'STEP_INSTANCE_NAME':'someApp_1', 'inputData':'/for/bar/',
+                          'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
+                                         'outputDataType':'bbb'}]},
                          {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
-                         'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
-                         'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
-                         'optionsLine': '', 'inputData':'/for/bar/',
-                         'STEP_INSTANCE_NAME':'someApp_1',
-                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
-                                       'outputDataType':'bbb'}]},
+                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
+                          'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
+                          'optionsLine': '', 'inputData':'/for/bar/',
+                          'STEP_INSTANCE_NAME':'someApp_1',
+                          'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
+                                         'outputDataType':'bbb'}]},
                          {'applicationName':'someApp', 'applicationVersion':'v1r0', 'eventType': '123456789',
-                         'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
-                         'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
-                         'extraOptionsLine': 'blaBla', 'inputData':'/for/bar/',
-                         'STEP_INSTANCE_NAME':'someApp_1',
-                         'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
-                                       'outputDataType':'bbb'}]}]
+                          'applicationLog':'appLog', 'extraPackages':'', 'XMLSummary':'XMLSummaryFile',
+                          'numberOfEvents':'100', 'BKStepID':'123', 'StepProcPass':'Sim123', 'outputFilePrefix':'pref_',
+                          'extraOptionsLine': 'blaBla', 'inputData':'/for/bar/',
+                          'STEP_INSTANCE_NAME':'someApp_1',
+                          'listoutput':[{'outputDataName':self.prod_id + '_' + self.prod_job_id + '_',
+                                         'outputDataType':'bbb'}]}]
     self.step_number = '321'
     self.step_id = '%s_%s_%s' % ( self.prod_id, self.prod_job_id, self.step_number )
 
@@ -303,8 +306,7 @@ class ModulesTestCase( unittest.TestCase ):
                      'ErrorLogging_Step1_coredump.log', '123_00000456_request.xml', 'lfn1', 'lfn2', 'XMLSummaryFile',
                      'aaa.bhadron.dst', 'bbb.calibration.dst', 'ProductionOutputData', 'data.py', '123_00000456_request.json',
                      '00000123_00000456.tar', 'someOtherDir', 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'myfoo.blah',
-                     'prodConf_someApp__.py', 'prodConf_someApp___.py'
-                     ]:
+                     'prodConf_someApp__.py', 'prodConf_someApp___.py']:
       try:
         os.remove( fileProd )
       except OSError:
@@ -351,50 +353,28 @@ class ModuleBaseSuccess( ModulesTestCase ):
     stepMasks = ( '', '5', '', ['2'], ['1', '3'], '', '', ['6'], [],
                   ['1', '3'], )
 
-    results = (
-                {
-                 '00012345_00012345_4.dst':
-                   {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
-                    'type': 'dst'}
-                 },
+    results = ({'00012345_00012345_4.dst':{'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
+                                            'type': 'dst'}},
                 {},
-                 {
-                  '00012345_00012345_1.sim': {'type': 'sim'}
-                 },
-                 {
-                  '00012345_00012345_2.digi': {'type': 'digi'},
-                 },
-                 {
-                  '00012345_00012345_3.digi': {'type': 'digi'},
-                  '00012345_00012345_1.sim': {'type': 'sim'}
-                 },
-                 {
-                  '00012345_00012345_5.AllStreams.dst':
-                   {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
-                    'type': 'allstreams.dst'}
-                 },
-                 {
-                  '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
+                {'00012345_00012345_1.sim': {'type': 'sim'}},
+                {'00012345_00012345_2.digi': {'type': 'digi'},},
+                 {'00012345_00012345_3.digi': {'type': 'digi'},
+                  '00012345_00012345_1.sim': {'type': 'sim'}},
+                 {'00012345_00012345_5.AllStreams.dst':{'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
+                                                        'type': 'allstreams.dst'}},
+                 {'00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
                    {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
-                    'type': 'b2d0pi_d2kkpipi.strip.dst'}
-                 },
-                 {
-                  '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
+                    'type': 'b2d0pi_d2kkpipi.strip.dst'}},
+                 {'00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
                    {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
-                    'type': 'b2d0pi_d2kkpipi.strip.dst'}
-                 },
-                 {
-                  '00012345_00012345_2.digi': {'type': 'digi'},
+                    'type': 'b2d0pi_d2kkpipi.strip.dst'}},
+                 {'00012345_00012345_2.digi': {'type': 'digi'},
                   '00012345_00012345_3.digi': {'type': 'digi'},
                   '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
                    {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
-                    'type': 'b2d0pi_d2kkpipi.strip.dst'}
-                 },
-                {
-                 '00012345_00012345_3.digi': {'type': 'digi'},
-                 'Gauss_HIST_1.root':{'type':'GAUSSHIST'}
-                },
-               )
+                    'type': 'b2d0pi_d2kkpipi.strip.dst'}},
+                {'00012345_00012345_3.digi': {'type': 'digi'},
+                 'Gauss_HIST_1.root':{'type':'GAUSSHIST'}},)
 
     for fileMask, result, stepMask in itertools.izip( fileMasks, results, stepMasks ):
       res = self.mb._applyMask( candidateFiles, fileMask, stepMask )
@@ -801,39 +781,38 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
         self.assertRaises( RuntimeError, getCPUNormalizationFactorAvg )
 
         # success
-        mockGetQueues.return_value = S_OK( {'LCG.CERN.ch':
-          {'ce201.cern.ch': {'CEType': 'CREAM',
-          'OS': 'ScientificCERNSLC_Boron_5.5',
-          'Pilot': 'True',
-          'Queues': {'cream-lsf-grid_2nh_lhcb': {'MaxTotalJobs': '1000',
-            'MaxWaitingJobs': '20',
-            'SI00': '1000',
-            'maxCPUTime': '120'},
-           'cream-lsf-grid_lhcb': {'MaxTotalJobs': '1000',
-            'MaxWaitingJobs': '100',
-            'SI00': '1000',
-            'WaitingToRunningRatio': '0.2',
-            'maxCPUTime': '10080'}},
-          'SI00': '5242',
-          'SubmissionMode': 'Direct',
-          'architecture': 'x86_64',
-          'wnTmpDir': '.'},
-         'ce202.cern.ch': {'CEType': 'CREAM',
-          'OS': 'ScientificCERNSLC_Boron_5.8',
-          'Pilot': 'True',
-          'Queues': {'cream-lsf-grid_2nh_lhcb': {'MaxTotalJobs': '1000',
-            'MaxWaitingJobs': '20',
-            'SI00': '1000',
-            'maxCPUTime': '120'},
-           'cream-lsf-grid_lhcb': {'MaxTotalJobs': '1000',
-            'MaxWaitingJobs': '100',
-            'SI00': '1000',
-            'WaitingToRunningRatio': '0.2',
-            'maxCPUTime': '10080'}},
-          'SI00': '5242',
-          'SubmissionMode': 'Direct',
-          'architecture': 'x86_64',
-          'wnTmpDir': '.'}}} )
+        mockGetQueues.return_value = S_OK( {'LCG.CERN.ch': {'ce201.cern.ch': {'CEType': 'CREAM',
+                                                                              'OS': 'ScientificCERNSLC_Boron_5.5',
+                                                                              'Pilot': 'True',
+                                                                              'Queues': {'cream-lsf-grid_2nh_lhcb': {'MaxTotalJobs': '1000',
+                                                                              'MaxWaitingJobs': '20',
+                                                                              'SI00': '1000',
+                                                                              'maxCPUTime': '120'},
+                                                                              'cream-lsf-grid_lhcb': {'MaxTotalJobs': '1000',
+                                                                              'MaxWaitingJobs': '100',
+                                                                              'SI00': '1000',
+                                                                              'WaitingToRunningRatio': '0.2',
+                                                                              'maxCPUTime': '10080'}},
+                                                                              'SI00': '5242',
+                                                                              'SubmissionMode': 'Direct',
+                                                                              'architecture': 'x86_64',
+                                                                              'wnTmpDir': '.'},
+                                                                              'ce202.cern.ch': {'CEType': 'CREAM',
+                                                                              'OS': 'ScientificCERNSLC_Boron_5.8',
+                                                                              'Pilot': 'True',
+                                                                              'Queues': {'cream-lsf-grid_2nh_lhcb': {'MaxTotalJobs': '1000',
+                                                                              'MaxWaitingJobs': '20',
+                                                                              'SI00': '1000',
+                                                                              'maxCPUTime': '120'},
+                                                                              'cream-lsf-grid_lhcb': {'MaxTotalJobs': '1000',
+                                                                              'MaxWaitingJobs': '100',
+                                                                              'SI00': '1000',
+                                                                              'WaitingToRunningRatio': '0.2',
+                                                                              'maxCPUTime': '10080'}},
+                                                                              'SI00': '5242',
+                                                                              'SubmissionMode': 'Direct',
+                                                                              'architecture': 'x86_64',
+                                                                              'wnTmpDir': '.'}}} )
         out = getCPUNormalizationFactorAvg()
         self.assertEqual( out, 4.0 )
 
@@ -1101,6 +1080,14 @@ class BookkeepingReportSuccess( ModulesTestCase ):
                                 wf_commons, step_commons,
                                 self.step_number, self.step_id, False )
         self.assertTrue( res['OK'] )
+
+    # no errors, no input data
+    res = self.bkr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                            self.workflowStatus, self.stepStatus,
+                            wf_commons, step_commons,
+                            self.step_number, self.step_id, True )
+    self.assertTrue( res['OK'] )
+    os.remove('bookkeeping_123_00000456_321.xml')
 
 
 class BookkeepingReportFailure( ModulesTestCase ):

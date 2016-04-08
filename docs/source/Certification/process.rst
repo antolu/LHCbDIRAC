@@ -31,7 +31,7 @@ Nonetheless, we have created a tool to easily identify all new exceptions and er
 
 ::
 	
-	codeLocation=http://svn.cern.ch/guest/dirac/LHCbTestDirac/trunk/LHCbTestDirac/System/LogsParser/
+	codeLocation=https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/tests/System/LogsParser/
 	mkdir /tmp/logTest
 	cd /tmp/logTest 
 	wget -r -np -nH --cut-dirs=7 $codeLocation
@@ -41,8 +41,8 @@ Nonetheless, we have created a tool to easily identify all new exceptions and er
 In addition to the server side tests, at least 2 test files have been create that can be run on the client side. You can get them via:
 ::
 
-   wget http://svnweb.cern.ch/world/wsvn/dirac/LHCbTestDirac/trunk/LHCbTestDirac/System/Client/client_test.csh
-   wget http://svnweb.cern.ch/world/wsvn/dirac/LHCbTestDirac/trunk/LHCbTestDirac/System/GridTestSubmission/testUserJobs.py
+   wget https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/tests/System/Client/client_test.csh
+   wget https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/tests/System/GridTestSubmission/testUserJobs.py
 
 and again simply run them (csh and python) 
 

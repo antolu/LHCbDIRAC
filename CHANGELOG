@@ -1,4 +1,20 @@
-[v8r2p36]
+[v8r2p38]
+use DIRAC v6r14p25
+* Change URL for general doc of DIRAC
+* add the command to really update the pilot version
+* Better doc for releases
+* if GSI exist do try to re-create the link
+* add more information about the client installation
+* Using input events only if present, else outputEv
+* recording input events in BK XML summary
+* just pylint types of fixes
+* Change location for tools and create scripts directory
+* add projectConfig.json
+* Change location of manifest
+* new generation of manifest and LHCbDirac.xenv
+* add Gen_GSI and gen_xenv
+
+[v8r2p37]
 * Use DIRAC v6r14p25
 * Change parsing of template information.
 * use the view for building the sim/datataking descriptions

@@ -2,8 +2,6 @@
     (which is done in the uploadOutput)
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import time
 import re
@@ -22,6 +20,8 @@ from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary, XMLSummaryError
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import addChildNode
+
+__RCSID__ = "$Id$"
 
 class BookkeepingReport( ModuleBase ):
   """ BookkeepingReport class
@@ -47,7 +47,6 @@ class BookkeepingReport( ModuleBase ):
     self.jobType = ''
     self.stepOutputs = []
     self.histogram = False
-    self.eventsN = 0
     self.xf_o = None
 
     self.ldate = None
@@ -79,11 +78,8 @@ class BookkeepingReport( ModuleBase ):
 
       if saveOnFile:
         bfilename = 'bookkeeping_' + self.step_id + '.xml'
-        # bfilename = '%s_Bookkeeping_Step%d.xml' % ( self.applicationName, self.step_number )
-        # bfilename = '%s_%s_Bookkeeping.xml' % ( self.step_id, self.applicationName )
-        bfile = open( bfilename, 'w' )
-        print >> bfile, doc
-        bfile.close()
+        with open( bfilename, 'w' ) as bfile:
+          print >> bfile, doc
       else:
         print doc
 
@@ -337,17 +333,8 @@ class BookkeepingReport( ModuleBase ):
 
     typedParams.append( ( "StepID", self.BKstepID ) )
 
-    try:
-      typedParams.append( ( "NumberOfEvents", self.xf_o.outputEventsTotal ) )
-    except AttributeError:
-      if self.jobType.lower() == 'merge':
-        res = self.bkClient.getFileMetadata( self.stepInputData )
-        if not res['OK']:
-          raise AttributeError( "Can't get the BKK file metadata" )
-        self.eventsN = sum( fileMeta['EventStat'] for fileMeta in res['Value']['Successful'].values() )
-        typedParams.append( ( "NumberOfEvents", self.eventsN ) )
-      else:
-        raise XMLSummaryError
+    typedParams.append( ( "NumberOfEvents",
+                          self.xf_o.inputEventsTotal if self.xf_o.inputEventsTotal else self.xf_o.outputEventsTotal) )
 
     # Add TypedParameters to the XML file
     for typedParam in typedParams:
@@ -387,8 +374,6 @@ class BookkeepingReport( ModuleBase ):
        </OutputFile>
     '''
 
-    statistics = "0"
-
     if self.eventType != None:
       eventtype = self.eventType
     else:
@@ -415,7 +400,7 @@ class BookkeepingReport( ModuleBase ):
       self.log.info( 'Looking at output %s %s' % ( output, outputtype ) )
       typeName = outputtype.upper()
       typeVersion = '1'
-      fileStats = statistics
+      fileStats = '0'
       if bkTypeDict.has_key( output ):
         typeVersion = getOutputType( output, self.stepInputData )[output]
         self.log.info( 'Setting POOL XML catalog type for %s to %s' % ( output, typeVersion ) )
@@ -425,18 +410,13 @@ class BookkeepingReport( ModuleBase ):
                                                                                                typeName ) )
 
         try:
-          fileStats = self.xf_o.outputsEvents[output]
-        except KeyError, e:
+          fileStats = str( self.xf_o.outputsEvents[output] )
+        except KeyError as e:
           if ( 'hist' in outputtype.lower() ) or ( '.root' in outputtype.lower() ):
-            self.log.warn( 'HIST file %s not found in XML summary, event stats set to "Unknown"' % output )
+            self.log.warn( "HIST file %s not found in XML summary, event stats set to 'Unknown'" % output )
             fileStats = 'Unknown'
           else:
             raise KeyError( e )
-        except AttributeError:
-          if self.jobType.lower() == 'merge':
-            fileStats = self.eventsN
-          else:
-            fileStats = 'Unknown'
 
       if not os.path.exists( output ):
         self.log.error( 'File does not exist:' , output )
@@ -445,7 +425,7 @@ class BookkeepingReport( ModuleBase ):
       if not self.step_commons.has_key( 'size' ) or output not in self.step_commons[ 'size' ]:
         try:
           outputsize = str( os.path.getsize( output ) )
-        except:
+        except OSError:
           outputsize = '0'
       else:
         outputsize = self.step_commons[ 'size' ][ output ]
@@ -515,7 +495,7 @@ class BookkeepingReport( ModuleBase ):
       if outputtype != 'LOG':
         oFile = addChildNode( oFile, "Parameter", 0, ( "EventTypeId", eventtype ) )
         if fileStats != 'Unknown':
-          oFile = addChildNode( oFile, "Parameter", 0, ( "EventStat", str( fileStats ) ) )
+          oFile = addChildNode( oFile, "Parameter", 0, ( "EventStat", fileStats ) )
 
       oFile = addChildNode( oFile, "Parameter", 0, ( "FileSize", outputsize ) )
 
@@ -559,16 +539,14 @@ class BookkeepingReport( ModuleBase ):
     try:
       result[ "HostName"  ] = socket.gethostname()
 
-      cpuInfo = open ( "/proc/cpuinfo", "r" )
-      info = cpuInfo.readlines()
-      cpuInfo.close()
+      with open ( "/proc/cpuinfo", "r" ) as cpuInfo:
+        info = cpuInfo.readlines()
       result[ "CPU(MHz)"  ] = info[6].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
       result[ "ModelName" ] = info[4].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
       result[ "CacheSize(kB)" ] = info[7].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
 
-      memInfo = open ( "/proc/meminfo", "r" )
-      info = memInfo.readlines()
-      memInfo.close()
+      with open( "/proc/meminfo", "r" ) as memInfo:
+        info = memInfo.readlines()
       result["Memory(kB)"] = info[3].split( ":" )[1].replace( " ", "" ).replace( "\n", "" )
     except Exception as x:
       self.log.fatal( 'BookkeepingReport failed to obtain node information with Exception:' )
