@@ -13,18 +13,17 @@ import types
 
 
 
-READ_METHODS = [ 'exists', 'isFile', 'isDirectory', 'isLink', 'getFileSize', 'getFileMetadata' ]
-
-WRITE_METHODS = [ 'addFile', 'addReplica', 'removeFile', 'removeReplica', 'setReplicaStatus',
-                  'setReplicaProblematic', 'setReplicaHost', 'removeDirectory', 'createDirectory',
-                  'removeLink', 'createLink' ]
-
-NO_LFN_METHODS = []
 
 
 class BookkeepingDBClient( FileCatalogClientBase ):
   """ File catalog client for bookkeeping DB
   """
+
+  READ_METHODS = FileCatalogClientBase.READ_METHODS + ['isDirectory', 'isLink', 'getFileSize', 'getFileMetadata' ]
+  WRITE_METHODS = FileCatalogClientBase.WRITE_METHODS + [ 'addFile', 'addReplica', 'removeFile', 'removeReplica', 'setReplicaStatus',
+                  'setReplicaProblematic', 'setReplicaHost', 'removeDirectory', 'createDirectory',
+                  'removeLink', 'createLink' ]
+
   def __init__( self, url = False, **kwargs ):
     """ Constructor of the Bookkeeping catalogue client
     """
@@ -48,23 +47,6 @@ class BookkeepingDBClient( FileCatalogClientBase ):
         self.url = 'Bookkeeping/BookkeepingManager'
       self.server = RPCClient( self.url, timeout = 120 )
     return self.server
-
-  @staticmethod
-  def getInterfaceMethods():
-    """ Get the methods implemented by the File Catalog client
-
-    :return tuple: ( read_methods_list, write_methods_list, nolfn_methods_list )
-    """
-    return ( READ_METHODS, WRITE_METHODS, NO_LFN_METHODS )
-
-  @staticmethod
-  def hasCatalogMethod( methodName ):
-    """ Check of a method with the given name is implemented
-    :param str methodName: the name of the method to check
-    :return: boolean Flag
-    """
-    return methodName in ( READ_METHODS + WRITE_METHODS + NO_LFN_METHODS )
-
 
   def isOK( self ):
     ''' Returns valid
