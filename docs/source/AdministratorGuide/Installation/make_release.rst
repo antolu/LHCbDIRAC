@@ -147,7 +147,9 @@ Creating the release tarball, add uploading it to the LHCb web service
 Login on lxplus, run ::
 
   SetupProject LHCbDirac
+
   git archive --remote ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
+
   dirac-distribution -r v8r2p36 -l LHCb -C file:///`pwd`/releases.cfg (this may take some time)
 
 Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like::
@@ -156,6 +158,7 @@ Don't forget to read the last line of the previous command to copy the generated
 
 And just copy/paste/execute it.
 
+If you do not have access to lhcbprod, you can use your user name.
 
 
 2. Making basic verifications
