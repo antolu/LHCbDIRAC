@@ -1,24 +1,27 @@
 """ File Catalog Client Command Line Interface. Extension for LHCb, for consumers.
 """
 
-__RCSID__ = "$Id$"
-
 from DIRAC import gLogger
 from DIRAC.FrameworkSystem.Client.ComponentMonitoringClient import ComponentMonitoringClient
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClientCLI import SystemAdministratorClientCLI as DIRACSystemAdministratorClientCLI
 from DIRAC.FrameworkSystem.Client.SystemAdministratorClient import SystemAdministratorClient
 
+__RCSID__ = "$Id$"
+
 class SystemAdministratorClientCLI( DIRACSystemAdministratorClientCLI ):
+  """ Extension of DIRAC SysAdmin CLI
   """
-  """
+
   def __init__( self, host = None ):
+    """ Adding some external services
+    """
+
     DIRACSystemAdministratorClientCLI.__init__( self, host )
     self.runitComponents = [ "service", "agent", "executor", "consumer" ]
     self.externalServices = [ "vcycle", "squid" ]
 
   def do_install( self, args ):
-    """
-        Install various DIRAC components
+    """ Install various DIRAC components
 
         usage:
 
@@ -113,7 +116,7 @@ class SystemAdministratorClientCLI( DIRACSystemAdministratorClientCLI ):
     if option in self.externalServices:
       self.manageService( option, 'status' )
     else:
-      self.__errMsg( '%s is not a valid service' % option )
+      self._errMsg( '%s is not a valid service' % option )
 
   def manageService( self, service, action ):
     """ Manage services running on this machine
@@ -125,10 +128,10 @@ class SystemAdministratorClientCLI( DIRACSystemAdministratorClientCLI ):
     client = ComponentMonitoringClient()
     result = client.getInstallations( { 'UninstallationTime': None }, { 'System': 'External', 'Module': service, 'Type': 'External' }, { 'HostName': self.host }, False )
     if not result[ 'OK' ]:
-      self.__errMsg( result[ 'Message' ] )
+      self._errMsg( result[ 'Message' ] )
       return
     elif  len( result[ 'Value' ] ) < 1:
-      self.__errMsg( '%s is not installed' % ( service ) )
+      self._errMsg( '%s is not installed' % ( service ) )
       return
 
     client = SystemAdministratorClient( self.host, self.port )
@@ -142,7 +145,7 @@ class SystemAdministratorClientCLI( DIRACSystemAdministratorClientCLI ):
       result = client.statusService( service )
 
     if not result[ 'OK' ]:
-      self.__errMsg( result[ 'Message' ] )
+      self._errMsg( result[ 'Message' ] )
       return
 
     gLogger.notice( result[ 'Value' ] )
