@@ -6,7 +6,7 @@ The following procedure applies fully to LHCbDIRAC production releases, like pat
 For pre-releases (AKA certification releases, there are some minor changes to consider).
 
 Prerequisites
-====================
+=============
 
 The release manager needs to:
 
@@ -104,7 +104,7 @@ Time to tag and push::
   # push "newMaster" to upstream/master
   git push --tags upstream newMaster:master
   # delete your local newMaster
-  # before chanhe your branch git checkout "existing branch name"
+  # before change your branch use git checkout "existing branch name"
   git branch -d newMaster
 
 
@@ -128,7 +128,7 @@ The last operation may result in potential conflicts.
 If happens, you'll need to manually update the conflicting files (see e.g. this `guide <https://githowto.com/resolving_conflicts>`_).
 As a general rule, prefer the master fixes to the "HEAD" (devel) fixes. Remember to add and commit once fixed.
 
-Plase fix the conflict if some files are conflictiong. Do not forget to to execute the following::
+Plase fix the conflict if some files are conflicting. Do not forget to to execute the following::
 
   git add -A && git commit -m " message"
 
@@ -143,7 +143,7 @@ Conflicts or not, you'll need to push back to upstream::
 
 
 Creating the release tarball, add uploading it to the LHCb web service
-```````````````````````````````````````````````````````````````````````
+``````````````````````````````````````````````````````````````````````
 Login on lxplus, run ::
 
   SetupProject LHCbDirac
@@ -162,7 +162,7 @@ If you do not have access to lhcbprod, you can use your user name.
 
 
 2. Making basic verifications
-==============================
+=============================
 
 Once the tarball is done and uploaded, the release manager is asked to make basic verifications, via Jenkins,
 if the release has been correctly created.
@@ -191,14 +191,14 @@ This job will simply install the pilot. Please just check if the result does not
 
 
 3. Advertise the new release
-==============================
+============================
 
 Before you start the release you must write an Elog entry 1 hour before you start the deployment.
 You have to select Production and Release tick boxes. When the intervention is over you must notify the users (reply to the Elog message). 
 
 
 4. Deploying the release
-==========================
+========================
 
 Deploying a release means deploying it for the various installations::
 
@@ -208,7 +208,7 @@ Deploying a release means deploying it for the various installations::
 
 
 release for client
-`````````````````````
+``````````````````
 
 Please refer to this `TWIKI page <https://twiki.cern.ch/twiki/bin/view/LHCb/ProjectRelease#LHCbDirac>`_
 a quick test to validate the installation is to run the SHELL script $LHCBRELEASE/LHCBDIRAC/LHCBDIRAC_vXrY/LHCbDiracSys/test/client_test.csh
@@ -244,7 +244,7 @@ If you need to install a new version in the development environment, follow thes
 
 
 Server
-```````
+``````
 
 To install it on the VOBOXes from lxplus::
 
@@ -258,7 +258,7 @@ The (better) alternative is using the web portal.
 
 
 Pilot
-``````
+`````
 
 Use the following script (from, e.g., lxplus after having run `lb-run LHCbDIRAC tcsh`)::
 
