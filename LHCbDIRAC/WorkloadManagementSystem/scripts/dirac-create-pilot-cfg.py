@@ -30,7 +30,6 @@ Script.registerSwitch( "C:", "ConfigurationServer=", "ConfigurationServer addres
 Script.registerSwitch( "N:", "cfgFileName=", "Cfg file name (Mandatory)", setcfgName )
 Script.parseCommandLine( ignoreErrors = True )
 
-gConfig.setOptionValue( '/DIRAC/Configuration/Servers', self.pp.configServer )
-gConfig.setOptionValue( '/LocalInstallation/ConfigurationServer', self.pp.configServer )
+gConfig.setOptionValue( '/DIRAC/Configuration/Servers', csAddress )
+gConfig.setOptionValue( '/LocalInstallation/ConfigurationServer', csAddress )
 gConfig.dumpLocalCFGToFile( cfgName )
-

@@ -1,13 +1,14 @@
 """ Client for BookkeepingDB file catalog
 """
 
-__RCSID__ = "$Id$"
+import types
 
 from DIRAC                                                          import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient                                     import RPCClient
 from DIRAC.Core.Utilities.List                                      import breakListIntoChunks
 from DIRAC.Resources.Catalog.FileCatalogueBase                      import FileCatalogueBase
-import types
+
+__RCSID__ = "$Id$"
 
 class BookkeepingDBClient( FileCatalogueBase ):
   """ File catalog client for bookkeeping DB
