@@ -13,10 +13,10 @@
 #set -o errexit
 
 # first first: sourcing dirac_ci file
-source $WORKSPACE/DIRAC/tests/Jenkins/dirac_ci.sh
+source $TESTCODE/DIRAC/tests/Jenkins/dirac_ci.sh
 
 #install file
-INSTALL_CFG_FILE='$WORKSPACE/LHCbDIRAC/tests/Jenkins/install.cfg'
+INSTALL_CFG_FILE='$TESTCODE/LHCbDIRAC/tests/Jenkins/install.cfg'
 
 
 #.............................................................................
