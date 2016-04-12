@@ -12,8 +12,8 @@
 #TODO: fix
 #set -o errexit
 
-# first first: sourcing dirac_ci file
-source $TESTCODE/DIRAC/tests/Jenkins/dirac_ci.sh
+# first first: sourcing dirac_ci file # the location from where this script is sourced is critical
+source TestCode/DIRAC/tests/Jenkins/dirac_ci.sh
 
 #install file
 INSTALL_CFG_FILE='$TESTCODE/LHCbDIRAC/tests/Jenkins/install.cfg'
