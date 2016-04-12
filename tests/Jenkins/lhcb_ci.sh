@@ -34,15 +34,15 @@ INSTALL_CFG_FILE='$WORKSPACE/LHCbDIRAC/tests/Jenkins/install.cfg'
 function findRelease(){
 	echo '[findRelease]'
 
-	cd $WORKSPACE/LHCbDIRAC
+	cd $TESTCODE/LHCbDIRAC
 	# store the current branch
 	currentBranch=`git rev-parse --abbrev-ref HEAD`
 	# get the releases.cfg file
 	git checkout devel
-	cp $WORKSPACE/LHCbDIRAC/LHCbDIRAC/releases.cfg $WORKSPACE/releases.cfg
+	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/releases.cfg $TESTCODE/releases.cfg
 	# reset the branch
 	git checkout $currentBranch
-	cd $WORKSPACE
+	cd $TESTCODE
 
   # Match project ( LHCbDIRAC ) version from releases.cfg
   # Example releases.cfg
@@ -180,11 +180,7 @@ function LHCbDIRACPilotInstall(){
 
 function fullLHCbPilot(){
 
-	if [ ! -z "$DEBUG" ]
-	then
-		echo 'Running in DEBUG mode'
-		export DEBUG='-ddd'
-	fi
+	# This supposes that the version to install is got already
 
 	#first simply install via the pilot
 	LHCbDIRACPilotInstall
@@ -197,7 +193,7 @@ function fullLHCbPilot(){
 	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTCFG $PILOTCFG $DEBUG
 
 	#be sure we only have pilot.cfg
-	mv $WORKSPACE/etc/dirac.cfg $WORKSPACE/etc/dirac.cfg-not-here
+	mv $PILOTINSTALLDIR/etc/dirac.cfg $PILOTINSTALLDIR/etc/dirac.cfg-not-here
 
 	getUserProxy
 
@@ -209,9 +205,9 @@ function getUserProxy(){
 
 	echo 'Started getUserProxy'
 
-	touch $PILOTCFG
+	touch $PILOTINSTALLDIR/$PILOTCFG
 	#Configure for CPUTimeLeft
-	python $WORKSPACE/DIRAC/tests/Jenkins/dirac-cfg-update.py -F $PILOTCFG -S $DIRACSETUP -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem $DEBUG
+	python $TESTCODE/DIRAC/tests/Jenkins/dirac-cfg-update.py -F $PILOTINSTALLDIR/$PILOTCFG -S $DIRACSETUP -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem $DEBUG
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
 
@@ -219,12 +215,6 @@ function getUserProxy(){
 }
 
 function submitAndMatch(){
-
-	if [ ! -z "$DEBUG" ]
-	then
-		echo 'Running in DEBUG mode'
-		export DEBUG='-ddd'
-	fi
 
 	# I execute in a subshell
 	(
@@ -235,7 +225,7 @@ function submitAndMatch(){
 	#Run the full pilot, including the JobAgent
 	prepareForPilot
 	default
-	cp $WORKSPACE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py $WORKSPACE/LHCbPilotCommands.py
+	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py $TESTCODE/LHCbPilotCommands.py
 
 	if [ ! -z "$PILOT_VERSION" ]
 	then
@@ -300,11 +290,6 @@ function setupLHCbDIRAC(){
 function submitJob(){
 
 	#Here, since I have CVMFS only, I can't use the "latest" pre-release, because won't be on CVMFS
-	if [ ! -z "$DEBUG" ]
-	then
-		echo 'Running in DEBUG mode'
-		export DEBUG='-ddd'
-	fi
 
 	#Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
 	getUserProxy #this won't really download the proxy, so that's why the next command is needed
