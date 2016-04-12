@@ -13,7 +13,7 @@ CREATE OR REPLACE package BKUTILITIES as
 procedure updateNbevt(v_production number);
 procedure updateJobNbofevt(v_jobid number);
 procedure updateEventInputStat(v_production number, fixstripping BOOLEAN);
-procedure updateEvtinpStat(v_jobid number, fixstripping BOOLEAN);
+procedure updateJobEvtinpStat(v_jobid number, fixstripping BOOLEAN);
 
 end;
 /
@@ -21,6 +21,7 @@ end;
 CREATE OR REPLACE package body BKUTILITIES as
 procedure updateNbevt(v_production number)is
 begin
+/* It updates the number of events for a given production*/
 for c in (select j.jobid 
             from 
               jobs j 
@@ -34,7 +35,8 @@ end;
 procedure updateJobNbofevt(v_jobid number)is
 sumevt number;
 begin
-
+/* update the number of event for a given job. 
+The number of events is the sum of the eventstat of the input files */
 select sum(f.eventstat) into sumevt 
   from 
    jobs j, files f, inputfiles i 
@@ -61,10 +63,15 @@ end;
 
 procedure updateEventInputStat(v_production number, fixstripping BOOLEAN) is
 begin
+/* It updates the eventinputstat for a given production. 
+If the fixstripping is true, the value of the eventinputstat is calculated using the 
+eventinputstat for the input jobs, othetwise we use the eventstat for the input files. 
+for example: If we want to fix the eventinputstat of reconstructed files (FULL.DST), fixstripping equal False*/
+ 
 if fixstripping = TRUE THEN
   FOR c in (select j.jobid from jobs j, files f where j.jobid=f.jobid and j.production=v_production)
     LOOP
-      updateEvtinpStat(c.jobid, fixstripping);
+      updateJobEvtinpStat(c.jobid, fixstripping);
     END LOOP;
 ELSE
 for c in (select j.jobid 
@@ -76,12 +83,13 @@ for c in (select j.jobid
                   f.gotreplica='Yes' and 
                   f.visibilityflag='Y')
   LOOP
-    updateEvtinpStat(c.jobid, fixstripping);
+    updateJobEvtinpStat(c.jobid, fixstripping);
   END LOOP;
 END IF;
 end;
 
-procedure updateEvtinpStat(v_jobid number, fixstripping BOOLEAN) is
+procedure updateJobEvtinpStat(v_jobid number, fixstripping BOOLEAN) is
+/*It updates the eventinputstat for a given job */
 sumevtinp number;
 BEGIN
  if fixstripping=TRUE THEN
