@@ -4,7 +4,9 @@ import os
 import logging
 import sys
 
+
 from optparse import OptionParser
+from distutils.sysconfig import project_base
 
 parser = OptionParser()
 parser.add_option( '-c', '--cmtconfig', action = 'store',
@@ -51,6 +53,7 @@ if options.manifest_file:
   manifest = mg.getDocument()
   with open( options.manifest_file, "w" ) as f:
       f.write( prettify( manifest ) )
+
 
 # Now the xenv file
 if options.xenv_file:
