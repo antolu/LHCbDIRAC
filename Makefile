@@ -25,7 +25,7 @@ scripts:
 gsi:
 	mkdir -p InstallArea/$(CMTCONFIG)/lib
 	$(DIST-TOOLS)/gen_GSI $(DIRACPLAT) $(PYTHON_VERSION_TWODIGIT) $(PYTHON_VERSION_TWO)
-        
+
 $(XENV) $(MANIFEST): Makefile
 	python $(DIST-TOOLS)/gen_xenv.py -c $(CMTCONFIG) -f $(XENV) -m $(MANIFEST) -p $(PYTHON_VERSION_TWO) -d $(LHCBRELEASES)
 
@@ -34,7 +34,7 @@ $(XENV)c: $(XENV)
 
 clean:
 	$(RM) $(XENV) $(XENV)c $(MANIFEST)
-	
+
 purge: clean
 	$(RM) -r InstallArea/$(CMTCONFIG)
 	$(RM) -r scripts
