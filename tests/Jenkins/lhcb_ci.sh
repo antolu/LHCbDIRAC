@@ -159,7 +159,7 @@ function LHCbDIRACPilotInstall(){
 	prepareForPilot
 	default
 
-	cp $WORKSPACE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py $WORKSPACE/LHCbPilotCommands.py
+	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py .
 
 	if [ ! -z "$LHCBDIRAC_RELEASE" ]
 	then
