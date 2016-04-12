@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 .PHONY: test
 
 #clean:
@@ -12,7 +11,6 @@ test:
 docs: 
 	cd docs && make html && cd ..
 
-=======
 OS = $(word 2,$(subst -, ,$(CMTCONFIG)))
 
 MANIFEST = InstallArea/$(CMTCONFIG)/manifest.xml
@@ -60,4 +58,4 @@ install:
 install/fast:
 unsafe-install:
 post-install:
->>>>>>> upstream/master
+
