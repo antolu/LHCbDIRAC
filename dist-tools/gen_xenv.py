@@ -4,9 +4,7 @@ import os
 import logging
 import sys
 
-
 from optparse import OptionParser
-from distutils.sysconfig import project_base
 
 parser = OptionParser()
 parser.add_option( '-c', '--cmtconfig', action = 'store',
