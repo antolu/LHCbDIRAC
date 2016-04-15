@@ -2,22 +2,24 @@
 Set of functions used by the DMS scripts
 """
 
-__RCSID__ = "$Id$"
-
-from DIRAC                                                  import gLogger, gConfig, S_OK
-from DIRAC.Core.Utilities.List                              import breakListIntoChunks
-from DIRAC.DataManagementSystem.Client.DataManager          import DataManager
-from DIRAC.Resources.Catalog.FileCatalog                    import FileCatalog
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
-from DIRAC.Resources.Storage.StorageElement                 import StorageElement
-from DIRAC.Core.Base                                        import Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript         import printDMResult, ProgressBar
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers        import DMSHelpers, resolveSEGroup
 import sys
 import os
 import time
 import random
+
+from DIRAC                                                  import gLogger, gConfig, S_OK
+from DIRAC.Core.Utilities.List                              import breakListIntoChunks
+from DIRAC.Core.Base                                        import Script
+from DIRAC.DataManagementSystem.Client.DataManager          import DataManager
+from DIRAC.Resources.Catalog.FileCatalog                    import FileCatalog
+from DIRAC.Resources.Storage.StorageElement                 import StorageElement
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers        import DMSHelpers, resolveSEGroup
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
+from LHCbDIRAC.DataManagementSystem.Client.DMScript         import printDMResult, ProgressBar
+
+__RCSID__ = "$Id$"
+
 
 def __checkSEs( args, expand = True ):
   if expand:
@@ -1136,7 +1138,7 @@ def executeReplicateToRunDestination( dmScript ):
   for lfn in lfnList:
     res = bkClient.getFileMetadata( lfn )
     if not res['OK'] or lfn in res['Value']['Failed']:
-      finaResult['Value']['Failed'][lfn] = res['Message']
+      finalResult['Value']['Failed'][lfn] = res['Message']
     else:
       runNumber = res['Value']['Successful'][lfn]['RunNumber']
       groupByRun.setdefault( runNumber, [] ).append( lfn )

@@ -1,13 +1,12 @@
 """ Client for BookkeepingDB file catalog
 """
 
-__RCSID__ = "$Id$"
-
 from DIRAC                                                          import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient                                     import RPCClient
 from DIRAC.Core.Utilities.List                                      import breakListIntoChunks
 from DIRAC.Resources.Catalog.FileCatalogueBase                      import FileCatalogueBase
-import types
+
+__RCSID__ = "$Id$"
 
 class BookkeepingDBClient( FileCatalogueBase ):
   """ File catalog client for bookkeeping DB
@@ -151,11 +150,11 @@ class BookkeepingDBClient( FileCatalogueBase ):
     '''
     if not self.valid:
       return S_ERROR( 'BKDBClient not initialised' )
-    if type( path ) in types.StringTypes:
+    if isinstance(path, basestring ):
       return S_OK( [path] )
-    elif type( path ) == types.ListType:
+    elif isinstance(path, list):
       return S_OK( path )
-    elif type( path ) == types.DictType:
+    elif isinstance(path, dict):
       return S_OK( path.keys() )
     else:
       errStr = "BookkeepingDBClient.__checkArgumentFormat: Supplied path is not of the correct format."
@@ -218,8 +217,8 @@ class BookkeepingDBClient( FileCatalogueBase ):
       else:
         success = res['Value'].get( 'Successful', res['Value'] )
         failed.update( dict.fromkeys( [lfn for lfn in lfnList if lfn not in success], 'File does not exist' ) )
-        failed.update( dict( [( lfn, val ) for lfn, val in success.items() if type( val ) in types.StringTypes ] ) )
-        successful.update( dict( [( lfn, val ) for lfn, val in success.items() if type( val ) not in types.StringTypes ] ) )
+        failed.update( dict( [( lfn, val ) for lfn, val in success.items() if isinstance( val, basestring ) ] ) )
+        successful.update( dict( [( lfn, val ) for lfn, val in success.items() if isinstance( val, basestring ) ] ) )
     return S_OK( {'Successful':successful, 'Failed':failed} )
 ################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
