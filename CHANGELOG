@@ -1,3 +1,12 @@
+[v8r3-pre6]
+* remove useless import
+* improve gen_xenv
+* fix loc
+* adapting to latest changes in DIRAC/tests
+* Looking in the Operations sections instead of setups.
+* Added log message
+* UpdateRemotePilotFile Service
+
 [v8r3-pre5]
 *Make the Nagios topology agent compatible with GFAL2_SRM2 plugin
 *adding the integration Workflow tests (were left out)
