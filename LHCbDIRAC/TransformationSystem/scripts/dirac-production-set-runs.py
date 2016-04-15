@@ -60,7 +60,7 @@ for switch, val in Script.getUnprocessedSwitches():
       DIRAC.exit( 1 )
   elif opt == 'add':
     try:
-      settings[opt] = [int( runID ) for runID in val.strip( ',' )]
+      settings[opt] = [int( runID ) for runID in val.split( ',' )]
     except:
       print "Invalid run list", val
       DIRAC.exit( 1 )
