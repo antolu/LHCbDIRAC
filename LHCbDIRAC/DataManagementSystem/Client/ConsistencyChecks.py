@@ -6,10 +6,11 @@
 import time
 import ast
 import os
+import copy
 
 import DIRAC
 
-from DIRAC import gLogger, S_OK
+from DIRAC import gLogger
 
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 from DIRAC.DataManagementSystem.Client.ConsistencyInspector import ConsistencyInspector as DiracConsistencyChecks
@@ -71,7 +72,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
     self.inBKNotInFC = []
     self.inFCNotInBK = []
-    
+
     self.removedFiles = []
 
     self.absentLFNsInFC = []
