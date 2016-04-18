@@ -28,11 +28,11 @@ class RegressionTestCase( IntegrationTest ):
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
 
-    location40651 = find_all( '40651.xml', '.', 'Regression' )[0]
+    location40651 = find_all( '40651.xml', '..', 'Regression' )[0]
     self.j_mc_40651 = LHCbJob( location40651 )
     self.j_mc_40651.setConfigArgs( 'pilot.cfg' )
 
-    location40652 = find_all( '40652.xml', '.', 'Regression' )[0]
+    location40652 = find_all( '40652.xml', '..', 'Regression' )[0]
     self.j_mc_40652 = LHCbJob( location40652 )
     self.j_mc_40652.setConfigArgs( 'pilot.cfg' )
 
@@ -41,7 +41,7 @@ class RegressionTestCase( IntegrationTest ):
 #     self.j_reco_20194.setConfigArgs( 'pilot.cfg' )
 
     # Reco from Collision15em
-    location46146 = find_all( '46146.xml', '.', 'Regression' )[0]
+    location46146 = find_all( '46146.xml', '..', 'Regression' )[0]
     self.j_reco_46146 = LHCbJob( location46146 )
     self.j_reco_46146.setConfigArgs( 'pilot.cfg' )
 
@@ -50,23 +50,23 @@ class RegressionTestCase( IntegrationTest ):
 #     self.j_stripp_31017.setConfigArgs( 'pilot.cfg' )
 
     # Turbo Stripping Collision15em
-    location46403 = find_all( '46403.xml', '.', 'Regression' )[0]
+    location46403 = find_all( '46403.xml', '..', 'Regression' )[0]
     self.j_stripp_46403 = LHCbJob( location46403 )
     self.j_stripp_46403.setConfigArgs( 'pilot.cfg' )
 
-    location40464 = find_all( '40464.xml', '.', 'Regression' )[0]
+    location40464 = find_all( '40464.xml', '..', 'Regression' )[0]
     self.j_merge_40464 = LHCbJob( location40464 )
     self.j_merge_40464.setConfigArgs( 'pilot.cfg' )
 
-    location21211 = find_all( '21211.xml', '.', 'Regression' )[0]
+    location21211 = find_all( '21211.xml', '..', 'Regression' )[0]
     self.j_merge_21211 = LHCbJob( location21211 )
     self.j_merge_21211.setConfigArgs( 'pilot.cfg' )
 
-    location20657 = find_all( '20657.xml', '.', 'Regression' )[0]
+    location20657 = find_all( '20657.xml', '..', 'Regression' )[0]
     self.j_mergeMDF_20657 = LHCbJob( location20657 )
     self.j_mergeMDF_20657.setConfigArgs( 'pilot.cfg' )
 
-    location31057 = find_all( '31057.xml', '.', 'Regression' )[0]
+    location31057 = find_all( '31057.xml', '..', 'Regression' )[0]
     self.j_swimming_31057 = LHCbJob( location31057 )
     self.j_swimming_31057.setConfigArgs( 'pilot.cfg' )
 
