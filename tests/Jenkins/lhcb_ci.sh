@@ -57,16 +57,16 @@ function findRelease(){
 
 	if [ ! -z "$LHCBDIRAC_RELEASE" ]
 	then
-		echo 'Specified release'
+		echo '==> Specified release'
 		echo $LHCBDIRAC_RELEASE
 		projectVersion=$LHCBDIRAC_RELEASE
 	else
 		if [ ! -z "$PRERELEASE" ]
 		then
-			echo 'Running on PRERELEASE mode'
+			echo '==> Running on PRERELEASE mode'
 			PRE='-pre'
 		else
-			echo 'Running on REGULAR mode'
+			echo '==> Running on REGULAR mode'
 		fi
 		# projectVersion := v7r15-pre2 ( if we are in PRERELEASE mode )
 		projectVersion=`cat releases.cfg | grep [^:]v[[:digit:]]r[[:digit:]]*$PRE | head -1 | sed 's/ //g'`
@@ -94,9 +94,9 @@ function findRelease(){
 	lcgVersion=`echo $versions | sed s/' = '/'='/g | tr ' ' '\n' | grep LcgVer | cut -d '=' -f2`
 
   # PrintOuts
-  echo DIRAC:$diracVersion && echo $diracVersion > dirac.version
-  echo LHCbDIRAC:$lhcbdiracVersion && echo $lhcbdiracVersion > lhcbdirac.version
-  echo LCG:$lcgVersion && echo $lcgVersion > lcg.version
+  echo '==> ' DIRAC:$diracVersion && echo $diracVersion > dirac.version
+  echo '==> ' LHCbDIRAC:$lhcbdiracVersion && echo $lhcbdiracVersion > lhcbdirac.version
+  echo '==> ' LCG:$lcgVersion && echo $lcgVersion > lcg.version
 
 }
 
@@ -125,14 +125,14 @@ function diracInstallCommand(){
 
 
 function updateToTrunk(){
-	echo '[updateToTrunk]'
+	echo '==> [updateToTrunk]'
 	cd $WORKSPACE/
 
 	if [ -d "LHCbDIRAC" ];
 	then
 		mv LHCbDIRAC LHCbDIRAC.bak;
 	else
-		echo "There is no previous LHCbDIRAC directory ??!!!"
+		echo "==> There is no previous LHCbDIRAC directory ??!!!"
 		ls
 	fi
 	git clone https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git
@@ -154,7 +154,7 @@ function updateToTrunk(){
 
 function LHCbDIRACPilotInstall(){
 
-	echo 'Starting LHCbDIRACPilotInstall'
+	echo '==> Starting LHCbDIRACPilotInstall'
 
 	prepareForPilot
 	default
@@ -163,7 +163,7 @@ function LHCbDIRACPilotInstall(){
 
 	if [ ! -z "$LHCBDIRAC_RELEASE" ]
 	then
-		echo 'Specified release'
+		echo '==> Specified release'
 		echo $LHCBDIRAC_RELEASE
 		installVersion='-r'
 		installVersion+=" $LHCBDIRAC_RELEASE"
@@ -174,7 +174,7 @@ function LHCbDIRACPilotInstall(){
 	#run the dirac-pilot script, only for installing, do not run the JobAgent here
 	python dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
 
-	echo 'Done LHCbDIRACPilotInstall'
+	echo '==> Done LHCbDIRACPilotInstall'
 }
 
 
@@ -186,10 +186,10 @@ function fullLHCbPilot(){
 	LHCbDIRACPilotInstall
 
 	#this should have been created, we source it so that we can continue
-	echo 'sourcing bashrc'
+	echo '==> sourcing bashrc'
 	source bashrc
 
-	echo 'Adding the LocalSE and the CPUTimeLeft, for the subsequent tests'
+	echo '==> Adding the LocalSE and the CPUTimeLeft, for the subsequent tests'
 	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTCFG $PILOTCFG $DEBUG
 
 	#be sure we only have pilot.cfg
@@ -197,13 +197,13 @@ function fullLHCbPilot(){
 
 	getUserProxy
 
-	echo 'Set not to use the server certificate for running the jobs'
+	echo '==> Set not to use the server certificate for running the jobs'
 	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O $PILOTCFG $PILOTCFG $DEBUG
 }
 
 function getUserProxy(){
 
-	echo 'Started getUserProxy'
+	echo '==> Started getUserProxy'
 
 	touch $PILOTINSTALLDIR/$PILOTCFG
 	#Configure for CPUTimeLeft
@@ -211,7 +211,7 @@ function getUserProxy(){
 	#Getting a user proxy, so that we can run jobs
 	downloadProxy
 
-	echo 'Done getUserProxy'
+	echo '==> Done getUserProxy'
 }
 
 function submitAndMatch(){
@@ -229,10 +229,10 @@ function submitAndMatch(){
 
 	if [ ! -z "$PILOT_VERSION" ]
 	then
-		echo "Running python dirac-pilot.py -S $DIRACSETUP -l LHCb -r $PILOT_VERSION -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 2 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG"
+		echo "==> Running python dirac-pilot.py -S $DIRACSETUP -l LHCb -r $PILOT_VERSION -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 2 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG"
 		python dirac-pilot.py -S $DIRACSETUP -l LHCb -r $PILOT_VERSION -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 2 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG
 	else
-		echo "Running python dirac-pilot.py -S $DIRACSETUP -l LHCb -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 2 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG"
+		echo "==> Running python dirac-pilot.py -S $DIRACSETUP -l LHCb -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 2 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG"
 		python dirac-pilot.py -S $DIRACSETUP -l LHCb -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -M 2 -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent $DEBUG
 	fi
 
@@ -244,7 +244,7 @@ function installLHCbDIRAC(){
 
 	if [ ! -z "$PRERELEASECLIENT" ]
 	then
-		echo 'Installing PRERELEASE client'
+		echo '==> Installing PRERELEASE client'
 		findRelease
 		installLHCbDIRACClient
 	else
@@ -279,7 +279,7 @@ function setupLHCbDIRAC(){
 	local status=$?
 	if [ $status -ne 0 ]
 	then
-		echo "Going to install client with dirac-install"
+		echo "==> Going to install client with dirac-install"
 		installLHCbDIRACClient
 	else
 		export PYTHONPATH=$PYTHONPATH:$WORKSPACE
