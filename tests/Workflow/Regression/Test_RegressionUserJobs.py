@@ -29,17 +29,17 @@ class RegressionTestCase( IntegrationTest ):
     self.diracLHCb = DiracLHCb()
     self.bkkClient = BookkeepingClient()
 
-    exeScriptLoc = find_all( 'exe-script.py', '.', 'Regression' )[0]
-    helloWorldLoc = find_all( 'helloWorld.py', '.', 'Regression' )[0]
+    exeScriptLoc = find_all( 'exe-script.py', '..', 'Regression' )[0]
+    helloWorldLoc = find_all( 'helloWorld.py', '..', 'Regression' )[0]
 
     shutil.copyfile( exeScriptLoc, './exe-script.py' )
     shutil.copyfile( helloWorldLoc, './helloWorld.py' )
 
-    helloWorldXMLLocation = find_all( 'helloWorld.xml', '.', 'Regression' )[0]
+    helloWorldXMLLocation = find_all( 'helloWorld.xml', '..', 'Regression' )[0]
     self.j_u_hello = LHCbJob( helloWorldXMLLocation )
     self.j_u_hello.setConfigArgs( 'pilot.cfg' )
 
-    helloWorldXMLFewMoreLocation = find_all( 'helloWorld.xml', '.', 'Regression' )[0]
+    helloWorldXMLFewMoreLocation = find_all( 'helloWorld.xml', '..', 'Regression' )[0]
     self.j_u_helloPlus = LHCbJob( helloWorldXMLFewMoreLocation )
     self.j_u_helloPlus.setConfigArgs( 'pilot.cfg' )
 #    self.j_u_collision12 = LHCbJob( 'collision12.xml' )
