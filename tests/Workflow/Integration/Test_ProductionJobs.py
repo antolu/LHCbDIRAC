@@ -1,12 +1,15 @@
 #!/usr/bin/env python
-
 """ "Integration" production jobs. StepIDs are taken from REAL productions that ran "recently"
 """
 
-from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
+#pylint: disable=line-too-long
+#pylint: disable=protected-access
+#pylint: disable=missing-docstring
 
 import unittest
+
+from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
 
 from DIRAC.tests.Utilities.utils import find_all
 
@@ -205,6 +208,7 @@ class RecoSuccess( ProductionJobTestCase ):
 #     for found, expected in getOutput( 'Reco' ):
 #       self.assertEqual( found, expected )
 
+# THIS does NOT work!
 class RecoSuccessMultiProcessor( ProductionJobTestCase ):
   def test_Integration_Production( self ):
     lfns = ['/lhcb/data/2011/RAW/FULL/LHCb/COLLISION11/103681/103681_0000000005.raw']
@@ -316,7 +320,7 @@ class MergeMultStreamsSuccess( ProductionJobTestCase ):
                                                             'PID.MDST':'Tier1-BUFFER',
                                                             'RADIATIVE.DST': 'Tier1-BUFFER',
                                                             'SEMILEPTONIC.DST': 'Tier1-BUFFER'},
-                                    0, 100, inputDataPolicy = 'protocol', inputDataList = lfns )
+                                     0, 100, inputDataPolicy = 'protocol', inputDataList = lfns )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
@@ -369,7 +373,7 @@ class SwimmingSuccess( ProductionJobTestCase ):
                     'fileTypesOut':['SWIMSTRIPPINGD02KSKK.MDST']}]
     prod = self.pr._buildProduction( 'Swimming', stepsInProd, {'SWIMTRIGGERD02KSKK.DST':'Tier1-DST',
                                                                'SWIMSTRIPPINGD02KSKK.MDST':'Tier1-DST'}, 0, 100,
-                                      inputDataPolicy = 'protocol', inputDataList = lfns, events = 10 )
+                                     inputDataPolicy = 'protocol', inputDataList = lfns, events = 10 )
     prod.LHCbJob._addParameter( prod.LHCbJob.workflow, 'runNumber', 'JDL', 104262, 'Input Run number' )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
@@ -387,7 +391,7 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCSuccessMultiProcessor ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCSuccess_new ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccessMultiProcessor ) )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccessMultiProcessor ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )

@@ -5,7 +5,8 @@
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-import unittest, os
+import unittest
+import os
 
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 
@@ -23,10 +24,10 @@ class UserJobTestCase( IntegrationTest ):
     super( UserJobTestCase, self ).setUp()
 
     self.dLHCb = DiracLHCb()
-    self.exeScriptLocation = find_all( 'exe-script.py', '.', 'Integration' )[0]
+    self.exeScriptLocation = find_all( 'exe-script.py', '..', 'Integration' )[0]
     self.lhcbJob = LHCbJob()
     self.lhcbJob.setLogLevel( 'DEBUG' )
-    self.lhcbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
+    self.lhcbJob.setInputSandbox( find_all( 'pilot.cfg', '..' )[0] )
     self.lhcbJob.setConfigArgs( 'pilot.cfg' )
 
   def tearDown( self ):
