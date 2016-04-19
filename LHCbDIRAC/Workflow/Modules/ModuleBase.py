@@ -2,8 +2,6 @@
     common utility methods
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import copy
 import time
@@ -24,6 +22,8 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient     import Bookkeeping
 from LHCbDIRAC.Core.Utilities.ProductionData                  import getLogPath, constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.ProdConf                        import ProdConf
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities              import getEventsToProduce
+
+__RCSID__ = "$Id$"
 
 class ModuleBase( object ):
   """ Base class for Modules - works only within DIRAC workflows

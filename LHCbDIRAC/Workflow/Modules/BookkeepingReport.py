@@ -333,8 +333,16 @@ class BookkeepingReport( ModuleBase ):
 
     typedParams.append( ( "StepID", self.BKstepID ) )
 
-    typedParams.append( ( "NumberOfEvents",
-                          self.xf_o.inputEventsTotal if self.xf_o.inputEventsTotal else self.xf_o.outputEventsTotal) )
+    try:
+      noOfEvents = self.xf_o.inputEventsTotal if self.xf_o.inputEventsTotal else self.xf_o.outputEventsTotal
+    except AttributeError:
+      #This happens iff the XML summary can't be created (e.g. for merging MDF files)
+      res = self.bkClient.getFileMetadata( self.stepInputData )
+      if not res['OK']:
+        raise AttributeError( "Can't get the BKK file metadata" )
+      noOfEvents = sum( [fileMeta['EventStat'] for fileMeta in res['Value']['Successful'].values()] )
+
+    typedParams.append( ( "NumberOfEvents", noOfEvents) )
 
     # Add TypedParameters to the XML file
     for typedParam in typedParams:
