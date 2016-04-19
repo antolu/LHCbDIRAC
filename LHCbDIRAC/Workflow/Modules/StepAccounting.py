@@ -3,15 +3,14 @@
     data
 """
 
-__RCSID__ = "$Id$"
-
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.Utilities import Time
 from DIRAC.Workflow.Utilities.Utils import getStepCPUTimes
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-
 from LHCbDIRAC.AccountingSystem.Client.Types.JobStep import JobStep
+
+__RCSID__ = "$Id$"
 
 class StepAccounting( ModuleBase ):
   """ StepAccounting class

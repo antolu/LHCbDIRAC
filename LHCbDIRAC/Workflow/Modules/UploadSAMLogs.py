@@ -2,8 +2,6 @@
 
 """
 
-__RCSID__ = "$Id$"
-
 import glob
 import os
 import shutil
@@ -16,6 +14,8 @@ from DIRAC.Core.Utilities.ReturnValues                   import returnSingleResu
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
+
+__RCSID__ = "$Id$"
 
 class UploadSAMLogs( ModuleBase ):
   """ UploadSAMLogs extends Workflow.Modules.ModuleBase
@@ -118,7 +118,7 @@ class UploadSAMLogs( ModuleBase ):
       self.log.info( res )
 
       self.finalize( self.__class__.__name__ )
-      
+
       # publish information to SAM-Nagios
       try:
         self.nagiosConnector.readConfig()

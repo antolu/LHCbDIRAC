@@ -7,8 +7,6 @@
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
 """
 
-__RCSID__ = "$Id$"
-
 import re
 import os
 import sys
@@ -17,6 +15,8 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess import shellCall
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment, addCommandDefaults, createDebugScript
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
+
+__RCSID__ = "$Id$"
 
 class GaudiApplicationScript( ModuleBase ):
 

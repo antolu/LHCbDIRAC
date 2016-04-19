@@ -2,8 +2,6 @@
     executes gaudirun with the right options
 """
 
-__RCSID__ = "$Id$"
-
 import sys
 import re
 import os
@@ -17,6 +15,7 @@ from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.RunApplication import _multicoreWN
 
+__RCSID__ = "$Id$"
 
 class GaudiApplication( ModuleBase ):
   """ GaudiApplication class

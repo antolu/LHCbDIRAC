@@ -3,9 +3,8 @@
     It produced statistics on the observed performance of each of the protocols.
 """
 
-__RCSID__ = "$Id$"
-
-import os, shutil
+import os
+import shutil
 
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.Core.Utilities.ModuleFactory import ModuleFactory
@@ -14,6 +13,8 @@ from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ClientTools import readFileEvents
+
+__RCSID__ = "$Id$"
 
 
 COMPONENT_NAME = 'ProtocolAccessTest'
@@ -51,7 +52,7 @@ class ProtocolAccessTest( ModuleBase ):
 
     if self.step_commons.has_key( 'protocols' ):
       self.protocolsList = self.step_commons['protocols']
-      if type( self.protocolsList ) != type( [] ):
+      if not isinstance( self.protocolsList, list ):
         self.protocolsList = self.protocolsList.split( ';' )
       self.protocolsList = [x.lower() for x in self.protocolsList]
     else:
