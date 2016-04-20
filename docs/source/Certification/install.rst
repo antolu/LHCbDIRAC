@@ -83,6 +83,8 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
   # copy the output, add it to the CHANGELOG (please also add the DIRAC version)
   vim CHANGELOG # please, remove comments like "fix" or "pylint" or "typo"...
+  #If needed, change the versions of the packages  
+  vim dist-tools/projectConfig.json
   # Commit in your local newDevel branch the 3 files you modified
   git add -A && git commit -av -m "<YourNewTag>"
 
@@ -111,7 +113,7 @@ Login on lxplus, run ::
 
 Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like::
 
-  ( cd /tmp/joel/tmpxg8UuvDiracDist ; tar -cf - *.tar.gz *.md5 *.cfg ) | ssh lhcbprod@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3/tars &&  tar -xvf - && ls *.tar.gz > tars.list'
+  ( cd /tmp/joel/tmpxg8UuvDiracDist ; tar -cf - *.tar.gz *.md5 *.cfg ) | ssh $USER@lxplus.cern.ch 'cd /afs/cern.ch/lhcb/distribution/DIRAC3/tars &&  tar -xvf - && ls *.tar.gz > tars.list'
 
 And just copy/paste/execute it.
 

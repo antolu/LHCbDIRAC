@@ -919,7 +919,7 @@ class OracleBookkeepingDB:
       if tables.upper().find( 'FILETYPES' ) < 0:
         tables += ',filetypes ftypes'
 
-    retVal = self.__buildProcessingPass( processing, condition, tables )
+    retVal = self.__buildProcessingPass( processing, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -1085,7 +1085,7 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass( processing, condition, tables )
+    retVal = self.__buildProcessingPass( processing, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3025,7 +3025,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass( procPass, condition, tables )
+    retVal = self.__buildProcessingPass( procPass, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3098,7 +3098,12 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   @staticmethod
   def __buildProduction( production, condition, tables, visible = default ):
-    """it adds the production which can be a list or string to the jobs table"""
+    """it adds the production which can be a list or string to the jobs table
+    :param list,int long the production number(s)
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables. 
+    :param str visible the default value is 'ALL'. [Y,N]
+    """
     if production not in [default, None]:
       if isinstance( production, list ) and len( production ) > 0:
         condition += ' and '
@@ -3136,8 +3141,13 @@ and files.qualityid= dataquality.qualityid'
     return S_OK( ( condition, tables ) )
 
   #############################################################################
-  def __buildProcessingPass( self, procPass, condition, tables ):
-    """It adds the processing pass condition to the query"""
+  def __buildProcessingPass( self, procPass, condition, tables, visible = default ):
+    """It adds the processing pass condition to the query
+    :param str procPass it is a processing pass for example: /Real Data/Reco20
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables. 
+    :param str visible the default value is 'ALL'. [Y,N]
+    """
     if procPass not in [default, None]:
       if not re.search( '^/', procPass ):
         procPass = procPass.replace( procPass, '/%s' % procPass )
@@ -3158,6 +3168,9 @@ and files.qualityid= dataquality.qualityid'
       pro = pro[:-1]
       pro += ')'
 
+      if visible.upper().startswith( 'Y' ):
+        condition += " and bview.production=prod.production "
+        
       condition += " and j.production=prod.production \
                      and prod.processingid in %s" % ( pro )
       if tables.upper().find( 'PRODUCTIONSCONTAINER' ) < 0:
@@ -3174,7 +3187,7 @@ and files.qualityid= dataquality.qualityid'
         tables += ' ,filetypes ft'
       if tables.find( 'bview' ) < 0:
         tables += ' ,prodview bview'
-      condition += " and bview.filetypeid=ft.filetypeid and bview.filetypeid=f.filetypeid "
+      condition += " and f.filetypeid=ft.filetypeid and bview.filetypeid=ft.filetypeid and bview.filetypeid=f.filetypeid "
       if isinstance( ftype, list ):
         values = ' and ft.name in ('
         for i in ftype:
@@ -3573,7 +3586,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass( processing, condition, tables )
+    retVal = self.__buildProcessingPass( processing, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
