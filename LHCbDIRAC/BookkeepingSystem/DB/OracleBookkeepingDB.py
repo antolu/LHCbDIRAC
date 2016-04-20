@@ -3098,7 +3098,12 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   @staticmethod
   def __buildProduction( production, condition, tables, visible = default ):
-    """it adds the production which can be a list or string to the jobs table"""
+    """it adds the production which can be a list or string to the jobs table
+    :param list,int long the production number(s)
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables. 
+    :param str visible the default value is 'ALL'. [Y,N]
+    """
     if production not in [default, None]:
       if isinstance( production, list ) and len( production ) > 0:
         condition += ' and '
@@ -3137,7 +3142,12 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def __buildProcessingPass( self, procPass, condition, tables, visible = default ):
-    """It adds the processing pass condition to the query"""
+    """It adds the processing pass condition to the query
+    :param str procPass it is a processing pass for example: /Real Data/Reco20
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables. 
+    :param str visible the default value is 'ALL'. [Y,N]
+    """
     if procPass not in [default, None]:
       if not re.search( '^/', procPass ):
         procPass = procPass.replace( procPass, '/%s' % procPass )
