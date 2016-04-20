@@ -6,10 +6,10 @@
       request (for failover)
 """
 
-__RCSID__ = "$Id$"
-
 from DIRAC                                                      import S_OK, S_ERROR, gLogger
 from LHCbDIRAC.Workflow.Modules.ModuleBase                      import ModuleBase
+
+__RCSID__ = "$Id$"
 
 class FailoverRequest( ModuleBase ):
 
@@ -35,9 +35,9 @@ class FailoverRequest( ModuleBase ):
   #############################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
-                workflowStatus = None, stepStatus = None,
-                wf_commons = None, step_commons = None,
-                step_number = None, step_id = None ):
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None ):
     """ Main execution function.
     """
 
@@ -97,7 +97,7 @@ class FailoverRequest( ModuleBase ):
 
       return S_OK()
 
-    except Exception, e:
+    except Exception as e:
       self.log.exception( e )
       self.setApplicationStatus( e )
       return S_ERROR( e )
