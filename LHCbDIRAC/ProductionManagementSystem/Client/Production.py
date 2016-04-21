@@ -10,8 +10,6 @@
     - Uses __getOutputLFNs() function to add production output directory parameter
 """
 
-__RCSID__ = "$Id$"
-
 import shutil
 import re
 import os
@@ -27,6 +25,8 @@ from LHCbDIRAC.Core.Utilities.ProductionData                      import preSubm
 from LHCbDIRAC.Interfaces.API.LHCbJob                             import LHCbJob
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.Transformation         import Transformation
+
+__RCSID__ = "$Id$"
 
 class Production( object ):
   """ Production uses an LHCbJob object, as well as few clients.
@@ -241,7 +241,6 @@ class Production( object ):
       parametersList = [['inputData', 'string', '', 'StepInputData'],
                         ['inputDataType', 'string', '', 'InputDataType'],
                         ['outputFilePrefix', 'string', '', 'OutputFilePrefix'],
-#                        ['outputData', 'string', '', 'OutputData'],
                         ['applicationName', 'string', '', 'ApplicationName'],
                         ['applicationVersion', 'string', '', 'ApplicationVersion'],
                         ['runTimeProjectName', 'string', '', 'runTimeProjectName'],
@@ -779,4 +778,3 @@ class Production( object ):
   def get_transformationFamily( self ):
     return self._transformationFamily
   startRun = property( get_transformationFamily, set_transformationFamily )
-
