@@ -239,7 +239,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     productions = self.getCachedProductions()
     if 'CacheTime' in productions and ( now - productions['CacheTime'] ) < datetime.timedelta( hours = cacheLifeTime ):
       # If we haven't found productions for one of the processing passes, retry
-      cacheOK = len( [bkPath for bkPath in bkPathList if bkPath not in productions.get( 'List', {} )] ) != 0
+      cacheOK = len( [bkPath for bkPath in bkPathList if bkPath not in productions.get( 'List', {} )] ) == 0
     else:
       cacheOK = False
     if cacheOK:
@@ -255,7 +255,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         prods = bkQuery.getBKProductions()
         if not prods:
           self.logVerbose( "For bkPath %s, found no productions, wait next time" % ( bkPath ) )
-          return S_OK( [] )
+          return None
         productions['List'][bkPath] = []
         self.logVerbose( "For bkPath %s, found productions %s" % \
                               ( bkPath, ','.join( ['%s' % prod for prod in prods] ) ) )

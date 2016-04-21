@@ -9,9 +9,11 @@ __RCSID__ = "$Id $"
 
 
 # # imports
-from DIRAC import S_OK, S_ERROR
+from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities import DEncode
+from DIRAC.FrameworkSystem.Client.MonitoringClient import gMonitor
 from DIRAC.RequestManagementSystem.private.OperationHandlerBase import OperationHandlerBase
+from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 
 ########################################################################
 class WMSSecureOutputData( OperationHandlerBase ):
@@ -37,7 +39,8 @@ class WMSSecureOutputData( OperationHandlerBase ):
     try:
       decode = DEncode.decode( self.operation.Arguments )
       self.log.debug (decode)
-    except ValueError, error:
+      gLogger.debug ( "Validating output" )
+    except ValueError as error:
       self.log.exception( error )
       self.operation.Error = str( error )
       self.operation.Status = "Failed"

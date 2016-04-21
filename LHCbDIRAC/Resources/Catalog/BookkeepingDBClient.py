@@ -1,15 +1,12 @@
 """ Client for BookkeepingDB file catalog
 """
 
-__RCSID__ = "$Id$"
-
-from DIRAC                                                          import gLogger, S_OK
+from DIRAC                                                          import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RPCClient                                     import RPCClient
 from DIRAC.Core.Utilities.List                                      import breakListIntoChunks
-from DIRAC.Resources.Catalog.FileCatalogClientBase                  import FileCatalogClientBase
-from DIRAC.Resources.Catalog.Utilities                              import checkCatalogArguments
+from DIRAC.Resources.Catalog.FileCatalogueBase                      import FileCatalogueBase
 
-import types
+__RCSID__ = "$Id$"
 
 
 
@@ -159,6 +156,22 @@ class BookkeepingDBClient( FileCatalogClientBase ):
   # These are the internal methods used for actual interaction with the BK service
   #
 
+  def __checkArgumentFormat( self, path ):
+    '''
+      Returns a list, either from a string or keys of a dict
+    '''
+    if not self.valid:
+      return S_ERROR( 'BKDBClient not initialised' )
+    if isinstance(path, basestring ):
+      return S_OK( [path] )
+    elif isinstance(path, list):
+      return S_OK( path )
+    elif isinstance(path, dict):
+      return S_OK( path.keys() )
+    else:
+      errStr = "BookkeepingDBClient.__checkArgumentFormat: Supplied path is not of the correct format."
+      gLogger.error( errStr )
+      return S_ERROR( errStr )
 
   def __toggleReplicaFlag( self, lfns, setflag = True ):
     successful = {}
@@ -217,8 +230,8 @@ class BookkeepingDBClient( FileCatalogClientBase ):
       else:
         success = res['Value'].get( 'Successful', res['Value'] )
         failed.update( dict.fromkeys( [lfn for lfn in lfnList if lfn not in success], 'File does not exist' ) )
-        failed.update( dict( [( lfn, val ) for lfn, val in success.items() if type( val ) in types.StringTypes ] ) )
-        successful.update( dict( [( lfn, val ) for lfn, val in success.items() if type( val ) not in types.StringTypes ] ) )
+        failed.update( dict( [( lfn, val ) for lfn, val in success.items() if isinstance( val, basestring ) ] ) )
+        successful.update( dict( [( lfn, val ) for lfn, val in success.items() if isinstance( val, basestring ) ] ) )
     return S_OK( {'Successful':successful, 'Failed':failed} )
 ################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

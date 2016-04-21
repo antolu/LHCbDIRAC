@@ -83,7 +83,7 @@ class ProgressBar( object ):
     self._chunk = chunk
     self._startTime = time.time()
     self._progress = 0
-    self._showBar = bool( items > chunk ) and bool( items > step ) and interactive and sys.stdout.isatty()
+    self._showBar = bool( items > chunk ) and bool( items > step ) and interactive and sys.stderr.isatty()
     self._interactive = interactive
     self._title = title
     self._backspace = 0
@@ -92,11 +92,11 @@ class ProgressBar( object ):
     if not self._interactive:
       return
     if self._showBar:
-      sys.stdout.write( "%s|%s|" % ( self._title, self._width * ' ' ) )
+      sys.stderr.write( "%s|%s|" % ( self._title, self._width * ' ' ) )
       self._backspace = self._width + 1
     else:
-      sys.stdout.write( self._title )
-    sys.stdout.flush()
+      sys.stderr.write( self._title )
+    sys.stderr.flush()
   def loop( self, increment = True ):
     if not self._interactive:
       return
@@ -117,28 +117,28 @@ class ProgressBar( object ):
         estimate = ''
       blockBlue = '\033[46m'
       endblock = '\033[0m'
-      sys.stdout.write( "%s%s%s| %5.1f%%%s\033[K" % ( self._backspace * '\b',
+      sys.stderr.write( "%s%s%s| %5.1f%%%s\033[K" % ( self._backspace * '\b',
                                                   blockBlue + ( progress - self._progress ) * ' ' + endblock,
                                                   ( self._width - progress ) * ' ',
                                                   100. * fraction,
                                                   estimate ) )
       self._backspace = self._width + 8 - progress + len( estimate )
       self._progress = progress
-      sys.stdout.flush()
+      sys.stderr.flush()
   def endLoop( self, message = None, timing = True ):
     if not self._interactive:
       return
     if message is None:
       message = 'completed'
     if self._showBar:
-      sys.stdout.write( "%s\033[K: %s" % ( ( self._progress + self._backspace + 1 ) * '\b',
+      sys.stderr.write( "%s\033[K: %s" % ( ( self._progress + self._backspace + 1 ) * '\b',
                                           message ) )
     if timing:
       if not self._showBar:
-        sys.stdout.write( ': %s' % message )
-      sys.stdout.write( ' in %.1f seconds' % ( time.time() - self._startTime ) )
-    sys.stdout.write( '\n' )
-    sys.stdout.flush()
+        sys.stderr.write( ': %s' % message )
+      sys.stderr.write( ' in %.1f seconds' % ( time.time() - self._startTime ) )
+    sys.stderr.write( '\n' )
+    sys.stderr.flush()
   def comment( self, message, optMsg = '' ):
     fullMsg = '\n' + message + ' %s' % optMsg if optMsg else ''
     gLogger.notice( fullMsg )
@@ -165,8 +165,8 @@ class WithDots( object ):
     ndots = int( ( items - 1 ) / chunk + 1 )
     self._writeDots = bool( ndots > mindots )
     if self._writeDots:
-      sys.stdout.write( '%s%s' % ( title, ndots * '.' ) )
-      sys.stdout.flush()
+      sys.stderr.write( '%s%s' % ( title, ndots * '.' ) )
+      sys.stderr.flush()
     elif title:
       gLogger.notice( title )
     self._loopNumber = self._chunk
@@ -174,16 +174,16 @@ class WithDots( object ):
     if self._writeDots:
       if self._loopNumber == self._chunk:
         self._loopNumber = 0
-        sys.stdout.write( '\b\033[K' )
-        sys.stdout.flush()
+        sys.stderr.write( '\b\033[K' )
+        sys.stderr.flush()
       self._loopNumber += 1
   def endLoop( self, timing = True ):
     if self._writeDots:
-      sys.stdout.write( 'completed' )
+      sys.stderr.write( 'completed' )
       if timing:
-        sys.stdout.write( ' (%.1f seconds)' % ( time.time() - self._startTime ) )
-      sys.stdout.write( '\n' )
-      sys.stdout.flush()
+        sys.stderr.write( ' (%.1f seconds)' % ( time.time() - self._startTime ) )
+      sys.stderr.write( '\n' )
+      sys.stderr.flush()
 
 class DMScript( object ):
   """ DMScript is a class that creates default switches for DM scripts, decodes them and sets flags

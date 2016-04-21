@@ -377,6 +377,20 @@ class XMLFilesReaderManager:
         errorMessage = "Unable to register run status %s " % ( result['Message'] )
         return S_ERROR( errorMessage )
       
+      #we may using HLT2 output to flag the runs as a consequence we may flagged the runs before they registered to the bookkeeping. 
+      #we can flag a run using the newrunquality table
+      retVal = dataManager_.getProductionProcessingPassID( -1 * int( runnumber ) )      
+      if retVal['OK']:
+        retVal = dataManager_.getRunAndProcessingPassDataQuality( runnumber, retVal['Value'] )
+        if retVal['OK']:
+          dqvalue = retVal['Value']
+          gLogger.info( "%d run data quality flag is %s" % ( int( runnumber ), dqvalue ) )
+        else:
+          dqvalue = None
+          gLogger.error( retVal['Message'] )
+      else:
+        gLogger.error( retVal['Message'] )
+      
     inputFiles = job.getJobInputFiles()
     for inputfile in inputFiles:
       result = dataManager_.insertInputFile( job.getJobId(), inputfile.getFileID() )

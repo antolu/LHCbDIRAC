@@ -2,22 +2,24 @@
 Set of functions used by the DMS scripts
 """
 
-__RCSID__ = "$Id$"
-
-from DIRAC                                                  import gLogger, gConfig, S_OK
-from DIRAC.Core.Utilities.List                              import breakListIntoChunks
-from DIRAC.DataManagementSystem.Client.DataManager          import DataManager
-from DIRAC.Resources.Catalog.FileCatalog                    import FileCatalog
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
-from DIRAC.Resources.Storage.StorageElement                 import StorageElement
-from DIRAC.Core.Base                                        import Script
-from LHCbDIRAC.DataManagementSystem.Client.DMScript         import printDMResult, ProgressBar
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers        import DMSHelpers, resolveSEGroup
 import sys
 import os
 import time
 import random
+
+from DIRAC                                                  import gLogger, gConfig, S_OK
+from DIRAC.Core.Utilities.List                              import breakListIntoChunks
+from DIRAC.Core.Base                                        import Script
+from DIRAC.DataManagementSystem.Client.DataManager          import DataManager
+from DIRAC.Resources.Catalog.FileCatalog                    import FileCatalog
+from DIRAC.Resources.Storage.StorageElement                 import StorageElement
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers        import DMSHelpers, resolveSEGroup
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
+from LHCbDIRAC.DataManagementSystem.Client.DMScript         import printDMResult, ProgressBar
+
+__RCSID__ = "$Id$"
+
 
 def __checkSEs( args, expand = True ):
   if expand:
@@ -831,6 +833,9 @@ def executeReplicaStats( dmScript ):
   prWithReplicas = False
   prFailover = False
   prSEList = []
+  prNotSEList = []
+  dumpAtSE = False
+  dumpNotAtSE = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] in ( "S", "Size" ):
       getSize = True
@@ -850,18 +855,28 @@ def executeReplicaStats( dmScript ):
       prFailover = True
     elif switch[0] == 'DumpAtSE':
       dmScript.setSEs( switch[1] )
+      dumpAtSE = True
     elif switch[0] == 'DumpAtSite':
       dmScript.setSites( switch[1] )
+    elif switch[0] == 'DumpNotAtSE':
+      dmScript.setSEs( switch[1] )
+      dumpNotAtSE = True
 
+  if dumpAtSE and dumpNotAtSE:
+    gLogger.notice( 'You cannot dump At and Not At SE!' )
+    return 1
 
   directories = dmScript.getOption( 'Directory' )
-  lfnList, prSEList = parseArguments( dmScript )
+  lfnList, seList = parseArguments( dmScript )
+  if dumpAtSE or dumpNotAtSE:
+    prSEList = seList
 
-  return printReplicaStats( directories, lfnList, getSize, prNoReplicas,
-                     prWithReplicas, prWithArchives, prFailover, prSEList )
+  return printReplicaStats( directories, lfnList, getSize = getSize, prNoReplicas = prNoReplicas,
+                     prWithReplicas = prWithReplicas, prWithArchives = prWithArchives,
+                     prFailover = prFailover, prSEList = prSEList, notAtSE = dumpNotAtSE )
 
 def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = False,
-                       prWithReplicas = False, prWithArchives = False, prFailover = False, prSEList = None ):
+                       prWithReplicas = False, prWithArchives = False, prFailover = False, prSEList = None, notAtSE = False ):
   """
   get storage statistics on a dataset (directories or LFN list
   If requested, lists of LFNs with some criteria can be printed out
@@ -899,7 +914,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
       lfnReplicas.update( res['Value']['Successful'] )
       if res['Value']['Failed']:
         repStats[0] = repStats.setdefault( 0, 0 ) + len( res['Value']['Failed'] )
-        withReplicas.setdefault( 0, [] ).extend( res['Value']['Failed'].keys() )
+        withReplicas.setdefault( 0, set() ).update( res['Value']['Failed'] )
         for lfn in res['Value']['Failed']:
           noReplicas[lfn] = -1
     progressBar.endLoop()
@@ -932,9 +947,11 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
   for lfn, replicas in lfnReplicas.iteritems():
     seList = set( replicas )
     dumpSE = seList & prSEList
-    if dumpSE:
+    if dumpSE and not notAtSE:
       seStr = ','.join( sorted( dumpSE ) )
-      dumpFromSE.setdefault( seStr, [] ).append( lfn )
+      dumpFromSE.setdefault( seStr, set() ).add( lfn )
+    elif not dumpSE and notAtSE:
+      dumpFromSE.setdefault( 'any', set() ).add( lfn )
     nrep = len( replicas )
     narchive = -1
     for se in set( seList ):
@@ -949,8 +966,8 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
         nrep -= 1
         narchive -= 1
     repStats[nrep] = repStats.setdefault( nrep, 0 ) + 1
-    withReplicas.setdefault( nrep, [] ).append( lfn )
-    withArchives.setdefault( -narchive - 1, [] ).append( lfn )
+    withReplicas.setdefault( nrep, set() ).add( lfn )
+    withArchives.setdefault( -narchive - 1, set() ).add( lfn )
     if nrep == 0:
       noReplicas[lfn] = -narchive - 1
     # narchive is negative ;-)
@@ -1035,7 +1052,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
     for n in [m for m in prWithReplicas if m in withReplicas]:
       gLogger.notice( '\nFiles with %d disk replicas:' % n )
       if prFailover:
-        prList = set( withReplicas[n] ) & withFailover
+        prList = withReplicas[n] & withFailover
       else:
         prList = withReplicas[n]
       for rep in sorted( prList ):
@@ -1045,11 +1062,13 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
       gLogger.notice( rep )
 
   if prSEList:
-    gLogger.notice( '\nFiles present at %s' % ( ','.join( sorted( prSEList ) ) ) )
+    atOrNot = 'not ' if notAtSE else ''
+    gLogger.notice( '\nFiles %spresent at %s' % ( atOrNot, ','.join( sorted( prSEList ) ) ) )
     if not dumpFromSE:
-      gLogger.notice( "No files found at these SEs" )
+      gLogger.notice( "No files found %sat these SEs" % atOrNot )
     for se in dumpFromSE:
-      gLogger.notice( 'At %s' % se )
+      if not notAtSE:
+        gLogger.notice( 'At %s' % se )
       for lfn in dumpFromSE[se]:
         gLogger.notice( '\t%s' % lfn )
   return 0
@@ -1119,7 +1138,7 @@ def executeReplicateToRunDestination( dmScript ):
   for lfn in lfnList:
     res = bkClient.getFileMetadata( lfn )
     if not res['OK'] or lfn in res['Value']['Failed']:
-      finaResult['Value']['Failed'][lfn] = res['Message']
+      finalResult['Value']['Failed'][lfn] = res['Message']
     else:
       runNumber = res['Value']['Successful'][lfn]['RunNumber']
       groupByRun.setdefault( runNumber, [] ).append( lfn )

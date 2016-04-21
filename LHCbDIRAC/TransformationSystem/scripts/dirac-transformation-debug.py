@@ -791,6 +791,14 @@ def __checkLog( logURL ):
     logDump = ["Couldn't find log file in %s" % logURL]
   return logDump[-10:]
 
+def __genericLfn( lfn, lfnList ):
+  if lfn not in lfnList and os.path.dirname( lfn ) == '':
+    spl = lfn.split( '_' )
+    if len( spl ) == 3:
+      spl[1] = '<jobNumber>'
+    lfn = '_'.join( spl )
+  return lfn
+
 def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
   from DIRAC.Core.DISET.RPCClient                          import RPCClient
   monitoring = RPCClient( 'WorkloadManagement/JobMonitoring' )
@@ -882,7 +890,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
             logURL = res['Value']['Log URL'].split( '"' )[1] + '/'
             jobLogURL[lastJob] = logURL
             lfns = __checkXMLSummary( lastJob, logURL )
-            lfns = dict( [( lfn, lfns[lfn] ) for lfn in set( lfns ) & set( lfnList )] )
+            lfns = dict( [( __genericLfn( lfn, lfnList ), lfns[lfn] ) for lfn in lfns if lfn] )
             if lfns:
               badLfns.update( {lastJob: lfns} )
           # break
@@ -890,11 +898,12 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
           print "No logfiles found for any of the jobs..."
         else:
           # lfnsFound is an AND of files found bad in all jobs
-          lfnsFound = set( badLfns.values()[0] )
+          lfnsFound = set( badLfns[sorted( badLfns, reverse = True )[0]] )
           for lfns in badLfns.itervalues():
-            lfnsFound &= set( [lfn for lfn in lfns if lfn] )
+            lfnsFound &= set( lfns )
           if lfnsFound:
-            for lfn, job, reason in [( lfn, job, badLfns[job][lfn] ) for job in badLfns for lfn in set( badLfns[job] ) & lfnsFound]:
+            for lfn, job, reason in [( lfn, job, badLfns[job][lfn] )
+                                     for job, lfns in badLfns.iteritems() for lfn in set( lfns ) & lfnsFound]:
               failedLfns.setdefault( ( lfn, reason ), [] ).append( job )
           else:
             print "No error was found in XML summary files"

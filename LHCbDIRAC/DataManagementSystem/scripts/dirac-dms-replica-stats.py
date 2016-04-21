@@ -26,6 +26,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'DumpWithReplicas=', '   =<n>, print files with <n> replicas' )
   Script.registerSwitch( '', 'DumpFailover', '   print files with failover replica (can be used with Dump[With/No]Replicas)' )
   Script.registerSwitch( '', 'DumpAtSE=', '   print files present at a (list of) SE' )
+  Script.registerSwitch( '', 'DumpNotAtSE=', '   print files absent at a (list of) SE' )
   Script.registerSwitch( '', 'DumpAtSite=', '   print files present at a (list of) sites' )
   Script.addDefaultOptionValue( 'LogLevel', 'error' )
 

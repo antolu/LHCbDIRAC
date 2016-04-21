@@ -1,28 +1,17 @@
-[v8r3-pre6]
-* remove useless import
-* improve gen_xenv
-* fix loc
-* adapting to latest changes in DIRAC/tests
-* Looking in the Operations sections instead of setups.
-* Added log message
-* UpdateRemotePilotFile Service
-
-[v8r3-pre5]
-*Make the Nagios topology agent compatible with GFAL2_SRM2 plugin
-*adding the integration Workflow tests (were left out)
-*Adapt the changes from Andrei to the plugins for the BKK and the RAWIntegrity
-*Add ancestorsDepth
-*add proxy to create DFC directory
-*New WMSSecureGW service
-*Break in chunks for replica-stats
-*Add interactive flag in ProgressBar and use it in ConsistencyChecks
-*add WNMJFHS06 parameter
-*Renamed dirac-architecture in dirac-platform
-*Switched Event Index GRID collector to https://gitlab.cern.ch/YSDA/grid_collector
-*New script: checks and fixes run luminosity including descendants
-*New Secure Gateway service used for the communication between BOINC VM and DIRAC services.
-* Added extended dirac-populate-component-db script for LHCbDIRAC that also takes into account external services such as squid and vcycle ( not present for DIRAC )
-* Extended SystemAdministrator and InstallTools to support new types of components (such as Consumers) as well as management of services like vcycle or squid.
+[v8r2p39]
+use DIRAC v6r14p26
+* delete lb_run configuration in order to release LHCbDIRAC
+* when we use the visibility flag, we must join the productionscontainer with the bview in order to make sure that the correct execution plan is used
+* Add option --DumpNotAtSE to dump LFNs not at a given (list of) SEs
+* Use stderr for the progress bar. Allows to see if even if output is redirected to a file or a pipe
+* We have to able to flag a run, before the register it to the bookkeeping. If the run is flagged, we use to flag the raw files using that flag
+* improve the release procedure
+* add an utility package used to fix wrong information in the db
+* Fixed WMSSecureGW Service
+* LHCbCreatePilotcfg has been replaced with the LHCbCleanPilotEnv command.
+* Modified LHCbCreatePilotcfg command
+* Updated BOINC gateway service
+* New configuration service that will update the LHCb-Pilot.json file when a change is done on the CS.
 
 [v8r2p38]
 use DIRAC v6r14p25
