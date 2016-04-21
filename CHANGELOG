@@ -1,3 +1,18 @@
+[v8r2p39]
+use DIRAC v6r14p26
+* delete lb_run configuration in order to release LHCbDIRAC
+* when we use the visibility flag, we must join the productionscontainer with the bview in order to make sure that the correct execution plan is used
+* Add option --DumpNotAtSE to dump LFNs not at a given (list of) SEs
+* Use stderr for the progress bar. Allows to see if even if output is redirected to a file or a pipe
+* We have to able to flag a run, before the register it to the bookkeeping. If the run is flagged, we use to flag the raw files using that flag
+* improve the release procedure
+* add an utility package used to fix wrong information in the db
+* Fixed WMSSecureGW Service
+* LHCbCreatePilotcfg has been replaced with the LHCbCleanPilotEnv command.
+* Modified LHCbCreatePilotcfg command
+* Updated BOINC gateway service
+* New configuration service that will update the LHCb-Pilot.json file when a change is done on the CS.
+
 [v8r2p38]
 use DIRAC v6r14p25
 * Change URL for general doc of DIRAC
