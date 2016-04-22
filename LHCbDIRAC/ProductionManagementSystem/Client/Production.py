@@ -633,7 +633,7 @@ class Production( object ):
     bkDictStep['Production'] = int( prodID )
 
     if self.inputBKSelection:
-      queryProdID = int( self.inputBKSelection.get('ProductionID'), 0 )
+      queryProdID = int( self.inputBKSelection.get('ProductionID', 0) )
       queryProcPass = self.inputBKSelection.get('ProcessingPass', '') if self.inputBKSelection.get('ProcessingPass', '') != 'All' else ''
 
       if queryProdID:
