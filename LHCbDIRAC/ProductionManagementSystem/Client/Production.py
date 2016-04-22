@@ -15,7 +15,6 @@ __RCSID__ = "$Id$"
 import shutil
 import re
 import os
-import copy
 
 from DIRAC                                                        import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Workflow.Workflow                                 import Workflow, fromXMLString
@@ -633,25 +632,19 @@ class Production( object ):
 
     bkDictStep['Production'] = int( prodID )
 
-    queryProdID = 0
-    bkQuery = copy.deepcopy( self.inputBKSelection )
-    if bkQuery.has_key( 'ProductionID' ):
-      queryProdID = int( bkQuery['ProductionID'] )
-    queryProcPass = ''
-    if bkQuery.has_key( 'ProcessingPass' ):
-      if not bkQuery['ProcessingPass'] == 'All':
-        queryProcPass = bkQuery['ProcessingPass']
+    if self.inputBKSelection:
+      queryProdID = int( self.inputBKSelection.get('ProductionID'), 0 )
+      queryProcPass = self.inputBKSelection.get('ProcessingPass', '') if self.inputBKSelection.get('ProcessingPass', '') != 'All' else ''
 
-    if bkQuery:
       if queryProdID:
         inputPass = self.bkkClient.getProductionProcessingPass( queryProdID )
         if not inputPass['OK']:
           gLogger.error( inputPass )
-          gLogger.error( 'Production %s was created but BK processing pass for %s was not found' % ( prodID,
+          gLogger.error( 'Production %s was created but BK processing pass for %d was not found' % ( prodID,
                                                                                                      queryProdID ) )
           return inputPass
         inputPass = inputPass['Value']
-        gLogger.info( 'Setting %s as BK input production for %s with processing pass %s' % ( queryProdID,
+        gLogger.info( 'Setting %d as BK input production for %s with processing pass %s' % ( queryProdID,
                                                                                              prodID,
                                                                                              inputPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = inputPass
@@ -659,6 +652,10 @@ class Production( object ):
         gLogger.info( 'Adding input BK processing pass for production %s from input data query: %s' % ( prodID,
                                                                                                         queryProcPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = queryProcPass
+    else:
+      # has to account for an input processing pass anyway,
+      # or output files may not have the output processing pass correctly computed
+      bkDictStep['InputProductionTotalProcessingPass'] = self.LHCbJob.workflow.findParameter( 'processingPass' ).getValue()
 
     stepList = []
     stepKeys = bkSteps.keys()
@@ -779,4 +776,3 @@ class Production( object ):
   def get_transformationFamily( self ):
     return self._transformationFamily
   startRun = property( get_transformationFamily, set_transformationFamily )
-

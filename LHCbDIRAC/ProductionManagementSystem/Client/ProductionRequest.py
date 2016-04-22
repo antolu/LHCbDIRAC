@@ -303,7 +303,7 @@ class ProductionRequest( object ):
     else:
       newOutputFileStep = '1'
     prod.setFileMask( newFileMask, newOutputFileStep )
-    
+
     # find the file types out already built, append GAUSSHIST and set the new listoutput
     fileTypesOut = prod.LHCbJob.workflow.step_instances[0].findParameter( 'listoutput' ).getValue()[0]['outputDataType']
     fileTypesOut = fileTypesOut.split( ', ' )
@@ -676,9 +676,12 @@ class ProductionRequest( object ):
 
   #############################################################################
 
-  def _getBKKQuery( self, mode = 'full', fileType = [], previousProdID = 0 ):
+  def _getBKKQuery( self, mode = 'full', fileType = None, previousProdID = 0 ):
     """ simply creates the bkk query dictionary
     """
+
+    if fileType is None:
+      fileType = []
 
     if mode.lower() == 'full':
       bkQuery = {'FileType'                 : ';;;'.join( self.bkFileType ),
