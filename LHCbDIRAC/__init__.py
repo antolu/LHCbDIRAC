@@ -10,7 +10,7 @@ patchLevel = 0
 preVersion = 6
 =======
 minorVersion = 2
-patchLevel = 39
+patchLevel = 40
 preVersion = 0
 >>>>>>> upstream/master
 

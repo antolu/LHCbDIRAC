@@ -1,3 +1,11 @@
+[v8r2p40]
+use DIRAC v6r14p26
+* avoid useless cast
+* take into account the selected filetype when a list of steps returned from the db
+* if the BkQuery does not exist, still set the BK input proc pass
+* Allow replication shares to be using the run duration rather than the number of files
+* MaxReset -> Problematic allowed
+
 [v8r2p39]
 use DIRAC v6r14p26
 * delete lb_run configuration in order to release LHCbDIRAC

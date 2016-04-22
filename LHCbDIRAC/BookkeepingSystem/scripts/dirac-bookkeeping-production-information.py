@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 ########################################################################
-# File :    dirac-bookkeeping-production-informations
+# File :    dirac-bookkeeping-production-information
 # Author :  Zoltan Mathe
 ########################################################################
 """

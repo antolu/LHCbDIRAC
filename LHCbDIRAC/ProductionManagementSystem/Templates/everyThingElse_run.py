@@ -1,14 +1,15 @@
 """ Moving toward a templates-less system
 """
 
-__RCSID__ = "$Id$"
+import ast
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-import DIRAC
-from DIRAC import gLogger
+from DIRAC import gLogger, exit as DIRACexit
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
+
+__RCSID__ = "$Id$"
 
 gLogger = gLogger.getSubLogger( 'LaunchingRequest_run.py' )
 
@@ -61,9 +62,9 @@ if p3:
   p3 = [int( x ) for x in p3]
   pr.stepsInProds.append( p3 )
 
-certificationFlag = eval( '{{certificationFLAG#GENERAL: Set True for certification test#False}}' )
-localTestFlag = eval( '{{localTestFlag#GENERAL: Set True for local test#False}}' )
-validationFlag = eval( '{{validationFlag#GENERAL: Set True for validation prod#False}}' )
+certificationFlag = ast.literal_eval( '{{certificationFLAG#GENERAL: Set True for certification test#False}}' )
+localTestFlag = ast.literal_eval( '{{localTestFlag#GENERAL: Set True for local test#False}}' )
+validationFlag = ast.literal_eval( '{{validationFlag#GENERAL: Set True for validation prod#False}}' )
 
 # workflow params for all productions
 pr.startRun = int( '{{startRun#GENERAL: run start, to set the start run#0}}' )
@@ -72,11 +73,11 @@ pr.runsList = '{{runsList#GENERAL: discrete list of run numbers (do not mix with
 pr.targets = ['{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#}}'] * len( pr.prodsTypeList )
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 if extraOptions:
-  pr.extraOptions = eval( extraOptions )
+  pr.extraOptions = ast.literal_eval( extraOptions )
 pr.derivedProduction = int( '{{AncestorProd#GENERAL: ancestor prod to be derived#0}}' )
 pr.previousProdID = int( '{{previousProdID#GENERAL: previous prod ID (for BK query)#0}}' )
 modulesList = '{{modulesList#GENERAL: custom modules list#}}'
-enablePopularityReport = eval( '{{popularityReport#GENERAL: enable popularity report#False}}' )
+enablePopularityReport = ast.literal_eval( '{{popularityReport#GENERAL: enable popularity report#False}}' )
 
 # p1 params
 p1Plugin = '{{p1PluginType#PROD-P1: production plugin name#LHCbStandard}}'
@@ -85,11 +86,11 @@ p1CPU = '{{p1MaxCPUTime#PROD-P1: Max CPU time in secs#1000000}}'
 p1GroupSize = '{{p1GroupSize#PROD-P1: Group size or number of files per job#1}}'
 p1DataSE = '{{p1DataSE#PROD-P1: Output Data Storage Element#Tier1-DST}}'
 try:
-  p1DataSESpecial = eval( '{{p1DataSESpecial#PROD-P1: Special SEs per file type, e.g. {"T1":"SE1"}#}}' )
+  p1DataSESpecial = ast.literal_eval( '{{p1DataSESpecial#PROD-P1: Special SEs per file type, e.g. {"T1":"SE1"}#}}' )
 except SyntaxError:
   p1DataSESpecial = {}
 p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
-p1RemoveInputs = eval( '{{p1RemoveInputs#PROD-P1: removeInputs flag#False}}' )
+p1RemoveInputs = ast.literal_eval( '{{p1RemoveInputs#PROD-P1: removeInputs flag#False}}' )
 p1StepMask = '{{P1StepMask#PROD-P1: step output to save, semicolon separated (default is last)#}}'
 p1multicoreFlag = '{{P1MulticoreFLag#PROD-P1: multicore flag#True}}'
 p1outputMode = '{{P1OutputMode#PROD-P1: output mode#Local}}'
@@ -103,11 +104,11 @@ p2CPU = '{{p2MaxCPUTime#PROD-P2: Max CPU time in secs#1000000}}'
 p2GroupSize = '{{p2GroupSize#PROD-P2: Group Size#1}}'
 p2DataSE = '{{p2DataSE#PROD-P2: Output Data Storage Element#Tier1-DST}}'
 try:
-  p2DataSESpecial = eval( '{{p2DataSESpecial#PROD-P2: Special SEs per file type, e.g. {"T1":"SE1"}#}}' )
+  p2DataSESpecial = ast.literal_eval( '{{p2DataSESpecial#PROD-P2: Special SEs per file type, e.g. {"T1":"SE1"}#}}' )
 except SyntaxError:
   p2DataSESpecial = {}
 p2Policy = '{{p2Policy#PROD-P2: data policy (download or protocol)#download}}'
-p2RemoveInputs = eval( '{{p2RemoveInputs#PROD-P2: removeInputs flag#False}}' )
+p2RemoveInputs = ast.literal_eval( '{{p2RemoveInputs#PROD-P2: removeInputs flag#False}}' )
 p2StepMask = '{{P2StepMask#PROD-P2: step output to save, semicolon separated (default is last#}}'
 p2multicoreFlag = '{{P2MulticoreFLag#PROD-P2: multicore flag#True}}'
 p2outputMode = '{{P2OutputMode#PROD-P2: output mode#Local}}'
@@ -121,11 +122,11 @@ p3CPU = '{{p3MaxCPUTime#PROD-P3: Max CPU time in secs#1000000}}'
 p3GroupSize = '{{p3GroupSize#PROD-P3: Group Size#1}}'
 p3DataSE = '{{p3DataSE#PROD-P3: Output Data Storage Element#Tier1-DST}}'
 try:
-  p3DataSESpecial = eval( '{{p3DataSESpecial#PROD-P3: Special SEs per file type, e.g. {"T1":"SE1"}#}}' )
+  p3DataSESpecial = ast.literal_eval( '{{p3DataSESpecial#PROD-P3: Special SEs per file type, e.g. {"T1":"SE1"}#}}' )
 except SyntaxError:
   p3DataSESpecial = {}
 p3Policy = '{{p3Policy#PROD-P3: data policy (download or protocol)#download}}'
-p3RemoveInputs = eval( '{{p3RemoveInputs#PROD-P3: removeInputs flag#False}}' )
+p3RemoveInputs = ast.literal_eval( '{{p3RemoveInputs#PROD-P3: removeInputs flag#False}}' )
 p3StepMask = '{{P3StepMask#PROD-P3: step output to save, semicolon separated (default is last#}}'
 p3multicoreFlag = '{{P3MulticoreFLag#PROD-P3: multicore flag#True}}'
 p3outputMode = '{{P3OutputMode#PROD-P3: output mode#Any}}'
@@ -159,7 +160,7 @@ elif p1[0] != 1 and pr.prodsTypeList[0].lower() != 'mcsimulation':
   pr.bkQueries = ['fromPreviousProd']
   if not pr.previousProdID:
     gLogger.error( "Please specify an input production" )
-    DIRAC.exit( 2 )
+    DIRACexit( 2 )
 pr.eventType = '{{eventType}}'
 pr.visibility = 'Yes'
 

@@ -225,7 +225,8 @@ class ConsistencyChecks( DiracConsistencyChecks ):
           time.sleep( 0.1 )
     progressBar.endLoop( "found %d files with replicas and %d without" % ( len( present ), len( notPresent ) ) )
 
-    self.__logVerbose( "Files without replicas:", '\n'.join( [''] + sorted( notPresent ) ) )
+    if notPresent:
+      self.__logVerbose( "Files without replicas:", '\n'.join( [''] + sorted( notPresent ) ) )
     return list( present ), list( notPresent )
 
   ################################################################################
