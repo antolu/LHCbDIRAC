@@ -148,7 +148,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logInfo( "Using prestage shares from %s" % preStageShares )
 
     # Get the requested shares from the CS
-    res = self.util.getShares( section = 'RAW' )
+    res = self.util.getPluginShares( section = 'RAW' )
     if not res['OK']:
       self.util.logError( "Section RAW in Shares not available" )
       return res
@@ -185,7 +185,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     for runID in set( runFileDict ) & set( runSEDict ):
       bufferLogged = False
       rawLogged = False
-      newAssignedRAW = None
       # It may happen that files are not in the replica dictionary
       runLfns = set( runFileDict[runID] ) & set( self.transReplicas )
       if not runLfns:
@@ -232,7 +231,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               return res
             else:
               assignedRAW = res['Value']
-              newAssignedRAW = assignedRAW
               self.util.logVerbose( "RAW destination assigned for run %d: %s" % ( runID, assignedRAW ) )
           rawLogged = True
         elif not rawLogged:
@@ -272,7 +270,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         ses = sorted( set( assignedSE ) - replicaSE )
         # Update the counters as we know the number of files
         if assignedRAW in ses:
-          self.util.updateSharesUsage( existingCount, assignedRAW, len( lfns ), runID if newAssignedRAW else None )
+          # Here we pass both the number of files and the runID as we can use either metrics
+          self.util.updateSharesUsage( existingCount, assignedRAW, len( lfns ), runID )
         assignedSE = ','.join( ses )
         if assignedSE:
           self.util.logVerbose( 'Creating a task (%d files, run %d) for SEs %s' % ( len( lfns ), runID, assignedSE ) )
@@ -375,7 +374,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_OK()
 
     if self.processingShares[0] is None:
-      res = self.util.getShares( section = preStageShares, backupSE = backupSE )
+      res = self.util.getPluginShares( section = preStageShares, backupSE = backupSE )
       if not res['OK']:
         self.util.logError( "Error getting CPU shares for RAW processing", res['Message'] )
         return res
@@ -1277,7 +1276,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           lfnsToCheckForPath = set( lfn for lfn in lfnsToCheck if bkPath in bkPathsToCheck[lfn] )
           depth = len( bkPathList[bkPath].split( '/' ) ) - transPassLen + 1
           self.util.logVerbose( 'Checking descendants for %d files in productions %s, depth %d' % ( len( lfnsToCheckForPath ), ','.join( str( prod ) for prod in prods ), depth ) )
-          lfnLeft = self.util.removeNotProcessedFiles( lfnsToCheckForPath, prods )
+          lfnLeft = self.util.filterNotProcessedFiles( lfnsToCheckForPath, prods )
           for prod in sorted( prods, reverse = True ) if not newMethod else [None]:
             if not lfnLeft:
               # All files have been processed, go to next bkPath
@@ -1289,7 +1288,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             for lfnChunk in breakListIntoChunks( lfnLeft, 20 ):
               res = self.util.checkForDescendants( lfnChunk, prods ) if newMethod else self.bkClient.getFileDescendants( lfnChunk, production = prod, depth = depth, checkreplica = True )
               if res['OK']:
-                processedLfns.update( res['Value']['Successful'] )
+                processedLfns.update( res['Value'] )
             self.util.logVerbose( 'Found %s descendants in %.1f seconds' % \
                                   ( len( processedLfns ) if processedLfns else 'no',
                                     time.time() - startTime ) )

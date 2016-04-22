@@ -67,26 +67,29 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.dmsHelper = DMSHelpers()
     self.runDestinations = {}
     self.cachedDirMetadata = {}
+    self.runsUsedForShares = set()
+    self.shareMetrics = None
 
 
   def setDebug( self, val ):
     self.debug = val
 
   def updateSharesUsage( self, counters, se, count, runID ):
-    """ Update the usage counters if share is by files """
+    """ Update the usage counters if share is by files, and the run duration otherwise """
     inc = 0
     if self.shareMetrics == 'Files':
       inc = count
-    elif runID:
+    elif runID not in self.runsUsedForShares:
       # Update with run duration
       res = self.__getRunDuration( runID )
       if not res['OK']:
         self.logError( "Error getting run time", res['Message'] )
       else:
         inc = res['Value']
+        self.runsUsedForShares.add( runID )
     if inc:
       counters[se] = counters.setdefault( se, 0 ) + inc
-      self.logVerbose( 'New counter for %s: %d (+%d)' % ( se, counters[se], inc ) )
+      self.logVerbose( 'New %s counter for %s: %d (+%d)' % ( self.shareMetrics, se, counters[se], inc ) )
       self.printShares( "New counters and used fraction (%)", counters, log = self.logVerbose )
 
   def printShares( self, title, shares, counters = None, log = None ):
@@ -96,20 +99,26 @@ class PluginUtilities( DIRACPluginUtilities ):
       counters = shares
     normCounters = normaliseShares( counters ) if counters else {}
 
-    log( title )
+    log( title + " (metrics is %s)" % self.shareMetrics )
     for se in sorted( shares ):
       infoStr = "%s: %4.1f |" % ( se.ljust( 15 ), shares[se] )
       if se in counters:
         infoStr += " %4.1f" % normCounters[se]
       log( infoStr )
 
-  def getShares( self, section = None, backupSE = None ):
+  def getPluginShares( self, section = None, backupSE = None ):
     """
     Get shares from CS:
     * If backupSE is not present: just return the CS shares as they are
     * If backupSE is specified, the shares represent a percentage of the RAW at each site and the rest is for backupSE
+
+    If the ShareMetrics is Files:
+    * Use the number of files as metrics for SE usage
+    Else:
+    * Use the duration (in seconds) of runs as metrics for SE usage
     """
     self.shareMetrics = self.getPluginParam( 'ShareMetrics', '' )
+    # self.shareMetrics = 'Time'
     if section is None:
       # This is for reconstruction shares (CU)
       sharesSections = { 'DataReconstruction': 'CPUforRAW', 'DataReprocessing' : 'CPUforReprocessing'}
@@ -147,7 +156,7 @@ class PluginUtilities( DIRACPluginUtilities ):
 
     # Get the existing destinations from the transformationDB, just for printing
     if self.shareMetrics == 'Files':
-      res = self.getExistingCounters( requestedSEs = sorted( shares ), shares = shares )
+      res = self.getExistingCounters( requestedSEs = sorted( shares ) )
     else:
       res = self.getSitesRunsDuration( requestedSEs = sorted( shares ) )
     if not res['OK']:
@@ -168,14 +177,15 @@ class PluginUtilities( DIRACPluginUtilities ):
     runDictList = res['Value']
     # Get run metadata
     runMetadata = dict( ( runDict['RunNumber'], self.transClient.getRunsMetadata( runDict['RunNumber'] ).get( 'Value', {} ) ) for runDict in runDictList )
-    return S_OK( self.__runDuration( runMetadata, runID ) )
+    return S_OK( self.__extractRunDuration( runMetadata, runID ) )
 
-  def __runDuration( self, runMetadata, runID ):
+  def __extractRunDuration( self, runMetadata, runID ):
     duration = runMetadata.get( runID, {} ).get( 'Duration' )
     if duration is None:
       res = self.bkClient.getRunInformation( { 'RunNumber':[runID], 'Fields':['JobStart', 'JobEnd']} )
       if not res['OK']:
-        return res
+        self.logError( "Error getting run start/end information", res['Message'] )
+        duration = 0
       if runID in res['Value']:
         start = res['Value'][runID]['JobStart']
         end = res['Value'][runID]['JobEnd']
@@ -204,7 +214,8 @@ class PluginUtilities( DIRACPluginUtilities ):
         selectedSEs &= set( requestedSEs )
         if not selectedSEs:
           continue
-      duration = self.__runDuration( runMetadata, runID )
+      duration = self.__extractRunDuration( runMetadata, runID )
+      self.runsUsedForShares.add( runID )
       for se in selectedSEs:
         seUsage[se] = seUsage.setdefault( se, 0 ) + duration
 
@@ -213,7 +224,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     return S_OK( seUsage )
 
 
-  def getExistingCounters( self, transID = None, normalise = False, requestedSEs = None, shares = None ):
+  def getExistingCounters( self, transID = None, normalise = False, requestedSEs = None ):
     """
     Used by RAWShares and AtomicRun, gets what has been done up to now while distributing runs
     """
@@ -224,13 +235,9 @@ class PluginUtilities( DIRACPluginUtilities ):
     if not res['OK']:
       return res
     usageDict = {}
-    if shares is None:
-      shares = {}
     total = sum( count for _uDict, count in res['Value'] )
     for usedDict, count in res['Value']:
       usedSE = usedDict['UsedSE']
-      if not total:
-        count = shares.get( usedSE, 0 )
       if usedSE != 'Unknown':
         usageDict[usedSE] = count
     if requestedSEs:
@@ -870,7 +877,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       return res.get( 'Value' )
     return None
 
-  def removeNotProcessedFiles( self, lfns, prodList ):
+  def filterNotProcessedFiles( self, lfns, prodList ):
     """ Select only the files that are Processed in a list of productions """
     res = self.transClient.getTransformationFiles( {'LFN':list( lfns ), 'TransformationID':prodList} )
     if not res['OK']:
@@ -891,7 +898,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     elif isinstance( lfns, list ):
       lfns = set( lfns )
     if level:
-      lfns = self.removeNotProcessedFiles( set( lfns ), prodList )
+      lfns = self.filterNotProcessedFiles( set( lfns ), prodList )
     # Get daughters
     res = self.bkClient.getFileDescendants( list( lfns ), depth = 1, checkreplica = False )
     if not res['OK']:
@@ -939,13 +946,13 @@ class PluginUtilities( DIRACPluginUtilities ):
         if not res['OK']:
           return res
         foundInProd = set()
-        for desc in res['Value']['Successful']:
+        for desc in res['Value']:
           foundInProd.update( descToCheck[desc] )
         if foundInProd:
           self.logVerbose( "Found descendants of %d files at depth %d" % ( len( foundInProd ), level + 2 ) )
           finalResult.update( foundInProd )
 
-    return S_OK( {'Successful': finalResult} )
+    return S_OK( finalResult )
 
 
   def __getProduction( self, lfns ):
