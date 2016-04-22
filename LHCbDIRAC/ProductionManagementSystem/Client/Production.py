@@ -153,9 +153,7 @@ class Production( object ):
 
   #############################################################################
 
-  def addApplicationStep( self, stepDict, inputData = None,
-                          modules = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
-                                     'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ] ):
+  def addApplicationStep( self, stepDict, inputData = None, modules = None ):
     """ stepDict contains everything that is in the step, for this production, e.g.:
         {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
         'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'ExtraOptions': '',
@@ -169,6 +167,9 @@ class Production( object ):
         Note: this step treated here does not necessarily corresponds to a step of the BKK:
         the case where they might be different is the merging case.
     """
+    if modules is None:
+      modules = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                 'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
 
     appName = stepDict['ApplicationName']
     appVersion = stepDict['ApplicationVersion']
@@ -296,7 +297,7 @@ class Production( object ):
     if fileTypesIn:
       valuesToSet.append( [ 'inputDataType', ';'.join( ftIn.upper() for ftIn in fileTypesIn ) ] )
 
-    if not inputData:
+    if inputData is None:
       gLogger.verbose( '%s step has no data requirement or is linked to the overall input data' % appName )
       gaudiStepInstance.setLink( 'inputData', 'self', 'InputData' )
     elif inputData == 'previousStep':

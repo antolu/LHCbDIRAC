@@ -648,7 +648,6 @@ class ProductionRequest( object ):
     # Adding the application steps
     firstStep = stepsInProd.pop( 0 )
     stepName = prod.addApplicationStep( stepDict = firstStep,
-                                        inputData = '',
                                         modules = self.modulesList )
     prod.gaudiSteps.append( stepName )
 

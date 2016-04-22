@@ -29,7 +29,7 @@ class bkClientFake:
               'Value': {'TotalRecords': 1,
                         'ParameterNames': ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
                                            'ExtraPackages', 'ProcessingPass', 'Visible', 'Usable',
-                                           'DDDB', 'CONDDB', 'DQTag', 'OptionsFormat', 'OptionFiles', 
+                                           'DDDB', 'CONDDB', 'DQTag', 'OptionsFormat', 'OptionFiles',
                                            'isMulticore', 'SystemConfig', 'mcTCK', 'ExtraOptions'],
                         'Records': [[125080, 'Sim08a', 'Gauss', 'v45r3', 'AppConfig.v3r171', 'Sim08a', 'Y',
                                      'Yes', 'Sim08-20130503-1', 'Sim08-20130503-1-vc-mu100', '', '',
@@ -175,7 +175,6 @@ class ProductionRequestSuccess( ClientTestCase ):
     prod = Production()
     prod.setParameter( 'ProcessingType', 'JDL', 'Test', 'ProductionGroupOrType' )
     prod.addApplicationStep( stepDict = stepMC,
-                             inputData = '',
                              modules = ['GaudiApplication', 'AnalyseLogFile'] )
     prod.addApplicationStep( stepDict = stepMC2,
                              inputData = 'previousStep',
