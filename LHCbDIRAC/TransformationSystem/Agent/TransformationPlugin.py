@@ -113,7 +113,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     self.util.logVerbose( 'Checking if %d files are processed' % len( self.transReplicas ) )
     descendants = self.util.getProcessedFiles( self.transReplicas.keys() )
-    self.util.logVerbose( 'Successful check for %d files' % len( descendants ) )
     if descendants:
       processedLfns = [lfn for lfn in descendants if descendants[lfn]]
       self.util.logVerbose( "Found %d input files that have already been processed (setting status)" % len( processedLfns ) )
@@ -149,7 +148,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logInfo( "Using prestage shares from %s" % preStageShares )
 
     # Get the requested shares from the CS
-    res = self.util.getShares( section = 'RAW' )
+    res = self.util.getPluginShares( section = 'RAW' )
     if not res['OK']:
       self.util.logError( "Section RAW in Shares not available" )
       return res
@@ -271,7 +270,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         ses = sorted( set( assignedSE ) - replicaSE )
         # Update the counters as we know the number of files
         if assignedRAW in ses:
-          existingCount[assignedRAW] = existingCount.setdefault( assignedRAW, 0 ) + len( lfns )
+          # Here we pass both the number of files and the runID as we can use either metrics
+          self.util.updateSharesUsage( existingCount, assignedRAW, len( lfns ), runID )
         assignedSE = ','.join( ses )
         if assignedSE:
           self.util.logVerbose( 'Creating a task (%d files, run %d) for SEs %s' % ( len( lfns ), runID, assignedSE ) )
@@ -285,6 +285,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.transReplicas.pop( lfn )
       self.util.cleanFiles( self.transFiles, self.transReplicas, status = 'Processed' )
 
+    self.util.printShares( "Final target shares and usage (%)", targetShares, existingCount, log = self.util.logVerbose )
     return S_OK( tasks )
 
   def _RAWProcessing( self ):
@@ -373,7 +374,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_OK()
 
     if self.processingShares[0] is None:
-      res = self.util.getShares( section = preStageShares, backupSE = backupSE )
+      res = self.util.getPluginShares( section = preStageShares, backupSE = backupSE )
       if not res['OK']:
         self.util.logError( "Error getting CPU shares for RAW processing", res['Message'] )
         return res
@@ -1258,7 +1259,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
       # Restrict the query to the BK to the interesting productions
       transPassLen = len( transProcPass.split( '/' ) )
-      newMethod = False
+      newMethod = True
       for stringTargetSEs in sorted( newGroups ):
         lfns = newGroups[stringTargetSEs]
         self.util.logInfo( 'Checking descendants for %d files at %s' % ( len( lfns ), stringTargetSEs ) )
@@ -1275,18 +1276,19 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           lfnsToCheckForPath = set( lfn for lfn in lfnsToCheck if bkPath in bkPathsToCheck[lfn] )
           depth = len( bkPathList[bkPath].split( '/' ) ) - transPassLen + 1
           self.util.logVerbose( 'Checking descendants for %d files in productions %s, depth %d' % ( len( lfnsToCheckForPath ), ','.join( str( prod ) for prod in prods ), depth ) )
-          for prod in sorted( prods, reverse = True ) if not newMethod else ['']:
-            if not lfnsToCheckForPath:
+          lfnLeft = self.util.filterNotProcessedFiles( lfnsToCheckForPath, prods )
+          for prod in sorted( prods, reverse = True ) if not newMethod else [None]:
+            if not lfnLeft:
               # All files have been processed, go to next bkPath
               break
             if prod:
-              self.util.logVerbose( 'Checking descendants for %d files in production %d, depth %d' % ( len( lfnsToCheckForPath ), prod, depth ) )
+              self.util.logVerbose( 'Checking descendants for %d files in production %d, depth %d' % ( len( lfnLeft ), prod, depth ) )
             startTime = time.time()
             processedLfns = set()
-            for lfnChunk in breakListIntoChunks( lfnsToCheckForPath, 20 ):
+            for lfnChunk in breakListIntoChunks( lfnLeft, 20 ):
               res = self.util.checkForDescendants( lfnChunk, prods ) if newMethod else self.bkClient.getFileDescendants( lfnChunk, production = prod, depth = depth, checkreplica = True )
               if res['OK']:
-                processedLfns.update( res['Value']['Successful'] )
+                processedLfns.update( res['Value'] )
             self.util.logVerbose( 'Found %s descendants in %.1f seconds' % \
                                   ( len( processedLfns ) if processedLfns else 'no',
                                     time.time() - startTime ) )
@@ -1295,7 +1297,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 self.util.logWarn( 'LFN not in list: %s' % lfn, str( bkPathsToCheck[lfn] ) )
               else:
                 bkPathsToCheck[lfn].remove( bkPath )
-            lfnsToCheckForPath -= processedLfns
+            lfnLeft -= processedLfns
           notProcessed = set( lfn for lfn in lfnsToCheckForPath if bkPath in bkPathsToCheck[lfn] )
           if notProcessed:
             self.util.logVerbose( "%d files not processed by processing pass %s, don't check further" % ( len( notProcessed ), bkPathList[bkPath] ) )
@@ -1311,7 +1313,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           targetSEs = set( stringTargetSEs.split( ',' ) )
           if not targetSEs & fromSEs:
             # Files are processed but are no longer at the requested SEs, set them Processed
-            self.util.logInfo( "Processed files are no longer in required list: set them Processed" )
+            self.util.logInfo( "%d processed files are no longer in required SE list: set them Processed" % len( lfnsProcessed ) )
             self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfnsProcessed )
           else:
             storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )
