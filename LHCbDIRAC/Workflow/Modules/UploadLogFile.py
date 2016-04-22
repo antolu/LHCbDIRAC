@@ -2,8 +2,6 @@
     directory.
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import shutil
 import glob
@@ -21,6 +19,8 @@ from DIRAC.Core.Utilities.ReturnValues                  import returnSingleResul
 from LHCbDIRAC.Workflow.Modules.ModuleBase              import ModuleBase
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities        import tarFiles
 from LHCbDIRAC.Core.Utilities.ProductionData            import getLogPath
+
+__RCSID__ = "$Id$"
 
 class UploadLogFile( ModuleBase ):
   """ Upload to LogSE

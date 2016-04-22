@@ -1,14 +1,16 @@
 """ Root Application Class """
 
-__RCSID__ = "$Id$"
-
-import os, sys, fnmatch
+import os
+import sys
+import fnmatch
 
 from DIRAC                                            import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities.Subprocess                  import shellCall
 
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment   import getProjectEnvironment
 from LHCbDIRAC.Workflow.Modules.ModuleBase            import ModuleBase
+
+__RCSID__ = "$Id$"
 
 class RootApplication( ModuleBase ):
 

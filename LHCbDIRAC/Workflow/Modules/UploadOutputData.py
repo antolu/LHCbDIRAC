@@ -1,8 +1,6 @@
 """ Module to upload specified job output files according to the parameters defined in the production workflow.
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import random
 import glob
@@ -21,6 +19,8 @@ from LHCbDIRAC.Core.Utilities.ProductionData                  import constructPr
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks  import getFileDescendants
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase                    import ModuleBase
+
+__RCSID__ = "$Id$"
 
 class UploadOutputData( ModuleBase ):
   """ Module to upload specified job output files according to the parameters defined in the production workflow.

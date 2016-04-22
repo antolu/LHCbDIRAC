@@ -2,15 +2,16 @@
     defined in the user workflow.
 """
 
-__RCSID__ = "$Id$"
-
-import os, copy
+import os
 
 from DIRAC                                                 import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.RequestManagementSystem.Client.Request          import Operation
 from DIRAC.Core.Utilities                                  import DEncode
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
 from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient import DataUsageClient
+
+__RCSID__ = "$Id$"
+
 
 class FileUsage( ModuleBase ):
 
