@@ -13,7 +13,6 @@
 import shutil
 import re
 import os
-import copy
 
 from DIRAC                                                        import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Workflow.Workflow                                 import Workflow, fromXMLString
@@ -154,9 +153,7 @@ class Production( object ):
 
   #############################################################################
 
-  def addApplicationStep( self, stepDict, inputData = None,
-                          modules = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
-                                     'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ] ):
+  def addApplicationStep( self, stepDict, inputData = None, modules = None ):
     """ stepDict contains everything that is in the step, for this production, e.g.:
         {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
         'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'ExtraOptions': '',
@@ -170,6 +167,9 @@ class Production( object ):
         Note: this step treated here does not necessarily corresponds to a step of the BKK:
         the case where they might be different is the merging case.
     """
+    if modules is None:
+      modules = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                 'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
 
     appName = stepDict['ApplicationName']
     appVersion = stepDict['ApplicationVersion']
@@ -296,7 +296,7 @@ class Production( object ):
     if fileTypesIn:
       valuesToSet.append( [ 'inputDataType', ';'.join( ftIn.upper() for ftIn in fileTypesIn ) ] )
 
-    if not inputData:
+    if inputData is None:
       gLogger.verbose( '%s step has no data requirement or is linked to the overall input data' % appName )
       gaudiStepInstance.setLink( 'inputData', 'self', 'InputData' )
     elif inputData == 'previousStep':
@@ -632,25 +632,19 @@ class Production( object ):
 
     bkDictStep['Production'] = int( prodID )
 
-    queryProdID = 0
-    bkQuery = copy.deepcopy( self.inputBKSelection )
-    if bkQuery.has_key( 'ProductionID' ):
-      queryProdID = int( bkQuery['ProductionID'] )
-    queryProcPass = ''
-    if bkQuery.has_key( 'ProcessingPass' ):
-      if not bkQuery['ProcessingPass'] == 'All':
-        queryProcPass = bkQuery['ProcessingPass']
+    if self.inputBKSelection:
+      queryProdID = int( self.inputBKSelection.get('ProductionID', 0) )
+      queryProcPass = self.inputBKSelection.get('ProcessingPass', '') if self.inputBKSelection.get('ProcessingPass', '') != 'All' else ''
 
-    if bkQuery:
       if queryProdID:
         inputPass = self.bkkClient.getProductionProcessingPass( queryProdID )
         if not inputPass['OK']:
           gLogger.error( inputPass )
-          gLogger.error( 'Production %s was created but BK processing pass for %s was not found' % ( prodID,
+          gLogger.error( 'Production %s was created but BK processing pass for %d was not found' % ( prodID,
                                                                                                      queryProdID ) )
           return inputPass
         inputPass = inputPass['Value']
-        gLogger.info( 'Setting %s as BK input production for %s with processing pass %s' % ( queryProdID,
+        gLogger.info( 'Setting %d as BK input production for %s with processing pass %s' % ( queryProdID,
                                                                                              prodID,
                                                                                              inputPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = inputPass
@@ -658,6 +652,10 @@ class Production( object ):
         gLogger.info( 'Adding input BK processing pass for production %s from input data query: %s' % ( prodID,
                                                                                                         queryProcPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = queryProcPass
+    else:
+      # has to account for an input processing pass anyway,
+      # or output files may not have the output processing pass correctly computed
+      bkDictStep['InputProductionTotalProcessingPass'] = self.LHCbJob.workflow.findParameter( 'processingPass' ).getValue()
 
     stepList = []
     stepKeys = bkSteps.keys()

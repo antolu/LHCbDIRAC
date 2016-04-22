@@ -648,7 +648,6 @@ class ProductionRequest( object ):
     # Adding the application steps
     firstStep = stepsInProd.pop( 0 )
     stepName = prod.addApplicationStep( stepDict = firstStep,
-                                        inputData = '',
                                         modules = self.modulesList )
     prod.gaudiSteps.append( stepName )
 
@@ -676,9 +675,12 @@ class ProductionRequest( object ):
 
   #############################################################################
 
-  def _getBKKQuery( self, mode = 'full', fileType = [], previousProdID = 0 ):
+  def _getBKKQuery( self, mode = 'full', fileType = None, previousProdID = 0 ):
     """ simply creates the bkk query dictionary
     """
+
+    if fileType is None:
+      fileType = []
 
     if mode.lower() == 'full':
       bkQuery = {'FileType'                 : ';;;'.join( self.bkFileType ),

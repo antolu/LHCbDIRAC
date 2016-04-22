@@ -15,14 +15,15 @@
       - for the merge and/or stripping: set pr.prodsToLaunch, then set pr.previousProdID
 """
 
-__RCSID__ = "$Id$"
+import ast
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-import DIRAC
-from DIRAC import gLogger
+from DIRAC import gLogger, exit as DIRACexit
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
+
+__RCSID__ = "$Id$"
 
 gLogger = gLogger.getSubLogger( 'MCSimulation_run.py' )
 
@@ -97,7 +98,7 @@ pr.parentRequestID = '{{_parent}}'
 pr.requestID = '{{ID}}'
 
 if extraOptions:
-  pr.extraOptions = eval( extraOptions )
+  pr.extraOptions = ast.literal_eval( extraOptions )
 pr.prodGroup = '{{pDsc}}'
 pr.dataTakingConditions = '{{simDesc}}'
 
@@ -105,8 +106,8 @@ MCPriority = int( MCPriority )
 selectionPriority = int( selectionPriority )
 mergingPriority = int( mergingPriority )
 
-removeInputMerge = eval( removeInputMerge )
-removeInputSelection = eval( removeInputSelection )
+removeInputMerge = ast.literal_eval( removeInputMerge )
+removeInputSelection = ast.literal_eval( removeInputSelection )
 
 pr.resolveSteps()
 
@@ -114,9 +115,9 @@ pr.resolveSteps()
 # LHCb conventions implied by the above
 ###########################################
 
-certificationFlag = eval( certificationFlag )
-localTestFlag = eval( localTestFlag )
-validationFlag = eval( validationFlag )
+certificationFlag = ast.literal_eval( certificationFlag )
+localTestFlag = ast.literal_eval( localTestFlag )
+validationFlag = ast.literal_eval( validationFlag )
 
 if certificationFlag or localTestFlag:
   pr.testFlag = True
@@ -128,15 +129,15 @@ if certificationFlag or localTestFlag:
 
 pr.outConfigName = pr.configName
 
-w1 = eval( w1 )
-w2 = eval( w2 )
-w3 = eval( w3 )
-w4 = eval( w4 )
-w5 = eval( w5 )
+w1 = ast.literal_eval( w1 )
+w2 = ast.literal_eval( w2 )
+w3 = ast.literal_eval( w3 )
+w4 = ast.literal_eval( w4 )
+w5 = ast.literal_eval( w5 )
 
 if not w1 and not w2 and not w3 and not w4 and not w5:
   gLogger.error( 'Vladimir, I told you to select at least one workflow!' )
-  DIRAC.exit( 2 )
+  DIRACexit( 2 )
 
 if w1:
   pr.prodsTypeList = ['MCSimulation', 'MCStripping', 'MCMerge']
@@ -188,7 +189,7 @@ elif w3:
 
   if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
     gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
-    DIRAC.exit( 2 )
+    DIRACexit( 2 )
 
   brunelStepIndex = 1
   for sld in pr.stepsListDict:
@@ -232,7 +233,7 @@ elif w5:
   pr.outputSEs = ['Tier1_MC-DST']
   if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
     gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
-    DIRAC.exit( 2 )
+    DIRACexit( 2 )
 
   pr.stepsInProds = [range( 1, len( pr.stepsList ) + 1 )]
   pr.removeInputsFlags = [False]
@@ -267,6 +268,6 @@ if validationFlag:
 res = pr.buildAndLaunchRequest()
 if not res['OK']:
   gLogger.error( "Errors with submission: %s" % res['Message'] )
-  DIRAC.exit( 2 )
+  DIRACexit( 2 )
 else:
   gLogger.always( "Submitted %s" % str( res['Value'] ) )
