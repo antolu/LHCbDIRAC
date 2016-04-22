@@ -898,7 +898,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     elif isinstance( lfns, list ):
       lfns = set( lfns )
     if level:
-      lfns = self.filterNotProcessedFiles( set( lfns ), prodList )
+      lfns = self.filterNotProcessedFiles( lfns, prodList )
     # Get daughters
     res = self.bkClient.getFileDescendants( list( lfns ), depth = 1, checkreplica = False )
     if not res['OK']:
