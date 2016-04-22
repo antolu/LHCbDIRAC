@@ -340,7 +340,7 @@ class BookkeepingReport( ModuleBase ):
       res = self.bkClient.getFileMetadata( self.stepInputData )
       if not res['OK']:
         raise AttributeError( "Can't get the BKK file metadata" )
-      noOfEvents = sum( [fileMeta['EventStat'] for fileMeta in res['Value']['Successful'].values()] )
+      noOfEvents = sum(fileMeta['EventStat'] for fileMeta in res['Value']['Successful'].itervalues())
 
     typedParams.append( ( "NumberOfEvents", noOfEvents) )
 
