@@ -2,8 +2,6 @@
     common utility methods
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import copy
 import time
@@ -25,6 +23,8 @@ from LHCbDIRAC.Core.Utilities.ProductionData                  import getLogPath,
 from LHCbDIRAC.Core.Utilities.ProdConf                        import ProdConf
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities              import getEventsToProduce
 
+__RCSID__ = "$Id$"
+
 class ModuleBase( object ):
   """ Base class for Modules - works only within DIRAC workflows
   """
@@ -35,22 +35,22 @@ class ModuleBase( object ):
     """ Initialization of module base.
     """
 
-    if not loggerIn:
+    if loggerIn is None:
       self.log = gLogger.getSubLogger( 'ModuleBase' )
     else:
       self.log = loggerIn
 
-    if not operationsHelperIn:
+    if operationsHelperIn is None:
       self.opsH = Operations()
     else:
       self.opsH = operationsHelperIn
 
-    if not bkClientIn:
+    if bkClientIn is None:
       self.bkClient = BookkeepingClient()
     else:
       self.bkClient = bkClientIn
 
-    if not dm:
+    if dm is None:
       self.dataManager = DataManager()
     else:
       self.dataManager = dm
@@ -819,9 +819,8 @@ class ModuleBase( object ):
     """ just writes a file to disable the watchdog
     """
     self.log.info( "Creating DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK in order to disable the Watchdog" )
-    fopen = open( 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'w' )
-    fopen.write( '%s' % time.asctime() )
-    fopen.close()
+    with open( 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'w' ) as fopen:
+      fopen.write( '%s' % time.asctime() )
 
   #############################################################################
 
@@ -857,9 +856,8 @@ class ModuleBase( object ):
           self.log.debug( request_string )
           # Write out the request string
           fname = '%s_%s_request.json' % ( self.production_id, self.prod_job_id )
-          jsonFile = open( fname, 'w' )
-          jsonFile.write( request_string )
-          jsonFile.close()
+          with open(fname, 'w') as jsonFile:
+            jsonFile.write( request_string )
           self.log.info( "Created file containing failover request %s" % fname )
           result = self.request.getDigest()
           if result['OK']:

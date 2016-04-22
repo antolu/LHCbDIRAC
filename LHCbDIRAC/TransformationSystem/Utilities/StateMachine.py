@@ -1,10 +1,10 @@
 """ Transformation Files state machine (LHCb specific)
 """
 
-__RCSID__ = "$Id$"
-
 from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine         import State
 from LHCbDIRAC.ProductionManagementSystem.Utilities.StateMachine  import LHCbStateMachine
+
+__RCSID__ = "$Id$"
 
 class TransformationFilesStateMachine( LHCbStateMachine ):
   """ Implementation of the state machine for the TransformationFiles
@@ -27,7 +27,7 @@ class TransformationFilesStateMachine( LHCbStateMachine ):
                    'MissingInFC'  : State( 7 ),  # final state
                    'NotProcessed' : State( 6, ['Unused'], defState = 'NotProcessed' ),
                    'ProbInFC'     : State( 5 ),  # final state
-                   'MaxReset'     : State( 4, ['Removed', 'Moved'], defState = 'MaxReset' ),
+                   'MaxReset'     : State( 4, ['Removed', 'Moved', 'Problematic'], defState = 'MaxReset' ),
                    'Problematic'  : State( 3 ),  # final state
                    'Processed'    : State( 2 ),  # final state
                    'Assigned'     : State( 1, ['Unused', 'Processed', 'MaxReset', 'Problematic'],

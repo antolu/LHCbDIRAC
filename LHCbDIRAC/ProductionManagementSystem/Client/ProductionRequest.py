@@ -1,8 +1,6 @@
 """ Module for creating, describing and managing production requests objects
 """
 
-__RCSID__ = "$Id$"
-
 import itertools
 import copy
 
@@ -16,6 +14,8 @@ from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracPr
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
 from LHCbDIRAC.ProductionManagementSystem.Client.Production       import Production
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
+
+__RCSID__ = "$Id$"
 
 class ProductionRequest( object ):
   """ Production request class - objects are usually created starting from a production request
@@ -303,7 +303,7 @@ class ProductionRequest( object ):
     else:
       newOutputFileStep = '1'
     prod.setFileMask( newFileMask, newOutputFileStep )
-    
+
     # find the file types out already built, append GAUSSHIST and set the new listoutput
     fileTypesOut = prod.LHCbJob.workflow.step_instances[0].findParameter( 'listoutput' ).getValue()[0]['outputDataType']
     fileTypesOut = fileTypesOut.split( ', ' )
