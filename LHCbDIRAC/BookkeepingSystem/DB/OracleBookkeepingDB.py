@@ -373,7 +373,11 @@ class OracleBookkeepingDB:
         step += [{'ParameterNames':rParameters, 'Records':runtimeProject, 'TotalRecords':len( runtimeProject ) + 1}]
         records += [step]
       if paging:
-        command = "select count(*) from steps s where s.stepid>0 %s " % ( condition )
+        if fileTypefilter:
+           command = "select count(*) from %s where s.stepid>0 %s " % ( fileTypefilter, condition )
+        else:
+          command = "select count(*) from steps s where s.stepid>0 %s " % ( condition )
+          
         retVal = self.dbR_.query( command )
         if retVal['OK']:
           totrec = retVal['Value'][0][0]
