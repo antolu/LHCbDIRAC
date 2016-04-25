@@ -390,8 +390,8 @@ class XMLFilesReaderManager:
           dqvalue = retVal['Value']
           gLogger.info( "%d run data quality flag is %s" % ( int( runnumber ), dqvalue ) )
         else:
-          dqvalue = None
-          gLogger.error( retVal['Message'] )
+          #The report will be entered to the db. 
+          gLogger.warn( retVal['Message'] )
       else:
         gLogger.error( retVal['Message'] )
       
