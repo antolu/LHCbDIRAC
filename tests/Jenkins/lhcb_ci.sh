@@ -126,7 +126,7 @@ function diracInstallCommand(){
 
 function updateToTrunk(){
 	echo '==> [updateToTrunk]'
-	cd $WORKSPACE/
+	cd $TESTCODE/
 
 	if [ -d "LHCbDIRAC" ];
 	then
@@ -261,18 +261,22 @@ function installLHCbDIRAC(){
 
 function installLHCbDIRACClient(){
 
-	wget --no-check-certificate -O dirac-install $DIRAC_INSTALL
-	chmod +x dirac-install
-	./dirac-install -l LHCb -r `cat project.version` -e LHCb -t client $DEBUG
+	echo '==> Installing LHCbDIRAC client'
 
-	mkdir etc
-	ln -s /cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/etc/dirac.cfg etc/dirac.cfg
+	cp $TESTCODE/DIRAC/Core/scripts/dirac-install.py $CLIENTINSTALLDIR/dirac-install
+	chmod +x $CLIENTINSTALLDIR/dirac-install
+	$CLIENTINSTALLDIR/dirac-install -l LHCb -r `cat project.version` -e LHCb -t client $DEBUG
+
+	mkdir $CLIENTINSTALLDIR/etc
+	ln -s /cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/etc/dirac.cfg $CLIENTINSTALLDIR/etc/dirac.cfg
 
 	source bashrc
 
 }
 
 function setupLHCbDIRAC(){
+
+	echo '==> Invoking SetupProject LHCbDIRAC'
 
 	. /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r3p1/InstallArea/scripts/LbLogin.sh
 	. /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r3p1/InstallArea/scripts/SetupProject.sh LHCbDIRAC `cat project.version`
@@ -282,7 +286,7 @@ function setupLHCbDIRAC(){
 		echo "==> Going to install client with dirac-install"
 		installLHCbDIRACClient
 	else
-		export PYTHONPATH=$PYTHONPATH:$WORKSPACE
+		export PYTHONPATH=$PYTHONPATH:$CLIENTINSTALLDIR/
 	fi
 }
 
@@ -293,8 +297,8 @@ function submitJob(){
 
 	#Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
 	getUserProxy #this won't really download the proxy, so that's why the next command is needed
-	python $WORKSPACE/DIRAC/test/Jenkins/dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification $PILOTCFG -ddd
-	python $WORKSPACE/LHCbDIRAC/tests/Jenkins/dirac-test-job.py -o /DIRAC/Setup=LHCb-Certification $DEBUG
+	python $TESTCODE/DIRAC/test/Jenkins/dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification $PILOTCFG -ddd
+	python $TESTCODE/LHCbDIRAC/tests/Jenkins/dirac-test-job.py -o /DIRAC/Setup=LHCb-Certification $DEBUG
 
 	rm $PILOTCFG
 }
