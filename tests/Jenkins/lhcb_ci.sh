@@ -114,6 +114,13 @@ function diracInstallCommand(){
 	$SERVERINSTALLDIR/dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
 }
 
+# Getting a CFG file for the installation: Specialized command
+function getCFGFile(){
+	echo '==> [getCFGFile]'
+
+	cp $TESTCODE/LHCbDIRAC/tests/Jenkins/install.cfg $SERVERINSTALLDIR/
+	sed -i s/VAR_Release/$projectVersion/g $SERVERINSTALLDIR/install.cfg
+}
 
 #.............................................................................
 #
