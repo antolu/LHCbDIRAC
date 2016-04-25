@@ -111,7 +111,7 @@ function findRelease(){
 #.............................................................................
 
 function diracInstallCommand(){
-	./dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
+	$SERVERINSTALLDIR/dirac-install -l LHCb -r `cat project.version` -e LHCb -t server $DEBUG
 }
 
 
