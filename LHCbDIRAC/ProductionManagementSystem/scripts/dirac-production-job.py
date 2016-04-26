@@ -142,7 +142,7 @@ def processJobs( jobs ):
       continue
 
     subLogger.info( 'JobID : %s' % job )
-    
+
 
     processInput( jobinfo )
 
@@ -152,31 +152,31 @@ def processJobs( jobs ):
       continue
     subLogger.info( '\noutput' )
     map( subLogger.info, output[ 'Value' ] )
-    
+
 
 def processInput( jobinfo ):
-  
+
   jInput = jobinfo.getInputLFN()
   if not jInput[ 'OK' ]:
     subLogger.error( jInput[ 'Message' ] )
     return
-  
+
   subLogger.info( '\ninput' )
   if jInput[ 'Value' ]:
     inputFiles = jInput[ 'Value' ][ 0 ].split( ';' )
-  
+
     fileStatus = transClient.getFileSummary( inputFiles )
     if not fileStatus[ 'OK' ]:
       subLogger.error( fileStatus[ 'Message' ] )
-    
+
     def processFileSummary( status ):
-    
+
       subLogger.info( '%s files' % status )
       for fileName, fileDict in fileStatus[ 'Value' ][ status ].iteritems():
-        summary = ''            
+        summary = ''
         for value in fileDict.values():
           summary += '%(Status)s ( %(TransformationID)s ),' % value
-        subLogger.info( '%s ::: %s' % ( fileName, summary ) )   
+        subLogger.info( '%s ::: %s' % ( fileName, summary ) )
 
     processFileSummary( 'Successful' )
     processFileSummary( 'Failed' )
@@ -204,7 +204,7 @@ def lazyImports():
   global jobInfoFromXML
   from LHCbDIRAC.Core.Utilities.JobInfoFromXML import JobInfoFromXML
   jobInfoFromXML = JobInfoFromXML
-  
+
   global transClient
   from DIRAC.Core.DISET.RPCClient import RPCClient
   transClient = RPCClient( 'Transformation/TransformationManager')
@@ -218,14 +218,14 @@ if __name__ == "__main__":
   registerSwitches()
   subLogger = gLogger.getSubLogger( __file__ )
   switchDict = parseSwitches()
-  
+
   # lazy Imports
   lazyImports()
 
-  # Script execution  
+  # Script execution
   run()
 
-  # Bye my friend  
+  # Bye my friend
   DiracExit( 0 )
 
 #...............................................................................

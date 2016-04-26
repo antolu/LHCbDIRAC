@@ -1,4 +1,3 @@
-"""  The ProductionStatusAgent monitors productions for active requests
      and takes care to update their status. Initially this is just to handle
      simulation requests.
 
@@ -24,8 +23,6 @@
      AZ 10.14: merged with a part from RequestTrackingAgent to avoid race conditions
 """
 
-__RCSID__ = "$Id$"
-
 import time
 
 from DIRAC                                                      import S_OK, S_ERROR
@@ -49,7 +46,11 @@ gSimulate = False
 gDoRealUpdate = True  # call status updates
 gDoRealTracking = True  # update requests progress
 
-class ProductionRequestSIM():
+
+__RCSID__ = "$Id$"
+
+
+class ProductionRequestSIM(object):
   """ Simulate PrductionRequest Service
   """
   def __init__( self, *args, **kwargs ):
