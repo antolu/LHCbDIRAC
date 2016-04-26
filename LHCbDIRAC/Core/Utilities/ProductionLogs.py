@@ -1,10 +1,11 @@
 """ Utilities to check the application log files (for production jobs)
 """
 
-__RCSID__ = "$Id$"
-
-import re, os
+import re
+import os
 from DIRAC import gLogger
+
+__RCSID__ = "$Id$"
 
 class LogError( Exception ):
   """ custom exception
@@ -29,9 +30,7 @@ class ProductionLog( object ):
                 log = None ):
 
     # Well known application Errors
-    self.__APPLICATION_ERRORS__ = {
-                                   'Terminating event processing loop due to errors' : 'Event Loop Not Terminated'
-    }
+    self.__APPLICATION_ERRORS__ = {'Terminating event processing loop due to errors' : 'Event Loop Not Terminated'}
 
     # Well known Gaudi Errors
     self.__GAUDI_ERRORS__ = {'Could not connect' : 'CASTOR error connection',

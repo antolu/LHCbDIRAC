@@ -2,8 +2,6 @@
 """
   Perform comprehensive checks on the supplied log file if it exists.
 """
-__RCSID__ = "$Id$"
-
 
 import DIRAC
 from DIRAC.Core.Base import Script
@@ -20,6 +18,8 @@ from DIRAC import gLogger
 from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile, LogError
 
 args = Script.getPositionalArgs()
+
+__RCSID__ = "$Id$"
 
 logFile = ''
 projectName = ''
