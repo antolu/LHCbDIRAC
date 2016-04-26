@@ -1,8 +1,6 @@
 """ Utility for invoking running LHCb applications
 """
 
-__RCSID__ = "$Id$"
-
 import sys
 import re
 import multiprocessing
@@ -14,6 +12,8 @@ from DIRAC.Core.Utilities.List import fromChar
 from DIRAC.Core.Utilities.Subprocess import shellCall
 
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getCMTConfig, getScriptsLocation, runEnvironmentScripts, addCommandDefaults
+
+__RCSID__ = "$Id$"
 
 
 class RunApplication(object):
@@ -191,9 +191,9 @@ class RunApplication(object):
     self.log.verbose( "Calling %s" % finalCommand )
 
     res = shellCall( 0, finalCommand,
-                      env = env,
-                      callbackFunction = self.__redirectLogOutput,
-                      bufferLimit = 20971520 )
+                     env = env,
+                     callbackFunction = self.__redirectLogOutput,
+                     bufferLimit = 20971520 )
 
     print res
 
