@@ -1106,7 +1106,7 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    command = "select /*+  NO_PARALLEL(bview) */ distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, \
+    command = "select distinct f.FileName, f.EventStat, f.FileSize, f.CreationDate, j.JobStart, j.JobEnd, \
     j.WorkerNode, ft.Name, j.runnumber, j.fillnumber, f.fullstat, d.dataqualityflag, \
     j.eventinputstat, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck, f.guid, f.adler32, f.eventTypeid, f.md5sum,f.visibilityflag, j.jobid, f.gotreplica, f.inserttimestamp from %s  where \
     j.jobid=f.jobid  and \
@@ -3075,13 +3075,13 @@ and files.qualityid= dataquality.qualityid'
     condition, tables = retVal['Value']
 
     if nbofEvents:
-      command = " select /*+  NO_PARALLEL(bview) */ sum(f.eventstat) \
+      command = " select sum(f.eventstat) \
       from %s where f.jobid= j.jobid %s " % ( tables, condition )
     elif filesize:
-      command = " select /*+  NO_PARALLEL(bview) */ sum(f.filesize) \
+      command = " select sum(f.filesize) \
       from %s where f.jobid= j.jobid %s " % ( tables, condition )
     else:
-      command = " select /*+  NO_PARALLEL(bview) */ distinct f.filename \
+      command = " select distinct f.filename \
       from %s where f.jobid= j.jobid %s " % ( tables, condition )
 
     res = self.dbR_.query( command )
@@ -3119,7 +3119,7 @@ and files.qualityid= dataquality.qualityid'
       elif isinstance( production, ( basestring, int, long ) ):
         condition += ' and j.production=%s' % str( production )
     
-    if production not in [default, None] and visible.upper().startswith( 'Y' ):
+    if production not in [default, None] and visible.upper().startswith( 'Y' ) and tables.upper().find( 'BVIEW' ) > 0:
       condition += ' and j.production=bview.production '
     
     return S_OK( ( condition, tables ) )
@@ -3172,8 +3172,10 @@ and files.qualityid= dataquality.qualityid'
       pro = pro[:-1]
       pro += ')'
 
-      if visible.upper().startswith( 'Y' ):
-        condition += " and bview.production=prod.production "
+      if visible.upper().startswith( 'Y' ): 
+        if tables.upper().find( 'BVIEW' ) < 0:
+          tables += ',prodview bview'
+        condition += " and bview.production=prod.production and bview.production=j.production"
         
       condition += " and j.production=prod.production \
                      and prod.processingid in %s" % ( pro )
@@ -3521,7 +3523,7 @@ and files.qualityid= dataquality.qualityid'
     if endRunID != None:
       condition += ' and j.runnumber<=' + str( endRunID )
 
-    command = " select /*+  NO_PARALLEL(bview) */ distinct f.filename, f.eventstat, j.eventinputstat, \
+    command = " select distinct f.filename, f.eventstat, j.eventinputstat, \
      j.runnumber, j.fillnumber, f.filesize, j.totalluminosity, f.luminosity, f.instLuminosity, j.tck from %s where\
      f.jobid= j.jobid and f.visibilityflag='Y'  and f.gotreplica='Yes' %s " % ( tables, condition )
 
@@ -3600,7 +3602,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    command = "select /*+  NO_PARALLEL(bview) */ count(*),\
+    command = "select count(*),\
     SUM(f.EventStat), SUM(f.FILESIZE), \
     SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
     j.jobid=f.jobid and \
