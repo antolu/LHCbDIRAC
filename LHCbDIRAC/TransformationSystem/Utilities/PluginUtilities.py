@@ -79,14 +79,17 @@ class PluginUtilities( DIRACPluginUtilities ):
     inc = 0
     if self.shareMetrics == 'Files':
       inc = count
-    elif runID not in self.runsUsedForShares:
-      # Update with run duration
-      res = self.__getRunDuration( runID )
-      if not res['OK']:
-        self.logError( "Error getting run time", res['Message'] )
-      else:
-        inc = res['Value']
-        self.runsUsedForShares.add( runID )
+    else:
+      self.logVerbose( "Updating SE %s for run %d which is %salready used" %
+                       ( se, runID, 'not ' if runID not in self.runsUsedForShares else '' ) )
+      if runID not in self.runsUsedForShares:
+        # Update with run duration
+        res = self.__getRunDuration( runID )
+        if not res['OK']:
+          self.logError( "Error getting run time", res['Message'] )
+        else:
+          inc = res['Value']
+          self.runsUsedForShares.add( runID )
     if inc:
       counters[se] = counters.setdefault( se, 0 ) + inc
       self.logVerbose( 'New %s counter for %s: %d (+%d)' % ( self.shareMetrics, se, counters[se], inc ) )
