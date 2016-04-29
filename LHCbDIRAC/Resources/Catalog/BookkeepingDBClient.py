@@ -218,7 +218,7 @@ class BookkeepingDBClient( FileCatalogueBase ):
         success = res['Value'].get( 'Successful', res['Value'] )
         failed.update( dict.fromkeys( [lfn for lfn in lfnList if lfn not in success], 'File does not exist' ) )
         failed.update( dict( [( lfn, val ) for lfn, val in success.items() if isinstance( val, basestring ) ] ) )
-        successful.update( dict( [( lfn, val ) for lfn, val in success.items() if isinstance( val, basestring ) ] ) )
+        successful.update( dict( [( lfn, val ) for lfn, val in success.items() if not isinstance( val, basestring ) ] ) )
     return S_OK( {'Successful':successful, 'Failed':failed} )
 ################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
