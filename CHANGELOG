@@ -1,3 +1,16 @@
+[v8r3-pre8]
+* bkk oracle docs
+* Fix regression introduced by 8b4f6ffd95f1a11164b897941e454cdb163eb337
+*  do not check the EventStat and FullStat
+* use the view if the visibility flag is present
+* removed unused script
+* removed duplicated scripts
+* pylint stuff
+* really minor fixes to ProductionManagement modules
+* added getCFGFile
+* disable parallel queries. Change the error message to warn and do not change the dqvalue if we have an error...
+* avoid navigating for some cases
+
 [v8r3-pre7]
 * Make changes following very good review comments
 * take into account the selected filetype when a list of steps returned from the db
