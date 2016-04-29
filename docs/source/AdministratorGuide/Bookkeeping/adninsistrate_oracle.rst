@@ -63,9 +63,9 @@ Compile oracle stored procedure
 
 In order to compile the stored procedure you need the sql file: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/LHCbDIRAC/BookkeepingSystem/DB/oracle_schema_storedprocedures.sql
 
-You can found it in the tar.gz file in the release in case if you want to update the prodction db.
+You can find it in the tar.gz file in the release in case you want to update the prodction db.
 
-NOTE: I recomend to use the stored procedure, which is in the tar.gz.
+NOTE: I recommend to use the stored procedure, which is in the tar.gz.
 
     1. Login the database using sqlplus
     
@@ -75,17 +75,15 @@ NOTE: I recomend to use the stored procedure, which is in the tar.gz.
     
     In case of error you have to use 'show errors' command
     
-    In case of a scheme change, you can found the command what needs to be executed: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/LHCbDIRAC/BookkeepingSystem/DB/oracle_schema_commands.sql
+    In case of a schema change, you can find the command that needs to be executed: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/master/LHCbDIRAC/BookkeepingSystem/DB/oracle_schema_commands.sql
     
 
 Discover slow queries in the db
 ===============================
 
-Note: If you are not familiar with Oracle better to send a mail to phydb.support@cern.ch mailing list. You can write we have problem with the database the queries
-are very slow. IT/DB expert will found the slow queries and will probaly tell what is the problem and try to solve.
+Note: If you are not familiar with Oracle better to send a mail to phydb.support@cern.ch mailing list. You can write we have problem with the database the queries are very slow. IT/DB expert will find the slow queries and will probaly tell what is the problem and try to solve.
 
-https://cern.ch/session-manager is a portal provided by IT/DB where you can logon and found the running query. You can found the query which is running very long. You can get the 
-execution plan and also can take the query and run in sqlplus. So you can compare the execution plan which is in the web and in sqlplus.
+https://cern.ch/session-manager is a portal provided by IT/DB where you can logon and find the running query. You can find the query which is running very long. You can get the execution plan and also can take the query and run in sqlplus. So you can compare the execution plan which is in the web and in sqlplus.
 
 Login to the session manager:
 
@@ -104,7 +102,7 @@ Login to the session manager:
 How to identify problematic queries:
 
     
-    You can found the queries which takes very long using https://cern.ch/session-manager, but it maybe normal. You can check the execution plan
+    You can find the queries which takes very long using https://cern.ch/session-manager, but it maybe normal. You can check the execution plan
     in the following way.
     
         1. Login to sqlplus (you have to use the main owner account)
@@ -172,11 +170,10 @@ How to identify problematic queries:
 Note: 
 
     -You may have query which needs to read lot of data. In this case the consistent gets and physical reads are very high numbers. 
-In that example if the consistemt gets and physical reads are very high for example more than 10k we have problem. This is because the query 
-only returned 131 rows. 
+In that example if the consistent gets and physical reads are very high for example more than 10k we have problem. This is because the query only returned 131 rows. 
     - TABLE ACCESS FULL is not good. You have to make sure that the query uses an index. This is not always true.
     -parallel execution you have to make sure if the query is running parallel, the processes does not send to much data between each other. If you run 
     a query parallel and the consistent gets is very high then you have a problem. Contact to oracle IT/DB if you do not know what to do...
-    -CERTASIAN join: If you see that word in the execution plan, the query is wrong.
+    -CARTESIAN join: If you see that word in the execution plan, the query is wrong.
 
         
