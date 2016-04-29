@@ -175,5 +175,3 @@ In that example if the consistent gets and physical reads are very high for exam
     -parallel execution you have to make sure if the query is running parallel, the processes does not send to much data between each other. If you run 
     a query parallel and the consistent gets is very high then you have a problem. Contact to oracle IT/DB if you do not know what to do...
     -CARTESIAN join: If you see that word in the execution plan, the query is wrong.
-
-        
