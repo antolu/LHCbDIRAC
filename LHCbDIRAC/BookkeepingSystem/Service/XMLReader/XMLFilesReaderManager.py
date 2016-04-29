@@ -152,22 +152,6 @@ class XMLFilesReaderManager:
       for param in params:
         paramName = param.getParamName()
 
-        if paramName == "EventStat":
-          if param.getParamValue() == '' and \
-             outputfile.getFileType().upper().endswith( 'HIST' ):
-            param.setParamValue( None )  # default value
-          elif param.getParamValue() == '':
-            return S_ERROR( 'EventStat value is null' )
-          else:
-            eventNb = long( param.getParamValue() )
-            if eventNb < 0:
-              return S_ERROR( "The event number not greater 0!" )
-
-        if paramName == "FullStat":
-          fullStat = long( param.getParamValue() )
-          if fullStat <= 0:
-            return S_ERROR( "The fullStat not greater 0!" )
-
         if paramName == "EventType":
           value = long( param.getParamValue() )
           result = dataManager_.checkEventType( value )
@@ -390,8 +374,8 @@ class XMLFilesReaderManager:
           dqvalue = retVal['Value']
           gLogger.info( "%d run data quality flag is %s" % ( int( runnumber ), dqvalue ) )
         else:
-          dqvalue = None
-          gLogger.error( retVal['Message'] )
+          #The report will be entered to the db. 
+          gLogger.warn( retVal['Message'] )
       else:
         gLogger.error( retVal['Message'] )
       
