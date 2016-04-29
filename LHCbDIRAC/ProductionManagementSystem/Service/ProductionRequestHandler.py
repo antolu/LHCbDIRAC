@@ -1,8 +1,6 @@
 """ ProductionRequestHandler is the implementation of the Production Request service
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import re
 import tempfile
@@ -17,6 +15,8 @@ from DIRAC.Core.Utilities.Shifter     import getShifterProxy
 from DIRAC.Core.Utilities.Subprocess  import shellCall
 
 from LHCbDIRAC.ProductionManagementSystem.DB.ProductionRequestDB import ProductionRequestDB
+
+__RCSID__ = "$Id$"
 
 # This is a global instance of the ProductionRequestDB class
 productionRequestDB = False

@@ -1,10 +1,10 @@
 """ A module defining the state machine for the Productions
 """
 
-__RCSID__ = "$Id$"
-
 from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.ResourceStatusSystem.PolicySystem.StateMachine import State, StateMachine
+
+__RCSID__ = "$Id$"
 
 class LHCbStateMachine( StateMachine ):
   """Just redefining one method
@@ -67,13 +67,13 @@ class ProductionsStateMachine( LHCbStateMachine ):
                                                    defState = 'WaitingIntegrity' ),
                    'ValidatedOutput'      : State( 7, ['Active', 'Completed', 'Cleaning'],
                                                    defState = 'ValidatedOutput' ),
-                   'ValidatingOutput'     : State( 7, ['Active', 'ValidatedOutput', 'WaitingIntegrity'], 
+                   'ValidatingOutput'     : State( 7, ['Active', 'ValidatedOutput', 'WaitingIntegrity'],
                                                    defState = 'ValidatedOutput' ),
                    'RemovedFiles'         : State( 6, ['Completed'],
                                                    defState = 'RemovedFiles' ),
                    'RemovingFiles'        : State( 5, ['RemovedFiles'],
                                                    defState = 'RemovingFiles' ),
-                   'ValidatingInput'      : State( 4, ['Active', 'RemovingFiles', 'Cleaning'], 
+                   'ValidatingInput'      : State( 4, ['Active', 'RemovingFiles', 'Cleaning'],
                                                    defState = 'ValidatingInput' ),
                    'Flush'                : State( 3, ['Active', 'Cleaning'],
                                                    defState = 'Active' ),
@@ -82,7 +82,7 @@ class ProductionsStateMachine( LHCbStateMachine ):
                                                    defState = 'Idle' ),
                    'Active'               : State( 1, ['Flush', 'Idle', 'Stopped', 'Completing', 'ValidatingInput',
                                                        'ValidatingOutput', 'Cleaning', 'TransformationCleaned'],
-                                                  defState = 'Flush' ),
+                                                   defState = 'Flush' ),
                    'Testing'              : State( 17, ['Idle', 'Cleaning'], defState = 'Testing' ),
                    'New'                  : State( 0, ['Active', 'Testing', 'Cleaning'], defState = 'New' )  # initial state
                   }

@@ -6,11 +6,11 @@
     DIRAC assumes an execute() method will exist during usage.
 """
 
-__RCSID__ = "$Id$"
-
 
 from DIRAC import gConfig, gLogger, S_ERROR, S_OK
 from LHCbDIRAC.Core.Utilities import ProductionEnvironment
+
+__RCSID__ = "$Id$"
 
 
 class NoSoftwareInstallation( object ):

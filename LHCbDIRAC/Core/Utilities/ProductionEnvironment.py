@@ -4,8 +4,6 @@
     use by workflow modules or client tools.
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import shutil
 import stat
@@ -16,6 +14,8 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.List import uniqueElements
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.Os import sourceEnv
+
+__RCSID__ = "$Id$"
 
 gLogger = gLogger.getSubLogger( 'ProductionEnvironment' )
 groupLogin = 'LbLogin.sh'

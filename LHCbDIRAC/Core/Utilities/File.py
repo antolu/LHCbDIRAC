@@ -1,9 +1,9 @@
 """ File utilities module (e.g. make GUIDs)
 """
-__RCSID__ = "$Id$"
-
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.File              import makeGuid as DIRACMakeGUID
+
+__RCSID__ = "$Id$"
 
 def getRootFileGUIDs( fileList ):
   """ Retrieve a list of GUIDs for a list of files
@@ -49,7 +49,7 @@ def getRootFileGUID( fileName ):
 def makeGuid( fileNames ):
   """ Function to retrieve a file GUID using Root.
   """
-  if type( fileNames ) == str:
+  if isinstance( fileNames, basestring ):
     fileNames = [fileNames]
 
   fileGUIDs = {}

@@ -7,14 +7,14 @@
 
 """
 
-__RCSID__ = "$Id$"
-
 import re
 import os
 import datetime
 import copy
 
 from DIRAC import S_OK, S_ERROR, gLogger
+
+__RCSID__ = "$Id$"
 
 gLogger = gLogger.getSubLogger( 'ProductionData' )
 
@@ -212,7 +212,7 @@ def constructUserLFNs( jobID, owner, outputFiles, outputPath = '', prependString
       lfn = os.sep + os.path.join( 'lhcb', 'user', initial, owner, outputPath, yearMonth, str( jobID / 1000 ), str( jobID ) ) \
                    + os.sep + os.path.basename( outputFile )
       outputLFNs[outputFile] = lfn
-    
+
 
   outputData = outputLFNs.values()
   if outputData:

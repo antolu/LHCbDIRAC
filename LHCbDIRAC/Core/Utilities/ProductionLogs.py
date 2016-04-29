@@ -1,10 +1,11 @@
 """ Utilities to check the application log files (for production jobs)
 """
 
-__RCSID__ = "$Id$"
-
-import re, os
+import re
+import os
 from DIRAC import gLogger
+
+__RCSID__ = "$Id$"
 
 class LogError( Exception ):
   """ custom exception
@@ -24,14 +25,10 @@ class ProductionLog( object ):
   """ Encapsulate production log info
   """
 
-  def __init__( self, fileName, applicationName = '',
-                prodName = '', jobName = '', stepName = '',
-                log = None ):
+  def __init__( self, fileName, applicationName = '', log = None ):
 
     # Well known application Errors
-    self.__APPLICATION_ERRORS__ = {
-                                   'Terminating event processing loop due to errors' : 'Event Loop Not Terminated'
-    }
+    self.__APPLICATION_ERRORS__ = {'Terminating event processing loop due to errors' : 'Event Loop Not Terminated'}
 
     # Well known Gaudi Errors
     self.__GAUDI_ERRORS__ = {'Could not connect' : 'CASTOR error connection',
@@ -93,25 +90,6 @@ class ProductionLog( object ):
 
 ################################################################################
 
-  def _guessStepID( self ):
-    """ This is a horrible practice, and if the syntax changes, this will crash.
-        We know that the log file names look like this:
-        <AppName>_<prodName>_<jobName>_<stepName>.log
-    """
-
-    guess = self.fileName
-    guess = guess.replace( '.log', '' )
-    guess = guess.split( '_' )
-
-    if len( guess ) != 4:
-      raise LogError( "Could not guess production, job and step from %s" % self.fileName )
-
-    self.prodName = guess[ 1 ]
-    self.jobName = guess[ 2 ]
-    self.stepName = guess[ 3 ]
-
-################################################################################
-
   def __checkErrors( self ):
 
     for errString in self.__GAUDI_ERRORS__.keys():
@@ -169,13 +147,12 @@ class ProductionLog( object ):
 ################################################################################
 
 
-def analyseLogFile( fileName, applicationName = '', prod = '', job = '',
-                    stepName = '', log = None, lf_o = None ):
+def analyseLogFile( fileName, applicationName = '', log = None, lf_o = None ):
   """ Analyse a log file
   """
 
   if not lf_o:
-    lf_o = ProductionLog( fileName, applicationName, prod, job, stepName, log = log )
+    lf_o = ProductionLog( fileName, applicationName, log = log )
   return lf_o.analyse()
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#

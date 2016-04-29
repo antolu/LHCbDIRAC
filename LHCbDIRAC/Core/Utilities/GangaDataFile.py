@@ -1,7 +1,7 @@
 """ GangaDataFile is a utility to create a Data file, to be used by ganga.
 
     Given input files, it will create something like:
-    
+
     from GaudiConf import IOExtension
     IOExtension("ROOT").inputFiles([
         "LFN:foo",
@@ -12,10 +12,10 @@
     FileCatalog().Catalogs = ["xmlcatalog_file:pool_xml_catalog.xml"]
 """
 
-__RCSID__ = "$Id$"
-
 import os, fnmatch
 from DIRAC import gLogger
+
+__RCSID__ = "$Id$"
 
 class GangaDataFile( object ):
   """ Creates ganga data file
@@ -137,7 +137,7 @@ class GangaDataFile( object ):
                                          '*.RAW':"SVC='LHCb::MDFSelector'",
                                          '*.mdf':"SVC='LHCb::MDFSelector'",
                                          '*.MDF':"SVC='LHCb::MDFSelector'"} ):
-    """ helper function 
+    """ helper function
     """
 
     for key, val in lookupMap.iteritems():
@@ -153,7 +153,7 @@ class GangaDataFile( object ):
                                                '*.RAW':"SVC='LHCb::MDFSelector'",
                                                '*.mdf':"SVC='LHCb::MDFSelector'",
                                                '*.MDF':"SVC='LHCb::MDFSelector'"} ):
-    """ helper function 
+    """ helper function
     """
 
     r = []

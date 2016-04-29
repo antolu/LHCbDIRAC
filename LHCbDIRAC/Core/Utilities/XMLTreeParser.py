@@ -2,10 +2,11 @@
    pythonic style. A tree ox XMLNodes.
 """
 
-__RCSID__ = "$Id$"
-
 
 import xml.dom.minidom
+
+__RCSID__ = "$Id$"
+
 
 ################################################################################
 
@@ -127,29 +128,23 @@ def addChildNode( parentNode, tag, returnChildren, args ):
     return {"ConfigName"   : configName,
             "ConfigVersion": configVersion,
             "Date"         : ldate,
-            "Time"         : ltime
-           }
+            "Time"         : ltime}
   def genTypedParameterDict( name, value, typeP = "Info" ):
     return {"Name":name,
             "Value":value,
-            "Type":typeP
-            }
+            "Type":typeP}
   def genInputFileDict( name ):
-    return {"Name":name
-            }
+    return {"Name":name}
   def genOutputFileDict( name, typeName, typeVersion ):
     return {"Name" :name,
             "TypeName":typeName,
-            "TypeVersion":typeVersion
-            }
+            "TypeVersion":typeVersion}
   def genParameterDict( name, value ):
     return {"Name":name,
-            "Value":value
-            }
+            "Value":value}
   def genReplicaDict( name, location = "Web" ):
     return {"Name":name,
-            "Location":location
-            }
+            "Location":location}
   def genSimulationConditionDict():
     return {}
 
