@@ -3075,7 +3075,7 @@ and files.qualityid= dataquality.qualityid'
     condition, tables = retVal['Value']
 
     if nbofEvents:
-      command = " select  sum(f.eventstat) \
+      command = " select sum(f.eventstat) \
       from %s where f.jobid= j.jobid %s " % ( tables, condition )
     elif filesize:
       command = " select sum(f.filesize) \
@@ -3119,7 +3119,7 @@ and files.qualityid= dataquality.qualityid'
       elif isinstance( production, ( basestring, int, long ) ):
         condition += ' and j.production=%s' % str( production )
     
-    if production not in [default, None] and visible.upper().startswith( 'Y' ):
+    if production not in [default, None] and visible.upper().startswith( 'Y' ) and 'BVIEW' in tables.upper():
       condition += ' and j.production=bview.production '
     
     return S_OK( ( condition, tables ) )
@@ -3172,8 +3172,10 @@ and files.qualityid= dataquality.qualityid'
       pro = pro[:-1]
       pro += ')'
 
-      if visible.upper().startswith( 'Y' ):
-        condition += " and bview.production=prod.production "
+      if visible.upper().startswith( 'Y' ): 
+        if 'BVIEW' not in tables.upper():
+          tables += ',prodview bview'
+        condition += " and bview.production=prod.production and bview.production=j.production"
         
       condition += " and j.production=prod.production \
                      and prod.processingid in %s" % ( pro )

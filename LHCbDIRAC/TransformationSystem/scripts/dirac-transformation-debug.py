@@ -851,7 +851,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
         prStr += ' in status:'
       print prStr, prevStatus
       majorStatus, minorStatus, applicationStatus = prevStatus.split( '; ' )
-      if majorStatus == 'Failed' and 'Exited With Status' in applicationStatus:
+      if majorStatus == 'Failed' and ( 'Exited With Status' in applicationStatus or 'Problem Executing Application' in applicationStatus ):
         exitedJobs += jobs
       if majorStatus == 'Failed' and minorStatus == 'Job stalled: pilot not running':
         lastLine = ''
@@ -890,12 +890,12 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
             logURL = res['Value']['Log URL'].split( '"' )[1] + '/'
             jobLogURL[lastJob] = logURL
             lfns = __checkXMLSummary( lastJob, logURL )
-            lfns = dict( [( __genericLfn( lfn, lfnList ), lfns[lfn] ) for lfn in lfns if lfn] )
+            lfns = dict( ( __genericLfn( lfn, lfnList ), lfns[lfn] ) for lfn in lfns if lfn )
             if lfns:
               badLfns.update( {lastJob: lfns} )
           # break
         if not badLfns:
-          print "No logfiles found for any of the jobs..."
+          print "No error was found in XML summary files"
         else:
           # lfnsFound is an AND of files found bad in all jobs
           lfnsFound = set( badLfns[sorted( badLfns, reverse = True )[0]] )
@@ -906,7 +906,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
                                      for job, lfns in badLfns.iteritems() for lfn in set( lfns ) & lfnsFound]:
               failedLfns.setdefault( ( lfn, reason ), [] ).append( job )
           else:
-            print "No error was found in XML summary files"
+            print "No common error was found in all XML summary files"
   if failedLfns:
     print "\nSummary of failures due to: Application Exited with non-zero status"
     lfnDict = {}

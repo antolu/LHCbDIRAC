@@ -1,10 +1,13 @@
+""" Test of the ProductionRequest and Production modules
+"""
+
 import unittest
 from mock import Mock, MagicMock
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest, _splitIntoProductionSteps
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
 
-class bkClientFake:
+class bkClientFake(object):
   def getAvailableSteps( self, stepID ):
     if stepID == {'StepId':123}:
       return {'OK': True,

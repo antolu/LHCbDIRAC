@@ -1289,6 +1289,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               res = self.util.checkForDescendants( lfnChunk, prods ) if newMethod else self.bkClient.getFileDescendants( lfnChunk, production = prod, depth = depth, checkreplica = True )
               if res['OK']:
                 processedLfns.update( res['Value'] )
+              else:
+                self.util.logError( "Error checking descendants using %s" % ( 'utility' if newMethod else 'BK' ), res['Message'] )
             self.util.logVerbose( 'Found %s descendants in %.1f seconds' % \
                                   ( len( processedLfns ) if processedLfns else 'no',
                                     time.time() - startTime ) )
