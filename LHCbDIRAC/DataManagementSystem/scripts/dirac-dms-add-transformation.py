@@ -285,8 +285,8 @@ if __name__ == "__main__":
       continue
 
     if not force and nfiles == 0:
-      gLogger.warn( "No files found from BK query %s" % str( bkQuery ) )
-      gLogger.warn( "If you anyway want to submit the transformation, use option --Force" )
+      gLogger.notice( "No files found from BK query %s" % str( bkQuery ) )
+      gLogger.notice( "If you anyway want to submit the transformation, use option --Force" )
       continue
 
     if userGroup:
