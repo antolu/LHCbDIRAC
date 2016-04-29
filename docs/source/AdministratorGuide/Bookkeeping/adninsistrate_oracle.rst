@@ -172,6 +172,5 @@ Note:
     -You may have query which needs to read lot of data. In this case the consistent gets and physical reads are very high numbers. 
 In that example if the consistent gets and physical reads are very high for example more than 10k we have problem. This is because the query only returned 131 rows. 
     - TABLE ACCESS FULL is not good. You have to make sure that the query uses an index. This is not always true.
-    -parallel execution you have to make sure if the query is running parallel, the processes does not send to much data between each other. If you run 
-    a query parallel and the consistent gets is very high then you have a problem. Contact to oracle IT/DB if you do not know what to do...
+    -parallel execution you have to make sure if the query is running parallel, the processes does not send to much data between each other. If you run a query parallel and the consistent gets is very high then you have a problem. Contact to oracle IT/DB if you do not know what to do...
     -CARTESIAN join: If you see that word in the execution plan, the query is wrong.
