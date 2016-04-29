@@ -3119,7 +3119,7 @@ and files.qualityid= dataquality.qualityid'
       elif isinstance( production, ( basestring, int, long ) ):
         condition += ' and j.production=%s' % str( production )
     
-    if production not in [default, None] and visible.upper().startswith( 'Y' ) and tables.upper().find( 'BVIEW' ) > 0:
+    if production not in [default, None] and visible.upper().startswith( 'Y' ) and 'BVIEW' in tables.upper():
       condition += ' and j.production=bview.production '
     
     return S_OK( ( condition, tables ) )
@@ -3173,7 +3173,7 @@ and files.qualityid= dataquality.qualityid'
       pro += ')'
 
       if visible.upper().startswith( 'Y' ): 
-        if tables.upper().find( 'BVIEW' ) < 0:
+        if 'BVIEW' not in tables.upper():
           tables += ',prodview bview'
         condition += " and bview.production=prod.production and bview.production=j.production"
         
