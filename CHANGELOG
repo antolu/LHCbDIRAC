@@ -1,3 +1,10 @@
+[v8r2p41]
+use DIRAC v6r14p28
+* bkk oracle docs
+* Fix regression introduced by 8b4f6ffd95f1a11164b897941e454cdb163eb337
+* do not check the EventStat and FullStat
+* use the view if the visibility flag is present
+
 [v8r2p40]
 use DIRAC v6r14p26
 * avoid useless cast
