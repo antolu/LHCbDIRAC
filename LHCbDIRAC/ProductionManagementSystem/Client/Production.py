@@ -653,9 +653,12 @@ class Production( object ):
                                                                                                         queryProcPass ) )
         bkDictStep['InputProductionTotalProcessingPass'] = queryProcPass
     else:
-      # has to account for an input processing pass anyway,
+      # has to account for an input processing pass anyway, if there is one,
       # or output files may not have the output processing pass correctly computed
-      bkDictStep['InputProductionTotalProcessingPass'] = self.LHCbJob.workflow.findParameter( 'processingPass' ).getValue()
+      try:
+        bkDictStep['InputProductionTotalProcessingPass'] = self.LHCbJob.workflow.findParameter( 'processingPass' ).getValue()
+      except AttributeError:
+        pass
 
     stepList = []
     stepKeys = bkSteps.keys()
