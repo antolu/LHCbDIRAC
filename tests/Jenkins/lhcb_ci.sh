@@ -166,7 +166,7 @@ function LHCbDIRACPilotInstall(){
 	prepareForPilot
 	default
 
-	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py .
+	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py $PILOTINSTALLDIR/
 
 	if [ ! -z "$LHCBDIRAC_RELEASE" ]
 	then
@@ -179,7 +179,7 @@ function LHCbDIRACPilotInstall(){
 	fi
 
 	#run the dirac-pilot script, only for installing, do not run the JobAgent here
-	python dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
+	python $PILOTINSTALLDIR/dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
 
 	echo '==> Done LHCbDIRACPilotInstall'
 }
@@ -194,7 +194,7 @@ function fullLHCbPilot(){
 
 	#this should have been created, we source it so that we can continue
 	echo '==> sourcing bashrc'
-	source bashrc
+	source $PILOTINSTALLDIR/bashrc
 
 	echo '==> Adding the LocalSE and the CPUTimeLeft, for the subsequent tests'
 	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTCFG $PILOTCFG $DEBUG
