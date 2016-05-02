@@ -90,7 +90,7 @@ function findRelease(){
   #   Modules = LHCbDIRAC:v7r15-pre2, LHCbWebDIRAC:v3r3p5
   #   Depends = DIRAC:v6r10-pre12
   #   LcgVer = 2013-09-24
-  versions=`sed -n "$start,$end p" releases.cfg`
+  versions=`sed -n "$start,$end p" $TESTCODE/releases.cfg`
 
   # Extract DIRAC version
   diracVersion=`echo $versions | tr ' ' '\n' | grep ^DIRAC:v*[^,] | sed 's/,//g' | cut -d ':' -f2`
