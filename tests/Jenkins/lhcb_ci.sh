@@ -36,12 +36,19 @@ function findRelease(){
 
 	# store the current branch
 	currentBranch=`git --git-dir=$TESTCODE/LHCbDIRAC/.git rev-parse --abbrev-ref HEAD`
-	echo 'we were on ' $currentBranch
-	# get the releases.cfg file
-	git --git-dir=$TESTCODE/LHCbDIRAC/.git checkout devel
-	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/releases.cfg $TESTCODE/
-	# reset the branch
-	git --git-dir=$TESTCODE/LHCbDIRAC/.git checkout $currentBranch
+
+	if [ $currentBranch == 'devel' ]
+	then
+		echo 'we were already on devel, no need to change'
+		# get the releases.cfg file
+		cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/releases.cfg $TESTCODE/
+	else
+		git --git-dir=$TESTCODE/LHCbDIRAC/.git checkout devel
+		# get the releases.cfg file
+		cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/releases.cfg $TESTCODE/
+		# reset the branch
+		git --git-dir=$TESTCODE/LHCbDIRAC/.git checkout $currentBranch
+	fi
 
   # Match project ( LHCbDIRAC ) version from releases.cfg
   # Example releases.cfg
