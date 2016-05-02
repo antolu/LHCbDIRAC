@@ -34,15 +34,13 @@ INSTALL_CFG_FILE='$TESTCODE/LHCbDIRAC/tests/Jenkins/install.cfg'
 function findRelease(){
 	echo '[findRelease]'
 
-	cd $TESTCODE/LHCbDIRAC
 	# store the current branch
-	currentBranch=`git rev-parse --abbrev-ref HEAD`
+	currentBranch=`git -C $TESTCODE/LHCbDIRAC rev-parse --abbrev-ref HEAD`
 	# get the releases.cfg file
-	git checkout devel
+	git -C $TESTCODE/LHCbDIRAC checkout devel
 	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/releases.cfg $TESTCODE/releases.cfg
 	# reset the branch
-	git checkout $currentBranch
-	cd $TESTCODE
+	git -C $TESTCODE/LHCbDIRAC checkout $currentBranch
 
   # Match project ( LHCbDIRAC ) version from releases.cfg
   # Example releases.cfg
@@ -69,7 +67,7 @@ function findRelease(){
 			echo '==> Running on REGULAR mode'
 		fi
 		# projectVersion := v7r15-pre2 ( if we are in PRERELEASE mode )
-		projectVersion=`cat releases.cfg | grep [^:]v[[:digit:]]r[[:digit:]]*$PRE | head -1 | sed 's/ //g'`
+		projectVersion=`cat $TESTCODE/releases.cfg | grep [^:]v[[:digit:]]r[[:digit:]]*$PRE | head -1 | sed 's/ //g'`
 	fi
 
 	echo PROJECT:$projectVersion && echo $projectVersion > project.version
@@ -122,29 +120,8 @@ function getCFGFile(){
 	sed -i s/VAR_Release/$projectVersion/g $SERVERINSTALLDIR/install.cfg
 }
 
-#.............................................................................
-#
-# updateToTrunk:
-#
-# Simply update the LHCbDIRAC code to the trunk version
-#
-#.............................................................................
 
 
-function updateToTrunk(){
-	echo '==> [updateToTrunk]'
-	cd $TESTCODE/
-
-	if [ -d "LHCbDIRAC" ];
-	then
-		mv LHCbDIRAC LHCbDIRAC.bak;
-	else
-		echo "==> There is no previous LHCbDIRAC directory ??!!!"
-		ls
-	fi
-	git clone https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git
-	cd LHCbDIRAC
-}
 
 #-------------------------------------------------------------------------------
 # Here is where the real functions start
