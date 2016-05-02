@@ -36,9 +36,10 @@ function findRelease(){
 
 	# store the current branch
 	currentBranch=`git --git-dir=$TESTCODE/LHCbDIRAC/.git rev-parse --abbrev-ref HEAD`
+	echo 'we were on ' $currentBranch
 	# get the releases.cfg file
 	git --git-dir=$TESTCODE/LHCbDIRAC/.git checkout devel
-	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/releases.cfg $TESTCODE/releases.cfg
+	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/releases.cfg $TESTCODE/
 	# reset the branch
 	git --git-dir=$TESTCODE/LHCbDIRAC/.git checkout $currentBranch
 
