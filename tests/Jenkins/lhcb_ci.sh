@@ -164,8 +164,10 @@ function LHCbDIRACPilotInstall(){
 	fi
 
 	#run the dirac-pilot script, only for installing, do not run the JobAgent here
-	cp $TESTCODE/DIRAC/Core/scripts/dirac-install.py $PWD/
-	python $PILOTINSTALLDIR/dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
+	cwd=$PWD
+	cd $PILOTINSTALLDIR
+	python dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
+	cd $cwd
 
 	echo '==> Done LHCbDIRACPilotInstall'
 }
