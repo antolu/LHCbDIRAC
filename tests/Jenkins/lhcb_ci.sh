@@ -81,7 +81,7 @@ function findRelease(){
 	echo PROJECT:$projectVersion && echo $projectVersion > project.version
 
 	# projectVersionLine : line number where v7r15-pre2 is
-  projectVersionLine=`cat releases.cfg | grep -n $projectVersion | cut -d ':' -f 1 | head -1`
+  projectVersionLine=`cat $TESTCODE/releases.cfg | grep -n $projectVersion | cut -d ':' -f 1 | head -1`
   # start := line number after "{"
   start=$(($projectVersionLine+2))
   # end   := line number after "}"
