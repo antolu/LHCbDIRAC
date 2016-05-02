@@ -217,6 +217,7 @@ go to this `web page <https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/>`_ 
     
 * in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"
 * in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
+* inthe field "scripts_version" put : "old-style-dirac"
 
 Then click on the "BUILD" button
     
