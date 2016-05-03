@@ -1,15 +1,13 @@
 """ Client for BookkeepingDB file catalog
 """
 
-from DIRAC                                                          import gLogger, S_OK, S_ERROR
-from DIRAC.Core.DISET.RPCClient                                     import RPCClient
-from DIRAC.Core.Utilities.List                                      import breakListIntoChunks
-from DIRAC.Resources.Catalog.FileCatalogueBase                      import FileCatalogueBase
+from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.Resources.Catalog.FileCatalogClientBase import FileCatalogClientBase
+from DIRAC.Resources.Catalog.Utilities import checkCatalogArguments
 
 __RCSID__ = "$Id$"
-
-
-
 
 
 class BookkeepingDBClient( FileCatalogClientBase ):
@@ -18,8 +16,8 @@ class BookkeepingDBClient( FileCatalogClientBase ):
 
   READ_METHODS = FileCatalogClientBase.READ_METHODS + ['isDirectory', 'isLink', 'getFileSize', 'getFileMetadata' ]
   WRITE_METHODS = FileCatalogClientBase.WRITE_METHODS + [ 'addFile', 'addReplica', 'removeFile', 'removeReplica', 'setReplicaStatus',
-                  'setReplicaProblematic', 'setReplicaHost', 'removeDirectory', 'createDirectory',
-                  'removeLink', 'createLink' ]
+                                                          'setReplicaProblematic', 'setReplicaHost', 'removeDirectory', 'createDirectory',
+                                                          'removeLink', 'createLink' ]
 
   def __init__( self, url = False, **kwargs ):
     """ Constructor of the Bookkeeping catalogue client
@@ -233,5 +231,6 @@ class BookkeepingDBClient( FileCatalogClientBase ):
         failed.update( dict( ( lfn, val ) for lfn, val in success.items() if isinstance( val, basestring ) ) )
         successful.update( dict( ( lfn, val ) for lfn, val in success.items() if not isinstance( val, basestring ) ) )
     return S_OK( {'Successful':successful, 'Failed':failed} )
+
 ################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
