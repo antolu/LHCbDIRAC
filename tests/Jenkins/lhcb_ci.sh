@@ -166,8 +166,18 @@ function LHCbDIRACPilotInstall(){
 	#run the dirac-pilot script, only for installing, do not run the JobAgent here
 	cwd=$PWD
 	cd $PILOTINSTALLDIR
+	if [ $? -ne 0 ]
+	then
+		echo 'ERROR: cannot change to ' $PILOTINSTALLDIR
+		return
+	fi
 	python dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
 	cd $cwd
+	if [ $? -ne 0 ]
+	then
+		echo 'ERROR: cannot change to ' $cwd
+		return
+	fi
 
 	echo '==> Done LHCbDIRACPilotInstall'
 }
