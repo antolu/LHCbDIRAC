@@ -1,3 +1,4 @@
+"""  The ProductionStatusAgent monitors productions for active requests
      and takes care to update their status. Initially this is just to handle
      simulation requests.
 
@@ -25,7 +26,7 @@
 
 import time
 
-from DIRAC                                                      import S_OK, S_ERROR
+from DIRAC                                                      import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base.AgentModule                                import AgentModule
 from DIRAC.Core.Utilities.Time                                  import timeThis
 from DIRAC.Core.DISET.RPCClient                                 import RPCClient
@@ -39,12 +40,11 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient        import Bookkeep
 
 #############################################################################
 # The following is used for StandAlone debugging only (outside Agent)
-from DIRAC import gLogger
-gStandAlone = False  # work in command line without Agent
-# gSimulate = gStandAlone and True  # real clients are replaced with simulation
+gStandAlone = False                # work in command line without Agent
+#gSimulate = gStandAlone and True  # real clients are replaced with simulation
 gSimulate = False
-gDoRealUpdate = True  # call status updates
-gDoRealTracking = True  # update requests progress
+gDoRealUpdate = True         # call status updates
+gDoRealTracking = True       # update requests progress
 
 
 __RCSID__ = "$Id$"
@@ -63,9 +63,12 @@ class ProductionRequestSIM(object):
                                                                                                         12 : { 'Used': 0, 'Events': 0 },
                                                                                                         13 : { 'Used': 1, 'Events': 0 } } },
                2 : { 'state': 'Active', 'type': 'Simulation', 'master': 0, 'rqTotal': 50000, 'prods': {} },
-               3 : { 'state': '', 'type': '', 'master': 2, 'rqTotal': 20000, 'prods': { 14 : { 'Used': 0, 'Events': 0 }, 15 : { 'Used': 1, 'Events': 0 } } },
-               4 : { 'state': '', 'type': '', 'master': 2, 'rqTotal': 30000, 'prods': { 16 : { 'Used': 0, 'Events': 0 }, 17 : { 'Used': 1, 'Events': 0 } } },
-               5 : { 'state': 'Active', 'type': 'Stripping', 'master': 0, 'rqTotal': 0, 'prods': { 18 : { 'Used': 0, 'Events': 0 }, 19 : { 'Used': 1, 'Events': 0 } } }}
+               3 : { 'state': '', 'type': '', 'master': 2, 'rqTotal': 20000, 'prods': { 14 : { 'Used': 0, 'Events': 0 },
+                                                                                        15 : { 'Used': 1, 'Events': 0 } } },
+               4 : { 'state': '', 'type': '', 'master': 2, 'rqTotal': 30000, 'prods': { 16 : { 'Used': 0, 'Events': 0 },
+                                                                                        17 : { 'Used': 1, 'Events': 0 } } },
+               5 : { 'state': 'Active', 'type': 'Stripping', 'master': 0, 'rqTotal': 0, 'prods': { 18 : { 'Used': 0, 'Events': 0 },
+                                                                                                   19 : { 'Used': 1, 'Events': 0 } } }}
 
   def getAllProductionProgress( self ):
     """ Returns all known productions
@@ -158,7 +161,7 @@ class TransformationAndBookkeepingSIM():
       self.t[tID] = { 'status': 'Active', 'processedEvents': 0, 'Type': tType,
                       'filesStat': { 'Processed': 0, 'Unused': 0, 'Assigned': 0 },
                       'tasksStat': { 'TotalCreated': 0, 'Running': 0, 'Done': 0, 'Failed': 0 }
-                      }
+                    }
     self.log = gLogger
 
     self.evPerFile = 100  # number of event in each MC generated file
@@ -779,7 +782,7 @@ class ProductionStatusAgent( AgentModule ):
       if not used:
         oldIDs.append( tID )
     for tID in oldIDs:
-      del( self.filesUnused[tID] )
+      del self.filesUnused[tID]
 
   def __updateTransformationStatus( self, tID, origStatus, status, updatedT ):
     """ This method updates the transformation status and logs the changes for each
