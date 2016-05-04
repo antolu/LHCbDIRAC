@@ -1077,7 +1077,15 @@ class BookkeepingClient( object ):
     else:
       runnumbers = runs
     return server.getRunStatus( runnumbers )
-
+  
+  #############################################################################
+  def getProductionProducedEvents( self, prodid ):
+    """
+    it returns the number of events producced for a given production.
+    """
+    server = self.__getServer()
+    return server.getProductionProducedEvents( int( prodid ) )
+  
 class BKClientWithRetry():
   """
   Utility class wrapping BKClient with retries

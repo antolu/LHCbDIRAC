@@ -4947,3 +4947,8 @@ and files.qualityid= dataquality.qualityid'
       else:
         status['Failed'] += [run]
     return S_OK( status )
+  
+  #############################################################################
+  def getProductionProducedEvents( self, prodid ):
+    """returns the produced event by a production taking into account the step"""
+    return self.dbR_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProducedEvents', types.LongType, [prodid] )

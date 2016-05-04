@@ -728,3 +728,9 @@ class IBookkeepingDatabaseClient(object):
   def fixRunLuminosity( self, runnumbers ):
     "more info in the BookkeepingClient.py"
     return self.getManager().fixRunLuminosity( runnumbers )
+  
+  #############################################################################
+  def getProductionProducedEvents( self, prodid ):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().getProductionProducedEvents( prodid )
+  
