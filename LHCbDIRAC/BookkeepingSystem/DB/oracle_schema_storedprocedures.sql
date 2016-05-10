@@ -1819,8 +1819,8 @@ is
 BEGIN
 FOR i in lfns.FIRST .. lfns.LAST LOOP
  update files set inserttimestamp = sys_extract_utc(systimestamp),gotreplica=v_replica where filename=lfns(i);
+ commit;
 END LOOP;
-commit;
 END;
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure bulkgetTypeVesrsion(lfns varchararray, a_Cursor out udt_RefCursor)
