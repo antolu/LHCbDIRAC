@@ -3119,7 +3119,9 @@ and files.qualityid= dataquality.qualityid'
       elif isinstance( production, ( basestring, int, long ) ):
         condition += ' and j.production=%s' % str( production )
     
-    if production not in [default, None] and visible.upper().startswith( 'Y' ) and 'BVIEW' in tables.upper():
+    if production not in [default, None] and visible.upper().startswith( 'Y' ):
+      if 'BVIEW' not in tables.upper():
+        tables += ' ,prodview bview'
       condition += ' and j.production=bview.production '
     
     return S_OK( ( condition, tables ) )
@@ -3605,9 +3607,7 @@ and files.qualityid= dataquality.qualityid'
     command = "select count(*),\
     SUM(f.EventStat), SUM(f.FILESIZE), \
     SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
-    j.jobid=f.jobid and \
-    ft.filetypeid=f.filetypeid and \
-    ft.filetypeid=f.filetypeid  %s" % ( tables, condition )
+    j.jobid=f.jobid %s" % ( tables, condition )
     return self.dbR_.query( command )
 
   #############################################################################
@@ -4947,3 +4947,8 @@ and files.qualityid= dataquality.qualityid'
       else:
         status['Failed'] += [run]
     return S_OK( status )
+  
+  #############################################################################
+  def getProductionProducedEvents( self, prodid ):
+    """returns the produced event by a production taking into account the step"""
+    return self.dbR_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProducedEvents', types.LongType, [prodid] )

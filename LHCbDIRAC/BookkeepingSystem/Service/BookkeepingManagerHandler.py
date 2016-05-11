@@ -1961,3 +1961,11 @@ class BookkeepingManagerHandler( RequestHandler ):
   @staticmethod
   def export_fixRunLuminosity( runnumbers ):
     return dataMGMT_.fixRunLuminosity( runnumbers )
+  
+  #############################################################################
+  types_getProductionProducedEvents = [IntType]
+  def export_getProductionProducedEvents( self, prodid ):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.getProductionProducedEvents( prodid )
+  
+  
