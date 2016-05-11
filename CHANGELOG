@@ -1,3 +1,6 @@
+[v8r3-pre10]
+* minor fixes for tests
+
 [v8r3-pre9]
 * every time when the replica flag is updated we commit the transaction...
 * use the new method for getting the produced events for a given production
