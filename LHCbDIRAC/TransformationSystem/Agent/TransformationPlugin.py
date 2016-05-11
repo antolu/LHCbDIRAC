@@ -733,16 +733,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 4 )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun = True )
 
-  def _LHCbMCDSTBroadcast( self ):
-    """ For replication of MC data (3 copies)
-    """
-    archive1SEs = resolveSEGroup( self.util.getPluginParam( 'Archive1SEs', [] ) )
-    archive2SEs = resolveSEGroup( self.util.getPluginParam( 'Archive2SEs', [] ) )
-    mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
-    secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
-    numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 3 )
-    return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
-
   def _lhcbBroadcast( self, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun = False ):
     """ This plug-in broadcasts files to one archive1SE, one archive2SE and numberOfCopies secondarySEs
         All files for the same run have the same target
@@ -1061,16 +1051,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     return S_OK( tasks )
 
-  def _DeleteDataset( self ):
-    return self._RemoveDataset()
   def _RemoveDataset( self ):
     """ Plugin used to remove disk replicas, keeping some (e.g. archives)
     """
     keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-ARCHIVE'] ) )
     return self._removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
-  def _DeleteReplicas( self ):
-    return self._RemoveReplicas()
   def _RemoveReplicas( self ):
     """ Plugin for removing replicas from specific SEs specified in FromSEs
     """
@@ -1179,8 +1165,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
-  def _DeleteReplicasWhenProcessed( self ):
-    return self._RemoveReplicasWhenProcessed()
   def _RemoveReplicasWhenProcessed( self ):
     """ This plugin considers files and checks whether they were processed for a list of processing passes
         For files that were processed, it sets replica removal tasks from a set of SEs
