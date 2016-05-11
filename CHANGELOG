@@ -1,3 +1,11 @@
+[v8r3-pre9]
+* every time when the replica flag is updated we commit the transaction...
+* use the new method for getting the produced events for a given production
+* implemenet a new method which return the production producced events
+* remove not used conditions
+* Corect the URL for Client releases
+* Add option for the CLIENT release
+
 [v8r3-pre8]
 * bkk oracle docs
 * Fix regression introduced by 8b4f6ffd95f1a11164b897941e454cdb163eb337
