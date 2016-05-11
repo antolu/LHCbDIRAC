@@ -188,6 +188,7 @@ procedure updateLuminosity(v_runnumber number);
 procedure updateDesLuminosity(v_fileid number);
 procedure getFileDesJobId(v_Filename varchar2, a_Cursor out udt_RefCursor);
 procedure getAllMetadata(v_jobid NUMBER, v_prod number, a_Cursor  out udt_RefCursor);
+function getProducedEvents(v_prodid number) return number;
  
 end;
 /
@@ -1818,8 +1819,8 @@ is
 BEGIN
 FOR i in lfns.FIRST .. lfns.LAST LOOP
  update files set inserttimestamp = sys_extract_utc(systimestamp),gotreplica=v_replica where filename=lfns(i);
+ commit;
 END LOOP;
-commit;
 END;
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure bulkgetTypeVesrsion(lfns varchararray, a_Cursor out udt_RefCursor)
@@ -2021,5 +2022,28 @@ procedure getAllMetadata(
            files.eventtypeid, files.luminosity, files.instLuminosity, filetypes.name from files, filetypes where files.filetypeid=filetypes.filetypeid and files.jobid=v_jobid;
   end if;
  end;
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+function getProducedEvents(v_prodid number) return number
+is
+retVal number := 0;
+begin
+select sum(f.eventstat) into retVal 
+  from files f, 
+       jobs j, 
+       (select scont.production, s.stepid 
+          from stepscontainer scont, 
+               steps s
+          where 
+            scont.stepid = s.stepid and
+            scont.production=v_prodid and
+            scont.step=(select max(step) from stepscontainer where stepscontainer.production=v_prodid)) firsts 
+  where j.jobid=f.jobid and
+        j.production=firsts.production and 
+        j.stepid=firsts.stepid;
+return retVal;
+EXCEPTION
+  WHEN OTHERS THEN
+    raise_application_error(-20005, 'error found during the event number calculation');
+end;
 END;
 /

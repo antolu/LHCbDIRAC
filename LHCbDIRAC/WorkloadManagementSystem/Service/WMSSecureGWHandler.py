@@ -221,7 +221,7 @@ class WMSSecureGWHandler( RequestHandler ):
     resDict = {'Successful':successful, 'Failed':{}}
     return S_OK( resDict )
 
-  types_exists = [ list, dict, str  ]
+  types_exists = [ [list, dict, str]  ]
   def export_exists( self, lfns ):
     """ Check whether the supplied paths exists """
     successful = {}
@@ -257,7 +257,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
   def __getOwnerGroupDN ( self, shifterType ):
     opsHelper = Operations()
-    userName = opsHelper.getValue( cfgPath( 'Shifter',shifterType, 'User' ), '' )
+    userName = opsHelper.getValue( cfgPath( 'BoincShifter', shifterType, 'User' ), '' )
     if not userName:
       return S_ERROR( "No shifter User defined for %s" % shifterType )
     result = CS.getDNForUsername( userName )
@@ -268,7 +268,7 @@ class WMSSecureGWHandler( RequestHandler ):
     if not result['OK']:
       return result
     defaultGroup = result['Value']
-    userGroup = opsHelper.getValue( cfgPath( 'Shifter', shifterType, 'Group' ), defaultGroup )
+    userGroup = opsHelper.getValue( cfgPath( 'BoincShifter', shifterType, 'Group' ), defaultGroup )
     return userDN, userGroup, userName
 
 

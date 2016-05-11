@@ -735,7 +735,7 @@ class ProductionStatusAgent( AgentModule ):
     toUpdate = []
     for tID, prID in self.prProds.iteritems():
       tInfo = self.prSummary[prID]['prods'][tID]
-      result = self.__getProductionProcessedEvents( tID )
+      result = self.bkClient.getProductionProducedEvents( tID )
       if result['OK']:
         nEvents = result['Value']
         if nEvents and nEvents != tInfo['Events'] :
