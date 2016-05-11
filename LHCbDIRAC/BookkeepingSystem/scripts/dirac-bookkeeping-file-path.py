@@ -23,6 +23,7 @@ if __name__ == "__main__":
   Script.registerSwitch( '', 'GroupByProduction', '   Return a list of files per production' )
   Script.registerSwitch( '', 'Summary', '   Only give the number of files in each group (default: GroupByPath)' )
   Script.registerSwitch( '', 'List', '   Print a list of group keys' )
+  Script.registerSwitch( '', 'IgnoreFileType', '   Ignore file type in path (useful for stripping)' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] ... LFN|File' % Script.scriptName,
@@ -39,6 +40,7 @@ if __name__ == "__main__":
   groupBy = False
   summary = False
   printList = False
+  ignoreFileType = False
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
     if switch[0] == 'Full':
@@ -53,6 +55,8 @@ if __name__ == "__main__":
       summary = True
     elif switch[0] == 'List':
       printList = True
+    elif switch[0] == 'IgnoreFileType':
+      ignoreFileType = True
   if summary and not groupBy:
     groupBy = 'Path'
 
@@ -111,6 +115,8 @@ if __name__ == "__main__":
         success[dirName] = success[dirName][0]
       else:
         bkDict = success[dirName][0].copy()
+        if ignoreFileType:
+          bkDict['FileType'] = ''
         bkDict['Path'] = __buildPath( bkDict )
         if groupBy in bkDict:
           if groupBy != 'Path':
