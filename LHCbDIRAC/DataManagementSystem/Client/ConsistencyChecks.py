@@ -117,8 +117,10 @@ class ConsistencyChecks( object ):
   def __logVerbose( self, msg, msg1 = '' ):
     if self._verbose:
       newMsg = '[ConsistencyChecks] ' + ( '[%s] ' % str( self.prod ) ) if self.prod else ''
-      newMsg += msg
-      gLogger.notice( newMsg, msg1 )
+      # Add that prefix to all lines of the message
+      newMsg1 = msg1.replace( '\n', '\n' + newMsg )
+      newMsg += msg.replace( '\n', '\n' + newMsg )
+      gLogger.notice( newMsg, newMsg1 )
     else:
       gLogger.verbose( msg, msg1 )
 
@@ -638,41 +640,48 @@ class ConsistencyChecks( object ):
           if not daughtersNotPresent:
             continue
           self.__logVerbose( 'Mother file:', lfn )
-          self.__logVerbose( 'Daughters:', '\n'.join( sorted( filesWithDescendants[lfn] ) ) )
-          self.__logVerbose( 'Not present daughters:', '\n'.join( sorted( daughtersNotPresent ) ) )
-          self.__logVerbose( ' but with descendants:', '\n'.join( sorted( daughtersNotPresent & setDaughtersWithDesc ) ) )
+          self.__logVerbose( 'Daughters:\n', '\n'.join( sorted( filesWithDescendants[lfn] ) ) )
+          if daughtersNotPresent:
+            self.__logVerbose( 'Not present daughters:\n', '\n'.join( sorted( daughtersNotPresent ) ) )
+            notPresentWithDesc = daughtersNotPresent & setDaughtersWithDesc
+            if notPresentWithDesc:
+              self.__logVerbose( ' but with descendants:\n', '\n'.join( sorted( notPresentWithDesc ) ) )
+            else:
+              self.__logVerbose( ' none of them has descendants' )
             # print 'Multiple descendants', filesWithMultipleDescendants.get( lfn )
           # Only interested in daughters without replica, so if all have one, skip
 
           # Some daughters may have a replica though, take them into account
           daughtersWithReplica = setDaughters & setPresent
           # and add those without a replica but that have  a descendant with replica
-          realDaughters = list( daughtersWithReplica | ( daughtersNotPresent & setDaughtersWithDesc ) )
-          self.__logVerbose( 'realDaughters:', realDaughters )
+          realDaughters = daughtersWithReplica | ( daughtersNotPresent & setDaughtersWithDesc )
+          if realDaughters:
+            self.__logVerbose( 'Real Daughters:\n', '\n'.join( sorted( realDaughters ) ) )
+          else:
+            self.__logVerbose( 'No real daughters found' )
           # descToCheck: dictionary with key = daughter and value = dictionary of file type counts
           daughtersDict = dict( ( daughter, {daughter:{'FileType':daughtersBKInfo[daughter][1]}} ) for daughter in realDaughters )
-          self.__logVerbose( 'daughtersDict:', daughtersDict )
           descToCheck = self._getFileTypesCount ( daughtersDict )
-          self.__logVerbose( 'descToCheck:', descToCheck )
 
           # Update the result dictionaries according to the final set of descendants
-          if len( descToCheck ) == 0:
+          if not descToCheck:
             # Mother has no descendant
             self.__logVerbose( '%s has no real descendants' % lfn )
             filesWithMultipleDescendants.pop( lfn, None )
             filesWithDescendants.pop( lfn, None )
             filesWithoutDescendants[lfn] = None
           else:
-            filesWithDescendants[lfn] = realDaughters
+            self.__logVerbose( 'Descendants to check:\n', '\n'.join( sorted( descToCheck ) ) )
+            filesWithDescendants[lfn] = sorted( realDaughters )
             setRealDaughters.update( realDaughters )
             # Count the descendants by file type
             ft_count = {}
             for counts in descToCheck.itervalues():
               for ft in counts:
                 ft_count[ft] = ft_count.setdefault( ft, 0 ) + counts.get( ft, 0 )
-            self.__logVerbose( 'ft_count', ft_count )
+            # self.__logVerbose( 'ft_count', ft_count )
             multi = dict( ( ft, ftc ) for ft, ftc in ft_count.iteritems() if ftc > 1 )
-            self.__logVerbose( 'Multi', multi )
+            # self.__logVerbose( 'Multi', multi )
             # Mother has at least one real descendant
             # Now check whether there are more than one descendant of the same file type
             if not multi:
@@ -681,7 +690,7 @@ class ConsistencyChecks( object ):
             else:
               filesWithMultipleDescendants[lfn] = multi
               prStr = 'multiple'
-            self.__logVerbose( 'Found %s descendants: %s' % ( prStr, sorted( descToCheck ) ) )
+            self.__logVerbose( 'Found %s descendants' % prStr )
         progressBar.endLoop()
     # print 'Final multiple descendants', filesWithMultipleDescendants
 
