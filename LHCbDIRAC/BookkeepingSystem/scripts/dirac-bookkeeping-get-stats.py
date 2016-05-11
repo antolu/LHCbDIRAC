@@ -94,7 +94,8 @@ def execute():
         queryDict = bkQuery.getQueryDict()
 
     # Get information from BK
-    if not triggerRate and not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
+    # if not triggerRate and not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
+    if not triggerRate and not lfns and 'DataQuality' not in queryDict:
       print "Getting info from filesSummary..."
       query = queryDict.copy()
       if len( query ) <= 3:
