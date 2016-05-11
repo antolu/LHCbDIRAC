@@ -5,8 +5,8 @@ import mock
 import unittest
 
 import LHCbDIRAC.BookkeepingSystem.DB.OracleBookkeepingDB as moduleTested
-from LHCbDIRAC.BookkeepingSystem.DB.OracleDB                      import OracleDB
-from DIRAC.ConfigurationSystem.Client.Config                import gConfig
+from LHCbDIRAC.BookkeepingSystem.DB.OracleDB import OracleDB
+from DIRAC.ConfigurationSystem.Client.Config import gConfig
 
 __RCSID__ = "$Id$"
 
@@ -392,5 +392,3 @@ and f.inserttimestamp <= TO_TIMESTAMP ('2','YYYY-MM-DD HH24:MI:SS')", tables), r
 
 if __name__ == '__main__':
   unittest.main()
-
-
