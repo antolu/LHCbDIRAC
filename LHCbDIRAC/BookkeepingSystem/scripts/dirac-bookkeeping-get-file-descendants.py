@@ -66,7 +66,7 @@ if __name__ == "__main__":
   from DIRAC.Core.Utilities.List import breakListIntoChunks
   bkClient = BookkeepingClient()
 
-  chunkSize = 50
+  chunkSize = int( 20 / level )
   progressBar = ProgressBar( len( lfnList ), chunk = chunkSize, title = 'Getting descendants for %d files (depth %d)' % ( len( lfnList ), level ) + ( ' for production %d' % prod if prod else '' ) )
   fullResult = S_OK( {} )
   for lfnChunk in breakListIntoChunks( lfnList, 50 ):
