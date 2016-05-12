@@ -274,7 +274,9 @@ The recommended way is the following:
             cd  DiracInstall ; SetupProject LHCbDIRAC ; lhcb-proxy-init ; dirac-admin-sysadmin-cli
             
             and from the prompt :
+            
             [host] : execfile vobox_update_MyLetter
+            
             [host] : quit
       
       Note: please check the version of LHCbDIRAC in one of the created file (vobox_update_MyLetter), because if the file is exists, the version will be not updated...
