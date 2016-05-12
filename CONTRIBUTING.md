@@ -28,7 +28,6 @@ Issue Tracking
 ==============
 
 Issue tracking for the project is [LHCbDIRAC JIRA](https://its.cern.ch/jira/browse/LHCBDIRAC). 
-This [KB](https://cern.service-now.com/service-portal/article.do?n=KB0003166) explains how to link a Jira issue to a commit that mentions it. Please note that closing a Jira issue with a commit message is instead not allowed.
 
 
 Code quality
