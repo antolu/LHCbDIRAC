@@ -301,19 +301,26 @@ if __name__ == "__main__":
       from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
       fc = FileCatalog()
       success = 0
-      missingLFNs = []
+      missingLFNs = set()
       startTime = time.time()
       for chunk in breakListIntoChunks( lfns, 500 ):
         res = fc.exists( chunk )
         if res['OK']:
-          success += len ( [lfn for lfn in chunk if lfn in res['Value']['Successful'] and  res['Value']['Successful'][lfn]] )
-          missingLFNs += [lfn for lfn in chunk if lfn in res['Value']['Failed']] + [lfn for lfn in chunk if lfn in res['Value']['Successful'] and not res['Value']['Successful'][lfn]]
+          success += res['Value']['Successful'].values().count( True )
+          missingLFNs |= res['Value']['Failed']
+          missingLFNs |= set( lfn for lfn in res['Value']['Successful'] if not res['Value']['Successful'][lfn] )
+        else:
+          gLogger.fatal( "Error checking files in the FC", res['Message'] )
+          DIRAC.exit( 2 )
       gLogger.notice( "Files checked in LFC in %.3f seconds" % ( time.time() - startTime ) )
       if missingLFNs:
         gLogger.notice( '%d are in the LFC, %d are not. Attempting to remove GotReplica' % ( success, len( missingLFNs ) ) )
-        res = bk.removeFiles( missingLFNs )
+        res = bk.removeFiles( list( missingLFNs ) )
         if res['OK']:
           gLogger.notice( "Replica flag successfully removed in BK" )
+        else:
+          gLogger.fatal( "Error removing BK flag", res['Message'] )
+          DIRAC.exit( 2 )
       else:
         gLogger.notice( 'All files are in the LFC' )
 
