@@ -1056,7 +1056,7 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
     if addRunInfo:
       res = bk.getFileMetadata( lfnChunk )
       if res['OK']:
-        resMeta = res['Value'].get( 'Successful', res['Value'] )
+        resMeta = res['Value'].['Successful']
         for lfn, metadata in resMeta.iteritems():
           runID = metadata.get( 'RunNumber' )
           if runID:
