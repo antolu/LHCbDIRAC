@@ -641,14 +641,13 @@ class ConsistencyChecks( object ):
             continue
           self.__logVerbose( 'Mother file:', lfn )
           self.__logVerbose( 'Daughters:\n', '\n'.join( sorted( filesWithDescendants[lfn] ) ) )
-          if daughtersNotPresent:
-            self.__logVerbose( 'Not present daughters:\n', '\n'.join( sorted( daughtersNotPresent ) ) )
-            notPresentWithDesc = daughtersNotPresent & setDaughtersWithDesc
-            if notPresentWithDesc:
-              self.__logVerbose( ' but with descendants:\n', '\n'.join( sorted( notPresentWithDesc ) ) )
-            else:
-              self.__logVerbose( ' none of them has descendants' )
-            # print 'Multiple descendants', filesWithMultipleDescendants.get( lfn )
+          self.__logVerbose( 'Not present daughters:\n', '\n'.join( sorted( daughtersNotPresent ) ) )
+          notPresentWithDesc = daughtersNotPresent & setDaughtersWithDesc
+          if notPresentWithDesc:
+            self.__logVerbose( ' but with descendants:\n', '\n'.join( sorted( notPresentWithDesc ) ) )
+          else:
+            self.__logVerbose( ' none of them has descendants' )
+          # print 'Multiple descendants', filesWithMultipleDescendants.get( lfn )
           # Only interested in daughters without replica, so if all have one, skip
 
           # Some daughters may have a replica though, take them into account
@@ -679,9 +678,7 @@ class ConsistencyChecks( object ):
             for counts in descToCheck.itervalues():
               for ft in counts:
                 ft_count[ft] = ft_count.setdefault( ft, 0 ) + counts.get( ft, 0 )
-            # self.__logVerbose( 'ft_count', ft_count )
             multi = dict( ( ft, ftc ) for ft, ftc in ft_count.iteritems() if ftc > 1 )
-            # self.__logVerbose( 'Multi', multi )
             # Mother has at least one real descendant
             # Now check whether there are more than one descendant of the same file type
             if not multi:
