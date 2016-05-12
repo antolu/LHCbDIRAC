@@ -325,8 +325,8 @@ if __name__ == "__main__":
           transBKQuery[transKey] = transBKQuery.pop( bkKey )
       transformation.setBkQuery( transBKQuery )
 
-    # If the transformation uses the DeleteDataset plugin, set the files invisible in the BK...
-    setInvisiblePlugins = ( "DeleteDataset", "RemoveDataset" )
+    # If the transformation uses the RemoveDataset plugin, set the files invisible in the BK...
+    setInvisiblePlugins = ( "RemoveDataset", )
     if invisible or plugin in setInvisiblePlugins:
       res = bk.setFilesInvisible( lfns )
       if res['OK']:
