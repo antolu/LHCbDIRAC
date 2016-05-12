@@ -102,7 +102,7 @@ if __name__ == "__main__":
         print "Error getting file metadata", res['Message']
         DIRAC.exit( 1 )
       lfnTypes = {}
-      for lfn in res['Value'].get( 'Successful', res['Value'] ):
+      for lfn in res['Value']['Successful']:
         metadata = res['Value'][lfn]
         lfnTypes[lfn] = metadata['FileType']
     else:

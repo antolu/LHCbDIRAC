@@ -83,7 +83,7 @@ if __name__ == "__main__":
     res = bk.getFileMetadata( lfnList )
     if res['OK']:
       paths = {'Successful':{}, 'Failed':[]}
-      for lfn, metadata in res['Value']['Successful'].items():
+      for lfn, metadata in res['Value']['Successful'].iteritems():
         group = metadata.get( groupBy )
         paths['Successful'].setdefault( '%s %s' % ( groupBy, group ), set() ).add( lfn )
         lfnList.remove( lfn )
