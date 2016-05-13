@@ -307,7 +307,7 @@ if __name__ == "__main__":
         res = fc.exists( chunk )
         if res['OK']:
           success += res['Value']['Successful'].values().count( True )
-          missingLFNs |= res['Value']['Failed']
+          missingLFNs |= set( res['Value']['Failed'] )
           missingLFNs |= set( lfn for lfn in res['Value']['Successful'] if not res['Value']['Successful'][lfn] )
         else:
           gLogger.fatal( "Error checking files in the FC", res['Message'] )
