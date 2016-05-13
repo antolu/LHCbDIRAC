@@ -1,3 +1,20 @@
+[v8r2p42]
+User DIRAC v6r14p30
+* force status to be updated to Unused
+* Remove double return value in bk.getFileMetadata()
+* remove obsolete plugin
+* fix a bug and remove obsolete plugins
+* fixes in logging
+* use file info if replicaFlag specified
+* change chunksize
+* Add option --IgnoreFileType (if only interested in processing pass)
+* every time when the replica flag is updated we commit the transaction...
+* use the new method for getting the produced events for a given production
+* implemenet a new method which return the production producced events
+* remove not used conditions
+* Corect the URL for Client releases
+* Add option for the CLIENT release
+
 [v8r2p41]
 use DIRAC v6r14p28
 * bkk oracle docs
