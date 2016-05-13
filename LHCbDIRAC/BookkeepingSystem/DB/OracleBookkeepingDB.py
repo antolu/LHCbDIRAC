@@ -377,7 +377,7 @@ class OracleBookkeepingDB:
            command = "select count(*) from %s where s.stepid>0 %s " % ( fileTypefilter, condition )
         else:
           command = "select count(*) from steps s where s.stepid>0 %s " % ( condition )
-          
+
         retVal = self.dbR_.query( command )
         if retVal['OK']:
           totrec = retVal['Value'][0][0]
@@ -1691,7 +1691,7 @@ class OracleBookkeepingDB:
 
     if depth:
       depth -= 1
-      
+
       res = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getFileDesJobId', [fileName] )
       if not res["OK"]:
         gLogger.error( 'Error getting fileId', res['Message'] )
@@ -2204,9 +2204,7 @@ class OracleBookkeepingDB:
 #                 'InstLuminosity':record[16]}
 #          result[lfn] = row
 
-    retVal = result
-    retVal['Successful'] = dict( result )
-    retVal['Failed'] = [ i for i in lfns if i not in result]
+    retVal = {'Successful': result, 'Failed':list( set( lfns ) - set( result ) )}
     return S_OK( retVal )
 
   #############################################################################
@@ -3105,7 +3103,7 @@ and files.qualityid= dataquality.qualityid'
     """it adds the production which can be a list or string to the jobs table
     :param list,int long the production number(s)
     :param str condition It contains the where conditions
-    :param str tables it containes the tables. 
+    :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
     """
     if production not in [default, None]:
@@ -3118,12 +3116,12 @@ and files.qualityid= dataquality.qualityid'
         condition += cond
       elif isinstance( production, ( basestring, int, long ) ):
         condition += ' and j.production=%s' % str( production )
-    
+
     if production not in [default, None] and visible.upper().startswith( 'Y' ):
       if 'BVIEW' not in tables.upper():
         tables += ' ,prodview bview'
       condition += ' and j.production=bview.production '
-    
+
     return S_OK( ( condition, tables ) )
 
   #############################################################################
@@ -3151,7 +3149,7 @@ and files.qualityid= dataquality.qualityid'
     """It adds the processing pass condition to the query
     :param str procPass it is a processing pass for example: /Real Data/Reco20
     :param str condition It contains the where conditions
-    :param str tables it containes the tables. 
+    :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
     """
     if procPass not in [default, None]:
@@ -3174,11 +3172,11 @@ and files.qualityid= dataquality.qualityid'
       pro = pro[:-1]
       pro += ')'
 
-      if visible.upper().startswith( 'Y' ): 
+      if visible.upper().startswith( 'Y' ):
         if 'BVIEW' not in tables.upper():
           tables += ',prodview bview'
         condition += " and bview.production=prod.production and bview.production=j.production"
-        
+
       condition += " and j.production=prod.production \
                      and prod.processingid in %s" % ( pro )
       if tables.upper().find( 'PRODUCTIONSCONTAINER' ) < 0:
@@ -3252,18 +3250,18 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildEventType( evt, condition, tables, visible = default):
+  def __buildEventType( evt, condition, tables, visible = default ):
     """adds the event type to the files table"""
 
     if evt not in [0, None, default] and visible.upper().startswith( 'Y' ):
-      if tables.find( 'bview' ) < 0:   
+      if tables.find( 'bview' ) < 0:
         tables += ' ,prodview bview'
-      
+
       if tables.upper().find( 'PRODUCTIONSCONTAINER' ) > 0:
         condition += '  and j.production=bview.production and bview.production=prod.production and f.eventtypeid=bview.eventtypeid and'
       else:
         condition += '  and j.production=bview.production and f.eventtypeid=bview.eventtypeid and'
-      
+
       if isinstance( evt, ( list, tuple ) ) and len( evt ) > 0:
         cond = ' ( '
         for i in evt:
@@ -3356,7 +3354,7 @@ and files.qualityid= dataquality.qualityid'
     return S_OK( ( condition, tables ) )
 
   #############################################################################
-  def __buildConditions( self, simdesc, datataking, condition, tables, visible=default ):
+  def __buildConditions( self, simdesc, datataking, condition, tables, visible = default ):
     """adds the data taking or simulation conditions to the query"""
     if simdesc != default or datataking != default:
       conddesc = simdesc if simdesc != default else datataking
@@ -3367,10 +3365,10 @@ and files.qualityid= dataquality.qualityid'
       condition += ' and prod.production=j.production '
       if tables.upper().find( 'PRODUCTIONSCONTAINER' ) < 0:
         tables += ' ,productionscontainer prod '
-      
+
       if ( simdesc != default or datataking != default ) and visible.upper().startswith( 'Y' ):
         condition += ' and bview.production=prod.production'
-        
+
     return S_OK( ( condition, tables ) )
 
   #############################################################################
@@ -4947,7 +4945,7 @@ and files.qualityid= dataquality.qualityid'
       else:
         status['Failed'] += [run]
     return S_OK( status )
-  
+
   #############################################################################
   def getProductionProducedEvents( self, prodid ):
     """returns the produced event by a production taking into account the step"""

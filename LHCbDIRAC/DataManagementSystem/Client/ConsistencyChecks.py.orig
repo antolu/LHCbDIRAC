@@ -628,11 +628,16 @@ class ConsistencyChecks( DiracConsistencyChecks ):
           # Some daughters may have a replica though, take them into account
           daughtersWithReplica = setDaughters & setPresent
           # and add those without a replica but that have  a descendant with replica
+<<<<<<< HEAD
+          realDaughters = list( daughtersWithReplica.union( daughtersNotPresent & setDaughtersWithDesc ) )
+          self.__logVerbose( 'realDaughters', realDaughters )
+=======
           realDaughters = daughtersWithReplica | ( daughtersNotPresent & setDaughtersWithDesc )
           if realDaughters:
             self.__logVerbose( 'Real Daughters:\n', '\n'.join( sorted( realDaughters ) ) )
           else:
             self.__logVerbose( 'No real daughters found' )
+>>>>>>> upstream/master
           # descToCheck: dictionary with key = daughter and value = dictionary of file type counts
           daughtersDict = dict( ( daughter, {daughter:{'FileType':daughtersBKInfo[daughter][1]}} ) for daughter in realDaughters )
           descToCheck = self._getFileTypesCount ( daughtersDict )
@@ -662,7 +667,11 @@ class ConsistencyChecks( DiracConsistencyChecks ):
             else:
               filesWithMultipleDescendants[lfn] = multi
               prStr = 'multiple'
+<<<<<<< HEAD
+            self.__logVerbose( '%s has %s descendants: %s' % ( lfn, prStr, sorted( descToCheck ) ) )
+=======
             self.__logVerbose( 'Found %s descendants' % prStr )
+>>>>>>> upstream/master
         progressBar.endLoop()
     # print 'Final multiple descendants', filesWithMultipleDescendants
 

@@ -66,7 +66,7 @@ if __name__ == "__main__":
                                      'DataQuality'.ljust( 12 ),
                                      'RunNumber'.ljust( 10 ),
                                      '#events'.ljust( 10 ) )
-  lfnMetadata = res['Value'].get( 'Successful', res['Value'] )
+  lfnMetadata = res['Value']['Successful']
   for lfn in lfnMetadata:
     lfnMetaDict = lfnMetadata[lfn]
     if full:

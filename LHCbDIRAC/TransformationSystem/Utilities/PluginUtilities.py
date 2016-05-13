@@ -119,8 +119,8 @@ class PluginUtilities( DIRACPluginUtilities ):
     Else:
     * Use the duration (in seconds) of runs as metrics for SE usage
     """
-    self.shareMetrics = self.getPluginParam( 'ShareMetrics', '' )
-    # self.shareMetrics = 'Time'
+    if self.shareMetrics is None:
+      self.shareMetrics = self.getPluginParam( 'ShareMetrics', '' )
     if section is None:
       # This is for reconstruction shares (CU)
       sharesSections = { 'DataReconstruction': 'CPUforRAW', 'DataReprocessing' : 'CPUforReprocessing'}
@@ -930,7 +930,6 @@ class PluginUtilities( DIRACPluginUtilities ):
     foundProds = {}
     for desc in descToCheck.keys():
       prod = descProd[desc]
-      # print desc, descToCheck[desc], prod
       # If we found an existing descendant in the list of productions, all OK
       if descMetadata[desc]['GotReplica'] == 'Yes' and prod in prodList:
         foundProds.setdefault( prod, set() ).update( descToCheck[desc] )
@@ -948,7 +947,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       toCheckInProd = set()
       for desc in prodDesc[prod]:
         if not descToCheck[desc] & finalResult:
-          toCheckInProd.update( desc )
+          toCheckInProd.add( desc )
       if toCheckInProd:
         res = self.checkForDescendants( toCheckInProd, prodList, level = level + 1 )
         if not res['OK']:
@@ -994,12 +993,11 @@ class PluginUtilities( DIRACPluginUtilities ):
 
 def getRemovalPlugins():
   return ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ,
-           "DeleteDataset", "DeleteReplicas", 'DeleteReplicasWhenProcessed',
            "RemoveDataset", "RemoveReplicas", 'RemoveReplicasWhenProcessed', 'ReduceReplicas' )
 def getReplicationPlugins():
-  return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom",
+  return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcastRandom",
            "ArchiveDataset", "ReplicateDataset",
-           "RAWShares", 'RAWReplication',
+           'RAWReplication',
            'FakeReplication', 'ReplicateToLocalSE', 'Healing' )
 
 def getShares( sType, normalise = False ):
@@ -1063,7 +1061,7 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
     if addRunInfo:
       res = bk.getFileMetadata( lfnChunk )
       if res['OK']:
-        resMeta = res['Value'].get( 'Successful', res['Value'] )
+        resMeta = res['Value']['Successful']
         for lfn, metadata in resMeta.iteritems():
           runID = metadata.get( 'RunNumber' )
           if runID:

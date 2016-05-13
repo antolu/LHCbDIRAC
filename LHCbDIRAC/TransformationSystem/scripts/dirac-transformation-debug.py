@@ -1428,7 +1428,8 @@ if __name__ == "__main__":
           # print task
           prString = "TaskID: %s (created %s, updated %s) - %d files" % ( taskID, task['CreationTime'], task['LastUpdateTime'], nfiles )
           if byFiles and lfnsInTask:
-            prString += " (" + str( lfnsInTask ) + ")"
+            sep = ',' if sys.stdout.isatty() else '\n'
+            prString += " (" + sep.join( lfnsInTask ) + ")"
           prString += "- %s: %s - Status: %s" % ( taskType, task['ExternalID'], task['ExternalStatus'] )
           if targetSE:
             prString += " - TargetSE: %s" % targetSE

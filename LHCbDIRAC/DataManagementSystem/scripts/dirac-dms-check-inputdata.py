@@ -187,7 +187,7 @@ if __name__ == "__main__":
         if not res['OK']:
           gLogger.always( 'Error getting BK metadata for %d files' % len( notInFC ), res['Message'] )
           continue
-        metadata = res['Value'].get( 'Successful', res['Value'] )
+        metadata = res['Value']['Successful']
         notInFC = [lfn for lfn in notInFC if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'Yes']
         if notInFC:
           pbFound = True
