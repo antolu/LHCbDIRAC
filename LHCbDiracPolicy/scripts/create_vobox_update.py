@@ -27,99 +27,28 @@ D_list = ['lbvobox06.cern.ch', 'lbvobox07.cern.ch', 'lbvobox08.cern.ch', 'lbvobo
 file_E = os.path.join( HOME_DIR, 'vobox_update_E' )
 E_list = ['lbvobox40.cern.ch', 'lbvobox41.cern.ch', 'lbvobox42.cern.ch', 'lbvobox43.cern.ch', 'lbvobox44.cern.ch', 'lbvobox45.cern.ch', 'lbvobox46.cern.ch', 'lbvobox47.cern.ch', 'lbvobox48.cern.ch', 'lbvobox49.cern.ch', 'lbvobox80.cern.ch', 'lbvobox81.cern.ch', 'volhcb04.cern.ch', 'volhcb05.cern.ch']
 
-for machine in T1_list:
-  print machine
-  fdr = open( file_skel )
-  fdw = open( file_T1, 'a' )
-  lines = fdr.readlines()
-  for line in lines:
-    if line.strip().find( 'LHCB_MACHINE_NAME' ) != -1:
-       newline = line.replace( 'LHCB_MACHINE_NAME', machine )
-    elif line.strip().find( 'LHCB_VERSION' ) != -1:
-       newline = line.replace( 'LHCB_VERSION', lhcbver )
-    else:
-       newline = line
-    fdw.write( newline )
-  fdw.close()
-  fdr.close()
+def generateTemplate(hosts, filename):
+  for machine in hosts:
+    print machine
+    fdr = open( file_skel )
+    fdw = open( filename, 'a' ) 
+    lines = fdr.readlines()
+    for line in lines:
+      if 'LHCB_MACHINE_NAME' in line:
+         newline = line.replace( 'LHCB_MACHINE_NAME', machine )
+      elif 'LHCB_VERSION' in line:
+         newline = line.replace( 'LHCB_VERSION', lhcbver )
+      else:
+         newline = line
+      fdw.write( newline )
+    fdw.close()
+    fdr.close()
 
+if __name__ == '__main__':
+  generateTemplate(T1_list, file_T1)
+  generateTemplate(A_list, file_A)
+  generateTemplate(B_list, file_B)
+  generateTemplate(C_list, file_C)
+  generateTemplate(D_list, file_D)
+  generateTemplate(E_list, file_E)
 
-for machine in A_list:
-  print machine
-  fdr = open( file_skel )
-  fdw = open( file_A, 'a' )
-  lines = fdr.readlines()
-  for line in lines:
-    if line.strip().find( 'LHCB_MACHINE_NAME' ) != -1:
-       newline = line.replace( 'LHCB_MACHINE_NAME', machine )
-    elif line.strip().find( 'LHCB_VERSION' ) != -1:
-       newline = line.replace( 'LHCB_VERSION', lhcbver )
-    else:
-       newline = line
-    fdw.write( newline )
-  fdw.close()
-  fdr.close()
-
-for machine in B_list:
-  print machine
-  fdr = open( file_skel )
-  fdw = open( file_B, 'a' )
-  lines = fdr.readlines()
-  for line in lines:
-    if line.strip().find( 'LHCB_MACHINE_NAME' ) != -1:
-       newline = line.replace( 'LHCB_MACHINE_NAME', machine )
-    elif line.strip().find( 'LHCB_VERSION' ) != -1:
-       newline = line.replace( 'LHCB_VERSION', lhcbver )
-    else:
-       newline = line
-    fdw.write( newline )
-  fdw.close()
-  fdr.close()
-
-for machine in C_list:
-  print machine
-  fdr = open( file_skel )
-  fdw = open( file_C, 'a' )
-  lines = fdr.readlines()
-  for line in lines:
-    if line.strip().find( 'LHCB_MACHINE_NAME' ) != -1:
-       newline = line.replace( 'LHCB_MACHINE_NAME', machine )
-    elif line.strip().find( 'LHCB_VERSION' ) != -1:
-       newline = line.replace( 'LHCB_VERSION', lhcbver )
-    else:
-       newline = line
-    fdw.write( newline )
-  fdw.close()
-  fdr.close()
-
-for machine in D_list:
-  print machine
-  fdr = open( file_skel )
-  fdw = open( file_D, 'a' )
-  lines = fdr.readlines()
-  for line in lines:
-    if line.strip().find( 'LHCB_MACHINE_NAME' ) != -1:
-       newline = line.replace( 'LHCB_MACHINE_NAME', machine )
-    elif line.strip().find( 'LHCB_VERSION' ) != -1:
-       newline = line.replace( 'LHCB_VERSION', lhcbver )
-    else:
-       newline = line
-    fdw.write( newline )
-  fdw.close()
-  fdr.close()
-
-for machine in E_list:
-  print machine
-  fdr = open( file_skel )
-  fdw = open( file_E, 'a' )
-  lines = fdr.readlines()
-  for line in lines:
-    if line.strip().find( 'LHCB_MACHINE_NAME' ) != -1:
-       newline = line.replace( 'LHCB_MACHINE_NAME', machine )
-    elif line.strip().find( 'LHCB_VERSION' ) != -1:
-       newline = line.replace( 'LHCB_VERSION', lhcbver )
-    else:
-       newline = line
-    fdw.write( newline )
-  fdw.close()
-  fdr.close()
