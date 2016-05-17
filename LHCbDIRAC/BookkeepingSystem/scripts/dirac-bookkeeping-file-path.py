@@ -107,7 +107,7 @@ if __name__ == "__main__":
     progressBar = ProgressBar( len( directories ), title = 'Getting metadata for %d directories' % len( directories ),
                                chunk = chunkSize )
     success = {}
-    failed = {}
+    failed = set()
     for dirChunk in breakListIntoChunks( sorted( directories ), chunkSize ):
       progressBar.loop()
       res = bk.getDirectoryMetadata( dirChunk )
