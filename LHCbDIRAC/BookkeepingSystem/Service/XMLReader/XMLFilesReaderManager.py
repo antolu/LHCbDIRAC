@@ -176,18 +176,23 @@ class XMLFilesReaderManager:
           fileName = inputFiles[0].getFileName()
           res = dataManager_.getFileMetadata( [fileName] )
           if res['OK']:
-            value = res['Value']
-            if value[fileName].has_key( 'EventTypeId' ):
-              if outputfile.exists( 'EventTypeId' ):
-                param = outputfile.getParam( 'EventTypeId' )
-                param.setParamValue( str( value[fileName]['EventTypeId'] ) )
-              else:
-                newFileParams = FileParam()
-                newFileParams.setParamName( 'EventTypeId' )
-                newFileParams.setParamValue( str( value[fileName]['EventTypeId'] ) )
-                outputfile.addFileParam( newFileParams )
+            fileMetadata = res['Value']['Successful'].get( fileName )
+            if fileMetadata:
+              if 'EventTypeId' in fileMetadata:
+                if outputfile.exists( 'EventTypeId' ):
+                  param = outputfile.getParam( 'EventTypeId' )
+                  param.setParamValue( str( fileMetadata['EventTypeId'] ) )
+                else:
+                  newFileParams = FileParam()
+                  newFileParams.setParamName( 'EventTypeId' )
+                  newFileParams.setParamValue( str( fileMetadata['EventTypeId'] ) )
+                  outputfile.addFileParam( newFileParams )
+            else:
+              errMsg = "Can not get the metadata of %s file" % fileName
+              gLogger.error( errMsg )
+              return S_ERROR( errMsg )
           else:
-            return S_ERROR( res['Message'] )
+            return res
         elif job.getOutputFileParam( 'EventTypeId' ) != None:
           param = job.getOutputFileParam( 'EventTypeId' )
           newFileParams = FileParam()
@@ -298,13 +303,20 @@ class XMLFilesReaderManager:
         return S_ERROR( res['Message'] )
       res = dataManager_.getFileMetadata( [fname] )
       if res['OK']:
-        value = res['Value']
-        if value[fname]['EventStat'] != None:
-          sumEvtStat += value[fname]['EventStat']
-        if value[fname]['Luminosity'] != None:
-          sumLuminosity += value[fname]['Luminosity']   
-        if dqvalue == None:
-          dqvalue = value[fname].get( 'DataqualityFlag', value[fname].get( 'DQFlag', None ) )
+        fileMetadata = res['Value']['Successful'].get(fname)
+        if fileMetadata:
+          if fileMetadata['EventStat'] != None:
+            sumEvtStat += fileMetadata['EventStat']
+          if fileMetadata['Luminosity'] != None:
+            sumLuminosity += fileMetadata['Luminosity']
+          if dqvalue == None:
+            dqvalue = fileMetadata.get( 'DataqualityFlag', fileMetadata.get( 'DQFlag', None ) )
+        else:
+          errMsg = "Can not get the metadata of %s file" % fname
+          gLogger.error( errMsg )
+          return S_ERROR( errMsg )  
+      else:
+        return res
 
     evtinput = 0
     if long( sumEvtStat ) > long( sumEventInputStat ):
