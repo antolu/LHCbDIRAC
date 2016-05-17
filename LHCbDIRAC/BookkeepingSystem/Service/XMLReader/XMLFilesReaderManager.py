@@ -193,7 +193,7 @@ class XMLFilesReaderManager:
               return S_ERROR( errMsg )
           else:
             return res
-        elif job.getOutputFileParam( 'EventTypeId' ) != None:
+        elif job.getOutputFileParam( 'EventTypeId' ) is not None:
           param = job.getOutputFileParam( 'EventTypeId' )
           newFileParams = FileParam()
           newFileParams.setParamName( 'EventTypeId' )
@@ -297,7 +297,7 @@ class XMLFilesReaderManager:
 
       if res['OK']:
         value = res["Value"]
-        if len( value ) > 0 and value[0][2] != None:
+        if len( value ) > 0 and value[0][2] is not None:
           sumEventInputStat += value[0][2]
       else:
         return S_ERROR( res['Message'] )
@@ -305,11 +305,11 @@ class XMLFilesReaderManager:
       if res['OK']:
         fileMetadata = res['Value']['Successful'].get(fname)
         if fileMetadata:
-          if fileMetadata['EventStat'] != None:
+          if fileMetadata['EventStat'] is not None:
             sumEvtStat += fileMetadata['EventStat']
-          if fileMetadata['Luminosity'] != None:
+          if fileMetadata['Luminosity'] is not None:
             sumLuminosity += fileMetadata['Luminosity']
-          if dqvalue == None:
+          if dqvalue is None:
             dqvalue = fileMetadata.get( 'DataqualityFlag', fileMetadata.get( 'DQFlag', None ) )
         else:
           errMsg = "Can not get the metadata of %s file" % fname
