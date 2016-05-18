@@ -311,9 +311,9 @@ class UploadOutputData( ModuleBase ):
       return S_OK( "Output data uploaded" )
 
     except Exception as e:
-      self.log.exception( 'Exception found', lException = e )
+      self.log.exception( 'Exception in UploadOutputData', lException = e )
       x = repr( e )
-      self.setApplicationStatus( x )
+      self.setApplicationStatus( 'UploadOutputData exception:' + x )
       return S_ERROR( x )
 
     finally:
