@@ -93,7 +93,13 @@ Then, from the LHCbDIRAC local fork you need to update some files::
     use LHCBGRID LHCBGRID_v9r*
     use LCGCMT LCGCMT_79
   
-  # Commit in your local newMaster branch the 3 files you modified
+  # Commit in your local newMaster branch the 4 files you modified:
+  #modified: CHANGELOG
+  #modified: LHCbDIRAC/init.py
+  #modified: LHCbDIRAC/releases.cfg
+  #modified: cmt/project.cmt
+
+
   git add -A && git commit -av -m "<YourNewTag>"
 
 
