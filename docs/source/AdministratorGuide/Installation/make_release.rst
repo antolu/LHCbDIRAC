@@ -249,7 +249,7 @@ Server
 
 To install it on the VOBOXes from lxplus::
 
-  lhcb-proxy-init  -g diracAdmin
+  lhcb-proxy-init -g diracAdmin
   dirac-admin-sysadmin-cli --host volhcbXX.cern.ch
   >update LHCbDIRAC-v8r3p32
   >restart *
@@ -266,7 +266,7 @@ The recommended way is the following::
       this command will create 6 files called "vobox_update_MyLetter" then you can run in 6 windows the recipe for one single machine like that:
 
             ssh lxplus 
-            cd  DiracInstall ; SetupProject LHCbDIRAC ; lhcb-proxy-init ; dirac-admin-sysadmin-cli
+            cd  DiracInstall ; SetupProject LHCbDIRAC ; lhcb-proxy-init -g lhcb_admin; dirac-admin-sysadmin-cli
             and from the prompt ::
                [host] : execfile vobox_update_MyLetter
                [host] : quit
