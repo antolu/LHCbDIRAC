@@ -645,7 +645,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     condDict = {'TransformationID':transID}
     if isinstance( runs, ( dict, list, tuple, set ) ):
       condDict['RunNumber'] = list( runs )
-    elif isinstance( runs, int ):
+    elif isinstance( runs, ( int, long ) ):
       runs = [runs]
       condDict['RunNumber'] = runs
     result = self.transClient.getTransformationRuns( condDict )

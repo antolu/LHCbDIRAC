@@ -3,18 +3,6 @@
 * minor fixes for tests
 
 [v8r3-pre9]
-=======
-[v8r2p42]
-User DIRAC v6r14p30
-* force status to be updated to Unused
-* Remove double return value in bk.getFileMetadata()
-* remove obsolete plugin
-* fix a bug and remove obsolete plugins
-* fixes in logging
-* use file info if replicaFlag specified
-* change chunksize
-* Add option --IgnoreFileType (if only interested in processing pass)
->>>>>>> upstream/master
 * every time when the replica flag is updated we commit the transaction...
 * use the new method for getting the produced events for a given production
 * implemenet a new method which return the production producced events
@@ -22,12 +10,7 @@ User DIRAC v6r14p30
 * Corect the URL for Client releases
 * Add option for the CLIENT release
 
-<<<<<<< HEAD
 [v8r3-pre8]
-=======
-[v8r2p41]
-use DIRAC v6r14p28
->>>>>>> upstream/master
 * bkk oracle docs
 * Fix regression introduced by 8b4f6ffd95f1a11164b897941e454cdb163eb337
 *  do not check the EventStat and FullStat
@@ -60,6 +43,34 @@ use DIRAC v6r14p28
 * LHCbCreatePilotcfg has been replaced with the LHCbCleanPilotEnv command.
 * Updated BOINC gateway service
 * New configuration service that will update the LHCb-Pilot.json file when a change is done on the CS.
+=======
+[v8r2p43]
+Use DIRAC v6r14p31
+* improve application status
+* fix exception logging
+* oups, bk returns ['Failed'] as a list, not a dict...
+* cut file list in chunks
+* Small improvement in --Info flush printout
+* run number can be a long :(
+* the return value of the getFileMetadata has changed, becauase of that we have to use successful dictionary
+>>>>>>> upstream/master
+
+[v8r2p42]
+User DIRAC v6r14p30
+* force status to be updated to Unused
+* Remove double return value in bk.getFileMetadata()
+* remove obsolete plugin
+* fix a bug and remove obsolete plugins
+* fixes in logging
+* use file info if replicaFlag specified
+* change chunksize
+* Add option --IgnoreFileType (if only interested in processing pass)
+* every time when the replica flag is updated we commit the transaction...
+* use the new method for getting the produced events for a given production
+* implemenet a new method which return the production producced events
+* remove not used conditions
+* Corect the URL for Client releases
+* Add option for the CLIENT release
 
 [v8r2p40]
 use DIRAC v6r14p26
