@@ -133,6 +133,7 @@ Now, you need to make sure that what's merged in master is propagated to the dev
 The last operation may result in potential conflicts.
 If happens, you'll need to manually update the conflicting files (see e.g. this `guide <https://githowto.com/resolving_conflicts>`_).
 As a general rule, prefer the master fixes to the "HEAD" (devel) fixes. Remember to add and commit once fixed.
+Note: For porting the LHCbDIRAC.init.py from master to devel, we prefer the HEAD version (only for this file!!!)
 
 Plase fix the conflict if some files are conflicting. Do not forget to to execute the following::
 
