@@ -257,12 +257,13 @@ To install it on the VOBOXes from lxplus::
 The (better) alternative is using the web portal or using the following script: LHCbDIRAC/LHCbDiracPolicy/scripts/create_vobox_update.
 
 The recommended way is the following::
+
       ssh lxplus
       mkdir DiracInstall; cd  DiracInstall
       cp LHCbDIRAC/LHCbDiracPolicy/scripts/create_vobox_update .
       cp LHCbDIRAC/LHCbDiracPolicy/scripts/skel_vobox_update .
       python create_vobox_update v8r2p30
-      this command will create 6 files called "vobox_update_MyLetter" then you can run in 6 windows the recipe for one single machine like that::
+      this command will create 6 files called "vobox_update_MyLetter" then you can run in 6 windows the recipe for one single machine like that:
 
             ssh lxplus 
             cd  DiracInstall ; SetupProject LHCbDIRAC ; lhcb-proxy-init ; dirac-admin-sysadmin-cli
