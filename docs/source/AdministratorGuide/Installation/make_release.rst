@@ -279,7 +279,7 @@ Pilot
 
 Use the following script (from, e.g., lxplus after having run `lb-run LHCbDIRAC tcsh`)::
 
-  dirac-pilot-version
+  dirac-pilot-version -S version
 
 for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin). 
 This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum.
