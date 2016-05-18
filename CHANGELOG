@@ -43,6 +43,11 @@
 * Updated BOINC gateway service
 * New configuration service that will update the LHCb-Pilot.json file when a change is done on the CS.
 
+[v8r2p44]
+Use DIRAC v6r14p31
+* remove static methods of the BKK XMLFilesReaderManager.py 
+
+
 [v8r2p43]
 Use DIRAC v6r14p31
 * improve application status

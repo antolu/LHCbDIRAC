@@ -44,6 +44,12 @@
 * Updated BOINC gateway service
 * New configuration service that will update the LHCb-Pilot.json file when a change is done on the CS.
 =======
+[v8r2p44]
+Use DIRAC v6r14p31
+* remove static methods of the BKK XMLFilesReaderManager.py 
+
+>>>>>>> upstream/master
+
 [v8r2p43]
 Use DIRAC v6r14p31
 * improve application status
@@ -53,7 +59,6 @@ Use DIRAC v6r14p31
 * Small improvement in --Info flush printout
 * run number can be a long :(
 * the return value of the getFileMetadata has changed, becauase of that we have to use successful dictionary
->>>>>>> upstream/master
 
 [v8r2p42]
 User DIRAC v6r14p30
@@ -71,6 +76,13 @@ User DIRAC v6r14p30
 * remove not used conditions
 * Corect the URL for Client releases
 * Add option for the CLIENT release
+
+[v8r2p41]
+use DIRAC v6r14p28
+* bkk oracle docs
+* Fix regression introduced by 8b4f6ffd95f1a11164b897941e454cdb163eb337
+* do not check the EventStat and FullStat
+* use the view if the visibility flag is present
 
 [v8r2p40]
 use DIRAC v6r14p26
