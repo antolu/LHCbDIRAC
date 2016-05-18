@@ -1,3 +1,13 @@
+[v8r2p43]
+Use DIRAC v6r14p31
+* improve application status
+* fix exception logging
+* oups, bk returns ['Failed'] as a list, not a dict...
+* cut file list in chunks
+* Small improvement in --Info flush printout
+* run number can be a long :(
+* the return value of the getFileMetadata has changed, becauase of that we have to use successful dictionary
+
 [v8r2p42]
 User DIRAC v6r14p30
 * force status to be updated to Unused
