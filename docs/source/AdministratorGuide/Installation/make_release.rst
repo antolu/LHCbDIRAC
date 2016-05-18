@@ -271,19 +271,66 @@ The recommended way is the following::
                [host] : execfile vobox_update_MyLetter
                [host] : quit
       
-      Note: please check the version of LHCbDIRAC in one of the created file (vobox_update_MyLetter), because if the file is exists, the version will be not updated...
+      Note: 
+      -It is normal if you see the following errors:
+      ```
+      --> Executing restart Framework SystemAdministrator
+      [ERROR] Exception while reading from peer: (-1, 'Unexpected EOF') 
+      ```
+      --> Executing update v8r2p42
+      
+      - In case of failure you have to update the machine by hand.
+         Example of a typical failure: 
 
+         Software update can take a while, please wait ... 
+         [ERROR] Failed to update the software 
+         Timeout (240 seconds) for '['dirac-install', '-r', 'v8r2p42', '-t', 'server', '-e', 'LHCb', '-e', 'LHCb', '/opt/dirac/etc/dirac.cfg']' call 
+      
+      Login to the failing machine, become dirac, execute manually the update, and restart everything. For example:
+      ```
+      ssh lbvobox11
+      sudo su - dirac
+      dirac-install -r v8r2p42 -t server -e LHCb -e LHCb /opt/dirac/etc/dirac.cfg
+      lhcb-restart-agent-service
+      runsvctrl t startup/Framework_SystemAdministrator/
+      ```
+      
+      Specify that this error can be ignored (but should be fixed ! ):
+      ```
+      2016-05-17 12:00:00 UTC dirac-install [ERROR] Requirements installation script /opt/dirac/versions/v8r2p42_1463486162/scripts/dirac-externals-requirements failed. Check /opt/dirac/versions/v8r2p42_1463486162/scripts/dirac-externals-requirements.err
+      ```
 
+WebPortal
+`````````
 
+When the web portal machine is updated then you have to compile the WebApp:
+
+   ```
+   ssh lbvobox33
+   sudo su - dirac
+   dirac-webapp-compile
+   ```
+
+````
+TODO
+````
+When the machines are updated, then you have to go through all the components and check the errors. There are two possibilities:
+   2. Use the Web portal (SystemAdministrator)
+   1. Command line:
+    ```
+    for h in $(grep 'set host' vobox_update_* | awk {'print $NF'}); do echo "show errors" | dirac-admin-sysadmin-cli -H $h; done | less
+    ```
+   
 Pilot
 `````
 
 Use the following script (from, e.g., lxplus after having run `lb-run LHCbDIRAC tcsh`)::
 
-  dirac-pilot-version -S version
+  dirac-pilot-version -S v8r2p42
 
 for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin). 
 This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum.
+
 
 
 
