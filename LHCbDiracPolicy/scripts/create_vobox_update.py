@@ -21,18 +21,19 @@ A_list = ['lbvobox10.cern.ch', 'lbvobox11.cern.ch', 'lbvobox12.cern.ch', 'lbvobo
 file_B = os.path.join( HOME_DIR, 'vobox_update_B' )
 B_list = ['lbvobox20.cern.ch', 'lbvobox22.cern.ch', 'lbvobox23.cern.ch', 'lbvobox24.cern.ch', 'lbvobox25.cern.ch', 'lbvobox26.cern.ch', 'lbvobox27.cern.ch', 'lbvobox28.cern.ch', 'lbvobox29.cern.ch']
 file_C = os.path.join( HOME_DIR, 'vobox_update_C' )
-C_list = ['lbvobox30.cern.ch', 'lbvobox31.cern.ch', 'lbvobox32.cern.ch', 'lbvobox100', 'lbvobox33.cern.ch']
+C_list = ['lbvobox30.cern.ch', 'lbvobox31.cern.ch', 'lbvobox32.cern.ch', 'lbvobox100.cern.ch', 'lbvobox33.cern.ch']
 file_D = os.path.join( HOME_DIR, 'vobox_update_D' )
 D_list = ['lbvobox06.cern.ch', 'lbvobox07.cern.ch', 'lbvobox08.cern.ch', 'lbvobox09.cern.ch']
 file_E = os.path.join( HOME_DIR, 'vobox_update_E' )
 E_list = ['lbvobox40.cern.ch', 'lbvobox41.cern.ch', 'lbvobox42.cern.ch', 'lbvobox43.cern.ch', 'lbvobox44.cern.ch', 'lbvobox45.cern.ch', 'lbvobox46.cern.ch', 'lbvobox47.cern.ch', 'lbvobox48.cern.ch', 'lbvobox49.cern.ch', 'lbvobox80.cern.ch', 'lbvobox81.cern.ch', 'volhcb04.cern.ch', 'volhcb05.cern.ch']
 
 def generateTemplate(hosts, filename):
+  fdr = open( file_skel )
+  lines = fdr.readlines()
+  fdr.close()
+  fdw = open( filename, 'w' ) 
   for machine in hosts:
-    print machine
-    fdr = open( file_skel )
-    fdw = open( filename, 'a' ) 
-    lines = fdr.readlines()
+    print machine    
     for line in lines:
       if 'LHCB_MACHINE_NAME' in line:
          newline = line.replace( 'LHCB_MACHINE_NAME', machine )
@@ -41,8 +42,8 @@ def generateTemplate(hosts, filename):
       else:
          newline = line
       fdw.write( newline )
-    fdw.close()
-    fdr.close()
+  fdw.close()
+    
 
 if __name__ == '__main__':
   generateTemplate(T1_list, file_T1)
