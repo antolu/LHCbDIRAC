@@ -7,7 +7,7 @@
   Return the BK path for the directories of a (list of) files
 """
 __RCSID__ = "$Id$"
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult, ProgressBar
 import os
 
 def __buildPath( bkDict ):
@@ -35,6 +35,7 @@ if __name__ == "__main__":
   import DIRAC
   from DIRAC import S_OK, gLogger
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+  from DIRAC.Core.Utilities.List import breakListIntoChunks
 
   full = False
   groupBy = False
@@ -102,13 +103,21 @@ if __name__ == "__main__":
     for lfn in lfnList:
       directories.setdefault( os.path.dirname( lfn ), [] ).append( lfn )
 
-    res = bk.getDirectoryMetadata( sorted( directories ) )
-    if not res['OK']:
-      printDMResult( res )
-      DIRAC.exit( 1 )
+    chunkSize = 10
+    progressBar = ProgressBar( len( directories ), title = 'Getting metadata for %d directories' % len( directories ),
+                               chunk = chunkSize )
+    success = {}
+    failed = set()
+    for dirChunk in breakListIntoChunks( sorted( directories ), chunkSize ):
+      progressBar.loop()
+      res = bk.getDirectoryMetadata( dirChunk )
+      if not res['OK']:
+        printDMResult( res )
+        DIRAC.exit( 1 )
+      success.update( res['Value']['Successful'] )
+      failed.update( res['Value']['Failed'] )
+    progressBar.endLoop()
 
-    success = res.get( 'Value', {} ).get( 'Successful', {} )
-    failed = res.get( 'Value', {} ).get( 'Failed', {} )
     paths = {'Successful':{}, 'Failed':{}}
     for dirName in success:
       if full:

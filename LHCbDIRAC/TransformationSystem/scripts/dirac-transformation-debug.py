@@ -1001,8 +1001,8 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
         print "Error getting files metadata", res['Message']
       else:
         metadata = res['Value']['Successful']
-        runRAWFiles = set( [lfn for lfn, meta in metadata.iteritems() if meta['EventType'] == evtType and meta['GotReplica'] == 'Yes'] )
-        badRAWFiles = set( [lfn for lfn, meta in metadata.iteritems() if meta['EventType'] == evtType] ) - runRAWFiles
+        runRAWFiles = set( lfn for lfn, meta in metadata.iteritems() if meta['EventType'] == evtType and meta['GotReplica'] == 'Yes' )
+        badRAWFiles = set( lfn for lfn, meta in metadata.iteritems() if meta['EventType'] == evtType ) - runRAWFiles
         # print len( runRAWFiles ), 'RAW files'
         allAncestors = set()
         for paramValue in paramValues:
@@ -1013,7 +1013,10 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
         if missingFiles:
           print "Missing RAW files:\n\t%s" % '\n\t'.join( sorted( missingFiles ) )
         else:
-          print "Indeed %d RAW files have no replicas and therefore..." % len( badRAWFiles )
+          if badRAWFiles:
+            print "Indeed %d RAW files have no replicas and therefore..." % len( badRAWFiles )
+          else:
+            print "No RAW files are missing in the end and therefore..."
           rawFiles = len( runRAWFiles )
           toFlush = True
   if toFlush:
