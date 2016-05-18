@@ -446,8 +446,7 @@ class XMLFilesReaderManager:
 
     return S_OK()
 
-  @staticmethod
-  def __insertJob( job ):
+  def __insertJob( self, job ):
     """Inserts the job to the database"""
     config = job.getJobConfiguration()
 
@@ -606,8 +605,7 @@ class XMLFilesReaderManager:
     return res
 
   #############################################################################
-  @staticmethod
-  def __insertOutputFiles( job, outputfile ):
+  def __insertOutputFiles( self, job, outputfile ):
     """insert the files produced by a job"""
     attrList = {  'FileName':outputfile.getFileName(), \
                   'FileTypeId':outputfile.getTypeID(), \
