@@ -57,7 +57,7 @@ class XMLFilesReaderManager:
 
 
       docType = doc.doctype  # job or replica
-      xmltype = docType.name.encode( 'ascii' )
+      xmltype = docType.name.encode( 'ascii' )  #pylint: disable=no-member
     except NameError, ex:
       gLogger.error( "XML reading error", filename )
       return S_ERROR( ex )
@@ -71,7 +71,7 @@ class XMLFilesReaderManager:
       doc = parseString( xmlString )
 
       docType = doc.doctype  # job or replica
-      xmltype = docType.name.encode( 'ascii' )
+      xmltype = docType.name.encode( 'ascii' )  #pylint: disable=no-member
 
       if xmltype == 'Replicas':
         replica = self.replicaReader_.readReplica( doc, "IN Memory" )
@@ -111,7 +111,7 @@ class XMLFilesReaderManager:
     outputFiles = job.getJobOutputFiles()
     dqvalue = None
     for outputfile in outputFiles:
-      
+
       typeName = outputfile.getFileType()
       typeVersion = outputfile.getFileVersion()
       cahedTypeNameVersion = typeName + '<<' + typeVersion
@@ -307,7 +307,7 @@ class XMLFilesReaderManager:
         else:
           errMsg = "Can not get the metadata of %s file" % fname
           gLogger.error( errMsg )
-          return S_ERROR( errMsg )  
+          return S_ERROR( errMsg )
       else:
         return res
 
@@ -348,7 +348,7 @@ class XMLFilesReaderManager:
         if value <= 0 and len( job.getJobInputFiles() ) == 0:
           # The files which inherits the runs can be entered to the database
           return S_ERROR( 'The run number not greater 0!' )
-      
+
     result = self.__insertJob( job )
 
     if not result['OK']:
@@ -360,7 +360,7 @@ class XMLFilesReaderManager:
     else:
       jobID = long( result['Value'] )
       job.setJobId( jobID )
-    
+
     if job.exists( 'RunNumber' ):
       runnumber = job.getParam( 'RunNumber' ).getValue()
       gLogger.info( "Registering the run status: Runnumber %s , JobId %s  " % ( str( runnumber ), str( job.getJobId() ) ) )
@@ -369,21 +369,21 @@ class XMLFilesReaderManager:
         self.bkClient_.deleteJob( job.getJobId() )
         errorMessage = "Unable to register run status %s " % ( result['Message'] )
         return S_ERROR( errorMessage )
-      
-      #we may using HLT2 output to flag the runs as a consequence we may flagged the runs before they registered to the bookkeeping. 
+
+      #we may using HLT2 output to flag the runs as a consequence we may flagged the runs before they registered to the bookkeeping.
       #we can flag a run using the newrunquality table
-      retVal = self.bkClient_.getProductionProcessingPassID( -1 * int( runnumber ) )      
+      retVal = self.bkClient_.getProductionProcessingPassID( -1 * int( runnumber ) )
       if retVal['OK']:
         retVal = self.bkClient_.getRunAndProcessingPassDataQuality( runnumber, retVal['Value'] )
         if retVal['OK']:
           dqvalue = retVal['Value']
           gLogger.info( "%d run data quality flag is %s" % ( int( runnumber ), dqvalue ) )
         else:
-          #The report will be entered to the db. 
+          #The report will be entered to the db.
           gLogger.warn( retVal['Message'] )
       else:
         gLogger.error( retVal['Message'] )
-      
+
     inputFiles = job.getJobInputFiles()
     for inputfile in inputFiles:
       result = self.bkClient_.insertInputFile( job.getJobId(), inputfile.getFileID() )
@@ -533,16 +533,16 @@ class XMLFilesReaderManager:
                  'StepName':retVal['Value'][1],
                  'ProcessingPass':retVal['Value'][1],
                  'Visible':'Y'}]}
-      
+
       gLogger.debug( 'Pass_indexid', steps )
       gLogger.debug( 'Data taking', dataTackingPeriodDesc )
       gLogger.debug( 'production', production )
-     
+
       newJobParams = JobParameters()
       newJobParams.setName( 'StepID' )
       newJobParams.setValue( str( stepid ) )
       job.addJobParams( newJobParams )
-      
+
       message = "StepID for run: %s" % ( str( production ) )
       gLogger.info( message, stepid )
 
@@ -660,4 +660,3 @@ class XMLFilesReaderManager:
     gLogger.info( "End Processing replicas!" )
 
     return S_OK()
-
