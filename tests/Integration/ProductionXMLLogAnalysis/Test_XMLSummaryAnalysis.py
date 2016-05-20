@@ -1,4 +1,8 @@
-import os, unittest
+""" Test of XMLSummaries
+"""
+
+import os
+import unittest
 
 from LHCbDIRAC.Core.Utilities.XMLSummaries import analyseXMLSummary, XMLSummaryError
 
