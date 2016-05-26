@@ -3543,7 +3543,7 @@ and files.qualityid= dataquality.qualityid'
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
     tables = 'files f, jobs j '
-    useView = True if filetype != default and filetype != 'RAW' else False
+    useView = filetype not in ( default, 'RAW' ) 
 
     retVal = self.__buildStartenddate( startDate, endDate, condition, tables )
     if not retVal['OK']:
