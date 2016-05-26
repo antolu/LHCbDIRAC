@@ -270,7 +270,8 @@ The recommended way is the following::
       cp LHCbDIRAC/LHCbDiracPolicy/scripts/create_vobox_update .
       cp LHCbDIRAC/LHCbDiracPolicy/scripts/skel_vobox_update .
       python create_vobox_update v8r2p30
-      this command will create 6 files called "vobox_update_MyLetter" then you can run in 6 windows the recipe for one single machine like that:
+
+This command will create 6 files called "vobox_update_MyLetter" then you can run in 6 windows the recipe for one single machine like that::
 
             ssh lxplus 
             cd  DiracInstall ; SetupProject LHCbDIRAC ; lhcb-proxy-init -g lhcb_admin; dirac-admin-sysadmin-cli
@@ -278,24 +279,23 @@ The recommended way is the following::
                [host] : execfile vobox_update_MyLetter
                [host] : quit
       
-      
-      Note:
-      
-      -It is normal if you see the following errors:
-      
+Note::
+
+It is normal if you see the following errors:
+
       --> Executing restart Framework SystemAdministrator
       [ERROR] Exception while reading from peer: (-1, 'Unexpected EOF') 
       
-      
-      - In case of failure you have to update the machine by hand.
-      
-         Example of a typical failure:: 
+
+In case of failure you have to update the machine by hand.
+Example of a typical failure:: 
+
          --> Executing update v8r2p42
          Software update can take a while, please wait ... 
          [ERROR] Failed to update the software 
          Timeout (240 seconds) for '['dirac-install', '-r', 'v8r2p42', '-t', 'server', '-e', 'LHCb', '-e', 'LHCb', '/opt/dirac/etc/dirac.cfg']' call 
       
-      Login to the failing machine, become dirac, execute manually the update, and restart everything. For example:
+Login to the failing machine, become dirac, execute manually the update, and restart everything. For example::
       
       ssh lbvobox11
       sudo su - dirac
@@ -303,8 +303,8 @@ The recommended way is the following::
       lhcb-restart-agent-service
       runsvctrl t startup/Framework_SystemAdministrator/
       
-      
-      Specify that this error can be ignored (but should be fixed ! ):
+Specify that this error can be ignored (but should be fixed ! )::
+
       2016-05-17 12:00:00 UTC dirac-install [ERROR] Requirements installation script /opt/dirac/versions/v8r2p42_1463486162/scripts/dirac-externals-requirements failed. Check /opt/dirac/versions/v8r2p42_1463486162/scripts/dirac-externals-requirements.err
       
 
