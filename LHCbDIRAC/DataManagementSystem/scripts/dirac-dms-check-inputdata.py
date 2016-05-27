@@ -59,7 +59,7 @@ if __name__ == "__main__":
   for arg in Script.getPositionalArgs():
     try:
       jobs += [int( job ) for job in arg.split( ',' )]
-    except:
+    except ValueError:
       gLogger.fatal( "Invalid list of jobIDs" )
       DIRAC.exit( 2 )
 

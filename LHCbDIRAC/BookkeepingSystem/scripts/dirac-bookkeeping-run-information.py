@@ -25,7 +25,7 @@ exitCode = 0
 
 try:
   run = int( args[0] )
-except Exception as e:
+except ( ValueError, IndexError ) as e:
   DIRAC.gLogger.exception( "Invalid run number", lException = e )
   Script.showHelp()
   DIRAC.exit( 1 )

@@ -20,7 +20,7 @@ args = Script.getPositionalArgs()
 
 try:
   runID = int( args[0] )
-except:
+except ( ValueError, IndexError ):
   Script.showHelp()
 
 exitCode = 0
