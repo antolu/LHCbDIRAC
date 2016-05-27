@@ -23,10 +23,14 @@ if len( args ) < 1:
 
 exitCode = 0
 
+try:
+  run = int( args[0] )
+except ( ValueError, IndexError ) as e:
+  DIRAC.gLogger.exception( "Invalid run number", lException = e )
+  Script.showHelp()
+
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
-run = int( args[0] )
-
 res = bk.getRunInformations( run )
 
 if res['OK']:
@@ -43,25 +47,35 @@ if res['OK']:
   nbofe = val.get( 'Number of events', 'Unknown' )
   nboff = val.get( 'Number of file', 'Unknown' )
   fsize = val.get( 'File size', 'Unknown' )
-  totalLuminosity = val.get( "TotalLuminosity", 0 )
+  totalLuminosity = val.get( "TotalLuminosity", 'Unknown' )
+  tck = val.get( 'Tck', 'Unknown' )
+
+  res = bk.getRunStatus( [run] )
+  if res['OK']:
+    finished = {'N':'No', 'Y':'Yes'}.get( res['Value']['Successful'].get( run, {} ).get( 'Finished' ), 'Unknown' )
+  else:
+    finished = res['Message']
 
   print "Run  Informations: "
-  print "Run Start:".ljust( 50 ), str( runstart )
-  print "Run End:".ljust( 50 ), str( runend )
-  print "Total luminosity:".ljust( 50 ), str( totalLuminosity )
-  print "  Configuration Name:".ljust( 50 ), configname
-  print "  Configuration Version:".ljust( 50 ), configversion
-  print "  FillNumber:".ljust( 50 ), fillnb
-  print "  Data taking description: ".ljust( 50 ), datataking
-  print "  Processing pass: ".ljust( 50 ), processing
-  print "  Stream: ".ljust( 50 ), stream
-  print "  FullStat: ".ljust( 50 ) + str( fullstat ).ljust( 50 ) + " Total: ".ljust( 10 ) + str( sum( fullstat ) )
-  print "  Number of events: ".ljust( 50 ) + str( nbofe ).ljust( 50 ) + " Total:".ljust( 10 ) + str( sum( nbofe ) )
-  print "  Number of file: ".ljust( 50 ) + str( nboff ).ljust( 50 ) + " Total: ".ljust( 10 ) + str( sum( nboff ) )
-  print "  File size: ".ljust( 50 ) + str( fsize ).ljust( 50 ) + " Total: ".ljust( 10 ) + str( sum( fsize ) )
+  print "Run Start:".ljust( 30 ), str( runstart )
+  print "Run End:".ljust( 30 ), str( runend )
+  print "Total luminosity:".ljust( 30 ), str( totalLuminosity )
+  print "  Configuration Name:".ljust( 30 ), configname
+  print "  Configuration Version:".ljust( 30 ), configversion
+  print "  FillNumber:".ljust( 30 ), fillnb
+  print "  Finished:".ljust( 30 ), finished
+  print "  Data taking description:".ljust( 30 ), datataking
+  print "  Processing pass:".ljust( 30 ), processing
+  print "  TCK:".ljust( 30 ), tck
+  print "  Stream:".ljust( 30 ), stream
+  just = len( str( fsize ) ) + 3
+  print "  FullStat:".ljust( 30 ), str( fullstat ).ljust( just ), " Total: ".ljust( 10 ) + str( sum( fullstat ) )
+  print "  Number of events:".ljust( 30 ), str( nbofe ).ljust( just ), " Total:".ljust( 10 ) + str( sum( nbofe ) )
+  print "  Number of files:".ljust( 30 ), str( nboff ).ljust( just ), " Total: ".ljust( 10 ) + str( sum( nboff ) )
+  print "  File size:".ljust( 30 ), str( fsize ).ljust( just ), " Total: ".ljust( 10 ) + str( sum( fsize ) )
 
 else:
   print "ERROR %s: %s" % ( str( run ), res['Message'] )
-  exitCode = 2
+  exitCode = 1
 DIRAC.exit( exitCode )
 
