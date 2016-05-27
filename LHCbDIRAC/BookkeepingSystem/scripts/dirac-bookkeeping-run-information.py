@@ -76,6 +76,6 @@ if res['OK']:
 
 else:
   print "ERROR %s: %s" % ( str( run ), res['Message'] )
-  exitCode = 2
+  exitCode = 1
 DIRAC.exit( exitCode )
 
