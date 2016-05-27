@@ -93,7 +93,13 @@ Then, from the LHCbDIRAC local fork you need to update some files::
     use LHCBGRID LHCBGRID_v9r*
     use LCGCMT LCGCMT_79
   
-  # Commit in your local newMaster branch the 3 files you modified
+  # Commit in your local newMaster branch the 4 files you modified:
+  #modified: CHANGELOG
+  #modified: LHCbDIRAC/init.py
+  #modified: LHCbDIRAC/releases.cfg
+  #modified: cmt/project.cmt
+
+
   git add -A && git commit -av -m "<YourNewTag>"
 
 
@@ -127,6 +133,7 @@ Now, you need to make sure that what's merged in master is propagated to the dev
 The last operation may result in potential conflicts.
 If happens, you'll need to manually update the conflicting files (see e.g. this `guide <https://githowto.com/resolving_conflicts>`_).
 As a general rule, prefer the master fixes to the "HEAD" (devel) fixes. Remember to add and commit once fixed.
+Note: For porting the LHCbDIRAC.init.py from master to devel, we prefer the HEAD version (only for this file!!!)
 
 Plase fix the conflict if some files are conflicting. Do not forget to to execute the following::
 
@@ -249,24 +256,89 @@ Server
 
 To install it on the VOBOXes from lxplus::
 
-  lhcb-proxy-init  -g diracAdmin
+  lhcb-proxy-init -g diracAdmin
   dirac-admin-sysadmin-cli --host volhcbXX.cern.ch
   >update LHCbDIRAC-v8r3p32
   >restart *
 
-The (better) alternative is using the web portal.
+The (better) alternative is using the web portal or using the following script: LHCbDIRAC/LHCbDiracPolicy/scripts/create_vobox_update.
+
+The recommended way is the following::
+
+      ssh lxplus
+      mkdir DiracInstall; cd  DiracInstall
+      cp LHCbDIRAC/LHCbDiracPolicy/scripts/create_vobox_update .
+      cp LHCbDIRAC/LHCbDiracPolicy/scripts/skel_vobox_update .
+      python create_vobox_update v8r2p30
+
+This command will create 6 files called "vobox_update_MyLetter" then you can run in 6 windows the recipe for one single machine like that::
+
+            ssh lxplus 
+            cd  DiracInstall ; SetupProject LHCbDIRAC ; lhcb-proxy-init -g lhcb_admin; dirac-admin-sysadmin-cli
+            and from the prompt ::
+               [host] : execfile vobox_update_MyLetter
+               [host] : quit
+      
+Note::
+
+It is normal if you see the following errors:
+
+      --> Executing restart Framework SystemAdministrator
+      [ERROR] Exception while reading from peer: (-1, 'Unexpected EOF') 
+      
+
+In case of failure you have to update the machine by hand.
+Example of a typical failure:: 
+
+         --> Executing update v8r2p42
+         Software update can take a while, please wait ... 
+         [ERROR] Failed to update the software 
+         Timeout (240 seconds) for '['dirac-install', '-r', 'v8r2p42', '-t', 'server', '-e', 'LHCb', '-e', 'LHCb', '/opt/dirac/etc/dirac.cfg']' call 
+      
+Login to the failing machine, become dirac, execute manually the update, and restart everything. For example::
+      
+      ssh lbvobox11
+      sudo su - dirac
+      dirac-install -r v8r2p42 -t server -e LHCb -e LHCb /opt/dirac/etc/dirac.cfg
+      lhcb-restart-agent-service
+      runsvctrl t startup/Framework_SystemAdministrator/
+      
+Specify that this error can be ignored (but should be fixed ! )::
+
+      2016-05-17 12:00:00 UTC dirac-install [ERROR] Requirements installation script /opt/dirac/versions/v8r2p42_1463486162/scripts/dirac-externals-requirements failed. Check /opt/dirac/versions/v8r2p42_1463486162/scripts/dirac-externals-requirements.err
+      
+
+WebPortal
+`````````
+
+When the web portal machine is updated then you have to compile the WebApp:
+    
+    ssh lbvobox33
+    sudo su - dirac
+    dirac-webapp-compile
 
 
-
+````
+TODO
+````
+When the machines are updated, then you have to go through all the components and check the errors. There are two possibilities:
+   1. Use the Web portal (SystemAdministrator)
+   
+   2. Command line::
+    
+    for h in $(grep 'set host' vobox_update_* | awk {'print $NF'}); do echo "show errors" | dirac-admin-sysadmin-cli -H $h; done | less
+    
+   
 Pilot
 `````
 
 Use the following script (from, e.g., lxplus after having run `lb-run LHCbDIRAC tcsh`)::
 
-  dirac-pilot-version
+  dirac-pilot-version -S v8r2p42
 
 for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin). 
 This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum.
+
 
 
 

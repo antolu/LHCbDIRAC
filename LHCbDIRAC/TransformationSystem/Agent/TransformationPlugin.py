@@ -3,7 +3,6 @@
 __RCSID__ = "$Id$"
 
 import time
-import datetime
 import os
 import random
 
@@ -571,10 +570,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           # If all files in that run have been processed and received, flush
           # Get the number of RAW files in that run
           if not forceFlush:
-            rawFiles = self.util.getNbRAWInRun( runID, evtType )
+            retried = False
+            # In case there are more ancestors than RAW files we may have to refresh the number of RAW files: try once
             ancestorRawFiles = self.util.getRAWAncestorsForRun( runID, param, paramValue )
             self.util.logVerbose( "Obtained %d ancestor RAW files" % ancestorRawFiles )
-            runProcessed = ( ancestorRawFiles == rawFiles )
+            while True:
+              rawFiles = self.util.getNbRAWInRun( runID, evtType )
+              if not retried and rawFiles and ancestorRawFiles > rawFiles:
+                self.util.cachedNbRAWFiles[runID] = 0
+                retried = True
+              else:
+                runProcessed = ( ancestorRawFiles == rawFiles )
+                break
           else:
             runProcessed = False
           if forceFlush or runProcessed:

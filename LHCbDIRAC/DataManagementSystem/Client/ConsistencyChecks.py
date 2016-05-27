@@ -490,7 +490,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
   def __getDaughtersInfo( self, lfns, status, filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants ):
     """ Get BK information about daughers of lfns """
-    chunkSize = 100
+    chunkSize = 20
     progressBar = ProgressBar( len( lfns ),
                                title = "Now getting daughters for %d %s mothers in production %d (depth %d)"
                                % ( len( lfns ), status, self.prod, self.descendantsDepth ),
@@ -581,7 +581,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
       # Now check whether the daughters without replica have a descendant
       if setNotPresent:
-        chunkSize = 500
+        chunkSize = 20 if self.transType == 'DataStripping' and len( self.fileType ) > 1 else 50
         progressBar = ProgressBar( len( setNotPresent ),
                                    title = "Now checking descendants from %d daughters without replicas" % len( setNotPresent ),
                                    chunk = chunkSize, interactive = self.interactive )
@@ -602,7 +602,6 @@ class ConsistencyChecks( DiracConsistencyChecks ):
         progressBar.endLoop()
         # print "%d not Present daughters, %d have a descendant" % ( len( notPresent ), len( setDaughtersWithDesc ) )
 
-        chunkSize = 500
         progressBar = ProgressBar( len( filesWithDescendants ),
                                    title = "Now establishing final list of existing descendants for %d mothers"
                                    % len( filesWithDescendants ),

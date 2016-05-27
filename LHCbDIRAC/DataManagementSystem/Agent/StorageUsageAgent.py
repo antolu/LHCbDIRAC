@@ -76,11 +76,13 @@ class StorageUsageAgent( AgentModule ):
     self.__processedDirs = 0
     self.__directoryOwners = {}
     self.catalog = FileCatalog()
+    self.__maxToPublish = self.am_getOption( 'MaxDirectories', 5000 )
     if self.am_getOption( 'DirectDB', False ):
       self.storageUsage = StorageUsageDB()
     else:
-      self.storageUsage = RPCClient( 'DataManagement/StorageUsage' )
-
+      # Set a timeout of 0.1 seconds per directory (factor 5 margin)
+      self.storageUsage = RPCClient( 'DataManagement/StorageUsage',
+                                     timeout = self.am_getOption( 'Timeout', int( self.__maxToPublish * 0.1 ) ) )
     self.activePeriod = self.am_getOption( 'ActivePeriod', self.activePeriod )
     self.dataLock = threading.Lock()
     self.replicaListLock = threading.Lock()
@@ -554,11 +556,20 @@ class StorageUsageAgent( AgentModule ):
       if not self.__dirsToPublish:
         self.log.info( "No data to be published" )
         return
-      self.log.info( "Publishing usage for %d directories" % len( self.__dirsToPublish ) )
-      res = self.storageUsage.publishDirectories( self.__dirsToPublish )
-      if res['OK']:
-        self.__dirsToPublish = {}
+      if len( self.__dirsToPublish ) > self.__maxToPublish:
+        toPublish = {}
+        for dirName in sorted( self.__dirsToPublish )[:self.__maxToPublish]:
+          toPublish[dirName] = self.__dirsToPublish.pop( dirName )
       else:
+        toPublish = self.__dirsToPublish
+      self.log.info( "Publishing usage for %d directories" % len( toPublish ) )
+      res = self.storageUsage.publishDirectories( toPublish )
+      if res['OK']:
+        # All is OK, reset the dictionary, even if data member!
+        toPublish.clear()
+      else:
+        # Put back dirs to be published, due to the error
+        self.__dirsToPublish.update( toPublish )
         self.log.error( "Failed to publish directories", res['Message'] )
       return res
     finally:

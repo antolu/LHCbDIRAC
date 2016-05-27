@@ -3099,12 +3099,14 @@ and files.qualityid= dataquality.qualityid'
   
   #############################################################################
   @staticmethod
-  def __buildProduction( production, condition, tables, visible = default ):
+  def __buildProduction( production, condition, tables, visible = default, useView = True ):
     """it adds the production which can be a list or string to the jobs table
     :param list,int long the production number(s)
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    disable the view usage. 
     """
     if production not in [default, None]:
       if isinstance( production, list ) and len( production ) > 0:
@@ -3117,7 +3119,7 @@ and files.qualityid= dataquality.qualityid'
       elif isinstance( production, ( basestring, int, long ) ):
         condition += ' and j.production=%s' % str( production )
 
-    if production not in [default, None] and visible.upper().startswith( 'Y' ):
+    if production not in [default, None] and visible.upper().startswith( 'Y' ) and useView:
       if 'BVIEW' not in tables.upper():
         tables += ' ,prodview bview'
       condition += ' and j.production=bview.production '
@@ -3145,12 +3147,14 @@ and files.qualityid= dataquality.qualityid'
     return S_OK( ( condition, tables ) )
 
   #############################################################################
-  def __buildProcessingPass( self, procPass, condition, tables, visible = default ):
+  def __buildProcessingPass( self, procPass, condition, tables, visible = default, useView = True ):
     """It adds the processing pass condition to the query
     :param str procPass it is a processing pass for example: /Real Data/Reco20
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    disable the view usage.
     """
     if procPass not in [default, None]:
       if not re.search( '^/', procPass ):
@@ -3172,7 +3176,7 @@ and files.qualityid= dataquality.qualityid'
       pro = pro[:-1]
       pro += ')'
 
-      if visible.upper().startswith( 'Y' ):
+      if visible.upper().startswith( 'Y' ) and useView:
         if 'BVIEW' not in tables.upper():
           tables += ',prodview bview'
         condition += " and bview.production=prod.production and bview.production=j.production"
@@ -3185,10 +3189,18 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildFileTypes( ftype, condition, tables, visible = default ):
-    """it adds the file type to the files list"""
-    
-    if ftype != default and visible.upper().startswith( 'Y' ):
+  def __buildFileTypes( ftype, condition, tables, visible = default, useView = True ):
+    """it adds the file type to the files list
+    :param list, str ftype it is used to construct the file type query filter  
+    using a given file type or a list of filetypes.  
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables.
+    :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    disable the view usage.
+    """
+
+    if ftype != default and visible.upper().startswith( 'Y' ) and useView:
       if tables.lower().find( 'filetypes' ) < 0:
         tables += ' ,filetypes ft'
       if tables.find( 'bview' ) < 0:
@@ -3250,10 +3262,17 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildEventType( evt, condition, tables, visible = default ):
-    """adds the event type to the files table"""
+  def __buildEventType( evt, condition, tables, visible = default, useView = True ):
+    """adds the event type to the files table
+    :param list, str evt it is used to construct the event type query filter using a given event type or a list of event types.  
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables.
+    :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    disable the view usage.
+    """
 
-    if evt not in [0, None, default] and visible.upper().startswith( 'Y' ):
+    if evt not in [0, None, default] and visible.upper().startswith( 'Y' ) and useView:
       if tables.find( 'bview' ) < 0:
         tables += ' ,prodview bview'
 
@@ -3354,8 +3373,16 @@ and files.qualityid= dataquality.qualityid'
     return S_OK( ( condition, tables ) )
 
   #############################################################################
-  def __buildConditions( self, simdesc, datataking, condition, tables, visible = default ):
-    """adds the data taking or simulation conditions to the query"""
+  def __buildConditions( self, simdesc, datataking, condition, tables, visible = default, useView = True ):
+    """adds the data taking or simulation conditions to the query
+    :param str simdesc it is used to construct the simulation condition query filter
+    :param str datataking it is used to construct the data taking condition query filter
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables.
+    :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    disable the view usage.
+    """
     if simdesc != default or datataking != default:
       conddesc = simdesc if simdesc != default else datataking
       retVal = self.__getConditionString( conddesc, 'prod' )
@@ -3366,7 +3393,7 @@ and files.qualityid= dataquality.qualityid'
       if tables.upper().find( 'PRODUCTIONSCONTAINER' ) < 0:
         tables += ' ,productionscontainer prod '
 
-      if ( simdesc != default or datataking != default ) and visible.upper().startswith( 'Y' ):
+      if ( simdesc != default or datataking != default ) and visible.upper().startswith( 'Y' ) and useView:
         condition += ' and bview.production=prod.production'
 
     return S_OK( ( condition, tables ) )
@@ -3543,7 +3570,8 @@ and files.qualityid= dataquality.qualityid'
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
     tables = 'files f, jobs j '
-    
+    useView = filetype not in ( default, 'RAW' ) 
+
     retVal = self.__buildStartenddate( startDate, endDate, condition, tables )
     if not retVal['OK']:
       return retVal
@@ -3554,7 +3582,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables, visible )
+    retVal = self.__buildConditions( default, conddescription, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3569,12 +3597,12 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables, visible )
+    retVal = self.__buildProduction( production, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
-    retVal = self.__buildEventType( evt, condition, tables, visible )
+
+    retVal = self.__buildEventType( evt, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3582,7 +3610,7 @@ and files.qualityid= dataquality.qualityid'
     if production != default:
       condition += ' and j.production=' + str( production )
 
-    retVal = self.__buildFileTypes( filetype, condition, tables, visible )
+    retVal = self.__buildFileTypes( filetype, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3592,7 +3620,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass( processing, condition, tables, visible )
+    retVal = self.__buildProcessingPass( processing, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
