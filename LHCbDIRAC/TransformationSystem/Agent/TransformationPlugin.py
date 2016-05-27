@@ -3,7 +3,6 @@
 __RCSID__ = "$Id$"
 
 import time
-import datetime
 import os
 import random
 
@@ -245,7 +244,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             self.util.logVerbose( 'Buffer destination obtained from run %d destination: %s' % ( runID, assignedBuffer ) )
           else:
             # Files are not at a buffer for processing
-            res = self._selectRunSite( runID, sourceSE, replicaSE | set( [assignedRAW] ), bufferTargets, preStageShares = preStageShares, useRunDestination = useRunDestination )
+            res = self._selectRunSite( runID, sourceSE, replicaSE | set( [assignedRAW] ), bufferTargets, preStageShares = preStageShares )
             if not res['OK']:
               self.util.logError( "Error selecting the destination site", res['Message'] )
               return res
@@ -369,7 +368,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( tasks )
 
-  def _selectRunSite( self, runID, backupSE, rawSEs, bufferTargets, preStageShares = None, useRunDestination = False ):
+  def _selectRunSite( self, runID, backupSE, rawSEs, bufferTargets, preStageShares = None ):
     if not preStageShares:
       return S_OK()
 
@@ -571,10 +570,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           # If all files in that run have been processed and received, flush
           # Get the number of RAW files in that run
           if not forceFlush:
-            rawFiles = self.util.getNbRAWInRun( runID, evtType )
+            retried = False
+            # In case there are more ancestors than RAW files we may have to refresh the number of RAW files: try once
             ancestorRawFiles = self.util.getRAWAncestorsForRun( runID, param, paramValue )
             self.util.logVerbose( "Obtained %d ancestor RAW files" % ancestorRawFiles )
-            runProcessed = ( ancestorRawFiles == rawFiles )
+            while True:
+              rawFiles = self.util.getNbRAWInRun( runID, evtType )
+              if not retried and rawFiles and ancestorRawFiles > rawFiles:
+                self.util.cachedNbRAWFiles[runID] = 0
+                retried = True
+              else:
+                runProcessed = ( ancestorRawFiles == rawFiles )
+                break
           else:
             runProcessed = False
           if forceFlush or runProcessed:
