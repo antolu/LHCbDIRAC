@@ -3105,6 +3105,8 @@ and files.qualityid= dataquality.qualityid'
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better do not use the view some of the cases. This variable is used to 
+    disable the view usage. 
     """
     if production not in [default, None]:
       if isinstance( production, list ) and len( production ) > 0:
@@ -3151,6 +3153,8 @@ and files.qualityid= dataquality.qualityid'
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better do not use the view some of the cases. This variable is used to 
+    disable the view usage.
     """
     if procPass not in [default, None]:
       if not re.search( '^/', procPass ):
@@ -3186,7 +3190,15 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   @staticmethod
   def __buildFileTypes( ftype, condition, tables, visible = default, useView = True ):
-    """it adds the file type to the files list"""
+    """it adds the file type to the files list
+    :param list, str ftype it is used to construct the file type query filter  
+    using a given file type or a list of filetypes.  
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables.
+    :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better do not use the view some of the cases. This variable is used to 
+    disable the view usage.
+    """
 
     if ftype != default and visible.upper().startswith( 'Y' ) and useView:
       if tables.lower().find( 'filetypes' ) < 0:
@@ -3251,7 +3263,14 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   @staticmethod
   def __buildEventType( evt, condition, tables, visible = default, useView = True ):
-    """adds the event type to the files table"""
+    """adds the event type to the files table
+    :param list, str evt it is used to construct the event type query filter using a given event type or a list of event types.  
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables.
+    :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better do not use the view some of the cases. This variable is used to 
+    disable the view usage.
+    """
 
     if evt not in [0, None, default] and visible.upper().startswith( 'Y' ) and useView:
       if tables.find( 'bview' ) < 0:
@@ -3355,7 +3374,15 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def __buildConditions( self, simdesc, datataking, condition, tables, visible = default, useView = True ):
-    """adds the data taking or simulation conditions to the query"""
+    """adds the data taking or simulation conditions to the query
+    :param str simdesc it is used to construct the simulation condition query filter
+    :param str datataking it is used to construct the data taking condition query filter
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables.
+    :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better do not use the view some of the cases. This variable is used to 
+    disable the view usage.
+    """
     if simdesc != default or datataking != default:
       conddesc = simdesc if simdesc != default else datataking
       retVal = self.__getConditionString( conddesc, 'prod' )
