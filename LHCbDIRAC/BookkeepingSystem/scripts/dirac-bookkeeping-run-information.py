@@ -28,7 +28,6 @@ try:
 except ( ValueError, IndexError ) as e:
   DIRAC.gLogger.exception( "Invalid run number", lException = e )
   Script.showHelp()
-  DIRAC.exit( 1 )
 
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bk = BookkeepingClient()
