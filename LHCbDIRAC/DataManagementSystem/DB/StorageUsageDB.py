@@ -148,21 +148,21 @@ class StorageUsageDB( DB ):
 
   def publishDirectories( self, directoryDict ):
     """ Inserts a group of directories with their usage """
-    self.log.verbose( "in publishDirectories: directoryDict is: \n %s" % str( directoryDict ) )
 
     if not directoryDict:
       return S_OK()
+    self.log.debug( "in publishDirectories: directoryDict is: \n %s" % str( directoryDict ) )
     result = self.__getIDs( directoryDict )
     if not result[ 'OK' ]:
       return result
     dirIDs = result[ 'Value' ]
-    for path, pathInfo in directoryDict.items():
+    for path, pathInfo in directoryDict.iteritems():
       path = _standardDirectory( path )
       try:
         files = long( pathInfo[ 'Files' ] )
         size = long( pathInfo[ 'TotalSize' ] )
-      except ValueError, e:
-        return S_ERROR( "Values must be ints: %s" % str( e ) )
+      except ValueError as e:
+        return S_ERROR( "Values must be ints: %s" % repr( e ) )
       seUsage = pathInfo[ 'SEUsage' ]
       sqlpath = self._escapeString( path )[ 'Value' ]
       if path in dirIDs:
@@ -178,7 +178,7 @@ class StorageUsageDB( DB ):
           self.log.error( "Cannot insert directory", "%s: %s" % ( path, result[ 'Message' ] ) )
           continue
         dirIDs[ path ] = result[ 'lastRowId' ]
-      result = self.__updateSEUsage( dirIDs[ path ], seUsage )
+      result = self.__updateSEUsage( dirIDs[ path ], seUsage, path )
       if not result[ 'OK' ]:
         return result
     return S_OK()
@@ -373,27 +373,16 @@ class StorageUsageDB( DB ):
       return result
     return S_OK( dict( result[ 'Value' ] ) )
 
-  def __updateSEUsage( self, dirID, seUsage ):
+  def __updateSEUsage( self, dirID, seUsage, path ):
     sqlCmd = "DELETE FROM `su_SEUsage` WHERE DID=%d" % dirID
     result = self._update( sqlCmd )
     if not result[ 'OK' ]:
       return result
     if not seUsage:
-      self.log.error( "Ooops. Dir has no SEUsage!", "ID %s" % dirID )
+      # This indicates there are files without replicas in the FC
+      self.log.warn( "Ooops. Dir has no SEUsage!", "ID %s, path %s" % ( dirID, path ) )
       return S_OK()
     sqlVals = []
-    # HACK: Make sure SEName makes sense
-    fixedSEUsage = {}
-    for seName in seUsage:
-      if seName == "CERN-Tape":
-        seName = "CERN-tape"
-      if not seName in fixedSEUsage:
-        fixedSEUsage[ seName ] = { 'Size' : 0, 'Files' : 0 }
-      fixedSEUsage[ seName ][ 'Size' ] += seUsage[ seName ][ 'Size' ]
-      fixedSEUsage[ seName ][ 'Files' ] += seUsage[ seName ][ 'Files' ]
-    if fixedSEUsage != seUsage:
-      self.log.warn( "Fixed dirID %s SEUsage from:\n %s\nto:\n %s" % ( dirID, seUsage, fixedSEUsage ) )
-    seUsage = fixedSEUsage
     # Insert data
     for seName in seUsage:
       try:
