@@ -3105,7 +3105,7 @@ and files.qualityid= dataquality.qualityid'
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
-    :param bool useView It is better do not use the view some of the cases. This variable is used to 
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
     disable the view usage. 
     """
     if production not in [default, None]:
@@ -3153,7 +3153,7 @@ and files.qualityid= dataquality.qualityid'
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
-    :param bool useView It is better do not use the view some of the cases. This variable is used to 
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
     disable the view usage.
     """
     if procPass not in [default, None]:
@@ -3196,7 +3196,7 @@ and files.qualityid= dataquality.qualityid'
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
-    :param bool useView It is better do not use the view some of the cases. This variable is used to 
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
     disable the view usage.
     """
 
@@ -3268,7 +3268,7 @@ and files.qualityid= dataquality.qualityid'
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
-    :param bool useView It is better do not use the view some of the cases. This variable is used to 
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
     disable the view usage.
     """
 
@@ -3380,7 +3380,7 @@ and files.qualityid= dataquality.qualityid'
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
-    :param bool useView It is better do not use the view some of the cases. This variable is used to 
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
     disable the view usage.
     """
     if simdesc != default or datataking != default:
