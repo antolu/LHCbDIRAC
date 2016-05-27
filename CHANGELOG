@@ -1,3 +1,56 @@
+[v8r3-pre12]
+*use DIRAC v6r15
+* location
+* pylint
+
+[v8r3-pre11]
+use DIRAC v6r15
+
+[v8r3-pre10]
+* minor fixes for tests
+
+[v8r3-pre9]
+* every time when the replica flag is updated we commit the transaction...
+* use the new method for getting the produced events for a given production
+* implemenet a new method which return the production producced events
+* remove not used conditions
+* Corect the URL for Client releases
+* Add option for the CLIENT release
+
+[v8r3-pre8]
+* bkk oracle docs
+* Fix regression introduced by 8b4f6ffd95f1a11164b897941e454cdb163eb337
+*  do not check the EventStat and FullStat
+* use the view if the visibility flag is present
+* removed unused script
+* removed duplicated scripts
+* pylint stuff
+* really minor fixes to ProductionManagement modules
+* added getCFGFile
+* disable parallel queries. Change the error message to warn and do not change the dqvalue if we have an error...
+* avoid navigating for some cases
+
+[v8r3-pre7]
+* Make changes following very good review comments
+* take into account the selected filetype when a list of steps returned from the db
+* if the BkQuery does not exist, still set the BK input proc pass
+* delete lb_run configuration in order to release LHCbDIRAC
+* Allow replication shares to be using the run duration rather than the number of files
+* MaxReset -> Problematic allowed
+* when we use the visibility flag, we must join the productionscontainer with the bview in order to make sure that the correct execution plan is used
+* Handling the case when XML summary file is not created
+* more recognizable debug messages
+* changed names of tests to standard structure
+* Add option --DumpNotAtSE to dump LFNs not at a given (list of) SEs
+* Use stderr for the progress bar. Allows to see if even if output is redirected to a file or a pipe
+* We have to able to flag a run, before the register it to the bookkeeping. If the run is flagged, we use to flag the raw files using that flag
+* add an utility package used to fix wrong information in the db
+* Went from basestring to str. Basesting not working with v6r14.
+* Fixed WMSSecureGW Service
+* LHCbCreatePilotcfg has been replaced with the LHCbCleanPilotEnv command.
+* Updated BOINC gateway service
+* New configuration service that will update the LHCb-Pilot.json file when a change is done on the CS.
+
 [v8r2p45]
 Use DIRAC v6r14p31
 * Allow nb of Raw files to evolve
