@@ -1,3 +1,12 @@
+[v8r2p45]
+Use DIRAC v6r14p31
+* Allow nb of Raw files to evolve
+* Avoid timeouts when publishing
+* add "Finished" flag
+* The view is not  used when the file type is RAW
+* create a file every time when the command is executed
+* add the script which updates the voboxes
+
 [v8r2p44]
 Use DIRAC v6r14p31
 * remove static methods of the BKK XMLFilesReaderManager.py 
