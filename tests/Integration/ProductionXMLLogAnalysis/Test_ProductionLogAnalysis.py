@@ -1,4 +1,8 @@
-import os, unittest
+""" Tests of ProductionLogAnalysis
+"""
+
+import os
+import unittest
 
 from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile, LogError
 
@@ -12,7 +16,13 @@ class ProductionLogAnalysisTestCase( unittest.TestCase ):
 
     workdir = '%s/%s' % ( workdir, directory )
 
-    for filename in os.listdir( workdir ):
+    try:
+      ls = os.listdir( workdir )
+    except OSError:
+      workdir = os.path.expandvars('$TESTCODE') + '/LHCbDIRAC/tests/Integration/ProductionXMLLogAnalysis'
+      ls = os.listdir( '%s/%s' % ( workdir, directory ) )
+
+    for filename in ls:
       if filename.startswith( app ) and 'log' in filename:
         print "filename = ", filename
         if directory == 'ok':

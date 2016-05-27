@@ -1,4 +1,8 @@
-import os, unittest
+""" Test of XMLSummaries
+"""
+
+import os
+import unittest
 
 from LHCbDIRAC.Core.Utilities.XMLSummaries import analyseXMLSummary, XMLSummaryError
 
@@ -13,7 +17,13 @@ class XMLSummaryAnalysisTestCase( unittest.TestCase ):
 
     workdir = '%s/%s' % ( workdir, directory )
 
-    for filename in os.listdir( workdir ):
+    try:
+      ls = os.listdir( workdir )
+    except OSError:
+      workdir = os.path.expandvars('$TESTCODE') + '/LHCbDIRAC/tests/Integration/ProductionXMLLogAnalysis'
+      ls = os.listdir( '%s/%s' % ( workdir, directory ) )
+
+    for filename in ls:
       if filename.startswith( 'summary' ):
         print "filename = ", filename
         if directory == 'ok':
