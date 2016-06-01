@@ -103,7 +103,7 @@ if __name__ == "__main__":
         DIRAC.exit( 1 )
       lfnTypes = {}
       for lfn in res['Value']['Successful']:
-        metadata = res['Value'][lfn]
+        metadata = res['Value']['Successful'][lfn]
         lfnTypes[lfn] = metadata['FileType']
     else:
       lfnTypes = dict.fromkeys( lfnList, None )
