@@ -1040,7 +1040,7 @@ class OracleBookkeepingDB:
                             filetype = default, quality = default,
                             visible = default, replicaflag = default,
                             startDate = None, endDate = None, runnumbers = list(),
-                            startRunID = None, endRunID = None ):
+                            startRunID = None, endRunID = None, tcks = default ):
     """return a list of files with their metadata"""
     condition = ''
 
@@ -1051,6 +1051,11 @@ class OracleBookkeepingDB:
     condition, tables = retVal['Value']
 
     retVal = self.__buildRunnumbers( runnumbers, startRunID, endRunID, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
+    retVal = self.__buildTCKS( tcks, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
