@@ -101,29 +101,29 @@ class IBookkeepingDatabaseClient(object):
                                           evt, runnb, production, visible)
 
   #############################################################################
-  def getFilesWithMetadata(self, configName, configVersion, conddescription,
+  def getFilesWithMetadata( self, configName, configVersion, conddescription,
                            processing, evt, production, filetype, quality, visible,
                            replicaflag, startDate, endDate,
-                           runnumbers,startRunID, endRunID ):
+                           runnumbers, startRunID, endRunID, tcks ):
     "more info in the BookkeepingClient.py"
-    return self.getManager().getFilesWithMetadata(configName, configVersion,
+    return self.getManager().getFilesWithMetadata( configName, configVersion,
                                                   conddescription, processing,
                                                   evt, production, filetype,
                                                   quality, visible, replicaflag,
                                                   startDate, endDate,
-                                                  runnumbers ,startRunID, endRunID)
+                                                  runnumbers , startRunID, endRunID, tcks )
 
   #############################################################################
-  def getFilesSummary(self, configName, configVersion,
+  def getFilesSummary( self, configName, configVersion,
                       conddescription, processing, evt,
                       production, filetype, quality, runnb,
                       startrun, endrun, visible, startDate,
-                      endDate, runnumbers, replicaflag):
+                      endDate, runnumbers, replicaflag, tcks ):
     "more info in the BookkeepingClient.py"
-    return self.getManager().getFilesSummary(configName, configVersion, conddescription,
+    return self.getManager().getFilesSummary( configName, configVersion, conddescription,
                                              processing, evt, production, filetype, quality,
                                              runnb, startrun, endrun, visible, startDate,
-                                             endDate, runnumbers, replicaflag)
+                                             endDate, runnumbers, replicaflag, tcks )
 
   #############################################################################
   def getLimitedFiles(self, configName, configVersion, conddescription,
