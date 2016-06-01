@@ -3143,7 +3143,7 @@ and files.qualityid= dataquality.qualityid'
           for i in tcks:
             cond += "j.tck='%s' or " % ( i )
           cond = cond[:-3] + ')'
-          condition = " and %s " % ( cond )
+          condition += " and %s " % ( cond )
       elif isinstance( tcks, basestring ):
         condition += " and j.tck='%s'" % ( tcks )
       else:
