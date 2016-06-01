@@ -114,16 +114,16 @@ class IBookkeepingDatabaseClient(object):
                                                   runnumbers , startRunID, endRunID, tcks )
 
   #############################################################################
-  def getFilesSummary(self, configName, configVersion,
+  def getFilesSummary( self, configName, configVersion,
                       conddescription, processing, evt,
                       production, filetype, quality, runnb,
                       startrun, endrun, visible, startDate,
-                      endDate, runnumbers, replicaflag):
+                      endDate, runnumbers, replicaflag, tcks ):
     "more info in the BookkeepingClient.py"
-    return self.getManager().getFilesSummary(configName, configVersion, conddescription,
+    return self.getManager().getFilesSummary( configName, configVersion, conddescription,
                                              processing, evt, production, filetype, quality,
                                              runnb, startrun, endrun, visible, startDate,
-                                             endDate, runnumbers, replicaflag)
+                                             endDate, runnumbers, replicaflag, tcks )
 
   #############################################################################
   def getLimitedFiles(self, configName, configVersion, conddescription,

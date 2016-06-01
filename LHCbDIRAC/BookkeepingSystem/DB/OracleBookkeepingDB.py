@@ -3570,7 +3570,7 @@ and files.qualityid= dataquality.qualityid'
                       filetype = default, quality = default,
                       runnb = default, startrun = default, endrun = default,
                       visible = default, startDate = None, endDate = None,
-                      runnumbers = list(), replicaflag = default ):
+                      runnumbers = list(), replicaflag = default, tcks = default ):
 
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
@@ -3583,6 +3583,11 @@ and files.qualityid= dataquality.qualityid'
     condition, tables = retVal['Value']
 
     retVal = self.__buildRunnumbers( runnumbers, startrun, endrun, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildTCKS( tcks, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
