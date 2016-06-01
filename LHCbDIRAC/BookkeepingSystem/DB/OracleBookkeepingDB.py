@@ -3139,11 +3139,7 @@ and files.qualityid= dataquality.qualityid'
     if tcks not in [None, default]:
       if isinstance( tcks, list ):
         if len( tcks ) > 0:
-          cond = '('
-          for i in tcks:
-            cond += "j.tck='%s' or " % ( i )
-          cond = cond[:-3] + ')'
-          condition += " and %s " % ( cond )
+          condition += ' and ( ' + ' or '.join( [" j.tck='%s'" % i for i in tcks] ) + ')'
       elif isinstance( tcks, basestring ):
         condition += " and j.tck='%s'" % ( tcks )
       else:
