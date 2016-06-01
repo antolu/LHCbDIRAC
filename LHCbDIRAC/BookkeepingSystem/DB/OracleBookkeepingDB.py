@@ -1044,7 +1044,7 @@ class OracleBookkeepingDB:
                             filetype = default, quality = default,
                             visible = default, replicaflag = default,
                             startDate = None, endDate = None, runnumbers = list(),
-                            startRunID = None, endRunID = None ):
+                            startRunID = None, endRunID = None, tcks = default ):
     """return a list of files with their metadata"""
     condition = ''
 
@@ -1055,6 +1055,11 @@ class OracleBookkeepingDB:
     condition, tables = retVal['Value']
 
     retVal = self.__buildRunnumbers( runnumbers, startRunID, endRunID, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
+    retVal = self.__buildTCKS( tcks, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3134,11 +3139,7 @@ and files.qualityid= dataquality.qualityid'
     if tcks not in [None, default]:
       if isinstance( tcks, list ):
         if len( tcks ) > 0:
-          cond = '('
-          for i in tcks:
-            cond += "j.tck='%s' or " % ( i )
-          cond = cond[:-3] + ')'
-          condition = " and %s " % ( cond )
+          condition += ' and ( ' + ' or '.join( [" j.tck='%s'" % i for i in tcks] ) + ')'
       elif isinstance( tcks, basestring ):
         condition += " and j.tck='%s'" % ( tcks )
       else:
@@ -3565,7 +3566,7 @@ and files.qualityid= dataquality.qualityid'
                       filetype = default, quality = default,
                       runnb = default, startrun = default, endrun = default,
                       visible = default, startDate = None, endDate = None,
-                      runnumbers = list(), replicaflag = default ):
+                      runnumbers = list(), replicaflag = default, tcks = default ):
 
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
@@ -3578,6 +3579,11 @@ and files.qualityid= dataquality.qualityid'
     condition, tables = retVal['Value']
     
     retVal = self.__buildRunnumbers( runnumbers, startrun, endrun, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildTCKS( tcks, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']

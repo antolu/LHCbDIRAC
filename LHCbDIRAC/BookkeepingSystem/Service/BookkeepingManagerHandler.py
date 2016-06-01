@@ -473,6 +473,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     runnumbers = in_dict.get( 'RunNumber', in_dict.get( 'RunNumbers', [] ) )
     startRunID = in_dict.get( 'StartRun', None )
     endRunID = in_dict.get( 'EndRun', None )
+    tcks = in_dict.get( 'TCK' )
 
     if 'EventTypeId' in in_dict:
       gLogger.verbose( 'The EventTypeId has to be replaced by EventType!' )
@@ -494,7 +495,8 @@ class BookkeepingManagerHandler( RequestHandler ):
                                             endDate,
                                             runnumbers,
                                             startRunID,
-                                            endRunID )
+                                            endRunID,
+                                            tcks )
     if retVal['OK']:
       records = []
       parameters = ['FileName', 'EventStat', 'FileSize',
@@ -555,6 +557,7 @@ class BookkeepingManagerHandler( RequestHandler ):
       endDate = in_dict.get( 'EndDate', None )
       runnumbers = in_dict.get( 'RunNumber', in_dict.get( 'RunNumbers', [] ) )
       replicaflag = in_dict.get( 'ReplicaFlag', 'Yes' )
+      tcks = in_dict.get( 'TCK' )
 
       if 'EventTypeId' in in_dict:
         gLogger.verbose( 'The EventTypeId has to be replaced by EventType!' )
@@ -577,7 +580,8 @@ class BookkeepingManagerHandler( RequestHandler ):
                                          startDate,
                                          endDate,
                                          runnumbers,
-                                         replicaflag )
+                                         replicaflag,
+                                         tcks )
       if retVal['OK']:
         records = []
         parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']
@@ -1454,7 +1458,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     replicaFlag = values.get( 'ReplicaFlag', 'Yes' )
     visible = values.get( 'Visible', default )
     filesize = values.get( 'FileSize', False )
-    tck = values.get( 'TCK', [] )
+    tck = values.get( 'TCK' )
 
     if 'ProductionID' in values:
       gLogger.verbose( 'ProductionID will be removed. It will changed to Production' )
