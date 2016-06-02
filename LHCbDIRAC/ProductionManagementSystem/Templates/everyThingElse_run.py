@@ -78,7 +78,7 @@ pr.derivedProduction = int( '{{AncestorProd#GENERAL: ancestor prod to be derived
 pr.previousProdID = int( '{{previousProdID#GENERAL: previous prod ID (for BK query)#0}}' )
 modulesList = '{{modulesList#GENERAL: custom modules list#}}'
 enablePopularityReport = ast.literal_eval( '{{popularityReport#GENERAL: enable popularity report#False}}' )
-pr.visibility = ast.literal_eval( '{{visibilityFlag#GENERAL: visibility flag for input BK Query#Yes}}' )
+pr.visibility = '{{visibilityFlag#GENERAL: visibility flag for input BK Query#Yes}}'
 
 # p1 params
 p1Plugin = '{{p1PluginType#PROD-P1: production plugin name#LHCbStandard}}'
