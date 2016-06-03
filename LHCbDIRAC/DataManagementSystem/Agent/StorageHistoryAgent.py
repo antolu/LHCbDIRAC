@@ -239,7 +239,7 @@ class StorageHistoryAgent( AgentModule ):
     metaForList = self.__getMetadataForAcc( self.dirDict.values() )
 
     # loop on all directories  to get the bkk metadata
-    for dirLfn, fullDirectory in self.dirDict.items():
+    for dirLfn, fullDirectory in self.dirDict.iteritems():
       if dirLfn not in fullDirectory:
         self.log.error( "ERROR: fullDirectory should include the dirname: %s %s " % ( fullDirectory, dirLfn ) )
         continue
@@ -528,7 +528,7 @@ class StorageHistoryAgent( AgentModule ):
         self.log.error( "For dir %s getSummary returned an empty value: %s " % ( d, str( res ) ) )
         continue
       self.lfnUsage.setdefault( d, {} )
-      for retDir, dirInfo in res['Value'].items():
+      for retDir, dirInfo in res['Value'].iteritems():
         if d in retDir:
           self.lfnUsage[ d ][ 'LfnSize' ] = dirInfo['Size']
           self.lfnUsage[ d ][ 'LfnFiles'] = dirInfo['Files']

@@ -20,7 +20,7 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
   """ Dictionary pretty printing """
   key_max = 0
   value_max = 0
-  for key, value in dictionary.items():
+  for key, value in dictionary.iteritems():
     key_max = max( key_max, len( key ) )
     value_max = max( value_max, len( str( value ) ) )
   center = key_max + offset
@@ -383,7 +383,7 @@ class DMScript( object ):
         lfnList = [ vo + lfn.split( vo )[-1].split()[0] if vo in lfn else lfn if lfn == vo[:-1] else '' for lfn in lfnList]
         lfnList = [lfn.split( '?' )[0] for lfn in lfnList]
         lfnList = [lfn for lfn in lfnList if not lfn.endswith( '/' )]
-    return sorted( [lfn for lfn in set( lfnList ) if lfn or directories] )
+    return sorted( lfn for lfn in set( lfnList ) if lfn or directories )
 
   @staticmethod
   def getJobIDsFromList( jobids ):
@@ -451,7 +451,7 @@ class DMScript( object ):
     return value
 
   def getBKQuery( self, visible = None ):
-    mandatoryKeys = set( ( 'ConfigName', 'ConfigVersion', 'Production' ) )
+    mandatoryKeys = { 'ConfigName', 'ConfigVersion', 'Production' }
     if self.bkQuery:
       return self.bkQuery
     if self.bkQueryDict:

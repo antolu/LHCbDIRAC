@@ -82,7 +82,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     allMetadata = res['Value']
     gLogger.info( "Obtained at total of %s files" % len( allMetadata.keys() ) )
     totalSize = 0
-    for lfn, bkMetadata in allMetadata.items():
+    for lfn, bkMetadata in allMetadata.iteritems():
       if ( bkMetadata['FileType'] != 'LOG' ):
         if ( bkMetadata['GotReplica'] == 'Yes' ):
           yesReplicaFiles.append( lfn )
@@ -174,10 +174,10 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     guidMismatchFiles = []
     noBKReplicaFiles = []
     withBKReplicaFiles = []
-    for lfn, error in res['Value']['Failed'].items():
+    for lfn, error in res['Value']['Failed'].iteritems():
       if re.search( 'No such file or directory', error ):
         missingBKFiles.append( lfn )
-    for lfn, bkMetadata in allMetadata.items():
+    for lfn, bkMetadata in allMetadata.iteritems():
       if not bkMetadata['FileSize'] == catalogMetadata[lfn]['Size']:
         sizeMismatchFiles.append( lfn )
       if not bkMetadata['GUID'] == catalogMetadata[lfn]['GUID']:
@@ -272,8 +272,8 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     """ This obtains the physical file metadata and checks the metadata against the catalog entries
     """
     seLfns = {}
-    for lfn, replicaDict in replicas.items():
-      for se, _pfn in replicaDict.items():
+    for lfn, replicaDict in replicas.iteritems():
+      for se in replicaDict:
         if ( ses ) and ( se not in ses ):
           continue
         seLfns.setdefault( se, [] ).append( lfn )
@@ -289,7 +289,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
       if not res['OK']:
         gLogger.error( 'Failed to get physical file metadata.', res['Message'] )
         return res
-      for lfn, metadata in res['Value'].items():
+      for lfn, metadata in res['Value'].iteritems():
         if lfn in catalogMetadata:
           if ( metadata['Size'] != catalogMetadata[lfn]['Size'] ) and ( metadata['Size'] != 0 ):
             sizeMismatch.append( ( lfn, 'deprecatedUrl', se, 'CatalogPFNSizeMismatch' ) )
@@ -318,7 +318,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     lfnMetadataDict = res['Value']['Successful']
     # If the replicas are completely missing
     missingReplicas = []
-    for lfn, reason in res['Value']['Failed'].items():
+    for lfn, reason in res['Value']['Failed'].iteritems():
       if re.search( 'File does not exist', reason ):
         missingReplicas.append( ( lfn, 'deprecatedUrl', se, 'PFNMissing' ) )
     if missingReplicas:
@@ -327,7 +327,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     unavailableReplicas = []
     zeroSizeReplicas = []
     # If the files are not accessible
-    for lfn, lfnMetadata in lfnMetadataDict.items():
+    for lfn, lfnMetadata in lfnMetadataDict.iteritems():
       if lfnMetadata['Lost']:
         lostReplicas.append( ( lfn, se, 'PFNLost' ) )
       if lfnMetadata['Unavailable']:
@@ -390,9 +390,9 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     zeroSizeFiles = []
     allReplicaDict = {}
     allMetadataDict = {}
-    for lfn, lfnDict in allFiles.items():
+    for lfn, lfnDict in allFiles.iteritems():
       lfnReplicas = {}
-      for se, replicaDict in lfnDict['Replicas'].items():
+      for se, replicaDict in lfnDict['Replicas'].iteritems():
         lfnReplicas[se] = replicaDict['PFN']
       if not lfnReplicas:
         zeroReplicaFiles.append( lfn )

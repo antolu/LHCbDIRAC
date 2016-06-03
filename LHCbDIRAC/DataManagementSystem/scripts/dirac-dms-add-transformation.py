@@ -180,14 +180,14 @@ if __name__ == "__main__":
     elif prods:
       if not fileType:
         fileType = ["All"]
-      prodsStr = ','.join( [str( p ) for p in prods] )
+      prodsStr = ','.join( str( p ) for p in prods )
       fileStr = ','.join( fileType )
       longName = transGroup + " of " + fileStr + " for productions %s " % prodsStr
       if len( prods ) > 5:
         prodsStr = '%d-productions' % len( prods )
       transName += '-' + fileStr + '-' + prodsStr
     elif 'BKPath' not in pluginScript.getOptions():
-      if type( transBKQuery['FileType'] ) == type( [] ):
+      if isinstance( transBKQuery['FileType'], list ):
         strQuery = ','.join( transBKQuery['FileType'] )
       else:
         strQuery = str( transBKQuery['FileType'] )
@@ -235,13 +235,13 @@ if __name__ == "__main__":
       transformation.setBody( transBody )
 
     if pluginSEParams:
-      for key, val in pluginSEParams.items():
+      for key, val in pluginSEParams.iteritems():
         res = transformation.setSEParam( key, val )
         if not res['OK']:
           gLogger.error( 'Error setting SE parameter', res['Message'] )
           DIRAC.exit( 1 )
     if pluginParams:
-      for key, val in pluginParams.items():
+      for key, val in pluginParams.iteritems():
         res = transformation.setAdditionalParam( key, val )
         if not res['OK']:
           gLogger.error( 'Error setting additional parameter', res['Message'] )
@@ -290,7 +290,7 @@ if __name__ == "__main__":
       continue
 
     if userGroup:
-      directories = set( [os.path.dirname( lfn ) for lfn in lfns] )
+      directories = set( os.path.dirname( lfn ) for lfn in lfns )
       res = chown( directories, user = userGroup[0], group = userGroup[1] )
       if not res['OK']:
         gLogger.fatal( "Error changing ownership", res['Message'] )

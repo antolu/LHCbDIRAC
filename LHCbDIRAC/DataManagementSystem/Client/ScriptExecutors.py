@@ -412,7 +412,7 @@ def removeReplicasNoFC( lfnList, seList ):
             successfullyRemoved.setdefault( seName, set() ).add( lfn )
           else:
             errorReasons.setdefault( str( reason ), {} ).setdefault( seName, [] ).append( lfn )
-        successfullyRemoved.setdefault( seName, set() ).update( [lfn for lfn in res['Value']['Successful']] )
+        successfullyRemoved.setdefault( seName, set() ).update( res['Value']['Successful'] )
     removed = len( successfullyRemoved.get( seName, [] ) )
     progressBar.endLoop( message = ( '%d files removed' % removed ) if removed else 'No replicas found to be removed' )
   if inFC:
@@ -736,7 +736,7 @@ def printPfnMetadata( lfnList, seList, check = False, exists = False, summary = 
       metadata['Failed'][lfn] = 'No such file at %s in FC' % ' '.join( seList )
       replicas.pop( lfn )
       lfnList.remove( lfn )
-  metadata['Failed'].update( dict.fromkeys( [url for url in lfnList if url not in replicas and url not in metadata['Failed']], 'FC: No active replicas' ) )
+  metadata['Failed'].update( dict.fromkeys( ( url for url in lfnList if url not in replicas and url not in metadata['Failed'] ), 'FC: No active replicas' ) )
   if not seList:
     # take all seList in replicas and add a fake '' to printout the SE name
     seList = [''] + sorted( set( se for lfn in replicas for se in replicas[lfn] ) )
@@ -943,7 +943,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
       if r['OK']:
         lfnSize.update( r['Value']['Successful'] )
     progressBar.endLoop()
-    totSize += sum( lfnSize.values() )
+    totSize += sum( val for val in lfnSize.itervalues() )
   for lfn, replicas in lfnReplicas.iteritems():
     seList = set( replicas )
     dumpSE = seList & prSEList
@@ -1296,35 +1296,51 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
   status = 'problematic' if not reset else 'OK'
   if repsDict:
     nreps = 0
-    res = fc.setReplicaProblematic( repsDict, revert = reset ) if action else {'OK':True}
-    if not res['OK']:
-      gLogger.error( "Error setting replica %s in FC for %d files" % ( status, len( repsDict ) ), res['Message'] )
-    else:
-      nreps = sum( [len( reps ) for reps in repsDict.values()] )
-      gLogger.notice( "%d replicas set %s in FC for %d files" % ( nreps, status, len( repsDict ) ) )
-    for lfn in repsDict:
-      gLogger.info( '\t%s' % lfn )
+    toSet = len( repsDict )
+    chunkSize = max( 10, min( 100, toSet / 10 ) )
+    progressBar = ProgressBar( toSet,
+                               title = "Setting replicas %s for %d files" % ( status, toSet ),
+                               chunk = chunkSize )
+    errors = {}
+    for lfnChunk in breakListIntoChunks( repsDict, chunkSize ):
+      progressBar.loop()
+      chunkDict = dict( ( lfn, repsDict[lfn] ) for lfn in lfnChunk )
+      res = fc.setReplicaProblematic( chunkDict, revert = reset ) if action else {'OK':True}
+      if not res['OK']:
+        errors[res['Message']] = errors.setdefault( res['Message'], 0 ) + len( lfnChunk )
+      else:
+        nreps += sum( len( reps ) for reps in chunkDict.itervalues() )
+    progressBar.endLoop( "%d replicas set %s in FC" % ( nreps, status ) )
+    for error, nb in errors.iteritems():
+      gLogger.error( "Error setting replica %s in FC for %d files" % ( status, nb ), error )
 
   if bkToggle:
-    if reset:
-      stat = 'set'
-      res = bk.addFiles( bkToggle ) if action else {'OK':True}
-    else:
-      stat = 'removed'
-      res = bk.removeFiles( bkToggle ) if action else {'OK':True}
-    if not res['OK']:
-      gLogger.error( "Replica flag not %s in BK for %d files" % ( stat, len( bkToggle ) ), res['Message'] )
-    elif 'Value' in res:
-      success = res['Value']['Successful']
-      if success:
-        gLogger.notice( "Replica flag %s in BK for %d files" % ( stat, len( success ) ) )
-        for lfn in success:
-          gLogger.info( '\t%s' % lfn )
+    toSet = len( bkToggle )
+    status = 'set' if reset else 'removed'
+    chunkSize = max( 10, min( 100, toSet / 10 ) )
+    progressBar = ProgressBar( toSet,
+                               title = "Replica flag being %s for %d files" % ( status, toSet ),
+                               chunk = chunkSize )
+    errors = {}
+    success = 0
+    for lfnChunk in breakListIntoChunks( bkToggle, chunkSize ):
+      progressBar.loop()
+      if reset:
+        res = bk.addFiles( lfnChunk ) if action else {'OK':True}
+      else:
+        res = bk.removeFiles( lfnChunk ) if action else {'OK':True}
+      if not res['OK']:
+        errors[res['Message']] = errors.setdefault( res['Message'], 0 ) + len( lfnChunk )
+      elif 'Value' in res:
+        success += len( res['Value']['Successful'] )
+      else:
+        success += len( lfnChunk )
+    progressBar.endLoop( "Replica flag %s in BK for %d files" % ( status, success ) )
+    for error, nb in errors.iteritems():
+      gLogger.error( "Replica flag not %s in BK for %d files:" % ( status, nb ), error )
 
   if transDict:
-    n = 0
-    for lfns in transDict.values():
-      n += len( lfns )
+    n = sum( len( lfns ) for lfns in transDict.itervalues() )
     status = 'Unused' if reset else 'Problematic'
     gLogger.notice( "\n%d files were set %s in the transformation system" % ( n, status ) )
     for transID in sorted( transDict ):
@@ -1339,9 +1355,7 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
 
   gLogger.setLevel( savedLevel )
   if transNotSet:
-    n = 0
-    for lfns in transNotSet.values():
-      n += len( lfns )
+    n = sum( len( lfns ) for lfns in transNotSet.itervalues() )
     status = "Unused" if reset else "Problematic"
     gLogger.notice( "\n%d files could not be set %s a they were not in an acceptable status:" % ( n, status ) )
     for status in sorted( transNotSet ):
@@ -1407,7 +1421,7 @@ def executeLfnMetadata( dmScript ):
       res = __dfcGetDirectoryMetadata( catalog, dirList )
       success.update( res['Value']['Successful'] )
       failed.update( res['Value']['Failed'] )
-  for metadata in success.values():
+  for metadata in success.itervalues():
     if 'Mode' in metadata:
       metadata['Mode'] = '%o' % metadata['Mode']
   gLogger.setLevel( savedLevel )
