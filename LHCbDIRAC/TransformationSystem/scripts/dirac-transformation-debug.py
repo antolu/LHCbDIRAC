@@ -219,11 +219,11 @@ def __checkFilesMissingInFC( transFilesList, status, fixIt ):
       notMissing = len( replicas )
       if notMissing:
         if not kickRequests:
-          print "%d files are %s but indeed are in the LFC - Use --KickRequests to reset them Unused" % ( notMissing, status )
+          print "%d files are %s but indeed are in the FC - Use --KickRequests to reset them Unused" % ( notMissing, status )
         else:
           res = transClient.setFileStatusForTransformation( transID, 'Unused', replicas.keys(), force = True )
           if res['OK']:
-            print "%d files were %s but indeed are in the LFC - Reset to Unused" % ( notMissing, status )
+            print "%d files were %s but indeed are in the FC - Reset to Unused" % ( notMissing, status )
           else:
             print "Error resetting %d files Unused" % notMissing, res['Message']
       else:
@@ -234,9 +234,9 @@ def __checkFilesMissingInFC( transFilesList, status, fixIt ):
           metadata = res['Value']['Successful']
           lfnsWithReplicaFlag = [lfn for lfn in metadata if metadata[lfn]['GotReplica'] == 'Yes']
           if lfnsWithReplicaFlag:
-            print "All files are really missing in LFC"
+            print "All files are really missing in FC"
             if not fixIt:
-              print '%d files are not in the LFC but have a replica flag in BK, use --FixIt to fix' % len( lfnsWithReplicaFlag )
+              print '%d files are not in the FC but have a replica flag in BK, use --FixIt to fix' % len( lfnsWithReplicaFlag )
             else:
               res = bkClient.removeFiles( lfnsWithReplicaFlag )
               if not res['OK']:
@@ -244,7 +244,7 @@ def __checkFilesMissingInFC( transFilesList, status, fixIt ):
               else:
                 print "Replica flag removed from %d files" % len( lfnsWithReplicaFlag )
           else:
-            print "All files are really missing in LFC and BK"
+            print "All files are really missing in FC and BK"
 
 def __getReplicas( lfns ):
   replicas = {}
@@ -1381,7 +1381,7 @@ if __name__ == "__main__":
       if problematicFiles:
         __checkReplicasForProblematic( problematicFiles, __getReplicas( problematicFiles ) )
 
-      # Check files with missing LFC
+      # Check files with missing FC
       if status:
         __checkFilesMissingInFC( transFilesList, status, fixIt )
 
