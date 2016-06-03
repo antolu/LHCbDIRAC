@@ -86,7 +86,9 @@ def updateRunLumi( run, evtType, fileInfo, doIt = False, force = False ):
   filesLumi = sum( [lumi for _lfn, _evts, lumi in fileInfo] )
   # Check luminosity
   error = False
-  if abs( runLumi - filesLumi ) > 1:
+  if not runEvts:
+    gLogger.notice( "Event number is zero for run %d, cannot update" % run )
+  elif abs( runLumi - filesLumi ) > 1:
     prStr = 'Updating' if doIt else 'Would update'
     gLogger.notice( "%s %d files as run %d and files lumi don't match: runLumi %.1f, filesLumi %.1f" % ( prStr, len( fileInfo ), run, runLumi, filesLumi ) )
     fileDict = {}
