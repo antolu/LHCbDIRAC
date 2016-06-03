@@ -708,8 +708,8 @@ class SEUsageAgent( AgentModule ):
       fP3 = outputFileMerged[ st ]['pointerToDirSummaryFile' ]
       self.log.info( "Writing to file %s" % fileP3 )
       for basePath in self.dirDict.keys():
-        summaryLine = " ".join( st, basePath, str( self.dirDict[ basePath ][ 'Files' ] ),
-                                  str( self.dirDict[ basePath ][ 'Size' ] ) )
+        summaryLine = " ".join( [st, basePath, str( self.dirDict[ basePath ][ 'Files' ] ),
+                                  str( self.dirDict[ basePath ][ 'Size' ] )] )
         self.log.debug( "Writing summaryLine %s" % summaryLine )
         fP3.write( "%s\n" % summaryLine )
       fP3.flush()
