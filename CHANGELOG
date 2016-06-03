@@ -1,3 +1,7 @@
+[v8r3-pre13]
+Use DIRAC v6r15p1
+* Update create_vobox_update.py remove lbvobox10 and add lbvobox10X machines
+
 [v8r3-pre12]
 *use DIRAC v6r15
 * location
