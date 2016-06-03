@@ -190,7 +190,7 @@ class SEUsageAgent( AgentModule ):
             prefix = '/lhcb/' + sr
             self.log.verbose( "Trying to match prefix %s " % prefix )
             if prefix in dirPath:
-              # strip the initial prefix, to get the LFN as registered in the LFC
+              # strip the initial prefix, to get the LFN as registered in the FC
               dirPath = storageDirPath.split( prefix )[1]
               replicaType = sr
               self.log.info( "prefix: %s \n storageDirPath: %s\n dirPath: %s" % ( prefix, storageDirPath, dirPath ) )
@@ -201,11 +201,11 @@ class SEUsageAgent( AgentModule ):
           # use this format for consistency with already existing methods of StorageUsageDB
           # which take in input a dictionary like this
           self.log.info( "Processing directory: %s" % ( oneDirDict ) )
-          # initialize the isRegistered flag. Change it according to the checks SE vs LFC
+          # initialize the isRegistered flag. Change it according to the checks SE vs FC
           # possible values of isRegistered flag are:
           # NotRegisteredInFC: data not registered in FC
           # RegisteredInFC: data correctly registered in FC
-          # MissingDataFromSE: the directory exists in the LFC for that SE, but there is
+          # MissingDataFromSE: the directory exists in the FC for that SE, but there is
           # less data on the SE than what reported in the FC
           isRegistered = False
           lfcFiles = -1
@@ -217,15 +217,15 @@ class SEUsageAgent( AgentModule ):
             self.log.warn( "failed to get DID from StorageUsageDB.su_Directory table for dir: %s " % dirPath )
             continue
           elif not res['Value']:
-            self.log.info( "NO LFN registered in the LFC for the given path %s => insert the entry in the " \
+            self.log.info( "NO LFN registered in the FC for the given path %s => insert the entry in the " \
                              "problematicDirs table and delete this entry from the replicas table" % dirPath )
             isRegistered = 'NotRegisteredInFC'
           else:
             value = res['Value']
-            self.log.info( "directory LFN is registered in the LFC, output of getIDs is %s" % value )
+            self.log.info( "directory LFN is registered in the FC, output of getIDs is %s" % value )
             for directory in value:
               self.log.verbose( "Path: %s su_Directory.DID %d" % ( directory, value[directory] ) )
-            self.log.verbose( "check if this particular replica is registered in the LFC." )
+            self.log.verbose( "check if this particular replica is registered in the FC." )
             res = self.storageUsage.getAllReplicasInFC( dirPath )
             if not res['OK']:
               self.log.error( "failed to get replicas for %s directory " % dirPath )
@@ -246,7 +246,7 @@ class SEUsageAgent( AgentModule ):
                 for se in res['Value'][lfn]:
                   self.log.verbose( "SpaceToken: %s -- se: %s" % ( spaceToken, se ) )
                   if se in associatedDiracSEs:
-                    # consider only the LFC replicas of the corresponding Dirac SE
+                    # consider only the FC replicas of the corresponding Dirac SE
                     if oneDirDict[ dirPath ][ 'ReplicaType' ] in self.specialReplicas:
                       self.log.info( "SpecialReplica: %s" % oneDirDict[ dirPath ][ 'ReplicaType' ] )
                       seSuffix = oneDirDict[ dirPath ][ 'ReplicaType' ].upper()
@@ -269,13 +269,13 @@ class SEUsageAgent( AgentModule ):
               self.log.info( "lfcFiles = %d lfcSize = %d seFiles = %d seSize = %d" % ( lfcFiles, lfcSize,
                                                                                        seFiles, seSize ) )
               if seSize > lfcSize:
-                self.log.info( "Data on SE exceeds what reported in LFC! some data not registered in LFC" )
+                self.log.info( "Data on SE exceeds what reported in FC! some data not registered in FC" )
                 isRegistered = 'NotRegisteredInFC'
               elif seSize < lfcSize:
-                self.log.info( "Data on LFC exceeds what reported by SE dump! missing data from storage" )
+                self.log.info( "Data on FC exceeds what reported by SE dump! missing data from storage" )
                 isRegistered = 'MissingDataFromSE'
               elif lfcFiles == seFiles and lfcSize == seSize:
-                self.log.info( "Number of files and total size matches with what reported by LFC" )
+                self.log.info( "Number of files and total size matches with what reported by FC" )
                 isRegistered = 'RegisteredInFC'
               else:
                 self.log.info( "Unexpected case: seSize = lfcSize but seFiles != lfcFiles" )
@@ -728,9 +728,9 @@ class SEUsageAgent( AgentModule ):
         Important: usually the transformation is done simply removing the SApath of the site.
         So for ARCHIVE and FREEZER and FAILOVER data:
         the LFN will be: /lhcb/archive/<LFN> etc...
-        even if LHCb register those replicas in the LFC with the LFN: <LFN>, stripping the
+        even if LHCb register those replicas in the FC with the LFN: <LFN>, stripping the
         initial '/lhcb/archive'
-        this is taken into account by the main method of the agent when it queries for replicas in the LFC
+        this is taken into account by the main method of the agent when it queries for replicas in the FC
     """
 
     outputFile = os.path.join( self.workDirectory, site + ".UnresolvedPFNs.txt" )
@@ -860,7 +860,7 @@ class SEUsageAgent( AgentModule ):
 
 
   def pathInLFC( self, dirName ):
-    """ Get the path as registered in the LFC. Different from the path that is used to build
+    """ Get the path as registered in the FC. Different from the path that is used to build
     the pfn only for the special replicas (failover, archive, freezer)
     """
     lfcDirName = dirName
@@ -873,7 +873,7 @@ class SEUsageAgent( AgentModule ):
     return lfcDirName
 
   def pathWithSuffix( self, dirName, replicaType ):
-    """ Takes in input the path as registered in LFC and
+    """ Takes in input the path as registered in FC and
         returns the path with the initial suffix for the special replicas
     """
     pathWithSuffix = dirName

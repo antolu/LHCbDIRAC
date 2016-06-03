@@ -227,7 +227,7 @@ class StorageHistoryAgent( AgentModule ):
       self.log.error( "ERROR generating the StorageUsageDB dump per directory" )
       return S_ERROR()
 
-    # Keep a list of all directories in LFC that are not found in the Bkk
+    # Keep a list of all directories in FC that are not found in the Bkk
     self.directoriesNotInBkk = []
     # for debugging purposes build dictionaries with storage usage to compare with the accounting plots
     self.debug_seUsage = {}
@@ -298,7 +298,7 @@ class StorageHistoryAgent( AgentModule ):
 
     self.log.notice( "-------------------------------------------------------------------------------------\n" )
     self.log.notice( "------ End of cycle report for DataStorage accounting--------------------------------\n" )
-    self.log.notice( "Total directories found in LFC:  %d " % len( self.dirDict ) )
+    self.log.notice( "Total directories found in FC:  %d " % len( self.dirDict ) )
     totalCallsToStorageUsage = self.callsToGetSummary + self.callsToDirectorySummary
     self.log.notice( "Total calls to StorageUsage: %d , took: %d s " % ( totalCallsToStorageUsage, self.genTotalTime ) )
     totalCallsToBkk = self.callsToBkkgetDirectoryMetadata + self.callsToBkkGetEvtType
@@ -346,7 +346,7 @@ class StorageHistoryAgent( AgentModule ):
         res = self.__dataUsageClient.getDirMetadata( dirChunk )  # this could be a bulk query for a list of directories
         if not res[ 'OK' ]:
           self.log.error( "Error retrieving %d directories meta-data %s " % ( len( dirChunk ), res['Message'] ) )
-          # this usually happens when directories are removed from LFC between the StorageUsageDB dump and this call,
+          # this usually happens when directories are removed from FC between the StorageUsageDB dump and this call,
           # if the Db is refreshed exactly in this time interval. Not really a problem.
           #######################3 just a try ##############################################3
           notInCache += dirChunk

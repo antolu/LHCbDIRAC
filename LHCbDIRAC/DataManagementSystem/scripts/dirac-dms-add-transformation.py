@@ -32,7 +32,7 @@ if __name__ == "__main__":
   Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
   Script.registerSwitch( "", "Force", "   Force transformation to be submitted even if no files found" )
   Script.registerSwitch( "", "Test", "   Just print out but not submit" )
-  Script.registerSwitch( "", "NoFCCheck", "   Suppress the check in LFC for removal transformations" )
+  Script.registerSwitch( "", "NoFCCheck", "   Suppress the check in FC for removal transformations" )
   Script.registerSwitch( "", "Unique", "   Refuses to create a transformation with an existing name" )
   Script.registerSwitch( "", "Depth=", "   Depth in path for replacing /... in processing pass" )
   Script.registerSwitch( "", "Chown=", "   Give user/group for chown of the directories of files in the FC" )
@@ -296,7 +296,7 @@ if __name__ == "__main__":
         gLogger.fatal( "Error changing ownership", res['Message'] )
         DIRAC.exit( 3 )
       gLogger.notice( "Successfully changed owner/group for %d directories" % res['Value'] )
-    # If the transformation is a removal transformation, check all files are in the LFC. If not, remove their replica flag
+    # If the transformation is a removal transformation, check all files are in the FC. If not, remove their replica flag
     if fcCheck and transType == 'Removal':
       from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
       fc = FileCatalog()
@@ -312,9 +312,9 @@ if __name__ == "__main__":
         else:
           gLogger.fatal( "Error checking files in the FC", res['Message'] )
           DIRAC.exit( 2 )
-      gLogger.notice( "Files checked in LFC in %.3f seconds" % ( time.time() - startTime ) )
+      gLogger.notice( "Files checked in FC in %.3f seconds" % ( time.time() - startTime ) )
       if missingLFNs:
-        gLogger.notice( '%d are in the LFC, %d are not. Attempting to remove GotReplica' % ( success, len( missingLFNs ) ) )
+        gLogger.notice( '%d are in the FC, %d are not. Attempting to remove GotReplica' % ( success, len( missingLFNs ) ) )
         res = bk.removeFiles( list( missingLFNs ) )
         if res['OK']:
           gLogger.notice( "Replica flag successfully removed in BK" )
@@ -322,7 +322,7 @@ if __name__ == "__main__":
           gLogger.fatal( "Error removing BK flag", res['Message'] )
           DIRAC.exit( 2 )
       else:
-        gLogger.notice( 'All files are in the LFC' )
+        gLogger.notice( 'All files are in the FC' )
 
     # Prepare the transformation
     if transBKQuery:

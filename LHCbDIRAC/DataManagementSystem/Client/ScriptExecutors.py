@@ -1253,7 +1253,7 @@ def setProblematicFiles( lfnList, targetSEs, reset = False, fullInfo = False, ac
       if not overlapSEs:
         notFoundAtSE.append( lfn )
         continue
-      # Set the file problematic in the LFC
+      # Set the file problematic in the FC
       repsDict[lfn] = dict( ( se, reps[se] ) for se in overlapSEs )
       # Now see if the file is present in a transformation
       otherSEs = repsSet - overlapSEs

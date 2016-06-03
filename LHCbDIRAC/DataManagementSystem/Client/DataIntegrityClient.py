@@ -17,14 +17,14 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
 
   ##########################################################################
   #
-  # This section contains the specific methods for BK->LFC checks
+  # This section contains the specific methods for BK->FC checks
   #
 
   def productionToCatalog( self, productionID ):
-    """  This obtains the file information from the BK and checks these files are present in the LFC.
+    """  This obtains the file information from the BK and checks these files are present in the FC.
     """
     gLogger.info( "-" * 40 )
-    gLogger.info( "Performing the BK->LFC check" )
+    gLogger.info( "Performing the BK->FC check" )
     gLogger.info( "-" * 40 )
     res = self.__getProductionFiles( productionID )
     if not res['OK']:
@@ -109,7 +109,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
 
   ##########################################################################
   #
-  # This section contains the specific methods for LFC->BK checks
+  # This section contains the specific methods for FC->BK checks
   #
 
   def catalogDirectoryToBK( self, lfnDir ):
@@ -117,7 +117,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
       the supplied directory and checks against the BK.
     """
     gLogger.info( "-" * 40 )
-    gLogger.info( "Performing the LFC->BK check" )
+    gLogger.info( "Performing the FC->BK check" )
     gLogger.info( "-" * 40 )
     if type( lfnDir ) in types.StringTypes:
       lfnDir = [lfnDir]
@@ -140,7 +140,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
       checks against the storage elements.
     """
     gLogger.info( "-" * 40 )
-    gLogger.info( "Performing the LFC->BK check" )
+    gLogger.info( "Performing the FC->BK check" )
     gLogger.info( "-" * 40 )
     if type( lfns ) in types.StringTypes:
       lfns = [lfns]
@@ -264,7 +264,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     """ This obtains takes the supplied replica and metadata information obtained from the catalog and checks against the storage elements.
     """
     gLogger.info( "-" * 40 )
-    gLogger.info( "Performing the LFC->SE check" )
+    gLogger.info( "Performing the FC->SE check" )
     gLogger.info( "-" * 40 )
     return self.__checkPhysicalFiles( replicas, catalogMetadata, ses = ses, fixIt = fixIt )
 
