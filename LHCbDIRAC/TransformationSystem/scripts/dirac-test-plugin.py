@@ -77,7 +77,7 @@ class fakeClient:
       runs = None
       if 'RunNumber' in condDict:
         runs = condDict['RunNumber']
-        if type( runs ) != type( [] ):
+        if not isinstance( runs, list ):
           runs = [runs]
       for file in self.files:
         if not runs or file['RunNumber'] in runs:
@@ -93,7 +93,7 @@ class fakeClient:
       runs = None
       if 'RunNumber' in selection:
         runs = selection['RunNumber']
-        if type( runs ) != type( [] ):
+        if not isinstance( runs, list ):
           runs = [runs]
       counters = {'Unused':0}
       for file in self.files:
@@ -154,7 +154,7 @@ class fakeClient:
     res = self.bk.getFileMetadata( lfns )
     if res['OK']:
       files = []
-      for lfn, metadata in res['Value']['Successful'].items():
+      for lfn, metadata in res['Value']['Successful'].iteritems():
         runID = metadata.get( 'RunNumber', 0 )
         runDict = {"RunNumber":runID, "LFN":lfn}
         files.append( runDict )
@@ -172,7 +172,7 @@ class fakeClient:
         res = self.dm.getActiveReplicas( lfnChunk )
       # print res
       if res['OK']:
-        for lfn, ses in res['Value']['Successful'].items():
+        for lfn, ses in res['Value']['Successful'].iteritems():
           if ses:
             replicas[lfn] = sorted( ses )
       else:
@@ -275,13 +275,13 @@ if __name__ == "__main__":
   pluginParams = pluginScript.getPluginParameters()
   pluginSEParams = pluginScript.getPluginSEParameters()
   if pluginSEParams:
-    for key, val in pluginSEParams.items():
+    for key, val in pluginSEParams.iteritems():
       res = transformation.setSEParam( key, val )
       if not res['OK']:
         print res['Message']
         DIRAC.exit( 2 )
   if pluginParams:
-    for key, val in pluginParams.items():
+    for key, val in pluginParams.iteritems():
       res = transformation.setAdditionalParam( key, val )
       if not res['OK']:
         print res['Message']

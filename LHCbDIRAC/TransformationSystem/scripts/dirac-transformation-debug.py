@@ -100,9 +100,9 @@ def __justStats( transID, status, seList ):
     return improperJobs
   statsPerSE = {}
   # print transFilesList
-  statusList = set( [ 'Received', 'Checking', 'Staging', 'Waiting', 'Running', 'Stalled'] )
+  statusList = {'Received', 'Checking', 'Staging', 'Waiting', 'Running', 'Stalled'}
   if status == 'Processed':
-    statusList.update( [ 'Done', 'Completed', 'Failed'] )
+    statusList.update( {'Done', 'Completed', 'Failed'} )
   taskList = [fileDict['TaskID'] for fileDict in transFilesList]
   res = transClient.getTransformationTasks( {'TransformationID':transID, "TaskID":taskList} )
   if not res['OK']:
@@ -216,12 +216,12 @@ def __checkFilesMissingInFC( transFilesList, status, fixIt ):
     res = dm.getReplicas( lfns )
     if res['OK']:
       replicas = res['Value']['Successful']
-      notMissing = len( [lfn for lfn in lfns if lfn in replicas] )
+      notMissing = len( replicas )
       if notMissing:
         if not kickRequests:
           print "%d files are %s but indeed are in the LFC - Use --KickRequests to reset them Unused" % ( notMissing, status )
         else:
-          res = transClient.setFileStatusForTransformation( transID, 'Unused', [lfn for lfn in lfns if lfn in replicas], force = True )
+          res = transClient.setFileStatusForTransformation( transID, 'Unused', replicas.keys(), force = True )
           if res['OK']:
             print "%d files were %s but indeed are in the LFC - Reset to Unused" % ( notMissing, status )
           else:
@@ -459,7 +459,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
       res = fc.getFileMetadata( [lfn for lfn in problematicReplicas[se] if lfn not in lfnCheckSum] )
       if res['OK']:
         success = res['Value']['Successful']
-        lfnCheckSum.update( dict( [( lfn, success[lfn]['Checksum'] ) for lfn in success] ) )
+        lfnCheckSum.update( dict( ( lfn, success[lfn]['Checksum'] ) for lfn in success ) )
       res = dm.getReplicaMetadata( problematicReplicas[se], se )
       if res['OK']:
         for lfn in res['Value']['Successful']:
@@ -911,7 +911,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
     print "\nSummary of failures due to: Application Exited with non-zero status"
     lfnDict = {}
     partial = 'Partial (last event '
-    for ( lfn, reason ), jobs in failedLfns.items():
+    for ( lfn, reason ), jobs in failedLfns.iteritems():
       if partial not in reason:
         continue
       failedLfns.pop( ( lfn, reason ) )
@@ -928,8 +928,8 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
       jobs = sorted( set( jobs ) )
       res = monitoring.getJobsSites( jobs )
       if res['OK']:
-        sites = sorted( set( [val['Site'] for val in res['Value'].itervalues()] ) )
-      print "ERROR ==> %s was %s during processing from jobs %s (sites %s): " % ( lfn, reason, ','.join( [str( job ) for job in jobs] ), ','.join( sites ) )
+        sites = sorted( set( val['Site'] for val in res['Value'].itervalues() ) )
+      print "ERROR ==> %s was %s during processing from jobs %s (sites %s): " % ( lfn, reason, ','.join( str( job ) for job in jobs ), ','.join( sites ) )
       # Get an example log if possible
       if checkLogs:
         logDump = __checkLog( jobLogURL[jobs[0]] )
@@ -965,7 +965,7 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
       print 'Error getting files metadata', res['Message']
       DIRAC.exit( 2 )
     evtType = res['Value']['Successful'].values()[0]['EventType']
-    paramValues = sorted( set( [meta[param] for meta in res['Value']['Successful'].itervalues() if param in meta] ) )
+    paramValues = sorted( set( meta[param] for meta in res['Value']['Successful'].itervalues() if param in meta ) )
   ancestors = {}
   for paramValue in paramValues:
     try:
@@ -1051,7 +1051,7 @@ def __checkWaitingTasks( transID ):
     if not fileDicts:
       status = 'Orphan'
     else:
-      statuses = sorted( set( [file['Status'] for file in fileDicts] ) )
+      statuses = sorted( set( file['Status'] for file in fileDicts ) )
       if statuses == ['Processed']:
         status = 'Done'
       elif statuses == ['Failed']:
@@ -1276,7 +1276,7 @@ if __name__ == "__main__":
       if not runsDictList:
         print 'No runs found...'
       else:
-        print '%d runs found: %s' % ( len( runsDictList ), ','.join( [str( runDict['RunNumber'] ) for runDict in runsDictList] ) )
+        print '%d runs found: %s' % ( len( runsDictList ), ','.join( str( runDict['RunNumber'] ) for runDict in runsDictList ) )
     SEStat = {"Total":0}
     allFiles = []
     toBeKicked = 0
@@ -1389,7 +1389,7 @@ if __name__ == "__main__":
       # Now loop on all tasks
       jobsForLfn = {}
       if verbose:
-        print "Tasks:", ','.join( [str( taskID ) for taskID in sorted( taskDict )] )
+        print "Tasks:", ','.join( str( taskID ) for taskID in sorted( taskDict ) )
       for taskID in sorted( taskList ) if taskList else sorted( taskDict ):
         if taskID not in taskDict:
           print 'Task %s not found in the transformation files table' % taskID
@@ -1402,7 +1402,7 @@ if __name__ == "__main__":
         # Analyse jobs
         if byJobs and taskType == 'Job':
           job = task['ExternalID']
-          lfns = set( lfnsInTask if lfnsInTask else [''] ) & set( [fileDict['LFN'] for fileDict in transFilesList] )
+          lfns = set( lfnsInTask if lfnsInTask else [''] ) & set( fileDict['LFN'] for fileDict in transFilesList )
           jobsForLfn.setdefault( ','.join( sorted( lfns ) ), [] ).append( job )
           if not byFiles and not byTasks:
             continue
@@ -1480,4 +1480,4 @@ if __name__ == "__main__":
 
   if improperJobs:
     print "List of %d jobs in improper status:" % len( improperJobs )
-    print ' '.join( [str( j ) for j in sorted( improperJobs )] )
+    print ' '.join( str( j ) for j in sorted( improperJobs ) )

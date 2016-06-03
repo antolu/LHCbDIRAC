@@ -191,7 +191,7 @@ if __name__ == '__main__':
       if not fp:
         fp = open( fileName, 'w' )
       fp.write( '\nProcMultDesc '.join( [''] + ['%s: %s' % ( lfn, str( multi ) ) \
-                                        for lfn, multi in cc.prcdWithMultDesc.items()] ) )
+                                        for lfn, multi in cc.prcdWithMultDesc.iteritems()] ) )
       gLogger.always( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
       gLogger.always( "No processed LFNs with multiple descendants found -> OK!" )
