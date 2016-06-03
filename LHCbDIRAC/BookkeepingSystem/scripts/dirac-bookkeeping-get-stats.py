@@ -58,7 +58,7 @@ def execute():
     DIRAC.exit( 1 )
   if bkQuery:
     prodList = bkQuery.getQueryDict().get( 'Production', [None] )
-    if type( prodList ) != type( [] ):
+    if isinstance( prodList, list ):
       prodList = [prodList]
     bkQuery.setOption( 'ProductionID', None )
     fileType = bkQuery.getFileTypeList()
@@ -186,7 +186,7 @@ def execute():
           progressBar.loop()
           res = bk.getFileMetadata( lfnChunk )
           if res['OK']:
-            for lfn, metadata in res['Value']['Successful'].items():
+            for lfn, metadata in res['Value']['Successful'].iteritems():
               datasets.add( ( metadata['EventType'], metadata['FileType'] ) )
               try:
                 nbEvents += metadata['EventStat']
@@ -199,7 +199,7 @@ def execute():
                 runList[run][2] += metadata['FileSize']
                 nbFiles += 1
               except Exception as e:
-                gLogger.exception( 'Exception for %s' % lfn, str( metadata.keys() ), e )
+                gLogger.exception( 'Exception for %s' % lfn, str( metadata.keys() ), lException = e )
           else:
             print "Error getting files metadata:", res['Message']
             continue
@@ -261,7 +261,7 @@ def execute():
       notFinished = set( runList ) - set( runs )
       if notFinished:
         gLogger.notice( '%d runs not Finished (ignored), %s runs Finished (used for trigger rate)' % ( len( notFinished ), str( len( runs ) if len( runs ) else 'no' ) ) )
-        gLogger.notice( 'These runs are not Finished: %s' % ','.join( [str( run ) for run in sorted( notFinished )] ) )
+        gLogger.notice( 'These runs are not Finished: %s' % ','.join( str( run ) for run in sorted( notFinished ) ) )
       if runs:
         nevts = 0
         size = 0
@@ -306,7 +306,7 @@ def execute():
         collBunches /= fullDuration
         print '%s: %.1f on average' % ( 'Colliding bunches'.ljust( tab ), collBunches )
         if listFills:
-          print 'List of fills: ', ','.join( ["%d (%d runs, %.1f hours)" % ( fill, len( fills[fill] ), fillDuration[fill] ) for fill in sorted( fills )] )
+          print 'List of fills: ', ','.join( "%d (%d runs, %.1f hours)" % ( fill, len( fills[fill] ), fillDuration[fill] ) for fill in sorted( fills ) )
         if listRuns:
           for fill in sorted( fills ):
             print 'Fill %d (%4d bunches, %.1f hours):' % ( fill, result[fill], fillDuration[fill] ), ','.join( fills[fill] )

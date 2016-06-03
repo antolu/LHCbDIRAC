@@ -95,7 +95,7 @@ if __name__ == "__main__":
   fullResult = { 'OK': True, 'Value': {resItem:{}, relation:set()}}
   resValue = fullResult['Value']
 
-  for prod, lfnList in prodLfns.items():
+  for prod, lfnList in prodLfns.iteritems():
     if sameType:
       res = bk.getFileMetadata( lfnList )
       if not res['OK']:
@@ -114,13 +114,13 @@ if __name__ == "__main__":
       print "Error getting ancestors:", res['Message']
       DIRAC.exit( 1 )
 
-    ancestors = dict( [( anc['FileName'], lfn ) for lfn, ancList in result['Value']['Successful'].items() for anc in ancList] )
+    ancestors = dict( ( anc['FileName'], lfn ) for lfn, ancList in result['Value']['Successful'].iteritems() for anc in ancList )
 
     res = bk.getFileDescendants( ancestors.keys(), depth = 999999, production = prod, checkreplica = checkreplica )
 
     fullResult['OK'] = res['OK']
     if res['OK']:
-      for anc, sisters in res['Value']['WithMetadata'].items():
+      for anc, sisters in res['Value']['WithMetadata'].iteritems():
         lfn = ancestors[anc]
         found = False
         for sister in sisters:
