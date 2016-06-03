@@ -51,8 +51,13 @@ use DIRAC v6r15
 * Updated BOINC gateway service
 * New configuration service that will update the LHCb-Pilot.json file when a change is done on the CS.
 
+[v8r2p47]
+Use DIRAC v6r14p31
+* no need to eval
+* added choice of visibility flag
+
 [v8r2p46]
-Use DIRAC v8r14p31
+Use DIRAC v6r14p31
 * TCK added to the getFilesSummary method
 * TCK added to the getFilesWithMetadata method
 
