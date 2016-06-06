@@ -943,7 +943,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
       if r['OK']:
         lfnSize.update( r['Value']['Successful'] )
     progressBar.endLoop()
-    totSize += sum( val for val in lfnSize.itervalues() )
+    totSize += sum( lfnSize.itervalues() )
   for lfn, replicas in lfnReplicas.iteritems():
     seList = set( replicas )
     dumpSE = seList & prSEList
