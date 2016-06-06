@@ -528,7 +528,7 @@ class SEUsageAgent( AgentModule ):
     diskST = ['LHCb-Disk', 'LHCb_M-DST', 'LHCb_DST', 'LHCb_MC_M-DST', 'LHCb_MC_DST', 'LHCb_FAILOVER']
     tapeST = ['LHCb-Tape', 'LHCb_RAW', 'LHCb_RDST']
     outputFileMerged = {}
-    for st in self.spaceTokens[ site ].keys():
+    for st in self.spaceTokens[ site ]:
       outputFileMerged[ st ] = {}
       if self.spaceTokens[ site ][ st ][ 'year'] == '2011':
         self.log.info( "Preparing output files for space tokens: %s" % st )
@@ -555,7 +555,7 @@ class SEUsageAgent( AgentModule ):
       except KeyError:
         self.log.error( "no pointer to file for st=%s " % st )
     self.log.info( "Parsed output files : " )
-    for st in outputFileMerged.keys():
+    for st in outputFileMerged:
       self.log.info( "space token: %s -> \n  %s\n %s  " % ( st, outputFileMerged[ st ]['MergedFileName'],
                                                             outputFileMerged[ st ]['DirSummaryFileName'] ) )
 
@@ -566,7 +566,7 @@ class SEUsageAgent( AgentModule ):
       # Check the validity of the input file name:
       splitFile = inputFileP1.split( '.' )
       st = splitFile[ 0 ]
-      if st not in self.spaceTokens[ site ].keys():
+      if st not in self.spaceTokens[ site ]:
         self.log.warn( "Not a  valid space token in the file name: %s " % inputFileP1 )
         continue
 
@@ -651,7 +651,7 @@ class SEUsageAgent( AgentModule ):
                                                                                                 processedLines,
                                                                                                 dirac_dir_lines ) )
     # close output files:
-    for st in outputFileMerged.keys():
+    for st in outputFileMerged:
       p2 = outputFileMerged[ st ]['pointerToMergedFile' ]
       p2.close()
 
@@ -662,7 +662,7 @@ class SEUsageAgent( AgentModule ):
         continue
       fileP2 = os.path.join( pathToInputFiles, fileName )
       self.log.info( "Reading from Merged file fileP2 %s " % fileP2 )
-      for spaceTok in self.spaceTokens[ site ].keys():
+      for spaceTok in self.spaceTokens[ site ]:
         self.log.debug( "..check for space token: %s" % spaceTok )
         if spaceTok in fileP2:
           st = spaceTok
@@ -693,7 +693,7 @@ class SEUsageAgent( AgentModule ):
         basePath = ''
         for segment in directories[0:-1]:
           basePath = basePath + segment + '/'
-        if basePath not in self.dirDict.keys():
+        if basePath not in self.dirDict:
           self.dirDict[ basePath ] = {}
           self.dirDict[ basePath ][ 'Files' ] = 0
           self.dirDict[ basePath ][ 'Size' ] = 0
@@ -707,16 +707,16 @@ class SEUsageAgent( AgentModule ):
       fileP3 = outputFileMerged[ st ]['DirSummaryFileName']
       fP3 = outputFileMerged[ st ]['pointerToDirSummaryFile' ]
       self.log.info( "Writing to file %s" % fileP3 )
-      for basePath in self.dirDict.keys():
+      for basePath in self.dirDict  :
         summaryLine = " ".join( [st, basePath, str( self.dirDict[ basePath ][ 'Files' ] ),
-                                  str( self.dirDict[ basePath ][ 'Size' ] )] )
+                                 str( self.dirDict[ basePath ][ 'Size' ] )] )
         self.log.debug( "Writing summaryLine %s" % summaryLine )
         fP3.write( "%s\n" % summaryLine )
       fP3.flush()
       fP3.close()
 
       self.log.debug( "-------------------------summary of ReadInputFile-------------------------" )
-      for k in self.dirDict.keys():
+      for k in self.dirDict:
         self.log.debug( "(lfn,st): %s-%s files=%d size=%d updated=%s" % ( k, st , self.dirDict[ k ][ 'Files' ],
                                                                           self.dirDict[ k ][ 'Size' ],
                                                                           self.dirDict[ k ][ 'Updated' ] ) )
@@ -913,7 +913,7 @@ class SEUsageAgent( AgentModule ):
       replicaType = row[6]
       pathWithSuffix = self.pathWithSuffix( lfcPath, replicaType )
       self.log.verbose( "%s %s - %s" % ( lfcPath, replicaType, pathWithSuffix ) )
-      if replicaType not in problematicDirectories.keys():
+      if replicaType not in problematicDirectories:
         problematicDirectories[ replicaType ] = []
       if pathWithSuffix not in problematicDirectories[ replicaType ]:
         problematicDirectories[ replicaType ].append( pathWithSuffix )  # fix 13.03.2012
@@ -941,20 +941,20 @@ class SEUsageAgent( AgentModule ):
         basePath = ''
         for segment in directories[0:-1]:
           basePath = basePath + segment + '/'  # basepath is the directory including the initial suffix
-        for replicaType in problematicDirectories.keys():
+        for replicaType in problematicDirectories:
           if basePath in problematicDirectories[ replicaType ]:  # these paths do include initial suffix
-            if replicaType not in filesInProblematicDirs.keys():
+            if replicaType not in filesInProblematicDirs:
               filesInProblematicDirs[ replicaType ] = []
             if lfn not in filesInProblematicDirs[ replicaType ]:  # lfn including suffix
               filesInProblematicDirs[ replicaType ].append( lfn )
 
     self.log.info( "Files in problematic directories:" )
-    for replicaType in filesInProblematicDirs.keys():
+    for replicaType in filesInProblematicDirs:
       self.log.info( "replica type: %s files: %d " % ( replicaType, len( filesInProblematicDirs[replicaType] ) ) )
       for fil in filesInProblematicDirs[ replicaType ]:
         self.log.verbose( "file in probl Dir %s %s" % ( fil, replicaType ) )
 
-    for replicaType in filesInProblematicDirs.keys():
+    for replicaType in filesInProblematicDirs:
       res = self.checkReplicasInFC( replicaType, filesInProblematicDirs[ replicaType ] , site , fileNameMissingReplicas, fileNameMissingFiles )
     fpMissingReplicas.close()
     fpMissingFiles.close()
@@ -1020,7 +1020,7 @@ class SEUsageAgent( AgentModule ):
       return S_ERROR( repsResult['Message'] )
     goodFiles = repsResult['Value']['Successful']
     badFiles = repsResult['Value']['Failed']
-    for lfn in badFiles.keys():
+    for lfn in badFiles:
       if "No such file or directory" in badFiles[ lfn ]:
         self.log.info( "missing from FC %s %s" % ( lfn, replicaType ) )
         # check if the storage files have been removed in the meanwhile after the storage dump creation and the check
@@ -1035,18 +1035,18 @@ class SEUsageAgent( AgentModule ):
           self.log.warn( "Failed request for storage file %s " % lfn )
       else:
         self.log.info( "Unknown message from Fc: %s - %s " % ( lfn, badFiles[ lfn ] ) )
-    for lfn in goodFiles.keys():
+    for lfn in goodFiles:
       # check if the replica exists at the given site:
       replicaAtSite = False
       if replicaType in self.specialReplicas:
         specialReplicaSE = site + '-' + replicaType.upper()
-        for se in goodFiles[lfn].keys():
+        for se in goodFiles[lfn]:
           if se == specialReplicaSE:
             self.log.verbose( "matching se: %s " % se )
             replicaAtSite = True
             break
       else:
-        for se in goodFiles[lfn].keys():
+        for se in goodFiles[lfn]:
           if se in specialReplicasSEs:
             self.log.verbose( "Replica type is %s, skip this SE: %s " % ( replicaType, se ) )
             continue
@@ -1166,7 +1166,7 @@ class SEUsageAgent( AgentModule ):
     p1FilesDict = { 'LHCb_USER': {'fileName': inputFilesDir + 'LHCb_USER.txt'},
                     'LHCb-Disk': {'fileName': inputFilesDir + 'LHCb-Disk.txt'},
                     'LHCb-Tape': {'fileName': inputFilesDir + 'LHCb-Tape.txt'} }
-    for st in p1FilesDict.keys():
+    for st in p1FilesDict:
       fp = open( p1FilesDict[ st ]['fileName'], "w" )
       p1FilesDict[ st ][ 'filePointer' ] = fp
 
@@ -1196,7 +1196,7 @@ class SEUsageAgent( AgentModule ):
       fp = p1FilesDict[ probableSpaceToken ][ 'filePointer']
       fp.write( "%s\n" % newLine )
 
-    for st in p1FilesDict.keys():
+    for st in p1FilesDict:
       fp = p1FilesDict[ st ][ 'filePointer']
       fp.close()
     return S_OK()
