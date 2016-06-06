@@ -181,6 +181,7 @@ def executeFilePath( dmScript ):
       failed.update( res['Value']['Failed'] )
     progressBar.endLoop()
 
+    res = S_OK( {'Successful':success, 'Failed':failed} )
     paths = {'Successful':{}, 'Failed':{}}
     for dirName in success:
       if full:
