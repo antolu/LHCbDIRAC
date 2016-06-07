@@ -973,17 +973,18 @@ def executeGetStats( dmScript ):
           metadata = dict( zip( parameterNames, item ) )
           datasets.add( ( metadata.get( 'EventType', metadata['FileName'].split( '/' )[5] ), metadata.get( 'FileType', metadata.get( 'Name' ) ) ) )
           try:
-            nbEvents += metadata['EventStat']
             fileSize += metadata['FileSize']
             lumi += metadata['Luminosity']
             run = metadata['RunNumber']
             runList.setdefault( run, [ 0., 0., 0. ] )
             runList[run][0] += metadata['Luminosity']
-            runList[run][1] += metadata['EventStat']
+            if metadata['EventStat']:
+              nbEvents += metadata['EventStat']
+              runList[run][1] += metadata['EventStat']
             runList[run][2] += metadata['FileSize']
             nbFiles += 1
           except Exception as e:
-            gLogger.exception( 'Exception for %s' % str( metadata.keys() ), e )
+            gLogger.exception( 'Exception for %s' % str( metadata.keys() ), lException = e )
       if lfns:
         lfnChunks = breakListIntoChunks( lfns, 1000 )
         progressBar = ProgressBar( len( lfns ), title = "Get metadata from BK", chunk = 1000 )
@@ -994,13 +995,14 @@ def executeGetStats( dmScript ):
             for lfn, metadata in res['Value']['Successful'].iteritems():
               datasets.add( ( metadata['EventType'], metadata['FileType'] ) )
               try:
-                nbEvents += metadata['EventStat']
                 fileSize += metadata['FileSize']
                 lumi += metadata['Luminosity']
                 run = metadata['RunNumber']
                 runList.setdefault( run, [ 0, 0, 0 ] )
                 runList[run][0] += metadata['Luminosity']
-                runList[run][1] += metadata['EventStat']
+                if metadata['EventStat']:
+                  nbEvents += metadata['EventStat']
+                  runList[run][1] += metadata['EventStat']
                 runList[run][2] += metadata['FileSize']
                 nbFiles += 1
               except Exception as e:
