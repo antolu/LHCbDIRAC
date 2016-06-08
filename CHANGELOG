@@ -1,3 +1,6 @@
+[v8r3-pre14]
+* v8r3-pre14 based on Dirac v6r15p2 and LHCbGrid v9r4
+
 [v8r3-pre13]
 Use DIRAC v6r15p1
 * Update create_vobox_update.py remove lbvobox10 and add lbvobox10X machines
