@@ -43,6 +43,8 @@ But before:
 Pre
 ```
 
+If you use a version of git prior to 1.8, remove teh option *--pretty* in the command line
+
 Verify what is the last tag of DIRAC::
 
   # it should be in this list:
@@ -69,6 +71,9 @@ Otherwise, simply click the "Accept merge request" button for each of them.
 
 Then, from the LHCbDIRAC local fork you need to update some files::
 
+  # if you start from scratch otherwise skip the first 2 commands
+  git clone https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
+  git remote add upstream https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
   # update your "local" upstream/master branch
   git fetch upstream
   # create a "newDevel" branch which from the upstream/devel branch
