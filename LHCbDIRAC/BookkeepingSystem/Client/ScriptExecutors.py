@@ -13,7 +13,7 @@ from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveS
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult, ProgressBar
-from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, parseRuns
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, parseRuns, BadRunRange
 
 bkClient = BookkeepingClient()
 
@@ -1132,7 +1132,11 @@ def executeRunTCK():
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
       # Add a fake run number to force it to return a list
-      runsDict = parseRuns( {}, '0,' + switch[1] )
+      try:
+        runsDict = parseRuns( {}, '0,' + switch[1] )
+      except BadRunRange:
+        gLogger.fatal( "Bad run range" )
+        diracExit( 1 )
 
   runsList = runsDict['RunNumber']
   # Remove the fake run number
