@@ -28,6 +28,52 @@ def makeBKPath( bkDict ):
     path = path[:-1]
   return path.replace( 'RealData', 'Real Data' )
 
+class BadRunRange( Exception ):
+  pass
+
+def parseRuns( bkQuery, runs ):
+  if isinstance( runs, basestring ):
+    runs = runs.split( ',' )
+  elif isinstance( runs, dict ):
+    runs = runs.keys()
+  elif isinstance( runs, int ):
+    runs = [str( runs )]
+  if len( runs ) > 1:
+    runList = []
+    for run in runs:
+      if run.isdigit():
+        runList.append( int( run ) )
+      else:
+        runRange = run.split( ':' )
+        if len( runRange ) == 2 and runRange[0].isdigit() and runRange[1].isdigit():
+          runList += xrange( int( runRange[0] ), int( runRange[1] ) + 1 )
+    bkQuery['RunNumber'] = runList
+  else:
+    runs = runs[0].split( ':' )
+    if len( runs ) == 1:
+      runs = runs[0].split( '-' )
+      if len( runs ) == 1:
+        bkQuery['RunNumber'] = int( runs[0] )
+  if 'RunNumber' not in bkQuery:
+    try:
+      if runs[0] and runs[1] and int( runs[0] ) > int( runs[1] ):
+        gLogger.error( 'Warning: End run should be larger than start run: %d, %d' % ( int( runs[0] ),
+                                                                                     int( runs[1] ) ) )
+        raise BadRunRange
+      if runs[0].isdigit():
+        bkQuery['StartRun'] = int( runs[0] )
+      if runs[1].isdigit():
+        bkQuery['EndRun'] = int( runs[1] )
+    except IndexError as ex:  # The runs must be a list
+      gLogger.exception( "Invalid run range", runs, lException = ex )
+      raise BadRunRange
+  else:
+    if 'StartRun' in bkQuery:
+      bkQuery.pop( 'StartRun' )
+    if 'EndRun' in bkQuery:
+      bkQuery.pop( 'EndRun' )
+  return bkQuery
+
 class BKQuery():
   """
   It used to build a dictionary using a given Bookkeeping path
@@ -177,50 +223,12 @@ class BKQuery():
         bkQuery.pop( 'EventType' )
 
     # Run limits are given
-    runs = bkQuery.get( "Runs", runs )
-    bkQuery.pop( 'Runs', None )
+    runs = bkQuery.pop( 'Runs', runs )
     if runs:
-      if isinstance( runs, basestring ):
-        runs = runs.split( ',' )
-      elif isinstance( runs, dict ):
-        runs = runs.keys()
-      elif isinstance( runs, int ):
-        runs = [str( runs )]
-      if len( runs ) > 1:
-        runList = []
-        for run in runs:
-          if run.isdigit():
-            runList.append( int( run ) )
-          else:
-            runRange = run.split( ':' )
-            if len( runRange ) == 2 and runRange[0].isdigit() and runRange[1].isdigit():
-              runList += xrange( int( runRange[0] ), int( runRange[1] ) + 1 )
-        bkQuery['RunNumber'] = runList
-      else:
-        runs = runs[0].split( ':' )
-        if len( runs ) == 1:
-          runs = runs[0].split( '-' )
-          if len( runs ) == 1:
-            bkQuery['RunNumber'] = int( runs[0] )
-      if 'RunNumber' not in bkQuery:
-        try:
-          if runs[0] and runs[1] and int( runs[0] ) > int( runs[1] ):
-            gLogger.warn( 'Warning: End run should be larger than start run: %d, %d' % ( int( runs[0] ),
-                                                                                         int( runs[1] ) ) )
-            return self.__bkQueryDict
-          if runs[0].isdigit():
-            bkQuery['StartRun'] = int( runs[0] )
-          if runs[1].isdigit():
-            bkQuery['EndRun'] = int( runs[1] )
-        except IndexError, ex:  # The runs must be a list
-          gLogger.warn( ex )
-          print runs, 'is an invalid run range'
-          return self.__bkQueryDict
-      else:
-        if 'StartRun' in bkQuery:
-          bkQuery.pop( 'StartRun' )
-        if 'EndRun' in bkQuery:
-          bkQuery.pop( 'EndRun' )
+      try:
+        bkQuery = parseRuns( bkQuery, runs )
+      except BadRunRange:
+        return self.__bkQueryDict
 
     ###### Query given as a list of production ######
     if prods and str( prods[0] ).upper() != 'ALL':
