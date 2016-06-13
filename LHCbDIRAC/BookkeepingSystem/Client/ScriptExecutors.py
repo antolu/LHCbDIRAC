@@ -13,7 +13,7 @@ from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveS
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult, ProgressBar
-from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, parseRuns
 
 bkClient = BookkeepingClient()
 
@@ -890,17 +890,17 @@ def executeGetStats( dmScript ):
         continue
       prodName = res['Value']['TransformationName']
       bkQuery.setOption( 'Production', prod )
-      print "For production %d, %s (query %s)" % ( prod, prodName, bkQuery )
+      gLogger.notice( "For production %d, %s (query %s)" % ( prod, prodName, bkQuery ) )
     elif lfns:
-      print "For %d LFNs:" % len( lfns )
+      gLogger.notice( "For %d LFNs:" % len( lfns ) )
     else:
-      print "For BK query:", bkQuery
+      gLogger.notice( "For BK query:", bkQuery )
       if bkQuery:
         queryDict = bkQuery.getQueryDict()
 
     # Get information from BK
     if not triggerRate and not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
-      print "Getting info from filesSummary..."
+      gLogger.notice( "Getting info from filesSummary..." )
       query = queryDict.copy()
       if len( query ) <= 3:
         query.update( {'1':1, '2':2, '3':3 } )
@@ -921,7 +921,7 @@ def executeGetStats( dmScript ):
           query['FileType'] = fileType
         res = bkClient.getFilesSummary( query )
         if not res['OK']:
-          print "Error getting statistics from BK", res['Message']
+          gLogger.error( "Error getting statistics from BK", res['Message'] )
           diracExit( 0 )
         paramNames = res['Value']['ParameterNames']
         record = []
@@ -945,7 +945,7 @@ def executeGetStats( dmScript ):
         # print fileType, records, 'Total'
       paramNames += ['EvtsPerLumi', 'SizePerLumi' ]
     else:
-      print "Getting info from files..."
+      gLogger.notice( "Getting info from files..." )
       # To be replaced with getFilesWithMetadata when it allows invisible files
       paramNames = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'EvtsPerLumi', 'SizePerLumi']
       nbFiles = 0
@@ -1008,7 +1008,7 @@ def executeGetStats( dmScript ):
               except Exception as e:
                 gLogger.exception( 'Exception for %s' % lfn, str( metadata.keys() ), lException = e )
           else:
-            print "Error getting files metadata:", res['Message']
+            gLogger.error( "Error getting files metadata:", res['Message'] )
             continue
         progressBar.endLoop()
       records = [nbFiles, nbEvents, fileSize, lumi,
@@ -1023,10 +1023,10 @@ def executeGetStats( dmScript ):
     for name, value in zip( paramNames, records ):
       if name == 'NbofFiles':
         nfiles = value
-        print '%s: %s' % ( 'Nb of Files'.ljust( tab ), _intWithQuotes( value ) )
+        gLogger.notice( '%s: %s' % ( 'Nb of Files'.ljust( tab ), _intWithQuotes( value ) ) )
       elif name == 'NumberOfEvents':
         nevts = value
-        print '%s: %s' % ( 'Nb of Events'.ljust( tab ), _intWithQuotes( value ) )
+        gLogger.notice( '%s: %s' % ( 'Nb of Events'.ljust( tab ), _intWithQuotes( value ) ) )
       elif name == 'FileSize':
         size = value
         sizePerEvt = '(%.1f kB per evt)' % ( size / nevts / 1000. ) if nevts and nDatasets == 1 else ''
@@ -1038,23 +1038,23 @@ def executeGetStats( dmScript ):
         else:
           size = 0
           sizeUnit = ''
-        print '%s: %.3f %s %s' % ( 'Total size'.ljust( tab ), size, sizeUnit, sizePerEvt )
+        gLogger.notice( '%s: %.3f %s %s' % ( 'Total size'.ljust( tab ), size, sizeUnit, sizePerEvt ) )
       elif name == 'Luminosity':
         lumi = value / nDatasets
         lumi, lumiUnit = _scaleLumi( lumi )
         lumiString = 'Luminosity' if nDatasets == 1 else 'Avg luminosity'
-        print '%s: %.3f %s' % ( lumiString.ljust( tab ), lumi, lumiUnit )
+        gLogger.notice( '%s: %.3f %s' % ( lumiString.ljust( tab ), lumi, lumiUnit ) )
       elif name == 'EvtsPerLumi':
         evtsPerLumi = value * nDatasets
       elif name == 'SizePerLumi':
         value *= nDatasets
-        print "%s: %.1f GB" % ( ( 'Size  per %s' % '/pb' ).ljust( tab ), value * 1000000. / 1000000000. )
+        gLogger.notice( "%s: %.1f GB" % ( ( 'Size  per %s' % '/pb' ).ljust( tab ), value * 1000000. / 1000000000. ) )
         # if nDatasets != 1:
         #  sizePerEvt = value / evtsPerLumi / 1000. if evtsPerLumi else 0.
         #  print '%s: %.1f kB' % ( 'Avg size per evt'.ljust( tab ), sizePerEvt )
     if lumi:
       filesPerLumi = nfiles / lumi
-      print "%s: %.1f" % ( ( 'Files per %s' % lumiUnit ).ljust( tab ), filesPerLumi )
+      gLogger.notice( "%s: %.1f" % ( ( 'Files per %s' % lumiUnit ).ljust( tab ), filesPerLumi ) )
     if triggerRate:
       # Get information from the runs, but first get those that are Finished
       res = bkClient.getRunStatus( list( runList ) )
@@ -1092,28 +1092,74 @@ def executeGetStats( dmScript ):
             statDict = dict( zip( info['Stream'], info['Number of events'] ) )
             lumi = info['TotalLuminosity']
             if abs( lumi - runList[run][0] / nDatasets ) > 1:
-              print 'Run and files luminosity mismatch (ignored): run', run, 'runLumi', lumi, 'filesLumi', runList[run][0] / nDatasets
+              gLogger.notice( 'Run and files luminosity mismatch (ignored): run %d, runLumi %d, filesLumi %d' % ( run, 'runLumi', lumi, 'filesLumi', runList[run][0] / nDatasets ) )
             else:
               totalLumi += lumi
-        rate = ( '%.1f events/second' % ( nevts / fullDuration / 3600 ) ) if fullDuration else 'Run duration not available'
+        if fullDuration:
+          triggerRate = nevts / fullDuration / 3600
+          rate = ( '%.1f events/second' % triggerRate )
+        else:
+          triggerRate = 0.
+          rate = 'Run duration not available'
         totalLumi, lumiUnit = _scaleLumi( totalLumi )
-        print '%s: %.3f %s' % ( 'Total Luminosity'.ljust( tab ), totalLumi, lumiUnit )
-        print '%s: %.1f hours (%d runs)' % ( 'Run duration'.ljust( tab ), fullDuration, len( runs ) )
-        print '%s: %s' % ( 'Trigger rate'.ljust( tab ), rate )
+        gLogger.notice( '%s: %.3f %s' % ( 'Total Luminosity'.ljust( tab ), totalLumi, lumiUnit ) )
+        gLogger.notice( '%s: %.1f hours (%d runs)' % ( 'Run duration'.ljust( tab ), fullDuration, len( runs ) ) )
+        gLogger.notice( '%s: %s' % ( 'Trigger rate'.ljust( tab ), rate ) )
         rate = ( '%.1f MB/second' % ( size / 1000000. / fullDuration / 3600. ) ) if fullDuration else 'Run duration not available'
-        print '%s: %s' % ( 'Throughput'.ljust( tab ), rate )
+        gLogger.notice( '%s: %s' % ( 'Throughput'.ljust( tab ), rate ) )
         result = _getCollidingBunches( min( fills.keys() ), max( fills.keys() ) )
         collBunches = 0.
         for fill in fillDuration:
           if fill not in result:
-            print  "Error: no number of colliding bunches for fill %d" % fillDuration
+            gLogger.notice( "Error: no number of colliding bunches for fill %d" % fillDuration )
           else:
             collBunches += result[fill] * fillDuration[fill]
-        collBunches /= fullDuration
-        print '%s: %.1f on average' % ( 'Colliding bunches'.ljust( tab ), collBunches )
+        if fullDuration:
+          collBunches /= fullDuration
+          gLogger.notice( '%s: %.1f on average' % ( 'Colliding bunches'.ljust( tab ), collBunches ) )
+          if collBunches:
+            gLogger.notice( '%s: %.2f events/s/bunch' % ( 'Trigger per bunch'.ljust( tab ), triggerRate / collBunches ) )
         if listFills:
-          print 'List of fills: ', ','.join( "%d (%d runs, %.1f hours)" % ( fill, len( fills[fill] ), fillDuration[fill] ) for fill in sorted( fills ) )
+          gLogger.notice( 'List of fills: ', ','.join( "%d (%d runs, %.1f hours)" % ( fill, len( fills[fill] ), fillDuration[fill] ) for fill in sorted( fills ) ) )
         if listRuns:
           for fill in sorted( fills ):
-            print 'Fill %d (%4d bunches, %.1f hours):' % ( fill, result[fill], fillDuration[fill] ), ','.join( fills[fill] )
-    print ""
+            gLogger.notice( 'Fill %d (%4d bunches, %.1f hours):' % ( fill, result[fill], fillDuration[fill] ), ','.join( fills[fill] ) )
+    gLogger.notice( "" )
+
+def executeRunTCK():
+
+  runsDict = {}
+  for switch in Script.getUnprocessedSwitches():
+    if switch[0] == 'Runs':
+      # Add a fake run number to force it to return a list
+      runsDict = parseRuns( {}, '0,' + switch[1] )
+
+  runsList = runsDict['RunNumber']
+  # Remove the fake run number
+  runsList.remove( 0 )
+  runDict = {}
+  for run in sorted( runsList ):
+    res = bkClient.getRunInformations( run )
+    if res['OK']:
+      tck = res['Value'].get( 'Tck' )
+      streams = res['Value'].get( 'Stream', [] )
+      if 90000000 in streams and tck:
+        runDict[run] = tck
+  tckList = []
+  for run in sorted( runDict ):
+    if runDict[run] not in tckList:
+      tckList.append( runDict[run] )
+  for tck in tckList:
+    prStr = 'TCK %s: ' % tck
+    firstRun = None
+    for run in sorted( runDict ) + [None]:
+      runTck = runDict.get( run )
+      if runTck == tck and not firstRun:
+        firstRun = run
+        lastRun = run
+      elif runTck != tck and firstRun:
+        prStr += '%d:%d, ' % ( firstRun, lastRun )
+        firstRun = None
+      else:
+        lastRun = run
+    gLogger.notice( prStr[:-2] )
