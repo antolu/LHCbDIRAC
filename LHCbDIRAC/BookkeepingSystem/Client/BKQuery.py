@@ -47,6 +47,9 @@ def parseRuns( bkQuery, runs ):
         runRange = run.split( ':' )
         if len( runRange ) == 2 and runRange[0].isdigit() and runRange[1].isdigit():
           runList += xrange( int( runRange[0] ), int( runRange[1] ) + 1 )
+        else:
+          gLogger.error( "Run numbers must be numbers..." )
+          raise BadRunRange
     bkQuery['RunNumber'] = runList
   else:
     runs = runs[0].split( ':' )

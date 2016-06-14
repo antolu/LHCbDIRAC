@@ -27,4 +27,4 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = True )
 
   from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import executeFileSisters
-  executeFileSisters( dmScript )
+  executeFileSisters( dmScript, level = level )

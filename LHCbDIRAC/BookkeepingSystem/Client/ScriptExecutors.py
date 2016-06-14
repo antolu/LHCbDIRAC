@@ -187,7 +187,7 @@ def executeFilePath( dmScript ):
       if full:
         success[dirName] = success[dirName][0]
       else:
-        bkDict = success[dirName][0].copy()
+        bkDict = success[dirName][0]
         if ignoreFileType:
           bkDict['FileType'] = ''
         bkDict['Path'] = __buildPath( bkDict )
@@ -207,7 +207,7 @@ def executeFilePath( dmScript ):
     if groupBy:
       if summary:
         pathSummary = {'Successful': {}, 'Failed' : {}}
-        for path in paths['Successful'].keys():
+        for path in paths['Successful']:
           nfiles = len( paths['Successful'][path] )
           if 'Invisible' in path:
             path = path.split()[0]
@@ -233,6 +233,9 @@ def executeFilePath( dmScript ):
 #==================================================================================
 
 def _updateFileLumi( fileDict, retries = 5 ):
+  """
+  Update the luminosity of a list of files in the BK
+  """
   error = False
   progressBar = ProgressBar( len( fileDict ), title = 'Updating luminosity', step = 10 )
   for lfn in fileDict:
@@ -249,6 +252,10 @@ def _updateFileLumi( fileDict, retries = 5 ):
   return error
 
 def _updateDescendantsLumi( parentLumi, doIt = False, force = False ):
+  """
+  Get file descendants and update their luminosity if necessary (if doIt == True)
+  This function does it recursively to all descendants
+  """
   if not parentLumi:
     return None
   # Get descendants:
@@ -414,7 +421,7 @@ def executeFileAncestors( dmScript, level = 1 ):
   try:
     level = int( args[-1] )
     args.pop()
-  except:
+  except ( ValueError, IndexError ):
     pass
 
   for lfn in args:
@@ -475,7 +482,7 @@ def executeFileDescendants( dmScript, level = 1 ):
   try:
     level = int( args[-1] )
     args.pop()
-  except:
+  except ( ValueError, IndexError ):
     pass
 
   for lfn in args:
@@ -528,7 +535,7 @@ def executeGetFiles( dmScript, maxFiles = 20 ):
     elif switch == 'MaxFiles':
       try:
         nMax = int( val )
-      except:
+      except ValueError:
         gLogger.error( 'Invalid integer', val )
         diracExit( 2 )
 
@@ -559,8 +566,7 @@ def executeGetFiles( dmScript, maxFiles = 20 ):
       parameters = res['Value']['ParameterNames']
       for record in res['Value']['Records']:
         dd = dict( zip( parameters, record ) )
-        lfn = dd['FileName']
-        dd.pop( 'FileName' )
+        lfn = dd.pop( 'FileName' )
         fileDict[lfn] = dd
 
     else:
@@ -617,7 +623,7 @@ def executeGetFiles( dmScript, maxFiles = 20 ):
 
 #==================================================================================
 
-def executeFileSisters( dmScript ):
+def executeFileSisters( dmScript, level = 1 ):
   """
   Gets a list of files and extract from BK the sisters (i.e. files with same parent in the same production
   """
@@ -636,7 +642,8 @@ def executeFileSisters( dmScript ):
     elif switch[0] == 'Production':
       try:
         prod = int( switch[1] )
-      except:
+      except ValueError as e:
+        gLogger.exception( "Invalid value for --Production:", switch[1], lException = e )
         prod = 0
     elif switch[0] == 'Full':
       full = True
@@ -648,7 +655,7 @@ def executeFileSisters( dmScript ):
   try:
     level = int( args[-1] )
     args.pop()
-  except:
+  except ( ValueError, IndexError ):
     pass
   if level == 1:
     relation = 'NoSister'
@@ -658,6 +665,9 @@ def executeFileSisters( dmScript ):
   for lfn in args:
     dmScript.setLFNsFromFile( lfn )
   lfnList = dmScript.getOption( 'LFNs', [] )
+  if not lfnList:
+    gLogger.error( "No LFNs given" )
+    diracExit( 1 )
 
   prodLfns = {}
   if not prod:
@@ -727,7 +737,7 @@ def executeFileSisters( dmScript ):
           lfnList.remove( lfn )
       for lfn in lfnList:
         resValue[relation].add( lfn )
-      for lfn in ( lfn for lfn in resValue[resItem] if lfn in resValue[relation] ):
+      for lfn in set( resValue[resItem] ).intersection( resValue[relation] ):
         resValue[relation].remove( lfn )
     else:
       break
@@ -737,6 +747,9 @@ def executeFileSisters( dmScript ):
 #==================================================================================
 
 def _intWithQuotes( val, quote = "'" ):
+  """
+  Print numbers with a character separating each thousand
+  """
   chunks = []
   if not val:
     return 'None'
@@ -749,97 +762,45 @@ def _intWithQuotes( val, quote = "'" ):
   chunks.reverse()
   return quote.join( chunks )
 
-def _scaleLumi( lumi ):
-  lumiUnits = ( '/microBarn', '/nb', '/pb', '/fb', '/ab' )
-  if lumi:
-    for lumiUnit in lumiUnits:
-      if lumi < 1000.:
+def _scaleValue( val, units ):
+  if val:
+    for unit in units:
+      if val < 1000.:
         break
-      lumi /= 1000.
+      val /= 1000.
   else:
-    lumi = 0
-    lumiUnit = ''
-  return lumi, lumiUnit
+    val = 0
+    unit = ''
+  return val, unit
 
-def _getCollidingBunches( minFill, maxFill ):
-  import pycurl
-  from urllib import urlencode
-  from StringIO import StringIO
-  runDbUrl = 'http://lbrundb.cern.ch/rundb/export_fills_maintable'
+def _scaleLumi( lumi ):
+  """
+  Return lumi in the appropriate unit
+  """
+  return _scaleValue( lumi, ( '/microBarn', '/nb', '/pb', '/fb', '/ab' ) )
 
-  data = urlencode( {"fill_id_min": minFill, "fill_id_max" : maxFill, "fill_flist" : "params.nCollidingBunches"} )
-  buf = StringIO()
-  c = pycurl.Curl()
-  c.setopt( pycurl.URL, runDbUrl )
-  c.setopt( pycurl.POST, 1 )
-  c.setopt( pycurl.POSTFIELDS, data )
-  c.setopt( c.WRITEFUNCTION, buf.write )
-  c.perform()
-  c.close()
+def _scaleSize( size ):
+  """
+  Return size in appropriate unit
+  """
+  return _scaleValue( size, ( 'Bytes', 'kB', 'MB', 'GB', 'TB', 'PB' ) )
 
-  body = buf.getvalue()
-
-  from HTMLParser import HTMLParser
-  class tabHolder( object ):
-
-    def __init__( self ):
-      self.listOfTabs = []
-      self.curTab = []
-
-    def nextTab( self ):
-      self.listOfTabs.append( self.curTab )
-      self.curTab = []
-      return self.curTab
-
-    def getTab( self ):
-      return self.curTab
-
-
-  tb = tabHolder()
-
-  # create a subclass and override the handler methods
-  class MyHTMLParser( HTMLParser ):
-      def handle_starttag( self, tag, attrs ):
-
-          if ( tag == 'th' or 'td' ) and len( attrs ) == 1 and "numbers" in attrs[0][1]:
-            self.toLog = True
-          elif tag == 'form' and len( attrs ) > 1 and "frmExportFills" in attrs[0][1]:
-            self.inTheForm = True
-
-      def handle_endtag( self, tag ):
-          if tag == 'tr':
-            tb.nextTab()
-          elif tag == 'th':
-            self.toLog = False
-
-      def handle_data( self, data ):
-          if getattr( self, "toLog", None ) and getattr( self, 'inTheForm', None ):
-            tb.getTab().append( data )
-
-  # instantiate the parser and fed it some HTML
-  parser = MyHTMLParser()
-  parser.feed( body )
-  wantedValues = []
-  for i, t in enumerate( tb.listOfTabs ):
-    if i == 0:
-      continue
-    elif i == 1:
-      continue
-    elif i == len( tb.listOfTabs ) - 1 :
-      continue
-    values = []
-    for v in t:
-      v = v.replace( '\\n', '' ).replace( '\\t', '' ).replace( ' ', '' )
-      if not v:
-        continue
-      values.append( v )
-    wantedValues.append( values )
-
+def _getCollidingBunches( fills ):
+  """
+  Get the number of colliding bunches for all fills and average
+  """
+  import urllib2
+  import json
   result = {}
-  for line in wantedValues:
-    result[int( line[0] )] = int( line[2] )
+  for fill in fills:
+    try:
+      runDbUrl = 'https://lbrundb.cern.ch/api/fill/%d/' % fill
+      fillInfo = json.load( urllib2.urlopen( runDbUrl ) )
+      result[fill] = int( fillInfo['nCollidingBunches'] )
+    except ( urllib2.HTTPError, KeyError, ValueError ) as e:
+      gLogger.exception( "Exception getting info for fill", str( fill ), lException = e )
+      pass
   return result
-
 
 def executeGetStats( dmScript ):
   """
@@ -902,6 +863,7 @@ def executeGetStats( dmScript ):
     if not triggerRate and not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
       gLogger.notice( "Getting info from filesSummary..." )
       query = queryDict.copy()
+      # Horrible! At some point the BK service was requiring a dictionary with at least 3 elements, to check if still needed
       if len( query ) <= 3:
         query.update( {'1':1, '2':2, '3':3 } )
       fileTypes = query.get( 'FileType' )
@@ -957,8 +919,6 @@ def executeGetStats( dmScript ):
       if not lfns:
         fileTypes = queryDict.get( 'FileType' )
         res = bkClient.getFilesWithMetadata( queryDict )
-        if 'OK' in res.get( 'Value', {} ):
-            res = res['Value']
         if 'ParameterNames' in res.get( 'Value', {} ):
           parameterNames = res['Value']['ParameterNames']
           info = res['Value']['Records']
@@ -1018,8 +978,7 @@ def executeGetStats( dmScript ):
 
     # Now printout the results
     tab = 17
-    sizeUnits = ( 'Bytes', 'kB', 'MB', 'GB', 'TB', 'PB' )
-    nfiles = nevts = evtsPerLumi = lumi = 0
+    nfiles = nevts = lumi = 0
     for name, value in zip( paramNames, records ):
       if name == 'NbofFiles':
         nfiles = value
@@ -1030,28 +989,16 @@ def executeGetStats( dmScript ):
       elif name == 'FileSize':
         size = value
         sizePerEvt = '(%.1f kB per evt)' % ( size / nevts / 1000. ) if nevts and nDatasets == 1 else ''
-        if size:
-          for sizeUnit in sizeUnits:
-            if size < 1000.:
-              break
-            size /= 1000.
-        else:
-          size = 0
-          sizeUnit = ''
+        size, sizeUnit = _scaleSize( size )
         gLogger.notice( '%s: %.3f %s %s' % ( 'Total size'.ljust( tab ), size, sizeUnit, sizePerEvt ) )
       elif name == 'Luminosity':
         lumi = value / nDatasets
         lumi, lumiUnit = _scaleLumi( lumi )
         lumiString = 'Luminosity' if nDatasets == 1 else 'Avg luminosity'
         gLogger.notice( '%s: %.3f %s' % ( lumiString.ljust( tab ), lumi, lumiUnit ) )
-      elif name == 'EvtsPerLumi':
-        evtsPerLumi = value * nDatasets
       elif name == 'SizePerLumi':
         value *= nDatasets
         gLogger.notice( "%s: %.1f GB" % ( ( 'Size  per %s' % '/pb' ).ljust( tab ), value * 1000000. / 1000000000. ) )
-        # if nDatasets != 1:
-        #  sizePerEvt = value / evtsPerLumi / 1000. if evtsPerLumi else 0.
-        #  print '%s: %.1f kB' % ( 'Avg size per evt'.ljust( tab ), sizePerEvt )
     if lumi:
       filesPerLumi = nfiles / lumi
       gLogger.notice( "%s: %.1f" % ( ( 'Files per %s' % lumiUnit ).ljust( tab ), filesPerLumi ) )
@@ -1088,8 +1035,6 @@ def executeGetStats( dmScript ):
             runDuration = ( info['RunEnd'] - info['RunStart'] ).total_seconds() / 3600.
             fillDuration[fill] = fillDuration.setdefault( fill, 0 ) + runDuration
             fullDuration += runDuration
-            lumiDict = dict( zip( info['Stream'], info['luminosity'] ) )
-            statDict = dict( zip( info['Stream'], info['Number of events'] ) )
             lumi = info['TotalLuminosity']
             if abs( lumi - runList[run][0] / nDatasets ) > 1:
               gLogger.notice( 'Run and files luminosity mismatch (ignored): run %d, runLumi %d, filesLumi %d' % ( run, 'runLumi', lumi, 'filesLumi', runList[run][0] / nDatasets ) )
@@ -1107,7 +1052,7 @@ def executeGetStats( dmScript ):
         gLogger.notice( '%s: %s' % ( 'Trigger rate'.ljust( tab ), rate ) )
         rate = ( '%.1f MB/second' % ( size / 1000000. / fullDuration / 3600. ) ) if fullDuration else 'Run duration not available'
         gLogger.notice( '%s: %s' % ( 'Throughput'.ljust( tab ), rate ) )
-        result = _getCollidingBunches( min( fills.keys() ), max( fills.keys() ) )
+        result = _getCollidingBunches( fillDuration )
         collBunches = 0.
         for fill in fillDuration:
           if fill not in result:
@@ -1127,13 +1072,17 @@ def executeGetStats( dmScript ):
     gLogger.notice( "" )
 
 def executeRunTCK():
+  """
+  Get the TCK for a range of runs, and then prints each TCK with run ranges
+  """
 
   runsDict = {}
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
-      # Add a fake run number to force it to return a list
+      # Add a fake run number to force parseRuns to return a list
       try:
-        runsDict = parseRuns( {}, '0,' + switch[1] )
+        runRange = switch[1]
+        runsDict = parseRuns( {}, '0,' + runRange )
       except BadRunRange:
         gLogger.fatal( "Bad run range" )
         diracExit( 1 )
@@ -1142,13 +1091,16 @@ def executeRunTCK():
   # Remove the fake run number
   runsList.remove( 0 )
   runDict = {}
+  progressBar = ProgressBar( len( runsList ), title = "Getting TCK for run range %s " % runRange, step = 20 )
   for run in sorted( runsList ):
+    progressBar.loop()
     res = bkClient.getRunInformations( run )
     if res['OK']:
       tck = res['Value'].get( 'Tck' )
       streams = res['Value'].get( 'Stream', [] )
       if 90000000 in streams and tck:
         runDict[run] = tck
+  progressBar.endLoop()
   tckList = []
   for run in sorted( runDict ):
     if runDict[run] not in tckList:
