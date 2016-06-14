@@ -102,15 +102,19 @@ class HCClient:
 
   try:
     response = urllib2.urlopen( self.hc_api + "/xhr/json/?action=results&test=" + testID )
+    fetchedData = response.read()
   except urllib2.HTTPError, e:
     return 'HTTP Error: ' + str(e.code) + ', ' + str(e.reason)
   except urllib2.URLError, e:
     return 'URL Error: ' + str(e.reason)
 
-  fetchedData = response.read()
   # The following is nessesary since the json will be invalid if it contains unquoted 'None'
   fetchedData = fetchedData.replace('None', '"None"')
-  fetchedData = json.loads(fetchedData)
+
+  try:
+      fetchedData = json.loads(fetchedData)
+  except ValueError, e:
+    return 'Invalid JSON: ' + str(e.message)
 
   return fetchedData[testID]['results']
 
@@ -150,7 +154,10 @@ class HCClient:
   except urllib2.URLError, e:
     return 'URL Error: ' + str(e.reason)
 
-  fetchedData = json.load(response)
+  try:
+    fetchedData = json.load(response)
+  except ValueError, e:
+    return 'Invalid JSON: ' + str(e.message)
 
   return fetchedData
 
