@@ -763,6 +763,9 @@ def _intWithQuotes( val, quote = "'" ):
   return quote.join( chunks )
 
 def _scaleValue( val, units ):
+  """
+  Scale a value by thousands, return value and unit
+  """
   if val:
     for unit in units:
       if val < 1000.:
