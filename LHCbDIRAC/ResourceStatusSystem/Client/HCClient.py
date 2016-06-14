@@ -116,13 +116,12 @@ class HCClient:
 
 ################################################################################
 
- def getHistoryReport( self, testID ):
+ def getHistoryReport( self, pastDays ):
   '''
-  Returns JSON results with information of a given given history report ID
-  -for example with history report ID 2.
+  Returns JSON results of the tests submitted by HC at each site.
 
   :params:
-   :attr: `id` : str - test ID
+   :attr: `pastDays` : str - days in the past to take in consideration when querying the results of the report.
 
   :return:
   {
@@ -145,7 +144,7 @@ class HCClient:
   '''
 
   try:
-    response = urllib2.urlopen( self.hc_api + "/ajax/historyreport/" + testID )
+    response = urllib2.urlopen( self.hc_api + "/ajax/historyreport/" + pastDays )
   except urllib2.HTTPError, e:
     return 'HTTP Error: ' + str(e.code) + ', ' + str(e.reason)
   except urllib2.URLError, e:
