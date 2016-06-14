@@ -539,15 +539,11 @@ def executeGetFiles( dmScript, maxFiles = 20 ):
         gLogger.error( 'Invalid integer', val )
         diracExit( 2 )
 
-  bkQueries = []
   bkQuery = dmScript.getBKQuery()
-  if bkQuery:
-    bkQueries.append( bkQuery )
-  if bkFile:
-    if os.path.exists( bkFile ):
-      lines = open( bkFile, 'r' ).readlines()
-      for ll in lines:
-        bkQueries.append( BKQuery( ll.strip().split()[0] ) )
+  bkQueries = [bkQuery] if bkQuery else []
+  if bkFile and os.path.exists( bkFile ):
+    with open( bkFile, 'r' ) as f:
+      bkQueries += [BKQuery( ll.strip().split()[0] ) for ll in f.readlines()]
 
   if not bkQueries:
     gLogger.notice( "No BK query given, use --BK <bkPath> or --BKFile <localFile>" )
