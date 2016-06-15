@@ -1133,6 +1133,7 @@ def executeRunTCK():
   for tck in tckList:
     prStr = 'TCK %s: ' % tck
     firstRun = None
+    # Add a fake run (None) in order to print out the last range
     for run in sorted( runDict ) + [None]:
       runTck = runDict.get( run )
       if runTck == tck and not firstRun:
