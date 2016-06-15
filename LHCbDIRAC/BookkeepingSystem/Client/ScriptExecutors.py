@@ -94,6 +94,9 @@ def executeFileMetadata( dmScript ):
 #==================================================================================
 
 def __buildPath( bkDict ):
+  """
+  Build a BK path from the BK dictionary
+  """
   return os.path.join( '/' + bkDict['ConfigName'], bkDict['ConfigVersion'], bkDict['ConditionDescription'],
                   bkDict['ProcessingPass'][1:].replace( 'Real Data', 'RealData' ), str( bkDict['EventType'] ), bkDict['FileType'] ) + ( ' (Invisible)' if bkDict['VisibilityFlag'] == 'N' else '' )
 
@@ -235,6 +238,10 @@ def executeFilePath( dmScript ):
 def _updateFileLumi( fileDict, retries = 5 ):
   """
   Update the luminosity of a list of files in the BK
+
+  :param dict fileDict: {lfn:luminosity}
+
+  :return: bool reporting error
   """
   error = False
   progressBar = ProgressBar( len( fileDict ), title = 'Updating luminosity', step = 10 )
@@ -255,6 +262,12 @@ def _updateDescendantsLumi( parentLumi, doIt = False, force = False ):
   """
   Get file descendants and update their luminosity if necessary (if doIt == True)
   This function does it recursively to all descendants
+
+  :param dict parentLumi: {lfn:lumi} for parent files
+  :param bool doit: execute the operation if True, else only print out information
+  :param bool force: update lumi even if OK (useful if further descendants may not be OK)
+
+  :return: bool indicating error
   """
   if not parentLumi:
     return None
@@ -745,6 +758,11 @@ def executeFileSisters( dmScript, level = 1 ):
 def _intWithQuotes( val, quote = "'" ):
   """
   Print numbers with a character separating each thousand
+
+  :param int,long val: integer value to printout
+  :param character quote: character to use as a separator
+
+  :return: string to print out
   """
   chunks = []
   if not val:
@@ -761,6 +779,11 @@ def _intWithQuotes( val, quote = "'" ):
 def _scaleValue( val, units ):
   """
   Scale a value by thousands, return value and unit
+
+  :param float val: value to scale
+  :param iterable units: list of unit names (increasing order)
+
+  :return: tuple (scaledValue, unitName)
   """
   if val:
     for unit in units:
@@ -787,6 +810,10 @@ def _scaleSize( size ):
 def _getCollidingBunches( fills ):
   """
   Get the number of colliding bunches for all fills and average
+
+  :param iterable fills: list of fill numbers
+
+  :return: dictionary {fill:nbCollisingBunches}
   """
   import urllib2
   import json
@@ -1074,7 +1101,6 @@ def executeRunTCK():
   """
   Get the TCK for a range of runs, and then prints each TCK with run ranges
   """
-
   runsDict = {}
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
