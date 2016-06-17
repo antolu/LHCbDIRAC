@@ -63,7 +63,7 @@ def doCheckFC2SE( cc, bkCheck = True, fixIt = False, replace = False ):
   maxFiles = 20
   if cc.existLFNsBKRepNo:
     gLogger.notice( '>>>>' )
-    affectedRuns = set( [str( run ) for run in cc.existLFNsBKRepNo.values() if run] )
+    affectedRuns = set( str( run ) for run in cc.existLFNsBKRepNo.itervalues() if run )
     if len( cc.existLFNsBKRepNo ) > maxFiles:
       prStr = ' (first %d)' % maxFiles
     else:
@@ -197,7 +197,7 @@ def doCheckFC2BK( cc, fixIt = False, listAffectedRuns = False ):
   if cc.existLFNsBKRepNo:
     gLogger.notice( '>>>>' )
 
-    affectedRuns = list( set( [str( run ) for run in cc.existLFNsBKRepNo.values()] ) )
+    affectedRuns = list( set( str( run ) for run in cc.existLFNsBKRepNo.itervalues() ) )
     gLogger.error( "%d files are in the FC but have replica = NO in BK" % len( cc.existLFNsBKRepNo ) )
     from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
     ccAux = ConsistencyChecks()

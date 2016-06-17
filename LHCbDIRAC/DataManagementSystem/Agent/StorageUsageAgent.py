@@ -5,7 +5,7 @@
     =======================
 
     .. module: StorageUsageAgent
-    :synopsis: StorageUsageAgent takes the LFC as the primary source of information to
+    :synopsis: StorageUsageAgent takes the FC as the primary source of information to
     determine storage usage.
 '''
 # # imports
@@ -323,8 +323,8 @@ class StorageUsageAgent( AgentModule ):
 
 
   def __processDirDFC( self, dirPath, metadata, subDirectories ):
-    ''' gets the list of subdirs that the DFC doesn't return, set the metadata like the LFC
-    and then call the same method as for the LFC '''
+    ''' gets the list of subdirs that the DFC doesn't return, set the metadata like the FC
+    and then call the same method as for the FC '''
     if 'SubDirs' not in subDirectories:
       self.log.error( 'No subdirectory item for directory', dirPath )
       return

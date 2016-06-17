@@ -42,7 +42,9 @@ But before:
 
 Pre
 ```
-If you have a version of git prior to 1.8, remove the option *--pretty* in the command line
+
+If you use a version of git prior to 1.8, remove teh option *--pretty* in the command line
+
 Verify what is the last tag of DIRAC::
 
   # it should be in this list:

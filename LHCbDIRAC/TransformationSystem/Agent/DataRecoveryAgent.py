@@ -106,7 +106,7 @@ class DataRecoveryAgent( AgentModule ):
                                                              ', '.join( transformationDict.keys() ) ) )
 
 
-    for transformation, typeName in transformationDict.items():
+    for transformation, typeName in transformationDict.iteritems():
 
       self.log.info( '=' * len( 'Looking at transformation %s type %s:' % ( transformation, typeName ) ) )
 
@@ -134,7 +134,7 @@ class DataRecoveryAgent( AgentModule ):
       jobFileDict = result['Value']
       self.log.verbose( "Looking at WMS jobs %s" % str( jobFileDict ) )
       fileCount = 0
-      for job, lfnList in jobFileDict.items():
+      for job, lfnList in jobFileDict.iteritems():
         fileCount += len( lfnList )
 
       if not fileCount:
@@ -153,9 +153,7 @@ class DataRecoveryAgent( AgentModule ):
         continue
 
       jobFileNoRequestsDict = result['Value']
-      fileCount = 0
-      for job, lfnList in jobFileNoRequestsDict.items():
-        fileCount += len( lfnList )
+      fileCount = sum( len( lfnList ) for lfnList in jobFileNoRequestsDict.itervalues() )
 
       self.log.info( '%s files are selected after removing any relating to jobs with pending requests' % ( fileCount ) )
       jobsThatDidntProduceOutputs, jobsThatProducedOutputs = self._checkdescendants( transformation,
@@ -168,7 +166,7 @@ class DataRecoveryAgent( AgentModule ):
 
       filesToUpdate = []
       filesWithdescendantsInBK = []
-      for job, fileList in jobFileNoRequestsDict.items():
+      for job, fileList in jobFileNoRequestsDict.iteritems():
         if job in jobsThatDidntProduceOutputs:
           filesToUpdate += fileList
         elif job in jobsThatProducedOutputs:
@@ -285,11 +283,8 @@ class DataRecoveryAgent( AgentModule ):
                                                                                   ', '.join( wmsStatusList ) ) )
         continue
 
-      finalJobData = []
       # Must map unique files -> jobs in expected state
-      for lfn, prodID in fileDict.items():
-        if int( prodID ) == int( job ):
-          finalJobData.append( lfn )
+      finalJobData = [lfn for lfn, prodID in fileDict.iteritems() if int( prodID ) == int( job )]
 
       self.log.info( 'Found %s files for job %s' % ( len( finalJobData ), job ) )
       jobFileDict[wmsID] = finalJobData
@@ -311,7 +306,7 @@ class DataRecoveryAgent( AgentModule ):
       self.log.verbose( 'None of the jobs have pending requests' )
       return S_OK( jobFileDict )
 
-    for jobID, requestID in result['Value']['Successful'].items():
+    for jobID, requestID in result['Value']['Successful'].iteritems():
       res = self.reqClient.getRequestStatus( requestID )
       if not res['OK']:
         self.log.error( 'Failed to get Status for Request', '%s:%s' % ( requestID, res['Message'] ) )
@@ -335,7 +330,7 @@ class DataRecoveryAgent( AgentModule ):
     jobsThatProducedOutputs = []
 
     self.cc.prod = transformation
-    for job, fileList in jobFileDict.items():
+    for job, fileList in jobFileDict.iteritems():
       result = self.cc.getDescendants( fileList )
       filesWithDesc = result[0]
       filesWithMultipleDesc = result[2]
