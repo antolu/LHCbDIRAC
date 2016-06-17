@@ -3,25 +3,25 @@
 ########################################################################
 """ :mod: RAWIntegrityAgent
     =======================
- 
+
     .. module: RAWIntegrityAgent
     :synopsis: RAWIntegrityAgent determines whether RAW files in CASTOR were migrated correctly.
 """
 __RCSID__ = "$Id$"
-## imports
+# # imports
 import os
-## from DIRAC
+# # from DIRAC
 from DIRAC import gMonitor, S_OK
-## from Core
+# # from Core
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities.Subprocess import shellCall
 from DIRAC.ConfigurationSystem.Client import PathFinder
-## from DMS
+# # from DMS
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 from LHCbDIRAC.DataManagementSystem.DB.RAWIntegrityDB import RAWIntegrityDB
-## from RMS
+# # from RMS
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.File import File
@@ -38,22 +38,22 @@ class RAWIntegrityAgent( AgentModule ):
   :param RAWIntegrityDB rawIntegrityDB: RAWIntegrityDB instance
   :param str gatewayUrl: URL to online RequestClient
   """
-  
+
   def __init__( self, *args, **kwargs ):
     """ c'tor
     """
-    
+
     AgentModule.__init__( self, *args, **kwargs )
-  
-    self.rawIntegrityDB    = None
+
+    self.rawIntegrityDB = None
     self.fileCatalog = None
-    self.onlineRequestMgr  = None
-    
-    
+    self.onlineRequestMgr = None
+
+
   def initialize( self ):
     """ agent initialisation """
 
-    self.rawIntegrityDB    = RAWIntegrityDB()
+    self.rawIntegrityDB = RAWIntegrityDB()
 
     # The file catalog is used to register file once it has been transfered
     # But we want to register it in all the catalogs except the RAWIntegrityDB
@@ -69,32 +69,32 @@ class RAWIntegrityAgent( AgentModule ):
     self.onlineRequestMgr = ReqClient()
     self.onlineRequestMgr.setServer( 'RequestManagement/onlineGateway' )
 
-    
-    gMonitor.registerActivity( "Iteration", "Agent Loops/min", 
+
+    gMonitor.registerActivity( "Iteration", "Agent Loops/min",
                                "RAWIntegriryAgent", "Loops", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "WaitingFiles", "Files waiting for migration", 
+    gMonitor.registerActivity( "WaitingFiles", "Files waiting for migration",
                                "RAWIntegriryAgent", "Files", gMonitor.OP_MEAN )
-    gMonitor.registerActivity( "NewlyMigrated", "Newly migrated files", 
+    gMonitor.registerActivity( "NewlyMigrated", "Newly migrated files",
                                "RAWIntegriryAgent", "Files", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "TotMigrated", "Total migrated files", 
+    gMonitor.registerActivity( "TotMigrated", "Total migrated files",
                                "RAWIntegriryAgent", "Files", gMonitor.OP_ACUM )
-    gMonitor.registerActivity( "SuccessfullyMigrated", "Successfully migrated files", 
+    gMonitor.registerActivity( "SuccessfullyMigrated", "Successfully migrated files",
                                "RAWIntegriryAgent", "Files", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "TotSucMigrated", "Total successfully migrated files", 
+    gMonitor.registerActivity( "TotSucMigrated", "Total successfully migrated files",
                                "RAWIntegriryAgent", "Files", gMonitor.OP_ACUM )
-    gMonitor.registerActivity( "FailedMigrated", "Erroneously migrated files", 
+    gMonitor.registerActivity( "FailedMigrated", "Erroneously migrated files",
                                "RAWIntegriryAgent", "Files", gMonitor.OP_SUM )
-    gMonitor.registerActivity( "TotFailMigrated", "Total erroneously migrated files", 
+    gMonitor.registerActivity( "TotFailMigrated", "Total erroneously migrated files",
                                "RAWIntegriryAgent", "Files", gMonitor.OP_ACUM )
-    gMonitor.registerActivity( "MigrationTime", "Average migration time", 
+    gMonitor.registerActivity( "MigrationTime", "Average migration time",
                                "RAWIntegriryAgent", "Seconds", gMonitor.OP_MEAN )
-    gMonitor.registerActivity( "TotMigratedSize", "Total migrated file size", 
+    gMonitor.registerActivity( "TotMigratedSize", "Total migrated file size",
                                "RAWIntegriryAgent", "GB", gMonitor.OP_ACUM )
-    gMonitor.registerActivity( "TimeInQueue", "Average current wait for migration", 
+    gMonitor.registerActivity( "TimeInQueue", "Average current wait for migration",
                                "RAWIntegriryAgent", "Minutes", gMonitor.OP_MEAN )
-    gMonitor.registerActivity( "WaitSize", "Size of migration buffer", 
+    gMonitor.registerActivity( "WaitSize", "Size of migration buffer",
                                "RAWIntegrityAgent", "GB", gMonitor.OP_MEAN )
-    gMonitor.registerActivity( "MigrationRate", "Observed migration rate", 
+    gMonitor.registerActivity( "MigrationRate", "Observed migration rate",
                                "RAWIntegriryAgent", "MB/s", gMonitor.OP_MEAN )
 
     # This sets the Default Proxy to used as that defined under
@@ -105,8 +105,8 @@ class RAWIntegrityAgent( AgentModule ):
     return S_OK()
 
   def execute( self ):
-    """ execution in one cycle 
-    
+    """ execution in one cycle
+
     TODO: needs some refactoring and splitting, it's just way too long
     """
 
@@ -132,7 +132,7 @@ class RAWIntegrityAgent( AgentModule ):
     if not activeFiles:
       return S_OK()
     totalSize = 0
-    for lfn, fileDict in activeFiles.items():
+    for lfn, fileDict in activeFiles.iteritems():
       totalSize += int( fileDict['Size'] )
       gMonitor.addMark( "TimeInQueue", ( fileDict['WaitTime'] / 60 ) )
     gMonitor.addMark( "WaitSize", ( totalSize / ( 1024 * 1024 * 1024.0 ) ) )
@@ -143,12 +143,12 @@ class RAWIntegrityAgent( AgentModule ):
     #
     self.log.info( "Obtaining physical file metadata." )
     seLfns = {}
-    for lfn, metadataDict in activeFiles.items():
+    for lfn, metadataDict in activeFiles.iteritems():
       se = metadataDict['SE']
       seLfns.setdefault( se, [] ).append( lfn )
 
     lfnMetadata = { 'Successful':{}, 'Failed':{} }
-    for se, lfnList in seLfns.items():
+    for se, lfnList in seLfns.iteritems():
       res = StorageElement( se ).getFileMetadata( lfnList )
       if not res['OK']:
         errStr = "Failed to obtain physical file metadata."
@@ -171,7 +171,7 @@ class RAWIntegrityAgent( AgentModule ):
     filesToRemove = []
     filesToTransfer = []
     filesMigrated = []
-    for lfn, lfnMetadataDict in lfnMetadata['Successful'].items():
+    for lfn, lfnMetadataDict in lfnMetadata['Successful'].iteritems():
       if lfnMetadataDict.get( 'Migrated', False ):
         filesMigrated.append( lfn )
         self.log.info( "%s is newly migrated." % lfn )
@@ -193,7 +193,7 @@ class RAWIntegrityAgent( AgentModule ):
         elif lfnMetadataDict['Checksum'] == 'Not available':
           self.log.info( "Unable to determine checksum.", lfn )
         else:
-          self.log.error( "Migrated checksum mis-match.", "%s %s %s" % ( lfn, castorChecksum.lstrip( '0' ), 
+          self.log.error( "Migrated checksum mis-match.", "%s %s %s" % ( lfn, castorChecksum.lstrip( '0' ),
                                                                          onlineChecksum.lstrip( '0' ).lstrip( 'x' ) ) )
 
           filesToTransfer.append( lfn )
@@ -236,18 +236,18 @@ class RAWIntegrityAgent( AgentModule ):
         fileDict = {}
         fileDict[lfn] = {'PFN':pfn, 'Size':size, 'SE':se, 'GUID':guid, 'Checksum':checksum}
         res = self.fileCatalog.addFile( fileDict )
-        
+
         if not res['OK']:
           self.log.error( "Completely failed to register successfully migrated file.", res['Message'] )
           continue
         else:
           if lfn in res['Value']['Failed']:
-            
+
             if lfn in res['Value']['Successful']:
               self.log.error( "Only partially registered lfn in the File Catalog.", res['Value']['Failed'][lfn] )
             else:
               self.log.error( "Completely failed to register lfn in the File Catalog.", res['Value']['Failed'][lfn] )
-            
+
             continue
 
           else:
@@ -267,7 +267,7 @@ class RAWIntegrityAgent( AgentModule ):
           fileToRemove.PFN = pfn
           physRemoval.addFile( fileToRemove )
           oRequest.addOperation( physRemoval )
-          
+
           self.log.info( "Attempting to put %s to gateway requestDB." % oRequest.RequestName )
           res = self.onlineRequestMgr.putRequest( oRequest )
           if not res['OK']:

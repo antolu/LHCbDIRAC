@@ -67,7 +67,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
     fileToRemove = []
     yesReplica = []
     self.log.info( "Found a total of %d files in the BK for transformation %d" % ( len( bkMetadata ), transID ) )
-    for lfn, metadata in bkMetadata.items():
+    for lfn, metadata in bkMetadata.iteritems():
       if metadata['FileType'] != 'LOG':
         fileToRemove.append( lfn )
         if metadata['GotReplica'] == 'Yes':
@@ -77,7 +77,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
       res = self.dm.removeFile( fileToRemove )
       if not res['OK']:
         return res
-      for lfn, reason in res['Value']['Failed'].items():
+      for lfn, reason in res['Value']['Failed'].iteritems():
         self.log.error( "Failed to remove file found in BK", "%s %s" % ( lfn, reason ) )
       if res['Value']['Failed']:
         return S_ERROR( "Failed to remove all files found in the BK" )
@@ -86,7 +86,7 @@ class TransformationCleaningAgent( DiracTCAgent ):
         res = FileCatalog( catalogs = ['BookkeepingDB'] ).removeFile( yesReplica )
         if not res['OK']:
           return res
-        for lfn, reason in res['Value']['Failed'].items():
+        for lfn, reason in res['Value']['Failed'].iteritems():
           self.log.error( "Failed to remove file from BK", "%s %s" % ( lfn, reason ) )
         if res['Value']['Failed']:
           return S_ERROR( "Failed to remove all files from the BK" )

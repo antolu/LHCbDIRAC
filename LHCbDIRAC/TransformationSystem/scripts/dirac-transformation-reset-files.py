@@ -96,7 +96,7 @@ if __name__ == "__main__":
                                              force = ( status == 'MaxReset' or status == 'Processed' ) or lfnsExplicit )
         if res['OK']:
           resetFiles += len( res['Value'].get( 'Successful', res['Value'] ) )
-          for lfn, reason in res['Value'].get( 'Failed', {} ).items():
+          for lfn, reason in res['Value'].get( 'Failed', {} ).iteritems():
             if reason != 'File not found in the Transformation Database':
               failed.setdefault( reason, [] ).append( lfn )
         else:
