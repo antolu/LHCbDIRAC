@@ -7,49 +7,7 @@
 import json
 import urllib2
 
-from datetime import datetime
-
 __RCSID__ = "$Id$"
-
-def checkInt( name, value ):
- '''
- If value is not of type `int`, raise Exception
- '''
-
- if not isinstance( value, int ):
-   raise Exception( 'Wrong %s, expected int.' % name )
- return value
-
-def checkBool( name, value ):
- '''
- If value is not of type `bool`, raise Exception
- '''
-
- if not isinstance( value, bool ):
-   raise Exception( 'Wrong %s, expected bool.' % name )
- return value
-
-def checkDatetime( name, value ):
- '''
- If value is not of type `datetime`, raise Exception
- '''
-
- if not isinstance( value, datetime ):
-   raise Exception( 'Wrong %s, expected datetime.' % name )
- return value.strftime( "%Y-%m-%d %H:%M:%S" )
-
-def checkDict( name, value ):
- '''
- If value is not of type `dict`, raise Exception
- '''
-
- if not isinstance( value, dict ):
-   raise Exception( 'Wrong %s, expected dict.' % name )
- return value
-
-################################################################################
-# END TYPE checkers
-################################################################################
 
 class HCClient:
  '''
@@ -80,7 +38,7 @@ class HCClient:
   -for example with test ID 1750.
 
   :params:
-   :attr: `test` : str - test ID
+   :attr: `test` : int - test ID
 
   :return:
      {
@@ -101,22 +59,22 @@ class HCClient:
   '''
 
   try:
-    response = urllib2.urlopen( self.hc_api + "/xhr/json/?action=results&test=" + testID )
+    response = urllib2.urlopen( self.hc_api + "/xhr/json/?action=results&test=" + str(testID) )
     fetchedData = response.read()
-  except urllib2.HTTPError, e:
-    return 'HTTP Error: ' + str(e.code) + ', ' + str(e.reason)
-  except urllib2.URLError, e:
-    return 'URL Error: ' + str(e.reason)
+  except urllib2.HTTPError as e:
+    return 'HTTP Error: ' + repr(e.code) + ', ' + repr(e.reason)
+  except urllib2.URLError as e:
+    return 'URL Error: ' + repr(e.reason)
 
   # The following is nessesary since the json will be invalid if it contains unquoted 'None'
   fetchedData = fetchedData.replace('None', '"None"')
 
   try:
-      fetchedData = json.loads(fetchedData)
-  except ValueError, e:
-    return 'Invalid JSON: ' + str(e.message)
+    fetchedData = json.loads(fetchedData)
+  except ValueError as e:
+    return 'Invalid JSON: ' + repr(e.message)
 
-  return fetchedData[testID]['results']
+  return fetchedData[str(testID)]['results']
 
 ################################################################################
 
@@ -125,7 +83,7 @@ class HCClient:
   Returns JSON results of the tests submitted by HC at each site.
 
   :params:
-   :attr: `pastDays` : str - days in the past to take in consideration when querying the results of the report.
+   :attr: `pastDays` : int - days in the past to take in consideration when querying the results of the report.
 
   :return:
   {
@@ -148,16 +106,16 @@ class HCClient:
   '''
 
   try:
-    response = urllib2.urlopen( self.hc_api + "/ajax/historyreport/" + pastDays )
+    response = urllib2.urlopen( self.hc_api + "/ajax/historyreport/" + str(pastDays) )
   except urllib2.HTTPError, e:
-    return 'HTTP Error: ' + str(e.code) + ', ' + str(e.reason)
+    return 'HTTP Error: ' + repr(e.code) + ', ' + repr(e.reason)
   except urllib2.URLError, e:
-    return 'URL Error: ' + str(e.reason)
+    return 'URL Error: ' + repr(e.reason)
 
   try:
     fetchedData = json.load(response)
-  except ValueError, e:
-    return 'Invalid JSON: ' + str(e.message)
+  except ValueError as e:
+    return 'Invalid JSON: ' + repr(e.message)
 
   return fetchedData
 

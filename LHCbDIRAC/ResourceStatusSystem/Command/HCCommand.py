@@ -19,7 +19,7 @@ class HCCommand( Command ):
 
      :params:
      :attr: `site` : str - the name of the site.
-     :attr: `days` : str - days in the past to take in consideration.
+     :attr: `days` : int - days in the past to take in consideration.
 
     :return:
     {
