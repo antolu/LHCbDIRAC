@@ -17,6 +17,8 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, parseRuns, BadRu
 
 bkClient = BookkeepingClient()
 
+__RCSID__ = "$Id$"
+
 #==================================================================================
 
 def executeFileMetadata( dmScript ):
@@ -76,12 +78,12 @@ def executeFileMetadata( dmScript ):
       if not gotReplica:
         gotReplica = 'No'
       gLogger.notice( '%s %s %s %s %s %s %s' % ( lfn.ljust( lenName ),
-                                                  str( size ).ljust( 10 ),
-                                                  guid.ljust( lenGUID ),
-                                                  gotReplica.ljust( 8 ),
-                                                  dq.ljust( 12 ),
-                                                  str( run ).ljust( 10 ),
-                                                  str( evtStat ).ljust( 10 ) ) )
+                                                 str( size ).ljust( 10 ),
+                                                 guid.ljust( lenGUID ),
+                                                 gotReplica.ljust( 8 ),
+                                                 dq.ljust( 12 ),
+                                                 str( run ).ljust( 10 ),
+                                                 str( evtStat ).ljust( 10 ) ) )
   failed = res['Value'].get( 'Failed', [] )
   if failed:
     gLogger.notice( '\n' )
@@ -98,7 +100,8 @@ def __buildPath( bkDict ):
   Build a BK path from the BK dictionary
   """
   return os.path.join( '/' + bkDict['ConfigName'], bkDict['ConfigVersion'], bkDict['ConditionDescription'],
-                  bkDict['ProcessingPass'][1:].replace( 'Real Data', 'RealData' ), str( bkDict['EventType'] ), bkDict['FileType'] ) + ( ' (Invisible)' if bkDict['VisibilityFlag'] == 'N' else '' )
+                       bkDict['ProcessingPass'][1:].replace( 'Real Data', 'RealData' ), str( bkDict['EventType'] ),
+                       bkDict['FileType'] ) + ( ' (Invisible)' if bkDict['VisibilityFlag'] == 'N' else '' )
 
 def executeFilePath( dmScript ):
   """
@@ -1063,7 +1066,9 @@ def executeGetStats( dmScript ):
             fullDuration += runDuration
             lumi = info['TotalLuminosity']
             if abs( lumi - runList[run][0] / nDatasets ) > 1:
-              gLogger.notice( 'Run and files luminosity mismatch (ignored): run %d, runLumi %d, filesLumi %d' % ( run, 'runLumi', lumi, 'filesLumi', runList[run][0] / nDatasets ) )
+              gLogger.notice( 'Run and files luminosity mismatch (ignored): run %d, runLumi %d, filesLumi %d' % ( run,
+                                                                                                                  lumi,
+                                                                                                                  runList[run][0] / nDatasets ) )
             else:
               totalLumi += lumi
         if fullDuration:
