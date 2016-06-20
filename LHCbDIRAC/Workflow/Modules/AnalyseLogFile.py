@@ -66,8 +66,6 @@ class AnalyseLogFile( ModuleBase ):
 
       analyseLogResult = self.logAnalyser( fileName = self.applicationLog,
                                            applicationName = self.applicationName,
-                                           prod = self.production_id,
-                                           job = self.prod_job_id,
                                            log = self.log )
       if not analyseLogResult:
         self._finalizeWithErrors( "Log reports ERROR" )
