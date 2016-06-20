@@ -7,15 +7,13 @@
     .. module: RAWIntegrityAgent
     :synopsis: RAWIntegrityAgent determines whether RAW files in CASTOR were migrated correctly.
 """
-__RCSID__ = "$Id$"
 # # imports
 import os
 # # from DIRAC
-from DIRAC import gMonitor, S_OK
+from DIRAC import S_OK
 # # from Core
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities.Subprocess import shellCall
-from DIRAC.ConfigurationSystem.Client import PathFinder
 # # from DMS
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.Resources.Storage.StorageElement import StorageElement
@@ -28,6 +26,8 @@ from DIRAC.RequestManagementSystem.Client.File import File
 
 from DIRAC.ConfigurationSystem.Client.ConfigurationData import gConfigurationData
 from DIRAC.FrameworkSystem.Client.MonitoringClient import gMonitor
+
+__RCSID__ = "$Id$"
 
 
 AGENT_NAME = 'DataManagement/RAWIntegrityAgent'
