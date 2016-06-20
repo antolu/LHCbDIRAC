@@ -168,7 +168,7 @@ class ModuleBase( object ):
     if step_number:
       self.step_number = step_number
     else:
-      self.step_number = self.STEP_NUMBER
+      self.step_number = self.STEP_NUMBER #pylint: disable=no-member
 
     if step_id:
       self.step_id = step_id
