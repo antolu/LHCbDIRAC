@@ -13,16 +13,41 @@ __RCSID__ = "$Id$"
 
 class HCCommand( Command ):
 
- def doCommand( self, site = None ):
-   """
-     Gets from HC the last test for that site.
-   """
+ def getTests( self, site, days ):
+   '''
+    Gets from HC the last test for a given site.
+
+     :params:
+     :attr: `site` : str - the name of the site.
+     :attr: `days` : str - days in the past to take in consideration.
+
+    :return:
+    {
+      'OK': True,
+      'Value':
+        [
+          {
+            'count': ...,
+            'reason': ...,
+            'ganga_status': ...,
+            'failover': ...,
+            'minor_reason': ...
+            },
+             ...
+             ...
+          }
+        ]
+    }
+   '''
 
    hcClient = HCClient()
 
-   result = hcClient.getHistoryReport('1')['sites'][site]
+   result = hcClient.getHistoryReport(days)['sites']
 
-   return { 'Result' : result }
+   if site in result:
+     return S_OK( result[site] )
+   else:
+     return S_ERROR( 'No results exist for site %s in the past %s days' % (site, days) )
 
 ################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
