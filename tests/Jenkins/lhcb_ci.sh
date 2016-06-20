@@ -278,7 +278,7 @@ function installLHCbDIRACClient(){
 		echo 'ERROR: cannot change to ' $CLIENTINSTALLDIR
 		return
 	fi
-	./dirac-install -l LHCb -r `cat project.version` -e LHCb -t client $DEBUG
+	./dirac-install -l LHCb -r `cat $WORKSPACE/project.version` -e LHCb -t client $DEBUG
 
 	mkdir $CLIENTINSTALLDIR/etc
 	ln -s /cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/etc/dirac.cfg $CLIENTINSTALLDIR/etc/dirac.cfg
