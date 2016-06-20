@@ -237,7 +237,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
               continue
 
       except Exception as x:
-        gLogger.exception( '[%s] %s._execute' % ( str( transID ), AGENT_NAME), lException = x )
+        gLogger.exception( '[%s] %s._execute' % ( str( transID ), AGENT_NAME ), lException = x )
       finally:
         self._logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID = transID )
         if transID in self.bkQueriesInCheck:
@@ -311,7 +311,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
       if not res['OK']:
         raise RuntimeError( res['Message'] )
       else:
-        for run, runMeta in res['Value'].items():
+        for run, runMeta in res['Value'].iteritems():
           duration = ( runMeta['JobEnd'] - runMeta['JobStart'] ).seconds
           res = self.transClient.addRunsMetadata( run, {'Duration': duration} )
           if not res['OK']:

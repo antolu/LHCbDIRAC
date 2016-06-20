@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-    Check if the files are in the BK, the LFC and the SEs they are supposed to be in.
+    Check if the files are in the BK, the FC and the SEs they are supposed to be in.
 
     Uses the DM script switches, and, unless a list of LFNs is provided:
     1) If --Directory is used: get files in FC directories

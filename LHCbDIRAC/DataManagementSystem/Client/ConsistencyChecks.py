@@ -454,7 +454,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
         gLogger.error( "Failed to get runs for transformation %d" % self.prod )
       else:
         if res['Value']:
-          self.runsList.extend( [run['RunNumber'] for run in res['Value'] if run['RunNumber'] not in self.runsList] )
+          self.runsList.extend( run['RunNumber'] for run in res['Value'] if run['RunNumber'] not in self.runsList )
           gLogger.notice( "%d runs selected" % len( res['Value'] ) )
         elif not self.runsList:
           gLogger.notice( "No runs selected, check completed" )
@@ -791,7 +791,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
       bkQuery = self.__getBKQuery()
     except ValueError, _e:
       pass
-    if bkQuery and set( bkQuery.getQueryDict() ) - set( ['Visible', 'Production', 'FileType'] ):
+    if bkQuery and set( bkQuery.getQueryDict() ) - {'Visible', 'Production', 'FileType'}:
       return bkQuery.getDirs()
     if self.prod:
       if bkQuery:

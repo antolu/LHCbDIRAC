@@ -1,3 +1,6 @@
+[v8r3-pre15]
+use DIRAC v6r15p3
+
 [v8r3-pre14]
 * v8r3-pre14 based on Dirac v6r15p2 and LHCbGrid v9r4
 
@@ -57,6 +60,33 @@ use DIRAC v6r15
 * LHCbCreatePilotcfg has been replaced with the LHCbCleanPilotEnv command.
 * Updated BOINC gateway service
 * New configuration service that will update the LHCb-Pilot.json file when a change is done on the CS.
+
+[v8r2p48]
+Use DIRAC v6r14p34
+* add comment
+* update docstrings
+* Use with statement
+* docstring
+* Implement reviewer's comments
+* catch exception
+* New script for listing TCKs used by a run range
+* Make a function for getting run ranges (in order to reuse)
+* allow to flag multiple processing passes
+* Add information about git
+* Fix exception when EventStat is None
+* recreate res from success and failed
+* remove useless .keys()
+* simpler
+* move body of several BK scripts (those with quite some logic) into a ScriptExecutors module
+* New module with body of BK scripts
+* replace LFC with FC
+* replace LFC with FC
+* revert
+* use iterators and generators
+* use iterators
+* use iterators
+* Protect empty runs
+* use generators and iterator
 
 [v8r2p47]
 Use DIRAC v6r14p31
