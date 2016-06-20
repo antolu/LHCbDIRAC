@@ -809,12 +809,12 @@ class ProductionStatusAgent( AgentModule ):
         manually extended in some cases.
     """
     if not updatedT and not updatedPr:
-      self.log.info( 'No changes this cycle, mail will not be sent' )
+      self.log.verbose( 'No changes this cycle, mail will not be sent' )
       return
 
     if self.notify:
       notify = NotificationClient()
-      subject = 'Transofrmation Status Updates ( %s )' % ( time.asctime() )
+      subject = 'Transformation Status Updates ( %s )' % ( time.asctime() )
       msg = ['Transformations updated this cycle:\n']
       for tID, val in updatedT.iteritems():
         msg.append( 'Production %s: %s => %s' % ( tID, val['from'], val['to'] ) )
@@ -825,7 +825,7 @@ class ProductionStatusAgent( AgentModule ):
       if not result['OK']:
         self.log.error( "Could not send mail", result['Message'] )
       else:
-        self.log.info( 'Mail summary sent to production manager' )
+        self.log.verbose( 'Mail summary sent to production manager' )
 
   def __updateProductionRequestStatus( self, prID, status, updatedPr ):
     """ This method updates the production request status.
