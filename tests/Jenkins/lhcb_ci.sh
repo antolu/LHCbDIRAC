@@ -221,11 +221,13 @@ function getUserProxy(){
 
 function submitAndMatch(){
 
-	# I execute in a subshell
-	(
-		installLHCbDIRAC
-		submitJob
-	)
+	# # I execute in a subshell
+	# (
+	# 	installLHCbDIRAC
+	# 	submitJob
+	# )
+	installLHCbDIRAC
+	submitJob
 
 	#Run the full pilot, including the JobAgent
 	prepareForPilot
@@ -270,7 +272,13 @@ function installLHCbDIRACClient(){
 
 	cp $TESTCODE/DIRAC/Core/scripts/dirac-install.py $CLIENTINSTALLDIR/dirac-install
 	chmod +x $CLIENTINSTALLDIR/dirac-install
-	$CLIENTINSTALLDIR/dirac-install -l LHCb -r `cat project.version` -e LHCb -t client $DEBUG
+	cd $CLIENTINSTALLDIR
+	if [ $? -ne 0 ]
+	then
+		echo 'ERROR: cannot change to ' $CLIENTINSTALLDIR
+		return
+	fi
+	./dirac-install -l LHCb -r `cat project.version` -e LHCb -t client $DEBUG
 
 	mkdir $CLIENTINSTALLDIR/etc
 	ln -s /cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/etc/dirac.cfg $CLIENTINSTALLDIR/etc/dirac.cfg
