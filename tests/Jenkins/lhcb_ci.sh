@@ -230,9 +230,15 @@ function submitAndMatch(){
 	submitJob
 
 	#Run the full pilot, including the JobAgent
+	cd $PILOTINSTALLDIR
+	if [ $? -ne 0 ]
+	then
+		echo 'ERROR: cannot change to ' $PILOTINSTALLDIR
+		return
+	fi
 	prepareForPilot
 	default
-	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py $TESTCODE/LHCbPilotCommands.py
+	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py $PILOTINSTALLDIR/LHCbPilotCommands.py
 
 	if [ ! -z "$PILOT_VERSION" ]
 	then
@@ -306,8 +312,9 @@ function setupLHCbDIRAC(){
 
 function submitJob(){
 
-	#Here, since I have CVMFS only, I can't use the "latest" pre-release, because won't be on CVMFS
+	#This is is executed from the $CLIENTINSTALLDIR
 
+	export PYTHONPATH=$TESTCODE:$PYTHONPATH
 	#Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
 	getUserProxy #this won't really download the proxy, so that's why the next command is needed
 	python $TESTCODE/DIRAC/tests/Jenkins/dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification $PILOTCFG -ddd
