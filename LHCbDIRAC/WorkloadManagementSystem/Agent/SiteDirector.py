@@ -1,8 +1,6 @@
 """ Extension of DIRAC SiteDirector. Simply defines what to send.
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import base64
 import bz2
@@ -10,6 +8,8 @@ import tempfile
 
 from DIRAC import S_OK, S_ERROR, rootPath
 from DIRAC.WorkloadManagementSystem.Agent.SiteDirector import SiteDirector as DIRACSiteDirector
+
+__RCSID__ = "$Id$"
 
 DIRAC_MODULES = [ os.path.join( rootPath, 'DIRAC', 'WorkloadManagementSystem', 'PilotAgent', 'pilotCommands.py' ),
                   os.path.join( rootPath, 'DIRAC', 'WorkloadManagementSystem', 'PilotAgent', 'pilotTools.py' ),
@@ -118,10 +118,10 @@ EOF
     return name
 
 
-  def _getPilotOptions( self, queue, pilotsToSubmit ):
+  def _getPilotOptions( self, queue, pilotsToSubmit, processors = 1 ):
     """ Adding LHCb specific options
     """
-    pilotOptions, newPilotsToSubmit = DIRACSiteDirector._getPilotOptions( self, queue, pilotsToSubmit )
+    pilotOptions, newPilotsToSubmit = DIRACSiteDirector._getPilotOptions( self, queue, pilotsToSubmit, processors )
 
     pilotOptions.append( '-E LHCbPilot' )
     pilotOptions.append( '-X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements,LaunchAgent' )
