@@ -22,7 +22,7 @@ dirac = DiracLHCb()
 gLogger.info( "\n Submitting hello world job targeting DIRAC.Jenkins.ch" )
 helloJ = LHCbJob()
 helloJ.setName( "helloWorld-TEST-TO-Jenkins" )
-helloJ.setInputSandbox( [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+helloJ.setInputSandbox( [find_all( 'exe-script.py', '..', 'GridTestSubmission' )[0]] )
 helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
 helloJ.setCPUTime( 17800 )
@@ -37,7 +37,7 @@ if not result['OK']:
 gLogger.info( "\n Submitting hello world job, with input, targeting DIRAC.Jenkins.ch" )
 inputJ = LHCbJob()
 inputJ.setName( "helloWorld-TEST-INPUT-TO-Jenkins" )
-inputJ.setInputSandbox( [find_all( 'exe-script-with-input.py', '.', 'GridTestSubmission' )[0]] )
+inputJ.setInputSandbox( [find_all( 'exe-script-with-input.py', '..', 'GridTestSubmission' )[0]] )
 inputJ.setExecutable( "exe-script.py", "", "exeWithInput.log" )
 inputJ.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
 inputJ.setInputDataPolicy( 'download' )
