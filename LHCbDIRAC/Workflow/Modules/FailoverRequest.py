@@ -62,15 +62,12 @@ class FailoverRequest( ModuleBase ):
       filesInFileReport = self.fileReport.getFiles()
       if not self._checkWFAndStepStatus( noPrint = True ):
         for lfn in self.inputDataList:
-          if not lfn in filesInFileReport:
+          if lfn not in filesInFileReport:
             self.log.info( "Forcing status to 'Unused' due to workflow failure for: %s" % ( lfn ) )
-            # Force status to be updated even if Processed
-            self.fileReport.force = True
             self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Unused' )
       else:
-        filesInFileReport = self.fileReport.getFiles()
         for lfn in self.inputDataList:
-          if not lfn in filesInFileReport:
+          if lfn not in filesInFileReport:
             self.log.verbose( "No status populated for input data %s, setting to 'Processed'" % lfn )
             self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Processed' )
 
