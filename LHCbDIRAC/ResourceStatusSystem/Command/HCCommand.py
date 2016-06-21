@@ -11,9 +11,10 @@ from LHCbDIRAC.ResourceStatusSystem.Client.HCClient                 import HCCli
 
 __RCSID__ = "$Id$"
 
+
 class HCCommand( Command ):
 
- def getTests( self, site, days ):
+ def doNew( self, masterParams = None ):
    '''
     Gets from HC the last test for a given site.
 
@@ -40,6 +41,8 @@ class HCCommand( Command ):
     }
    '''
 
+   site, days = masterParams
+
    hcClient = HCClient()
 
    result = hcClient.getHistoryReport(days)['sites']
@@ -48,6 +51,12 @@ class HCCommand( Command ):
      return S_OK( result[site] )
    else:
      return S_ERROR( 'No results exist for site %s in the past %s days' % (site, days) )
+
+ def doCache( self ):
+   pass
+
+ def doMaster( self ):
+   pass
 
 ################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
