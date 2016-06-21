@@ -39,32 +39,30 @@ class XMLSummaryAnalysisDataReconstruction( XMLSummaryAnalysisTestCase ):
 
   def setUp( self ):
     super( XMLSummaryAnalysisDataReconstruction, self ).setUp()
-    self.workdir += '/DataReconstruction'
 
   def test_brunel_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( self.workdir + '/DataReconstruction', 'ok' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( self.workdir + '/DataReconstruction', 'ok' )
 
   def test_brunel_nok( self ):
-    self.generalTest( self.workdir, 'nok' )
+    self.generalTest( self.workdir + '/DataReconstruction', 'nok' )
 
   def test_brunel_fail( self ):
-    self.generalTest( self.workdir, 'fail' )
+    self.generalTest( self.workdir + '/DataReconstruction', 'fail' )
 
 class XMLSummaryAnalysisDataReprocessing( XMLSummaryAnalysisTestCase ):
 
   def setUp( self ):
     super( XMLSummaryAnalysisDataReprocessing, self ).setUp()
-    self.workdir += '/DataReprocessing'
 
   def test_brunel_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( self.workdir + '/DataReprocessing', 'ok' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( self.workdir + '/DataReprocessing', 'ok' )
 
   def test_brunel_nok( self ):
-    self.generalTest( self.workdir, 'nok' )
+    self.generalTest( self.workdir + '/DataReprocessing', 'nok' )
 #  def test_daVinci_nok( self ):
 #    self.generalTest( self.workdir, 'nok', 'DaVinci' )
 
@@ -72,47 +70,44 @@ class XMLSummaryAnalysisDataStripping( XMLSummaryAnalysisTestCase ):
 
   def setUp( self ):
     super( XMLSummaryAnalysisDataStripping, self ).setUp()
-    self.workdir += '/DataStripping'
 
 #  def test_brunel_ok( self ):
 #    self.generalTest( self.workdir, 'ok', 'Brunel' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( self.workdir + '/DataStripping', 'ok' )
 
 #  def test_brunel_nok( self ):
 #    self.generalTest( self.workdir, 'nok', 'Brunel' )
   def test_daVinci_nok( self ):
-    self.generalTest( self.workdir, 'nok' )
+    self.generalTest( self.workdir + '/DataStripping', 'nok' )
 
 class XMLSummaryAnalysisSelection( XMLSummaryAnalysisTestCase ):
 
   def setUp( self ):
     super( XMLSummaryAnalysisSelection, self ).setUp()
-    self.workdir += '/Selection'
 
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( self.workdir + '/Selection', 'ok' )
 
   def test_daVinci_nok( self ):
-    self.generalTest( self.workdir, 'nok' )
+    self.generalTest( self.workdir + '/Selection', 'nok' )
 
 class XMLSummaryAnalysisMCSimulation( XMLSummaryAnalysisTestCase ):
 
   def setUp( self ):
     super( XMLSummaryAnalysisMCSimulation, self ).setUp()
-    self.workdir += '/MCSimulation'
 
   def test_brunel_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( self.workdir + '/MCSimulation', 'ok' )
   def test_boole_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( self.workdir + '/MCSimulation', 'ok' )
   def test_gauss_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( self.workdir + '/MCSimulation', 'ok' )
 #  def test_daVinci_ok( self ):
 #    self.generalTest( self.workdir, 'ok', 'DaVinci' )
 
-  def test_brunel_nok( self ):
-    self.generalTest( self.workdir, 'nok' )
+  # def test_brunel_nok( self ):
+  #   self.generalTest( self.workdir, 'nok' )
 #  def test_daVinci_nok( self ):
 #    self.generalTest( self.workdir, 'nok', 'DaVinci' )
 
@@ -120,7 +115,6 @@ class XMLSummaryAnalysisMerge( XMLSummaryAnalysisTestCase ):
 
   def setUp( self ):
     super( XMLSummaryAnalysisMerge, self ).setUp()
-    self.workdir += '/Merge'
 
 #  def test_brunel_ok( self ):
 #    self.generalTest( self.workdir, 'ok', 'Brunel' )
@@ -129,12 +123,12 @@ class XMLSummaryAnalysisMerge( XMLSummaryAnalysisTestCase ):
 #  def test_gauss_ok( self ):
 #    self.generalTest( self.workdir, 'ok', 'Gauss' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( self.workdir + '/Merge', 'ok' )
   def test_lhcb_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( self.workdir + '/Merge', 'ok' )
 
   def test_lhcb_nok( self ):
-    self.generalTest( self.workdir, 'nok' )
+    self.generalTest( self.workdir + '/Merge', 'nok' )
 
 class ProductionXMLLogAnalysisRemoval( XMLSummaryAnalysisTestCase ):
   pass

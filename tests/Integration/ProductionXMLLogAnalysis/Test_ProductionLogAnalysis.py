@@ -39,15 +39,14 @@ class ProductionLogAnalysisDataReconstruction( ProductionLogAnalysisTestCase ):
 
   def setUp( self ):
     super( ProductionLogAnalysisDataReconstruction, self ).setUp()
-    self.workdir += '/DataReconstruction'
 
   def test_brunel_ok( self ):
-    self.generalTest( self.workdir, 'ok', 'Brunel' )
+    self.generalTest( self.workdir + '/DataReconstruction', 'ok', 'Brunel' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok', 'DaVinci' )
+    self.generalTest( self.workdir + '/DataReconstruction', 'ok', 'DaVinci' )
 
   def test_brunel_nok( self ):
-    self.generalTest( self.workdir, 'nok', 'Brunel' )
+    self.generalTest( self.workdir + '/DataReconstruction', 'nok', 'Brunel' )
 #  def test_daVinci_nok( self ):
 #    self.generalTest( self.workdir, 'nok', 'DaVinci' )
 
@@ -55,15 +54,14 @@ class ProductionLogAnalysisDataReprocessing( ProductionLogAnalysisTestCase ):
 
   def setUp( self ):
     super( ProductionLogAnalysisDataReprocessing, self ).setUp()
-    self.workdir += '/DataReprocessing'
 
   def test_brunel_ok( self ):
-    self.generalTest( self.workdir, 'ok', 'Brunel' )
+    self.generalTest( self.workdir + '/DataReprocessing', 'ok', 'Brunel' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok', 'DaVinci' )
+    self.generalTest( self.workdir + '/DataReprocessing', 'ok', 'DaVinci' )
 
   def test_brunel_nok( self ):
-    self.generalTest( self.workdir, 'nok', 'Brunel' )
+    self.generalTest( self.workdir + '/DataReprocessing', 'nok', 'Brunel' )
 #  def test_daVinci_nok( self ):
 #    self.generalTest( self.workdir, 'nok', 'DaVinci' )
 
@@ -71,46 +69,43 @@ class ProductionLogAnalysisDataStripping( ProductionLogAnalysisTestCase ):
 
   def setUp( self ):
     super( ProductionLogAnalysisDataStripping, self ).setUp()
-    self.workdir += '/DataStripping'
 
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok', 'DaVinci' )
+    self.generalTest( self.workdir + '/DataStripping', 'ok', 'DaVinci' )
 
   def test_daVinci_nok( self ):
-    self.generalTest( self.workdir, 'nok', 'DaVinci' )
+    self.generalTest( self.workdir + '/DataStripping', 'nok', 'DaVinci' )
 
 class ProductionLogAnalysisSelection( ProductionLogAnalysisTestCase ):
 
   def setUp( self ):
     super( ProductionLogAnalysisSelection, self ).setUp()
-    self.workdir += '/Selection'
 
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok', 'DaVinci' )
+    self.generalTest( self.workdir + '/Selection', 'ok', 'DaVinci' )
 
   def test_daVinci_nok( self ):
-    self.generalTest( self.workdir, 'nok', 'DaVinci' )
+    self.generalTest( self.workdir + '/Selection', 'nok', 'DaVinci' )
 
 class ProductionLogAnalysisMCSimulation( ProductionLogAnalysisTestCase ):
 
   def setUp( self ):
     super( ProductionLogAnalysisMCSimulation, self ).setUp()
-    self.workdir += '/MCSimulation'
 
   def test_brunel_ok( self ):
-    self.generalTest( self.workdir, 'ok', 'Brunel' )
+    self.generalTest( self.workdir + '/MCSimulation', 'ok', 'Brunel' )
   def test_boole_ok( self ):
-    self.generalTest( self.workdir, 'ok', 'Boole' )
+    self.generalTest( self.workdir + '/MCSimulation', 'ok', 'Boole' )
   def test_gauss_ok( self ):
-    self.generalTest( self.workdir, 'ok', 'Gauss' )
+    self.generalTest( self.workdir + '/MCSimulation', 'ok', 'Gauss' )
 #  def test_daVinci_ok( self ):
 #    self.generalTest( self.workdir, 'ok', 'DaVinci' )
 
-  def test_brunel_nok( self ):
-    self.generalTest( self.workdir, 'nok', 'Brunel' )
-
-  def test_brunel_fail( self ):
-    self.generalTest( self.workdir, 'fail', 'Brunel' )
+  # def test_brunel_nok( self ):
+  #   self.generalTest( self.workdir + '/MCSimulation', 'nok', 'Brunel' )
+  #
+  # def test_brunel_fail( self ):
+  #   self.generalTest( self.workdir + '/MCSimulation', 'fail', 'Brunel' )
 
 class ProductionLogAnalysisMerge( ProductionLogAnalysisTestCase ):
 
