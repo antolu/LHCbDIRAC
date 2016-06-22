@@ -46,9 +46,9 @@ class RAWIntegrityAgent( AgentModule ):
 
     AgentModule.__init__( self, *args, **kwargs )
 
-    self.rawIntegrityDB = None
+    self.rawIntegrityDB    = None
     self.fileCatalog = None
-    self.onlineRequestMgr = None
+    self.onlineRequestMgr  = None
 
 
   def initialize( self ):
@@ -102,6 +102,9 @@ class RAWIntegrityAgent( AgentModule ):
     # /Operations/Shifter/DataManager
     # the shifterProxy option in the Configuration can be used to change this default.
     res = self.am_setOption( 'shifterProxy', 'DataProcessing' )
+
+    if not res['OK']:
+      return res
 
     return S_OK()
 
@@ -180,7 +183,7 @@ class RAWIntegrityAgent( AgentModule ):
           self.log.error( "No checksum information available.", lfn )
           comm = "nsls -lT --checksum /castor/%s" % lfn
           res = shellCall( 180, comm )
-          returnCode, stdOut, stdErr = res['Value']
+          returnCode, stdOut, _stdErr = res[ 'Value']
           if not returnCode:
             lfnMetadataDict['Checksum'] = stdOut.split()[9]
           else:
