@@ -214,5 +214,31 @@ We may want to modify an already used steps. A step can be modified if the trigg
    update steps set stepname='Reco16Smog for 2015 pA', processingpass='Reco16Smog' where stepid=129609; an alternative is to used the StepManager page
    alter trigger step_update enable;
    
+==================================
+Processing pass in the Bookkeeping
+==================================
+The processing pass is a collection of steps. The processing pass is stored in the processing table::
+   ID
+   ParentID
+   Name
+
+The following example illustrates how to create a step::
+   select max(id)+1 from processing;
+   select * from processing where name='Real Data';
+   insert into processing(id,parentid, name)values(1915,12,'Reco16Smog');
+In this example we have created the following processing pass: /Real Data/Reco16Smog
+
+The following query can be used to check the step:
+select * from (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID 
+FROM processing v   START WITH id in (select distinct id from processing where name='Real Data')  
+CONNECT BY NOCYCLE PRIOR  id=parentid) v   where v.path='/Real Data/Reco16Smog';
+
+If we know the processing id, we can use the following query to found out the processing pass:
+select v.id,v.path from (SELECT distinct  LEVEL-1 Pathlen, SYS_CONNECT_BY_PATH(name, '/') Path, id
+   FROM processing
+   WHERE LEVEL > 0 and id=1915
+   CONNECT BY PRIOR id=parentid order by Pathlen desc) v where rownum<=1;
+   
+
    
  
