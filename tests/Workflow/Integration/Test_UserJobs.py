@@ -89,7 +89,7 @@ class GaudirunSuccess( UserJobTestCase ):
     """
 
     self.lhcbJob.setName( "gaudirun-test" )
-    self.lhcbJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '.', 'Integration' )[0],
+    self.lhcbJob.setInputSandbox( [find_all( 'prodConf_Gauss_00012345_00067890_1.py', '..', 'Integration' )[0],
                                    find_all( 'pilot.cfg', '.' )[0]] )
 
     optGauss = "$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py;"
@@ -116,7 +116,7 @@ class GaudirunSuccess( UserJobTestCase ):
     setupShifterProxyInEnv( 'ProductionManager' )
 
     self.lhcbJob.setName( "gaudirun-test-inputs" )
-    self.lhcbJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '.', 'Integration' )[0],
+    self.lhcbJob.setInputSandbox( [find_all( 'prodConf_Boole_00012345_00067890_1.py', '..', 'Integration' )[0],
                                    find_all( 'pilot.cfg', '.' )[0]] )
 
     opts = "$APPCONFIGOPTS/Boole/Default.py;"
