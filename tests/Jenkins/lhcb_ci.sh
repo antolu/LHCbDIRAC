@@ -203,7 +203,7 @@ function fullLHCbPilot(){
 	getUserProxy
 
 	echo '==> Set not to use the server certificate for running the jobs'
-	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O $PILOTCFG $PILOTCFG $DEBUG
+	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O $PILOTINSTALLDIR/$PILOTCFG $PILOTINSTALLDIR/$PILOTCFG $DEBUG
 }
 
 function getUserProxy(){
