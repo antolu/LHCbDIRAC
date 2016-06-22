@@ -195,7 +195,7 @@ function fullLHCbPilot(){
 	source $PILOTINSTALLDIR/bashrc
 
 	echo '==> Adding the LocalSE and the CPUTimeLeft, for the subsequent tests'
-	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTCFG $PILOTCFG $DEBUG
+	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTINSTALLDIR/$PILOTCFG $PILOTINSTALLDIR/$PILOTCFG $DEBUG
 
 	#be sure we only have pilot.cfg
 	mv $PILOTINSTALLDIR/etc/dirac.cfg $PILOTINSTALLDIR/etc/dirac.cfg-not-here
