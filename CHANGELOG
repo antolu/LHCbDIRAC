@@ -1,3 +1,13 @@
+[v8r2p49]
+Use DIRAC v6r14p36
+
+* bulk update implemented
+* bulk event type insert is implemented
+* flag to get TCK of runs without FULL stream fix printout
+* add option to only list processing passes with wildcard
+* new script to set the run destination based on majority of derived files
+* Revert back to not forcing input files to be reset Unused when Processe
+
 [v8r2p48]
 Use DIRAC v6r14p34
 * add comment
