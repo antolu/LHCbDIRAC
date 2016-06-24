@@ -911,7 +911,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
     print "\nSummary of failures due to: Application Exited with non-zero status"
     lfnDict = {}
     partial = 'Partial (last event '
-    for ( lfn, reason ), jobs in failedLfns.iteritems():
+    for ( lfn, reason ), jobs in failedLfns.items():
       if partial not in reason:
         continue
       failedLfns.pop( ( lfn, reason ) )
