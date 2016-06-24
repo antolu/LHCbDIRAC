@@ -95,6 +95,7 @@ class BookkeepingDBClient( FileCatalogClientBase ):
     return S_OK( {'Successful':successful, 'Failed':failed} )
 
 
+  @checkCatalogArguments
   def isLink( self, lfn ):
     return self.__returnSuccess( lfn, val = False )
 
@@ -103,27 +104,35 @@ class BookkeepingDBClient( FileCatalogClientBase ):
     """ Generic method returning success for all input files"""
     return S_OK( {'Failed':{}, 'Successful':dict.fromkeys( lfn, val )} )
 
+  @checkCatalogArguments
   def removeReplica( self, lfn ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def setReplicaStatus( self, lfn ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def setReplicaProblematic( self, lfn, revert = False ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def setReplicaHost( self, lfn ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def removeDirectory( self, lfn, recursive = False ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def createDirectory( self, lfn ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def removeLink( self, lfn ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def createLink( self, lfn ):
     return self.__returnSuccess( lfn )
 
