@@ -4984,3 +4984,24 @@ and files.qualityid= dataquality.qualityid'
   def getProductionProducedEvents( self, prodid ):
     """returns the produced event by a production taking into account the step"""
     return self.dbR_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProducedEvents', types.LongType, [prodid] )
+
+  #############################################################################
+  def bulkinsertEventType( self, eventtypes ):
+    """
+    It inserts a list of event types to the db.
+    
+    :param list eventtypes it inserts a list of event types. For example: the list elements are the following: 
+    {'EVTTYPEID': '12265021', 'DESCRIPTION': 'Bu_D0pipipi,Kpi-withf2=DecProdCut_pCut1600MeV', 'PRIMARY': '[B+ -> (D~0 -> K+ pi-) pi+ pi- pi+]cc'}
+    :return S_ERROR S_OK({'Failed':[],'Successful':[]})
+    """
+    failed = []
+    for evt in eventtypes:
+      evtId = evt.get( 'EVTTYPEID' )
+      evtDesc = evt.get( 'DESCRIPTION' )
+      evtPrimary = evt.get( 'PRIMARY' )
+      retVal = self.insertEventTypes( evtId, evtDesc, evtPrimary )
+      if not retVal['OK']:
+        failed.append( {evtId:{'Error':retVal['Message'], 'EvtentType':evt}} )
+    
+    successful = list( set( evt['EVTTYPEID'] for evt in eventtypes ) - set( i.keys()[0] for i in failed ) )
+    return S_OK( {'Failed': failed, 'Successful': successful} )
