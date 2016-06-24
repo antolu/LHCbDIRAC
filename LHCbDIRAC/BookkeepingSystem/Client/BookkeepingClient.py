@@ -1086,6 +1086,30 @@ class BookkeepingClient( object ):
     server = self.__getServer()
     return server.getProductionProducedEvents( int( prodid ) )
   
+  #############################################################################
+  def bulkinsertEventType( self, eventtypes ):
+    """
+    It inserts a list of event types to the db.
+    
+    :param list eventtypes it is a list of event types. For example: the list elements are the following: 
+    {'EVTTYPEID': '12265021', 'DESCRIPTION': 'Bu_D0pipipi,Kpi-withf2=DecProdCut_pCut1600MeV', 'PRIMARY': '[B+ -> (D~0 -> K+ pi-) pi+ pi- pi+]cc'}
+    :return S_ERROR S_OK({'Failed':[],'Successful':[]})
+    """
+    server = self.__getServer()
+    return server.bulkinsertEventType( eventtypes )
+
+  #############################################################################
+  def bulkupdateEventType( self, eventtypes ):
+    """
+    It updates a list of event types which are exist in the db 
+    
+    :param list eventtypes it is a list of event types. For example: the list elements are the following: 
+    {'EVTTYPEID': '12265021', 'DESCRIPTION': 'Bu_D0pipipi,Kpi-withf2=DecProdCut_pCut1600MeV', 'PRIMARY': '[B+ -> (D~0 -> K+ pi-) pi+ pi- pi+]cc'}
+    :return S_ERROR S_OK({'Failed':[],'Successful':[]})
+    """
+    server = self.__getServer()
+    return server.bulkupdateEventType( eventtypes )
+  
 class BKClientWithRetry():
   """
   Utility class wrapping BKClient with retries

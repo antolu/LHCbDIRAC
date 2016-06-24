@@ -1972,4 +1972,14 @@ class BookkeepingManagerHandler( RequestHandler ):
     """more info in the BookkeepingClient.py"""
     return dataMGMT_.getProductionProducedEvents( prodid )
   
+  #############################################################################
+  types_bulkinsertEventType = [list]
+  def export_bulkinsertEventType( self, eventtypes ):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.bulkinsertEventType( eventtypes )
   
+  #############################################################################
+  types_bulkupdateEventType = [list]
+  def export_bulkupdateEventType( self, eventtypes ):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.bulkupdateEventType( eventtypes )
