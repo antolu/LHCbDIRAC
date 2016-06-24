@@ -1066,9 +1066,7 @@ def executeGetStats( dmScript ):
             fullDuration += runDuration
             lumi = info['TotalLuminosity']
             if abs( lumi - runList[run][0] / nDatasets ) > 1:
-              gLogger.notice( 'Run and files luminosity mismatch (ignored): run %d, runLumi %d, filesLumi %d' % ( run,
-                                                                                                                  lumi,
-                                                                                                                  runList[run][0] / nDatasets ) )
+              gLogger.notice( 'Run and files luminosity mismatch (ignored): run %d, runLumi %d, filesLumi %d' % ( run, lumi, int( runList[run][0] / nDatasets ) ) )
             else:
               totalLumi += lumi
         if fullDuration:
@@ -1107,7 +1105,10 @@ def executeRunTCK():
   Get the TCK for a range of runs, and then prints each TCK with run ranges
   """
   runsDict = {}
+  force = False
   for switch in Script.getUnprocessedSwitches():
+    if switch[0] == 'Force':
+      force = True
     if switch[0] == 'Runs':
       # Add a fake run number to force parseRuns to return a list
       try:
@@ -1128,7 +1129,7 @@ def executeRunTCK():
     if res['OK']:
       tck = res['Value'].get( 'Tck' )
       streams = res['Value'].get( 'Stream', [] )
-      if 90000000 in streams and tck:
+      if ( 90000000 in streams or force ) and tck:
         runDict[run] = tck
   progressBar.endLoop()
   tckList = []
