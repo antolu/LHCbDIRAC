@@ -195,7 +195,7 @@ function fullLHCbPilot(){
 	source $PILOTINSTALLDIR/bashrc
 
 	echo '==> Adding the LocalSE and the CPUTimeLeft, for the subsequent tests'
-	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTCFG $PILOTCFG $DEBUG
+	dirac-configure -FDMH --UseServerCertificate -L CERN-SWTEST -O $PILOTINSTALLDIR/$PILOTCFG $PILOTINSTALLDIR/$PILOTCFG $DEBUG
 
 	#be sure we only have pilot.cfg
 	mv $PILOTINSTALLDIR/etc/dirac.cfg $PILOTINSTALLDIR/etc/dirac.cfg-not-here
@@ -203,7 +203,7 @@ function fullLHCbPilot(){
 	getUserProxy
 
 	echo '==> Set not to use the server certificate for running the jobs'
-	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O $PILOTCFG $PILOTCFG $DEBUG
+	dirac-configure -FDMH -o /DIRAC/Security/UseServerCertificate=False -O $PILOTINSTALLDIR/$PILOTCFG $PILOTINSTALLDIR/$PILOTCFG $DEBUG
 }
 
 function getUserProxy(){
@@ -226,11 +226,19 @@ function submitAndMatch(){
 		installLHCbDIRAC
 		submitJob
 	)
+	# installLHCbDIRAC
+	# submitJob
 
 	#Run the full pilot, including the JobAgent
+	cd $PILOTINSTALLDIR
+	if [ $? -ne 0 ]
+	then
+		echo 'ERROR: cannot change to ' $PILOTINSTALLDIR
+		return
+	fi
 	prepareForPilot
 	default
-	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py $TESTCODE/LHCbPilotCommands.py
+	cp $TESTCODE/LHCbDIRAC/LHCbDIRAC/WorkloadManagementSystem/PilotAgent/LHCbPilotCommands.py $PILOTINSTALLDIR/LHCbPilotCommands.py
 
 	if [ ! -z "$PILOT_VERSION" ]
 	then
@@ -270,7 +278,13 @@ function installLHCbDIRACClient(){
 
 	cp $TESTCODE/DIRAC/Core/scripts/dirac-install.py $CLIENTINSTALLDIR/dirac-install
 	chmod +x $CLIENTINSTALLDIR/dirac-install
-	$CLIENTINSTALLDIR/dirac-install -l LHCb -r `cat project.version` -e LHCb -t client $DEBUG
+	cd $CLIENTINSTALLDIR
+	if [ $? -ne 0 ]
+	then
+		echo 'ERROR: cannot change to ' $CLIENTINSTALLDIR
+		return
+	fi
+	./dirac-install -l LHCb -r `cat $WORKSPACE/project.version` -e LHCb -t client $DEBUG
 
 	mkdir $CLIENTINSTALLDIR/etc
 	ln -s /cvmfs/lhcb.cern.ch/lib/lhcb/DIRAC/etc/dirac.cfg $CLIENTINSTALLDIR/etc/dirac.cfg
@@ -298,14 +312,17 @@ function setupLHCbDIRAC(){
 
 function submitJob(){
 
-	#Here, since I have CVMFS only, I can't use the "latest" pre-release, because won't be on CVMFS
+	#This is is executed from the $CLIENTINSTALLDIR
 
+	export PYTHONPATH=$TESTCODE:$PYTHONPATH
 	#Get a proxy and submit the job: this job will go to the certification setup, so we suppose the JobManager there is accepting jobs
 	getUserProxy #this won't really download the proxy, so that's why the next command is needed
-	python $TESTCODE/DIRAC/test/Jenkins/dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification $PILOTCFG -ddd
-	python $TESTCODE/LHCbDIRAC/tests/Jenkins/dirac-test-job.py -o /DIRAC/Setup=LHCb-Certification $DEBUG
+	cp $TESTCODE/DIRAC/tests/Jenkins/dirac-proxy-download.py .
+	python dirac-proxy-download.py $DIRACUSERDN -R $DIRACUSERROLE -o /DIRAC/Security/UseServerCertificate=True -o /DIRAC/Security/CertFile=/home/dirac/certs/hostcert.pem -o /DIRAC/Security/KeyFile=/home/dirac/certs/hostkey.pem -o /DIRAC/Setup=LHCb-Certification -ddd
+	cp $TESTCODE/LHCbDIRAC/tests/Jenkins/dirac-test-job.py .
+	python dirac-test-job.py -o /DIRAC/Setup=LHCb-Certification $DEBUG
 
-	rm $PILOTCFG
+	rm $PILOTINSTALLDIR/$PILOTCFG
 }
 
 
