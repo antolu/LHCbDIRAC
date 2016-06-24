@@ -87,6 +87,6 @@ else:
         gLogger.error( "%s : %s" % ( repr( i.get( 'EvtentType' ) ), i.get( 'Error' ) ) )
    
   if result['Value']['Successful']:
-     gLogger.info( "The following event types are inserted: %s" % repr( result['Value']['Successful'] ) )
+     gLogger.notice( "The following event types are inserted: %s" % repr( result['Value']['Successful'] ) )
      
 DIRAC.exit( exitCode )
