@@ -736,10 +736,10 @@ class IBookkeepingDatabaseClient(object):
   
   #############################################################################
   def bulkinsertEventType( self, eventtypes ):
-    "more info in the BookkeepingClient.py"
+    """more info in the BookkeepingClient.py"""
     return self.getManager().bulkinsertEventType( eventtypes )
 
   #############################################################################
   def bulkupdateEventType( self, eventtypes ):
-    "more info in the BookkeepingClient.py"
+    """more info in the BookkeepingClient.py"""
     return self.getManager().bulkupdateEventType( eventtypes )
