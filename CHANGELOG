@@ -1,3 +1,19 @@
+[v8r3-pre16]
+use DIRAC v6r15p5
+* Randomize the output string of the test jobs
+* BKK: properly check the catalog arguments
+* enabling updateRemotePilotFile service
+* removed checkers and replaced str() with repr()
+* fixes for submit and match test
+* bug fix: analyseLogFile call
+* added getTests()
+* pylint
+* remove gMonitor
+* Revived HCCommand
+* added a check for json
+* updated documantation
+* Revived Hammercloud Client
+
 [v8r3-pre15]
 use DIRAC v6r15p3
 
