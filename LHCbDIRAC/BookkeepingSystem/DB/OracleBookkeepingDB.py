@@ -3231,7 +3231,7 @@ and files.qualityid= dataquality.qualityid'
         return S_ERROR( 'File type problem!' )
       condition += ' and f.filetypeid=ft.filetypeid'
     
-    if ftype == 'RAW' and 'jobs' in tables:
+    if isinstance( ftype, basestring ) and ftype == 'RAW' and 'jobs' in tables:
       # we know the production of a run is lees than 0. 
       # this is needed to speed up the queries when the file type is raw 
       # (we reject all recostructed + stripped jobs/files. ).
