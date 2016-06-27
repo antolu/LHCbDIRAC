@@ -5,8 +5,6 @@
     :synopsis: clean up of finalised transformations
 """
 
-__RCSID__ = "$Id$"
-
 # # from DIRAC
 from DIRAC                                                        import S_OK, S_ERROR, gConfig
 from DIRAC.DataManagementSystem.Client.DataManager                import DataManager
@@ -16,6 +14,8 @@ from DIRAC.TransformationSystem.Agent.TransformationCleaningAgent import Transfo
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient     import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient           import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.StorageUsageClient       import StorageUsageClient
+
+__RCSID__ = "$Id$"
 
 # # agent's name
 AGENT_NAME = 'Transformation/TransformationCleaningAgent'
@@ -29,14 +29,10 @@ class TransformationCleaningAgent( DiracTCAgent ):
     """
     DiracTCAgent.__init__( self, *args, **kwargs )
 
-    self.directoryLocations = sorted( self.am_getOption( 'DirectoryLocations', ['TransformationDB',
-                                                                                'StorageUsage' ] ) )
-    self.archiveAfter = self.am_getOption( 'ArchiveAfter', 7 )  # days
+    self.directoryLocations = ['TransformationDB', 'StorageUsage' ]
+    self.archiveAfter = 7
 
-    storageElements = gConfig.getValue( '/Resources/StorageElementGroups/Tier1_MC_M-DST', [] )
-    storageElements += ['CNAF_MC-DST', 'CNAF-RAW']
-    # # FIXME: what about RSS???
-    self.activeStorages = sorted( self.am_getOption( 'ActiveSEs', storageElements ) )
+    self.activeStorages = ['CNAF_MC-DST', 'CNAF-RAW']
 
     self.bkClient = None
     self.transClient = None
@@ -49,6 +45,15 @@ class TransformationCleaningAgent( DiracTCAgent ):
     """ Standard initialize method for agents
     """
     DiracTCAgent.initialize( self )
+
+    self.directoryLocations = sorted( self.am_getOption( 'DirectoryLocations', ['TransformationDB',
+                                                                                'StorageUsage' ] ) )
+    self.archiveAfter = self.am_getOption( 'ArchiveAfter', 7 )  # days
+
+    storageElements = gConfig.getValue( '/Resources/StorageElementGroups/Tier1_MC_M-DST', [] )
+    storageElements += ['CNAF_MC-DST', 'CNAF-RAW']
+    # # FIXME: what about RSS???
+    self.activeStorages = sorted( self.am_getOption( 'ActiveSEs', storageElements ) )
 
     self.bkClient = BookkeepingClient()
     self.transClient = TransformationClient()
