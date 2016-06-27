@@ -3230,6 +3230,12 @@ and files.qualityid= dataquality.qualityid'
       else:
         return S_ERROR( 'File type problem!' )
       condition += ' and f.filetypeid=ft.filetypeid'
+    
+    if ftype in 'RAW' and 'jobs' in tables:
+      #we know the production of a run is lees than 0. 
+      #this is needed to speed up the queries when the file type is raw 
+      #(we reject all recostructed + stripped jobs/files. ).
+      condition += " and j.production<0"
     return S_OK( ( condition, tables ) )
 
   #############################################################################
