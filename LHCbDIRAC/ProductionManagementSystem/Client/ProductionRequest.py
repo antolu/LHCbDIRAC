@@ -311,7 +311,7 @@ class ProductionRequest( object ):
     outputFilesList = prod._constructOutputFilesList( fileTypesOut )
     prod.LHCbJob.workflow.step_instances[0].setValue( 'listoutput', outputFilesList )
 
-    # increase the priority to the 10
+    # increase the priority to 10
     prod.priority = 10
 
     # launch the test production
@@ -348,7 +348,7 @@ class ProductionRequest( object ):
       self.bkQueries += ['fromPreviousProd'] * ( len( self.prodsTypeList ) - len( self.bkQueries ) )
 
     if len( self.previousProds ) != len( self.prodsTypeList ):
-      self.previousProds += range( 1, len( self.prodsTypeList ) )
+      self.previousProds += xrange( 1, len( self.prodsTypeList ) )
 
     if len( self.events ) != len( self.prodsTypeList ):
       self.events += ['-1'] * ( len( self.prodsTypeList ) - len( self.events ) )
@@ -446,7 +446,7 @@ class ProductionRequest( object ):
           newSteps.reverse()
           self.stepsListDict.remove( stepToSplit )
           last = self.stepsInProds.pop( index )[0]
-          for x in range( numberOfProdsToInsert ):
+	  for x in xrange( numberOfProdsToInsert ):
             self.prodsTypeList.insert( index, 'Merge' )
             self.plugins.insert( index, plugin )
             self.outputSEs.insert( index, outputSE )
@@ -474,7 +474,7 @@ class ProductionRequest( object ):
     toInsert = self.stepsInProds[0][0]
     lengths = [len( x ) for x in self.stepsInProds]
     for length in lengths:
-      li = [toInsert + x for x in range( length )]
+      li = [toInsert + x for x in xrange( length )]
       toInsert += length
       correctedStepsInProds.append( li )
 
