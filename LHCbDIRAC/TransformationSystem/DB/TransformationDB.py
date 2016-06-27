@@ -700,9 +700,10 @@ class TransformationDB( DIRACTransformationDB ):
     """ get meta of a run. RunIDs can be a list.
     """
     connection = self.__getConnection( connection )
-    if isinstance( runIDs, ( str, int ) ):
-      runIDs = [runIDs]
-    runIDs = [str( x ) for x in runIDs]
+    if not isinstance( runIDs, ( list, dict, set ) ):
+      runIDs = [str( runIDs )]
+    else:
+      runIDs = [str( x ) for x in runIDs]
     runIDs = ', '.join( runIDs )
     req = "SELECT RunNumber, Name, Value FROM RunsMetadata WHERE RunNumber IN (%s)" % runIDs
     res = self._query( req, connection )
