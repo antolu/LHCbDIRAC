@@ -1,3 +1,7 @@
+[v8r3-pre17]
+use DIRAC v6r15p5
+*LCG version change
+
 [v8r3-pre16]
 use DIRAC v6r15p5
 * Randomize the output string of the test jobs
