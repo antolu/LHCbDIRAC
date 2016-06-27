@@ -18,6 +18,7 @@ import cPickle
 
 from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
 from types import DictType, IntType, StringType, ListType, LongType, BooleanType
+from LHCbDIRAC.BookkeepingSystem.DB.Utilities import checkArguments
 dataMGMT_ = None
 
 reader_ = None
@@ -530,6 +531,7 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getFilesSummary = [DictType]
+  @checkArguments
   def export_getFilesSummary( self, in_dict ):
     """more info in the BookkeepingClient.py"""
     gLogger.debug( 'Input:' + str( in_dict ) )
