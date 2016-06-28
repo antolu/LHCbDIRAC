@@ -1,29 +1,24 @@
 """ Just couple utilities
 """
 
+import os
+import sqlite3
 from DIRAC import gConfig, gLogger
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUserOption, getUsersInGroup
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUserOption
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.ConfigurationSystem.Client import PathFinder
 
 __RCSID__ = "$Id$"
 
-
-def _getMemberMails( group ):
-  """ get members mails
-  """
-  members = getUsersInGroup( group )
-  if members:
-    emails = []
-    for user in members:
-      email = getUserOption( user, 'Email' )
-      if email:
-        emails.append( email )
-    return emails
-
 def informPeople( rec, oldstate, state, author, inform ):
   """ inform utility
   """
+
+  if 'DIRAC' in os.environ:
+    cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ProductionManagement/cache.db' )
+  else:
+    cacheFile = os.path.realpath('cache.db')
+
   if not state or state == 'New':
     return # was no state change or resurrect
 
@@ -129,11 +124,24 @@ def informPeople( rec, oldstate, state, author, inform ):
     groups = [ 'lhcb_tech' ]
   else:
     return
-  for group in groups:
-    for man in _getMemberMails( group ):
-      notification = NotificationClient()
-      res = notification.sendMail( man, subj,
-                                   body % group + footer + group + ppath,
-                                   fromAddress, True )
-      if not res['OK']:
-        gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
+
+  with sqlite3.connect(cacheFile) as conn:
+
+    try:
+      conn.execute('''CREATE TABLE IF NOT EXISTS ProductionManagementCache(
+                    reqId VARCHAR(64) NOT NULL DEFAULT "",
+                    thegroup VARCHAR(64) NOT NULL DEFAULT "",
+                    subject VARCHAR(64) NOT NULL DEFAULT "",
+                    body VARCHAR(254) NOT NULL DEFAULT "",
+                    fromAddress VARCHAR(64) NOT NULL DEFAULT ""
+                   );''')
+
+    except sqlite3.OperationalError:
+      gLogger.error('Email cache database is locked')
+
+    for group in groups:
+      conn.execute("INSERT INTO ProductionManagementCache (reqId, thegroup, subject, body, fromAddress)"
+                   " VALUES (?, ?, ?, ?, ?)", (reqId, group, subj, (body % group + footer + group + ppath), fromAddress)
+                  )
+
+      conn.commit()
