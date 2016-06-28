@@ -1137,16 +1137,7 @@ class ProductionRequestSuccess( ClientTestCase ):
 
   def test__splitIntoProductionSteps( self ):
 
-    stepStripp = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
-		  'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
-		  'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
-		  'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
-		  'fileTypesIn': ['SDST'],
-		  'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}
-
-
     r_p = _splitIntoProductionSteps( stepStripp )
-
     r_exp = [{'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
 	      'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
 	      'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
@@ -1154,19 +1145,10 @@ class ProductionRequestSuccess( ClientTestCase ):
 	      'fileTypesIn': ['SDST'],
 	      'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}]
 
-
     self.assertEqual( r_p, r_exp )
 
-    stepMerge = {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
-		 'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
-		 'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
-		 'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
-		 'fileTypesIn': ['BHADRON.DST', 'CALIBRATION.DST'],
-		 'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST']}
 
-
-    r = _splitIntoProductionSteps( stepMerge )
-
+    r = _splitIntoProductionSteps( mergeStep )
     r_exp = [{'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
 	      'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
 	      'prodStepID': "13718['BHADRON.DST']",
@@ -1184,6 +1166,8 @@ class ProductionRequestSuccess( ClientTestCase ):
 	    ]
 
     self.assertEqual( r, r_exp )
+
+
 
 class ProductionRequestFailure( ClientTestCase ):
 
