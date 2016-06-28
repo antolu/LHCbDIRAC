@@ -18,7 +18,7 @@ import cPickle
 
 from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
 from types import DictType, IntType, StringType, ListType, LongType, BooleanType
-from LHCbDIRAC.BookkeepingSystem.DB.Utilities import checkArguments
+from LHCbDIRAC.BookkeepingSystem.DB.Utilities import checkEnoughBKArguments
 dataMGMT_ = None
 
 reader_ = None
@@ -404,6 +404,7 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   @staticmethod
+  @checkEnoughBKArguments
   def __getFiles( in_dict ):
     """It returns a list of files.
     """
@@ -459,6 +460,7 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   @staticmethod
+  @checkEnoughBKArguments
   def __getFilesWithMetadata( in_dict ):
     """
     It returns the files with their metadata. This result will be transfered to the client
@@ -531,72 +533,62 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getFilesSummary = [DictType]
-  @checkArguments
+  @checkEnoughBKArguments
   def export_getFilesSummary( self, in_dict ):
     """more info in the BookkeepingClient.py"""
     gLogger.debug( 'Input:' + str( in_dict ) )
     result = S_ERROR()
-    if len( in_dict ) == 0:
-      res = self.getRemoteCredentials()
-      if 'username' in res:
-        address = res['username']
-      if address != None:
-        address = 'zmathe@cern.ch,' + res['username']
-        subject = 'getFilesSummary method!'
-        body = 'You did not provided enough input parameters! \n \
-        the input parameters:%s \n and user %s' % ( str( in_dict ), res['username'] )
-        NotificationClient().sendMail( address, subject, body, 'zmathe@cern.ch' )
-      gLogger.error( 'Got you: ' + str( in_dict ) )
+
+    configName = in_dict.get( 'ConfigName', default )
+    configVersion = in_dict.get( 'ConfigVersion', default )
+    conddescription = in_dict.get( 'ConditionDescription', default )
+    processing = in_dict.get( 'ProcessingPass', default )
+    evt = in_dict.get( 'EventType', in_dict.get( 'EventTypeId', default ) )
+    production = in_dict.get( 'Production', default )
+    filetype = in_dict.get( 'FileType', default )
+    quality = in_dict.get( 'DataQuality', in_dict.get( 'Quality', default ) )
+    runnb = in_dict.get( 'RunNumbers', in_dict.get( 'RunNumber', default ) )
+    startrun = in_dict.get( 'StartRun', None )
+    endrun = in_dict.get( 'EndRun', None )
+    visible = in_dict.get( 'Visible', 'Y' )
+    startDate = in_dict.get( 'StartDate', None )
+    endDate = in_dict.get( 'EndDate', None )
+    runnumbers = in_dict.get( 'RunNumber', in_dict.get( 'RunNumbers', [] ) )
+    replicaflag = in_dict.get( 'ReplicaFlag', 'Yes' )
+    tcks = in_dict.get( 'TCK' )
+
+    if 'EventTypeId' in in_dict:
+      gLogger.verbose( 'The EventTypeId has to be replaced by EventType!' )
+
+    if 'Quality' in in_dict:
+      gLogger.verbose( 'The Quality has to be replaced by DataQuality!' )
+
+    retVal = dataMGMT_.getFilesSummary( configName,
+                                       configVersion,
+                                       conddescription,
+                                       processing,
+                                       evt,
+                                       production,
+                                       filetype,
+                                       quality,
+                                       runnb,
+                                       startrun,
+                                       endrun,
+                                       visible,
+                                       startDate,
+                                       endDate,
+                                       runnumbers,
+                                       replicaflag,
+                                       tcks )
+    if retVal['OK']:
+      records = []
+      parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']
+      for record in retVal['Value']:
+        records += [[record[0], record[1], record[2], record[3], record[4]]]
+      result = S_OK( {'ParameterNames':parameters, 'Records':records, 'TotalRecords':len( records )} )
     else:
-      configName = in_dict.get( 'ConfigName', default )
-      configVersion = in_dict.get( 'ConfigVersion', default )
-      conddescription = in_dict.get( 'ConditionDescription', default )
-      processing = in_dict.get( 'ProcessingPass', default )
-      evt = in_dict.get( 'EventType', in_dict.get( 'EventTypeId', default ) )
-      production = in_dict.get( 'Production', default )
-      filetype = in_dict.get( 'FileType', default )
-      quality = in_dict.get( 'DataQuality', in_dict.get( 'Quality', default ) )
-      runnb = in_dict.get( 'RunNumbers', in_dict.get( 'RunNumber', default ) )
-      startrun = in_dict.get( 'StartRun', None )
-      endrun = in_dict.get( 'EndRun', None )
-      visible = in_dict.get( 'Visible', 'Y' )
-      startDate = in_dict.get( 'StartDate', None )
-      endDate = in_dict.get( 'EndDate', None )
-      runnumbers = in_dict.get( 'RunNumber', in_dict.get( 'RunNumbers', [] ) )
-      replicaflag = in_dict.get( 'ReplicaFlag', 'Yes' )
-      tcks = in_dict.get( 'TCK' )
-
-      if 'EventTypeId' in in_dict:
-        gLogger.verbose( 'The EventTypeId has to be replaced by EventType!' )
-
-      if 'Quality' in in_dict:
-        gLogger.verbose( 'The Quality has to be replaced by DataQuality!' )
-
-      retVal = dataMGMT_.getFilesSummary( configName,
-                                         configVersion,
-                                         conddescription,
-                                         processing,
-                                         evt,
-                                         production,
-                                         filetype,
-                                         quality,
-                                         runnb,
-                                         startrun,
-                                         endrun,
-                                         visible,
-                                         startDate,
-                                         endDate,
-                                         runnumbers,
-                                         replicaflag,
-                                         tcks )
-      if retVal['OK']:
-        records = []
-        parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']
-        for record in retVal['Value']:
-          records += [[record[0], record[1], record[2], record[3], record[4]]]
-        result = S_OK( {'ParameterNames':parameters, 'Records':records, 'TotalRecords':len( records )} )
-      else:
-        result = retVal
+      result = retVal
+    
     return result
 
   #############################################################################

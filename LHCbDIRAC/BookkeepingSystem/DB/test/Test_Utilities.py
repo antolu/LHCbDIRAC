@@ -6,10 +6,8 @@ import unittest
 __RCSID__ = "$Id$"
 
 from LHCbDIRAC.BookkeepingSystem.DB.Utilities import enoughParams
-
-
-_ONE = ['FileType', 'ProcessingPass', 'EventType', 'DataQuality', 'ConfigName', 'ConfigVersion', 'ConditionDescription']
-_TWO = ['ConfigName', 'ConfigVersion', 'ConditionDescription', 'ProcessingPass', 'FileType', 'DataQuality']
+from LHCbDIRAC.BookkeepingSystem.DB.Utilities import _ONE
+from LHCbDIRAC.BookkeepingSystem.DB.Utilities import _TWO
 
 class UtilitiesTestCase( unittest.TestCase ):
   
