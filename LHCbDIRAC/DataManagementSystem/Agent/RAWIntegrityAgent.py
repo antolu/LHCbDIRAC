@@ -98,15 +98,14 @@ class RAWIntegrityAgent( AgentModule ):
     gMonitor.registerActivity( "MigrationRate", "Observed migration rate",
                                "RAWIntegriryAgent", "MB/s", gMonitor.OP_MEAN )
 
+
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
     # the shifterProxy option in the Configuration can be used to change this default.
-    res = self.am_setOption( 'shifterProxy', 'DataProcessing' )
-
-    if not res['OK']:
-      return res
+    self.am_setOption( 'shifterProxy', 'DataProcessing' )
 
     return S_OK()
+
 
   def execute( self ):
     """ execution in one cycle
@@ -199,7 +198,6 @@ class RAWIntegrityAgent( AgentModule ):
         else:
           self.log.error( "Migrated checksum mis-match.", "%s %s %s" % ( lfn, castorChecksum.lstrip( '0' ),
                                                                          onlineChecksum.lstrip( '0' ).lstrip( 'x' ) ) )
-
           filesToTransfer.append( lfn )
 
     migratedSize = 0

@@ -307,7 +307,6 @@ class RAWIntegrityDB( DB ):
     if limit:
       condition = condition + ' LIMIT ' + str( limit )
     cmd = 'SELECT LFN,PFN,Size,StorageElement,GUID,FileChecksum,SubmitTime,CompleteTime,Status from Files %s' % condition
-    print cmd
     res = self._query( cmd )
     if not res['OK']:
       return res
