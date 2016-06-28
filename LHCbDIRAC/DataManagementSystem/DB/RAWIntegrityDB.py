@@ -90,6 +90,14 @@ class RAWIntegrityDB( DB ):
     return res
 
 
+  def showTables( self ):
+    """ return the list of tables"""
+
+    existingTables = self._query( "show tables" )
+    if not existingTables[ 'OK' ]:
+      return existingTables
+    existingTables = [ existingTable[0] for existingTable in existingTables[ 'Value' ] ]
+    return S_OK( existingTables )
 
   def getActiveFiles( self ):
     """ Obtain all the active files in the database along with all their associated metadata
@@ -127,6 +135,24 @@ class RAWIntegrityDB( DB ):
       return res
     except Exception as x:
       errStr = "RAWIntegrityDB.setFileStatus: Exception while updating file status."
+      gLogger.exception( errStr, lException = x )
+      return S_ERROR( errStr )
+
+
+  def removeFile( self, lfn ):
+    """ Remove file from the DB
+    """
+    try:
+      gLogger.info( "RAWIntegrityDB.removeFile: Attempting to remove %s." % lfn )
+      req = "DELETE FROM Files WHERE LFN = '%s';" % lfn
+      res = self._update( req )
+      if not res['OK']:
+        gLogger.error( "RAWIntegrityDB.removeFile: Failed to remove file.", res['Message'] )
+      else:
+        gLogger.info( "RAWIntegrityDB.removeFile: Successfully removed file." )
+      return res
+    except Exception as x:
+      errStr = "RAWIntegrityDB.removeFile: Exception while removing file."
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
 
