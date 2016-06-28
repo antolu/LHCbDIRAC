@@ -9,8 +9,9 @@ from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import Produc
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
 
 #pylint: disable=protected-access
+#pylint: disable=missing-docstring
 
-prodDict = {1:{ 'productionType':'DataStripping',
+prodsDict = {1:{'productionType':'DataStripping',
 		'stepsInProd':[123, 456],
 		'bkQuery': 'Full',
 		'removeInputsFlag': False,
@@ -58,7 +59,7 @@ prodDict = {1:{ 'productionType':'DataStripping',
 	       'multicore': 'False',
 	       'outputMode': 'Local',
 	       'ancestorDepth': 0
-	       },
+	      },
 
 	    3:{'productionType':'Merge',
 	       'stepsInProd':[456],
@@ -971,7 +972,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     res = pr._getProdsDescriptionDict()
 
     self.maxDiff = None
-    self.assertEqual( res, prodDict )
+    self.assertEqual( res, prodsDict )
 
 
   def test__addStepsToProd( self ):
@@ -1004,8 +1005,9 @@ class ProductionRequestSuccess( ClientTestCase ):
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     stepsListDict = {}
-    stepsInProd = pr._getStepsInProdDAG(prodDict, stepsListDict)
-    self.assertEqual(stepsInProd, {})
+    for prodDict in prodsDict.itervalues():
+      stepsInProdDAG = pr._getStepsInProdDAG(prodDict, stepsListDict)
+      self.assertEqual(stepsInProdDAG.graph, {})
 
 
 
@@ -1138,9 +1140,9 @@ class ProductionRequestSuccess( ClientTestCase ):
   def test__splitIntoProductionSteps( self ):
 
     r_p = _splitIntoProductionSteps( stepStripp )
-    r_exp = [{'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
-	      'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
-	      'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
+    r_exp = [{'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 123, 'ApplicationVersion': 'v28r3p1',
+	      'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
+	      'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302', 'mcTCK': '',
 	      'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
 	      'fileTypesIn': ['SDST'],
 	      'fileTypesOut': ['BHADRON.DST', 'CALIBRATION.DST', 'CHARM.MDST', 'CHARMCOMPLETEEVENT.DST']}]
@@ -1148,24 +1150,31 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( r_p, r_exp )
 
 
-    r = _splitIntoProductionSteps( mergeStep )
-    r_exp = [{'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
-	      'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
-	      'prodStepID': "13718['BHADRON.DST']",
+    r_p = _splitIntoProductionSteps( mergeStep )
+    r_exp = [{'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
+	      'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
+	      'prodStepID': "456['BHADRON.DST']", 'mcTCK': '',
 	      'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
 	      'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
 	      'fileTypesIn': ['BHADRON.DST'],
 	      'fileTypesOut': ['BHADRON.DST']},
-	     {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
-	      'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging',
-	      'prodStepID': "13718['CALIBRATION.DST']",
+	     {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
+	      'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
+	      'prodStepID': "456['CALIBRATION.DST']", 'mcTCK': '',
 	      'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
 	      'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
 	      'fileTypesIn': ['CALIBRATION.DST'],
-	      'fileTypesOut': ['CALIBRATION.DST']}
+	      'fileTypesOut': ['CALIBRATION.DST']},
+	     {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 456, 'ApplicationVersion': 'v28r3p1',
+	      'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'SystemConfig': '',
+	      'prodStepID': "456['PID.MDST']", 'mcTCK': '',
+	      'ProcessingPass': 'Merging', 'Visible': 'N', 'DDDB': 'head-20110302',
+	      'OptionFiles': '$APPCONFIGOPTS/Merging/DV-Stripping14-Merging.py', 'CONDDB': 'head-20110407',
+	      'fileTypesIn': ['PID.MDST'],
+	      'fileTypesOut': ['PID.MDST']}
 	    ]
 
-    self.assertEqual( r, r_exp )
+    self.assertEqual( r_p, r_exp )
 
 
 
