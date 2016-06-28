@@ -7,8 +7,9 @@ import copy
 from DIRAC import gLogger, S_OK
 
 from DIRAC.Core.DISET.RPCClient                               import RPCClient
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
+from DIRAC.Core.Utilities.DAG                                 import DAG
 from DIRAC.Core.Workflow.Workflow                             import fromXMLString
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
 
 from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracProduction
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
@@ -186,12 +187,8 @@ class ProductionRequest( object ):
         if prodIndex not in self.prodsToLaunch:
           continue
 
-      # build the list of steps in a production
-      stepsInProd = []
-      for stepID in prodDict['stepsInProd-ProdName']:
-        for step in stepsListDict:
-          if step['prodStepID'] == stepID:
-            stepsInProd.append( stepsListDict.pop( stepsListDict.index( step ) ) )
+      # build the DAG of steps in a production
+      stepsInProd = self._getStepsInProdDAG( prodDict )
 
       if prodDict['previousProd'] is not None:
         fromProd = prodsLaunched[prodDict['previousProd'] - 1 ]
@@ -244,6 +241,21 @@ class ProductionRequest( object ):
     return S_OK( prodsLaunched )
 
   #############################################################################
+
+  def _getStepsInProdDAG( self, prodDict, stepsListDict, stepsOrder = 'sequential' ):
+    """ Builds the DAG of steps in a production
+    """
+    stepsInProd = DAG()
+
+    for stepID in prodDict['stepsInProd-ProdName']:
+      for step in stepsListDict:
+	if step['prodStepID'] == stepID:
+	  #stepsInProd.append( stepsListDict.pop( stepsListDict.index( step ) ) )
+	  stepsInProd.addNode( stepsListDict.pop( stepsListDict.index( step ) ) )
+
+    return stepsInProd
+
+
 
   def _mcSpecialCase( self, prod, prodDict ):
     """ Treating the MC special case for putting MC productions in status "Testing"
@@ -645,6 +657,20 @@ class ProductionRequest( object ):
 
     self.logger.verbose( 'Launching with BK selection %s' % prod.inputBKSelection )
 
+    prod = self._addStepsToProd( prod, stepsInProd, removeInputData )
+
+    for ft, oSE in outputSE.items():
+      prod.outputSEs.setdefault( ft, oSE )
+
+    prod.LHCbJob.setDIRACPlatform()
+
+    return prod
+
+  #############################################################################
+
+  def _addStepsToProd( self, prod, stepsInProd, removeInputData, stepsSequence = 'sequential' ):
+    """ Given a Production object, add requested steps (application and finalization)
+    """
     # Adding the application steps
     firstStep = stepsInProd.pop( 0 )
     stepName = prod.addApplicationStep( stepDict = firstStep,
@@ -666,14 +692,9 @@ class ProductionRequest( object ):
     else:
       prod.addFinalizationStep()
 
-    for ft, oSE in outputSE.items():
-      prod.outputSEs.setdefault( ft, oSE )
-
-    prod.LHCbJob.setDIRACPlatform()
-
     return prod
 
-  #############################################################################
+
 
   def _getBKKQuery( self, mode = 'full', fileType = None, previousProdID = 0 ):
     """ simply creates the bkk query dictionary

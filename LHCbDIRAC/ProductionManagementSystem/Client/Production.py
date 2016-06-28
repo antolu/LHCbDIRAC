@@ -580,7 +580,7 @@ class Production( object ):
 
       try:
         fileName = self.__createWorkflow()
-      except Exception as x:
+      except Exception as x: #pylint: disable=broad-except
         gLogger.error( x )
         return S_ERROR( 'Could not create workflow' )
 
