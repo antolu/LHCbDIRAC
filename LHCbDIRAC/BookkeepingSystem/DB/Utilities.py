@@ -8,9 +8,18 @@ from DIRAC import gLogger, S_ERROR
 from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
 import errno
 
-_IGNORE_PARAMETERS = ["ReplicaFlag", "Visible"]
+_IGNORE_PARAMETERS = ['ReplicaFlag', 'Visible']
+
+# The following parameters can not used to build the query, it requires at least one more parameter.
+_ONE = ['FileType', 'ProcessingPass', 'EventType', 'DataQuality', 'ConfigName', 'ConfigVersion', 'ConditionDescription'] 
+
+# Two parameter in the list not enough to build the query.
+_TWO = ['ConfigName', 'ConfigVersion', 'ConditionDescription', 'ProcessingPass', 'FileType', 'DataQuality'] 
 
 def enoughParams( in_dict ):
+  """
+  Dirty method to check the query parameters and make sure the queries have enough parameters.
+  """
   checkingDict = in_dict.copy()
   if len( checkingDict ) == 0:
     return False
@@ -20,10 +29,15 @@ def enoughParams( in_dict ):
   
   if len( checkingDict ) == 0:
     return False
+  
   if len( checkingDict ) == 1: 
     for i in checkingDict:
-      if i in ['FileType', 'ProcessingPass', 'EventType', 'DataQuality']:
+      if i in _ONE:
         return False
+  
+  if len ( checkingDict ) == 2:
+    if not set( checkingDict.keys() ) - set( _TWO ):
+      return False
   return True
     
 def checkArguments( func ):
