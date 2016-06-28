@@ -61,7 +61,7 @@ class OracleBookkeepingDB:
 
     self.dbW_ = OracleDB( self.dbServer, self.dbPass, self.dbHost )
     self.dbR_ = OracleDB( self.dbUser, self.dbPass, self.dbHost )
-
+  
   #############################################################################
   @staticmethod
   def __isSpecialFileType( flist ):

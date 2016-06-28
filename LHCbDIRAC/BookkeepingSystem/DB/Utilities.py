@@ -8,7 +8,7 @@ from DIRAC import gLogger, S_ERROR
 from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
 import errno
 
-_IGNORE_PARAMETERS = ['ReplicaFlag', 'Visible']
+_IGNORE_PARAMETERS = ['ReplicaFlag', 'Visible', 'MethodName']
 
 # The following parameters can not used to build the query, it requires at least one more parameter.
 _ONE = ['FileType', 'ProcessingPass', 'EventType', 'DataQuality', 'ConfigName', 'ConfigVersion', 'ConditionDescription'] 
@@ -47,15 +47,22 @@ def checkEnoughBKArguments( func ):
     This is used to check the conditions of a given query. We assume a dictionary can not be empty and 
     it has more than one element, if we do not take into account the replica flag and the visibility flag
     """
-        
+    
     if args:
       arguments = args[0]
       if not enoughParams( arguments ):
+        if isinstance( func, staticmethod ):
+          if hasattr( func, '__func__' ):
+            funcName = func.__func__.func_name
+          else:
+            # we may do not know the type of the method
+            funcName = repr( func )
+        else:
+          funcName = func.func_name
         
-        funcName = func.func_name
         res = self.getRemoteCredentials()
         userName = res.get( 'username', 'UNKNOWN' )
-        address = 'zmathe@cern.ch'
+        address = self.getEmailAddress()
         subject = '%s method!' % funcName
         body = '%s user has not provided enough input parameters! \n \
                 the input parameters:%s ' % ( userName, str( arguments ) )
