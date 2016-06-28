@@ -37,7 +37,7 @@ class RAWIntegrityDB( DB ):
                                              {
                                               'LastMonitorTime' : 'DATETIME NOT NULL PRIMARY KEY'
                                              }
-                                 } 
+                                 }
 
 
   def __init__( self, systemInstance = 'Default' ):
@@ -46,15 +46,15 @@ class RAWIntegrityDB( DB ):
 
   def _checkTable( self ):
     """ _checkTable
-     
+
     Make sure the table is created
     """
-    
+
     return self.__createTables()
 
   def __createTables( self ):
     """ __createTables
-    
+
     Writes the schema in the database. If a table is already in the schema, it is
     skipped to avoid problems trying to create a table that already exists.
     """
@@ -68,11 +68,11 @@ class RAWIntegrityDB( DB ):
     # Makes a copy of the dictionary _tablesDict
     tables = {}
     tables.update( self._tablesDict )
-        
+
     for existingTable in existingTables:
       if existingTable in tables:
-        del tables[ existingTable ]  
-              
+        del tables[ existingTable ]
+
     res = self._createTables( tables )
     if not res[ 'OK' ]:
       return res
@@ -82,7 +82,8 @@ class RAWIntegrityDB( DB ):
       res[ 'Value' ] = 'No tables created'
     else:
       res[ 'Value' ] = 'Tables created: %s' % ( ','.join( tables.keys() ) )
-    return res     
+    return res
+
 
 
   def getActiveFiles( self ):
@@ -283,5 +284,5 @@ class RAWIntegrityDB( DB ):
       return S_OK( [] )
     return S_OK( res['Value'] )
 
-#...............................................................................
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# ...............................................................................
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
