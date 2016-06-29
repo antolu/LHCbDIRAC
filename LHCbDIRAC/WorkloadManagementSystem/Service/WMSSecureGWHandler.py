@@ -9,6 +9,7 @@ from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Security import Properties
 from DIRAC.Core.Security import CS
 from DIRAC.Core.Utilities.Subprocess import pythonCall
+from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
@@ -320,8 +321,7 @@ class WMSSecureGWHandler( RequestHandler ):
       base = ""
       base = gConfig.getValue( "Systems/DataManagement/boincInstance/Services/StorageElementProxy/BasePath" )
       proxyBase = "%s/proxies" % base
-      if not os.path.exists(proxyBase):
-        os.makedirs(proxyBase)
+      mkDir(proxyBase)
       proxyLocation = "%s/proxies/%s-%s" % ( base, clientUserName, clientGroup )
       gLogger.debug("Obtained proxy chain, dumping to %s." % proxyLocation)
       res = gProxyManager.dumpProxyToFile( chain, proxyLocation )
