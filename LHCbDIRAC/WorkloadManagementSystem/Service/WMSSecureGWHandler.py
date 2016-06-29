@@ -1,6 +1,7 @@
-""" WMSSecureGW service -  a generic gateway service """
+""" WMSSecureGW service -  a generic gateway service
 
-__RCSID__ = "$Id: $"
+    Mostly used by BOINC
+"""
 
 import json
 import os
@@ -21,12 +22,15 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.Core.Utilities.ReturnValues import returnSingleResult
 
+__RCSID__ = "$Id: $"
+
+#pylint: disable=no-self-use
 
 class WMSSecureGWHandler( RequestHandler ):
   """ WMSSecure class
   """
   @classmethod
-  def initializeHandler( cls, serviceInfo ):
+  def initializeHandler( cls, serviceInfo ): #pylint: disable=unused-argument
     """ Handler initialization
     """
     return S_OK()
@@ -153,7 +157,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
   ##############################################################################
   types_getVOMSProxy = [ str, str, str, ( int, long ) ]
-  def export_getVOMSProxy( self, userDN, userGroup, requestPem, requiredLifetime, vomsAttribute = False ):
+  def export_getVOMSProxy( self, userDN, userGroup, requestPem, requiredLifetime, vomsAttribute = False ): #pylint: disable=unused-argument
     """
     Always return the Boinc proxy.
     """
@@ -162,7 +166,7 @@ class WMSSecureGWHandler( RequestHandler ):
 
   ##############################################################################
   types_getProxy = [ str, str, str, ( int, long ) ]
-  def export_getProxy( self, userDN, userGroup, requestPem, requiredLifetime ):
+  def export_getProxy( self, userDN, userGroup, requestPem, requiredLifetime ): #pylint: disable=unused-argument
     """Get the Boinc User proxy
     """
     return self.__getProxy( requestPem, requiredLifetime )
@@ -171,7 +175,7 @@ class WMSSecureGWHandler( RequestHandler ):
   def __getProxy ( self, requestPem, requiredLifetime ):
     """Get the Boinc User proxy
     """
-    userDN, userGroup, userName = self.__getOwnerGroupDN( 'BoincUser' )
+    userDN, userGroup, userName = self.__getOwnerGroupDN( 'BoincUser' )  #pylint: disable=unused-variable
     result = self.__checkProperties( userDN, userGroup )
     if not result[ 'OK' ]:
       return result
@@ -212,7 +216,7 @@ class WMSSecureGWHandler( RequestHandler ):
   ########################################################################
 
   types_hasAccess = [str, [ list, dict, str ]]
-  def export_hasAccess( self, opType, paths ):
+  def export_hasAccess( self, opType, paths ): #pylint: disable=unused-argument
     """ Access
     """
     successful = {}
@@ -245,12 +249,12 @@ class WMSSecureGWHandler( RequestHandler ):
     """ put a new request into RequestDB """
 
     requestDict = json.loads( requestJSON )
-    requestName = requestDict.get( "RequestID", requestDict.get( 'RequestName', "***UNKNOWN***" ) )
+    requestName = requestDict.get( "RequestID", requestDict.get( 'RequestName', "***UNKNOWN***" ) ) #pylint: disable=unused-variable
     request = Request( requestDict )
     operation = Operation()  # # create new operation
     operation.Type = "WMSSecureOutputData"
     request.insertBefore( operation, request[0] )
-    userDN, userGroup, userName = self.__getOwnerGroupDN( 'ProductionManager' )
+    userDN, userGroup, userName = self.__getOwnerGroupDN( 'ProductionManager' ) #pylint: disable=unused-variable
     request.OwnerDN = userDN
     request.OwnerGroup = userGroup
     return ReqClient().putRequest( request )
@@ -282,7 +286,7 @@ class WMSSecureGWHandler( RequestHandler ):
     gLogger.debug( "Preparing File %s" % res )
     if res['OK']:
       return res['Value']
-    return res 
+    return res
 
   def __prepareFile( self, se, pfn ):
     """ proxied prepare file """
@@ -294,8 +298,8 @@ class WMSSecureGWHandler( RequestHandler ):
     base = gConfig.getValue( "Systems/DataManagement/boincInstance/Services/StorageElementProxy/BasePath" )
     getFileDir = "%s/getFile" % base
     if not os.path.exists(getFileDir):
-      os.mkdir(getFileDir)        
-    # Get the file to the cache 
+      os.mkdir(getFileDir)
+    # Get the file to the cache
     storageElement = StorageElement( se )
     res = returnSingleResult( storageElement.getFile( pfn, localPath = getFileDir ) )
     if not res['OK']:
@@ -326,11 +330,7 @@ class WMSSecureGWHandler( RequestHandler ):
       gLogger.debug("Updating environment.")
       os.environ['X509_USER_PROXY'] = res['Value']
       return res
-    except Exception, error:
+    except Exception as error:
       exStr = "__getConnectionDetails: Failed to get client connection details."
       gLogger.exception( exStr, '', error )
       return S_ERROR(exStr)
-  
-
-     
->>>>>>> upstream/master:LHCbDIRAC/WorkloadManagementSystem/Service/WMSSecureGWHandler.py

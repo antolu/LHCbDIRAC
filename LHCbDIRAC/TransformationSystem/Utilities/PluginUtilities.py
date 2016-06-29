@@ -1,8 +1,6 @@
 """
   Utilities for scripts dealing with transformations
 """
-__RCSID__ = "$Id$"
-
 import os
 import datetime
 import random
@@ -21,6 +19,8 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+
+__RCSID__ = "$Id$"
 
 class PluginUtilities( DIRACPluginUtilities ):
   """
@@ -164,8 +164,8 @@ class PluginUtilities( DIRACPluginUtilities ):
 
     shares = normaliseShares( res['Value'] )
 
-    if self.__shareMetrics is None:
-      self.__shareMetrics = self.getPluginParam( 'ShareMetrics', 'Files' )
+    if self.shareMetrics is None:
+      self.shareMetrics = self.getPluginParam( 'ShareMetrics', 'Files' )
     # Get the existing destinations from the transformationDB, just for printing
     if self.shareMetrics == 'Files':
       res = self.getExistingCounters( requestedSEs = sorted( shares ) )
@@ -740,7 +740,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         break
       except EOFError:
         f.close()
-      except:
+      except IOError:
         self.logVerbose( "Cache file %s could not be loaded" % cacheFile )
 
   def getCachedRunLFNs( self, runID, paramValue ):
@@ -1095,4 +1095,3 @@ def optimizeTasks( tasks ):
   for ses, lfns in tasks:
     taskDict.setdefault( ses, [] ).extend( lfns )
   return taskDict.items()
-
