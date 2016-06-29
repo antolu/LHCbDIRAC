@@ -78,4 +78,10 @@ if $status != 0 then
    exit 0
 endif
 echo " "
+echo "====== dirac-dms-remove-files /lhcb/user/m/msoares/hlta0102.txt CNAF-USER"
+dirac-dms-remove-files /lhcb/user/m/msoares/hlta0102.txt CNAF-USER
+if $status != 0 then
+   exit 0
+endif
+echo " "
 
