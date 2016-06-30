@@ -52,27 +52,12 @@ class BookkeepingManagerHandler( RequestHandler ):
     
     bkkSection = PathFinder.getServiceSection( "Bookkeeping/BookkeepingManager" )
     if not bkkSection:
-      self.__email = 'lhcb-bookkeeping@cern.ch'
-      self.__forceExecution = False
+      self.email = 'lhcb-bookkeeping@cern.ch'
+      self.forceExecution = False
     else:
-      self.__email = gConfig.getValue( cfgPath( bkkSection , 'Email' ), 'lhcb-bookkeeping@cern.ch' )
-      self.__forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )  
+      self.email = gConfig.getValue( cfgPath( bkkSection , 'Email' ), 'lhcb-bookkeeping@cern.ch' )
+      self.forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )  
     
-    
-  ###########################################################################
-  def _getEmailAddress( self ):
-    """
-    It returns an email address which is configured in the CS. By default it is lhcb-bookkeeping@cern.ch
-    """
-    return self.__email
-  
-  ###########################################################################
-  def _forceExecution( self ):
-    """
-    By default if the user does not provide enough parameters,  the method will be not executed.
-    """
-    return self.__forceExecution
-  
   ###########################################################################
   # types_<methodname> global variable is a list which defines for each exposed
   # method the types of its arguments, the argument types are ignored if the list is empty.

@@ -62,13 +62,13 @@ def checkEnoughBKArguments( func ):
         
         res = self.getRemoteCredentials()
         userName = res.get( 'username', 'UNKNOWN' )
-        address = self._getEmailAddress()
+        address = self.email
         subject = '%s method!' % funcName
         body = '%s user has not provided enough input parameters! \n \
                 the input parameters:%s ' % ( userName, str( arguments ) )
         NotificationClient().sendMail( address, subject, body, 'zmathe@cern.ch' )
         gLogger.error( 'Got you: %s ---> %s' % ( userName, str( arguments ) ) )
-        if self._forceExecution():  # we can force to execute the methods even the user does not 
+        if self.forceExecution:  # we can force to execute the methods even the user does not 
           # provide enough parameter
           result = func( self, *args )
           return result
