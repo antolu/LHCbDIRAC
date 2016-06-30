@@ -63,16 +63,13 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
         The ThreadPool is created here, the _execute() method is what each thread will execute.
     """
 
-    self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', 86400 )
-    self.debug = self.am_getOption( 'verbose', False )
+    self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', self.fullUpdatePeriod)
+    self.debug = self.am_getOption( 'verbose', self.debug )
 
-    self.pickleFile = os.path.join( self.am_getWorkDirectory(), "BookkeepingWatchAgent.pkl" )
-    self.chunkSize = self.am_getOption( 'maxFilesPerChunk', 1000 )
+    self.pickleFile = os.path.join( self.am_getWorkDirectory(), self.pickleFile )
+    self.chunkSize = self.am_getOption( 'maxFilesPerChunk', self.chunkSize )
 
-    self.pluginsWithNoRunInfo = self.am_getOption( 'PluginsWithNoRunInfo',
-                                                   ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset',
-                                                     'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE',
-                                                     'BySize', 'Standard' ) )
+    self.pluginsWithNoRunInfo = self.am_getOption( 'PluginsWithNoRunInfo', self.pluginsWithNoRunInfo )
 
 
     self.transClient = TransformationClient()
