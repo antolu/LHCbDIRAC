@@ -4,9 +4,12 @@ Bookkeeping utilities
 
 __RCSID__ = "$Id$"
 
-from DIRAC import gLogger, S_ERROR
-from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
 import errno
+
+from DIRAC import gLogger, S_ERROR
+
+from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
+
 
 _IGNORE_PARAMETERS = ['ReplicaFlag', 'Visible', 'MethodName']
 
@@ -41,7 +44,9 @@ def enoughParams( in_dict ):
   return True
     
 def checkEnoughBKArguments( func ):
-  
+  """
+  The decorator used to check the parameters of a given dictionary (BkQuery). 
+  """
   def checkMethodArguments( self, *args, **kwargs ):
     """
     This is used to check the conditions of a given query. We assume a dictionary can not be empty and 

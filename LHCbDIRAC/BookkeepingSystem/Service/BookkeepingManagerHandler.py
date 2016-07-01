@@ -556,20 +556,19 @@ class BookkeepingManagerHandler( RequestHandler ):
 
     configName = in_dict.get( 'ConfigName', default )
     configVersion = in_dict.get( 'ConfigVersion', default )
-    conddescription = in_dict.get( 'ConditionDescription', default )
-    processing = in_dict.get( 'ProcessingPass', default )
-    evt = in_dict.get( 'EventType', in_dict.get( 'EventTypeId', default ) )
+    condDescription = in_dict.get( 'ConditionDescription', default )
+    processingPass = in_dict.get( 'ProcessingPass', default )
+    eventType = in_dict.get( 'EventType', in_dict.get( 'EventTypeId', default ) )
     production = in_dict.get( 'Production', default )
-    filetype = in_dict.get( 'FileType', default )
-    quality = in_dict.get( 'DataQuality', in_dict.get( 'Quality', default ) )
-    runnb = in_dict.get( 'RunNumbers', in_dict.get( 'RunNumber', default ) )
-    startrun = in_dict.get( 'StartRun', None )
-    endrun = in_dict.get( 'EndRun', None )
+    fileType = in_dict.get( 'FileType', default )
+    dataQuality = in_dict.get( 'DataQuality', in_dict.get( 'Quality', default ) )
+    startRun = in_dict.get( 'StartRun', None )
+    endRun = in_dict.get( 'EndRun', None )
     visible = in_dict.get( 'Visible', 'Y' )
     startDate = in_dict.get( 'StartDate', None )
     endDate = in_dict.get( 'EndDate', None )
-    runnumbers = in_dict.get( 'RunNumber', in_dict.get( 'RunNumbers', [] ) )
-    replicaflag = in_dict.get( 'ReplicaFlag', 'Yes' )
+    runNumbers = in_dict.get( 'RunNumber', in_dict.get( 'RunNumbers', [] ) )
+    replicaFlag = in_dict.get( 'ReplicaFlag', 'Yes' )
     tcks = in_dict.get( 'TCK' )
 
     if 'EventTypeId' in in_dict:
@@ -578,23 +577,9 @@ class BookkeepingManagerHandler( RequestHandler ):
     if 'Quality' in in_dict:
       gLogger.verbose( 'The Quality has to be replaced by DataQuality!' )
 
-    retVal = dataMGMT_.getFilesSummary( configName,
-                                       configVersion,
-                                       conddescription,
-                                       processing,
-                                       evt,
-                                       production,
-                                       filetype,
-                                       quality,
-                                       runnb,
-                                       startrun,
-                                       endrun,
-                                       visible,
-                                       startDate,
-                                       endDate,
-                                       runnumbers,
-                                       replicaflag,
-                                       tcks )
+    retVal = dataMGMT_.getFilesSummary( configName, configVersion, condDescription, processingPass, eventType, production,
+                                        fileType, dataQuality, startRun, endRun, visible, startDate, endDate,
+                                        runNumbers, replicaFlag, tcks )
     if retVal['OK']:
       records = []
       parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']

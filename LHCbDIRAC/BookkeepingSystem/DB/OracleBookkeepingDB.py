@@ -3566,13 +3566,10 @@ and files.qualityid= dataquality.qualityid'
     return res
 
   #############################################################################
-  def getFilesSummary( self, configName, configVersion,
-                      conddescription = default, processing = default,
-                      evt = default, production = default,
-                      filetype = default, quality = default,
-                      runnb = default, startrun = default, endrun = default,
-                      visible = default, startDate = None, endDate = None,
-                      runnumbers = list(), replicaflag = default, tcks = default ):
+  def getFilesSummary( self, configName, configVersion, conddescription = default, processing = default,
+                       evt = default, production = default, filetype = default, quality = default, startrun = default,
+                       endrun = default, visible = default, startDate = None, endDate = None,
+                       runnumbers = list(), replicaflag = default, tcks = default ):
 
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
