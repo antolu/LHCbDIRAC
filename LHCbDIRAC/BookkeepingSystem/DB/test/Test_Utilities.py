@@ -3,11 +3,9 @@ It is used to test the Bookkeeping utilities
 """
 import unittest
 
-__RCSID__ = "$Id$"
+from LHCbDIRAC.BookkeepingSystem.DB.Utilities import enoughParams, _ONE, _TWO
 
-from LHCbDIRAC.BookkeepingSystem.DB.Utilities import enoughParams
-from LHCbDIRAC.BookkeepingSystem.DB.Utilities import _ONE
-from LHCbDIRAC.BookkeepingSystem.DB.Utilities import _TWO
+__RCSID__ = "$Id$"
 
 class UtilitiesTestCase( unittest.TestCase ):
   
