@@ -260,6 +260,7 @@ class UsersAndGroups( AgentModule ):
       if not result['OK']:
         self.__adminMsgs[ 'Errors' ].append( "Could not retrieve info for DN %s" % checkUser[ 'DN' ] )
         self.log.error( "Could not get nickname for DN %s" % checkUser[ 'DN' ] )
+        self.log.error( result['Message'] )
         return result
       for userDN in result['Value']:
         userNewDN = {}
@@ -283,7 +284,8 @@ class UsersAndGroups( AgentModule ):
       if not result[ 'OK' ]:
         self.__adminMsgs[ 'Errors' ].append( "Could not retrieve nickname for DN %s" % user[ 'DN' ] )
         self.log.error( "Could not get nickname for DN %s" % user[ 'DN' ] )
-        continue
+        self.log.error( result['Message'] )
+        break
       else:
         userName = result[ 'Value' ]
       if not userName:
