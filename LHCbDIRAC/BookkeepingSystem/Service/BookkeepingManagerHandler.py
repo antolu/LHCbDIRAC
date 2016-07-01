@@ -32,12 +32,20 @@ default = 'ALL'
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
+
   global dataMGMT_
   dataMGMT_ = BookkeepingDatabaseClient()
 
   global reader_
   reader_ = XMLFilesReaderManager()
-  
+  bkkSection = PathFinder.getServiceSection( "Bookkeeping/BookkeepingManager" )
+  if not bkkSection:
+    email = 'lhcb-bookkeeping@cern.ch'
+    forceExecution = False
+  else:
+    email = gConfig.getValue( cfgPath( bkkSection , 'Email' ), 'lhcb-bookkeeping@cern.ch' )
+    forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )  
+  gLogger.info( "Email used to track queries: %s forceExecution" % email, forceExecution )
   return S_OK()
 
 
@@ -46,18 +54,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   """
   Bookkeeping Service class. It serves the requests made the users by using the BookkeepingClient.
   """
-  
-  def __init__( self, *args, **kwargs ):
-    super( BookkeepingManagerHandler, self ).__init__( *args, **kwargs )
-    
-    bkkSection = PathFinder.getServiceSection( "Bookkeeping/BookkeepingManager" )
-    if not bkkSection:
-      self.email = 'lhcb-bookkeeping@cern.ch'
-      self.forceExecution = False
-    else:
-      self.email = gConfig.getValue( cfgPath( bkkSection , 'Email' ), 'lhcb-bookkeeping@cern.ch' )
-      self.forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )  
-    
+        
   ###########################################################################
   # types_<methodname> global variable is a list which defines for each exposed
   # method the types of its arguments, the argument types are ignored if the list is empty.
@@ -576,10 +573,23 @@ class BookkeepingManagerHandler( RequestHandler ):
 
     if 'Quality' in in_dict:
       gLogger.verbose( 'The Quality has to be replaced by DataQuality!' )
-
-    retVal = dataMGMT_.getFilesSummary( configName, configVersion, condDescription, processingPass, eventType, production,
-                                        fileType, dataQuality, startRun, endRun, visible, startDate, endDate,
-                                        runNumbers, replicaFlag, tcks )
+                       
+    retVal = dataMGMT_.getFilesSummary( configName = configName,
+                                        configVersion = configVersion,
+                                        conditionDescription = condDescription,
+                                        processingPass = processingPass,
+                                        eventType = eventType,
+                                        production = production,
+                                        fileType = fileType,
+                                        dataQuality = dataQuality,
+                                        startRun = startRun,
+                                        endRun = endRun,
+                                        visible = visible,
+                                        startDate = startDate,
+                                        endDate = endDate,
+                                        runNumbers = runNumbers,
+                                        replicaFlag = replicaFlag,
+                                        tcks = tcks )
     if retVal['OK']:
       records = []
       parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']

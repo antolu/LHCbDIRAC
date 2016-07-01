@@ -3566,22 +3566,20 @@ and files.qualityid= dataquality.qualityid'
     return res
 
   #############################################################################
-  def getFilesSummary( self, configName, configVersion, conddescription = default, processing = default,
-                       evt = default, production = default, filetype = default, quality = default, startrun = default,
-                       endrun = default, visible = default, startDate = None, endDate = None,
-                       runnumbers = list(), replicaflag = default, tcks = default ):
-
+  def getFilesSummary( self, configName, configVersion, conditionDescription = default, processingPass = default, eventType = default,
+                       production = default, fileType = default, dataQuality = default, startRun = default, endRun = default,
+                       visible = default, startDate = None, endDate = None, runNumbers = list(), replicaFlag = default, tcks = default ):
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
     tables = 'files f, jobs j '
-    useView = filetype not in ( default, 'RAW' ) 
+    useView = fileType not in ( default, 'RAW' ) 
 
     retVal = self.__buildStartenddate( startDate, endDate, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildRunnumbers( runnumbers, startrun, endrun, condition, tables )
+    retVal = self.__buildRunnumbers( runNumbers, startRun, endRun, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3591,7 +3589,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables, visible, useView = useView )
+    retVal = self.__buildConditions( default, conditionDescription, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3611,7 +3609,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildEventType( evt, condition, tables, visible, useView = useView )
+    retVal = self.__buildEventType( eventType, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3619,22 +3617,22 @@ and files.qualityid= dataquality.qualityid'
     if production != default:
       condition += ' and j.production=' + str( production )
 
-    retVal = self.__buildFileTypes( filetype, condition, tables, visible, useView = useView )
+    retVal = self.__buildFileTypes( fileType, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildReplicaflag( replicaflag, condition, tables )
+    retVal = self.__buildReplicaflag( replicaFlag, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass( processing, condition, tables, visible, useView = useView )
+    retVal = self.__buildProcessingPass( processingPass, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildDataquality( quality, condition, tables )
+    retVal = self.__buildDataquality( dataQuality, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
