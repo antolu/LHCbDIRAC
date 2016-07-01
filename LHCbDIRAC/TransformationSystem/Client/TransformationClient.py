@@ -74,7 +74,7 @@ class TransformationClient( DIRACTransformationClient ):
     """
     newStatuses = dict()
     for lfn, status in dictOfProposedLFNsStatus.items():
-      if not tsFilesAsDict.has_key( lfn ):
+      if lfn not in tsFilesAsDict:
         continue
       else:
         if force:

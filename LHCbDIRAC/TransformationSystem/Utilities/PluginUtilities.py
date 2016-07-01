@@ -229,7 +229,7 @@ class PluginUtilities( DIRACPluginUtilities ):
 
   def getExistingCounters( self, transID = None, normalise = False, requestedSEs = None ):
     """
-    Used by RAWShares and AtomicRun, gets what has been done up to now while distributing runs
+    Used by RAWReplication and RAWProcessing plugins, gets what has been done up to now while distributing runs
     """
     if transID is None:
       transID = self.transID
@@ -604,19 +604,19 @@ class PluginUtilities( DIRACPluginUtilities ):
         else:
           self.logError( "Error getting ancestors of %s" % lfnToCheck, res['Message'] )
     if ancestorFullDST:
-      self.logDebug( "Ancestor reco file found: %s" % ancestorFullDST )
+      self.logDebug( "Ancestor %s found: %s" % ( self.__recoType, ancestorFullDST ) )
       res = self.bkClient.getJobInfo( ancestorFullDST )
       if res['OK']:
         try:
           recoProduction = res['Value'][0][18]
           self.logVerbose( 'Reconstruction production is %d' % recoProduction )
-        except Exception as _e:
-          self.logException( "Exception extracting reco production from %s" % str( res['Value'] ) )
+        except Exception as e:
+          self.logException( "Exception extracting reco production from %s" % str( res['Value'] ), lException = e )
           recoProduction = None
       else:
         self.logError( "Error getting job information", res['Message'] )
     else:
-      self.logVerbose( "No ancestor reco file found" )
+      self.logVerbose( "No ancestor %s file found" % self.__recoType )
     if recoProduction:
       res = self.transClient.getTransformationFiles( { 'TransformationID':recoProduction, 'RunNumber':runID} )
       if res['OK']:
