@@ -77,16 +77,18 @@ class RAWIntegrityDB( DB ):
     if not res[ 'OK' ]:
       return res
 
-    if 'LastMonitor' in tables:
-      ret = self._query( "INSERT INTO LastMonitor(LastMonitorTime) value (UTC_TIMESTAMP());" )
-      if not ret['OK']:
-        return ret
-
     # Human readable S_OK message
     if res[ 'Value' ] == 0:
       res[ 'Value' ] = 'No tables created'
     else:
       res[ 'Value' ] = 'Tables created: %s' % ( ','.join( tables.keys() ) )
+
+      # Create the initial value
+      if 'LastMonitor' in tables:
+        ret = self._query( "INSERT INTO LastMonitor(LastMonitorTime) value (UTC_TIMESTAMP());" )
+        if not ret['OK']:
+          return ret
+
     return res
 
 
