@@ -6,9 +6,10 @@ import datetime
 import random
 import time
 
-from DIRAC import gConfig, gLogger, S_OK, S_ERROR, exit as DIRACExit
+from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Core.Utilities.Time import timeThis
+from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 
@@ -719,8 +720,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         prefixes = [prefixes]
       for node in prefixes:
         cacheFile = os.path.join( cacheFile, node )
-        if not os.path.exists( cacheFile ):
-          os.mkdir( cacheFile )
+        mkDir( cacheFile )
       cacheFile = os.path.join( cacheFile, "Transformation_%s.pkl" % ( str( self.transID ) ) )
       if not self.cacheFile:
         self.cacheFile = cacheFile

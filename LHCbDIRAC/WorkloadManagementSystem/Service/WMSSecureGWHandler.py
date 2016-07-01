@@ -298,8 +298,7 @@ class WMSSecureGWHandler( RequestHandler ):
     # Clear the local ache
     base = gConfig.getValue( "Systems/DataManagement/boincInstance/Services/StorageElementProxy/BasePath" )
     getFileDir = "%s/getFile" % base
-    if not os.path.exists(getFileDir):
-      os.mkdir(getFileDir)
+    mkDir(getFileDir)
     # Get the file to the cache
     storageElement = StorageElement( se )
     res = returnSingleResult( storageElement.getFile( pfn, localPath = getFileDir ) )

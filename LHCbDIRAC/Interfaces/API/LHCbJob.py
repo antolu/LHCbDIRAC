@@ -96,7 +96,7 @@ from distutils.version import LooseVersion
 
 from DIRAC                                                import S_OK, S_ERROR, gConfig
 from DIRAC.Interfaces.API.Job                             import Job
-from DIRAC.Core.Utilities.File                            import makeGuid
+from DIRAC.Core.Utilities.File                            import makeGuid, mkDir
 from DIRAC.Core.Utilities.List                            import uniqueElements
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations  import Operations
 from DIRAC.Workflow.Utilities.Utils                       import getStepDefinition, addStepToWorkflow
@@ -459,7 +459,7 @@ class LHCbJob( Job ):
     guid = makeGuid()
     tmpdir = '/tmp/' + guid
     self.log.verbose( 'Created temporary directory for submission %s' % ( tmpdir ) )
-    os.mkdir( tmpdir )
+    mkDir( tmpdir )
     fopen = open( '%s/BenderScript.py' % tmpdir, 'w' )
     self.log.verbose( 'Bender script is: %s/BenderScript.py' % tmpdir )
     fopen.write( '\n'.join( benderScript ) )
