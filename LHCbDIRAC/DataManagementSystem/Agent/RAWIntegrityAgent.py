@@ -46,9 +46,9 @@ class RAWIntegrityAgent( AgentModule ):
 
     AgentModule.__init__( self, *args, **kwargs )
 
-    self.rawIntegrityDB = None
+    self.rawIntegrityDB    = None
     self.fileCatalog = None
-    self.onlineRequestMgr = None
+    self.onlineRequestMgr  = None
 
 
   def initialize( self ):
@@ -98,12 +98,14 @@ class RAWIntegrityAgent( AgentModule ):
     gMonitor.registerActivity( "MigrationRate", "Observed migration rate",
                                "RAWIntegriryAgent", "MB/s", gMonitor.OP_MEAN )
 
+
     # This sets the Default Proxy to used as that defined under
     # /Operations/Shifter/DataManager
     # the shifterProxy option in the Configuration can be used to change this default.
-    res = self.am_setOption( 'shifterProxy', 'DataProcessing' )
+    self.am_setOption( 'shifterProxy', 'DataProcessing' )
 
     return S_OK()
+
 
   def execute( self ):
     """ execution in one cycle
@@ -180,7 +182,7 @@ class RAWIntegrityAgent( AgentModule ):
           self.log.error( "No checksum information available.", lfn )
           comm = "nsls -lT --checksum /castor/%s" % lfn
           res = shellCall( 180, comm )
-          returnCode, stdOut, stdErr = res['Value']
+          returnCode, stdOut, _stdErr = res[ 'Value']
           if not returnCode:
             lfnMetadataDict['Checksum'] = stdOut.split()[9]
           else:
@@ -196,7 +198,6 @@ class RAWIntegrityAgent( AgentModule ):
         else:
           self.log.error( "Migrated checksum mis-match.", "%s %s %s" % ( lfn, castorChecksum.lstrip( '0' ),
                                                                          onlineChecksum.lstrip( '0' ).lstrip( 'x' ) ) )
-
           filesToTransfer.append( lfn )
 
     migratedSize = 0
