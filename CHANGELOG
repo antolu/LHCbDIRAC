@@ -1,3 +1,19 @@
+[v8r2p50]
+Use DIRAC v6r14p37
+* using Tier1-DST and resolveSEGroup
+* no plugin necessary if ListProcessingPass
+* Simplify getBKProductions
+* tuple is a valid iterable for runIDs which must be integers
+* allow to configure an email address using CS
+* use pretty printing from BK
+* allow to only give prefix of WN name (useful for BOINC)
+* fix test of argument of getRunsMetadata
+* make scaleSize public
+* Track users who does not provide enough parameters
+* make sure the file type is not a list
+* moved interactions with CS in initialize
+* If the file type is raw, we only match jobs which production is less than 0
+
 [v8r2p49]
 Use DIRAC v6r14p36
 
