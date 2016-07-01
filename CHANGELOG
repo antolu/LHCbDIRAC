@@ -1,3 +1,14 @@
+[v8r3-pre18]
+use DIRAC v6r15p6
+
+* RAWIntegrity: displaced code in the DB
+* os.mkdir to mkDir
+* PitExport: add documentation
+* RAWIntegrity: add test for the RAWIntegrityDB
+* using mkDir utility
+* RAWIntegrity: add showTables and removeFile methods
+* RAWIntegrity: insert the initial value in LastMonitor when creating the DB
+
 [v8r3-pre17]
 use DIRAC v6r15p5
 *LCG version change
