@@ -16,9 +16,10 @@
 import os
 from datetime import datetime, timedelta
 # # from DIRAC
-from DIRAC  import S_OK, S_ERROR, gLogger
+from DIRAC  import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.Core.Utilities import Time
+from DIRAC.Core.Utilities.File import mkDir
 from LHCbDIRAC.AccountingSystem.Client.Types.Popularity import Popularity
 from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -59,8 +60,7 @@ class PopularityAgent( AgentModule ):
     self.__bkClient = BookkeepingClient()
     self.__dataUsageClient = DataUsageClient()
     self.__workDirectory = self.am_getOption( "WorkDirectory" )
-    if not os.path.isdir( self.__workDirectory ):
-      os.makedirs( self.__workDirectory )
+    mkDir( self.__workDirectory )
     self.log.info( "Working directory is %s" % self.__workDirectory )
     self.timeInterval = self.am_getOption( 'timeIntervalForPopularityRecords', 1 )  # by default, collects raw records from Popularity table inserted in the last day
     self.queryTimeout = self.am_getOption( 'queryTimeout', 3600 )
@@ -249,4 +249,3 @@ class PopularityAgent( AgentModule ):
     accTime = startTime + daysToAdd
     self.log.verbose( "accTime = %s " % accTime )
     return accTime
-

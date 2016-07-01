@@ -10,6 +10,7 @@ import stat
 
 from DIRAC                                              import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.Subprocess                    import shellCall
+from DIRAC.Core.Utilities.File                          import mkDir
 from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 from DIRAC.RequestManagementSystem.Client.Operation     import Operation
 from DIRAC.RequestManagementSystem.Client.File          import File
@@ -275,12 +276,7 @@ class UploadLogFile( ModuleBase ):
         These files are then copied into this directory before being uploaded
     """
     # Create the temporary directory
-    try:
-      if not os.path.exists( self.logdir ):
-        os.makedirs( self.logdir )
-    except OSError, x:
-      self.log.exception( 'Exception while trying to create directory.', self.logdir, str( x ) )
-      return S_ERROR()
+    mkDir( self.logdir )
     # Set proper permissions
     self.log.info( 'Changing log directory permissions to 0755' )
     try:

@@ -14,6 +14,7 @@ from datetime import datetime
 # # from DIRAC
 from DIRAC import S_OK, S_ERROR, rootPath, gConfig
 from DIRAC.Core.Base.AgentModule import AgentModule
+from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
@@ -92,17 +93,11 @@ class SEUsageAgent( AgentModule ):
     self.spaceTokToIgnore = self.am_getOption( 'SpaceTokenToIgnore', None )  # STs to skip during checks
     self.pathToUploadResults = self.am_getOption( 'PathToUploadResults', '/lhcb/test/dataNotRegistered' )
 
-    if not os.path.isdir( self.workDirectory ):
-      os.makedirs( self.workDirectory )
+    mkDir( self.workDirectory )
     self.log.info( "Working directory is %s" % self.workDirectory )
     self.inputFilesLocation = self.am_getOption( 'InputFilesLocation', '' )
-    if not os.path.isdir( self.inputFilesLocation ):
-      os.makedirs( self.inputFilesLocation )
-    if os.path.isdir( self.inputFilesLocation ):
-      self.log.info( "Input files will be downloaded to: %s" % self.inputFilesLocation )
-    else:
-      self.log.info( "ERROR! could not create directory %s" % self.inputFilesLocation )
-      return S_ERROR()
+    mkDir( self.inputFilesLocation )
+    self.log.info( "Input files will be downloaded to: %s" % self.inputFilesLocation )
     # FIXME: totally useless
     if self.specialReplicas:
       self.log.info( "Special replica types: %s" % self.specialReplicas )
@@ -370,7 +365,7 @@ class SEUsageAgent( AgentModule ):
                                  'LHCb_MC_M-DST': { 'year': '2010', 'DiracSEs': [ site + '_MC_M-DST']},
                                  'LHCb_MC_DST'  : { 'year': '2010', 'DiracSEs': [ site + '_MC-DST']},
                                  'LHCb_FAILOVER' : { 'year': '2010', 'DiracSEs': [ site + '-FAILOVER']}
-                                 }
+                                }
     # for CERN: two more SEs: FREEZER AND HISTO
 
     for st in self.spaceTokens[ site ]:
@@ -432,11 +427,9 @@ class SEUsageAgent( AgentModule ):
     originFileName = self.siteConfig[ site ][ 'originFileName' ]
     originURL = self.siteConfig[ site ][ 'originURL' ]
     targetPath = self.siteConfig[ site ][ 'targetPath' ]
-    if not os.path.isdir( targetPath ):
-      os.makedirs( targetPath )
+    mkDir( targetPath )
     pathToInputFiles = self.siteConfig[ site ][ 'pathToInputFiles' ]
-    if not os.path.isdir( pathToInputFiles ):
-      os.makedirs( pathToInputFiles )
+    mkDir( pathToInputFiles )
     if pathToInputFiles[-1] != "/":
       pathToInputFiles = "%s/" % pathToInputFiles
     self.log.info( "Reading input files for site %s " % site )

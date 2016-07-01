@@ -1,16 +1,15 @@
 """
   Utilities for scripts dealing with transformations
 """
-__RCSID__ = "$Id$"
-
 import os
 import datetime
 import random
 import time
 
-from DIRAC import gConfig, gLogger, S_OK, S_ERROR, exit as DIRACExit
+from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Core.Utilities.Time import timeThis
+from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 
@@ -21,6 +20,8 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+
+__RCSID__ = "$Id$"
 
 class PluginUtilities( DIRACPluginUtilities ):
   """
@@ -164,8 +165,8 @@ class PluginUtilities( DIRACPluginUtilities ):
 
     shares = normaliseShares( res['Value'] )
 
-    if self.__shareMetrics is None:
-      self.__shareMetrics = self.getPluginParam( 'ShareMetrics', 'Files' )
+    if self.shareMetrics is None:
+      self.shareMetrics = self.getPluginParam( 'ShareMetrics', 'Files' )
     # Get the existing destinations from the transformationDB, just for printing
     if self.shareMetrics == 'Files':
       res = self.getExistingCounters( requestedSEs = sorted( shares ) )
@@ -719,8 +720,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         prefixes = [prefixes]
       for node in prefixes:
         cacheFile = os.path.join( cacheFile, node )
-        if not os.path.exists( cacheFile ):
-          os.mkdir( cacheFile )
+        mkDir( cacheFile )
       cacheFile = os.path.join( cacheFile, "Transformation_%s.pkl" % ( str( self.transID ) ) )
       if not self.cacheFile:
         self.cacheFile = cacheFile
@@ -740,7 +740,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         break
       except EOFError:
         f.close()
-      except:
+      except IOError:
         self.logVerbose( "Cache file %s could not be loaded" % cacheFile )
 
   def getCachedRunLFNs( self, runID, paramValue ):
@@ -1095,4 +1095,3 @@ def optimizeTasks( tasks ):
   for ses, lfns in tasks:
     taskDict.setdefault( ses, [] ).extend( lfns )
   return taskDict.items()
-

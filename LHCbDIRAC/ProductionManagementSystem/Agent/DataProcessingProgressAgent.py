@@ -7,9 +7,11 @@ import time
 import shutil
 
 from DIRAC                         import S_OK, gConfig, gLogger
+from DIRAC.Core.Utilities.File     import mkDir
 from DIRAC.Core.Base.AgentModule   import AgentModule
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProcessingProgress import ProcessingProgress, HTMLProgressTable
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 
 __RCSID__ = "$Id$"
 
@@ -21,7 +23,6 @@ class DataProcessingProgressAgent( AgentModule ):
   def initialize( self ):
     """Sets default values.
     """
-    from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 
     self.pollingTime = self.am_getOption( 'PollingTime', 6 * 60 * 60 )
     self.printResult = self.am_getOption( 'Verbose', False )
@@ -152,18 +153,12 @@ class DataProcessingProgressAgent( AgentModule ):
     if not self.uploadDirectory:
       return
     try:
-      today = str( datetime.datetime.today() ).split()[0]
-      uploadDirBase = os.path.join( self.uploadDirectory, 'Daily' )
-      if not os.path.exists( uploadDirBase ):
-        os.mkdir( uploadDirBase )
-      uploadDirBase = os.path.join( uploadDirBase, today )
-      if not os.path.exists( uploadDirBase ):
-        os.mkdir( uploadDirBase )
+      uploadDirBase = os.path.join( self.uploadDirectory, 'Daily', str( datetime.datetime.today() ).split()[0] )
+      mkDir( uploadDirBase )
       i = 0
       while True:
         uploadDir = os.path.join( uploadDirBase, str( i ) )
-        if not os.path.exists( uploadDir ):
-          os.mkdir( uploadDir )
+        mkDir( uploadDir )
         uploadedFile = os.path.join( uploadDir, os.path.basename( htmlFile ) )
         if not os.path.exists( uploadedFile ):
           break
