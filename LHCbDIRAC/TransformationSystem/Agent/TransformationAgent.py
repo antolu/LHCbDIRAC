@@ -1,9 +1,6 @@
 """  TransformationAgent is and LHCb class just for overwriting some of the DIRAC methods
 """
 
-__RCSID__ = "$Id$"
-
-
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Agent.TransformationAgent import TransformationAgent as DIRACTransformationAgent
 from DIRAC.TransformationSystem.Agent.TransformationAgent import AGENT_NAME
@@ -12,16 +9,18 @@ from LHCbDIRAC.TransformationSystem.Client.TransformationClient import Transform
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 
+__RCSID__ = "$Id$"
+
 AGENT_NAME = 'Transformation/LHCbTransformationAgent'
 
 class TransformationAgent( DIRACTransformationAgent ):
   """ Extends base class
   """
 
-  def __init__( self, *args, **kwargs ):
-    """ c'tor
+  def initialize( self ):
+    """ LHCb defaults
     """
-    DIRACTransformationAgent.__init__( self, *args, **kwargs )
+    DIRACTransformationAgent.initialize( self )
 
     self.pluginLocation = self.am_getOption( 'PluginLocation',
                                              'LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin' )
@@ -48,7 +47,7 @@ class TransformationAgent( DIRACTransformationAgent ):
     """
     try:
       plugModule = __import__( self.pluginLocation, globals(), locals(), ['TransformationPlugin'] )
-    except Exception as x:
+    except ImportError as x:
       gLogger.exception( "%s.__generatePluginObject: Failed to import 'TransformationPlugin'" % AGENT_NAME, '', x )
       return S_ERROR()
     try:
@@ -58,7 +57,7 @@ class TransformationAgent( DIRACTransformationAgent ):
                                                                bkClient = clients['BookkeepingClient'],
                                                                rmClient = clients['ResourceManagementClient'],
                                                                transInThread = self.transInThread )
-    except Exception as x:
+    except Exception as x: #pylint: disable=broad-except
       gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ), '', x )
       return S_ERROR()
     oPlugin.workDirectory = self.workDirectory

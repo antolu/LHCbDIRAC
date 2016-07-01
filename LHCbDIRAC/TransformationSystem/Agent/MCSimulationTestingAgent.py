@@ -6,10 +6,6 @@ A report is created by the agent from the results of the test phase and emailed 
 Author: Simon Bidwell
 """
 
-__RCSID__ = "$Id$"
-
-AGENT_NAME = 'Transformation/MCSimulationTestingAgent'
-
 from DIRAC import S_OK, S_ERROR
 
 from DIRAC.Core.Base.AgentModule import AgentModule
@@ -22,6 +18,10 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import getEventsToProduce, getCPUNormalizationFactorAvg
+
+__RCSID__ = "$Id$"
+
+AGENT_NAME = 'Transformation/MCSimulationTestingAgent'
 
 
 class MCSimulationTestingAgent ( AgentModule ):

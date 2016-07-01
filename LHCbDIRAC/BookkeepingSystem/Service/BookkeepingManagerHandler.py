@@ -11,8 +11,12 @@ from DIRAC                                                                      
 from LHCbDIRAC.BookkeepingSystem.Client                                           import JEncoder
 import cPickle
 
-from DIRAC.FrameworkSystem.Client.NotificationClient  import NotificationClient
-from types import DictType, IntType, StringTypes, ListType, LongType, BooleanType
+from types import DictType, IntType, StringType, ListType, LongType, BooleanType
+from LHCbDIRAC.BookkeepingSystem.DB.Utilities import checkEnoughBKArguments
+from DIRAC.ConfigurationSystem.Client import PathFinder
+from DIRAC.ConfigurationSystem.Client.Helpers import cfgPath
+from DIRAC.ConfigurationSystem.Client.Config import gConfig
+
 dataMGMT_ = None
 
 reader_ = None
@@ -23,12 +27,20 @@ default = 'ALL'
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
+
   global dataMGMT_
   dataMGMT_ = BookkeepingDatabaseClient()
 
   global reader_
   reader_ = XMLFilesReaderManager()
-
+  bkkSection = PathFinder.getServiceSection( "Bookkeeping/BookkeepingManager" )
+  if not bkkSection:
+    email = 'lhcb-bookkeeping@cern.ch'
+    forceExecution = False
+  else:
+    email = gConfig.getValue( cfgPath( bkkSection , 'Email' ), 'lhcb-bookkeeping@cern.ch' )
+    forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )  
+  gLogger.info( "Email used to track queries: %s forceExecution" % email, forceExecution )
   return S_OK()
 
 
@@ -37,6 +49,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   """
   Bookkeeping Service class. It serves the requests made the users by using the BookkeepingClient.
   """
+        
   ###########################################################################
   # types_<methodname> global variable is a list which defines for each exposed
   # method the types of its arguments, the argument types are ignored if the list is empty.
@@ -397,6 +410,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     return result
 
   #############################################################################
+  @checkEnoughBKArguments
   @staticmethod
   def __getFiles( in_dict ):
     """It returns a list of files.
@@ -452,6 +466,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     return result
 
   #############################################################################
+  @checkEnoughBKArguments
   @staticmethod
   def __getFilesWithMetadata( in_dict ):
     """
@@ -525,71 +540,60 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_getFilesSummary = [DictType]
+  @checkEnoughBKArguments
   def export_getFilesSummary( self, in_dict ):
     """more info in the BookkeepingClient.py"""
     gLogger.debug( 'Input:' + str( in_dict ) )
     result = S_ERROR()
-    if len( in_dict ) == 0:
-      res = self.getRemoteCredentials()
-      if 'username' in res:
-        address = res['username']
-      if address != None:
-        address = 'zmathe@cern.ch,' + res['username']
-        subject = 'getFilesSummary method!'
-        body = 'You did not provided enough input parameters! \n \
-        the input parameters:%s \n and user %s' % ( str( in_dict ), res['username'] )
-        NotificationClient().sendMail( address, subject, body, 'zmathe@cern.ch' )
-      gLogger.error( 'Got you: ' + str( in_dict ) )
+
+    configName = in_dict.get( 'ConfigName', default )
+    configVersion = in_dict.get( 'ConfigVersion', default )
+    condDescription = in_dict.get( 'ConditionDescription', default )
+    processingPass = in_dict.get( 'ProcessingPass', default )
+    eventType = in_dict.get( 'EventType', in_dict.get( 'EventTypeId', default ) )
+    production = in_dict.get( 'Production', default )
+    fileType = in_dict.get( 'FileType', default )
+    dataQuality = in_dict.get( 'DataQuality', in_dict.get( 'Quality', default ) )
+    startRun = in_dict.get( 'StartRun', None )
+    endRun = in_dict.get( 'EndRun', None )
+    visible = in_dict.get( 'Visible', 'Y' )
+    startDate = in_dict.get( 'StartDate', None )
+    endDate = in_dict.get( 'EndDate', None )
+    runNumbers = in_dict.get( 'RunNumber', in_dict.get( 'RunNumbers', [] ) )
+    replicaFlag = in_dict.get( 'ReplicaFlag', 'Yes' )
+    tcks = in_dict.get( 'TCK' )
+
+    if 'EventTypeId' in in_dict:
+      gLogger.verbose( 'The EventTypeId has to be replaced by EventType!' )
+
+    if 'Quality' in in_dict:
+      gLogger.verbose( 'The Quality has to be replaced by DataQuality!' )
+                       
+    retVal = dataMGMT_.getFilesSummary( configName = configName,
+                                        configVersion = configVersion,
+                                        conditionDescription = condDescription,
+                                        processingPass = processingPass,
+                                        eventType = eventType,
+                                        production = production,
+                                        fileType = fileType,
+                                        dataQuality = dataQuality,
+                                        startRun = startRun,
+                                        endRun = endRun,
+                                        visible = visible,
+                                        startDate = startDate,
+                                        endDate = endDate,
+                                        runNumbers = runNumbers,
+                                        replicaFlag = replicaFlag,
+                                        tcks = tcks )
+    if retVal['OK']:
+      records = []
+      parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']
+      for record in retVal['Value']:
+        records += [[record[0], record[1], record[2], record[3], record[4]]]
+      result = S_OK( {'ParameterNames':parameters, 'Records':records, 'TotalRecords':len( records )} )
     else:
-      configName = in_dict.get( 'ConfigName', default )
-      configVersion = in_dict.get( 'ConfigVersion', default )
-      conddescription = in_dict.get( 'ConditionDescription', default )
-      processing = in_dict.get( 'ProcessingPass', default )
-      evt = in_dict.get( 'EventType', in_dict.get( 'EventTypeId', default ) )
-      production = in_dict.get( 'Production', default )
-      filetype = in_dict.get( 'FileType', default )
-      quality = in_dict.get( 'DataQuality', in_dict.get( 'Quality', default ) )
-      runnb = in_dict.get( 'RunNumbers', in_dict.get( 'RunNumber', default ) )
-      startrun = in_dict.get( 'StartRun', None )
-      endrun = in_dict.get( 'EndRun', None )
-      visible = in_dict.get( 'Visible', 'Y' )
-      startDate = in_dict.get( 'StartDate', None )
-      endDate = in_dict.get( 'EndDate', None )
-      runnumbers = in_dict.get( 'RunNumber', in_dict.get( 'RunNumbers', [] ) )
-      replicaflag = in_dict.get( 'ReplicaFlag', 'Yes' )
-      tcks = in_dict.get( 'TCK' )
-
-      if 'EventTypeId' in in_dict:
-        gLogger.verbose( 'The EventTypeId has to be replaced by EventType!' )
-
-      if 'Quality' in in_dict:
-        gLogger.verbose( 'The Quality has to be replaced by DataQuality!' )
-
-      retVal = dataMGMT_.getFilesSummary( configName,
-                                         configVersion,
-                                         conddescription,
-                                         processing,
-                                         evt,
-                                         production,
-                                         filetype,
-                                         quality,
-                                         runnb,
-                                         startrun,
-                                         endrun,
-                                         visible,
-                                         startDate,
-                                         endDate,
-                                         runnumbers,
-                                         replicaflag,
-                                         tcks )
-      if retVal['OK']:
-        records = []
-        parameters = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'InstLuminosity']
-        for record in retVal['Value']:
-          records += [[record[0], record[1], record[2], record[3], record[4]]]
-        result = S_OK( {'ParameterNames':parameters, 'Records':records, 'TotalRecords':len( records )} )
-      else:
-        result = retVal
+      result = retVal
+    
     return result
 
   #############################################################################
