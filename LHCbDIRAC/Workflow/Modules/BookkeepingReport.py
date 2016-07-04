@@ -167,8 +167,8 @@ class BookkeepingReport( ModuleBase ):
             self.log.warn( 'Trying %s' % xmlSummaryFile )
       try:
         self.xf_o = XMLSummary( xmlSummaryFile )
-      except XMLSummaryError:
-        self.log.warn( 'No XML summary available' )
+      except XMLSummaryError as e:
+	self.log.warn( 'No XML summary available: %s' % repr( e ) )
         self.xf_o = None
 
     return bkLFNs, logFilePath
@@ -419,6 +419,10 @@ class BookkeepingReport( ModuleBase ):
 
         try:
           fileStats = str( self.xf_o.outputsEvents[output] )
+	except AttributeError:
+	  #This happens iff the XML summary can't be created (e.g. for merging MDF files)
+	  self.log.warn( "XML summary not created, unable to determine the output events" )
+	  fileStats = 'Unknown'
         except KeyError as e:
           if ( 'hist' in outputtype.lower() ) or ( '.root' in outputtype.lower() ):
             self.log.warn( "HIST file %s not found in XML summary, event stats set to 'Unknown'" % output )
