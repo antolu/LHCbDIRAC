@@ -1,3 +1,9 @@
+[v8r3-pre20]
+use DIRAC v6r15p6
+
+* several fixes
+* checking for ZeroDivisionError
+
 [v8r3-pre19]
 use DIRAC v6r15p6
 
