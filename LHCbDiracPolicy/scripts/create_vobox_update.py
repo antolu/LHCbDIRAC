@@ -25,7 +25,7 @@ C_list = ['lbvobox30.cern.ch', 'lbvobox32.cern.ch', 'lbvobox33.cern.ch','lbvobox
 file_D = os.path.join( HOME_DIR, 'vobox_update_D' )
 D_list = ['lbvobox06.cern.ch', 'lbvobox07.cern.ch', 'lbvobox08.cern.ch', 'lbvobox09.cern.ch','lbvobox104.cern.ch','lbvobox105.cern.ch','lbvobox106.cern.ch','lbvobox107.cern.ch','lbvobox108.cern.ch']
 file_E = os.path.join( HOME_DIR, 'vobox_update_E' )
-E_list = ['lbvobox40.cern.ch', 'lbvobox42.cern.ch', 'lbvobox43.cern.ch', 'lbvobox46.cern.ch', 'lbvobox47.cern.ch', 'lbvobox49.cern.ch', 'lbvobox80.cern.ch', 'volhcb04.cern.ch', 'volhcb05.cern.ch']
+E_list = ['lbvobox42.cern.ch', 'lbvobox43.cern.ch', 'lbvobox46.cern.ch', 'lbvobox47.cern.ch', 'lbvobox49.cern.ch', 'lbvobox80.cern.ch', 'volhcb04.cern.ch', 'volhcb05.cern.ch']
 
 def generateTemplate(hosts, filename):
   fdr = open( file_skel )
