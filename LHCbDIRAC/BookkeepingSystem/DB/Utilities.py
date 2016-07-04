@@ -4,7 +4,6 @@ Bookkeeping utilities
 
 __RCSID__ = "$Id$"
 
-import errno
 
 from DIRAC import gLogger, S_ERROR
 
