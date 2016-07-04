@@ -78,7 +78,7 @@ def checkEnoughBKArguments( func ):
           result = func( self, *args )
           return result
         else:
-          return S_ERROR( errno.EINVAL, "Provide more parameters %s" % str( arguments ) )
+          return S_ERROR( "Provide more parameters %s" % str( arguments ) )  # TODO: use errno.EINVAL
       else:
         result = func( self, *args )
         return result
