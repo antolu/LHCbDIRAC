@@ -245,17 +245,17 @@ class ProductionRequest( object ):
   def _getStepsInProdDAG( self, prodDict, stepsListDict, stepsOrder = 'sequential' ):
     """ Builds the DAG of steps in a production
 
-	Args:
-	  prodDict (dict): dictionary representing a production
-	  stepsListDict
+    Args:
+      prodDict (dict): dictionary representing a production
+      stepsListDict
     """
     stepsInProd = DAG()
 
     for stepID in prodDict['stepsInProd-ProdName']:
       for step in stepsListDict:
-	if step['prodStepID'] == stepID:
-	  #stepsInProd.append( stepsListDict.pop( stepsListDict.index( step ) ) )
-	  stepsInProd.addNode( stepsListDict.pop( stepsListDict.index( step ) ) )
+        if step['prodStepID'] == stepID:
+          #stepsInProd.append( stepsListDict.pop( stepsListDict.index( step ) ) )
+          stepsInProd.addNode( stepsListDict.pop( stepsListDict.index( step ) ) )
 
     return stepsInProd
 
@@ -596,15 +596,15 @@ class ProductionRequest( object ):
                         ancestorDepth = 0 ):
     """ Wrapper around Production API to build a production, given the needed parameters
 
-	Args:
-	  prodType (str): production type (e.g. 'DataStripping')
-	  stepsInProd (DAG): DAG of steps in the production
-	  outputSE (dict): dictionary that holds relation between file type and output SE
-	  priority (int): production priority
-	  cpu (int): CPU time, in HS06s for jobs in this production
+        Args:
+          prodType (str): production type (e.g. 'DataStripping')
+          stepsInProd (DAG): DAG of steps in the production
+          outputSE (dict): dictionary that holds relation between file type and output SE
+          priority (int): production priority
+          cpu (int): CPU time, in HS06s for jobs in this production
 
-	Returns:
-	  prod: a Production object
+        Returns:
+          prod: a Production object
     """
     prod = Production()
 
@@ -684,14 +684,14 @@ class ProductionRequest( object ):
   def _addStepsToProd( self, prod, stepsInProd, stepsSequence = 'sequential', removeInputData = False ):
     """ Given a Production object, add requested steps (application and finalization)
 
-	Args:
-	  prod (Production): the Production object to which the steps are added
-	  stepsInProd (DAG): DAG of steps in a production
-	  stepsSequence (str or dict): applications steps sequence
-	  removeInputData (bool): flag that indicates if the input data should be removed (for the finalization step)
+    Args:
+      prod (Production): the Production object to which the steps are added
+      stepsInProd (DAG): DAG of steps in a production
+      stepsSequence (str or dict): applications steps sequence
+      removeInputData (bool): flag that indicates if the input data should be removed (for the finalization step)
 
-	Returns:
-	  prod with steps added
+    Returns:
+      prod with steps added
 
     """
     # Adding the application steps
