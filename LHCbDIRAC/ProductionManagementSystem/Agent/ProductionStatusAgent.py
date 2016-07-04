@@ -63,12 +63,12 @@ class ProductionRequestSIM(object):
                                                                                                         12 : { 'Used': 0, 'Events': 0 },
                                                                                                         13 : { 'Used': 1, 'Events': 0 } } },
                2 : { 'state': 'Active', 'type': 'Simulation', 'master': 0, 'rqTotal': 50000, 'prods': {} },
-	       3 : { 'state': '', 'type': '', 'master': 2, 'rqTotal': 20000, 'prods': { 14 : { 'Used': 0, 'Events': 0 },
-											15 : { 'Used': 1, 'Events': 0 } } },
-	       4 : { 'state': '', 'type': '', 'master': 2, 'rqTotal': 30000, 'prods': { 16 : { 'Used': 0, 'Events': 0 },
-											17 : { 'Used': 1, 'Events': 0 } } },
-	       5 : { 'state': 'Active', 'type': 'Stripping', 'master': 0, 'rqTotal': 0, 'prods': { 18 : { 'Used': 0, 'Events': 0 },
-												   19 : { 'Used': 1, 'Events': 0 } } }}
+               3 : { 'state': '', 'type': '', 'master': 2, 'rqTotal': 20000, 'prods': { 14 : { 'Used': 0, 'Events': 0 },
+                                                                                        15 : { 'Used': 1, 'Events': 0 } } },
+               4 : { 'state': '', 'type': '', 'master': 2, 'rqTotal': 30000, 'prods': { 16 : { 'Used': 0, 'Events': 0 },
+                                                                                        17 : { 'Used': 1, 'Events': 0 } } },
+               5 : { 'state': 'Active', 'type': 'Stripping', 'master': 0, 'rqTotal': 0, 'prods': { 18 : { 'Used': 0, 'Events': 0 },
+                                                                                                   19 : { 'Used': 1, 'Events': 0 } } }}
 
   def getAllProductionProgress( self ):
     """ Returns all known productions
@@ -145,7 +145,7 @@ class ProductionRequestSIM(object):
     return summary['rqTotal']
 
 
-class TransformationAndBookkeepingSIM():
+class TransformationAndBookkeepingSIM( object ):
   """ Simulate TransformationClient and Bookkeeping client
   """
   def __init__( self, *args, **kwargs ):
@@ -159,9 +159,9 @@ class TransformationAndBookkeepingSIM():
     self.t = { }
     for tID, tType in self.t_types.iteritems():
       self.t[tID] = { 'status': 'Active', 'processedEvents': 0, 'Type': tType,
-		      'filesStat': { 'Processed': 0, 'Unused': 0, 'Assigned': 0 },
-		      'tasksStat': { 'TotalCreated': 0, 'Running': 0, 'Done': 0, 'Failed': 0 }
-		    }
+                      'filesStat': { 'Processed': 0, 'Unused': 0, 'Assigned': 0 },
+                      'tasksStat': { 'TotalCreated': 0, 'Running': 0, 'Done': 0, 'Failed': 0 }
+                    }
     self.log = gLogger
 
     self.evPerFile = 100  # number of event in each MC generated file
@@ -265,7 +265,7 @@ class TransformationAndBookkeepingSIM():
       isModified = self.__extendSimulation( tID, prClient )
     elif self.t[tID]['status'] == 'RemovingFiles':
       # Emitate cleaning Agent
-      self.t[tNextID]['filesStat']['Unused'] = 0;
+      self.t[tNextID]['filesStat']['Unused'] = 0
       self.t[tID]['status'] = 'RemovedFiles'
       isModified = True
 
@@ -417,6 +417,11 @@ class ProductionStatusAgent( AgentModule ):
     # pending states and the number of Unused files was not changed last cyclesTillIdle times
     self.cyclesTillIdle = 1
     self.filesUnused = {}  # <tID: { 'Number': x, 'NotChanged': n }
+
+    self.prMasters = {}  # [ prID: [<subrequests> ...] ]
+    self.prSummary = {}
+    self.prProds = {}  # <prID>, map produciton to known request, from _getProductionRequestsProgress
+    self.notPrTrans = {}  # transformation without PR, from _getTransformationsState
 
   #############################################################################
   def initialize( self ):
@@ -590,7 +595,7 @@ class ProductionStatusAgent( AgentModule ):
       return []
     else:
       if len( res['Value'] ) > 20:
-	self.log.verbose( "The following number of transformations are in %s status: %u" % ( status, len( res['Value'] ) ) )
+        self.log.verbose( "The following number of transformations are in %s status: %u" % ( status, len( res['Value'] ) ) )
       else:
         valOutStr = ', '.join( [str( i ) for i in res['Value']] )
         self.log.verbose( "The following transformations are in %s status: %s" % ( status, valOutStr ) )
@@ -735,7 +740,7 @@ class ProductionStatusAgent( AgentModule ):
     toUpdate = []
     for tID, prID in self.prProds.iteritems():
       tInfo = self.prSummary[prID]['prods'][tID]
-      result = BookkeepingClient().getProductionProducedEvents( tID )
+      result = self.__getProductionProducedEvents( tID )
       if result['OK']:
         nEvents = result['Value']
         if nEvents and nEvents != tInfo['Events'] :
@@ -744,8 +749,8 @@ class ProductionStatusAgent( AgentModule ):
           toUpdate.append( { 'ProductionID': tID, 'BkEvents': nEvents } )
           tInfo['Events'] = nEvents
       else:
-	self.log.error( "Progress is not updated", "%s : %s" % ( tID, result['Message'] ) )
-	return S_ERROR( "Too dangerous to continue" )
+        self.log.error( "Progress is not updated", "%s : %s" % ( tID, result['Message'] ) )
+        return S_ERROR( "Too dangerous to continue" )
 
     if toUpdate:
       if gDoRealTracking:
@@ -760,11 +765,11 @@ class ProductionStatusAgent( AgentModule ):
     return S_OK()
 
   @timeThis
-  def __getProductionProcessedEvents( self, tID ):
+  def __getProductionProducedEvents( self, tID ):
     """ dev function - separate only for timing purposes
     """
     self.log.debug( "Getting BK production progress", "Transformation ID = %d" % tID )
-    return BookkeepingClient().getProductionProcessedEvents( tID )
+    return BookkeepingClient().getProductionProducedEvents( tID )
 
 
   def _cleanFilesUnused( self ):
@@ -825,7 +830,7 @@ class ProductionStatusAgent( AgentModule ):
       if not result['OK']:
         self.log.error( "Could not send mail", result['Message'] )
       else:
-	self.log.verbose( 'Mail summary sent to production manager' )
+        self.log.verbose( 'Mail summary sent to production manager' )
 
   def __updateProductionRequestStatus( self, prID, status, updatedPr ):
     """ This method updates the production request status.
@@ -887,7 +892,7 @@ class ProductionStatusAgent( AgentModule ):
     for _tID, tInfo in summary['prods'].iteritems():
       if tInfo['Used']:
         bkTotal += tInfo['Events']
-    return ( True if bkTotal >= summary['prTotal'] else False )
+    return True if bkTotal >= summary['prTotal'] else False
 
   def _producersAreIdle( self, summary ):
     """ Return True in case all producers (not 'Used') transformations are Idle, Finished or not exist
@@ -981,7 +986,7 @@ class ProductionStatusAgent( AgentModule ):
                 #   We wait till mergers finish the job
             # else
             #  we do not know what to do with that (yet)
-	  # else
+	           # else
           # 'Idle' && isIdle() (or unknown) && !isDone is not interesting combination
         elif tInfo['state'] == 'RemovedFiles':
           self.__updateTransformationStatus( tID, 'RemovedFiles', 'Completed', updatedT )
@@ -995,10 +1000,10 @@ class ProductionStatusAgent( AgentModule ):
                 self.__updateTransformationStatus( tID, 'Active', 'Idle', updatedT )
               else:
                 # 'Active' && isIdle() && !Used && isSimulation
-		if self._isReallyDone( summary ):
+                if self._isReallyDone( summary ):
                   if self._mergersAreProcIdle( summary ):
                     self.__updateTransformationStatus( tID, 'Active', 'ValidatingInput', updatedT )
-		elif self._processorsAreProcIdle( summary ) or self._requestedMoreThenProduced( tID, summary ):
+                elif self._processorsAreProcIdle( summary ) or self._requestedMoreThenProduced( tID, summary ):
                   # we are not done yet, extend production
                   self.__updateTransformationStatus( tID, 'Active', 'Idle', updatedT )
                 # else:

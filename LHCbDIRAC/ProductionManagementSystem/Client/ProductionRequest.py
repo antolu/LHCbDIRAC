@@ -462,7 +462,7 @@ class ProductionRequest( object ):
           newSteps.reverse()
           self.stepsListDict.remove( stepToSplit )
           last = self.stepsInProds.pop( index )[0]
-	  for x in xrange( numberOfProdsToInsert ):
+          for x in xrange( numberOfProdsToInsert ):
             self.prodsTypeList.insert( index, 'Merge' )
             self.plugins.insert( index, plugin )
             self.outputSEs.insert( index, outputSE )
