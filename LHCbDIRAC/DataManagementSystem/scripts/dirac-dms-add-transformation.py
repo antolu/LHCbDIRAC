@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
 
   plugin = pluginScript.getOption( 'Plugin' )
-  if not plugin:
+  if not plugin and not listProcessingPasses:
     gLogger.fatal( "ERROR: No plugin supplied..." )
     Script.showHelp()
     DIRAC.exit( 0 )
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     transType = "Removal"
   elif plugin in getReplicationPlugins():
     transType = "Replication"
-  else:
+  elif not listProcessingPasses:
     gLogger.notice( "This script can only create Removal or Replication plugins" )
     gLogger.notice( "Replication :", str( getReplicationPlugins() ) )
     gLogger.notice( "Removal     :", str( getRemovalPlugins() ) )
@@ -343,6 +343,8 @@ if __name__ == "__main__":
 
     # If the transformation uses the RemoveDataset plugin, set the files invisible in the BK...
     setInvisiblePlugins = ( "RemoveDataset", )
+    # Try and let them visible such
+    # setInvisiblePlugins = tuple()
     if invisible or plugin in setInvisiblePlugins:
       res = bk.setFilesInvisible( lfns )
       if res['OK']:

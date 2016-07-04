@@ -17,6 +17,7 @@ from DIRAC.DataManagementSystem.Utilities.DMSHelpers        import DMSHelpers, r
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
 from LHCbDIRAC.DataManagementSystem.Client.DMScript         import printDMResult, ProgressBar
+from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import scaleSize
 
 __RCSID__ = "$Id$"
 
@@ -1023,14 +1024,16 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
         repSites[site][1] += repSEs[se][1]
     string = "%16s: %s files" % ( se, repSEs[se][0] )
     if getSize:
-      string += " - %.3f teraByte" % ( repSEs[se][1] / teraByte )
+      size, sizeUnit = scaleSize( repSEs[se][1] )
+      string += " - %.3f %s" % ( size, sizeUnit )
     gLogger.notice( string )
 
   gLogger.notice( "\nSites statistics:" )
   for site in sorted( repSites ):
     string = "%16s: %d files" % ( site, repSites[site][0] )
     if getSize:
-      string += " - %.3f teraByte" % ( repSites[site][1] / teraByte )
+      size, sizeUnit = scaleSize( repSites[site][1] )
+      string += " - %.3f %s" % ( size, sizeUnit )
     gLogger.notice( string )
 
   if prNoReplicas and noReplicas:

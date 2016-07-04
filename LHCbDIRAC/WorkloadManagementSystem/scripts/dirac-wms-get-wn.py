@@ -88,20 +88,20 @@ if __name__ == "__main__":
   dirac = Dirac()
 
   # Get jobs according to selection
-  jobs = []
+  jobs = set()
   for stat in status:
     res = dirac.selectJobs( site = site, date = since, status = stat, minorStatus = minorStatus )
     if not res['OK']:
       gLogger.error( 'Error selecting jobs', res['Message'] )
       DIRAC.exit( 1 )
-    allJobs = [int( job ) for job in res['Value']]
+    allJobs = set( int( job ) for job in res['Value'] )
     if until:
       res = dirac.selectJobs( site = site, date = until, status = stat )
       if not res['OK']:
         gLogger.error( 'Error selecting jobs', res['Message'] )
         DIRAC.exit( 1 )
-      allJobs = sorted( set( allJobs ) - set( [int( job ) for job in res['Value']] ) )
-    jobs += allJobs
+      allJobs -= set( int( job ) for job in res['Value'] )
+    jobs.update( allJobs )
   if not jobs:
     gLogger.always( 'No jobs found...' )
     DIRAC.exit( 0 )
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     res = monitoring.getJobParameter( job, 'LocalJobID' )
     batchID = res.get( 'Value', {} ).get( 'LocalJobID', 'Unknown' )
     if workerNodes:
-      if node.split( '.' )[0] not in [wn.split( '.' )[0] for wn in workerNodes]:
+      if not [wn for wn in workerNodes if node.startswith( wn )]:
         continue
       allJobs.add( job )
     if batchIDs:
@@ -161,7 +161,8 @@ if __name__ == "__main__":
   # Print out result
   if workerNodes or batchIDs:
     gLogger.always( 'Found %d jobs at %s, WN %s (since %s):' % ( len( allJobs ), site, workerNodes, date ) )
-    gLogger.always( 'List of jobs:', ','.join( [str( job ) for job in allJobs] ) )
+    if allJobs:
+      gLogger.always( 'List of jobs:', ','.join( [str( job ) for job in allJobs] ) )
   else:
     if status == [None]:
       gLogger.always( 'Found %d jobs at %s (since %s):' % ( len( allJobs ), site, date ) )

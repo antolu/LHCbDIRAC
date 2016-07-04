@@ -120,7 +120,8 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
       sharedArea = os.path.join( os.environ[ 'VO_LHCB_SW_DIR' ], 'lib' )
       self.log.debug( "Using VO_LHCB_SW_DIR at '%s'" % sharedArea )
       if os.environ[ 'VO_LHCB_SW_DIR' ] == '.':
-        mkdir( 'lib' )
+        if not os.path.isdir('lib'):
+          os.mkdir( 'lib' )
     else:
       sharedArea = '/cvmfs/lhcb.cern.ch/lib'
       self.log.warn( "Can't find shared area, forcing it to %s" % sharedArea )
