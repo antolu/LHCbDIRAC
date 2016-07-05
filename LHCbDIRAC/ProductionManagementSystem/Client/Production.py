@@ -114,10 +114,10 @@ class Production( object ):
     proposedParam = self.opsHelper.getValue( 'Productions/%s' % name, '' )
     if proposedParam:
       gLogger.debug( 'Setting %s from CS defaults = %s' % ( name, proposedParam ) )
-      self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, proposedParam, description )
+      self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, proposedParam, description ) #pylint: disable=protected-access
     else:
       gLogger.debug( 'Setting parameter %s = %s' % ( name, parameterValue ) )
-      self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, parameterValue, description )
+      self.LHCbJob._addParameter( self.LHCbJob.workflow, name, parameterType, parameterValue, description ) #pylint: disable=protected-access
 
   #############################################################################
 
@@ -281,7 +281,7 @@ class Production( object ):
                    ['applicationLog', '@{applicationName}_@{STEP_ID}.log'],
                    ['XMLSummary', 'summary@{applicationName}_@{STEP_ID}.xml'],
                    ['extraPackages', extraPackages],
-#                   ['outputData', '@{STEP_ID}.' + fileTypesOut[0] if len( fileTypesOut ) == 1 else 'multiple'],
+                   #  ['outputData', '@{STEP_ID}.' + fileTypesOut[0] if len( fileTypesOut ) == 1 else 'multiple'],
                    ['BKStepID', str( stepID )],
                    ['StepProcPass', stepPass],
                    ['HistogramName', self.histogramName],
@@ -365,13 +365,15 @@ class Production( object ):
     """
     bkPass = 'BKProcessingPass'
     description = 'BKProcessingPassInfo'
-    self.LHCbJob._addParameter( self.LHCbJob.workflow, bkPass, 'dict', self.bkSteps, description )
+    self.LHCbJob._addParameter( self.LHCbJob.workflow, bkPass, 'dict', self.bkSteps, description ) #pylint: disable=protected-access
 
   #############################################################################
 
-  def addFinalizationStep( self, modulesList = ['UploadOutputData', 'UploadLogFile', 'FailoverRequest'] ):
+  def addFinalizationStep( self, modulesList = None ):
     """ Add the finalization step (some defaults are inserted)
     """
+    if modulesList is None:
+      modulesList = ['UploadOutputData', 'UploadLogFile', 'FailoverRequest']
 
     if 'Job_Finalization' not in self.LHCbJob.workflow.step_definitions.keys():
 
@@ -393,8 +395,8 @@ class Production( object ):
     """ Add the last parameters before creating the xml file containing the workflow
     """
 
-    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'gaudiSteps', 'list', self.gaudiSteps, 'list of Gaudi Steps' )
-    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputSEs', 'dict', self.outputSEs, 'dictionary of output SEs' )
+    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'gaudiSteps', 'list', self.gaudiSteps, 'list of Gaudi Steps' ) #pylint: disable=protected-access
+    self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputSEs', 'dict', self.outputSEs, 'dictionary of output SEs' ) #pylint: disable=protected-access
 
   def __createWorkflow( self, name = '' ):
     """ Create XML of the workflow
@@ -707,7 +709,7 @@ class Production( object ):
       prodXMLFile = self.__createWorkflow()
 
     job = LHCbJob( prodXMLFile )
-    result = preSubmissionLFNs( job._getParameters(), job.workflow.createCode(),
+    result = preSubmissionLFNs( job._getParameters(), job.workflow.createCode(), #pylint: disable=protected-access
                                 productionID = prodID, jobID = prodJobID )
     if not result['OK']:
       return result
@@ -728,7 +730,7 @@ class Production( object ):
     if stepMask:
       if isinstance( stepMask, list ):
         stepMask = ';'.join( stepMask )
-      self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputDataStep', 'string', stepMask, 'outputDataStep Mask' )
+      self.LHCbJob._addParameter( self.LHCbJob.workflow, 'outputDataStep', 'string', stepMask, 'outputDataStep Mask' ) #pylint: disable=protected-access
 
   #############################################################################
 
