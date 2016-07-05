@@ -1,4 +1,4 @@
-.PHONY: test
+.PHONY: test scripts
 
 #clean:
 #	rm -rf *.out *.xml htmlcov
