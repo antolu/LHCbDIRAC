@@ -187,12 +187,19 @@ class ProductionRequest( object ):
         if prodIndex not in self.prodsToLaunch:
           continue
 
-      # build the DAG of steps in a production
-      stepsInProdDAG = self._getStepsInProdDAG( prodDict, stepsListDict )
-      # Here, for today it is just convert to a list
-      #TODO: fix this in order to properly use DAGs (now it's only sequential)
-      #FIXME: using getIndexNodes we can't assure the order is respected
-      stepsInProd = stepsInProdDAG.getIndexNodes()
+      # build the list of steps in a production
+      stepsInProd = []
+      for stepID in prodDict['stepsInProd-ProdName']:
+        for step in stepsListDict:
+          if step['prodStepID'] == stepID:
+            stepsInProd.append( stepsListDict.pop( stepsListDict.index( step ) ) )
+      ##### NOT READY (alternative to previous 5 lines)
+      ## build the DAG of steps in a production
+      # stepsInProdDAG = self._getStepsInProdDAG( prodDict, stepsListDict )
+      ## Here, for today it is just convert to a list
+      ## TODO: fix this in order to properly use DAGs (now it's only sequential)
+      ## FIXME: using getIndexNodes we can't assure the order is respected
+      #stepsInProd = stepsInProdDAG.getIndexNodes()
 
       if prodDict['previousProd'] is not None:
         fromProd = prodsLaunched[prodDict['previousProd'] - 1 ]
@@ -610,7 +617,7 @@ class ProductionRequest( object ):
 
         Args:
           prodType (str): production type (e.g. 'DataStripping')
-          stepsInProd (DAG): DAG of steps in the production
+          stepsInProd (list): list of steps in the production
           outputSE (dict): dictionary that holds relation between file type and output SE
           priority (int): production priority
           cpu (int): CPU time, in HS06s for jobs in this production
