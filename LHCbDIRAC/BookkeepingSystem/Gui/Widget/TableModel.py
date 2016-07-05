@@ -3,9 +3,6 @@
 """
 Table model used most of the widget
 """
-########################################################################
-# $Id$
-########################################################################
 
 from PyQt4.QtCore                import Qt, SIGNAL, QAbstractTableModel, QVariant
 

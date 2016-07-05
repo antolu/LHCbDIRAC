@@ -6,10 +6,10 @@
       request (for failover)
 """
 
-__RCSID__ = "$Id$"
-
 from DIRAC                                                      import S_OK, S_ERROR, gLogger
 from LHCbDIRAC.Workflow.Modules.ModuleBase                      import ModuleBase
+
+__RCSID__ = "$Id$"
 
 class FailoverRequest( ModuleBase ):
 
@@ -35,9 +35,9 @@ class FailoverRequest( ModuleBase ):
   #############################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
-                workflowStatus = None, stepStatus = None,
-                wf_commons = None, step_commons = None,
-                step_number = None, step_id = None ):
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None ):
     """ Main execution function.
     """
 
@@ -62,13 +62,12 @@ class FailoverRequest( ModuleBase ):
       filesInFileReport = self.fileReport.getFiles()
       if not self._checkWFAndStepStatus( noPrint = True ):
         for lfn in self.inputDataList:
-          if not lfn in filesInFileReport:
+          if lfn not in filesInFileReport:
             self.log.info( "Forcing status to 'Unused' due to workflow failure for: %s" % ( lfn ) )
             self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Unused' )
       else:
-        filesInFileReport = self.fileReport.getFiles()
         for lfn in self.inputDataList:
-          if not lfn in filesInFileReport:
+          if lfn not in filesInFileReport:
             self.log.verbose( "No status populated for input data %s, setting to 'Processed'" % lfn )
             self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Processed' )
 

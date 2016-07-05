@@ -1,9 +1,11 @@
+""" doc here
+"""
 
 import unittest
 
 import math
 import operator
-import Image
+from PIL import Image
 
 from LHCbDIRAC.AccountingSystem.private.Plotters.DataStoragePlotter import DataStoragePlotter
 from LHCbDIRAC.AccountingSystem.private.Plotters.StoragePlotter import StoragePlotter
@@ -76,8 +78,7 @@ class DataStoragePlotterUnitTest( PlotterTestCase ):
                                                        1355702400L: 4905037943.7065058 }
                                    },
                  'unit'          : 'PB',
-                 'granularity'   : 86400
-                }
+                 'granularity'   : 86400}
 
     obj = DataStoragePlotter( None, None )
     res = obj._plotCatalogSpace( reportRequest, plotInfo, plotName )
@@ -105,8 +106,7 @@ class DataStoragePlotterUnitTest( PlotterTestCase ):
                                                        1355702400L : 380.35170637810842 }
                                    },
                  'unit'          : 'files',
-                 'granularity'   : 86400
-                }
+                 'granularity'   : 86400}
 
     obj = DataStoragePlotter( None, None )
     res = obj._plotCatalogFiles( reportRequest, plotInfo, plotName )
@@ -125,8 +125,7 @@ class DataStoragePlotterUnitTest( PlotterTestCase ):
                       'groupingFields' : ( '%s', [ 'EventType' ] ),
                       'startTime'      : 1355663249.0,
                       'endTime'        : 1355749690.0,
-                      'condDict'       : { 'EventType' : 'Full stream' }
-                    }
+                      'condDict'       : { 'EventType' : 'Full stream' }}
     plotInfo = { 'graphDataDict' : { 'Full stream' : { 1355616000L : 14.754501202,
                                                        1355702400L : 15.237810842 }
                                    },
@@ -134,8 +133,7 @@ class DataStoragePlotterUnitTest( PlotterTestCase ):
                                                        1355702400L : 15.237810842 }
                                    },
                  'unit'          : 'MB',
-                 'granularity'   : 86400
-                }
+                 'granularity'   : 86400}
 
     obj = DataStoragePlotter( None, None )
     res = obj._plotPhysicalSpace( reportRequest, plotInfo, plotName )
@@ -157,14 +155,11 @@ class DataStoragePlotterUnitTest( PlotterTestCase ):
                       'condDict'       : { 'EventType' : 'Full stream' }
                     }
     plotInfo = { 'graphDataDict' : { 'Full stream' : { 1355616000L : 42.47885754501202,
-                                                       1355702400L : 38.35170637810842 }
-                                   },
+                                                       1355702400L : 38.35170637810842 }},
                  'data'          : { 'Full stream' : { 1355616000L : 42.47885754501202,
-                                                       1355702400L : 38.35170637810842 }
-                                   },
+                                                       1355702400L : 38.35170637810842 }},
                  'unit'          : 'files',
-                 'granularity'   : 86400
-                }
+                 'granularity'   : 86400}
 
     obj = DataStoragePlotter( None, None )
     res = obj._plotPhysicalFiles( reportRequest, plotInfo, plotName )
@@ -186,21 +181,17 @@ class StoragePlotterUnitTest( PlotterTestCase ):
                       'groupingFields' : ( '%s', [ 'Directory' ] ),
                       'startTime'      : 1355663249.0,
                       'endTime'        : 1355749690.0,
-                      'condDict'       : { 'Directory' : [ '/lhcb/data', '/lhcb/LHCb' ] }
-                    }
+                      'condDict'       : { 'Directory' : [ '/lhcb/data', '/lhcb/LHCb' ] }}
     plotInfo = { 'graphDataDict' : { '/lhcb/data' : { 1355616000L : 4.9353885242469104,
-                                                       1355702400L : 4.8438444870748203 },
+                                                      1355702400L : 4.8438444870748203 },
                                       '/lhcb/LHCb' : { 1355616000L : 3.93538852424691,
-                                                       1355702400L : 3.8438444870748198 }
-                                     },
+                                                       1355702400L : 3.8438444870748198 }},
                   'data'          : { '/lhcb/data' : { 1355616000L : 4935388.5242469106,
                                                        1355702400L : 4843844.4870748203 },
                                       '/lhcb/LHCb' : { 1355616000L : 3935388.5242469101,
-                                                       1355702400L : 3843844.4870748199 }
-                                     },
+                                                       1355702400L : 3843844.4870748199 }},
                   'unit'          : 'TB',
-                  'granularity'   : 86400
-                 }
+                  'granularity'   : 86400}
 
     obj = StoragePlotter( None, None )
     res = obj._plotCatalogSpace( reportRequest, plotInfo, plotName )
@@ -219,21 +210,17 @@ class StoragePlotterUnitTest( PlotterTestCase ):
                       'groupingFields' : ( '%s', [ 'Directory' ] ),
                       'startTime'      : 1355663249.0,
                       'endTime'        : 1355749690.0,
-                      'condDict'       : { 'Directory' : [ '/lhcb/data', '/lhcb/LHCb' ] }
-                     }
+                      'condDict'       : { 'Directory' : [ '/lhcb/data', '/lhcb/LHCb' ] } }
     plotInfo = { 'graphDataDict' : { '/lhcb/data' : { 1355616000L : 4935388.5242469106,
                                                       1355702400L : 4843844.4870748203 },
                                      '/lhcb/LHCb' : { 1355616000L : 3935388.5242469101,
-                                                      1355702400L : 3843844.4870748199 }
-                                    },
+                                                      1355702400L : 3843844.4870748199 }},
                  'data'          : { '/lhcb/data' : { 1355616000L : 4935388524246.9102,
                                                       1355702400L : 4843844487074.8203 },
                                      '/lhcb/LHCb' : { 1355616000L : 3935388524246.9102,
-                                                      1355702400L : 3843844487074.8198 }
-                                    },
+                                                      1355702400L : 3843844487074.8198 }},
                  'unit'          : 'Mfiles',
-                 'granularity'   : 86400
-                }
+                 'granularity'   : 86400}
 
     obj = StoragePlotter( None, None )
     res = obj._plotCatalogFiles( reportRequest, plotInfo, plotName )
@@ -252,21 +239,17 @@ class StoragePlotterUnitTest( PlotterTestCase ):
                       'groupingFields' : ( '%s', [ 'StorageElement' ] ),
                       'startTime'      : 1355663249.0,
                       'endTime'        : 1355749690.0,
-                      'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST' ] }
-                    }
+                      'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST' ] }}
     plotInfo = { 'graphDataDict' : { 'CERN-ARCHIVE' : { 1355616000L : 2.34455676781291,
                                                         1355702400L : 2.5445567678129102 },
                                      'CERN-DST'     : { 1355616000L : 0.34455676781290995,
-                                                        1355702400L : 0.54455676781290996 }
-                                    },
+                                                        1355702400L : 0.54455676781290996 }},
                  'data'          : { 'CERN-ARCHIVE' : { 1355616000L : 2344556.76781291,
                                                         1355702400L : 2544556.76781291 },
                                      'CERN-DST'     : { 1355616000L : 344556.76781290997,
-                                                        1355702400L : 544556.76781291002 }
-                                    },
+                                                        1355702400L : 544556.76781291002 }},
                  'unit'          : 'TB',
-                 'granularity'   : 86400
-                }
+                 'granularity'   : 86400}
 
     obj = StoragePlotter( None, None )
     res = obj._plotPhysicalSpace( reportRequest, plotInfo, plotName )
@@ -285,25 +268,21 @@ class StoragePlotterUnitTest( PlotterTestCase ):
                       'groupingFields' : ( '%s', [ 'StorageElement' ] ),
                       'startTime'      : 1355663249.0,
                       'endTime'        : 1355749690.0,
-                      'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST', 'CERN-BUFFER' ] }
-                    }
+                      'condDict'       : { 'StorageElement' : [ 'CERN-ARCHIVE', 'CERN-DST', 'CERN-BUFFER' ] }}
     plotInfo = { 'graphDataDict' : { 'CERN-BUFFER'  : { 1355616000L : 250.65890999999999,
                                                         1355702400L : 261.65890999999999 },
                                      'CERN-ARCHIVE' : { 1355616000L : 412.65890999999999,
                                                         1355702400L : 413.65890999999999 },
                                      'CERN-DST'     : { 1355616000L : 186.65890999999999,
-                                                        1355702400L : 187.65890999999999 }
-                                    },
+                                                        1355702400L : 187.65890999999999 }},
                  'data'          : { 'CERN-BUFFER'  : { 1355616000L : 250658.91,
                                                         1355702400L : 261658.91 },
                                      'CERN-ARCHIVE' : { 1355616000L : 412658.90999999997,
                                                         1355702400L : 413658.90999999997 },
                                      'CERN-DST'     : { 1355616000L : 186658.91,
-                                                        1355702400L : 187658.91 }
-                                    },
+                                                        1355702400L : 187658.91 }},
                  'unit'          : 'kfiles',
-                 'granularity'   : 86400
-                }
+                 'granularity'   : 86400}
 
     obj = StoragePlotter( None, None )
     res = obj._plotPhysicalSpace( reportRequest, plotInfo, plotName )

@@ -2,12 +2,12 @@
     for use after merged outputs have been successfully uploaded to an SE.
 """
 
-__RCSID__ = "$Id$"
-
 from DIRAC                                          import S_OK, S_ERROR, gLogger
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.File      import File
 from LHCbDIRAC.Workflow.Modules.ModuleBase          import ModuleBase
+
+__RCSID__ = "$Id$"
 
 class RemoveInputData( ModuleBase ):
 
@@ -36,9 +36,9 @@ class RemoveInputData( ModuleBase ):
   #############################################################################
 
   def execute( self, production_id = None, prod_job_id = None, wms_job_id = None,
-                workflowStatus = None, stepStatus = None,
-                wf_commons = None, step_commons = None,
-                step_number = None, step_id = None ):
+               workflowStatus = None, stepStatus = None,
+               wf_commons = None, step_commons = None,
+               step_number = None, step_id = None ):
     """ Main execution function.
     """
 

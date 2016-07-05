@@ -1,9 +1,6 @@
 """
 Implementation of the ListModel
 """
-########################################################################
-# $Id: $
-########################################################################
 
 from LHCbDIRAC.BookkeepingSystem.Gui.Basic.ListModel                   import ListModel
 

@@ -27,4 +27,5 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = False )
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeLfnReplicas
-  executeLfnReplicas( dmScript )
+  from DIRAC import exit
+  exit( executeLfnReplicas( dmScript ) )

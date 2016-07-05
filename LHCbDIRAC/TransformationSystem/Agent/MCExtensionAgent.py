@@ -92,7 +92,7 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       self.log.verbose( "cpuNormalizationFactorAvg = %d" % self.cpuNormalizationFactorAvg )
     except RuntimeError:
       self.log.info( "Could not get CPUNormalizationFactorAvg from config, defaulting to %d" % self.cpuNormalizationFactorAvg )
- 
+
   #############################################################################
   def _checkProductionRequest( self, productionRequestID, productionRequestSummary ):
     """ Check if a production request need to be extended and do it if needed
@@ -170,8 +170,11 @@ class MCExtensionAgent( DIRACMCExtensionAgent ):
       # -> there is probably a stripping production, an extension factor is needed to account for stripped events
       # some events may still be processed (eg. merged), so wait that all the productions are idle
       if all( production['Status'].lower() == 'idle' for production in productions ):
-        extensionFactor = float( simulationProgress['BkEvents'] ) / float( productionRequestSummary['bkTotal'] )
-        return self._extendProduction( simulation, extensionFactor, missingEvents )
+        try:
+          extensionFactor = float( simulationProgress['BkEvents'] ) / float( productionRequestSummary['bkTotal'] )
+          return self._extendProduction( simulation, extensionFactor, missingEvents )
+        except  ZeroDivisionError:
+          return S_OK()
       else:
         return S_OK()
 

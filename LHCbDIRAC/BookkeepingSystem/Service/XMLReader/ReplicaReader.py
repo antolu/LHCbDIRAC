@@ -1,10 +1,6 @@
 """
 It stores the replica
 """
-########################################################################
-# $Id$
-########################################################################
-
 
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Replica.Replica      import Replica
 from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Replica.ReplicaParam import ReplicaParam

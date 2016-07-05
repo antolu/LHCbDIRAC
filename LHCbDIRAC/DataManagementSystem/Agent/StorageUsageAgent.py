@@ -5,7 +5,7 @@
     =======================
 
     .. module: StorageUsageAgent
-    :synopsis: StorageUsageAgent takes the LFC as the primary source of information to
+    :synopsis: StorageUsageAgent takes the FC as the primary source of information to
     determine storage usage.
 '''
 # # imports
@@ -19,6 +19,7 @@ from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.Utilities.DirectoryExplorer import DirectoryExplorer
+from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 from DIRAC.FrameworkSystem.Client.MonitoringClient import gMonitor
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
@@ -28,6 +29,7 @@ from DIRAC.Core.Utilities.Time import timeInterval, dateTime, week
 from DIRAC.Core.Utilities.DictCache import DictCache
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 # # from LHCbDIRAC
 from LHCbDIRAC.DataManagementSystem.DB.StorageUsageDB import StorageUsageDB
 
@@ -75,17 +77,20 @@ class StorageUsageAgent( AgentModule ):
     self.__processedDirs = 0
     self.__directoryOwners = {}
     self.catalog = FileCatalog()
+    self.__maxToPublish = self.am_getOption( 'MaxDirectories', 5000 )
     if self.am_getOption( 'DirectDB', False ):
       self.storageUsage = StorageUsageDB()
     else:
-      self.storageUsage = RPCClient( 'DataManagement/StorageUsage' )
-
+      # Set a timeout of 0.1 seconds per directory (factor 5 margin)
+      self.storageUsage = RPCClient( 'DataManagement/StorageUsage',
+                                     timeout = self.am_getOption( 'Timeout', int( self.__maxToPublish * 0.1 ) ) )
     self.activePeriod = self.am_getOption( 'ActivePeriod', self.activePeriod )
     self.dataLock = threading.Lock()
     self.replicaListLock = threading.Lock()
     self.proxyCache = DictCache( removeProxy )
     self.__noProxy = set()
     self.__catalogType = None
+    self.__recalculateUsage = Operations().getValue( 'DataManagement/RecalculateDirSize', False )
 
   def initialize( self ):
     ''' agent initialisation '''
@@ -143,17 +148,16 @@ class StorageUsageAgent( AgentModule ):
     ''' prepare directories for replica list files '''
     self.__replicaFilesUsed = set()
     self.__replicaListFilesDir = os.path.join( self.am_getOption( "WorkDirectory" ), "replicaLists" )
-    if not os.path.isdir( self.__replicaListFilesDir ):
-      os.makedirs( self.__replicaListFilesDir )
+    mkDir( self.__replicaListFilesDir )
     self.log.info( "Replica Lists directory is %s" % self.__replicaListFilesDir )
 
   def __replicaListFilesDone( self ):
     ''' rotate replicas list files '''
     self.replicaListLock.acquire()
     try:
-      old = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s\.old$" % self.__baseDirLabel )
-      current = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s$" % self.__baseDirLabel )
-      filling = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s\.filling$" % self.__baseDirLabel )
+      old = re.compile( r"^replicas\.([a-zA-Z0-9\-_]*)\.%s\.old$" % self.__baseDirLabel )
+      current = re.compile( r"^replicas\.([a-zA-Z0-9\-_]*)\.%s$" % self.__baseDirLabel )
+      filling = re.compile( r"^replicas\.([a-zA-Z0-9\-_]*)\.%s\.filling$" % self.__baseDirLabel )
       # Delete old
       for fileName in os.listdir( self.__replicaListFilesDir ):
         match = old.match( fileName )
@@ -253,8 +257,8 @@ class StorageUsageAgent( AgentModule ):
       elapsedTime = time.time() - self.__startExecutionTime
       outdatedSeconds = max( max( self.am_getOption( "PollingTime" ), elapsedTime ) * 2, 86400 )
       result = self.storageUsage.purgeOutdatedEntries( self.__baseDir,
-                                                         long( outdatedSeconds ),
-                                                         self.__ignoreDirsList )
+                                                       long( outdatedSeconds ),
+                                                       self.__ignoreDirsList )
       if not result[ 'OK' ]:
         return result
       self.log.notice( "Purged %s outdated records" % result[ 'Value' ] )
@@ -288,7 +292,8 @@ class StorageUsageAgent( AgentModule ):
     dirListSize = [d for d in dirList if dirContents.get( d, {} ).get( 'Files' )]
 
     startTime1 = time.time()
-    for args in [( d, True, False ) for d in breakListIntoChunks( dirListSize, chunkSize )]:
+    # FIXME: this should be changed to (d,True, False) when the DFC is fixed
+    for args in [( d, True, self.__recalculateUsage ) for d in breakListIntoChunks( dirListSize, chunkSize )]:
       res = self.catalog.getDirectorySize( *args, timeout = 600 )
       if not res['OK']:
         failed.update( dict.fromkeys( args[0], res['Message'] ) )
@@ -318,8 +323,8 @@ class StorageUsageAgent( AgentModule ):
 
 
   def __processDirDFC( self, dirPath, metadata, subDirectories ):
-    ''' gets the list of subdirs that the DFC doesn't return, set the metadata like the LFC
-    and then call the same method as for the LFC '''
+    ''' gets the list of subdirs that the DFC doesn't return, set the metadata like the FC
+    and then call the same method as for the FC '''
     if 'SubDirs' not in subDirectories:
       self.log.error( 'No subdirectory item for directory', dirPath )
       return
@@ -341,7 +346,7 @@ class StorageUsageAgent( AgentModule ):
         # This part here is for removing the recursivity introduced by the DFC
         args = [subDir]
         if len( subDir.split( '/' ) ) > self.__keepDirLevels:
-          args += [True, False]
+          args += [True, self.__recalculateUsage]
         result = self.catalog.getDirectorySize( *args )
         if not result['OK']:
           errorReason.setdefault( str( result['Message'] ), [] ).append( subDir )
@@ -551,11 +556,20 @@ class StorageUsageAgent( AgentModule ):
       if not self.__dirsToPublish:
         self.log.info( "No data to be published" )
         return
-      self.log.info( "Publishing usage for %d directories" % len( self.__dirsToPublish ) )
-      res = self.storageUsage.publishDirectories( self.__dirsToPublish )
-      if res['OK']:
-        self.__dirsToPublish = {}
+      if len( self.__dirsToPublish ) > self.__maxToPublish:
+        toPublish = {}
+        for dirName in sorted( self.__dirsToPublish )[:self.__maxToPublish]:
+          toPublish[dirName] = self.__dirsToPublish.pop( dirName )
       else:
+        toPublish = self.__dirsToPublish
+      self.log.info( "Publishing usage for %d directories" % len( toPublish ) )
+      res = self.storageUsage.publishDirectories( toPublish )
+      if res['OK']:
+        # All is OK, reset the dictionary, even if data member!
+        toPublish.clear()
+      else:
+        # Put back dirs to be published, due to the error
+        self.__dirsToPublish.update( toPublish )
         self.log.error( "Failed to publish directories", res['Message'] )
       return res
     finally:

@@ -111,7 +111,7 @@
 #    populating the queue __MsgQueue with the incoming messages.
 #    """
 #
-#    # Attribute defined outside __init__  
+#    # Attribute defined outside __init__
 #
 #    self.log.info( 'NagiosConsumerAgent' )
 #
@@ -180,15 +180,15 @@
 #
 #      # Let's try without threads, and see the polling time.
 #      for _m in xrange(msgs):
-#        
-#        _head, msg = __MsgQueue.get()              
+#
+#        _head, msg = __MsgQueue.get()
 #
 #        params = self.__checkParams( msg )
 #
 #        if params:
 #          res = self.rmClient.addOrModifyMonitoringTest( **params )
 #          if not res[ 'OK' ]:
-#            self.log.error( 'Error adding %s' % str( params ) )  
+#            self.log.error( 'Error adding %s' % str( params ) )
 #
 #      return S_OK()
 #

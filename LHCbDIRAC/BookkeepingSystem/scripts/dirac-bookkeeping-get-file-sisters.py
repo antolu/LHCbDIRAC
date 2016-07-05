@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :    dirac-bookkeeping-get-file-sisters
 # Author :  Zoltan Mathe
 ########################################################################
@@ -9,8 +8,7 @@
 """
 __RCSID__ = "$Id$"
 
-import DIRAC
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script, printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, Script
 
 if __name__ == "__main__":
 
@@ -28,120 +26,5 @@ if __name__ == "__main__":
 
   Script.parseCommandLine( ignoreErrors = True )
 
-  checkreplica = True
-  prod = 0
-  full = False
-  sameType = True
-  for switch in Script.getUnprocessedSwitches():
-    if switch[0] == 'All':
-      checkreplica = False
-    elif switch[0] == 'Depth':
-      try:
-        level = int( switch[1] )
-      except:
-        print "Invalid value for --Depth: %s", switch[1]
-    elif switch[0] == 'Production':
-      try:
-        prod = int( switch[1] )
-      except:
-        prod = 0
-    elif switch[0] == 'Full':
-      full = True
-    elif switch[0] == 'AllFileTypes':
-      sameType = False
-
-  args = Script.getPositionalArgs()
-
-  try:
-    level = int( args[-1] )
-    args.pop()
-  except:
-    pass
-  if level == 1:
-    relation = 'NoSister'
-  else:
-    relation = 'NoCousin'
-
-  for lfn in args:
-    dmScript.setLFNsFromFile( lfn )
-  lfnList = dmScript.getOption( 'LFNs', [] )
-
-  from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-  bk = BookkeepingClient()
-
-  prodLfns = {}
-  if not prod:
-    # Get the productions for the input files
-    directories = {}
-    import os
-    for lfn in lfnList:
-      directories.setdefault( os.path.dirname( lfn ), [] ).append( lfn )
-    res = bk.getDirectoryMetadata( directories.keys() )
-    if not res['OK']:
-      print "Error getting directories metadata", res['Message']
-      DIRAC.exit( 1 )
-    for dirName in directories:
-      prod = res['Value']['Successful'].get( dirName, [{}] )[0].get( 'Production' )
-      if not prod:
-        print "Error: could not get production number for %s" % dirName
-      else:
-        prodLfns.setdefault( prod, [] ).extend( directories[dirName] )
-  else:
-    prodLfns[prod] = lfnList
-
-  if full:
-    resItem = 'WithMetadata'
-  else:
-    resItem = 'Successful'
-  fullResult = { 'OK': True, 'Value': {resItem:{}, relation:set()}}
-  resValue = fullResult['Value']
-
-  for prod, lfnList in prodLfns.items():
-    if sameType:
-      res = bk.getFileMetadata( lfnList )
-      if not res['OK']:
-        print "Error getting file metadata", res['Message']
-        DIRAC.exit( 1 )
-      lfnTypes = {}
-      for lfn in res['Value'].get( 'Successful', res['Value'] ):
-        metadata = res['Value'][lfn]
-        lfnTypes[lfn] = metadata['FileType']
-    else:
-      lfnTypes = dict.fromkeys( lfnList, None )
-
-    # First get ancestors
-    result = bk.getFileAncestors( lfnTypes.keys(), level, replica = False )
-    if not result['OK']:
-      print "Error getting ancestors:", res['Message']
-      DIRAC.exit( 1 )
-
-    ancestors = dict( [( anc['FileName'], lfn ) for lfn, ancList in result['Value']['Successful'].items() for anc in ancList] )
-
-    res = bk.getFileDescendants( ancestors.keys(), depth = 999999, production = prod, checkreplica = checkreplica )
-
-    fullResult['OK'] = res['OK']
-    if res['OK']:
-      for anc, sisters in res['Value']['WithMetadata'].items():
-        lfn = ancestors[anc]
-        found = False
-        for sister in sisters:
-          metadata = sisters[sister]
-          if sister != lfn and ( not sameType or metadata['FileType'] == lfnTypes[lfn] ):
-            if full:
-              resValue[resItem].setdefault( lfn, {} ).update( metadata )
-            else:
-              resValue[resItem].setdefault( lfn, set() ).add( sister )
-            found = True
-        if not found:
-          resValue[relation].add( lfn )
-        if lfn in lfnList:
-          lfnList.remove( lfn )
-      for lfn in lfnList:
-        resValue[relation].add( lfn )
-      for lfn in [lfn for lfn in resValue[resItem] if lfn in resValue[relation]]:
-        resValue[relation].remove( lfn )
-    else:
-      break
-
-  DIRAC.exit( printDMResult( fullResult,
-                             empty = "None", script = "dirac-bookkeeping-get-file-sisters" ) )
+  from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import executeFileSisters
+  executeFileSisters( dmScript, level = level )

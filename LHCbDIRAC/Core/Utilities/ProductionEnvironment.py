@@ -4,8 +4,6 @@
     use by workflow modules or client tools.
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import shutil
 import stat
@@ -14,8 +12,11 @@ from distutils.version import LooseVersion
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 from DIRAC.Core.Utilities.List import uniqueElements
+from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.Os import sourceEnv
+
+__RCSID__ = "$Id$"
 
 gLogger = gLogger.getSubLogger( 'ProductionEnvironment' )
 groupLogin = 'LbLogin.sh'
@@ -244,16 +245,8 @@ def setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot, dire
     env['User_release_area'] = directory
     package = os.path.join( directory, '%s_%s' % ( applicationName, applicationVersion ) )
     env['CMTPATH'] = package
-    if not os.path.exists( package ):
-      os.mkdir( package )
-    if not os.path.exists( os.path.join( package, 'cmttemp' ) ):
-      os.mkdir( os.path.join( directory, 'cmttemp' ) )
-    if not os.path.exists( os.path.join( package, 'cmttemp', 'v1' ) ):
-      os.mkdir( os.path.join( directory, 'cmttemp', 'v1' ) )
-    if not os.path.exists( os.path.join( package, 'cmttemp', 'v1', 'cmt' ) ):
-      os.mkdir( os.path.join( directory, 'cmttemp', 'v1', 'cmt' ) )
-    if not os.path.exists( os.path.join( package, 'cmt' ) ):
-      os.mkdir( os.path.join( package, 'cmt' ) )
+    mkDir( os.path.join( directory, 'cmttemp', 'v1', 'cmt' ) )
+    mkDir( os.path.join( package, 'cmt' ) )
 
     if os.path.exists( os.path.join( package, 'cmt', 'project.cmt' ) ):
       os.remove( os.path.join( package, 'cmt', 'project.cmt' ) )

@@ -1,8 +1,8 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Agent.GridSiteWMSMonitoringAgent
- 
+
    GridSiteWMSMonitoringAgent.__bases__:
      DIRAC.Core.Base.AgentModule.AgentModule
-     
+
 '''
 
 import datetime
@@ -28,23 +28,23 @@ AGENT_NAME = 'ResourceStatusSystem/GridSiteWMSMonitoringAgent'
 
 class GridSiteWMSMonitoringAgent( AgentModule ):
   '''
-    Extracts information on the current Grid activity from the DIRAC WMS and 
+    Extracts information on the current Grid activity from the DIRAC WMS and
     publishes it to the web
-  
-    GridSiteWMSMonitoringAgent, extracts information on the current Grid activity 
-    from the DIRAC WMS and publishes it to the web 
+
+    GridSiteWMSMonitoringAgent, extracts information on the current Grid activity
+    from the DIRAC WMS and publishes it to the web
   '''
-  
-  __hrefPrefix = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory' 
-  
+
+  __hrefPrefix = 'http://lhcbweb.pic.es/DIRAC/LHCb-Production/anonymous/systems/accountingPlots/WMSHistory'
+
   def __init__( self, *args, **kwargs ):
-    
+
     AgentModule.__init__( self, *args, **kwargs )
-  
+
     # Members initialization
-  
+
     self.hrefPrefix = self.__hrefPrefix
-    
+
     self.siteGOCNameDict = {}
     self.lastUpdateTime  = 0
 
@@ -55,12 +55,12 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
     '''
       Initialize the agent.
     '''
-    
+
     self.hrefPrefix      = self.am_getOption( 'SiteHrefPrefix', self.hrefPrefix )
-    
+
     self.jobDB           = JobDB()
-    self.opHelper        = Operations()   
-        
+    self.opHelper        = Operations()
+
     return S_OK()
 
   def execute( self ):
@@ -129,7 +129,7 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
         lTuple = ( site, activity, aDict[ 'FinishedTotal' ], site_status, int( time.time() ) - 3600 , int( time.time() ), href )
         line   = '%s,%s,completed_jobs,%d,-1,%s,%d,%d,%s ' % lTuple
         fileContents += line + '\n'
-        
+
         successfully_completed_jobs += aDict[ 'FinishedSuccessful' ]
         lTuple = ( site, activity, aDict[ 'FinishedSuccessful' ], int( time.time() ) - 3600, int( time.time() ), href )
         line   = '%s,%s,successfully_completed_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
@@ -159,17 +159,17 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
         lTuple = ( site, activity, aDict[ 'FinishedTotal24' ], site_status, int( time.time() ) - 86400, int( time.time() ), href )
         line   = '%s,%s,completed_jobs_24h,%d,-1,%s,%d,%d,%s ' % lTuple
         fileContents += line + '\n'
-        
+
         successfully_completed_jobs_24h += aDict[ 'FinishedSuccessful24' ]
         lTuple = ( site, activity, aDict[ 'FinishedSuccessful24' ], int( time.time() ) - 86400, int( time.time() ), href )
         line   = '%s,%s,successfully_completed_jobs_24h,%d,-1,unknown,%d,%d,%s ' % lTuple
         fileContents += line + '\n'
-        
+
         CPU_time += aDict[ 'CPUTime' ]
         lTuple = ( site, activity, aDict[ 'CPUTime' ], int( time.time() ) - 3600, int( time.time() ), href )
         line   = '%s,%s,CPU_time,%d,-1,unknown,%d,%d,%s ' % lTuple
         fileContents += line + '\n'
-        
+
         wall_time += aDict[ 'WallClockTime' ]
         lTuple = ( site, activity, aDict[ 'WallClockTime' ], int( time.time() ) - 3600, int( time.time() ), href )
         line   = '%s,%s,wall_time,%d,-1,unknown,%d,%d,%s ' % lTuple
@@ -202,7 +202,7 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
       lTuple = ( site, 'job_processing', completed_jobs, site_status, int( time.time() ) - 3600, int( time.time() ), href )
       line   = '%s,%s,completed_jobs,%d,-1,%s,%d,%d,%s ' % lTuple
       fileContents += line + '\n'
-      
+
       lTuple = ( site, 'job_processing', successfully_completed_jobs, int( time.time() ) - 3600, int( time.time() ), href )
       line   = '%s,%s,successfully_completed_jobs,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line + '\n'
@@ -230,15 +230,15 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
       lTuple = (site,'job_processing',completed_jobs_24h,site_status,int(time.time())-86400,int(time.time()),href)
       line = '%s,%s,completed_jobs_24h,%d,-1,%s,%d,%d,%s ' % lTuple
       fileContents += line+'\n'
-      
+
       lTuple = ( site, 'job_processing', successfully_completed_jobs_24h, int( time.time() ) - 86400, int( time.time() ), href )
       line   = '%s,%s,successfully_completed_jobs_24h,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line + '\n'
-      
+
       lTuple = ( site, 'job_processing', CPU_time, int( time.time() ) - 3600, int( time.time() ), href )
       line   = '%s,%s,CPU_time,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line + '\n'
-      
+
       lTuple = ( site, 'job_processing', wall_time, int( time.time() ) - 3600, int( time.time() ), href )
       line   = '%s,%s,wall_time,%d,-1,unknown,%d,%d,%s ' % lTuple
       fileContents += line + '\n'
@@ -329,7 +329,7 @@ class GridSiteWMSMonitoringAgent( AgentModule ):
         monDict[ site ][ jobType ][ 'FinishedSuccessful24' ] = 0
         monDict[ site ][ jobType ][ 'CPUTime' ]              = 0
         monDict[ site ][ jobType ][ 'WallClockTime' ]        = 0
-        
+
         monDict[ site ][ 'DIRACName' ] = siteDIRAC
 
     # Currently running jobs

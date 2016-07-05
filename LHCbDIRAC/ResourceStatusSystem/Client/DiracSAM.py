@@ -14,7 +14,7 @@ from LHCbDIRAC.Interfaces.API.LHCbJob      import LHCbJob
 
 class DiracSAM( Dirac ):
   """ DiracSAM: extension of Dirac Interface for SAM jobs
-    
+
       It provides the following methods:
       - getSuitableCEs
       - submitSAMJob
@@ -24,32 +24,32 @@ class DiracSAM( Dirac ):
     """ Instantiates the Workflow object and some default parameters.
     """
     Dirac.__init__( self )
-    
+
     self.opsH = Operations()
-    
+
     self.gridType    = 'LCG'
     self.bannedSites = self.opsH.getValue( 'SAM/BannedSites', [] )
 
   def getSuitableCEs( self ):
     """ Gets all CE/site ( excluding the ones of banned sites )
     """
-    
+
     self.log.info( "Banned SAM sites are: %s" % ( ', '.join( self.bannedSites ) ) )
-    
+
     ceMapping = getCESiteMapping( self.gridType )
     if not ceMapping[ 'OK' ]:
       return ceMapping
     ceMapping = ceMapping[ 'Value' ]
-    
+
     for ce, site in ceMapping.iteritems():
       if site in self.bannedSites:
         ceMapping.pop( ce )
-    
+
     return S_OK( ceMapping )
 
   def defineSAMJob( self, ce, site ):
     """ Defines an LHCbJob which is going to be submitted to a given ce
-      
+
         Steps:
         - CVMFSCheck
         - GaudiApplication x 4 [ Gauss, Boole, Brunel, DaVinci ]
@@ -73,7 +73,7 @@ class DiracSAM( Dirac ):
         samPriority = int( samPriority )
       except ValueError:
         return S_ERROR( 'Expected Integer for User priority' )
-    
+
     #LHCbJob definition
     samJob = LHCbJob()
     res = samJob.setName( 'SAM-%s' % ce )
@@ -82,7 +82,7 @@ class DiracSAM( Dirac ):
 
     res = samJob.setDestinationCE( ce, site )
     if not res['OK']:
-      return res    
+      return res
     res = samJob.setLogLevel( samLogLevel )
     if not res['OK']:
       return res
@@ -98,19 +98,19 @@ class DiracSAM( Dirac ):
     res = samJob.setType( samType )
     if not res['OK']:
       return res
-    
+
     samJob._addParameter( samJob.workflow, 'Priority', 'JDL', samPriority, 'User Job Priority' )
     samJob._addJDLParameter( 'SubmitPools', 'Test' )
-    
+
     # CVMFS step definition
     stepName = 'CVMFSCheck'
     step = getStepDefinition( stepName, modulesNameList = [stepName] )
     addStepToWorkflow( samJob.workflow, step, stepName )
-   
+
     gaudiSteps = []
     # Application Step definitions
     for appTest in appTests:
-      
+
       appTestOptions = self.opsH.getOptionsDict( 'SAM/ApplicationTestOptions/%s' % appTest )
       if not appTestOptions['OK']:
         return S_ERROR( "'SAM/ApplicationTestOptions/%s' is not defined or could not be retrieved" % appTest )
@@ -161,22 +161,22 @@ class DiracSAM( Dirac ):
         applicationStep['Value'].setValue( 'CondDBTag', appTestOptions.get( 'CondDBTag', '' ) )
 
     samJob._addParameter( samJob.workflow, 'gaudiSteps', 'list', gaudiSteps, 'list of Gaudi Steps' )
-    
-    stepName = 'UploadSAMLogs' 
+
+    stepName = 'UploadSAMLogs'
     step = getStepDefinition( stepName, modulesNameList = [stepName] )
     addStepToWorkflow( samJob.workflow, step, stepName )
-    
+
     samJob.setDIRACPlatform()
 
     return S_OK( samJob )
-  
+
   def submitNewSAMJob( self, ce, site, runLocal = False ):
     """ Method that generates a NewStyle SAM Job and submits it to the given ce if mode is wms.
         If mode is local, it will be run locally
     """
-    
+
     mode = ( runLocal and 'local' ) or 'wms'
-    
+
     samJob = self.defineSAMJob( ce, site )
     if not samJob[ 'OK' ]:
       return samJob

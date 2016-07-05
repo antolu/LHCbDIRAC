@@ -22,20 +22,22 @@ if __name__ == "__main__":
   start = False
   force = False
   invisible = False
-  lfcCheck = True
+  fcCheck = True
   unique = False
   bkQuery = None
   depth = 0
   userGroup = None
+  listProcessingPasses = False
 
   Script.registerSwitch( "", "SetInvisible", "Before creating the transformation, set the files in the BKQuery as invisible (default for DeleteDataset)" )
   Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
   Script.registerSwitch( "", "Force", "   Force transformation to be submitted even if no files found" )
   Script.registerSwitch( "", "Test", "   Just print out but not submit" )
-  Script.registerSwitch( "", "NoLFCCheck", "   Suppress the check in LFC for removal transformations" )
+  Script.registerSwitch( "", "NoFCCheck", "   Suppress the check in FC for removal transformations" )
   Script.registerSwitch( "", "Unique", "   Refuses to create a transformation with an existing name" )
   Script.registerSwitch( "", "Depth=", "   Depth in path for replacing /... in processing pass" )
   Script.registerSwitch( "", "Chown=", "   Give user/group for chown of the directories of files in the FC" )
+  Script.registerSwitch( "", "ListProcessingPasses", "   Only lists the processing passes" )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -58,8 +60,8 @@ if __name__ == "__main__":
       force = True
     elif opt == "SetInvisible":
       invisible = True
-    elif opt == "NoLFCCheck":
-      lfcCheck = False
+    elif opt == "NoFCCheck":
+      fcCheck = False
     elif opt == "Unique":
       unique = True
     elif opt == 'Chown':
@@ -73,6 +75,8 @@ if __name__ == "__main__":
       except:
         gLogger.fatal( "Illegal integer depth:", val )
         DIRAC.exit( 2 )
+    elif opt == 'ListProcessingPasses':
+      listProcessingPasses = True
 
   if userGroup:
     from DIRAC.Core.Security.ProxyInfo import getProxyInfo
@@ -87,7 +91,7 @@ if __name__ == "__main__":
 
 
   plugin = pluginScript.getOption( 'Plugin' )
-  if not plugin:
+  if not plugin and not listProcessingPasses:
     gLogger.fatal( "ERROR: No plugin supplied..." )
     Script.showHelp()
     DIRAC.exit( 0 )
@@ -110,7 +114,7 @@ if __name__ == "__main__":
     transType = "Removal"
   elif plugin in getReplicationPlugins():
     transType = "Replication"
-  else:
+  elif not listProcessingPasses:
     gLogger.notice( "This script can only create Removal or Replication plugins" )
     gLogger.notice( "Replication :", str( getReplicationPlugins() ) )
     gLogger.notice( "Removal     :", str( getRemovalPlugins() ) )
@@ -122,7 +126,7 @@ if __name__ == "__main__":
 
   if plugin in ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ) or prods:
     # visible = 'All'
-    lfcCheck = False
+    fcCheck = False
 
   processingPass = [None]
   if not requestedLFNs:
@@ -134,6 +138,8 @@ if __name__ == "__main__":
     transBKQuery = bkQuery.getQueryDict()
     processingPass = transBKQuery.get( 'ProcessingPass', '' )
     if processingPass.endswith( '...' ):
+      if listProcessingPasses:
+        gLogger.notice( "List of processing passes for BK path", pluginScript.getOption( 'BKPath' ) )
       basePass = os.path.dirname( processingPass )
       wildPass = os.path.basename( processingPass ).replace( '...', '' )
       bkQuery.setProcessingPass( basePass )
@@ -143,10 +149,13 @@ if __name__ == "__main__":
           processingPasses.remove( processingPass )
       if processingPasses:
         processingPasses.sort()
-        gLogger.notice( "Transformations will be launched for the following list of processing passes:" )
-        gLogger.notice( '\n\t'.join( [''] + processingPasses ) )
+        if not listProcessingPasses:
+          gLogger.notice( "Transformations will be launched for the following list of processing passes:\n" )
+        gLogger.notice( '\t'.join( [''] + processingPasses ) )
       else:
-        gLogger.notice( "No processing passes matching the request" )
+        gLogger.notice( "No processing passes matching the BK path" )
+        DIRAC.exit( 0 )
+      if listProcessingPasses:
         DIRAC.exit( 0 )
     else:
       processingPasses = [processingPass]
@@ -180,14 +189,14 @@ if __name__ == "__main__":
     elif prods:
       if not fileType:
         fileType = ["All"]
-      prodsStr = ','.join( [str( p ) for p in prods] )
+      prodsStr = ','.join( str( p ) for p in prods )
       fileStr = ','.join( fileType )
       longName = transGroup + " of " + fileStr + " for productions %s " % prodsStr
       if len( prods ) > 5:
         prodsStr = '%d-productions' % len( prods )
       transName += '-' + fileStr + '-' + prodsStr
     elif 'BKPath' not in pluginScript.getOptions():
-      if type( transBKQuery['FileType'] ) == type( [] ):
+      if isinstance( transBKQuery['FileType'], list ):
         strQuery = ','.join( transBKQuery['FileType'] )
       else:
         strQuery = str( transBKQuery['FileType'] )
@@ -235,13 +244,13 @@ if __name__ == "__main__":
       transformation.setBody( transBody )
 
     if pluginSEParams:
-      for key, val in pluginSEParams.items():
+      for key, val in pluginSEParams.iteritems():
         res = transformation.setSEParam( key, val )
         if not res['OK']:
           gLogger.error( 'Error setting SE parameter', res['Message'] )
           DIRAC.exit( 1 )
     if pluginParams:
-      for key, val in pluginParams.items():
+      for key, val in pluginParams.iteritems():
         res = transformation.setAdditionalParam( key, val )
         if not res['OK']:
           gLogger.error( 'Error setting additional parameter', res['Message'] )
@@ -285,57 +294,63 @@ if __name__ == "__main__":
       continue
 
     if not force and nfiles == 0:
-      gLogger.warn( "No files found from BK query %s" % str( bkQuery ) )
-      gLogger.warn( "If you anyway want to submit the transformation, use option --Force" )
+      gLogger.notice( "No files found from BK query %s" % str( bkQuery ) )
+      gLogger.notice( "If you anyway want to submit the transformation, use option --Force" )
       continue
 
     if userGroup:
-      directories = set( [os.path.dirname( lfn ) for lfn in lfns] )
+      directories = set( os.path.dirname( lfn ) for lfn in lfns )
       res = chown( directories, user = userGroup[0], group = userGroup[1] )
       if not res['OK']:
         gLogger.fatal( "Error changing ownership", res['Message'] )
         DIRAC.exit( 3 )
       gLogger.notice( "Successfully changed owner/group for %d directories" % res['Value'] )
-    # If the transformation is a removal transformation, check all files are in the LFC. If not, remove their replica flag
-    if lfcCheck and transType == 'Removal':
+    # If the transformation is a removal transformation, check all files are in the FC. If not, remove their replica flag
+    if fcCheck and transType == 'Removal':
       from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
       fc = FileCatalog()
       success = 0
-      missingLFNs = []
+      missingLFNs = set()
       startTime = time.time()
       for chunk in breakListIntoChunks( lfns, 500 ):
         res = fc.exists( chunk )
         if res['OK']:
-          success += len ( [lfn for lfn in chunk if lfn in res['Value']['Successful'] and  res['Value']['Successful'][lfn]] )
-          missingLFNs += [lfn for lfn in chunk if lfn in res['Value']['Failed']] + [lfn for lfn in chunk if lfn in res['Value']['Successful'] and not res['Value']['Successful'][lfn]]
-      gLogger.notice( "Files checked in LFC in %.3f seconds" % ( time.time() - startTime ) )
+          success += res['Value']['Successful'].values().count( True )
+          missingLFNs |= set( res['Value']['Failed'] )
+          missingLFNs |= set( lfn for lfn in res['Value']['Successful'] if not res['Value']['Successful'][lfn] )
+        else:
+          gLogger.fatal( "Error checking files in the FC", res['Message'] )
+          DIRAC.exit( 2 )
+      gLogger.notice( "Files checked in FC in %.3f seconds" % ( time.time() - startTime ) )
       if missingLFNs:
-        gLogger.notice( '%d are in the LFC, %d are not. Attempting to remove GotReplica' % ( success, len( missingLFNs ) ) )
-        res = bk.removeFiles( missingLFNs )
+        gLogger.notice( '%d are in the FC, %d are not. Attempting to remove GotReplica' % ( success, len( missingLFNs ) ) )
+        res = bk.removeFiles( list( missingLFNs ) )
         if res['OK']:
           gLogger.notice( "Replica flag successfully removed in BK" )
+        else:
+          gLogger.fatal( "Error removing BK flag", res['Message'] )
+          DIRAC.exit( 2 )
       else:
-        gLogger.notice( 'All files are in the LFC' )
+        gLogger.notice( 'All files are in the FC' )
 
     # Prepare the transformation
     if transBKQuery:
       #### !!!! Hack in order to remain compatible with hte BKQuery table...
-      if 'Production' in transBKQuery:
-        transBKQuery['ProductionID'] = transBKQuery['Production']
-        transBKQuery.pop( 'Production' )
-      if 'RunNumber' in transBKQuery:
-        transBKQuery['RunNumbers'] = transBKQuery['RunNumber']
-        transBKQuery.pop( 'RunNumber' )
+      for transKey, bkKey in ( ( 'ProductionID', 'Production' ), ( 'RunNumbers', 'RunNumber' ), ( 'DataQualityFlag', 'DataQuality' ) ):
+        if bkKey in transBKQuery:
+          transBKQuery[transKey] = transBKQuery.pop( bkKey )
       transformation.setBkQuery( transBKQuery )
 
-    # If the transformation uses the DeleteDataset plugin, set the files invisible in the BK...
-    setInvisiblePlugins = ( "DeleteDataset", "RemoveDataset" )
+    # If the transformation uses the RemoveDataset plugin, set the files invisible in the BK...
+    setInvisiblePlugins = ( "RemoveDataset", )
+    # Try and let them visible such
+    # setInvisiblePlugins = tuple()
     if invisible or plugin in setInvisiblePlugins:
       res = bk.setFilesInvisible( lfns )
       if res['OK']:
         gLogger.notice( "%d files were successfully set invisible in the BK" % len( lfns ) )
         if transBKQuery:
-          transBKQuery.pop( "Visible", None )
+          transBKQuery["Visible"] = 'All'
           transformation.setBkQuery( transBKQuery )
       else:
         gLogger.error( "Failed to set the files invisible:" , res['Message'] )

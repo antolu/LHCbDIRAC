@@ -1,8 +1,8 @@
-''' LHCbDIRAC.ResourceStatusSystem.Policy.GGUSTicketsPolicy 
-  
+''' LHCbDIRAC.ResourceStatusSystem.Policy.GGUSTicketsPolicy
+
    GGUSTicketsPolicy.__bases__:
      DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
-  
+
 '''
 
 from DIRAC                                              import S_OK
@@ -14,7 +14,7 @@ class GGUSTicketsPolicy( PolicyBase ):
   '''
   The GGUSTicketsPolicy class is a policy class that evaluates on
   how many tickets are open at the moment.
-  
+
   GGUSTicketsPolicy, given the number of GGUS tickets opened, proposes a new
   status for the element.
   '''
@@ -31,7 +31,7 @@ class GGUSTicketsPolicy( PolicyBase ):
         }
     """
 
-    result = { 
+    result = {
               'Status' : None,
               'Reason' : None
               }
@@ -50,15 +50,15 @@ class GGUSTicketsPolicy( PolicyBase ):
 
     # The command returns a list of dictionaries, with only one if thre is something,
     # otherwise an empty list.
-    commandResult = commandResult[ 0 ]    
+    commandResult = commandResult[ 0 ]
 
     if not 'OpenTickets' in commandResult:
       result[ 'Status' ] = 'Error'
       result[ 'Reason' ] = 'Expected OpenTickets key for GGUSTickets'
       return S_OK( result )
-          
+
     openTickets = commandResult[ 'OpenTickets' ]
-    
+
     if openTickets == 0:
       result[ 'Status' ] = 'Active'
       result[ 'Reason' ] = 'NO GGUSTickets unsolved'
@@ -66,9 +66,9 @@ class GGUSTicketsPolicy( PolicyBase ):
       #FIXME: setting to Probing is way too aggresive, as we do not know the
       #nature of the tickets
       result[ 'Status' ] = 'Degraded'
-      result[ 'Reason' ] = '%s GGUSTickets unsolved: %s' % ( openTickets, commandResult[ 'Tickets' ] )     
+      result[ 'Reason' ] = '%s GGUSTickets unsolved: %s' % ( openTickets, commandResult[ 'Tickets' ] )
 
     return S_OK( result )
-  
+
 #...............................................................................
 #EOF

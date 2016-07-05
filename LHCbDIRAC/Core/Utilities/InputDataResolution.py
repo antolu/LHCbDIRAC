@@ -8,13 +8,12 @@
 
 """
 
-__RCSID__ = "$Id$"
-
 from DIRAC                                                          import S_OK
 from DIRAC.WorkloadManagementSystem.Client.PoolXMLSlice             import PoolXMLSlice
 from DIRAC.WorkloadManagementSystem.Client.InputDataResolution      import InputDataResolution as DIRACInputDataResolution
 
-import types
+__RCSID__ = "$Id$"
+
 
 COMPONENT_NAME = 'LHCbInputDataResolution'
 CREATE_CATALOG = False
@@ -55,7 +54,7 @@ class InputDataResolution ( DIRACInputDataResolution ):
     # In the longer term this should be derived from file catalog metadata information.
     # 24/08/2010 - updated hack to use "mdf:" after udpates from Markus
     for lfn, mdataList in resolvedData.items():
-      if type( mdataList ) != types.ListType:
+      if not isinstance( mdataList, list ):
         mdataList = [mdataList]
       for mdata in mdataList:
         if mdata['pfntype'] == 'MDF':
@@ -84,7 +83,7 @@ class InputDataResolution ( DIRACInputDataResolution ):
 
     for lfn, mdataList in resolvedData.items():
 
-      if type( mdataList ) != types.ListType:
+      if not isinstance( mdataList, list ):
         mdataList = [mdataList]
       if lfn not in typeVersions:
         self.log.warn( 'The file %s do not exist in the BKK, assuming ROOT, unless it is a RAW (MDF)' % lfn )

@@ -1,14 +1,15 @@
-""" ProdConf is a utility to manipulate a ProdConf file. 
-    If the file does not exist, it will be created. 
+""" ProdConf is a utility to manipulate a ProdConf file.
+    If the file does not exist, it will be created.
     If it exists and has options, new ones will be put in if not existing, or override the old ones if already existing.
     This is used by the production API to
     create production workflows but also provides lists of options files for
     test jobs.
 """
 
-__RCSID__ = "$Id$"
+import os
+import re
 
-import os, re
+__RCSID__ = "$Id$"
 
 ################################################################################
 
@@ -36,8 +37,7 @@ class ProdConf( object ):
                         'RunNumber':'integer',
                         'FirstEventNumber':'integer',
                         'TCK':'string',
-                        'ProcessingPass':'string'
-                        }
+                        'ProcessingPass':'string'}
 
     if not log:
       from DIRAC import gLogger
@@ -92,7 +92,7 @@ class ProdConf( object ):
 ################################################################################
 
   def putOptionsIn( self, optionsDict, freshStart = False ):
-    """ Put options, specified in the optionsDict, in the options file 
+    """ Put options, specified in the optionsDict, in the options file
     """
 
     if freshStart:

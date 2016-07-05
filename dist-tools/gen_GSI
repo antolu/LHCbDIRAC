@@ -1,0 +1,37 @@
+#!/bin/sh
+
+function canonicalize
+{
+  cd -P -- "$(dirname -- "$1")" &&
+  printf '%s\n' "$(pwd -P)/$(basename -- "$1")"
+}
+basedir=`canonicalize $0`
+basedir=`dirname $basedir`
+basedir=`canonicalize $basedir/..`
+ext_ver="v6r3p3"
+
+DIRACPLAT=$1
+PYTHON_VERSION_TWODIGIT=$2
+PYTHON_CONFIG_VERSION=$3
+
+cd $basedir
+
+if ! [ -r $basedir/InstallArea/$CMTCONFIG/lib ]; then
+  mkdir $basedir/InstallArea/$CMTCONFIG/lib
+fi
+
+fullname=`tar ztvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz | grep GSI | grep '__init__.py' | tail -1 | awk '{print $6}'`
+fullpath=`dirname $fullname`
+
+tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz $fullpath
+tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz -C $basedir/InstallArea/$CMTCONFIG/lib --strip-components 2 ${DIRACPLAT}/lib/libssl*
+tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz -C $basedir/InstallArea/$CMTCONFIG/lib --strip-components 2 ${DIRACPLAT}/lib/libcrypto*
+
+
+if ! [ -r $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION} ]; then
+  mkdir $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}
+fi
+
+mv $fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/
+
+#

@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 """
-   Reset Unused the files in status <Status> of Transformation <TransID>
+   Set the status (default Unused) of a list of LFNs or files in status <Status> of Transformation <TransID>
 """
 
 import DIRAC
@@ -87,7 +87,7 @@ if __name__ == "__main__":
         print "No files found in transformation %s, status %s" % ( transID, status )
 
     if not lfns:
-      print "No files to be reset in transformation", transID
+      print "No files to be set in transformation", transID
     else:
       resetFiles = 0
       failed = {}
@@ -96,12 +96,12 @@ if __name__ == "__main__":
                                              force = ( status == 'MaxReset' or status == 'Processed' ) or lfnsExplicit )
         if res['OK']:
           resetFiles += len( res['Value'].get( 'Successful', res['Value'] ) )
-          for lfn, reason in res['Value'].get( 'Failed', {} ).items():
+          for lfn, reason in res['Value'].get( 'Failed', {} ).iteritems():
             if reason != 'File not found in the Transformation Database':
               failed.setdefault( reason, [] ).append( lfn )
         else:
-          print "Failed to reset %d files to Unused in transformation %s: %s" % ( len( lfns ), transID, res['Message'] )
-      print "%d files were reset Unused in transformation %s" % ( resetFiles, transID )
+          print "Failed to set %d files to %s in transformation %s: %s" % ( len( lfns ), newStatus, transID, res['Message'] )
+      print "%d files were set %s in transformation %s" % ( resetFiles, newStatus, transID )
       if failed:
         for reason in failed:
           print 'Failed for %d files: %s' % ( len( failed[reason] ), reason )

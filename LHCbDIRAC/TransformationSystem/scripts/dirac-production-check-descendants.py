@@ -166,7 +166,7 @@ if __name__ == '__main__':
         fp.write( '\nInFCNotInBK '.join( [''] + lfns ) )
         gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
                        '\n'.join( [''] + lfns[0:nMax] ) )
-        gLogger.always( "Use --FixIt for setting replica flag in BK (or dirac-dms-check-fc2bkk --File %s)" % fileName )
+        gLogger.always( "Use --FixIt for setting replica flag in BK (or safer grep InFCNotInBK %s | dirac-dms-check-fc2bkk)" % fileName )
 
     if cc.removedFiles:
       from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -191,7 +191,7 @@ if __name__ == '__main__':
       if not fp:
         fp = open( fileName, 'w' )
       fp.write( '\nProcMultDesc '.join( [''] + ['%s: %s' % ( lfn, str( multi ) ) \
-                                        for lfn, multi in cc.prcdWithMultDesc.items()] ) )
+                                        for lfn, multi in cc.prcdWithMultDesc.iteritems()] ) )
       gLogger.always( "I'm not doing anything for them, neither with the 'FixIt' option" )
     else:
       gLogger.always( "No processed LFNs with multiple descendants found -> OK!" )

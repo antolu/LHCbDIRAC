@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
   from DIRAC.Core.Base import Script
   import sys
-  from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+  from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript, ProgressBar
   dmScript = DMScript()
 
   Script.registerSwitch( 'v', 'Verbose', '   Set verbose mode' )
@@ -55,15 +55,13 @@ if __name__ == "__main__":
     if opt == 'User':
       userName = val
 
-  args = Script.getPositionalArgs()
-  if args:
+  jobs = []
+  for arg in Script.getPositionalArgs():
     try:
-      jobs = [int( job ) for job in args[0].split( ',' )]
-    except:
+      jobs += [int( job ) for job in arg.split( ',' )]
+    except ValueError:
       gLogger.fatal( "Invalid list of jobIDs" )
       DIRAC.exit( 2 )
-  else:
-    jobs = []
 
   from DIRAC.DataManagementSystem.Client.DataManager import DataManager
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -107,14 +105,10 @@ if __name__ == "__main__":
   gLogger.setLevel( 'FATAL' )
   jobSites = res['Value']
   filesAtSite = {}
-  chunkSize = 100
-  nj = 0
-  sys.stdout.write( 'Getting JDL for jobs (groups of %d): ' % chunkSize )
+  progressBar = ProgressBar( len( jobs ), title = 'Getting JDL for %d jobs' % len( jobs ), step = 2 )
+  errors = {}
   for jobID in jobs:
-    if not nj % chunkSize:
-      sys.stdout.write( '.' )
-      sys.stdout.flush()
-    nj += 1
+    progressBar.loop()
     res = monitoring.getJobJDL( jobID, False )
     if not res['OK']:
       gLogger.always( 'Error getting job %d JDL' % jobID, res['Message'] )
@@ -135,7 +129,7 @@ if __name__ == "__main__":
         break
       ind += 1
     if not found:
-      gLogger.always( 'No InputData field found in JDL for job %d' % jobID )
+      errors.setdefault( 'No InputData field found in JDL', set() ).add( jobID )
       continue
     if end == found + 1:
       inputData = dmScript.getLFNsFromList( jdl[found].split( '"' )[1] )
@@ -150,7 +144,8 @@ if __name__ == "__main__":
     for lfn in inputData:
       filesAtSite.setdefault( site, {} ).setdefault( lfn, [] ).append( jobID )
 
-  sep = '\n'
+  progressBar.endLoop()
+  sep = ''
   for site in filesAtSite:
     seUsed = ''
     try:
@@ -187,7 +182,7 @@ if __name__ == "__main__":
         if not res['OK']:
           gLogger.always( 'Error getting BK metadata for %d files' % len( notInFC ), res['Message'] )
           continue
-        metadata = res['Value'].get( 'Successful', res['Value'] )
+        metadata = res['Value']['Successful']
         notInFC = [lfn for lfn in notInFC if metadata.get( lfn, {} ).get( 'GotReplica' ) == 'Yes']
         if notInFC:
           pbFound = True

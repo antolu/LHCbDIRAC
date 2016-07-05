@@ -1,6 +1,6 @@
-==================================
+===================
 Administrator Guide
-==================================
+===================
 
 
   This page is the work in progress. See more material here soon !
@@ -12,4 +12,5 @@ Administrator Guide
    Installation/certificate.rst
    Installation/Installation_step.rst
    Intervention/tree.rst
+   Bookkeeping/administrtate_oracle.rst
    Online.rst

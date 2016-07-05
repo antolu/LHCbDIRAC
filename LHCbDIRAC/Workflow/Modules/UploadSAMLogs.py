@@ -2,20 +2,21 @@
 
 """
 
-__RCSID__ = "$Id$"
-
 import glob
 import os
 import shutil
 import time
 
-from DIRAC                                               import gLogger, S_OK, S_ERROR
+from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
-from DIRAC.Resources.Storage.StorageElement              import StorageElement
-from DIRAC.Core.Utilities.ReturnValues                   import returnSingleResult
+from DIRAC.Resources.Storage.StorageElement import StorageElement
+from DIRAC.Core.Utilities.ReturnValues import returnSingleResult
+from DIRAC.Core.Utilities.File import mkDir
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
+
+__RCSID__ = "$Id$"
 
 class UploadSAMLogs( ModuleBase ):
   """ UploadSAMLogs extends Workflow.Modules.ModuleBase
@@ -73,11 +74,7 @@ class UploadSAMLogs( ModuleBase ):
 
       logDir = '%s/%s' % ( os.getcwd(), 'log' )
       self.log.verbose( 'Creating log directory %s' % logDir )
-
-      try:
-        os.mkdir( logDir )
-      except OSError:
-        return S_ERROR( 'Could not create log directory %s' % logDir )
+      mkDir( logDir )
 
       logExtensions = self.opsH.getValue( 'SAM/LogFiles', self.__logExtensions )
       self.log.verbose( 'logExtensions %s' % logExtensions )
@@ -118,7 +115,7 @@ class UploadSAMLogs( ModuleBase ):
       self.log.info( res )
 
       self.finalize( self.__class__.__name__ )
-      
+
       # publish information to SAM-Nagios
       try:
         self.nagiosConnector.readConfig()

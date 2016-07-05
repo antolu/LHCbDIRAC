@@ -2,8 +2,6 @@
     We send data to the accounting (Site -> SE : fail/success)
 """
 
-__RCSID__ = "$Id$"
-
 from DIRAC import S_OK, gLogger
 
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
@@ -13,6 +11,8 @@ from DIRAC.AccountingSystem.Client.DataStoreClient import gDataStoreClient
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
+
+__RCSID__ = "$Id$"
 
 class AnalyseFileAccess( ModuleBase ):
   """ Analyzing the access with xroot

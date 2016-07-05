@@ -8,6 +8,8 @@ from DIRAC                              import gLogger, gConfig
 from DIRAC.Core.Utilities.SiteSEMapping import getSEsForSite
 from DIRAC.Core.Utilities.List          import uniqueElements
 
+__RCSID__ = "$Id$"
+
 def getDestinationSEList( outputSE, site, outputmode = 'Any', run = None ):
   """ Evaluate the output SE list from a workflow and return the concrete list
       of SEs to upload output data.

@@ -12,7 +12,7 @@ from threading import Thread
 # DIRAC
 from DIRAC.Core.DISET.private.MessageBroker        import MessageBroker
 from DIRAC.Core.Security                           import Properties
-from DIRAC.Core.Utilities                          import InstallTools
+from DIRAC.Core.Utilities                          import gComponentInstaller
 
 # lhcb_ci
 from lhcb_ci            import logger
@@ -28,7 +28,7 @@ def getSoftwareServices():
   logger.debug( 'getSoftwareServices' )
   
   extensions = getCSExtensions()
-  res = InstallTools.getSoftwareComponents( extensions )
+  res = gComponentInstaller.getSoftwareComponents( extensions )
   
   # Always return S_OK
   serviceDict = {}
@@ -47,7 +47,7 @@ def getInstalledServices():
 
   logger.debug( 'getInstalledServices' )
   
-  res = InstallTools.getInstalledComponents()
+  res = gComponentInstaller.getInstalledComponents()
   # Always return S_OK
   return res[ 'Value' ][ 'Services' ]
 

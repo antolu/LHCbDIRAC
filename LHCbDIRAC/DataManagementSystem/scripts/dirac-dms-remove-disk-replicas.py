@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v7r16_branch/DataManagementSystem/scripts/dirac-dms-remove-replicas.py $
-########################################################################
 """
 Remove replicas of a (list of) LFNs from all non-ARCHIVE storage elements
 """
@@ -22,6 +19,5 @@ if __name__ == "__main__":
   Script.parseCommandLine()
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeRemoveReplicas
-  executeRemoveReplicas( dmScript, allDisk = True )
-
-
+  from DIRAC import exit
+  exit( executeRemoveReplicas( dmScript, allDisk = True ) )

@@ -2,8 +2,6 @@
     defined in the user workflow.
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import random
 import re
@@ -16,6 +14,8 @@ from DIRAC.Core.Security.ProxyInfo                            import getProxyInf
 from LHCbDIRAC.Core.Utilities.ProductionData                  import constructUserLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase                    import ModuleBase
 from LHCbDIRAC.Core.Utilities.ResolveSE                       import getDestinationSEList
+
+__RCSID__ = "$Id$"
 
 
 class UserJobFinalization( ModuleBase ):
@@ -43,6 +43,7 @@ class UserJobFinalization( ModuleBase ):
     self.userOutputPath = ''
     self.failoverTransfer = None
     self.replicateUserOutputData = False
+    self.userPrependString = ''
 
   #############################################################################
   def _resolveInputVariables( self ):
@@ -71,7 +72,6 @@ class UserJobFinalization( ModuleBase ):
     if self.workflow_commons.has_key( 'ReplicateUserOutputData' ) and self.workflow_commons['ReplicateUserOutputData']:
       self.replicateUserOutputData = True
 
-    self.userPrependString = ''
     if self.workflow_commons.has_key( 'UserOutputLFNPrepend' ):
       self.userPrependString = self.workflow_commons['UserOutputLFNPrepend']
 

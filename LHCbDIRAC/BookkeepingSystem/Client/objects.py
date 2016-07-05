@@ -1,9 +1,7 @@
 """
 reimplementation of the dictionary
 """
-########################################################################
-# $Id$
-########################################################################
+
 from DIRAC                                                               import gLogger
 from LHCbDIRAC.BookkeepingSystem.Client                                  import IndentMaker
 from UserDict                                                            import UserDict

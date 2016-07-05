@@ -4,7 +4,8 @@ import DIRAC
 from DIRAC           import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base import Script
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-  
+
+import sys
 import re
 
 bkClient = BookkeepingClient()
@@ -36,7 +37,7 @@ def CheckDQFlag(dqFlag):
 #                                                                              #
 ################################################################################
 def FlagBadRun(runNumber):
-  res = GetProcessingPasses(runNumber, '/Real Data')
+  res = GetProcessingPasses(runNumber, ['/Real Data'])
   if not res['OK']:
     gLogger.error('FlagBadRun: %s' %(res['Message']))
     return 2
@@ -102,7 +103,7 @@ def FlagFileList(filename, dqFlqg):
 #                                                                              #
 ################################################################################
 def FlagRun(runNumber, procPass, dqFlag):
-  res = GetProcessingPasses(runNumber, '/Real Data')
+  res = GetProcessingPasses(runNumber, ['/Real Data'])
   if not res['OK']:
     gLogger.error('FlagRun: %s' %(res['Message']))
     return 2
@@ -113,15 +114,16 @@ def FlagRun(runNumber, procPass, dqFlag):
   # Make sure the processing pass entered by the operator is known
   #
 
-  if procPass not in  allProcPass:
-    gLogger.error('%s is not a valid processing pass.' %procPass)
-    return 2
+  for thisPass in procPass:
+    if thisPass not in  allProcPass:
+      gLogger.error('%s is not a valid processing pass.' %thisPass)
+      return 2
 
   #
   # Add to the list all other processing pass, like stripping, calo-femto..
   #
 
-  allProcPass = [procPass]
+  allProcPass = procPass
   res = GetProcessingPasses(runNumber, procPass)
   if not res['OK']:
     gLogger.error('FlagRun: %s' %(res['Message']))
@@ -154,8 +156,7 @@ def FlagRun(runNumber, procPass, dqFlag):
 # Find all known processing passes for the selected configurations.            #
 #                                                                              #
 ################################################################################
-def GetProcessingPasses(runNumber, headPass):
-  passes = []
+def GetProcessingPasses(runNumber, procPassList):
 
   res = bkClient.getRunInformations(int(runNumber))
   if not res['OK']:
@@ -167,25 +168,29 @@ def GetProcessingPasses(runNumber, headPass):
   bkDict = {'ConfigName'    : cfgName,
             'ConfigVersion' : cfgVersion}
 
-  res = bkClient.getProcessingPass(bkDict, headPass)
-  if not res['OK']:
-    return S_ERROR('Cannot load the processing passes for Version %s' % cfgVersion )
+  passes = []
 
-  for recordList in res['Value']:
-    if recordList['TotalRecords'] == 0:
-      continue
-    parNames = recordList['ParameterNames']
+  for thisPass in procPassList:
+    res = bkClient.getProcessingPass(bkDict, thisPass)
+    if not res['OK']:
+      return S_ERROR('Cannot load the processing passes for Version %s processing pass' %(cfgVersion, thisPass))
 
-    found = False
-    for thisId in xrange(len(parNames)):
-      parName = parNames[thisId]
-      if parName == 'Name':
-        found = True
-        break
-    if found:
-      for reco in recordList['Records']:
-        recoName = headPass + '/' + reco[0]
-        passes.append(recoName)
+    for recordList in res['Value']:
+      if recordList['TotalRecords'] == 0:
+        continue
+      parNames = recordList['ParameterNames']
+
+      found = False
+      for thisId in range(len(parNames)):
+        parName = parNames[thisId]
+        if parName == 'Name':
+          found = True
+          break
+
+      if found:
+        for reco in recordList['Records']:
+          recoName = thisPass + '/' + reco[0]
+          passes.append(recoName)
                 
   return S_OK(passes)
 ################################################################################
@@ -218,7 +223,7 @@ else:
 
 filename  = ''
 runNumber = ''
-procPass  = '' 
+procPass  = []
 #
 # Read the switchs.
 #
@@ -232,7 +237,31 @@ for switch in switches:
   elif opt in ('r', 'run'):
     runNumber = str(val)
   elif opt in ('p', 'processingpass'):
-    procPass = val
+    tmpPass = []
+    if re.search(',', val):
+      tmpPass = val.split(',')
+    else:
+      tmpPass.append(val)
+
+    for pp1 in tmpPass:
+      haveIt  = False
+
+      for pp2 in procPass:
+        if pp1 == pp2:
+          haveIt = True
+          break
+
+      if not haveIt:
+        procPass.append(pp1)
+
+#
+# Make sure '/Real Data' is not one of the processing passes.
+#
+
+for thisPass in procPass:
+  if thisPass == '/Real Data':
+    gLogger.error('You cannot use \'/Real Data\' as processing pass');
+    DIRAC.exit(3)
 
 #
 # Verify the user input and execute if correct.
@@ -263,12 +292,18 @@ else:
           Script.showHelp()
           exitCode = 2
         else:
-          m = re.search('/Real Data', procPass)
-          if not m:
-            gLogger.error('You forgot /Real Data in the processing pass: %s' % procPass);
-            exitCode = 2
-          else:
+          passOK = True
+          for thisPass in procPass:
+            m = re.search('/Real Data', thisPass)
+            if not m:
+              gLogger.error('You forgot /Real Data in the processing pass: %s' % thisPass);
+              passOK = False
+              break
+              
+          if passOK:
             exitCode = FlagRun(runNumber, procPass, dqFlag)
+          else:
+            exitCode = 2
   else:
     exitCode = 2
             

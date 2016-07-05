@@ -1,12 +1,13 @@
 """  Prepare a file (data.py) which is consumed by Ganga, containing the input files as resolved in the workflow
 """
 
-__RCSID__ = "$Id$"
-
 from DIRAC import S_OK, S_ERROR, gLogger
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.GangaDataFile import GangaDataFile
+
+__RCSID__ = "$Id$"
+
 
 class CreateDataFile( ModuleBase ):
   """ CreateDataFile class

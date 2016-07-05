@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-########################################################################
-# $HeadURL$
-########################################################################
 """
   Remove the given file or a list of files from the File Catalog and from the storage
 """
@@ -23,4 +20,5 @@ if __name__ == "__main__":
   Script.parseCommandLine()
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeRemoveFiles
-  executeRemoveFiles( dmScript )
+  from DIRAC import exit
+  exit( executeRemoveFiles( dmScript ) )

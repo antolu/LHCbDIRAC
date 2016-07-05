@@ -6,13 +6,13 @@
       can be inserted in a new DB table and made visible via the web portal.
 '''
 
-__RCSID__ = "$Id$"
+import os
+import time
+import copy
 
-import os, time, copy
-
-from DIRAC                                                  import S_OK, S_ERROR, gLogger
+from DIRAC                                                  import S_OK, S_ERROR
 from DIRAC.Core.Utilities                                   import Time
-
+from DIRAC.Core.Utilities.File                              import mkDir
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.AccountingSystem.Client.DataStoreClient          import gDataStoreClient
 
@@ -22,6 +22,8 @@ from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage    import DataStorage
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient  import DataUsageClient
 from DIRAC.Core.Utilities.List                              import breakListIntoChunks
+
+__RCSID__ = "$Id$"
 
 byteToGB = 1.0e9
 
@@ -60,8 +62,7 @@ class StorageHistoryAgent( AgentModule ):
       from DIRAC.Core.DISET.RPCClient import RPCClient
       self.__stDB = RPCClient( 'DataManagement/StorageUsage' )
     self.__workDirectory = self.am_getOption( "WorkDirectory" )
-    if not os.path.isdir( self.__workDirectory ):
-      os.makedirs( self.__workDirectory )
+    mkDir( self.__workDirectory )
     self.log.info( "Working directory is %s" % self.__workDirectory )
 
     self.__ignoreDirsList = self.am_getOption( 'Ignore', [] )
@@ -226,7 +227,7 @@ class StorageHistoryAgent( AgentModule ):
       self.log.error( "ERROR generating the StorageUsageDB dump per directory" )
       return S_ERROR()
 
-    # Keep a list of all directories in LFC that are not found in the Bkk
+    # Keep a list of all directories in FC that are not found in the Bkk
     self.directoriesNotInBkk = []
     # for debugging purposes build dictionaries with storage usage to compare with the accounting plots
     self.debug_seUsage = {}
@@ -238,7 +239,7 @@ class StorageHistoryAgent( AgentModule ):
     metaForList = self.__getMetadataForAcc( self.dirDict.values() )
 
     # loop on all directories  to get the bkk metadata
-    for dirLfn, fullDirectory in self.dirDict.items():
+    for dirLfn, fullDirectory in self.dirDict.iteritems():
       if dirLfn not in fullDirectory:
         self.log.error( "ERROR: fullDirectory should include the dirname: %s %s " % ( fullDirectory, dirLfn ) )
         continue
@@ -297,14 +298,14 @@ class StorageHistoryAgent( AgentModule ):
 
     self.log.notice( "-------------------------------------------------------------------------------------\n" )
     self.log.notice( "------ End of cycle report for DataStorage accounting--------------------------------\n" )
-    self.log.notice( "Total directories found in LFC:  %d " % len( self.dirDict ) )
+    self.log.notice( "Total directories found in FC:  %d " % len( self.dirDict ) )
     totalCallsToStorageUsage = self.callsToGetSummary + self.callsToDirectorySummary
     self.log.notice( "Total calls to StorageUsage: %d , took: %d s " % ( totalCallsToStorageUsage, self.genTotalTime ) )
     totalCallsToBkk = self.callsToBkkgetDirectoryMetadata + self.callsToBkkGetEvtType
     self.log.notice( "Total calls to DataUsage for cache: %d" % self.callsToDudbForMetadata )
     self.log.notice( "Total calls to Bookkeeping: %d (getDirectoryMetadata: %d, getEventType: %d)" % ( totalCallsToBkk,
-                                                                                         self.callsToBkkgetDirectoryMetadata,
-                                                                                         self.callsToBkkGetEvtType ) )
+                                                                                                       self.callsToBkkgetDirectoryMetadata,
+                                                                                                       self.callsToBkkGetEvtType ) )
     self.log.notice( "Total records sent to accounting for DataStorage:  %d " % self.totalRecords )
     self.log.notice( "Directories not found in Bookkeeping: %d " % ( len( self.directoriesNotInBkk ) ) )
     fileName = os.path.join( self.__workDirectory, "directoriesNotInBkk.txt" )
@@ -317,12 +318,12 @@ class StorageHistoryAgent( AgentModule ):
     self.log.info( "Summary of StorageUsage: files size " )
     for se in sorted( self.debug_seUsage ):
       self.log.info( "all: %s  %d %d Bytes ( %.2f TB ) " % ( se, self.debug_seUsage[ se ]['Files'],
-                                                            self.debug_seUsage[ se ]['Size'],
-                                                            self.debug_seUsage[ se ]['Size'] / 1.0e12 ) )
+                                                             self.debug_seUsage[ se ]['Size'],
+                                                             self.debug_seUsage[ se ]['Size'] / 1.0e12 ) )
       if se in self.debug_seUsage_acc:
         self.log.info( "acc: %s  %d %d Bytes ( %.2f TB ) " % ( se, self.debug_seUsage_acc[ se ]['Files'],
-                                                              self.debug_seUsage_acc[ se ]['Size'],
-                                                              self.debug_seUsage_acc[ se ]['Size'] / 1.0e12 ) )
+                                                               self.debug_seUsage_acc[ se ]['Size'],
+                                                               self.debug_seUsage_acc[ se ]['Size'] / 1.0e12 ) )
       else:
         self.log.info( "SE not in self.debug_seUsage_acc keys" )
     return S_OK()
@@ -345,7 +346,7 @@ class StorageHistoryAgent( AgentModule ):
         res = self.__dataUsageClient.getDirMetadata( dirChunk )  # this could be a bulk query for a list of directories
         if not res[ 'OK' ]:
           self.log.error( "Error retrieving %d directories meta-data %s " % ( len( dirChunk ), res['Message'] ) )
-          # this usually happens when directories are removed from LFC between the StorageUsageDB dump and this call,
+          # this usually happens when directories are removed from FC between the StorageUsageDB dump and this call,
           # if the Db is refreshed exactly in this time interval. Not really a problem.
           #######################3 just a try ##############################################3
           notInCache += dirChunk
@@ -359,7 +360,7 @@ class StorageHistoryAgent( AgentModule ):
             metaTuple = res['Value'][0]
           else:
             metaTuple = ()
-          if metaTuple:
+          if metaTuple and metaTuple[3] is not None:
             metaForDir = metaForList[dirName]
             _dirID, metaForDir[ 'DataType' ], metaForDir[ 'Activity' ], metaForDir[ 'Conditions' ], metaForDir[ 'ProcessingPass' ], \
               metaForDir[ 'EventType' ], metaForDir[ 'FileType' ], metaForDir[ 'Production' ], metaForDir['Visibility'] = metaTuple
@@ -386,7 +387,7 @@ class StorageHistoryAgent( AgentModule ):
               metaForDir = metaForList[dirName]
               # BK returns a list of metadata, chose the first one...
               metadata = bkMetadata['Successful'].get( dirName, [{}] )[0]
-              if metadata:
+              if metadata and metadata.get( 'ConditionDescription' ) is not None:
                 metadata['Visibility'] = metadata.pop( 'VisibilityFlag', metadata.get( 'Visibility', 'na' ) )
                 # All is OK, directory found
                 _fillMetadata( metaForDir, metadata )
@@ -527,7 +528,7 @@ class StorageHistoryAgent( AgentModule ):
         self.log.error( "For dir %s getSummary returned an empty value: %s " % ( d, str( res ) ) )
         continue
       self.lfnUsage.setdefault( d, {} )
-      for retDir, dirInfo in res['Value'].items():
+      for retDir, dirInfo in res['Value'].iteritems():
         if d in retDir:
           self.lfnUsage[ d ][ 'LfnSize' ] = dirInfo['Size']
           self.lfnUsage[ d ][ 'LfnFiles'] = dirInfo['Files']

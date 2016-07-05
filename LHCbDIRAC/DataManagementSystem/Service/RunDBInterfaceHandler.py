@@ -31,18 +31,18 @@ def initializeRunDBInterfaceHandler( serviceInfo ):
   #sys.path.insert(0, '/home/rainer/projects/RunDatabase/python')
   #sys.path.append( '/group/online/rundb/RunDatabase/python' )
   sys.path.append( '/admin/RunDatabase/python' )
-  from path import SQL_ALCHEMY_PATH
+  from path import SQL_ALCHEMY_PATH #pylint: disable=import-error
   sys.path.append( SQL_ALCHEMY_PATH )
   try:
     ORACLE_HOME = os.environ['ORACLE_HOME']
   except:
     print 'ERROR: ORACLE_HOME environment variable should be set'
   sys.path.append( "%s" % str( ORACLE_HOME ) )
-  import RunDatabase_Defines
+  import RunDatabase_Defines #pylint: disable=import-error
   #print dir(RunDatabase_Defines)
   #print RunDatabase_Defines.FileFields
 
-  from RunDatabase_Defines import RUN_STATE_TRANSLATION, FILE_STATE_TRANSLATION
+  from RunDatabase_Defines import RUN_STATE_TRANSLATION, FILE_STATE_TRANSLATION #pylint: disable=import-error
 
   global fileStates
   global fileStateRev
@@ -58,9 +58,9 @@ def initializeRunDBInterfaceHandler( serviceInfo ):
     runStateRev[value] = key
 
   im = __import__( 'RunDatabase', globals(), locals(), ['*'] )
-  import RunDatabase
+  import RunDatabase #pylint: disable=import-error
   print im
-  from DbModel import createEngine_Oracle
+  from DbModel import createEngine_Oracle #pylint: disable=import-error
   try:
     server = RunDatabase.RunDbServer( engine = createEngine_Oracle() )
   except:
@@ -99,18 +99,18 @@ class RunDBInterfaceHandler( RequestHandler ):
       filesQueryString = "success,result = server.getFilesDirac(fields=allFileFields)"
     print filesQueryString
     exec( filesQueryString )
-    if not success: #using exec statement above -> pylint: disable=E0602
-      return S_ERROR( result ) #using exec statement above -> pylint: disable=E0602
+    if not success: #using exec statement above -> pylint: disable=undefined-variable
+      return S_ERROR( result ) #using exec statement above -> pylint: disable=undefined-variable
     resultDict = {}
-    nFiles = len( result ) #using exec statement above -> pylint: disable=E0602
+    nFiles = len( result ) #using exec statement above -> pylint: disable=undefined-variable
     resultDict['TotalRecords'] = nFiles
     if nFiles == 0:
       return S_OK( resultDict )
     if decending:
-      result.reverse() #using exec statement above -> pylint: disable=E0602
+      result.reverse() #using exec statement above -> pylint: disable=undefined-variable
 
     statusCountDict = {}
-    for res in result: #using exec statement above -> pylint: disable=E0602
+    for res in result: #using exec statement above -> pylint: disable=undefined-variable
       state = res[3]
       if state in fileStates:
         state = fileStates[state]
@@ -127,7 +127,7 @@ class RunDBInterfaceHandler( RequestHandler ):
       return S_ERROR( 'Item number out of range' )
     if lastFile > nFiles:
       lastFile = nFiles
-    fileList = result[iniFile:lastFile] #using exec statement above -> pylint: disable=E0602
+    fileList = result[iniFile:lastFile] #using exec statement above -> pylint: disable=undefined-variable
 
     # prepare the standard structure now
     resultDict['ParameterNames'] = allFileFields

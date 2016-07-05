@@ -3,9 +3,6 @@
 """
 File dialog widget
 """
-########################################################################
-# $Id$
-########################################################################
 
 from PyQt4.QtGui                                import QDialog, QMenu, QAction, \
                                                        QSortFilterProxyModel, QMessageBox, \

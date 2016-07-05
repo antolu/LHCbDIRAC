@@ -5,17 +5,19 @@
 
 __RCSID__ = "$Id$"
 
+import time
 from DIRAC.Core.Base import Script
 from DIRAC import gLogger, exit
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 def printProds( title, prods ):
-  types = list( set( prods.values() ) )
-  if len( types ) == 1:
-    gLogger.always( '%s (%s): %s' % ( title, types[0], ','.join( [str( prod ) for prod in sorted( prods )] ) ) )
-  else:
-    gLogger.always( '%s' % ','.join( [' %s (%s) %s' % ( title, prod, prods[prod] ) for prod in sorted( prods )] ) )
+  typeDict = {}
+  for prod, prodType in prods.iteritems():
+    typeDict.setdefault( prodType, [] ).append( prod )
+  gLogger.notice( title )
+  for prodType, prodList in typeDict.iteritems():
+    gLogger.notice( '(%s): %s' % ( prodType, ','.join( [str( prod ) for prod in sorted( prodList )] ) ) )
 
 def execute():
   tr = TransformationClient()
@@ -25,10 +27,11 @@ def execute():
 
   bkQuery = dmScript.getBKQuery()
   if not bkQuery:
-    gLogger.always( "No BKQuery given..." )
+    gLogger.notice( "No BKQuery given..." )
     exit( 1 )
 
-  prods = bkQuery.getBKProductions( visible = 'All' )
+  startTime = time.time()
+  prods = bkQuery.getBKProductions()  # visible = 'All' )
 
   parents = {}
   productions = {}
@@ -40,14 +43,15 @@ def execute():
       type = tr.getTransformation( parent ).get( 'Value', {} ).get( 'Type', 'Unknown' )
       parents[parent] = type
 
-  gLogger.always( "For BK path %s:" % bkQuery.getPath() )
+  gLogger.notice( "For BK path %s:" % bkQuery.getPath() )
   if not prods:
-    gLogger.always( 'No productions found!' )
+    gLogger.notice( 'No productions found!' )
   else:
     printProds( 'Productions found', productions )
     if parents:
       printProds( 'Parent productions', parents )
 
+  gLogger.notice( 'Completed in %.1f seconds' % ( time.time() - startTime ) )
 if __name__ == "__main__":
 
   dmScript = DMScript()

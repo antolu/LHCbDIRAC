@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-    Check if the files are in the BK, the LFC and the SEs they are supposed to be in.
+    Check if the files are in the BK, the FC and the SEs they are supposed to be in.
 
     Uses the DM script switches, and, unless a list of LFNs is provided:
     1) If --Directory is used: get files in FC directories
@@ -30,24 +30,30 @@ if __name__ == '__main__':
   dmScript.registerFileSwitches()  # File, LFNs
   dmScript.registerBKSwitches()
   Script.registerSwitch( '', 'FixIt', '   Take action to fix the catalogs and storage' )
-  Script.registerSwitch( '', 'NoReplace', '   Do not replace bad or missing replicas' )
+  Script.registerSwitch( '', 'Replace', '   Replace bad or missing replicas (default=False)' )
   Script.registerSwitch( '', 'NoBK', '   Do not check with BK' )
+  Script.registerSwitch( '', 'Verbose', '   Set logging mode to INFO' )
   Script.parseCommandLine( ignoreErrors = True )
 
   fixIt = False
   bkCheck = True
-  noReplace = True
+  replace = False
+  verbose = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'FixIt':
       fixIt = True
     elif switch[0] == 'NoBK':
       bkCheck = False
-    elif switch[0] == 'NoReplace':
-      noreplace = True
+    elif switch[0] == 'Replace':
+      replace = True
+    elif switch[0] == 'Verbose':
+      verbose = True
 
   # imports
-  from DIRAC import gLogger
   from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
+  from DIRAC import gLogger
+  if verbose:
+    gLogger.setLevel( 'INFO' )
   cc = ConsistencyChecks()
   cc.directories = dmScript.getOption( 'Directory', [] )
   cc.lfns = dmScript.getOption( 'LFNs', [] ) + [lfn for arg in Script.getPositionalArgs() for lfn in arg.split( ',' )]
@@ -57,4 +63,4 @@ if __name__ == '__main__':
     cc.bkQuery = bkQuery
 
   from LHCbDIRAC.DataManagementSystem.Client.CheckExecutors import doCheckFC2SE
-  doCheckFC2SE( cc, bkCheck, fixIt, noReplace )
+  doCheckFC2SE( cc, bkCheck = bkCheck, fixIt = fixIt, replace = replace )

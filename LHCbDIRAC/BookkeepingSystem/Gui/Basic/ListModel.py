@@ -3,9 +3,7 @@
 """
 List model used for all table widgets
 """
-########################################################################
-# $Id: $
-########################################################################
+
 from PyQt4.QtCore import Qt, QVariant, QAbstractListModel, QModelIndex
 from DIRAC import gLogger
 __RCSID__ = "$Id$"

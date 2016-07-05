@@ -1,30 +1,24 @@
 """ Client for BookkeepingDB file catalog
 """
 
+from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC.Core.DISET.RPCClient import RPCClient
+from DIRAC.Core.Utilities.List import breakListIntoChunks
+from DIRAC.Resources.Catalog.FileCatalogClientBase import FileCatalogClientBase
+from DIRAC.Resources.Catalog.Utilities import checkCatalogArguments
+
 __RCSID__ = "$Id$"
-
-from DIRAC                                                          import gLogger, S_OK, S_ERROR
-from DIRAC.Core.DISET.RPCClient                                     import RPCClient
-from DIRAC.Core.Utilities.List                                      import breakListIntoChunks
-from DIRAC.Resources.Catalog.FileCatalogClientBase                  import FileCatalogClientBase
-from DIRAC.Resources.Catalog.Utilities                              import checkCatalogArguments
-
-import types
-
-
-
-READ_METHODS = [ 'exists', 'isFile', 'isDirectory', 'isLink', 'getFileSize', 'getFileMetadata' ]
-
-WRITE_METHODS = [ 'addFile', 'addReplica', 'removeFile', 'removeReplica', 'setReplicaStatus',
-                  'setReplicaProblematic', 'setReplicaHost', 'removeDirectory', 'createDirectory',
-                  'removeLink', 'createLink' ]
-
-NO_LFN_METHODS = []
 
 
 class BookkeepingDBClient( FileCatalogClientBase ):
   """ File catalog client for bookkeeping DB
   """
+
+  READ_METHODS = FileCatalogClientBase.READ_METHODS + ['isDirectory', 'isLink', 'getFileSize', 'getFileMetadata' ]
+  WRITE_METHODS = FileCatalogClientBase.WRITE_METHODS + [ 'addFile', 'addReplica', 'removeFile', 'removeReplica', 'setReplicaStatus',
+                                                          'setReplicaProblematic', 'setReplicaHost', 'removeDirectory', 'createDirectory',
+                                                          'removeLink', 'createLink' ]
+
   def __init__( self, url = False, **kwargs ):
     """ Constructor of the Bookkeeping catalogue client
     """
@@ -48,23 +42,6 @@ class BookkeepingDBClient( FileCatalogClientBase ):
         self.url = 'Bookkeeping/BookkeepingManager'
       self.server = RPCClient( self.url, timeout = 120 )
     return self.server
-
-  @staticmethod
-  def getInterfaceMethods():
-    """ Get the methods implemented by the File Catalog client
-
-    :return tuple: ( read_methods_list, write_methods_list, nolfn_methods_list )
-    """
-    return ( READ_METHODS, WRITE_METHODS, NO_LFN_METHODS )
-
-  @staticmethod
-  def hasCatalogMethod( methodName ):
-    """ Check of a method with the given name is implemented
-    :param str methodName: the name of the method to check
-    :return: boolean Flag
-    """
-    return methodName in ( READ_METHODS + WRITE_METHODS + NO_LFN_METHODS )
-
 
   def isOK( self ):
     ''' Returns valid
@@ -118,6 +95,7 @@ class BookkeepingDBClient( FileCatalogClientBase ):
     return S_OK( {'Successful':successful, 'Failed':failed} )
 
 
+  @checkCatalogArguments
   def isLink( self, lfn ):
     return self.__returnSuccess( lfn, val = False )
 
@@ -126,27 +104,35 @@ class BookkeepingDBClient( FileCatalogClientBase ):
     """ Generic method returning success for all input files"""
     return S_OK( {'Failed':{}, 'Successful':dict.fromkeys( lfn, val )} )
 
+  @checkCatalogArguments
   def removeReplica( self, lfn ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def setReplicaStatus( self, lfn ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def setReplicaProblematic( self, lfn, revert = False ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def setReplicaHost( self, lfn ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def removeDirectory( self, lfn, recursive = False ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def createDirectory( self, lfn ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def removeLink( self, lfn ):
     return self.__returnSuccess( lfn )
 
+  @checkCatalogArguments
   def createLink( self, lfn ):
     return self.__returnSuccess( lfn )
 
@@ -177,6 +163,22 @@ class BookkeepingDBClient( FileCatalogClientBase ):
   # These are the internal methods used for actual interaction with the BK service
   #
 
+  def __checkArgumentFormat( self, path ):
+    '''
+      Returns a list, either from a string or keys of a dict
+    '''
+    if not self.valid:
+      return S_ERROR( 'BKDBClient not initialised' )
+    if isinstance(path, basestring ):
+      return S_OK( [path] )
+    elif isinstance(path, list):
+      return S_OK( path )
+    elif isinstance(path, dict):
+      return S_OK( path.keys() )
+    else:
+      errStr = "BookkeepingDBClient.__checkArgumentFormat: Supplied path is not of the correct format."
+      gLogger.error( errStr )
+      return S_ERROR( errStr )
 
   def __toggleReplicaFlag( self, lfns, setflag = True ):
     successful = {}
@@ -234,9 +236,10 @@ class BookkeepingDBClient( FileCatalogClientBase ):
         failed.update( dict.fromkeys( lfnList, res['Message'] ) )
       else:
         success = res['Value'].get( 'Successful', res['Value'] )
-        failed.update( dict.fromkeys( [lfn for lfn in lfnList if lfn not in success], 'File does not exist' ) )
-        failed.update( dict( [( lfn, val ) for lfn, val in success.items() if type( val ) in types.StringTypes ] ) )
-        successful.update( dict( [( lfn, val ) for lfn, val in success.items() if type( val ) not in types.StringTypes ] ) )
+        failed.update( dict.fromkeys( ( lfn for lfn in lfnList if lfn not in success ), 'File does not exist' ) )
+        failed.update( dict( ( lfn, val ) for lfn, val in success.items() if isinstance( val, basestring ) ) )
+        successful.update( dict( ( lfn, val ) for lfn, val in success.items() if not isinstance( val, basestring ) ) )
     return S_OK( {'Successful':successful, 'Failed':failed} )
+
 ################################################################################
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

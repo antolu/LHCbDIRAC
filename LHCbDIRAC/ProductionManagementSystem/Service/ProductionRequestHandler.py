@@ -1,8 +1,6 @@
 """ ProductionRequestHandler is the implementation of the Production Request service
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import re
 import tempfile
@@ -17,6 +15,8 @@ from DIRAC.Core.Utilities.Shifter     import getShifterProxy
 from DIRAC.Core.Utilities.Subprocess  import shellCall
 
 from LHCbDIRAC.ProductionManagementSystem.DB.ProductionRequestDB import ProductionRequestDB
+
+__RCSID__ = "$Id$"
 
 # This is a global instance of the ProductionRequestDB class
 productionRequestDB = False
@@ -222,12 +222,12 @@ class ProductionRequestHandler( RequestHandler ):
       if not result['OK']:
         return result
       body = result['Value']
-      m = re.search( "\$\Id: ([^$]*) \$", body )
+      m = re.search( "__RCSID__ = \"([^$]*)\"", body )
       ptime = ''
       author = ''
       ver = ''
       if m:
-        m = re.match( "[^ ]+ ([^ ]+) ([^ ]+ [^ ]+) ([^ ]+)", m.group( 1 ) )
+        m = re.match( "([^ ]+) \((.*)\) (.*)", m.group( 1 ))
         if m:
           ptime = m.group( 2 )
           author = m.group( 3 )

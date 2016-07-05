@@ -3,9 +3,7 @@
 """
 Production Lookup
 """
-########################################################################
-# $Id$
-########################################################################
+
 from PyQt4.QtGui                                                              import QDialog, QAbstractItemView
 from PyQt4.QtCore                                                             import SIGNAL
 from LHCbDIRAC.BookkeepingSystem.Gui.Widget.Ui_ProductionLookup               import Ui_ProductionLookup

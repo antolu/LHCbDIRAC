@@ -5,14 +5,16 @@
 """ Return the INFO a a given job from the XML file
 """
 
-__RCSID__ = "$Id$"
+import shutil
+import os
 
 from DIRAC import S_OK, S_ERROR
-import shutil, os
 
 # They should not be here, but I do not know their effect in terms of load.
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 from LHCbDIRAC.Interfaces.API.LHCbJob   import LHCbJob
+
+__RCSID__ = "$Id$"
 
 def makeProductionLFN( jobid, prodid, config, fname, ftype ):
   """ Constructs the logical file name according to LHCb conventions.

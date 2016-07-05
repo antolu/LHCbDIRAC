@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL$
 # File :    dirac-dms-replicate-lfn
 # Author  : Stuart Paterson
 ########################################################################
@@ -26,5 +25,5 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = True )
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeReplicateLfn
-  executeReplicateLfn( dmScript )
-
+  from DIRAC import exit
+  exit( executeReplicateLfn( dmScript ) )

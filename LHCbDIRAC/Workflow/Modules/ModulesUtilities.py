@@ -1,19 +1,23 @@
 """ Just a module with some utilities
 """
 
-__RCSID__ = "$Id$"
-
-import os, tarfile, math
+import os
+import tarfile
+import math
 
 from DIRAC import S_OK, S_ERROR, gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers import Resources
 from DIRAC.WorkloadManagementSystem.Client.CPUNormalization import getCPUTime
 from LHCbDIRAC.Core.Utilities.XMLTreeParser import XMLTreeParser
 
+__RCSID__ = "$Id$"
 
-def tarFiles( outputFile, files = [], compression = 'gz', deleteInput = False ):
+
+def tarFiles( outputFile, files = None, compression = 'gz', deleteInput = False ):
   """ just make a tar
   """
+  if files is None:
+    files = []
 
   try:
     tar = tarfile.open( outputFile, 'w:' + compression )
@@ -25,7 +29,10 @@ def tarFiles( outputFile, files = [], compression = 'gz', deleteInput = False ):
 
   if deleteInput:
     for fileIn in files:
-      os.remove( fileIn )
+      try:
+        os.remove( fileIn )
+      except OSError:
+        pass
 
   return S_OK()
 

@@ -258,20 +258,19 @@ class TransformationDB( DIRACTransformationDB ):
     res = self.getBookkeepingQuery( transID, connection = connection )
     if not res['OK']:
       return S_ERROR( "Cannot retrieve BkQuery" )
-    if res['Value'].has_key( 'RunNumbers' ):
-      if res['Value']['RunNumbers'] == 'All':
-        runsInQuery = []
-      else:
-        runsInQuery = [int( run ) for run in res['Value']['RunNumbers'].split( ';;;' )]
-    else:
-      runsInQuery = []
-    for run in runList:
-      if run not in runsInQuery:
-        runsInQuery.append( run )
-    runsInQuery.sort()
+    if 'StartRun' in res['Value'] or 'EndRun' in res['Value']:
+      return S_ERROR( "RunList incompatible with start or end run" )
+    runsInQuery = set()
+    try:
+      if 'RunNumbers' in res['Value']:
+        if res['Value']['RunNumbers'] != 'All':
+          runsInQuery = set( int( run ) for run in res['Value']['RunNumbers'] )
+      runsInQuery |= set( int( run ) for run in runList )
+    except ValueError as e:
+      return S_ERROR( "RunList invalid: %s" % repr( e ) )
     if len( runsInQuery ) > 999:
       return S_ERROR( "RunList bigger the 1000 not allowed because of Oracle limitations!!!" )
-    value = ';;;'.join( [str( x ) for x in runsInQuery] )
+    value = ';;;'.join( [str( x ) for x in sorted( runsInQuery )] )
     req = "UPDATE BkQueriesNew SET ParameterValue='%s' WHERE TransformationID = %d AND ParameterName='RunNumbers'" % ( value, transID )
     self._update( req, connection )
     return S_OK()
@@ -701,10 +700,14 @@ class TransformationDB( DIRACTransformationDB ):
     """ get meta of a run. RunIDs can be a list.
     """
     connection = self.__getConnection( connection )
-    if isinstance( runIDs, ( str, int ) ):
-      runIDs = [runIDs]
-    runIDs = [str( x ) for x in runIDs]
-    runIDs = ', '.join( runIDs )
+    try:
+      if isinstance( runIDs, ( list, dict, set, tuple ) ):
+        runIDs = ','.join( [str( int( x ) ) for x in runIDs] )
+      else:
+        runIDs = str( int( runIDs ) )
+    except ValueError as e:
+      gLogger.exception( "Invalid run number", lException = e )
+      return S_ERROR( "Invalid run number" )
     req = "SELECT RunNumber, Name, Value FROM RunsMetadata WHERE RunNumber IN (%s)" % runIDs
     res = self._query( req, connection )
     if not res['OK']:

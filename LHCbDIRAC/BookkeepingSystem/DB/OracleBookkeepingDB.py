@@ -61,7 +61,7 @@ class OracleBookkeepingDB:
 
     self.dbW_ = OracleDB( self.dbServer, self.dbPass, self.dbHost )
     self.dbR_ = OracleDB( self.dbUser, self.dbPass, self.dbHost )
-
+  
   #############################################################################
   @staticmethod
   def __isSpecialFileType( flist ):
@@ -373,7 +373,11 @@ class OracleBookkeepingDB:
         step += [{'ParameterNames':rParameters, 'Records':runtimeProject, 'TotalRecords':len( runtimeProject ) + 1}]
         records += [step]
       if paging:
-        command = "select count(*) from steps s where s.stepid>0 %s " % ( condition )
+        if fileTypefilter:
+           command = "select count(*) from %s where s.stepid>0 %s " % ( fileTypefilter, condition )
+        else:
+          command = "select count(*) from steps s where s.stepid>0 %s " % ( condition )
+
         retVal = self.dbR_.query( command )
         if retVal['OK']:
           totrec = retVal['Value'][0][0]
@@ -877,7 +881,7 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables )
+    retVal = self.__buildConditions( default, conddescription, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -919,7 +923,7 @@ class OracleBookkeepingDB:
       if tables.upper().find( 'FILETYPES' ) < 0:
         tables += ',filetypes ftypes'
 
-    retVal = self.__buildProcessingPass( processing, condition, tables )
+    retVal = self.__buildProcessingPass( processing, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -1040,7 +1044,7 @@ class OracleBookkeepingDB:
                             filetype = default, quality = default,
                             visible = default, replicaflag = default,
                             startDate = None, endDate = None, runnumbers = list(),
-                            startRunID = None, endRunID = None ):
+                            startRunID = None, endRunID = None, tcks = default ):
     """return a list of files with their metadata"""
     condition = ''
 
@@ -1051,6 +1055,11 @@ class OracleBookkeepingDB:
     condition, tables = retVal['Value']
 
     retVal = self.__buildRunnumbers( runnumbers, startRunID, endRunID, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+    
+    retVal = self.__buildTCKS( tcks, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -1065,12 +1074,12 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables )
+    retVal = self.__buildConditions( default, conddescription, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables )
+    retVal = self.__buildProduction( production, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -1085,7 +1094,7 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass( processing, condition, tables )
+    retVal = self.__buildProcessingPass( processing, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -1687,7 +1696,7 @@ class OracleBookkeepingDB:
 
     if depth:
       depth -= 1
-      
+
       res = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getFileDesJobId', [fileName] )
       if not res["OK"]:
         gLogger.error( 'Error getting fileId', res['Message'] )
@@ -2200,9 +2209,7 @@ class OracleBookkeepingDB:
 #                 'InstLuminosity':record[16]}
 #          result[lfn] = row
 
-    retVal = result
-    retVal['Successful'] = dict( result )
-    retVal['Failed'] = [ i for i in lfns if i not in result]
+    retVal = {'Successful': result, 'Failed':list( set( lfns ) - set( result ) )}
     return S_OK( retVal )
 
   #############################################################################
@@ -3015,7 +3022,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables )
+    retVal = self.__buildProduction( production, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3025,12 +3032,12 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass( procPass, condition, tables )
+    retVal = self.__buildProcessingPass( procPass, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildFileTypes( ftype, condition, tables )
+    retVal = self.__buildFileTypes( ftype, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3040,7 +3047,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildEventType( evt, condition, tables )
+    retVal = self.__buildEventType( evt, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3065,13 +3072,13 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( simdesc, datataking, condition, tables )
+    retVal = self.__buildConditions( simdesc, datataking, condition, tables, visible )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
     if nbofEvents:
-      command = " select  sum(f.eventstat) \
+      command = " select sum(f.eventstat) \
       from %s where f.jobid= j.jobid %s " % ( tables, condition )
     elif filesize:
       command = " select sum(f.filesize) \
@@ -3097,8 +3104,15 @@ and files.qualityid= dataquality.qualityid'
   
   #############################################################################
   @staticmethod
-  def __buildProduction( production, condition, tables ):
-    """it adds the production which can be a list or string to the jobs table"""
+  def __buildProduction( production, condition, tables, visible = default, useView = True ):
+    """it adds the production which can be a list or string to the jobs table
+    :param list,int long the production number(s)
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables.
+    :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    disable the view usage. 
+    """
     if production not in [default, None]:
       if isinstance( production, list ) and len( production ) > 0:
         condition += ' and '
@@ -3109,6 +3123,12 @@ and files.qualityid= dataquality.qualityid'
         condition += cond
       elif isinstance( production, ( basestring, int, long ) ):
         condition += ' and j.production=%s' % str( production )
+
+    if production not in [default, None] and visible.upper().startswith( 'Y' ) and useView:
+      if 'BVIEW' not in tables.upper():
+        tables += ' ,prodview bview'
+      condition += ' and j.production=bview.production '
+
     return S_OK( ( condition, tables ) )
 
   #############################################################################
@@ -3119,11 +3139,7 @@ and files.qualityid= dataquality.qualityid'
     if tcks not in [None, default]:
       if isinstance( tcks, list ):
         if len( tcks ) > 0:
-          cond = '('
-          for i in tcks:
-            cond += "j.tck='%s' or " % ( i )
-          cond = cond[:-3] + ')'
-          condition = " and %s " % ( cond )
+          condition += ' and ( ' + ' or '.join( [" j.tck='%s'" % i for i in tcks] ) + ')'
       elif isinstance( tcks, basestring ):
         condition += " and j.tck='%s'" % ( tcks )
       else:
@@ -3132,8 +3148,15 @@ and files.qualityid= dataquality.qualityid'
     return S_OK( ( condition, tables ) )
 
   #############################################################################
-  def __buildProcessingPass( self, procPass, condition, tables ):
-    """It adds the processing pass condition to the query"""
+  def __buildProcessingPass( self, procPass, condition, tables, visible = default, useView = True ):
+    """It adds the processing pass condition to the query
+    :param str procPass it is a processing pass for example: /Real Data/Reco20
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables.
+    :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    disable the view usage.
+    """
     if procPass not in [default, None]:
       if not re.search( '^/', procPass ):
         procPass = procPass.replace( procPass, '/%s' % procPass )
@@ -3154,6 +3177,11 @@ and files.qualityid= dataquality.qualityid'
       pro = pro[:-1]
       pro += ')'
 
+      if visible.upper().startswith( 'Y' ) and useView:
+        if 'BVIEW' not in tables.upper():
+          tables += ',prodview bview'
+        condition += " and bview.production=prod.production and bview.production=j.production"
+
       condition += " and j.production=prod.production \
                      and prod.processingid in %s" % ( pro )
       if tables.upper().find( 'PRODUCTIONSCONTAINER' ) < 0:
@@ -3162,14 +3190,23 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildFileTypes( ftype, condition, tables, visible = 'N' ):
-    """it adds the file type to the files list"""
-    
-    if ftype != default and visible.upper().startswith( 'Y' ):
+  def __buildFileTypes( ftype, condition, tables, visible = default, useView = True ):
+    """it adds the file type to the files list
+    :param list, str ftype it is used to construct the file type query filter  
+    using a given file type or a list of filetypes.  
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables.
+    :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    disable the view usage.
+    """
+
+    if ftype != default and visible.upper().startswith( 'Y' ) and useView:
       if tables.lower().find( 'filetypes' ) < 0:
         tables += ' ,filetypes ft'
-      if tables.find( 'bview' ) > -1:
-        condition += " and bview.filetypeid=ft.filetypeid "
+      if tables.find( 'bview' ) < 0:
+        tables += ' ,prodview bview'
+      condition += " and f.filetypeid=ft.filetypeid and bview.filetypeid=ft.filetypeid and bview.filetypeid=f.filetypeid "
       if isinstance( ftype, list ):
         values = ' and ft.name in ('
         for i in ftype:
@@ -3193,6 +3230,12 @@ and files.qualityid= dataquality.qualityid'
       else:
         return S_ERROR( 'File type problem!' )
       condition += ' and f.filetypeid=ft.filetypeid'
+    
+    if isinstance( ftype, basestring ) and ftype == 'RAW' and 'jobs' in tables:
+      # we know the production of a run is lees than 0. 
+      # this is needed to speed up the queries when the file type is raw 
+      # (we reject all recostructed + stripped jobs/files. ).
+      condition += " and j.production<0"
     return S_OK( ( condition, tables ) )
 
   #############################################################################
@@ -3226,12 +3269,25 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   @staticmethod
-  def __buildEventType( evt, condition, tables, visible = 'N'):
-    """adds the event type to the files table"""
-    
-    if evt != default and visible.upper().startswith( 'Y' ):
-      tables += ' ,prodview bview'
-      condition += '  and j.production=bview.production and bview.production=prod.production and f.eventtypeid=bview.eventtypeid and'
+  def __buildEventType( evt, condition, tables, visible = default, useView = True ):
+    """adds the event type to the files table
+    :param list, str evt it is used to construct the event type query filter using a given event type or a list of event types.  
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables.
+    :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    disable the view usage.
+    """
+
+    if evt not in [0, None, default] and visible.upper().startswith( 'Y' ) and useView:
+      if tables.find( 'bview' ) < 0:
+        tables += ' ,prodview bview'
+
+      if tables.upper().find( 'PRODUCTIONSCONTAINER' ) > 0:
+        condition += '  and j.production=bview.production and bview.production=prod.production and f.eventtypeid=bview.eventtypeid and'
+      else:
+        condition += '  and j.production=bview.production and f.eventtypeid=bview.eventtypeid and'
+
       if isinstance( evt, ( list, tuple ) ) and len( evt ) > 0:
         cond = ' ( '
         for i in evt:
@@ -3324,8 +3380,16 @@ and files.qualityid= dataquality.qualityid'
     return S_OK( ( condition, tables ) )
 
   #############################################################################
-  def __buildConditions( self, simdesc, datataking, condition, tables ):
-    """adds the data taking or simulation conditions to the query"""
+  def __buildConditions( self, simdesc, datataking, condition, tables, visible = default, useView = True ):
+    """adds the data taking or simulation conditions to the query
+    :param str simdesc it is used to construct the simulation condition query filter
+    :param str datataking it is used to construct the data taking condition query filter
+    :param str condition It contains the where conditions
+    :param str tables it containes the tables.
+    :param str visible the default value is 'ALL'. [Y,N]
+    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    disable the view usage.
+    """
     if simdesc != default or datataking != default:
       conddesc = simdesc if simdesc != default else datataking
       retVal = self.__getConditionString( conddesc, 'prod' )
@@ -3335,6 +3399,10 @@ and files.qualityid= dataquality.qualityid'
       condition += ' and prod.production=j.production '
       if tables.upper().find( 'PRODUCTIONSCONTAINER' ) < 0:
         tables += ' ,productionscontainer prod '
+
+      if ( simdesc != default or datataking != default ) and visible.upper().startswith( 'Y' ) and useView:
+        condition += ' and bview.production=prod.production'
+
     return S_OK( ( condition, tables ) )
 
   #############################################################################
@@ -3498,29 +3566,30 @@ and files.qualityid= dataquality.qualityid'
     return res
 
   #############################################################################
-  def getFilesSummary( self, configName, configVersion,
-                      conddescription = default, processing = default,
-                      evt = default, production = default,
-                      filetype = default, quality = default,
-                      runnb = default, startrun = default, endrun = default,
-                      visible = default, startDate = None, endDate = None,
-                      runnumbers = list(), replicaflag = default ):
-
+  def getFilesSummary( self, configName, configVersion, conditionDescription = default, processingPass = default, eventType = default,
+                       production = default, fileType = default, dataQuality = default, startRun = default, endRun = default,
+                       visible = default, startDate = None, endDate = None, runNumbers = list(), replicaFlag = default, tcks = default ):
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
     tables = 'files f, jobs j '
-    
+    useView = fileType not in ( default, 'RAW' ) 
+
     retVal = self.__buildStartenddate( startDate, endDate, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
-    retVal = self.__buildRunnumbers( runnumbers, startrun, endrun, condition, tables )
+
+    retVal = self.__buildRunnumbers( runNumbers, startRun, endRun, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
-    retVal = self.__buildConditions( default, conddescription, condition, tables )
+
+    retVal = self.__buildTCKS( tcks, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildConditions( default, conditionDescription, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3534,13 +3603,13 @@ and files.qualityid= dataquality.qualityid'
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
-    retVal = self.__buildProduction( production, condition, tables )
+
+    retVal = self.__buildProduction( production, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
-    retVal = self.__buildEventType( evt, condition, tables, visible )
+
+    retVal = self.__buildEventType( eventType, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3548,22 +3617,22 @@ and files.qualityid= dataquality.qualityid'
     if production != default:
       condition += ' and j.production=' + str( production )
 
-    retVal = self.__buildFileTypes( filetype, condition, tables, visible )
+    retVal = self.__buildFileTypes( fileType, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
-    retVal = self.__buildReplicaflag( replicaflag, condition, tables )
+
+    retVal = self.__buildReplicaflag( replicaFlag, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
-    retVal = self.__buildProcessingPass( processing, condition, tables )
+
+    retVal = self.__buildProcessingPass( processingPass, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
-    retVal = self.__buildDataquality( quality, condition, tables )
+
+    retVal = self.__buildDataquality( dataQuality, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']   
@@ -3571,9 +3640,7 @@ and files.qualityid= dataquality.qualityid'
     command = "select count(*),\
     SUM(f.EventStat), SUM(f.FILESIZE), \
     SUM(f.luminosity),SUM(f.instLuminosity) from  %s  where \
-    j.jobid=f.jobid and \
-    ft.filetypeid=f.filetypeid and \
-    ft.filetypeid=f.filetypeid  %s" % ( tables, condition )
+    j.jobid=f.jobid %s" % ( tables, condition )
     return self.dbR_.query( command )
 
   #############################################################################
@@ -3632,8 +3699,8 @@ and files.qualityid= dataquality.qualityid'
           conds = ' ('
           for i in quality:
             quality = None
-            command = "select QualityId from dataquality where dataqualityflag='%s'" % ( i )
-            res = self.dbR_.query( command )
+	    command = "select QualityId from dataquality where dataqualityflag='%s'" % ( i )
+	    res = self.dbR_.query( command )
             if not res['OK']:
               gLogger.error( 'Data quality problem:', res['Message'] )
             elif len( res['Value'] ) == 0:
@@ -4913,3 +4980,50 @@ and files.qualityid= dataquality.qualityid'
       else:
         status['Failed'] += [run]
     return S_OK( status )
+
+  #############################################################################
+  def getProductionProducedEvents( self, prodid ):
+    """returns the produced event by a production taking into account the step"""
+    return self.dbR_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProducedEvents', types.LongType, [prodid] )
+
+  #############################################################################
+  def bulkinsertEventType( self, eventtypes ):
+    """
+    It inserts a list of event types to the db.
+    
+    :param list eventtypes it inserts a list of event types. For example: the list elements are the following: 
+    {'EVTTYPEID': '12265021', 'DESCRIPTION': 'Bu_D0pipipi,Kpi-withf2=DecProdCut_pCut1600MeV', 'PRIMARY': '[B+ -> (D~0 -> K+ pi-) pi+ pi- pi+]cc'}
+    :return S_ERROR S_OK({'Failed':[],'Successful':[]})
+    """
+    failed = []
+    for evt in eventtypes:
+      evtId = evt.get( 'EVTTYPEID' )
+      evtDesc = evt.get( 'DESCRIPTION' )
+      evtPrimary = evt.get( 'PRIMARY' )
+      retVal = self.insertEventTypes( evtId, evtDesc, evtPrimary )
+      if not retVal['OK']:
+        failed.append( {evtId:{'Error':retVal['Message'], 'EvtentType':evt}} )
+    
+    successful = list( set( evt['EVTTYPEID'] for evt in eventtypes ) - set( i.keys()[0] for i in failed ) )
+    return S_OK( {'Failed': failed, 'Successful': successful} )
+  
+  #############################################################################
+  def bulkupdateEventType( self, eventtypes ):
+    """
+    It updates a list of event types which are exist in the db 
+    
+    :param list eventtypes it is a list of event types. For example: the list elements are the following: 
+    {'EVTTYPEID': '12265021', 'DESCRIPTION': 'Bu_D0pipipi,Kpi-withf2=DecProdCut_pCut1600MeV', 'PRIMARY': '[B+ -> (D~0 -> K+ pi-) pi+ pi- pi+]cc'}
+    :return S_ERROR S_OK({'Failed':[],'Successful':[]})
+    """
+    failed = []
+    for evt in eventtypes:
+      evtId = evt.get( 'EVTTYPEID' )
+      evtDesc = evt.get( 'DESCRIPTION' )
+      evtPrimary = evt.get( 'PRIMARY' )
+      retVal = self.updateEventType( evtId, evtDesc, evtPrimary )
+      if not retVal['OK']:
+        failed.append( {evtId:{'Error':retVal['Message'], 'EvtentType':evt}} )
+    
+    successful = list( set( evt['EVTTYPEID'] for evt in eventtypes ) - set( i.keys()[0] for i in failed ) )
+    return S_OK( {'Failed': failed, 'Successful': successful} )

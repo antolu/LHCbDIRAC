@@ -61,8 +61,8 @@ class NagiosTopologyAgent( AgentModule ):
     # loop over sites
 
     middlewareTypes = []
-    ret = gConfig.getSections('Resources/Sites') 
-    if not ret[ 'OK' ] : 
+    ret = gConfig.getSections('Resources/Sites')
+    if not ret[ 'OK' ] :
        gLogger.error( ret[ 'Message' ] )
        return ret
     else : middlewareTypes = ret['Value']
@@ -86,7 +86,7 @@ class NagiosTopologyAgent( AgentModule ):
         site_name = site_opts.get( 'Name' )
         site_tier = site_opts.get( 'MoUTierLevel', 'None' )
         # we are only interested in sites with a MoUTierLevel, i.e. WLCG sites, for the WLCG topology map
-        if site_tier != 'None' :  
+        if site_tier != 'None' :
           site_subtier = site_opts.get( 'SubTier', 'None' )
           has_grid_elem = False
           xml_site = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
@@ -209,7 +209,7 @@ class NagiosTopologyAgent( AgentModule ):
     site_se_name = site_se_opts.get( 'Host' )
     site_se_type = site_se_opts.get( 'ProtocolName' )
 
-    if site_se_type == 'SRM2':
+    if site_se_type in ( 'SRM2', 'GFAL2_SRM2' ) :
       site_se_type = 'SRMv2'
     elif not site_se_type:
       site_se_type = 'UNDEFINED'

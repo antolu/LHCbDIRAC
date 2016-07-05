@@ -14,7 +14,7 @@ Script.setUsageMessage( '\n'.join( [ __doc__,
                                     'Usage:',
                                     '  %s [option|cfgfile] [prod1[:prod2][,prod3[:prod4]]' % Script.scriptName, ] ) )
 Script.registerSwitch( '', 'NoReset', "Don't reset the MaxRest files to unused (default is to reset)" )
-Script.parseCommandLine( ignoreErrors=True )
+Script.parseCommandLine( ignoreErrors = True )
 
 import DIRAC
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
@@ -43,7 +43,7 @@ else:
 
 
 for prod in idList:
-  res = transClient.getTransformation( prod, extraParams=True )
+  res = transClient.getTransformation( prod, extraParams = True )
   if not res['OK']:
     print "Error getting transformation %s" % prod, res['Message']
   else:
@@ -54,5 +54,5 @@ for prod in idList:
       parentProd, movedFiles = res['Value']
       if movedFiles:
         print "Successfully moved files from %d to %d:" % ( parentProd, prod )
-        for status, val in movedFiles.items():
+        for status, val in movedFiles.iteritems():
           print "\t%d files to status %s" % ( val, status )

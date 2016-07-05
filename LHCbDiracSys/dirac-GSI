@@ -1,10 +1,5 @@
 #!/bin/bash
 
-#
-# $Header: /tmp/libdirac/tmp.stZoy15380/dirac/DIRAC3/DiracSys/dirac-make,v 1.2 2009/10/05 06:13:08 rgracian Exp $
-#
-# preliminary version to prepare external package needed for DIRAC3
-#
 function canonicalize
 {
   cd -P -- "$(dirname -- "$1")" &&
@@ -32,6 +27,8 @@ if ! [ -r $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION} ]; then
   mkdir $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}
 fi
 
-ln -sf ../../../$fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/
+if ! [ -d $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/ ]; then
+  ln -sf ../../../$fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/
+fi
 
 #

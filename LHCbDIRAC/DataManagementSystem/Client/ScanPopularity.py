@@ -126,8 +126,8 @@ def cacheDirectories( directories ):
       infoType = 'LFN'
       gLogger.verbose( 'Directory %s: %s' % ( lfn, str( res['Value'] ) ) )
       bkPathUsage.setdefault( bkPath, {} ).setdefault( infoType, [0, 0] )
-      bkPathUsage[bkPath][infoType][0] += sum( [val.get( 'Files', 0 ) for val in res['Value'].values()] )
-      bkPathUsage[bkPath][infoType][1] += sum( [val.get( 'Size', 0 ) for val in res['Value'].values()] )
+      bkPathUsage[bkPath][infoType][0] += sum( val.get( 'Files', 0 ) for val in res['Value'].itervalues() )
+      bkPathUsage[bkPath][infoType][1] += sum( val.get( 'Size', 0 ) for val in res['Value'].itervalues() )
 
     # # get the PFN usage per storage type
     gLogger.always( 'Check storage type and PFN usage for %d directories' % len( dirSet ) )
@@ -142,13 +142,13 @@ def cacheDirectories( directories ):
       for infoType in storageTypes:
         # Active type will be recorded in Disk, just a special flag
         if infoType != 'LFN' and infoType not in info:
-          nf = sum( [val['Files'] for se, val in res['Value'].items() if isType( se, infoType )] )
-          size = sum( [val['Size'] for se, val in res['Value'].items() if isType( se, infoType )] )
+          nf = sum( val['Files'] for se, val in res['Value'].iteritems() if isType( se, infoType ) )
+          size = sum( val['Size'] for se, val in res['Value'].iteritems() if isType( se, infoType ) )
           info[infoType] = {'Files':nf, 'Size':size}
       for site in storageSites:
         if site not in info:
-          nf = sum( [val['Files'] for se, val in res['Value'].items() if isAtSite( se, site ) and isType( se, 'Disk' )] )
-          size = sum( [val['Size'] for se, val in res['Value'].items() if isAtSite( se, site ) and isType( se, 'Disk' )] )
+          nf = sum( val['Files'] for se, val in res['Value'].iteritems() if isAtSite( se, site ) and isType( se, 'Disk' ) )
+          size = sum( val['Size'] for se, val in res['Value'].iteritems() if isAtSite( se, site ) and isType( se, 'Disk' ) )
           info[site] = {'Files':nf, 'Size':size}
       bkPath = bkPathForLfn[lfn]
       for infoType in info:
@@ -356,11 +356,11 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
     strangeBKPaths = set( bkPath for bkPath in timeUsage if not bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )[0] )
     if strangeBKPaths:
       gLogger.always( '%d used datasets do not have an LFN count:' % len( strangeBKPaths ) )
-      gLogger.always( '\n'.join( ["%s : %s" % ( bkPath, str( bkPathUsage.get( bkPath, {} ) ) ) for bkPath in strangeBKPaths] ) )
+      gLogger.always( '\n'.join( "%s : %s" % ( bkPath, str( bkPathUsage.get( bkPath, {} ) ) ) for bkPath in strangeBKPaths ) )
     gLogger.always( '\nDataset usage for %d datasets' % len( timeUsage ) )
     for infoType in ( 'All', 'LFN' ):
       for i in range( 2 ):
-        counters.setdefault( infoType, [] ).append( sum( [bkPathUsage.get( bkPath, {} ).get( infoType, ( 0, 0 ) )[i] for bkPath in timeUsage] ) )
+        counters.setdefault( infoType, [] ).append( sum( bkPathUsage.get( bkPath, {} ).get( infoType, ( 0, 0 ) )[i] for bkPath in timeUsage ) )
     for bkPath in sorted( timeUsage ):
       if bkPath not in datasetStorage['Disk'] | datasetStorage['Archived'] | datasetStorage['Tape']:
         datasetStorage[storageType( usedSEs[bkPath] )].add( bkPath )
@@ -369,7 +369,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
       gLogger.always( '%s (%d LFNs, %s), (%d PFNs, %s, %.1f replicas)' % ( bkPath, nLfns, prSize( lfnSize ), nPfns, prSize( pfnSize ), float( nPfns ) / float( nLfns ) if nLfns else 0. ) )
       bins = sorted( timeUsage[bkPath] )
       lastBin = bins[-1]
-      accesses = sum( [timeUsage[bkPath][binNumber] for binNumber in bins] )
+      accesses = sum( timeUsage[bkPath][binNumber] for binNumber in bins )
       gLogger.always( '\tUsed first in %s, %d accesses (%.1f%%), %d accesses during last %s %s' %
                       ( prBinNumber( bins[0] ), accesses,
                         accesses * 100. / nLfns if nLfns else 0.,
@@ -388,7 +388,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
       strangeBKPaths = set( bkPath for bkPath in unusedBKPaths if not bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )[0] )
       if strangeBKPaths:
         gLogger.always( '%d unused datasets do not have an LFN count:' % len( strangeBKPaths ) )
-        gLogger.always( '\n'.join( ["%s : %s" % ( bkPath, str( bkPathUsage.get( bkPath, {} ) ) ) for bkPath in strangeBKPaths] ) )
+        gLogger.always( '\n'.join( "%s : %s" % ( bkPath, str( bkPathUsage.get( bkPath, {} ) ) ) for bkPath in strangeBKPaths ) )
       unusedBKPaths = set( bkPath for bkPath in unusedBKPaths if bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )[0] )
 
       # In case there are datasets both on tape and disk, priviledge tape
@@ -400,7 +400,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
         counters = {}
         for t in ( 'All', 'LFN' ):
           for i in range( 2 ):
-            counters.setdefault( t, [] ).append( sum( [bkPathUsage.get( bkPath, {} ).get( t, ( 0, 0 ) )[i] for bkPath in unusedPaths] ) )
+            counters.setdefault( t, [] ).append( sum( bkPathUsage.get( bkPath, {} ).get( t, ( 0, 0 ) )[i] for bkPath in unusedPaths ) )
         for bkPath in sorted( unusedPaths ):
           nLfns, lfnSize = bkPathUsage.get( bkPath, {} ).get( 'LFN', ( 0, 0 ) )
           nPfns, pfnSize = bkPathUsage.get( bkPath, {} ).get( 'All', ( 0, 0 ) )
@@ -419,17 +419,22 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
   f = open( csvFile, 'w' )
   title = "Name;Configuration;ProcessingPass;FileType;Type;Creation-%s;" % binSize + \
           "NbLFN;LFNSize;NbDisk;DiskSize;NbTape;TapeSize;NbArchived;ArchivedSize;" + \
-          ';'.join( [site.split( '.' )[1] for site in storageSites] ) + \
+          ';'.join( site.split( '.' )[1] for site in storageSites ) + \
           ";Nb Replicas;Nb ArchReps;Storage;FirstUsage;LastUsage;Now"
   for binNumber in range( nbBins ):
     title += ';%d' % ( 1 + binNumber )
   f.write( title + '\n' )
   TB = 1000. * 1000. * 1000. * 1000.
   for bkPath in sorted( timeUsage ) + sorted( unusedBKPaths ):
+    # Skip unknown datasets
     if bkPath.startswith( 'Unknown-' ):
       continue
+    # Not interested in histograms
     fileType = bkPath.split( '/' )[-1]
     if 'HIST' in fileType:
+      continue
+    # Only RAW for partition LHCb may be of interest (and even...)
+    if fileType == 'RAW' and not bkPath.startswith( '/LHCb' ):
       continue
     info = bkPathUsage.get( bkPath, {} )
     # check if the production is still active

@@ -1,8 +1,6 @@
 """ Analyse XMLSummary module
 """
 
-__RCSID__ = "$Id$"
-
 import os
 
 from DIRAC import S_OK, S_ERROR, gLogger
@@ -14,6 +12,8 @@ from DIRAC.DataManagementSystem.Client.DataManager import DataManager
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
+
+__RCSID__ = "$Id$"
 
 
 class AnalyseXMLSummary( ModuleBase ):

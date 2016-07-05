@@ -2,7 +2,6 @@ from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
 import unittest
-import time
 
 from DIRAC import gLogger
 from DIRAC.Core.Security.ProxyInfo import getProxyInfo
@@ -12,7 +11,7 @@ from DIRAC.tests.Utilities.utils import find_all
 
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-from LHCbDIRAC.tests.Integration.Workflow.Test_UserJobs import createJob
+from tests.Workflow.Integration.test_UserJobs import createJob
 
 gLogger.setLevel( 'VERBOSE' )
 

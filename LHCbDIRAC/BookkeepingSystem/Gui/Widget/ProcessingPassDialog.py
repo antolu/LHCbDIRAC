@@ -3,9 +3,7 @@
 """
 Processing pass widget
 """
-########################################################################
-# $Id$
-########################################################################
+
 from PyQt4.QtGui                                                              import QDialog, QHBoxLayout, QTabWidget
 from PyQt4.QtCore                                                             import SIGNAL
 

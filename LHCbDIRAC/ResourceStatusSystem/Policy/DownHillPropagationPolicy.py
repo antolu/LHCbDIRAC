@@ -2,7 +2,7 @@
 
    DownHillPropagationPolicy.__bases__:
      DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
-  
+
 '''
 
 from DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase import PolicyBase
@@ -18,10 +18,10 @@ __RCSID__ = "$Id$"
 
 class DownHillPropagationPolicy( PolicyBase ):
   '''
-  The DownHillPropagationPolicy module is a policy module used to update the 
-  status of an element, based on how its element in the upper part of the 
+  The DownHillPropagationPolicy module is a policy module used to update the
+  status of an element, based on how its element in the upper part of the
   hierarchy is behaving in the RSS.
-  
+
   DownHillPropagationPolicy, given the status of the parent element, propagates
   its status to the child element.
   '''
@@ -52,7 +52,7 @@ class DownHillPropagationPolicy( PolicyBase ):
       return result
 
     commandResult = commandResult[ 'Value' ]
-    
+
     if commandResult is None:
       result[ 'Status' ] = 'Unknown'
       result[ 'Reason' ] = 'No values to take a decission'
@@ -61,6 +61,6 @@ class DownHillPropagationPolicy( PolicyBase ):
     result[ 'Status' ] = commandResult
     result[ 'Reason' ] = 'DownHill propagated status: %s' % commandResult
     return result
-  
+
 #...............................................................................
 #EOF

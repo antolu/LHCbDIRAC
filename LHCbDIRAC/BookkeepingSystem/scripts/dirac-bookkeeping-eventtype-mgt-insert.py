@@ -13,6 +13,7 @@ __RCSID__ = "$Id$"
 
 import re
 import DIRAC
+from DIRAC import gLogger
 
 from DIRAC.Core.Base import Script
 Script.setUsageMessage( '\n'.join( [ '\n'.join( __doc__.split( '\n' )[1:5] ),
@@ -41,43 +42,51 @@ def process_event( eventline ):
     eventline.index( 'DESCRIPTION' )
     eventline.index( 'PRIMARY' )
   except ValueError:
-    print '\nthe file syntax is wrong!!!\n' + eventline + '\n\n'
+    gLogger.error( '\nthe file syntax is wrong!!!\n' + eventline + '\n\n' )
     Script.showHelp()
   result = {}
   ma = re.match( "^ *?((?P<id00>EVTTYPEID) *?= *?(?P<value00>[0-9]+)|(?P<id01>DESCRIPTION|PRIMARY) *?= *?\"(?P<value01>.*?)\") *?, *?((?P<id10>EVTTYPEID) *?= *?(?P<value10>[0-9]+)|(?P<id11>DESCRIPTION|PRIMARY) *?= *?\"(?P<value11>.*?)\") *?, *?((?P<id20>EVTTYPEID) *?= *?(?P<value20>[0-9]+)|(?P<id21>DESCRIPTION|PRIMARY) *?= *?\"(?P<value21>.*?)\") *?$", eventline )
   if not ma:
-    print "syntax error at: \n" + eventline
+    gLogger.error( "syntax error at: \n" + eventline )
     Script.showHelp()
   else:
     for i in xrange( 3 ):
       if ma.group( 'id' + str( i ) + '0' ):
         if ma.group( 'id' + str( i ) + '0' ) in result:
-          print '\nthe parameter ' + ma.group( 'id' + str( i ) + '0' ) + ' cannot appear twice!!!\n' + eventline + '\n\n'
+          gLogger.error( '\nthe parameter ' + ma.group( 'id' + str( i ) + '0' ) + ' cannot appear twice!!!\n' + eventline + '\n\n' )
           Script.showHelp()
         else:
           result[ma.group( 'id' + str( i ) + '0' )] = ma.group( 'value' + str( i ) + '0' )
       else:
         if ma.group( 'id' + str( i ) + '1' ) in result:
-          print '\nthe parameter ' + ma.group( 'id' + str( i ) + '1' ) + ' cannot appear twice!!!\n' + eventline + '\n\n'
+          gLogger.error( '\nthe parameter ' + ma.group( 'id' + str( i ) + '1' ) + ' cannot appear twice!!!\n' + eventline + '\n\n' )
           Script.showHelp()
         else:
           result[ma.group( 'id' + str( i ) + '1' )] = ma.group( 'value' + str( i ) + '1' )
   return result
 
+eventtypes = []
 try:
-  events = open( fileName )
-except Exception, ex:
-  print 'Cannot open file ' + fileName
+  with open( fileName ) as fd:
+    for line in fd:
+      evt = process_event( line )
+      eventtypes.append( evt )
+except IOError:
+  gLogger.error( 'Cannot open file ' + fileName )
   DIRAC.exit( 2 )
 
-
-for line in events:
-  res = process_event( line )
-  result = bk.insertEventType( res['EVTTYPEID'], res['DESCRIPTION'], res['PRIMARY'] )
-  if result["OK"]:
-    print result['Value']
-  else:
-    print "ERROR:", result['Message']
-    exitCode = 2
-
+result = bk.bulkinsertEventType( eventtypes )
+if not result['OK']:
+  gLogger.error( result['Message'] )
+  exitCode = 2
+else:
+  if result['Value']['Failed']:
+    gLogger.error( "Failed to insert the following event types:" )
+    for evt in result['Value']['Failed']:
+      for i in evt.itervalues():
+        gLogger.error( "%s : %s" % ( repr( i.get( 'EvtentType' ) ), i.get( 'Error' ) ) )
+   
+  if result['Value']['Successful']:
+     gLogger.notice( "The following event types are inserted: %s" % repr( result['Value']['Successful'] ) )
+     
 DIRAC.exit( exitCode )

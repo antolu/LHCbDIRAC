@@ -1,0 +1,286 @@
+[v8r3-pre19]
+use DIRAC v6r15p6
+
+[v8r3-pre18]
+use DIRAC v6r15p6
+
+* RAWIntegrity: displaced code in the DB
+* os.mkdir to mkDir
+* PitExport: add documentation
+* RAWIntegrity: add test for the RAWIntegrityDB
+* using mkDir utility
+* RAWIntegrity: add showTables and removeFile methods
+* RAWIntegrity: insert the initial value in LastMonitor when creating the DB
+
+[v8r3-pre17]
+use DIRAC v6r15p5
+*LCG version change
+
+[v8r3-pre16]
+use DIRAC v6r15p5
+* Randomize the output string of the test jobs
+* BKK: properly check the catalog arguments
+* enabling updateRemotePilotFile service
+* removed checkers and replaced str() with repr()
+* fixes for submit and match test
+* bug fix: analyseLogFile call
+* added getTests()
+* pylint
+* remove gMonitor
+* Revived HCCommand
+* added a check for json
+* updated documantation
+* Revived Hammercloud Client
+
+[v8r3-pre15]
+use DIRAC v6r15p3
+
+[v8r3-pre14]
+* v8r3-pre14 based on Dirac v6r15p2 and LHCbGrid v9r4
+
+[v8r3-pre13]
+Use DIRAC v6r15p1
+* Update create_vobox_update.py remove lbvobox10 and add lbvobox10X machines
+
+[v8r3-pre12]
+*use DIRAC v6r15
+* location
+* pylint
+
+[v8r3-pre11]
+use DIRAC v6r15
+
+[v8r3-pre10]
+* minor fixes for tests
+
+[v8r3-pre9]
+* every time when the replica flag is updated we commit the transaction...
+* use the new method for getting the produced events for a given production
+* implemenet a new method which return the production producced events
+* remove not used conditions
+* Corect the URL for Client releases
+* Add option for the CLIENT release
+
+[v8r3-pre8]
+* bkk oracle docs
+* Fix regression introduced by 8b4f6ffd95f1a11164b897941e454cdb163eb337
+*  do not check the EventStat and FullStat
+* use the view if the visibility flag is present
+* removed unused script
+* removed duplicated scripts
+* pylint stuff
+* really minor fixes to ProductionManagement modules
+* added getCFGFile
+* disable parallel queries. Change the error message to warn and do not change the dqvalue if we have an error...
+* avoid navigating for some cases
+
+[v8r3-pre7]
+* Make changes following very good review comments
+* take into account the selected filetype when a list of steps returned from the db
+* if the BkQuery does not exist, still set the BK input proc pass
+* delete lb_run configuration in order to release LHCbDIRAC
+* Allow replication shares to be using the run duration rather than the number of files
+* MaxReset -> Problematic allowed
+* when we use the visibility flag, we must join the productionscontainer with the bview in order to make sure that the correct execution plan is used
+* Handling the case when XML summary file is not created
+* more recognizable debug messages
+* changed names of tests to standard structure
+* Add option --DumpNotAtSE to dump LFNs not at a given (list of) SEs
+* Use stderr for the progress bar. Allows to see if even if output is redirected to a file or a pipe
+* We have to able to flag a run, before the register it to the bookkeeping. If the run is flagged, we use to flag the raw files using that flag
+* add an utility package used to fix wrong information in the db
+* Went from basestring to str. Basesting not working with v6r14.
+* Fixed WMSSecureGW Service
+* LHCbCreatePilotcfg has been replaced with the LHCbCleanPilotEnv command.
+* Updated BOINC gateway service
+* New configuration service that will update the LHCb-Pilot.json file when a change is done on the CS.
+[v8r2p50]
+Use DIRAC v6r14p37
+* using Tier1-DST and resolveSEGroup
+* no plugin necessary if ListProcessingPass
+* Simplify getBKProductions
+* tuple is a valid iterable for runIDs which must be integers
+* allow to configure an email address using CS
+* use pretty printing from BK
+* allow to only give prefix of WN name (useful for BOINC)
+* fix test of argument of getRunsMetadata
+* make scaleSize public
+* Track users who does not provide enough parameters
+* make sure the file type is not a list
+* moved interactions with CS in initialize
+* If the file type is raw, we only match jobs which production is less than 0
+
+[v8r2p49]
+Use DIRAC v6r14p36
+
+* bulk update implemented
+* bulk event type insert is implemented
+* flag to get TCK of runs without FULL stream fix printout
+* add option to only list processing passes with wildcard
+* new script to set the run destination based on majority of derived files
+* Revert back to not forcing input files to be reset Unused when Processe
+
+[v8r2p48]
+Use DIRAC v6r14p34
+* add comment
+* update docstrings
+* Use with statement
+* docstring
+* Implement reviewer's comments
+* catch exception
+	* New script for listing TCKs used by a run range
+* Make a function for getting run ranges (in order to reuse)
+	* allow to flag multiple processing passes
+	* Add information about git
+	* Fix exception when EventStat is None
+	* recreate res from success and failed
+* remove useless .keys()
+	* simpler
+	* move body of several BK scripts (those with quite some logic) into a ScriptExecutors module
+	* New module with body of BK scripts
+	* replace LFC with FC
+	* replace LFC with FC
+	* revert
+	* use iterators and generators
+	* use iterators
+	* use iterators
+	* Protect empty runs
+	* use generators and iterator
+
+	[v8r2p47]
+	Use DIRAC v6r14p31
+	* no need to eval
+	* added choice of visibility flag
+
+	[v8r2p46]
+	Use DIRAC v6r14p31
+	* TCK added to the getFilesSummary method
+	* TCK added to the getFilesWithMetadata method
+
+	[v8r2p45]
+	Use DIRAC v6r14p31
+	* Allow nb of Raw files to evolve
+	* Avoid timeouts when publishing
+	* add "Finished" flag
+	* The view is not  used when the file type is RAW
+	* create a file every time when the command is executed
+	* add the script which updates the voboxes
+
+	[v8r2p44]
+	Use DIRAC v6r14p31
+	* remove static methods of the BKK XMLFilesReaderManager.py 
+
+
+	[v8r2p43]
+	Use DIRAC v6r14p31
+	* improve application status
+	* fix exception logging
+	* oups, bk returns ['Failed'] as a list, not a dict...
+	* cut file list in chunks
+	* Small improvement in --Info flush printout
+	* run number can be a long :(
+			* the return value of the getFileMetadata has changed, becauase of that we have to use successful dictionary
+
+			[v8r2p42]
+			User DIRAC v6r14p30
+			* force status to be updated to Unused
+			* Remove double return value in bk.getFileMetadata()
+			* remove obsolete plugin
+			* fix a bug and remove obsolete plugins
+			* fixes in logging
+			* use file info if replicaFlag specified
+			* change chunksize
+			* Add option --IgnoreFileType (if only interested in processing pass)
+			* every time when the replica flag is updated we commit the transaction...
+			* use the new method for getting the produced events for a given production
+			* implemenet a new method which return the production producced events
+			* remove not used conditions
+			* Corect the URL for Client releases
+			* Add option for the CLIENT release
+
+			[v8r2p41]
+	use DIRAC v6r14p28
+	* bkk oracle docs
+	* Fix regression introduced by 8b4f6ffd95f1a11164b897941e454cdb163eb337
+	* do not check the EventStat and FullStat
+	* use the view if the visibility flag is present
+
+	[v8r2p40]
+	use DIRAC v6r14p26
+	* avoid useless cast
+	* take into account the selected filetype when a list of steps returned from the db
+	* if the BkQuery does not exist, still set the BK input proc pass
+	* Allow replication shares to be using the run duration rather than the number of files
+	* MaxReset -> Problematic allowed
+
+	[v8r2p39]
+	use DIRAC v6r14p26
+	* delete lb_run configuration in order to release LHCbDIRAC
+	* when we use the visibility flag, we must join the productionscontainer with the bview in order to make sure that the correct execution plan is used
+	* Add option --DumpNotAtSE to dump LFNs not at a given (list of) SEs
+	* Use stderr for the progress bar. Allows to see if even if output is redirected to a file or a pipe
+	* We have to able to flag a run, before the register it to the bookkeeping. If the run is flagged, we use to flag the raw files using that flag
+	* improve the release procedure
+	* add an utility package used to fix wrong information in the db
+	* Fixed WMSSecureGW Service
+	* LHCbCreatePilotcfg has been replaced with the LHCbCleanPilotEnv command.
+	* Modified LHCbCreatePilotcfg command
+	* Updated BOINC gateway service
+	* New configuration service that will update the LHCb-Pilot.json file when a change is done on the CS.
+
+	[v8r2p38]
+	use DIRAC v6r14p25
+	* Change URL for general doc of DIRAC
+	* add the command to really update the pilot version
+	* Better doc for releases
+	* if GSI exist do try to re-create the link
+	* add more information about the client installation
+	* Using input events only if present, else outputEv
+	* recording input events in BK XML summary
+	* just pylint types of fixes
+	* Change location for tools and create scripts directory
+	* add projectConfig.json
+	* Change location of manifest
+	* new generation of manifest and LHCbDirac.xenv
+	* add Gen_GSI and gen_xenv
+
+	[v8r2p37]
+	* Use DIRAC v6r14p25
+	* Change parsing of template information.
+	* use the view for building the sim/datataking descriptions
+	* take into account the visibility flag...
+	* set the flag to recompute the directory size an option in Operations
+	* Add a 1 second sleep in case of failure to add files in TS
+	* Fix addBookkeepingQueryRunList() when runs exist
+	* Add protection against removed files
+	* Replace gLogger.always() with notice() Add some logic for FC2SE in order to take into account banned SEs
+	* Use ScriptExecutors methods for removing files/replicas Replace gLogger.always() with gLogger.notice() as advised for scripts
+	* Replace DIRAC.exit() with return <statusCode>
+	* add DIRAC exit code from execute method
+	* Add new instruction sto make the LHCbDirac distribution
+	* Don't stop if error
+	* @%@%## of bug in the DFC, one call was not fixed properly
+	* When the view is used, we have to join to the table
+	* Added initial doc on Jenkins
+	* FIX: Various fixes to the release guide for prod
+
+	[v8r2p36]
+	* Use Dirac v6r14p24
+	* Make a look on eventTypes rather than a query with a list, it is faster
+	* Add dock string
+	* adding to release notes
+	* Added release guide
+	* Add changelog
+	* For some reason the dirac-production-runjobloca script was sent to gitlab in an ond version
+	* use the bookkeeping view
+	* Skip RAW data but for /LHCb
+	* Temporary fix for recalculating the directory size
+	* Fix doc string and comments
+* Add a new method for checking a file was processed (inactive)
+	* Fix DQFlag as name is # in TS and BK
+	* Protect agains Conditions == None
+* Fix DQFlag -> DataqualityFlag as metadata
+
+[v8r2p35]
+* CHANGE: use DIRAC v6r14p22
+* FIX: removed dirac-platform script from LHCbDIRAC

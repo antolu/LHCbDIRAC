@@ -1,8 +1,8 @@
 ''' LHCbDIRAC.ResourceStatusSystem.Policy.PilotEfficiencyPolicy
-  
+
    PilotWebSummaryEfficiencyPolicy.__bases__:
      DIRAC.ResourceStatusSystem.PolicySystem.PolicyBase.PolicyBase
-  
+
 '''
 
 #from DIRAC                                              import S_OK
@@ -12,7 +12,7 @@
 #
 #class PilotWebSummaryEfficiencyPolicy( PolicyBase ):
 #  '''
-#    The PilotEfficiencyPolicy class is a policy that checks the efficiency of the 
+#    The PilotEfficiencyPolicy class is a policy that checks the efficiency of the
 #    jobs according to what is on WMS.
 #
 #    Evaluates the PilotEfficiency results given by the PilotCommand.PilotCommand
@@ -30,7 +30,7 @@
 #        }
 #    """
 #
-#    result = { 
+#    result = {
 #              'Status' : None,
 #              'Reason' : None
 #              }
@@ -50,16 +50,16 @@
 #    # The command returns a list of dictionaries, with only one if thre is something,
 #    # otherwise an empty list.
 #    commandResult = commandResult[ 0 ]
-#      
+#
 #    if 'Status' not in commandResult:
 #      result[ 'Status' ] = 'Error'
 #      result[ 'Reason' ] = '"Status" key missing'
-#      return S_OK( result )  
-#    
+#      return S_OK( result )
+#
 #    if 'PilotJobEff' not in commandResult:
 #      result[ 'Status' ] = 'Error'
 #      result[ 'Reason' ] = '"PilotJobEff" key missing'
-#      return S_OK( result )  
+#      return S_OK( result )
 #
 #    status      = commandResult[ 'Status' ]
 #    pilotJobEff = commandResult[ 'PilotJobEff' ]
@@ -77,10 +77,10 @@
 #    else:
 #      result[ 'Status' ] = 'Error'
 #      result[ 'Reason' ] = 'Unknown status "%s"' % status
-#      return S_OK( result )  
+#      return S_OK( result )
 #
 #    result[ 'Reason' ] = 'Pilots Efficiency: %s with status %s' % ( pilotJobEff, status )
-#      
+#
 #    return S_OK( result )
 
 ################################################################################

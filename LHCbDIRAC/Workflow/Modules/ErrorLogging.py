@@ -6,16 +6,17 @@
     error suite any failures will not be propagated to the workflow.
 """
 
-__RCSID__ = "$Id$"
+import os
+import shutil
+import sys
 
+from DIRAC import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Utilities.Subprocess                       import shellCall
 
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment         import getProjectEnvironment, addCommandDefaults, createDebugScript
 from LHCbDIRAC.Workflow.Modules.ModuleBase                  import ModuleBase
 
-from DIRAC import S_OK, S_ERROR, gLogger
-
-import os, shutil, sys
+__RCSID__ = "$Id$"
 
 class ErrorLogging( ModuleBase ):
 
@@ -146,8 +147,8 @@ class ErrorLogging( ModuleBase ):
         return S_OK()
 
       self.log.info( "Error logging for %s %s step %s completed successfully:" % ( self.applicationName,
-                                                                                  self.applicationVersion,
-                                                                                  self.step_number ) )
+                                                                                   self.applicationVersion,
+                                                                                   self.step_number ) )
       shutil.copy( self.defaultName, self.errorLogName )
 
       # TODO - report to error logging service when suitable method is available

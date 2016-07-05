@@ -1,14 +1,14 @@
 """ Extension of DIRAC Task Manager
 """
 
+from DIRAC.TransformationSystem.Client.TaskManager import WorkflowTasks
+
 __RCSID__ = "$Id$"
 
 COMPONENT_NAME = 'LHCbTaskManager'
 
-from DIRAC.TransformationSystem.Client.TaskManager import WorkflowTasks
-
 class LHCbWorkflowTasks( WorkflowTasks ):
-  """ A simple LHCb extension to the task manager, 
+  """ A simple LHCb extension to the task manager,
       for now only used to set the runNumber and runMetadata
   """
 
@@ -35,7 +35,7 @@ class LHCbWorkflowTasks( WorkflowTasks ):
   #############################################################################
 
   def _handleRest( self, oJob, paramsDict ):
-    """ add as JDL parameters all the other parameters that are not for inputs or destination 
+    """ add as JDL parameters all the other parameters that are not for inputs or destination
     """
 
     for paramName, paramValue in paramsDict.items():

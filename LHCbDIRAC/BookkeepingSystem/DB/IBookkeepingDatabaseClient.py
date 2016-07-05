@@ -1,9 +1,6 @@
 """
 Database interface
 """
-# $Id$
-########################################################################
-
 
 __RCSID__ = "$Id$"
 
@@ -101,29 +98,26 @@ class IBookkeepingDatabaseClient(object):
                                           evt, runnb, production, visible)
 
   #############################################################################
-  def getFilesWithMetadata(self, configName, configVersion, conddescription,
+  def getFilesWithMetadata( self, configName, configVersion, conddescription,
                            processing, evt, production, filetype, quality, visible,
                            replicaflag, startDate, endDate,
-                           runnumbers,startRunID, endRunID ):
+                           runnumbers, startRunID, endRunID, tcks ):
     "more info in the BookkeepingClient.py"
-    return self.getManager().getFilesWithMetadata(configName, configVersion,
+    return self.getManager().getFilesWithMetadata( configName, configVersion,
                                                   conddescription, processing,
                                                   evt, production, filetype,
                                                   quality, visible, replicaflag,
                                                   startDate, endDate,
-                                                  runnumbers ,startRunID, endRunID)
+                                                  runnumbers , startRunID, endRunID, tcks )
 
   #############################################################################
-  def getFilesSummary(self, configName, configVersion,
-                      conddescription, processing, evt,
-                      production, filetype, quality, runnb,
-                      startrun, endrun, visible, startDate,
-                      endDate, runnumbers, replicaflag):
+  def getFilesSummary( self, configName, configVersion, conditionDescription, processingPass, eventType,
+                       production, fileType, dataQuality, startRun, endRun, visible, startDate,
+                       endDate, runNumbers, replicaFlag, tcks ):
     "more info in the BookkeepingClient.py"
-    return self.getManager().getFilesSummary(configName, configVersion, conddescription,
-                                             processing, evt, production, filetype, quality,
-                                             runnb, startrun, endrun, visible, startDate,
-                                             endDate, runnumbers, replicaflag)
+    return self.getManager().getFilesSummary( configName, configVersion, conditionDescription, processingPass, eventType,
+                       production, fileType, dataQuality, startRun, endRun, visible, startDate,
+                       endDate, runNumbers, replicaFlag, tcks )
 
   #############################################################################
   def getLimitedFiles(self, configName, configVersion, conddescription,
@@ -728,3 +722,18 @@ class IBookkeepingDatabaseClient(object):
   def fixRunLuminosity( self, runnumbers ):
     "more info in the BookkeepingClient.py"
     return self.getManager().fixRunLuminosity( runnumbers )
+  
+  #############################################################################
+  def getProductionProducedEvents( self, prodid ):
+    "more info in the BookkeepingClient.py"
+    return self.getManager().getProductionProducedEvents( prodid )
+  
+  #############################################################################
+  def bulkinsertEventType( self, eventtypes ):
+    """more info in the BookkeepingClient.py"""
+    return self.getManager().bulkinsertEventType( eventtypes )
+
+  #############################################################################
+  def bulkupdateEventType( self, eventtypes ):
+    """more info in the BookkeepingClient.py"""
+    return self.getManager().bulkupdateEventType( eventtypes )

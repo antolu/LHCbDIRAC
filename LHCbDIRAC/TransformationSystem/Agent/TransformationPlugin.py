@@ -3,7 +3,6 @@
 __RCSID__ = "$Id$"
 
 import time
-import datetime
 import os
 import random
 
@@ -113,7 +112,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """
     self.util.logVerbose( 'Checking if %d files are processed' % len( self.transReplicas ) )
     descendants = self.util.getProcessedFiles( self.transReplicas.keys() )
-    self.util.logVerbose( 'Successful check for %d files' % len( descendants ) )
     if descendants:
       processedLfns = [lfn for lfn in descendants if descendants[lfn]]
       self.util.logVerbose( "Found %d input files that have already been processed (setting status)" % len( processedLfns ) )
@@ -149,7 +147,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logInfo( "Using prestage shares from %s" % preStageShares )
 
     # Get the requested shares from the CS
-    res = self.util.getReplicationShares( section = 'RAW' )
+    res = self.util.getPluginShares( section = 'RAW' )
     if not res['OK']:
       self.util.logError( "Section RAW in Shares not available" )
       return res
@@ -201,7 +199,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         assignedBuffer = None
       # Now determine where these files should go
       # Group by location
-      replicaGroups = getFileGroups( dict( ( lfn, self.transReplicas[lfn] ) for lfn in runLfns ) )
+      replicaGroups = getFileGroups( dict( ( lfn, self.transReplicas[lfn] ) for lfn in runLfns if lfn in self.transReplicas ) )
       runSEs = set()
       for replicaSE in replicaGroups:
         # Get all locations where files are
@@ -271,20 +269,22 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         ses = sorted( set( assignedSE ) - replicaSE )
         # Update the counters as we know the number of files
         if assignedRAW in ses:
-          self.util.updateShares( existingCount, assignedRAW, len( lfns ) )
+          # Here we pass both the number of files and the runID as we can use either metrics
+          self.util.updateSharesUsage( existingCount, assignedRAW, len( lfns ), runID )
         assignedSE = ','.join( ses )
         if assignedSE:
-          self.util.logVerbose( 'Creating a task for SEs %s' % assignedSE )
+          self.util.logVerbose( 'Creating a task (%d files, run %d) for SEs %s' % ( len( lfns ), runID, assignedSE ) )
           tasks.append( ( assignedSE, lfns ) )
         else:
           alreadyReplicated += lfns
-          self.util.logVerbose( '%d files found already replicated at %s' % ( len( lfns ), replicaSE ) )
+          self.util.logVerbose( '%d files in run %d found already replicated at %s' % ( len( lfns ), runID, ','.join( sorted( replicaSE ) ) ) )
 
     if alreadyReplicated:
       for lfn in alreadyReplicated:
         self.transReplicas.pop( lfn )
       self.util.cleanFiles( self.transFiles, self.transReplicas, status = 'Processed' )
 
+    self.util.printShares( "Final target shares and usage (%)", targetShares, existingCount, log = self.util.logVerbose )
     return S_OK( tasks )
 
   def _RAWProcessing( self ):
@@ -336,7 +336,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       # Now determine where these files should go
       # Group by location
       update = False
-      replicaGroups = getFileGroups( dict( ( lfn, self.transReplicas[lfn] ) for lfn in runLfns ) )
+      replicaGroups = getFileGroups( dict( ( lfn, self.transReplicas[lfn] ) for lfn in runLfns if lfn in self.transReplicas ) )
       notAtSE = 0
       for replicaSE, lfns in replicaGroups.iteritems():
         targetSEs = set( replicaSE.split( ',' ) ) & fromSEs
@@ -373,7 +373,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_OK()
 
     if self.processingShares[0] is None:
-      res = self.util.getProcessingShares( backupSE, section = preStageShares )
+      res = self.util.getPluginShares( section = preStageShares, backupSE = backupSE )
       if not res['OK']:
         self.util.logError( "Error getting CPU shares for RAW processing", res['Message'] )
         return res
@@ -570,10 +570,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           # If all files in that run have been processed and received, flush
           # Get the number of RAW files in that run
           if not forceFlush:
-            rawFiles = self.util.getNbRAWInRun( runID, evtType )
+            retried = False
+            # In case there are more ancestors than RAW files we may have to refresh the number of RAW files: try once
             ancestorRawFiles = self.util.getRAWAncestorsForRun( runID, param, paramValue )
             self.util.logVerbose( "Obtained %d ancestor RAW files" % ancestorRawFiles )
-            runProcessed = ( ancestorRawFiles == rawFiles )
+            while True:
+              rawFiles = self.util.getNbRAWInRun( runID, evtType )
+              if not retried and rawFiles and ancestorRawFiles > rawFiles:
+                self.util.cachedNbRAWFiles[runID] = 0
+                retried = True
+              else:
+                runProcessed = ( ancestorRawFiles == rawFiles )
+                break
           else:
             runProcessed = False
           if forceFlush or runProcessed:
@@ -731,16 +739,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
     numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 4 )
     return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun = True )
-
-  def _LHCbMCDSTBroadcast( self ):
-    """ For replication of MC data (3 copies)
-    """
-    archive1SEs = resolveSEGroup( self.util.getPluginParam( 'Archive1SEs', [] ) )
-    archive2SEs = resolveSEGroup( self.util.getPluginParam( 'Archive2SEs', [] ) )
-    mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
-    secondarySEs = resolveSEGroup( self.util.getPluginParam( 'SecondarySEs', [] ) )
-    numberOfCopies = self.util.getPluginParam( 'NumberOfReplicas', 3 )
-    return self._lhcbBroadcast( archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies )
 
   def _lhcbBroadcast( self, archive1SEs, archive2SEs, mandatorySEs, secondarySEs, numberOfCopies, forceRun = False ):
     """ This plug-in broadcasts files to one archive1SE, one archive2SE and numberOfCopies secondarySEs
@@ -1060,16 +1058,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
     return S_OK( tasks )
 
-  def _DeleteDataset( self ):
-    return self._RemoveDataset()
   def _RemoveDataset( self ):
     """ Plugin used to remove disk replicas, keeping some (e.g. archives)
     """
     keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-ARCHIVE'] ) )
     return self._removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
-  def _DeleteReplicas( self ):
-    return self._RemoveReplicas()
   def _RemoveReplicas( self ):
     """ Plugin for removing replicas from specific SEs specified in FromSEs
     """
@@ -1178,8 +1172,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( self.util.createTasks( storageElementGroups ) )
 
-  def _DeleteReplicasWhenProcessed( self ):
-    return self._RemoveReplicasWhenProcessed()
   def _RemoveReplicasWhenProcessed( self ):
     """ This plugin considers files and checks whether they were processed for a list of processing passes
         For files that were processed, it sets replica removal tasks from a set of SEs
@@ -1214,7 +1206,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     bkPathList = {}
     if fullBKPaths:
       # We were given full BK paths, use them
-      bkPathList.update( dict( ( bkPath.replace( 'RealData', 'Real Data' ), BKQuery( bkPath, visible = 'All' ).getQueryDict()['ProcessingPass'] ) \
+      bkQuery = BKQuery( bkPath, visible = 'All' )
+      eventType = bkQuery.getEventTypeList()
+      bkPathList.update( dict( ( bkPath.replace( 'RealData', 'Real Data' ), bkQuery.getQueryDict()['ProcessingPass'] ) \
                                 for bkPath in fullBKPaths ) )
 
     if relBKPaths:
@@ -1256,6 +1250,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
       # Restrict the query to the BK to the interesting productions
       transPassLen = len( transProcPass.split( '/' ) )
+      newMethod = True
       for stringTargetSEs in sorted( newGroups ):
         lfns = newGroups[stringTargetSEs]
         self.util.logInfo( 'Checking descendants for %d files at %s' % ( len( lfns ), stringTargetSEs ) )
@@ -1271,17 +1266,22 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             break
           lfnsToCheckForPath = set( lfn for lfn in lfnsToCheck if bkPath in bkPathsToCheck[lfn] )
           depth = len( bkPathList[bkPath].split( '/' ) ) - transPassLen + 1
-          for prod in sorted( prods, reverse = True ):
-            if not lfnsToCheckForPath:
+          self.util.logVerbose( 'Checking descendants for %d files in productions %s, depth %d' % ( len( lfnsToCheckForPath ), ','.join( str( prod ) for prod in prods ), depth ) )
+          lfnLeft = self.util.filterNotProcessedFiles( lfnsToCheckForPath, prods )
+          for prod in sorted( prods, reverse = True ) if not newMethod else [None]:
+            if not lfnLeft:
               # All files have been processed, go to next bkPath
               break
-            self.util.logVerbose( 'Checking descendants for %d files in production %d, depth %d' % ( len( lfnsToCheckForPath ), prod, depth ) )
+            if prod:
+              self.util.logVerbose( 'Checking descendants for %d files in production %d, depth %d' % ( len( lfnLeft ), prod, depth ) )
             startTime = time.time()
             processedLfns = set()
-            for lfnChunk in breakListIntoChunks( lfnsToCheckForPath, 20 ):
-              res = self.bkClient.getFileDescendants( lfnChunk, production = prod, depth = depth, checkreplica = True )
+            for lfnChunk in breakListIntoChunks( lfnLeft, 20 ):
+              res = self.util.checkForDescendants( lfnChunk, prods ) if newMethod else self.bkClient.getFileDescendants( lfnChunk, production = prod, depth = depth, checkreplica = True )
               if res['OK']:
-                processedLfns.update( res['Value']['Successful'] )
+                processedLfns.update( res['Value'] )
+              else:
+                self.util.logError( "Error checking descendants using %s" % ( 'utility' if newMethod else 'BK' ), res['Message'] )
             self.util.logVerbose( 'Found %s descendants in %.1f seconds' % \
                                   ( len( processedLfns ) if processedLfns else 'no',
                                     time.time() - startTime ) )
@@ -1290,7 +1290,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 self.util.logWarn( 'LFN not in list: %s' % lfn, str( bkPathsToCheck[lfn] ) )
               else:
                 bkPathsToCheck[lfn].remove( bkPath )
-            lfnsToCheckForPath -= processedLfns
+            lfnLeft -= processedLfns
           notProcessed = set( lfn for lfn in lfnsToCheckForPath if bkPath in bkPathsToCheck[lfn] )
           if notProcessed:
             self.util.logVerbose( "%d files not processed by processing pass %s, don't check further" % ( len( notProcessed ), bkPathList[bkPath] ) )
@@ -1306,7 +1306,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           targetSEs = set( stringTargetSEs.split( ',' ) )
           if not targetSEs & fromSEs:
             # Files are processed but are no longer at the requested SEs, set them Processed
-            self.util.logInfo( "Processed files are no longer in required list: set them Processed" )
+            self.util.logInfo( "%d processed files are no longer in required SE list: set them Processed" % len( lfnsProcessed ) )
             self.transClient.setFileStatusForTransformation( self.transID, 'Processed', lfnsProcessed )
           else:
             storageElementGroups.setdefault( stringTargetSEs, [] ).extend( lfnsProcessed )

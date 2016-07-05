@@ -1,15 +1,15 @@
 """
   Utilities for scripts dealing with transformations
 """
-__RCSID__ = "$Id$"
-
 import os
 import datetime
 import random
+import time
 
-from DIRAC import gConfig, gLogger, S_OK, S_ERROR, exit as DIRACExit
+from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Core.Utilities.Time import timeThis
+from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 
@@ -20,6 +20,8 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+
+__RCSID__ = "$Id$"
 
 class PluginUtilities( DIRACPluginUtilities ):
   """
@@ -65,16 +67,61 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.__recoType = ''
     self.dmsHelper = DMSHelpers()
     self.runDestinations = {}
-    self.__shareMetrics = None
+    self.cachedDirMetadata = {}
+    self.runsUsedForShares = set()
+    self.shareMetrics = None
 
   def setDebug( self, val ):
     self.debug = val
 
-  def getProcessingShares( self, backupSE, section = None ):
+  def updateSharesUsage( self, counters, se, count, runID ):
+    """ Update the usage counters if share is by files, and the run duration otherwise """
+    inc = 0
+    if self.shareMetrics == 'Files':
+      inc = count
+    else:
+      self.logVerbose( "Updating SE %s for run %d which is %salready used" %
+                       ( se, runID, 'not ' if runID not in self.runsUsedForShares else '' ) )
+      if runID not in self.runsUsedForShares:
+        # Update with run duration
+        res = self.__getRunDuration( runID )
+        if not res['OK']:
+          self.logError( "Error getting run time", res['Message'] )
+        else:
+          inc = res['Value']
+          self.runsUsedForShares.add( runID )
+    if inc:
+      counters[se] = counters.setdefault( se, 0 ) + inc
+      self.logVerbose( 'New %s counter for %s: %d (+%d)' % ( self.shareMetrics, se, counters[se], inc ) )
+      self.printShares( "New counters and used fraction (%)", counters, log = self.logVerbose )
+
+  def printShares( self, title, shares, counters = None, log = None ):
+    if log is None:
+      log = self.logInfo
+    if counters is None:
+      counters = shares
+    normCounters = normaliseShares( counters ) if counters else {}
+
+    log( title + " (metrics is %s)" % self.shareMetrics )
+    for se in sorted( shares ):
+      infoStr = "%s: %4.1f |" % ( se.ljust( 15 ), shares[se] )
+      if se in counters:
+        infoStr += " %4.1f" % normCounters[se]
+      log( infoStr )
+
+  def getPluginShares( self, section = None, backupSE = None ):
     """
-    Get shares from CS for RAW processing:
-    * The shares represent a percentage of the RAW at each site and the rest is for backupSE
+    Get shares from CS:
+    * If backupSE is not present: just return the CS shares as they are
+    * If backupSE is specified, the shares represent a percentage of the RAW at each site and the rest is for backupSE
+
+    If the ShareMetrics is Files:
+    * Use the number of files as metrics for SE usage
+    Else:
+    * Use the duration (in seconds) of runs as metrics for SE usage
     """
+    if self.shareMetrics is None:
+      self.shareMetrics = self.getPluginParam( 'ShareMetrics', '' )
     if section is None:
       # This is for reconstruction shares (CU)
       sharesSections = { 'DataReconstruction': 'CPUforRAW', 'DataReprocessing' : 'CPUforReprocessing'}
@@ -118,32 +165,49 @@ class PluginUtilities( DIRACPluginUtilities ):
 
     shares = normaliseShares( res['Value'] )
 
-    if self.__shareMetrics is None:
-      self.__shareMetrics = self.getPluginParam( 'ShareMetrics', 'Files' )
+    if self.shareMetrics is None:
+      self.shareMetrics = self.getPluginParam( 'ShareMetrics', 'Files' )
     # Get the existing destinations from the transformationDB, just for printing
-    if self.__shareMetrics == 'Files':
-      res = self.getExistingCounters( requestedSEs = sorted( shares ), shares = shares )
+    if self.shareMetrics == 'Files':
+      res = self.getExistingCounters( requestedSEs = sorted( shares ) )
     else:
-      res = self.getSitesRunTime( requestedSEs = sorted( shares ) )
+      res = self.getSitesRunsDuration( requestedSEs = sorted( shares ) )
     if not res['OK']:
       self.logError( "Failed to get used share", res['Message'] )
       return res
     else:
       existingCount = res['Value']
-      normalisedExistingCount = normaliseShares( existingCount ) if existingCount else {}
-      self.logInfo( "Target shares and usage for replication (%):" )
-      for se in sorted( shares ):
-        infoStr = "%s: %4.1f |" % ( se.ljust( 15 ), shares[se] )
-        if se in normalisedExistingCount:
-          infoStr += " %4.1f" % normalisedExistingCount[se]
-        self.logInfo( infoStr )
-    return S_OK( ( existingCount, shares ) )
+      self.printShares( "Target shares and usage for production (%):", shares, existingCount )
+    if rawFraction:
+      return S_OK( ( rawFraction, shares ) )
+    else:
+      return S_OK( ( existingCount, shares ) )
 
-  def updateShares( self, existingCount, se, count ):
-    if self.__shareMetrics == 'Files':
-      existingCount[se] = existingCount.setdefault( se, 0 ) + count
+  def __getRunDuration( self, runID ):
+    res = self.getTransformationRuns( runs = runID )
+    if not res['OK']:
+      return res
+    runDictList = res['Value']
+    # Get run metadata
+    runMetadata = dict( ( runDict['RunNumber'], self.transClient.getRunsMetadata( runDict['RunNumber'] ).get( 'Value', {} ) ) for runDict in runDictList )
+    return S_OK( self.__extractRunDuration( runMetadata, runID ) )
 
-  def getSitesRunTime( self, requestedSEs = None ):
+  def __extractRunDuration( self, runMetadata, runID ):
+    duration = runMetadata.get( runID, {} ).get( 'Duration' )
+    if duration is None:
+      res = self.bkClient.getRunInformation( { 'RunNumber':[runID], 'Fields':['JobStart', 'JobEnd']} )
+      if not res['OK']:
+        self.logError( "Error getting run start/end information", res['Message'] )
+        duration = 0
+      if runID in res['Value']:
+        start = res['Value'][runID]['JobStart']
+        end = res['Value'][runID]['JobEnd']
+        duration = ( end - start ).seconds
+      else:
+        duration = 0
+    return duration
+
+  def getSitesRunsDuration( self, transID = None, normalise = False, requestedSEs = None ):
     """
     Get per site how much time of run was assigned
     """
@@ -167,29 +231,15 @@ class PluginUtilities( DIRACPluginUtilities ):
         selectedSEs &= set( requestedSEs )
         if not selectedSEs:
           continue
-      duration = runMetadata.get( runID, {} ).get( 'Duration' )
-      if duration is None:
-        res = self.bkClient.getRunInformation( { 'RunNumber':[runID], 'Fields':['JobStart', 'JobEnd']} )
-        if not res['OK']:
-          return res
-        if runID in res['Value']:
-          start = res['Value'][runID]['JobStart']
-          end = res['Value'][runID]['JobEnd']
-          duration = ( end - start ).seconds
-          res = self.transClient.addRunsMetadata( runID, {'Duration': duration} )
-          if not res['OK']:
-            return res
-        else:
-          duration = 0
-      else:
-        duration = int( duration )
+      duration = self.__extractRunDuration( runMetadata, runID )
+      self.runsUsedForShares.add( runID )
       for se in selectedSEs:
         seUsage[se] = seUsage.setdefault( se, 0 ) + duration
 
     return S_OK( seUsage )
 
 
-  def getExistingCounters( self, requestedSEs = None, shares = None ):
+  def getExistingCounters( self, transID = None, normalise = False, requestedSEs = None ):
     """
     Used by RAWReplication and RAWProcessing plugins, gets what has been done up to now while distributing runs
     """
@@ -198,13 +248,9 @@ class PluginUtilities( DIRACPluginUtilities ):
     if not res['OK']:
       return res
     usageDict = {}
-    if shares is None:
-      shares = {}
     total = sum( count for _uDict, count in res['Value'] )
     for usedDict, count in res['Value']:
       usedSE = usedDict['UsedSE']
-      if not total:
-        count = shares.get( usedSE, 0 )
       if usedSE != 'Unknown':
         usageDict[usedSE] = count
     if requestedSEs:
@@ -238,7 +284,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     productions = self.getCachedProductions()
     if 'CacheTime' in productions and ( now - productions['CacheTime'] ) < datetime.timedelta( hours = cacheLifeTime ):
       # If we haven't found productions for one of the processing passes, retry
-      cacheOK = len( [bkPath for bkPath in bkPathList if bkPath not in productions.get( 'List', {} )] ) != 0
+      cacheOK = len( [bkPath for bkPath in bkPathList if bkPath not in productions.get( 'List', {} )] ) == 0
     else:
       cacheOK = False
     if cacheOK:
@@ -254,7 +300,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         prods = bkQuery.getBKProductions()
         if not prods:
           self.logVerbose( "For bkPath %s, found no productions, wait next time" % ( bkPath ) )
-          return S_OK( [] )
+          return None
         productions['List'][bkPath] = []
         self.logVerbose( "For bkPath %s, found productions %s" % \
                               ( bkPath, ','.join( ['%s' % prod for prod in prods] ) ) )
@@ -548,17 +594,17 @@ class PluginUtilities( DIRACPluginUtilities ):
     recoProduction = None
     notProcessed = 0
     if not self.__recoType:
-      self.__recoType = self.getPluginParam( 'RecoFileType', 'FULL.DST' )
+      self.__recoType = self.getPluginParam( 'RecoFileType', ['FULL.DST'] )
     # Check if the file itself is a FULL.DST
     res = self.bkClient.getFileMetadata( lfnToCheck )
     if res['OK']:
-      if res['Value']['Successful'].get( lfnToCheck, {} ).get( 'FileType' ) == self.__recoType:
+      if res['Value']['Successful'].get( lfnToCheck, {} ).get( 'FileType' ) in self.__recoType:
         ancestorFullDST = lfnToCheck
       else:
         # If not, get its ancestors
         res = self.getFileAncestors( lfnToCheck, replica = False )
         if res['OK']:
-          fullDst = [f['FileName'] for f in res['Value']['Successful'].get( lfnToCheck, [{}] ) if f.get( 'FileType' ) == self.__recoType]
+          fullDst = [f['FileName'] for f in res['Value']['Successful'].get( lfnToCheck, [{}] ) if f.get( 'FileType' ) in self.__recoType]
           if fullDst:
             ancestorFullDST = fullDst[0]
         else:
@@ -600,6 +646,9 @@ class PluginUtilities( DIRACPluginUtilities ):
     condDict = {'TransformationID':transID}
     if isinstance( runs, ( dict, list, tuple, set ) ):
       condDict['RunNumber'] = list( runs )
+    elif isinstance( runs, ( int, long ) ):
+      runs = [runs]
+      condDict['RunNumber'] = runs
     result = self.transClient.getTransformationRuns( condDict )
     if not result['OK']:
       return result
@@ -671,8 +720,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         prefixes = [prefixes]
       for node in prefixes:
         cacheFile = os.path.join( cacheFile, node )
-        if not os.path.exists( cacheFile ):
-          os.mkdir( cacheFile )
+        mkDir( cacheFile )
       cacheFile = os.path.join( cacheFile, "Transformation_%s.pkl" % ( str( self.transID ) ) )
       if not self.cacheFile:
         self.cacheFile = cacheFile
@@ -692,7 +740,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         break
       except EOFError:
         f.close()
-      except:
+      except IOError:
         self.logVerbose( "Cache file %s could not be loaded" % cacheFile )
 
   def getCachedRunLFNs( self, runID, paramValue ):
@@ -779,8 +827,9 @@ class PluginUtilities( DIRACPluginUtilities ):
     res = self.transClient.getBookkeepingQuery( self.transID )
     if not res['OK']:
       self.logError( "Failed to get BK query for transformation", res['Message'] )
-      return None
-    transQuery = res['Value']
+      transQuery = {}
+    else:
+      transQuery = res['Value']
     if 'ProcessingPass' not in transQuery:
       # Get processing pass of the first file... This assumes all have the same...
       lfn = transReplicas.keys()[0]
@@ -790,7 +839,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         return None
       transQuery = res['Value']['Successful'].get( lfn, [{}] )[0]
       # Strip off most of it
-      for key in ( 'ConditionDescription', 'FileType', 'Production' ):
+      for key in ( 'FileType', 'Production' ):
         transQuery.pop( key, None )
     return transQuery
 
@@ -836,6 +885,107 @@ class PluginUtilities( DIRACPluginUtilities ):
       return res.get( 'Value' )
     return None
 
+  def filterNotProcessedFiles( self, lfns, prodList ):
+    """ Select only the files that are Processed in a list of productions """
+    res = self.transClient.getTransformationFiles( {'LFN':list( lfns ), 'TransformationID':prodList} )
+    if not res['OK']:
+      self.logError( "Error getting transformation files", res['Message'] )
+      return []
+    notProcessed = set( fDict['LFN'] for fDict in res['Value'] if fDict['Status'] != 'Processed' )
+    lfnLeft = lfns - notProcessed
+    if len( lfnLeft ) != len( lfns ):
+      self.logVerbose( 'Reduce files from %d to %d (removing pending files)' % ( len( lfns ), len( lfnLeft ) ) )
+    return lfnLeft
+
+  def checkForDescendants( self, lfns, prodList, level = 0 ):
+    """ check the files if they have an existing descendant in the list of productions """
+    excludeTypes = ( 'LOG', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST', 'HIST', 'INDEX.ROOT' )
+    finalResult = set()
+    if isinstance( lfns, basestring ):
+      lfns = set( [lfns] )
+    elif isinstance( lfns, list ):
+      lfns = set( lfns )
+    if level:
+      lfns = self.filterNotProcessedFiles( lfns, prodList )
+    # Get daughters
+    res = self.bkClient.getFileDescendants( list( lfns ), depth = 1, checkreplica = False )
+    if not res['OK']:
+      return res
+    success = res['Value']['WithMetadata']
+    descToCheck = {}
+    # Invert list of descendants
+    descMetadata = {}
+    for lfn in lfns:
+      descendants = success.get( lfn, {} )
+      descMetadata.update( descendants )
+      for desc, metadata in descendants.iteritems():
+        if metadata['FileType'] not in excludeTypes:
+          descToCheck.setdefault( desc, set() ).add( lfn )
+    res = self.__getProduction( descToCheck )
+    if not res['OK']:
+      return res
+    descProd = res['Value']
+    prodDesc = {}
+    # Check if we found a descendant in the requested productions
+    foundProds = {}
+    for desc in descToCheck.keys():
+      prod = descProd[desc]
+      # If we found an existing descendant in the list of productions, all OK
+      if descMetadata[desc]['GotReplica'] == 'Yes' and prod in prodList:
+        foundProds.setdefault( prod, set() ).update( descToCheck[desc] )
+        finalResult.update( descToCheck[desc] )
+        del descToCheck[desc]
+      else:
+        # Sort remaining descendants in productions
+        prodDesc.setdefault( prod, set() ).add( desc )
+    for prod in foundProds:
+      self.logVerbose( "Found %d files with descendants (out of %d) in production %d at level %d" % ( len( foundProds[prod] ), len( lfns ), prod, level + 1 ) )
+
+    # Check descendants in reverse order of productions
+    for prod in sorted( prodDesc, reverse = True ):
+      # Check descendants whose parent was not yet found processed
+      toCheckInProd = set()
+      for desc in prodDesc[prod]:
+        if not descToCheck[desc] & finalResult:
+          toCheckInProd.add( desc )
+      if toCheckInProd:
+        res = self.checkForDescendants( toCheckInProd, prodList, level = level + 1 )
+        if not res['OK']:
+          return res
+        foundInProd = set()
+        for desc in res['Value']:
+          foundInProd.update( descToCheck[desc] )
+        if foundInProd:
+          self.logVerbose( "Found descendants of %d files at depth %d" % ( len( foundInProd ), level + 2 ) )
+          finalResult.update( foundInProd )
+
+    return S_OK( finalResult )
+
+
+  def __getProduction( self, lfns ):
+    """
+    Returns the production that was used to create each LFN
+    """
+    directories = {}
+    lfnDirs = {}
+    # Get the directories
+    for lfn in lfns:
+      dir = os.path.dirname( lfn )
+      last = os.path.basename( dir )
+      if len( last ) == 4 and last.isdigit():
+        dir = os.path.dirname( dir )
+      directories.setdefault( dir, lfn )
+      lfnDirs[lfn] = dir
+
+    dirList = [dir for dir in directories if dir not in self.cachedDirMetadata]
+    for dir in dirList:
+      res = self.bkClient.getJobInfo( directories[dir] )
+      if not res['OK']:
+        return res
+      self.cachedDirMetadata.update( {dir : res['Value'][0][18]} )
+
+    lfnProd = dict( ( lfn, self.cachedDirMetadata.get( lfnDirs[lfn], 0 ) ) for lfn in lfns )
+    return S_OK( lfnProd )
 
 #=================================================================
 # Set of utility functions used by LHCbDirac transformation system
@@ -843,12 +993,11 @@ class PluginUtilities( DIRACPluginUtilities ):
 
 def getRemovalPlugins():
   return ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ,
-           "DeleteDataset", "DeleteReplicas", 'DeleteReplicasWhenProcessed',
            "RemoveDataset", "RemoveReplicas", 'RemoveReplicasWhenProcessed', 'ReduceReplicas' )
 def getReplicationPlugins():
-  return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcast", "LHCbMCDSTBroadcastRandom",
+  return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcastRandom",
            "ArchiveDataset", "ReplicateDataset",
-           "RAWShares", 'RAWReplication',
+           'RAWReplication',
            'FakeReplication', 'ReplicateToLocalSE', 'Healing' )
 
 def getShares( sType, normalise = False ):
@@ -912,17 +1061,20 @@ def addFilesToTransformation( transID, lfns, addRunInfo = True ):
     if addRunInfo:
       res = bk.getFileMetadata( lfnChunk )
       if res['OK']:
-        resMeta = res['Value'].get( 'Successful', res['Value'] )
+        resMeta = res['Value']['Successful']
         for lfn, metadata in resMeta.iteritems():
           runID = metadata.get( 'RunNumber' )
           if runID:
             runDict.setdefault( int( runID ), [] ).append( lfn )
       else:
         return res
-    res = transClient.addFilesToTransformation( transID, lfnChunk )
-    if not res['OK']:
-      gLogger.fatal( "Error adding %d files to transformation" % len( lfnChunk ), res['Message'] )
-      DIRACExit( 2 )
+    while True:
+      res = transClient.addFilesToTransformation( transID, lfnChunk )
+      if not res['OK']:
+        gLogger.error( "Error adding %d files to transformation, retry..." % len( lfnChunk ), res['Message'] )
+        time.sleep( 1 )
+      else:
+        break
     added = [lfn for ( lfn, status ) in res['Value']['Successful'].iteritems() if status == 'Added']
     addedLfns += added
     if addRunInfo and res['OK']:
@@ -943,4 +1095,3 @@ def optimizeTasks( tasks ):
   for ses, lfns in tasks:
     taskDict.setdefault( ses, [] ).extend( lfns )
   return taskDict.items()
-

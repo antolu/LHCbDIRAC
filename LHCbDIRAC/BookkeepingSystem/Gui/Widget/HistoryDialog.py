@@ -3,9 +3,6 @@
 """
 History widget
 """
-########################################################################
-# $Id$
-########################################################################
 
 from PyQt4.QtGui                                import QDialog, QMessageBox, QAbstractItemView
 from PyQt4.QtCore                               import SIGNAL

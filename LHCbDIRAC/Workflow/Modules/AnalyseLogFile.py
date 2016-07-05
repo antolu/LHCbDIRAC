@@ -1,9 +1,9 @@
 """ Analyse log file(s) module
 """
 
-__RCSID__ = "$Id$"
-
-import os, re, glob
+import os
+import re
+import glob
 
 from DIRAC                                            import S_OK, S_ERROR, gLogger
 from DIRAC.Resources.Catalog.PoolXMLFile              import getGUID
@@ -13,6 +13,8 @@ from DIRAC.DataManagementSystem.Client.DataManager    import DataManager
 from LHCbDIRAC.Core.Utilities.ProductionData import constructProductionLFNs
 from LHCbDIRAC.Workflow.Modules.ModuleBase   import ModuleBase
 from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile
+
+__RCSID__ = "$Id$"
 
 
 class AnalyseLogFile( ModuleBase ):
@@ -64,8 +66,6 @@ class AnalyseLogFile( ModuleBase ):
 
       analyseLogResult = self.logAnalyser( fileName = self.applicationLog,
                                            applicationName = self.applicationName,
-                                           prod = self.production_id,
-                                           job = self.prod_job_id,
                                            log = self.log )
       if not analyseLogResult:
         self._finalizeWithErrors( "Log reports ERROR" )

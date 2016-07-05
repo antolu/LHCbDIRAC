@@ -20,13 +20,62 @@ def makeBKPath( bkDict ):
   path = os.path.join( '/',
                        bkDict.get( 'ConfigName', '' ),
                        bkDict.get( 'ConfigVersion', '' ),
-                       bkDict.get( 'ConditionDescription', '.' ),
+                       bkDict.get( 'ConditionDescription', bkDict.get( 'DataTakingConditions', bkDict.get( 'SimulationConditions', '.' ) ) ),
                        bkDict.get( 'ProcessingPass', '.' )[1:],
                        str( bkDict.get( 'EventType', '.' ) ).replace( '90000000', '.' ),
                        fileType ).replace( '/.', '/' )
   while path.endswith( '/' ):
     path = path[:-1]
   return path.replace( 'RealData', 'Real Data' )
+
+class BadRunRange( Exception ):
+  pass
+
+def parseRuns( bkQuery, runs ):
+  if isinstance( runs, basestring ):
+    runs = runs.split( ',' )
+  elif isinstance( runs, dict ):
+    runs = runs.keys()
+  elif isinstance( runs, int ):
+    runs = [str( runs )]
+  if len( runs ) > 1:
+    runList = []
+    for run in runs:
+      if run.isdigit():
+        runList.append( int( run ) )
+      else:
+        runRange = run.split( ':' )
+        if len( runRange ) == 2 and runRange[0].isdigit() and runRange[1].isdigit():
+          runList += xrange( int( runRange[0] ), int( runRange[1] ) + 1 )
+        else:
+          gLogger.error( "Run numbers must be numbers..." )
+          raise BadRunRange
+    bkQuery['RunNumber'] = runList
+  else:
+    runs = runs[0].split( ':' )
+    if len( runs ) == 1:
+      runs = runs[0].split( '-' )
+      if len( runs ) == 1:
+        bkQuery['RunNumber'] = int( runs[0] )
+  if 'RunNumber' not in bkQuery:
+    try:
+      if runs[0] and runs[1] and int( runs[0] ) > int( runs[1] ):
+        gLogger.error( 'Warning: End run should be larger than start run: %d, %d' % ( int( runs[0] ),
+                                                                                     int( runs[1] ) ) )
+        raise BadRunRange
+      if runs[0].isdigit():
+        bkQuery['StartRun'] = int( runs[0] )
+      if runs[1].isdigit():
+        bkQuery['EndRun'] = int( runs[1] )
+    except IndexError as ex:  # The runs must be a list
+      gLogger.exception( "Invalid run range", runs, lException = ex )
+      raise BadRunRange
+  else:
+    if 'StartRun' in bkQuery:
+      bkQuery.pop( 'StartRun' )
+    if 'EndRun' in bkQuery:
+      bkQuery.pop( 'EndRun' )
+  return bkQuery
 
 class BKQuery():
   """
@@ -177,50 +226,12 @@ class BKQuery():
         bkQuery.pop( 'EventType' )
 
     # Run limits are given
-    runs = bkQuery.get( "Runs", runs )
-    bkQuery.pop( 'Runs', None )
+    runs = bkQuery.pop( 'Runs', runs )
     if runs:
-      if isinstance( runs, basestring ):
-        runs = runs.split( ',' )
-      elif isinstance( runs, dict ):
-        runs = runs.keys()
-      elif isinstance( runs, int ):
-        runs = [str( runs )]
-      if len( runs ) > 1:
-        runList = []
-        for run in runs:
-          if run.isdigit():
-            runList.append( int( run ) )
-          else:
-            runRange = run.split( ':' )
-            if len( runRange ) == 2 and runRange[0].isdigit() and runRange[1].isdigit():
-              runList += xrange( int( runRange[0] ), int( runRange[1] ) + 1 )
-        bkQuery['RunNumber'] = runList
-      else:
-        runs = runs[0].split( ':' )
-        if len( runs ) == 1:
-          runs = runs[0].split( '-' )
-          if len( runs ) == 1:
-            bkQuery['RunNumber'] = int( runs[0] )
-      if 'RunNumber' not in bkQuery:
-        try:
-          if runs[0] and runs[1] and int( runs[0] ) > int( runs[1] ):
-            gLogger.warn( 'Warning: End run should be larger than start run: %d, %d' % ( int( runs[0] ),
-                                                                                         int( runs[1] ) ) )
-            return self.__bkQueryDict
-          if runs[0].isdigit():
-            bkQuery['StartRun'] = int( runs[0] )
-          if runs[1].isdigit():
-            bkQuery['EndRun'] = int( runs[1] )
-        except IndexError, ex:  # The runs must be a list
-          gLogger.warn( ex )
-          print runs, 'is an invalid run range'
-          return self.__bkQueryDict
-      else:
-        if 'StartRun' in bkQuery:
-          bkQuery.pop( 'StartRun' )
-        if 'EndRun' in bkQuery:
-          bkQuery.pop( 'EndRun' )
+      try:
+        bkQuery = parseRuns( bkQuery, runs )
+      except BadRunRange:
+        return self.__bkQueryDict
 
     ###### Query given as a list of production ######
     if prods and str( prods[0] ).upper() != 'ALL':
@@ -605,19 +616,27 @@ class BKQuery():
     if visible == None:
       visible = self.isVisible()
 
-    prods = self.__bkQueryDict.get( 'Production' )
     if self.isVisible() != visible:
       query = BKQuery( self.__bkQueryDict, visible = visible )
     else:
       query = self
+    loopItem = None
+    prods = self.__bkQueryDict.get( 'Production' )
+    eventTypes = self.__bkQueryDict.get( 'EventType' )
     if prods and isinstance( prods, list ):
-      # It's faster to loop on a list of prods than query the BK with a list as argument
+      loopItem = 'Production'
+      loopList = prods
+    elif eventTypes and isinstance( eventTypes, list ):
+      loopItem = 'EventType'
+      loopList = eventTypes
+    if loopItem:
+      # It's faster to loop on a list of prods or event types than query the BK with a list as argument
       lfns = []
       lfnSize = 0
       if query == self:
         query = BKQuery( self.__bkQueryDict, visible = visible )
-      for prod in prods:
-        query.setOption( 'Production', prod )
+      for item in loopList:
+        query.setOption( loopItem, item )
         lfnsAndSize = query.getLFNsAndSize()
         lfns += lfnsAndSize['LFNs']
         lfnSize += lfnsAndSize['LFNSize']
@@ -708,37 +727,36 @@ class BKQuery():
     eventTypes = self.__bkQueryDict.get( 'EventType' )
     if not isinstance( eventTypes, list ):
       eventTypes = [eventTypes]
-    fullList = []
+    fullList = set()
     for eventType in eventTypes:
       bkQ = BKQuery( self.__bkQueryDict )
       bkQ.setVisible( visible )
-      res = self.__bkClient.getProductions( bkQ.setEventType( eventType ) )
+      bkDict = bkQ.setEventType( eventType )
+      # gLogger.notice( 'Get productions for BK query', str( bkDict ) )
+      res = self.__bkClient.getProductions( bkDict )
       if not res['OK']:
         gLogger.error( 'Error getting productions from BK', res['Message'] )
         return []
-      transClient = TransformationClient()
       if self.getProcessingPass().replace( '/', '' ) != 'Real Data':
         fileTypes = self.getFileTypeList()
-        prodList = [prod for p in res['Value']['Records'] for prod in p
-                    if self.__getProdStatus( prod ) != 'Deleted']
+        prodList = set( prod for p in res['Value']['Records'] for prod in p
+                       if self.__getProdStatus( prod ) != 'Deleted' )
         # print '\n', self.__bkQueryDict, res['Value']['Records'], '\nVisible:', visible, prodList
-        pList = []
+        pList = set()
         if fileTypes:
+          transClient = TransformationClient()
           for prod in prodList:
             res = transClient.getBookkeepingQuery( prod )
             if res['OK'] and res['Value']['FileType'] in fileTypes:
-              if not isinstance( prod, list ):
-                prod = [prod]
-              pList += [p for p in prod if p not in pList]
+              pList.add( prod )
         if not pList:
           pList = prodList
       else:
-        pList = [-run for r in res['Value']['Records'] for run in r]
-        pList.sort()
+        runList = sorted( [-run for r in res['Value']['Records'] for run in r] )
         startRun = int( self.__bkQueryDict.get( 'StartRun', 0 ) )
         endRun = int( self.__bkQueryDict.get( 'EndRun', sys.maxint ) )
-        pList = [run for run in pList if run >= startRun and run <= endRun]
-      fullList += pList
+        pList = set( run for run in runList if run >= startRun and run <= endRun )
+      fullList.update( pList )
     return sorted( fullList )
 
   def getBKConditions( self ):

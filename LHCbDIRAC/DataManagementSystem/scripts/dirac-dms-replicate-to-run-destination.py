@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 ########################################################################
-# $HeadURL: svn+ssh://svn.cern.ch/reps/dirac/LHCbDIRAC/branches/LHCbDIRAC_v8r1_branch/DataManagementSystem/scripts/dirac-dms-replicate-lfn.py $
 # File :    dirac-dms-replicate-to-run-destination
 # Author  : Philippe Charpentier
 ########################################################################
@@ -24,5 +23,5 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = True )
 
   from LHCbDIRAC.DataManagementSystem.Client.ScriptExecutors import executeReplicateToRunDestination
-  executeReplicateToRunDestination( dmScript )
-
+  from DIRAC import exit
+  exit( executeReplicateToRunDestination( dmScript ) )

@@ -1,8 +1,6 @@
 """ Module to upload specified job output files according to the parameters defined in the production workflow.
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import random
 import glob
@@ -21,6 +19,8 @@ from LHCbDIRAC.Core.Utilities.ProductionData                  import constructPr
 from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks  import getFileDescendants
 
 from LHCbDIRAC.Workflow.Modules.ModuleBase                    import ModuleBase
+
+__RCSID__ = "$Id$"
 
 class UploadOutputData( ModuleBase ):
   """ Module to upload specified job output files according to the parameters defined in the production workflow.
@@ -72,7 +72,7 @@ class UploadOutputData( ModuleBase ):
     if self.workflow_commons.has_key( 'ProductionOutputData' ):
       self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
       if isinstance( self.prodOutputLFNs, basestring ):
-        self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )] #pylint: disable=E1101
+        self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )] #pylint: disable=no-member
     else:
       self.log.info( "ProductionOutputData parameter not found, creating on the fly" )
       result = constructProductionLFNs( self.workflow_commons, self.bkClient )
@@ -311,9 +311,10 @@ class UploadOutputData( ModuleBase ):
       return S_OK( "Output data uploaded" )
 
     except Exception as e:
-      self.log.exception( e )
-      self.setApplicationStatus( e )
-      return S_ERROR( e )
+      self.log.exception( 'Exception in UploadOutputData', lException = e )
+      x = repr( e )
+      self.setApplicationStatus( 'UploadOutputData exception:' + x )
+      return S_ERROR( x )
 
     finally:
       super( UploadOutputData, self ).finalize( self.version )

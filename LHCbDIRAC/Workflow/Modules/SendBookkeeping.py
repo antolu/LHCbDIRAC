@@ -4,11 +4,12 @@
     no application crashes have been observed.
 """
 
-__RCSID__ = "$Id$"
-
-import os, glob
+import os
+import glob
 from DIRAC                                                 import S_OK, S_ERROR, gLogger
 from LHCbDIRAC.Workflow.Modules.ModuleBase                 import ModuleBase
+
+__RCSID__ = "$Id$"
 
 class SendBookkeeping( ModuleBase ):
 
@@ -84,4 +85,3 @@ class SendBookkeeping( ModuleBase ):
 
     finally:
       super( SendBookkeeping, self ).finalize( self.version )
-

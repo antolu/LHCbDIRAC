@@ -13,15 +13,15 @@
     * run only part of the request on the Grid:
 """
 
-__RCSID__ = "$Id$"
+import ast
 
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-import DIRAC
-
-from DIRAC import gLogger
+from DIRAC import gLogger, exit as DIRACexit
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
+
+__RCSID__ = "$Id$"
 
 gLogger = gLogger.getSubLogger( 'RecoStripping_run.py' )
 
@@ -73,7 +73,7 @@ recoPlugin = '{{RecoPluginType#PROD-1:RECO(Stripp): production plugin name#RAWPr
 recoFilesPerJob = '{{RecoFilesPerJob#PROD-1:RECO(Stripp): Group size or number of files per job#1}}'
 recoDataSE = '{{RecoDataSE#PROD-1:RECO(Stripp): Output Data Storage Element#Tier1-BUFFER}}'
 try:
-  recoDataSESpecial = eval( '{{RecoDataSESpecial#PROD-1:RECO(Stripp): Special SE (a dictionary Type:SE)#}}' )
+  recoDataSESpecial = ast.literal_eval( '{{RecoDataSESpecial#PROD-1:RECO(Stripp): Special SE (a dictionary Type:SE)#}}' )
 except SyntaxError:
   recoDataSESpecial = {}
 recoType = '{{RecoType#PROD-1:RECO(Stripp): DataReconstruction or DataReprocessing#DataReconstruction}}'
@@ -88,7 +88,7 @@ strippPlugin = '{{StrippPluginType#PROD-2:Stripping: plugin name#ByRunWithFlush}
 strippFilesPerJob = '{{StrippFilesPerJob#PROD-2:Stripping: Group size or number of files per job#2}}'
 strippDataSE = '{{StrippStreamSE#PROD-2:Stripping: output data SE (un-merged streams)#Tier1-BUFFER}}'
 try:
-  strippDataSESpecial = eval( '{{StrippDataSESpecial#PROD-2:Stripping: Special SE (a dictionary Type:SE)#}}' )
+  strippDataSESpecial = ast.literal_eval( '{{StrippDataSESpecial#PROD-2:Stripping: Special SE (a dictionary Type:SE)#}}' )
 except SyntaxError:
   strippDataSESpecial = {}
 strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data access (download or protocol)#download}}'
@@ -102,7 +102,7 @@ mergingPlugin = '{{MergePlugin#PROD-3:Merging: plugin#ByRunFileTypeSizeWithFlush
 mergingGroupSize = '{{MergeFileSize#PROD-3:Merging: Size (in GB) of the merged files#5}}'
 mergingDataSE = '{{MergeStreamSE#PROD-3:Merging: output data SE (merged streams)#Tier1-DST}}'
 try:
-  mergingDataSESpecial = eval( '{{MergingDataSESpecial#PROD-3:Merging: Special SE (a dictionary Type:SE)#}}' )
+  mergingDataSESpecial = ast.literal_eval( '{{MergingDataSESpecial#PROD-3:Merging: Special SE (a dictionary Type:SE)#}}' )
 except SyntaxError:
   mergingDataSESpecial = {}
 mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access (download or protocol)#download}}'
@@ -130,25 +130,25 @@ pr.bkFileType = '{{inFileType}}'
 pr.eventType = '{{eventType}}'
 pr.visibility = 'Yes'
 
-w1 = eval( w1 )
-w2 = eval( w2 )
-w3 = eval( w3 )
-w4 = eval( w4 )
-w5 = eval( w5 )
+w1 = ast.literal_eval( w1 )
+w2 = ast.literal_eval( w2 )
+w3 = ast.literal_eval( w3 )
+w4 = ast.literal_eval( w4 )
+w5 = ast.literal_eval( w5 )
 
-certificationFlag = eval( certificationFlag )
-localTestFlag = eval( localTestFlag )
-validationFlag = eval( validationFlag )
+certificationFlag = ast.literal_eval( certificationFlag )
+localTestFlag = ast.literal_eval( localTestFlag )
+validationFlag = ast.literal_eval( validationFlag )
 
 if extraOptions:
-  pr.extraOptions = eval( extraOptions )
-mergeRemoveInputsFlag = eval( mergingRemoveInputsFlag )
+  pr.extraOptions = ast.literal_eval( extraOptions )
+mergeRemoveInputsFlag = ast.literal_eval( mergingRemoveInputsFlag )
 
 pr.resolveSteps()
 
 if not w1 and not w2 and not w3 and not w4:
   gLogger.error( 'I told you to select at least one workflow!' )
-  DIRAC.exit( 2 )
+  DIRACexit( 2 )
 
 if certificationFlag or localTestFlag:
   pr.testFlag = True
