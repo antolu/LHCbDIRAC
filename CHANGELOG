@@ -1,3 +1,9 @@
+[v8r3-pre21]
+use DIRAC v6r15p6
+
+* Change LCGCMT 84
+* add scripts in .PHONY
+
 [v8r3-pre20]
 use DIRAC v6r15p6
 
