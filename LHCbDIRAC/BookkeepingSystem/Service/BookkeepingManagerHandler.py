@@ -32,7 +32,6 @@ default = 'ALL'
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
-
   global dataMGMT_
   dataMGMT_ = BookkeepingDatabaseClient()
 
@@ -47,20 +46,21 @@ class BookkeepingManagerHandler( RequestHandler ):
   Bookkeeping Service class. It serves the requests made the users by using the BookkeepingClient.
   """
   
-  def initialize( self ):
+  @classmethod
+  def initializeHandler( cls, serviceInfoDict ):
     """
       initialize the variables used to identify queries, which are not containing enough conditions.
     """ 
     
     bkkSection = PathFinder.getServiceSection( "Bookkeeping/BookkeepingManager" )
     if not bkkSection:
-      self.email = 'lhcb-bookkeeping@cern.ch'
-      self.forceExecution = False
+      cls.email = 'lhcb-bookkeeping@cern.ch'
+      cls.forceExecution = False
     else:
-      self.email = gConfig.getValue( cfgPath( bkkSection , 'Email' ), 'lhcb-bookkeeping@cern.ch' )
-      self.forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )  
-    gLogger.info( "Email used to track queries: %s forceExecution" % self.email, self.forceExecution )
-        
+      cls.email = gConfig.getValue( cfgPath( bkkSection , 'Email' ), 'lhcb-bookkeeping@cern.ch' )
+      cls.forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )  
+    gLogger.info( "Email used to track queries: %s forceExecution" % cls.email, cls.forceExecution )
+    return S_OK()
   ###########################################################################
   # types_<methodname> global variable is a list which defines for each exposed
   # method the types of its arguments, the argument types are ignored if the list is empty.
