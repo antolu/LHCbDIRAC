@@ -416,8 +416,7 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   @checkEnoughBKArguments
-  @staticmethod
-  def __getFiles( in_dict ):
+  def __getFiles( self, in_dict ):
     """It returns a list of files.
     """
     simdesc = in_dict.get( 'SimulationConditions', default )
@@ -472,8 +471,7 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   @checkEnoughBKArguments
-  @staticmethod
-  def __getFilesWithMetadata( in_dict ):
+  def __getFilesWithMetadata( self, in_dict ):
     """
     It returns the files with their metadata. This result will be transfered to the client
     using a pickle file
