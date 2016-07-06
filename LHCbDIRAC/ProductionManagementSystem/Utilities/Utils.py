@@ -4,20 +4,56 @@
 import os
 import sqlite3
 from DIRAC import gConfig, gLogger
-from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUserOption
+from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUserOption, getUsersInGroup
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.ConfigurationSystem.Client import PathFinder
 
 __RCSID__ = "$Id$"
 
+if 'DIRAC' in os.environ:
+  cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ProductionManagement/cache.db' )
+else:
+  cacheFile = os.path.realpath('cache.db')
+
+def getMemberMails( group ):
+  """ get members mails
+  """
+  members = getUsersInGroup( group )
+  if members:
+    emails = []
+    for user in members:
+      email = getUserOption( user, 'Email' )
+      if email:
+        emails.append( email )
+    return emails
+
+def _aggregate( reqId, reqType, reqName, SimCondition, ProPath, groups ):
+
+  with sqlite3.connect(cacheFile) as conn:
+
+    try:
+      conn.execute('''CREATE TABLE IF NOT EXISTS ProductionManagementCache(
+                    reqId VARCHAR(64) NOT NULL DEFAULT "",
+                    reqType VARCHAR(64) NOT NULL DEFAULT "",
+                    reqName VARCHAR(64) NOT NULL DEFAULT "",
+                    SimCondition VARCHAR(64) NOT NULL DEFAULT "",
+                    ProPath VARCHAR(64) NOT NULL DEFAULT "",
+                    thegroup VARCHAR(64) NOT NULL DEFAULT ""
+                   );''')
+
+    except sqlite3.OperationalError:
+      gLogger.error('Email cache database is locked')
+
+    for group in groups:
+      conn.execute("INSERT INTO ProductionManagementCache (reqId, reqType, reqName, SimCondition, ProPath, thegroup)"
+                   " VALUES (?, ?, ?, ?, ?, ?)", (reqId, reqType, reqName, SimCondition, ProPath, group)
+                  )
+
+      conn.commit()
+
 def informPeople( rec, oldstate, state, author, inform ):
   """ inform utility
   """
-
-  if 'DIRAC' in os.environ:
-    cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ProductionManagement/cache.db' )
-  else:
-    cacheFile = os.path.realpath('cache.db')
 
   if not state or state == 'New':
     return # was no state change or resurrect
@@ -95,25 +131,16 @@ def informPeople( rec, oldstate, state, author, inform ):
     body = '\n'.join( ["The Production Request is signed and ready to process",
                        "You are informed as member of %s group"] )
     groups = [ 'lhcb_prmgr' ]
-  elif state == 'BK Check':
-    subj = "DIRAC: new %s Production Request %s" % ( rec['RequestType'], reqId )
-    body = '\n'.join( ["New Production is requested and it has",
-                       "customized Simulation Conditions.",
-                       "As member of %s group, your are asked either",
-                       "to register new Simulation conditions",
-                       "or to reject the request", "",
-                       "In case some other member of the group has already",
-                       "done that, please ignore this mail."] )
-    groups = [ 'lhcb_bk' ]
 
-  elif state == 'Submitted':
-    subj = "DIRAC: new %s Production Request %s" % ( rec['RequestType'], reqId )
-    body = '\n'.join( ["New Production is requested",
-                       "As member of %s group, your are asked either to sign",
-                       "or to reject it.", "",
-                       "In case some other member of the group has already",
-                       "done that, please ignore this mail."] )
-    groups = [ 'lhcb_ppg', 'lhcb_tech' ]
+    for group in groups:
+      for man in getMemberMails( group ):
+        notification = NotificationClient()
+        res = notification.sendMail( man, subj,
+                                     body % group + footer + group + ppath,
+                                     fromAddress, True )
+        if not res['OK']:
+          gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
+
   elif state == 'PPG OK' and oldstate == 'Accepted':
     subj = "DIRAC: returned Production Request %s" % reqId
     body = '\n'.join( ["Production Request is returned by Production Manager.",
@@ -122,26 +149,26 @@ def informPeople( rec, oldstate, state, author, inform ):
                        "In case some other member of the group has already",
                        "done that, please ignore this mail."] )
     groups = [ 'lhcb_tech' ]
-  else:
-    return
-
-  with sqlite3.connect(cacheFile) as conn:
-
-    try:
-      conn.execute('''CREATE TABLE IF NOT EXISTS ProductionManagementCache(
-                    reqId VARCHAR(64) NOT NULL DEFAULT "",
-                    thegroup VARCHAR(64) NOT NULL DEFAULT "",
-                    subject VARCHAR(64) NOT NULL DEFAULT "",
-                    body VARCHAR(254) NOT NULL DEFAULT "",
-                    fromAddress VARCHAR(64) NOT NULL DEFAULT ""
-                   );''')
-
-    except sqlite3.OperationalError:
-      gLogger.error('Email cache database is locked')
 
     for group in groups:
-      conn.execute("INSERT INTO ProductionManagementCache (reqId, thegroup, subject, body, fromAddress)"
-                   " VALUES (?, ?, ?, ?, ?)", (reqId, group, subj, (body % group + footer + group + ppath), fromAddress)
-                  )
+      for man in getMemberMails( group ):
+        notification = NotificationClient()
+        res = notification.sendMail( man, subj,
+                                     body % group + footer + group + ppath,
+                                     fromAddress, True )
+        if not res['OK']:
+          gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
 
-      conn.commit()
+  elif state == 'BK Check':
+
+    groups = [ 'lhcb_bk' ]
+
+    _aggregate(reqId, rec['RequestType'], rec['RequestName'], rec['SimCondition'], rec['ProPath'], groups)
+
+  elif state == 'Submitted':
+
+    groups = [ 'lhcb_ppg', 'lhcb_tech' ]
+    _aggregate(reqId, rec['RequestType'], rec['RequestName'], rec['SimCondition'], rec['ProPath'], groups)
+
+  else:
+    return
