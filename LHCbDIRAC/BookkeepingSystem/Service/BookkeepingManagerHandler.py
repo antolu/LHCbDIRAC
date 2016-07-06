@@ -38,14 +38,6 @@ def initializeBookkeepingManagerHandler( serviceInfo ):
 
   global reader_
   reader_ = XMLFilesReaderManager()
-  bkkSection = PathFinder.getServiceSection( "Bookkeeping/BookkeepingManager" )
-  if not bkkSection:
-    email = 'lhcb-bookkeeping@cern.ch'
-    forceExecution = False
-  else:
-    email = gConfig.getValue( cfgPath( bkkSection , 'Email' ), 'lhcb-bookkeeping@cern.ch' )
-    forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )  
-  gLogger.info( "Email used to track queries: %s forceExecution" % email, forceExecution )
   return S_OK()
 
 
@@ -54,6 +46,20 @@ class BookkeepingManagerHandler( RequestHandler ):
   """
   Bookkeeping Service class. It serves the requests made the users by using the BookkeepingClient.
   """
+  
+  def initialize( self ):
+    """
+      initialize the variables used to identify queries, which are not containing enough conditions.
+    """ 
+    
+    bkkSection = PathFinder.getServiceSection( "Bookkeeping/BookkeepingManager" )
+    if not bkkSection:
+      self.email = 'lhcb-bookkeeping@cern.ch'
+      self.forceExecution = False
+    else:
+      self.email = gConfig.getValue( cfgPath( bkkSection , 'Email' ), 'lhcb-bookkeeping@cern.ch' )
+      self.forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )  
+    gLogger.info( "Email used to track queries: %s forceExecution" % self.email, self.forceExecution )
         
   ###########################################################################
   # types_<methodname> global variable is a list which defines for each exposed
@@ -415,8 +421,9 @@ class BookkeepingManagerHandler( RequestHandler ):
     return result
 
   #############################################################################
+  @staticmethod
   @checkEnoughBKArguments
-  def __getFiles( self, in_dict ):
+  def __getFiles( in_dict ):
     """It returns a list of files.
     """
     simdesc = in_dict.get( 'SimulationConditions', default )
@@ -470,8 +477,9 @@ class BookkeepingManagerHandler( RequestHandler ):
     return result
 
   #############################################################################
+  @staticmethod
   @checkEnoughBKArguments
-  def __getFilesWithMetadata( self, in_dict ):
+  def __getFilesWithMetadata( in_dict ):
     """
     It returns the files with their metadata. This result will be transfered to the client
     using a pickle file
