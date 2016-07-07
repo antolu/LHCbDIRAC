@@ -300,7 +300,13 @@ function setupLHCbDIRAC(){
 
   . /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r6p5/InstallArea/scripts/LbLogin.sh
   local version = `cat project.version`
-  lb-run --dev LHCbDirac/$version bash -norc
+  if [ ! -z "$PRERELEASE" ]
+  then
+    dev = '--dev'
+  else
+    dev = ''
+  fi
+  lb-run $dev LHCbDirac/$version bash -norc
   local status=$?
   if [ $status -ne 0 ]
   then
