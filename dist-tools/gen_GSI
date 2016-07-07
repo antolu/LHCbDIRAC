@@ -8,7 +8,7 @@ function canonicalize
 basedir=`canonicalize $0`
 basedir=`dirname $basedir`
 basedir=`canonicalize $basedir/..`
-ext_ver="v6r3p3"
+ext_ver="v6r4p1"
 
 DIRACPLAT=$1
 PYTHON_VERSION_TWODIGIT=$2
@@ -19,6 +19,8 @@ cd $basedir
 if ! [ -r $basedir/InstallArea/$CMTCONFIG/lib ]; then
   mkdir $basedir/InstallArea/$CMTCONFIG/lib
 fi
+
+# Get GSI
 
 fullname=`tar ztvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz | grep GSI | grep '__init__.py' | tail -1 | awk '{print $6}'`
 fullpath=`dirname $fullname`
@@ -34,4 +36,12 @@ fi
 
 mv $fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/
 
+# get pyparsing
+fullname=`tar ztvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz | grep pyparsing | grep egg | tail -1 | awk '{print $6}'`
+if ! [ -e $fullname ]; then
+  fullpath=`dirname $fullname`
+  tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz $fullpath
+  mv $fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/pyparsing
+  echo "from pyparsing import infixNotation, opAssoc, Word, printables, Literal, Suppress" >> $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/pyparsing/__init__.py
+fi
 #
