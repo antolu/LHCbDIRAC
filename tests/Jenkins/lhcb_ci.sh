@@ -301,9 +301,9 @@ function setupLHCbDIRAC(){
   local version=`cat project.version`
   if [ ! -z "$PRERELEASE" ]
   then
-    dev = '--dev'
+    dev='--dev'
   else
-    dev = ''
+    dev=''
   fi
   echo '==> Invoking lb-run $dev LHCbDirac/$version bash -norc'
   lb-run $dev LHCbDirac/$version bash -norc

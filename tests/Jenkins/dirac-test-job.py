@@ -55,7 +55,7 @@ if not result['OK']:
 
 # Simple Hello Word job to DIRAC.Jenkins.ch, that needs to be matched by a MP WN
 helloJ.setName( "helloWorld-TEST-TO-Jenkins-MP" )
-helloJ.setTag('Multicore')
+helloJ.setTag('MultiProcessor')
 result = dirac.submit( helloJ )
 gLogger.info( "Hello world job MP: ", result )
 if not result['OK']:
