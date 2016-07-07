@@ -298,13 +298,14 @@ function setupLHCbDIRAC(){
   echo '==> Invoking lb-run for LHCbDIRAC'
 
   . /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r6p5/InstallArea/scripts/LbLogin.sh
-  local version = `cat project.version`
+  local version=`cat project.version`
   if [ ! -z "$PRERELEASE" ]
   then
     dev = '--dev'
   else
     dev = ''
   fi
+  echo '==> Invoking lb-run $dev LHCbDirac/$version bash -norc'
   lb-run $dev LHCbDirac/$version bash -norc
   local status=$?
   if [ $status -ne 0 ]
