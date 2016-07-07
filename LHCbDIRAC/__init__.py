@@ -1,3 +1,14 @@
+"""
+   LHCbDIRAC - LHCb extension of DIRAC
+
+   References:
+    DIRAC: https://github.com/DIRACGrid/DIRAC
+    LHCbDIRAC: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC
+
+   The distributed data production and analysis system of LHCb.
+"""
+
+
 from pkgutil import extend_path
 __path__ = extend_path( __path__, __name__ )
 
