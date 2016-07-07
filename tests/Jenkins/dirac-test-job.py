@@ -56,6 +56,7 @@ if not result['OK']:
 # Simple Hello Word job to DIRAC.Jenkins.ch, that needs to be matched by a MP WN
 helloJ.setName( "helloWorld-TEST-TO-Jenkins-MP" )
 helloJ.setTag('Multicore')
+result = dirac.submit( helloJ )
 gLogger.info( "Hello world job MP: ", result )
 if not result['OK']:
   gLogger.error( "Problem submitting job", result['Message'] )
