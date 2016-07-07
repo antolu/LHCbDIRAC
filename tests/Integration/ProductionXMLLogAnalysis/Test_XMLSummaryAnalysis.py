@@ -6,6 +6,8 @@ import unittest
 
 from LHCbDIRAC.Core.Utilities.XMLSummaries import analyseXMLSummary, XMLSummaryError
 
+#pylint: disable=missing-docstring
+
 testsDir = 'LHCbDIRAC/tests/Integration/ProductionXMLLogAnalysis'
 
 class XMLSummaryAnalysisTestCase( unittest.TestCase ):
@@ -14,8 +16,8 @@ class XMLSummaryAnalysisTestCase( unittest.TestCase ):
 
   def generalTest( self, testPath, directory ):
     """ Args:
-	  testPath (str): like "DataReconstruction" (used for creating the path)
-	  directory (str): either "ok" or "nok" (used for creating the path)
+      testPath (str): like "DataReconstruction" (used for creating the path)
+      directory (str): either "ok" or "nok" (used for creating the path)
     """
 
     workPath = os.path.join( os.path.expandvars('$TESTCODE'), testsDir, testPath, directory )
@@ -25,13 +27,13 @@ class XMLSummaryAnalysisTestCase( unittest.TestCase ):
     for fileName in ls:
       if fileName.startswith( 'summary' ):
         if directory == 'ok':
-	  res = analyseXMLSummary( '%s/%s' % ( workPath, fileName ) )
+          res = analyseXMLSummary( '%s/%s' % ( workPath, fileName ) )
           self.assertEqual( res, True )
         elif directory == 'nok':
-	  res = analyseXMLSummary( '%s/%s' % ( workPath, fileName ) )
+          res = analyseXMLSummary( '%s/%s' % ( workPath, fileName ) )
           self.assertEqual( res, False )
         else:
-	  self.assertRaises( XMLSummaryError, analyseXMLSummary, '%s/%s' % ( workPath, fileName ) )
+          self.assertRaises( XMLSummaryError, analyseXMLSummary, '%s/%s' % ( workPath, fileName ) )
 
 class XMLSummaryAnalysisDataReconstruction( XMLSummaryAnalysisTestCase ):
 

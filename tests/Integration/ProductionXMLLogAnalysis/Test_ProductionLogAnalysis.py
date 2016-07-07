@@ -6,6 +6,8 @@ import unittest
 
 from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile, LogError
 
+#pylint: disable=missing-docstring
+
 testsDir = 'LHCbDIRAC/tests/Integration/ProductionXMLLogAnalysis'
 
 class ProductionLogAnalysisTestCase( unittest.TestCase ):
@@ -14,9 +16,9 @@ class ProductionLogAnalysisTestCase( unittest.TestCase ):
 
   def generalTest( self, testPath, directory, app ):
     """ Args:
-	  testPath (str): like "DataReconstruction" (used for creating the path)
-	  directory (str): either "ok" or "nok" (used for creating the path)
-	  app (str): LHCb app, e.g. "Brunel" (used for creating the file name)
+      testPath (str): like "DataReconstruction" (used for creating the path)
+      directory (str): either "ok" or "nok" (used for creating the path)
+      app (str): LHCb app, e.g. "Brunel" (used for creating the file name)
     """
 
     workPath = os.path.join( os.path.expandvars('$TESTCODE'), testsDir, testPath, directory )
@@ -26,13 +28,13 @@ class ProductionLogAnalysisTestCase( unittest.TestCase ):
     for fileName in ls:
       if fileName.startswith( app ) and 'log' in fileName:
         if directory == 'ok':
-	  res = analyseLogFile( '%s/%s' % ( workPath, fileName ) )
+          res = analyseLogFile( '%s/%s' % ( workPath, fileName ) )
           self.assertEqual( res, True )
         elif directory == 'nok':
-	  res = analyseLogFile( '%s/%s' % ( workPath, fileName ) )
+          res = analyseLogFile( '%s/%s' % ( workPath, fileName ) )
           self.assertEqual( res, False )
         else:
-	  self.assertRaises( LogError, analyseLogFile, '%s/%s' % ( workPath, fileName ) )
+          self.assertRaises( LogError, analyseLogFile, '%s/%s' % ( workPath, fileName ) )
 
 
 class ProductionLogAnalysisDataReconstruction( ProductionLogAnalysisTestCase ):

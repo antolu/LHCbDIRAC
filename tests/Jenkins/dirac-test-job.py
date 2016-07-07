@@ -2,10 +2,10 @@
 """ Submission of test jobs for use by Jenkins
 """
 
+import os.path
+
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
-
-import os.path
 
 from DIRAC import gLogger
 
