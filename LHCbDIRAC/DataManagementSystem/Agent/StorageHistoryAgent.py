@@ -6,13 +6,13 @@
       can be inserted in a new DB table and made visible via the web portal.
 '''
 
-__RCSID__ = "$Id$"
+import os
+import time
+import copy
 
-import os, time, copy
-
-from DIRAC                                                  import S_OK, S_ERROR, gLogger
+from DIRAC                                                  import S_OK, S_ERROR
 from DIRAC.Core.Utilities                                   import Time
-
+from DIRAC.Core.Utilities.File                              import mkDir
 from DIRAC.Core.Base.AgentModule                            import AgentModule
 from DIRAC.AccountingSystem.Client.DataStoreClient          import gDataStoreClient
 
@@ -22,6 +22,8 @@ from LHCbDIRAC.AccountingSystem.Client.Types.DataStorage    import DataStorage
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 from LHCbDIRAC.DataManagementSystem.Client.DataUsageClient  import DataUsageClient
 from DIRAC.Core.Utilities.List                              import breakListIntoChunks
+
+__RCSID__ = "$Id$"
 
 byteToGB = 1.0e9
 
@@ -60,8 +62,7 @@ class StorageHistoryAgent( AgentModule ):
       from DIRAC.Core.DISET.RPCClient import RPCClient
       self.__stDB = RPCClient( 'DataManagement/StorageUsage' )
     self.__workDirectory = self.am_getOption( "WorkDirectory" )
-    if not os.path.isdir( self.__workDirectory ):
-      os.makedirs( self.__workDirectory )
+    mkDir( self.__workDirectory )
     self.log.info( "Working directory is %s" % self.__workDirectory )
 
     self.__ignoreDirsList = self.am_getOption( 'Ignore', [] )
@@ -303,8 +304,8 @@ class StorageHistoryAgent( AgentModule ):
     totalCallsToBkk = self.callsToBkkgetDirectoryMetadata + self.callsToBkkGetEvtType
     self.log.notice( "Total calls to DataUsage for cache: %d" % self.callsToDudbForMetadata )
     self.log.notice( "Total calls to Bookkeeping: %d (getDirectoryMetadata: %d, getEventType: %d)" % ( totalCallsToBkk,
-                                                                                         self.callsToBkkgetDirectoryMetadata,
-                                                                                         self.callsToBkkGetEvtType ) )
+                                                                                                       self.callsToBkkgetDirectoryMetadata,
+                                                                                                       self.callsToBkkGetEvtType ) )
     self.log.notice( "Total records sent to accounting for DataStorage:  %d " % self.totalRecords )
     self.log.notice( "Directories not found in Bookkeeping: %d " % ( len( self.directoriesNotInBkk ) ) )
     fileName = os.path.join( self.__workDirectory, "directoriesNotInBkk.txt" )
@@ -317,12 +318,12 @@ class StorageHistoryAgent( AgentModule ):
     self.log.info( "Summary of StorageUsage: files size " )
     for se in sorted( self.debug_seUsage ):
       self.log.info( "all: %s  %d %d Bytes ( %.2f TB ) " % ( se, self.debug_seUsage[ se ]['Files'],
-                                                            self.debug_seUsage[ se ]['Size'],
-                                                            self.debug_seUsage[ se ]['Size'] / 1.0e12 ) )
+                                                             self.debug_seUsage[ se ]['Size'],
+                                                             self.debug_seUsage[ se ]['Size'] / 1.0e12 ) )
       if se in self.debug_seUsage_acc:
         self.log.info( "acc: %s  %d %d Bytes ( %.2f TB ) " % ( se, self.debug_seUsage_acc[ se ]['Files'],
-                                                              self.debug_seUsage_acc[ se ]['Size'],
-                                                              self.debug_seUsage_acc[ se ]['Size'] / 1.0e12 ) )
+                                                               self.debug_seUsage_acc[ se ]['Size'],
+                                                               self.debug_seUsage_acc[ se ]['Size'] / 1.0e12 ) )
       else:
         self.log.info( "SE not in self.debug_seUsage_acc keys" )
     return S_OK()

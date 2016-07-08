@@ -727,37 +727,36 @@ class BKQuery():
     eventTypes = self.__bkQueryDict.get( 'EventType' )
     if not isinstance( eventTypes, list ):
       eventTypes = [eventTypes]
-    fullList = []
+    fullList = set()
     for eventType in eventTypes:
       bkQ = BKQuery( self.__bkQueryDict )
       bkQ.setVisible( visible )
-      res = self.__bkClient.getProductions( bkQ.setEventType( eventType ) )
+      bkDict = bkQ.setEventType( eventType )
+      # gLogger.notice( 'Get productions for BK query', str( bkDict ) )
+      res = self.__bkClient.getProductions( bkDict )
       if not res['OK']:
         gLogger.error( 'Error getting productions from BK', res['Message'] )
         return []
-      transClient = TransformationClient()
       if self.getProcessingPass().replace( '/', '' ) != 'Real Data':
         fileTypes = self.getFileTypeList()
-        prodList = [prod for p in res['Value']['Records'] for prod in p
-                    if self.__getProdStatus( prod ) != 'Deleted']
+        prodList = set( prod for p in res['Value']['Records'] for prod in p
+                       if self.__getProdStatus( prod ) != 'Deleted' )
         # print '\n', self.__bkQueryDict, res['Value']['Records'], '\nVisible:', visible, prodList
-        pList = []
+        pList = set()
         if fileTypes:
+          transClient = TransformationClient()
           for prod in prodList:
             res = transClient.getBookkeepingQuery( prod )
             if res['OK'] and res['Value']['FileType'] in fileTypes:
-              if not isinstance( prod, list ):
-                prod = [prod]
-              pList += [p for p in prod if p not in pList]
+              pList.add( prod )
         if not pList:
           pList = prodList
       else:
-        pList = [-run for r in res['Value']['Records'] for run in r]
-        pList.sort()
+        runList = sorted( [-run for r in res['Value']['Records'] for run in r] )
         startRun = int( self.__bkQueryDict.get( 'StartRun', 0 ) )
         endRun = int( self.__bkQueryDict.get( 'EndRun', sys.maxint ) )
-        pList = [run for run in pList if run >= startRun and run <= endRun]
-      fullList += pList
+        pList = set( run for run in runList if run >= startRun and run <= endRun )
+      fullList.update( pList )
     return sorted( fullList )
 
   def getBKConditions( self ):

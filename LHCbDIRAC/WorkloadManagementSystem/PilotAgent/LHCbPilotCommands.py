@@ -1,14 +1,14 @@
 """ LHCb-specific pilot commands
 """
 
-__RCSID__ = "$Id$"
-
 import subprocess
 import os.path
 import sys
 
-from pilotCommands import GetPilotVersion, InstallDIRAC, ConfigureBasics, ConfigureCPURequirements, ConfigureSite, ConfigureArchitecture
-from pilotTools import CommandBase
+from pilotCommands import GetPilotVersion, InstallDIRAC, ConfigureBasics, ConfigureCPURequirements, ConfigureSite, ConfigureArchitecture #pylint: disable=import-error
+from pilotTools import CommandBase #pylint: disable=import-error
+
+__RCSID__ = "$Id$"
 
 class LHCbCommandBase( CommandBase ):
   """ Simple extension, just for LHCb parameters
@@ -120,9 +120,9 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
       sharedArea = os.path.join( os.environ[ 'VO_LHCB_SW_DIR' ], 'lib' )
       self.log.debug( "Using VO_LHCB_SW_DIR at '%s'" % sharedArea )
       if os.environ[ 'VO_LHCB_SW_DIR' ] == '.':
-        if not os.path.isdir( 'lib' ):
+        if not os.path.isdir('lib'):
           os.mkdir( 'lib' )
-    else: 
+    else:
       sharedArea = '/cvmfs/lhcb.cern.ch/lib'
       self.log.warn( "Can't find shared area, forcing it to %s" % sharedArea )
 

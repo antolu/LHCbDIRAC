@@ -1,4 +1,4 @@
-.PHONY: test
+.PHONY: test scripts
 
 #clean:
 #	rm -rf *.out *.xml htmlcov
@@ -20,7 +20,7 @@ DIST-TOOLS=dist-tools
 PYTHON_VERSION=2.7.9.p1
 PYTHON_VERSION_TWO=2.7
 PYTHON_VERSION_TWODIGIT=27
-LCGCMT_VERSION=83
+LCGCMT_VERSION=84
 
 ifeq ($(OS),slc6)
   DIRACPLAT=Linux_x86_64_glibc-2.12

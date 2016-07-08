@@ -804,7 +804,7 @@ def _scaleLumi( lumi ):
   """
   return _scaleValue( lumi, ( '/microBarn', '/nb', '/pb', '/fb', '/ab' ) )
 
-def _scaleSize( size ):
+def scaleSize( size ):
   """
   Return size in appropriate unit
   """
@@ -1018,7 +1018,7 @@ def executeGetStats( dmScript ):
       elif name == 'FileSize':
         size = value
         sizePerEvt = '(%.1f kB per evt)' % ( size / nevts / 1000. ) if nevts and nDatasets == 1 else ''
-        size, sizeUnit = _scaleSize( size )
+        size, sizeUnit = scaleSize( size )
         gLogger.notice( '%s: %.3f %s %s' % ( 'Total size'.ljust( tab ), size, sizeUnit, sizePerEvt ) )
       elif name == 'Luminosity':
         lumi = value / nDatasets
