@@ -1,8 +1,6 @@
 ''' DIRAC ProductionRequestDB class is a front-end to the repository
     database containing Production Requests and other related tables.
 '''
-__RCSID__ = "$Id$"
-
 # Defined states:
 #'New'
 #'BK OK'
@@ -26,6 +24,8 @@ from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Base.DB import DB
 
 from LHCbDIRAC.ProductionManagementSystem.Utilities.Utils import informPeople
+
+__RCSID__ = "$Id$"
 
 class ProductionRequestDB( DB ):
   """ DB class for ProductionManagement/ProductionRequestDB
@@ -329,7 +329,7 @@ class ProductionRequestDB( DB ):
             idFilter = True
           sfilter.append( " t.%s IN %s " % ( x, val ) )
       sfilter = " AND ".join( sfilter )
-    except Exception, e:
+    except Exception as e:
       return S_ERROR( "Bad filter content " + str( e ) )
 
     if sortBy:
@@ -606,7 +606,7 @@ class ProductionRequestDB( DB ):
           self.lock.release()
           _msgTuple = ( requestState, update['RequestState'] )
           return S_ERROR( "The request is '%s' now, moving to '%s' is not possible" % _msgTuple )
-      elif requestState == 'Active':        
+      elif requestState == 'Active':
         if  (not update['RequestState'] in ['Done', 'Cancelled', 'Completed', 'Accepted']) or (update['RequestState'] != 'Accepted' and creds['Group'] != 'lhcb_prmgr'):
           self.lock.release()
           _msgTuple = ( requestState, update['RequestState'] )

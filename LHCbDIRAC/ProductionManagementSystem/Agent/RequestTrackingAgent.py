@@ -81,7 +81,7 @@ class RequestTrackingAgent( AgentModule ):
       return S_OK( 0 )
     try:
       sum_nr = long( result['Value'][0] )
-    except Exception, e:
+    except Exception as e:
       return S_ERROR( "Can not convert result from BK call: %s" % str( e ) )
     return S_OK( sum_nr )
 
