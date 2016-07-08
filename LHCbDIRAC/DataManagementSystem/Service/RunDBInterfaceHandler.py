@@ -300,13 +300,13 @@ class RunDBInterfaceHandler( RequestHandler ):
         startTime = time.time()
         execString = "success,result = server.%s()" % query
         print execString
-        exec( execString )
+        exec( execString ) # pylint: disable=exec-used
         gLogger.debug( "RunDBInterfaceHandler.getSelections: server.%s() took %.2f seconds." % ( query, time.time() - startTime ) )
-	if not success: #using exec statement above -> pylint: disable=E0601
+        if not success: #using exec statement above -> pylint: disable=used-before-assignment
           errStr = "RunDBInterfaceHandler.getSelections: Failed to get distinct %s." % key
-	  gLogger.error( errStr, result ) #using exec statement above -> pylint: disable=E0601
+          gLogger.error( errStr, result ) #using exec statement above -> pylint: disable=E0601
           return S_ERROR( errStr )
-	paramDict[key] = [ res for res in result if res ]
+        paramDict[key] = [ res for res in result if res ]
 
       startTime = time.time()
       success, result = server.getRunStates()
