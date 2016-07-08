@@ -6,8 +6,11 @@
       request (for failover)
 """
 
-from DIRAC                                                      import S_OK, S_ERROR, gLogger
-from LHCbDIRAC.Workflow.Modules.ModuleBase                      import ModuleBase
+from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC.Core.Utilities import DEncode
+from DIRAC.RequestManagementSystem.Client.Operation import Operation
+
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 __RCSID__ = "$Id$"
 
@@ -58,13 +61,22 @@ class FailoverRequest( ModuleBase ):
       self.request.SourceComponent = "Job_%d" % self.jobID
 
       # report on the status of the input data, by default they are 'Processed', unless the job failed
-      # failures happening before are not touched
-      filesInFileReport = self.fileReport.getFiles()
+      # failures happening before (e.g. in previous steps, or while inspecting the XML summary) are not touched.
+      filesInFileReport = self.fileReport.getFiles() #It's normally empty, unless there are some Problematic files
+
       if not self._checkWFAndStepStatus( noPrint = True ):
+        # To overcome race condition issues, the file status for this case is reported by the failover request
+        statusDict = {}
         for lfn in self.inputDataList:
           if lfn not in filesInFileReport:
-            self.log.info( "Forcing status to 'Unused' due to workflow failure for: %s" % ( lfn ) )
-            self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Unused' )
+            self.log.info( "Setting status to 'Unused' due to workflow failure for input file: %s" % ( lfn ) )
+            statusDict[lfn] = 'Unused'
+        setFileStatusOp = Operation()
+        setFileStatusOp.Type = 'SetFileStatus'
+        setFileStatusOp.Arguments = DEncode.encode( {'transformation':int(self.production_id),
+                                                     'statusDict':statusDict,
+                                                     'force':False} )
+        self.request.addOperation(setFileStatusOp)
       else:
         for lfn in self.inputDataList:
           if lfn not in filesInFileReport:
@@ -73,14 +85,15 @@ class FailoverRequest( ModuleBase ):
 
       result = self.fileReport.commit()
       if not result['OK']:
-        self.log.error( "Failed to report file status to TransformationDB, populating request with file report info" )
-        result = self.fileReport.generateForwardDISET()
+        self.log.error( "Failed to report file status to TransformationDB" )
+        result = self.fileReport.generateForwardDISET() #This will try a second time a commit, before generating a SetFileStatus operation
         if not result['OK']:
           self.log.warn( "Could not generate Operation for file report with result:\n%s" % ( result['Value'] ) )
         else:
-          if result['Value'] is None:
-            self.log.info( "Files correctly reported to TransformationDB" )
+          if result['Value'] is None: #Means the FileReport managed to report, no need for a new operation
+            self.log.info( "On second trial, files correctly reported to TransformationDB" )
           else:
+            self.log.info( "Populating request with file report info (SetFileStatus operation)" )
             result = self.request.addOperation( result['Value'] )
             if not result['OK']:
               return result
