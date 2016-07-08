@@ -6,33 +6,35 @@ import unittest
 
 from LHCbDIRAC.Core.Utilities.ProductionLogs import analyseLogFile, LogError
 
+#pylint: disable=missing-docstring
+
+testsDir = 'LHCbDIRAC/tests/Integration/ProductionXMLLogAnalysis'
+
 class ProductionLogAnalysisTestCase( unittest.TestCase ):
   """ Base class for the ProductionLogAnalysis test cases
   """
-  def setUp( self ):
-    self.workdir = os.getcwd() + '/LHCbDIRAC/tests/Integration/ProductionXMLLogAnalysis'
 
-  def generalTest( self, workdir, directory, app ):
+  def generalTest( self, testPath, directory, app ):
+    """ Args:
+      testPath (str): like "DataReconstruction" (used for creating the path)
+      directory (str): either "ok" or "nok" (used for creating the path)
+      app (str): LHCb app, e.g. "Brunel" (used for creating the file name)
+    """
 
-    workdir = '%s/%s' % ( workdir, directory )
+    workPath = os.path.join( os.path.expandvars('$TESTCODE'), testsDir, testPath, directory )
 
-    try:
-      ls = os.listdir( workdir )
-    except OSError:
-      workdir = os.path.expandvars('$TESTCODE') + '/LHCbDIRAC/tests/Integration/ProductionXMLLogAnalysis'
-      ls = os.listdir( '%s/%s' % ( workdir, directory ) )
+    ls = os.listdir( workPath )
 
-    for filename in ls:
-      if filename.startswith( app ) and 'log' in filename:
-        print "filename = ", filename
+    for fileName in ls:
+      if fileName.startswith( app ) and 'log' in fileName:
         if directory == 'ok':
-          res = analyseLogFile( '%s/%s' % ( workdir, filename ) )
+          res = analyseLogFile( '%s/%s' % ( workPath, fileName ) )
           self.assertEqual( res, True )
         elif directory == 'nok':
-          res = analyseLogFile( '%s/%s' % ( workdir, filename ) )
+          res = analyseLogFile( '%s/%s' % ( workPath, fileName ) )
           self.assertEqual( res, False )
         else:
-          self.assertRaises( LogError, analyseLogFile, '%s/%s' % ( workdir, filename ) )
+          self.assertRaises( LogError, analyseLogFile, '%s/%s' % ( workPath, fileName ) )
 
 
 class ProductionLogAnalysisDataReconstruction( ProductionLogAnalysisTestCase ):
@@ -41,12 +43,12 @@ class ProductionLogAnalysisDataReconstruction( ProductionLogAnalysisTestCase ):
     super( ProductionLogAnalysisDataReconstruction, self ).setUp()
 
   def test_brunel_ok( self ):
-    self.generalTest( self.workdir + '/DataReconstruction', 'ok', 'Brunel' )
+    self.generalTest( 'DataReconstruction', 'ok', 'Brunel' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir + '/DataReconstruction', 'ok', 'DaVinci' )
+    self.generalTest( 'DataReconstruction', 'ok', 'DaVinci' )
 
   def test_brunel_nok( self ):
-    self.generalTest( self.workdir + '/DataReconstruction', 'nok', 'Brunel' )
+    self.generalTest( 'DataReconstruction', 'nok', 'Brunel' )
 #  def test_daVinci_nok( self ):
 #    self.generalTest( self.workdir, 'nok', 'DaVinci' )
 
@@ -56,12 +58,12 @@ class ProductionLogAnalysisDataReprocessing( ProductionLogAnalysisTestCase ):
     super( ProductionLogAnalysisDataReprocessing, self ).setUp()
 
   def test_brunel_ok( self ):
-    self.generalTest( self.workdir + '/DataReprocessing', 'ok', 'Brunel' )
+    self.generalTest( 'DataReprocessing', 'ok', 'Brunel' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir + '/DataReprocessing', 'ok', 'DaVinci' )
+    self.generalTest( 'DataReprocessing', 'ok', 'DaVinci' )
 
   def test_brunel_nok( self ):
-    self.generalTest( self.workdir + '/DataReprocessing', 'nok', 'Brunel' )
+    self.generalTest( 'DataReprocessing', 'nok', 'Brunel' )
 #  def test_daVinci_nok( self ):
 #    self.generalTest( self.workdir, 'nok', 'DaVinci' )
 
@@ -71,10 +73,10 @@ class ProductionLogAnalysisDataStripping( ProductionLogAnalysisTestCase ):
     super( ProductionLogAnalysisDataStripping, self ).setUp()
 
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir + '/DataStripping', 'ok', 'DaVinci' )
+    self.generalTest( 'DataStripping', 'ok', 'DaVinci' )
 
   def test_daVinci_nok( self ):
-    self.generalTest( self.workdir + '/DataStripping', 'nok', 'DaVinci' )
+    self.generalTest( 'DataStripping', 'nok', 'DaVinci' )
 
 class ProductionLogAnalysisSelection( ProductionLogAnalysisTestCase ):
 
@@ -82,10 +84,10 @@ class ProductionLogAnalysisSelection( ProductionLogAnalysisTestCase ):
     super( ProductionLogAnalysisSelection, self ).setUp()
 
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir + '/Selection', 'ok', 'DaVinci' )
+    self.generalTest( 'Selection', 'ok', 'DaVinci' )
 
   def test_daVinci_nok( self ):
-    self.generalTest( self.workdir + '/Selection', 'nok', 'DaVinci' )
+    self.generalTest( 'Selection', 'nok', 'DaVinci' )
 
 class ProductionLogAnalysisMCSimulation( ProductionLogAnalysisTestCase ):
 
@@ -93,39 +95,38 @@ class ProductionLogAnalysisMCSimulation( ProductionLogAnalysisTestCase ):
     super( ProductionLogAnalysisMCSimulation, self ).setUp()
 
   def test_brunel_ok( self ):
-    self.generalTest( self.workdir + '/MCSimulation', 'ok', 'Brunel' )
+    self.generalTest( 'MCSimulation', 'ok', 'Brunel' )
   def test_boole_ok( self ):
-    self.generalTest( self.workdir + '/MCSimulation', 'ok', 'Boole' )
+    self.generalTest( 'MCSimulation', 'ok', 'Boole' )
   def test_gauss_ok( self ):
-    self.generalTest( self.workdir + '/MCSimulation', 'ok', 'Gauss' )
+    self.generalTest( 'MCSimulation', 'ok', 'Gauss' )
 #  def test_daVinci_ok( self ):
-#    self.generalTest( self.workdir, 'ok', 'DaVinci' )
+#    self.generalTest( '', 'ok', 'DaVinci' )
 
   # def test_brunel_nok( self ):
-  #   self.generalTest( self.workdir + '/MCSimulation', 'nok', 'Brunel' )
+  #   self.generalTest( 'MCSimulation', 'nok', 'Brunel' )
   #
   # def test_brunel_fail( self ):
-  #   self.generalTest( self.workdir + '/MCSimulation', 'fail', 'Brunel' )
+  #   self.generalTest( 'MCSimulation', 'fail', 'Brunel' )
 
 class ProductionLogAnalysisMerge( ProductionLogAnalysisTestCase ):
 
   def setUp( self ):
     super( ProductionLogAnalysisMerge, self ).setUp()
-    self.workdir += '/Merge'
 
 #  def test_brunel_ok( self ):
-#    self.generalTest( self.workdir, 'ok', 'Brunel' )
+#    self.generalTest( '', 'ok', 'Brunel' )
 #  def test_boole_ok( self ):
-#    self.generalTest( self.workdir, 'ok', 'Boole' )
+#    self.generalTest( '', 'ok', 'Boole' )
 #  def test_gauss_ok( self ):
-#    self.generalTest( self.workdir, 'ok', 'Gauss' )
+#    self.generalTest( '', 'ok', 'Gauss' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok', 'DaVinci' )
+    self.generalTest( 'Merge', 'ok', 'DaVinci' )
   def test_lhcb_ok( self ):
-    self.generalTest( self.workdir, 'ok', 'LHCb' )
+    self.generalTest( 'Merge', 'ok', 'LHCb' )
 
   def test_lhcb_nok( self ):
-    self.generalTest( self.workdir, 'nok', 'LHCb' )
+    self.generalTest( 'Merge', 'nok', 'LHCb' )
 
 class ProductionXMLLogAnalysisRemoval( ProductionLogAnalysisTestCase ):
   pass

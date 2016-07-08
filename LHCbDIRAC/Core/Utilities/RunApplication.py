@@ -227,12 +227,19 @@ class RunApplication(object):
 
 
 def _multicoreWN():
-  """ return "True" if the WN is marked as one where multicore processing is allowed
+  """ Returns "True" if the CE, or the Queue is marked as one where multi-processing is allowed
+      (by having Tag "MultiProcessor")
   """
   siteName = gConfig.getValue( '/LocalSite/Site' )
   gridCE = gConfig.getValue( '/LocalSite/GridCE' )
+  queue = gConfig.getValue( '/LocalSite/CEQueue' )
+  # Tags of the CE
   tags = fromChar( gConfig.getValue( '/Resources/Sites/%s/%s/CEs/%s/Tag' % ( siteName.split( '.' )[0],
                                                                              siteName, gridCE ), '' ) )
+  # Tags of the Queue
+  tags = fromChar( gConfig.getValue( '/Resources/Sites/%s/%s/CEs/%s/Queues/%s/Tag' % ( siteName.split( '.' )[0], queue,
+                                                                                       siteName, gridCE ), '' ) )
+
   if 'MultiProcessor' in tags:
     return True
   else:
