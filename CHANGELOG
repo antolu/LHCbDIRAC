@@ -1,3 +1,17 @@
+[v8r2p51]
+Use DIRAC v6r14p38
+
+* setting Unused files back to unused using request
+* inicialize only once the class variables
+* restored use of simple lists
+* added scaffolding for using DAGs
+* avoid variable called type
+* Mostly better documentation
+* created Mock_BookkeepingClient
+* split pro duction Client tests
+* minor fixes, mostly backported
+* remove not used import
+
 [v8r2p50]
 Use DIRAC v6r14p37
 * using Tier1-DST and resolveSEGroup
