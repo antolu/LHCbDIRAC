@@ -1,3 +1,16 @@
+[v8r3-pre22]
+Use DIRAC v6r15p7
+
+* better code with more comments
+* Change way of installing pyparsing
+* fixes for MultiProcessor
+* added LHCbCleanPilotEnv pilot command
+* Changed from /bin/csh to /bin/bash Changed all the chs sintax to bash Added line to get user directory (e.g. /m/msoares) Changed all exit status from 0 to dirac script exit status Changed lhcb_shifter lhcb_prmgr (my bad, I used shifter for testing before my prmgr status was working)
+* added MP tests
+* fixed location of logs and XMLSummaries
+* Change continue to Return Result if the SOAP interface is not accessible for VOMS
+* client_test.py split into 2
+
 [v8r3-pre21]
 use DIRAC v6r15p6
 
