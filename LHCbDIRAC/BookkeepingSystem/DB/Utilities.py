@@ -16,7 +16,7 @@ _IGNORE_PARAMETERS = ['ReplicaFlag', 'Visible', 'MethodName']
 _ONE = ['FileType', 'ProcessingPass', 'EventType', 'DataQuality', 'ConfigName', 'ConfigVersion', 'ConditionDescription'] 
 
 # Two parameter in the list not enough to build the query.
-_TWO = ['ConfigName', 'ConfigVersion', 'ConditionDescription', 'ProcessingPass', 'FileType', 'DataQuality'] 
+_TWO = ['ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType', 'ProcessingPass', 'FileType', 'DataQuality'] 
 
 def enoughParams( in_dict ):
   """
