@@ -6,6 +6,7 @@ import cPickle
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
 from DIRAC.ConfigurationSystem.Client import PathFinder
+from DIRAC.ConfigurationSystem.Client.PathFinder import getServiceSection
 from DIRAC.ConfigurationSystem.Client.Helpers import cfgPath
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
 
@@ -29,20 +30,11 @@ default = 'ALL'
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
-
   global dataMGMT_
   dataMGMT_ = BookkeepingDatabaseClient()
 
   global reader_
   reader_ = XMLFilesReaderManager()
-  bkkSection = PathFinder.getServiceSection( "Bookkeeping/BookkeepingManager" )
-  if not bkkSection:
-    email = 'lhcb-bookkeeping@cern.ch'
-    forceExecution = False
-  else:
-    email = gConfig.getValue( cfgPath( bkkSection , 'Email' ), 'lhcb-bookkeeping@cern.ch' )
-    forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )
-  gLogger.info( "Email used to track queries: %s forceExecution" % email, forceExecution )
   return S_OK()
 
 
@@ -51,7 +43,22 @@ class BookkeepingManagerHandler( RequestHandler ):
   """
   Bookkeeping Service class. It serves the requests made the users by using the BookkeepingClient.
   """
-
+  
+  @classmethod
+  def initializeHandler( cls, serviceInfoDict ):
+    """
+      initialize the variables used to identify queries, which are not containing enough conditions.
+    """ 
+    
+    bkkSection = getServiceSection( "Bookkeeping/BookkeepingManager" )
+    if not bkkSection:
+      cls.email = 'lhcb-bookkeeping@cern.ch'
+      cls.forceExecution = False
+    else:
+      cls.email = gConfig.getValue( cfgPath( bkkSection , 'Email' ), 'lhcb-bookkeeping@cern.ch' )
+      cls.forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )  
+    gLogger.info( "Email used to track queries: %s forceExecution" % cls.email, cls.forceExecution )
+    return S_OK()
   ###########################################################################
   # types_<methodname> global variable is a list which defines for each exposed
   # method the types of its arguments, the argument types are ignored if the list is empty.
@@ -411,8 +418,8 @@ class BookkeepingManagerHandler( RequestHandler ):
     return result
 
   #############################################################################
-  @checkEnoughBKArguments
   @staticmethod
+  @checkEnoughBKArguments
   def __getFiles( in_dict ):
     """It returns a list of files.
     """
@@ -467,8 +474,8 @@ class BookkeepingManagerHandler( RequestHandler ):
     return result
 
   #############################################################################
-  @checkEnoughBKArguments
   @staticmethod
+  @checkEnoughBKArguments
   def __getFilesWithMetadata( in_dict ):
     """
     It returns the files with their metadata. This result will be transfered to the client

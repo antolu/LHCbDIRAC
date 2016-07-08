@@ -3,7 +3,6 @@
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.TransformationSystem.Agent.TransformationAgent import TransformationAgent as DIRACTransformationAgent
-from DIRAC.TransformationSystem.Agent.TransformationAgent import AGENT_NAME
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
@@ -26,6 +25,8 @@ class TransformationAgent( DIRACTransformationAgent ):
                                              'LHCbDIRAC.TransformationSystem.Agent.TransformationPlugin' )
     self.workDirectory = self.am_getWorkDirectory()
     self.debug = self.am_getOption( 'verbosePlugin', False )
+
+    return S_OK()
 
   def _getClients( self ):
     """ returns the clients used in the threads
@@ -57,7 +58,7 @@ class TransformationAgent( DIRACTransformationAgent ):
                                                                bkClient = clients['BookkeepingClient'],
                                                                rmClient = clients['ResourceManagementClient'],
                                                                transInThread = self.transInThread )
-    except Exception as x: #pylint: disable=broad-except
+    except Exception as x:  # pylint: disable=broad-except
       gLogger.exception( "%s.__generatePluginObject: Failed to create %s()." % ( AGENT_NAME, plugin ), '', x )
       return S_ERROR()
     oPlugin.workDirectory = self.workDirectory

@@ -4,7 +4,6 @@ Bookkeeping utilities
 
 __RCSID__ = "$Id$"
 
-import errno
 
 from DIRAC import gLogger, S_ERROR
 
@@ -17,7 +16,7 @@ _IGNORE_PARAMETERS = ['ReplicaFlag', 'Visible', 'MethodName']
 _ONE = ['FileType', 'ProcessingPass', 'EventType', 'DataQuality', 'ConfigName', 'ConfigVersion', 'ConditionDescription'] 
 
 # Two parameter in the list not enough to build the query.
-_TWO = ['ConfigName', 'ConfigVersion', 'ConditionDescription', 'ProcessingPass', 'FileType', 'DataQuality'] 
+_TWO = ['ConfigName', 'ConfigVersion', 'ConditionDescription', 'EventType', 'ProcessingPass', 'FileType', 'DataQuality'] 
 
 def enoughParams( in_dict ):
   """
@@ -78,7 +77,7 @@ def checkEnoughBKArguments( func ):
           result = func( self, *args )
           return result
         else:
-          return S_ERROR( errno.EINVAL, "Provide more parameters %s" % str( arguments ) )
+          return S_ERROR( "Provide more parameters %s" % str( arguments ) )  # TODO: use errno.EINVAL
       else:
         result = func( self, *args )
         return result

@@ -140,7 +140,7 @@ class ModuleBase( object ):
     if production_id:
       self.production_id = production_id
     else:
-      self.production_id = self.workflow_commons['PRODUCTION_ID']
+      self.production_id = self.workflow_commons['PRODUCTION_ID'] #This is a string, like '00051753'
 
     if prod_job_id:
       self.prod_job_id = prod_job_id
