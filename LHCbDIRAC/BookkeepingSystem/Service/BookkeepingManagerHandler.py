@@ -18,7 +18,7 @@ import cPickle
 
 from types import DictType, IntType, StringType, ListType, LongType, BooleanType
 from LHCbDIRAC.BookkeepingSystem.DB.Utilities import checkEnoughBKArguments
-from DIRAC.ConfigurationSystem.Client import PathFinder
+from DIRAC.ConfigurationSystem.Client.PathFinder import getServiceSection
 from DIRAC.ConfigurationSystem.Client.Helpers import cfgPath
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
 
@@ -52,7 +52,7 @@ class BookkeepingManagerHandler( RequestHandler ):
       initialize the variables used to identify queries, which are not containing enough conditions.
     """ 
     
-    bkkSection = PathFinder.getServiceSection( "Bookkeeping/BookkeepingManager" )
+    bkkSection = getServiceSection( "Bookkeeping/BookkeepingManager" )
     if not bkkSection:
       cls.email = 'lhcb-bookkeeping@cern.ch'
       cls.forceExecution = False
