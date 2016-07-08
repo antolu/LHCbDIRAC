@@ -168,7 +168,7 @@ class BookkeepingReport( ModuleBase ):
       try:
         self.xf_o = XMLSummary( xmlSummaryFile )
       except XMLSummaryError as e:
-	self.log.warn( 'No XML summary available: %s' % repr( e ) )
+        self.log.warn( 'No XML summary available: %s' % repr( e ) )
         self.xf_o = None
 
     return bkLFNs, logFilePath
@@ -419,11 +419,12 @@ class BookkeepingReport( ModuleBase ):
 
         try:
           fileStats = str( self.xf_o.outputsEvents[output] )
-	except AttributeError:
-	  #This happens iff the XML summary can't be created (e.g. for merging MDF files)
-	  self.log.warn( "XML summary not created, unable to determine the output events" )
-	  fileStats = 'Unknown'
+        except AttributeError as e:
+          #This happens iff the XML summary can't be created (e.g. for merging MDF files)
+          self.log.warn( "XML summary not created, unable to determine the output events and setting to 'Unknown': %s" % repr( e ) )
+          fileStats = 'Unknown'
         except KeyError as e:
+          self.log.warn( repr(e) )
           if ( 'hist' in outputtype.lower() ) or ( '.root' in outputtype.lower() ):
             self.log.warn( "HIST file %s not found in XML summary, event stats set to 'Unknown'" % output )
             fileStats = 'Unknown'
@@ -431,7 +432,7 @@ class BookkeepingReport( ModuleBase ):
             raise KeyError( e )
 
       if not os.path.exists( output ):
-        self.log.error( 'File does not exist:' , output )
+        self.log.error( "Output file %s does not exist" % output )
         continue
       # Output file size
       if not self.step_commons.has_key( 'size' ) or output not in self.step_commons[ 'size' ]:
