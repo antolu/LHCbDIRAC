@@ -10,7 +10,7 @@ from DIRAC                                                       import gConfig,
 from DIRAC.Core.Base.AgentModule                                 import AgentModule
 from DIRAC.FrameworkSystem.Client.NotificationClient             import NotificationClient
 from DIRAC.ConfigurationSystem.Client                            import PathFinder
-from LHCbDIRAC.ProductionManagementSystem.Utilities.Utils        import getMemberMails
+from LHCbDIRAC.ProductionManagementSystem.Utilities.Utils        import _getMemberMails
 
 __RCSID__ = '$Id: $'
 
@@ -126,7 +126,7 @@ class NotifyAgent( AgentModule ):
 
         aggregated_body = html_header + html_body
 
-        for man in getMemberMails( group[0] ):
+        for man in _getMemberMails( group[0] ):
 
           notification = NotificationClient()
           res = notification.sendMail( man, "Notifications for production requests", aggregated_body, fromAddress, True )

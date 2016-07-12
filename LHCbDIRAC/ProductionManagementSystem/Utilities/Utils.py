@@ -10,7 +10,7 @@ from DIRAC.ConfigurationSystem.Client import PathFinder
 
 __RCSID__ = "$Id$"
 
-def getMemberMails( group ):
+def _getMemberMails( group ):
   """ get members mails
   """
   members = getUsersInGroup( group )
@@ -133,7 +133,7 @@ def informPeople( rec, oldstate, state, author, inform ):
     groups = [ 'lhcb_prmgr' ]
 
     for group in groups:
-      for man in getMemberMails( group ):
+      for man in _getMemberMails( group ):
         notification = NotificationClient()
         res = notification.sendMail( man, subj,
                                      body % group + footer + group + ppath,
@@ -151,7 +151,7 @@ def informPeople( rec, oldstate, state, author, inform ):
     groups = [ 'lhcb_tech' ]
 
     for group in groups:
-      for man in getMemberMails( group ):
+      for man in _getMemberMails( group ):
         notification = NotificationClient()
         res = notification.sendMail( man, subj,
                                      body % group + footer + group + ppath,
