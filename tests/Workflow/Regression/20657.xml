@@ -208,7 +208,7 @@ from LHCbDIRAC.Workflow.Modules.BookkeepingReport import BookkeepingReport
 <Parameter name="optionsLinePrev" type="string" linked_module="" linked_parameter="" in="True" out="False" description="PreviousOptionsLines"><value><![CDATA[None]]></value></Parameter>
 <Parameter name="numberOfEvents" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEvents"><value><![CDATA[-1]]></value></Parameter>
 <Parameter name="numberOfEventsInput" type="string" linked_module="" linked_parameter="" in="True" out="False" description="NumberOfEventsInput"><value><![CDATA[]]></value></Parameter>
-<Parameter name="listoutput" type="list" linked_module="" linked_parameter="" in="True" out="False" description="StepOutputList"><value><![CDATA[[{'outputDataType': 'RAW', 'outputDataSE': 'CERN-FREEZER', 'outputDataName': '@{STEP_ID}.'}]]]></value></Parameter>
+<Parameter name="listoutput" type="list" linked_module="" linked_parameter="" in="True" out="False" description="StepOutputList"><value><![CDATA[[{'outputDataType': 'RAW', 'outputDataSE': 'CERN-SWTEST', 'outputDataName': '@{STEP_ID}.'}]]]></value></Parameter>
 <Parameter name="extraPackages" type="string" linked_module="" linked_parameter="" in="True" out="False" description="ExtraPackages"><value><![CDATA[ProdConf]]></value></Parameter>
 <Parameter name="firstEventNumber" type="string" linked_module="" linked_parameter="" in="True" out="False" description="FirstEventNumber"><value><![CDATA[int]]></value></Parameter>
 <Parameter name="BKStepID" type="string" linked_module="" linked_parameter="" in="True" out="False" description="BKKStepID"><value><![CDATA[123897]]></value></Parameter>
