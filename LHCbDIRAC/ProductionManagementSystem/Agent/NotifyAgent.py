@@ -41,7 +41,7 @@ class NotifyAgent( AgentModule ):
 
     if not os.path.isfile(self.cacheFile):
       self.log.error( self.cacheFile + " does not exist." )
-      return
+      return S_OK
 
     with sqlite3.connect(self.cacheFile) as conn:
 
@@ -51,12 +51,12 @@ class NotifyAgent( AgentModule ):
       csS = PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
       if not csS:
         self.log.error( 'No ProductionRequest section in configuration' )
-        return
+        return S_OK
 
       fromAddress = gConfig.getValue( '%s/fromAddress' % csS, '' )
       if not fromAddress:
         self.log.error( 'No fromAddress is defined in CS path %s/fromAddress' % csS )
-        return
+        return S_OK
 
       result = conn.execute("SELECT DISTINCT thegroup from ProductionManagementCache;")
 
@@ -81,7 +81,7 @@ class NotifyAgent( AgentModule ):
         aggregated_body = ""
         html_elements = ""
 
-        if group[0] in [ 'lhcb_bk' ]:
+        if group[0] == 'lhcb_bk':
           header = "New Productions are requested and they have customized Simulation Conditions. " \
                    "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to register new Simulation conditions " \
                    "or to reject the requests. In case some other member of the group has already done that, " \
@@ -136,7 +136,7 @@ class NotifyAgent( AgentModule ):
             conn.execute("VACUUM;")
           else:
             self.log.error( "_inform_people: can't send email: %s" % res['Message'] )
-            return
+            return S_OK
 
     return S_OK()
 

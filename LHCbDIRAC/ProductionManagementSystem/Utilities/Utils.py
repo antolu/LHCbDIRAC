@@ -10,11 +10,6 @@ from DIRAC.ConfigurationSystem.Client import PathFinder
 
 __RCSID__ = "$Id$"
 
-if 'DIRAC' in os.environ:
-  cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ProductionManagement/cache.db' )
-else:
-  cacheFile = os.path.realpath('cache.db')
-
 def getMemberMails( group ):
   """ get members mails
   """
@@ -28,6 +23,11 @@ def getMemberMails( group ):
     return emails
 
 def _aggregate( reqId, reqType, reqName, SimCondition, ProPath, groups ):
+
+  if 'DIRAC' in os.environ:
+    cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ProductionManagement/cache.db' )
+  else:
+    cacheFile = os.path.realpath('cache.db')
 
   with sqlite3.connect(cacheFile) as conn:
 
