@@ -39,98 +39,104 @@ class NotifyAgent( AgentModule ):
 
   def execute( self ):
 
-    if os.path.isfile(self.cacheFile):
-      with sqlite3.connect(self.cacheFile) as conn:
+    if not os.path.isfile(self.cacheFile):
+      self.log.error( self.cacheFile + " does not exist." )
+      return
 
-        link = "https://lhcb-portal-dirac.cern.ch/DIRAC/s:%s/g:" % PathFinder.getDIRACSetup() + \
-               "/?view=tabs&theme=Grey&url_state=1|*LHCbDIRAC.ProductionRequestManager.classes.ProductionRequestManager:"
+    with sqlite3.connect(self.cacheFile) as conn:
 
-        csS = PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
-        if not csS:
-          self.log.error( 'No ProductionRequest section in configuration' )
+      link = "https://lhcb-portal-dirac.cern.ch/DIRAC/s:%s/g:" % PathFinder.getDIRACSetup() + \
+             "/?view=tabs&theme=Grey&url_state=1|*LHCbDIRAC.ProductionRequestManager.classes.ProductionRequestManager:"
 
-        fromAddress = gConfig.getValue( '%s/fromAddress' % csS, '' )
-        if not fromAddress:
-          self.log.error( 'No fromAddress is defined in CS path %s/fromAddress' % csS )
+      csS = PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
+      if not csS:
+        self.log.error( 'No ProductionRequest section in configuration' )
+        return
 
-        result = conn.execute("SELECT DISTINCT thegroup from ProductionManagementCache;")
+      fromAddress = gConfig.getValue( '%s/fromAddress' % csS, '' )
+      if not fromAddress:
+        self.log.error( 'No fromAddress is defined in CS path %s/fromAddress' % csS )
+        return
 
-        html_header = """\
-              <!DOCTYPE html>
-              <html>
-              <head>
-              <meta charset='UTF-8'>
-                <style>
-                  table{color:#333;font-family:Helvetica,Arial,sans-serif;min-width:700px;border-collapse:collapse;border-spacing:0}
-                  td,th{border:1px solid transparent;height:30px;transition:all .3s}th{background:#DFDFDF;font-weight:700}
-                  td{background:#FAFAFA;text-align:center}tr:nth-child(even) td{background:#F1F1F1}tr:nth-child(odd)
-                  td{background:#FEFEFE}tr td:hover{background:#666;color:#FFF}tr td.link:hover{background:inherit;}
-                  p{width: 700px;}
-                </style>
-              </head>
-              <body>
-              """
+      result = conn.execute("SELECT DISTINCT thegroup from ProductionManagementCache;")
 
-        for group in result:
+      html_header = """\
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <meta charset='UTF-8'>
+              <style>
+                table{color:#333;font-family:Helvetica,Arial,sans-serif;min-width:700px;border-collapse:collapse;border-spacing:0}
+                td,th{border:1px solid transparent;height:30px;transition:all .3s}th{background:#DFDFDF;font-weight:700}
+                td{background:#FAFAFA;text-align:center}tr:nth-child(even) td{background:#F1F1F1}tr:nth-child(odd)
+                td{background:#FEFEFE}tr td:hover{background:#666;color:#FFF}tr td.link:hover{background:inherit;}
+                p{width: 700px;}
+              </style>
+            </head>
+            <body>
+            """
 
-          aggregated_body = ""
-          html_elements = ""
+      for group in result:
 
-          if group[0] in [ 'lhcb_bk' ]:
-            header = "New Productions are requested and they have customized Simulation Conditions. " \
-                     "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to register new Simulation conditions " \
-                     "or to reject the requests. In case some other member of the group has already done that, " \
-                     "please ignore this mail.\n"
+        aggregated_body = ""
+        html_elements = ""
 
-          elif group[0] in [ 'lhcb_ppg', 'lhcb_tech' ]:
-            header = "New Productions are requested. As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to sign or " \
-                     "to reject it. In case some other member of the group has already done that, please ignore this mail.\n"
+        if group[0] in [ 'lhcb_bk' ]:
+          header = "New Productions are requested and they have customized Simulation Conditions. " \
+                   "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to register new Simulation conditions " \
+                   "or to reject the requests. In case some other member of the group has already done that, " \
+                   "please ignore this mail.\n"
+
+        elif group[0] in [ 'lhcb_ppg', 'lhcb_tech' ]:
+          header = "New Productions are requested. As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to sign or " \
+                   "to reject it. In case some other member of the group has already done that, please ignore this mail.\n"
+        else:
+          header = "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked to review the below requests.\n"
+
+        cursor = conn.execute("SELECT reqId, reqType, reqName, SimCondition, ProPath from ProductionManagementCache "
+                              "WHERE thegroup = ?", (group[0],) )
+
+        for reqId, reqType, reqName, SimCondition, ProPath in cursor:
+
+          html_elements += "<tr>" + \
+                           "<td>" + reqId + "</td>" + \
+                           "<td>" + reqName + "</td>" + \
+                           "<td>" + reqType + "</td>" + \
+                           "<td>" + SimCondition + "</td>" + \
+                           "<td>" + ProPath + "</td>" + \
+                           "<td class='link'><a href='" + link + "' target='_blank'> Link </a></td>" + \
+                           "</tr>"
+
+        html_body = """\
+          <p>{header}</p>
+          <table>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Conditions</th>
+                <th>Processing pass</th>
+                <th>Link</th>
+            </tr>
+            {html_elements}
+          </table>
+        </body>
+        </html>
+        """.format(header=header, html_elements=html_elements)
+
+        aggregated_body = html_header + html_body
+
+        for man in getMemberMails( group[0] ):
+
+          notification = NotificationClient()
+          res = notification.sendMail( man, "Notifications for production requests", aggregated_body, fromAddress, True )
+
+          if res['OK']:
+            conn.execute("DELETE FROM ProductionManagementCache;")
+            conn.execute("VACUUM;")
+            return
           else:
-            header = "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked to review the below requests.\n"
-
-          cursor = conn.execute("SELECT reqId, reqType, reqName, SimCondition, ProPath from ProductionManagementCache "
-                                "WHERE thegroup = ?", (group[0],) )
-
-          for reqId, reqType, reqName, SimCondition, ProPath in cursor:
-
-            html_elements += "<tr>" + \
-                             "<td>" + reqId + "</td>" + \
-                             "<td>" + reqName + "</td>" + \
-                             "<td>" + reqType + "</td>" + \
-                             "<td>" + SimCondition + "</td>" + \
-                             "<td>" + ProPath + "</td>" + \
-                             "<td class='link'><a href='" + link + "' target='_blank'> Link </a></td>" + \
-                             "</tr>"
-
-          html_body = """\
-            <p>{header}</p>
-            <table>
-              <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>Conditions</th>
-                  <th>Processing pass</th>
-                  <th>Link</th>
-              </tr>
-              {html_elements}
-            </table>
-          </body>
-          </html>
-          """.format(header=header, html_elements=html_elements)
-
-          aggregated_body = html_header + html_body
-
-          for man in getMemberMails( group[0] ):
-
-            notification = NotificationClient()
-            res = notification.sendMail( man, "Notifications for production requests", aggregated_body, fromAddress, True )
-
-            if not res['OK']:
-              self.log.error( "_inform_people: can't send email: %s" % res['Message'] )
-
-        conn.execute("DELETE FROM ProductionManagementCache;")
-        conn.execute("VACUUM;")
+            self.log.error( "_inform_people: can't send email: %s" % res['Message'] )
 
     return S_OK()
 
