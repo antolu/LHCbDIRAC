@@ -55,8 +55,8 @@ class NotifyAgent( AgentModule ):
 
       fromAddress = gConfig.getValue( '%s/fromAddress' % csS, '' )
       if not fromAddress:
-        self.log.error( 'No fromAddress is defined in CS path %s/fromAddress' % csS )
-        return S_OK
+        self.log.info( 'No fromAddress is defined, a default value will be used instead' )
+        fromAddress = 'vladimir.romanovsky@cern.ch'
 
       result = conn.execute("SELECT DISTINCT thegroup from ProductionManagementCache;")
 
