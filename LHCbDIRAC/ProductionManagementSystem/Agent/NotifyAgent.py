@@ -134,9 +134,9 @@ class NotifyAgent( AgentModule ):
           if res['OK']:
             conn.execute("DELETE FROM ProductionManagementCache;")
             conn.execute("VACUUM;")
-            return
           else:
             self.log.error( "_inform_people: can't send email: %s" % res['Message'] )
+            return
 
     return S_OK()
 
