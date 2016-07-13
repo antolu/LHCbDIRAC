@@ -25,6 +25,8 @@
 """
 
 import time
+import os
+import sqlite3
 
 from DIRAC                                                      import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base.AgentModule                                import AgentModule
@@ -34,9 +36,9 @@ from DIRAC.Interfaces.API.Dirac                                 import Dirac
 from DIRAC.FrameworkSystem.Client.NotificationClient            import NotificationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations        import Operations
 
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
-from LHCbDIRAC.Interfaces.API.DiracProduction                    import DiracProduction
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient        import BookkeepingClient
+from LHCbDIRAC.LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
+from LHCbDIRAC.LHCbDIRAC.Interfaces.API.DiracProduction                    import DiracProduction
+from LHCbDIRAC.LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient        import BookkeepingClient
 
 #############################################################################
 # The following is used for StandAlone debugging only (outside Agent)
@@ -409,6 +411,11 @@ class ProductionStatusAgent( AgentModule ):
     self.allKnownStates = ( 'RemovedFiles', 'RemovingFiles', 'ValidatedOutput', 'ValidatingInput', 'Testing', 'Active', 'Idle' )
 
     self.notify = True
+
+    if 'DIRAC' in os.environ:
+      self.cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ProductionManagement/cache.db' )
+    else:
+      self.cacheFile = os.path.realpath('cache.db')
 
     # For processing transformations, it can happened that there are some Unused files
     # with which to tasks can be created. The number of such files can be different depending
@@ -813,19 +820,31 @@ class ProductionStatusAgent( AgentModule ):
       return
 
     if self.notify:
-      notify = NotificationClient()
       subject = 'Transofrmation Status Updates ( %s )' % ( time.asctime() )
       msg = ['Transformations updated this cycle:\n']
       for tID, val in updatedT.iteritems():
         msg.append( 'Production %s: %s => %s' % ( tID, val['from'], val['to'] ) )
       msg.append( '\nProduction Requests updated to Done status this cycle:\n' )
       msg.append( ', '.join( [str( i ) for i in updatedPr] ) )
-      result = notify.sendMail( 'vladimir.romanovsky@cern.ch', subject, '\n'.join( msg ),
-                                'vladimir.romanovsky@cern.ch', localAttempt = False )
-      if not result['OK']:
-        self.log.error( "Could not send mail", result['Message'] )
-      else:
-        self.log.info( 'Mail summary sent to production manager' )
+
+      with sqlite3.connect(self.cacheFile) as conn:
+
+        try:
+          conn.execute('''CREATE TABLE IF NOT EXISTS ProductionStatusAgentCache(
+                        subject VARCHAR(64) NOT NULL DEFAULT "",
+                        msg VARCHAR(64) NOT NULL DEFAULT ""
+                       );''')
+
+        except sqlite3.OperationalError:
+          self.log.error( "Could not queue mail" )
+
+        conn.execute("INSERT INTO ProductionStatusAgentCache (subject, msg)"
+                     " VALUES (?, ?)", (subject, '\n'.join( msg ))
+                    )
+
+        conn.commit()
+
+        self.log.info( 'Mail summary queued for sending' )
 
   def __updateProductionRequestStatus( self, prID, status, updatedPr ):
     """ This method updates the production request status.

@@ -2,6 +2,10 @@
   This agent reads a cache file ( cache.db ) which contains the aggregated information
   of what happened to each production request. After reading the cache file
   ( by default every 30 minutes ) it sends an email for every site and then clears it.
+
+  Please note that this agent is a hybrid agent that sends aggregated emails for both
+  LHCbDIRAC.ProductionManagementSystem.Utilities.Utils.informPeople and
+  LHCbDIRAC.ProductionManagementSystem.Agent.ProductionStatusAgent._mailProdManager
 '''
 
 import os
@@ -44,6 +48,10 @@ class NotifyAgent( AgentModule ):
       return S_OK
 
     with sqlite3.connect(self.cacheFile) as conn:
+
+      # *******************************************************
+      # This is for the ProductionManagementSystem's Utilities
+      # *******************************************************
 
       link = "https://lhcb-portal-dirac.cern.ch/DIRAC/s:%s/g:" % PathFinder.getDIRACSetup() + \
              "/?view=tabs&theme=Grey&url_state=1|*LHCbDIRAC.ProductionRequestManager.classes.ProductionRequestManager:"
@@ -128,8 +136,7 @@ class NotifyAgent( AgentModule ):
 
         for man in _getMemberMails( group[0] ):
 
-          notification = NotificationClient()
-          res = notification.sendMail( man, "Notifications for production requests", aggregated_body, fromAddress, True )
+          res = self.notification.sendMail( man, "Notifications for production requests", aggregated_body, fromAddress, True )
 
           if res['OK']:
             conn.execute("DELETE FROM ProductionManagementCache;")
@@ -137,6 +144,27 @@ class NotifyAgent( AgentModule ):
           else:
             self.log.error( "_inform_people: can't send email: %s" % res['Message'] )
             return S_OK
+
+      # **************************************
+      # This is for the ProductionStatusAgent
+      # **************************************
+
+      aggregated_body = ""
+
+      cursor = conn.execute("SELECT subject, msg from ProductionStatusAgentCache;")
+
+      for subject, msg in cursor:
+         aggregated_body += subject[0] + "\n" + msg[0] + "------------------------------------------\n"
+
+      res = self.notification.sendMail( 'vladimir.romanovsky@cern.ch', "Transofrmation Status Updates", aggregated_body,
+                             'vladimir.romanovsky@cern.ch', localAttempt = False )
+
+      if res['OK']:
+        conn.execute("DELETE FROM ProductionStatusAgentCache;")
+        conn.execute("VACUUM;")
+      else:
+        self.log.error( "Can't send email: %s" % res['Message'] )
+        return S_OK
 
     return S_OK()
 
