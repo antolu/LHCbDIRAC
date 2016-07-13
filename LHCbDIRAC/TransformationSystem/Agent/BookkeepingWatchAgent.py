@@ -5,8 +5,6 @@
     A pickle file is used as a cache.
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import time
 import datetime
@@ -20,10 +18,13 @@ from DIRAC.Core.Utilities.ThreadSafe                                      import
 from DIRAC.Core.Utilities.List                                            import breakListIntoChunks
 from DIRAC.FrameworkSystem.Client.MonitoringClient                        import gMonitor
 from DIRAC.TransformationSystem.Agent.TransformationAgentsUtilities       import TransformationAgentsUtilities
+from DIRAC.Core.Utilities.List                                            import breakListIntoChunks
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 
 AGENT_NAME = 'Transformation/BookkeepingWatchAgent'
+
+__RCSID__ = "$Id$"
 
 gSynchro = Synchronizer()
 
@@ -40,18 +41,17 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.bkQueriesToBeChecked = Queue.Queue()
     self.bkQueriesInCheck = []
 
-    self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', 86400 )
-    self.debug = self.am_getOption( 'verbose', False )
+    self.fullUpdatePeriod = 86400
+    self.debug = False
 
     self.transInThread = {}
 
-    self.pickleFile = os.path.join( self.am_getWorkDirectory(), "BookkeepingWatchAgent.pkl" )
-    self.chunkSize = self.am_getOption( 'maxFilesPerChunk', 1000 )
+    self.pickleFile = 'BookkeepingWatchAgent.pkl'
+    self.chunkSize = 1000
 
-    self.pluginsWithNoRunInfo = self.am_getOption( 'PluginsWithNoRunInfo',
-                                                   ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset',
-                                                    'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE',
-                                                    'BySize', 'Standard' ) )
+    self.pluginsWithNoRunInfo = ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset',
+                                  'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE',
+                                  'BySize', 'Standard' )
 
     self.timeLog = {}
     self.fullTimeLog = {}
@@ -64,6 +64,15 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     """ Make the necessary initializations.
         The ThreadPool is created here, the _execute() method is what each thread will execute.
     """
+
+    self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', self.fullUpdatePeriod)
+    self.debug = self.am_getOption( 'verbose', self.debug )
+
+    self.pickleFile = os.path.join( self.am_getWorkDirectory(), self.pickleFile )
+    self.chunkSize = self.am_getOption( 'maxFilesPerChunk', self.chunkSize )
+
+    self.pluginsWithNoRunInfo = self.am_getOption( 'PluginsWithNoRunInfo', self.pluginsWithNoRunInfo )
+
 
     self.transClient = TransformationClient()
     self.bkClient = BookkeepingClient()
@@ -207,14 +216,14 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
             # There is no need to add the run information for a removal transformation
             if addedLfns and transType != 'Removal' and transPlugin not in self.pluginsWithNoRunInfo:
               self._logInfo( "Added %d files to transformation, now including run information"
-                              % len( addedLfns ) , transID = transID )
+                             % len( addedLfns ) , transID = transID )
               res = self.bkClient.getFileMetadata( addedLfns )
               self._logVerbose( "BK query time for metadata: %.2f seconds." % ( time.time() - start ),
-                                 transID = transID )
+                                transID = transID )
               if not res['OK']:
                 self._logError( "Failed to get BK metadata for %d files" % len( addedLfns ),
-                                 res['Message'],
-                                 transID = transID )
+                                res['Message'],
+                                transID = transID )
               else:
                 for lfn, metadata in res['Value']['Successful'].iteritems():
                   runID = metadata.get( 'RunNumber', None )
@@ -236,7 +245,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
               self._logError( "Failure adding runs metadata: %s" % e, "", "__addRunsMetadata", transID )
               continue
 
-      except Exception as x:
+      except Exception as x: #pylint: disable=broad-except
         gLogger.exception( '[%s] %s._execute' % ( str( transID ), AGENT_NAME ), lException = x )
       finally:
         self._logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID = transID )

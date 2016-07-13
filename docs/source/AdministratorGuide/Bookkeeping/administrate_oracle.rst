@@ -5,7 +5,7 @@ LHCbBookkeeping database administration
 This document contains all the information needed to manage the Bookkeeping Oracle 
 database.
 
-Logon to the database
+Login to the database
 =====================
 
 We are using 3 database accounts:
@@ -174,3 +174,73 @@ In that example if the consistent gets and physical reads are very high for exam
     - TABLE ACCESS FULL is not good. You have to make sure that the query uses an index. This is not always true.
     -parallel execution you have to make sure if the query is running parallel, the processes does not send to much data between each other. If you run a query parallel and the consistent gets is very high then you have a problem. Contact to oracle IT/DB if you do not know what to do...
     -CARTESIAN join: If you see that word in the execution plan, the query is wrong.
+
+
+=================================
+Steps in the Bookkeeping database
+=================================
+
+Steps are used to process/produce data. The steps are used by the Production Management system and work flow. The steps are stored in the steps table which has the following columns::
+   STEPID
+   STEPNAME
+   APPLICATIONNAME
+   APPLICATIONVERSION
+   OPTIONFILES
+   DDDB
+   CONDDB
+   EXTRAPACKAGES
+   INSERTTIMESTAMPS
+   VISIBLE
+   INPUTFILETYPES
+   OUTPUTFILETYPES
+   PROCESSINGPASS
+   USABLE
+   DQTAG
+   OPTIONSFORMAT
+   ISMULTICORE
+   SYSTEMCONFIG
+   MCTCK 
+
+The steps table has 3 triggers::
+   STEP_INSERT: This trigger is used to replace NULL, None to an empty string.
+   steps_before_insert: It checks that the processing pass contains a '/'.
+   step_update: The steps which are already used can not be modified.
+   
+Modifying steps
+===============
+
+We may want to modify an already used steps. A step can be modified if the trigger is disabled. The following commands has to be performed in order to modify a step:
+   alter trigger step_update disable;
+   update steps set stepname='Reco16Smog for 2015 pA', processingpass='Reco16Smog' where stepid=129609; an alternative is to used the StepManager page
+   alter trigger step_update enable;
+   
+==================================
+Processing pass in the Bookkeeping
+==================================
+The processing pass is a collection of steps. The processing pass is stored in the processing table:
+   ID
+   ParentID
+   Name
+
+The following example illustrates how to create a step:
+   select max(id)+1 from processing;
+   select * from processing where name='Real Data';
+   insert into processing(id,parentid, name)values(1915,12,'Reco16Smog');
+In this example we have created the following processing pass: /Real Data/Reco16Smog
+
+The following query can be used to check the step:
+
+SELECT * FROM (SELECT distinct SYS_CONNECT_BY_PATH(name, '/') Path, id ID 
+      FROM processing v   START WITH id in (select distinct id from processing where name='Real Data')  
+CONNECT BY NOCYCLE PRIOR  id=parentid) v   where v.path='/Real Data/Reco16Smog';
+
+If we know the processing id, we can use the following query to found out the processing pass:
+
+SELECT v.id,v.path FROM (SELECT distinct  LEVEL-1 Pathlen, SYS_CONNECT_BY_PATH(name, '/') Path, id
+   FROM processing
+   WHERE LEVEL > 0 and id=1915
+   CONNECT BY PRIOR id=parentid order by Pathlen desc) v where rownum<=1;
+   
+
+   
+ 

@@ -140,7 +140,7 @@ class ModuleBase( object ):
     if production_id:
       self.production_id = production_id
     else:
-      self.production_id = self.workflow_commons['PRODUCTION_ID']
+      self.production_id = self.workflow_commons['PRODUCTION_ID'] #This is a string, like '00051753'
 
     if prod_job_id:
       self.prod_job_id = prod_job_id
@@ -168,7 +168,7 @@ class ModuleBase( object ):
     if step_number:
       self.step_number = step_number
     else:
-      self.step_number = self.STEP_NUMBER
+      self.step_number = self.STEP_NUMBER #pylint: disable=no-member
 
     if step_id:
       self.step_id = step_id

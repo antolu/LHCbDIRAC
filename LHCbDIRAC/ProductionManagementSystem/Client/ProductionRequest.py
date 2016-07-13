@@ -7,8 +7,9 @@ import copy
 from DIRAC import gLogger, S_OK
 
 from DIRAC.Core.DISET.RPCClient                               import RPCClient
-from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
+from DIRAC.Core.Utilities.DAG                                 import DAG
 from DIRAC.Core.Workflow.Workflow                             import fromXMLString
+from DIRAC.ConfigurationSystem.Client.Helpers.Operations      import Operations
 
 from LHCbDIRAC.Interfaces.API.DiracProduction                     import DiracProduction
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient         import BookkeepingClient
@@ -192,6 +193,13 @@ class ProductionRequest( object ):
         for step in stepsListDict:
           if step['prodStepID'] == stepID:
             stepsInProd.append( stepsListDict.pop( stepsListDict.index( step ) ) )
+      ##### NOT READY (alternative to previous 5 lines)
+      ## build the DAG of steps in a production
+      # stepsInProdDAG = self._getStepsInProdDAG( prodDict, stepsListDict )
+      ## Here, for today it is just convert to a list
+      ## TODO: fix this in order to properly use DAGs (now it's only sequential)
+      ## FIXME: using getIndexNodes we can't assure the order is respected
+      #stepsInProd = stepsInProdDAG.getIndexNodes()
 
       if prodDict['previousProd'] is not None:
         fromProd = prodsLaunched[prodDict['previousProd'] - 1 ]
@@ -245,12 +253,39 @@ class ProductionRequest( object ):
 
   #############################################################################
 
+  def _getStepsInProdDAG( self, prodDict, stepsListDict, stepsOrder = 'sequential' ):
+    """ Builds the DAG of steps in a production
+
+        Args:
+          prodDict (dict): dictionary representing one production
+          stepsListDict (list): list of steps (which are dictionaries) that should be in the production
+
+        Returns:
+          stepsInProd (DAG)
+    """
+    stepsInProd = DAG()
+
+    inserted = None
+    for stepID in prodDict['stepsInProd-ProdName']:
+      for step in stepsListDict:
+        if step['prodStepID'] == stepID:
+          ind = stepsListDict.index( step )
+          step = stepsListDict.pop( ind )
+          stepsInProd.addNode( step )
+          if inserted and stepsOrder == 'sequential':
+            stepsInProd.addEdge( inserted, step )
+          inserted = step
+
+    return stepsInProd
+
+
+
   def _mcSpecialCase( self, prod, prodDict ):
     """ Treating the MC special case for putting MC productions in status "Testing"
     """
 
     # save the original xml before it is edited for testing
-    prod._lastParameters()
+    prod._lastParameters() #pylint: disable=protected-access
 
     # launchProduction adds extra parameters, as we 'hot swap' the xml, we need to get these parameters for the un-edited version
     originalProcessingType = prod.prodGroup
@@ -308,7 +343,7 @@ class ProductionRequest( object ):
     fileTypesOut = prod.LHCbJob.workflow.step_instances[0].findParameter( 'listoutput' ).getValue()[0]['outputDataType']
     fileTypesOut = fileTypesOut.split( ', ' )
     fileTypesOut.append( 'GAUSSHIST' )
-    outputFilesList = prod._constructOutputFilesList( fileTypesOut )
+    outputFilesList = prod._constructOutputFilesList( fileTypesOut ) #pylint: disable=protected-access
     prod.LHCbJob.workflow.step_instances[0].setValue( 'listoutput', outputFilesList )
 
     # increase the priority to 10
@@ -579,7 +614,16 @@ class ProductionRequest( object ):
                         multicore = 'True',
                         ancestorDepth = 0 ):
     """ Wrapper around Production API to build a production, given the needed parameters
-        Returns a production object
+
+        Args:
+          prodType (str): production type (e.g. 'DataStripping')
+          stepsInProd (list): list of steps in the production
+          outputSE (dict): dictionary that holds relation between file type and output SE
+          priority (int): production priority
+          cpu (int): CPU time, in HS06s for jobs in this production
+
+        Returns:
+          prod: a Production object
     """
     prod = Production()
 
@@ -645,6 +689,30 @@ class ProductionRequest( object ):
 
     self.logger.verbose( 'Launching with BK selection %s' % prod.inputBKSelection )
 
+    prod = self._addStepsToProd( prod, stepsInProd, removeInputData = removeInputData )
+
+    for ft, oSE in outputSE.items():
+      prod.outputSEs.setdefault( ft, oSE )
+
+    prod.LHCbJob.setDIRACPlatform()
+
+    return prod
+
+  #############################################################################
+
+  def _addStepsToProd( self, prod, stepsInProd, stepsSequence = 'sequential', removeInputData = False ):
+    """ Given a Production object, add requested steps (application and finalization)
+
+    Args:
+      prod (Production): the Production object to which the steps are added
+      stepsInProd (DAG): DAG of steps in a production
+      stepsSequence (str or dict): applications steps sequence
+      removeInputData (bool): flag that indicates if the input data should be removed (for the finalization step)
+
+    Returns:
+      prod with steps added
+
+    """
     # Adding the application steps
     firstStep = stepsInProd.pop( 0 )
     stepName = prod.addApplicationStep( stepDict = firstStep,
@@ -666,14 +734,9 @@ class ProductionRequest( object ):
     else:
       prod.addFinalizationStep()
 
-    for ft, oSE in outputSE.items():
-      prod.outputSEs.setdefault( ft, oSE )
-
-    prod.LHCbJob.setDIRACPlatform()
-
     return prod
 
-  #############################################################################
+
 
   def _getBKKQuery( self, mode = 'full', fileType = None, previousProdID = 0 ):
     """ simply creates the bkk query dictionary

@@ -17,6 +17,8 @@ from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, parseRuns, BadRu
 
 bkClient = BookkeepingClient()
 
+__RCSID__ = "$Id$"
+
 #==================================================================================
 
 def executeFileMetadata( dmScript ):
@@ -76,12 +78,12 @@ def executeFileMetadata( dmScript ):
       if not gotReplica:
         gotReplica = 'No'
       gLogger.notice( '%s %s %s %s %s %s %s' % ( lfn.ljust( lenName ),
-                                                  str( size ).ljust( 10 ),
-                                                  guid.ljust( lenGUID ),
-                                                  gotReplica.ljust( 8 ),
-                                                  dq.ljust( 12 ),
-                                                  str( run ).ljust( 10 ),
-                                                  str( evtStat ).ljust( 10 ) ) )
+                                                 str( size ).ljust( 10 ),
+                                                 guid.ljust( lenGUID ),
+                                                 gotReplica.ljust( 8 ),
+                                                 dq.ljust( 12 ),
+                                                 str( run ).ljust( 10 ),
+                                                 str( evtStat ).ljust( 10 ) ) )
   failed = res['Value'].get( 'Failed', [] )
   if failed:
     gLogger.notice( '\n' )
@@ -98,7 +100,8 @@ def __buildPath( bkDict ):
   Build a BK path from the BK dictionary
   """
   return os.path.join( '/' + bkDict['ConfigName'], bkDict['ConfigVersion'], bkDict['ConditionDescription'],
-                  bkDict['ProcessingPass'][1:].replace( 'Real Data', 'RealData' ), str( bkDict['EventType'] ), bkDict['FileType'] ) + ( ' (Invisible)' if bkDict['VisibilityFlag'] == 'N' else '' )
+                       bkDict['ProcessingPass'][1:].replace( 'Real Data', 'RealData' ), str( bkDict['EventType'] ),
+                       bkDict['FileType'] ) + ( ' (Invisible)' if bkDict['VisibilityFlag'] == 'N' else '' )
 
 def executeFilePath( dmScript ):
   """
@@ -801,7 +804,7 @@ def _scaleLumi( lumi ):
   """
   return _scaleValue( lumi, ( '/microBarn', '/nb', '/pb', '/fb', '/ab' ) )
 
-def _scaleSize( size ):
+def scaleSize( size ):
   """
   Return size in appropriate unit
   """
@@ -1015,7 +1018,7 @@ def executeGetStats( dmScript ):
       elif name == 'FileSize':
         size = value
         sizePerEvt = '(%.1f kB per evt)' % ( size / nevts / 1000. ) if nevts and nDatasets == 1 else ''
-        size, sizeUnit = _scaleSize( size )
+        size, sizeUnit = scaleSize( size )
         gLogger.notice( '%s: %.3f %s %s' % ( 'Total size'.ljust( tab ), size, sizeUnit, sizePerEvt ) )
       elif name == 'Luminosity':
         lumi = value / nDatasets
@@ -1063,7 +1066,7 @@ def executeGetStats( dmScript ):
             fullDuration += runDuration
             lumi = info['TotalLuminosity']
             if abs( lumi - runList[run][0] / nDatasets ) > 1:
-              gLogger.notice( 'Run and files luminosity mismatch (ignored): run %d, runLumi %d, filesLumi %d' % ( run, 'runLumi', lumi, 'filesLumi', runList[run][0] / nDatasets ) )
+              gLogger.notice( 'Run and files luminosity mismatch (ignored): run %d, runLumi %d, filesLumi %d' % ( run, lumi, int( runList[run][0] / nDatasets ) ) )
             else:
               totalLumi += lumi
         if fullDuration:
@@ -1102,7 +1105,10 @@ def executeRunTCK():
   Get the TCK for a range of runs, and then prints each TCK with run ranges
   """
   runsDict = {}
+  force = False
   for switch in Script.getUnprocessedSwitches():
+    if switch[0] == 'Force':
+      force = True
     if switch[0] == 'Runs':
       # Add a fake run number to force parseRuns to return a list
       try:
@@ -1123,7 +1129,7 @@ def executeRunTCK():
     if res['OK']:
       tck = res['Value'].get( 'Tck' )
       streams = res['Value'].get( 'Stream', [] )
-      if 90000000 in streams and tck:
+      if ( 90000000 in streams or force ) and tck:
         runDict[run] = tck
   progressBar.endLoop()
   tckList = []

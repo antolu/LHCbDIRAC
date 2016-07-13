@@ -267,20 +267,23 @@ class StrippSuccess( ProductionJobTestCase ):
 #     for found, expected in getOutput( 'Stripp' ):
 #       self.assertEqual( found, expected )
 
-class MergeSuccess( ProductionJobTestCase ):
+class MCMergeSuccess( ProductionJobTestCase ):
   def test_Integration_Production( self ):
-    lfns = ['/lhcb/MC/Dev/MCFILTER.LDST/00040719/0000/00040719_00000537_4.MCFilter.ldst',
-            '/lhcb/MC/Dev/MCFILTER.LDST/00040719/0000/00040719_00000068_4.MCFilter.ldst']
-    # From request 24183
-    stepsInProd = [{'StepId': 126966, 'StepName': 'Merging', 'ApplicationName': 'LHCb', 'ApplicationVersion': 'v38r1',
-                    'ExtraPackages': 'AppConfig.v3r202', 'ProcessingPass': 'Merge15', 'Visible': 'N', 'Usable': 'Yes',
-                    'DDDB': '', 'CONDDB': '', 'DQTag': '', 'OptionsFormat': '',
-                    'OptionFiles': '$APPCONFIGOPTS/Merging/CopyDST.py', 'mcTCK': '', 'ExtraOptions': '',
-                    'isMulticore': 'N', 'SystemConfig': '',
-                    'fileTypesIn':['MCFILTER.LDST'],
-                    'fileTypesOut':['MCFILTER.LDST']}]
 
-    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'MCFILTER.LDST': 'Tier1_MC-DST'}, 0, 100,
+    lfns = ['/lhcb/MC/2012/BDSTH.STRIP.DST/00051752/0000/00051752_00001269_1.bdsth.Strip.dst',
+	    '/lhcb/MC/2012/BDSTH.STRIP.DST/00051752/0000/00051752_00001263_1.bdsth.Strip.dst']
+    # From request 31139
+    stepsInProd = [{'StepId': 129267, 'StepName': 'Stripping24NoPrescalingFlagged', 'ApplicationName': 'DaVinci', 'ApplicationVersion': 'v38r1p1',
+		    'ExtraPackages': 'AppConfig.v3r262', 'ProcessingPass': 'Stripping24NoPrescalingFlagged', 'Visible': 'N', 'Usable': 'Yes',
+		    'DDDB': 'dddb-20150724', 'CONDDB': ' sim-20160606-vc-md100', 'DQTag': '', 'OptionsFormat': 'merge',
+		    'OptionFiles': ' $APPCONFIGOPTS/DaVinci/DV-Stripping24-Stripping-MC-NoPrescaling.py;$APPCONFIGOPTS/DaVinci/DataType-2015.py;$APPCONFIGOPTS/DaVinci/InputType-DST.py',
+		    'mcTCK': '', 'ExtraOptions': '',
+		    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc48-opt',
+		    'fileTypesIn':['DST'],
+		    'fileTypesOut':['ALLSTREAMS.DST']}]
+
+
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'ALLSTREAMS.DST': 'Tier1_MC-DST'}, 0, 100,
                                      inputDataPolicy = 'protocol', inputDataList = lfns )
     prod.LHCbJob.setInputSandbox( find_all( 'pilot.cfg', '.' )[0] )
     prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
@@ -393,7 +396,7 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccess ) )
   #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RecoSuccessMultiProcessor ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StrippSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCMergeSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SwimmingSuccess ) )

@@ -147,7 +147,7 @@ class ProductionRequestSIM(object):
     return summary['rqTotal']
 
 
-class TransformationAndBookkeepingSIM():
+class TransformationAndBookkeepingSIM( object ):
   """ Simulate TransformationClient and Bookkeeping client
   """
   def __init__( self, *args, **kwargs ):
@@ -267,7 +267,7 @@ class TransformationAndBookkeepingSIM():
       isModified = self.__extendSimulation( tID, prClient )
     elif self.t[tID]['status'] == 'RemovingFiles':
       # Emitate cleaning Agent
-      self.t[tNextID]['filesStat']['Unused'] = 0;
+      self.t[tNextID]['filesStat']['Unused'] = 0
       self.t[tID]['status'] = 'RemovedFiles'
       isModified = True
 
@@ -424,6 +424,11 @@ class ProductionStatusAgent( AgentModule ):
     # pending states and the number of Unused files was not changed last cyclesTillIdle times
     self.cyclesTillIdle = 1
     self.filesUnused = {}  # <tID: { 'Number': x, 'NotChanged': n }
+
+    self.prMasters = {}  # [ prID: [<subrequests> ...] ]
+    self.prSummary = {}
+    self.prProds = {}  # <prID>, map produciton to known request, from _getProductionRequestsProgress
+    self.notPrTrans = {}  # transformation without PR, from _getTransformationsState
 
   #############################################################################
   def initialize( self ):
@@ -742,7 +747,7 @@ class ProductionStatusAgent( AgentModule ):
     toUpdate = []
     for tID, prID in self.prProds.iteritems():
       tInfo = self.prSummary[prID]['prods'][tID]
-      result = self.bkClient.getProductionProducedEvents( tID )
+      result = self.__getProductionProducedEvents( tID )
       if result['OK']:
         nEvents = result['Value']
         if nEvents and nEvents != tInfo['Events'] :
@@ -767,11 +772,11 @@ class ProductionStatusAgent( AgentModule ):
     return S_OK()
 
   @timeThis
-  def __getProductionProcessedEvents( self, tID ):
+  def __getProductionProducedEvents( self, tID ):
     """ dev function - separate only for timing purposes
     """
     self.log.debug( "Getting BK production progress", "Transformation ID = %d" % tID )
-    return BookkeepingClient().getProductionProcessedEvents( tID )
+    return BookkeepingClient().getProductionProducedEvents( tID )
 
 
   def _cleanFilesUnused( self ):
@@ -816,11 +821,11 @@ class ProductionStatusAgent( AgentModule ):
         manually extended in some cases.
     """
     if not updatedT and not updatedPr:
-      self.log.info( 'No changes this cycle, mail will not be sent' )
+      self.log.verbose( 'No changes this cycle, mail will not be sent' )
       return
 
     if self.notify:
-      subject = 'Transofrmation Status Updates ( %s )' % ( time.asctime() )
+      subject = 'Transformation Status Updates ( %s )' % ( time.asctime() )
       msg = ['Transformations updated this cycle:\n']
       for tID, val in updatedT.iteritems():
         msg.append( 'Production %s: %s => %s' % ( tID, val['from'], val['to'] ) )
@@ -906,7 +911,7 @@ class ProductionStatusAgent( AgentModule ):
     for _tID, tInfo in summary['prods'].iteritems():
       if tInfo['Used']:
         bkTotal += tInfo['Events']
-    return ( True if bkTotal >= summary['prTotal'] else False )
+    return True if bkTotal >= summary['prTotal'] else False
 
   def _producersAreIdle( self, summary ):
     """ Return True in case all producers (not 'Used') transformations are Idle, Finished or not exist
@@ -1000,7 +1005,7 @@ class ProductionStatusAgent( AgentModule ):
                 #   We wait till mergers finish the job
             # else
             #  we do not know what to do with that (yet)
-          # else
+	           # else
           # 'Idle' && isIdle() (or unknown) && !isDone is not interesting combination
         elif tInfo['state'] == 'RemovedFiles':
           self.__updateTransformationStatus( tID, 'RemovedFiles', 'Completed', updatedT )

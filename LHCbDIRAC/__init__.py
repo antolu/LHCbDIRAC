@@ -1,3 +1,14 @@
+"""
+   LHCbDIRAC - LHCb extension of DIRAC
+
+   References:
+    DIRAC: https://github.com/DIRACGrid/DIRAC
+    LHCbDIRAC: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC
+
+   The distributed data production and analysis system of LHCb.
+"""
+
+
 from pkgutil import extend_path
 __path__ = extend_path( __path__, __name__ )
 
@@ -6,7 +17,7 @@ __path__ = extend_path( __path__, __name__ )
 majorVersion = 8
 minorVersion = 3
 patchLevel = 0
-preVersion = 15
+preVersion = 22
 
 version = "v%sr%s" % ( majorVersion, minorVersion )
 buildVersion = "v%dr%d" % ( majorVersion, minorVersion )

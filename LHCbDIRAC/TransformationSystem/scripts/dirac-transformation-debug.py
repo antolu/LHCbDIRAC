@@ -6,7 +6,9 @@ It is possible to do minor fixes to those files, using options
 
 __RCSID__ = "$Id$"
 
-import sys, os
+import sys
+import os
+from DIRAC.Core.Utilities.File import mkDir
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
 
 def __getFilesForRun( transID, runID = None, status = None, lfnList = None, seList = None, taskList = None ):
@@ -725,8 +727,7 @@ def __getSandbox( job, logFile, debug = False ):
   import fnmatch
   sbClient = SandboxStoreClient()
   tmpDir = os.path.join( os.environ.get( "TMPDIR", "/tmp" ), "sandBoxes/" )
-  if not os.path.exists( tmpDir ):
-    os.mkdir( tmpDir )
+  mkDir( tmpDir )
   f = None
   files = []
   try:
@@ -911,7 +912,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
     print "\nSummary of failures due to: Application Exited with non-zero status"
     lfnDict = {}
     partial = 'Partial (last event '
-    for ( lfn, reason ), jobs in failedLfns.iteritems():
+    for ( lfn, reason ), jobs in failedLfns.items():
       if partial not in reason:
         continue
       failedLfns.pop( ( lfn, reason ) )

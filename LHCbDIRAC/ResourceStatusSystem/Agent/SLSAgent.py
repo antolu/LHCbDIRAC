@@ -33,6 +33,7 @@ import urlparse
 from datetime import datetime, timedelta
 
 from DIRAC                                                      import gLogger, gConfig, S_OK, rootPath
+from DIRAC.Core.Utilities.File                                  import mkDir
 from DIRAC.Core.Base.AgentModule                                import AgentModule
 from DIRAC.Core.DISET.RPCClient                                 import RPCClient
 from DIRAC.Core.Base.DB                                         import DB
@@ -97,12 +98,12 @@ def insert_slslogse( **kw ):
 
 def gen_xml_stub():
   doc = impl.createDocument( "http://sls.cern.ch/SLS/XML/update",
-                            "serviceupdate",
+                             "serviceupdate",
                             None )
   doc.documentElement.setAttribute( "xmlns", "http://sls.cern.ch/SLS/XML/update" )
   doc.documentElement.setAttribute( "xmlns:xsi", 'http://www.w3.org/2001/XMLSchema-instance' )
   doc.documentElement.setAttribute( "xsi:schemaLocation",
-                                   "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd" )
+                                    "http://sls.cern.ch/SLS/XML/update http://sls.cern.ch/SLS/XML/update.xsd" )
   return doc
 
 #### Helper functions to send a warning mail to a site (for space-token test)
@@ -149,11 +150,7 @@ class SpaceTokenOccupancyTest( TestBase ):
     self.xmlPath = rootPath + "/" + self.getAgentOption( "webRoot" ) + self.getTestOption( "dir" )
 
     self.rmClient = ResourceManagementClient()
-    try:
-      os.makedirs( self.xmlPath )
-    except OSError:
-      pass # The dir exist already, or cannot be created: do nothing
-
+    mkDir( self.xmlPath )
 
     self.generate_xml_and_dashboard()
 
@@ -240,10 +237,7 @@ class DIRACTest( TestBase ):
     from DIRAC.Interfaces.API.Dirac import Dirac
     self.dirac = Dirac()
 
-    try:
-      os.makedirs( self.xmlPath )
-    except OSError:
-      pass # The dir exist already, or cannot be created: do nothing
+    mkDir( self.xmlPath )
 
     self.run_t1_xml_sensors()
 
@@ -254,7 +248,7 @@ class DIRACTest( TestBase ):
     framework_urls = gConfig.getValue( "/DIRAC/Framework/SystemAdministrator", [] )
 
     gLogger.info( "DIRACTest: discovered %d request management url(s), %d configuration url(s) and %d framework url(s)"
-                 % ( len( request_management_urls ), len( configuration_urls ), len( framework_urls ) ) )
+                  % ( len( request_management_urls ), len( configuration_urls ), len( framework_urls ) ) )
     for url in request_management_urls + configuration_urls + framework_urls:
       try:
         self.xml_t1_sensor( url )
@@ -286,10 +280,10 @@ class DIRACTest( TestBase ):
                  name = "Host Uptime", desc = "Seconds since last restart of machine" )
 
       response = insert_slst1service( Site = site, System = system, Availability = 100,
-                                       Version = res.get( "version", "unknown" ),
-                                       ServiceUptime = int( res.get( 'service uptime', 0 ) ),
-                                       HostUptime = int( res.get( 'host uptime', 0 ) ),
-                                       Message = ( "Service " + url + " completely up and running" ) )
+                                      Version = res.get( "version", "unknown" ),
+                                      ServiceUptime = int( res.get( 'service uptime', 0 ) ),
+                                      HostUptime = int( res.get( 'host uptime', 0 ) ),
+                                      Message = ( "Service " + url + " completely up and running" ) )
 
       if not response[ 'OK' ]:
         gLogger.error( response[ 'Message' ] )
@@ -321,10 +315,7 @@ class LOGSETest( TestBase ):
     self.entities = self.getTestValue( "entities" )
     self.lemon_url = self.getTestValue( "lemon_url" )
 
-    try:
-      os.makedirs( self.xmlPath )
-    except OSError:
-      pass # The dir exist already, or cannot be created: do nothing
+    mkDir( self.xmlPath )
 
     # Generate XML files
     self.partition()

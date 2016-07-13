@@ -6,12 +6,12 @@
 
 """
 
-__RCSID__ = '$Id:  $'
-
 import urllib
 
 from DIRAC                                    import gLogger, S_OK, gConfig, S_ERROR
 from DIRAC.Core.DISET.HTTPDISETConnection     import HTTPDISETConnection
+
+__RCSID__ = '$Id:  $'
 
 
 class pilotSynchronizer( object ):
@@ -22,7 +22,9 @@ class pilotSynchronizer( object ):
   '''
 
   def __init__( self ):
-    '''
+    ''' c'tor
+
+        Just setting defaults
     '''
     self.pilotFileName = 'LHCb-pilot.json'
     # FIXME: pilotFileServer should contain the url of the web server where we will upload the LHCb-Pilot.json file
@@ -31,21 +33,24 @@ class pilotSynchronizer( object ):
 
 
   def sync( self, _eventName, _params ):
+    ''' Main synchronizer method.
     '''
-    Main synchronizer method.
-    '''
-    syncFile = self._syncFile()
-    if not syncFile[ 'OK' ]:
-      gLogger.error( syncFile[ 'Message' ] )
-      return syncFile
+    gLogger.notice( '-- Synchronizing the content of the pilot file %s with the content of the CS --' % self.pilotFileName  )
+
+    pilotDict = self._syncFile()
+
+    result = self._upload( pilotDict )
+    if not result['OK']:
+      gLogger.error( "Error uploading the pilot file: %s" %result['Message'] )
+      return result
+
     return S_OK()
 
   def _syncFile( self ):
-    '''
-      Compares CS with the file and does the necessary modifications.
+    ''' Compares CS with the file and does the necessary modifications.
     '''
 
-    gLogger.info( '-- Synchronizing the file --' )
+    gLogger.info( '-- Getting the content of the CS --' )
     pilotDict = {}
     setups = gConfig.getSections( '/Operations/' )
     if not setups['OK']:
@@ -63,17 +68,16 @@ class pilotSynchronizer( object ):
         pilotDict[setup]['Commands'] = commands['Value']
       else:
         gLogger.debug( "List of commands not found: %s" % commands['Message'] )
-    result = self._upload( pilotDict )
-    if not result['OK']:
-      gLogger.error( "Error uploading the pilot file" )
-      return result
-    return S_OK()
+
+    gLogger.verbose( "Got %s"  %str(pilotDict) )
+
+    return pilotDict
 
   def _upload ( self, pilotDict ):
     """ Method to upload the pilot file to the server.
     """
-
-    params = urllib.urlencode( {'filename':'LHCb-pilot.json', 'data':pilotDict } )
+    gLogger.info( "Synchronizing the content of the pilot file" )
+    params = urllib.urlencode( {'filename':self.pilotFileName, 'data':pilotDict } )
     headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
     con = HTTPDISETConnection( self.pilotFileServer, '8443' )
     con.request( "POST", "/DIRAC/upload", params, headers )

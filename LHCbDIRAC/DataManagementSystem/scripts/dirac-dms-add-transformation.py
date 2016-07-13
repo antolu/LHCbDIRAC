@@ -27,6 +27,7 @@ if __name__ == "__main__":
   bkQuery = None
   depth = 0
   userGroup = None
+  listProcessingPasses = False
 
   Script.registerSwitch( "", "SetInvisible", "Before creating the transformation, set the files in the BKQuery as invisible (default for DeleteDataset)" )
   Script.registerSwitch( "S", "Start", "   If set, the transformation is set Active and Automatic [False]" )
@@ -36,6 +37,7 @@ if __name__ == "__main__":
   Script.registerSwitch( "", "Unique", "   Refuses to create a transformation with an existing name" )
   Script.registerSwitch( "", "Depth=", "   Depth in path for replacing /... in processing pass" )
   Script.registerSwitch( "", "Chown=", "   Give user/group for chown of the directories of files in the FC" )
+  Script.registerSwitch( "", "ListProcessingPasses", "   Only lists the processing passes" )
 
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
@@ -73,6 +75,8 @@ if __name__ == "__main__":
       except:
         gLogger.fatal( "Illegal integer depth:", val )
         DIRAC.exit( 2 )
+    elif opt == 'ListProcessingPasses':
+      listProcessingPasses = True
 
   if userGroup:
     from DIRAC.Core.Security.ProxyInfo import getProxyInfo
@@ -87,7 +91,7 @@ if __name__ == "__main__":
 
 
   plugin = pluginScript.getOption( 'Plugin' )
-  if not plugin:
+  if not plugin and not listProcessingPasses:
     gLogger.fatal( "ERROR: No plugin supplied..." )
     Script.showHelp()
     DIRAC.exit( 0 )
@@ -110,7 +114,7 @@ if __name__ == "__main__":
     transType = "Removal"
   elif plugin in getReplicationPlugins():
     transType = "Replication"
-  else:
+  elif not listProcessingPasses:
     gLogger.notice( "This script can only create Removal or Replication plugins" )
     gLogger.notice( "Replication :", str( getReplicationPlugins() ) )
     gLogger.notice( "Removal     :", str( getRemovalPlugins() ) )
@@ -134,6 +138,8 @@ if __name__ == "__main__":
     transBKQuery = bkQuery.getQueryDict()
     processingPass = transBKQuery.get( 'ProcessingPass', '' )
     if processingPass.endswith( '...' ):
+      if listProcessingPasses:
+        gLogger.notice( "List of processing passes for BK path", pluginScript.getOption( 'BKPath' ) )
       basePass = os.path.dirname( processingPass )
       wildPass = os.path.basename( processingPass ).replace( '...', '' )
       bkQuery.setProcessingPass( basePass )
@@ -143,10 +149,13 @@ if __name__ == "__main__":
           processingPasses.remove( processingPass )
       if processingPasses:
         processingPasses.sort()
-        gLogger.notice( "Transformations will be launched for the following list of processing passes:" )
-        gLogger.notice( '\n\t'.join( [''] + processingPasses ) )
+        if not listProcessingPasses:
+          gLogger.notice( "Transformations will be launched for the following list of processing passes:\n" )
+        gLogger.notice( '\t'.join( [''] + processingPasses ) )
       else:
-        gLogger.notice( "No processing passes matching the request" )
+        gLogger.notice( "No processing passes matching the BK path" )
+        DIRAC.exit( 0 )
+      if listProcessingPasses:
         DIRAC.exit( 0 )
     else:
       processingPasses = [processingPass]
@@ -334,12 +343,14 @@ if __name__ == "__main__":
 
     # If the transformation uses the RemoveDataset plugin, set the files invisible in the BK...
     setInvisiblePlugins = ( "RemoveDataset", )
+    # Try and let them visible such
+    # setInvisiblePlugins = tuple()
     if invisible or plugin in setInvisiblePlugins:
       res = bk.setFilesInvisible( lfns )
       if res['OK']:
         gLogger.notice( "%d files were successfully set invisible in the BK" % len( lfns ) )
         if transBKQuery:
-          transBKQuery.pop( "Visible", None )
+          transBKQuery["Visible"] = 'All'
           transformation.setBkQuery( transBKQuery )
       else:
         gLogger.error( "Failed to set the files invisible:" , res['Message'] )

@@ -10,9 +10,9 @@ import unittest
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()
 
-from DIRAC.tests.Integration.TransformationSystem.TestClientTransformation import TransformationClientChain as DIRACTransformationClientChain
+from DIRAC.tests.Integration.TransformationSystem.Test_Client_Transformation import TransformationClientChain as DIRACTransformationClientChain
 
-from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 class TestClientTransformationTestCase( unittest.TestCase ):
 

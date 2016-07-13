@@ -872,10 +872,10 @@ class OracleBookkeepingDB:
     #### MUST BE REIMPLEMNETED!!!!!!
     ####
     ####
-    
+
     condition = ''
     tables = ' files f,jobs j '
-    
+
     retVal = self.__buildConfiguration( configName, configVersion, condition, tables )
     if not retVal['OK']:
       return retVal
@@ -918,7 +918,7 @@ class OracleBookkeepingDB:
       elif fileType != default:
         condition += " and ftypes.name='%s' " % ( str( fileType ) )
         condition += " and ftypes.filetypeid=f.filetypeid"
-    
+
     if fileType != default:
       if tables.upper().find( 'FILETYPES' ) < 0:
         tables += ',filetypes ftypes'
@@ -939,11 +939,11 @@ class OracleBookkeepingDB:
     condition, tables = retVal['Value']
 
     if tables.upper().find( 'FILES' ) > 0:
-      condition += ' and f.jobid=j.jobid '  
-            
+      condition += ' and f.jobid=j.jobid '
+
     command = "select distinct prod.production from %s where 1=1  %s " % (tables, condition)
-     
-         
+
+
     return self.dbR_.query( command )
 
   #############################################################################
@@ -1058,7 +1058,7 @@ class OracleBookkeepingDB:
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
+
     retVal = self.__buildTCKS( tcks, condition, tables )
     if not retVal['OK']:
       return retVal
@@ -1104,7 +1104,7 @@ class OracleBookkeepingDB:
       return retVal
     condition, tables = retVal['Value']
 
-    
+
     tables += ',filetypes ft'
     retVal = self.__buildFileTypes(filetype, condition, tables, visible)
     if not retVal['OK']:
@@ -1232,7 +1232,7 @@ class OracleBookkeepingDB:
   #############################################################################
   def bulkJobInfo( self, in_dict ):
     """returns the job information for a list of files"""
-    
+
     data = []
     if 'lfn' in in_dict:
       data = in_dict['lfn']
@@ -1246,7 +1246,7 @@ class OracleBookkeepingDB:
                                                 parameters = [],
                                                 output = True,
                                                 array = data )
-      
+
     elif 'jobName' in in_dict:
       data = in_dict['jobName']
       retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfoForJobName',
@@ -1255,7 +1255,7 @@ class OracleBookkeepingDB:
                                                 array = data )
     else:
       return S_ERROR( "Wrong input parameters. You can use a dictionary with the following keys: lfn,jobId, jobName" )
-     
+
     records = {}
     if retVal['OK']:
       for i in retVal['Value']:
@@ -1286,7 +1286,7 @@ class OracleBookkeepingDB:
           records[i[0]] = [record]
         else:
           records[i[0]] += [record]
-        
+
         j += 1
 
       failed = [ i for i in data if i not in records]
@@ -1415,7 +1415,7 @@ class OracleBookkeepingDB:
   #############################################################################
   def bulkupdateFileMetaData( self, lfnswithmeta ):
     """it updates the metadata a list of files"""
-    
+
     utctime = datetime.datetime.utcnow().strftime( '%Y-%m-%d %H:%M:%S' )
     sqls = []
     for filename in lfnswithmeta:
@@ -1423,13 +1423,13 @@ class OracleBookkeepingDB:
       command += ','.join( ["%s=%s" % ( str( attribute ), str( lfnswithmeta[filename][attribute] ) ) for attribute in lfnswithmeta[filename]] )
       command += " where fileName='%s'" % ( filename )
       sqls += [command]
-      
+
     retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkupdateFileMetaData',
                                                 parameters = [],
                                                 output = False,
                                                 array = sqls )
     return retVal
-  
+
   #############################################################################
   def renameFile( self, oldLFN, newLFN ):
     """renames a file"""
@@ -2772,7 +2772,7 @@ and files.qualityid= dataquality.qualityid'
     retVal = self.dbR_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getSteps', [prodid] )
     if not retVal['OK']:
       result = retVal
-    else:  
+    else:
       data = retVal['Value']
       found = False
       ddb = ''
@@ -2805,7 +2805,7 @@ and files.qualityid= dataquality.qualityid'
         else:
           result = S_OK(data)
       return result
-  
+
   #############################################################################
   def __resolveFromPreviousStep( self, production ):
     """It returns the database tags from the ancestor"""
@@ -2816,7 +2816,7 @@ and files.qualityid= dataquality.qualityid'
     prod = retVal['Value'][0][0]
     retVal = self.dbR_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.getSteps', [prod] )
     if not retVal['OK']:
-      return retVal 
+      return retVal
     data = retVal['Value']
     found = False
     for i in data:
@@ -2829,7 +2829,7 @@ and files.qualityid= dataquality.qualityid'
       return S_OK( [ddb, conddb] )
     else:
       return self.__resolveFromPreviousStep( prod )
-      
+
   #############################################################################
   def getNbOfJobsBySites( self, prodid ):
     """returns the number of sucessfully
@@ -3101,7 +3101,7 @@ and files.qualityid= dataquality.qualityid'
       condition += "  and c.ConfigName='%s' and c.ConfigVersion='%s' and \
       j.configurationid=c.configurationid " % ( configName, configVersion )
     return S_OK( ( condition, tables ) )
-  
+
   #############################################################################
   @staticmethod
   def __buildProduction( production, condition, tables, visible = default, useView = True ):
@@ -3110,8 +3110,8 @@ and files.qualityid= dataquality.qualityid'
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
-    :param bool useView It is better not to use the view in some cases. This variable is used to 
-    disable the view usage. 
+    :param bool useView It is better not to use the view in some cases. This variable is used to
+    disable the view usage.
     """
     if production not in [default, None]:
       if isinstance( production, list ) and len( production ) > 0:
@@ -3154,7 +3154,7 @@ and files.qualityid= dataquality.qualityid'
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
-    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    :param bool useView It is better not to use the view in some cases. This variable is used to
     disable the view usage.
     """
     if procPass not in [default, None]:
@@ -3192,12 +3192,12 @@ and files.qualityid= dataquality.qualityid'
   @staticmethod
   def __buildFileTypes( ftype, condition, tables, visible = default, useView = True ):
     """it adds the file type to the files list
-    :param list, str ftype it is used to construct the file type query filter  
-    using a given file type or a list of filetypes.  
+    :param list, str ftype it is used to construct the file type query filter
+    using a given file type or a list of filetypes.
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
-    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    :param bool useView It is better not to use the view in some cases. This variable is used to
     disable the view usage.
     """
 
@@ -3214,7 +3214,7 @@ and files.qualityid= dataquality.qualityid'
         condition += values[:-1] + ')'
       else:
         condition += " and ft.name='%s' " % ( str( ftype ) )
-        
+
     elif ftype not in [default, None]:
       if tables.lower().find( 'filetypes' ) < 0:
         tables += ' ,filetypes ft'
@@ -3230,6 +3230,12 @@ and files.qualityid= dataquality.qualityid'
       else:
         return S_ERROR( 'File type problem!' )
       condition += ' and f.filetypeid=ft.filetypeid'
+
+    if isinstance( ftype, basestring ) and ftype == 'RAW' and 'jobs' in tables:
+      # we know the production of a run is lees than 0.
+      # this is needed to speed up the queries when the file type is raw
+      # (we reject all recostructed + stripped jobs/files. ).
+      condition += " and j.production<0"
     return S_OK( ( condition, tables ) )
 
   #############################################################################
@@ -3265,11 +3271,11 @@ and files.qualityid= dataquality.qualityid'
   @staticmethod
   def __buildEventType( evt, condition, tables, visible = default, useView = True ):
     """adds the event type to the files table
-    :param list, str evt it is used to construct the event type query filter using a given event type or a list of event types.  
+    :param list, str evt it is used to construct the event type query filter using a given event type or a list of event types.
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
-    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    :param bool useView It is better not to use the view in some cases. This variable is used to
     disable the view usage.
     """
 
@@ -3290,7 +3296,7 @@ and files.qualityid= dataquality.qualityid'
         condition += cond
       elif isinstance( evt, ( basestring, int, long ) ):
         condition += ' bview.eventtypeid=' + str( evt )
-      
+
     elif evt not in [0, None, default]:
       if isinstance( evt, ( list, tuple ) ) and len( evt ) > 0:
         condition += ' and '
@@ -3381,7 +3387,7 @@ and files.qualityid= dataquality.qualityid'
     :param str condition It contains the where conditions
     :param str tables it containes the tables.
     :param str visible the default value is 'ALL'. [Y,N]
-    :param bool useView It is better not to use the view in some cases. This variable is used to 
+    :param bool useView It is better not to use the view in some cases. This variable is used to
     disable the view usage.
     """
     if simdesc != default or datataking != default:
@@ -3560,25 +3566,20 @@ and files.qualityid= dataquality.qualityid'
     return res
 
   #############################################################################
-  def getFilesSummary( self, configName, configVersion,
-                      conddescription = default, processing = default,
-                      evt = default, production = default,
-                      filetype = default, quality = default,
-                      runnb = default, startrun = default, endrun = default,
-                      visible = default, startDate = None, endDate = None,
-                      runnumbers = list(), replicaflag = default, tcks = default ):
-
+  def getFilesSummary( self, configName, configVersion, conditionDescription = default, processingPass = default, eventType = default,
+                       production = default, fileType = default, dataQuality = default, startRun = default, endRun = default,
+                       visible = default, startDate = None, endDate = None, runNumbers = list(), replicaFlag = default, tcks = default ):
     """retuns the number of event, files, etc for a given dataset"""
     condition = ''
     tables = 'files f, jobs j '
-    useView = filetype not in ( default, 'RAW' ) 
+    useView = fileType not in ( default, 'RAW' )
 
     retVal = self.__buildStartenddate( startDate, endDate, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
-    retVal = self.__buildRunnumbers( runnumbers, startrun, endrun, condition, tables )
+
+    retVal = self.__buildRunnumbers( runNumbers, startRun, endRun, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3588,16 +3589,16 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables, visible, useView = useView )
+    retVal = self.__buildConditions( default, conditionDescription, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
+
     retVal = self.__buildVisibilityflag( visible, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
+
     retVal = self.__buildConfiguration( configName, configVersion, condition, tables )
     if not retVal['OK']:
       return retVal
@@ -3608,33 +3609,33 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildEventType( evt, condition, tables, visible, useView = useView )
+    retVal = self.__buildEventType( eventType, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
+
     if production != default:
       condition += ' and j.production=' + str( production )
 
-    retVal = self.__buildFileTypes( filetype, condition, tables, visible, useView = useView )
-    if not retVal['OK']:
-      return retVal
-    condition, tables = retVal['Value']
-    
-    retVal = self.__buildReplicaflag( replicaflag, condition, tables )
+    retVal = self.__buildFileTypes( fileType, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass( processing, condition, tables, visible, useView = useView )
+    retVal = self.__buildReplicaflag( replicaFlag, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
-    
-    retVal = self.__buildDataquality( quality, condition, tables )
+
+    retVal = self.__buildProcessingPass( processingPass, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
-    condition, tables = retVal['Value']   
+    condition, tables = retVal['Value']
+
+    retVal = self.__buildDataquality( dataQuality, condition, tables )
+    if not retVal['OK']:
+      return retVal
+    condition, tables = retVal['Value']
 
     command = "select count(*),\
     SUM(f.EventStat), SUM(f.FILESIZE), \
@@ -3698,8 +3699,8 @@ and files.qualityid= dataquality.qualityid'
           conds = ' ('
           for i in quality:
             quality = None
-	    command = "select QualityId from dataquality where dataqualityflag='%s'" % ( i )
-	    res = self.dbR_.query( command )
+            command = "select QualityId from dataquality where dataqualityflag='%s'" % ( i )
+            res = self.dbR_.query( command )
             if not res['OK']:
               gLogger.error( 'Data quality problem:', res['Message'] )
             elif len( res['Value'] ) == 0:
@@ -4203,17 +4204,17 @@ and files.qualityid= dataquality.qualityid'
     tables = 'jobs j, files f'
     if eventtype != default:
       condition = ' and f.eventtypeid=%d' % ( eventtype )
-    
+
     if visible != default:
       condition += " and f.visibilityFlag='%s'" % ( visible )
-    
+
     if replicaFlag != default:
       condition += " and f.gotreplica='%s'" % ( replicaFlag )
-    
+
     if isFinished != default:
       tables += ' ,runstatus r'
       condition += " and j.runnumber=r.runnumber and r.finished='%s' " % isFinished
-    
+
     command = " select count(*) from %s  where \
     j.jobid=f.jobid and j.production<0 and j.runnumber=%d %s " % ( tables, runid, condition )
     return self.dbR_.query( command )
@@ -4444,7 +4445,7 @@ and files.qualityid= dataquality.qualityid'
               condition += retVal['Value']
             else:
               return retVal
-        
+
         parentprod += production
         command = "select distinct s.stepid,s.stepname,s.applicationname,s.applicationversion,\
        s.optionfiles,s.dddb, s.conddb,s.extrapackages,s.visible, cont.step  from  %s \
@@ -4941,7 +4942,7 @@ and files.qualityid= dataquality.qualityid'
     """inserts the run status of a give run"""
     result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertRunStatus', [runnumber, jobId, isFinished], False )
     return result
-  
+
   #############################################################################
   def setRunStatusFinished( self, runnumber, isFinished ):
     result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.setRunFinished', [runnumber, isFinished], False )
@@ -4954,7 +4955,7 @@ and files.qualityid= dataquality.qualityid'
   def getRunStatus( self, runnumbers ):
     status = {}
     params = ['Finished']
-    status['Successful'] = {} 
+    status['Successful'] = {}
     status['Failed'] = []
     for i in runnumbers:
       command = "select Finished from runstatus where runnumber=%d" % i
@@ -4968,7 +4969,7 @@ and files.qualityid= dataquality.qualityid'
         else:
           status['Failed'] += [i]
     return S_OK( status )
-  
+
   #############################################################################
   def fixRunLuminosity( self, runnumbers ):
     status = { 'Failed' : [], 'Successful' : []}
@@ -4984,3 +4985,45 @@ and files.qualityid= dataquality.qualityid'
   def getProductionProducedEvents( self, prodid ):
     """returns the produced event by a production taking into account the step"""
     return self.dbR_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getProducedEvents', types.LongType, [prodid] )
+
+  #############################################################################
+  def bulkinsertEventType( self, eventtypes ):
+    """
+    It inserts a list of event types to the db.
+
+    :param list eventtypes it inserts a list of event types. For example: the list elements are the following:
+    {'EVTTYPEID': '12265021', 'DESCRIPTION': 'Bu_D0pipipi,Kpi-withf2=DecProdCut_pCut1600MeV', 'PRIMARY': '[B+ -> (D~0 -> K+ pi-) pi+ pi- pi+]cc'}
+    :return S_ERROR S_OK({'Failed':[],'Successful':[]})
+    """
+    failed = []
+    for evt in eventtypes:
+      evtId = evt.get( 'EVTTYPEID' )
+      evtDesc = evt.get( 'DESCRIPTION' )
+      evtPrimary = evt.get( 'PRIMARY' )
+      retVal = self.insertEventTypes( evtId, evtDesc, evtPrimary )
+      if not retVal['OK']:
+        failed.append( {evtId:{'Error':retVal['Message'], 'EvtentType':evt}} )
+
+    successful = list( set( evt['EVTTYPEID'] for evt in eventtypes ) - set( i.keys()[0] for i in failed ) )
+    return S_OK( {'Failed': failed, 'Successful': successful} )
+
+  #############################################################################
+  def bulkupdateEventType( self, eventtypes ):
+    """
+    It updates a list of event types which are exist in the db
+
+    :param list eventtypes it is a list of event types. For example: the list elements are the following:
+    {'EVTTYPEID': '12265021', 'DESCRIPTION': 'Bu_D0pipipi,Kpi-withf2=DecProdCut_pCut1600MeV', 'PRIMARY': '[B+ -> (D~0 -> K+ pi-) pi+ pi- pi+]cc'}
+    :return S_ERROR S_OK({'Failed':[],'Successful':[]})
+    """
+    failed = []
+    for evt in eventtypes:
+      evtId = evt.get( 'EVTTYPEID' )
+      evtDesc = evt.get( 'DESCRIPTION' )
+      evtPrimary = evt.get( 'PRIMARY' )
+      retVal = self.updateEventType( evtId, evtDesc, evtPrimary )
+      if not retVal['OK']:
+        failed.append( {evtId:{'Error':retVal['Message'], 'EvtentType':evt}} )
+
+    successful = list( set( evt['EVTTYPEID'] for evt in eventtypes ) - set( i.keys()[0] for i in failed ) )
+    return S_OK( {'Failed': failed, 'Successful': successful} )

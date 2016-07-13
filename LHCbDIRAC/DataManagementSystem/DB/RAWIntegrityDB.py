@@ -37,7 +37,7 @@ class RAWIntegrityDB( DB ):
                                              {
                                               'LastMonitorTime' : 'DATETIME NOT NULL PRIMARY KEY'
                                              }
-                                 } 
+                                 }
 
 
   def __init__( self, systemInstance = 'Default' ):
@@ -46,15 +46,15 @@ class RAWIntegrityDB( DB ):
 
   def _checkTable( self ):
     """ _checkTable
-     
+
     Make sure the table is created
     """
-    
+
     return self.__createTables()
 
   def __createTables( self ):
     """ __createTables
-    
+
     Writes the schema in the database. If a table is already in the schema, it is
     skipped to avoid problems trying to create a table that already exists.
     """
@@ -68,22 +68,38 @@ class RAWIntegrityDB( DB ):
     # Makes a copy of the dictionary _tablesDict
     tables = {}
     tables.update( self._tablesDict )
-        
+
     for existingTable in existingTables:
       if existingTable in tables:
-        del tables[ existingTable ]  
-              
+        del tables[ existingTable ]
+
     res = self._createTables( tables )
     if not res[ 'OK' ]:
       return res
-    
+
     # Human readable S_OK message
     if res[ 'Value' ] == 0:
       res[ 'Value' ] = 'No tables created'
     else:
       res[ 'Value' ] = 'Tables created: %s' % ( ','.join( tables.keys() ) )
-    return res     
 
+      # Create the initial value
+      if 'LastMonitor' in tables:
+        ret = self._query( "INSERT INTO LastMonitor(LastMonitorTime) value (UTC_TIMESTAMP());" )
+        if not ret['OK']:
+          return ret
+
+    return res
+
+
+  def showTables( self ):
+    """ return the list of tables"""
+
+    existingTables = self._query( "show tables" )
+    if not existingTables[ 'OK' ]:
+      return existingTables
+    existingTables = [ existingTable[0] for existingTable in existingTables[ 'Value' ] ]
+    return S_OK( existingTables )
 
   def getActiveFiles( self ):
     """ Obtain all the active files in the database along with all their associated metadata
@@ -121,6 +137,24 @@ class RAWIntegrityDB( DB ):
       return res
     except Exception as x:
       errStr = "RAWIntegrityDB.setFileStatus: Exception while updating file status."
+      gLogger.exception( errStr, lException = x )
+      return S_ERROR( errStr )
+
+
+  def removeFile( self, lfn ):
+    """ Remove file from the DB
+    """
+    try:
+      gLogger.info( "RAWIntegrityDB.removeFile: Attempting to remove %s." % lfn )
+      req = "DELETE FROM Files WHERE LFN = '%s';" % lfn
+      res = self._update( req )
+      if not res['OK']:
+        gLogger.error( "RAWIntegrityDB.removeFile: Failed to remove file.", res['Message'] )
+      else:
+        gLogger.info( "RAWIntegrityDB.removeFile: Successfully removed file." )
+      return res
+    except Exception as x:
+      errStr = "RAWIntegrityDB.removeFile: Exception while removing file."
       gLogger.exception( errStr, lException = x )
       return S_ERROR( errStr )
 
@@ -275,7 +309,6 @@ class RAWIntegrityDB( DB ):
     if limit:
       condition = condition + ' LIMIT ' + str( limit )
     cmd = 'SELECT LFN,PFN,Size,StorageElement,GUID,FileChecksum,SubmitTime,CompleteTime,Status from Files %s' % condition
-    print cmd
     res = self._query( cmd )
     if not res['OK']:
       return res
@@ -283,5 +316,5 @@ class RAWIntegrityDB( DB ):
       return S_OK( [] )
     return S_OK( res['Value'] )
 
-#...............................................................................
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# ...............................................................................
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF

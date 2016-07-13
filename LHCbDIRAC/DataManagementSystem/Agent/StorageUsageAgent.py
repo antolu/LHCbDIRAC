@@ -19,6 +19,7 @@ from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule import AgentModule
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.Core.Utilities.DirectoryExplorer import DirectoryExplorer
+from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
 from DIRAC.FrameworkSystem.Client.MonitoringClient import gMonitor
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
@@ -147,17 +148,16 @@ class StorageUsageAgent( AgentModule ):
     ''' prepare directories for replica list files '''
     self.__replicaFilesUsed = set()
     self.__replicaListFilesDir = os.path.join( self.am_getOption( "WorkDirectory" ), "replicaLists" )
-    if not os.path.isdir( self.__replicaListFilesDir ):
-      os.makedirs( self.__replicaListFilesDir )
+    mkDir( self.__replicaListFilesDir )
     self.log.info( "Replica Lists directory is %s" % self.__replicaListFilesDir )
 
   def __replicaListFilesDone( self ):
     ''' rotate replicas list files '''
     self.replicaListLock.acquire()
     try:
-      old = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s\.old$" % self.__baseDirLabel )
-      current = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s$" % self.__baseDirLabel )
-      filling = re.compile( "^replicas\.([a-zA-Z0-9\-_]*)\.%s\.filling$" % self.__baseDirLabel )
+      old = re.compile( r"^replicas\.([a-zA-Z0-9\-_]*)\.%s\.old$" % self.__baseDirLabel )
+      current = re.compile( r"^replicas\.([a-zA-Z0-9\-_]*)\.%s$" % self.__baseDirLabel )
+      filling = re.compile( r"^replicas\.([a-zA-Z0-9\-_]*)\.%s\.filling$" % self.__baseDirLabel )
       # Delete old
       for fileName in os.listdir( self.__replicaListFilesDir ):
         match = old.match( fileName )
@@ -257,8 +257,8 @@ class StorageUsageAgent( AgentModule ):
       elapsedTime = time.time() - self.__startExecutionTime
       outdatedSeconds = max( max( self.am_getOption( "PollingTime" ), elapsedTime ) * 2, 86400 )
       result = self.storageUsage.purgeOutdatedEntries( self.__baseDir,
-                                                         long( outdatedSeconds ),
-                                                         self.__ignoreDirsList )
+                                                       long( outdatedSeconds ),
+                                                       self.__ignoreDirsList )
       if not result[ 'OK' ]:
         return result
       self.log.notice( "Purged %s outdated records" % result[ 'Value' ] )

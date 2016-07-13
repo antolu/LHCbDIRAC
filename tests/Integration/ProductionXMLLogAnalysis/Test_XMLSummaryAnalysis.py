@@ -6,135 +6,125 @@ import unittest
 
 from LHCbDIRAC.Core.Utilities.XMLSummaries import analyseXMLSummary, XMLSummaryError
 
+#pylint: disable=missing-docstring
+
+testsDir = 'LHCbDIRAC/tests/Integration/ProductionXMLLogAnalysis'
+
 class XMLSummaryAnalysisTestCase( unittest.TestCase ):
   """ Base class for the XMLSummaryAnalysis test cases
   """
-  def setUp( self ):
 
-    self.workdir = os.getcwd() + '/LHCbDIRAC/tests/Integration/ProductionXMLLogAnalysis'
+  def generalTest( self, testPath, directory ):
+    """ Args:
+      testPath (str): like "DataReconstruction" (used for creating the path)
+      directory (str): either "ok" or "nok" (used for creating the path)
+    """
 
-  def generalTest( self, workdir, directory ):
+    workPath = os.path.join( os.path.expandvars('$TESTCODE'), testsDir, testPath, directory )
 
-    workdir = '%s/%s' % ( workdir, directory )
+    ls = os.listdir( workPath )
 
-    try:
-      ls = os.listdir( workdir )
-    except OSError:
-      workdir = os.path.expandvars('$TESTCODE') + '/LHCbDIRAC/tests/Integration/ProductionXMLLogAnalysis'
-      ls = os.listdir( '%s/%s' % ( workdir, directory ) )
-
-    for filename in ls:
-      if filename.startswith( 'summary' ):
-        print "filename = ", filename
+    for fileName in ls:
+      if fileName.startswith( 'summary' ):
         if directory == 'ok':
-          res = analyseXMLSummary( '%s/%s' % ( workdir, filename ) )
+          res = analyseXMLSummary( '%s/%s' % ( workPath, fileName ) )
           self.assertEqual( res, True )
         elif directory == 'nok':
-          res = analyseXMLSummary( '%s/%s' % ( workdir, filename ) )
+          res = analyseXMLSummary( '%s/%s' % ( workPath, fileName ) )
           self.assertEqual( res, False )
         else:
-          self.assertRaises( XMLSummaryError, analyseXMLSummary, '%s/%s' % ( workdir, filename ) )
+          self.assertRaises( XMLSummaryError, analyseXMLSummary, '%s/%s' % ( workPath, fileName ) )
 
 class XMLSummaryAnalysisDataReconstruction( XMLSummaryAnalysisTestCase ):
 
   def setUp( self ):
     super( XMLSummaryAnalysisDataReconstruction, self ).setUp()
-    self.workdir += '/DataReconstruction'
 
   def test_brunel_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( 'DataReconstruction', 'ok' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( 'DataReconstruction', 'ok' )
 
   def test_brunel_nok( self ):
-    self.generalTest( self.workdir, 'nok' )
+    self.generalTest( 'DataReconstruction', 'nok' )
 
   def test_brunel_fail( self ):
-    self.generalTest( self.workdir, 'fail' )
+    self.generalTest( 'DataReconstruction', 'fail' )
 
 class XMLSummaryAnalysisDataReprocessing( XMLSummaryAnalysisTestCase ):
 
   def setUp( self ):
     super( XMLSummaryAnalysisDataReprocessing, self ).setUp()
-    self.workdir += '/DataReprocessing'
 
   def test_brunel_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( 'DataReprocessing', 'ok' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( 'DataReprocessing', 'ok' )
 
   def test_brunel_nok( self ):
-    self.generalTest( self.workdir, 'nok' )
+    self.generalTest( 'DataReprocessing', 'nok' )
 #  def test_daVinci_nok( self ):
-#    self.generalTest( self.workdir, 'nok', 'DaVinci' )
+#    self.generalTest( 'DataReprocessing', 'nok', 'DaVinci' )
 
 class XMLSummaryAnalysisDataStripping( XMLSummaryAnalysisTestCase ):
 
   def setUp( self ):
     super( XMLSummaryAnalysisDataStripping, self ).setUp()
-    self.workdir += '/DataStripping'
 
-#  def test_brunel_ok( self ):
-#    self.generalTest( self.workdir, 'ok', 'Brunel' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( 'DataStripping', 'ok' )
 
-#  def test_brunel_nok( self ):
-#    self.generalTest( self.workdir, 'nok', 'Brunel' )
   def test_daVinci_nok( self ):
-    self.generalTest( self.workdir, 'nok' )
+    self.generalTest( 'DataStripping', 'nok' )
 
 class XMLSummaryAnalysisSelection( XMLSummaryAnalysisTestCase ):
 
   def setUp( self ):
     super( XMLSummaryAnalysisSelection, self ).setUp()
-    self.workdir += '/Selection'
 
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( 'Selection', 'ok' )
 
   def test_daVinci_nok( self ):
-    self.generalTest( self.workdir, 'nok' )
+    self.generalTest( 'Selection', 'nok' )
 
 class XMLSummaryAnalysisMCSimulation( XMLSummaryAnalysisTestCase ):
 
   def setUp( self ):
     super( XMLSummaryAnalysisMCSimulation, self ).setUp()
-    self.workdir += '/MCSimulation'
 
   def test_brunel_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( 'MCSimulation', 'ok' )
   def test_boole_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( 'MCSimulation', 'ok' )
   def test_gauss_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( 'MCSimulation', 'ok' )
 #  def test_daVinci_ok( self ):
-#    self.generalTest( self.workdir, 'ok', 'DaVinci' )
+#    self.generalTest( 'MCSimulation', 'ok' )
 
-  def test_brunel_nok( self ):
-    self.generalTest( self.workdir, 'nok' )
+  # def test_brunel_nok( self ):
+  #   self.generalTest( 'MCSimulation', 'nok' )
 #  def test_daVinci_nok( self ):
-#    self.generalTest( self.workdir, 'nok', 'DaVinci' )
+#    self.generalTest( 'MCSimulation', 'nok' )
 
 class XMLSummaryAnalysisMerge( XMLSummaryAnalysisTestCase ):
 
   def setUp( self ):
     super( XMLSummaryAnalysisMerge, self ).setUp()
-    self.workdir += '/Merge'
 
 #  def test_brunel_ok( self ):
-#    self.generalTest( self.workdir, 'ok', 'Brunel' )
+#    self.generalTest( 'Merge', 'ok' )
 #  def test_boole_ok( self ):
-#    self.generalTest( self.workdir, 'ok', 'Boole' )
+#    self.generalTest( 'Merge', 'ok' )
 #  def test_gauss_ok( self ):
-#    self.generalTest( self.workdir, 'ok', 'Gauss' )
+#    self.generalTest( 'Merge', 'ok' )
   def test_daVinci_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest( 'Merge', 'ok' )
   def test_lhcb_ok( self ):
-    self.generalTest( self.workdir, 'ok' )
+    self.generalTest('Merge', 'ok' )
 
   def test_lhcb_nok( self ):
-    self.generalTest( self.workdir, 'nok' )
+    self.generalTest( 'Merge', 'nok' )
 
 class ProductionXMLLogAnalysisRemoval( XMLSummaryAnalysisTestCase ):
   pass

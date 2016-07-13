@@ -460,8 +460,8 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
     row = '%s;%s;%s;%s' % ( bkPath.replace( 'Real Data', 'RealData' ), config, processingPass.get( bkPath, 'Unknown' ).replace( 'Real Data', 'RealData' ), fileType )
     # Type
     configTypes = { '/MC/Dev':2, '/MC/Upgrade':3}
-    type = configTypes.get( config, 0 if bkPath.startswith( '/MC' ) else 1 )
-    row += ';%d' % type
+    configType = configTypes.get( config, 0 if bkPath.startswith( '/MC' ) else 1 )
+    row += ';%d' % configType
     # CreationTime
     row += ';%d' % ( getTimeBin( creationTime ) )
     # NbLFN,LFNSize,NbDisk,DiskSize,NbTape,TapeSize, NbArchived,ArchivedSize

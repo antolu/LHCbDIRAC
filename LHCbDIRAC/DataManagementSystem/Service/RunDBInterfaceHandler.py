@@ -31,18 +31,18 @@ def initializeRunDBInterfaceHandler( serviceInfo ):
   #sys.path.insert(0, '/home/rainer/projects/RunDatabase/python')
   #sys.path.append( '/group/online/rundb/RunDatabase/python' )
   sys.path.append( '/admin/RunDatabase/python' )
-  from path import SQL_ALCHEMY_PATH
+  from path import SQL_ALCHEMY_PATH #pylint: disable=import-error
   sys.path.append( SQL_ALCHEMY_PATH )
   try:
     ORACLE_HOME = os.environ['ORACLE_HOME']
   except:
     print 'ERROR: ORACLE_HOME environment variable should be set'
   sys.path.append( "%s" % str( ORACLE_HOME ) )
-  import RunDatabase_Defines
+  import RunDatabase_Defines #pylint: disable=import-error
   #print dir(RunDatabase_Defines)
   #print RunDatabase_Defines.FileFields
 
-  from RunDatabase_Defines import RUN_STATE_TRANSLATION, FILE_STATE_TRANSLATION
+  from RunDatabase_Defines import RUN_STATE_TRANSLATION, FILE_STATE_TRANSLATION #pylint: disable=import-error
 
   global fileStates
   global fileStateRev
@@ -58,9 +58,9 @@ def initializeRunDBInterfaceHandler( serviceInfo ):
     runStateRev[value] = key
 
   im = __import__( 'RunDatabase', globals(), locals(), ['*'] )
-  import RunDatabase
+  import RunDatabase #pylint: disable=import-error
   print im
-  from DbModel import createEngine_Oracle
+  from DbModel import createEngine_Oracle #pylint: disable=import-error
   try:
     server = RunDatabase.RunDbServer( engine = createEngine_Oracle() )
   except:
@@ -300,13 +300,13 @@ class RunDBInterfaceHandler( RequestHandler ):
         startTime = time.time()
         execString = "success,result = server.%s()" % query
         print execString
-        exec( execString )
+        exec( execString ) # pylint: disable=exec-used
         gLogger.debug( "RunDBInterfaceHandler.getSelections: server.%s() took %.2f seconds." % ( query, time.time() - startTime ) )
-	if not success: #using exec statement above -> pylint: disable=E0601
+        if not success: #using exec statement above -> pylint: disable=used-before-assignment
           errStr = "RunDBInterfaceHandler.getSelections: Failed to get distinct %s." % key
-	  gLogger.error( errStr, result ) #using exec statement above -> pylint: disable=E0601
+          gLogger.error( errStr, result ) #using exec statement above -> pylint: disable=E0601
           return S_ERROR( errStr )
-	paramDict[key] = [ res for res in result if res ]
+        paramDict[key] = [ res for res in result if res ]
 
       startTime = time.time()
       success, result = server.getRunStates()
