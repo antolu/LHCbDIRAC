@@ -54,9 +54,15 @@ if not result['OK']:
   exit( 1 )
 
 # Simple Hello Word job to DIRAC.Jenkins.ch, that needs to be matched by a MP WN
+gLogger.info( "\n Submitting hello world job targeting DIRAC.Jenkins.ch and a MP WN" )
+helloJ = LHCbJob()
 helloJ.setName( "helloWorld-TEST-TO-Jenkins-MP" )
+helloJ.setInputSandbox( [find_all( 'exe-script.py', '..', 'GridTestSubmission' )[0]] )
+helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
+helloJ.setCPUTime( 17800 )
+helloJ.setDestination( 'DIRAC.Jenkins.ch' )
 helloJ.setTag('MultiProcessor')
-result = dirac.submit( helloJ )
+result = dirac.submit( helloJ ) # this should make the difference!
 gLogger.info( "Hello world job MP: ", result )
 if not result['OK']:
   gLogger.error( "Problem submitting job", result['Message'] )
