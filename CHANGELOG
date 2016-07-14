@@ -1,3 +1,12 @@
+[v8r3-pre23]
+Use DIRAC v6r15p7
+
+* replace fullpath by fullname for pyparsing
+* job submission
+* mods xml for regression tests
+* removed LHCbCleanPilot command
+* remove lbvobox80
+
 [v8r3-pre22]
 Use DIRAC v6r15p7
 
