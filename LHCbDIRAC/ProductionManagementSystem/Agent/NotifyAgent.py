@@ -20,13 +20,16 @@ __RCSID__ = '$Id: $'
 
 AGENT_NAME = 'ProductionManagement/NotifyAgent'
 
+
 class NotifyAgent( AgentModule ):
 
   def __init__( self, *args, **kwargs ):
 
-    AgentModule.__init__( self, *args, **kwargs )
+    super(NotifyAgent, self).__init__(args, kwargs)
 
     self.notification = None
+    self.csS = None
+    self.fromAddress = None
 
     if 'DIRAC' in os.environ:
       self.cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ProductionManagement/cache.db' )
@@ -38,6 +41,13 @@ class NotifyAgent( AgentModule ):
     '''
 
     self.notification = NotificationClient()
+
+    self.csS = PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
+
+    self.fromAddress = gConfig.getValue( '%s/fromAddress' % self.csS, '' )
+    if not self.fromAddress:
+      self.log.info( 'No fromAddress is defined, a default value will be used instead' )
+      self.fromAddress = 'vladimir.romanovsky@cern.ch'
 
     return S_OK()
 
@@ -56,15 +66,9 @@ class NotifyAgent( AgentModule ):
       link = "https://lhcb-portal-dirac.cern.ch/DIRAC/s:%s/g:" % PathFinder.getDIRACSetup() + \
              "/?view=tabs&theme=Grey&url_state=1|*LHCbDIRAC.ProductionRequestManager.classes.ProductionRequestManager:"
 
-      csS = PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
-      if not csS:
+      if not self.csS:
         self.log.error( 'No ProductionRequest section in configuration' )
         return S_OK
-
-      fromAddress = gConfig.getValue( '%s/fromAddress' % csS, '' )
-      if not fromAddress:
-        self.log.info( 'No fromAddress is defined, a default value will be used instead' )
-        fromAddress = 'vladimir.romanovsky@cern.ch'
 
       result = conn.execute("SELECT DISTINCT thegroup from ProductionManagementCache;")
 
@@ -134,16 +138,16 @@ class NotifyAgent( AgentModule ):
 
         aggregated_body = html_header + html_body
 
-        for man in _getMemberMails( group[0] ):
+        for people in _getMemberMails( group[0] ):
 
-          res = self.notification.sendMail( man, "Notifications for production requests", aggregated_body, fromAddress, True )
+          res = self.notification.sendMail( people, "Notifications for production requests", aggregated_body, self.fromAddress, True )
 
           if res['OK']:
             conn.execute("DELETE FROM ProductionManagementCache;")
             conn.execute("VACUUM;")
           else:
             self.log.error( "_inform_people: can't send email: %s" % res['Message'] )
-            return S_OK
+            return S_OK()
 
       # **************************************
       # This is for the ProductionStatusAgent
@@ -156,15 +160,15 @@ class NotifyAgent( AgentModule ):
       for subject, msg in cursor:
          aggregated_body += subject[0] + "\n" + msg[0] + "------------------------------------------\n"
 
-      res = self.notification.sendMail( 'vladimir.romanovsky@cern.ch', "Transofrmation Status Updates", aggregated_body,
-                             'vladimir.romanovsky@cern.ch', localAttempt = False )
+      res = self.notification.sendMail( 'vladimir.romanovsky@cern.ch', "Transformation Status Updates", aggregated_body,
+                                        'vladimir.romanovsky@cern.ch', localAttempt = False )
 
       if res['OK']:
         conn.execute("DELETE FROM ProductionStatusAgentCache;")
         conn.execute("VACUUM;")
       else:
         self.log.error( "Can't send email: %s" % res['Message'] )
-        return S_OK
+        return S_OK()
 
     return S_OK()
 
