@@ -41,6 +41,6 @@ mv $fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/
 fullname=`tar ztvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz | grep pyparsing | grep egg | tail -1 | awk '{print $6}'`
 if ! [ -e $fullname ]; then
   tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz $fullname
-  mv $fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}
+  mv $fullname $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}
 fi
 #
