@@ -55,7 +55,7 @@ class NotifyAgent( AgentModule ):
 
     if not os.path.isfile(self.cacheFile):
       self.log.error( self.cacheFile + " does not exist." )
-      return S_OK
+      return S_OK()
 
     with sqlite3.connect(self.cacheFile) as conn:
 
@@ -68,7 +68,7 @@ class NotifyAgent( AgentModule ):
 
       if not self.csS:
         self.log.error( 'No ProductionRequest section in configuration' )
-        return S_OK
+        return S_OK()
 
       result = conn.execute("SELECT DISTINCT thegroup from ProductionManagementCache;")
 
