@@ -1,4 +1,11 @@
 [v8r3-pre23]
+Use DIRAC v6r15p8
+
+* allow to restart service from CLI
+* BKK: fix the catalog interface
+* Popularity: add a popularity analysis agent
+
+[v8r3-pre23]
 Use DIRAC v6r15p7
 
 * replace fullpath by fullname for pyparsing
