@@ -12,6 +12,9 @@ import xml.dom.minidom
 
 from DIRAC                                               import S_OK, rootPath, gLogger, gConfig
 from DIRAC.Core.Base.AgentModule                         import AgentModule
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers     import DMSHelpers  
+from DIRAC.Resources.Storage.StorageElement              import StorageElement
+
 
 __RCSID__ = "$Id$"
 AGENT_NAME = 'ResourceStatus/NagiosTopologyAgent'
@@ -61,12 +64,12 @@ class NagiosTopologyAgent( AgentModule ):
     # loop over sites
 
     middlewareTypes = []
-    ret = gConfig.getSections('Resources/Sites')
-    if not ret[ 'OK' ] :
-       gLogger.error( ret[ 'Message' ] )
-       return ret
-    else : middlewareTypes = ret['Value']
-
+    ret = gConfig.getSections('Resources/Sites') 
+    if not ret[ 'OK' ] : 
+      gLogger.error( ret[ 'Message' ] )
+      return ret
+    
+    middlewareTypes = ret['Value']
     for middleware in middlewareTypes :
 
       sites = gConfig.getSections( 'Resources/Sites/%s' % middleware )
@@ -177,18 +180,12 @@ class NagiosTopologyAgent( AgentModule ):
       site_ce_opts = site_ce_opts['Value']
 
       site_ce_type = site_ce_opts.get( 'CEType' )
-
-      if site_ce_type == 'LCG':
-        site_ce_type = 'CE'
-      elif site_ce_type == 'CREAM':
-        site_ce_type = 'CREAM-CE'
-      elif site_ce_type == 'ARC':
-        site_ce_type = 'ARC-CE'
-      elif not site_ce_type:
-        site_ce_type = 'UNDEFINED'
+      mappingCEType = { 'LCG':'CE', 'CREAM':'CREAM-CE', 
+                       'ARC':'ARC-CE', 'HTCondorCE':'HTCONDOR-CE', 
+                       'Vac':'VAC', 'Cloud':'CLOUD', 'Boinc':'BOINC' }
 
       xml_append( xml_doc, xml_site, 'service', hostname = site_ce_name,
-                       flavour = site_ce_type )
+                       flavour = mappingCEType.get( site_ce_type, 'UNDEFINED' ) )
 
     return has_grid_elem
 
@@ -196,27 +193,77 @@ class NagiosTopologyAgent( AgentModule ):
   def __writeSEInfo( xml_doc, xml_site, site ):
     """ Writes SE information in the XML Document
     """
+    def __write_SE_XML(site_se_opts):
+      """
+      Sub-function just to populate the XML with the SE values
+      """  
+      site_se_name = site_se_opts.get( 'Host' )
+      site_se_flavour = site_se_opts.get( 'Protocol' )
+      site_se_path = site_se_opts.get( 'Path', 'UNDEFINED' )
+      mappingSEFlavour = { 'srm' : 'SRMv2', 
+                          'root' : 'XROOTD', 'http' : 'HTTPS' } 
+   
+      xml_append( xml_doc, xml_site, 'service', 
+                  hostname = site_se_name,
+                  flavour = mappingSEFlavour.get( site_se_flavour, 'UNDEFINED' ),
+                  path = site_se_path )
+
     has_grid_elem = True
 
     real_site_name = site.split( "." )[ 1 ]
-    site_se_opts = gConfig.getOptionsDict( 'Resources/StorageElements/%s-DST/AccessProtocol.1' % real_site_name )
-
-    if not site_se_opts[ 'OK' ]:
-      gLogger.error( site_se_opts[ 'Message' ] )
+    dmsHelper = DMSHelpers()
+    
+    t1 = dmsHelper.getSEInGroupAtSite( 'Tier1-DST', real_site_name )
+    t2 = dmsHelper.getSEInGroupAtSite( 'Tier2D-DST', real_site_name )
+    if not (t1['OK'] or t2['OK']):
+      
+      gLogger.error( t1.get( 'Message' ) or t2.get( 'Message' ) )
       return False
-    site_se_opts = site_se_opts[ 'Value' ]
+    
+    storage_element_name_DST = t1['Value'] or t2['Value']
+    if storage_element_name_DST:
+      se_DST = StorageElement(storage_element_name_DST)
+ 
+      storage_element_name_RAW = dmsHelper.getSEInGroupAtSite( 'Tier1-RAW', real_site_name )
+      if not storage_element_name_RAW['OK']:
+        gLogger.error( storage_element_name_RAW['Message'] )
+        return False
+      se_RAW = StorageElement(storage_element_name_RAW)['Value']
+  
+      # Use case - Storage Element exists but it's removed from Resources/StorageElementGroups 
+      if not (se_DST and se_RAW):
+        gLogger.error( 'Storage Element for site ' + site + 
+                       ' was found in Resources/Sites but not in the Storage Element Groups' )
+        return False 
 
-    site_se_name = site_se_opts.get( 'Host' )
-    site_se_type = site_se_opts.get( 'ProtocolName' )
+      se_plugins = se_DST.getPlugins()   
+      if not se_plugins['OK']:
+        gLogger.error( se_plugins['Message'] )
+        return False
+      
+      for protocol in se_plugins['Value']:
+        site_se_opts_DST = se_DST.getStorageParameters( protocol )
+        if not site_se_opts_DST['OK']:
+          gLogger.error( site_se_opts_DST[ 'Message' ] )
+          return False
+        __write_SE_XML( site_se_opts_DST )
 
-    if site_se_type in ( 'SRM2', 'GFAL2_SRM2' ) :
-      site_se_type = 'SRMv2'
-    elif not site_se_type:
-      site_se_type = 'UNDEFINED'
-
-    xml_append( xml_doc, xml_site, 'service', hostname = site_se_name,
-                     flavour = site_se_type )
-
+        
+        site_se_opts_RAW = None if not se_RAW else se_RAW.getStorageParameters( protocol )
+        if not site_se_opts_RAW:
+          gLogger.error( 'No RAW Storage Element found for ' + site )
+          continue
+        else:
+          if not site_se_opts_RAW['OK']:
+            gLogger.error( site_se_opts_RAW['Message'] )
+            return False
+                          
+          # This tests if the DST and RAW StorageElements have the same endpoint. 
+          # If so it only uses the one already added.
+          if site_se_opts_RAW[ 'Value' ][ 'Host' ] != site_se_opts_DST[ 'Value' ][ 'Host' ] :
+            __write_SE_XML( site_se_opts_RAW )
+  
+      
     return has_grid_elem
 
 ################################################################################
@@ -225,7 +272,7 @@ def xml_append( doc, base, elem, cdata = None, **attrs ):
   """
     Given a Document, we append to it an element.
   """
-
+  
   new_elem = doc.createElement( elem )
   for attr in attrs:
     new_elem.setAttribute( attr, attrs[ attr ] )
