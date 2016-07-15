@@ -33,7 +33,7 @@ class ComponentInstaller(DIRACComponentInstaller):
         return S_ERROR( repr(e) )
 
     else:
-      super(ComponentInstaller).runsvctrlComponent(system, component, mode)
+      return super( ComponentInstaller, self ).runsvctrlComponent( system, component, mode )
 
 
 gComponentInstaller = ComponentInstaller()
