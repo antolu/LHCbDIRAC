@@ -1,3 +1,11 @@
+[v8r2p52]
+Use DIRAC v6r14p38
+
+* Nagios Topology
+* use the correct name
+* add the working group and the request name to the email subject
+* use the new URL for downloading the oracle client
+
 [v8r2p51]
 Use DIRAC v6r14p38
 
