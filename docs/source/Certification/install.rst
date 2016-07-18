@@ -165,11 +165,46 @@ Deploying a release means deploying it for some installation::
 
 
 release for client
-`````````````````````
+``````````````````
 
-The deployment of pre-releases version in the client are only possible (and necessary) in the case of AFS. 
-A CVMFS may be added at some point by using a "trick", but this should be done only if specifically requested to.
+Please refer to this `TWIKI page <https://twiki.cern.ch/twiki/bin/view/LHCb/ProjectRelease#LHCbDirac>`_
+a quick test to validate the installation is to run the SHELL script $LHCBRELEASE/LHCBDIRAC/LHCBDIRAC_vXrY/LHCbDiracSys/test/client_test.csh
 
+go to this `web page <https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/build/>`_ for asking to install the client release in AFS and CVMFS:
+    
+* in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC LHCbGrid vArB"
+* in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
+* inthe field "build_tool" put : "CMake"
+* inthe field "scripts_version" put : "support-platform-indep-projects"
+
+Then click on the "BUILD" button
+    
+* within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/   
+* if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
+
+
+When the release is finished https://lhcb-nightlies.cern.ch/release/, you can deploy to the client. 
+
+Note: Please execute the following commands sequentially.
+
+The following commands used to prepare the RPMs::
+
+    ssh lhcb-archive
+    export build_id=1520
+    lb-release-rpm /data/artifacts/release/lhcb-release/$build_id
+    lb-release-rpm --copy /data/artifacts/release/lhcb-release/$build_id
+
+If the rmps are created, you can deploy the release (Do not execute parallel the following commands)::
+    
+    ssh lxplus
+    cd /afs/cern.ch/lhcb/software/lhcb_rpm_dev
+    export MYSITEROOT=/afs/cern.ch/lhcb/software/lhcb_rpm_dev
+    export MyProject=Dirac
+    export MyVersion=vArBpC
+    ./lbpkr rpm -- -ivh --nodeps /afs/cern.ch/lhcb/distribution/rpm/lhcb/${MyProject^^}_${MyVersion}*
+    export MyProject=LHCbDirac
+    export MyVersion=vArB-preC
+    ./lbpkr rpm -- -ivh --nodeps /afs/cern.ch/lhcb/distribution/rpm/lhcb/${MyProject^^}_${MyVersion}*
 
 
 Server
