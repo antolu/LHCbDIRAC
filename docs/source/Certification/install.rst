@@ -172,7 +172,7 @@ a quick test to validate the installation is to run the SHELL script $LHCBRELEAS
 
 go to this `web page <https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/build/>`_ for asking to install the client release in AFS and CVMFS:
     
-* in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC LHCbGrid vArB"
+* in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC LHCbGrid vArB" (LHCbGrid version can be found: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/devel/dist-tools/projectConfig.json)
 * in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
 * inthe field "build_tool" put : "CMake"
 * inthe field "scripts_version" put : "support-platform-indep-projects"
