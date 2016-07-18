@@ -222,7 +222,7 @@ a quick test to validate the installation is to run the SHELL script $LHCBRELEAS
 
 go to this `web page <https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/build/>`_ for asking to install the client release in AFS and CVMFS:
     
-* in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"
+* in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC" (NOTE: If DIRAC already released, please use only LHCbDIRAC)
 * in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
 * inthe field "scripts_version" put : "old-style-dirac"
 
@@ -233,7 +233,8 @@ Then click on the "BUILD" button
 
 
 If it is the production release, and only in this case, once satisfied by the build, 
-take note of the build id (you can use the direct link icon) and make the request via https://sft.its.cern.ch/jira/browse/LHCBDEP
+take note of the build id (you can use the direct link icon) and make the request via https://sft.its.cern.ch/jira/browse/LHCBDEP. 
+NOTE: If some package is already released, please do not indicate in Jira task.
 
 The LHCb Deployement shifter will deploy the release on AFS/CVMFS
 
