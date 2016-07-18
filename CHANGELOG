@@ -136,6 +136,10 @@ use DIRAC v6r15
 * Updated BOINC gateway service
 * New configuration service that will update the LHCb-Pilot.json file when a change is done on the CS.
 
+[v8r2p53]
+Use DIRAC v6r14p38
+* to many arguments to format the string.
+
 [v8r2p52]
 Use DIRAC v6r14p38
 
