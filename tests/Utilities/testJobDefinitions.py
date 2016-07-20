@@ -272,7 +272,7 @@ def wrongJob():
   print "\n Submitting gaudiRun job (Gauss only) that will use a configuration file that contains wrong info"
   print "This will generate a job that should become Completed, use the failover, and only later it will be Done"
 
-  from tests.Workflow.Integration.test_UserJobs import createJob
+  from tests.Workflow.Integration.Test_UserJobs import createJob
   J = baseToAllJobs( 'wrongJob', jobClass )
   J = createJob( local = False )
   J.setName( "gaudirun-gauss-completed-than-done" )
