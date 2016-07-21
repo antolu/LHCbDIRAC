@@ -41,7 +41,7 @@ if not result['OK']:
 gLogger.info( "\n Submitting hello world job, with input, targeting DIRAC.Jenkins.ch" )
 inputJ = LHCbJob()
 inputJ.setName( "helloWorld-TEST-INPUT-TO-Jenkins" )
-inputJ.setInputSandbox( [find_all( 'exe-script-with-input.py', '..', 'GridTestSubmission' )[0]] )
+inputJ.setInputSandbox( [find_all( 'exe-script-with-input-jenkins.py', '..', 'GridTestSubmission' )[0]] )
 inputJ.setExecutable( "exe-script-with-input-jenkins.py", "", "exeWithInput.log" )
 inputJ.setInputData( '/lhcb/test/DIRAC/Jenkins/jenkinsInputTestFile.txt' )  # this file should be at CERN-SWTEST only
 inputJ.setInputDataPolicy( 'download' )
