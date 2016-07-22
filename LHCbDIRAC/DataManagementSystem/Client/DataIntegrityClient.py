@@ -6,16 +6,23 @@
 import re
 import types
 
-from DIRAC                                                  import S_OK, gLogger
-from DIRAC.Core.Utilities.ReturnValues                  import returnSingleResult
-from DIRAC.Resources.Catalog.FileCatalog                    import FileCatalog
-from DIRAC.Resources.Storage.StorageElement                 import StorageElement
-from DIRAC.DataManagementSystem.Client.DataIntegrityClient     import DataIntegrityClient as DIRACDataIntegrityClient
-from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks   import ConsistencyChecks
+from DIRAC import S_OK, gLogger
+from DIRAC.Core.Utilities.ReturnValues import returnSingleResult
+from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
+from DIRAC.Resources.Storage.StorageElement import StorageElement
+from DIRAC.DataManagementSystem.Client.DataIntegrityClient import DataIntegrityClient as DIRACDataIntegrityClient
+from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import ConsistencyChecks
 
 __RCSID__ = "$Id$"
 
 class DataIntegrityClient( DIRACDataIntegrityClient ):
+
+  def __init__(self):
+    """ Extending DIRAC's DIRACDataIntegrityClient init
+    """
+    super(DataIntegrityClient, self).__init__()
+
+    self.cc = ConsistencyChecks()
 
   ##########################################################################
   #
@@ -34,7 +41,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     noReplicaFiles = res['Value']['GotReplicaNo']
     yesReplicaFiles = res['Value']['GotReplicaYes']
     # For the files marked as existing we perfom catalog check
-    res = ConsistencyChecks()._getCatalogMetadata( yesReplicaFiles )
+    res = self.cc._getCatalogMetadata( yesReplicaFiles )
     if not res['OK']:
       return res
     catalogMetadata, missingCatalogFiles, zeroSizeFiles = res['Value']
@@ -50,7 +57,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
         return res
       catalogMetadata.update( res['Value'] )
     # Get the replicas for the files found to exist in the catalog
-    res = ConsistencyChecks()._getCatalogReplicas( catalogMetadata.keys() )
+    res = self.cc._getCatalogReplicas( catalogMetadata.keys() )
     if not res['OK']:
       return res
     replicas, zeroReplicaFiles = res['Value']
@@ -60,7 +67,8 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     return S_OK( resDict )
 
   def __checkCatalogForBKNoReplicas( self, lfns ):
-    ''' checks the catalog existence for given files '''
+    """ Checks the catalog existence for given files
+    """
     gLogger.info( 'Checking the catalog existence of %s files' % len( lfns ) )
 
     res = self.fc.getFileMetadata( lfns )
@@ -128,7 +136,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     gLogger.info( "-" * 40 )
     gLogger.info( "Performing the FC->BK check" )
     gLogger.info( "-" * 40 )
-    if type( lfnDir ) in types.StringTypes:
+    if isinstance( lfnDir, basestring ):
       lfnDir = [lfnDir]
     res = self.__getCatalogDirectoryContents( lfnDir )
     if not res['OK']:
@@ -139,9 +147,11 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     if not catalogMetadata:
       gLogger.warn( 'No files found in directory %s' % lfnDir )
       return S_OK( resDict )
-    res = self.__checkBKFiles( replicas, catalogMetadata )
-    if not res['OK']:
-      return res
+    missingLFNs, noFlagLFNs, _okLFNs = self.cc._getBKMetadata( replicas )
+    if missingLFNs:
+      self._reportProblematicFiles( missingLFNs, 'LFNBKMissing' )
+    if noFlagLFNs:
+      self._reportProblematicFiles( noFlagLFNs, 'BKReplicaNo' )
     return S_OK( resDict )
 
   def catalogFileToBK( self, lfns ):
@@ -154,7 +164,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     if type( lfns ) in types.StringTypes:
       lfns = [lfns]
 
-    res = ConsistencyChecks()._getCatalogMetadata( lfns )
+    res = self.cc._getCatalogMetadata( lfns )
     if not res['OK']:
       return res
     catalogMetadata, missingCatalogFiles, zeroSizeFiles = res['Value']
@@ -167,53 +177,15 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     if not res['OK']:
       return res
     replicas = res['Value']
-    res = self.__checkBKFiles( replicas, catalogMetadata )
-    if not res['OK']:
-      return res
+
+    missingLFNs, noFlagLFNs, _okLFNs = self.cc._getBKMetadata(replicas)
+    if missingLFNs:
+      self._reportProblematicFiles( missingLFNs, 'LFNBKMissing' )
+    if noFlagLFNs:
+      self._reportProblematicFiles( noFlagLFNs, 'BKReplicaNo' )
+
     resDict = {'CatalogMetadata':catalogMetadata, 'CatalogReplicas':replicas}
     return S_OK( resDict )
-
-  def __checkBKFiles( self, replicas, catalogMetadata ):
-    """ This takes the supplied replica and catalog metadata information and ensures
-      the files exist in the BK with the correct metadata.
-    """
-    gLogger.info( 'Checking the bookkeeping existence of %s files' % len( catalogMetadata ) )
-
-    res = FileCatalog( catalogs = ['BookkeepingDB'] ).getFileMetadata( catalogMetadata.keys() )
-    if not res['OK']:
-      gLogger.error( 'Failed to get bookkeeping metadata', res['Message'] )
-      return res
-    allMetadata = res['Value']['Successful']
-    missingBKFiles = []
-    sizeMismatchFiles = []
-    guidMismatchFiles = []
-    noBKReplicaFiles = []
-    withBKReplicaFiles = []
-    for lfn, error in res['Value']['Failed'].iteritems():
-      if re.search( 'No such file or directory', error ):
-        missingBKFiles.append( lfn )
-    for lfn, bkMetadata in allMetadata.iteritems():
-      if not bkMetadata['FileSize'] == catalogMetadata[lfn]['Size']:
-        sizeMismatchFiles.append( lfn )
-      if not bkMetadata['GUID'] == catalogMetadata[lfn]['GUID']:
-        guidMismatchFiles.append( lfn )
-      gotReplica = bkMetadata['GotReplica'].lower()
-      if ( gotReplica == 'yes' ) and ( not replicas.has_key( lfn ) ):
-        withBKReplicaFiles.append( lfn )
-      if ( gotReplica != 'yes' ) and ( replicas.has_key( lfn ) ):
-        noBKReplicaFiles.append( lfn )
-    if missingBKFiles:
-      self._reportProblematicFiles( missingBKFiles, 'LFNBKMissing' )
-    if sizeMismatchFiles:
-      self._reportProblematicFiles( sizeMismatchFiles, 'BKCatalogSizeMismatch' )
-    if guidMismatchFiles:
-      self._reportProblematicFiles( guidMismatchFiles, 'BKCatalogGUIDMismatch' )
-    if withBKReplicaFiles:
-      self._reportProblematicFiles( withBKReplicaFiles, 'BKReplicaYes' )
-    if noBKReplicaFiles:
-      self._reportProblematicFiles( noBKReplicaFiles, 'BKReplicaNo' )
-    gLogger.info( 'Checking the bookkeeping existence of files complete' )
-    return S_OK( allMetadata )
 
   ##########################################################################
   #
