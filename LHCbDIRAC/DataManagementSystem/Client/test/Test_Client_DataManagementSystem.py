@@ -16,10 +16,10 @@ class UtilitiesTestCase( unittest.TestCase ):
                                                                                                           'GotReplica':'Yes'},
                                                                                                'bb.log': {'FileType': 'LOG',
                                                                                                           'GotReplica':'Yes'}
-                                                                                               }
-                                                                                    }
-                                                                   }
-                                                         }
+                                                                                              }
+                                                                                   }
+                                                                  }
+                                                        }
     self.bkClientMock.getFileMetadata.return_value = {'OK': True,
                                                       'Value': {'aa.raw': {'FileType': 'RAW',
                                                                            'RunNumber': 97019},
@@ -31,12 +31,12 @@ class UtilitiesTestCase( unittest.TestCase ):
                                                                 '/bb/pippo/aa.dst':{'FileType': 'DST'},
                                                                 '/lhcb/1_2_1.Semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'},
                                                                 '/lhcb/1_1.semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}
-                                                                }
-                                                      }
+                                                               }
+                                                     }
 
     self.dmMock = Mock()
     self.dmMock.getReplicas.return_value = {'OK': True, 'Value':{'Successful':{'bb.raw':'metadataPippo'},
-                                                                  'Failed':{}}}
+                                                                 'Failed':{}}}
 
     self.cc = ConsistencyChecks( transClient = Mock(), dm = self.dmMock, bkClient = self.bkClientMock )
     self.cc.fileType = ['SEMILEPTONIC.DST', 'LOG', 'RAW']
@@ -58,7 +58,7 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
                           'bb.log':{'FileType': 'LOG'},
                           '/bb/pippo/aa.dst':{'FileType': 'LOG'},
                           '/lhcb/1_1.semileptonic.dst':{'FileType': 'SEMILEPTONIC.DST'}}
-               }
+              }
 
     res = self.cc._selectByFileType( lfnDict )
 
@@ -72,8 +72,8 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
 
     lfnDict = {'aa.raw': {'/bb/pippo/aa.dst':{'FileType': 'LOG'},
                           'bb.log':{'FileType': 'LOG'}
-                          }
-               }
+                         }
+              }
     res = self.cc._selectByFileType( lfnDict )
     lfnDictExpected = {}
     self.assertEqual( res, lfnDictExpected )
@@ -107,4 +107,3 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( UtilitiesTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ConsistencyChecksSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
-
