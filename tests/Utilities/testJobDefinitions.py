@@ -4,11 +4,11 @@
 #pylint: disable=missing-docstring
 
 # imports
-import time
-import os
+
 from DIRAC.tests.Utilities.utils import find_all
 from DIRAC.tests.Utilities.testJobDefinitions import *
-
+import time
+import os
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
@@ -136,87 +136,80 @@ def helloWorldTestSLC5():
 @executeWithUserProxy
 def jobWithOutput():
 
-  timenow = str(time.time()).replace(".", "")
-  file = open(wdir+timenow+"testFileUpload.txt", "w")
-  file.write(timenow)
-  file.close()
+  timenow = time.strftime("%s")
+  with open( os.path.join( wdir,timenow+"testFileUpload.txt" ), "w" ) as f:
+    f.write( timenow )
   J = baseToAllJobs( 'jobWithOutput', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUpload.txt', '.', 'GridTestSubmission' )[0]] + \
+  J.setInputSandbox( [find_all( timenow+'testFileUpload.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setOutputData( [timenow+'testFileUpload.txt'] )
-  os.remove(wdir+timenow+"testFileUpload.txt")
+  os.remove( os.path.join( wdir,timenow+"testFileUpload.txt" )
   return endOfAllJobs( J )
 
 @executeWithUserProxy
 def jobWithOutputAndPrepend():
 
-  timenow = str(time.time()).replace(".", "")
-  file = open(wdir+timenow+"testFileUploadNewPath.txt", "w")
-  file.write(timenow)
-  file.close()
+  timenow = time.strftime("%s")
+  with open( os.path.join( wdir,timenow+"testFileUploadNewPath.txt" ), "w" ) as f:
+    f.write( timenow )
   J = baseToAllJobs( 'jobWithOutputAndPrepend', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUploadNewPath.txt', '.', 'GridTestSubmission' )[0]] + \
+  J.setInputSandbox( [find_all( timenow+'testFileUploadNewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setOutputData( [timenow+'testFileUploadNewPath.txt'], filePrepend = 'testFilePrepend' )
-  os.remove(wdir+timenow+"testFileUploadNewPath.txt")
+  os.remove( os.path.join( wdir,timenow+"testFileUploadNewPath.txt" )
   return endOfAllJobs( J )
 
 @executeWithUserProxy
 def jobWithOutputAndPrependWithUnderscore():
 
-  timenow = str(time.time()).replace(".", "")
-  file = open(wdir+timenow+"testFileUpload_NewPath.txt", "w")
-  file.write(timenow)
-  file.close()
+  timenow = time.strftime("%s")
+  with open( os.path.join( wdir,timenow+"testFileUpload_NewPath.txt" ), "w")  as f:
+    f.write( timenow )
   J = baseToAllJobs( 'jobWithOutputAndPrependWithUnderscore', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUploadNewPath.txt', '.', 'GridTestSubmission' )[0]] + \
+  J.setInputSandbox( [find_all( timenow+'testFileUploadNewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   res = J.setOutputData( [timenow+'testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
   if not res['OK']:
     return 0
-  os.remove(wdir+timenow+'testFileUpload_NewPath.txt')
+  os.remove( os.path.join( wdir,timenow+'testFileUpload_NewPath.txt' )
   return endOfAllJobs( J )
 
 @executeWithUserProxy
 def jobWithOutputAndReplication():
 
-  timenow = str(time.time()).replace(".", "")
-  file = open(wdir+timenow+"testFileReplication.txt", "w")
-  file.write(timenow)
-  file.close()
+  timenow = strtime.strftime("%s")
+  with open( os.path.join( wdir,timenow+"testFileReplication.txt" ), "w" ) as f:
+    f.write( timenow )
   J = baseToAllJobs( 'jobWithOutputAndReplication', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileReplication.txt', '.', 'GridTestSubmission' )[0]] + \
+  J.setInputSandbox( [find_all( timenow+'testFileReplication.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setOutputData( [timenow+'testFileReplication.txt'], replicate = 'True' )
-  os.remove(wdir+timenow+'testFileReplication.txt')
+  os.remove( os.path.join( wdir,timenow+'testFileReplication.txt' )
   return endOfAllJobs( J )
 
 @executeWithUserProxy
 def jobWith2OutputsToBannedSE():
 
-  timenow = str(time.time()).replace(".", "")
-  file = open(wdir+timenow+"testFileUploadBanned-1.txt", "w")
-  file.write(timenow)
-  file.close()
-  timenow2 = str(time.time()).replace(".", "")
-  file2 = open(wdir+timenow2+"testFileUploadBanned-2.txt", "w")
-  file2.write(timenow2)
-  file2.close()  
+  timenow = time.strftime("%s")
+  with open( os.path.join( wdir,timenow+"testFileUploadBanned-1.txt" ), "w" ) as f:
+    f.write( timenow ) 
+  with open( os.path.join( wdir,timenow+"testFileUploadBanned-2.txt" ), "w" ) as f:
+    f.write( timenow )
   J = baseToAllJobs( 'jobWith2OutputsToBannedSE', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUploadBanned-1.txt', '.', 'GridTestSubmission' )[0]] \
-                     + [find_all( timenow2+'testFileUploadBanned-2.txt', '.', 'GridTestSubmission' )[0]] \
+  J.setInputSandbox( [find_all( timenow+'testFileUploadBanned-1.txt', wdir, 'GridTestSubmission' )[0]] \
+                     + [find_all( timenow+'testFileUploadBanned-2.txt', wdir, 'GridTestSubmission' )[0]] \
                      + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] \
                      + [find_all( 'partialConfig.cfg', '.', 'GridTestSubmission' )[0] ] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setConfigArgs( 'partialConfig.cfg' )
   J.setDestination( 'LCG.PIC.es' )
-  J.setOutputData( [timenow+'testFileUploadBanned-1.txt', timenow2+'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
-  os.remove(wdir+timenow+'testFileUploadBanned-1.txt') 
-  os.remove(wdir+timenow2+'testFileUploadBanned-2.txt')  
+  J.setOutputData( [timenow+'testFileUploadBanned-1.txt', timenow+'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
+  os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-1.txt' ) 
+  os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-2.txt' )  
   return endOfAllJobs( J )
 
 @executeWithUserProxy
