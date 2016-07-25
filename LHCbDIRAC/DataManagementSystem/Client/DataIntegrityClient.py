@@ -147,7 +147,10 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     if not catalogMetadata:
       gLogger.warn( 'No files found in directory %s' % lfnDir )
       return S_OK( resDict )
-    missingLFNs, noFlagLFNs, _okLFNs = self.cc._getBKMetadata( replicas )
+    lfns = []
+    for repDict in replicas:
+      lfns.append(repDict)
+    missingLFNs, noFlagLFNs, _okLFNs = self.cc._getBKMetadata( lfns )
     if missingLFNs:
       self._reportProblematicFiles( missingLFNs, 'LFNBKMissing' )
     if noFlagLFNs:
@@ -155,8 +158,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     return S_OK( resDict )
 
   def catalogFileToBK( self, lfns ):
-    """ This obtains the replica and metadata information from the catalog and
-      checks against the storage elements.
+    """ This obtains the replica and metadata information from the catalog and checks against the storage elements.
     """
     gLogger.info( "-" * 40 )
     gLogger.info( "Performing the FC->BK check" )
@@ -173,12 +175,15 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     if zeroSizeFiles:
       self._reportProblematicFiles( zeroSizeFiles, 'LFNZeroSize' )
 
-    res = self.__getCatalogReplicas( catalogMetadata.keys() )
+    res = self.cc._getCatalogReplicas( catalogMetadata.keys() )
     if not res['OK']:
       return res
-    replicas = res['Value']
+    replicas, _zeroReplicaFiles = res['Value']
 
-    missingLFNs, noFlagLFNs, _okLFNs = self.cc._getBKMetadata(replicas)
+    lfns = []
+    for repDict in replicas:
+      lfns.append(repDict)
+    missingLFNs, noFlagLFNs, _okLFNs = self.cc._getBKMetadata( lfns )
     if missingLFNs:
       self._reportProblematicFiles( missingLFNs, 'LFNBKMissing' )
     if noFlagLFNs:
@@ -253,11 +258,7 @@ class DataIntegrityClient( DIRACDataIntegrityClient ):
     gLogger.info( "-" * 40 )
     gLogger.info( "Performing the FC->SE check" )
     gLogger.info( "-" * 40 )
-    return self.__checkPhysicalFiles( replicas, catalogMetadata, ses = ses, fixIt = fixIt )
 
-  def __checkPhysicalFiles( self, replicas, catalogMetadata, ses = [], fixIt = False ):
-    """ This obtains the physical file metadata and checks the metadata against the catalog entries
-    """
     seLfns = {}
     for lfn, replicaDict in replicas.iteritems():
       for se in replicaDict:
