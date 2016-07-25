@@ -454,7 +454,7 @@ class ProductionRequest( object ):
         multicore = self.multicore[index]
         outputMode = self.outputModes[index]
         ancestorDepth = self.ancestorDepths[index]
-        if plugin.lower() not in ['byrunfiletypesizewithflush', 'rootmerging']:
+        if plugin.lower != 'byrunfiletypesizewithflush' and 'rootmerging' not in plugin.lower():
           stepToSplit = self.stepsListDict[index]
           numberOfProdsToInsert = len( stepToSplit['fileTypesOut'] )
           self.prodsTypeList.remove( 'Merge' )

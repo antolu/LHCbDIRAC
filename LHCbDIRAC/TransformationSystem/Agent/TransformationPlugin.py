@@ -1,6 +1,5 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
-__RCSID__ = "$Id$"
 
 import time
 import os
@@ -19,6 +18,10 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtilities, groupByRun, getActiveSEs
+
+__RCSID__ = "$Id$"
+
+#pylint: disable=missing-docstring
 
 class TransformationPlugin( DIRACTransformationPlugin ):
   """ Extension of DIRAC TransformationPlugin - instantiated by the TransformationAgent
@@ -277,7 +280,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           tasks.append( ( assignedSE, lfns ) )
         else:
           alreadyReplicated += lfns
-          self.util.logVerbose( '%d files in run %d found already replicated at %s' % ( len( lfns ), runID, ','.join( sorted( replicaSE ) ) ) )
+          self.util.logVerbose( '%d files in run %d found already replicated at %s' % ( len( lfns ),
+                                                                                        runID, ','.join( sorted( replicaSE ) ) ) )
 
     if alreadyReplicated:
       for lfn in alreadyReplicated:
@@ -729,6 +733,17 @@ class TransformationPlugin( DIRACTransformationPlugin ):
 
   def _ByRunEventTypeSizeForceFlush( self ):
     return self._ByRun( param = 'EventTypeId', plugin = 'BySize', forceFlush = True )
+
+
+  # Plugins for RootMerging - here only to distinguish from the others as "RootMerging" is meaningful at production creation
+
+  def _ByRunSizeWithFlushRootMerging( self ):
+    return self._ByRun( plugin = 'BySize', requireFlush = True )
+
+  def _BySizeRootMerging( self ):
+    return self._BySize()
+
+
 
   def _LHCbDSTBroadcast( self ):
     """ Usually for replication of real data (4 copies)
@@ -1221,7 +1236,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         transQuery.pop( 'FileType', None )
         bkPathList[ makeBKPath( transQuery ) ] = newPass
     self.util.logVerbose( 'List of BK paths:', '\n\t'.join( [''] + ['%s: %s' % \
-                                                                    ( bkPath.replace( 'Real Data', 'RealData' ), bkPathList[bkPath].replace( 'Real Data', 'RealData' ) ) \
+                                                                    ( bkPath.replace( 'Real Data', 'RealData' ),
+                                                                      bkPathList[bkPath].replace( 'Real Data', 'RealData' ) ) \
                                                                     for bkPath in sorted( bkPathList )] ) )
     # Now we must find out whether the input files have a descendant in these BK paths
 
@@ -1266,7 +1282,9 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             break
           lfnsToCheckForPath = set( lfn for lfn in lfnsToCheck if bkPath in bkPathsToCheck[lfn] )
           depth = len( bkPathList[bkPath].split( '/' ) ) - transPassLen + 1
-          self.util.logVerbose( 'Checking descendants for %d files in productions %s, depth %d' % ( len( lfnsToCheckForPath ), ','.join( str( prod ) for prod in prods ), depth ) )
+          self.util.logVerbose( 'Checking descendants for %d files in productions %s, depth %d' % ( len( lfnsToCheckForPath ),
+                                                                                                    ','.join( str( prod ) for prod in prods ),
+                                                                                                    depth ) )
           lfnLeft = self.util.filterNotProcessedFiles( lfnsToCheckForPath, prods )
           for prod in sorted( prods, reverse = True ) if not newMethod else [None]:
             if not lfnLeft:
@@ -1277,7 +1295,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             startTime = time.time()
             processedLfns = set()
             for lfnChunk in breakListIntoChunks( lfnLeft, 20 ):
-              res = self.util.checkForDescendants( lfnChunk, prods ) if newMethod else self.bkClient.getFileDescendants( lfnChunk, production = prod, depth = depth, checkreplica = True )
+              res = self.util.checkForDescendants( lfnChunk, prods ) if newMethod else self.bkClient.getFileDescendants( lfnChunk,
+                                                                                                                         production = prod,
+                                                                                                                         depth = depth,
+                                                                                                                         checkreplica = True )
               if res['OK']:
                 processedLfns.update( res['Value'] )
               else:
@@ -1293,7 +1314,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
             lfnLeft -= processedLfns
           notProcessed = set( lfn for lfn in lfnsToCheckForPath if bkPath in bkPathsToCheck[lfn] )
           if notProcessed:
-            self.util.logVerbose( "%d files not processed by processing pass %s, don't check further" % ( len( notProcessed ), bkPathList[bkPath] ) )
+            self.util.logVerbose( "%d files not processed by processing pass %s, don't check further" % ( len( notProcessed ),
+                                                                                                          bkPathList[bkPath] ) )
             lfnsToCheck -= notProcessed
 
         lfnsProcessed = [lfn for lfn in lfns if not bkPathsToCheck[lfn]]

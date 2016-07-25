@@ -1,14 +1,12 @@
 """
   Utilities for scripts dealing with transformations
 """
-__RCSID__ = "$Id$"
-
 import os
 import datetime
 import random
 import time
 
-from DIRAC import gConfig, gLogger, S_OK, S_ERROR, exit as DIRACExit
+from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
@@ -21,6 +19,9 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import ResourceManagementClient
+
+__RCSID__ = "$Id$"
+
 
 class PluginUtilities( DIRACPluginUtilities ):
   """
@@ -1090,4 +1091,3 @@ def optimizeTasks( tasks ):
   for ses, lfns in tasks:
     taskDict.setdefault( ses, [] ).extend( lfns )
   return taskDict.items()
-
