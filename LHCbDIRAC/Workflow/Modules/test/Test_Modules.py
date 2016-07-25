@@ -22,6 +22,8 @@ from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEvent
 
 __RCSID__ = "$Id$"
 
+#pylint: disable=protected-access
+#pylint: disable=missing-docstring
 
 class ModulesTestCase( unittest.TestCase ):
   """ Base class for the Modules test cases
@@ -338,7 +340,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
                       '00012345_00012345_2.digi': {'type': 'digi'},
                       '00012345_00012345_3.digi': {'type': 'digi'},
                       '00012345_00012345_5.AllStreams.dst': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
-                                                            'type': 'allstreams.dst'},
+                                                             'type': 'allstreams.dst'},
                       '00012345_00012345_1.sim': {'type': 'sim'},
                       'Gauss_HIST_1.root': {'type':'GAUSSHIST'},
                       '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst': {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
@@ -348,32 +350,32 @@ class ModuleBaseSuccess( ModulesTestCase ):
     fileMasks = ( ['dst'], 'dst', ['sim'], ['digi'], ['digi', 'sim'], 'allstreams.dst',
                   'b2d0pi_d2kkpipi.strip.dst', [], ['b2d0pi_d2kkpipi.strip.dst', 'digi'],
                   ['gausshist', 'digi'],
-                   )
+                )
     stepMasks = ( '', '5', '', ['2'], ['1', '3'], '', '', ['6'], [],
                   ['1', '3'], )
 
     results = ({'00012345_00012345_4.dst':{'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
-                                            'type': 'dst'}},
-                {},
-                {'00012345_00012345_1.sim': {'type': 'sim'}},
-                {'00012345_00012345_2.digi': {'type': 'digi'},},
-                 {'00012345_00012345_3.digi': {'type': 'digi'},
-                  '00012345_00012345_1.sim': {'type': 'sim'}},
-                 {'00012345_00012345_5.AllStreams.dst':{'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
-                                                        'type': 'allstreams.dst'}},
-                 {'00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
-                   {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
-                    'type': 'b2d0pi_d2kkpipi.strip.dst'}},
-                 {'00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
-                   {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
-                    'type': 'b2d0pi_d2kkpipi.strip.dst'}},
-                 {'00012345_00012345_2.digi': {'type': 'digi'},
-                  '00012345_00012345_3.digi': {'type': 'digi'},
-                  '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
-                   {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
-                    'type': 'b2d0pi_d2kkpipi.strip.dst'}},
-                {'00012345_00012345_3.digi': {'type': 'digi'},
-                 'Gauss_HIST_1.root':{'type':'GAUSSHIST'}},)
+                                           'type': 'dst'}},
+               {},
+               {'00012345_00012345_1.sim': {'type': 'sim'}},
+               {'00012345_00012345_2.digi': {'type': 'digi'},},
+               {'00012345_00012345_3.digi': {'type': 'digi'},
+                '00012345_00012345_1.sim': {'type': 'sim'}},
+               {'00012345_00012345_5.AllStreams.dst':{'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
+                                                      'type': 'allstreams.dst'}},
+               {'00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
+                {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
+                 'type': 'b2d0pi_d2kkpipi.strip.dst'}},
+               {'00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
+                {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
+                 'type': 'b2d0pi_d2kkpipi.strip.dst'}},
+               {'00012345_00012345_2.digi': {'type': 'digi'},
+                '00012345_00012345_3.digi': {'type': 'digi'},
+                '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
+                 {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
+                  'type': 'b2d0pi_d2kkpipi.strip.dst'}},
+               {'00012345_00012345_3.digi': {'type': 'digi'},
+                'Gauss_HIST_1.root':{'type':'GAUSSHIST'}},)
 
     for fileMask, result, stepMask in itertools.izip( fileMasks, results, stepMasks ):
       res = self.mb._applyMask( candidateFiles, fileMask, stepMask )
@@ -383,15 +385,14 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
   def test__checkSanity( self ):
 
-    candidateFiles = {
-                      '00012345_00012345_4.dst':
+    candidateFiles = {'00012345_00012345_4.dst':
                         {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
                          'type': 'dst'},
                       '00012345_00012345_2.digi': {'type': 'digi'},
                       '00012345_00012345_3.digi': {'type': 'digi'},
                       '00012345_00012345_5.AllStreams.dst':
-                        {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
-                         'type': 'DST'},
+                      {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_5.AllStreams.dst',
+                       'type': 'DST'},
                       '00012345_00012345_1.sim': {'type': 'sim'}}
 
     self.assertRaises( ValueError, self.mb._checkSanity, candidateFiles )
@@ -417,7 +418,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
     stepMask = ''
     result = {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
                             'type': outputList[0]['outputDataType'],
-                             'workflowSE': 'SE1'}}
+                            'workflowSE': 'SE1'}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
     self.assertEqual( res, result )
@@ -426,10 +427,10 @@ class ModuleBaseSuccess( ModulesTestCase ):
     stepMask = None
     result = {'foo_1.txt': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/foo_1.txt',
                             'type': outputList[0]['outputDataType'],
-                             'workflowSE': 'SE1'},
+                            'workflowSE': 'SE1'},
               'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                            'type': outputList[1]['outputDataType'],
-                            'workflowSE': 'SE'}}
+                           'workflowSE': 'SE'}}
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
     self.assertEqual( res, result )
 
@@ -530,7 +531,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
                                                'outputDataType': 'sdst',
                                                'outputBKType': 'SDST',
                                                'outputDataName': '00012345_00006789_1.sdst'}
-                                              ]
+                                             ]
     self.mb.inputDataType = 'SDST'
     first = self.mb._determineStepInputData( inputData )
     second = ['some.sdst', '00012345_00006789_1.sdst']
@@ -549,12 +550,22 @@ class ModuleBaseSuccess( ModulesTestCase ):
     for step_commons in self.step_commons:
       self.mb.step_commons = step_commons
       self.mb.step_commons['listoutput'] = [{'outputDataType': 'bhadron.dst;sdst',
-                                              'outputDataName': '00000123_00000456_1.bhadron.dst;sdst'}]
+                                             'outputDataName': '00000123_00000456_1.bhadron.dst;sdst'}]
       outF, outft, histos = self.mb._determineOutputs()
       self.assertEqual( outF, [{'outputDataType': 'sdst',
                                 'outputDataName': '00000123_00000456_1.sdst',
                                 'outputBKType': 'SDST'}] )
       self.assertEqual( outft, ['sdst'] )
+      self.assertFalse( histos )
+
+      self.mb.step_commons['listoutput'] = [{'outputDataType': 'root',
+                                             'outputDataName': '00000123_00000456_1.root',
+                                             'outputBKType': 'ROOT'}]
+      outF, outft, histos = self.mb._determineOutputs()
+      self.assertEqual( outF, [{'outputDataType': 'root',
+                                'outputDataName': '00000123_00000456_1.root',
+                                'outputBKType': 'ROOT'}] )
+      self.assertEqual( outft, ['root'] )
       self.assertFalse( histos )
 
     self.mb.jobType = 'reco'
@@ -612,7 +623,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
                       'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                                    'type': 'py',
                                    'workflowSE': 'SE2'},
-                      }
+                     }
 
     expectedResult = {'bar_2.py': {'filedict': {'Status': 'Waiting',
                                                 'LFN': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
@@ -784,30 +795,37 @@ class ModulesUtilitiesSuccess( ModulesTestCase ):
                                                                               'OS': 'ScientificCERNSLC_Boron_5.5',
                                                                               'Pilot': 'True',
                                                                               'Queues': {'cream-lsf-grid_2nh_lhcb': {'MaxTotalJobs': '1000',
-                                                                              'MaxWaitingJobs': '20',
-                                                                              'SI00': '1000',
-                                                                              'maxCPUTime': '120'},
-                                                                              'cream-lsf-grid_lhcb': {'MaxTotalJobs': '1000',
-                                                                              'MaxWaitingJobs': '100',
-                                                                              'SI00': '1000',
-                                                                              'WaitingToRunningRatio': '0.2',
-                                                                              'maxCPUTime': '10080'}},
+                                                                                                                     'MaxWaitingJobs': '20',
+                                                                                                                     'SI00': '1000',
+                                                                                                                     'maxCPUTime': '120'
+                                                                                                                    },
+                                                                                         'cream-lsf-grid_lhcb': {'MaxTotalJobs': '1000',
+                                                                                                                 'MaxWaitingJobs': '100',
+                                                                                                                 'SI00': '1000',
+                                                                                                                 'WaitingToRunningRatio': '0.2',
+                                                                                                                 'maxCPUTime': '10080'
+                                                                                                                }
+                                                                                        },
                                                                               'SI00': '5242',
                                                                               'SubmissionMode': 'Direct',
                                                                               'architecture': 'x86_64',
-                                                                              'wnTmpDir': '.'},
-                                                                              'ce202.cern.ch': {'CEType': 'CREAM',
+                                                                              'wnTmpDir': '.'
+                                                                             },
+                                                            'ce202.cern.ch': {'CEType': 'CREAM',
                                                                               'OS': 'ScientificCERNSLC_Boron_5.8',
                                                                               'Pilot': 'True',
-                                                                              'Queues': {'cream-lsf-grid_2nh_lhcb': {'MaxTotalJobs': '1000',
-                                                                              'MaxWaitingJobs': '20',
-                                                                              'SI00': '1000',
-                                                                              'maxCPUTime': '120'},
-                                                                              'cream-lsf-grid_lhcb': {'MaxTotalJobs': '1000',
-                                                                              'MaxWaitingJobs': '100',
-                                                                              'SI00': '1000',
-                                                                              'WaitingToRunningRatio': '0.2',
-                                                                              'maxCPUTime': '10080'}},
+                                                                              'Queues': {'cream-lsf-grid_2nh_lhcb': { 'MaxTotalJobs': '1000',
+                                                                                                                      'MaxWaitingJobs': '20',
+                                                                                                                      'SI00': '1000',
+                                                                                                                      'maxCPUTime': '120'
+                                                                                                                    },
+                                                                                         'cream-lsf-grid_lhcb': { 'MaxTotalJobs': '1000',
+                                                                                                                  'MaxWaitingJobs': '100',
+                                                                                                                  'SI00': '1000',
+                                                                                                                  'WaitingToRunningRatio': '0.2',
+                                                                                                                  'maxCPUTime': '10080'
+                                                                                                                }
+                                                                                        },
                                                                               'SI00': '5242',
                                                                               'SubmissionMode': 'Direct',
                                                                               'architecture': 'x86_64',
@@ -1123,9 +1141,9 @@ class ErrorLoggingSuccess( ModulesTestCase ):
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.el.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                       self.workflowStatus, self.stepStatus,
-                       wf_commons, step_commons,
-                       self.step_number, self.step_id )
+                         self.workflowStatus, self.stepStatus,
+                         wf_commons, step_commons,
+                         self.step_number, self.step_id )
 
     # TODO: make a real test (this one always exits with "Application log file from previous module not found locally")
 
@@ -1235,9 +1253,9 @@ class RemoveInputDataSuccess( ModulesTestCase ):
         continue
       for step_commons in self.step_commons:
         self.assertTrue( self.rid.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                         self.workflowStatus, self.stepStatus,
-                                         wf_commons, step_commons,
-                                         self.step_number, self.step_id )['OK'] )
+                                           self.workflowStatus, self.stepStatus,
+                                           wf_commons, step_commons,
+                                           self.step_number, self.step_id )['OK'] )
 
 
 
@@ -1255,9 +1273,9 @@ class SendBookkeepingSuccess( ModulesTestCase ):
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertTrue( self.sb.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                        self.workflowStatus, self.stepStatus,
-                                        wf_commons, step_commons,
-                                        self.step_number, self.step_id )['OK'] )
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, step_commons,
+                                          self.step_number, self.step_id )['OK'] )
 
 #############################################################################
 # StepAccounting.py
@@ -1276,10 +1294,10 @@ class StepAccountingSuccess( ModulesTestCase ):
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertTrue( self.sa.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                        self.workflowStatus, self.stepStatus,
-                                        wf_commons, step_commons,
-                                        self.step_number, self.step_id,
-                                        self.jobStep_mock, self.xf_o_mock )['OK'] )
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, step_commons,
+                                          self.step_number, self.step_id,
+                                          self.jobStep_mock, self.xf_o_mock )['OK'] )
 
 #############################################################################
 # UploadLogFile.py
@@ -1410,7 +1428,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
             continue
           wf_commons['outputList'] = [{'outputDataType': 'txt', 'outputDataName': 'foo.txt'},
                                       {'outputDataType': 'txt', 'outputDataName': 'bar.txt'},
-                                      ]
+                                     ]
           wf_commons['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
                                                 '/lhcb/MC/2010/DST/00012345/0001/bar.txt' ]
 #          self.bkc_mock.getFileDescendants.return_value = {'OK': False,
@@ -1423,11 +1441,11 @@ class UploadOutputDataSuccess( ModulesTestCase ):
 #                                                                     'NotProcessed': []}}
           fileDescendants = {'foo.txt': ['baaar']}
           self.assertFalse( self.uod.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                             self.workflowStatus, self.stepStatus,
-                                             wf_commons, step_commons,
-                                             self.step_number, self.step_id,
-                                             SEs = ['SomeSE'],
-                                             fileDescendants = fileDescendants )['OK'] )
+                                              self.workflowStatus, self.stepStatus,
+                                              wf_commons, step_commons,
+                                              self.step_number, self.step_id,
+                                              SEs = ['SomeSE'],
+                                              fileDescendants = fileDescendants )['OK'] )
 #          self.bkc_mock.getFileDescendants.return_value = {'OK': True,
 #                                                           'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
 #                                                                        {'skipCACheck': False,
@@ -1622,9 +1640,9 @@ class CreateDataFileSuccess( ModulesTestCase ):
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertTrue( self.cdf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                            self.workflowStatus, self.stepStatus,
-                                            wf_commons, step_commons,
-                                            self.step_number, self.step_id )['OK'] )
+                                           self.workflowStatus, self.stepStatus,
+                                           wf_commons, step_commons,
+                                           self.step_number, self.step_id )['OK'] )
 
 #############################################################################
 # Test Suite run
