@@ -24,6 +24,7 @@ __RCSID__ = "$Id$"
 
 #pylint: disable=protected-access
 #pylint: disable=missing-docstring
+#pylint: disable=invalid-name
 
 class ModulesTestCase( unittest.TestCase ):
   """ Base class for the Modules test cases
@@ -303,7 +304,8 @@ class ModulesTestCase( unittest.TestCase ):
 
   def tearDown( self ):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst', 'bar.py', 'aLongLog.log', 'aLongLog.log.gz'
-                     'ccc.charm.mdst', 'ccc.charm.mdst', 'prova.txt', 'aLog.log', 'BAR.txt', 'FooBAR.ext.txt', 'foo_1.txt', 'bar_2.py', 'bar.txt',
+                     'ccc.charm.mdst', 'ccc.charm.mdst', 'prova.txt', 'aLog.log',
+                     'BAR.txt', 'FooBAR.ext.txt', 'foo_1.txt', 'bar_2.py', 'bar.txt',
                      'ErrorLogging_Step1_coredump.log', '123_00000456_request.xml', 'lfn1', 'lfn2', 'XMLSummaryFile',
                      'aaa.bhadron.dst', 'bbb.calibration.dst', 'ProductionOutputData', 'data.py', '123_00000456_request.json',
                      '00000123_00000456.tar', 'someOtherDir', 'DISABLE_WATCHDOG_CPU_WALLCLOCK_CHECK', 'myfoo.blah',
@@ -372,8 +374,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
                {'00012345_00012345_2.digi': {'type': 'digi'},
                 '00012345_00012345_3.digi': {'type': 'digi'},
                 '00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst':
-                 {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
-                  'type': 'b2d0pi_d2kkpipi.strip.dst'}},
+                {'lfn': '/lhcb/MC/2012/B2D0PI_D2KKPIPI.STRIP.DST/00038941/0000/00038941_00000004_6.B2D0Pi_D2KKPiPi.Strip.dst',
+                 'type': 'b2d0pi_d2kkpipi.strip.dst'}},
                {'00012345_00012345_3.digi': {'type': 'digi'},
                 'Gauss_HIST_1.root':{'type':'GAUSSHIST'}},)
 
@@ -452,7 +454,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
     stepMask = '2'
     result = {'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                            'type': outputList[1]['outputDataType'],
-                            'workflowSE': 'SE'}}
+                           'workflowSE': 'SE'}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
@@ -462,7 +464,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
     stepMask = 2
     result = {'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                            'type': outputList[1]['outputDataType'],
-                            'workflowSE': 'SE'}}
+                           'workflowSE': 'SE'}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
@@ -473,7 +475,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
     stepMask = ['2', '3']
     result = {'bar_2.py': {'lfn': '/lhcb/MC/2010/DST/00012345/0001/bar_2.py',
                            'type': outputList[1]['outputDataType'],
-                            'workflowSE': 'SE'}}
+                           'workflowSE': 'SE'}}
 
     res = self.mb.getCandidateFiles( outputList, outputLFNs, fileMask, stepMask )
 
@@ -502,15 +504,15 @@ class ModuleBaseSuccess( ModulesTestCase ):
     inputData = 'previousStep'
     self.mb.gaudiSteps = ['Brunel_1', 'DaVinci_2']
     self.mb.workflow_commons = {'outputList': [{'stepName': 'Brunel_1',
-                                               'outputDataType': 'brunelhist',
-                                               'outputBKType': 'BRUNELHIST',
-                                               'outputDataName': 'Brunel_00012345_00006789_1_Hist.root'},
-                                              {'stepName': 'Brunel_1',
-                                               'outputDataType': 'sdst',
-                                               'outputBKType': 'SDST',
-                                               'outputDataName': '00012345_00006789_1.sdst'}
+                                                'outputDataType': 'brunelhist',
+                                                'outputBKType': 'BRUNELHIST',
+                                                'outputDataName': 'Brunel_00012345_00006789_1_Hist.root'},
+                                               {'stepName': 'Brunel_1',
+                                                'outputDataType': 'sdst',
+                                                'outputBKType': 'SDST',
+                                                'outputDataName': '00012345_00006789_1.sdst'}
                                               ]
-                                }
+                               }
     self.mb.inputDataType = 'SDST'
 
     first = self.mb._determineStepInputData( inputData )
@@ -647,7 +649,7 @@ class ModuleBaseSuccess( ModulesTestCase ):
                                     'localpath': os.getcwd() + '/foo_1.txt',
                                     'guid': 'D41D8CD9-8F00-B204-E980-0998ECF8427E',
                                     'type': 'txt'}
-                      }
+                     }
 
     result = self.mb.getFileMetadata( candidateFiles )
     self.assertEqual( result, expectedResult )
@@ -1041,9 +1043,9 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertTrue( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                            self.workflowStatus, self.stepStatus,
-                                            wf_commons, step_commons,
-                                            self.step_number, self.step_id )['OK'] )
+                                           self.workflowStatus, self.stepStatus,
+                                           wf_commons, step_commons,
+                                           self.step_number, self.step_id )['OK'] )
 
 
     self.alf.jobType = 'reco'
@@ -1057,9 +1059,9 @@ class AnalyseLogFileSuccess( ModulesTestCase ):
         if wf_commons.has_key( 'AnalyseLogFilePreviouslyFinalized' ):
           continue
         self.assertFalse( self.alf.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                          self.workflowStatus, self.stepStatus,
-                                          wf_commons, step_commons,
-                                          self.step_number, self.step_id )['OK'] )
+                                            self.workflowStatus, self.stepStatus,
+                                            wf_commons, step_commons,
+                                            self.step_number, self.step_id )['OK'] )
 
     # there's a core dump
     logAnalyser.return_value = False
@@ -1165,9 +1167,9 @@ class FailoverRequestSuccess( ModulesTestCase ):
     for wf_commons in copy.deepcopy( self.wf_commons ):
       for step_commons in self.step_commons:
         self.assertTrue( self.fr.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                        self.workflowStatus, self.stepStatus,
-                                        wf_commons, step_commons,
-                                        self.step_number, self.step_id )['OK'] )
+                                          self.workflowStatus, self.stepStatus,
+                                          wf_commons, step_commons,
+                                          self.step_number, self.step_id )['OK'] )
 
 #############################################################################
 # MergeMDF.py
@@ -1243,9 +1245,9 @@ class RemoveInputDataSuccess( ModulesTestCase ):
         continue
       for step_commons in self.step_commons:
         self.assertTrue( self.rid.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-                                         self.workflowStatus, self.stepStatus,
-                                         wf_commons, step_commons,
-                                         self.step_number, self.step_id )['OK'] )
+                                           self.workflowStatus, self.stepStatus,
+                                           wf_commons, step_commons,
+                                           self.step_number, self.step_id )['OK'] )
 
     # no errors, input data
     for wf_commons in copy.deepcopy( self.wf_commons ):
