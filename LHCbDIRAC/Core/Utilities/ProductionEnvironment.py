@@ -73,6 +73,7 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
   for compatibleCMTConfig in compatibleCMTConfigs:
     gLogger.verbose( "Using %s for setup" % compatibleCMTConfig )
     environment['CMTCONFIG'] = compatibleCMTConfig
+    environment['BINARY_TAG'] = ''
     result = runEnvironmentScripts( [lbLogin, setupProject], environment )
     if result['OK']:
       break
