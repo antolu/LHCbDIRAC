@@ -383,28 +383,29 @@ class SwimmingSuccess( ProductionJobTestCase ):
     res = self.diracProduction.launchProduction( prod, False, True, 0 )
     self.assertTrue( res['OK'] )
 
-  class RootMergeSuccess( ProductionJobTestCase ):
-    def test_Integration_Production( self ):
+#FIXME: not ready, now disabled - should also add DAVINCIHIST in input, plus ntuples and other combinations
+class RootMergeSuccess( ProductionJobTestCase ):
+  def test_Integration_Production( self ):
 
-      lfns = ['/lhcb/LHCb/Collision15/BRUNELHIST/00047763/0006/Brunel_00047763_00069480_1.Hist.root',
-              '/lhcb/LHCb/Collision15/BRUNELHIST/00047763/0006/Brunel_00047763_00069421_1.Hist.root']
+    lfns = ['/lhcb/LHCb/Collision15/BRUNELHIST/00047763/0006/Brunel_00047763_00069480_1.Hist.root',
+            '/lhcb/LHCb/Collision15/BRUNELHIST/00047763/0006/Brunel_00047763_00069421_1.Hist.root']
 
-      stepsInProd = [{'StepId': 12345, 'StepName': 'RootMerging', 'ApplicationName': 'Noether', 'ApplicationVersion': 'v1r4',
-                      'ExtraPackages': '', 'ProcessingPass': 'RootMerging', 'Visible': 'N', 'Usable': 'Yes',
-                      'DDDB': 'dddb-20150724', 'CONDDB': ' cond-20150828', 'DQTag': '', 'OptionsFormat': 'merge',
-                      'OptionFiles': 'DQMergeRun.py',
-                      'mcTCK': '', 'ExtraOptions': '',
-                      'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc48-opt',
-                      'fileTypesIn':['BRUNELHIST', 'DAVINCIHIST'],
-                      'fileTypesOut':['ROOT']}]
+    stepsInProd = [{'StepId': 12345, 'StepName': 'RootMerging', 'ApplicationName': 'Noether', 'ApplicationVersion': 'v1r4',
+                    'ExtraPackages': '', 'ProcessingPass': 'RootMerging', 'Visible': 'N', 'Usable': 'Yes',
+                    'DDDB': 'dddb-20150724', 'CONDDB': ' cond-20150828', 'DQTag': '', 'OptionsFormat': 'merge',
+                    'OptionFiles': 'DQMergeRun.py',
+                    'mcTCK': '', 'ExtraOptions': '',
+                    'isMulticore': 'N', 'SystemConfig': 'x86_64-slc6-gcc48-opt',
+                    'fileTypesIn':['BRUNELHIST', 'DAVINCIHIST'],
+                    'fileTypesOut':['ROOT']}]
 
 
-      prod = self.pr._buildProduction( 'Merge', stepsInProd, {'ROOT': 'CERN-EOS-HIST'}, 0, 100,
-                                       inputDataPolicy = 'protocol', inputDataList = lfns )
-      prod.LHCbJob.setInputSandbox( [find_all( 'pilot.cfg', '.' )[0], 'DQMergeRun.py'] )
-      prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
-      res = self.diracProduction.launchProduction( prod, False, True, 0 )
-      self.assertTrue( res['OK'] )
+    prod = self.pr._buildProduction( 'Merge', stepsInProd, {'ROOT': 'CERN-EOS-HIST'}, 0, 100,
+                                     inputDataPolicy = 'protocol', inputDataList = lfns )
+    prod.LHCbJob.setInputSandbox( [find_all( 'pilot.cfg', '.' )[0], 'DQMergeRun.py'] )
+    prod.LHCbJob.setConfigArgs( 'pilot.cfg' )
+    res = self.diracProduction.launchProduction( prod, False, True, 0 )
+    self.assertTrue( res['OK'] )
 
 
 #############################################################################
@@ -423,5 +424,5 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMultStreamsSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SwimmingSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergeSuccess ) )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootMergeSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
