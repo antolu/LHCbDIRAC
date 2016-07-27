@@ -972,10 +972,10 @@ class ModuleBase( object ):
 
     if self.applicationName.lower() == 'gauss':
       if self.CPUe and self.maxNumberOfEvents:
-        # Here we set maxCPUTime to 48 hours, which seems reasonable
+        # Here we set maxCPUTime to 24 hours, which seems reasonable
         eventsToProduce = getEventsToProduce( self.CPUe,
                                               maxNumberOfEvents = self.maxNumberOfEvents,
-                                              jobMaxCPUTime = 172800 )
+                                              jobMaxCPUTime = 86400 )
       else:
         eventsToProduce = self.numberOfEvents
     else:
