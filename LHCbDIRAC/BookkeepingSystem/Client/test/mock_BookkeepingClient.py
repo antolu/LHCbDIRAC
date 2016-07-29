@@ -14,13 +14,22 @@ class BookkeepingClientFake(object):
                         'Records': [[123, 'Stripping14-Stripping', 'DaVinci', 'v2r2',
                                      'optsFiles', 'Yes', 'eps', 'procPass', '',
                                      '', '123456', '', '']]}}
-    elif stepID in ( {'StepId':456}, {'StepId':789}, {'StepId':987} ):
+    elif stepID in ( {'StepId':456}, {'StepId':987} ):
       return {'OK': True,
               'Value': {'TotalRecords': 1,
-                        'ParameterNames': ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
-                                 'OptionFiles', 'Visible', 'ExtraPackages', 'ProcessingPass', 'OptionsFormat',
-                                 'DDDB', 'CONDDB', 'DQTag', 'SystemConfig'],
+                        'ParameterNames': [ 'StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
+                                            'OptionFiles', 'Visible', 'ExtraPackages', 'ProcessingPass', 'OptionsFormat',
+                                            'DDDB', 'CONDDB', 'DQTag', 'SystemConfig'],
                         'Records': [[456, 'Merge', 'LHCb', 'v1r2',
+                                     'optsFiles', 'Yes', 'eps', 'procPass', '',
+                                     '', 'fromPreviousStep', '', 'x86']]}}
+    elif stepID == {'StepId': 789}:
+      return {'OK': True,
+              'Value': {'TotalRecords': 1,
+                        'ParameterNames': [ 'StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
+                                            'OptionFiles', 'Visible', 'ExtraPackages', 'ProcessingPass', 'OptionsFormat',
+                                            'DDDB', 'CONDDB', 'DQTag', 'SystemConfig'],
+                        'Records': [[789, 'MergeHisto', 'Noether', 'v1r2',
                                      'optsFiles', 'Yes', 'eps', 'procPass', '',
                                      '', 'fromPreviousStep', '', 'x86']]}}
     elif stepID == {'StepId':125080}:
@@ -58,6 +67,11 @@ class BookkeepingClientFake(object):
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],
                         'Records': [['BHADRON.DST', 'Y'], ['CALIBRATION.DST', 'Y']]}}
+    if stepID == 789:
+      return {'OK': True,
+              'Value': {'TotalRecords': 7,
+                        'ParameterNames': ['FileType', 'Visible'],
+                        'Records': [['DAVINCIHIST', 'Y'], ['BRUNELHIST', 'Y']]}}
     if stepID == 125080:
       return {'OK': True,
               'Value': {'TotalRecords': 7,
@@ -80,6 +94,11 @@ class BookkeepingClientFake(object):
               'Value': {'TotalRecords': 7,
                         'ParameterNames': ['FileType', 'Visible'],
                         'Records': [['BHADRON.DST', 'Y'], ['CALIBRATION.DST', 'Y']]}}
+    if stepID == 789:
+      return {'OK': True,
+              'Value': {'TotalRecords': 7,
+                        'ParameterNames': ['FileType', 'Visible'],
+                        'Records': [['ROOT', 'Y']]}}
     if stepID == 125080:
       return {'OK': True,
               'Value': {'TotalRecords': 7,
@@ -173,3 +192,13 @@ step2Dict = {'StepId': 456, 'StepName':'Merge',
              'mcTCK': '',
              'fileTypesIn':['BHADRON.DST', 'CALIBRATION.DST'],
              'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
+
+stepHistoMergingDict = {'StepId': 789, 'StepName':'MergeHisto',
+                        'ApplicationName':'Noether', 'ApplicationVersion':'v1r2', 'ExtraOptions': '',
+                        'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                        'ProcessingPass':'procPass', 'OptionsFormat':'', 'SystemConfig':'x86',
+                        'prodStepID': "789['DAVINCIHIST', 'BRUNELHIST']",
+                        'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
+                        'mcTCK': '',
+                        'fileTypesIn':['DAVINCIHIST', 'BRUNELHIST'],
+                        'fileTypesOut':['ROOT']}
