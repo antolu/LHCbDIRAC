@@ -38,7 +38,7 @@ stepsInProd = [{'StepId': 123897, 'StepName': 'MergeMDF', 'ApplicationName': 'Me
                 'fileTypesIn':['RAW'],
                 'fileTypesOut':['RAW']}]
 stepName = prod.addApplicationStep( stepDict = stepsInProd[0],
-                                    modules = ['MergeMDF'] )
+                                    modules = ['MergeMDF', 'BookkeepingReport'] )
 prod.gaudiSteps.append( stepName )
 prod.addFinalizationStep()
 
@@ -75,8 +75,7 @@ transformation.setTransformationFamily( 'Test' )
 transformation.setGroupSize( 1 )
 transformation.setOutputDirectories([ '/lhcb/outConfigName/configVersion/LOG/00000000',
                                       '/lhcb/outConfigName/configVersion/RAW/00000000',
-                                      '/lhcb/outConfigName/configVersion/CORE/00000000',
-                                      '/lhcb/outConfigName/configVersion/ALLSTREAMS.DST/00000000'])
+                                      '/lhcb/outConfigName/configVersion/CORE/00000000'])
 
 result = transformation.addTransformation()
 if not result['OK']:
