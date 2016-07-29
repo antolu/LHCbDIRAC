@@ -1,3 +1,13 @@
+[v8r2p54]
+Use DIRAC v6r14p39
+* treating special case of merging root/histo/ntuple
+* Transformation plugins for root merging productions
+* Tests for Histo Merging production
+* add example about how to create a JIRA ticket for deployment
+* improve the release procedure
+* Add the location where the LHCbGrid version can be found.
+* add the certification client installation procedure
+
 [v8r2p53]
 Use DIRAC v6r14p38
 
