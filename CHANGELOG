@@ -1,3 +1,11 @@
+[v8r3-pre27]
+Use DIRAC v6r15p10
+* fix: sendDataUsageReport expects at least 3 arguments
+* added test for RootMerging productions
+* unsetting BINARY_TAG to avoid confusion with lb-run projects
+* Added rootMerging WF integration test
+* bug fixes
+
 [v8r3-pre25]
 Use DIRAC v6r15p9
 
