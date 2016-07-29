@@ -5,6 +5,9 @@
 
 """
 
+#FIXME FIXME: seems broken.
+#FIXME: should add a "DryRun" option to run in certification setup
+
 import datetime
 import os
 import suds

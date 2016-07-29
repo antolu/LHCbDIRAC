@@ -33,13 +33,13 @@ class DataUsageHandler( RequestHandler ):
   """
   types_sendDataUsageReport = [ StringTypes, DictType, StringTypes  ]
   @staticmethod
-  def export_sendDataUsageReport( site , directoryDict, status = 'New' ):
+  def export_sendDataUsageReport( site , directoryDict, status ):
     """ export of sendDataUsageReport """
     return gStorageUsageDB.sendDataUsageReport( site, directoryDict, status )
 
   types_getDataUsageSummary = [ StringTypes, StringTypes, StringTypes  ]
   @staticmethod
-  def export_getDataUsageSummary( startTime, endTime, status = 'New' ):
+  def export_getDataUsageSummary( startTime, endTime, status ):
     """ export of getDataUsageSummary """
     return gStorageUsageDB.getDataUsageSummary( startTime, endTime, status )
 
@@ -72,7 +72,3 @@ class DataUsageHandler( RequestHandler ):
   def export_getDirMetadata( directoryList ):
     """ export of getDirMetadata """
     return gStorageUsageDB.getDirMetadata( directoryList )
-
-
-
-
