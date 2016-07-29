@@ -18,12 +18,13 @@ import ast
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-from DIRAC import gLogger, exit as DIRACexit
+from DIRAC import gConfig, gLogger, exit as DIRACexit
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
 
 __RCSID__ = "$Id$"
 
 gLogger = gLogger.getSubLogger( 'RecoStripping_run.py' )
+currentSetup = gConfig.getValue( 'DIRAC/Setup' )
 
 pr = ProductionRequest()
 
@@ -51,7 +52,6 @@ w3 = '{{w3#-WORKFLOW3: RecoStripping+Merge#False}}'
 w4 = '{{w4#-WORKFLOW4: Reconstruction+Stripping+Merge#False}}'
 w5 = '{{w5#-WORKFLOW5: Stripping+Merge+Indexing #False}}'
 
-certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True for validation prod#False}}'
 
@@ -136,7 +136,6 @@ w3 = ast.literal_eval( w3 )
 w4 = ast.literal_eval( w4 )
 w5 = ast.literal_eval( w5 )
 
-certificationFlag = ast.literal_eval( certificationFlag )
 localTestFlag = ast.literal_eval( localTestFlag )
 validationFlag = ast.literal_eval( validationFlag )
 
@@ -150,16 +149,10 @@ if not w1 and not w2 and not w3 and not w4:
   gLogger.error( 'I told you to select at least one workflow!' )
   DIRACexit( 2 )
 
-if certificationFlag or localTestFlag:
+if localTestFlag:
   pr.testFlag = True
-  if certificationFlag:
-    pr.publishFlag = True
-  if localTestFlag:
-    pr.publishFlag = False
-    pr.prodsToLaunch = [1]
-else:
-  pr.publishFlag = True
-  pr.testFlag = False
+  pr.publishFlag = False
+  pr.prodsToLaunch = [1]
 
 recoInputDataList = []
 strippInputDataList = []
@@ -182,9 +175,11 @@ if not pr.publishFlag:
 pr.outConfigName = pr.configName
 
 # In case we want just to test, we publish in the certification/test part of the BKK
-if pr.testFlag:
+if currentSetup == 'LHCb-Certification' or pr.testFlag:
   pr.outConfigName = 'certification'
   pr.configVersion = 'test'
+
+if pr.testFlag:
   pr.dataTakingConditions = 'Beam3500GeV-VeloClosed-MagUp'
   if w1 or w3:
     pr.events = ['25']

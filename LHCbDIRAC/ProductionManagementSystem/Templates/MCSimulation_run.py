@@ -20,12 +20,13 @@ import ast
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-from DIRAC import gLogger, exit as DIRACexit
+from DIRAC import gConfig, gLogger, exit as DIRACexit
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
 
 __RCSID__ = "$Id$"
 
 gLogger = gLogger.getSubLogger( 'MCSimulation_run.py' )
+currentSetup = gConfig.getValue( 'DIRAC/Setup' )
 
 pr = ProductionRequest()
 
@@ -64,7 +65,6 @@ w3 = '{{w3#-WORKFLOW3: Simulation(up to Moore)+Selection(-->avoid merge)#False}}
 w4 = '{{w4#-WORKFLOW4: Simulation+MCMerge#False}}'
 w5 = '{{w5#-WORKFLOW5: Simulation#False}}'
 
-certificationFlag = '{{certificationFLAG#GENERAL: Set True for certification test#False}}'
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True for validation prod - will create histograms#False}}'
 
@@ -115,17 +115,13 @@ pr.resolveSteps()
 # LHCb conventions implied by the above
 ###########################################
 
-certificationFlag = ast.literal_eval( certificationFlag )
 localTestFlag = ast.literal_eval( localTestFlag )
 validationFlag = ast.literal_eval( validationFlag )
 
-if certificationFlag or localTestFlag:
+if localTestFlag:
   pr.testFlag = True
-  if certificationFlag:
-    pr.publishFlag = True
-  if localTestFlag:
-    pr.publishFlag = False
-    pr.prodsToLaunch = [1]
+  pr.publishFlag = False
+  pr.prodsToLaunch = [1]
 
 pr.outConfigName = pr.configName
 
@@ -248,9 +244,11 @@ elif w5:
   pr.multicore = [MCmulticoreFlag]
 
 # In case we want just to test, we publish in the certification/test part of the BKK
-if pr.testFlag:
+if currentSetup == 'LHCb-Certification' or pr.testFlag:
   pr.outConfigName = 'certification'
   pr.configVersion = 'test'
+
+if pr.testFlag:
   pr.extend = '10'
   mergingGroupSize = '1'
   MCCpu = '50000'
