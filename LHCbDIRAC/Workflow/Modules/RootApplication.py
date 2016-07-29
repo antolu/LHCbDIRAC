@@ -176,8 +176,8 @@ class RootApplication( ModuleBase ):
       self.setApplicationStatus( '%s (Root) Successful' % self.rootScript )
       return S_OK()
 
-    except Exception as e:
-      self.log.exception( e )
+    except Exception as e: #pylint:disable=broad-except
+      self.log.exception( "Failure in RootApplication execute module", lException = e )
       return S_ERROR( e )
 
     finally:

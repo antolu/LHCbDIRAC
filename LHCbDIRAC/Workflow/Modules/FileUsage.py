@@ -82,8 +82,8 @@ class FileUsage( ModuleBase ):
 
       return S_OK( 'File Usage reported successfully' )
 
-    except Exception as e:
-      self.log.exception( e )
+    except Exception as e: #pylint:disable=broad-except
+      self.log.exception( "Failure in FileUsage execute module", lException = e )
       return S_ERROR( e )
 
     finally:

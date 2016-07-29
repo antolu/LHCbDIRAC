@@ -79,8 +79,8 @@ class SendBookkeeping( ModuleBase ):
 
       return S_OK( 'SendBookkeeping Module Execution Complete' )
 
-    except Exception as e:
-      self.log.exception( e )
+    except Exception as e: #pylint:disable=broad-except
+      self.log.exception( "Failure in SendBookkeeping execute module", lException = e )
       return S_ERROR( e )
 
     finally:

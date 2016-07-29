@@ -310,7 +310,7 @@ class UploadOutputData( ModuleBase ):
 
       return S_OK( "Output data uploaded" )
 
-    except Exception as e:
+    except Exception as e: #pylint:disable=broad-except
       self.log.exception( 'Exception in UploadOutputData', lException = e )
       x = repr( e )
       self.setApplicationStatus( 'UploadOutputData exception:' + x )

@@ -279,8 +279,8 @@ class UserJobFinalization( ModuleBase ):
 
       return S_OK( 'Output data uploaded' )
 
-    except Exception as e:
-      self.log.exception( e )
+    except Exception as e: #pylint:disable=broad-except
+      self.log.exception( "Failure in UserJobFinalization execute module", lException = e )
       self.setApplicationStatus( e )
       return S_ERROR( e )
 
