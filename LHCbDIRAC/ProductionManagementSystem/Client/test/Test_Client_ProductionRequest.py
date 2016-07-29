@@ -5,7 +5,7 @@ import unittest
 from mock import Mock, MagicMock
 
 from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import BookkeepingClientFake, \
-stepMC, stepMC2, stepStripp, mergeStep, mergeStepBHADRON, step1Dict, step2Dict, mergeStepCALIBRA, mergeStepPIDMDST
+stepMC, stepMC2, stepStripp, mergeStep, mergeStepBHADRON, step1Dict, step2Dict, stepHistoMergingDict, mergeStepCALIBRA, mergeStepPIDMDST
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest, _splitIntoProductionSteps
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
 
@@ -81,6 +81,31 @@ prodsDict = {1:{'productionType':'DataStripping',
                  'transformationFamily':0,
                  'previousProd': 1,
                  'stepsInProd-ProdName': ["456['PID.MDST']"],
+                 'events':-1,
+                 'multicore': 'True',
+                 'outputMode': 'Any',
+                 'ancestorDepth': 0
+               },
+
+             4:{ 'productionType':'Merge',
+                 'stepsInProd':[789],
+                 'bkQuery': 'fromPreviousProd',
+                 'removeInputsFlag': True,
+                 'tracking':1,
+                 'outputSE': {'T1':'SE1'},
+                 'priority': 9,
+                 'cpu': 1000,
+                 'outputFileMask':'',
+                 'outputFileStep':'',
+                 'input': [],
+                 'target':'',
+                 'groupSize': 3,
+                 'plugin': 'BySize',
+                 'inputDataPolicy':'download',
+                 'derivedProduction':0,
+                 'transformationFamily':0,
+                 'previousProd': 1,
+                 'stepsInProd-ProdName': ["789['DAVINCIHIST', 'BRUNELHIST']"],
                  'events':-1,
                  'multicore': 'True',
                  'outputMode': 'Any',
@@ -184,6 +209,10 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.stepsList = ['123', '456']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [step1Dict, step2Dict] )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.stepsList = ['123', '456', '789']
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [step1Dict, step2Dict, stepHistoMergingDict] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
     pr.stepsList = ['123', '456', '', '']
     pr.resolveSteps()
@@ -830,30 +859,93 @@ class ProductionRequestSuccess( ClientTestCase ):
     self.assertEqual( pr.outputModes, outputModeExpected )
     self.assertEqual( pr.ancestorDepths, ancestorDepthsExpected )
 
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.prodsTypeList = ['MCSimulation', 'Merge', 'Merge']
+    pr.plugins = ['', 'ByRunFileTypeSizeWithFlush', 'RootMerging']
+    pr.stepsListDict = [stepMC, mergeStep, stepHistoMergingDict]
+    pr.stepsList = [123, 456, 789]
+    pr.stepsInProds = [[1], [2], [3]]
+    pr.outputSEs = [ 'Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST']
+    pr.priorities = [1, 4, 5]
+    pr.cpus = [10, 100, 100]
+    pr.groupSizes = [1, 2, 3]
+    pr.removeInputsFlags = [False, True, True]
+    pr.outputFileMasks = ['', 'dst', 'root']
+    pr.outputFileSteps = ['', '2', '3']
+    pr.inputs = [[], [], []]
+    pr.inputDataPolicies = ['', 'dl', 'dl']
+    pr.events = [100, -1, -1]
+    pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
+    pr.targets = ['Target1', 'Target2', 'T3']
+    pr.multicore = ['False', 'True', 'True']
+    pr.outputModes = ['Local', 'Any', 'Any']
+    pr.ancestorDepths = [1, 0, 0]
+    pr._applyOptionalCorrections()
+    prodsTypeListExpected = ['MCSimulation', 'Merge', 'Merge']
+    pluginsExpected = ['', 'ByRunFileTypeSizeWithFlush', 'RootMerging']
+    stepsListDictExpected = [stepMC, mergeStep, stepHistoMergingDict]
+    stepsInProdExpected = [[1], [2], [3]]
+    outputSEsExpected = ['Tier1-DST', 'Tier1-M-DST', 'Tier1-M-DST']
+    prioritiesExpected = [1, 4, 5]
+    cpusExpected = [10, 100, 100]
+    groupSizesExpected = [1, 2, 3]
+    bkQueriesExpected = ['', 'fromPreviousProd', 'fromPreviousProd']
+    previousProdsExpected = [None, 1, 2]
+    removeInputsFlagExpected = [False, True, True]
+    outputFileMasksExpected = ['', 'dst', 'root']
+    outputFileStepsExpected = ['', '2', '3']
+    inputsExpected = [[], [], []]
+    inputDataPoliciesExpected = ['', 'dl', 'dl']
+    eventsExpected = [100, -1, -1]
+    targetsExpected = ['Target1', 'Target2', 'T3']
+    multicoreExpected = ['False', 'True', 'True']
+    outputModeExpected = ['Local', 'Any', 'Any']
+    ancestorDepthsExpected = [1, 0, 0]
+    self.assertEqual( pr.prodsTypeList, prodsTypeListExpected )
+    self.assertEqual( pr.plugins, pluginsExpected )
+    self.assertEqual( pr.stepsListDict, stepsListDictExpected )
+    self.assertEqual( pr.stepsInProds, stepsInProdExpected )
+    self.assertEqual( pr.outputSEs, outputSEsExpected )
+    self.assertEqual( pr.priorities, prioritiesExpected )
+    self.assertEqual( pr.cpus, cpusExpected )
+    self.assertEqual( pr.groupSizes, groupSizesExpected )
+    self.assertEqual( pr.bkQueries, bkQueriesExpected )
+    self.assertEqual( pr.previousProds, previousProdsExpected )
+    self.assertEqual( pr.removeInputsFlags, removeInputsFlagExpected )
+    self.assertEqual( pr.outputFileMasks, outputFileMasksExpected )
+    self.assertEqual( pr.outputFileSteps, outputFileStepsExpected )
+    self.assertEqual( pr.inputs, inputsExpected )
+    self.assertEqual( pr.inputDataPolicies, inputDataPoliciesExpected )
+    self.assertEqual( pr.events, eventsExpected )
+    self.assertEqual( pr.targets, targetsExpected )
+    self.assertEqual( pr.multicore, multicoreExpected )
+    self.assertEqual( pr.outputModes, outputModeExpected )
+    self.assertEqual( pr.ancestorDepths, ancestorDepthsExpected )
+
   def test_getProdsDescriptionDict( self ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-    pr.stepsList = [123, 456, 456, 456]
-    pr.prodsTypeList = ['DataStripping', 'Merge', 'Merge']
-    pr.removeInputsFlags = [False, True, True]
-    pr.inputs = [[], [], []]
-    pr.targets = ['', '', '']
-    pr.groupSizes = [1, 1, 2]
-    pr.inputDataPolicies = ['download', 'download', 'download']
-    pr.outputFileMasks = ['', '', '']
-    pr.outputFileSteps = ['', '', '']
-    pr.stepsInProds = [[1, 2], [3], [4]]
-    pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd']
+    pr.stepsList = [123, 456, 456, 456, 789]
+    pr.prodsTypeList = ['DataStripping', 'Merge', 'Merge', 'Merge']
+    pr.removeInputsFlags = [False, True, True, True]
+    pr.inputs = [[], [], [], []]
+    pr.targets = ['', '', '', '']
+    pr.groupSizes = [1, 1, 2, 3]
+    pr.inputDataPolicies = ['download', 'download', 'download', 'download']
+    pr.outputFileMasks = ['', '', '', '']
+    pr.outputFileSteps = ['', '', '', '']
+    pr.stepsInProds = [[1, 2], [3], [4], [5]]
+    pr.bkQueries = ['Full', 'fromPreviousProd', 'fromPreviousProd', 'fromPreviousProd']
 #     pr.outputSEs = ['Tier1-BUFFER', 'Tier1-DST', 'Tier1-DST']
 #     pr.specialOutputSEs = [{}, {}, {}]
-    pr.outputSEsPerFileType = [{'T1':'SE1'}, {'T1':'SE1'}, {'T1':'SE1'}]
-    pr.priorities = [5, 8, 9]
-    pr.cpus = [1000000, 300000, 10000]
-    pr.plugins = ['ByRun', 'BySize', 'BySize']
-    pr.previousProds = [None, 1, 1]
-    pr.events = [-1, -1, -1]
-    pr.multicore = ['False', 'False', 'True']
-    pr.outputModes = ['Any', 'Local', 'Any']
-    pr.ancestorDepths = [0, 0, 0]
+    pr.outputSEsPerFileType = [{'T1':'SE1'}, {'T1':'SE1'}, {'T1':'SE1'}, {'T1':'SE1'}]
+    pr.priorities = [5, 8, 9, 9]
+    pr.cpus = [1000000, 300000, 10000, 1000]
+    pr.plugins = ['ByRun', 'BySize', 'BySize', 'BySize']
+    pr.previousProds = [None, 1, 1, 1]
+    pr.events = [-1, -1, -1, -1]
+    pr.multicore = ['False', 'False', 'True', 'True']
+    pr.outputModes = ['Any', 'Local', 'Any', 'Any']
+    pr.ancestorDepths = [0, 0, 0, 0]
 
     pr.stepsListDict = [{'StepId': 123, 'StepName':'Stripping14-Stripping',
                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v2r2',
@@ -886,6 +978,14 @@ class ProductionRequestSuccess( ClientTestCase ):
                          'prodStepID': "456['PID.MDST']",
                          'fileTypesIn':['PID.MDST'],
                          'fileTypesOut':['PID.MDST']},
+                        {'StepId': 789, 'StepName':'Merge',
+                         'ApplicationName':'Noether', 'ApplicationVersion':'v1r2',
+                         'OptionFiles':'optsFiles', 'Visible':'Yes', 'ExtraPackages':'eps',
+                         'ProcessingPass':'procPass', 'OptionsFormat':'',
+                         'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'False',
+                         'prodStepID': "789['DAVINCIHIST', 'BRUNELHIST']",
+                         'fileTypesIn':['DAVINCIHIST', 'BRUNELHIST'],
+                         'fileTypesOut':['ROOT']},
                        ]
     res = pr._getProdsDescriptionDict()
 
