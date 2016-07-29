@@ -83,13 +83,15 @@ if not result['OK']:
   exit(1)
 
 transID = result['Value']
-print "Created %s, now adding files" % transID
+with open('TransformationID', 'w') as fd:
+  fd.write(transID)
+print "Created %s, stored in file 'TransformationID'" % transID
 
-lfns = ['/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/102360/102360_0000000031.raw',
-        '/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/97887/097887_0000000013.raw']
-result = TransformationClient().addFilesToTransformation(transID, lfns)
-if not result['OK']:
-  print result
-  exit(1)
-else:
-  print "Added files"
+# lfns = ['/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/102360/102360_0000000031.raw',
+#         '/lhcb/data/2011/RAW/EXPRESS/LHCb/COLLISION11/97887/097887_0000000013.raw']
+# result = TransformationClient().addFilesToTransformation(transID, lfns)
+# if not result['OK']:
+#   print result
+#   exit(1)
+# else:
+#   print "Added files"
