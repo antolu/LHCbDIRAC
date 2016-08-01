@@ -127,7 +127,7 @@ class NotifyAgent( AgentModule ):
                 <th>ID</th>
                 <th>Name</th>
                 <th>Type</th>
-                <th>Request WG</th>
+                <th>Working Group</th>
                 <th>Conditions</th>
                 <th>Processing pass</th>
                 <th>Link</th>
@@ -155,19 +155,89 @@ class NotifyAgent( AgentModule ):
       # This is for the ProductionStatusAgent
       # **************************************
 
+      html_header2 = """\
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <meta charset='UTF-8'>
+              <style>
+                table{color:#333;font-family:Helvetica,Arial,sans-serif;min-width:700px;border-collapse:collapse;border-spacing:0}
+                td,th{border:1px solid transparent;height:30px;transition:all .3s}th{background:#DFDFDF;font-weight:700}
+                td{background:#FAFAFA;text-align:center}.setup{font-size:150%;color:grey}.Active{color:green}
+                .Archived,.Cleaned,.Cleaning{color:gray}.Completed{color:purple}.Idle{color:#90ee90}.Stopped{color:orange}
+                .Testing,.TransformationCleaned{color:gray}tr:nth-child(even) td{background:#F1F1F1}
+                tr:nth-child(odd) td{background:#FEFEFE}tr td:hover{background:#666;color:#FFF}
+              </style>
+            </head>
+            <body>
+            """
+
       aggregated_body = ""
+      html_elements = ""
+      html_elements2 = ""
 
-      cursor = conn.execute("SELECT subject, msg from ProductionStatusAgentCache;")
+      cursor = conn.execute("SELECT production, from_status, to_status, time from ProductionStatusAgentCache;")
 
-      for subject, msg in cursor:
-         aggregated_body += subject[0] + "\n" + msg[0] + "------------------------------------------\n"
+      for production, from_status, to_status, time in cursor:
+
+        html_elements += "<tr>" + \
+                         "<td>" + production + "</td>" + \
+                         "<td class='" + from_status + "'>" + from_status + "</td>" + \
+                         "<td class='" + to_status + "'>" + to_status + "</td>" + \
+                         "<td>" + time + "</td>" + \
+                         "</tr>"
+
+      html_body1 = """\
+        <p>Transformations updated</p>
+        <table>
+          <tr>
+              <th>Production</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Time</th>
+          </tr>
+          {html_elements}
+        </table>
+      </body>
+      </html>
+      """.format(html_elements=html_elements)
+
+      cursor = conn.execute("SELECT prod_requests, time from ProductionStatusAgentReqCache;")
+
+      for prod_requests, time in cursor:
+
+        html_elements2 += "<tr>" + \
+                          "<td>" + prod_requests + "</td>" + \
+                          "<td>" + time + "</td>" + \
+                          "</tr>"
+
+      html_body2 = """\
+        <br />
+        <p>Production Requests updated to Done status</p>
+        <table>
+          <tr>
+              <th>Production Requests</th>
+              <th>Time</th>
+          </tr>
+          {html_elements2}
+        </table>
+      </body>
+      </html>
+      """.format(html_elements=html_elements2)
+
+      aggregated_body = html_header2 + html_body1 + html_body2
 
       res = self.notification.sendMail( 'vladimir.romanovsky@cern.ch', "Transformation Status Updates", aggregated_body,
                                         'vladimir.romanovsky@cern.ch', localAttempt = False )
 
       if res['OK']:
+
         conn.execute("DELETE FROM ProductionStatusAgentCache;")
         conn.execute("VACUUM;")
+
+        conn.execute("DELETE FROM ProductionStatusAgentReqCache;")
+        conn.execute("VACUUM;")
+
       else:
         self.log.error( "Can't send email: %s" % res['Message'] )
         return S_OK()

@@ -825,27 +825,32 @@ class ProductionStatusAgent( AgentModule ):
       return
 
     if self.notify:
-      subject = 'Transformation Status Updates ( %s )' % ( time.asctime() )
-      msg = ['Transformations updated this cycle:\n']
-      for tID, val in updatedT.iteritems():
-        msg.append( 'Production %s: %s => %s' % ( tID, val['from'], val['to'] ) )
-      msg.append( '\nProduction Requests updated to Done status this cycle:\n' )
-      msg.append( ', '.join( [str( i ) for i in updatedPr] ) )
 
       with sqlite3.connect(self.cacheFile) as conn:
 
         try:
           conn.execute('''CREATE TABLE IF NOT EXISTS ProductionStatusAgentCache(
-                        subject VARCHAR(64) NOT NULL DEFAULT "",
-                        msg VARCHAR(64) NOT NULL DEFAULT ""
+                        production VARCHAR(64) NOT NULL DEFAULT "",
+                        from_status VARCHAR(64) NOT NULL DEFAULT "",
+                        to_status VARCHAR(64) NOT NULL DEFAULT "",
+                        time VARCHAR(64) NOT NULL DEFAULT ""
+                       );''')
+
+          conn.execute('''CREATE TABLE IF NOT EXISTS ProductionStatusAgentReqCache(
+                        prod_requests VARCHAR(64) NOT NULL DEFAULT "",
+                        time VARCHAR(64) NOT NULL DEFAULT ""
                        );''')
 
         except sqlite3.OperationalError:
           self.log.error( "Could not queue mail" )
 
-        conn.execute("INSERT INTO ProductionStatusAgentCache (subject, msg)"
-                     " VALUES (?, ?)", (subject, '\n'.join( msg ))
-                    )
+        for tID, val in updatedT.iteritems():
+          conn.execute("INSERT INTO ProductionStatusAgentCache (production, from_status, to_status, time)"
+                       " VALUES (?, ?, ?, ?)", (tID, val['from'], val['to'], time.asctime() )
+                      )
+
+        for prod_request in updatedPr:
+          conn.execute("INSERT INTO ProductionStatusAgentReqCache (prod_requests, time) VALUES (?, ?)", (prod_request, time.asctime()) )
 
         conn.commit()
 
