@@ -1,7 +1,3 @@
-########################################################################
-# File: DataUsageClient.py
-########################################################################
-
 """ :mod: DataUsageClient
     =====================
 
@@ -25,12 +21,12 @@ class DataUsageClient( Client ):
     Client.__init__( self )
     self.setServer( 'DataManagement/DataUsage' )
 
-  def sendDataUsageReport( self, site, directoryDict, rpc = None, url = '', timeout = 120 ):
+  def sendDataUsageReport( self, site, directoryDict, status = 'New', rpc = None, url = '', timeout = 120 ):
     """ send data usage report """
     if not isinstance( directoryDict, dict ):
       return S_ERROR( 'Supplied dictionary is not in correct format!' )
     rpcClient = self._getRPC( rpc = rpc, url = url, timeout = timeout )
-    return rpcClient.sendDataUsageReport( site, directoryDict )
+    return rpcClient.sendDataUsageReport( site, directoryDict, status )
 
   def getDataUsageSummary( self, startTime, endTime, status, rpc = None, url = '', timeout = 120 ):
     """ get usage summary """

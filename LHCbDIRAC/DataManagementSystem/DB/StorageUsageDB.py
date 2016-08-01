@@ -39,76 +39,76 @@ class StorageUsageDB( DB ):
     tablesToCreate = {}
     self.__tablesDesc = {}
     self.__tablesDesc[ 'su_Directory' ] = { 'Fields' : { 'DID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
-                                                           'Path' : 'VARCHAR(255) NOT NULL',
-                                                           'Files' : 'INTEGER UNSIGNED NOT NULL',
-                                                           'Size' : 'BIGINT UNSIGNED NOT NULL',
-                                                           },
-                                             'PrimaryKey' : 'Path',
-                                             'Indexes': { 'id': [ 'dID' ] }
-                                            }
+                                                         'Path' : 'VARCHAR(255) NOT NULL',
+                                                         'Files' : 'INTEGER UNSIGNED NOT NULL',
+                                                         'Size' : 'BIGINT UNSIGNED NOT NULL',
+                                                       },
+                                            'PrimaryKey' : 'Path',
+                                            'Indexes': { 'id': [ 'dID' ] }
+                                          }
 
     self.__tablesDesc[ 'su_SEUsage' ] = { 'Fields' : { 'DID' : 'INTEGER UNSIGNED NOT NULL',
                                                        'SEName' : 'VARCHAR(32) NOT NULL',
                                                        'Files' : 'INTEGER UNSIGNED NOT NULL',
                                                        'Size' : 'BIGINT UNSIGNED NOT NULL',
                                                        'Updated' : 'DATETIME NOT NULL'
-                                                  },
-                                       'PrimaryKey' : [ 'DID', 'SEName' ],
-                                       'Indexes': { 'SE': [ 'SEName' ] },
-                                     }
+                                                     },
+                                          'PrimaryKey' : [ 'DID', 'SEName' ],
+                                          'Indexes': { 'SE': [ 'SEName' ] },
+                                        }
 
     self.__tablesDesc[ 'se_Usage' ] = { 'Fields': { 'DID' : 'INTEGER UNSIGNED NOT NULL',
-                                                       'SEName' : 'VARCHAR(32) NOT NULL',
-                                                       'Files' : 'INTEGER UNSIGNED NOT NULL',
-                                                       'Size' : 'BIGINT UNSIGNED NOT NULL',
-                                                       'Updated' : 'DATETIME NOT NULL'
-                                                   },
+                                                    'SEName' : 'VARCHAR(32) NOT NULL',
+                                                    'Files' : 'INTEGER UNSIGNED NOT NULL',
+                                                    'Size' : 'BIGINT UNSIGNED NOT NULL',
+                                                    'Updated' : 'DATETIME NOT NULL'
+                                                  },
                                         'PrimaryKey' : [ 'DID', 'SEName' ],
-                                        }
+                                      }
     self.__tablesDesc[ 'se_STSummary' ] = { 'Fields': {  'Site' : 'VARCHAR(32) NOT NULL',
                                                          'SpaceToken' :  'VARCHAR(32) NOT NULL',
                                                          'TotalSize' : 'BIGINT UNSIGNED NOT NULL',
                                                          'TotalFiles' : 'INTEGER UNSIGNED NOT NULL',
                                                          'Updated' : 'DATETIME NOT NULL'
                                                       },
-                                          'PrimaryKey' : [ 'Site', 'SpaceToken' ],
+                                            'PrimaryKey' : [ 'Site', 'SpaceToken' ],
                                           }
-    self.__tablesDesc[ 'problematicDirs' ] = { 'Fields': { 'DID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
-                                                       'Path' : 'VARCHAR(255) NOT NULL',
-                                                       'Site' : 'VARCHAR(32) NOT NULL',
-                                                       'SpaceToken' : 'VARCHAR(32) NOT NULL',
-                                                       'ReplicaType' : 'VARCHAR(32) NOT NULL',
-                                                       'SEFiles' : 'INTEGER UNSIGNED NOT NULL',
-                                                       'LFCFiles' : 'INTEGER UNSIGNED NOT NULL',
-                                                       'SESize' : 'BIGINT UNSIGNED NOT NULL',
-                                                       'LFCSize' : 'BIGINT UNSIGNED NOT NULL',
-                                                       'Problem' : 'VARCHAR(255) NOT NULL',
-                                                       'Updated' : 'DATETIME NOT NULL'
-                                                   },
-                                        'PrimaryKey' : [ 'DID'],
-                                        }
+    self.__tablesDesc[ 'problematicDirs' ] = { 'Fields': {'DID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
+                                                          'Path' : 'VARCHAR(255) NOT NULL',
+                                                          'Site' : 'VARCHAR(32) NOT NULL',
+                                                          'SpaceToken' : 'VARCHAR(32) NOT NULL',
+                                                          'ReplicaType' : 'VARCHAR(32) NOT NULL',
+                                                          'SEFiles' : 'INTEGER UNSIGNED NOT NULL',
+                                                          'LFCFiles' : 'INTEGER UNSIGNED NOT NULL',
+                                                          'SESize' : 'BIGINT UNSIGNED NOT NULL',
+                                                          'LFCSize' : 'BIGINT UNSIGNED NOT NULL',
+                                                          'Problem' : 'VARCHAR(255) NOT NULL',
+                                                          'Updated' : 'DATETIME NOT NULL'
+                                                         },
+                                               'PrimaryKey' : [ 'DID'],
+                                             }
     self.__tablesDesc[ 'Popularity' ] = { 'Fields' : { 'ID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
                                                        'Path' : 'VARCHAR(255) NOT NULL',
                                                        'Site' : 'VARCHAR(32) NOT NULL',
                                                        'Count' : 'INTEGER UNSIGNED NOT NULL',
                                                        'InsertTime' : 'DATETIME NOT NULL',
                                                        'Status' : 'VARCHAR(32) NOT NULL'
-                                                  },
-                                        'PrimaryKey' : [ 'ID'],
-                                        'Indexes' : { 'InsertTime': ['InsertTime'], 'Status': ['Status']}
-                                     }
+                                                     },
+                                          'PrimaryKey' : [ 'ID'],
+                                          'Indexes' : { 'InsertTime': ['InsertTime'], 'Status': ['Status']}
+                                        }
     self.__tablesDesc[ 'DirMetadata' ] = { 'Fields' : { 'DID' : 'INTEGER UNSIGNED NOT NULL',
-                                                       'ConfigName' : 'VARCHAR(64) NOT NULL',
-                                                       'ConfigVersion' : 'VARCHAR(64) NOT NULL',
-                                                       'Conditions' : 'VARCHAR(64) NOT NULL',
-                                                       'ProcessingPass' : 'VARCHAR(255) NOT NULL',
-                                                       'EventType' : 'VARCHAR(255) NOT NULL',
-                                                       'FileType' : 'VARCHAR(64) NOT NULL',
-                                                       'Production' : 'VARCHAR(64) NOT NULL',
-                                                       'Visibility' : 'VARCHAR(4) NOT NULL'
-                                                  },
-                                       'PrimaryKey' : [ 'DID'],
-                                     }
+                                                        'ConfigName' : 'VARCHAR(64) NOT NULL',
+                                                        'ConfigVersion' : 'VARCHAR(64) NOT NULL',
+                                                        'Conditions' : 'VARCHAR(64) NOT NULL',
+                                                        'ProcessingPass' : 'VARCHAR(255) NOT NULL',
+                                                        'EventType' : 'VARCHAR(255) NOT NULL',
+                                                        'FileType' : 'VARCHAR(64) NOT NULL',
+                                                        'Production' : 'VARCHAR(64) NOT NULL',
+                                                        'Visibility' : 'VARCHAR(4) NOT NULL'
+                                                      },
+                                           'PrimaryKey' : [ 'DID'],
+                                         }
     # These are templates for a possible popularity summary table
     # self.__tablesDesc['BKDatasets'] = { 'Fields': { 'DSID' : 'INTEGER UNSIGNED AUTO_INCREMENT NOT NULL',
     #                                                'DSPath':'VARCHAR(255) NOT NULL',
@@ -565,9 +565,11 @@ class StorageUsageDB( DB ):
                                                            for SEName in SEs ] ) )
     return sqlCond
 
-  def __getStorageSummary( self, path , fileType = False, production = False, SEs = [], groupingField = "su.SEName" ):
+  def __getStorageSummary( self, path , fileType = False, production = False, SEs = None, groupingField = "su.SEName" ):
     """ Retrieves the storage summary for all of the known directories
     """
+    if SEs is None:
+      SEs = []
     sqlCond = self.__getStorageCond( path, fileType, production, SEs )
     sqlFields = ( groupingField, "SUM(su.Size)", "SUM(su.Files)" )
     sqlCmd = "SELECT %s FROM `su_SEUsage` as su,`su_Directory` as d WHERE %s GROUP BY %s" % ( ", ".join( sqlFields ),
@@ -882,7 +884,7 @@ class StorageUsageDB( DB ):
       d = _standardDirectory( d )
       sqlPath = self._escapeString( d )[ 'Value' ]
       sqlStatus = self._escapeString( status )[ 'Value' ]
-      if type( count ) != int:
+      if not isinstance( count, int ):
         self.log.warn( "in sendDataUsageReport: type is not correct %s" % count )
         continue
       sqlCmd = "INSERT INTO `Popularity` ( Path, Site, Count, Status, InsertTime) VALUES " \

@@ -184,7 +184,7 @@ class BookkeepingDBClient( FileCatalogClientBase ):
     successful = {}
     # Poor man's way to not return an error for user files
     for lfn in  [lfn for lfn in lfns if lfn.startswith( '/lhcb/user' )]:
-      lfns.remove( lfn )
+      lfns.pop( lfn )
       successful[lfn] = True
     failed = {}
     for lfnList in breakListIntoChunks( lfns, self.splitSize ):

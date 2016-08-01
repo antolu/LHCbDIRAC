@@ -1,3 +1,41 @@
+[v8r3-pre27]
+Use DIRAC v6r15p10
+* fix: sendDataUsageReport expects at least 3 arguments
+* added test for RootMerging productions
+* unsetting BINARY_TAG to avoid confusion with lb-run projects
+* Added rootMerging WF integration test
+* bug fixes
+
+[v8r3-pre25]
+Use DIRAC v6r15p9
+
+* Fixes
+* DataIntegrityClient using ConsistencyChecks methods
+* fixes for interactions between ConsistencyInspector and DataIntegrity
+* Added pilot commands for tests
+* fix jenkins test
+* Changes in LHCbDIRAC/tests/Utilities/testJobDefinitions.py Creates files on time and Delete them after with unique content and name:
+* minor test fixes
+
+[v8r3-pre25]
+Use DIRAC v6r15p8
+
+[v8r3-pre24]
+Use DIRAC v6r15p8
+
+* allow to restart service from CLI
+* BKK: fix the catalog interface
+* Popularity: add a popularity analysis agent
+
+[v8r3-pre23]
+Use DIRAC v6r15p7
+
+* replace fullpath by fullname for pyparsing
+* job submission
+* mods xml for regression tests
+* removed LHCbCleanPilot command
+* remove lbvobox80
+
 [v8r3-pre22]
 Use DIRAC v6r15p7
 
@@ -119,6 +157,28 @@ use DIRAC v6r15
 * LHCbCreatePilotcfg has been replaced with the LHCbCleanPilotEnv command.
 * Updated BOINC gateway service
 * New configuration service that will update the LHCb-Pilot.json file when a change is done on the CS.
+
+[v8r2p54]
+Use DIRAC v6r14p39
+* treating special case of merging root/histo/ntuple
+* Transformation plugins for root merging productions
+* Tests for Histo Merging production
+* add example about how to create a JIRA ticket for deployment
+* improve the release procedure
+* Add the location where the LHCbGrid version can be found.
+* add the certification client installation procedure
+
+[v8r2p53]
+Use DIRAC v6r14p38
+* to many arguments to format the string.
+
+[v8r2p52]
+Use DIRAC v6r14p38
+
+* Nagios Topology
+* use the correct name
+* add the working group and the request name to the email subject
+* use the new URL for downloading the oracle client
 
 [v8r2p51]
 Use DIRAC v6r14p38

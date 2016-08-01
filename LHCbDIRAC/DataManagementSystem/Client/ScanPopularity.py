@@ -241,7 +241,7 @@ def storageType( seList ):
   return 'Disk'
 
 
-def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
+def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb', csvFile = None ):
 
   global bkPathForLfn, cachedInvisible, prodForBKPath, bkPathUsage, processingPass
   bkPathForLfn = {}
@@ -413,7 +413,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb' ):
 
   # Now create a CSV file with all dataset information
   # Name, ProcessingPass, #files, size, SE type, each week's usage (before now)
-  csvFile = 'popularity-%ddays.csv' % since
+  csvFile = 'popularity-%ddays.csv' % since if csvFile is None else csvFile
   gLogger.always( "\n=============================================================" )
   gLogger.always( 'Creating %s file with %d datasets' % ( csvFile, len( timeUsage ) + len( unusedBKPaths ) ) )
   f = open( csvFile, 'w' )

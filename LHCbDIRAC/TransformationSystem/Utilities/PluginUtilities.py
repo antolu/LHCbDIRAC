@@ -23,6 +23,7 @@ from LHCbDIRAC.ResourceStatusSystem.Client.ResourceManagementClient import Resou
 
 __RCSID__ = "$Id$"
 
+
 class PluginUtilities( DIRACPluginUtilities ):
   """
   Utility class used by plugins

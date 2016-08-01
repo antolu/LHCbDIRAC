@@ -8,4 +8,4 @@ from os import system, environ, pathsep, getcwd
 if __name__ == '__main__':
 
   environ['PATH'] = getcwd() + (pathsep + environ['PATH'])
-  sys.exit( system( '''cat testInputFile.txt''' ) / 256 )
+  sys.exit( system( '''cat jenkinsInputTestFile.txt''' ) / 256 )
