@@ -188,7 +188,7 @@ class NotifyAgent( AgentModule ):
                          "</tr>"
 
       html_body1 = """\
-        <p>Transformations updated</p>
+        <p class="setup">Transformations updated</p>
         <table>
           <tr>
               <th>Production</th>
@@ -213,7 +213,7 @@ class NotifyAgent( AgentModule ):
 
       html_body2 = """\
         <br />
-        <p>Production Requests updated to Done status</p>
+        <p class="setup">Production Requests updated to Done status</p>
         <table>
           <tr>
               <th>Production Requests</th>
