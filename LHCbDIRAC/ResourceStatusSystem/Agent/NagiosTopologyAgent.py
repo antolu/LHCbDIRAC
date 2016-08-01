@@ -143,11 +143,9 @@ class NagiosTopologyAgent( AgentModule ):
 
     else:
       # produce the xml
-      xmlf = open( self.xmlPath + "lhcb_topology.xml", 'w' )
-      try:
+      with open( self.xmlPath + "lhcb_topology.xml", 'w' ) as xmlf:
         xmlf.write( xml_doc.toxml() )
-      finally:
-        xmlf.close()
+
       self.log.info( "Dry Run: XML file created Successfully" )
 
     return S_OK()
@@ -238,7 +236,7 @@ class NagiosTopologyAgent( AgentModule ):
         gLogger.error( storage_element_name_RAW['Message'] )
         return False
       storage_element_name_RAW = storage_element_name_RAW['Value']
-      se_RAW = StorageElement(storage_element_name_RAW)
+      se_RAW = None if not storage_element_name_RAW else StorageElement(storage_element_name_RAW)
   
       # Use case - Storage Element exists but it's removed from Resources/StorageElementGroups 
       if not (se_DST and se_RAW):
@@ -259,7 +257,7 @@ class NagiosTopologyAgent( AgentModule ):
         __write_SE_XML( site_se_opts_DST )
 
         
-        site_se_opts_RAW = None if not se_RAW.getPlugins()['OK'] else se_RAW.getStorageParameters( protocol )
+        site_se_opts_RAW = None if not se_RAW else se_RAW.getStorageParameters( protocol )
         if not site_se_opts_RAW:
           gLogger.error( 'No RAW Storage Element found for ' + site )
           continue
