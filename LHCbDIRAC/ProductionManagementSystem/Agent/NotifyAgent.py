@@ -78,11 +78,11 @@ class NotifyAgent( AgentModule ):
             <head>
             <meta charset='UTF-8'>
               <style>
-                table{color:#333;font-family:Helvetica,Arial,sans-serif;min-width:700px;border-collapse:collapse;border-spacing:0}
+                table{color:#333;font-family:Helvetica,Arial,sans-serif;min-width:850px;border-collapse:collapse;border-spacing:0}
                 td,th{border:1px solid transparent;height:30px;transition:all .3s}th{background:#DFDFDF;font-weight:700}
                 td{background:#FAFAFA;text-align:center}tr:nth-child(even) td{background:#F1F1F1}tr:nth-child(odd)
                 td{background:#FEFEFE}tr td:hover{background:#666;color:#FFF}tr td.link:hover{background:inherit;}
-                p{width: 700px;}
+                p{width: 850px;}
               </style>
             </head>
             <body>
@@ -108,12 +108,13 @@ class NotifyAgent( AgentModule ):
         cursor = conn.execute("SELECT reqId, reqType, reqName, SimCondition, ProPath from ProductionManagementCache "
                               "WHERE thegroup = ?", (group[0],) )
 
-        for reqId, reqType, reqName, SimCondition, ProPath in cursor:
+        for reqId, reqType, reqWG, reqName, SimCondition, ProPath in cursor:
 
           html_elements += "<tr>" + \
                            "<td>" + reqId + "</td>" + \
                            "<td>" + reqName + "</td>" + \
                            "<td>" + reqType + "</td>" + \
+                           "<td>" + reqWG + "</td>" + \
                            "<td>" + SimCondition + "</td>" + \
                            "<td>" + ProPath + "</td>" + \
                            "<td class='link'><a href='" + link + "' target='_blank'> Link </a></td>" + \
@@ -126,6 +127,7 @@ class NotifyAgent( AgentModule ):
                 <th>ID</th>
                 <th>Name</th>
                 <th>Type</th>
+                <th>Request WG</th>
                 <th>Conditions</th>
                 <th>Processing pass</th>
                 <th>Link</th>

@@ -22,7 +22,7 @@ def _getMemberMails( group ):
         emails.append( email )
     return emails
 
-def _aggregate( reqId, reqType, reqName, SimCondition, ProPath, groups ):
+def _aggregate( reqId, reqType, reqWG, reqName, SimCondition, ProPath, groups ):
 
   if 'DIRAC' in os.environ:
     cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ProductionManagement/cache.db' )
@@ -35,6 +35,7 @@ def _aggregate( reqId, reqType, reqName, SimCondition, ProPath, groups ):
       conn.execute('''CREATE TABLE IF NOT EXISTS ProductionManagementCache(
                     reqId VARCHAR(64) NOT NULL DEFAULT "",
                     reqType VARCHAR(64) NOT NULL DEFAULT "",
+                    reqWG VARCHAR(64) NOT NULL DEFAULT "",
                     reqName VARCHAR(64) NOT NULL DEFAULT "",
                     SimCondition VARCHAR(64) NOT NULL DEFAULT "",
                     ProPath VARCHAR(64) NOT NULL DEFAULT "",
@@ -45,8 +46,8 @@ def _aggregate( reqId, reqType, reqName, SimCondition, ProPath, groups ):
       gLogger.error('Email cache database is locked')
 
     for group in groups:
-      conn.execute("INSERT INTO ProductionManagementCache (reqId, reqType, reqName, SimCondition, ProPath, thegroup)"
-                   " VALUES (?, ?, ?, ?, ?, ?)", (reqId, reqType, reqName, SimCondition, ProPath, group)
+      conn.execute("INSERT INTO ProductionManagementCache (reqId, reqType, reqWG, reqName, SimCondition, ProPath, thegroup)"
+                   " VALUES (?, ?, ?, ?, ?, ?, ?)", (reqId, reqType, reqWG, reqName, SimCondition, ProPath, group)
                   )
 
       conn.commit()
@@ -98,7 +99,7 @@ def informPeople( rec, oldstate, state, author, inform ):
                            'Since Bookkeeping expert could make changes in your request,',
                            'you are asked to confirm it.'] )
       else:
-        subj = "DIRAC: the state of Production Request %s is changed to '%s'" % ( reqId, state )
+        subj = "DIRAC: the state of Production Request %s is changed to '%s'; %s;%s" % ( reqId, state, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
         body = '\n'.join( ['The state of your request is changed.',
                            'This mail is for information only.'] )
       notification = NotificationClient()
@@ -109,7 +110,7 @@ def informPeople( rec, oldstate, state, author, inform ):
         gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
 
   if inform:
-    subj = "DIRAC: the state of %s Production Request %s is changed to '%s'" % ( rec['RequestType'], reqId, state )
+    subj = "DIRAC: the state of %s Production Request %s is changed to '%s'; %s;%s" % ( rec['RequestType'], reqId, state, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
     body = '\n'.join( ['You have received this mail because you are'
                        'in the subscription list for this request'] )
     for x in inform.replace( " ", "," ).split( "," ):
@@ -127,7 +128,7 @@ def informPeople( rec, oldstate, state, author, inform ):
             gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
 
   if state == 'Accepted':
-    subj = "DIRAC: the Production Request %s is accepted." % reqId
+    subj = "DIRAC: the Production Request %s is accepted; %s;%s" % ( reqId, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
     body = '\n'.join( ["The Production Request is signed and ready to process",
                        "You are informed as member of %s group"] )
     groups = [ 'lhcb_prmgr' ]
@@ -142,7 +143,7 @@ def informPeople( rec, oldstate, state, author, inform ):
           gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
 
   elif state == 'PPG OK' and oldstate == 'Accepted':
-    subj = "DIRAC: returned Production Request %s" % reqId
+    subj = "DIRAC: returned Production Request %s; %s;%s" % ( reqId, reqId, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
     body = '\n'.join( ["Production Request is returned by Production Manager.",
                        "As member of %s group, your are asked to correct and sign",
                        "or to reject it.", "",
@@ -163,12 +164,14 @@ def informPeople( rec, oldstate, state, author, inform ):
 
     groups = [ 'lhcb_bk' ]
 
-    _aggregate(reqId, rec['RequestType'], rec['RequestName'], rec['SimCondition'], rec['ProPath'], groups)
+    _aggregate(reqId, rec.get( 'RequestType', '' ), rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ),
+               rec['SimCondition'], rec['ProPath'], groups)
 
   elif state == 'Submitted':
 
     groups = [ 'lhcb_ppg', 'lhcb_tech' ]
-    _aggregate(reqId, rec['RequestType'], rec['RequestName'], rec['SimCondition'], rec['ProPath'], groups)
+    _aggregate(reqId, rec.get( 'RequestType', '' ), rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ),
+               rec['SimCondition'], rec['ProPath'], groups)
 
   else:
     return
