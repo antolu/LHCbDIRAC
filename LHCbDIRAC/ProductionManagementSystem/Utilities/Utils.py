@@ -143,7 +143,7 @@ def informPeople( rec, oldstate, state, author, inform ):
           gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
 
   elif state == 'PPG OK' and oldstate == 'Accepted':
-    subj = "DIRAC: returned Production Request %s; %s;%s" % ( reqId, reqId, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
+    subj = "DIRAC: returned Production Request %s; %s;%s" % ( reqId, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
     body = '\n'.join( ["Production Request is returned by Production Manager.",
                        "As member of %s group, your are asked to correct and sign",
                        "or to reject it.", "",
