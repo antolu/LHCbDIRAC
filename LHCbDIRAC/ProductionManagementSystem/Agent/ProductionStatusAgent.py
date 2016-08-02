@@ -33,12 +33,11 @@ from DIRAC.Core.Base.AgentModule                                import AgentModu
 from DIRAC.Core.Utilities.Time                                  import timeThis
 from DIRAC.Core.DISET.RPCClient                                 import RPCClient
 from DIRAC.Interfaces.API.Dirac                                 import Dirac
-from DIRAC.FrameworkSystem.Client.NotificationClient            import NotificationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations        import Operations
 
-from LHCbDIRAC.LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
-from LHCbDIRAC.LHCbDIRAC.Interfaces.API.DiracProduction                    import DiracProduction
-from LHCbDIRAC.LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient        import BookkeepingClient
+from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
+from LHCbDIRAC.Interfaces.API.DiracProduction                    import DiracProduction
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient        import BookkeepingClient
 
 #############################################################################
 # The following is used for StandAlone debugging only (outside Agent)
