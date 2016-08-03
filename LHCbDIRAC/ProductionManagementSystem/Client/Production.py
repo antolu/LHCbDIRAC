@@ -229,11 +229,11 @@ class Production( object ):
 
     if 'Gaudi_App_Step' not in self.LHCbJob.workflow.step_definitions.keys():
 
-      gLogger.debug("Determining the modules of the steps (modulesList = %s)" %modulesList)
+      gLogger.debug("Determining the modules of the steps (modulesList = %s)" % modulesList)
       if modulesList is None: # we assume it's a standard list of modules for Gaudi steps
         gaudiPath = 'Productions/GaudiStep_Modules'
-        modulesNameList = self.opsHelper.getValue( gaudiPath, ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
-                                                               'ErrorLogging', 'BookkeepingReport', 'StepAccounting'] )
+        modulesList = self.opsHelper.getValue( gaudiPath, ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                                                           'ErrorLogging', 'BookkeepingReport', 'StepAccounting'] )
 
       # pName, pType, pValue, pDesc
       parametersList = [['inputData', 'string', '', 'StepInputData'],
@@ -262,7 +262,7 @@ class Production( object ):
                         ['SystemConfig', 'string', '', 'system config'],
                         ['mcTCK', 'string', '', 'TCK to be simulated']]
 
-      gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
+      gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesList,
                                         importLine = 'LHCbDIRAC.Workflow.Modules',
                                         parametersList = parametersList )
       self.LHCbJob.workflow.addStep( gaudiStepDef )

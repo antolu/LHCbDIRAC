@@ -717,13 +717,13 @@ class ProductionRequest( object ):
     # Adding the application steps
     firstStep = stepsInProd.pop( 0 )
     stepName = prod.addApplicationStep( stepDict = firstStep,
-                                        modules = self.modulesList )
+                                        modulesList = self.modulesList )
     prod.gaudiSteps.append( stepName )
 
     for step in stepsInProd:
       stepName = prod.addApplicationStep( stepDict = step,
                                           inputData = 'previousStep',
-                                          modules = self.modulesList )
+                                          modulesList = self.modulesList )
       prod.gaudiSteps.append( stepName )
 
     # Adding the finalization step
