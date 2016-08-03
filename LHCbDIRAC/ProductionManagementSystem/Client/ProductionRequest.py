@@ -76,8 +76,9 @@ class ProductionRequest( object ):
     self.visibility = ''
     self.fractionToProcess = 0
     self.minFilesToProcess = 0
-    self.modulesList = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
-                        'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
+    self.modulesList = None # Usually:
+                            # ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                            # 'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
 
     # parameters of each production (the length of each list has to be the same as the number of productions
     self.events = []
