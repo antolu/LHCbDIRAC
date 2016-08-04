@@ -69,6 +69,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.cachedDirMetadata = {}
     self.runsUsedForShares = set()
     self.shareMetrics = None
+    self.excludedStatuses = self.getPluginParam( 'IgnoreStatusForFlush', [ 'Removed', 'MissingInFC', 'Problematic' ] )
 
 
   def setDebug( self, val ):
@@ -519,8 +520,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       if not res['OK']:
         self.logError( "Cannot get transformation files for run %s: %s" % ( str( runID ), res['Message'] ) )
         return 0
-      excludedStatuses = self.getPluginParam( 'IgnoreStatusForFlush', [ 'Removed', 'MissingInFC', 'Problematic' ] )
-      lfns = [fileDict['LFN'] for fileDict in res['Value'] if fileDict['Status'] not in excludedStatuses]
+      lfns = [fileDict['LFN'] for fileDict in res['Value'] if fileDict['Status'] not in self.excludedStatuses]
       self.transRunFiles[runID] = lfns
       self.logVerbose( 'Obtained %d input files for run %d' % ( len( lfns ), runID ) )
 
@@ -722,7 +722,8 @@ class PluginUtilities( DIRACPluginUtilities ):
       try:
         f = open( cacheFile, 'r' )
         self.cachedLFNAncestors = pickle.load( f )
-        self.cachedNbRAWFiles = pickle.load( f )
+        # Do not cache between cycles, only cache temporarily, but keep same structure in file, i.e. fake load
+        _cachedNbRAWFiles = pickle.load( f )
         self.cachedLFNSize = pickle.load( f )
         self.cachedRunLfns = pickle.load( f )
         self.cachedProductions = pickle.load( f )
