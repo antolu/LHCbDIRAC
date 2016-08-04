@@ -67,7 +67,7 @@ def informPeople( rec, oldstate, state, author, inform ):
            'Since Bookkeeping expert could make changes in your request,',
            'you are asked to confirm it.'] )
       else:
-        subj = "DIRAC: the state of Production Request %s is changed to '%s'" % ( reqId, state )
+        subj = "DIRAC: the state of Production Request %s is changed to '%s'; %s;%s" % ( reqId, state, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
         body = '\n'.join(
           ['The state of your request is changed.',
            'This mail is for information only.'] )
@@ -79,7 +79,7 @@ def informPeople( rec, oldstate, state, author, inform ):
         gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
 
   if inform:
-    subj = "DIRAC: the state of %s Production Request %s is changed to '%s'" % ( rec['RequestType'], reqId, state )
+    subj = "DIRAC: the state of %s Production Request %s is changed to '%s'; %s;%s" % ( rec['RequestType'], reqId, state, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
     body = '\n'.join(
       ['You have received this mail because you are'
        'in the subscription list for this request'] )
@@ -98,12 +98,12 @@ def informPeople( rec, oldstate, state, author, inform ):
             gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
 
   if state == 'Accepted':
-    subj = "DIRAC: the Production Request %s is accepted." % reqId
+    subj = "DIRAC: the Production Request %s is accepted; %s;%s" % ( reqId, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
     body = '\n'.join( ["The Production Request is signed and ready to process",
                       "You are informed as member of %s group"] )
     groups = [ 'lhcb_prmgr' ]
   elif state == 'BK Check':
-    subj = "DIRAC: new %s Production Request %s" % ( rec['RequestType'], reqId )
+    subj = "DIRAC: new %s Production Request %s; %s;%s" % ( rec.get( 'RequestType', '' ), reqId, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
     body = '\n'.join( ["New Production is requested and it has",
                        "customized Simulation Conditions.",
                        "As member of %s group, your are asked either",
@@ -114,7 +114,7 @@ def informPeople( rec, oldstate, state, author, inform ):
     groups = [ 'lhcb_bk' ]
 
   elif state == 'Submitted':
-    subj = "DIRAC: new %s Production Request %s" % ( rec['RequestType'], reqId )
+    subj = "DIRAC: new %s Production Request %s; %s;%s" % ( rec.get( 'RequestType', '' ), reqId, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
     body = '\n'.join( ["New Production is requested",
                        "As member of %s group, your are asked either to sign",
                        "or to reject it.", "",
@@ -122,7 +122,7 @@ def informPeople( rec, oldstate, state, author, inform ):
                        "done that, please ignore this mail."] )
     groups = [ 'lhcb_ppg', 'lhcb_tech' ]
   elif state == 'PPG OK' and oldstate == 'Accepted':
-    subj = "DIRAC: returned Production Request %s" % reqId
+    subj = "DIRAC: returned Production Request %s; %s;%s" % ( reqId, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
     body = '\n'.join( ["Production Request is returned by Production Manager.",
                        "As member of %s group, your are asked to correct and sign",
                        "or to reject it.", "",

@@ -140,7 +140,7 @@ class ModuleBase( object ):
     if production_id:
       self.production_id = production_id
     else:
-      self.production_id = self.workflow_commons['PRODUCTION_ID']
+      self.production_id = self.workflow_commons['PRODUCTION_ID'] #This is a string, like '00051753'
 
     if prod_job_id:
       self.prod_job_id = prod_job_id
@@ -407,45 +407,50 @@ class ModuleBase( object ):
         We always remove the 'HIST'(s), when present
     """
 
+    histoTypes = self.opsH.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST' ] )
+
+    stepOutputs = self.step_commons['listoutput']
+
+    stepOutputsT = [x['outputDataType'] for x in stepOutputs]
+    stepOutTypes = []
+    for fts in stepOutputsT:
+      for ft in fts.split( ';' ):
+        if ft and ft not in stepOutTypes:
+          stepOutTypes.append( ft.lower() )
+
+    # corrections for Merge productions
     if self.jobType.lower() == 'merge':
-      res = self.bkClient.getFileMetadata( self.stepInputData )
-      if not res['OK']:
-        raise RuntimeError( res['Message'] )
+      if len(stepOutTypes) == 1 and stepOutTypes[0] in [hts.lower() for hts in histoTypes] + ['root']:
+        # If it is root/histo/ntuple merging job, we treat it almost as a stripping job
+        pass
+      else:
+        res = self.bkClient.getFileMetadata( self.stepInputData )
+        if not res['OK']:
+          raise RuntimeError( res['Message'] )
 
-      outputTypes = set()
-      success = res['Value']['Successful']
-      for mdDict in success.values():
-        outputTypes.add( mdDict['FileType'] )
-      if len( success ) != len( self.stepInputData ):
-        self.log.warn( "Some inputs are not in BKK, trying to parse the file names" )
-        for sid in set( self.stepInputData ) - set( success ):
-          # File types in the BK are upper case
-          fType = '.'.join( os.path.basename( sid ).split( '.' )[1:] ).upper()
-          outputTypes.add( fType )
+        outputTypes = set()
+        success = res['Value']['Successful']
+        for mdDict in success.values():
+          outputTypes.add( mdDict['FileType'] )
+        if len( success ) != len( self.stepInputData ):
+          self.log.warn( "Some inputs are not in BKK, trying to parse the file names" )
+          for sid in set( self.stepInputData ) - set( success ):
+            # File types in the BK are upper case
+            fType = '.'.join( os.path.basename( sid ).split( '.' )[1:] ).upper()
+            outputTypes.add( fType )
 
-      outputTypes = list( outputTypes )
-      if len( outputTypes ) > 1:
-        raise ValueError( "Not all input files have the same type (%s)" % ','.join( outputTypes ) )
-      outputType = outputTypes[0].lower()
-      stepOutTypes = [outputType.lower()]
-      stepOutputs = [{'outputDataName': self.step_id + '.' + outputType.lower(),
-                      'outputDataType': outputType.lower(),
-                      'outputBKType': outputType.upper()}]
-
-
-    else:
-      stepOutputs = self.step_commons['listoutput']
-
-      stepOutputsT = [x['outputDataType'] for x in stepOutputs]
-      stepOutTypes = []
-      for fts in stepOutputsT:
-        for ft in fts.split( ';' ):
-          if ft and ft not in stepOutTypes:
-            stepOutTypes.append( ft.lower() )
+        outputTypes = list( outputTypes )
+        if len( outputTypes ) > 1:
+          raise ValueError( "Not all input files have the same type (%s)" % ','.join( outputTypes ) )
+        outputType = outputTypes[0].lower()
+        stepOutTypes = [outputType.lower()]
+        stepOutputs = [{'outputDataName': self.step_id + '.' + outputType.lower(),
+                        'outputDataType': outputType.lower(),
+                        'outputBKType': outputType.upper()}]
 
 
     histogram = False
-    for hist in self.opsH.getValue( 'Productions/HistogramTypes', ['HIST', 'BRUNELHIST', 'DAVINCIHIST', 'GAUSSHIST' ] ):
+    for hist in histoTypes:
       try:
         stepOutTypes.remove( hist )
         histogram = True
@@ -967,10 +972,10 @@ class ModuleBase( object ):
 
     if self.applicationName.lower() == 'gauss':
       if self.CPUe and self.maxNumberOfEvents:
-        # Here we set maxCPUTime to 48 hours, which seems reasonable
+        # Here we set maxCPUTime to 24 hours, which seems reasonable
         eventsToProduce = getEventsToProduce( self.CPUe,
                                               maxNumberOfEvents = self.maxNumberOfEvents,
-                                              jobMaxCPUTime = 172800 )
+                                              jobMaxCPUTime = 86400 )
       else:
         eventsToProduce = self.numberOfEvents
     else:
