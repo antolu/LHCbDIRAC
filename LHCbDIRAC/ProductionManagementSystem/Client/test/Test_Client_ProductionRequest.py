@@ -135,10 +135,10 @@ class ProductionRequestSuccess( ClientTestCase ):
     prod = Production()
     prod.setParameter( 'ProcessingType', 'JDL', 'Test', 'ProductionGroupOrType' )
     prod.addApplicationStep( stepDict = stepMC,
-                             modules = ['GaudiApplication', 'AnalyseLogFile'] )
+                             modulesList = ['GaudiApplication', 'AnalyseLogFile'] )
     prod.addApplicationStep( stepDict = stepMC2,
                              inputData = 'previousStep',
-                             modules = ['GaudiApplication', 'AnalyseLogFile'] )
+                             modulesList = ['GaudiApplication', 'AnalyseLogFile'] )
     prod.priority = '1'
     prod.addFinalizationStep()
     prod.setFileMask( '', '4' )
@@ -161,7 +161,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     prod.setParameter( 'ProcessingType', 'JDL', 'Test', 'ProductionGroupOrType' )
     prod.addApplicationStep( stepDict = step1Dict,
                              inputData = 'previousStep',
-                             modules = ['GaudiApplication', 'AnalyseLogFile'] )
+                             modulesList = ['GaudiApplication', 'AnalyseLogFile'] )
     prod.addFinalizationStep()
     prod.setFileMask( '', ['4'] )
 
@@ -183,7 +183,7 @@ class ProductionRequestSuccess( ClientTestCase ):
     prod.setParameter( 'ProcessingType', 'JDL', 'Test', 'ProductionGroupOrType' )
     prod.addApplicationStep( stepDict = step1Dict,
                              inputData = 'previousStep',
-                             modules = ['GaudiApplication', 'AnalyseLogFile'] )
+                             modulesList = ['GaudiApplication', 'AnalyseLogFile'] )
     prod.addFinalizationStep()
     prod.setFileMask( '' )
 

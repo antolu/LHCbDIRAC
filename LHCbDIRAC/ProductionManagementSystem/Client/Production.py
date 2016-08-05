@@ -153,7 +153,7 @@ class Production( object ):
 
   #############################################################################
 
-  def addApplicationStep( self, stepDict, inputData = None, modules = None ):
+  def addApplicationStep( self, stepDict, inputData = None, modulesList = None ):
     """ stepDict contains everything that is in the step, for this production, e.g.:
         {'ApplicationName': 'DaVinci', 'Usable': 'Yes', 'StepId': 13718, 'ApplicationVersion': 'v28r3p1',
         'ExtraPackages': 'AppConfig.v3r104', 'StepName': 'Stripping14-Merging', 'ExtraOptions': '',
@@ -167,9 +167,6 @@ class Production( object ):
         Note: this step treated here does not necessarily corresponds to a step of the BKK:
         the case where they might be different is the merging case.
     """
-    if modules is None:
-      modules = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
-                 'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
 
     appName = stepDict['ApplicationName']
     appVersion = stepDict['ApplicationVersion']
@@ -232,11 +229,12 @@ class Production( object ):
 
     if 'Gaudi_App_Step' not in self.LHCbJob.workflow.step_definitions.keys():
 
-      if 'GaudiApplication' in modules:
+      gLogger.debug("Determining the modules of the steps (modulesList = %s)" % modulesList)
+      if modulesList is None: # we assume it's a standard list of modules for Gaudi steps
         gaudiPath = 'Productions/GaudiStep_Modules'
-        modulesNameList = self.opsHelper.getValue( gaudiPath, modules )
-      else:
-        modulesNameList = modules
+        modulesList = self.opsHelper.getValue( gaudiPath, ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                                                           'ErrorLogging', 'BookkeepingReport', 'StepAccounting'] )
+
       # pName, pType, pValue, pDesc
       parametersList = [['inputData', 'string', '', 'StepInputData'],
                         ['inputDataType', 'string', '', 'InputDataType'],
@@ -264,7 +262,7 @@ class Production( object ):
                         ['SystemConfig', 'string', '', 'system config'],
                         ['mcTCK', 'string', '', 'TCK to be simulated']]
 
-      gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesNameList,
+      gaudiStepDef = getStepDefinition( 'Gaudi_App_Step', modulesNameList = modulesList,
                                         importLine = 'LHCbDIRAC.Workflow.Modules',
                                         parametersList = parametersList )
       self.LHCbJob.workflow.addStep( gaudiStepDef )
