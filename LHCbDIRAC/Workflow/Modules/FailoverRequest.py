@@ -62,21 +62,22 @@ class FailoverRequest( ModuleBase ):
 
       # report on the status of the input data, by default they are 'Processed', unless the job failed
       # failures happening before (e.g. in previous steps, or while inspecting the XML summary) are not touched.
-      filesInFileReport = self.fileReport.getFiles() #It's normally empty, unless there are some Problematic files
+      filesInFileReport = self.fileReport.getFiles()  # It's normally empty, unless there are some Problematic files
 
       if not self._checkWFAndStepStatus( noPrint = True ):
         # To overcome race condition issues, the file status for this case is reported by the failover request
         statusDict = {}
         for lfn in self.inputDataList:
           if lfn not in filesInFileReport:
-            self.log.info( "Setting status to 'Unused' due to workflow failure for input file: %s" % ( lfn ) )
+            self.log.info( "Add operation to set status 'Unused' due to workflow failure for input file: %s" % ( lfn ) )
             statusDict[lfn] = 'Unused'
-        setFileStatusOp = Operation()
-        setFileStatusOp.Type = 'SetFileStatus'
-        setFileStatusOp.Arguments = DEncode.encode( {'transformation':int(self.production_id),
-                                                     'statusDict':statusDict,
-                                                     'force':False} )
-        self.request.addOperation(setFileStatusOp)
+        if statusDict:
+          setFileStatusOp = Operation()
+          setFileStatusOp.Type = 'SetFileStatus'
+          setFileStatusOp.Arguments = DEncode.encode( {'transformation':int( self.production_id ),
+                                                       'statusDict':statusDict,
+                                                       'force':False} )
+          self.request.addOperation( setFileStatusOp )
       else:
         for lfn in self.inputDataList:
           if lfn not in filesInFileReport:
@@ -84,20 +85,21 @@ class FailoverRequest( ModuleBase ):
             self.fileReport.setFileStatus( int( self.production_id ), lfn, 'Processed' )
 
       result = self.fileReport.commit()
-      if not result['OK']:
+      # If there are still files to set, try a second time and generate a request if it fails again
+      if self.fileReport.getFiles():
         self.log.error( "Failed to report file status to TransformationDB" )
-        result = self.fileReport.generateForwardDISET() #This will try a second time a commit, before generating a SetFileStatus operation
+        result = self.fileReport.generateForwardDISET()  # This will try a second time a commit, before generating a SetFileStatus operation
         if not result['OK']:
           self.log.warn( "Could not generate Operation for file report with result:\n%s" % ( result['Value'] ) )
         else:
-          if result['Value'] is None: #Means the FileReport managed to report, no need for a new operation
+          if result['Value'] is None:  # Means the FileReport managed to report, no need for a new operation
             self.log.info( "On second trial, files correctly reported to TransformationDB" )
           else:
             self.log.info( "Populating request with file report info (SetFileStatus operation)" )
             result = self.request.addOperation( result['Value'] )
             if not result['OK']:
               return result
-      else:
+      elif result['Value']:
         self.log.info( "Status of files have been properly updated in the TransformationDB" )
 
       # Must ensure that the local job report instance is used to report the final status
