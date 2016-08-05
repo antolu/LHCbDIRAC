@@ -1,3 +1,9 @@
+[v8r2p55]
+Use DIRAC v6r14p39
+* fixes for name of variable
+* allowing custom list of modules for Gaudi steps
+* fix for case of non-existing ProDetail
+
 [v8r2p54]
 Use DIRAC v6r14p39
 * treating special case of merging root/histo/ntuple
