@@ -661,8 +661,16 @@ class ProductionRequestDB( DB ):
 
     update = {}     # Decide what to update (and if that is required)
     for x in rec:
-      if x == 'ProDetail' and cPickle.loads( rec[x] ) == cPickle.loads( old[x] ):
-        continue
+      if x == 'ProDetail':
+        try:
+          recx = cPickle.loads( rec[x] )
+          oldx = cPickle.loads( old[x] )
+          if recx == oldx:
+            continue
+        except TypeError:
+          # This happens if, for example, oldx is None (meaning there was not prodetail, while now there is).
+          # Which means that now we can update
+          pass
       elif x != 'ProDetail' and str( rec[x] ) == str( old[x] ):
         continue
       update[x] = rec[x]
