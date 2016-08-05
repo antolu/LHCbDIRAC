@@ -1677,3 +1677,92 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
       gLogger.notice( '%d empty directories have been put in %s' % ( len( emptyDirs ), outputFileName ) )
 
   return 0
+
+def executeRegisterBK2FC( dmScript ):
+  """
+  Get a list of files and SEs, and register the existing files if necessary
+  """
+  # The source SE may be given as second positional argument, therefore do not aggregate
+  lfnList, seList = parseArguments( dmScript )
+
+  return registerBK2FC( lfnList, seList, printResult = True )
+
+def registerBK2FC( lfnList, seList, printResult = False ):
+  """
+  Check if files are in BK, check are in any of the SEs and if  OK register the file in the FC
+  """
+
+  result = {'Successful':{}, 'Failed':{}}
+  res = DataManager().getReplicas( lfnList, getUrl = False )
+  if not res['OK']:
+    gLogger.error( 'Cannot get replicas', res['Message'] )
+    return 1 if printResult else res
+  replicas = res['Value']['Successful']
+  if replicas:
+    gLogger.notice( '%d files already registered in FC' % len( replicas ) )
+    result['Successful'].update( replicas )
+    lfnList = list( set( lfnList ) - set( replicas ) )
+
+  # Check in BK
+  bkClient = BookkeepingClient()
+  res = bkClient.getFileMetadata( lfnList )
+  if not res['OK']:
+    gLogger.error( 'Cannot get BK metadata', res['Message'] )
+    return 2 if printResult else res
+  failed = res['Value']['Failed']
+  bkMetadata = res['Value']['Successful']
+  if failed:
+    gLogger.notice( '%d files are not in the BK' % len( failed ) )
+    result['Failed'].update( failed )
+    lfnList = list( set( lfnList ) - set( failed ) )
+
+  if lfnList:
+
+    from DIRAC.ConfigurationSystem.Client.Helpers.Resources     import getRegistrationProtocols
+    fc = FileCatalog()
+    registrationProtocol = getRegistrationProtocols()
+    seListString = ','.join( seList )
+    level = gLogger.getLevel()
+    for se in seList:
+      storageElement = StorageElement( se )
+      gLogger.setLevel( 'FATAL' )
+      res = storageElement.getFileMetadata( lfnList )
+      gLogger.setLevel( level )
+      if not res['OK']:
+        gLogger.error( 'Error accessing SE', se )
+        continue
+      success = res['Value']['Successful']
+      for lfn, metadata in success.iteritems():
+        if metadata['Cached']:
+          checksum = metadata['Checksum']
+          size = metadata['Size']
+          if size != bkMetadata[lfn]['FileSize']:
+            gLogger.error( 'BK-SE file size mismatch', 'BK %d - SE %d' % ( bkMetadata[lfn]['FileSize'], size ) )
+            result['Failed'][lfn] = 'Size mismatch between BK and SE %s' % se
+            continue
+          guid = bkMetadata[lfn]['GUID']
+          res = storageElement.getURL( lfn, protocol = registrationProtocol )
+          if res['OK']:
+            pfn = res['Value']['Successful'][lfn]
+          else:
+            continue
+          res = fc.addFile( {lfn: {'PFN': pfn, 'GUID':guid, 'Checksum':checksum, 'Size':size, 'SE':se}} )
+          if not res['OK']:
+            result['Failed'][lfn] = res['Message']
+          else:
+            if lfn in res['Value']['Successful']:
+              result['Successful'][lfn] = res['Value']['Successful'][lfn]
+              result['Successful'][lfn]['SE'] = se
+              lfnList.remove( lfn )
+            else:
+              result['Failed'].update( res['Value']['Failed'] )
+
+    if lfnList:
+      result['Failed'].update( dict.fromkeys( [lfn for lfn in lfnList if lfn not in result['Failed']], 'Not found at any of %s' % seListString ) )
+
+  if printResult:
+    printDMResult( S_OK( result ) )
+    return 0
+  else:
+    return S_OK( result )
+
