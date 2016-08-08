@@ -45,7 +45,7 @@ if __name__ == "__main__":
     if os.path.exists( jobid ):
       bkScript.setJobidsFromFile( jobid )
     else:
-      jobidList.append( jobid )
+      jobidList += jobid.split( ',' )
   jobidList += bkScript.getOption( 'JobIDs', [] )
   if not jobidList:
     print "No jobID provided!"
