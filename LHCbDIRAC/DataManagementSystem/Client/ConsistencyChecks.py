@@ -19,7 +19,8 @@ from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar, \
+  printDMResult
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.Adler import compareAdler
@@ -232,10 +233,11 @@ class ConsistencyChecks( object ):
     """
     present = set()
     notPresent = set()
+    lfns = set( lfns )
 
     chunkSize = 100
     progressBar = ProgressBar( len( lfns ),
-                               title = "Checking replicas for %d files" % len( lfns ),
+                               title = "Checking replicas for %d files" % len( lfns ) + ( " (not in Failover)" if ignoreFailover else "" ),
                                chunk = chunkSize, interactive = self.interactive )
     for chunk in breakListIntoChunks( lfns, chunkSize ):
       progressBar.loop()
@@ -523,6 +525,7 @@ class ConsistencyChecks( object ):
   def __getDaughtersInfo( self, lfns, status, filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants ):
     """ Get BK information about daughers of lfns """
     chunkSize = 20
+    lfns = set( lfns )
     progressBar = ProgressBar( len( lfns ),
                                title = "Now getting daughters for %d %s mothers in production %d (depth %d)"
                                % ( len( lfns ), status, self.prod, self.descendantsDepth ),
@@ -630,11 +633,12 @@ class ConsistencyChecks( object ):
             else:
               progressBar.comment( "Error getting descendants for %d files, retry"
                              % len( lfnChunk ), res['Message'] )
-        progressBar.endLoop()
+        uniqueDescendants = set( lfn for desc in notPresentDescendants.values() for lfn in desc )
+        progressBar.endLoop( message = 'found %d descendants' % len( uniqueDescendants ) )
         # Check if descendants have a replica in the FC
         setDaughtersWithDesc = set()
-        if notPresentDescendants:
-          _present, notPresent = self.getReplicasPresence( [lfn for desc in notPresentDescendants.values() for lfn in desc] )
+        if uniqueDescendants:
+          _, notPresent = self.getReplicasPresence( uniqueDescendants )
           inBKNotInFC += notPresent
           # Remove descendants that are not in FC, and if no descendants remove ancestor as well
           for anc in notPresentDescendants.keys():
@@ -722,8 +726,10 @@ class ConsistencyChecks( object ):
       filesWithDescendants.pop( lfn, None )
     # For files in FC and not in BK, ignore if they are not active
     if inFCNotInBK:
-      notInFailover = self.getReplicasPresence( inFCNotInBK, ignoreFailover = True )[0]
+      progressBar = ProgressBar( len( inFCNotInBK ), title = "Checking FC for %d file found in FC and not in BK" % len( inFCNotInBK ), step = 1, interactive = self.interactive )
+      notInFailover, _notFound = self.getReplicasPresence( inFCNotInBK, ignoreFailover = True )
       inFailover = list( set( inFCNotInBK ) - set( notInFailover ) )
+      progressBar.endLoop( message = "found %d in Failover" % len( inFailover ) )
       inFCNotInBK = notInFailover
     return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
       list( setRealDaughters ), inFCNotInBK, inBKNotInFC, removedFiles, inFailover
