@@ -102,6 +102,7 @@ class ConsistencyChecks( object ):
     self.inBKNotInFC = []
     self.inFCNotInBK = []
     self.removedFiles = []
+    self.inFailover = []
 
     self.absentLFNsInFC = []
     self.existLFNsNoSE = {}
@@ -360,6 +361,7 @@ class ConsistencyChecks( object ):
     self.inFCNotInBK = res[4]
     self.inBKNotInFC = res[5]
     self.removedFiles = res[6]
+    self.inFailover = res[7]
 
     res = self.getDescendants( nonProcessedLFNs, status = 'non-processed' )
     self.nonPrcdWithDesc = res[0]
@@ -702,9 +704,13 @@ class ConsistencyChecks( object ):
       filesWithDescendants.pop( lfn, None )
     # For files in FC and not in BK, ignore if they are not active
     if inFCNotInBK:
-      inFCNotInBK = self.getReplicasPresence( inFCNotInBK, ignoreFailover = True )[0]
+      notInFailover = self.getReplicasPresence( inFCNotInBK, ignoreFailover = True )[0]
+      inFailover = list( set( inFCNotInBK ) - set( notInFailover ) )
+      inFCNotInBK = notInFailover
+    else:
+      inFailover = []
     return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
-      list( setRealDaughters ), inFCNotInBK, inBKNotInFC, removedFiles
+      list( setRealDaughters ), inFCNotInBK, inBKNotInFC, removedFiles, inFailover
 
   ################################################################################
 
