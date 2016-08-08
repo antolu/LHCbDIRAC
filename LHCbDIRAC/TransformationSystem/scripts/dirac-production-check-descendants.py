@@ -24,7 +24,7 @@ if __name__ == '__main__':
   Script.registerSwitch( '', 'Runs=', '   Specify the run range' )
   Script.registerSwitch( '', 'ActiveRunsProduction=', '   Specify the production from which the runs should be derived' )
   Script.registerSwitch( '', 'FileType=', 'S   pecify the descendants file type' )
-  Script.registerSwitch( '', 'NoLFC', '   Trust the BK replica flag, no LFC check' )
+  Script.registerSwitch( '', 'NoFC', '   Trust the BK replica flag, no LFC check' )
   Script.registerSwitch( '', 'FixIt', '   Fix the files in transformation table' )
   Script.registerSwitch( '', 'Verbose', '   Print full list of files with error' )
   Script.registerSwitch( '', 'Status=', '   Select files with a given status in the production' )
@@ -36,7 +36,7 @@ if __name__ == '__main__':
   fromProd = None
   verbose = False
   status = None
-  noLFC = False
+  noFC = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
       try:
@@ -59,8 +59,8 @@ if __name__ == '__main__':
       fileType = switch[1].split( ',' )
     elif switch[0] == 'FixIt':
       fixIt = True
-    elif switch[0] == 'NoLFC':
-      noLFC = True
+    elif switch[0] == 'NoFC':
+      noFC = True
     elif switch[0] == 'Depth':
       depth = min( 10, max( 1, int( switch[1] ) ) )
     elif switch[0] == 'ActiveRunsProduction':
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     cc = ConsistencyChecks()
     cc.verbose = verbose
     cc.prod = prod
-    cc.noLFC = noLFC
+    cc.noFC = noFC
     cc.descendantsDepth = depth
     if prod != prodList[0]:
       gLogger.always( "====================" )

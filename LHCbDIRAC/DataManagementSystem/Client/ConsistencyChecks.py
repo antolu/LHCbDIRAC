@@ -70,7 +70,7 @@ class ConsistencyChecks( object ):
     self._fileTypesExcluded = []
     self._lfns = []
     self._verbose = False
-    self.noLFC = False
+    self.noFC = False
     self.directories = []
     self.descendantsDepth = 10
     self.ancestorsDepth = 10
@@ -594,7 +594,7 @@ class ConsistencyChecks( object ):
     chunkSize = 100 if self.transType == 'DataStripping' and len( self.fileType ) > 1 else 500
     if filesWithDescendants:
       # First check in LFC the presence of daughters
-      if not self.noLFC:
+      if not self.noFC:
         self.__logVerbose( 'Checking presence of %d files' % len( allDaughters ) )
         present, notPresent = self.getReplicasPresenceFromDirectoryScan( allDaughters ) \
                                 if len( allDaughters ) > 10 * chunkSize and \
