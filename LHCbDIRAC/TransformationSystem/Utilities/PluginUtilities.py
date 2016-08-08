@@ -54,6 +54,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.freeSpace = {}
     self.cachedLFNAncestors = {}
     self.cachedNbRAWFiles = {}
+    self.usingRAWFiles = None
     self.cachedRunLfns = {}
     self.cachedProductions = {}
     self.cachedLastRun = 0
@@ -530,19 +531,29 @@ class PluginUtilities( DIRACPluginUtilities ):
 
     # Restrict to files with the required parameter
     if param:
-#       paramStr = ' (%s:%s)' % ( param, paramValue if paramValue else '' )
       res = self.getFilesParam( lfns, param )
       if not res['OK']:
         self.logError( "Error getting BK param %s:" % param, res['Message'] )
         return 0
       paramValues = res['Value']
       lfns = [f for f, v in paramValues.iteritems() if v == paramValue]
-#     else:
-#       paramStr = ''
+
     if lfns:
       lfnToCheck = lfns[0]
     else:
-      lfnToCheck = None
+      return 0
+    #
+    # If files are RAW files, no need to get the number of ancestors!
+    #
+    if self.usingRAWFiles is None:
+      res = self.getBookkeepingMetadata( lfnToCheck, 'FileType' )
+      if not res['OK']:
+        self.logError( "Error getting metadata", res['Message'] )
+        return 0
+      self.usingRAWFiles = res['Value'][lfnToCheck] == 'RAW'
+    if self.usingRAWFiles:
+      return len( lfns ) if not getFiles else lfns
+    #
     # Get number of ancestors for known files
     cachedLfns = self.cachedLFNAncestors.get( runID, {} )
     setLfns = set( lfns )
