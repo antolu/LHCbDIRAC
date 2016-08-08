@@ -185,7 +185,8 @@ if __name__ == '__main__':
         fp.write( '\nInFailover '.join( [''] + lfns ) )
         gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
                        '\n'.join( [''] + lfns[0:nMax] ) )
-        gLogger.always( "Use --FixIt for setting replica flag in BK (or safer grep InFailover %s | dirac-dms-check-fc2bkk)" % fileName )
+        gLogger.always( "Use --FixIt for brutally setting replica flag in BK or, better something like..." )
+        gLogger.always( "     grep InFailover %s | dirac-dms-replicate-to-run-destination --SE <SE-list>)" % fileName )
 
     if cc.inBKNotInFC:
       lfns = cc.inBKNotInFC
