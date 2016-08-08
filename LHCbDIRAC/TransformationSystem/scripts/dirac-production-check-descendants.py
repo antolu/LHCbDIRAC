@@ -187,6 +187,16 @@ if __name__ == '__main__':
                        '\n'.join( [''] + lfns[0:nMax] ) )
         gLogger.always( "Use --FixIt for setting replica flag in BK (or safer grep InFailover %s | dirac-dms-check-fc2bkk)" % fileName )
 
+    if cc.inBKNotInFC:
+      lfns = cc.inBKNotInFC
+      gLogger.always( "%d descendants were found in BK but not in FC" % len( lfns ) )
+      if not fp:
+        fp = open( fileName, 'w' )
+      fp.write( '\InBKNotInFC '.join( [''] + lfns ) )
+      gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
+                     '\n'.join( [''] + lfns[0:nMax] ) )
+      # gLogger.always( "Use --FixIt for removing replica flag in BK (or safer grep InBKNotInFC %s | dirac-dms-check-bkk2fc)" % fileName )
+
     if cc.removedFiles:
       from DIRAC.Core.Utilities.List import breakListIntoChunks
       gLogger.always( "%d input files are processed, have no descendants but are not in the FC" % len( cc.removedFiles ) )

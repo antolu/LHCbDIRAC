@@ -368,6 +368,10 @@ class ConsistencyChecks( object ):
     self.nonPrcdWithoutDesc = res[1]
     self.nonPrcdWithMultDesc = res[2]
     self.descForNonPrcdLFNs = res[3]
+    self.inFCNotInBK += res[4]
+    self.inBKNotInFC += res[5]
+    self.removedFiles += res[6]
+    self.inFailover += res[7]
 
     if self.prcdWithoutDesc:
       self.__logVerbose( "For prod %s of type %s, %d files are processed, and %d of those do not have descendants" %
@@ -570,9 +574,10 @@ class ConsistencyChecks( object ):
     inBKNotInFC = []
     allDaughters = []
     removedFiles = []
+    inFailover = []
     if not lfns:
       return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
-        allDaughters, inFCNotInBK, inBKNotInFC, removedFiles
+        allDaughters, inFCNotInBK, inBKNotInFC, removedFiles, inFailover
 
     daughtersBKInfo = self.__getDaughtersInfo( lfns, status, filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants )
     for daughter in daughtersBKInfo.keys():
@@ -613,21 +618,34 @@ class ConsistencyChecks( object ):
                                    title = "Now checking descendants from %d daughters without replicas" % len( setNotPresent ),
                                    chunk = chunkSize, interactive = self.interactive )
         # Get existing descendants of notPresent daughters
-        setDaughtersWithDesc = set()
+        notPresentDescendants = {}
         for lfnChunk in breakListIntoChunks( setNotPresent, chunkSize ):
           progressBar.loop()
           while True:
             res = self.bkClient.getFileDescendants( lfnChunk, depth = 99, checkreplica = True )
             if res['OK']:
               # Exclude ignored file types, but select any other file type, key is daughters
-              setDaughtersWithDesc.update( self._selectByFileType( res['Value']['WithMetadata'], fileTypes = [''],
-                                                                   fileTypesExcluded = fileTypesExcluded ) )
+              notPresentDescendants.update( res['Value']['WithMetadata'] )
               break
             else:
               progressBar.comment( "Error getting descendants for %d files, retry"
                              % len( lfnChunk ), res['Message'] )
         progressBar.endLoop()
-        # print "%d not Present daughters, %d have a descendant" % ( len( notPresent ), len( setDaughtersWithDesc ) )
+        # Check if descendants have a replica in the FC
+        setDaughtersWithDesc = set()
+        if notPresentDescendants:
+          _present, notPresent = self.getReplicasPresence( [lfn for desc in notPresentDescendants.values() for lfn in desc] )
+          inBKNotInFC += notPresent
+          # Remove descendants that are not in FC, and if no descendants remove ancestor as well
+          for anc in notPresentDescendants.keys():
+            for desc in notPresentDescendants[anc].keys():
+              if desc in notPresent:
+                notPresentDescendants[anc].pop( desc )
+            if not notPresentDescendants[anc]:
+              notPresentDescendants.pop( anc )
+          if notPresentDescendants:
+            setDaughtersWithDesc = set( self._selectByFileType( notPresentDescendants, fileTypes = [''],
+                                                                fileTypesExcluded = fileTypesExcluded ) )
 
         progressBar = ProgressBar( len( filesWithDescendants ),
                                    title = "Now establishing final list of existing descendants for %d mothers"
@@ -707,8 +725,6 @@ class ConsistencyChecks( object ):
       notInFailover = self.getReplicasPresence( inFCNotInBK, ignoreFailover = True )[0]
       inFailover = list( set( inFCNotInBK ) - set( notInFailover ) )
       inFCNotInBK = notInFailover
-    else:
-      inFailover = []
     return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
       list( setRealDaughters ), inFCNotInBK, inBKNotInFC, removedFiles, inFailover
 
