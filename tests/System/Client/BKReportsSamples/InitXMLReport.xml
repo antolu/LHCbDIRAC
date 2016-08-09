@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE Job SYSTEM "book.dtd">
+<Job ConfigName="Certification" ConfigVersion="Test" Date="2008-07-29" Time="11:09">
+  <TypedParameter Name="Production" Value="0" Type="Info"/>
+  <TypedParameter Name="Name" Value="VAR_Name" Type="Info"/>
+  <TypedParameter Name="Location" Value="VAR_Location" Type="Info"/>
+  <TypedParameter Name="ProgramName" Value="Text" Type="Info"/>
+  <TypedParameter Name="ProgramVersion" Value="VAR_ProgramVersion" Type="Info"/>
+  <TypedParameter Name="NumberOfEvents" Value="123456" Type="Info"/>
+  <TypedParameter Name="ExecTime" Value="90000.0" Type="Info"/>
+  <TypedParameter Name="JobStart" Value="VAR_JobStart" Type="Info"/>
+  <TypedParameter Name="JobEnd" Value="VAR_JobEnd" Type="Info"/>
+  <TypedParameter Name="FirstEventNumber" Value="1" Type="Info"/>
+  <TypedParameter Name="RunNumber" Value="1" Type="Info"/>
+  <TypedParameter Name="FillNumber" Value="1" Type="Info"/>
+  <Quality Group="Production Manager" Flag="Not Checked"/>
+  <OutputFile Name="/lhcb/Certification/Test/INIT/VAR_ProgramVersion/VAR_Date/VAR_FileName" TypeName="INIT" TypeVersion="1">
+   <Parameter Name="MD5Sum" Value="24F71879BA006B91FB8ADC529ACB7CC6"/>
+   <Parameter Name="EventTypeId" Value="10000000"/>
+   <Parameter Name="EventStat" Value="9000"/>
+   <Parameter Name="FileSize" Value="VAR_FileSize"/>
+   <Parameter Name="Guid" Value="VAR_Guid"/>
+   <Parameter Name="PhysicStat" Value="429"/>
+   <Parameter Name="CreationDate" Value="VAR_JobEnd"/>
+ </OutputFile>
+<DataTakingConditions>
+  <Parameter Name="BeamCond"   Value="Collisions"/>
+  <Parameter Name="BeamEnergy" Value="7.0 Tev"/>
+  <Parameter Name="MagneticField" Value="-100%"/>
+  <Parameter Name="VELO"          Value="string"/>
+  <Parameter Name="IT"          Value="string"/>
+  <Parameter Name="TT"          Value="string"/>
+  <Parameter Name="OT"          Value="string"/>
+  <Parameter Name="RICH1"          Value="string"/>
+  <Parameter Name="RICH2"          Value="string"/>
+  <Parameter Name="SPD_PRS"          Value="string"/>
+  <Parameter Name="ECAL"          Value="string"/>
+  <Parameter Name="HCAL"          Value="string"/>
+  <Parameter Name="MUON"          Value="string"/>
+  <Parameter Name="L0"          Value="string"/>
+  <Parameter Name="HLT"          Value="string"/>
+</DataTakingConditions>
+</Job>
