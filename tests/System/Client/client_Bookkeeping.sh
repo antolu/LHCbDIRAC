@@ -31,7 +31,8 @@ do
   guid=$(python $diracDir/tests/System/Client/dirac-get-guid.py $tmpDir/random_content_$( printf %03d "$n" ).init -o LogLevel=FATAL)
   location=$HOSTNAME
   version=$(dirac-version)
-  tdate=$(date +"20%y%m%d%R")
+  tdate=$(date +"20%y%m%d")
+  ttime=$(date +"%R")
   start=$(date -u +"20%y-%m-%d %R")
   end=$(date +"20%y-%m-%d %R")
 
