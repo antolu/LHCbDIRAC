@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
-<Job ConfigName="Certification" ConfigVersion="Test" Simulation/DataTaking="NotRealCollisions" Date="VAR_Date" Time="VAR_Time">
+<Job ConfigName="Certification" ConfigVersion="Test" Date="VAR_Date" Time="VAR_Time">
   <TypedParameter Name="Production" Value="0" Type="Info"/>
   <TypedParameter Name="Name" Value="VAR_Name" Type="Info"/>
   <TypedParameter Name="Location" Value="VAR_Location" Type="Info"/>

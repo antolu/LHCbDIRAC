@@ -31,7 +31,7 @@ do
   guid=$(python $diracDir/tests/System/Client/dirac-get-guid.py $tmpDir/random_content_$( printf %03d "$n" ).init -o LogLevel=FATAL)
   location=$HOSTNAME
   version=$(dirac-version)
-  tdate=$(date +"20%y%m%d")
+  tdate=$(date +"20%y-%m-%d")
   ttime=$(date +"%R")
   start=$(date -u +"20%y-%m-%d %R")
   end=$(date +"20%y-%m-%d %R")
@@ -45,6 +45,7 @@ do
   sed -i "s/VAR_JobStart/$start/g" bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
   sed -i "s/VAR_JobEnd/$end/g" bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
   sed -i s/VAR_Date/$tdate/g bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
+  sed -i s/VAR_Time/$ttime/g bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
   sed -i s/VAR_Guid/$guid/g bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
 done
 
