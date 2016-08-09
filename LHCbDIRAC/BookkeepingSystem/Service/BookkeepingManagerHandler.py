@@ -43,20 +43,20 @@ class BookkeepingManagerHandler( RequestHandler ):
   """
   Bookkeeping Service class. It serves the requests made the users by using the BookkeepingClient.
   """
-  
+
   @classmethod
   def initializeHandler( cls, serviceInfoDict ):
     """
       initialize the variables used to identify queries, which are not containing enough conditions.
-    """ 
-    
+    """
+
     bkkSection = getServiceSection( "Bookkeeping/BookkeepingManager" )
     if not bkkSection:
       cls.email = 'lhcb-bookkeeping@cern.ch'
       cls.forceExecution = False
     else:
       cls.email = gConfig.getValue( cfgPath( bkkSection , 'Email' ), 'lhcb-bookkeeping@cern.ch' )
-      cls.forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )  
+      cls.forceExecution = gConfig.getValue( cfgPath( bkkSection , 'ForceExecution' ), False )
     gLogger.info( "Email used to track queries: %s forceExecution" % cls.email, cls.forceExecution )
     return S_OK()
   ###########################################################################
@@ -94,8 +94,8 @@ class BookkeepingManagerHandler( RequestHandler ):
       else:
         result = retVal
     except Exception as x:
-      errorMsg = 'The following error occurred during XML processing: %s ' % str( x )
-      gLogger.error( errorMsg )
+      errorMsg = "XML processing error"
+      gLogger.exception(errorMsg, lException = x)
       result = S_ERROR( errorMsg )
     return result
 
