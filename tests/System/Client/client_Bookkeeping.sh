@@ -32,8 +32,8 @@ do
   location=$HOSTNAME
   version=$(dirac-version)
   tdate=$(date +"20%y%m%d%R")
-  start=$(date -u +"20%y-%m-%d%R")
-  end=$(date +"20%y-%m-%d%R")
+  start=$(date -u +"20%y-%m-%d %R")
+  end=$(date +"20%y-%m-%d %R")
 
   # Applying the info
   sed -i s/VAR_Name/00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" )/g bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
@@ -41,8 +41,8 @@ do
   sed -i s/VAR_ProgramVersion/$version/g bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
   sed -i s/VAR_FileName/$fileName/g bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
   sed -i s/VAR_FileSize/$size/g bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
-  sed -i s/VAR_JobStart/$start/g bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
-  sed -i s/VAR_JobEnd/$end/g bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
+  sed -i "s/VAR_JobStart/$start/g" bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
+  sed -i "s/VAR_JobEnd/$end/g" bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
   sed -i s/VAR_Date/$tdate/g bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
   sed -i s/VAR_Guid/$guid/g bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
 done
