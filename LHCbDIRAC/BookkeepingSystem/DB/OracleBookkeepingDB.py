@@ -2,18 +2,18 @@
 Queries creation
 """
 
-__RCSID__ = "$Id$"
-
-import datetime
 import types
+import datetime
 import re
 
 from DIRAC                                                           import gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Config                         import gConfig
 from DIRAC.ConfigurationSystem.Client.PathFinder                     import getDatabaseSection
+from DIRAC.Core.Utilities.List                                       import breakListIntoChunks
 # from DIRAC.Core.Utilities.OracleDB                                   import OracleDB
 from LHCbDIRAC.BookkeepingSystem.DB.OracleDB                         import OracleDB
-from DIRAC.Core.Utilities.List                                       import breakListIntoChunks
+
+__RCSID__ = "$Id$"
 
 global ALLOWED_ALL
 ALLOWED_ALL = 2
@@ -21,7 +21,7 @@ ALLOWED_ALL = 2
 global default
 default = 'ALL'
 
-class OracleBookkeepingDB:
+class OracleBookkeepingDB( object ):
   """This class provides all the methods which manipulate the database"""
   #############################################################################
   def __init__( self ):
@@ -374,7 +374,7 @@ class OracleBookkeepingDB:
         records += [step]
       if paging:
         if fileTypefilter:
-           command = "select count(*) from %s where s.stepid>0 %s " % ( fileTypefilter, condition )
+          command = "select count(*) from %s where s.stepid>0 %s " % ( fileTypefilter, condition )
         else:
           command = "select count(*) from steps s where s.stepid>0 %s " % ( condition )
 
@@ -1830,8 +1830,8 @@ class OracleBookkeepingDB:
 
     for param in job:
       if not attrList.__contains__( param ):
-        gLogger.error( "insert job error: ", " the job table not contains " + param + " this attributte!!" )
-        return S_ERROR( " The job table not contains " + param + " this attributte!!" )
+        gLogger.error( "insert job error: ", " the job table not contain attribute " + param )
+        return S_ERROR( " The job table not contain attribute " + param )
 
       if param == 'JobStart' or param == 'JobEnd':  # We have to convert data format
         dateAndTime = job[param].split( ' ' )
@@ -1857,35 +1857,35 @@ class OracleBookkeepingDB:
 
 
     result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertJobsRow',
-                                              types.LongType, [ attrList['ConfigName'],
-                                                         attrList['ConfigVersion'],
-                                                         attrList['DiracJobId'],
-                                                         attrList['DiracVersion'],
-                                                         attrList['EventInputStat'],
-                                                         attrList['ExecTime'],
-                                                         attrList['FirstEventNumber'],
-                                                         attrList['JobEnd'],
-                                                         attrList['JobStart'],
-                                                         attrList['Location'],
-                                                         attrList['Name'],
-                                                         attrList['NumberOfEvents'],
-                                                         attrList['Production'],
-                                                         attrList['ProgramName'],
-                                                         attrList['ProgramVersion'],
-                                                         attrList['StatisticsRequested'],
-                                                         attrList['WNCPUPOWER'],
-                                                         attrList['CPUTIME'],
-                                                         attrList['WNCACHE'],
-                                                         attrList['WNMEMORY'],
-                                                         attrList['WNMODEL'],
-                                                         attrList['WorkerNode'],
-                                                         attrList['RunNumber'],
-                                                         attrList['FillNumber'],
-                                                         attrList['WNCPUHS06'],
-                                                         attrList['TotalLuminosity'],
-                                                         attrList['Tck'],
-                                                         attrList['StepID'],
-                                                         attrList['WNMJFHS06'] ] )
+                                              types.LongType, [attrList['ConfigName'],
+                                                               attrList['ConfigVersion'],
+                                                               attrList['DiracJobId'],
+                                                               attrList['DiracVersion'],
+                                                               attrList['EventInputStat'],
+                                                               attrList['ExecTime'],
+                                                               attrList['FirstEventNumber'],
+                                                               attrList['JobEnd'],
+                                                               attrList['JobStart'],
+                                                               attrList['Location'],
+                                                               attrList['Name'],
+                                                               attrList['NumberOfEvents'],
+                                                               attrList['Production'],
+                                                               attrList['ProgramName'],
+                                                               attrList['ProgramVersion'],
+                                                               attrList['StatisticsRequested'],
+                                                               attrList['WNCPUPOWER'],
+                                                               attrList['CPUTIME'],
+                                                               attrList['WNCACHE'],
+                                                               attrList['WNMEMORY'],
+                                                               attrList['WNMODEL'],
+                                                               attrList['WorkerNode'],
+                                                               attrList['RunNumber'],
+                                                               attrList['FillNumber'],
+                                                               attrList['WNCPUHS06'],
+                                                               attrList['TotalLuminosity'],
+                                                               attrList['Tck'],
+                                                               attrList['StepID'],
+                                                               attrList['WNMJFHS06'] ] )
     return result
 
   #############################################################################
@@ -1916,8 +1916,8 @@ class OracleBookkeepingDB:
 
     for param in fileobject:
       if param not in  attrList:
-        gLogger.error( "insert file error: ", " the files table not contains " + param + " this attributte!!" )
-        return S_ERROR( " The files table not contains " + param + " this attributte!!" )
+        gLogger.error( "insert file error: ", " the files table not contain attribute " + param )
+        return S_ERROR( " The files table not contain attribute " + param )
 
       if param == 'CreationDate':  # We have to convert data format
         dateAndTime = fileobject[param].split( ' ' )
@@ -2029,22 +2029,22 @@ class OracleBookkeepingDB:
 
     res = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertDataTakingCond',
                                             types.LongType, [datataking['Description'],
-                                                       datataking['BeamCond'],
-                                                       datataking['BeamEnergy'],
-                                                       datataking['MagneticField'],
-                                                       datataking['VELO'],
-                                                       datataking['IT'],
-                                                       datataking['TT'],
-                                                       datataking['OT'],
-                                                       datataking['RICH1'],
-                                                       datataking['RICH2'],
-                                                       datataking['SPD_PRS'],
-                                                       datataking['ECAL'],
-                                                       datataking['HCAL'],
-                                                       datataking['MUON'],
-                                                       datataking['L0'],
-                                                       datataking['HLT'],
-                                                       datataking['VeloPosition'] ] )
+                                                             datataking['BeamCond'],
+                                                             datataking['BeamEnergy'],
+                                                             datataking['MagneticField'],
+                                                             datataking['VELO'],
+                                                             datataking['IT'],
+                                                             datataking['TT'],
+                                                             datataking['OT'],
+                                                             datataking['RICH1'],
+                                                             datataking['RICH2'],
+                                                             datataking['SPD_PRS'],
+                                                             datataking['ECAL'],
+                                                             datataking['HCAL'],
+                                                             datataking['MUON'],
+                                                             datataking['L0'],
+                                                             datataking['HLT'],
+                                                             datataking['VeloPosition'] ] )
     return res
 
 
@@ -2337,9 +2337,9 @@ class OracleBookkeepingDB:
         fileNames.remove( i[0] )
       if len( fileNames ) > 0:
         retVal = self.dbW_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkupdateReplicaRow',
-                                                  parameters = ['Yes'],
-                                                  output = False,
-                                                  array = fileNames )
+                                                   parameters = ['Yes'],
+                                                   output = False,
+                                                   array = fileNames )
         if not retVal['OK']:
           result = retVal
         else:
@@ -2441,10 +2441,10 @@ class OracleBookkeepingDB:
         runs += '%d,' % ( int( i ) )
       runs = runs[:-1]
       fields = inputParams.get( 'Fields', ['CONFIGNAME', 'CONFIGVERSION',
-                                          'JOBSTART', 'JOBEND',
-                                          'TCK', 'FILLNUMBER',
-                                          'PROCESSINGPASS', 'CONDITIONDESCRIPTION',
-                                          'CONDDB', 'DDDB'] )
+                                           'JOBSTART', 'JOBEND',
+                                           'TCK', 'FILLNUMBER',
+                                           'PROCESSINGPASS', 'CONDITIONDESCRIPTION',
+                                           'CONDDB', 'DDDB'] )
       statistics = inputParams.get( 'Statistics', [] )
       configurationsFields = ['CONFIGNAME', 'CONFIGVERSION']
       jobsFields = [ 'JOBSTART', 'JOBEND', 'TCK', 'FILLNUMBER', 'PROCESSINGPASS']
@@ -4342,9 +4342,9 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def __prepareStepMetadata( self, configName, configVersion,
-                       cond = default, procpass = default,
-                       evt = default, production = default,
-                       filetype = default, runnb = default, selection = '' ):
+                             cond = default, procpass = default,
+                             evt = default, production = default,
+                             filetype = default, runnb = default, selection = '' ):
     """
     it generates the sql command depending on the selection
     """
@@ -4531,23 +4531,23 @@ and files.qualityid= dataquality.qualityid'
       for i in retVal['Value']:
         fileName = i[0][:-1]
         if fileName in records:
-          records[fileName] += [dict( zip( ( 'Production',
-                              'ConfigName',
-                              'ConfigVersion',
-                              'EventType',
-                              'FileType',
-                              'ProcessingPass',
-                              'ConditionDescription',
-                              'VisibilityFlag' ), i[1:] ) )]
+          records[fileName] += [dict( zip( ('Production',
+                                            'ConfigName',
+                                            'ConfigVersion',
+                                            'EventType',
+                                            'FileType',
+                                            'ProcessingPass',
+                                            'ConditionDescription',
+                                            'VisibilityFlag' ), i[1:] ) )]
         else:
           records[fileName] = [dict( zip( ( 'Production',
-                              'ConfigName',
-                              'ConfigVersion',
-                              'EventType',
-                              'FileType',
-                              'ProcessingPass',
-                              'ConditionDescription',
-                              'VisibilityFlag' ), i[1:] ) )]
+                                            'ConfigName',
+                                            'ConfigVersion',
+                                            'EventType',
+                                            'FileType',
+                                            'ProcessingPass',
+                                            'ConditionDescription',
+                                            'VisibilityFlag' ), i[1:] ) )]
       failed = [ i[:-1] for i in lfns if i[:-1] not in records]
       result = S_OK( {'Successful':records, 'Failed':failed} )
     else:
@@ -4822,15 +4822,15 @@ and files.qualityid= dataquality.qualityid'
       command = "select count(*) from simulationconditions"
 
       parameterNames = ['SimId',
-                'SimDescription',
-                'BeamCond',
-                'BeamEnergy',
-                'Generator',
-                'MagneticField',
-                'DetectorCond',
-                'Luminosity',
-                'G4settings',
-                'Visible']
+                        'SimDescription',
+                        'BeamCond',
+                        'BeamEnergy',
+                        'Generator',
+                        'MagneticField',
+                        'DetectorCond',
+                        'Luminosity',
+                        'G4settings',
+                        'Visible']
       records = [ list( record ) for record in retVal['Value']]
       retVal = self.dbR_.query( command )
       if not retVal['OK']:
