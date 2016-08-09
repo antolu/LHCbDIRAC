@@ -21,4 +21,21 @@
    <Parameter Name="Guid" Value="VAR_Guid"/>
    <Parameter Name="CreationDate" Value="VAR_JobEnd"/>
  </OutputFile>
+ <DataTakingConditions>
+   <Parameter Name="BeamCond"   Value="Collisions"/>
+   <Parameter Name="BeamEnergy" Value="6500 Gev"/>
+   <Parameter Name="MagneticField" Value="-100%"/>
+   <Parameter Name="VELO"          Value="string"/>
+   <Parameter Name="IT"          Value="string"/>
+   <Parameter Name="TT"          Value="string"/>
+   <Parameter Name="OT"          Value="string"/>
+   <Parameter Name="RICH1"          Value="string"/>
+   <Parameter Name="RICH2"          Value="string"/>
+   <Parameter Name="SPD_PRS"          Value="string"/>
+   <Parameter Name="ECAL"          Value="string"/>
+   <Parameter Name="HCAL"          Value="string"/>
+   <Parameter Name="MUON"          Value="string"/>
+   <Parameter Name="L0"          Value="string"/>
+   <Parameter Name="HLT"          Value="string"/>
+ </DataTakingConditions>
 </Job>
