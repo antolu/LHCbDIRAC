@@ -47,6 +47,11 @@ do
   sed -i s/VAR_Guid/$guid/g bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml
 done
 
+# Making sure the file types can be sent
+python ./tests/System/Client/dirac-add-bkk-ft.py INIT "just a desc for a test file type (INIT)" 1
+python ./tests/System/Client/dirac-add-bkk-ft.py FOO "just a desc for a test file type (FOO)" 1
+python ./tests/System/Client/dirac-add-bkk-ft.py BAR "just a desc for a test file type (BAR)" 1
+
 # Now we send the bookkeping reports
 for n in {1..10}
 do

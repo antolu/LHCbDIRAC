@@ -8,7 +8,9 @@ Script.parseCommandLine()
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bkClient = BookkeepingClient()
 
-bkXML = Script.getPositionalArgs()[0]
+xmlFile = Script.getPositionalArgs()[0]
+with open(xmlFile, 'r') as fd:
+  bkXML = fd.read()
 
 res = bkClient.sendXMLBookkeepingReport( bkXML )
 print res
