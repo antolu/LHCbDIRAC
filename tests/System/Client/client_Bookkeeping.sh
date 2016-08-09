@@ -50,6 +50,5 @@ done
 # Now we send the bookkeping reports
 for n in {1..10}
 do
-  res=$(python $diracDir/tests/System/Client/dirac-send-bk-report.py bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml)
-  echo $res
+  python $diracDir/tests/System/Client/dirac-send-bk-report.py bookkeping_00000001_0000000$( printf %03d "$n" )_$( printf %03d "$n" ).xml -ddd
 done

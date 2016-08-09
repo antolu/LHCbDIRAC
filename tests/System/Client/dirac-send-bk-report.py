@@ -10,4 +10,5 @@ bkClient = BookkeepingClient()
 
 bkXML = Script.getPositionalArgs()[0]
 
-bkClient.sendXMLBookkeepingReport( bkXML )
+res = bkClient.sendXMLBookkeepingReport( bkXML )
+print res
