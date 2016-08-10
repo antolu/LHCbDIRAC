@@ -177,17 +177,14 @@ class PluginUtilities( DIRACPluginUtilities ):
       return S_OK( ( existingCount, shares ) )
 
   def __getRunDuration( self, runID ):
-    res = self.getTransformationRuns( runs = runID )
-    if not res['OK']:
-      return res
-    runDictList = res['Value']
     # Get run metadata
-    runMetadata = dict( ( runDict['RunNumber'], self.transClient.getRunsMetadata( runDict['RunNumber'] ).get( 'Value', {} ) ) for runDict in runDictList )
+    runMetadata = self.transClient.getRunsMetadata( [runID] ).get( 'Value', {} )
     return S_OK( self.__extractRunDuration( runMetadata, runID ) )
 
   def __extractRunDuration( self, runMetadata, runID ):
     duration = runMetadata.get( runID, {} ).get( 'Duration' )
     if duration is None:
+      self.logVerbose( 'Run duration not found in TS for run %d, get it from BK' % runID )
       res = self.bkClient.getRunInformation( { 'RunNumber':[runID], 'Fields':['JobStart', 'JobEnd']} )
       if not res['OK']:
         self.logError( "Error getting run start/end information", res['Message'] )
@@ -198,7 +195,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         duration = ( end - start ).seconds
       else:
         duration = 0
-    return duration
+    return int( duration )
 
   def getSitesRunsDuration( self, transID = None, normalise = False, requestedSEs = None ):
     """
@@ -209,7 +206,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       return res
     runDictList = res['Value']
     # Get run metadata
-    runMetadata = dict( ( runDict['RunNumber'], self.transClient.getRunsMetadata( runDict['RunNumber'] ).get( 'Value', {} ) ) for runDict in runDictList )
+    runMetadata = self.transClient.getRunsMetadata( [runDict['RunNumber'] for runDict in runDictList] ).get( 'Value', {} )
 
     seUsage = {}
     for runDict in runDictList:
