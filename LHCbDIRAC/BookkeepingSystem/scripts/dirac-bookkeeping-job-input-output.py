@@ -17,8 +17,8 @@ if __name__ == "__main__":
 
   bkScript = DMScript()
   bkScript.registerJobsSwitches()
-  Script.registerSwitch( '', 'Input', '  Only input files' )
-  Script.registerSwitch( '', 'Output', '  Only output files' )
+  Script.registerSwitch( '', 'InputFiles', '  Only input files' )
+  Script.registerSwitch( '', 'OutputFiles', '  Only output files' )
   Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                        'Usage:',
                                        '  %s [option|cfgfile] ... [DIRACJobid|File]' % Script.scriptName,
@@ -30,16 +30,16 @@ if __name__ == "__main__":
 
   Script.parseCommandLine( ignoreErrors = True )
   args = Script.getPositionalArgs()
-  input = False
-  output = False
+  inputFiles = False
+  outputFiles = False
   for switch in Script.getUnprocessedSwitches():
-    if switch[0] == 'Input':
-      input = True
-    if switch[0] == 'Output':
-      output = True
-  if not input and not output:
-    input = True
-    output = True
+    if switch[0] == 'InputFiles':
+      inputFiles = True
+    if switch[0] == 'OutputFiles':
+      outputFiles = True
+  if not inputFiles and not outputFiles:
+    inputFiles = True
+    outputFiles = True
   jobidList = []
   for jobid in args:
     if os.path.exists( jobid ):
@@ -54,10 +54,10 @@ if __name__ == "__main__":
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   retVal = BookkeepingClient().getJobInputOutputFiles( jobidList )
-  if retVal['OK'] and ( not input or not output ):
+  if retVal['OK'] and ( not inputFiles or not outputFiles ):
     success = retVal['Value']['Successful']
     for job in success:
-      success[job].pop( 'InputFiles' if not input else 'OutputFiles' )
+      success[job].pop( 'InputFiles' if not inputFiles else 'OutputFiles' )
 
   if retVal['OK']:
     printDMResult( retVal, empty = "File does not exists in the Bookkeeping" )
