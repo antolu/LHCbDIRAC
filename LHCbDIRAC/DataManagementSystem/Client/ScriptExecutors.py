@@ -1681,6 +1681,7 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
 def executeRegisterBK2FC( dmScript ):
   """
   Get a list of files and SEs, and register the existing files if necessary
+  Files should not be in the FC yet, and will be registered in a single SE only if the replica exists
   """
   # The source SE may be given as second positional argument, therefore do not aggregate
   lfnList, seList = parseArguments( dmScript )
@@ -1689,7 +1690,9 @@ def executeRegisterBK2FC( dmScript ):
 
 def registerBK2FC( lfnList, seList, printResult = False ):
   """
-  Check if files are in BK, check are in any of the SEs and if  OK register the file in the FC
+  Check if files are in BK and not in the FC,
+    check they are in any of the SEs and
+    if OK registers the file in the FC
   """
 
   result = {'Successful':{}, 'Failed':{}}
