@@ -1,4 +1,11 @@
 #! /usr/bin/env python
+"""
+Flags all files in a processing pass and its descendants + flags the RAW files
+Parameters:
+   <Processing pass> : processing pass to start from (can be /RealData)
+   <run> : run number
+   <flag> : flag to set
+"""
 
 import DIRAC
 from DIRAC           import gLogger
@@ -44,7 +51,7 @@ def GetProcessingPasses( bkDict, headPass ):
 #                                                                              #
 ################################################################################
 
-Script.setUsageMessage( 'Usage: %s <Processing Pass> <run> <status flag>' % ( Script.scriptName ) )
+Script.setUsageMessage( 'Usage: %s <Processing Pass> <run> <status> <flag>' % ( Script.scriptName ) )
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
 if len( args ) < 3:
