@@ -633,7 +633,7 @@ class ConsistencyChecks( object ):
             else:
               progressBar.comment( "Error getting descendants for %d files, retry"
                              % len( lfnChunk ), res['Message'] )
-        uniqueDescendants = set( lfn for desc in notPresentDescendants.values() for lfn in desc )
+        uniqueDescendants = set( lfn for desc in notPresentDescendants.itervalues() for lfn in desc )
         progressBar.endLoop( message = 'found %d descendants' % len( uniqueDescendants ) )
         # Check if descendants have a replica in the FC
         setDaughtersWithDesc = set()
