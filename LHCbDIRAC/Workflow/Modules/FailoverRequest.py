@@ -72,6 +72,7 @@ class FailoverRequest( ModuleBase ):
             self.log.info( "Add operation to set status 'Unused' due to workflow failure for input file: %s" % ( lfn ) )
             statusDict[lfn] = 'Unused'
         if statusDict:
+          # Avoid setting an empty request
           setFileStatusOp = Operation()
           setFileStatusOp.Type = 'SetFileStatus'
           setFileStatusOp.Arguments = DEncode.encode( {'transformation':int( self.production_id ),
