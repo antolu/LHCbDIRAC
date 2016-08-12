@@ -5,10 +5,12 @@
 
 # imports
 
+from DIRAC import S_ERROR, S_OK
 from DIRAC.tests.Utilities.utils import find_all
 from DIRAC.tests.Utilities.testJobDefinitions import *
 import time
 import os
+import errno
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
@@ -145,7 +147,10 @@ def jobWithOutput():
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setOutputData( [timenow+'testFileUpload.txt'] )
   res = endOfAllJobs( J )
-  os.remove( os.path.join( wdir,timenow+"testFileUpload.txt" ) )
+  try:
+    os.remove( os.path.join( wdir,timenow+"testFileUpload.txt" ) )
+  except OSError as e:
+    return e.errno == errno.ENOENT
   return res
 
 @executeWithUserProxy
@@ -160,7 +165,10 @@ def jobWithOutputAndPrepend():
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setOutputData( [timenow+'testFileUploadNewPath.txt'], filePrepend = 'testFilePrepend' )
   res = endOfAllJobs( J )
-  os.remove( os.path.join( wdir,timenow+"testFileUploadNewPath.txt" ) )
+  try:
+    os.remove( os.path.join( wdir,timenow+"testFileUploadNewPath.txt" ) )
+  except OSError as e:
+    return e.errno == errno.ENOENT
   return res
 
 @executeWithUserProxy
@@ -177,7 +185,10 @@ def jobWithOutputAndPrependWithUnderscore():
   if not res['OK']:
     return 0
   res = endOfAllJobs( J )
-  os.remove( os.path.join( wdir,timenow+'testFileUpload_NewPath.txt' ) )
+  try:
+    os.remove( os.path.join( wdir,timenow+'testFileUpload_NewPath.txt' ) )
+  except OSError as e:
+    return e.errno == errno.ENOENT
   return res
 
 @executeWithUserProxy
@@ -192,7 +203,10 @@ def jobWithOutputAndReplication():
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setOutputData( [timenow+'testFileReplication.txt'], replicate = 'True' )
   res = endOfAllJobs( J )
-  os.remove( os.path.join( wdir,timenow+'testFileReplication.txt' ) )
+  try:
+    os.remove( os.path.join( wdir,timenow+'testFileReplication.txt' ) )
+  except OSError as e:
+    return e.errno == errno.ENOENT
   return res
 
 @executeWithUserProxy
@@ -213,8 +227,14 @@ def jobWith2OutputsToBannedSE():
   J.setDestination( 'LCG.PIC.es' )
   J.setOutputData( [timenow+'testFileUploadBanned-1.txt', timenow+'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
   res = endOfAllJobs( J )
-  os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-1.txt' ) )
-  os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-2.txt' ) )
+  try:
+    os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-1.txt' ) )
+  except OSError as e:
+    return e.errno == errno.ENOENT
+  try:
+    os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-2.txt' ) )
+  except OSError as e:
+    return e.errno == errno.ENOENT
   return res
 
 @executeWithUserProxy

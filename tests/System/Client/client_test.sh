@@ -119,7 +119,7 @@ then
 fi
 echo " "
 echo "====== dirac-dms-catalog-metadata /lhcb/user/$dir/Dirac_Scripts_Test_Directory/DMS_Scripts_Test_File.txt"
-dirac-dms-catalog-metadata/lhcb/user/$dir/Dirac_Scripts_Test_Directory/DMS_Scripts_Test_File.txt
+dirac-dms-catalog-metadata /lhcb/user/$dir/Dirac_Scripts_Test_Directory/DMS_Scripts_Test_File.txt
 if [ $? -ne 0 ]
 then
    exit $?
