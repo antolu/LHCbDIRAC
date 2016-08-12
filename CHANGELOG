@@ -1,3 +1,22 @@
+[v8r2p56]
+Use DIRAC v6r14p39
+* flag RAW files and all file in a processing pass and descendants
+* fix script to flag RAW files + processing pass and accept "/Real Data" as processing pass to start from
+* better names than input and output
+* fix bug when getting run duration from TS
+* fix type of GroupSize
+* If input files are RAW, don't get RAW ancestors
+* Consider files in BK and not in FC when checking descendants
+* report descendants in Failover
+* accept "," as jobID separators
+* Improve change of input file status in case of error
+* Get core dump info from log
+* New script for registering a file from BK and SE informations
+* New method to register in the FC a file registered in the BK and existing in SE
+* Improve result printout
+* Add options to get only input or output
+* Do not cache the number of RAW files between calls to the plugin
+
 [v8r2p55]
 Use DIRAC v6r14p39
 * fixes for name of variable
