@@ -1,3 +1,23 @@
+[v8r3-pre29]
+Use DIRAC v6r15p12
+
+* better error reporting
+* adding the file types
+* added bkk client/system test
+* fixes on testJobDefinitions.py
+* Html notifications for ProductionStatusAgent
+* Updated Utils.py according to PR 118
+* using self-produced file
+* added testprod script to sh file
+* fixes RSS ConfigTemplate
+* added test production creation script
+* using setup for determining outConfig
+* Grouping of status changes for _mailProdManager
+* changed getMemberMails back to _getMemberMails
+* added S_OK and changed global variable
+* Added HTML support
+* Basic aggregation
+
 [v8r3-pre28]
 Use DIRAC v6r15p11-alpha
 * Fixes NagiosTopologyAgent.py and included dryRun (Will Add DryRun on CS)
