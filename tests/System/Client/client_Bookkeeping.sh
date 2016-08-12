@@ -1,6 +1,11 @@
 #! /bin/bash
 
-diracDir=$PWD
+if [ $DIRAC ]
+then
+  diracDir=$DIRAC
+else
+  diracDir=$PWD
+fi
 
 # Move to a tmp directory
 tmpDir=$(mktemp -d)
