@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Job SYSTEM "book.dtd">
 <Job ConfigName="Certification" ConfigVersion="Test" Date="VAR_Date" Time="VAR_Time">
-  <TypedParameter Name="Production" Value="0" Type="Info"/>
+  <TypedParameter Name="Production" Value="1" Type="Info"/>
   <TypedParameter Name="Name" Value="VAR_Name" Type="Info"/>
   <TypedParameter Name="Location" Value="VAR_Location" Type="Info"/>
-  <TypedParameter Name="ProgramName" Value="Text" Type="Info"/>
+  <TypedParameter Name="ProgramName" Value="LHCbDIRAC" Type="Info"/>
   <TypedParameter Name="ProgramVersion" Value="VAR_ProgramVersion" Type="Info"/>
   <TypedParameter Name="NumberOfEvents" Value="123456" Type="Info"/>
   <TypedParameter Name="ExecTime" Value="90000.0" Type="Info"/>
@@ -24,8 +24,8 @@
  <DataTakingConditions>
    <Parameter Name="BeamCond"   Value="Collisions"/>
    <Parameter Name="BeamEnergy" Value="6500 Gev"/>
-   <Parameter Name="MagneticField" Value="-100%"/>
-   <Parameter Name="VELO"          Value="string"/>
+   <Parameter Name="MagneticField" Value="Up"/>
+   <Parameter Name="VELO"          Value="Closed"/>
    <Parameter Name="IT"          Value="string"/>
    <Parameter Name="TT"          Value="string"/>
    <Parameter Name="OT"          Value="string"/>
