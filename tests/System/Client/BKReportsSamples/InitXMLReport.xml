@@ -13,7 +13,7 @@
   <TypedParameter Name="FirstEventNumber" Value="1" Type="Info"/>
   <TypedParameter Name="RunNumber" Value="1" Type="Info"/>
   <TypedParameter Name="FillNumber" Value="1" Type="Info"/>
-  <OutputFile Name="/lhcb/Certification/Test/INIT/VAR_ProgramVersion/VAR_Date/VAR_Time/VAR_FileName" TypeName="INIT" TypeVersion="1">
+  <OutputFile Name="/lhcb/Certification/Test/INIT/VAR_ProgramVersion/VAR_Date/VAR_ShortenTime/VAR_FileName" TypeName="INIT" TypeVersion="1">
    <Parameter Name="MD5Sum" Value="24F71879BA006B91FB8ADC529ACB7CC6"/>
    <Parameter Name="EventTypeId" Value="10000000"/>
    <Parameter Name="EventStat" Value="9000"/>

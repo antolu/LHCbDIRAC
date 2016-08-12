@@ -48,6 +48,7 @@ do
   version=$(dirac-version)
   tdate=$(date +"20%y-%m-%d")
   ttime=$(date +"%R")
+  stime=$(date +"%H%M%S")
   start=$(date -u +"20%y-%m-%d %R")
   end=$(date +"20%y-%m-%d %R")
 
@@ -61,6 +62,7 @@ do
   sed -i "s/VAR_JobEnd/$end/g" $xmlName
   sed -i s/VAR_Date/$tdate/g $xmlName
   sed -i s/VAR_Time/$ttime/g $xmlName
+  sed -i s/VAR_ShortenTime/$stime/g $xmlName
   sed -i s/VAR_Guid/$guid/g $xmlName
 
   python $diracDir/tests/System/Client/dirac-send-bk-report.py $xmlName -ddd
