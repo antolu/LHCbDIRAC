@@ -55,6 +55,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.freeSpace = {}
     self.cachedLFNAncestors = {}
     self.cachedNbRAWFiles = {}
+    self.usingRAWFiles = None
     self.cachedRunLfns = {}
     self.cachedProductions = {}
     self.cachedLastRun = 0
@@ -71,6 +72,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.cachedDirMetadata = {}
     self.runsUsedForShares = set()
     self.shareMetrics = None
+    self.excludedStatuses = self.getPluginParam( 'IgnoreStatusForFlush', [ 'Removed', 'MissingInFC', 'Problematic' ] )
 
   def setDebug( self, val ):
     self.debug = val
@@ -185,17 +187,14 @@ class PluginUtilities( DIRACPluginUtilities ):
       return S_OK( ( existingCount, shares ) )
 
   def __getRunDuration( self, runID ):
-    res = self.getTransformationRuns( runs = runID )
-    if not res['OK']:
-      return res
-    runDictList = res['Value']
     # Get run metadata
-    runMetadata = dict( ( runDict['RunNumber'], self.transClient.getRunsMetadata( runDict['RunNumber'] ).get( 'Value', {} ) ) for runDict in runDictList )
+    runMetadata = self.transClient.getRunsMetadata( [runID] ).get( 'Value', {} )
     return S_OK( self.__extractRunDuration( runMetadata, runID ) )
 
   def __extractRunDuration( self, runMetadata, runID ):
     duration = runMetadata.get( runID, {} ).get( 'Duration' )
     if duration is None:
+      self.logVerbose( 'Run duration not found in TS for run %d, get it from BK' % runID )
       res = self.bkClient.getRunInformation( { 'RunNumber':[runID], 'Fields':['JobStart', 'JobEnd']} )
       if not res['OK']:
         self.logError( "Error getting run start/end information", res['Message'] )
@@ -206,7 +205,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         duration = ( end - start ).seconds
       else:
         duration = 0
-    return duration
+    return int( duration )
 
   def getSitesRunsDuration( self, transID = None, normalise = False, requestedSEs = None ):
     """
@@ -217,11 +216,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       return res
     runDictList = res['Value']
     # Get run metadata
-    runs = [runDict['RunNumber'] for runDict in runDictList]
-    res = self.transClient.getRunsMetadata( runs )
-    if not res['OK']:
-      return res
-    runMetadata = res['Value']
+    runMetadata = self.transClient.getRunsMetadata( [runDict['RunNumber'] for runDict in runDictList] ).get( 'Value', {} )
 
     seUsage = {}
     for runDict in runDictList:
@@ -526,8 +521,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       if not res['OK']:
         self.logError( "Cannot get transformation files for run %s: %s" % ( str( runID ), res['Message'] ) )
         return 0
-      excludedStatuses = self.getPluginParam( 'IgnoreStatusForFlush', [ 'Removed', 'MissingInFC', 'Problematic' ] )
-      lfns = [fileDict['LFN'] for fileDict in res['Value'] if fileDict['Status'] not in excludedStatuses]
+      lfns = [fileDict['LFN'] for fileDict in res['Value'] if fileDict['Status'] not in self.excludedStatuses]
       self.transRunFiles[runID] = lfns
       self.logVerbose( 'Obtained %d input files for run %d' % ( len( lfns ), runID ) )
 
@@ -536,19 +530,29 @@ class PluginUtilities( DIRACPluginUtilities ):
 
     # Restrict to files with the required parameter
     if param:
-#       paramStr = ' (%s:%s)' % ( param, paramValue if paramValue else '' )
       res = self.getFilesParam( lfns, param )
       if not res['OK']:
         self.logError( "Error getting BK param %s:" % param, res['Message'] )
         return 0
       paramValues = res['Value']
       lfns = [f for f, v in paramValues.iteritems() if v == paramValue]
-#     else:
-#       paramStr = ''
+
     if lfns:
       lfnToCheck = lfns[0]
     else:
-      lfnToCheck = None
+      return 0
+    #
+    # If files are RAW files, no need to get the number of ancestors!
+    #
+    if self.usingRAWFiles is None:
+      res = self.getBookkeepingMetadata( lfnToCheck, 'FileType' )
+      if not res['OK']:
+        self.logError( "Error getting metadata", res['Message'] )
+        return 0
+      self.usingRAWFiles = res['Value'][lfnToCheck] == 'RAW'
+    if self.usingRAWFiles:
+      return len( lfns ) if not getFiles else lfns
+    #
     # Get number of ancestors for known files
     cachedLfns = self.cachedLFNAncestors.get( runID, {} )
     setLfns = set( lfns )
@@ -728,7 +732,8 @@ class PluginUtilities( DIRACPluginUtilities ):
       try:
         f = open( cacheFile, 'r' )
         self.cachedLFNAncestors = pickle.load( f )
-        self.cachedNbRAWFiles = pickle.load( f )
+        # Do not cache between cycles, only cache temporarily, but keep same structure in file, i.e. fake load
+        _cachedNbRAWFiles = pickle.load( f )
         self.cachedLFNSize = pickle.load( f )
         self.cachedRunLfns = pickle.load( f )
         self.cachedProductions = pickle.load( f )

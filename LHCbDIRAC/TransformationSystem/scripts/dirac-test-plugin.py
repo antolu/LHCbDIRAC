@@ -50,6 +50,9 @@ class fakeClient:
       return self.transClient.getBookkeepingQuery( asIfProd )
     return self.trans.getBkQuery()
 
+  def insertTransformationRun( self, transID, runID, xx ):
+    return DIRAC.S_OK()
+
   def getTransformationRuns( self, condDict ) :
     if condDict['TransformationID'] == self.transID and self.asIfProd:
       condDict['TransformationID'] = self.asIfProd

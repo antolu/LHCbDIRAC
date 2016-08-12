@@ -21,7 +21,7 @@ from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtili
 
 __RCSID__ = "$Id$"
 
-#pylint: disable=missing-docstring
+# pylint: disable=missing-docstring
 
 class TransformationPlugin( DIRACTransformationPlugin ):
   """ Extension of DIRAC TransformationPlugin - instantiated by the TransformationAgent
@@ -575,12 +575,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           # Get the number of RAW files in that run
           if not forceFlush:
             retried = False
-            # In case there are more ancestors than RAW files we may have to refresh the number of RAW files: try once
             ancestorRawFiles = self.util.getRAWAncestorsForRun( runID, param, paramValue )
             self.util.logVerbose( "Obtained %d ancestor RAW files" % ancestorRawFiles )
             while True:
               rawFiles = self.util.getNbRAWInRun( runID, evtType )
               if not retried and rawFiles and ancestorRawFiles > rawFiles:
+                # In case there are more ancestors than RAW files we may have to refresh the number of RAW files: try once
                 self.util.cachedNbRAWFiles[runID] = 0
                 retried = True
               else:
