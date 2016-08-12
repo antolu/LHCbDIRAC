@@ -13,7 +13,10 @@ class Setter( object ):
     self.obj = obj
   def setOption( self, val ):
     if self.name.endswith( '=' ):
-      self.obj.options[self.name[:-1]] = val
+      try:
+        self.obj.options[self.name[:-1]] = val if not self.name == "GroupSize=" else float( val )
+      except ValueError as e:
+        gLogger.exception( "Bad value for parameter", self.name, lException = e )
     else:
       self.obj.options[self.name] = True
 

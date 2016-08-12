@@ -1,11 +1,15 @@
 #! /usr/bin/env python
+"""
+Flags all files in a processing pass and its descendants + flags the RAW files
+Parameters:
+   <Processing pass> : processing pass to start from (can be /RealData)
+   <run> : run number
+   <flag> : flag to set
+"""
 
 import DIRAC
-from DIRAC           import S_OK, S_ERROR, gLogger
+from DIRAC           import gLogger
 from DIRAC.Core.Base import Script
-from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-
-import re
 
 ################################################################################
 #                                                                              #
@@ -14,7 +18,8 @@ import re
 # Find all known processing passes for the selected configurations.            #
 #                                                                              #
 ################################################################################
-def GetProcessingPasses( bkDict, headPass, passes ):
+def GetProcessingPasses( bkDict, headPass ):
+  passes = {}
   res = bkClient.getProcessingPass( bkDict, headPass )
   if not res['OK']:
     gLogger.error( 'Cannot load the processing passes for head % in Version %s Data taking condition %s' % ( 
@@ -37,43 +42,40 @@ def GetProcessingPasses( bkDict, headPass, passes ):
       for reco in recordList['Records']:
         recoName = headPass + '/' + reco[0]
         passes[recoName] = True
-        passes = GetProcessingPasses( bkDict, recoName, passes )
+        passes.update( GetProcessingPasses( bkDict, recoName ) )
 
   return passes
-################################################################################
-#                                                                              #
-# Usage:                                                                       #
-#                                                                              #
-################################################################################
-def usage():
-  print 'Usage: %s <Processing Pass> <run> <status flag>' % ( Script.scriptName )
 ################################################################################
 #                                                                              #
 #                                  >>> Main <<<                                #
 #                                                                              #
 ################################################################################
 
+Script.setUsageMessage( 'Usage: %s <Processing Pass> <run> <status> <flag>' % ( Script.scriptName ) )
 Script.parseCommandLine()
 args = Script.getPositionalArgs()
 if len( args ) < 3:
-  usage()
+  Script.showHelp()
   DIRAC.exit( 2 )
 
 exitCode = 0
 
-processing = str( args[0] )
+realData = '/Real Data'
+processing = args[0].replace( '/RealData', realData )
+if processing == '':
+  processing = realData
 run = args[1]
-flag = str( args[2] )
+flag = args[2]
 
-#gLogger.error('Please wait for the OK from Stefan before actually flagging')
-#gLogger.error('Do ELOG the flag in the DQ ELOG fr future rerefence.')
-#DIRAC.exit(2)
+# gLogger.error('Please wait for the OK from Stefan before actually flagging')
+# gLogger.error('Do ELOG the flag in the DQ ELOG fr future rerefence.')
+# DIRAC.exit(2)
 
 #
 # Processing pass needs to start as "/Real Data" for FULL stream flagging
 #
-m = re.search( '/Real Data', processing )
-if not m:
+
+if realData not in processing:
   print 'You forgot /Real Data in the processing pass:  ', processing
   DIRAC.exit( 2 )
 #
@@ -81,6 +83,7 @@ if not m:
 #
 irun = int( run )
 
+from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 bkClient = BookkeepingClient()
 res = bkClient.getRunInformations( irun )
 if not res['OK']:
@@ -96,34 +99,35 @@ bkDict = {'ConfigName'           : configName,
           'ConfigVersion'        : configVersion,
           'ConditionDescription' : dtd}
 
-knownPasses = {}
-knownPasses = GetProcessingPasses( bkDict, '/Real Data', knownPasses )
-if not knownPasses.has_key( processing ):
-  gLogger.error( "%s is not a valid processing pass." % ( processing ) )
-  DIRAC.exit( 2 )
+if processing != realData:
+  knownPasses = GetProcessingPasses( bkDict, '' )
+  if processing not in knownPasses:
+    gLogger.error( "%s is not a valid processing pass." % ( processing ) )
+    DIRAC.exit( 2 )
 
-recoPasses = {}
-recoPasses = GetProcessingPasses( bkDict, processing, recoPasses )
+recoPasses = GetProcessingPasses( bkDict, processing )
+if realData in recoPasses:
+  recoPasses.remove( realData )
 
-# Flag the run '/Real Data' first
+# Flag the run realData first
 
-res = bkClient.setRunAndProcessingPassDataQuality( run, processing, flag )
+res = bkClient.setRunAndProcessingPassDataQuality( run, realData, flag )
 
 if not res['OK']:
   print res['Message']
   DIRAC.exit( 2 )
 else:
-  print 'Run %s Processing Pass %s flagged %s' % ( str( run ), processing, flag )
+  print 'Run %s RAW files flagged %s' % ( run, flag )
 
 # Now the reconstruction and stripping processing passes
-for thisPass in recoPasses.keys():
+for thisPass in recoPasses:
   res = bkClient.setRunAndProcessingPassDataQuality( run, thisPass, flag )
 
   if not res['OK']:
     print res['Message']
     DIRAC.exit( 2 )
   else:
-    print 'Run %s Processing Pass %s flagged %s' % ( str( run ), thisPass, flag )
+    print 'Run %s Processing Pass %s flagged %s' % ( run, thisPass, flag )
 
 DIRAC.exit( 0 )
 

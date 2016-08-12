@@ -267,10 +267,8 @@ def doCheckBK2FC( cc, checkAll = False, fixIt = False ):
 
       nFiles = len( cc.existLFNsBKRepNo )
       comment = "%d files are in the FC but have replica = NO in BK" % nFiles
-      if nFiles <= maxPrint:
-        comment = ''
-      else:
-        comment = ' (first %d LFNs) : %s' % maxPrint
+      if nFiles > maxPrint:
+        comment += ' (first %d LFNs) : \n' % maxPrint
       comment += '\n'.join( cc.existLFNsBKRepNo[:maxPrint] )
       gLogger.error( comment )
       if fixIt:
@@ -294,12 +292,13 @@ def doCheckBK2FC( cc, checkAll = False, fixIt = False ):
     gLogger.notice( '>>>>' )
 
     nFiles = len( cc.absentLFNsBKRepYes )
-    if nFiles <= maxPrint:
-      comment = str( cc.absentLFNsBKRepYes )
-    else:
-      comment = ' (first %d LFNs) : %s' % ( maxPrint, str( cc.absentLFNsBKRepYes[:maxPrint] ) )
+    comment = "%d files have replicaFlag = Yes but are not in FC:" % nFiles
+    if nFiles > maxPrint:
+      comment += ' (first %d LFNs) : \n' % maxPrint
+    comment += '\n'.join( cc.absentLFNsBKRepYes[:maxPrint] )
+    gLogger.error( comment )
     if fixIt:
-      gLogger.notice( "Removing the replica flag to %d files: %s" % ( nFiles, comment ) )
+      gLogger.notice( "Removing the replica flag..." )
       nFiles = 0
       for lfnChunk in breakListIntoChunks( cc.absentLFNsBKRepYes, chunkSize ):
         res = bk.removeFiles( lfnChunk )
@@ -309,7 +308,6 @@ def doCheckBK2FC( cc, checkAll = False, fixIt = False ):
           nFiles += len( lfnChunk )
       gLogger.notice( "Successfully removed replica flag to %d files" % nFiles )
     else:
-      gLogger.error( "%d files have replicaFlag = Yes but are not in FC: %s" % ( nFiles, comment ) )
       gLogger.notice( "Use option --FixIt to fix it (remove the replica flag)" )
     gLogger.notice( '<<<<' )
 
