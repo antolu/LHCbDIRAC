@@ -273,12 +273,12 @@ class GaudiApplication( ModuleBase ):
 
       return S_OK( "%s %s Successful" % ( self.applicationName, self.applicationVersion ) )
 
-    except Exception as e:
+    except Exception as e: #pylint:disable=broad-except
+      self.log.exception( "Failure in GaudiApplication execute module", lException = e )
       exceptionString = "Exception: %s %s %s." % ( self.applicationName, self.applicationVersion, e )
       if self.jobType.lower() == 'sam':
         self.workflow_commons.setdefault( 'SAMResults', {} )[self.applicationName] = 'CRITICAL'
         self.workflow_commons.setdefault( 'SAMDetails', {} )[self.applicationName] = exceptionString
-      self.log.exception( e )
       self.setApplicationStatus( e )
       return S_ERROR( e )
 

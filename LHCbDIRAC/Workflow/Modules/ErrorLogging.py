@@ -154,8 +154,8 @@ class ErrorLogging( ModuleBase ):
       # TODO - report to error logging service when suitable method is available
       return S_OK()
 
-    except Exception as e:
-      self.log.exception( e )
+    except Exception as e: #pylint:disable=broad-except
+      self.log.exception( "Failure in ErrorLogging execute module", lException = e )
       return S_ERROR( e )
 
     finally:

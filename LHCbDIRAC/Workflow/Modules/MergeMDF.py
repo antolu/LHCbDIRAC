@@ -103,8 +103,8 @@ class MergeMDF( ModuleBase ):
 
       return S_OK( '%s %s Successful' % ( self.applicationName, self.applicationVersion ) )
 
-    except Exception as e:
-      self.log.exception( e )
+    except Exception as e: #pylint:disable=broad-except
+      self.log.exception( "Failure in MergeMDF execute module", lException = e )
       self.setApplicationStatus( e )
       return S_ERROR( e )
 

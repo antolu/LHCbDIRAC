@@ -588,9 +588,8 @@ class Production( object ):
 
       workflowBody = ''
       if os.path.exists( fileName ):
-        fopen = open( fileName, 'r' )
-        workflowBody = fopen.read()
-        fopen.close()
+        with open( fileName, 'r' ) as fopen:
+          workflowBody = fopen.read()
       else:
         return S_ERROR( 'Could not get workflow body' )
 

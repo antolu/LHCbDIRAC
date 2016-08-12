@@ -2,36 +2,36 @@
 It interprets the XML reports and make a job, file, or replica object
 """
 
-from xml.parsers.expat                                                                  import ExpatError
-from xml.dom.minidom                                                                    import parse, parseString
-from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.JobReader                            import JobReader
-from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.ReplicaReader                        import ReplicaReader
-from DIRAC                                                                              import gLogger, S_OK, S_ERROR
-from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient                           import BookkeepingDatabaseClient
-from DIRAC.DataManagementSystem.Client.DataManager                             import DataManager
-from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.FileParam                  import FileParam
-from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.JobParameters              import JobParameters
-from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter                import  BeamEnergyCondition, \
-                                                                                          VeloCondition, \
-                                                                                          MagneticFieldCondition, \
-                                                                                          EcalCondition, \
-                                                                                          HcalCondition, \
-                                                                                          HltCondition, \
-                                                                                          ItCondition, \
-                                                                                          LoCondition, \
-                                                                                          MuonCondition, \
-                                                                                          OtCondition, \
-                                                                                          Rich1Condition, \
-                                                                                          Rich2Condition, \
-                                                                                          Spd_prsCondition, \
-                                                                                          TtCondition, \
-                                                                                          VeloPosition, \
-                                                                                          Context
+from xml.parsers.expat import ExpatError
+from xml.dom.minidom import parse, parseString
+from DIRAC import gLogger, S_OK, S_ERROR
+from DIRAC.DataManagementSystem.Client.DataManager import DataManager
+from LHCbDIRAC.BookkeepingSystem.DB.BookkeepingDatabaseClient import BookkeepingDatabaseClient
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.FileParam import FileParam
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.Job.JobParameters import JobParameters
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.JobReader import JobReader
+from LHCbDIRAC.BookkeepingSystem.Service.XMLReader.ReplicaReader import ReplicaReader
+from LHCbDIRAC.BookkeepingSystem.DB.DataTakingConditionInterpreter import  BeamEnergyCondition, \
+                                                                           VeloCondition, \
+                                                                           MagneticFieldCondition, \
+                                                                           EcalCondition, \
+                                                                           HcalCondition, \
+                                                                           HltCondition, \
+                                                                           ItCondition, \
+                                                                           LoCondition, \
+                                                                           MuonCondition, \
+                                                                           OtCondition, \
+                                                                           Rich1Condition, \
+                                                                           Rich2Condition, \
+                                                                           Spd_prsCondition, \
+                                                                           TtCondition, \
+                                                                           VeloPosition, \
+                                                                           Context
 
 __RCSID__ = "$Id$"
 
 
-class XMLFilesReaderManager:
+class XMLFilesReaderManager( object ):
   """
   XMLFilesReaderManager class
   """
@@ -123,7 +123,7 @@ class XMLFilesReaderManager:
         result = self.bkClient_.checkFileTypeAndVersion( typeName, typeVersion )
         if not result['OK']:
           errorMessage = "The type:%s, version:%s is missing." % ( str( typeName ),
-                                                                  str( typeVersion ) )
+                                                                   str( typeVersion ) )
           return S_ERROR( errorMessage )
         else:
           gLogger.debug( cahedTypeNameVersion + " added to the cache!" )
@@ -352,7 +352,7 @@ class XMLFilesReaderManager:
     result = self.__insertJob( job )
 
     if not result['OK']:
-      errorMessage = "Unable to create Job : %s , %s, %s .\n Error: %s" % ( str( config.getConfigName() ),
+      errorMessage = "Unable to create Job: %s , %s, %s .\n Error: %s" % ( str( config.getConfigName() ),
                                                                            str( config.getConfigVersion() ),
                                                                            str( config.getDate() ),
                                                                            str( result['Message'] ) )
@@ -422,7 +422,7 @@ class XMLFilesReaderManager:
         self.bkClient_.deleteInputFiles( job.getJobId() )
         self.bkClient_.deleteJob( job.getJobId() )
         errorMessage = "Unable to create file %s ! ERROR: %s" % ( str( outputfile.getFileName() ),
-                                                                 result["Message"] )
+                                                                  result["Message"] )
         return S_ERROR( errorMessage )
       else:
         fileid = long( result['Value'] )
@@ -464,8 +464,8 @@ class XMLFilesReaderManager:
                     ItCondition(), LoCondition(),
                     MuonCondition(), OtCondition(),
                     Rich1Condition(), Rich2Condition(),
-                     Spd_prsCondition(), TtCondition(),
-                     VeloPosition()]
+                    Spd_prsCondition(), TtCondition(),
+                    VeloPosition()]
       for condition in conditions:
         condition.interpret( context )
 
@@ -520,8 +520,8 @@ class XMLFilesReaderManager:
         job.removeParam( 'DDDB' )
 
       if not found:
-        gLogger.error( 'Runn number is missing!' )
-        return S_ERROR( 'Runn number is missing!' )
+        gLogger.error( 'Run number is missing!' )
+        return S_ERROR( 'Run number is missing!' )
 
       retVal = self.bkClient_.getStepIdandNameForRUN( programName, programVersion, conddb, dddb )
 
@@ -547,10 +547,10 @@ class XMLFilesReaderManager:
       gLogger.info( message, stepid )
 
       res = self.bkClient_.addProduction( production,
-                                       simcond = None,
-                                       daq = dataTackingPeriodDesc,
-                                       steps = steps['Steps'],
-                                       inputproc = '' )
+                                          simcond = None,
+                                          daq = dataTackingPeriodDesc,
+                                          steps = steps['Steps'],
+                                          inputproc = '' )
 
       if res['OK']:
         gLogger.info( "New processing pass has been created!" )
@@ -565,7 +565,7 @@ class XMLFilesReaderManager:
         return S_ERROR( 'Unable to create processing pass!' )
 
 
-    attrList = {'ConfigName':config.getConfigName(), \
+    attrList = { 'ConfigName':config.getConfigName(), \
                  'ConfigVersion':config.getConfigVersion(), \
                  'JobStart':None}
 
