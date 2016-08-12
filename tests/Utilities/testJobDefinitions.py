@@ -5,10 +5,12 @@
 
 # imports
 
+from DIRAC import S_ERROR, S_OK
 from DIRAC.tests.Utilities.utils import find_all
 from DIRAC.tests.Utilities.testJobDefinitions import *
 import time
 import os
+import errno
 from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
 from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
 
@@ -144,8 +146,12 @@ def jobWithOutput():
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setOutputData( [timenow+'testFileUpload.txt'] )
-  os.remove( os.path.join( wdir,timenow+"testFileUpload.txt" )
-  return endOfAllJobs( J )
+  res = endOfAllJobs( J )
+  try:
+    os.remove( os.path.join( wdir,timenow+"testFileUpload.txt" ) )
+  except OSError as e:
+    return e.errno == errno.ENOENT
+  return res
 
 @executeWithUserProxy
 def jobWithOutputAndPrepend():
@@ -158,8 +164,12 @@ def jobWithOutputAndPrepend():
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setOutputData( [timenow+'testFileUploadNewPath.txt'], filePrepend = 'testFilePrepend' )
-  os.remove( os.path.join( wdir,timenow+"testFileUploadNewPath.txt" )
-  return endOfAllJobs( J )
+  res = endOfAllJobs( J )
+  try:
+    os.remove( os.path.join( wdir,timenow+"testFileUploadNewPath.txt" ) )
+  except OSError as e:
+    return e.errno == errno.ENOENT
+  return res
 
 @executeWithUserProxy
 def jobWithOutputAndPrependWithUnderscore():
@@ -168,19 +178,23 @@ def jobWithOutputAndPrependWithUnderscore():
   with open( os.path.join( wdir,timenow+"testFileUpload_NewPath.txt" ), "w")  as f:
     f.write( timenow )
   J = baseToAllJobs( 'jobWithOutputAndPrependWithUnderscore', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUploadNewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
+  J.setInputSandbox( [find_all( timenow+'testFileUpload_NewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   res = J.setOutputData( [timenow+'testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
   if not res['OK']:
     return 0
-  os.remove( os.path.join( wdir,timenow+'testFileUpload_NewPath.txt' )
-  return endOfAllJobs( J )
+  res = endOfAllJobs( J )
+  try:
+    os.remove( os.path.join( wdir,timenow+'testFileUpload_NewPath.txt' ) )
+  except OSError as e:
+    return e.errno == errno.ENOENT
+  return res
 
 @executeWithUserProxy
 def jobWithOutputAndReplication():
 
-  timenow = strtime.strftime("%s")
+  timenow = time.strftime("%s")
   with open( os.path.join( wdir,timenow+"testFileReplication.txt" ), "w" ) as f:
     f.write( timenow )
   J = baseToAllJobs( 'jobWithOutputAndReplication', jobClass )
@@ -188,8 +202,12 @@ def jobWithOutputAndReplication():
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setOutputData( [timenow+'testFileReplication.txt'], replicate = 'True' )
-  os.remove( os.path.join( wdir,timenow+'testFileReplication.txt' )
-  return endOfAllJobs( J )
+  res = endOfAllJobs( J )
+  try:
+    os.remove( os.path.join( wdir,timenow+'testFileReplication.txt' ) )
+  except OSError as e:
+    return e.errno == errno.ENOENT
+  return res
 
 @executeWithUserProxy
 def jobWith2OutputsToBannedSE():
@@ -208,9 +226,16 @@ def jobWith2OutputsToBannedSE():
   J.setConfigArgs( 'partialConfig.cfg' )
   J.setDestination( 'LCG.PIC.es' )
   J.setOutputData( [timenow+'testFileUploadBanned-1.txt', timenow+'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
-  os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-1.txt' ) 
-  os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-2.txt' )  
-  return endOfAllJobs( J )
+  res = endOfAllJobs( J )
+  try:
+    os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-1.txt' ) )
+  except OSError as e:
+    return e.errno == errno.ENOENT
+  try:
+    os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-2.txt' ) )
+  except OSError as e:
+    return e.errno == errno.ENOENT
+  return res
 
 @executeWithUserProxy
 def jobWithSingleInputData():
@@ -220,7 +245,8 @@ def jobWithSingleInputData():
   J.setExecutable( "exe-script-with-input-single-location.py", "", "exeWithInput.log" )
   J.setInputData( '/lhcb/user/f/fstagni/test/testInputFileSingleLocation.txt' )  # this file should be at CERN-USER only
   J.setInputDataPolicy( 'download' )
-  return endOfAllJobs( J )
+  res = endOfAllJobs( J )
+  return res
 
 @executeWithUserProxy
 def jobWithSingleInputDataSpreaded():
@@ -230,7 +256,8 @@ def jobWithSingleInputDataSpreaded():
   J.setExecutable( "exe-script-with-input.py", "", "exeWithInput.log" )
   J.setInputData( '/lhcb/user/f/fstagni/test/testInputFile.txt' )  # this file should be at CERN-USER and IN2P3-USER
   J.setInputDataPolicy( 'download' )
-  return endOfAllJobs( J )
+  res = endOfAllJobs( J )
+  return res
 
 @executeWithUserProxy
 def jobWithInputDataAndAncestor():
@@ -243,7 +270,8 @@ def jobWithInputDataAndAncestor():
   # the ancestor should be /lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81616/081616_0000000213.raw (CERN and SARA)
   J.setAncestorDepth( 1 )  #pylint: disable=no-member
   J.setInputDataPolicy( 'download' )
-  return endOfAllJobs( J )
+  res = endOfAllJobs( J )
+  return res
 
 @executeWithUserProxy
 def gaussJob():
@@ -264,7 +292,8 @@ def gaussJob():
                     systemConfig = 'x86_64-slc5-gcc43-opt' )
   J.setDIRACPlatform()  #pylint: disable=no-member
   J.setCPUTime( 172800 )
-  return endOfAllJobs( J )
+  res = endOfAllJobs( J )
+  return res
 
 
 @executeWithUserProxy
@@ -288,7 +317,8 @@ def booleJob():
 
   J.setDIRACPlatform() #pylint: disable=no-member
   J.setCPUTime( 172800 )
-  return endOfAllJobs( J )
+  res = endOfAllJobs( J )
+  return res
 
 
 @executeWithUserProxy
@@ -301,7 +331,8 @@ def wrongJob():
   J = baseToAllJobs( 'wrongJob', jobClass )
   J = createJob( local = False )
   J.setName( "gaudirun-gauss-completed-than-done" )
-  return endOfAllJobs( J )
+  res = endOfAllJobs( J )
+  return res
 
 
 
