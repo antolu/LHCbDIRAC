@@ -9,8 +9,14 @@ fi
 
 # Move to a tmp directory
 tmpDir=$(mktemp -d)
-cd $tmpDir
 echo $tmpDir
+
+cd $tmpDir
+if [ $? -ne 0 ]
+then
+  echo 'ERROR: cannot change to ' $tmpDir
+  return
+fi
 
 # Generate 10 files with random content
 # The names will be "random_content_X" and be between 1 and 10 Mb
