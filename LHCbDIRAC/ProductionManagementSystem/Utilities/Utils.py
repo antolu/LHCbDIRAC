@@ -1,13 +1,14 @@
 """ Just couple utilities
 """
 
+import os
+import sqlite3
 from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Registry import getUserOption, getUsersInGroup
 from DIRAC.FrameworkSystem.Client.NotificationClient import NotificationClient
 from DIRAC.ConfigurationSystem.Client import PathFinder
 
 __RCSID__ = "$Id$"
-
 
 def _getMemberMails( group ):
   """ get members mails
@@ -21,9 +22,40 @@ def _getMemberMails( group ):
         emails.append( email )
     return emails
 
+def _aggregate( reqId, reqType, reqWG, reqName, SimCondition, ProPath, groups ):
+
+  if 'DIRAC' in os.environ:
+    cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ProductionManagement/cache.db' )
+  else:
+    cacheFile = os.path.realpath('cache.db')
+
+  with sqlite3.connect(cacheFile) as conn:
+
+    try:
+      conn.execute('''CREATE TABLE IF NOT EXISTS ProductionManagementCache(
+                    reqId VARCHAR(64) NOT NULL DEFAULT "",
+                    reqType VARCHAR(64) NOT NULL DEFAULT "",
+                    reqWG VARCHAR(64) NOT NULL DEFAULT "",
+                    reqName VARCHAR(64) NOT NULL DEFAULT "",
+                    SimCondition VARCHAR(64) NOT NULL DEFAULT "",
+                    ProPath VARCHAR(64) NOT NULL DEFAULT "",
+                    thegroup VARCHAR(64) NOT NULL DEFAULT ""
+                   );''')
+
+    except sqlite3.OperationalError:
+      gLogger.error('Email cache database is locked')
+
+    for group in groups:
+      conn.execute("INSERT INTO ProductionManagementCache (reqId, reqType, reqWG, reqName, SimCondition, ProPath, thegroup)"
+                   " VALUES (?, ?, ?, ?, ?, ?, ?)", (reqId, reqType, reqWG, reqName, SimCondition, ProPath, group)
+                  )
+
+      conn.commit()
+
 def informPeople( rec, oldstate, state, author, inform ):
   """ inform utility
   """
+
   if not state or state == 'New':
     return # was no state change or resurrect
 
@@ -68,9 +100,8 @@ def informPeople( rec, oldstate, state, author, inform ):
                            'you are asked to confirm it.'] )
       else:
         subj = "DIRAC: the state of Production Request %s is changed to '%s'; %s;%s" % ( reqId, state, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
-        body = '\n'.join(
-          ['The state of your request is changed.',
-           'This mail is for information only.'] )
+        body = '\n'.join( ['The state of your request is changed.',
+                           'This mail is for information only.'] )
       notification = NotificationClient()
       res = notification.sendMail( authorMail, subj,
                                    body + footer + 'lhcb_user' + ppath,
@@ -80,9 +111,8 @@ def informPeople( rec, oldstate, state, author, inform ):
 
   if inform:
     subj = "DIRAC: the state of %s Production Request %s is changed to '%s'; %s;%s" % ( rec['RequestType'], reqId, state, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
-    body = '\n'.join(
-      ['You have received this mail because you are'
-       'in the subscription list for this request'] )
+    body = '\n'.join( ['You have received this mail because you are'
+                       'in the subscription list for this request'] )
     for x in inform.replace( " ", "," ).split( "," ):
       if x:
         if x.find( "@" ) > 0:
@@ -102,25 +132,16 @@ def informPeople( rec, oldstate, state, author, inform ):
     body = '\n'.join( ["The Production Request is signed and ready to process",
                        "You are informed as member of %s group"] )
     groups = [ 'lhcb_prmgr' ]
-  elif state == 'BK Check':
-    subj = "DIRAC: new %s Production Request %s; %s;%s" % ( rec.get( 'RequestType', '' ), reqId, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
-    body = '\n'.join( ["New Production is requested and it has",
-                       "customized Simulation Conditions.",
-                       "As member of %s group, your are asked either",
-                       "to register new Simulation conditions",
-                       "or to reject the request", "",
-                       "In case some other member of the group has already",
-                       "done that, please ignore this mail."] )
-    groups = [ 'lhcb_bk' ]
 
-  elif state == 'Submitted':
-    subj = "DIRAC: new %s Production Request %s; %s;%s" % ( rec.get( 'RequestType', '' ), reqId, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
-    body = '\n'.join( ["New Production is requested",
-                       "As member of %s group, your are asked either to sign",
-                       "or to reject it.", "",
-                       "In case some other member of the group has already",
-                       "done that, please ignore this mail."] )
-    groups = [ 'lhcb_ppg', 'lhcb_tech' ]
+    for group in groups:
+      for man in _getMemberMails( group ):
+        notification = NotificationClient()
+        res = notification.sendMail( man, subj,
+                                     body % group + footer + group + ppath,
+                                     fromAddress, True )
+        if not res['OK']:
+          gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
+
   elif state == 'PPG OK' and oldstate == 'Accepted':
     subj = "DIRAC: returned Production Request %s; %s;%s" % ( reqId, rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ) )
     body = '\n'.join( ["Production Request is returned by Production Manager.",
@@ -129,13 +150,28 @@ def informPeople( rec, oldstate, state, author, inform ):
                        "In case some other member of the group has already",
                        "done that, please ignore this mail."] )
     groups = [ 'lhcb_tech' ]
+
+    for group in groups:
+      for man in _getMemberMails( group ):
+        notification = NotificationClient()
+        res = notification.sendMail( man, subj,
+                                     body % group + footer + group + ppath,
+                                     fromAddress, True )
+        if not res['OK']:
+          gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )
+
+  elif state == 'BK Check':
+
+    groups = [ 'lhcb_bk' ]
+
+    _aggregate(reqId, rec.get( 'RequestType', '' ), rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ),
+               rec['SimCondition'], rec['ProPath'], groups)
+
+  elif state == 'Submitted':
+
+    groups = [ 'lhcb_ppg', 'lhcb_tech' ]
+    _aggregate(reqId, rec.get( 'RequestType', '' ), rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ),
+               rec['SimCondition'], rec['ProPath'], groups)
+
   else:
     return
-  for group in groups:
-    for man in _getMemberMails( group ):
-      notification = NotificationClient()
-      res = notification.sendMail( man, subj,
-                                   body % group + footer + group + ppath,
-                                   fromAddress, True )
-      if not res['OK']:
-        gLogger.error( "_inform_people: can't send email: %s" % res['Message'] )

@@ -25,13 +25,14 @@
 """
 
 import time
+import os
+import sqlite3
 
 from DIRAC                                                      import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base.AgentModule                                import AgentModule
 from DIRAC.Core.Utilities.Time                                  import timeThis
 from DIRAC.Core.DISET.RPCClient                                 import RPCClient
 from DIRAC.Interfaces.API.Dirac                                 import Dirac
-from DIRAC.FrameworkSystem.Client.NotificationClient            import NotificationClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations        import Operations
 
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient  import TransformationClient
@@ -409,6 +410,11 @@ class ProductionStatusAgent( AgentModule ):
     self.allKnownStates = ( 'RemovedFiles', 'RemovingFiles', 'ValidatedOutput', 'ValidatingInput', 'Testing', 'Active', 'Idle' )
 
     self.notify = True
+
+    if 'DIRAC' in os.environ:
+      self.cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ProductionManagement/cache.db' )
+    else:
+      self.cacheFile = os.path.realpath('cache.db')
 
     # For processing transformations, it can happened that there are some Unused files
     # with which to tasks can be created. The number of such files can be different depending
@@ -818,19 +824,36 @@ class ProductionStatusAgent( AgentModule ):
       return
 
     if self.notify:
-      notify = NotificationClient()
-      subject = 'Transformation Status Updates ( %s )' % ( time.asctime() )
-      msg = ['Transformations updated this cycle:\n']
-      for tID, val in updatedT.iteritems():
-        msg.append( 'Production %s: %s => %s' % ( tID, val['from'], val['to'] ) )
-      msg.append( '\nProduction Requests updated to Done status this cycle:\n' )
-      msg.append( ', '.join( [str( i ) for i in updatedPr] ) )
-      result = notify.sendMail( 'vladimir.romanovsky@cern.ch', subject, '\n'.join( msg ),
-                                'vladimir.romanovsky@cern.ch', localAttempt = False )
-      if not result['OK']:
-        self.log.error( "Could not send mail", result['Message'] )
-      else:
-        self.log.verbose( 'Mail summary sent to production manager' )
+
+      with sqlite3.connect(self.cacheFile) as conn:
+
+        try:
+          conn.execute('''CREATE TABLE IF NOT EXISTS ProductionStatusAgentCache(
+                        production VARCHAR(64) NOT NULL DEFAULT "",
+                        from_status VARCHAR(64) NOT NULL DEFAULT "",
+                        to_status VARCHAR(64) NOT NULL DEFAULT "",
+                        time VARCHAR(64) NOT NULL DEFAULT ""
+                       );''')
+
+          conn.execute('''CREATE TABLE IF NOT EXISTS ProductionStatusAgentReqCache(
+                        prod_requests VARCHAR(64) NOT NULL DEFAULT "",
+                        time VARCHAR(64) NOT NULL DEFAULT ""
+                       );''')
+
+        except sqlite3.OperationalError:
+          self.log.error( "Could not queue mail" )
+
+        for tID, val in updatedT.iteritems():
+          conn.execute("INSERT INTO ProductionStatusAgentCache (production, from_status, to_status, time)"
+                       " VALUES (?, ?, ?, ?)", (tID, val['from'], val['to'], time.asctime() )
+                      )
+
+        for prod_request in updatedPr:
+          conn.execute("INSERT INTO ProductionStatusAgentReqCache (prod_requests, time) VALUES (?, ?)", (prod_request, time.asctime()) )
+
+        conn.commit()
+
+        self.log.info( 'Mail summary queued for sending' )
 
   def __updateProductionRequestStatus( self, prID, status, updatedPr ):
     """ This method updates the production request status.
