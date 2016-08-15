@@ -1,5 +1,5 @@
-[v8r3-pre29]
-Use DIRAC v6r15p12
+[v8r3]
+use DIRAC v6r15p12
 
 * better error reporting
 * adding the file types
@@ -17,22 +17,12 @@ Use DIRAC v6r15p12
 * added S_OK and changed global variable
 * Added HTML support
 * Basic aggregation
-
-[v8r3-pre28]
-Use DIRAC v6r15p11-alpha
 * Fixes NagiosTopologyAgent.py and included dryRun (Will Add DryRun on CS)
-
-[v8r3-pre27]
-Use DIRAC v6r15p10
 * fix: sendDataUsageReport expects at least 3 arguments
 * added test for RootMerging productions
 * unsetting BINARY_TAG to avoid confusion with lb-run projects
 * Added rootMerging WF integration test
 * bug fixes
-
-[v8r3-pre25]
-Use DIRAC v6r15p9
-
 * Fixes
 * DataIntegrityClient using ConsistencyChecks methods
 * fixes for interactions between ConsistencyInspector and DataIntegrity
@@ -40,29 +30,14 @@ Use DIRAC v6r15p9
 * fix jenkins test
 * Changes in LHCbDIRAC/tests/Utilities/testJobDefinitions.py Creates files on time and Delete them after with unique content and name:
 * minor test fixes
-
-[v8r3-pre25]
-Use DIRAC v6r15p8
-
-[v8r3-pre24]
-Use DIRAC v6r15p8
-
 * allow to restart service from CLI
 * BKK: fix the catalog interface
 * Popularity: add a popularity analysis agent
-
-[v8r3-pre23]
-Use DIRAC v6r15p7
-
 * replace fullpath by fullname for pyparsing
 * job submission
 * mods xml for regression tests
 * removed LHCbCleanPilot command
 * remove lbvobox80
-
-[v8r3-pre22]
-Use DIRAC v6r15p7
-
 * better code with more comments
 * Change way of installing pyparsing
 * fixes for MultiProcessor
@@ -72,25 +47,10 @@ Use DIRAC v6r15p7
 * fixed location of logs and XMLSummaries
 * Change continue to Return Result if the SOAP interface is not accessible for VOMS
 * client_test.py split into 2
-
-[v8r3-pre21]
-use DIRAC v6r15p6
-
 * Change LCGCMT 84
 * add scripts in .PHONY
-
-[v8r3-pre20]
-use DIRAC v6r15p6
-
 * several fixes
 * checking for ZeroDivisionError
-
-[v8r3-pre19]
-use DIRAC v6r15p6
-
-[v8r3-pre18]
-use DIRAC v6r15p6
-
 * RAWIntegrity: displaced code in the DB
 * os.mkdir to mkDir
 * PitExport: add documentation
@@ -98,13 +58,6 @@ use DIRAC v6r15p6
 * using mkDir utility
 * RAWIntegrity: add showTables and removeFile methods
 * RAWIntegrity: insert the initial value in LastMonitor when creating the DB
-
-[v8r3-pre17]
-use DIRAC v6r15p5
-*LCG version change
-
-[v8r3-pre16]
-use DIRAC v6r15p5
 * Randomize the output string of the test jobs
 * BKK: properly check the catalog arguments
 * enabling updateRemotePilotFile service
@@ -118,37 +71,17 @@ use DIRAC v6r15p5
 * added a check for json
 * updated documantation
 * Revived Hammercloud Client
-
-[v8r3-pre15]
-use DIRAC v6r15p3
-
-[v8r3-pre14]
 * v8r3-pre14 based on Dirac v6r15p2 and LHCbGrid v9r4
-
-[v8r3-pre13]
-Use DIRAC v6r15p1
 * Update create_vobox_update.py remove lbvobox10 and add lbvobox10X machines
-
-[v8r3-pre12]
-*use DIRAC v6r15
 * location
 * pylint
-
-[v8r3-pre11]
-use DIRAC v6r15
-
-[v8r3-pre10]
 * minor fixes for tests
-
-[v8r3-pre9]
 * every time when the replica flag is updated we commit the transaction...
 * use the new method for getting the produced events for a given production
 * implemenet a new method which return the production producced events
 * remove not used conditions
 * Corect the URL for Client releases
 * Add option for the CLIENT release
-
-[v8r3-pre8]
 * bkk oracle docs
 * Fix regression introduced by 8b4f6ffd95f1a11164b897941e454cdb163eb337
 *  do not check the EventStat and FullStat
@@ -160,8 +93,6 @@ use DIRAC v6r15
 * added getCFGFile
 * disable parallel queries. Change the error message to warn and do not change the dqvalue if we have an error...
 * avoid navigating for some cases
-
-[v8r3-pre7]
 * Make changes following very good review comments
 * take into account the selected filetype when a list of steps returned from the db
 * if the BkQuery does not exist, still set the BK input proc pass
