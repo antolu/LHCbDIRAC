@@ -171,7 +171,7 @@ function LHCbDIRACPilotInstall(){
     echo 'ERROR: cannot change to ' $PILOTINSTALLDIR
     return
   fi
-  echo -e '==> Running dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG'
+  echo -e "==> Running dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG"
   python dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
   cd $cwd
   if [ $? -ne 0 ]
@@ -296,22 +296,16 @@ function installLHCbDIRACClient(){
 
 function setupLHCbDIRAC(){
 
-  echo '==> Invoking lb-run for LHCbDIRAC'
-
+  echo -e "==> Invoking LbLogin.sh"
   . /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r6p5/InstallArea/scripts/LbLogin.sh
+
   local version=`cat project.version`
-  if [ ! -z "$PRERELEASE" ]
-  then
-    dev='--dev'
-  else
-    dev=''
-  fi
-  echo '==> Invoking lb-run $dev LHCbDirac/$version bash -norc'
-  lb-run $dev LHCbDirac/$version bash -norc
+  echo -e "==> Invoking lb-run LHCbDirac/$version bash -norc"
+  lb-run LHCbDirac/$version bash -norc
   local status=$?
   if [ $status -ne 0 ]
   then
-    echo "==> Going to install client with dirac-install"
+    echo -e "==> lb-run NOT successful: going to install client with dirac-install"
     installLHCbDIRACClient
   else
     export PYTHONPATH=$PYTHONPATH:$CLIENTINSTALLDIR/
@@ -321,7 +315,7 @@ function setupLHCbDIRAC(){
 
 function submitJob(){
 
-  echo '==> Submitting a simple job'
+  echo -e "==> Submitting a simple job"
 
   #This is is executed from the $CLIENTINSTALLDIR
 
