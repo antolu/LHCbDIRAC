@@ -10,6 +10,7 @@ import sys
 import os
 from DIRAC.Core.Utilities.File import mkDir
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import DMScript
+from DIRAC import gLogger
 
 def __getFilesForRun( transID, runID = None, status = None, lfnList = None, seList = None, taskList = None ):
   # print transID, runID, status, lfnList
@@ -32,7 +33,7 @@ def __getFilesForRun( transID, runID = None, status = None, lfnList = None, seLi
   if res['OK']:
     return res['Value']
   else:
-    print "Error getting TransformationFiles:", res['Message']
+    gLogger.error( "Error getting TransformationFiles:", res['Message'] )
   return []
 
 def __filesProcessed( transID, runID ):
@@ -72,7 +73,7 @@ def __getRuns( transID, runList = None, byRuns = True, seList = None, status = N
       res = transClient.getTransformationRuns( selectDict )
       if res['OK']:
         if not len( res['Value'] ):
-          print "No runs found, set to None"
+          gLogger.notice( "No runs found, set to None" )
           runs = [{'RunNumber':None}]
         else:
           runs = res['Value']
@@ -87,7 +88,7 @@ def __getRuns( transID, runList = None, byRuns = True, seList = None, status = N
     res = transClient.getTransformationRuns( selectDict )
     if res['OK']:
       if not len( res['Value'] ):
-        print "No runs found, set to 0"
+        gLogger.notice( "No runs found, set to 0" )
         runs = [{'RunNumber':None}]
       else:
         runs = res['Value']
@@ -108,7 +109,7 @@ def __justStats( transID, status, seList ):
   taskList = [fileDict['TaskID'] for fileDict in transFilesList]
   res = transClient.getTransformationTasks( {'TransformationID':transID, "TaskID":taskList} )
   if not res['OK']:
-    print "Could not get the list of tasks (%s)..." % res['Message']
+    gLogger.notice( "Could not get the list of tasks..." , res['Message'] )
     DIRAC.exit( 2 )
   for task in res['Value']:
     # print task
@@ -125,18 +126,18 @@ def __justStats( transID, status, seList ):
   prString = 'SE'.ljust( shift )
   for stat in statusList:
     prString += stat.ljust( 10 )
-  print prString
+  gLogger.notice( prString )
   for se in sorted( statsPerSE ):
     prString = se.ljust( shift )
     for stat in statusList:
       prString += str( statsPerSE[se].get( stat, 0 ) ).ljust( 10 )
-    print prString
+    gLogger.notice( prString )
   return improperJobs
 
 def __getTransformationInfo( transID, transSep ):
   res = transClient.getTransformation( transID, extraParams = False )
   if not res['OK']:
-    print "Couldn't find transformation", transID
+    gLogger.notice( "Couldn't find transformation", transID )
     return None, None, None, None, None
   else:
     transName = res['Value']['TransformationName']
@@ -152,26 +153,27 @@ def __getTransformationInfo( transID, transSep ):
     else:
       taskType = "Job"
     transGroup = res['Value']['TransformationGroup']
-  print transSep, "Transformation", \
-        transID, "(%s) :" % transStatus, transName, "of type", transType, "(plugin %s)" % strPlugin, "in", transGroup
+  gLogger.notice( "%s Transformation %d (%s) of type %s (plugin %s) in %s" % ( transSep, transID, transStatus, transType, strPlugin, transGroup ) )
   if transType == 'Removal':
-    print "Transformation body:", transBody
+    gLogger.notice( "Transformation body:", transBody )
   res = transClient.getBookkeepingQuery( transID )
   if res['OK'] and res['Value']:
-    print "BKQuery:", res['Value']
+    gLogger.notice( "BKQuery:", res['Value'] )
     queryProduction = res['Value'].get( 'ProductionID', res['Value'].get( 'Production' ) )
+    queryFileTypes = res['Value'].get( 'FileType' )
   else:
-    print "No BKQuery for this transformation"
+    gLogger.notice( "No BKQuery for this transformation" )
     queryProduction = None
-  print ""
-  return transID, transType, taskType, queryProduction, transPlugin
+    queryFileTypes = None
+  gLogger.notice( "" )
+  return transID, transType, taskType, queryProduction, transPlugin, queryFileTypes
 
 def __fixRunNumber( filesToFix, fixRun, noTable = False ):
   if not fixRun:
     if noTable:
-      print '%d files have run number not in run table, use --FixRun to get this fixed' % len( filesToFix )
+      gLogger.notice( '%d files have run number not in run table, use --FixRun to get this fixed' % len( filesToFix ) )
     else:
-      print '%d files have run number 0, use --FixRun to get this fixed' % len( filesToFix )
+      gLogger.notice( '%d files have run number 0, use --FixRun to get this fixed' % len( filesToFix ) )
   else:
     fixedFiles = 0
     res = bkClient.getFileMetadata( filesToFix )
@@ -181,24 +183,24 @@ def __fixRunNumber( filesToFix, fixRun, noTable = False ):
         runFiles.setdefault( metadata['RunNumber'], [] ).append( lfn )
       for run in runFiles:
         if not run:
-          print "%d files found in BK with run '%s': %s" % ( len( runFiles[run] ), str( run ), str( runFiles[run] ) )
+          gLogger.notice( "%d files found in BK with run '%s': %s" % ( len( runFiles[run] ), str( run ), str( runFiles[run] ) ) )
           continue
         res = transClient.addTransformationRunFiles( transID, run, runFiles[run] )
         # print run, runFiles[run], res
         if not res['OK']:
-          print "***ERROR*** setting %d files to run %d in transformation %d: %s" % ( len( runFiles[run] ), run, transID, res['Message'] )
+          gLogger.notice( "***ERROR*** setting %d files to run %d in transformation %d" % ( len( runFiles[run] ), run, transID ), res['Message'] )
         else:
           fixedFiles += len( runFiles[run] )
       if fixedFiles:
-        print "Successfully fixed run number for %d files" % fixedFiles
+        gLogger.notice( "Successfully fixed run number for %d files" % fixedFiles )
       else:
-        print "There were no files for which to fix the run number"
+        gLogger.notice( "There were no files for which to fix the run number" )
     else:
-      print "***ERROR*** getting metadata for %d files: %s" % ( len( filesToFix ), res['Message'] )
+      gLogger.notice( "***ERROR*** getting metadata for %d files:" % len( filesToFix ), res['Message'] )
 
 def __getTransformations( args ):
   if not len( args ):
-    print "Specify transformation number..."
+    gLogger.notice( "Specify transformation number..." )
     Script.showHelp()
   else:
     ids = args[0].split( "," )
@@ -221,32 +223,32 @@ def __checkFilesMissingInFC( transFilesList, status, fixIt ):
       notMissing = len( replicas )
       if notMissing:
         if not kickRequests:
-          print "%d files are %s but indeed are in the FC - Use --KickRequests to reset them Unused" % ( notMissing, status )
+          gLogger.notice( "%d files are %s but indeed are in the FC - Use --KickRequests to reset them Unused" % ( notMissing, status ) )
         else:
           res = transClient.setFileStatusForTransformation( transID, 'Unused', replicas.keys(), force = True )
           if res['OK']:
-            print "%d files were %s but indeed are in the FC - Reset to Unused" % ( notMissing, status )
+            gLogger.notice( "%d files were %s but indeed are in the FC - Reset to Unused" % ( notMissing, status ) )
           else:
-            print "Error resetting %d files Unused" % notMissing, res['Message']
+            gLogger.notice( "Error resetting %d files Unused" % notMissing, res['Message'] )
       else:
         res = bkClient.getFileMetadata( lfns )
         if not res['OK']:
-          print "ERROR getting metadata from BK"
+          gLogger.notice( "ERROR getting metadata from BK", res['Message'] )
         else:
           metadata = res['Value']['Successful']
           lfnsWithReplicaFlag = [lfn for lfn in metadata if metadata[lfn]['GotReplica'] == 'Yes']
           if lfnsWithReplicaFlag:
-            print "All files are really missing in FC"
+            gLogger.notice( "All files are really missing in FC" )
             if not fixIt:
-              print '%d files are not in the FC but have a replica flag in BK, use --FixIt to fix' % len( lfnsWithReplicaFlag )
+              gLogger.notice( '%d files are not in the FC but have a replica flag in BK, use --FixIt to fix' % len( lfnsWithReplicaFlag ) )
             else:
               res = bkClient.removeFiles( lfnsWithReplicaFlag )
               if not res['OK']:
-                print "ERROR removing replica flag:", res['Message']
+                gLogger.notice( "ERROR removing replica flag:", res['Message'] )
               else:
-                print "Replica flag removed from %d files" % len( lfnsWithReplicaFlag )
+                gLogger.notice( "Replica flag removed from %d files" % len( lfnsWithReplicaFlag ) )
           else:
-            print "All files are really missing in FC and BK"
+            gLogger.notice( "All files are really missing in FC and BK" )
 
 def __getReplicas( lfns ):
   replicas = {}
@@ -255,7 +257,7 @@ def __getReplicas( lfns ):
     if res['OK']:
       replicas.update( res['Value']['Successful'] )
     else:
-      print "Error getting replicas", res['Message']
+      gLogger.notice( "Error getting replicas", res['Message'] )
   return replicas
 
 def __getTask( transID, taskID ):
@@ -292,7 +294,7 @@ def __getRequestName( requestID ):
     res = reqClient.getRequestInfo( requestID )
     if res['OK']:
       return res['Value'][2]
-    print "No such request found: %s" % requestID
+    gLogger.notice( "No such request found: %s" % requestID )
     return None
   except:
     return None
@@ -324,7 +326,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
         prString += " - Failed to set %d files Processed (%s)" % ( len( lfnsInTask ), res['Message'] )
     else:
         prString += " - To mark files Processed, use option --KickRequests"
-    print prString
+    gLogger.notice( prString )
 
   if not requestID:
     if task['ExternalStatus'] == 'Submitted' and not taskCompleted:
@@ -337,7 +339,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
           prString += " - Failed to set %d files Unused (%s)" % ( len( lfnsInTask ), res['Message'] )
       else:
           prString += " - To mark files Unused, use option --KickRequests"
-      print prString
+      gLogger.notice( prString )
     return 0
   assignedRequests = __getAssignedRequests()
   request = None
@@ -347,7 +349,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
       request = res['Value']
       requestStatus = request.Status if request.RequestID not in assignedRequests else 'Assigned'
       if requestStatus != task['ExternalStatus']:
-        print '\tRequest %d status:' % requestID, requestStatus, 'updated last', request.LastUpdate
+        gLogger.notice( '\tRequest %d status: %s updated last %s' % ( requestID, requestStatus, request.LastUpdate ) )
       if task['ExternalStatus'] == 'Failed':
         # Find out why this task is failed
         for i, op in enumerate( request ):
@@ -356,7 +358,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     else:
       requestStatus = 'NotExisting'
   else:
-    print "Failed to peek request:", res['Message']
+    gLogger.notice( "Failed to peek request:", res['Message'] )
     requestStatus = 'Unknown'
 
   res = reqClient.getRequestFileStatus( requestID, lfnsInTask )
@@ -366,7 +368,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
     for lfn, stat in reqFiles.iteritems():
       statFiles[stat] = statFiles.setdefault( stat, 0 ) + 1
     for stat in sorted( statFiles ):
-      print "\t%s: %d files" % ( stat, statFiles[stat] )
+      gLogger.notice( "\t%s: %d files" % ( stat, statFiles[stat] ) )
     # If all files failed, set the request as failed
     if requestStatus != 'Failed' and statFiles.get( 'Failed', -1 ) == len( reqFiles ):
       prString = "\tAll transfers failed for that request"
@@ -379,7 +381,7 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
           prString += ": request set to Failed"
         else:
           prString += ": error setting to Failed: %s" % res['Message']
-      print prString
+      gLogger.notice( prString )
     # If some files are Scheduled, try and get information about the FTS jobs
     if statFiles.get( 'Scheduled', 0 ) and request:
       from DIRAC.DataManagementSystem.Client.FTSClient                                  import FTSClient
@@ -394,28 +396,28 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
         for status in statusCount:
           if statusCount[status]:
             prStr.append( '%s:%d' % ( status, statusCount[status] ) )
-        print '\tFTS files statuses: %s' % ', '.join( prStr )
+        gLogger.notice( '\tFTS files statuses: %s' % ', '.join( prStr ) )
       res = ftsClient.getFTSJobsForRequest( request.RequestID )
       if res['OK']:
         ftsJobs = res['Value']
         if ftsJobs:
           for job in ftsJobs:
-            print '\tFTS jobs associated:', '%s@%s (%s) from %s to %s' % ( job.FTSGUID, job.FTSServer, job.Status, job.SourceSE, job.TargetSE )
+            gLogger.notice( '\tFTS jobs associated:', '%s@%s (%s) from %s to %s' % ( job.FTSGUID, job.FTSServer, job.Status, job.SourceSE, job.TargetSE ) )
         else:
-          print '\tNo FTS jobs found for that request'
+          gLogger.notice( '\tNo FTS jobs found for that request' )
 
   # Kicking stuck requests in status Assigned
   toBeKicked = 0
   if request:
     if request.RequestID in assignedRequests and request.LastUpdate < assignedReqLimit:
-      print "\tRequest stuck:", request.RequestID, 'Updated', request.LastUpdate
+      gLogger.notice( "\tRequest stuck: %d Updated %s" % ( request.RequestID, request.LastUpdate ) )
       toBeKicked += 1
       if kickRequests:
         res = reqClient.putRequest( request )
         if res['OK']:
-          print '\tRequest %d is reset' % requestID
+          gLogger.notice( '\tRequest %d is reset' % requestID )
         else:
-          print '\tError resetting request', res['Message']
+          gLogger.notice( '\tError resetting request', res['Message'] )
   else:
     selectDict = { 'RequestID':requestID}
     res = reqClient.getRequestSummaryWeb( selectDict, [], 0, 100000 )
@@ -432,24 +434,24 @@ def __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRe
           conj = ', '
 
         if subReqDict['Status'] == 'Assigned' and subReqDict['LastUpdateTime'] < str( assignedReqLimit ):
-          print subReqStr
+          gLogger.notice( subReqStr )
           toBeKicked += 1
           if kickRequests:
             res = reqClient.setRequestStatus( requestID, 'Waiting' )
             if res['OK']:
-              print '\tRequest %d reset Waiting' % requestID
+              gLogger.notice( '\tRequest %d reset Waiting' % requestID )
             else:
-              print '\tError resetting request %d' % requestID, res['Message']
+              gLogger.notice( '\tError resetting request %d' % requestID, res['Message'] )
   return toBeKicked
 
 def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas, failedFiles, fixIt ):
   from DIRAC.Core.Utilities.Adler import compareAdler
-  print "\nStatistics for Problematic files in FC:"
+  gLogger.notice( "\nStatistics for Problematic files in FC:" )
   existingReplicas = {}
   lfns = set()
   lfnsInFC = set()
   for n in sorted( nbReplicasProblematic ):
-    print "   %d replicas in FC: %d files" % ( n, nbReplicasProblematic[n] )
+    gLogger.notice( "   %d replicas in FC: %d files" % ( n, nbReplicasProblematic[n] ) )
   # level = gLogger.getLevel()
   # gLogger.setLevel( 'FATAL' )
   lfnCheckSum = {}
@@ -477,16 +479,16 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
     nbExistingReplicas[nbReplicas] = nbExistingReplicas.setdefault( nbReplicas, 0 ) + 1
   nonExistingReplicas = {}
   if nbProblematic == len( lfns ):
-      print "None of the %d problematic files actually have an active replica" % len( lfns )
+      gLogger.notice( "None of the %d problematic files actually have an active replica" % len( lfns ) )
   else:
     strMsg = "Out of %d problematic files" % len( lfns )
     if nbProblematic:
       strMsg += ", only %d have an active replica" % ( len( lfns ) - nbProblematic )
     else:
       strMsg += ", all have an active replica"
-    print strMsg
+    gLogger.notice( strMsg )
     for n in sorted( nbExistingReplicas ):
-      print "   %d active replicas: %d files" % ( n, nbExistingReplicas[n] )
+      gLogger.notice( "   %d active replicas: %d files" % ( n, nbExistingReplicas[n] ) )
     for se in problematicReplicas:
       lfns = [lfn for lfn in problematicReplicas[se] if lfn not in existingReplicas or se not in existingReplicas[lfn]]
       str2Msg = ''
@@ -500,9 +502,9 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
       else:
         strMsg = 'none'
       if se:
-        print "   %s : %d replicas of problematic files in FC, %s physically missing.%s" % ( str( se ).ljust( 15 ), len( problematicReplicas[se] ), strMsg, str2Msg )
+        gLogger.notice( "   %s : %d replicas of problematic files in FC, %s physically missing.%s" % ( str( se ).ljust( 15 ), len( problematicReplicas[se] ), strMsg, str2Msg ) )
       else:
-        print "   %s : %d files are not in FC." % ( ''.ljust( 15 ), len( problematicReplicas[se] ) )
+        gLogger.notice( "   %s : %d files are not in FC." % ( ''.ljust( 15 ), len( problematicReplicas[se] ) ) )
     lfns = [lfn for lfn in existingReplicas if lfn in failedFiles]
     if lfns:
       prString = "Failed transfers but existing replicas"
@@ -513,7 +515,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
           res = transClient.setFileStatusForTransformation( transID, 'Unused', lfns, force = True )
           if res['OK']:
             prString += " - %d files reset Unused" % len( lfns )
-      print prString
+      gLogger.notice( prString )
   filesInFCNotExisting = list( lfnsInFC - set( existingReplicas ) )
   if filesInFCNotExisting:
     prString = '%d files are in the FC but are not physically existing. ' % len( filesInFCNotExisting )
@@ -521,7 +523,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
       prString += 'Removing them now from FC...'
     else:
       prString += 'Use --FixIt to remove them'
-    print prString
+    gLogger.notice( prString )
     if fixIt:
       __removeFiles( filesInFCNotExisting )
   if badChecksum:
@@ -541,7 +543,7 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
       prString += ' Use --FixIt to remove them'
     else:
       prString += ' Removing them now...'
-    print prString
+    gLogger.notice( prString )
     if fixIt:
       if filesToRemove:
         __removeFiles( filesToRemove )
@@ -553,11 +555,11 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
         for se in seFiles:
           res = dm.removeReplica( se, seFiles[se] )
           if not res['OK']:
-            print 'ERROR: error removing replicas', res['Message']
+            gLogger.notice( 'ERROR: error removing replicas', res['Message'] )
           else:
-            print "Successfully removed %d replicas from %s" % ( len( seFiles[se], se ) )
+            gLogger.notice( "Successfully removed %d replicas from %s" % ( len( seFiles[se], se ) ) )
   elif existingReplicas:
-    print "All existing replicas have a good checksum"
+    gLogger.notice( "All existing replicas have a good checksum" )
   if fixIt and nonExistingReplicas:
     nRemoved = 0
     failures = {}
@@ -567,32 +569,32 @@ def __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas
       nonExistingReplicas.pop( None )
       nRemoved, transRemoved = __removeFilesFromTS( notInFC )
       if nRemoved:
-        print 'Successfully removed %d files from transformations %s' % ( nRemoved, ','.join( transRemoved ) )
+        gLogger.notice( 'Successfully removed %d files from transformations %s' % ( nRemoved, ','.join( transRemoved ) ) )
     for se in nonExistingReplicas:
       lfns = [lfn for lfn in nonExistingReplicas[se] if lfn not in filesInFCNotExisting]
       res = dm.removeReplica( se, lfns )
       if not res['OK']:
-        print "ERROR when removing replicas from FC at %s" % se, res['Message']
+        gLogger.notice( "ERROR when removing replicas from FC at %s" % se, res['Message'] )
       else:
         failed = res['Value']['Failed']
         if failed:
-          print "Failed to remove %d replicas at %s" % ( len( failed ), se )
-          print '\n'.join( sorted( failed ) )
+          gLogger.notice( "Failed to remove %d replicas at %s" % ( len( failed ), se ) )
+          gLogger.notice( '\n'.join( sorted( failed ) ) )
           for lfn in failed:
             failures.setdefault( failed[lfn], [] ).append( lfn )
         nRemoved += len( res['Value']['Successful'] )
     if nRemoved:
-      print "Successfully removed %s replicas from FC" % nRemoved
+      gLogger.notice( "Successfully removed %s replicas from FC" % nRemoved )
     if failures:
-      print "Failures:"
+      gLogger.notice( "Failures:" )
       for error in failures:
-        print "%s: %d replicas" % ( error, len( failures[error] ) )
-  print ""
+        gLogger.notice( "%s: %d replicas" % ( error, len( failures[error] ) ) )
+  gLogger.notice( "" )
 
 def __removeFilesFromTS( lfns ):
   res = transClient.getTransformationFiles( {'LFN':lfns} )
   if not res['OK']:
-    print "Error getting %d files in the TS" % len( lfns ), res['Message']
+    gLogger.notice( "Error getting %d files in the TS" % len( lfns ), res['Message'] )
     return
   transFiles = {}
   removed = 0
@@ -601,7 +603,7 @@ def __removeFilesFromTS( lfns ):
   for transID, lfns in transFiles.iteritems():
     res = transClient.setFileStatusForTransformation( transID, 'Removed', lfns, force = True )
     if not res['OK']:
-      print 'Error setting %d files Removed' % len( lfns ), res['Message']
+      gLogger.notice( 'Error setting %d files Removed' % len( lfns ), res['Message'] )
     else:
       removed += len( lfns )
   return removed, [str( tr ) for tr in transFiles]
@@ -609,12 +611,12 @@ def __removeFilesFromTS( lfns ):
 def __removeFiles( lfns ):
   res = dm.removeFile( lfns )
   if res['OK']:
-    print "Successfully removed %d files from FC" % len( lfns )
+    gLogger.notice( "Successfully removed %d files from FC" % len( lfns ) )
     nRemoved, transRemoved = __removeFilesFromTS( lfns )
     if nRemoved:
-      print 'Successfully removed %d files from transformations %s' % ( nRemoved, ','.join( transRemoved ) )
+      gLogger.notice( 'Successfully removed %d files from transformations %s' % ( nRemoved, ','.join( transRemoved ) ) )
   else:
-    print "ERROR when removing files from FC:", res['Message']
+    gLogger.notice( "ERROR when removing files from FC:", res['Message'] )
 
 def __checkReplicasForProblematic( lfns, replicas ):
   for lfn in lfns:
@@ -742,8 +744,8 @@ def __getSandbox( job, logFile, debug = False ):
           f = open( os.path.join( tmpDir, lf ), 'r' )
           return f.readlines()
       return ''
-  except:
-    print 'Exception while getting sandbox'
+  except Exception as e:
+    gLogger.exception( 'Exception while getting sandbox', lException = e )
     return ''
   finally:
     if f:
@@ -776,9 +778,9 @@ def __checkLog( logURL ):
       break
   logDump = []
   if logFile:
-    space = True
+    space = False
     for line in logFile:
-      if ' ERROR ' in line:
+      if ' ERROR ' in line or '*** Break ***' in line:
         if space:
           logDump.append( '....' )
           space = False
@@ -820,7 +822,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
         if res['OK']:
           jobApplicationStatus = res['Value']
     if not res['OK']:
-      print 'Error getting jobs statuses:', res['Message']
+      gLogger.notice( 'Error getting jobs statuses:', res['Message'] )
       return
     allStatus = {}
     for job in [int( j ) for j in allJobs]:
@@ -829,10 +831,10 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
                jobApplicationStatus.get( job, {} ).get( 'ApplicationStatus', 'Unknown' )
       allStatus[job] = status
     if byFiles or len( lfnList ) < 3:
-      print '\n %d LFNs:' % len( lfnList ), lfnList, ': Status of corresponding %d jobs (ordered):' % len( allJobs )
+      gLogger.notice( '\n %d LFNs: %s : Status of corresponding %d jobs (ordered):' % ( len( lfnList ), lfnList, len( allJobs ) ) )
     else:
-      print '\n %d LFNs:' % len( lfnList ), 'Status of corresponding %d jobs (ordered):' % len( allJobs )
-    print ' '.join( allJobs )
+      gLogger.notice( '\n %d LFNs: Status of corresponding %d jobs (ordered):' % ( len( lfnList ), len( allJobs ) ) )
+    gLogger.notice( ' '.join( allJobs ) )
     prevStatus = None
     allStatus[sys.maxint] = ''
     jobs = []
@@ -850,7 +852,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
         prStr += ' terminated with status:'
       else:
         prStr += ' in status:'
-      print prStr, prevStatus
+      gLogger.notice( prStr, prevStatus )
       majorStatus, minorStatus, applicationStatus = prevStatus.split( '; ' )
       if majorStatus == 'Failed' and ( 'Exited With Status' in applicationStatus or 'Problem Executing Application' in applicationStatus ):
         exitedJobs += jobs
@@ -878,7 +880,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
             if xx in lastLine:
               lastLine = lastLine.split()[0] + ' Executing %s' % xx + lastLine.split( xx )[1].split( '&&' )[0]
               break
-          print '\t%3d jobs' % len( jobs ), 'stalled with last line:', lastLine
+          gLogger.notice( '\t%3d jobs stalled with last line: %s' % ( len( jobs ), lastLine ) )
           lastLine = line
           jobs = [job1]
       jobs = [job]
@@ -896,7 +898,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
               badLfns.update( {lastJob: lfns} )
           # break
         if not badLfns:
-          print "No error was found in XML summary files"
+          gLogger.notice( "No error was found in XML summary files" )
         else:
           # lfnsFound is an AND of files found bad in all jobs
           lfnsFound = set( badLfns[sorted( badLfns, reverse = True )[0]] )
@@ -907,9 +909,9 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
                                      for job, lfns in badLfns.iteritems() for lfn in set( lfns ) & lfnsFound]:
               failedLfns.setdefault( ( lfn, reason ), [] ).append( job )
           else:
-            print "No common error was found in all XML summary files"
+            gLogger.notice( "No common error was found in all XML summary files" )
   if failedLfns:
-    print "\nSummary of failures due to: Application Exited with non-zero status"
+    gLogger.notice( "\nSummary of failures due to: Application Exited with non-zero status" )
     lfnDict = {}
     partial = 'Partial (last event '
     for ( lfn, reason ), jobs in failedLfns.items():
@@ -930,7 +932,7 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
       res = monitoring.getJobsSites( jobs )
       if res['OK']:
         sites = sorted( set( val['Site'] for val in res['Value'].itervalues() ) )
-      print "ERROR ==> %s was %s during processing from jobs %s (sites %s): " % ( lfn, reason, ','.join( str( job ) for job in jobs ), ','.join( sites ) )
+      gLogger.notice( "ERROR ==> %s was %s during processing from jobs %s (sites %s): " % ( lfn, reason, ','.join( str( job ) for job in jobs ), ','.join( sites ) ) )
       # Get an example log if possible
       if checkLogs:
         logDump = __checkLog( jobLogURL[jobs[0]] )
@@ -939,19 +941,19 @@ def __checkJobs( jobsForLfn, byFiles = False, checkLogs = False ):
           prStr += logDump[0]
         else:
           prStr += '\n\t'.join( [''] + logDump )
-        print prStr
-  print ''
+        gLogger.notice( prStr )
+  gLogger.notice( '' )
 
-def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
+def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000, fileTypes = None ):
   """
   Check whether the run is flushed and if not, why it was not
   """
   if not runID:
-    print "Cannot check flush status for run", runID
+    gLogger.notice( "Cannot check flush status for run", runID )
     return
   rawFiles = pluginUtil.getNbRAWInRun( runID, evtType )
   if not rawFiles:
-    print 'Run %s is not finished...' % runID
+    gLogger.notice( 'Run %s is not finished...' % runID )
     return
   if 'FileType' in transPlugin:
     param = 'FileType'
@@ -963,16 +965,24 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
   if param:
     res = bkClient.getFileMetadata( [fileDict['LFN'] for fileDict in transFilesList] )
     if not res['OK']:
-      print 'Error getting files metadata', res['Message']
+      gLogger.notice( 'Error getting files metadata', res['Message'] )
       DIRAC.exit( 2 )
     evtType = res['Value']['Successful'].values()[0]['EventType']
-    paramValues = sorted( set( meta[param] for meta in res['Value']['Successful'].itervalues() if param in meta ) )
+    if isinstance( fileTypes, ( list, set ) ) and param == 'FileType':
+      paramValues = sorted( fileTypes )
+    elif evtType and param == 'EventType':
+      paramValues = [evtType]
+    else:
+      paramValues = sorted( set( meta[param] for meta in res['Value']['Successful'].itervalues() if param in meta ) )
   ancestors = {}
+  # print "*** Param values", ','.join( paramValues )
   for paramValue in paramValues:
     try:
-      ancestors.setdefault( pluginUtil.getRAWAncestorsForRun( runID, param, paramValue ), [] ).append( paramValue )
+      nbAnc = pluginUtil.getRAWAncestorsForRun( runID, param, paramValue )
+      # print '*** For %s = %s: %d ancestors' % ( param, paramValue, nbAnc )
+      ancestors.setdefault( nbAnc, [] ).append( paramValue )
     except Exception as e:
-      print "Exception calling pluginUtilities:", e
+      gLogger.exception( "Exception calling pluginUtilities:", lException = e )
   prStr = ''
   for anc in sorted( ancestors ):
     ft = ancestors[anc]
@@ -990,16 +1000,16 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
 
   # Missing ancestors, find out which ones
   if not toFlush and not flushError:
-    print "Run %s flushed: %s while %d RAW files" \
-      % ( 'should not be' if runStatus == 'Flush' else 'not', prStr, rawFiles )
+    gLogger.notice( "Run %s flushed: %s while %d RAW files" \
+                    % ( 'should not be' if runStatus == 'Flush' else 'not', prStr, rawFiles ) )
     # Find out which ones are missing
     res = bkClient.getRunFiles( int( runID ) )
     if not res['OK']:
-      print "Error getting run files", res['Message']
+      gLogger.notice( "Error getting run files", res['Message'] )
     else:
       res = bkClient.getFileMetadata( sorted( res['Value'] ) )
       if not res['OK']:
-        print "Error getting files metadata", res['Message']
+        gLogger.notice( "Error getting files metadata", res['Message'] )
       else:
         metadata = res['Value']['Successful']
         runRAWFiles = set( lfn for lfn, meta in metadata.iteritems() if meta['EventType'] == evtType and meta['GotReplica'] == 'Yes' )
@@ -1012,28 +1022,28 @@ def __checkRunsToFlush( runID, transFilesList, runStatus, evtType = 90000000 ):
           allAncestors.update( ancFiles )
         missingFiles = runRAWFiles - allAncestors
         if missingFiles:
-          print "Missing RAW files:\n\t%s" % '\n\t'.join( sorted( missingFiles ) )
+          gLogger.notice( "Missing RAW files:\n\t%s" % '\n\t'.join( sorted( missingFiles ) ) )
         else:
           if badRAWFiles:
-            print "Indeed %d RAW files have no replicas and therefore..." % len( badRAWFiles )
+            gLogger.notice( "Indeed %d RAW files have no replicas and therefore..." % len( badRAWFiles ) )
           else:
-            print "No RAW files are missing in the end and therefore..."
+            gLogger.notice( "No RAW files are missing in the end and therefore..." )
           rawFiles = len( runRAWFiles )
           toFlush = True
   if toFlush:
-    print "Run %s flushed: %d RAW files and ancestors found" % ( 'correctly' if runStatus == 'Flush' else 'should be', rawFiles )
+    gLogger.notice( "Run %s flushed: %d RAW files and ancestors found" % ( 'correctly' if runStatus == 'Flush' else 'should be', rawFiles ) )
     if runStatus != 'Flush':
       if fixIt:
         res = transClient.setTransformationRunStatus( transID, runID, 'Flush' )
         if res['OK']:
-          print 'Run %d successfully flushed' % runID
+          gLogger.notice( 'Run %d successfully flushed' % runID )
         else:
-          print "Error flushing run %d" % runID, res['Message']
+          gLogger.notice( "Error flushing run %d" % runID, res['Message'] )
       else:
-        print "Use --FixIt to flush the run"
+        gLogger.notice( "Use --FixIt to flush the run" )
   if flushError:
-    print "More ancestors than RAW files (%d) for run %d ==> Problem!\n\t%s" \
-      % ( rawFiles, runID, prStr.replace( '; ', '\n\t' ) )
+    gLogger.notice( "More ancestors than RAW files (%d) for run %d ==> Problem!\n\t%s" \
+                    % ( rawFiles, runID, prStr.replace( '; ', '\n\t' ) ) )
 
 def __checkWaitingTasks( transID ):
   """
@@ -1042,11 +1052,11 @@ def __checkWaitingTasks( transID ):
   """
   res = transClient.getTransformationTasks( {'TransformationID': transID, 'ExternalStatus':'Waiting'} )
   if not res['OK']:
-    print 'Error getting waiting tasks:', res['Message']
+    gLogger.notice( 'Error getting waiting tasks:', res['Message'] )
     return
   tasks = res['Value']
   taskStatuses = {}
-  print 'Found %d waiting tasks' % len( tasks )
+  gLogger.notice( 'Found %d waiting tasks' % len( tasks ) )
   for task in tasks:
     fileDicts = transClient.getTransformationFiles( {'TransformationID':transID, 'TaskID':task['TaskID']} ).get( 'Value', [] )
     if not fileDicts:
@@ -1062,10 +1072,10 @@ def __checkWaitingTasks( transID ):
     if status:
       taskStatuses.setdefault( status, [] ).append( ( task['TaskID'], int( task['ExternalID'] ) ) )
   if not taskStatuses:
-    print "All tasks look OK"
+    gLogger.notice( "All tasks look OK" )
     return
   for status in taskStatuses:
-    print '%d tasks are indeed %s' % ( len( taskStatuses[status] ), status )
+    gLogger.notice( '%d tasks are indeed %s' % ( len( taskStatuses[status] ), status ) )
     if kickRequests:
       fixed = 0
       ids = taskStatuses[status]
@@ -1076,7 +1086,7 @@ def __checkWaitingTasks( transID ):
         if requestName:
           res = transClient.setTaskStatus( transID, taskID, status )
           if not res['OK']:
-            print "Error setting task %s to %s" % ( requestID, status ), res['Message']
+            gLogger.notice( "Error setting task %s to %s" % ( requestID, status ), res['Message'] )
           res = reqClient.peekRequest( requestID )
           if res['OK']:
             request = res['Value']
@@ -1085,10 +1095,10 @@ def __checkWaitingTasks( transID ):
             if res['OK']:
               fixed += 1
           if not res['OK']:
-            print "Error setting %s to %s" % ( requestID, status ), res['Message']
-      print '\t%d requests set to status %s' % ( fixed, status )
+            gLogger.notice( "Error setting %s to %s" % ( requestID, status ), res['Message'] )
+      gLogger.notice( '\t%d requests set to status %s' % ( fixed, status ) )
   if not kickRequests:
-    print 'Use --KickRequests to fix them'
+    gLogger.notice( 'Use --KickRequests to fix them' )
 
 #====================================
 if __name__ == "__main__":
@@ -1150,7 +1160,7 @@ if __name__ == "__main__":
       for val in infos:
         val = val.lower()
         if val not in infoList:
-          print "Unknown information... Select in %s" % str( infoList )
+          gLogger.notice( "Unknown information... Select in %s" % str( infoList ) )
           DIRAC.exit( 0 )
         elif val == "files":
           byFiles = True
@@ -1171,7 +1181,7 @@ if __name__ == "__main__":
       status = val.split( ',' )
       val = set( status ) - set( statusList )
       if val:
-        print "Unknown status %s... Select in %s" % ( sorted( val ), str( statusList ) )
+        gLogger.notice( "Unknown status %s... Select in %s" % ( sorted( val ), str( statusList ) ) )
         DIRAC.exit( 1 )
     elif opt == 'Runs' :
       runList = val.split( ',' )
@@ -1240,7 +1250,7 @@ if __name__ == "__main__":
   if jobList:
     res = transClient.getTransformationTasks( {'ExternalID': jobList} )
     if not res['OK']:
-      print "Error getting jobs:", res['Message']
+      gLogger.notice( "Error getting jobs:", res['Message'] )
     else:
       transList = {}
       for task in res['Value']:
@@ -1251,7 +1261,7 @@ if __name__ == "__main__":
     problematicReplicas = {}
     failedFiles = []
     nbReplicasProblematic = {}
-    transID, transType, taskType, queryProduction, transPlugin = __getTransformationInfo( transID, transSep )
+    transID, transType, taskType, queryProduction, transPlugin, queryFileTypes = __getTransformationInfo( transID, transSep )
     transSep = '==============================\n'
     dmFileStatusComment = {"Replication":"missing", "Removal":"remaining"}.get( transType, "absent" )
     if not transID:
@@ -1271,13 +1281,13 @@ if __name__ == "__main__":
     # Select runs, or all
     runsDictList = __getRuns( transID, runList, byRuns, seList, status )
     if runList and [run['RunNumber'] for run in runsDictList] == [None]:
-      print "None of the requested runs was found, exit"
+      gLogger.notice( "None of the requested runs was found, exit" )
       DIRAC.exit( 0 )
     if status and byRuns and not runList:
       if not runsDictList:
-        print 'No runs found...'
+        gLogger.notice( 'No runs found...' )
       else:
-        print '%d runs found: %s' % ( len( runsDictList ), ','.join( str( runDict['RunNumber'] ) for runDict in runsDictList ) )
+        gLogger.notice( '%d runs found: %s' % ( len( runsDictList ), ','.join( str( runDict['RunNumber'] ) for runDict in runsDictList ) ) )
     SEStat = {"Total":0}
     allFiles = []
     toBeKicked = 0
@@ -1297,13 +1307,13 @@ if __name__ == "__main__":
       if lfnList:
         notFoundFiles = [lfn for lfn in lfnList if lfn not in [fileDict['LFN'] for fileDict in transFilesList]]
         if notFoundFiles:
-          print "Some requested files were not found in transformation (%d):" % len( notFoundFiles )
-          print '\n\t'.join( notFoundFiles )
+          gLogger.notice( "Some requested files were not found in transformation (%d):" % len( notFoundFiles ) )
+          gLogger.notice( '\n\t'.join( notFoundFiles ) )
 
       # No files found in transDB
       if not transFilesList:
         if not byRuns:
-          print "No files found with given criteria"
+          gLogger.notice( "No files found with given criteria" )
         continue
 
       # Run display
@@ -1316,7 +1326,7 @@ if __name__ == "__main__":
         if runStatus:
           prString += " (%s)" % runStatus
         prString += " - %d files (SelectedSite: %s), %d processed, status: %s" % ( files, SEs, processed, runStatus )
-        print prString
+        gLogger.notice( prString )
 
       if checkFlush or ( ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in transPlugin ) :
         if runStatus != 'Flush':
@@ -1327,16 +1337,16 @@ if __name__ == "__main__":
             evtType = res['Value'][lfn]
           else:
             evtType = 90000000
-          __checkRunsToFlush( runID, transFilesList, runStatus, evtType = evtType )
+          __checkRunsToFlush( runID, transFilesList, runStatus, evtType = evtType, fileTypes = queryFileTypes )
         else:
-          print 'Run %d is already flushed' % runID
+          gLogger.notice( 'Run %d is already flushed' % runID )
 
       prString = "%d files found" % len( transFilesList )
       if status:
         prString += " with status %s" % status
       if runID:
         prString += ' in run %d' % runID
-      print prString + '\n'
+      gLogger.notice( prString + '\n' )
 
       # Extract task list
       filesWithRunZero = []
@@ -1352,14 +1362,14 @@ if __name__ == "__main__":
           # Get all tasks associated to that file
           res = transClient.getTableDistinctAttributeValues( 'TransformationFileTasks', ['TaskID'], {'TransformationID': transID, 'FileID' : fileDict['FileID']} )
           if not res['OK']:
-            print "Error when getting tasks for file %s" % fileDict['LFN']
+            gLogger.notice( "Error when getting tasks for file %s" % fileDict['LFN'] )
           else:
             for taskID in res['Value']['TaskID']:
               taskDict.setdefault( taskID, [] ).append( fileDict['LFN'] )
         fileRun = fileDict['RunNumber']
         fileLfn = fileDict['LFN']
         if byFiles and not taskList:
-            print fileLfn, "- Run:", fileRun, "- Status:", fileDict['Status'], "- UsedSE:", fileDict['UsedSE'], "- ErrorCount:", fileDict['ErrorCount']
+          gLogger.notice( "%s - Run: %s - Status: %s - UsedSE: %s - ErrorCount %s" % ( fileLfn, fileRun, fileDict['Status'], fileDict['UsedSE'], fileDict['ErrorCount'] ) )
         if not fileRun and '/MC' not in fileLfn:
           filesWithRunZero.append( fileLfn )
         if fileRun:
@@ -1390,10 +1400,10 @@ if __name__ == "__main__":
       # Now loop on all tasks
       jobsForLfn = {}
       if verbose:
-        print "Tasks:", ','.join( str( taskID ) for taskID in sorted( taskDict ) )
+        gLogger.notice( "Tasks:", ','.join( str( taskID ) for taskID in sorted( taskDict ) ) )
       for taskID in sorted( taskList ) if taskList else sorted( taskDict ):
         if taskID not in taskDict:
-          print 'Task %s not found in the transformation files table' % taskID
+          gLogger.notice( 'Task %s not found in the transformation files table' % taskID )
           lfnsInTask = []
         else:
           lfnsInTask = taskDict[taskID]
@@ -1437,48 +1447,48 @@ if __name__ == "__main__":
           prString += "- %s: %s - Status: %s" % ( taskType, task['ExternalID'], task['ExternalStatus'] )
           if targetSE:
             prString += " - TargetSE: %s" % targetSE
-          print prString
+          gLogger.notice( prString )
 
           # More information from Request tasks
           if taskType == "Request":
             toBeKicked += __printRequestInfo( transID, task, lfnsInTask, taskCompleted, status, kickRequests )
 
-          print ""
+          gLogger.notice( "" )
       if byJobs and jobsForLfn:
         __checkJobs( jobsForLfn, byFiles, checkLogs )
     if 'Problematic' in status and nbReplicasProblematic:
       __checkProblematicFiles( transID, nbReplicasProblematic, problematicReplicas, failedFiles, fixIt )
     if toBeKicked:
       if kickRequests:
-        print "%d requests have been kicked" % toBeKicked
+        gLogger.notice( "%d requests have been kicked" % toBeKicked )
       else:
-        print "%d requests are eligible to be kicked (use option --KickRequests)" % toBeKicked
+        gLogger.notice( "%d requests are eligible to be kicked (use option --KickRequests)" % toBeKicked )
 
     ###########
     # Print out statistics of SEs if relevant (DMS)
     if SEStat["Total"] and transType in dmTransTypes:
-      print "%d files found in tasks" % SEStat["Total"]
+      gLogger.notice( "%d files found in tasks" % SEStat["Total"] )
       SEStat.pop( "Total" )
       if None in SEStat:
-        print "Found without replicas:", SEStat[None], "files"
+        gLogger.notice( "Found without replicas: %d files" % SEStat[None] )
         SEStat.pop( None )
-      print "Statistics per %s SE:" % dmFileStatusComment
+      gLogger.notice( "Statistics per %s SE:" % dmFileStatusComment )
       SEs = SEStat.keys()
       SEs.sort()
       found = False
       for se in SEs:
-        print se, SEStat[se], "files"
+        gLogger.notice( "%s %d files" % ( se, SEStat[se] ) )
         found = True
       if not found:
-        print "... None ..."
+        gLogger.notice( "... None ..." )
     elif transType == "Removal" and ( not status or not ( 'MissingLFC' in status or 'MissingInFC' in status ) ):
-      print "All files have been successfully removed!"
+      gLogger.notice( "All files have been successfully removed!" )
 
     # All files?
     if dumpFiles and allFiles:
-      print "List of files found:"
-      print "\n".join( allFiles )
+      gLogger.notice( "List of files found:" )
+      gLogger.notice( "\n".join( allFiles ) )
 
   if improperJobs:
-    print "List of %d jobs in improper status:" % len( improperJobs )
-    print ' '.join( str( j ) for j in sorted( improperJobs ) )
+    gLogger.notice( "List of %d jobs in improper status:" % len( improperJobs ) )
+    gLogger.notice( ' '.join( str( j ) for j in sorted( improperJobs ) ) )

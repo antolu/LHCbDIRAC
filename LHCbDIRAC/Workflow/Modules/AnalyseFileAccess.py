@@ -145,7 +145,7 @@ class AnalyseFileAccess( ModuleBase ):
 
       gDataStoreClient.commit()
 
-    except Exception as e:
+    except Exception as e: #pylint:disable=broad-except
       self.log.warn( str( e ) )
 
     finally:

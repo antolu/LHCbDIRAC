@@ -172,8 +172,8 @@ class GaudiApplicationScript( ModuleBase ):
 
       return S_OK( '%s Successful' % os.path.basename( self.script ) )
 
-    except Exception as e:
-      self.log.exception( e )
+    except Exception as e: #pylint:disable=broad-except
+      self.log.exception( "Failure in GaudiApplicationScript execute module", lException = e )
       self.setApplicationStatus( e )
       return S_ERROR( e )
 

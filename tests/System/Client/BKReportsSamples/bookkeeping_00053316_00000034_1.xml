@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="windows-1252"?>
+<!DOCTYPE Job SYSTEM "book.dtd">
+<Job ConfigName="Certification" ConfigVersion="Test" Date="2016-08-08" Time="17:49">
+    <TypedParameter Name="CPUTIME" Type="Info" Value="3800.04"/>
+    <TypedParameter Name="ExecTime" Type="Info" Value="3965.70627403"/>
+    <TypedParameter Name="WNMODEL" Type="Info" Value="Intel(R)Xeon(R)CPUE5-26650@2.40GHz"/>
+    <TypedParameter Name="WNCPUPOWER" Type="Info" Value="1808"/>
+    <TypedParameter Name="WNCACHE" Type="Info" Value="2401.000"/>
+    <TypedParameter Name="WorkerNode" Type="Info" Value="c01-109-126"/>
+    <TypedParameter Name="WNMEMORY" Type="Info" Value="1728728.0"/>
+    <TypedParameter Name="WNCPUHS06" Type="Info" Value="17.1"/>
+    <TypedParameter Name="WNMJFHS06" Type="Info" Value="12.71"/>
+    <TypedParameter Name="Production" Type="Info" Value="00053316"/>
+    <TypedParameter Name="DiracJobId" Type="Info" Value="137229518"/>
+    <TypedParameter Name="Name" Type="Info" Value="00053316_00000034_1"/>
+    <TypedParameter Name="JobStart" Type="Info" Value="2016-08-08 16:43"/>
+    <TypedParameter Name="JobEnd" Type="Info" Value="2016-08-08 17:49"/>
+    <TypedParameter Name="Location" Type="Info" Value="LCG.GRIDKA.de"/>
+    <TypedParameter Name="JobType" Type="Info" Value="Turbo"/>
+    <TypedParameter Name="ProgramName" Type="Info" Value="DaVinci"/>
+    <TypedParameter Name="ProgramVersion" Type="Info" Value="v41r1"/>
+    <TypedParameter Name="DiracVersion" Type="Info" Value="v6r14p38"/>
+    <TypedParameter Name="FirstEventNumber" Type="Info" Value="1"/>
+    <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
+    <TypedParameter Name="StepID" Type="Info" Value="129891"/>
+    <TypedParameter Name="NumberOfEvents" Type="Info" Value="189882"/>
+    <InputFile Name="/lhcb/data/2016/RAW/TURBO/LHCb/COLLISION16/173737/173737_0000000337.raw"/>
+    <OutputFile Name="/lhcb/validation/Collision16/CHARM1.MDST/00053316/0000/00053316_00000034_1.charm1.mdst" TypeName="CHARM1.MDST" TypeVersion="ROOT">
+        <Parameter Name="EventTypeId" Value="94000000"/>
+        <Parameter Name="EventStat" Value="17179"/>
+        <Parameter Name="FileSize" Value="318069182"/>
+        <Parameter Name="MD5Sum" Value="9e6ae1b4f2b891d5562d05ee65474c11"/>
+        <Parameter Name="Guid" Value="4842A398-765D-E611-84D6-001E67397058"/>
+    </OutputFile>
+    <OutputFile Name="/lhcb/validation/Collision16/CHARM2.MDST/00053316/0000/00053316_00000034_1.charm2.mdst" TypeName="CHARM2.MDST" TypeVersion="ROOT">
+        <Parameter Name="EventTypeId" Value="94000000"/>
+        <Parameter Name="EventStat" Value="7490"/>
+        <Parameter Name="FileSize" Value="128193994"/>
+        <Parameter Name="MD5Sum" Value="a0dffd6a4b1fd69d1279872da67a3a18"/>
+        <Parameter Name="Guid" Value="C45E5599-765D-E611-84D6-001E67397058"/>
+    </OutputFile>
+    <OutputFile Name="/lhcb/validation/Collision16/CHARM3PRESCALED.MDST/00053316/0000/00053316_00000034_1.charm3prescaled.mdst" TypeName="CHARM3PRESCALED.MDST" TypeVersion="ROOT">
+        <Parameter Name="EventTypeId" Value="94000000"/>
+        <Parameter Name="EventStat" Value="1268"/>
+        <Parameter Name="FileSize" Value="101051585"/>
+        <Parameter Name="MD5Sum" Value="2a05d662284ffffdf5a0da9f59cd582f"/>
+        <Parameter Name="Guid" Value="468C359B-765D-E611-84D6-001E67397058"/>
+    </OutputFile>
+    <OutputFile Name="/lhcb/validation/Collision16/CHARM4PRESCALED.MDST/00053316/0000/00053316_00000034_1.charm4prescaled.mdst" TypeName="CHARM4PRESCALED.MDST" TypeVersion="ROOT">
+        <Parameter Name="EventTypeId" Value="94000000"/>
+        <Parameter Name="EventStat" Value="15961"/>
+        <Parameter Name="FileSize" Value="821179980"/>
+        <Parameter Name="MD5Sum" Value="1895d3d1aa5794d1aed2e70d379e4d87"/>
+        <Parameter Name="Guid" Value="4E02B999-765D-E611-84D6-001E67397058"/>
+    </OutputFile>
+    <OutputFile Name="/lhcb/validation/Collision16/CHARMSTRANGELFV.MDST/00053316/0000/00053316_00000034_1.charmstrangelfv.mdst" TypeName="CHARMSTRANGELFV.MDST" TypeVersion="ROOT">
+        <Parameter Name="EventTypeId" Value="94000000"/>
+        <Parameter Name="EventStat" Value="6619"/>
+        <Parameter Name="FileSize" Value="116445111"/>
+        <Parameter Name="MD5Sum" Value="a3a72a2072a3ba03425cd94ff76b128c"/>
+        <Parameter Name="Guid" Value="AC7E9C9A-765D-E611-84D6-001E67397058"/>
+    </OutputFile>
+    <OutputFile Name="/lhcb/validation/Collision16/DIMUON.MDST/00053316/0000/00053316_00000034_1.dimuon.mdst" TypeName="DIMUON.MDST" TypeVersion="ROOT">
+        <Parameter Name="EventTypeId" Value="94000000"/>
+        <Parameter Name="EventStat" Value="7823"/>
+        <Parameter Name="FileSize" Value="450107802"/>
+        <Parameter Name="MD5Sum" Value="8c8a4d05f310b45fa253f34ec7c931ac"/>
+        <Parameter Name="Guid" Value="2236AF9B-765D-E611-84D6-001E67397058"/>
+    </OutputFile>
+    <OutputFile Name="/lhcb/validation/Collision16/LAMBDAPRESCALED.MDST/00053316/0000/00053316_00000034_1.lambdaprescaled.mdst" TypeName="LAMBDAPRESCALED.MDST" TypeVersion="ROOT">
+        <Parameter Name="EventTypeId" Value="94000000"/>
+        <Parameter Name="EventStat" Value="15723"/>
+        <Parameter Name="FileSize" Value="947120037"/>
+        <Parameter Name="MD5Sum" Value="23ab7b13c9be372e8d9ee9bd35d423fe"/>
+        <Parameter Name="Guid" Value="F2CD2F9A-765D-E611-84D6-001E67397058"/>
+    </OutputFile>
+    <OutputFile Name="/lhcb/validation/Collision16/LOG/00053316/0000/00000034/DaVinci_00053316_00000034_1.log" TypeName="LOG" TypeVersion="1">
+        <Parameter Name="FileSize" Value="2075514"/>
+        <Replica Location="Web" Name="http://lhcb-logs.cern.ch/storage/lhcb/validation/Collision16/LOG/00053316/0000/00000034/DaVinci_00053316_00000034_1.log"/>
+        <Parameter Name="MD5Sum" Value="3b38eee11d5cd416cb1946e888c2c64a"/>
+        <Parameter Name="Guid" Value="3B38EEE1-1D5C-D416-CB19-46E888C2C64A"/>
+    </OutputFile>
+</Job>

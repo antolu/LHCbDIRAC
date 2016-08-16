@@ -76,8 +76,9 @@ class ProductionRequest( object ):
     self.visibility = ''
     self.fractionToProcess = 0
     self.minFilesToProcess = 0
-    self.modulesList = ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
-                        'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
+    self.modulesList = None # Usually:
+                            # ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+                            # 'ErrorLogging', 'BookkeepingReport', 'StepAccounting' ]
 
     # parameters of each production (the length of each list has to be the same as the number of productions
     self.events = []
@@ -716,13 +717,13 @@ class ProductionRequest( object ):
     # Adding the application steps
     firstStep = stepsInProd.pop( 0 )
     stepName = prod.addApplicationStep( stepDict = firstStep,
-                                        modules = self.modulesList )
+                                        modulesList = self.modulesList )
     prod.gaudiSteps.append( stepName )
 
     for step in stepsInProd:
       stepName = prod.addApplicationStep( stepDict = step,
                                           inputData = 'previousStep',
-                                          modules = self.modulesList )
+                                          modulesList = self.modulesList )
       prod.gaudiSteps.append( stepName )
 
     # Adding the finalization step

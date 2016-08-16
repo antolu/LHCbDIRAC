@@ -185,9 +185,8 @@ class UploadOutputData( ModuleBase ):
       self.log.info( "The following BK records will be sent: %s" % ( ', '.join( bkFiles ) ) )
       if self._enableModule():
         for bkFile in bkFiles:
-          fopen = open( bkFile, 'r' )
-          bkXML = fopen.read()
-          fopen.close()
+          with open( bkFile, 'r' ) as fd:
+            bkXML = fd.read()
           self.log.info( "Sending BK record:\n%s" % ( bkXML ) )
           result = self.bkClient.sendXMLBookkeepingReport( bkXML )
           self.log.verbose( result )
@@ -310,7 +309,7 @@ class UploadOutputData( ModuleBase ):
 
       return S_OK( "Output data uploaded" )
 
-    except Exception as e:
+    except Exception as e: #pylint:disable=broad-except
       self.log.exception( 'Exception in UploadOutputData', lException = e )
       x = repr( e )
       self.setApplicationStatus( 'UploadOutputData exception:' + x )

@@ -94,7 +94,7 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
 
   def test_getDescendants( self ):
     res = self.cc.getDescendants( ['aa.raw'] )
-    filesWithDescendants, filesWithoutDescendants, filesWitMultipleDescendants, descendants, inFCNotInBK, inBKNotInFC, removedFiles = res
+    filesWithDescendants, filesWithoutDescendants, filesWitMultipleDescendants, descendants, inFCNotInBK, inBKNotInFC, removedFiles, inFailover = res
     self.assertEqual( filesWithDescendants, {'aa.raw':['bb.raw']} )
     self.assertEqual( filesWithoutDescendants, {} )
     self.assertEqual( filesWitMultipleDescendants, {} )
@@ -102,6 +102,7 @@ class ConsistencyChecksSuccess( UtilitiesTestCase ):
     self.assertEqual( inFCNotInBK, [] )
     self.assertEqual( inBKNotInFC, [] )
     self.assertEqual( removedFiles, [] )
+    self.assertEqual( inFailover, [] )
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( UtilitiesTestCase )

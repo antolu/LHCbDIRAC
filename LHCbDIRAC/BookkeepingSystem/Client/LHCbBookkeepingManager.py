@@ -20,44 +20,44 @@ INTERNAL_PATH_SEPARATOR = "/"
 class LHCbBookkeepingManager( BaseESManager ):
   """creates the virtual file system"""
 
-  __bookkeepingFolderProperties = ['name',
-                                'fullpath',
-                                        ]
+  __bookkeepingFolderProperties = [ 'name',
+                                    'fullpath',
+                                  ]
     # watch out for this ad hoc solution
     # if any changes made check all functions
     #
-  __bookkeepingConfigurationPrefixes = ['ConfigName',  # configname
-                                   'ConfigVersion',  # configversion
-                                   'Simulation/DataTaking',
-                                   'ProcessingPass',
-                                   'EventType',  # event type
-                                   'Production',  # production
-                                   'FileType',  # file type
-                                   ''
-                                   ]
+  __bookkeepingConfigurationPrefixes = [ 'ConfigName',  # configname
+                                         'ConfigVersion',  # configversion
+                                         'Simulation/DataTaking',
+                                         'ProcessingPass',
+                                         'EventType',  # event type
+                                         'Production',  # production
+                                         'FileType',  # file type
+                                         ''
+                                      ]
 
   __bookkeepingProductionPrefixes = ['PROD',
-                                   'EVT',
-                                   'FTY',
-                                   ''
-                                  ]
+                                     'EVT',
+                                     'FTY',
+                                     ''
+                                    ]
 
   __bookkeepingRunPrefixes = ['RUN',
-                                'PAS',
-                                'EVT',
-                                'FTY',
-                                 ''
-                                  ]
+                              'PAS',
+                              'EVT',
+                              'FTY',
+                               ''
+                             ]
 
   __bookkeepingEventtypePrefixes = ['ConfigName',
-                                  'ConfigVersion',
-                                  'EventType',
-                                  'Simulation/DataTaking',
-                                  'ProcessingPass',
-                                  'Production',
-                                  'FileType',
-                                   '',
-                                  ]
+                                    'ConfigVersion',
+                                    'EventType',
+                                    'Simulation/DataTaking',
+                                    'ProcessingPass',
+                                    'Production',
+                                    'FileType',
+                                     '',
+                                   ]
   __bookkeepingDatabasePrefixes = []
 
   __bookkeepingParameters = ['Configuration', 'Event type' , 'Productions', 'Runlookup' ]
@@ -82,13 +82,13 @@ class LHCbBookkeepingManager( BaseESManager ):
     self.parameter_ = self.__bookkeepingParameters[0]
     self.files_ = []
     self.__filetypes = []
-    
+
     self.treeLevels_ = -1
     self.advancedQuery_ = False
     print 'WELCOME'
     print "For more information use the 'help' command! "
     self.dataQualities_ = {}
-    
+
     retVal = self.db_.getAvailableFileTypes()
     if not retVal['OK']:
       gLogger.error( retVal )
@@ -106,7 +106,7 @@ class LHCbBookkeepingManager( BaseESManager ):
         gLogger.error( retVal )
       else:
         self.__filetypes = [ i[0] for i in retVal['Value']['Records']]
-    
+
   #############################################################################
   def _updateTreeLevels( self, level ):
     """tree level update"""
@@ -1885,10 +1885,10 @@ class LHCbBookkeepingManager( BaseESManager ):
     """
     filesandformats = {}
     rootFormat = True
-    
+
     if savePfn:  # we have to decide the file type version.
       # This variable contains the file type version, if it is empty I check in the bkk
-    
+
       for lfns in savePfn:
         if type(savePfn[lfns]) == types.ListType:
           for lfn in savePfn[lfns]:
@@ -1898,7 +1898,7 @@ class LHCbBookkeepingManager( BaseESManager ):
         elif savePfn[lfns]['pfntype'].upper() == 'ROOT_ALL':
           rootFormat = False
           filesandformats[lfns] = savePfn[lfns]['pfntype']
-        
+
     else:
       retVal = self.db_.getFileTypeVersion( files.keys() )
       if retVal['OK']:

@@ -24,7 +24,7 @@ if __name__ == '__main__':
   Script.registerSwitch( '', 'Runs=', '   Specify the run range' )
   Script.registerSwitch( '', 'ActiveRunsProduction=', '   Specify the production from which the runs should be derived' )
   Script.registerSwitch( '', 'FileType=', 'S   pecify the descendants file type' )
-  Script.registerSwitch( '', 'NoLFC', '   Trust the BK replica flag, no LFC check' )
+  Script.registerSwitch( '', 'NoFC', '   Trust the BK replica flag, no LFC check' )
   Script.registerSwitch( '', 'FixIt', '   Fix the files in transformation table' )
   Script.registerSwitch( '', 'Verbose', '   Print full list of files with error' )
   Script.registerSwitch( '', 'Status=', '   Select files with a given status in the production' )
@@ -36,7 +36,7 @@ if __name__ == '__main__':
   fromProd = None
   verbose = False
   status = None
-  noLFC = False
+  noFC = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Runs':
       try:
@@ -59,8 +59,8 @@ if __name__ == '__main__':
       fileType = switch[1].split( ',' )
     elif switch[0] == 'FixIt':
       fixIt = True
-    elif switch[0] == 'NoLFC':
-      noLFC = True
+    elif switch[0] == 'NoFC':
+      noFC = True
     elif switch[0] == 'Depth':
       depth = min( 10, max( 1, int( switch[1] ) ) )
     elif switch[0] == 'ActiveRunsProduction':
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     cc = ConsistencyChecks()
     cc.verbose = verbose
     cc.prod = prod
-    cc.noLFC = noLFC
+    cc.noFC = noFC
     cc.descendantsDepth = depth
     if prod != prodList[0]:
       gLogger.always( "====================" )
@@ -155,6 +155,7 @@ if __name__ == '__main__':
       lfns = cc.inFCNotInBK
       gLogger.always( "%d descendants were found in FC but not in BK" % len( lfns ) )
       if fixIt:
+        fixIt = False
         res = cc.bkClient.addFiles( lfns )
         if not res['OK']:
           gLogger.always( "Error setting replica flag", res['Message'] )
@@ -167,6 +168,35 @@ if __name__ == '__main__':
         gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
                        '\n'.join( [''] + lfns[0:nMax] ) )
         gLogger.always( "Use --FixIt for setting replica flag in BK (or safer grep InFCNotInBK %s | dirac-dms-check-fc2bkk)" % fileName )
+
+    if cc.inFailover:
+      lfns = cc.inFailover
+      gLogger.always( "%d descendants were found in Failover and not in BK" % len( lfns ) )
+      if fixIt:
+        fixIt = False
+        res = cc.bkClient.addFiles( lfns )
+        if not res['OK']:
+          gLogger.always( "Error setting replica flag", res['Message'] )
+        else:
+          gLogger.always( 'Replica flag set successfully' )
+      else:
+        if not fp:
+          fp = open( fileName, 'w' )
+        fp.write( '\nInFailover '.join( [''] + lfns ) )
+        gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
+                       '\n'.join( [''] + lfns[0:nMax] ) )
+        gLogger.always( "Use --FixIt for brutally setting replica flag in BK or, better something like..." )
+        gLogger.always( "     grep InFailover %s | dirac-dms-replicate-to-run-destination --SE <SE-list>)" % fileName )
+
+    if cc.inBKNotInFC:
+      lfns = cc.inBKNotInFC
+      gLogger.always( "%d descendants were found in BK but not in FC" % len( lfns ) )
+      if not fp:
+        fp = open( fileName, 'w' )
+      fp.write( '\InBKNotInFC '.join( [''] + lfns ) )
+      gLogger.always( 'First %d files:' % nMax if not verbose and len( lfns ) > nMax else 'All files:',
+                     '\n'.join( [''] + lfns[0:nMax] ) )
+      # gLogger.always( "Use --FixIt for removing replica flag in BK (or safer grep InBKNotInFC %s | dirac-dms-check-bkk2fc)" % fileName )
 
     if cc.removedFiles:
       from DIRAC.Core.Utilities.List import breakListIntoChunks
@@ -200,6 +230,7 @@ if __name__ == '__main__':
       lfns = sorted( cc.prcdWithoutDesc )
       gLogger.always( "Processed LFNs without descendants (%d) -> ERROR!" % len( lfns ) )
       if fixIt:
+        fixIt = False
         gLogger.always( "Resetting them 'Unused'" )
         res = cc.transClient.setFileStatusForTransformation( prod, 'Unused', lfns, force = True )
         if not res['OK']:
@@ -231,6 +262,7 @@ if __name__ == '__main__':
       lfns = sorted( cc.nonPrcdWithDesc )
       gLogger.always( "There are %d LFNs not marked Processed but that have descendants -> ERROR" % len( lfns ) )
       if fixIt:
+        fixIt = False
         gLogger.always( "Marking them as 'Processed'" )
         cc.transClient.setFileStatusForTransformation( prod, 'Processed', lfns, force = True )
       else:

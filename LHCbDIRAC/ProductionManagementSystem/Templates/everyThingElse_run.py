@@ -6,12 +6,13 @@ import ast
 from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
-from DIRAC import gLogger, exit as DIRACexit
+from DIRAC import gConfig, gLogger, exit as DIRACexit
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest
 
 __RCSID__ = "$Id$"
 
 gLogger = gLogger.getSubLogger( 'LaunchingRequest_run.py' )
+currentSetup = gConfig.getValue( 'DIRAC/Setup' )
 
 pr = ProductionRequest()
 
@@ -62,7 +63,6 @@ if p3:
   p3 = [int( x ) for x in p3]
   pr.stepsInProds.append( p3 )
 
-certificationFlag = ast.literal_eval( '{{certificationFLAG#GENERAL: Set True for certification test#False}}' )
 localTestFlag = ast.literal_eval( '{{localTestFlag#GENERAL: Set True for local test#False}}' )
 validationFlag = ast.literal_eval( '{{validationFlag#GENERAL: Set True for validation prod#False}}' )
 
@@ -167,16 +167,10 @@ pr.eventType = '{{eventType}}'
 if modulesList:
   pr.modulesList = modulesList.replace( ' ', '' ).split( ',' )
 
-if certificationFlag or localTestFlag:
+if localTestFlag:
   pr.testFlag = True
-  if certificationFlag:
-    pr.publishFlag = True
-  if localTestFlag:
-    pr.publishFlag = False
-    pr.prodsToLaunch = [1]
-else:
-  pr.publishFlag = True
-  pr.testFlag = False
+  pr.publishFlag = False
+  pr.prodsToLaunch = [1]
 
 if validationFlag:
   pr.outConfigName = 'validation'
@@ -195,11 +189,13 @@ else:
   bkScriptFlag = False
 
 # In case we want just to test, we publish in the certification/test part of the BKK
-if pr.testFlag:
+if currentSetup == 'LHCb-Certification' or pr.testFlag:
   pr.outConfigName = 'certification'
   pr.configVersion = 'test'
-  pr.startRun = '75336'
-  pr.endRun = '75340'
+
+if pr.testFlag:
+  pr.startRun = 75336
+  pr.endRun = 75340
   p1CPU = '100000'
   pr.events = ['2000']
   pr.dataTakingConditions = 'Beam3500GeV-VeloClosed-MagDown'

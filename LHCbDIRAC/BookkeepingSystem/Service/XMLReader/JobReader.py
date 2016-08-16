@@ -20,7 +20,7 @@ from DIRAC                                                                      
 __RCSID__ = "$Id$"
 
 
-class JobReader:
+class JobReader( object ):
   """
   JobReader class
   """
@@ -43,7 +43,7 @@ class JobReader:
     self.__readJobSimulationConditions(doc, job)
     self.__readJobDataTakingConditions(doc, job)
 
-    gLogger.info("Job reading fhinished succesfull!")
+    gLogger.info("Job reading finished succesfully!")
     return job
 
   #############################################################################
@@ -272,7 +272,7 @@ class JobReader:
       for param in parameters:
         name = param.getAttributeNode('Name')
         value = param.getAttributeNode("Value")
-        if name == None or value == None:
+        if name is None or value is None:
           gLogger.warn("<Name>  or <Value> simulation XML tag is missing!!")
         else:
           simParam.addParam(name.value.encode('ascii'), value.value.encode('ascii'))
@@ -293,9 +293,8 @@ class JobReader:
       for param in parameters:
         name = param.getAttributeNode('Name')
         value = param.getAttributeNode("Value")
-        if name == None or value == None:
+        if name is None or value is None:
           gLogger.warn("<Name>  or <Value> DataTakingConditions XML tag is missing!!")
         else:
           daqParam.addParam(name.value.encode('ascii'), value.value.encode('ascii'))
           job.addDataTakingCond(daqParam)
-

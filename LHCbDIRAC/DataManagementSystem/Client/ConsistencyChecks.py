@@ -20,8 +20,9 @@ from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.Core.Utilities.Adler import compareAdler
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar, \
+  printDMResult
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction' )
@@ -58,6 +59,15 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self.bkClient = BookkeepingClient() if bkClient is None else bkClient
     self.transClient = TransformationClient() if transClient is None else transClient
 
+    # Base elements from which to start the consistency checks
+    self._prod = 0
+    self._bkQuery = None
+    self._fileType = []
+    self._fileTypesExcluded = []
+    self._lfns = []
+    self._verbose = False
+    self.noFC = False
+    self.directories = []
     self.descendantsDepth = 10
     self.ancestorsDepth = 10
 
@@ -74,6 +84,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self.inFCNotInBK = []
 
     self.removedFiles = []
+    self.inFailover = []
 
     self.absentLFNsInFC = []
     self.existLFNsNoSE = {}
@@ -205,10 +216,11 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     """
     present = set()
     notPresent = set()
+    lfns = set( lfns )
 
     chunkSize = 100
     progressBar = ProgressBar( len( lfns ),
-                               title = "Checking replicas for %d files" % len( lfns ),
+                               title = "Checking replicas for %d files" % len( lfns ) + ( " (not in Failover)" if ignoreFailover else "" ),
                                chunk = chunkSize, interactive = self.interactive )
     for chunk in breakListIntoChunks( lfns, chunkSize ):
       progressBar.loop()
@@ -334,12 +346,17 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     self.inFCNotInBK = res[4]
     self.inBKNotInFC = res[5]
     self.removedFiles = res[6]
+    self.inFailover = res[7]
 
     res = self.getDescendants( nonProcessedLFNs, status = 'non-processed' )
     self.nonPrcdWithDesc = res[0]
     self.nonPrcdWithoutDesc = res[1]
     self.nonPrcdWithMultDesc = res[2]
     self.descForNonPrcdLFNs = res[3]
+    self.inFCNotInBK += res[4]
+    self.inBKNotInFC += res[5]
+    self.removedFiles += res[6]
+    self.inFailover += res[7]
 
     if self.prcdWithoutDesc:
       self.__logVerbose( "For prod %s of type %s, %d files are processed, and %d of those do not have descendants" %
@@ -491,6 +508,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
   def __getDaughtersInfo( self, lfns, status, filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants ):
     """ Get BK information about daughers of lfns """
     chunkSize = 20
+    lfns = set( lfns )
     progressBar = ProgressBar( len( lfns ),
                                title = "Now getting daughters for %d %s mothers in production %d (depth %d)"
                                % ( len( lfns ), status, self.prod, self.descendantsDepth ),
@@ -542,9 +560,10 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     inBKNotInFC = []
     allDaughters = []
     removedFiles = []
+    inFailover = []
     if not lfns:
       return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
-        allDaughters, inFCNotInBK, inBKNotInFC, removedFiles
+        allDaughters, inFCNotInBK, inBKNotInFC, removedFiles, inFailover
 
     daughtersBKInfo = self.__getDaughtersInfo( lfns, status, filesWithDescendants,
                                                filesWithoutDescendants, filesWithMultipleDescendants )
@@ -562,7 +581,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     chunkSize = 100 if self.transType == 'DataStripping' and len( self.fileType ) > 1 else 500
     if filesWithDescendants:
       # First check in LFC the presence of daughters
-      if not self.noLFC:
+      if not self.noFC:
         self.__logVerbose( 'Checking presence of %d files' % len( allDaughters ) )
         present, notPresent = self.getReplicasPresenceFromDirectoryScan( allDaughters ) \
                                 if len( allDaughters ) > 10 * chunkSize and \
@@ -586,21 +605,35 @@ class ConsistencyChecks( DiracConsistencyChecks ):
                                    title = "Now checking descendants from %d daughters without replicas" % len( setNotPresent ),
                                    chunk = chunkSize, interactive = self.interactive )
         # Get existing descendants of notPresent daughters
-        setDaughtersWithDesc = set()
+        notPresentDescendants = {}
         for lfnChunk in breakListIntoChunks( setNotPresent, chunkSize ):
           progressBar.loop()
           while True:
             res = self.bkClient.getFileDescendants( lfnChunk, depth = 99, checkreplica = True )
             if res['OK']:
               # Exclude ignored file types, but select any other file type, key is daughters
-              setDaughtersWithDesc.update( self._selectByFileType( res['Value']['WithMetadata'], fileTypes = [''],
-                                                                   fileTypesExcluded = fileTypesExcluded ) )
+              notPresentDescendants.update( res['Value']['WithMetadata'] )
               break
             else:
               progressBar.comment( "Error getting descendants for %d files, retry"
-                                   % len( lfnChunk ), res['Message'] )
-        progressBar.endLoop()
-        # print "%d not Present daughters, %d have a descendant" % ( len( notPresent ), len( setDaughtersWithDesc ) )
+                             % len( lfnChunk ), res['Message'] )
+        uniqueDescendants = set( lfn for desc in notPresentDescendants.itervalues() for lfn in desc )
+        progressBar.endLoop( message = 'found %d descendants' % len( uniqueDescendants ) )
+        # Check if descendants have a replica in the FC
+        setDaughtersWithDesc = set()
+        if uniqueDescendants:
+          _, notPresent = self.getReplicasPresence( uniqueDescendants )
+          inBKNotInFC += notPresent
+          # Remove descendants that are not in FC, and if no descendants remove ancestor as well
+          for anc in notPresentDescendants.keys():
+            for desc in notPresentDescendants[anc].keys():
+              if desc in notPresent:
+                notPresentDescendants[anc].pop( desc )
+            if not notPresentDescendants[anc]:
+              notPresentDescendants.pop( anc )
+          if notPresentDescendants:
+            setDaughtersWithDesc = set( self._selectByFileType( notPresentDescendants, fileTypes = [''],
+                                                                fileTypesExcluded = fileTypesExcluded ) )
 
         progressBar = ProgressBar( len( filesWithDescendants ),
                                    title = "Now establishing final list of existing descendants for %d mothers"
@@ -677,9 +710,13 @@ class ConsistencyChecks( DiracConsistencyChecks ):
       filesWithDescendants.pop( lfn, None )
     # For files in FC and not in BK, ignore if they are not active
     if inFCNotInBK:
-      inFCNotInBK = self.getReplicasPresence( inFCNotInBK, ignoreFailover = True )[0]
+      progressBar = ProgressBar( len( inFCNotInBK ), title = "Checking FC for %d file found in FC and not in BK" % len( inFCNotInBK ), step = 1, interactive = self.interactive )
+      notInFailover, _notFound = self.getReplicasPresence( inFCNotInBK, ignoreFailover = True )
+      inFailover = list( set( inFCNotInBK ) - set( notInFailover ) )
+      progressBar.endLoop( message = "found %d in Failover" % len( inFailover ) )
+      inFCNotInBK = notInFailover
     return filesWithDescendants, filesWithoutDescendants, filesWithMultipleDescendants, \
-      list( setRealDaughters ), inFCNotInBK, inBKNotInFC, removedFiles
+      list( setRealDaughters ), inFCNotInBK, inBKNotInFC, removedFiles, inFailover
 
   ################################################################################
 

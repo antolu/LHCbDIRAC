@@ -53,6 +53,8 @@ class NagiosTopologyAgent( AgentModule ):
     """ Let's generate the xml file with the topology.
     """
 
+    self.dryRun = False
+
     # instantiate xml doc
     xml_impl = xml.dom.minidom.getDOMImplementation()
     xml_doc = xml_impl.createDocument( None, 'root', None )
@@ -134,12 +136,17 @@ class NagiosTopologyAgent( AgentModule ):
             self.log.warn( _msg )
             xml_root.removeChild( xml_site )
 
-    # produce the xml
-    xmlf = open( self.xmlPath + "lhcb_topology.xml", 'w' )
-    try:
-      xmlf.write( xml_doc.toxml() )
-    finally:
-      xmlf.close()
+    self.dryRun = self.am_getOption( 'DryRun', self.dryRun )
+    if self.dryRun:
+      self.log.info( "Dry Run: XML file will not be created, just printed" )
+      print xml_doc.toxml()
+
+    else:
+      # produce the xml
+      with open( self.xmlPath + "lhcb_topology.xml", 'w' ) as xmlf:
+        xmlf.write( xml_doc.toxml() )
+
+      self.log.info( "Dry Run: XML file created Successfully" )
 
     return S_OK()
 
@@ -228,7 +235,8 @@ class NagiosTopologyAgent( AgentModule ):
       if not storage_element_name_RAW['OK']:
         gLogger.error( storage_element_name_RAW['Message'] )
         return False
-      se_RAW = StorageElement(storage_element_name_RAW)['Value']
+      storage_element_name_RAW = storage_element_name_RAW['Value']
+      se_RAW = None if not storage_element_name_RAW else StorageElement(storage_element_name_RAW)
   
       # Use case - Storage Element exists but it's removed from Resources/StorageElementGroups 
       if not (se_DST and se_RAW):
