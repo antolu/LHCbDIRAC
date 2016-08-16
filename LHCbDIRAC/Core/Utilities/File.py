@@ -24,7 +24,7 @@ def getRootFileGUID( fileName ):
   try:
     import ROOT
   except ImportError:
-    return S_ERROR( "ROOT environment not set up: use 'SetupProject LHCbDirac ROOT'" )
+    return S_ERROR( "ROOT environment not set up: use 'lb-run LHCbDirac/latest ROOT'" )
 
   from ctypes import create_string_buffer
   try:

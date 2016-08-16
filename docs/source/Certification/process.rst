@@ -6,7 +6,7 @@ Within LHCbDirac, we are trying to streamline and automatize this process as muc
 
 We can split the process in a series of incremental tests, following what has been sketched in :ref:`develop`
 
-Within the following sections we describe, step by step, all the actions needed. 
+Within the following sections we describe, step by step, all the actions needed.
 
 
 Unit test
@@ -26,17 +26,17 @@ System tests
 ------------
 
 Even if it should not be considered strictly as a test, running all the agents and service within certification is an action to take.
-Agents and services spits errors and exceptions. While the second are obviously bugs, the first are not to be considered bugs until an expert look. 
+Agents and services spits errors and exceptions. While the second are obviously bugs, the first are not to be considered bugs until an expert look.
 Nonetheless, we have created a tool to easily identify all new exceptions and errors:
 
 ::
-	
+
 	codeLocation=https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/tests/System/LogsParser/
 	mkdir /tmp/logTest
-	cd /tmp/logTest 
+	cd /tmp/logTest
 	wget -r -np -nH --cut-dirs=7 $codeLocation
 	/bin/bash logParser.sh
-	
+
 
 In addition to the server side tests, at least 2 test files have been create that can be run on the client side. You can get them via:
 ::
@@ -44,15 +44,15 @@ In addition to the server side tests, at least 2 test files have been create tha
    wget https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/tests/System/Client/client_test.csh
    wget https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/tests/System/GridTestSubmission/testUserJobs.py
 
-and again simply run them (csh and python) 
+and again simply run them (csh and python)
 
 For testing the SAM jobs, you can either run the SAMAgent (only for a short period), or better use the script
 ::
-   
-   dirac-lhcb-sam-submit
-   
 
-Testing the Bookkeeping: many of the tests that follow will test also that the bookkeeping works properly. 
+   dirac-lhcb-sam-submit
+
+
+Testing the Bookkeeping: many of the tests that follow will test also that the bookkeeping works properly.
 Anyway, the first thing to do is to visit the bookkeeping `web page <https://volhcb30.cern.ch/DIRAC/LHCb-Certification/lhcb_prmgr/Data/BK/display>`_.
 
 A second base test is simply to use the following command:
@@ -64,12 +64,12 @@ For testing that the RMS works, there is an ad-hoc test:
 ::
 
   wget http://github.com/DIRACGrid/DIRAC/blob/integration/DataManagementSystem/test/IntegrationFCT.py
-  python IntegrationFCT.py lhcb_user CERN-USER RAL-USER CNAF-USER 
+  python IntegrationFCT.py lhcb_user CERN-USER RAL-USER CNAF-USER
   python IntegrationFCT.py lhcb_prod CERN-FAILOVER RAL-FAILOVER CNAF-FALIOVER
 
 Those commands will create and put to the Request Management System two new requests:
 
-1. for lhcb_user group, which should be banned from using the FTS system 
+1. for lhcb_user group, which should be banned from using the FTS system
 2. for lhcb_prod or lhcb_prmgr group, which this should be executed using FTS
 
 You could monitor their execution using `Request monitor` web page or by using CLI comamnd:
@@ -91,15 +91,15 @@ Which will actually schedule the replication of such file using FTS. This will p
 ::
 
    dirac-rms-show-request ID
-   
-That should show how the request goes (quickly) in status "Scheduled", and then "Done".  
 
-The following script, instead, will remove the copy just created.  
+That should show how the request goes (quickly) in status "Scheduled", and then "Done".
+
+The following script, instead, will remove the copy just created.
 
 ::
 
    dirac-dms-create-removal-request CNAF_MC-DST /lhcb/certification/test/ALLSTREAMS.DST/00000751/0000/00000751_00000014_1.allstreams.dst
-   
+
 Again, monitoring is available as above.
 
 
@@ -107,18 +107,18 @@ For testing the replications and removals, use the following:
 ::
 
    dirac-dms-add-replication --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --Test
-   
+
 That will just print out how many files can be replicated. If there is at least one file (for this particular query there should be 35), then you can start it with:
 ::
 
-   dirac-dms-add-replication --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start 
+   dirac-dms-add-replication --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST --Plugin=ReplicateDataset --NumberOfReplicas=2 --SecondarySEs Tier1-DST --Start
 
-   
-You can monitor the advancement using: 
+
+You can monitor the advancement using:
 ::
 
    dirac-dms-replica-stats --BKQuery=/validation/MC11a/Beam3500GeV-2011-MagDown-Nu2-EmNoCuts/Sim05/Trig0x40760037Flagged/Reco12a/Stripping17Flagged/12463412/ALLSTREAMS.DST
-   
+
 
 Which should tell you the replica statistics, something like:
 ::
@@ -140,7 +140,7 @@ Which should tell you the replica statistics, something like:
 	3 replicas: 33 files
 	4 replicas: 0 files
 	5 replicas: 1 files
-	
+
 	SE statistics:
 	    CERN-ARCHIVE: 15 files
 	    CNAF-ARCHIVE: 5 files
@@ -161,7 +161,7 @@ Which should tell you the replica statistics, something like:
 	    RAL_MC_M-DST: 6 files
 	     SARA_MC-DST: 3 files
 	   SARA_MC_M-DST: 1 files
-	
+
 	Sites statistics:
 	     LCG.CERN.ch: 34 files
 	     LCG.CNAF.it: 12 files
@@ -170,7 +170,7 @@ Which should tell you the replica statistics, something like:
 	      LCG.PIC.es: 9 files
 	      LCG.RAL.uk: 26 files
 	     LCG.SARA.nl: 4 files
-	
+
 
 Later, when you see that at least 2 replicas exist, you can issue
 ::
@@ -190,7 +190,7 @@ Set the LHCbDirac environment, get a proxy with admin rights and launch the sysa
 
 ::
 
-  SetupProject LHCbDirac
+  lb-run LHCbDirac/latest bash
   lhcb-proxy-init -g diracAdmin
   dirac-admin-sysadmin-cli
 
@@ -326,12 +326,12 @@ dirac-bookkeeping-production-informations 830 -o /DIRAC/Setup=LHCb-Certification
 ::
 
 	lxplus448] x86_64-slc5-gcc46-opt /afs/cern.ch/user/j/joel> dirac-bookkeeping-production-informations 830 -o /DIRAC/Setup=LHCb-Certification
-	Production Info: 
+	Production Info:
 	Configuration Name: LHCb
 	Configuration Version: Collision11
 	Event type: 91000000
 	-----------------------
-	StepName: merging MDF 
+	StepName: merging MDF
 	ApplicationName    : mergeMDF
 	ApplicationVersion : None
 	OptionFiles        : None
@@ -350,7 +350,7 @@ dirac-bookkeeping-production-informations 830 -o /DIRAC/Setup=LHCb-Certification
 	/LHCb/Collision11/Beam3500GeV-VeloClosed-MagDown/Real Data/Merging/91000000/RAW
 
 
-You can then check the produced files: 
+You can then check the produced files:
 
 ::
 
@@ -368,7 +368,7 @@ You can then check the produced files:
 	    Configuration Name: certification
 	    Configuration Version: test
 	    Event type: 12143001
-	
+
 	 StepName: MCMerging10
 	    ApplicationName    : LHCb
 	    ApplicationVersion : v31r7
@@ -376,7 +376,7 @@ You can then check the produced files:
 	    DDB                : head-20101206
 	    CONDDB             : sim-20101210-vc-md100
 	    ExtraPackages      :None
-	
+
 	Number of Steps   4
 	Total number of files: 8
 	         LOG:4
@@ -392,7 +392,7 @@ You can then check the produced files:
 	/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000045_1.allstreams.dst             2971054    988731FC-1C40-E011-AFCD-90E6BA442F3B     Yes
 	/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000074_1.allstreams.dst             202748580  E2BAF0A1-A340-E011-BF97-003048F1B834     Yes
 	/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000076_1.allstreams.dst             2804277    F086C525-EB43-E011-96F9-001EC9D8B181     Yes
-	
+
 	[lxplus433] x86_64-slc5-gcc43-opt /afs/cern.ch/lhcb/software/DEV/LHCBDIRAC/LHCBDIRAC_v6r0-pre12> dirac-dms-lfn-replicas /lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000044_1.allstreams.dst
 	{'Failed': {},
 	 'Successful': {'/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000044_1.allstreams.dst': {'CERN_MC_M-DST': 'srm://srm-lhcb.cern.ch/castor/cern.ch/grid/lhcb/certification/test/ALLSTREAMS.DST/00000239/0000/00000239_00000044_1.allstreams.dst'}}}
@@ -413,12 +413,11 @@ How to enable/disable FTS channel ? To check TFS transfer, look at the log for D
 Specific tests
 --------------
 
-Every release is somewhat special, and introduce new features that should be tested. 
-It has to be noted that developers should always participate in the testing of very specific new developments, 
+Every release is somewhat special, and introduce new features that should be tested.
+It has to be noted that developers should always participate in the testing of very specific new developments,
 anyway the certification manager should look into if these tests have been done.
 
-Within Jira, there is a special board, named `ready for integration <https://its.cern.ch/jira/secure/RapidBoard.jspa?rapidView=604&view=detail&>`_. 
+Within Jira, there is a special board, named `ready for integration <https://its.cern.ch/jira/secure/RapidBoard.jspa?rapidView=604&view=detail&>`_.
 that contain tasks marked as "Resolved", but not yet "Done". Dragging tasks from left to right will mark them as "Done".
 
-So, the certification manager can decide to investigate directly, by submitting tests, if know, or ask the developer to confirm the task can be closed. 
- 
+So, the certification manager can decide to investigate directly, by submitting tests, if know, or ask the developer to confirm the task can be closed.
