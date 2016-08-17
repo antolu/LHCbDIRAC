@@ -25,7 +25,7 @@ class NotifyAgent( AgentModule ):
 
   def __init__( self, *args, **kwargs ):
 
-    super(NotifyAgent, self).__init__(args, kwargs)
+    super(NotifyAgent, self).__init__(*args, **kwargs)
 
     self.notification = None
     self.csS = None
