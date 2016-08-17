@@ -40,6 +40,22 @@ class NotifyAgent( AgentModule ):
     ''' NotifyAgent initialization
     '''
 
+    with sqlite3.connect(self.cacheFile) as conn:
+
+      try:
+        conn.execute('''CREATE TABLE IF NOT EXISTS ProductionManagementCache(
+                      reqId VARCHAR(64) NOT NULL DEFAULT "",
+                      reqType VARCHAR(64) NOT NULL DEFAULT "",
+                      reqWG VARCHAR(64) NOT NULL DEFAULT "",
+                      reqName VARCHAR(64) NOT NULL DEFAULT "",
+                      SimCondition VARCHAR(64) NOT NULL DEFAULT "",
+                      ProPath VARCHAR(64) NOT NULL DEFAULT "",
+                      thegroup VARCHAR(64) NOT NULL DEFAULT ""
+                     );''')
+
+      except sqlite3.OperationalError:
+        self.log.error('Email cache database is locked')
+
     self.notification = NotificationClient()
 
     self.csS = PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
@@ -198,8 +214,6 @@ class NotifyAgent( AgentModule ):
           </tr>
           {html_elements}
         </table>
-      </body>
-      </html>
       """.format(html_elements=html_elements)
 
       cursor = conn.execute("SELECT prod_requests, time from ProductionStatusAgentReqCache;")
@@ -223,12 +237,12 @@ class NotifyAgent( AgentModule ):
         </table>
       </body>
       </html>
-      """.format(html_elements=html_elements2)
+      """.format(html_elements2=html_elements2)
 
       aggregated_body = html_header2 + html_body1 + html_body2
 
       res = self.notification.sendMail( 'vladimir.romanovsky@cern.ch', "Transformation Status Updates", aggregated_body,
-                                        'vladimir.romanovsky@cern.ch', localAttempt = False )
+                                        'vladimir.romanovsky@cern.ch', localAttempt = False, html = True )
 
       if res['OK']:
 
