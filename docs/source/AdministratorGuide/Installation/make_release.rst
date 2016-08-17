@@ -344,6 +344,27 @@ Use the following script (from, e.g., lxplus after having run `lb-run LHCbDIRAC 
 for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin). 
 This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum.
 
+Merging devel to master
+```````````````````````
+
+Our developer model is to keep only two branches: master and devel. When we made a major release we have to merge devel to master. Before the
+merging please create a new branch based on master using the web interface of GitLab. This is for safety. After you can merege devel to master::
+
+    mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
+    
+    git clone ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git
+    
+    cd LHCbDIRAC
+    
+    git remote rename origin upstream
+    
+    git fetch upstream
+    
+    git checkout -b newMaster upstream/master
+    
+    git merge upstream/devel
+
+    git push upstream newMaster:master
 
 
 
