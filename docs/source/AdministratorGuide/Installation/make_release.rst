@@ -316,11 +316,21 @@ Specify that this error can be ignored (but should be fixed ! )::
 WebPortal
 `````````
 
-When the web portal machine is updated then you have to compile the WebApp:
+You have to install web server machine differently in order to reduce the user failure.
+
+    ssh lhcb-portal-dirac.cern.ch
     
-    ssh lbvobox33
     sudo su - dirac
+    
+    dirac-install -r VERSIONTOBEINSTALLED -t server -e LHCb,LHCbWeb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg (for example: dirac-install -r v8r3 -t server -e LHCb,LHCbWeb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg)
+    
     dirac-webapp-compile
+    
+    When the compilation is finished:
+    
+    lhcb-restart-agent-service
+    
+    runsvctrl t startup/Framework_SystemAdministrator/
 
 
 ````
