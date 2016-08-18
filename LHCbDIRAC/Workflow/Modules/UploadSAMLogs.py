@@ -132,8 +132,9 @@ class UploadSAMLogs( ModuleBase ):
 
         self.nagiosConnector.sendMessage()
         self.nagiosConnector.endConnection()
-      except Exception as e:
-        self.log.error( 'Nagios connect/send fails with ' + str(e) )
+      except Exception as e: #pylint:disable=broad-except
+        self.log.exception( 'Exception in UploadSAMLogs', lException = e )
+        return S_ERROR( str(e) )
 
       return S_OK( 'Logs uploaded' )
 

@@ -229,7 +229,7 @@ class ProtocolAccessTest( ModuleBase ):
 
     except Exception as e:
       self.log.exception( e )
-      return S_ERROR( e )
+      return S_ERROR( str(e) )
 
     finally:
       super( ProtocolAccessTest, self ).finalize( self.version )

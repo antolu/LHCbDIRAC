@@ -178,7 +178,7 @@ class RootApplication( ModuleBase ):
 
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in RootApplication execute module", lException = e )
-      return S_ERROR( e )
+      return S_ERROR( str(e) )
 
     finally:
       super( RootApplication, self ).finalize( self.version )

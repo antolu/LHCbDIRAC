@@ -122,7 +122,7 @@ class StepAccounting( ModuleBase ):
 
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in StepAccounting execute module", lException = e )
-      return S_ERROR( e )
+      return S_ERROR( str(e) )
 
     finally:
       super( StepAccounting, self ).finalize( self.version )

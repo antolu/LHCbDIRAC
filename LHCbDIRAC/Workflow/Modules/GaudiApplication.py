@@ -279,8 +279,8 @@ class GaudiApplication( ModuleBase ):
       if self.jobType.lower() == 'sam':
         self.workflow_commons.setdefault( 'SAMResults', {} )[self.applicationName] = 'CRITICAL'
         self.workflow_commons.setdefault( 'SAMDetails', {} )[self.applicationName] = exceptionString
-      self.setApplicationStatus( e )
-      return S_ERROR( e )
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
 
     finally:
       super( GaudiApplication, self ).finalize( self.version )

@@ -96,8 +96,8 @@ class AnalyseXMLSummary( ModuleBase ):
 
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in AnalyseXMLSummary execute module", lException = e )
-      self.setApplicationStatus( e )
-      return S_ERROR( e )
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
 
     finally:
       super( AnalyseXMLSummary, self ).finalize( self.version )
