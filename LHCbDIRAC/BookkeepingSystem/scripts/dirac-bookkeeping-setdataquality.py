@@ -256,7 +256,7 @@ if params['runnumber'] and params[ 'processingpass' ] is None and params['dqflag
   
 res = CheckDQFlag( params['dqflag'] )
 if not res['OK']:
-  gLogger.fatal( "%s - %s" % ( param['dqflag'], res['Message'] ) )
+  gLogger.fatal( "%s - %s" % ( params['dqflag'], res['Message'] ) )
   DIRAC.exit( 1 )
 
 if params['lfn']:
