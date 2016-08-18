@@ -12,7 +12,7 @@ import os
 import sqlite3
 from DIRAC                                                       import gConfig, S_OK, S_ERROR
 from DIRAC.Core.Base.AgentModule                                 import AgentModule
-from DIRAC.FrameworkSystem.Client.NotificationClient             import NotificationClient
+from DIRAC.Interfaces.API.DiracAdmin                             import DiracAdmin
 from DIRAC.ConfigurationSystem.Client                            import PathFinder
 from LHCbDIRAC.ProductionManagementSystem.Utilities.Utils        import _getMemberMails
 
@@ -27,7 +27,7 @@ class NotifyAgent( AgentModule ):
 
     super(NotifyAgent, self).__init__(*args, **kwargs)
 
-    self.notification = None
+    self.diracAdmin = None
     self.csS = None
     self.fromAddress = None
 
@@ -56,7 +56,7 @@ class NotifyAgent( AgentModule ):
       except sqlite3.OperationalError:
         self.log.error('Email cache database is locked')
 
-    self.notification = NotificationClient()
+    self.diracAdmin = DiracAdmin()
 
     self.csS = PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
 
@@ -161,7 +161,7 @@ class NotifyAgent( AgentModule ):
 
           for people in _getMemberMails( group[0] ):
 
-            res = self.notification.sendMail( people, "Notifications for production requests", aggregated_body, self.fromAddress, html = True )
+            res = self.diracAdmin.sendMail( people, "Notifications for production requests", aggregated_body, self.fromAddress, html = True )
 
             if res['OK']:
               conn.execute("DELETE FROM ProductionManagementCache;")
@@ -244,8 +244,8 @@ class NotifyAgent( AgentModule ):
 
       aggregated_body = html_header2 + html_body1 + html_body2
 
-      res = self.notification.sendMail( 'vladimir.romanovsky@cern.ch', "Transformation Status Updates", aggregated_body,
-                                        'vladimir.romanovsky@cern.ch', localAttempt = False, html = True )
+      res = self.diracAdmin.sendMail( 'vladimir.romanovsky@cern.ch', "Transformation Status Updates", aggregated_body,
+                                      'vladimir.romanovsky@cern.ch', localAttempt = False, html = True )
 
       if res['OK']:
 
