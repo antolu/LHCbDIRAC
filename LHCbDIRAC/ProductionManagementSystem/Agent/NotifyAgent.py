@@ -109,63 +109,66 @@ class NotifyAgent( AgentModule ):
         aggregated_body = ""
         html_elements = ""
 
-        if group[0] == 'lhcb_bk':
-          header = "New Productions are requested and they have customized Simulation Conditions. " \
-                   "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to register new Simulation conditions " \
-                   "or to reject the requests. In case some other member of the group has already done that, " \
-                   "please ignore this mail.\n"
+        # Check if group is not empty
+        if group[0]:
 
-        elif group[0] in [ 'lhcb_ppg', 'lhcb_tech' ]:
-          header = "New Productions are requested. As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to sign or " \
-                   "to reject it. In case some other member of the group has already done that, please ignore this mail.\n"
-        else:
-          header = "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked to review the below requests.\n"
+          if group[0] == 'lhcb_bk':
+            header = "New Productions are requested and they have customized Simulation Conditions. " \
+                     "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to register new Simulation conditions " \
+                     "or to reject the requests. In case some other member of the group has already done that, " \
+                     "please ignore this mail.\n"
 
-        cursor = conn.execute("SELECT reqId, reqType, reqName, SimCondition, ProPath from ProductionManagementCache "
-                              "WHERE thegroup = ?", (group[0],) )
-
-        for reqId, reqType, reqWG, reqName, SimCondition, ProPath in cursor:
-
-          html_elements += "<tr>" + \
-                           "<td>" + reqId + "</td>" + \
-                           "<td>" + reqName + "</td>" + \
-                           "<td>" + reqType + "</td>" + \
-                           "<td>" + reqWG + "</td>" + \
-                           "<td>" + SimCondition + "</td>" + \
-                           "<td>" + ProPath + "</td>" + \
-                           "<td class='link'><a href='" + link + "' target='_blank'> Link </a></td>" + \
-                           "</tr>"
-
-        html_body = """\
-          <p>{header}</p>
-          <table>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Working Group</th>
-                <th>Conditions</th>
-                <th>Processing pass</th>
-                <th>Link</th>
-            </tr>
-            {html_elements}
-          </table>
-        </body>
-        </html>
-        """.format(header=header, html_elements=html_elements)
-
-        aggregated_body = html_header + html_body
-
-        for people in _getMemberMails( group[0] ):
-
-          res = self.notification.sendMail( people, "Notifications for production requests", aggregated_body, self.fromAddress, True )
-
-          if res['OK']:
-            conn.execute("DELETE FROM ProductionManagementCache;")
-            conn.execute("VACUUM;")
+          elif group[0] in [ 'lhcb_ppg', 'lhcb_tech' ]:
+            header = "New Productions are requested. As member of <span style='color:green'>" + group[0] + "</span> group, your are asked either to sign or " \
+                     "to reject it. In case some other member of the group has already done that, please ignore this mail.\n"
           else:
-            self.log.error( "_inform_people: can't send email: %s" % res['Message'] )
-            return S_OK()
+            header = "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked to review the below requests.\n"
+
+          cursor = conn.execute("SELECT reqId, reqType, reqWG, reqName, SimCondition, ProPath from ProductionManagementCache "
+                                "WHERE thegroup = ?", (group[0],) )
+
+          for reqId, reqType, reqWG, reqName, SimCondition, ProPath in cursor:
+
+            html_elements += "<tr>" + \
+                             "<td>" + reqId + "</td>" + \
+                             "<td>" + reqName + "</td>" + \
+                             "<td>" + reqType + "</td>" + \
+                             "<td>" + reqWG + "</td>" + \
+                             "<td>" + SimCondition + "</td>" + \
+                             "<td>" + ProPath + "</td>" + \
+                             "<td class='link'><a href='" + link + "' target='_blank'> Link </a></td>" + \
+                             "</tr>"
+
+          html_body = """\
+            <p>{header}</p>
+            <table>
+              <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Working Group</th>
+                  <th>Conditions</th>
+                  <th>Processing pass</th>
+                  <th>Link</th>
+              </tr>
+              {html_elements}
+            </table>
+          </body>
+          </html>
+          """.format(header=header, html_elements=html_elements)
+
+          aggregated_body = html_header + html_body
+
+          for people in _getMemberMails( group[0] ):
+
+            res = self.notification.sendMail( people, "Notifications for production requests", aggregated_body, self.fromAddress, html = True )
+
+            if res['OK']:
+              conn.execute("DELETE FROM ProductionManagementCache;")
+              conn.execute("VACUUM;")
+            else:
+              self.log.error( "_inform_people: can't send email: %s" % res['Message'] )
+              return S_OK()
 
       # **************************************
       # This is for the ProductionStatusAgent
