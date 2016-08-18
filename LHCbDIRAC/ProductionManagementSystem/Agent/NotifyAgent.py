@@ -197,67 +197,79 @@ class NotifyAgent( AgentModule ):
 
       cursor = conn.execute("SELECT production, from_status, to_status, time from ProductionStatusAgentCache;")
 
-      for production, from_status, to_status, time in cursor:
+      # Check if the results are non-empty
+      if cursor.rowcount > 0:
 
-        html_elements += "<tr>" + \
-                         "<td>" + production + "</td>" + \
-                         "<td class='" + from_status + "'>" + from_status + "</td>" + \
-                         "<td class='" + to_status + "'>" + to_status + "</td>" + \
-                         "<td>" + time + "</td>" + \
-                         "</tr>"
+        for production, from_status, to_status, time in cursor:
 
-      html_body1 = """\
-        <p class="setup">Transformations updated</p>
-        <table>
-          <tr>
-              <th>Production</th>
-              <th>From</th>
-              <th>To</th>
-              <th>Time</th>
-          </tr>
-          {html_elements}
-        </table>
-      """.format(html_elements=html_elements)
+          html_elements += "<tr>" + \
+                           "<td>" + production + "</td>" + \
+                           "<td class='" + from_status + "'>" + from_status + "</td>" + \
+                           "<td class='" + to_status + "'>" + to_status + "</td>" + \
+                           "<td>" + time + "</td>" + \
+                           "</tr>"
 
-      cursor = conn.execute("SELECT prod_requests, time from ProductionStatusAgentReqCache;")
+        html_body1 = """\
+          <p class="setup">Transformations updated</p>
+          <table>
+            <tr>
+                <th>Production</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Time</th>
+            </tr>
+            {html_elements}
+          </table>
+        """.format(html_elements=html_elements)
 
-      for prod_requests, time in cursor:
+        cursor = conn.execute("SELECT prod_requests, time from ProductionStatusAgentReqCache;")
 
-        html_elements2 += "<tr>" + \
-                          "<td>" + prod_requests + "</td>" + \
-                          "<td>" + time + "</td>" + \
-                          "</tr>"
+        # Check if the results are non-empty
+        if cursor.rowcount > 0:
 
-      html_body2 = """\
-        <br />
-        <p class="setup">Production Requests updated to Done status</p>
-        <table>
-          <tr>
-              <th>Production Requests</th>
-              <th>Time</th>
-          </tr>
-          {html_elements2}
-        </table>
-      </body>
-      </html>
-      """.format(html_elements2=html_elements2)
+          for prod_requests, time in cursor:
 
-      aggregated_body = html_header2 + html_body1 + html_body2
+            html_elements2 += "<tr>" + \
+                              "<td>" + prod_requests + "</td>" + \
+                              "<td>" + time + "</td>" + \
+                              "</tr>"
 
-      res = self.diracAdmin.sendMail( 'vladimir.romanovsky@cern.ch', "Transformation Status Updates", aggregated_body,
-                                      'vladimir.romanovsky@cern.ch', localAttempt = False, html = True )
+          html_body2 = """\
+            <br />
+            <p class="setup">Production Requests updated to Done status</p>
+            <table>
+              <tr>
+                  <th>Production Requests</th>
+                  <th>Time</th>
+              </tr>
+              {html_elements2}
+            </table>
+          </body>
+          </html>
+          """.format(html_elements2=html_elements2)
 
-      if res['OK']:
+        else:
+          html_body2 = """\
+          </body>
+          </html>
+          """
 
-        conn.execute("DELETE FROM ProductionStatusAgentCache;")
-        conn.execute("VACUUM;")
+        aggregated_body = html_header2 + html_body1 + html_body2
 
-        conn.execute("DELETE FROM ProductionStatusAgentReqCache;")
-        conn.execute("VACUUM;")
+        res = self.diracAdmin.sendMail( 'vladimir.romanovsky@cern.ch', "Transformation Status Updates", aggregated_body,
+                                        'vladimir.romanovsky@cern.ch', html = True )
 
-      else:
-        self.log.error( "Can't send email: %s" % res['Message'] )
-        return S_OK()
+        if res['OK']:
+
+          conn.execute("DELETE FROM ProductionStatusAgentCache;")
+          conn.execute("VACUUM;")
+
+          conn.execute("DELETE FROM ProductionStatusAgentReqCache;")
+          conn.execute("VACUUM;")
+
+        else:
+          self.log.error( "Can't send email: %s" % res['Message'] )
+          return S_OK()
 
     return S_OK()
 
