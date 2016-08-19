@@ -1,5 +1,23 @@
 """
   Extends DIRAC EmailAgent
+
+  This agent extends the DIRAC EmailAgent which is used to aggregate status changes,
+  in this case LHCbDIRAC EmailAgent adds the additional functionality of automatically posting these
+  status changes in the LHCb logbook ("lblogbook.cern.ch").
+
+  This is done by invoking a client program named elog (1) which is used to post the data to the LHCb logbook.
+  The authentication is done by providing a valid username and password in the configuration file of dirac.
+
+  By default this agent will only post notifications that match a list of sites
+  (the list can be changed in the configuration file)
+
+  (1) The elog program can be downloaded from here: http://midas.psi.ch/elog/download.html
+  Upon the first execution if you get any error that includes "libssl.so.10" make sure that you have
+  "libssl1.0.0" and "libssl-dev" installed and make a link:
+
+  "cd /lib/x86_64-linux-gnu"
+  "sudo ln -s libssl.so.1.0.0 libssl.so.10"
+  "sudo ln -s libcrypto.so.1.0.0 libcrypto.so.10"
 """
 
 import os
