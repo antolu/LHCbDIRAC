@@ -31,9 +31,9 @@ class DataUsageHandler( RequestHandler ):
   """
   .. class:: DataUsageHandler
   """
-  types_sendDataUsageReport = [ StringTypes, DictType, StringTypes  ]
+  types_sendDataUsageReport = [ StringTypes, DictType  ]
   @staticmethod
-  def export_sendDataUsageReport( site , directoryDict, status ):
+  def export_sendDataUsageReport( site , directoryDict, status = 'New' ):
     """ export of sendDataUsageReport """
     return gStorageUsageDB.sendDataUsageReport( site, directoryDict, status )
 
