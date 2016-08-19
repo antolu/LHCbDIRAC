@@ -311,9 +311,8 @@ class UploadOutputData( ModuleBase ):
 
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( 'Exception in UploadOutputData', lException = e )
-      x = repr( e )
-      self.setApplicationStatus( 'UploadOutputData exception:' + x )
-      return S_ERROR( x )
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
 
     finally:
       super( UploadOutputData, self ).finalize( self.version )

@@ -87,7 +87,8 @@ class BookkeepingReport( ModuleBase ):
 
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in BookkeepingReport execute module", lException = e )
-      return S_ERROR( e )
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
 
     finally:
       super( BookkeepingReport, self ).finalize( self.version )

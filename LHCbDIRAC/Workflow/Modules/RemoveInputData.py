@@ -82,7 +82,8 @@ class RemoveInputData( ModuleBase ):
 
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in RemoveInputData execute module", lException = e )
-      return S_ERROR( e )
+      self.setApplicationStatus( e )
+      return S_ERROR( str(e) )
 
     finally:
       super( RemoveInputData, self ).finalize( self.version )

@@ -86,13 +86,13 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   vim CHANGELOG # please, remove comments like "fix" or "pylint" or "typo"...
   #modify the DIRAC version
   vim cmt/project.cmt
-  
+
     project LHCbDirac
     use DIRAC DIRAC_v6r14p25
     #use DIRAC DIRAC_v6r15-pre*
     use LHCBGRID LHCBGRID_v9r*
     use LCGCMT LCGCMT_79
-  
+
   # Commit in your local newMaster branch the 4 files you modified:
   #modified: CHANGELOG
   #modified: LHCbDIRAC/init.py
@@ -153,11 +153,11 @@ Creating the release tarball, add uploading it to the LHCb web service
 ``````````````````````````````````````````````````````````````````````
 Login on lxplus, run ::
 
-  SetupProject LHCbDirac
+  lb-run LHCbDirac/latest bash -norc
 
   git archive --remote ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
 
-  dirac-distribution -r v8r2p36 -l LHCb -C file:///`pwd`/releases.cfg (this may take some time)
+  dirac-distribution -r v8r3p1 -l LHCb -C file:///`pwd`/releases.cfg (this may take some time)
 
 Don't forget to read the last line of the previous command to copy the generated files at the right place. The format is something like::
 
@@ -201,7 +201,7 @@ This job will simply install the pilot. Please just check if the result does not
 ============================
 
 Before you start the release you must write an Elog entry 1 hour before you start the deployment.
-You have to select Production and Release tick boxes. When the intervention is over you must notify the users (reply to the Elog message). 
+You have to select Production and Release tick boxes. When the intervention is over you must notify the users (reply to the Elog message).
 
 
 4. Deploying the release
@@ -221,19 +221,19 @@ Please refer to this `TWIKI page <https://twiki.cern.ch/twiki/bin/view/LHCb/Proj
 a quick test to validate the installation is to run the SHELL script $LHCBRELEASE/LHCBDIRAC/LHCBDIRAC_vXrY/LHCbDiracSys/test/client_test.csh
 
 go to this `web page <https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/build/>`_ for asking to install the client release in AFS and CVMFS:
-    
+
 * in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"  (NOTE: If DIRAC already released, please use only LHCbDIRAC: LHCbDirac vArBpC)
 * in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
 * inthe field "scripts_version" put : "old-style-dirac"
 
 Then click on the "BUILD" button
-    
-* within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/   
+
+* within 10-15 min the build should start to appear in the nightlies page https://lhcb-nightlies.cern.ch/release/
 * if there is a problem in the build, it can be re-started via the dedicated button (it will not restart by itself after a retag)
 
 
-If it is the production release, and only in this case, once satisfied by the build, 
-take note of the build id (you can use the direct link icon) and make the request via https://sft.its.cern.ch/jira/browse/LHCBDEP. 
+If it is the production release, and only in this case, once satisfied by the build,
+take note of the build id (you can use the direct link icon) and make the request via https://sft.its.cern.ch/jira/browse/LHCBDEP.
 
 * NOTE: If some package is already released, please do not indicate in the Jira task. For example: a Jira task when:
     * DIRAC is not released, then the message in the JIRA task: Summary:Dirac v6r14p37 and LHCbDirac v8r2p50; Description: Please release  Dirac and  LHCbDirac in  this order  based on build 1526
@@ -278,58 +278,55 @@ The recommended way is the following::
 
 This command will create 6 files called "vobox_update_MyLetter" then you can run in 6 windows the recipe for one single machine like that::
 
-            ssh lxplus 
-            cd  DiracInstall ; SetupProject LHCbDIRAC ; lhcb-proxy-init -g lhcb_admin; dirac-admin-sysadmin-cli
+	    ssh lxplus
+	    cd  DiracInstall ; lb-run LHCbDIRAC/latest bash -norc ; lhcb-proxy-init -g lhcb_admin; dirac-admin-sysadmin-cli
             and from the prompt ::
                [host] : execfile vobox_update_MyLetter
                [host] : quit
-      
+
 Note::
 
 It is normal if you see the following errors:
 
       --> Executing restart Framework SystemAdministrator
-      [ERROR] Exception while reading from peer: (-1, 'Unexpected EOF') 
-      
+      [ERROR] Exception while reading from peer: (-1, 'Unexpected EOF')
+
 
 In case of failure you have to update the machine by hand.
-Example of a typical failure:: 
+Example of a typical failure::
 
          --> Executing update v8r2p42
-         Software update can take a while, please wait ... 
-         [ERROR] Failed to update the software 
-         Timeout (240 seconds) for '['dirac-install', '-r', 'v8r2p42', '-t', 'server', '-e', 'LHCb', '-e', 'LHCb', '/opt/dirac/etc/dirac.cfg']' call 
-      
+	 Software update can take a while, please wait ...
+	 [ERROR] Failed to update the software
+	 Timeout (240 seconds) for '['dirac-install', '-r', 'v8r2p42', '-t', 'server', '-e', 'LHCb', '-e', 'LHCb', '/opt/dirac/etc/dirac.cfg']' call
+
 Login to the failing machine, become dirac, execute manually the update, and restart everything. For example::
-      
+
       ssh lbvobox11
       sudo su - dirac
       dirac-install -r v8r2p42 -t server -e LHCb -e LHCb /opt/dirac/etc/dirac.cfg
       lhcb-restart-agent-service
       runsvctrl t startup/Framework_SystemAdministrator/
-      
+
 Specify that this error can be ignored (but should be fixed ! )::
 
       2016-05-17 12:00:00 UTC dirac-install [ERROR] Requirements installation script /opt/dirac/versions/v8r2p42_1463486162/scripts/dirac-externals-requirements failed. Check /opt/dirac/versions/v8r2p42_1463486162/scripts/dirac-externals-requirements.err
-      
+
 
 WebPortal
 `````````
 
-You have to install web server machine differently in order to reduce the user failure.
+When the web portal machine is updated then you have to compile the WebApp:
 
-    ssh lhcb-portal-dirac.cern.ch
-    
+    ssh lbvobox33
     sudo su - dirac
-    
     dirac-install -r VERSIONTOBEINSTALLED -t server -e LHCb,LHCbWeb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg (for example: dirac-install -r v8r3 -t server -e LHCb,LHCbWeb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg)
-    
     dirac-webapp-compile
-    
-    When the compilation is finished:
-    
+
+
+When the compilation is finished::
+
     lhcb-restart-agent-service
-    
     runsvctrl t startup/Framework_SystemAdministrator/
 
 
@@ -338,12 +335,12 @@ TODO
 ````
 When the machines are updated, then you have to go through all the components and check the errors. There are two possibilities:
    1. Use the Web portal (SystemAdministrator)
-   
+
    2. Command line::
-    
+
     for h in $(grep 'set host' vobox_update_* | awk {'print $NF'}); do echo "show errors" | dirac-admin-sysadmin-cli -H $h; done | less
-    
-   
+
+
 Pilot
 `````
 
@@ -351,31 +348,21 @@ Use the following script (from, e.g., lxplus after having run `lb-run LHCbDIRAC 
 
   dirac-pilot-version -S v8r2p42
 
-for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin). 
+for checking and updating the pilot version. Note that you'll need a proxy that can write in the CS (i.e. lhcb-admin).
 This script will make sure that the pilot version is update BOTH in the CS and in the json file used by pilots started in the vacuum.
 
-Merging devel to master (THIS is NOT for PATCH release)
-```````````````````````
+
+Basic instruction how to merging the devel branch into master (NOT for PATCH release)
+```````````````````````````````````````````````````````````````````````````````````````
 
 Our developer model is to keep only two branches: master and devel. When we made a major release we have to merge devel to master. Before the
 merging please create a new branch based on master using the web interface of GitLab. This is for safety. After you can merege devel to master::
 
     mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
-    
     git clone ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git
-    
     cd LHCbDIRAC
-    
     git remote rename origin upstream
-    
     git fetch upstream
-    
     git checkout -b newMaster upstream/master
-    
     git merge upstream/devel
-
     git push upstream newMaster:master
-
-
-
-
