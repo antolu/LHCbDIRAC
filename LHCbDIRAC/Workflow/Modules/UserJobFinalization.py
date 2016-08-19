@@ -281,8 +281,8 @@ class UserJobFinalization( ModuleBase ):
 
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in UserJobFinalization execute module", lException = e )
-      self.setApplicationStatus( e )
-      return S_ERROR( e )
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
 
     finally:
       super( UserJobFinalization, self ).finalize( self.version )

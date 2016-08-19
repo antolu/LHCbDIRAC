@@ -10,7 +10,7 @@
 
 import os
 import sqlite3
-from DIRAC                                                       import gConfig, S_OK, S_ERROR
+from DIRAC                                                       import gConfig, S_OK
 from DIRAC.Core.Base.AgentModule                                 import AgentModule
 from DIRAC.FrameworkSystem.Client.NotificationClient             import NotificationClient
 from DIRAC.ConfigurationSystem.Client                            import PathFinder

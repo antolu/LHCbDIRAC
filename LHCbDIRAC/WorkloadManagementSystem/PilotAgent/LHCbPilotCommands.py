@@ -85,7 +85,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
                       environment )
     environment = __parseEnvironmentFile( 'environmentLbLogin' )
 
-    self.__invokeCmd( 'lb-run LHCbDirac %s > environmentLHCbDirac' % self.pp.releaseVersion, environment )
+    self.__invokeCmd( 'lb-run LHCbDirac/%s > environmentLHCbDirac' % self.pp.releaseVersion, environment )
     return __parseEnvironmentFile( 'environmentLHCbDirac' )
 
 

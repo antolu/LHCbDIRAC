@@ -1,15 +1,18 @@
 """  The ClientTools module provides additional functions for use by users
      of the DIRAC client in the LHCb environment.
 """
-__RCSID__ = "$Id$"
 
-import os, tempfile, time
+import os
+import tempfile
+import time
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.Utilities.List          import breakListIntoChunks
 from DIRAC.Core.Utilities.Subprocess    import systemCall, shellCall
 
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getScriptsLocation, getProjectCommand, runEnvironmentScripts
+
+__RCSID__ = "$Id$"
 
 def _errorReport( error, message = None ):
   """Internal function to return errors and exit with an S_ERROR()

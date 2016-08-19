@@ -114,8 +114,8 @@ class FailoverRequest( ModuleBase ):
 
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in FailoverRequest execute module", lException = e )
-      self.setApplicationStatus( e )
-      return S_ERROR( e )
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
 
     finally:
       super( FailoverRequest, self ).finalize( self.version )

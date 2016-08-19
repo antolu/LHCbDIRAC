@@ -1,5 +1,9 @@
 #! /usr/bin/env python
-
+"""
+This script is used to flag a given files which belongs a certain run. For example:
+/Real Data 1 OK - the run 1 will be flagged OK
+/Real Data/Reco 2 OK  -the files which belongs Reco will be flagged and also the RAW files. 
+"""
 import DIRAC
 from DIRAC           import S_OK, S_ERROR, gLogger
 from DIRAC.Core.Base import Script
@@ -17,18 +21,16 @@ bkClient = BookkeepingClient()
 # Make sure the DQ flag is a known one.                                        #
 #                                                                              #
 ################################################################################
-def CheckDQFlag(dqFlag):
+def CheckDQFlag( dqFlag ):
   res = bkClient.getAvailableDataQuality()
   if not res['OK']:
-    gLogger.error(res['Message'])
-    return S_ERROR()
+    return res
 
   if dqFlag in res['Value']:
-    retVal = S_OK()
+    return S_OK()
   else:
-    retVal = S_ERROR()
+    return S_ERROR( "Data quality flag is not in the db" )
 
-  return retVal
 ################################################################################
 #                                                                              #
 # FlagBadRun:                                                                  #
@@ -36,28 +38,26 @@ def CheckDQFlag(dqFlag):
 # A run is BAD, flag it and all its files BAD.                                 #
 #                                                                              #
 ################################################################################
-def FlagBadRun(runNumber):
-  res = GetProcessingPasses(runNumber, ['/Real Data'])
+def FlagBadRun( runNumber ):
+  """
+  This flags everithing which belongs to this run. Real Data, Reco, Stripping, etc...
+  """
+  res = GetProcessingPasses( runNumber, '/Real Data' )
   if not res['OK']:
-    gLogger.error('FlagBadRun: %s' %(res['Message']))
-    return 2
+    gLogger.error( 'FlagBadRun: %s' % ( res['Message'] ) )
+    return res
         
-  allProcPass = res['Value']
-    
-  res = bkClient.setRunDataQuality(int(runNumber), 'BAD')
-  if not res['OK']:
-    gLogger.error('FlagBadRun: %s' %(res['Message']))
-    return 2
-
-  retVal = 0
-  for thisPass in allProcPass:
-    res = bkClient.setRunAndProcessingPassDataQuality(runNumber, thisPass, 'BAD')
+  allProcPass = res['Value'] + ['/Real Data']
+  
+  for procName in allProcPass:
+    res = bkClient.setRunAndProcessingPassDataQuality( int( runNumber ), procName, 'BAD' )
     if not res['OK']:
-      gLogger.error('FlagBadRun: %s' %(res['Message']))
-      retVal = 2
-      break
-
-  return retVal
+      gLogger.error( 'FlagBadRun: %s' % ( res['Message'] ) )
+      return res
+    else:
+      gLogger.notice( "Run: %d  Processing pass : %s flagged as BAD" % ( runNumber, procName ) )
+      
+  return S_OK()
 ################################################################################
 #                                                                              #
 # FlagFileList:                                                                #
@@ -65,36 +65,34 @@ def FlagBadRun(runNumber):
 # Flag a LFN or a list of LFN contained in a file.                             #
 #                                                                              #
 ################################################################################
-def FlagFileList(filename, dqFlqg):
+def FlagFileList( filename, dqFlqg ):
   lfns = []
 
   #
   # Load the list of LFN
   #
-    
   try:
-    f = open(filename)
-    for lfn in f:
-      lfns.append(lfn.strip())
-  except Exception:
-    lfns = [filename]
+    with open( filename ) as f:
+      for lfn in f:
+        lfns.append( lfn.strip() )
+  except IOError:
+    lfns = filename.split( ',' )
 
   #
   # Now flag the LFN
   #
     
-  retVal = 0
-  res    = bkClient.setFileDataQuality(lfns, dqFlag)
+  res = bkClient.setFileDataQuality( lfns, dqFlag )
 
   if not res['OK']:
-    gLogger.error('FlagFileList: %s' %(res['Message']))
-    retVal = 2
+    return res
   else:
-    print 'The data quality has been set %s for the following files:' %dqFlag
+    glogger.notice( 'The data quality has been set %s for the following files:' % dqFlag )
     for l in lfns:
-      print l
+      gLogger.notice( l )
             
-  return retVal
+  return S_OK()
+
 ################################################################################
 #                                                                              #
 # FlagRun:                                                                     #
@@ -102,53 +100,50 @@ def FlagFileList(filename, dqFlqg):
 # Flag a run given its number, the processing pass and the DQ flag.            #
 #                                                                              #
 ################################################################################
-def FlagRun(runNumber, procPass, dqFlag):
-  res = GetProcessingPasses(runNumber, ['/Real Data'])
+def FlagRun( runNumber, procPass, dqFlag ):
+   
+  res = GetProcessingPasses( runNumber, '/Real Data' )
   if not res['OK']:
-    gLogger.error('FlagRun: %s' %(res['Message']))
-    return 2
-        
-  allProcPass = res['Value']
+    return S_ERROR( 'FlagRun: %s' % res['Message'] )
+          
+  allProcPass = res['Value'] + ['/Real Data']
 
   #
   # Make sure the processing pass entered by the operator is known
   #
-
+  
+  gLogger.notice( "Available processing passes:", allProcPass )
+  
   for thisPass in procPass:
     if thisPass not in  allProcPass:
-      gLogger.error('%s is not a valid processing pass.' %thisPass)
-      return 2
+      return S_ERROR( '%s is not a valid processing pass.' % thisPass )
 
   #
   # Add to the list all other processing pass, like stripping, calo-femto..
   #
 
   allProcPass = procPass
-  res = GetProcessingPasses(runNumber, procPass)
-  if not res['OK']:
-    gLogger.error('FlagRun: %s' %(res['Message']))
-    return 2
-        
-  allProcPass.extend(res['Value'])
-
-  # Flag the processing passes
-
-  retVal = 0
-  for thisPass in allProcPass:
-    res = bkClient.setRunAndProcessingPassDataQuality(str(runNumber),
-                                                      thisPass,
-                                                      dqFlag)
+  for proc in procPass:
+    res = GetProcessingPasses( runNumber, proc )
     if not res['OK']:
-      gLogger.error('FlagRun: processing pass %s\n error: %s' %(thisPass,
-                                                                  res['Message']))
-      retVal = 2
-      break
+      return S_ERROR( 'FlagRun: %s' % res['Message'] )        
+    allProcPass.extend( res['Value'] )
+
+  
+    # Flag the processing passes
+  for thisPass in allProcPass:
+    res = bkClient.setRunAndProcessingPassDataQuality( runNumber,
+                                                      thisPass,
+                                                      dqFlag )
+    if not res['OK']:
+      return S_ERROR( 'FlagRun: processing pass %s\n error: %s' % ( thisPass, res['Message'] ) )
     else:
-      print 'Run %s Processing Pass %s flagged %s' %(str(runNumber),
-                                                            thisPass,
-                                                            dqFlag)
-    
-  return retVal
+      gLogger.notice( 'Run %d Processing Pass %s flagged %s' % ( runNumber,
+                                                                 thisPass,
+                                                                 dqFlag ) )
+  
+  return S_OK()
+
 ################################################################################
 #                                                                              #
 # GetProcessingPasses:                                                         #
@@ -156,156 +151,132 @@ def FlagRun(runNumber, procPass, dqFlag):
 # Find all known processing passes for the selected configurations.            #
 #                                                                              #
 ################################################################################
-def GetProcessingPasses(runNumber, procPassList):
+def GetProcessingPasses( runNumber, procPass ):
 
-  res = bkClient.getRunInformations(int(runNumber))
+  res = bkClient.getRunInformations( int( runNumber ) )
   if not res['OK']:
-    return S_ERROR(res['Messgage'])
+    return S_ERROR( res['Messgage'] )
 
-  cfgName    = res['Value']['Configuration Name']
+  cfgName = res['Value']['Configuration Name']
   cfgVersion = res['Value']['Configuration Version']
-
+  dqDesc = res['Value']['DataTakingDescription']
+  
   bkDict = {'ConfigName'    : cfgName,
-            'ConfigVersion' : cfgVersion}
+            'ConfigVersion' : cfgVersion,
+            'RunNumber'     : runNumber,
+            'ConditionDescription': dqDesc}
 
   passes = []
+  res = browseBkkPath( bkDict, procPass, passes )
+  if not res['OK']:
+    return res
+  else:
+    return S_OK( passes )
+     
 
-  for thisPass in procPassList:
-    res = bkClient.getProcessingPass(bkDict, thisPass)
-    if not res['OK']:
-      return S_ERROR('Cannot load the processing passes for Version %s processing pass' %(cfgVersion, thisPass))
+def browseBkkPath ( bkDict, processingPass, passes = [] ):
+  
+  res = bkClient.getProcessingPass( bkDict, processingPass )
+  if not res['OK']:
+    gLogger.error( 'Cannot load the processing passes for head % in Version %s Data taking condition %s' % ( processingPass,
+                                                                                                             bkDict['ConfigVersion'],
+                                                                                                             bkDict['ConditionDescription'] ) )
+    gLogger.error( res['Message'] )
+    return res
 
-    for recordList in res['Value']:
-      if recordList['TotalRecords'] == 0:
-        continue
-      parNames = recordList['ParameterNames']
+  for recordList in res['Value']:
+    if recordList['TotalRecords'] == 0:
+      continue
+    parNames = recordList['ParameterNames']
 
-      found = False
-      for thisId in range(len(parNames)):
-        parName = parNames[thisId]
-        if parName == 'Name':
+    found = False
+    for thisId in xrange( len( parNames ) ):
+      parName = parNames[thisId]
+      if parName == 'Name':
           found = True
           break
-
-      if found:
-        for reco in recordList['Records']:
-          recoName = thisPass + '/' + reco[0]
-          passes.append(recoName)
-                
-  return S_OK(passes)
+    if found:
+      for reco in recordList['Records']:
+        recoName = processingPass + '/' + reco[0]
+        passes.append( recoName )  
+        browseBkkPath( bkDict, recoName, passes )
+    return S_OK()
+  
 ################################################################################
 #                                                                              #
 #                                  >>> Main <<<                                #
 #                                                                              #
 ################################################################################
 
-gLogger.setLevel("VERB")
 
-Script.registerSwitch("l:", "lfnfile",        "Flag a LFN or list of LFN")
-Script.registerSwitch("r:", "run",            "Flag a run")
-Script.registerSwitch("p:", "processingPass", "Processing pass for which a run should be flagged")
+Script.registerSwitch( "l:", "lfnfile", "Flag a LFN or list of LFN" )
+Script.registerSwitch( "r:", "run", "Flag a run" )
+Script.registerSwitch( "p:", "processingPass", "Processing pass for which a run should be flagged" )
+Script.registerSwitch( "q:", "dataqualityflag", "Data quality flag" )
 
-Script.setUsageMessage('\n'.join([ 'Usage:',
-                                   '  %s -l [LFN|filename] dqflag'        % Script.scriptName,
-                                   '  %s -r runNumber BAD'                % Script.scriptName,
-                                   '  %s -r runNumber -p procPass dqFlag' % Script.scriptName,
-                                   '']))
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                    '\nArguments:',
+                                    '  lfnfile (string) : [LFN|filename]',
+                                    '  processingPass (string) : porcessing pass(es)',
+                                    '  runNumber (int): run number to be flagged',
+                                    '  dataqualityflag (string): data quality\n', ] ) )
 
-Script.parseCommandLine()
 
-args     = Script.getPositionalArgs()
-switches = Script.getUnprocessedSwitches()
 
-if len(args):
-  dqFlag = args[0].upper()
-else:
-  dqFlag = ''
+Script.parseCommandLine( ignoreErrors = True )
 
-filename  = ''
-runNumber = ''
-procPass  = []
-#
-# Read the switchs.
-#
-
-for switch in switches:
-  opt = switch[0].lower()
-  val = switch[1]
-
-  if opt in ('l', 'lfnfile'):
-    filename = val
-  elif opt in ('r', 'run'):
-    runNumber = str(val)
-  elif opt in ('p', 'processingpass'):
-    tmpPass = []
-    if re.search(',', val):
-      tmpPass = val.split(',')
-    else:
-      tmpPass.append(val)
-
-    for pp1 in tmpPass:
-      haveIt  = False
-
-      for pp2 in procPass:
-        if pp1 == pp2:
-          haveIt = True
-          break
-
-      if not haveIt:
-        procPass.append(pp1)
-
-#
-# Make sure '/Real Data' is not one of the processing passes.
-#
-
-for thisPass in procPass:
-  if thisPass == '/Real Data':
-    gLogger.error('You cannot use \'/Real Data\' as processing pass');
-    DIRAC.exit(3)
-
-#
-# Verify the user input and execute if correct.
-#
 
 exitCode = 0
-if not len(dqFlag):
-  Script.showHelp()
-  exitCode = 2
-else:
-  res = CheckDQFlag(dqFlag)
+
+params = {'lfn'    : None,
+          'runnumber' : None,
+          'dqflag': None,
+          'processingpass': None}
+
+for switch in Script.getUnprocessedSwitches():
+  if switch[ 0 ].lower() in ( 'l', 'lfnfile' ):
+    params[ 'lfn' ] = switch[ 1 ]
+  elif switch[ 0 ].lower() in ( 'r', 'run' ):
+    params[ 'runnumber' ] = int( switch[ 1 ] )
+  elif switch[ 0 ].lower() in ( 'q', 'dataqualityflag' ):
+    params[ 'dqflag' ] = switch[ 1 ]
+  elif switch[ 0 ].lower() in ( 'p', 'processingPass' ):
+    params[ 'processingpass' ] = switch[ 1 ].split( ',' )
+
+if params['lfn'] is None and params['runnumber'] is None:
+  gLogger.fatal( 'Please specify run number or an lfn!' )
+  DIRAC.exit( 1 )
+if params['dqflag'] is None:
+  gLogger.fatal( 'Please specify the data quality flag!' )
+  DIRAC.exit( 1 )
+
+if params['runnumber'] and params[ 'processingpass' ] is None and params['dqflag'] != 'BAD' :
+  gLogger.fatal( "Please specify the processing pass!" )
+  DIRAC.exit( 1 )
+  
+res = CheckDQFlag( params['dqflag'] )
+if not res['OK']:
+  gLogger.fatal( "%s - %s" % ( params['dqflag'], res['Message'] ) )
+  DIRAC.exit( 1 )
+
+if params['lfn']:
+  res = FlagFileList( params['lfn'], params['dqflag'] )
   if res['OK']:
-    if len(filename) and len(runNumber):
-      Script.showHelp()
-      exitCode = 2
-    elif not len(filename) and not len(runNumber):
-      Script.showHelp()
-      exitCode = 2
-    elif len(filename):
-      FlagFileList(filename, dqFlag)
-    elif len(runNumber):
-      if dqFlag == 'BAD':
-        exitCode = FlagBadRun(runNumber)
-        if exitCode == 0:
-          gLogger.info('Run % is flagged BAD')
-      else:
-        if not len(procPass):
-          Script.showHelp()
-          exitCode = 2
-        else:
-          passOK = True
-          for thisPass in procPass:
-            m = re.search('/Real Data', thisPass)
-            if not m:
-              gLogger.error('You forgot /Real Data in the processing pass: %s' % thisPass);
-              passOK = False
-              break
-              
-          if passOK:
-            exitCode = FlagRun(runNumber, procPass, dqFlag)
-          else:
-            exitCode = 2
+    gLogger.notice( "Files are flagged!" )
+    DIRAC.exit( exitCode )
   else:
-    exitCode = 2
-            
+    gLogger.fatal( res['Message'] )
+
+if params['runnumber']:
+  if params['dqflag'] == 'BAD':
+    res = FlagBadRun( params['runnumber'] )
+    if not res['OK']:
+      gLogger.fatal( res['Message'] )
+      DIRAC.exit( 1 )
+  else:
+    res = FlagRun( params['runnumber'], params['processingpass'], params['dqflag'] )
+    if not res['OK']:
+      gLogger.fatal( res['Message'] )
+      DIRAC.exit( 1 )              
     
-DIRAC.exit(exitCode)
+DIRAC.exit( exitCode )

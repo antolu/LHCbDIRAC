@@ -139,37 +139,27 @@ class PluginUtilities( DIRACPluginUtilities ):
     if not res['OK']:
       self.logError( "There is no CS section %s" % section, res['Message'] )
       return res
-    # Apply these processing fractions to the RAW distribution shares
-    rawFraction = res['Value']
-    result = getShares( 'RAW', normalise = True )
-    if result['OK']:
-      rawShares = result['Value']
-      shares = dict( ( se, rawShares[se] * rawFraction[se] ) for se in set( rawShares ) & set( rawFraction ) )
-      tier1Fraction = sum( shares.values() )
-      shares[backupSE] = 100. - tier1Fraction
-    else:
-      return res
-    self.logInfo( "Fraction of RAW (%s) to be processed at each SE (%%):" % section )
-    for se in sorted( shares ):
-      self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), shares[se] ) )
-    return S_OK( ( rawFraction, shares ) )
-
-  def getReplicationShares( self, section = None ):
-    """
-    Get shares from CS for RAW replication
-    """
-    if section is None:
-      section = 'RAW'
-    res = getShares( section )
-    if not res['OK']:
-      self.logError( "There is no CS section %s" % section, res['Message'] )
-      return res
     rawFraction = None
+    if backupSE:
+      # Apply these processing fractions to the RAW distribution shares
+      rawFraction = res['Value']
+      result = getShares( 'RAW', normalise = True )
+      if result['OK']:
+        rawShares = result['Value']
+        shares = dict( ( se, rawShares[se] * rawFraction[se] ) for se in set( rawShares ) & set( rawFraction ) )
+        tier1Fraction = sum( shares.values() )
+        shares[backupSE] = 100. - tier1Fraction
+      else:
+        return res
+      self.logInfo( "Fraction of RAW (%s) to be processed at each SE (%%):" % section )
+      for se in sorted( rawFraction ):
+        self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), 100. * rawFraction[se] ) )
+    else:
+      shares = normaliseShares( res['Value'] )
+      self.logInfo( "Obtained the following target distribution shares (%):" )
+      for se in sorted( shares ):
+        self.logInfo( "%s: %.1f" % ( se.ljust( 15 ), shares[se] ) )
 
-    shares = normaliseShares( res['Value'] )
-
-    if self.shareMetrics is None:
-      self.shareMetrics = self.getPluginParam( 'ShareMetrics', 'Files' )
     # Get the existing destinations from the transformationDB, just for printing
     if self.shareMetrics == 'Files':
       res = self.getExistingCounters( requestedSEs = sorted( shares ) )
@@ -211,7 +201,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     """
     Get per site how much time of run was assigned
     """
-    res = self.getTransformationRuns()
+    res = self.getTransformationRuns( transID = transID )
     if not res['OK']:
       return res
     runDictList = res['Value']
@@ -232,6 +222,8 @@ class PluginUtilities( DIRACPluginUtilities ):
       for se in selectedSEs:
         seUsage[se] = seUsage.setdefault( se, 0 ) + duration
 
+    if normalise:
+      seUsage = normaliseShares( seUsage )
     return S_OK( seUsage )
 
 
@@ -239,8 +231,10 @@ class PluginUtilities( DIRACPluginUtilities ):
     """
     Used by RAWReplication and RAWProcessing plugins, gets what has been done up to now while distributing runs
     """
+    if transID is None:
+      transID = self.transID
     res = self.transClient.getCounters( 'TransformationFiles', ['UsedSE'],
-                                        {'TransformationID':self.transID} )
+                                        {'TransformationID':transID} )
     if not res['OK']:
       return res
     usageDict = {}
@@ -257,7 +251,11 @@ class PluginUtilities( DIRACPluginUtilities ):
         if overlap:
           for ov in overlap:
             seDict[ov] = seDict.setdefault( ov, 0 ) + count
+        else:
+          self.logWarn( "%s is in counters but not in required list" % se )
       usageDict = seDict
+    if normalise:
+      usageDict = normaliseShares( usageDict )
     return S_OK( usageDict )
 
   def getBookkeepingMetadata( self, lfns, param ):

@@ -23,10 +23,10 @@ INSTALL_CFG_FILE='$TESTCODE/LHCbDIRAC/tests/Jenkins/install.cfg'
 #
 # findRelease for LHCbDIRAC:
 #
-#   If the environment variable "PRERELEASE" exists, we use a LHCb prerelease
-#   instead of a regular release ( production-like ).
-#   If any parameter is passed, we assume we are on pre-release mode, otherwise,
-#   we assume production. It reads from releases.cfg and picks the latest version
+#   If the environment variable "LHCBDIRAC_RELEASE" exists, and set, we use the specified release.
+#   If the environment variable "LHCBDIRACBRANCH" exists, and set, we use the specified "branch", otherwise we take the last one.
+#
+#   It reads from releases.cfg and picks the latest version
 #   which is written to {project,dirac,lhcbdirac}.version
 #
 #.............................................................................
@@ -59,24 +59,53 @@ function findRelease(){
   #   LcgVer = 2013-09-24
   # }
 
-  PRE='p[[:digit:]]*'
-
   if [ ! -z "$LHCBDIRAC_RELEASE" ]
   then
     echo '==> Specified release'
     echo $LHCBDIRAC_RELEASE
     projectVersion=$LHCBDIRAC_RELEASE
   else
-    if [ ! -z "$PRERELEASE" ]
+    if [ ! -z "$LHCBDIRACBRANCH" ]
     then
-      echo '==> Running on PRERELEASE mode'
-      PRE='-pre'
+      echo '==> Looking for LHCBDIRAC branch ' $LHCBDIRACBRANCH
     else
-      echo '==> Running on REGULAR mode'
+      echo '==> Running on last one'
     fi
-    # projectVersion := v7r15-pre2 ( if we are in PRERELEASE mode )
-    projectVersion=`cat $TESTCODE/releases.cfg | grep [^:]v[[:digit:]]r[[:digit:]]*$PRE | head -1 | sed 's/ //g'`
+
+    # If I don't specify a LHCBDIRACBRANCH, it will get the latest "production" release
+    # First, try to find if we are on a production tag
+    if [ ! -z "$LHCBDIRACBRANCH" ]
+    then
+      projectVersion=`cat $TESTCODE/releases.cfg | grep '[^:]v[[:digit:]]*r[[:digit:]]*p[[:digit:]]*' | grep $LHCBDIRACBRANCH | head -1 | sed 's/ //g'`
+    else
+      projectVersion=`cat $TESTCODE/releases.cfg | grep '[^:]v[[:digit:]]*r[[:digit:]]*p[[:digit:]]*' | head -1 | sed 's/ //g'`
+    fi
+
+    # The special case is when there's no 'p'... (e.g. version v8r3)
+    if [ ! "$projectVersion" ]
+    then
+      if [ ! -z "$LHCBDIRACBRANCH" ]
+      then
+        projectVersion=`cat $TESTCODE/releases.cfg | grep '[^:]v[[:digit:]]*r[[:digit:]]' | grep $LHCBDIRACBRANCH | head -1 | sed 's/ //g'`
+      else
+        projectVersion=`cat $TESTCODE/releases.cfg | grep '[^:]v[[:digit:]]*r[[:digit:]]' | head -1 | sed 's/ //g'`
+      fi
+    fi
+
+    # In case there are no production tags for the branch, look for pre-releases in that branch
+    if [ ! "$projectVersion" ]
+    then
+      if [ ! -z "$LHCBDIRACBRANCH" ]
+      then
+        projectVersion=`cat $TESTCODE/releases.cfg | grep '[^:]v[[:digit:]]*r[[:digit:]]*'-pre'' | grep $LHCBDIRACBRANCH | head -1 | sed 's/ //g'`
+      else
+        projectVersion=`cat $TESTCODE/releases.cfg | grep '[^:]v[[:digit:]]*r[[:digit:]]*'-pre'' | head -1 | sed 's/ //g'`
+      fi
+    fi
+
   fi
+
+
 
   echo PROJECT:$projectVersion && echo $projectVersion > project.version
 
@@ -171,7 +200,7 @@ function LHCbDIRACPilotInstall(){
     echo 'ERROR: cannot change to ' $PILOTINSTALLDIR
     return
   fi
-  echo -e '==> Running dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG'
+  echo -e "==> Running dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG"
   python dirac-pilot.py -S $DIRACSETUP -l LHCb $installVersion -g $lcgVersion -C $CSURL -N $JENKINS_CE -Q $JENKINS_QUEUE -n $JENKINS_SITE --cert --certLocation=/home/dirac/certs/ -E LHCbPilot -X LHCbGetPilotVersion,CheckWorkerNode,LHCbInstallDIRAC,LHCbConfigureBasics,CheckCECapabilities,CheckWNCapabilities,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements $DEBUG
   cd $cwd
   if [ $? -ne 0 ]
@@ -256,19 +285,14 @@ function submitAndMatch(){
 
 function installLHCbDIRAC(){
 
-  if [ ! -z "$PRERELEASECLIENT" ]
+  if [ ! "$LBRUNRELEASE" ]
+  findRelease
   then
-    echo '==> Installing PRERELEASE client'
-    findRelease
+    echo '==> Installing client with dirac-install'
     installLHCbDIRACClient
   else
-    #Setup Release (saving what's there before - most probably PRERELEASE=True)
-    export PRERELEASEVALUE=$PRERELEASE
-    export PRERELEASE=''
-    findRelease
+    echo '==> Installing client with lb-run'
     setupLHCbDIRAC
-    #reset
-    export PRERELEASE=$PRERELEASEVALUE
   fi
 
 }
@@ -296,22 +320,16 @@ function installLHCbDIRACClient(){
 
 function setupLHCbDIRAC(){
 
-  echo '==> Invoking lb-run for LHCbDIRAC'
-
+  echo -e "==> Invoking LbLogin.sh"
   . /cvmfs/lhcb.cern.ch/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v8r6p5/InstallArea/scripts/LbLogin.sh
+
   local version=`cat project.version`
-  if [ ! -z "$PRERELEASE" ]
-  then
-    dev='--dev'
-  else
-    dev=''
-  fi
-  echo '==> Invoking lb-run $dev LHCbDirac/$version bash -norc'
-  lb-run $dev LHCbDirac/$version bash -norc
+  echo -e "==> Invoking lb-run LHCbDirac/$version bash -norc"
+  lb-run LHCbDirac/$version bash -norc
   local status=$?
   if [ $status -ne 0 ]
   then
-    echo "==> Going to install client with dirac-install"
+    echo -e "==> lb-run NOT successful: going to install client with dirac-install"
     installLHCbDIRACClient
   else
     export PYTHONPATH=$PYTHONPATH:$CLIENTINSTALLDIR/
@@ -321,7 +339,7 @@ function setupLHCbDIRAC(){
 
 function submitJob(){
 
-  echo '==> Submitting a simple job'
+  echo -e "==> Submitting a simple job"
 
   #This is is executed from the $CLIENTINSTALLDIR
 
