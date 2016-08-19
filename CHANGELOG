@@ -1,3 +1,19 @@
+[v8r3p1]
+use DIRAC v6r15p13
+* fixed doc
+* Recover v8r2 PluginUtilities
+* better error reporting
+* Removed distinction about pre-release
+* fix type mismatch
+* allow to flag Real Data and a bit cleaning
+* removed outdated
+* from SetupProject to lb-run
+* DataUsage: make the service backward compatible for sendDataUsageReport
+* Install the web server differently in order to minimise the user failure.
+* warn release manager to not merege devel to master by incident.
+* add documentation about how to merge devel to master branches.
+* remove lbvobox42
+
 [v8r3]
 use DIRAC v6r15p12
 
