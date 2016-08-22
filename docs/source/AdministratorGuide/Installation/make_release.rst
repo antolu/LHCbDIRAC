@@ -69,6 +69,7 @@ If there are no MRs, or none ready: please skip to the "update the CHANGELOG" su
 Otherwise, simply click the "Accept merge request" button for each of them.
 
 Then, from the LHCbDIRAC local fork you need to update some files::
+
   # if you start from scratch otherwise skip the first 2 commands
   mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
   git clone https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
