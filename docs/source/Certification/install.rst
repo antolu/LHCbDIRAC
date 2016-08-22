@@ -72,6 +72,7 @@ Otherwise, simply click the "Accept merge request" button for each of them.
 Then, from the LHCbDIRAC local fork you need to update some files::
 
   # if you start from scratch otherwise skip the first 2 commands
+  mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
   git clone https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
   git remote add upstream https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
   # update your "local" upstream/master branch
@@ -85,7 +86,8 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   # Update the version in the releases.cfg file:
   vim LHCbDIRAC/releases.cfg
   # For updating the CHANGELOG, get what's changed since the last tag
-  t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
+  #please use the proper LHCbDIRAC tag; replace v8r2p46
+  git log --pretty=oneline ${t}..HEAD | grep -Ev "($(git log --pretty=oneline  ${t}..v8r2p46 | awk {'print $1'} | tr '\n' '|')BOOM)"
   # copy the output, add it to the CHANGELOG (please also add the DIRAC version)
   vim CHANGELOG # please, remove comments like "fix" or "pylint" or "typo"...
   #If needed, change the versions of the packages
