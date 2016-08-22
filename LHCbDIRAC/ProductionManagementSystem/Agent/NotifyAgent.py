@@ -161,7 +161,8 @@ class NotifyAgent( AgentModule ):
 
           for people in _getMemberMails( group[0] ):
 
-            res = self.diracAdmin.sendMail( people, "Notifications for production requests", aggregated_body, self.fromAddress, html = True )
+            res = self.diracAdmin.sendMail( people, "Notifications for production requests - Group " + group[0],
+                                            aggregated_body, self.fromAddress, html = True )
 
             if res['OK']:
               conn.execute("DELETE FROM ProductionManagementCache;")
