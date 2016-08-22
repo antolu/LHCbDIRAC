@@ -69,7 +69,10 @@ If there are no MRs, or none ready: please skip to the "update the CHANGELOG" su
 Otherwise, simply click the "Accept merge request" button for each of them.
 
 Then, from the LHCbDIRAC local fork you need to update some files::
-
+  # if you start from scratch otherwise skip the first 2 commands
+  mkdir $(date +20%y%m%d) && cd $(date +20%y%m%d)
+  git clone https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
+  git remote add upstream https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git
   # update your "local" upstream/master branch
   git fetch upstream
   # create a "newMaster" branch which from the upstream/master branch
@@ -84,24 +87,9 @@ Then, from the LHCbDIRAC local fork you need to update some files::
   t=$(git describe --abbrev=0 --tags); git --no-pager log ${t}..HEAD --no-merges --pretty=format:'* %s';
   # copy the output, add it to the CHANGELOG (please also add the DIRAC version)
   vim CHANGELOG # please, remove comments like "fix" or "pylint" or "typo"...
-  #modify the DIRAC version
-  vim cmt/project.cmt
-
-    project LHCbDirac
-    use DIRAC DIRAC_v6r14p25
-    #use DIRAC DIRAC_v6r15-pre*
-    use LHCBGRID LHCBGRID_v9r*
-    use LCGCMT LCGCMT_79
-
-  # Commit in your local newMaster branch the 4 files you modified:
-  #modified: CHANGELOG
-  #modified: LHCbDIRAC/init.py
-  #modified: LHCbDIRAC/releases.cfg
-  #modified: cmt/project.cmt
-
-
+  #If needed, change the versions of the packages
+  vim dist-tools/projectConfig.json
   git add -A && git commit -av -m "<YourNewTag>"
-
 
 Time to tag and push::
 
@@ -240,22 +228,6 @@ take note of the build id (you can use the direct link icon) and make the reques
     * DIRAC is released, then the message in the JIRA task: Summary:LHCbDirac v8r2p50;  Description: Please release  LHCbDirac based on build 1526
 
 
-The LHCb Deployement shifter will deploy the release on AFS/CVMFS
-
-If you need to install a new version in the development environment, follow these steps::
-
-  cd $LHCBDEV
-  setenv CMTPROJECTPATH ${LHCBDEV}:${CMTPROJECTPATH}
-  getpack -Pr Dirac vArB
-  cd $LHCBDEV/DIRAC/DIRAC_vArB
-  make
-  cd $LHCBDEV
-  getpack -Pr LHCbDirac vXrY
-  cd $LHCBDEV/LHCBDIRAC/LHCBDIRAC_vXrY
-  make
-
-
-
 Server
 ``````
 
@@ -318,7 +290,7 @@ WebPortal
 
 When the web portal machine is updated then you have to compile the WebApp::
 
-    ssh lbvobox33
+    ssh lhcb-portal-dirac.cern.ch
     sudo su - dirac
     dirac-install -r VERSIONTOBEINSTALLED -t server -e LHCb,LHCbWeb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg (for example: dirac-install -r v8r3 -t server -e LHCb,LHCbWeb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg)
     dirac-webapp-compile
