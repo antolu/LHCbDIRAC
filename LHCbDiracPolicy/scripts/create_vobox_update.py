@@ -31,9 +31,9 @@ def generateTemplate(hosts, filename):
   fdr = open( file_skel )
   lines = fdr.readlines()
   fdr.close()
-  fdw = open( filename, 'w' ) 
+  fdw = open( filename, 'w' )
   for machine in hosts:
-    print machine    
+    print machine
     for line in lines:
       if 'LHCB_MACHINE_NAME' in line:
          newline = line.replace( 'LHCB_MACHINE_NAME', machine )
@@ -43,7 +43,7 @@ def generateTemplate(hosts, filename):
          newline = line
       fdw.write( newline )
   fdw.close()
-    
+
 
 if __name__ == '__main__':
   generateTemplate(T1_list, file_T1)
