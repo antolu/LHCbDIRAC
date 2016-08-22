@@ -316,7 +316,7 @@ Specify that this error can be ignored (but should be fixed ! )::
 WebPortal
 `````````
 
-When the web portal machine is updated then you have to compile the WebApp:
+When the web portal machine is updated then you have to compile the WebApp::
 
     ssh lbvobox33
     sudo su - dirac
