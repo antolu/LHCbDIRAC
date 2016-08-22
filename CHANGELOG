@@ -1,3 +1,17 @@
+[v8r3p2]
+use DIRAC v6r15p13
+
+* use v6r4p2 for Externals
+* Added checks on consistency between types of real methods and the gateway service ones.
+* Added working group to the subject
+* Revert change
+* Added a check for empty results
+* Replaced notification client with diracAdmin
+* Fixed database bug
+* Added asterisks to init
+* Added html flag and corrected a DB issue
+* do not update the web server machine in the usual way.
+
 [v8r3p1]
 use DIRAC v6r15p13
 * fixed doc
