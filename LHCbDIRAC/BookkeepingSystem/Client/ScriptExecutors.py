@@ -896,20 +896,14 @@ def executeGetStats( dmScript ):
 
     # Get information from BK
     if not triggerRate and not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
-      query = queryDict.copy()
-      # Horrible! At some point the BK service was requiring a dictionary with at least 3 elements, to check if still needed
-      if len( query ) <= 3:
-        query.update( {'1':1, '2':2, '3':3 } )
-      fileTypes = query.get( 'FileType' )
+      fileTypes = queryDict.pop( 'FileType', None )
       if not isinstance( fileTypes, list ):
         fileTypes = [fileTypes]
-      if 'FileType' in query:
-        query.pop( 'FileType' )
       records = []
       nDatasets = 1
       if isinstance( fileTypes, list ):
         nDatasets = len( fileTypes )
-      eventTypes = query.get( 'EventType' )
+      eventTypes = queryDict.get( 'EventType' )
       if isinstance( eventTypes, list ):
         nDatasets *= len( eventTypes )
       nPasses = len( processingPasses )
@@ -917,15 +911,15 @@ def executeGetStats( dmScript ):
       for processingPass in processingPasses:
         # Loop on all processing passes if needed
         if processingPass:
-          query['ProcessingPass'] = processingPass
+          queryDict['ProcessingPass'] = processingPass
         progressBar.loop()
         for fileType in fileTypes:
           if fileType:
-            query['FileType'] = fileType
+            queryDict['FileType'] = fileType
           retry = 0
           while retry < 5:
             retry += 1
-            res = bkClient.getFilesSummary( query )
+            res = bkClient.getFilesSummary( queryDict )
             if res['OK']:
               break
           if not res['OK']:
