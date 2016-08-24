@@ -922,10 +922,15 @@ def executeGetStats( dmScript ):
         for fileType in fileTypes:
           if fileType:
             query['FileType'] = fileType
-          res = bkClient.getFilesSummary( query )
+          retry = 0
+          while retry < 5:
+            retry += 1
+            res = bkClient.getFilesSummary( query )
+            if res['OK']:
+              break
           if not res['OK']:
             gLogger.error( "Error getting statistics from BK", res['Message'] )
-            diracExit( 0 )
+            diracExit( 1 )
           paramNames = res['Value']['ParameterNames']
           record = []
           for paramValues in res['Value']['Records']:
@@ -965,7 +970,15 @@ def executeGetStats( dmScript ):
             queryDict['ProcessingPass'] = processingPass
           progressBar.loop()
           fileTypes = queryDict.get( 'FileType' )
-          res = bkClient.getFilesWithMetadata( queryDict )
+          retry = 0
+          while retry < 5:
+            retry += 1
+            res = bkClient.getFilesWithMetadata( queryDict )
+            if res['OK']:
+              break
+          if not res['OK']:
+            gLogger.fatal( "Error getting files with metadata", res['Message'] )
+            diracExit( 1 )
           if 'ParameterNames' in res.get( 'Value', {} ):
             parameterNames = res['Value']['ParameterNames']
             info = res['Value']['Records']
