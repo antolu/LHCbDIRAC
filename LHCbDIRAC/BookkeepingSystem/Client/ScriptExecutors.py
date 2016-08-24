@@ -932,10 +932,8 @@ def executeGetStats( dmScript ):
             gLogger.error( "Error getting statistics from BK", res['Message'] )
             diracExit( 1 )
           paramNames = res['Value']['ParameterNames']
-          record = []
+          record = len( paramNames ) * [0]
           for paramValues in res['Value']['Records']:
-            if not record:
-              record = len( paramValues ) * [0]
             record = [( rec + val ) if val else rec for rec, val in zip( record, paramValues )]
           # print fileType, record
           for name, value in zip( paramNames, record ):
