@@ -10,6 +10,19 @@ from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
+def getProcessingPasses( bkQuery, depth = 0 ):
+  processingPass = bkQuery.getQueryDict().get( 'ProcessingPass' )
+  if not processingPass.endswith( '...' ):
+    return [processingPass]
+  basePass = os.path.dirname( processingPass )
+  wildPass = os.path.basename( processingPass ).replace( '...', '' )
+  bkQuery.setProcessingPass( basePass )
+  processingPasses = bkQuery.getBKProcessingPasses().keys()
+  for processingPass in list( processingPasses ):
+    if not processingPass.startswith( os.path.join( basePass, wildPass ) ) or processingPass == basePass or ( depth and len( processingPass.replace( basePass, '' ).split( '/' ) ) != ( depth + 1 ) ):
+      processingPasses.remove( processingPass )
+  return sorted( processingPasses )
+
 def makeBKPath( bkDict ):
   """
   Builds a path from the dictionary
