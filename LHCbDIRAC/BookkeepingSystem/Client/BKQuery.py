@@ -4,24 +4,23 @@ BKQuery is a class that decodes BK paths, queries the BK at a high level
 
 __RCSID__ = "$Id$"
 
-import os, sys
+import os
+import sys
 from DIRAC import gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 def getProcessingPasses( bkQuery, depth = 0 ):
-  processingPass = bkQuery.getQueryDict().get( 'ProcessingPass' )
+  processingPass = bkQuery.getProcessingPass( 'ProcessingPass' )
   if not processingPass.endswith( '...' ):
     return [processingPass]
   basePass = os.path.dirname( processingPass )
-  wildPass = os.path.basename( processingPass ).replace( '...', '' )
+  wildPass = os.path.join( basePass, os.path.basename( processingPass ).replace( '...', '' ) )
   bkQuery.setProcessingPass( basePass )
-  processingPasses = bkQuery.getBKProcessingPasses().keys()
-  for processingPass in list( processingPasses ):
-    if not processingPass.startswith( os.path.join( basePass, wildPass ) ) or processingPass == basePass or ( depth and len( processingPass.replace( basePass, '' ).split( '/' ) ) != ( depth + 1 ) ):
-      processingPasses.remove( processingPass )
-  return sorted( processingPasses )
+  return sorted( processingPass for processingPass in bkQuery.getBKProcessingPasses() \
+                 if processingPass.startswith( wildPass ) and processingPass != basePass and \
+                 ( not depth or len( processingPass.replace( basePass, '' ).split( '/' ) ) == ( depth + 1 ) ) )
 
 def makeBKPath( bkDict ):
   """
