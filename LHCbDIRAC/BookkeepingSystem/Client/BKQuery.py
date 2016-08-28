@@ -12,7 +12,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 def getProcessingPasses( bkQuery, depth = 0 ):
-  processingPass = bkQuery.getProcessingPass( 'ProcessingPass' )
+  processingPass = bkQuery.getProcessingPass()
   if not processingPass.endswith( '...' ):
     return [processingPass]
   basePass = os.path.dirname( processingPass )
