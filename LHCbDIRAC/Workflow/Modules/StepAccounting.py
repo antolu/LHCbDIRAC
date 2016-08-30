@@ -67,7 +67,7 @@ class StepAccounting( ModuleBase ):
       # Timing
       execTime, cpuTime = getStepCPUTimes( self.step_commons )
       normCPU = cpuTime
-      cpuNormFactor = gConfig.getValue ( "/LocalSite/CPUNomalizationFactor", 0.0 )
+      cpuNormFactor = gConfig.getValue ( "/LocalSite/CPUNormalizationFactor", 0.0 )
       if cpuNormFactor:
         normCPU = cpuTime * cpuNormFactor
 
@@ -92,8 +92,8 @@ class StepAccounting( ModuleBase ):
       dataDict = {'JobGroup': str( self.production_id ),
                   'RunNumber': self.runNumber,
                   'EventType': self.eventType,
-                  'ProcessingType': self.stepProcPass, #this is the processing pass of the step
-                  'ProcessingStep': self.BKstepID, #the step ID
+                  'ProcessingType': self.stepProcPass,  # this is the processing pass of the step
+                  'ProcessingStep': self.BKstepID,  # the step ID
                   'Site': self.siteName,
                   'FinalStepState': self.stepStat,
 
@@ -120,11 +120,11 @@ class StepAccounting( ModuleBase ):
 
       return S_OK()
 
-    except Exception as e: #pylint:disable=broad-except
+    except Exception as e:  # pylint:disable=broad-except
       self.log.exception( "Failure in StepAccounting execute module", lException = e )
       return S_ERROR( e )
 
     finally:
       super( StepAccounting, self ).finalize( self.version )
 
-#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
+# EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF
