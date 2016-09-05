@@ -143,7 +143,7 @@ def executeFilePath( dmScript ):
 
   dirMetadata = ( 'Production', 'ConfigName', 'ConditionDescription', 'EventType',
                  'FileType', 'ConfigVersion', 'ProcessingPass', 'Path' )
-  fileMetadata = ( 'EventType', 'FileType', 'RunNumber', 'JobId', 'DataqualityFlag', 'GotReplica' )
+  fileMetadata = ( 'EventType', 'FileType', 'RunNumber', 'JobId', 'DataqualityFlag', 'GotReplica', 'VisibilityFlag' )
   if groupBy and groupBy not in dirMetadata:
     if groupBy not in fileMetadata:
       gLogger.notice( 'Invalid metata item', groupBy )
@@ -726,27 +726,35 @@ def executeFileSisters( dmScript, level = 1 ):
       gLogger.error( "Error getting ancestors:", res['Message'] )
       diracExit( 1 )
 
-    ancestors = dict( ( anc['FileName'], lfn ) for lfn, ancList in result['Value']['Successful'].iteritems() for anc in ancList )
+    ancestors = {}
+    # More than one file in the input list may have teh same ancestor(s)
+    for lfn, ancList in result['Value']['Successful'].iteritems():
+      for anc in ancList:
+        ancestors.setdefault( anc['FileName'], [] ).append( lfn )
+    # print ancestors
 
     res = bkClient.getFileDescendants( ancestors.keys(), depth = 999999, production = prod, checkreplica = checkreplica )
+    # print res
 
     fullResult['OK'] = res['OK']
     if res['OK']:
       for anc, sisters in res['Value']['WithMetadata'].iteritems():
-        lfn = ancestors[anc]
+        lfns = ancestors[anc]
         found = False
         for sister in sisters:
           metadata = sisters[sister]
-          if sister != lfn and ( not sameType or metadata['FileType'] == lfnTypes[lfn] ):
+          if sister not in lfns and ( not sameType or metadata['FileType'] in ( lfnTypes[lfn] for lfn in lfns ) ):
+            allLfns = ', '.join( lfns )
             if full:
-              resValue[resItem].setdefault( lfn, {} ).update( metadata )
+              resValue[resItem].setdefault( allLfns, {} ).update( metadata )
             else:
-              resValue[resItem].setdefault( lfn, set() ).add( sister )
+              resValue[resItem].setdefault( allLfns, {} ).update( {sister: 'Replica-%s' % metadata['GotReplica']} )
             found = True
-        if not found:
-          resValue[relation].add( lfn )
-        if lfn in lfnList:
-          lfnList.remove( lfn )
+        for lfn in lfns:
+          if not found:
+            resValue[relation].add( lfn )
+          if lfn in lfnList:
+            lfnList.remove( lfn )
       for lfn in lfnList:
         resValue[relation].add( lfn )
       for lfn in set( resValue[resItem] ).intersection( resValue[relation] ):
