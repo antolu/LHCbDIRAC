@@ -12,6 +12,11 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 def getProcessingPasses( bkQuery, depth = 0 ):
+  """
+  Get the list of processing passes for a given BK query
+  The processing pass in the initial query may terminate with a "...", in which case this acts as a wildcard
+  The search for processing passes may be limited to a certain depth (default: all)
+  """
   processingPass = bkQuery.getProcessingPass()
   if not processingPass.endswith( '...' ):
     return [processingPass]
@@ -41,6 +46,9 @@ def makeBKPath( bkDict ):
   return path.replace( 'RealData', 'Real Data' )
 
 class BadRunRange( Exception ):
+  """
+  Exception class for bad run range
+  """
   pass
 
 def parseRuns( bkQuery, runs ):
