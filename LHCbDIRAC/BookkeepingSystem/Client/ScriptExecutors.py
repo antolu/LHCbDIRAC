@@ -938,7 +938,7 @@ def executeGetStats( dmScript ):
           for paramValues in res['Value']['Records']:
             record = [( rec + val ) if val else rec for rec, val in zip( record, paramValues )]
           # print fileType, record
-          recDict = zip( paramNames, record )
+          recDict = dict( zip( paramNames, record ) )
           nevts = recDict.get( 'NumberOfEvents', 0 )
           size = recDict.get( 'FileSize', 0 )
           lumi = recDict.get( 'Luminosity', 0 )
