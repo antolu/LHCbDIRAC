@@ -6,7 +6,6 @@
 
 __RCSID__ = "$Id$"
 
-
 if __name__ == "__main__":
 
   import DIRAC
@@ -105,6 +104,7 @@ if __name__ == "__main__":
   from LHCbDIRAC.TransformationSystem.Client.Transformation import Transformation
   from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient  import BookkeepingClient
+  from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import getProcessingPasses
   from DIRAC.Core.Utilities.List import breakListIntoChunks
   from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import getRemovalPlugins, getReplicationPlugins
   from LHCbDIRAC.DataManagementSystem.Utilities.FCUtilities import chown
@@ -140,15 +140,8 @@ if __name__ == "__main__":
     if processingPass.endswith( '...' ):
       if listProcessingPasses:
         gLogger.notice( "List of processing passes for BK path", pluginScript.getOption( 'BKPath' ) )
-      basePass = os.path.dirname( processingPass )
-      wildPass = os.path.basename( processingPass ).replace( '...', '' )
-      bkQuery.setProcessingPass( basePass )
-      processingPasses = bkQuery.getBKProcessingPasses().keys()
-      for processingPass in list( processingPasses ):
-        if not processingPass.startswith( os.path.join( basePass, wildPass ) ) or processingPass == basePass or ( depth and len( processingPass.replace( basePass, '' ).split( '/' ) ) != ( depth + 1 ) ):
-          processingPasses.remove( processingPass )
+      processingPasses = getProcessingPasses( bkQuery, depth = depth )
       if processingPasses:
-        processingPasses.sort()
         if not listProcessingPasses:
           gLogger.notice( "Transformations will be launched for the following list of processing passes:\n" )
         gLogger.notice( '\t'.join( [''] + processingPasses ) )
