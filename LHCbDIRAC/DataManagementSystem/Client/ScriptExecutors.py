@@ -16,7 +16,7 @@ from DIRAC.Resources.Storage.StorageElement                 import StorageElemen
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers        import DMSHelpers, resolveSEGroup
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient   import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient        import TransformationClient
-from LHCbDIRAC.DataManagementSystem.Client.DMScript         import printDMResult, ProgressBar
+from LHCbDIRAC.DataManagementSystem.Client.DMScript         import printDMResult, ProgressBar, DMScript
 from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import scaleSize
 
 __RCSID__ = "$Id$"
@@ -1484,6 +1484,7 @@ def executeAddFile():
   """
     Add a file to a Grid storage element
   """
+
   args = Script.getPositionalArgs()
   if len( args ) < 1 or len( args ) > 4:
     Script.showHelp()
@@ -1510,6 +1511,8 @@ def executeAddFile():
 
   dm = DataManager()
   logLevel = gLogger.getLevel()
+
+  dms = DMScript()
   for lfnDict in lfnList:
     localFile = lfnDict['localfile']
     remoteFile = None
@@ -1551,7 +1554,8 @@ def executeAddFile():
     if not lfnDict['guid']:
       from LHCbDIRAC.Core.Utilities.File import makeGuid
       lfnDict['guid'] = makeGuid( localFile )[localFile]
-    lfn = lfnDict['lfn']
+    # normalize the LFN
+    lfn = dms.getLFNsFromList( lfnDict['lfn'] )[0]
     gLogger.notice( "\nUploading %s as %s" % ( localFile, lfn ) )
     gLogger.setLevel( 'FATAL' )
     res = dm.putAndRegister( lfn, localFile, lfnDict['SE'], lfnDict['guid'] )
