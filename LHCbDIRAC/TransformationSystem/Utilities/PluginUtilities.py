@@ -313,7 +313,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.setCachedProductions( productions )
     return productions
 
-  @timeThis
+  # @timeThis
   def getFilesParam( self, lfns, param ):
     if not self.filesParam:
       nCached = 0
@@ -497,7 +497,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         fileTargetSEs[lfn] = ','.join( sorted( neededSEs ) )
     return ( fileTargetSEs, alreadyCompleted )
 
-  @timeThis
+  # @timeThis
   def getProcessedFiles( self, lfns ):
     """
     Check which files have been processed by a given production, i.e. have a meaningful descendant
@@ -505,7 +505,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import getFileDescendants
     return getFileDescendants( self.transID, lfns, transClient = self.transClient, dm = self.dm, bkClient = self.bkClient, verbose = self.debug )
 
-  @timeThis
+  # @timeThis
   def getRAWAncestorsForRun( self, runID, param = None, paramValue = None, getFiles = False ):
     """
     Determine from BK how many ancestors files from a given run we have.
@@ -633,15 +633,15 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.notProcessed[runID] = notProcessed
     return notProcessed
 
-  @timeThis
+  # @timeThis
   def getTransformationFiles( self, runID ):
     return self.transClient.getTransformationFiles( { 'TransformationID' : self.transID, 'RunNumber': runID } )
 
-  @timeThis
+  # @timeThis
   def getFileAncestors( self, lfns, depth = 10, replica = True ):
     return self.bkClient.getFileAncestors( lfns, depth = depth, replica = replica )
 
-  @timeThis
+  # @timeThis
   def getTransformationRuns( self, runs = None, transID = None ):
     """ get the run table for a list of runs, if missing, add them """
     if transID is None:
@@ -668,7 +668,7 @@ class PluginUtilities( DIRACPluginUtilities ):
         result = self.transClient.getTransformationRuns( condDict )
     return result
 
-  @timeThis
+  # @timeThis
   def groupByRunAndParam( self, lfns, files, param = '' ):
     """ Group files by run and another BK parameter (e.g. file type or event type)
     """
@@ -770,7 +770,7 @@ class PluginUtilities( DIRACPluginUtilities ):
       self.__runExpired[runID] = ( random.uniform( 0., 1. ) > self.cacheHitFrequency )
     return self.__runExpired[runID]
 
-  @timeThis
+  # @timeThis
   def getNbRAWInRun( self, runID, evtType ):
     """ Get the number of RAW files in a run
     """
@@ -1037,7 +1037,7 @@ def normaliseShares( shares ):
     normShares[site] = 100.0 * ( float( shares[site] ) / total )
   return normShares
 
-@timeThis
+# @timeThis
 def groupByRun( files ):
   """ Groups files by run
   files is a list of dictionaries containing the run number
