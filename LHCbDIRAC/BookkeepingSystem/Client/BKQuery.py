@@ -4,11 +4,28 @@ BKQuery is a class that decodes BK paths, queries the BK at a high level
 
 __RCSID__ = "$Id$"
 
-import os, sys
+import os
+import sys
 from DIRAC import gLogger
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
+
+def getProcessingPasses( bkQuery, depth = 0 ):
+  """
+  Get the list of processing passes for a given BK query
+  The processing pass in the initial query may terminate with a "...", in which case this acts as a wildcard
+  The search for processing passes may be limited to a certain depth (default: all)
+  """
+  processingPass = bkQuery.getProcessingPass()
+  if not processingPass.endswith( '...' ):
+    return [processingPass]
+  basePass = os.path.dirname( processingPass )
+  wildPass = os.path.join( basePass, os.path.basename( processingPass ).replace( '...', '' ) )
+  bkQuery.setProcessingPass( basePass )
+  return sorted( processingPass for processingPass in bkQuery.getBKProcessingPasses() \
+                 if processingPass.startswith( wildPass ) and processingPass != basePass and \
+                 ( not depth or len( processingPass.replace( basePass, '' ).split( '/' ) ) == ( depth + 1 ) ) )
 
 def makeBKPath( bkDict ):
   """
@@ -29,6 +46,9 @@ def makeBKPath( bkDict ):
   return path.replace( 'RealData', 'Real Data' )
 
 class BadRunRange( Exception ):
+  """
+  Exception class for bad run range
+  """
   pass
 
 def parseRuns( bkQuery, runs ):

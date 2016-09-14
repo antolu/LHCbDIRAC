@@ -13,7 +13,7 @@ from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveS
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult, ProgressBar
-from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, parseRuns, BadRunRange
+from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery, parseRuns, BadRunRange, getProcessingPasses
 
 bkClient = BookkeepingClient()
 
@@ -143,7 +143,7 @@ def executeFilePath( dmScript ):
 
   dirMetadata = ( 'Production', 'ConfigName', 'ConditionDescription', 'EventType',
                  'FileType', 'ConfigVersion', 'ProcessingPass', 'Path' )
-  fileMetadata = ( 'EventType', 'FileType', 'RunNumber', 'JobId', 'DataqualityFlag', 'GotReplica' )
+  fileMetadata = ( 'EventType', 'FileType', 'RunNumber', 'JobId', 'DataqualityFlag', 'GotReplica', 'VisibilityFlag' )
   if groupBy and groupBy not in dirMetadata:
     if groupBy not in fileMetadata:
       gLogger.notice( 'Invalid metata item', groupBy )
@@ -726,27 +726,35 @@ def executeFileSisters( dmScript, level = 1 ):
       gLogger.error( "Error getting ancestors:", res['Message'] )
       diracExit( 1 )
 
-    ancestors = dict( ( anc['FileName'], lfn ) for lfn, ancList in result['Value']['Successful'].iteritems() for anc in ancList )
+    ancestors = {}
+    # More than one file in the input list may have teh same ancestor(s)
+    for lfn, ancList in result['Value']['Successful'].iteritems():
+      for anc in ancList:
+        ancestors.setdefault( anc['FileName'], [] ).append( lfn )
+    # print ancestors
 
     res = bkClient.getFileDescendants( ancestors.keys(), depth = 999999, production = prod, checkreplica = checkreplica )
+    # print res
 
     fullResult['OK'] = res['OK']
     if res['OK']:
       for anc, sisters in res['Value']['WithMetadata'].iteritems():
-        lfn = ancestors[anc]
+        lfns = ancestors[anc]
         found = False
         for sister in sisters:
           metadata = sisters[sister]
-          if sister != lfn and ( not sameType or metadata['FileType'] == lfnTypes[lfn] ):
+          if sister not in lfns and ( not sameType or metadata['FileType'] in ( lfnTypes[lfn] for lfn in lfns ) ):
+            allLfns = ', '.join( lfns )
             if full:
-              resValue[resItem].setdefault( lfn, {} ).update( metadata )
+              resValue[resItem].setdefault( allLfns, {} ).update( metadata )
             else:
-              resValue[resItem].setdefault( lfn, set() ).add( sister )
+              resValue[resItem].setdefault( allLfns, {} ).update( {sister: 'Replica-%s' % metadata['GotReplica']} )
             found = True
-        if not found:
-          resValue[relation].add( lfn )
-        if lfn in lfnList:
-          lfnList.remove( lfn )
+        for lfn in lfns:
+          if not found:
+            resValue[relation].add( lfn )
+          if lfn in lfnList:
+            lfnList.remove( lfn )
       for lfn in lfnList:
         resValue[relation].add( lfn )
       for lfn in set( resValue[resItem] ).intersection( resValue[relation] ):
@@ -860,6 +868,7 @@ def executeGetStats( dmScript ):
       prodList = [prodList]
     bkQuery.setOption( 'ProductionID', None )
     fileType = bkQuery.getFileTypeList()
+    processingPasses = getProcessingPasses( bkQuery )
   else:
     prodList = [None]
     fileType = None
@@ -870,6 +879,7 @@ def executeGetStats( dmScript ):
   transClient = TransformationClient()
 
   for prod in prodList:
+    queryDict = {}
     if bkQuery:
       queryDict = bkQuery.getQueryDict()
       if queryDict.get( 'Visible', 'All' ).lower() in ( 'no', 'all' ):
@@ -883,60 +893,64 @@ def executeGetStats( dmScript ):
       gLogger.notice( "For production %d, %s (query %s)" % ( prod, prodName, bkQuery ) )
     elif lfns:
       gLogger.notice( "For %d LFNs:" % len( lfns ) )
-    else:
-      gLogger.notice( "For BK query:", bkQuery )
-      if bkQuery:
-        queryDict = bkQuery.getQueryDict()
+    elif bkQuery:
+      queryDict = bkQuery.getQueryDict()
+      if len( processingPasses ) > 1:
+        queryDict.pop( 'ProcessingPass', None )
+        gLogger.notice( "For BK query:", queryDict )
+        gLogger.notice( "   and %d processing passes :" % len( processingPasses ), ', '.join( processingPasses ) )
+      else:
+        gLogger.notice( "For BK query:", bkQuery )
 
     # Get information from BK
     if not triggerRate and not lfns and 'ReplicaFlag' not in queryDict and 'DataQuality' not in queryDict:
-      gLogger.notice( "Getting info from filesSummary..." )
-      query = queryDict.copy()
-      # Horrible! At some point the BK service was requiring a dictionary with at least 3 elements, to check if still needed
-      if len( query ) <= 3:
-        query.update( {'1':1, '2':2, '3':3 } )
-      fileTypes = query.get( 'FileType' )
+      fileTypes = queryDict.pop( 'FileType', None )
       if not isinstance( fileTypes, list ):
         fileTypes = [fileTypes]
-      if 'FileType' in query:
-        query.pop( 'FileType' )
       records = []
       nDatasets = 1
       if isinstance( fileTypes, list ):
         nDatasets = len( fileTypes )
-      eventTypes = query.get( 'EventType' )
+      eventTypes = queryDict.get( 'EventType' )
       if isinstance( eventTypes, list ):
         nDatasets *= len( eventTypes )
-      for fileType in fileTypes:
-        if fileType:
-          query['FileType'] = fileType
-        res = bkClient.getFilesSummary( query )
-        if not res['OK']:
-          gLogger.error( "Error getting statistics from BK", res['Message'] )
-          diracExit( 0 )
-        paramNames = res['Value']['ParameterNames']
-        record = []
-        for paramValues in res['Value']['Records']:
-          if not record:
-            record = len( paramValues ) * [0]
-          record = [( rec + val ) if val else rec for rec, val in zip( record, paramValues )]
-        # print fileType, record
-        for name, value in zip( paramNames, record ):
-          if name == 'NumberOfEvents':
-            nevts = value
-          elif name == 'FileSize':
-            size = value
-          elif name == 'Luminosity':
-            lumi = value
-        record.append( nevts / float( lumi ) if lumi else 0. )
-        record.append( size / float( lumi )  if lumi else 0. )
-        if not records:
-          records = len( record ) * [0]
-        records = [rec1 + rec2 for rec1, rec2 in zip( record, records )]
-        # print fileType, records, 'Total'
+      nPasses = len( processingPasses )
+      progressBar = ProgressBar( nPasses, title = 'Getting info from filesSummary' + ( ' for %d processing passes...' % nPasses if nPasses > 1 else '...' ), step = 1 )
+      for processingPass in processingPasses:
+        # Loop on all processing passes if needed
+        if processingPass:
+          queryDict['ProcessingPass'] = processingPass
+        progressBar.loop()
+        for fileType in fileTypes:
+          if fileType:
+            queryDict['FileType'] = fileType
+          retry = 0
+          while retry < 5:
+            retry += 1
+            res = bkClient.getFilesSummary( queryDict )
+            if res['OK']:
+              break
+          if not res['OK']:
+            gLogger.error( "Error getting statistics from BK", res['Message'] )
+            diracExit( 1 )
+          paramNames = res['Value']['ParameterNames']
+          record = len( paramNames ) * [0]
+          for paramValues in res['Value']['Records']:
+            record = [( rec + val ) if val else rec for rec, val in zip( record, paramValues )]
+          # print fileType, record
+          recDict = dict( zip( paramNames, record ) )
+          nevts = recDict.get( 'NumberOfEvents', 0 )
+          size = recDict.get( 'FileSize', 0 )
+          lumi = recDict.get( 'Luminosity', 0 )
+          record.append( nevts / float( lumi ) if lumi else 0. )
+          record.append( size / float( lumi )  if lumi else 0. )
+          if not records:
+            records = len( record ) * [0]
+          records = [rec1 + rec2 for rec1, rec2 in zip( record, records )]
+          # print fileType, records, 'Total'
+      progressBar.endLoop()
       paramNames += ['EvtsPerLumi', 'SizePerLumi' ]
     else:
-      gLogger.notice( "Getting info from files..." )
       # To be replaced with getFilesWithMetadata when it allows invisible files
       paramNames = ['NbofFiles', 'NumberOfEvents', 'FileSize', 'Luminosity', 'EvtsPerLumi', 'SizePerLumi']
       nbFiles = 0
@@ -946,35 +960,51 @@ def executeGetStats( dmScript ):
       datasets = set()
       runList = {}
       if not lfns:
-        fileTypes = queryDict.get( 'FileType' )
-        res = bkClient.getFilesWithMetadata( queryDict )
-        if 'ParameterNames' in res.get( 'Value', {} ):
-          parameterNames = res['Value']['ParameterNames']
-          info = res['Value']['Records']
-        else:
-          if 'Value' in res:
-            gLogger.error( 'ParameterNames not present:', str( res['Value'].keys() ) if isinstance( res['Value'], dict ) else str( res['Value'] ) )
-          info = []
-          res = bkClient.getFiles( queryDict )
-          if res['OK']:
-            lfns = res['Value']
-        for item in info:
-          metadata = dict( zip( parameterNames, item ) )
-          datasets.add( ( metadata.get( 'EventType', metadata['FileName'].split( '/' )[5] ), metadata.get( 'FileType', metadata.get( 'Name' ) ) ) )
-          try:
-            fileSize += metadata['FileSize']
-            lumi += metadata['Luminosity']
-            run = metadata['RunNumber']
-            runList.setdefault( run, [ 0., 0., 0. ] )
-            runList[run][0] += metadata['Luminosity']
-            if metadata['EventStat']:
-              nbEvents += metadata['EventStat']
-              runList[run][1] += metadata['EventStat']
-            runList[run][2] += metadata['FileSize']
-            nbFiles += 1
-          except Exception as e:
-            gLogger.exception( 'Exception for %s' % str( metadata.keys() ), lException = e )
+        nPasses = len( processingPasses )
+        progressBar = ProgressBar( nPasses, title = 'Getting info from files' + ( ' for %d processing passes...' % nPasses if nPasses > 1 else '...' ), step = 1 )
+        for processingPass in processingPasses:
+          if processingPass:
+            queryDict['ProcessingPass'] = processingPass
+          progressBar.loop()
+          fileTypes = queryDict.get( 'FileType' )
+          retry = 0
+          while retry < 5:
+            retry += 1
+            res = bkClient.getFilesWithMetadata( queryDict )
+            if res['OK']:
+              break
+          if not res['OK']:
+            gLogger.fatal( "Error getting files with metadata", res['Message'] )
+            diracExit( 1 )
+          if 'ParameterNames' in res.get( 'Value', {} ):
+            parameterNames = res['Value']['ParameterNames']
+            info = res['Value']['Records']
+          else:
+            if 'Value' in res:
+              gLogger.error( 'ParameterNames not present:', str( res['Value'].keys() ) if isinstance( res['Value'], dict ) else str( res['Value'] ) )
+            info = []
+            res = bkClient.getFiles( queryDict )
+            if res['OK']:
+              lfns = res['Value']
+          for item in info:
+            metadata = dict( zip( parameterNames, item ) )
+            datasets.add( ( metadata.get( 'EventType', metadata['FileName'].split( '/' )[5] ), metadata.get( 'FileType', metadata.get( 'Name' ) ) ) )
+            try:
+              fileSize += metadata['FileSize']
+              lumi += metadata['Luminosity']
+              run = metadata['RunNumber']
+              runList.setdefault( run, [ 0., 0., 0. ] )
+              runList[run][0] += metadata['Luminosity']
+              if metadata['EventStat']:
+                nbEvents += metadata['EventStat']
+                runList[run][1] += metadata['EventStat']
+              runList[run][2] += metadata['FileSize']
+              nbFiles += 1
+            except Exception as e:
+              gLogger.exception( 'Exception for %s' % str( metadata.keys() ), lException = e )
+        progressBar.endLoop()
       if lfns:
+        gLogger.notice( "Getting info from files..." )
         lfnChunks = breakListIntoChunks( lfns, 1000 )
         progressBar = ProgressBar( len( lfns ), title = "Get metadata from BK", chunk = 1000 )
         for lfnChunk in lfnChunks:

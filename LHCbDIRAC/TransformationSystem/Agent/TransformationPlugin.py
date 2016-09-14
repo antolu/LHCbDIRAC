@@ -107,7 +107,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def __del__( self ):
     self.util.logInfo( "Execution finished, timing: %.3f seconds" % ( time.time() - self.startTime ) )
 
-  @timeThis
+  # @timeThis
   def _removeProcessedFiles( self ):
     """
     Checks if the LFNs have descendants in the same transformation. Removes them from self.transReplicas
@@ -448,7 +448,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.util.logException( "Exception in _ByRun plugin:", '', x )
       return S_ERROR( [] )
 
-  @timeThis
+  # @timeThis
   def __byRun( self, param = '', plugin = 'LHCbStandard', requireFlush = False, forceFlush = False ):
     """ Basic plugin for when you want to group files by run
     """
@@ -566,7 +566,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         # As it may use self.data, set both transReplicas and data members
         self.transReplicas = runParamReplicas
         # Check if files have already been processed
-        if self.params['Type'] not in typesWithNoCheck:
+        if False and self.params['Type'] not in typesWithNoCheck:
+          self.util.logInfo( "Removing processed files for %s" % paramStr )
           self._removeProcessedFiles()
         self.data = self.transReplicas
         status = runStatus
@@ -612,15 +613,18 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           return res
         tasks = res['Value']
         if fromSEs:
-          nTasks = len( tasks )
-          for task in list( tasks ):
+          okTasks = []
+          for task in tasks:
             # If fromSEs is defined, check if in the list
-            if not fromSEs & set( task[0].split( ',' ) ):
-              tasks.remove( task )
-          if len( tasks ) != nTasks:
+            okSEs = fromSEs & set( task[0].split( ',' ) )
+            if okSEs:
+              # Restrict target SEs to those in fromSEs
+              okTasks.append( ( ','.join( sorted( okSEs ) ), task[1] ) )
+          if len( tasks ) != len( okTasks ):
             missingAtSEs = True
             self.util.logInfo( "%d tasks could not be created for run %d as files are not at required SEs" %
-                               ( nTasks - len( tasks ), runID ) )
+                               ( len( tasks ) - len( okTasks ), runID ) )
+          tasks = okTasks
         self.util.logVerbose( "Created %d tasks for run %d%s" %
                               ( len( tasks ), runID, paramStr ) )
         allTasks.extend( tasks )
