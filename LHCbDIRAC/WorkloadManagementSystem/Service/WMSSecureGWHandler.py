@@ -7,8 +7,7 @@ import json
 import os
 from types import IntType, LongType, DictType, StringTypes, ListType, FloatType
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.Security import Properties
-from DIRAC.Core.Security import CS
+from DIRAC.Core.Security import Properties, CS, Locations
 from DIRAC.Core.Utilities.Subprocess import pythonCall
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -234,7 +233,7 @@ class WMSSecureGWHandler( RequestHandler ):
       return result
     forceLimited = result[ 'Value' ]
     chain = X509Chain()
-    proxyFile = "/tmp/x509up_u%s" % os.getuid()
+    proxyFile = Locations.getProxyLocation()
     retVal = chain.loadProxyFromFile( proxyFile )
     if not retVal[ 'OK' ]:
       return retVal
