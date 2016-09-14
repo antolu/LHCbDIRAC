@@ -1,3 +1,18 @@
+[v8r3p3]
+use DIRAC v6r15p16
+* Using Core/Security/Locations in __getProxy
+* add availability in pfn-metadata --Exist
+* remove @timeThis Avoid SEs not in FromSEs to be set in targetSE in _byRun()
+* group the requests by role, requestname and working group
+* fix get-sisters when more than one file from the same job is given as input
+* allow more than one run number
+* DMS.ScriptExecutor: normalize the lfn for dirac-dms-add-file
+* clean up
+* small fix
+* Allow "wildcards" in BK path also for get-stats
+* improve the documentation
+* remove CMT based commands
+
 [v8r3p2]
 use DIRAC v6r15p13
 
