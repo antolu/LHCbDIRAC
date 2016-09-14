@@ -234,7 +234,7 @@ class WMSSecureGWHandler( RequestHandler ):
       return result
     forceLimited = result[ 'Value' ]
     chain = X509Chain()
-    proxyFile = "/tmp/x509up_u" + str( os.getuid() )
+    proxyFile = "/tmp/x509up_u%s" % os.getuid()
     retVal = chain.loadProxyFromFile( proxyFile )
     if not retVal[ 'OK' ]:
       return retVal
