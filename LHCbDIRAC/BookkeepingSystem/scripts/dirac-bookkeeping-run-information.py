@@ -80,6 +80,6 @@ for run in sorted( runSet ):
     print "  File size:".ljust( 30 ), str( fsize ).ljust( just ), " Total: ".ljust( 10 ) + str( sum( fsize ) )
     sep = 20 * '='
   else:
-    gLogger.fatal( "ERROR for run %s:" % str( run ), res['Message'] )
+    DIRAC.gLogger.fatal( "ERROR for run %s:" % str( run ), res['Message'] )
     DIRAC.exit( 1 )
 
