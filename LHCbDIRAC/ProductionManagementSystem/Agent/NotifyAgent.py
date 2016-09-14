@@ -86,7 +86,7 @@ class NotifyAgent( AgentModule ):
         self.log.error( 'No ProductionRequest section in configuration' )
         return S_OK()
 
-      result = conn.execute("SELECT DISTINCT thegroup from ProductionManagementCache;")
+      result = conn.execute("SELECT DISTINCT thegroup, reqName, reqWG from ProductionManagementCache;")
 
       html_header = """\
             <!DOCTYPE html>
@@ -124,8 +124,8 @@ class NotifyAgent( AgentModule ):
           else:
             header = "As member of <span style='color:green'>" + group[0] + "</span> group, your are asked to review the below requests.\n"
 
-          cursor = conn.execute("SELECT reqId, reqType, reqWG, reqName, SimCondition, ProPath from ProductionManagementCache "
-                                "WHERE thegroup = ?", (group[0],) )
+          cursor = conn.execute( "SELECT reqId, reqType, reqWG, reqName, SimCondition, ProPath from ProductionManagementCache "
+                                "WHERE thegroup = ? and reqName=? and reqWG=? ", ( group[0], group[1], group[2] ) )
 
           for reqId, reqType, reqWG, reqName, SimCondition, ProPath in cursor:
 
@@ -161,7 +161,7 @@ class NotifyAgent( AgentModule ):
 
           for people in _getMemberMails( group[0] ):
 
-            res = self.diracAdmin.sendMail( people, "Notifications for production requests - Group " + group[0],
+            res = self.diracAdmin.sendMail( people, "Notifications for production requests - Group %s; %s; %s" % ( group[0], group[2], group[1] ),
                                             aggregated_body, self.fromAddress, html = True )
 
             if res['OK']:
