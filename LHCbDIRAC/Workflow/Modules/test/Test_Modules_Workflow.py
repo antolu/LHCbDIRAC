@@ -550,8 +550,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
 
     self.mb.jobType = 'merge'
     self.mb.step_id = '00000123_00000456_1'
-    for step_commons in self.step_commons:
-      self.mb.step_commons = step_commons
+    for step_commons in list( self.step_commons ):
+      self.mb.step_commons = dict( step_commons )
       self.mb.step_commons['listoutput'] = [{'outputDataType': 'bhadron.dst;sdst',
                                              'outputDataName': '00000123_00000456_1.bhadron.dst;sdst'}]
       outF, outft, histos = self.mb._determineOutputs()
