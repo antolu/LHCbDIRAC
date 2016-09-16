@@ -213,7 +213,7 @@ go to this `web page <https://lhcb-jenkins.cern.ch/jenkins/job/lhcb-release/buil
 
 * in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC"  (NOTE: If DIRAC already released, please use only LHCbDIRAC: LHCbDirac vArBpC)
 * in the field "platforms" put : "x86_64-slc6-gcc48-opt x86_64-slc6-gcc49-opt"
-* inthe field "scripts_version" put : "old-style-dirac"
+* inthe field "scripts_version" put : "support-platform-indep-projects"
 
 Then click on the "BUILD" button
 
