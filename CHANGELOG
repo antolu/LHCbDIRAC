@@ -1,3 +1,8 @@
+[v8r3p4]
+use DIRAC v6r15p16
+
+* added check for special case of histogram merging production
+
 [v8r3p3]
 use DIRAC v6r15p16
 * Using Core/Security/Locations in __getProxy
