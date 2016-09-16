@@ -6,11 +6,11 @@ import re
 import tempfile
 import threading
 
-from DIRAC                            import gLogger, gConfig, S_OK, S_ERROR
+from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client import PathFinder
-from DIRAC.Core.DISET.RequestHandler  import RequestHandler
-from DIRAC.Core.Utilities.Shifter     import getShifterProxy
-from DIRAC.Core.Utilities.Subprocess  import shellCall
+from DIRAC.Core.DISET.RequestHandler import RequestHandler
+from DIRAC.FrameworkSystem.Client.ProxyManagerClient import gProxyManager
+from DIRAC.Core.Utilities.Subprocess import shellCall
 
 from LHCbDIRAC.ProductionManagementSystem.DB.ProductionRequestDB import ProductionRequestDB
 
@@ -36,12 +36,14 @@ class ProductionRequestHandler( RequestHandler ):
   def __clientCredentials( self ):
     creds = self.getRemoteCredentials()
     group = creds.get( 'group', '(unknown)' )
+    DN = creds.get('DN', '(unkknown)')
 #    if 'DN' in creds:
 #      cn = re.search('/CN=([^/]+)',creds['DN'])
 #      if cn:
 #        return { 'User':cn.group(1), 'Group':group }
-    return { 'User'  : creds.get( 'username' , 'Anonymous' ),
-             'Group' : group }
+    return { 'User': creds.get( 'username' , 'Anonymous' ),
+             'Group': group,
+             'DN': DN }
 
   types_createProductionRequest = [ dict ]
   def export_createProductionRequest( self, requestDict ):
@@ -259,10 +261,14 @@ class ProductionRequestHandler( RequestHandler ):
     creds = self.__clientCredentials()
     if creds['Group'] != 'lhcb_prmgr':
       return S_ERROR( "You have to be production manager" )
-    res = getShifterProxy( "ProductionManager" )
-    if not res['OK']:
-      return res
-    proxyFile = res['Value']['proxyFile']
+    result = gProxyManager.downloadProxyToFile( creds['DN'], creds['Group'],
+                                                filePath = False,
+                                                requiredTimeLeft = 86400,
+                                                cacheTime =  86400 )
+    if not result['OK']:
+      return result
+    proxyFile = result['Value']['proxyFile']
+
     try:
       f = tempfile.mkstemp()
       os.write( f[0], workflow )
@@ -300,10 +306,13 @@ class ProductionRequestHandler( RequestHandler ):
       # return S_ERROR("You have to be production manager")
       if 'Generate' in wizpar:
         del wizpar['Generate']
-    res = getShifterProxy( "ProductionManager" )
-    if not res['OK']:
-      return res
-    proxyFile = res['Value']['proxyFile']
+    result = gProxyManager.downloadProxyToFile( creds['DN'], creds['Group'],
+                                                filePath = False,
+                                                requiredTimeLeft = 86400,
+                                                cacheTime =  86400 )
+    if not result['OK']:
+      return result
+    proxyFile = result['Value']['proxyFile']
     try:
       f = tempfile.mkstemp()
       os.write( f[0], "wizardParameters = {\n" )
