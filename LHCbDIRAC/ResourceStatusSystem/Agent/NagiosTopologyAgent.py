@@ -254,6 +254,7 @@ class NagiosTopologyAgent( AgentModule ):
         if not site_se_opts_DST['OK']:
           gLogger.error( site_se_opts_DST[ 'Message' ] )
           return False
+        site_se_opts_DST = site_se_opts_DST['Value']
         __write_SE_XML( site_se_opts_DST )
 
         
@@ -269,6 +270,7 @@ class NagiosTopologyAgent( AgentModule ):
           # This tests if the DST and RAW StorageElements have the same endpoint. 
           # If so it only uses the one already added.
           if site_se_opts_RAW[ 'Value' ][ 'Host' ] != site_se_opts_DST[ 'Value' ][ 'Host' ] :
+            site_se_opts_RAW = site_se_opts_RAW[ 'Value' ]
             __write_SE_XML( site_se_opts_RAW )
   
       
