@@ -203,7 +203,7 @@ class LHCbJob( Job ):
         self.log.verbose( 'Found specified options file: %s' % optsFile )
         self.addToInputSandbox.append( optsFile )
         optionsFile += ';%s' % optsFile
-      elif re.search( '\$', optsFile ):
+      elif re.search( r'\$', optsFile ):
         self.log.verbose( 'Assuming %s is using an environment variable to be resolved during execution' % optsFile )
         if not optionsFile == optsFile:
           optionsFile += ';%s' % optsFile
