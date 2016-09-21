@@ -59,7 +59,7 @@ if production:
   trClient = TransformationClient()
   condDict = {'TransformationID': production}
   if active:
-    conDict['Status'] = 'Active'
+    condDict['Status'] = 'Active'
   res = trClient.getTransformationRuns( condDict )
   if res['OK']:
     runSet.update( run['RunNumber'] for run in res['Value'] )
