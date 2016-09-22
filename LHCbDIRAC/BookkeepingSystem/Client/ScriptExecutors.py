@@ -1130,15 +1130,21 @@ def executeGetStats( dmScript ):
             gLogger.notice( 'Fill %d (%4d bunches, %.1f hours):' % ( fill, result[fill], fillDuration[fill] ), ','.join( fills[fill] ) )
     gLogger.notice( "" )
 
-def executeRunTCK():
+def executeRunInfo( item ):
   """
   Get the TCK for a range of runs, and then prints each TCK with run ranges
   """
   runsDict = {}
+  if item not in ( 'Tck', 'DataTakingDescription', 'ProcessingPass' ):
+    gLogger.fatal( "Incorrect run information item" )
+    return 0
   force = False
+  byRange = False
   for switch in Script.getUnprocessedSwitches():
     if switch[0] == 'Force':
       force = True
+    if switch[0] == 'ByRange':
+      byRange = True
     if switch[0] == 'Runs':
       # Add a fake run number to force parseRuns to return a list
       try:
@@ -1152,32 +1158,46 @@ def executeRunTCK():
   # Remove the fake run number
   runsList.remove( 0 )
   runDict = {}
-  progressBar = ProgressBar( len( runsList ), title = "Getting TCK for run range %s " % runRange, step = 20 )
+  if len( runRange ) < 30:
+    progressBar = ProgressBar( len( runsList ), title = "Getting %s for run range %s " % ( item, runRange ), step = 20 )
+  else:
+    progressBar = ProgressBar( len( runsList ), title = "Getting %s for %d runs " % ( item, len( runsList ) ), step = 20 )
   for run in sorted( runsList ):
     progressBar.loop()
     res = bkClient.getRunInformations( run )
     if res['OK']:
-      tck = res['Value'].get( 'Tck' )
+      itemValue = res['Value'].get( item )
       streams = res['Value'].get( 'Stream', [] )
-      if ( 90000000 in streams or force ) and tck:
-        runDict[run] = tck
+      if ( 90000000 in streams or force ) and itemValue:
+        runDict[run] = itemValue
   progressBar.endLoop()
-  tckList = []
+  itemList = []
   for run in sorted( runDict ):
-    if runDict[run] not in tckList:
-      tckList.append( runDict[run] )
-  for tck in tckList:
-    prStr = 'TCK %s: ' % tck
+    if runDict[run] not in itemList:
+      itemList.append( runDict[run] )
+  itemDict = {}
+  rangesDict = {}
+  for itemValue in itemList:
     firstRun = None
     # Add a fake run (None) in order to print out the last range
     for run in sorted( runDict ) + [None]:
       runTck = runDict.get( run )
-      if runTck == tck and not firstRun:
+      if runTck == itemValue and not firstRun:
         firstRun = run
         lastRun = run
-      elif runTck != tck and firstRun:
-        prStr += '%d:%d, ' % ( firstRun, lastRun )
+      elif ( runTck != itemValue or ( lastRun - run ) > 100 ) and firstRun:
+        if lastRun != firstRun:
+          rangeStr = '%d:%d' % ( firstRun, lastRun )
+        else:
+          rangeStr = '%d' % firstRun
+        rangesDict[rangeStr] = itemValue
+        itemDict.setdefault( itemValue, [] ).append( rangeStr )
         firstRun = None
       else:
         lastRun = run
-    gLogger.notice( prStr[:-2] )
+  if byRange:
+    for rangeStr in sorted( rangesDict ):
+      gLogger.notice( '%s : %s' % ( rangeStr, rangesDict[rangeStr] ) )
+  else:
+    for itemValue, ranges in itemDict.iteritems():
+      gLogger.notice( '%s :' % itemValue, ', '.join( ranges ) )
