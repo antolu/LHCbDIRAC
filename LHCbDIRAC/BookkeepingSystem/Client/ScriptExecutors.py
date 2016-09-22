@@ -1159,9 +1159,16 @@ def executeRunInfo( item ):
   runsList.remove( 0 )
   runDict = {}
   if len( runRange ) < 30:
-    progressBar = ProgressBar( len( runsList ), title = "Getting %s for run range %s " % ( item, runRange ), step = 20 )
+    progressBar = ProgressBar( 1, title = "Getting runs for run range %s " % runRange, step = 20 )
   else:
-    progressBar = ProgressBar( len( runsList ), title = "Getting %s for %d runs " % ( item, len( runsList ) ), step = 20 )
+    progressBar = ProgressBar( 1, title = "Getting runs for %d runs " % len( runsList ), step = 20 )
+  res = bkClient.getRunStatus( runsList )
+  progressBar.endLoop()
+  if not res['OK']:
+    gLogger.fatal( "Error getting run list", res['Message'] )
+    diracExit( 1 )
+  runsList = res['Value']['Successful'].keys()
+  progressBar = ProgressBar( len( runsList ), title = "Getting %s for %d runs " % ( item, len( runsList ) ), step = 20 )
   for run in sorted( runsList ):
     progressBar.loop()
     res = bkClient.getRunInformations( run )
