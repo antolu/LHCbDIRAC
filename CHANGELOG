@@ -1,3 +1,14 @@
+[v8r3p5]
+use DIRAC v6r15p17
+* change variable name
+* Get list of real runs from range
+* Allow to get run ranges for various metadata
+* Fixes in NagiosTopologyAgent.py
+* Fix case when the key is not a string
+* New options to get runs from a transformation and display single item information grouped by run
+* fix return value in case of error __getTransformationInfo
+* Change switch --NoLFC to --NoFC
+
 [v8r3p4]
 use DIRAC v6r15p16
 
