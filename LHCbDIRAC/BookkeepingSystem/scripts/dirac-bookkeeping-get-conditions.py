@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 ########################################################################
-# File :    dirac-bookkeeping-get-tck
+# File :    dirac-bookkeeping-get-conditions
 # Author :  Zoltan Mathe
 ########################################################################
 """
-  Returns list of TCKs for a run range, by default only if there is a FULL stream
+  Returns list of Conditions for a run range, by default only if there is a FULL stream
 """
 __RCSID__ = "$Id$"
 
@@ -21,4 +21,4 @@ if __name__ == "__main__":
   Script.parseCommandLine( ignoreErrors = True )
 
   from LHCbDIRAC.BookkeepingSystem.Client.ScriptExecutors import executeRunInfo
-  executeRunInfo( 'Tck' )
+  executeRunInfo( 'DataTakingDescription' )

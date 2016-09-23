@@ -21,7 +21,7 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
   key_max = 0
   value_max = 0
   for key, value in dictionary.iteritems():
-    key_max = max( key_max, len( key ) )
+    key_max = max( key_max, len( str( key ) ) )
     value_max = max( value_max, len( str( value ) ) )
   center = key_max + offset
   newOffset = offset + ( shift if shift else key_max )
@@ -43,7 +43,7 @@ def __printDictionary( dictionary, offset = 0, shift = 0, empty = "Empty directo
         for val in sorted( value ):
           gLogger.notice( '%s%s' % ( newOffset * ' ', val ) )
     elif not isinstance( value, dict ):
-      gLogger.notice( '%s : %s' % ( key.rjust( center ), str( value ) ) )
+      gLogger.notice( '%s : %s' % ( str( key ).rjust( center ), str( value ) ) )
 
 def printDMResult( result, shift = 4, empty = "Empty directory", script = None, depth = 999, offset = 0 ):
   """ Printing results returned with 'Successful' and 'Failed' items """

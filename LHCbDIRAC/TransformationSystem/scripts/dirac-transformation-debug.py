@@ -138,7 +138,7 @@ def __getTransformationInfo( transID, transSep ):
   res = transClient.getTransformation( transID, extraParams = False )
   if not res['OK']:
     gLogger.notice( "Couldn't find transformation", transID )
-    return None, None, None, None, None
+    return None, None, None, None, None, None
   else:
     transName = res['Value']['TransformationName']
     transStatus = res['Value']['Status']
