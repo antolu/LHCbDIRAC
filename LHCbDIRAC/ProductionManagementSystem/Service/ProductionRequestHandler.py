@@ -36,7 +36,7 @@ class ProductionRequestHandler( RequestHandler ):
   def __clientCredentials( self ):
     creds = self.getRemoteCredentials()
     group = creds.get( 'group', '(unknown)' )
-    DN = creds.get('DN', '(unkknown)')
+    DN = creds.get('DN', '(unknown)')
 #    if 'DN' in creds:
 #      cn = re.search('/CN=([^/]+)',creds['DN'])
 #      if cn:
@@ -178,14 +178,9 @@ class ProductionRequestHandler( RequestHandler ):
     csS = PathFinder.getServiceSection( 'ProductionManagement/ProductionRequest' )
     if not csS:
       return S_ERROR( "No ProductionRequest parameters in CS" )
-    if tt == 'template':
-      tplFolder = gConfig.getValue( '%s/templateFolder' % csS, '' )
-      if not tplFolder:
-        return S_ERROR( "No templateFolder in ProductionRequest parameters in CS" )
-    else:
-      tplFolder = gConfig.getValue( '%s/testFolder' % csS, '' )
-      if not tplFolder:
-        return S_ERROR( "No testFolder in ProductionRequest parameters in CS" )
+    tplFolder = gConfig.getValue( '%s/templateFolder' % csS, '' )
+    if not tplFolder:
+      return S_ERROR( "No templateFolder in ProductionRequest parameters in CS" )
     if not os.path.exists( tplFolder ) or not os.path.isdir( tplFolder ):
       return S_ERROR( "Template Folder %s doesn't exist" % tplFolder )
     return S_OK( tplFolder )
@@ -197,8 +192,11 @@ class ProductionRequestHandler( RequestHandler ):
     tplFolder = ret['Value']
     if not os.path.exists( os.path.join( tplFolder, name ) ):
       return S_ERROR( "Template %s doesn't exist" % name )
-    with open( os.path.join( tplFolder, name ) ) as f:
-      body = f.read()
+    try:
+      with open( os.path.join( tplFolder, name ) ) as f:
+        body = f.read()
+    except OSError as e:
+      return S_ERROR( "Can't read template", str( e ) )
     return S_OK( body )
 
   def __productionTemplateList( self, tt ):
@@ -210,28 +208,29 @@ class ProductionRequestHandler( RequestHandler ):
     tpls = [x for x in os.listdir( tplFolder ) \
             if os.path.isfile( os.path.join( tplFolder, x ) )]
     results = []
-    for t in tpls:
-      if t[-1] == '~':
+    for tpl in tpls:
+      if tpl[-1] == '~':
         continue
-      result = self.__getTemplate( tt, t )
+      result = self.__getTemplate( tt, tpl )
       if not result['OK']:
         return result
       body = result['Value']
-      m = re.search( "__RCSID__ = \"([^$]*)\"", body )
+      rcsid = re.search( "__RCSID__ = \"([^$]*)\"", body )
       ptime = ''
       author = ''
       ver = ''
-      if m:
-        m = re.match( r"([^ ]+) \((.*)\) (.*)", m.group( 1 ))
-        if m:
-          ptime = m.group( 2 )
-          author = m.group( 3 )
-          ver = m.group( 1 )
+      if rcsid:
+        #the following line tries to extract author, publishing time, and version
+        rcsid = re.match( r"([^ ]+) \((.*)\) (.*)", rcsid.group( 1 ))
+        if rcsid:
+          ptime = rcsid.group( 2 )
+          author = rcsid.group( 3 )
+          ver = rcsid.group( 1 )
           tpl = { "AuthorGroup"     : '',
                   "Author"          : author,
                   "PublishingTime"  : ptime,
                   "LongDescription" : '',
-                  "WFName"          : t,
+                  "WFName"          : tpl,
                   "AuthorDN"        : '',
                   "WFParent"        : '',
                   "Description"     : ver }
@@ -243,18 +242,9 @@ class ProductionRequestHandler( RequestHandler ):
     """ Return production template list (file based) """
     return self.__productionTemplateList( 'template' )
 
-  types_getProductionTestList = []
-  def export_getProductionTestList( self ):
-    """ Return production tests list (file based) """
-    return self.__productionTemplateList( 'test' )
-
   types_getProductionTemplate = [ basestring ]
   def export_getProductionTemplate( self, name ):
     return self.__getTemplate( 'template', name )
-
-  types_getProductionTest = [ basestring ]
-  def export_getProductionTest( self, name ):
-    return self.__getTemplate( 'test', name )
 
   types_execProductionScript = [ basestring, basestring ]
   def export_execProductionScript( self, script, workflow ):
@@ -404,28 +394,3 @@ class ProductionRequestHandler( RequestHandler ):
     """ Return the dictionary with possible values for filter
     """
     return self.database.getFilterOptions()
-
-  types_getTestList = [ [int, long] ]
-  def export_getTestList( self, requestID ):
-    """ Get production requests in list format (for portal grid)
-    """
-    return self.database.getTestList( requestID )
-
-  types_submitTest = [ dict, dict, basestring, basestring ]
-  def export_submitTest( self, tInput, pars, script, tpl ):
-    """ Save the test request in the database
-    """
-    creds = self.__clientCredentials()
-    return self.database.submitTest( creds, tInput, pars, script, tpl )
-
-  types_getTests = [ basestring ]
-  def export_getTests( self, state ):
-    """ Return the list of tests in specified state
-    """
-    return self.database.getTests( state )
-
-  types_setTestResult = [ [int, long], basestring, basestring ]
-  def export_setTestResult( self, requestID, state, link ):
-    """ Set test result (to be called by test agent) """
-    _creds = self.__clientCredentials()
-    return self.database.setTestResult( requestID, state, link )
