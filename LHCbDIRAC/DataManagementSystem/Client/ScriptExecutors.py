@@ -116,7 +116,7 @@ def executeRemoveReplicas( dmScript, allDisk = False ):
     minReplicas = 0
 
   for switch in Script.getUnprocessedSwitches():
-    if switch[0] == "n" or switch[0].lower() == "nolfc":
+    if switch[0] == "n" or switch[0] == "NoFC":
       checkFC = False
     elif switch[0] == 'Force':
       force = True
