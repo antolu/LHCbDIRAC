@@ -1188,11 +1188,11 @@ def executeRunInfo( item ):
     firstRun = None
     # Add a fake run (None) in order to print out the last range
     for run in sorted( runDict ) + [None]:
-      runTck = runDict.get( run )
-      if runTck == itemValue and not firstRun:
+      runValue = runDict.get( run )
+      if runValue == itemValue and not firstRun:
         firstRun = run
         lastRun = run
-      elif ( runTck != itemValue or ( lastRun - run ) > 100 ) and firstRun:
+      elif ( runValue != itemValue or ( lastRun - run ) > 100 ) and firstRun:
         if lastRun != firstRun:
           rangeStr = '%d:%d' % ( firstRun, lastRun )
         else:
