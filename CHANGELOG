@@ -1,3 +1,9 @@
+[v8r3p6]
+use DIRAC v6r15p18
+* Fixes NagiosTopologyAgent
+* Test scripts client_TransformationSystem.sh; dirac-test-production.py; random_files_creator.sh
+* Use LHCbGrid v10r1
+
 [v8r3p5]
 use DIRAC v6r15p17
 * change variable name

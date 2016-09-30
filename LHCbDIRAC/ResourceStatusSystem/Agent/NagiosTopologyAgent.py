@@ -146,7 +146,7 @@ class NagiosTopologyAgent( AgentModule ):
       with open( self.xmlPath + "lhcb_topology.xml", 'w' ) as xmlf:
         xmlf.write( xml_doc.toxml() )
 
-      self.log.info( "Dry Run: XML file created Successfully" )
+      self.log.info( "XML file created Successfully" )
 
     return S_OK()
 
@@ -266,11 +266,10 @@ class NagiosTopologyAgent( AgentModule ):
           if not site_se_opts_RAW['OK']:
             gLogger.error( site_se_opts_RAW['Message'] )
             return False
-                          
+          site_se_opts_RAW = site_se_opts_RAW[ 'Value' ]                
           # This tests if the DST and RAW StorageElements have the same endpoint. 
           # If so it only uses the one already added.
-          if site_se_opts_RAW[ 'Value' ][ 'Host' ] != site_se_opts_DST[ 'Value' ][ 'Host' ] :
-            site_se_opts_RAW = site_se_opts_RAW[ 'Value' ]
+          if site_se_opts_RAW[ 'Host' ] != site_se_opts_DST[ 'Host' ]:
             __write_SE_XML( site_se_opts_RAW )
   
       
