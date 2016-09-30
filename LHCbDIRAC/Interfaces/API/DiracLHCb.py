@@ -5,8 +5,6 @@
 
 """
 
-__RCSID__ = "$Id$"
-
 import os
 import glob
 import fnmatch
@@ -22,6 +20,8 @@ from DIRAC.ResourceStatusSystem.Client.ResourceStatus    import ResourceStatus
 from LHCbDIRAC.Core.Utilities.File                        import makeGuid
 from LHCbDIRAC.Core.Utilities.ClientTools                 import mergeRootFiles
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+
+__RCSID__ = "$Id$"
 
 COMPONENT_NAME = 'DiracLHCb'
 
@@ -974,7 +974,7 @@ class DiracLHCb( Dirac ):
       # Now get bunches of files,
       # Sort in decreasing size
       files.sort( cmp = ( lambda f1, f2: fileSizes[f2] - fileSizes[f1] ) )
-      while( files ):
+      while files:
         # print [( lfn, fileSizes[lfn] ) for lfn in files]
         group = []
         sizeTot = 0
@@ -992,4 +992,3 @@ class DiracLHCb( Dirac ):
     if printOutput:
       print self.pPrint.pformat( lfnGroups )
     return S_OK( lfnGroups )
-

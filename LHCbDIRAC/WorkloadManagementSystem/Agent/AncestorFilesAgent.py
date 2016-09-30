@@ -6,12 +6,12 @@
       'genCatalog' utility but this will be updated in due course.
 """
 
-__RCSID__ = "$Id$"
-
 import time
 from DIRAC import S_OK, S_ERROR
 from DIRAC.WorkloadManagementSystem.Agent.OptimizerModule import OptimizerModule
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
+
+__RCSID__ = "$Id$"
 
 
 class AncestorFilesAgent( OptimizerModule ):

@@ -1009,7 +1009,7 @@ class ProductionStatusAgent( AgentModule ):
                 #   We wait till mergers finish the job
             # else
             #  we do not know what to do with that (yet)
-	           # else
+           # else
           # 'Idle' && isIdle() (or unknown) && !isDone is not interesting combination
         elif tInfo['state'] == 'RemovedFiles':
           self.__updateTransformationStatus( tID, 'RemovedFiles', 'Completed', updatedT )

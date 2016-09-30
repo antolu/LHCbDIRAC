@@ -7,8 +7,6 @@
 
 """
 
-__RCSID__ = "$Id$"
-
 import os
 
 from DIRAC                                                        import gLogger, S_OK, S_ERROR
@@ -18,6 +16,8 @@ from DIRAC.Core.Utilities.PromptUser                              import promptU
 
 from LHCbDIRAC.Interfaces.API.DiracLHCb                           import DiracLHCb
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient   import TransformationClient
+
+__RCSID__ = "$Id$"
 
 COMPONENT_NAME = 'DiracProduction'
 
@@ -625,7 +625,7 @@ class DiracProduction( DiracLHCb ):
     if not orderOutput:
       ordering = 'LFN'
     fileSummary = self.transformationClient.getTransformationFiles( condDict = {'TransformationID':int( productionID )},
-                                                          orderAttribute = ordering )
+                                                                    orderAttribute = ordering )
     if not fileSummary['OK']:
       return fileSummary
 
@@ -744,7 +744,7 @@ class DiracProduction( DiracLHCb ):
     """Retrieve production job information from Production Manager service.
     """
     res = self.transformationClient.getTransformationTasks( condDict = {'TransformationID':productionID, 'TaskID':jobID},
-                                                  inputVector = True )
+                                                            inputVector = True )
     if not res['OK']:
       return res
     if not res['Value']:
@@ -763,8 +763,7 @@ class DiracProduction( DiracLHCb ):
     if not Date:
       self.log.verbose( 'No Date supplied, setting old date for production %s' % ProductionID )
       Date = '2001-01-01'
-    return self.selectJobs( Status, MinorStatus, ApplicationStatus, Site, Owner,
-                                     str( ProductionID ).zfill( 8 ), Date )
+    return self.selectJobs( Status, MinorStatus, ApplicationStatus, Site, Owner, str( ProductionID ).zfill( 8 ), Date )
 
   #############################################################################
   def extendProduction( self, productionID, numberOfJobs, printOutput = False ):
@@ -821,7 +820,7 @@ class DiracProduction( DiracLHCb ):
         It returns the productionID created
     """
 
-    if publishFlag == False and testFlag:
+    if publishFlag is False and testFlag:
       gLogger.info( 'Test prod will be launched locally' )
       result = prod.runLocal()
       if result['OK']:
