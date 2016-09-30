@@ -2,7 +2,7 @@
 -- ------------------------------------------------------------------------------
 
 -- When installing via dirac tools, the following is not needed (still here for reference)
--- 
+--
 -- DROP DATABASE IF EXISTS ProductionRequestDB;
 -- CREATE DATABASE ProductionRequestDB;
 -- ------------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 -- FLUSH PRIVILEGES;
 
 --
---  Schema definition for the Production Requests table 
+--  Schema definition for the Production Requests table
 --  history ( logging ) information
 -- -
 -- ------------------------------------------------------------------------------
@@ -89,24 +89,6 @@ CREATE TABLE RequestHistory (
   PRIMARY KEY (recid),
   KEY RequestID (RequestID),
   KEY TimeStamp (TimeStamp),
-  FOREIGN KEY (RequestID) REFERENCES ProductionRequests (RequestID)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-DROP TABLE IF EXISTS RequestTest;
-CREATE TABLE RequestTest (
-  recid int(11) NOT NULL AUTO_INCREMENT,
-  RequestID int(11) NOT NULL,
-  State varchar(32) DEFAULT '',
-  Actual int(11) DEFAULT '0',
-  Link varchar(128) DEFAULT '',
-  Time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  Input blob,
-  Params blob,
-  Script blob,
-  Template blob,
-  PRIMARY KEY (recid),
-  KEY RequestID (RequestID),
-  KEY State (State),
   FOREIGN KEY (RequestID) REFERENCES ProductionRequests (RequestID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
