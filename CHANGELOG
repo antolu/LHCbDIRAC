@@ -1,3 +1,29 @@
+[v8r4-pre1]
+use DIRAC v6r16-pre6
+
+* removed unused/untested production test infrastructure
+* using proxy of connecting user for submitting production
+* removed use of types
+* RSS system test
+* remove lbvobox24
+* remove lbvobox23
+* remove lbvobox13
+* remove lbvobox12
+* remove lbvobox16
+* remove lbvobox32
+* remove lbvobox07
+* remove lbvobox22
+* web server is updated differently
+* Use External v6r4p2
+* remove pre-version
+* remove CMT reference for project
+* MOve create_vobox_update from LHCbDiracPolicy to dist-tools
+* change version of pre-release
+* extract pyparsing
+* Chnage the break statement by return to stop the execution if the SOAP interface is not accessible
+* Break if the soap interface not accessible
+* change version of pre-release
+
 [v8r3p6]
 use DIRAC v6r15p18
 * Fixes NagiosTopologyAgent
