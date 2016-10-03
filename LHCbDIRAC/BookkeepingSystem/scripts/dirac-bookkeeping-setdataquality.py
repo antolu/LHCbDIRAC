@@ -38,16 +38,17 @@ def CheckDQFlag( dqFlag ):
 # A run is BAD, flag it and all its files BAD.                                 #
 #                                                                              #
 ################################################################################
-def FlagBadRun( runNumber, procpass ):
+def FlagBadRun( runNumber, processingpass ):
   """
   This flags everithing which belongs to this run. Real Data, Reco, Stripping, etc...
   """
+  procpass = processingpass if processingpass else '/Real Data'
   res = GetProcessingPasses( runNumber, procpass )
   if not res['OK']:
     gLogger.error( 'FlagBadRun: %s' % ( res['Message'] ) )
     return res
         
-  if not procpass:
+  if not processingpass:
     allProcPass = res['Value'] + ['/Real Data']
   else:
     allProcPass = res['Value']
