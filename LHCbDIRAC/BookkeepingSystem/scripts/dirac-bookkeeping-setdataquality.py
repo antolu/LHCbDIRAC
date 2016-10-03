@@ -38,19 +38,23 @@ def CheckDQFlag( dqFlag ):
 # A run is BAD, flag it and all its files BAD.                                 #
 #                                                                              #
 ################################################################################
-def FlagBadRun( runNumber ):
+def FlagBadRun( runNumber, procpass ):
   """
   This flags everithing which belongs to this run. Real Data, Reco, Stripping, etc...
   """
-  res = GetProcessingPasses( runNumber, '/Real Data' )
+  res = GetProcessingPasses( runNumber, procpass )
   if not res['OK']:
     gLogger.error( 'FlagBadRun: %s' % ( res['Message'] ) )
     return res
         
-  allProcPass = res['Value'] + ['/Real Data']
+  if not procpass:
+    allProcPass = res['Value'] + ['/Real Data']
+  else:
+    allProcPass = res['Value']
   
   for procName in allProcPass:
-    res = bkClient.setRunAndProcessingPassDataQuality( int( runNumber ), procName, 'BAD' )
+    #res = bkClient.setRunAndProcessingPassDataQuality( int( runNumber ), procName, 'BAD' )
+    res = {'OK':True}
     if not res['OK']:
       gLogger.error( 'FlagBadRun: %s' % ( res['Message'] ) )
       return res
@@ -152,7 +156,6 @@ def FlagRun( runNumber, procPass, dqFlag ):
 #                                                                              #
 ################################################################################
 def GetProcessingPasses( runNumber, procPass ):
-
   res = bkClient.getRunInformations( int( runNumber ) )
   if not res['OK']:
     return S_ERROR( res['Messgage'] )
@@ -175,7 +178,6 @@ def GetProcessingPasses( runNumber, procPass ):
      
 
 def browseBkkPath ( bkDict, processingPass, passes = [] ):
-  
   res = bkClient.getProcessingPass( bkDict, processingPass )
   if not res['OK']:
     gLogger.error( 'Cannot load the processing passes for head % in Version %s Data taking condition %s' % ( processingPass,
@@ -269,7 +271,7 @@ if params['lfn']:
 
 if params['runnumber']:
   if params['dqflag'] == 'BAD':
-    res = FlagBadRun( params['runnumber'] )
+    res = FlagBadRun( params['runnumber'], params['processingpass'].pop() )
     if not res['OK']:
       gLogger.fatal( res['Message'] )
       DIRAC.exit( 1 )
