@@ -54,8 +54,7 @@ def FlagBadRun( runNumber, processingpass ):
     allProcPass = res['Value']
   
   for procName in allProcPass:
-    #res = bkClient.setRunAndProcessingPassDataQuality( int( runNumber ), procName, 'BAD' )
-    res = {'OK':True}
+    res = bkClient.setRunAndProcessingPassDataQuality( int( runNumber ), procName, 'BAD' )
     if not res['OK']:
       gLogger.error( 'FlagBadRun: %s' % ( res['Message'] ) )
       return res
