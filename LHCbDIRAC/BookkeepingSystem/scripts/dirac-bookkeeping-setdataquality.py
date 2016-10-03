@@ -49,9 +49,9 @@ def flagBadRun( runNumber, processingpass ):
     return res
         
   if not processingpass:
-    allProcPass = res['Value'] + ['/Real Data']
+    allProcPass = set( res['Value'] + ['/Real Data'] )
   else:
-    allProcPass = res['Value']
+    allProcPass = set( res['Value'] )
   
   for procName in allProcPass:
     res = bkClient.setRunAndProcessingPassDataQuality( int( runNumber ), procName, 'BAD' )
@@ -110,7 +110,7 @@ def flagRun( runNumber, procPass, dqFlag ):
   if not res['OK']:
     return S_ERROR( 'flagRun: %s' % res['Message'] )
           
-  allProcPass = res['Value'] + ['/Real Data']
+  allProcPass = set( res['Value'] + ['/Real Data'] )
 
   #
   # Make sure the processing pass entered by the operator is known
