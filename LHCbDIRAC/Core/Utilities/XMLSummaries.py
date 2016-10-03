@@ -114,7 +114,7 @@ class XMLSummary( object ):
 
     successXML = summary.childrens( 'success' )
     if len( successXML ) != 1:
-      raise XMLSummaryError( "XMLSummary bad formatted: Nr of success items != 1" )
+      raise XMLSummaryError( "XMLSummary bad format: Nr of success items != 1" )
 
     return successXML[ 0 ].value
 
@@ -128,7 +128,7 @@ class XMLSummary( object ):
 
     stepXML = summary.childrens( 'step' )
     if len( stepXML ) != 1:
-      raise XMLSummaryError( "XMLSummary bad formatted: Nr of step items != 1" )
+      raise XMLSummaryError( "XMLSummary bad format: Nr of step items != 1" )
 
     return stepXML[ 0 ].value
 
@@ -142,9 +142,12 @@ class XMLSummary( object ):
 
     statXML = summary.childrens( 'usage' )
     if len( statXML ) != 1:
-      raise XMLSummaryError( "XMLSummary bad formatted: Nr of step items != 1" )
+      raise XMLSummaryError( "XMLSummary bad format: Nr of usage items != 1" )
 
     statXML = statXML[0].childrens( 'stat' )
+
+    if len( statXML ) != 1:
+      raise XMLSummaryError( "XMLSummary bad format: no stat" )
 
     return statXML[ 0 ].value
 

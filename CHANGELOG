@@ -24,6 +24,14 @@ use DIRAC v6r16-pre6
 * Break if the soap interface not accessible
 * change version of pre-release
 
+[v8r3p7]
+use DIRAC v6r15p18
+
+* fix using lb-run
+* allow better information formatting
+* avoid exception if no memory
+* set MJF power only if obtained from MJF, i.e. # DB12
+
 [v8r3p6]
 use DIRAC v6r15p18
 * Fixes NagiosTopologyAgent
