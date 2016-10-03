@@ -211,10 +211,10 @@ def browseBkkPath ( bkDict, processingPass, passes = [] ):
 ################################################################################
 
 
-Script.registerSwitch( "l:", "lfnfile", "Flag a LFN or list of LFN" )
-Script.registerSwitch( "r:", "run", "Flag a run" )
-Script.registerSwitch( "p:", "processingPass", "Processing pass for which a run should be flagged" )
-Script.registerSwitch( "q:", "dataqualityflag", "Data quality flag" )
+Script.registerSwitch( "l:", "lfnfile=", "Flag a LFN or list of LFN" )
+Script.registerSwitch( "r:", "run=", "Flag a run" )
+Script.registerSwitch( "p:", "processingPass=", "Processing pass for which a run should be flagged" )
+Script.registerSwitch( "q:", "dataqualityflag=", "Data quality flag" )
 
 Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                     '\nArguments:',
