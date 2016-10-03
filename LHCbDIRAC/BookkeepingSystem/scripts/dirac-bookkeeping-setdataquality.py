@@ -16,12 +16,12 @@ bkClient = BookkeepingClient()
 
 ################################################################################
 #                                                                              #
-# CheckDQFlag:                                                                 #
+# checkDQFlag:                                                                 #
 #                                                                              #
 # Make sure the DQ flag is a known one.                                        #
 #                                                                              #
 ################################################################################
-def CheckDQFlag( dqFlag ):
+def checkDQFlag( dqFlag ):
   res = bkClient.getAvailableDataQuality()
   if not res['OK']:
     return res
@@ -33,19 +33,19 @@ def CheckDQFlag( dqFlag ):
 
 ################################################################################
 #                                                                              #
-# FlagBadRun:                                                                  #
+# flagBadRun:                                                                  #
 #                                                                              #
 # A run is BAD, flag it and all its files BAD.                                 #
 #                                                                              #
 ################################################################################
-def FlagBadRun( runNumber, processingpass ):
+def flagBadRun( runNumber, processingpass ):
   """
   This flags everithing which belongs to this run. Real Data, Reco, Stripping, etc...
   """
   procpass = processingpass if processingpass else '/Real Data'
-  res = GetProcessingPasses( runNumber, procpass )
+  res = getProcessingPasses( runNumber, procpass )
   if not res['OK']:
-    gLogger.error( 'FlagBadRun: %s' % ( res['Message'] ) )
+    gLogger.error( 'flagBadRun: %s' % ( res['Message'] ) )
     return res
         
   if not processingpass:
@@ -56,7 +56,7 @@ def FlagBadRun( runNumber, processingpass ):
   for procName in allProcPass:
     res = bkClient.setRunAndProcessingPassDataQuality( int( runNumber ), procName, 'BAD' )
     if not res['OK']:
-      gLogger.error( 'FlagBadRun: %s' % ( res['Message'] ) )
+      gLogger.error( 'flagBadRun: %s' % ( res['Message'] ) )
       return res
     else:
       gLogger.notice( "Run: %d  Processing pass : %s flagged as BAD" % ( runNumber, procName ) )
@@ -64,12 +64,12 @@ def FlagBadRun( runNumber, processingpass ):
   return S_OK()
 ################################################################################
 #                                                                              #
-# FlagFileList:                                                                #
+# flagFileList:                                                                #
 #                                                                              #
 # Flag a LFN or a list of LFN contained in a file.                             #
 #                                                                              #
 ################################################################################
-def FlagFileList( filename, dqFlqg ):
+def flagFileList( filename, dqFlqg ):
   lfns = []
 
   #
@@ -99,16 +99,16 @@ def FlagFileList( filename, dqFlqg ):
 
 ################################################################################
 #                                                                              #
-# FlagRun:                                                                     #
+# flagRun:                                                                     #
 #                                                                              #
 # Flag a run given its number, the processing pass and the DQ flag.            #
 #                                                                              #
 ################################################################################
-def FlagRun( runNumber, procPass, dqFlag ):
+def flagRun( runNumber, procPass, dqFlag ):
    
-  res = GetProcessingPasses( runNumber, '/Real Data' )
+  res = getProcessingPasses( runNumber, '/Real Data' )
   if not res['OK']:
-    return S_ERROR( 'FlagRun: %s' % res['Message'] )
+    return S_ERROR( 'flagRun: %s' % res['Message'] )
           
   allProcPass = res['Value'] + ['/Real Data']
 
@@ -128,9 +128,9 @@ def FlagRun( runNumber, procPass, dqFlag ):
 
   allProcPass = procPass
   for proc in procPass:
-    res = GetProcessingPasses( runNumber, proc )
+    res = getProcessingPasses( runNumber, proc )
     if not res['OK']:
-      return S_ERROR( 'FlagRun: %s' % res['Message'] )        
+      return S_ERROR( 'flagRun: %s' % res['Message'] )        
     allProcPass.extend( res['Value'] )
 
   
@@ -140,7 +140,7 @@ def FlagRun( runNumber, procPass, dqFlag ):
                                                       thisPass,
                                                       dqFlag )
     if not res['OK']:
-      return S_ERROR( 'FlagRun: processing pass %s\n error: %s' % ( thisPass, res['Message'] ) )
+      return S_ERROR( 'flagRun: processing pass %s\n error: %s' % ( thisPass, res['Message'] ) )
     else:
       gLogger.notice( 'Run %d Processing Pass %s flagged %s' % ( runNumber,
                                                                  thisPass,
@@ -150,12 +150,12 @@ def FlagRun( runNumber, procPass, dqFlag ):
 
 ################################################################################
 #                                                                              #
-# GetProcessingPasses:                                                         #
+# getProcessingPasses:                                                         #
 #                                                                              #
 # Find all known processing passes for the selected configurations.            #
 #                                                                              #
 ################################################################################
-def GetProcessingPasses( runNumber, procPass ):
+def getProcessingPasses( runNumber, procPass ):
   res = bkClient.getRunInformations( int( runNumber ) )
   if not res['OK']:
     return S_ERROR( res['Messgage'] )
@@ -256,13 +256,13 @@ if params['runnumber'] and params[ 'processingpass' ] is None and params['dqflag
   gLogger.fatal( "Please specify the processing pass!" )
   DIRAC.exit( 1 )
   
-res = CheckDQFlag( params['dqflag'] )
+res = checkDQFlag( params['dqflag'] )
 if not res['OK']:
   gLogger.fatal( "%s - %s" % ( params['dqflag'], res['Message'] ) )
   DIRAC.exit( 1 )
 
 if params['lfn']:
-  res = FlagFileList( params['lfn'], params['dqflag'] )
+  res = flagFileList( params['lfn'], params['dqflag'] )
   if res['OK']:
     gLogger.notice( "Files are flagged!" )
     DIRAC.exit( exitCode )
@@ -271,12 +271,12 @@ if params['lfn']:
 
 if params['runnumber']:
   if params['dqflag'] == 'BAD':
-    res = FlagBadRun( params['runnumber'], params['processingpass'].pop() )
+    res = flagBadRun( params['runnumber'], params['processingpass'].pop() )
     if not res['OK']:
       gLogger.fatal( res['Message'] )
       DIRAC.exit( 1 )
   else:
-    res = FlagRun( params['runnumber'], params['processingpass'], params['dqflag'] )
+    res = flagRun( params['runnumber'], params['processingpass'], params['dqflag'] )
     if not res['OK']:
       gLogger.fatal( res['Message'] )
       DIRAC.exit( 1 )              
