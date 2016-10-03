@@ -28,9 +28,9 @@ def __getLfnsFromFile( optFiles, gaudiVerbose ):
     gaudiRun += " &>/dev/null"
   gLogger.info( "Extract list of input files from", optFiles )
 
-  if  os.system( "which gaudirun.py &>/dev/null" ) != 0:
+  if  os.system( "which gaudirun.py >&/dev/null" ) != 0:
     gLogger.info( "lb-run LHCb for getting environment" )
-    command = ". lb-run LHCb/latest" + ( " &>/dev/null;" if not gaudiVerbose else ' ;' ) + gaudiRun
+    command = "lb-run LHCb/latest " + gaudiRun
     rc = os.system( command )
   else:
     rc = os.system( gaudiRun )
