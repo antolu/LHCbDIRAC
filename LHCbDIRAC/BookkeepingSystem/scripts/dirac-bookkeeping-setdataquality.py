@@ -49,8 +49,9 @@ def flagBadRun( runNumber, processingpass ):
     return res
         
   if not processingpass:
-    allProcPass = set( res['Value'] + ['/Real Data'] )
+    allProcPass = set( res['Value'] + ['/Real Data', processingpass] )
   else:
+    res['Value'].append( processingpass )
     allProcPass = set( res['Value'] )
   
   for procName in allProcPass:
@@ -121,18 +122,6 @@ def flagRun( runNumber, procPass, dqFlag ):
   for thisPass in procPass:
     if thisPass not in  allProcPass:
       return S_ERROR( '%s is not a valid processing pass.' % thisPass )
-
-  #
-  # Add to the list all other processing pass, like stripping, calo-femto..
-  #
-
-  allProcPass = procPass
-  for proc in procPass:
-    res = getProcessingPasses( runNumber, proc )
-    if not res['OK']:
-      return S_ERROR( 'flagRun: %s' % res['Message'] )        
-    allProcPass.extend( res['Value'] )
-
   
     # Flag the processing passes
   for thisPass in allProcPass:
@@ -156,19 +145,13 @@ def flagRun( runNumber, procPass, dqFlag ):
 #                                                                              #
 ################################################################################
 def getProcessingPasses( runNumber, procPass ):
-  res = bkClient.getRunInformations( int( runNumber ) )
+  res = bkClient.getRunConfigurationsAndDataTakingCondition( int( runNumber ) )
   if not res['OK']:
     return S_ERROR( res['Messgage'] )
 
-  cfgName = res['Value']['Configuration Name']
-  cfgVersion = res['Value']['Configuration Version']
-  dqDesc = res['Value']['DataTakingDescription']
+  bkDict = res['Value']
+  bkDict['RunNumber'] = runNumber
   
-  bkDict = {'ConfigName'    : cfgName,
-            'ConfigVersion' : cfgVersion,
-            'RunNumber'     : runNumber,
-            'ConditionDescription': dqDesc}
-
   passes = []
   res = browseBkkPath( bkDict, procPass, passes )
   if not res['OK']:
