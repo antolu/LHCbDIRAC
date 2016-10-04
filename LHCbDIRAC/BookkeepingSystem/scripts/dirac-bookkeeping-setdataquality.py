@@ -34,35 +34,6 @@ def checkDQFlag( dqFlag ):
 
 ################################################################################
 #                                                                              #
-# flagBadRun:                                                                  #
-#                                                                              #
-# A run is BAD, flag it and all its files BAD.                                 #
-#                                                                              #
-################################################################################
-def flagBadRun( runNumber, processingpass ):
-  """
-  This flags everithing which belongs to this run. Real Data, Reco, Stripping, etc...
-  """
-  res = getProcessingPasses( runNumber, processingpass )
-  if not res['OK']:
-    gLogger.error( 'flagBadRun: %s' % ( res['Message'] ) )
-    return res
-        
-  res['Value'].append( processingpass )
-  allProcPass = set( res['Value'] )
-  
-  for procName in allProcPass:
-    # res = bkClient.setRunAndProcessingPassDataQuality( int( runNumber ), procName, 'BAD' )
-    res = {'OK': True}
-    if not res['OK']:
-      gLogger.error( 'flagBadRun: %s' % ( res['Message'] ) )
-      return res
-    else:
-      gLogger.notice( "Run: %d  Processing pass : %s flagged as BAD" % ( runNumber, procName ) )
-      
-  return S_OK()
-################################################################################
-#                                                                              #
 # flagFileList:                                                                #
 #                                                                              #
 # Flag a LFN or a list of LFN contained in a file.                             #
