@@ -54,10 +54,16 @@ if __name__ == "__main__":
 
   from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
   retVal = BookkeepingClient().getJobInputOutputFiles( jobidList )
-  if retVal['OK'] and ( not inputFiles or not outputFiles ):
-    success = retVal['Value']['Successful']
-    for job in success:
-      success[job].pop( 'InputFiles' if not inputFiles else 'OutputFiles' )
-
   if retVal['OK']:
-    printDMResult( retVal, empty = "File does not exists in the Bookkeeping" )
+    success = retVal['Value']['Successful']
+    # Remove from input the files that are also output! This happens because the output of step 1 is the input of step 2...
+    for job in success:
+      if inputFiles:
+        for input in list( success[job]['InputFiles'] ):
+          if input in success[job]['OutputFiles']:
+            success[job]['InputFiles'].remove( input )
+
+      if not inputFiles or not outputFiles:
+        success[job].pop( 'InputFiles' if not inputFiles else 'OutputFiles' )
+
+  printDMResult( retVal, empty = "File does not exists in the Bookkeeping" )
