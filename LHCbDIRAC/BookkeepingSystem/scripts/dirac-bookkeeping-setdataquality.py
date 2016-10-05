@@ -246,13 +246,18 @@ if params['lfn']:
 if params['runnumber']:
   if not processingPass:  # processing pass is not given
     # this flags the RAW and all derived files as the given dq flag
-    res = flagRun( params['runnumber'], '/', params['dqflag'], True )
+    res = flagRun( runNumber = params['runnumber'],
+                   procPass = '/',
+                   dqFlag = params['dqflag'],
+                   flagRAW = True )
     if not res['OK']:
       gLogger.fatal( res['Message'] )
       DIRAC.exit( 1 )
   else:  # the processing pass is given
     if params['dqflag'] == 'BAD':  # only that processing pass (and derived) is flagged BAD. RAW is left unchanged
-      res = flagRun( params['runnumber'], processingPass, params['dqflag'] )
+      res = flagRun( runNumber = params['runnumber'],
+                     procPass = processingPass,
+                     dqFlag = params['dqflag'] )
       if not res['OK']:
         gLogger.fatal( res['Message'] )
         DIRAC.exit( 1 )
@@ -265,7 +270,10 @@ if params['runnumber']:
         else:
           gLogger.notice( "%d flagged OK" % params['runnumber'] )
       else:
-        res = flagRun( params['runnumber'], processingPass, params['dqflag'], True )
+        res = flagRun( runNumber = params['runnumber'],
+                       procPass = processingPass,
+                       dqFlag = params['dqflag'],
+                       flagRAW = True )
         if not res['OK']:
           gLogger.fatal( res['Message'] )
           DIRAC.exit( 1 )              
