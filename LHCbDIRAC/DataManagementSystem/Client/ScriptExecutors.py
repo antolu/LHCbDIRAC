@@ -1642,9 +1642,9 @@ def executeListDirectory( dmScript, days = 0, months = 0, years = 0, wildcard = 
         continue
       res = fc.listDirectory( currentDir, verbose )
       if not res['OK']:
-        gLogger.error( "Error retrieving directory contents", "%s %s" % ( currentDir, res['Message'] ) )
+        gLogger.error( "Error retrieving directory contents -", "%s %s/" % ( res['Message'].replace( currentDir, '' ), currentDir ) )
       elif currentDir in res['Value']['Failed']:
-        gLogger.error( "Error retrieving directory contents", "%s %s" % ( currentDir, res['Value']['Failed'][currentDir] ) )
+        gLogger.error( "Error retrieving directory contents -", "%s %s/" % ( res['Value']['Failed'][currentDir].replace( currentDir, '' ), currentDir ) )
       else:
         dirContents = res['Value']['Successful'][currentDir]
         empty = True
