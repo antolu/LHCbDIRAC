@@ -1,8 +1,14 @@
 #! /usr/bin/env python
 """
-This script is used to flag a given files which belongs a certain run. For example:
-/Real Data 1 OK - the run 1 will be flagged OK
-/Real Data/Reco 2 OK  -the files which belongs Reco will be flagged and also the RAW files. 
+This script is used to flag a given files which belongs a certain run. 
+
+1. We flag OK or BAD without specifying a processing pass: this flags the RAW and all derived files as OK or BAD
+2. If a processing pass is specified (and we allow one PP at a time only):
+     2.1 For BAD, only that processing pass (and derived) is flagged BAD. RAW is left unchanged unless PP is “/Real Data” which is then similar to 1.
+     2.2 For OK:
+               - if “/Real Data”, only the RAW are flagged OK. Derived data are left unchanged. If one wants to flag everything, use 1.
+               - else that processing pass (and derived) and the RAW are flagged OK
+                
 """
 import DIRAC
 from DIRAC           import S_OK, S_ERROR, gLogger
@@ -61,9 +67,7 @@ def flagFileList( filename, dqFlqg ):
   if not res['OK']:
     return res
   else:
-    glogger.notice( 'The data quality has been set %s for the following files:' % dqFlag )
-    for l in lfns:
-      gLogger.notice( l )
+    glogger.notice( 'The data quality has been set %s for %d files:' % ( dqFlag, len( lfns ) ) )
             
   return S_OK()
 
@@ -100,12 +104,11 @@ def flagRun( runNumber, procPass, dqFlag, flagRAW = False ):
     
     # Flag the processing passes
   for processingPass in processingPasses:
-    # res = bkClient.setRunAndProcessingPassDataQuality( runNumber,
-    #                                                  thisPass,
-    #                                                  dqFlag )
-    res = {'OK': True}
+    res = bkClient.setRunAndProcessingPassDataQuality( runNumber,
+                                                      thisPass,
+                                                      dqFlag )
     if not res['OK']:
-      return S_ERROR( 'flagRun: processing pass %s\n error: %s' % ( thisPass, res['Message'] ) )
+      return S_ERROR( 'flagRun: processing pass %s\n error: %s' % ( processingPass, res['Message'] ) )
     else:
       gLogger.notice( 'Run %d Processing Pass %s flagged %s' % ( runNumber,
                                                                  processingPass,
@@ -243,7 +246,7 @@ if params['lfn']:
 if params['runnumber']:
   if not processingPass:  # processing pass is not given
     # this flags the RAW and all derived files as the given dq flag
-    res = flagRun( params['runnumber'], '/', params['dqflag'] )
+    res = flagRun( params['runnumber'], '/', params['dqflag'], True )
     if not res['OK']:
       gLogger.fatal( res['Message'] )
       DIRAC.exit( 1 )
