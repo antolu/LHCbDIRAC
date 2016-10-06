@@ -13,6 +13,10 @@
 """
 
 def reduce( arguments ):
+  """
+  If the arguments look like BK paths (start with /LHCb or /MC), try to reduce the list of BK paths
+  by merging event types or file types into a list.
+  """
   if noMerge:
     return arguments
   others = []
@@ -38,7 +42,7 @@ def reduce( arguments ):
     cond = parsed[3]
     parsed[3] = ''
     conditions.setdefault( '/'.join( parsed ), [] ).append( ( path, cond ) )
-  for newPath, condTuple in conditions.items():
+  for newPath, condTuple in conditions.iteritems():
     if len( condTuple ) != 2:
       finalArgs += [path for ( path, _c ) in condTuple]
     else:
