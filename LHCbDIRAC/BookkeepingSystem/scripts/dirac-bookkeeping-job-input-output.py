@@ -56,12 +56,11 @@ if __name__ == "__main__":
   retVal = BookkeepingClient().getJobInputOutputFiles( jobidList )
   if retVal['OK']:
     success = retVal['Value']['Successful']
-    # Remove from input the files that are also output! This happens because the output of step 1 is the input of step 2...
     for job in success:
+      # Remove from input the files that are also output! This happens because the output of step 1 can be the input of step 2...
+      # only worth if input files are requested though
       if inputFiles:
-        for input in list( success[job]['InputFiles'] ):
-          if input in success[job]['OutputFiles']:
-            success[job]['InputFiles'].remove( input )
+        success[job]['InputFiles'] = sorted( set( success[job]['InputFiles'] ) - set( success[job]['OutputFiles'] ) )
 
       if not inputFiles or not outputFiles:
         success[job].pop( 'InputFiles' if not inputFiles else 'OutputFiles' )
