@@ -5027,3 +5027,38 @@ and files.qualityid= dataquality.qualityid'
 
     successful = list( set( evt['EVTTYPEID'] for evt in eventtypes ) - set( i.keys()[0] for i in failed ) )
     return S_OK( {'Failed': failed, 'Successful': successful} )
+  
+  def getRunConfigurationsAndDataTakingCondition( self, runnumber ):
+    """
+    :param: int runnumber   
+    :return: S_OK()/S_ERROR ConfigName, ConfigVersion and DataTakingDescription 
+    """
+    command = "select c.configname, c.configversion from jobs j, configurations c \
+                  where j.configurationid=c.configurationid and \
+                        j.production<0 and j.runnumber=%d" % runnumber
+    
+    retVal = self.dbR_.query( command )
+    if not retVal['OK']:
+      return retVal
+    
+    if not retVal['Value']:
+      return S_ERROR("Run does not exists in the db")
+    
+    result = {'ConfigName': retVal['Value'][0][0],
+              'ConfigVersion':retVal['Value'][0][1]}
+    
+    command = "select d.description from jobs j, productionscontainer prod, data_taking_conditions d\
+                WHERE j.production=prod.production and \
+                      j.production<0 and \
+                      prod.daqperiodid=d.daqperiodid and \
+                      j.runnumber=%d" % runnumber
+    
+    retVal = self.dbR_.query( command )
+    if not retVal['OK']:
+      return retVal
+    
+    if not retVal['Value']:
+      return S_ERROR("Data taking description does not exists")
+    result['ConditionDescription'] = retVal['Value'][0][0]
+    
+    return S_OK( result )

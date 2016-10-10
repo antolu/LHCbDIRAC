@@ -1106,6 +1106,17 @@ class BookkeepingClient( object ):
     server = self.__getServer()
     return server.bulkupdateEventType( eventtypes )
   
+  #############################################################################
+  def getRunConfigurationsAndDataTakingCondition( self, runnumber ):
+    """
+    It returns minimal information for a given run.
+    :param: int runnumber   
+    :return: S_OK()/S_ERROR ConfigName, ConfigVersion and DataTakingDescription
+    """
+    server = self.__getServer()
+    return server.getRunConfigurationsAndDataTakingCondition( int( runnumber ) )
+
+  
 class BKClientWithRetry():
   """
   Utility class wrapping BKClient with retries

@@ -24,6 +24,12 @@ use DIRAC v6r16-pre6
 * Break if the soap interface not accessible
 * change version of pre-release
 
+[v8r3p8]
+use DIRAC v6r15p19
+* implement new DQ procedure
+* improve the dq flagging
+* do not flag bad the Real data when the processing pass is given
+
 [v8r3p7]
 use DIRAC v6r15p18
 
