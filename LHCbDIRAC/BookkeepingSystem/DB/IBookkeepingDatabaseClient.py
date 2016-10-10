@@ -737,3 +737,9 @@ class IBookkeepingDatabaseClient(object):
   def bulkupdateEventType( self, eventtypes ):
     """more info in the BookkeepingClient.py"""
     return self.getManager().bulkupdateEventType( eventtypes )
+  
+  #############################################################################
+  def getRunConfigurationsAndDataTakingCondition( self, runnumber ):
+    """more info in the BookkeepingClient.py"""
+    return self.getManager().getRunConfigurationsAndDataTakingCondition( runnumber )
+  

@@ -1991,6 +1991,14 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   #############################################################################
   types_bulkupdateEventType = [list]
-  def export_bulkupdateEventType( self, eventtypes ):
+  @staticmethod
+  def export_bulkupdateEventType( eventtypes ):
     """more info in the BookkeepingClient.py"""
     return dataMGMT_.bulkupdateEventType( eventtypes )
+  
+  #############################################################################
+  types_getRunConfigurationsAndDataTakingCondition = [int]
+  @staticmethod
+  def export_getRunConfigurationsAndDataTakingCondition( runnumber ):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.getRunConfigurationsAndDataTakingCondition( runnumber )
