@@ -24,6 +24,13 @@ use DIRAC v6r16-pre6
 * Break if the soap interface not accessible
 * change version of pre-release
 
+[v8r3p9]
+use DIRAC v6r15p19
+* fix for histoMerging productions
+* terminate directory printing with a /
+* New script for executing command in a loop, just changing one substring
+* remove from input files that are also in output (intermediate)
+
 [v8r3p8]
 use DIRAC v6r15p19
 * implement new DQ procedure
