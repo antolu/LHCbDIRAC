@@ -7,22 +7,12 @@
 
   This is done by invoking a client program named elog (1) which is used to post the data to the LHCb logbook.
   The authentication is done by providing a valid username and password in the configuration file of dirac.
-
-  By default this agent will only post notifications that match a list of sites
-  (the list can be changed in the configuration file)
-
-  (1) The elog program can be downloaded from here: http://midas.psi.ch/elog/download.html
-  Upon the first execution if you get any error that includes "libssl.so.10" make sure that you have
-  "libssl1.0.0" and "libssl-dev" installed and make a link:
-
-  "cd /lib/x86_64-linux-gnu"
-  "sudo ln -s libssl.so.1.0.0 libssl.so.10"
-  "sudo ln -s libcrypto.so.1.0.0 libcrypto.so.10"
 """
 
 import os
 import sqlite3
-from DIRAC                                              import gConfig, S_OK
+import requests
+from DIRAC                                              import S_OK, S_ERROR
 from DIRAC.ResourceStatusSystem.Agent.EmailAgent        import EmailAgent as DiracEmAgent
 
 __RCSID__ = '$Id: $'
@@ -72,8 +62,20 @@ class EmailAgent( DiracEmAgent ):
                 elements += StatusType + " of " + ResourceName + " has been " + Status + " since " + \
                             Time + " (Previous status: " + PreviousStatus + ")\n"
 
-              os.system('./elog -h lblogbook.cern.ch -p 8080 -l Operations -u ' + elogUsername + ' ' + elogPassword + ' -a System="Site Downtime" '
-                               '-a author="LHCb RSS" -a Subject="RSS Actions Taken for ' + site[0] + '" "' + elements + '"')
+              try:
+                response = requests.post('https://lblogbook.cern.ch:5050/log',
+                  json = {
+                    "user": elogUsername,
+                    "password": elogPassword,
+                    "logbook": "Operations",
+                    "system": "Site Downtime",
+                    "text": elements,
+                    "subject": "RSS Actions Taken for " + site[0]
+                  }).json()
+
+                response.raise_for_status()
+              except requests.exceptions.RequestException as e:
+                return S_ERROR("Error %s" % e)
 
     super( EmailAgent, self ).execute()
 
