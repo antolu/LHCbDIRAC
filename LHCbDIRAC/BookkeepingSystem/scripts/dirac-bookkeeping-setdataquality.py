@@ -1,14 +1,14 @@
 #! /usr/bin/env python
 """
-This script is used to flag a given files which belongs a certain run. 
+This script is used to flag a given files which belongs a certain run.
 
 1. We flag OK or BAD without specifying a processing pass: this flags the RAW and all derived files as OK or BAD
 2. If a processing pass is specified (and we allow one PP at a time only):
-     2.1 For BAD, only that processing pass (and derived) is flagged BAD. RAW is left unchanged unless PP is “/Real Data” which is then similar to 1.
+     2.1 For BAD, only that processing pass (and derived) is flagged BAD. RAW is left unchanged unless PP is '/Real Data' which is then similar to 1
      2.2 For OK:
-               - if “/Real Data”, only the RAW are flagged OK. Derived data are left unchanged. If one wants to flag everything, use 1.
+               - if '/Real Data', only the RAW are flagged OK. Derived data are left unchanged. If one wants to flag everything, use 1.
                - else that processing pass (and derived) and the RAW are flagged OK
-                
+
 """
 import DIRAC
 from DIRAC           import S_OK, S_ERROR, gLogger
@@ -17,7 +17,7 @@ from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClie
 
 import sys
 import re
-import os 
+import os
 
 bkClient = BookkeepingClient()
 
@@ -61,14 +61,14 @@ def flagFileList( filename, dqFlqg ):
   #
   # Now flag the LFN
   #
-    
+
   res = bkClient.setFileDataQuality( lfns, dqFlag )
 
   if not res['OK']:
     return res
   else:
     glogger.notice( 'The data quality has been set %s for %d files:' % ( dqFlag, len( lfns ) ) )
-            
+
   return S_OK()
 
 ################################################################################
@@ -79,15 +79,15 @@ def flagFileList( filename, dqFlqg ):
 #                                                                              #
 ################################################################################
 def flagRun( runNumber, procPass, dqFlag, flagRAW = False ):
-   
+
   res = getProcessingPasses( runNumber, '/Real Data' )
   if not res['OK']:
     return S_ERROR( 'flagRun: %s' % res['Message'] )
-  
+
   allProcessingPasses = set( res['Value'] )
 
-  gLogger.notice( "Available processing passes:", str(allProcessingPasses) )
-  
+  gLogger.notice( "Available processing passes:", str( allProcessingPasses ) )
+
   processingPasses = []
   if procPass:  # we will flag a certain processing: for example: /Real Data/Reco09
     for processingPass in allProcessingPasses:
@@ -95,13 +95,13 @@ def flagRun( runNumber, procPass, dqFlag, flagRAW = False ):
         processingPasses.append( processingPass )
   else:  # we will flag everything
     processingPasses = allProcessingPasses
-      
+
   if not processingPasses:
     return S_ERROR( '%s is not a valid processing pass.' % procPass )
-  
+
   if flagRAW:
-    processingPasses.append('/Real Data')
-    
+    processingPasses.append( '/Real Data' )
+
     # Flag the processing passes
   for processingPass in processingPasses:
     res = bkClient.setRunAndProcessingPassDataQuality( runNumber,
@@ -113,7 +113,7 @@ def flagRun( runNumber, procPass, dqFlag, flagRAW = False ):
       gLogger.notice( 'Run %d Processing Pass %s flagged %s' % ( runNumber,
                                                                  processingPass,
                                                                  dqFlag ) )
-  
+
   return S_OK()
 
 ################################################################################
@@ -130,21 +130,21 @@ def getProcessingPasses( runNumber, procPass ):
 
   bkDict = res['Value']
   bkDict['RunNumber'] = runNumber
-  
+
   passes = []
   res = browseBkkPath( bkDict, procPass, passes )
   if not res['OK']:
     return res
   else:
     return S_OK( passes )
-     
+
 
 def browseBkkPath ( bkDict, processingPass, visitedProcessingPass ):
   """
-  This method visit the processing passes started from processingPass. The visited 
+  This method visit the processing passes started from processingPass. The visited
   processing passes are kept in visitedProcessingPass
   """
-  
+
   res = bkClient.getProcessingPass( bkDict, processingPass )
   if not res['OK']:
     gLogger.error( 'Cannot load the processing passes for head % in Version %s Data taking condition %s' % ( processingPass,
@@ -153,22 +153,22 @@ def browseBkkPath ( bkDict, processingPass, visitedProcessingPass ):
     gLogger.error( res['Message'] )
     return res
 
-  
+
   records = res['Value'][0]  # 0 contains the processing passes 1 contains the event types
   if 'Name' in records['ParameterNames']:  # this mean we have processing passes
     index = records['ParameterNames'].index( 'Name' )  # this is the name of the processing pass: 'ParameterNames': ['Name']
     passes = sorted( [os.path.join( processingPass, record[index] ) for record in records['Records']] )
   else:
     passes = []
-      
+
   if passes:
     for pName in passes:
       visitedProcessingPass.append( pName )
       browseBkkPath( bkDict, pName, visitedProcessingPass )
-      
+
   return S_OK()
-    
-   
+
+
 ################################################################################
 #                                                                              #
 #                                  >>> Main <<<                                #
@@ -229,7 +229,7 @@ if params[ 'processingpass' ]:
     processingPass = processingPass.replace( 'RealData', 'Real Data' )  # To be consistent with other BK scripts ;-)
     if not processingPass.startswith( '/Real Data' ):
       processingPass = '/Real Data' + processingPass
-  
+
 res = checkDQFlag( params['dqflag'] )
 if not res['OK']:
   gLogger.fatal( "%s - %s" % ( params['dqflag'], res['Message'] ) )
@@ -276,6 +276,6 @@ if params['runnumber']:
                        flagRAW = True )
         if not res['OK']:
           gLogger.fatal( res['Message'] )
-          DIRAC.exit( 1 )              
-    
+          DIRAC.exit( 1 )
+
 DIRAC.exit( exitCode )
