@@ -33,50 +33,59 @@ class EmailAgent( DiracEmAgent ):
 
   def execute( self ):
 
-    defaultSites = ['CERN', 'CNAF', 'GridKa', 'IN2P3', 'NIKHEF', 'PIC', 'RAL', 'RRCKI', 'SARA', 'HLTFarm', 'Tier2-Ds',
-                    'CBPF', 'CPPM', 'CSCS', 'IHEP', 'LAL', 'LPNHE', 'Manchester', 'NCBJ', 'NIPNE-07', 'RAL-HEP', 'UKI-LT2-IC-HEP']
-
-    sites = self.am_getOption( 'Sites', defaultSites )
-
     elogUsername = self.am_getOption( 'Elog_Username' )
     elogPassword = self.am_getOption( 'Elog_Password' )
 
-    if os.path.isfile(self.cacheFile):
-      with sqlite3.connect(self.cacheFile) as conn:
+    try:
+      response = requests.post('https://lblogbook.cern.ch:5050/config/option',
+                                json = {
+                                  "user": elogUsername,
+                                  "password": elogPassword,
+                                  "logbook": "Operations",
+                                  "param": "Site"
+                                }).json()
 
-        result = conn.execute("SELECT DISTINCT SiteName from ResourceStatusCache;")
-        for site in result:
-          cursor = conn.execute("SELECT StatusType, ResourceName, Status, Time, PreviousStatus from ResourceStatusCache WHERE SiteName='"+ site[0] +"';")
+    except requests.exceptions.RequestException as e:
+      return S_ERROR("Error %s" % e)
 
-          DryRun = self.am_getOption( 'DryRun', False )
+    for sites in response['Result'].replace(" ", "").split(","):
 
-          if DryRun:
-           self.log.info("Running in DryRun mode...")
-           return S_OK()
-          else:
-            elements = ""
-            substring = site[0].split('.', 1)[0]
+      if os.path.isfile(self.cacheFile):
+        with sqlite3.connect(self.cacheFile) as conn:
 
-            if substring in sites:
-              for StatusType, ResourceName, Status, Time, PreviousStatus in cursor:
-                elements += StatusType + " of " + ResourceName + " has been " + Status + " since " + \
-                            Time + " (Previous status: " + PreviousStatus + ")\n"
+          result = conn.execute("SELECT DISTINCT SiteName from ResourceStatusCache;")
+          for site in result:
+            cursor = conn.execute("SELECT StatusType, ResourceName, Status, Time, PreviousStatus from ResourceStatusCache WHERE SiteName='"+ site[0] +"';")
 
-              try:
-                response = requests.post('https://lblogbook.cern.ch:5050/log',
-                  json = {
-                    "user": elogUsername,
-                    "password": elogPassword,
-                    "logbook": "Operations",
-                    "system": "Site Downtime",
-                    "text": elements,
-                    "subject": "RSS Actions Taken for " + site[0]
-                  }).json()
+            DryRun = self.am_getOption( 'DryRun', False )
 
-                response.raise_for_status()
-              except requests.exceptions.RequestException as e:
-                return S_ERROR("Error %s" % e)
+            if DryRun:
+             self.log.info("Running in DryRun mode...")
+             return S_OK()
+            else:
+              elements = ""
+              substring = site[0].split('.', 1)[0]
 
-    super( EmailAgent, self ).execute()
+              if substring in sites:
+                for StatusType, ResourceName, Status, Time, PreviousStatus in cursor:
+                  elements += StatusType + " of " + ResourceName + " has been " + Status + " since " + \
+                              Time + " (Previous status: " + PreviousStatus + ")\n"
 
-    return S_OK()
+                try:
+                  response = requests.post('https://lblogbook.cern.ch:5050/log',
+                                            json = {
+                                              "user": elogUsername,
+                                              "password": elogPassword,
+                                              "logbook": "Operations",
+                                              "system": "Site Downtime",
+                                              "text": elements,
+                                              "subject": "RSS Actions Taken for " + site[0]
+                                            }).json()
+
+                  response.raise_for_status()
+                except requests.exceptions.RequestException as e:
+                  return S_ERROR("Error %s" % e)
+
+      super( EmailAgent, self ).execute()
+
+      return S_OK()
