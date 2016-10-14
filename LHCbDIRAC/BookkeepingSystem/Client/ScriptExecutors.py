@@ -1154,6 +1154,9 @@ def executeRunInfo( item ):
         gLogger.fatal( "Bad run range" )
         diracExit( 1 )
 
+  if not runsDict:
+    Script.showHelp()
+    diracExit( 1 )
   runsList = runsDict['RunNumber']
   # Remove the fake run number
   runsList.remove( 0 )

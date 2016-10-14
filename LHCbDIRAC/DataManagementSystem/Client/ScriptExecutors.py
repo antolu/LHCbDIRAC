@@ -1014,7 +1014,7 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
     if dmsHelper.isSEFailover( se ):
       continue
     if not dmsHelper.isSEArchive( se ):
-      res = dmsHelper.getSitesForSE( se )
+      res = dmsHelper.getSitesForSE( se, connectionLevel = 'LOCAL' )
       if res['OK']:
         try:
           site = res['Value'][0]

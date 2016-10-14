@@ -24,6 +24,14 @@ use DIRAC v6r16-pre6
 * Break if the soap interface not accessible
 * change version of pre-release
 
+[v8r3p10]
+use DIRAC v6r15p19
+* change the variable name
+* remove " in docstring
+* only consider local sites to SE
+* add protection
+* fix bkQueryProduction
+
 [v8r3p9]
 use DIRAC v6r15p19
 * fix for histoMerging productions
