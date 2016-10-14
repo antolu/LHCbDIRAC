@@ -345,7 +345,7 @@ class Production( object ):
 
     for fileType in filesTypesList:
       fileDict = {}
-      if 'hist' in fileType.lower() and self.LHCbJob.type.lower != 'merge':
+      if 'hist' in fileType.lower() and self.LHCbJob.type.lower() != 'merge':
         # Watch out: this assumes that:
         # - 'hist' is always in the file type name
         # - merging jobs won't produce histograms
