@@ -105,8 +105,8 @@ def flagRun( runNumber, procPass, dqFlag, flagRAW = False ):
     # Flag the processing passes
   for processingPass in processingPasses:
     res = bkClient.setRunAndProcessingPassDataQuality( runNumber,
-                                                      thisPass,
-                                                      dqFlag )
+                                                       processingPass,
+                                                       dqFlag )
     if not res['OK']:
       return S_ERROR( 'flagRun: processing pass %s\n error: %s' % ( processingPass, res['Message'] ) )
     else:
