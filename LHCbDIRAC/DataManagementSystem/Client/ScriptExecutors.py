@@ -836,7 +836,6 @@ def executeReplicaStats( dmScript ):
   prWithReplicas = False
   prFailover = False
   prSEList = []
-  prNotSEList = []
   dumpAtSE = False
   dumpNotAtSE = False
   for switch in Script.getUnprocessedSwitches():
@@ -987,7 +986,6 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
     nfiles += 1
 
   gigaByte = 1000. * 1000. * 1000.
-  teraByte = gigaByte * 1000.
   if directories:
     dirStr = " in %s" % str( directories )
   else:
