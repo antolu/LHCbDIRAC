@@ -3,13 +3,9 @@ Set of functions used by the DMS scripts
 """
 import os
 
-from DIRAC  import gLogger, gConfig, S_OK, exit as diracExit
+from DIRAC  import gLogger, S_OK, exit as diracExit
 from DIRAC.Core.Utilities.List import breakListIntoChunks
 from DIRAC.Core.Base import Script
-from DIRAC.DataManagementSystem.Client.DataManager import DataManager
-from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
-from DIRAC.Resources.Storage.StorageElement  import StorageElement
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers, resolveSEGroup
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 from LHCbDIRAC.DataManagementSystem.Client.DMScript import printDMResult, ProgressBar
