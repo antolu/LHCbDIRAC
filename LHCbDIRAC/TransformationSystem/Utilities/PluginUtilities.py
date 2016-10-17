@@ -238,7 +238,6 @@ class PluginUtilities( DIRACPluginUtilities ):
     if not res['OK']:
       return res
     usageDict = {}
-    total = sum( count for _uDict, count in res['Value'] )
     for usedDict, count in res['Value']:
       usedSE = usedDict['UsedSE']
       if usedSE != 'Unknown':
@@ -974,19 +973,19 @@ class PluginUtilities( DIRACPluginUtilities ):
     lfnDirs = {}
     # Get the directories
     for lfn in lfns:
-      dir = os.path.dirname( lfn )
-      last = os.path.basename( dir )
+      dirName = os.path.dirname( lfn )
+      last = os.path.basename( dirName )
       if len( last ) == 4 and last.isdigit():
-        dir = os.path.dirname( dir )
-      directories.setdefault( dir, lfn )
-      lfnDirs[lfn] = dir
+        dirName = os.path.dirname( dirName )
+      directories.setdefault( dirName, lfn )
+      lfnDirs[lfn] = dirName
 
-    dirList = [dir for dir in directories if dir not in self.cachedDirMetadata]
-    for dir in dirList:
-      res = self.bkClient.getJobInfo( directories[dir] )
+    dirList = [dirName for dirName in directories if dirName not in self.cachedDirMetadata]
+    for dirName in dirList:
+      res = self.bkClient.getJobInfo( directories[dirName] )
       if not res['OK']:
         return res
-      self.cachedDirMetadata.update( {dir : res['Value'][0][18]} )
+      self.cachedDirMetadata.update( {dirName : res['Value'][0][18]} )
 
     lfnProd = dict( ( lfn, self.cachedDirMetadata.get( lfnDirs[lfn], 0 ) ) for lfn in lfns )
     return S_OK( lfnProd )
