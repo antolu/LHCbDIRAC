@@ -5,13 +5,14 @@
   in this case LHCbDIRAC EmailAgent adds the additional functionality of automatically posting these
   status changes in the LHCb logbook ("lblogbook.cern.ch").
 
-  This is done by invoking a client program named elog (1) which is used to post the data to the LHCb logbook.
+  This is done by sending a request to a restful API which is used to post the data to the LHCb logbook.
   The authentication is done by providing a valid username and password in the configuration file of dirac.
 """
 
 import os
 import sqlite3
 import requests
+import errno
 from DIRAC                                              import S_OK, S_ERROR
 from DIRAC.ResourceStatusSystem.Agent.EmailAgent        import EmailAgent as DiracEmAgent
 
@@ -46,7 +47,7 @@ class EmailAgent( DiracEmAgent ):
                                 }).json()
 
     except requests.exceptions.RequestException as e:
-      return S_ERROR("Error %s" % e)
+      return S_ERROR(errno.ECONNABORTED, "Error %s" % e)
 
     for sites in response['Result'].replace(" ", "").split(","):
 
@@ -84,7 +85,7 @@ class EmailAgent( DiracEmAgent ):
 
                   response.raise_for_status()
                 except requests.exceptions.RequestException as e:
-                  return S_ERROR("Error %s" % e)
+                  return S_ERROR(errno.ECONNABORTED, "Error %s" % e)
 
       super( EmailAgent, self ).execute()
 
