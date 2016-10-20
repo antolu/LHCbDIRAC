@@ -257,7 +257,7 @@ class ProductionRequestHandler( RequestHandler ):
                                                 cacheTime =  86400 )
     if not result['OK']:
       return result
-    proxyFile = result['Value']['proxyFile']
+    proxyFile = result['Value']
 
     try:
       f = tempfile.mkstemp()
