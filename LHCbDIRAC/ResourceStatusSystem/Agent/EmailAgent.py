@@ -58,7 +58,7 @@ class EmailAgent( DiracEmAgent ):
           for site in result:
             cursor = conn.execute("SELECT StatusType, ResourceName, Status, Time, PreviousStatus from ResourceStatusCache WHERE SiteName='"+ site[0] +"';")
 
-            DryRun = self.am_getOption( 'DryRun', False )
+            DryRun = self.am_getOption( 'DryRun', True )
 
             if DryRun:
              self.log.info("Running in DryRun mode...")
