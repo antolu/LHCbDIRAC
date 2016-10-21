@@ -1,3 +1,15 @@
+[v8r4-pre2]
+use DIRAC v6r16-pre8
+
+* Set default dryRun to True
+* bug fixes for ProductionRequestDB
+* Added Error code and corrected docstring
+* Use LCG 85a
+* Get sites from logbook
+* Use eLog API instead of binary
+* Added documentation for elog binary
+* Extended email agent to post status changes to elog
+
 [v8r4-pre1]
 use DIRAC v6r16-pre6
 
