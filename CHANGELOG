@@ -1,3 +1,8 @@
+[v8r3p11]
+use DIRAC v6r15p20
+* add real data to the list in the correct place
+* Update make_release.rst
+
 [v8r3p10]
 use DIRAC v6r15p19
 * change the variable name
