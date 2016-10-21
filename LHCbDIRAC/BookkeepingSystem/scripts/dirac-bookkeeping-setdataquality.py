@@ -96,11 +96,11 @@ def flagRun( runNumber, procPass, dqFlag, flagRAW = False ):
   else:  # we will flag everything
     processingPasses = allProcessingPasses
 
-  if not processingPasses:
-    return S_ERROR( '%s is not a valid processing pass.' % procPass )
-
   if flagRAW:
     processingPasses.append( '/Real Data' )
+  
+  if not processingPasses:
+    return S_ERROR( '%s is not a valid processing pass.' % procPass )
 
     # Flag the processing passes
   for processingPass in processingPasses:
