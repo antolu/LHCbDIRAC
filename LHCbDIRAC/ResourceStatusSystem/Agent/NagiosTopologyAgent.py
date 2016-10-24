@@ -265,7 +265,7 @@ class NagiosTopologyAgent( AgentModule ):
         else:
           if not site_se_opts_RAW['OK']:
             gLogger.error( site_se_opts_RAW['Message'] )
-            return False
+            return has_grid_elem
           site_se_opts_RAW = site_se_opts_RAW[ 'Value' ]                
           # This tests if the DST and RAW StorageElements have the same endpoint. 
           # If so it only uses the one already added.

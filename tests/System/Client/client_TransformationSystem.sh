@@ -14,9 +14,12 @@ echo " "
 userdir=$( echo "$USER" |cut -c 1)/$USER
 stamptime=$(date +%Y%m%d_%H%M%S)
 mkdir -p TransformationSystemTest
-
+directory=/lhcb/test/CertificationTests/$userdir/TransformationSystemTest/$stamptime
 #selecting a random USER Storage Element
-SEs=$(dirac-dms-show-se-status |grep USER |grep -v 'Banned\|Degraded\|-2' | awk '{print $1}')
+#SEs=$(dirac-dms-show-se-status |grep USER |grep -v 'Banned\|Degraded\|-2' | awk '{print $1}')
+
+SEs=$(dirac-dms-show-se-status |grep BUFFER |grep -v 'Banned\|Degraded\|-new' | awk '{print $1}')
+
 x=0
 for n in $SEs
 do
@@ -36,12 +39,13 @@ fi
 
 transID=`cat TransformationID`
 
-# Create unique files
+# Create unique files and adding entry to the bkk"
 echo ""
-echo "Creating unique test files"
-./random_files_creator.sh --Files=5 --Name="Test_Transformation_System_" \
+echo "Creating unique test files and adding entry to the bkk"
+# ./random_files_creator.sh --Files=5 --Name="Test_Transformation_System_" \
+#   --Path=$PWD/TransformationSystemTest/
+./client_Bookkeeping.sh --Files=5 --Name="Test_Transformation_System_" \
   --Path=$PWD/TransformationSystemTest/
-
 
 
 # Add the random files to the transformation
@@ -52,7 +56,7 @@ for file in $filesToUpload
 do
 	random=$[ $RANDOM % $x ]
 	randomSE=${arrSE[$random]}
-	echo "/lhcb/user/$userdir/TransformationSystemTest/$stamptime/$file \
+	echo "$directory/$file \
 	     ./TransformationSystemTest/$file $randomSE" \
 	     >> TransformationSystemTest/LFNlist.txt
 done
@@ -68,5 +72,8 @@ if [ $? -ne 0 ]
 then
    exit $?
 fi
+
+
+
 
 # ___ Use Ramdom SEs___
