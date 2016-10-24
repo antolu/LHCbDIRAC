@@ -64,7 +64,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     self.filesParam = {}
     self.transRunFiles = {}
     self.notProcessed = {}
-    self.cacheHitFrequency = max( 0., 1 - self.getPluginParam( 'RunCacheUpdateFrequency', 0.05 ) )
+    self.cacheHitFrequency = max( 0., 1 - self.getPluginParam( 'RunCacheUpdateFrequency', 0.1 ) )
     self.__runExpired = {}
     self.__recoType = ''
     self.dmsHelper = DMSHelpers()
@@ -510,7 +510,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     Determine from BK how many ancestors files from a given run we have.
     This is used for deciding when to flush a run (when all RAW files have been processed)
     """
-    ancestors = 0
+    ancestorFiles = set()
     # The transformation files cannot be cached globally as they evolve at each cycle
     lfns = self.transRunFiles.get( runID, [] )
     if not lfns:
@@ -552,33 +552,35 @@ class PluginUtilities( DIRACPluginUtilities ):
     #
     # Get number of ancestors for known files
     cachedLfns = self.cachedLFNAncestors.get( runID, {} )
+    # If we cached a number, clean the cache
+    if cachedLfns and True in set( isinstance( val, ( long, int ) ) for val in cachedLfns.values() ):
+      cachedLfns = {}
     setLfns = set( lfns )
     hitLfns = setLfns & set( cachedLfns )
     if hitLfns and not getFiles:
       self.logVerbose( "Ancestors cache hit for run %d: %d files cached" % \
                        ( runID, len( hitLfns ) ) )
-      ancestors += sum( [cachedLfns[lfn] for lfn in hitLfns] )
-      lfns = list( setLfns - hitLfns )
+      for lfn in hitLfns:
+        ancestorFiles.update( cachedLfns[lfn] )
+      lfns = setLfns - hitLfns
 
     # If some files are unknown, get the ancestors from BK
-    ancestorFiles = set()
     if lfns:
-      res = self.getFileAncestors( lfns )
+      res = self.getFileAncestors( list( lfns ) )
       if res['OK']:
         ancestorDict = res['Value']['Successful']
       else:
         self.logError( "Error getting ancestors: %s" % res['Message'] )
         ancestorDict = {}
       for lfn in ancestorDict:
-        ancFiles = [f['FileName'] for f in ancestorDict[lfn] if f['FileType'] == 'RAW']
+        ancFiles = set( os.path.basename( f['FileName'] ) for f in ancestorDict[lfn] if f['FileType'] == 'RAW' )
         ancestorFiles.update( ancFiles )
-        n = len( ancFiles )
-        self.cachedLFNAncestors.setdefault( runID, {} )[lfn] = n
-        ancestors += n
+        self.cachedLFNAncestors.setdefault( runID, {} )[lfn] = ancFiles
 
     if getFiles:
       return ancestorFiles
     notProcessed = self.__getNotProcessedAncestors( runID, lfnToCheck )
+    ancestors = len( ancestorFiles )
     if notProcessed:
       self.logVerbose( "Found %d files not processed for run %d" % ( notProcessed, runID ) )
       ancestors += notProcessed
@@ -782,7 +784,10 @@ class PluginUtilities( DIRACPluginUtilities ):
         return 0
       rawFiles = res['Value']
       self.cachedNbRAWFiles.setdefault( runID, {} )[evtType] = rawFiles
-      self.logVerbose( "Run %d has %d RAW files" % ( runID, rawFiles ) )
+      if rawFiles:
+        self.logVerbose( "Run %d has %d RAW files" % ( runID, rawFiles ) )
+      else:
+        self.logVerbose( "Run %d is not finished yet" % runID )
     return rawFiles
 
 
