@@ -90,19 +90,28 @@ class fakeClient:
       return self.transClient.getTransformationFiles( condDict = condDict )
 
   def getTransformationFilesCount( self, transID, field, selection = None ):
-    if transID == self.transID or selection['TransformationID'] == self.transID:
-      if field != 'Status':
-        return DIRAC.S_ERROR( 'Not implemented for field ' + field )
-      runs = None
-      if 'RunNumber' in selection:
+    if transID == self.transID or selection.get( 'TransformationID' ) == self.transID:
+      if selection and 'RunNumber' in selection:
         runs = selection['RunNumber']
         if not isinstance( runs, list ):
           runs = [runs]
-      counters = {'Unused':0}
-      for file in self.files:
-        if not runs or file['RunNumber'] in runs:
-          counters['Unused'] += 1
-      counters['Total'] = counters['Unused']
+      else:
+        runs = None
+      if field == 'Status':
+        counters = {'Unused':0}
+        for file in self.files:
+          if not runs or file['RunNumber'] in runs:
+            counters['Unused'] += 1
+      elif field == 'RunNumber':
+        counters = {}
+        for file in self.files:
+          runID = file['RunNumber']
+          if not runs or runID in runs:
+            counters.setdefault( runID, 0 )
+            counters[runID] += 1
+      else:
+        return DIRAC.S_ERROR( 'Not implemented for field ' + field )
+      counters['Total'] = sum( count for count in counters.itervalues() )
       return DIRAC.S_OK( counters )
     else:
       return self.transClient.getTransformationFilesCount( transID, field, selection = selection )
