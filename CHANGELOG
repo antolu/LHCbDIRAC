@@ -1,3 +1,14 @@
+[v8r4-pre4]
+use DIRAC v6r16-pre8
+
+* Use LcgVer = 2016-10-24
+* Update projectConfig.json
+* Version without CMT
+* unecessary files removed
+* added monitoring system and NoSQLDB connection paramenters
+* bug fix
+* Some Certification tests
+
 [v8r4-pre2]
 use DIRAC v6r16-pre8
 
