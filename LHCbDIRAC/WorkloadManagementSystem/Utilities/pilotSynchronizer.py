@@ -27,11 +27,9 @@ class pilotSynchronizer( object ):
 
         Just setting defaults
     '''
-    self.pilotFileName = 'LHCb-pilot.json'
-    # FIXME: pilotFileServer should contain the url of the web server where we will upload the LHCb-Pilot.json file
-    self.pilotFileServer = '128.141.170.61'
-
-
+    # pilotFileName/Server contain the default filename and domain name of the web server where we will upload the pilot json file
+    self.pilotFileName = 'pilot.json'
+    self.pilotFileServer = 'lhcb-portal-dirac.cern.ch'
 
   def sync( self, _eventName, _params ):
     ''' Main synchronizer method.
