@@ -6,6 +6,7 @@
 
 """
 
+import json
 import urllib
 
 from DIRAC                                    import gLogger, S_OK, gConfig, S_ERROR
@@ -47,37 +48,72 @@ class pilotSynchronizer( object ):
     return S_OK()
 
   def _syncFile( self ):
-    ''' Compares CS with the file and does the necessary modifications.
+    ''' Creates the pilot dictionary from the CS, ready for encoding as JSON
     '''
 
     gLogger.info( '-- Getting the content of the CS --' )
-    pilotDict = {}
+    pilotDict = { 'Setups' : {}, 'CEs' : {} }
     setups = gConfig.getSections( '/Operations/' )
     if not setups['OK']:
       gLogger.error( setups['Message'] )
       return setups
     setups['Value'].remove( 'SoftwareDistribution' )
     for setup in setups['Value']:
-      options = gConfig.getOptionsDict( 'Operations/%s/Pilot' % setup )
+      options = gConfig.getOptionsDict( '/Operations/%s/Pilot' % setup )
       if not options['OK']:
         gLogger.error( options['Message'] )
         return options
-      pilotDict[setup] = options['Value']
-      commands = gConfig.getOptionsDict( 'Operations/%s/Pilot/Commands' % setup )
-      if commands['OK']:
-        pilotDict[setup]['Commands'] = commands['Value']
-      else:
-        gLogger.debug( "List of commands not found: %s" % commands['Message'] )
+      # We include everything that's in the Pilot section for this setup
+      pilotDict['Setups'][setup] = options['Value']
+      ceTypesCommands = gConfig.getOptionsDict( '/Operations/%s/Pilot/Commands' % setup )
+      if ceTypesCommands['OK']:
+        # It's ok if the Pilot section doesn't list any Commands too
+        pilotDict['Setups'][setup]['Commands'] = {}        
+        for ceType in ceTypesCommands['Value']:
+          pilotDict['Setups'][setup]['Commands'][ceType] = ceTypesCommands['Value'][ceType].split(', ')
+      if 'Extensions' in pilotDict['Setups'][setup]:
+        pilotDict['Setups'][setup]['Extensions'] = pilotDict['Setups'][setup]['Extensions'].split(', ')
+
+    sitesSection = gConfig.getSections( '/Resources/Sites/' )
+    if not sitesSection['OK']:
+      gLogger.error( sitesSection['Message'] )
+      return sitesSection
+
+    for grid in sitesSection['Value']:
+      gridSection = gConfig.getSections( '/Resources/Sites/' + grid )
+      if not gridSection['OK']:
+        gLogger.error( gridSection['Message'] )
+        return gridSection
+
+      for site in gridSection['Value']:
+        ceList = gConfig.getSections( '/Resources/Sites/' + grid + '/' + site + '/CEs/' )
+        if not ceList['OK']:
+          gLogger.error( ceList['Message'] )
+          return ceListSection
+        
+        for ce in ceList['Value']:
+          ceType = gConfig.getValue( '/Resources/Sites/' + grid + '/' + site + '/CEs/' + ce + '/CEType')
+
+          if ceType is None:
+            # Skip but log it
+            gLogger.error( 'CE ' + ce + ' at ' + site + ' has no option CEType! - skipping' )
+          else:
+            pilotDict['CEs'][ce] = { 'Site' : site, 'CETypeGrid' : ceType }
+
+
+    defaultSetup = gConfig.getValue( '/DIRAC/DefaultSetup' )
+    if defaultSetup:
+      pilotDict['DefaultSetup'] = defaultSetup
 
     gLogger.verbose( "Got %s"  %str(pilotDict) )
-
     return pilotDict
 
   def _upload ( self, pilotDict ):
     """ Method to upload the pilot file to the server.
     """
+
     gLogger.info( "Synchronizing the content of the pilot file" )
-    params = urllib.urlencode( {'filename':self.pilotFileName, 'data':pilotDict } )
+    params = urllib.urlencode( {'filename':self.pilotFileName, 'data':json.dumps( pilotDict ) } )
     headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
     con = HTTPDISETConnection( self.pilotFileServer, '8443' )
     con.request( "POST", "/DIRAC/upload", params, headers )
