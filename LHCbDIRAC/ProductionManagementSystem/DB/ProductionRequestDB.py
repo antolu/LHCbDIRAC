@@ -334,7 +334,7 @@ class ProductionRequestDB( DB ):
         sortOrder = 'DESC'
 
     fields = ','.join( ['t.' + x for x in self.requestFields[:-7]] )
-    req = "SELECT %s ,COUNT(sr.RequestID) AS HasSubrequest ,COUNT(sr.RequestID) AS HasSubrequest " % fields
+    req = "SELECT %s ,COUNT(sr.RequestID) AS HasSubrequest " % fields
     req += "FROM ProductionRequests as t "
     req += "LEFT JOIN ProductionRequests AS sr ON t.RequestID=sr.ParentID "
     req += "WHERE "
