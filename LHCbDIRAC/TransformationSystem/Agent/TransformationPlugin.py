@@ -499,9 +499,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     setInputData = set( inputData )
     runEvtType = {}
     # Restart where we finished last time
-    # lastRun = self.util.getCachedLastRun()
-    # Don't do that for the time being
-    lastRun = 0
+    lastRun = self.util.getCachedLastRun()
     runNumbers = [run['RunNumber'] for run in transRuns if run['RunNumber'] > lastRun]
     # If none left, restart from the beginning
     if not runNumbers:
