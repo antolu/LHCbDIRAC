@@ -64,23 +64,15 @@ class TransformationDebug( object ):
 
   def __filesProcessed( self, runID ):
     transFilesList = self.__getFilesForRun( runID, None )
-    files = 0
-    processed = 0
-    for fileDict in transFilesList:
-      files += 1
-      if fileDict['Status'] == "Processed":
-        processed += 1
+    files = len( transFilesList )
+    processed = sum( fileDict['Status'] == "Processed" for fileDict in transFilesList )
     return ( files, processed )
 
   def __getRuns( self, runList = None, byRuns = True, seList = None, status = None, taskList = None ):
     runs = []
     if status and byRuns and not runList:
       files = self.__getFilesForRun( status = status, taskList = taskList )
-      runList = []
-      for fileDict in files:
-        run = fileDict['RunNumber']
-        if run not in runList:
-          runList.append( str( run ) )
+      runList = set( fileDict['RunNumber'] for fileDict in files )
 
     if runList:
       for runRange in runList:
@@ -696,9 +688,8 @@ class TransformationDebug( object ):
       if os.path.exists( tmp ):
         os.remove( tmp )
       urllib.urlretrieve( url, tmp )
-      f = open( tmp, "r" )
-      c = f.read()
-      f.close()
+      with open( tmp, "r" ) as f:
+        c = f.read()
       if "404 Not Found" in c:
         return ""
         # unpack the tarfile

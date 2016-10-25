@@ -90,13 +90,12 @@ class fakeClient:
       return self.transClient.getTransformationFiles( condDict = condDict )
 
   def getTransformationFilesCount( self, transID, field, selection = None ):
+    if selection is None:
+      selection = {}
     if transID == self.transID or selection.get( 'TransformationID' ) == self.transID:
-      if selection and 'RunNumber' in selection:
-        runs = selection['RunNumber']
-        if not isinstance( runs, list ):
-          runs = [runs]
-      else:
-        runs = None
+      runs = selection.get( 'RunNumber' )
+      if runs and not isinstance( runs, list ):
+        runs = [runs]
       if field == 'Status':
         counters = {'Unused':0}
         for file in self.files:
