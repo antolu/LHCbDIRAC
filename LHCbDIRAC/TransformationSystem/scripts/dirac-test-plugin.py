@@ -82,9 +82,9 @@ class fakeClient:
         runs = condDict['RunNumber']
         if not isinstance( runs, list ):
           runs = [runs]
-      for file in self.files:
-        if not runs or file['RunNumber'] in runs:
-          transFiles.append( {'LFN':file['LFN'], 'Status':'Unused'} )
+      for fileDict in self.files:
+        if not runs or fileDict['RunNumber'] in runs:
+          transFiles.append( {'LFN':fileDict['LFN'], 'Status':'Unused'} )
       return DIRAC.S_OK( transFiles )
     else:
       return self.transClient.getTransformationFiles( condDict = condDict )
@@ -98,13 +98,13 @@ class fakeClient:
         runs = [runs]
       if field == 'Status':
         counters = {'Unused':0}
-        for file in self.files:
-          if not runs or file['RunNumber'] in runs:
+        for fileDict in self.files:
+          if not runs or fileDict['RunNumber'] in runs:
             counters['Unused'] += 1
       elif field == 'RunNumber':
         counters = {}
-        for file in self.files:
-          runID = file['RunNumber']
+        for fileDict in self.files:
+          runID = fileDict['RunNumber']
           if not runs or runID in runs:
             counters.setdefault( runID, 0 )
             counters[runID] += 1
@@ -119,8 +119,8 @@ class fakeClient:
     counters = {}
     for transID in transIDs:
       if transID == self.transID:
-        for file in self.files:
-          runID = file['RunNumber']
+        for fileDict in self.files:
+          runID = fileDict['RunNumber']
           counters[transID][runID]['Unused'] = counters.setdefault( transID, {} ).setdefault( runID, {} ).setdefault( 'Unused', 0 ) + 1
         for runID in counters[transID]:
           counters[transID][runID]['Total'] = counters[transID][runID]['Unused']
