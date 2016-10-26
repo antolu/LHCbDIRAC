@@ -133,9 +133,7 @@ class DataRecoveryAgent( AgentModule ):
 
       jobFileDict = result['Value']
       self.log.verbose( "Looking at WMS jobs %s" % str( jobFileDict ) )
-      fileCount = 0
-      for job, lfnList in jobFileDict.iteritems():
-        fileCount += len( lfnList )
+      fileCount = sum( len( lfnList ) for lfnList in jobFileDict.itervalues() )
 
       if not fileCount:
         self.log.verbose( 'No files were selected for transformation %s after examining WMS jobs.' % transformation )
@@ -165,12 +163,12 @@ class DataRecoveryAgent( AgentModule ):
                                                                                    len( jobsThatProducedOutputs ) ) )
 
       filesToUpdate = []
-      filesWithdescendantsInBK = []
+      filesWithDescendants = []
       for job, fileList in jobFileNoRequestsDict.iteritems():
         if job in jobsThatDidntProduceOutputs:
           filesToUpdate += fileList
         elif job in jobsThatProducedOutputs:
-          filesWithdescendantsInBK += fileList
+          filesWithDescendants += fileList
 
       if filesToUpdate:
         result = self._updateFileStatus( transformation, filesToUpdate, updateStatus )
@@ -178,10 +176,9 @@ class DataRecoveryAgent( AgentModule ):
           self.log.error( 'Recoverable files were not updated with result:\n%s' % ( result['Message'] ) )
           continue
 
-      if filesWithdescendantsInBK:
-        self.log.warn( '!!!!!!!! Note that transformation %s has descendants with \
-        BK replica flags for files that are not marked as processed !!!!!!!!' % ( transformation ) )
-        self.log.warn( 'Files: %s' % ';'.join( filesWithdescendantsInBK ) )
+      if filesWithDescendants:
+        self.log.warn( '!!!!!!!! Note that transformation %s has descendants for files that are not marked as processed !!!!!!!!' % ( transformation ) )
+        self.log.warn( 'Files: %s' % ';'.join( filesWithDescendants ) )
 
     return S_OK()
 
