@@ -82,27 +82,35 @@ class fakeClient:
         runs = condDict['RunNumber']
         if not isinstance( runs, list ):
           runs = [runs]
-      for file in self.files:
-        if not runs or file['RunNumber'] in runs:
-          transFiles.append( {'LFN':file['LFN'], 'Status':'Unused'} )
+      for fileDict in self.files:
+        if not runs or fileDict['RunNumber'] in runs:
+          transFiles.append( {'LFN':fileDict['LFN'], 'Status':'Unused'} )
       return DIRAC.S_OK( transFiles )
     else:
       return self.transClient.getTransformationFiles( condDict = condDict )
 
   def getTransformationFilesCount( self, transID, field, selection = None ):
-    if transID == self.transID or selection['TransformationID'] == self.transID:
-      if field != 'Status':
+    if selection is None:
+      selection = {}
+    if transID == self.transID or selection.get( 'TransformationID' ) == self.transID:
+      runs = selection.get( 'RunNumber' )
+      if runs and not isinstance( runs, list ):
+        runs = [runs]
+      if field == 'Status':
+        counters = {'Unused':0}
+        for fileDict in self.files:
+          if not runs or fileDict['RunNumber'] in runs:
+            counters['Unused'] += 1
+      elif field == 'RunNumber':
+        counters = {}
+        for fileDict in self.files:
+          runID = fileDict['RunNumber']
+          if not runs or runID in runs:
+            counters.setdefault( runID, 0 )
+            counters[runID] += 1
+      else:
         return DIRAC.S_ERROR( 'Not implemented for field ' + field )
-      runs = None
-      if 'RunNumber' in selection:
-        runs = selection['RunNumber']
-        if not isinstance( runs, list ):
-          runs = [runs]
-      counters = {'Unused':0}
-      for file in self.files:
-        if not runs or file['RunNumber'] in runs:
-          counters['Unused'] += 1
-      counters['Total'] = counters['Unused']
+      counters['Total'] = sum( count for count in counters.itervalues() )
       return DIRAC.S_OK( counters )
     else:
       return self.transClient.getTransformationFilesCount( transID, field, selection = selection )
@@ -111,8 +119,8 @@ class fakeClient:
     counters = {}
     for transID in transIDs:
       if transID == self.transID:
-        for file in self.files:
-          runID = file['RunNumber']
+        for fileDict in self.files:
+          runID = fileDict['RunNumber']
           counters[transID][runID]['Unused'] = counters.setdefault( transID, {} ).setdefault( runID, {} ).setdefault( 'Unused', 0 ) + 1
         for runID in counters[transID]:
           counters[transID][runID]['Total'] = counters[transID][runID]['Unused']

@@ -7,7 +7,7 @@ import random
 
 from DIRAC import S_OK, S_ERROR
 from DIRAC.Core.Utilities.List import breakListIntoChunks, randomize
-from DIRAC.Core.Utilities.Time import timeThis
+# from DIRAC.Core.Utilities.Time import timeThis
 from DIRAC.DataManagementSystem.Utilities.DMSHelpers import resolveSEGroup
 from DIRAC.Resources.Catalog.FileCatalog import FileCatalog
 from DIRAC.TransformationSystem.Agent.TransformationPlugin import TransformationPlugin as DIRACTransformationPlugin
@@ -498,32 +498,50 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     inputData = self.transReplicas.copy()
     setInputData = set( inputData )
     runEvtType = {}
-    runList = []
     # Restart where we finished last time
     lastRun = self.util.getCachedLastRun()
-    # runList = [run for run in transRuns if run['RunNumber'] > lastRun]
+    runNumbers = [run['RunNumber'] for run in transRuns if run['RunNumber'] > lastRun]
     # If none left, restart from the beginning
-    if not runList:
-      runList = transRuns
+    if not runNumbers:
+      runNumbers = [run['RunNumber'] for run in transRuns]
       lastRun = 0
       self.util.setCachedLastRun( lastRun )
-    nRunsLeft = len( runList )
-    missingAtSEs = False
-    self.util.logInfo( "Processing %d runs starting at run %d" % ( len( runList ), lastRun ) )
+    # Find out how many files we have currently Unused per run
+    res = self.transClient.getTransformationFilesCount( self.transID, 'RunNumber', {'Status':'Unused', 'RunNumber':runNumbers} )
+    if not res['OK']:
+      self.util.logError( "Error getting file counts per run", res['Message'] )
+      return res
+    unusedFilesPerRun = res['Value']
+    # Check that the total number of files we got for that run is equal to the number of Unused files
+    nRunsLeft = len( runNumbers )
+    for runID in list( runNumbers ):
+      runFiles = sum( len( lfns ) for lfns in runDict[runID].itervalues() )
+      if runFiles != unusedFilesPerRun.get( runID, 0 ):
+        runNumbers.remove( runID )
+    if nRunsLeft != len( runNumbers ):
+      self.util.logVerbose( "Removed %d runs with less files than Unused" % ( nRunsLeft - len( runNumbers ) ) )
+      nRunsLeft = len( runNumbers )
+    runList = sorted( ( run for run in transRuns if run['RunNumber'] in runNumbers ), cmp = ( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) )
+    if nRunsLeft:
+      self.util.logInfo( "Processing %d runs starting at run %d" % ( nRunsLeft, min( runNumbers ) ) )
+    else:
+      self.util.logInfo( "No runs to process, exit" )
+      return S_OK( [] )
     #
     # # # # # # # Loop on all selected runs # # # # # # #
     #
     timeout = False
     processedFiles = 0
-    for run in sorted( runList, cmp = ( lambda d1, d2: int( d1['RunNumber'] - d2['RunNumber'] ) ) ):
+    missingAtSEs = False
+    for run in runList:
       runID = run['RunNumber']
-      self.util.logDebug( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
+      self.util.logVerbose( "Processing run %d, still %d runs left" % ( runID, nRunsLeft ) )
       nRunsLeft -= 1
       runStatus = 'Flush' if transStatus == 'Flush' else run['Status']
       paramDict = runDict.get( runID, {} )
       targetSEs = [se for se in runSites.get( runID, '' ).split( ',' ) if se]
       #
-      # Loop on parameters (None if not by param
+      # Loop on parameters (None if not by param)
       #
       flushed = []
       for paramValue in sorted( paramDict ):
@@ -539,7 +557,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
            runStatus != 'Flush' and \
            not self.util.cacheExpired( runID ) and \
            ( plugin != 'LHCbStandard' or groupSize != 1 ):
-          self.util.logVerbose( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
+          self.util.logInfo( "No new files since last time for run %d%s: skip..." % ( runID, paramStr ) )
           continue
         self.util.logVerbose( "Of %d files, %d are new for %d%s" % ( len( runParamLfns ),
                                                                      len( newLfns ), runID, paramStr ) )
@@ -582,7 +600,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               rawFiles = self.util.getNbRAWInRun( runID, evtType )
               if not retried and rawFiles and ancestorRawFiles > rawFiles:
                 # In case there are more ancestors than RAW files we may have to refresh the number of RAW files: try once
-                self.util.cachedNbRAWFiles[runID] = 0
+                self.util.cachedNbRAWFiles[runID][evtType] = 0
                 retried = True
               else:
                 runProcessed = ( ancestorRawFiles == rawFiles )
@@ -600,8 +618,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
           elif rawFiles:
             self.util.logVerbose( "Only %d ancestor RAW files (of %d) available for run %d" %
                                   ( ancestorRawFiles, rawFiles, runID ) )
-          else:
-            self.util.logVerbose( "Run %d is not finished yet" % runID )
         if runStatus == 'Flush':
           flushed.append( ( paramValue, len( self.data ) ) )
         # Now calling the helper plugin... Set status to a fake value
