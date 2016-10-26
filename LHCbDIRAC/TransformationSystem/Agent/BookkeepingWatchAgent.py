@@ -78,11 +78,10 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.bkClient = BookkeepingClient()
 
     try:
-      pf = open( self.pickleFile, 'r' )
-      self.timeLog = pickle.load( pf )
-      self.fullTimeLog = pickle.load( pf )
-      self.bkQueries = pickle.load( pf )
-      pf.close()
+      with open( self.pickleFile, 'r' ) as pf:
+        self.timeLog = pickle.load( pf )
+        self.fullTimeLog = pickle.load( pf )
+        self.bkQueries = pickle.load( pf )
       self._logInfo( "successfully loaded Log from", self.pickleFile, "initialize" )
     except:
       self._logInfo( "failed loading Log from", self.pickleFile, "initialize" )
@@ -105,10 +104,10 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     """
     if self.pickleFile:
       try:
-        pf = open( self.pickleFile, 'w' )
-        pickle.dump( self.timeLog, pf )
-        pickle.dump( self.fullTimeLog, pf )
-        pickle.dump( self.bkQueries, pf )
+        with open( self.pickleFile, 'w' ) as pf:
+          pickle.dump( self.timeLog, pf )
+          pickle.dump( self.fullTimeLog, pf )
+          pickle.dump( self.bkQueries, pf )
         self._logVerbose( "successfully dumped Log into %s" % self.pickleFile )
       except IOError as e:
         self._logError( "fail to open %s: %s" % ( self.pickleFile, e ) )
@@ -116,11 +115,6 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
         self._logError( "fail to dump %s: %s" % ( self.pickleFile, e ) )
       except ValueError as e:
         self._logError( "fail to close %s: %s" % ( self.pickleFile, e ) )
-      finally:
-        try:
-          pf.close()
-        except UnboundLocalError:
-          pass
 
 
 ################################################################################
