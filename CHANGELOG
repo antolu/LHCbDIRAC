@@ -1,3 +1,19 @@
+[v8r3p12]
+use DIRAC v6r15p21
+
+* Use GridCEType to be consistent with existing GridCE
+* Use CommandExtensions and port 443
+* not use file as variable name
+* pilot.json filename and LHCb portal host name
+* Import version with Setups and CEs sections
+* Use lastRun
+* keep in cache the actual RAW ancestors rather than count (due to common ancestors)
+* New file with transf0rmation-debug actual code
+* Move active methods to a Client file
+* Do not consider a run if the number of files is not equal to the number of Unused files (_byRun())
+* remove imports unused
+* pylint happy
+
 [v8r3p11]
 use DIRAC v6r15p20
 * add real data to the list in the correct place
