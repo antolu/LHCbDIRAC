@@ -101,7 +101,7 @@ class pilotSynchronizer( object ):
             # Skip but log it
             gLogger.error( 'CE ' + ce + ' at ' + site + ' has no option CEType! - skipping' )
           else:
-            pilotDict['CEs'][ce] = { 'Site' : site, 'CETypeGrid' : ceType }
+            pilotDict['CEs'][ce] = { 'Site' : site, 'GridCEType' : ceType }
 
 
     defaultSetup = gConfig.getValue( '/DIRAC/DefaultSetup' )
