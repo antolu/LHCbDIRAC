@@ -501,7 +501,6 @@ class DMScript( object ):
     NOTE: The file format is equivalent to the file format when the content is
     a list of LFNs."""
     try:
-      import sys
       in_file = open( arg, 'r' ) if arg else sys.stdin
       jobids = self.getJobIDsFromList( in_file.read().splitlines() )
       if arg:
