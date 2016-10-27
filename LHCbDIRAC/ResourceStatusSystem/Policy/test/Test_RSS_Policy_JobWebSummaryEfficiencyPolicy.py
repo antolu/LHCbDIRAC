@@ -1,7 +1,6 @@
 ''' Test_RSS_Policy_JobEfficiencyPolicy
 '''
 
-import mock
 import unittest
 
 import LHCbDIRAC.ResourceStatusSystem.Policy.JobWebSummaryEfficiencyPolicy as moduleTested
@@ -9,12 +8,11 @@ import LHCbDIRAC.ResourceStatusSystem.Policy.JobWebSummaryEfficiencyPolicy as mo
 ################################################################################
 
 class JobWebSummaryEfficiencyPolicy_TestCase( unittest.TestCase ):
-  
+
   def setUp( self ):
     '''
     Setup
     '''
-                  
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.JobWebSummaryEfficiencyPolicy
 
@@ -22,19 +20,19 @@ class JobWebSummaryEfficiencyPolicy_TestCase( unittest.TestCase ):
     '''
     Tear down
     '''
-   
+
     del self.moduleTested
     del self.testClass
-  
+
 
 ################################################################################
 
 class JobWebSummaryEfficiencyPolicy_Success( JobWebSummaryEfficiencyPolicy_TestCase ):
-  
+
   def test_instantiate( self ):
     ''' tests that we can instantiate one object of the tested class
-    '''  
-   
+    '''
+
     module = self.testClass()
     self.assertEqual( 'JobWebSummaryEfficiencyPolicy', module.__class__.__name__ )
 
@@ -43,7 +41,7 @@ class JobWebSummaryEfficiencyPolicy_Success( JobWebSummaryEfficiencyPolicy_TestC
     '''
 
     module = self.testClass()
-    
+
     res = module._evaluate( { 'OK' : False, 'Message' : 'Bo!' } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Error', res[ 'Value' ][ 'Status' ] )
@@ -58,16 +56,16 @@ class JobWebSummaryEfficiencyPolicy_Success( JobWebSummaryEfficiencyPolicy_TestC
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Unknown', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
-    
+
     res = module._evaluate( { 'OK' : True, 'Value' : [{ 'A' : 1 }] } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Error', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( '"Status" key missing', res[ 'Value' ][ 'Reason' ] )    
+    self.assertEquals( '"Status" key missing', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Status' : 1 }] } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Error', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( '"Efficiency" key missing', res[ 'Value' ][ 'Reason' ] )              
+    self.assertEquals( '"Efficiency" key missing', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : [{ 'Status' : 1, 'Efficiency' : 1 }] } )
     self.assertEquals( True, res[ 'OK' ] )

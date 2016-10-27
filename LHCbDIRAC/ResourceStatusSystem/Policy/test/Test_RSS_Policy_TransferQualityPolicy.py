@@ -1,7 +1,6 @@
 ''' Test_RSS_Policy_TransferQualityPolicy
 '''
 
-import mock
 import unittest
 
 import LHCbDIRAC.ResourceStatusSystem.Policy.TransferQualityPolicy as moduleTested
@@ -9,12 +8,12 @@ import LHCbDIRAC.ResourceStatusSystem.Policy.TransferQualityPolicy as moduleTest
 ################################################################################
 
 class TransferQualityPolicy_TestCase( unittest.TestCase ):
-  
+
   def setUp( self ):
     '''
     Setup
     '''
-                  
+
     self.moduleTested = moduleTested
     self.testClass    = self.moduleTested.TransferQualityPolicy
 
@@ -22,20 +21,20 @@ class TransferQualityPolicy_TestCase( unittest.TestCase ):
     '''
     Tear down
     '''
-   
+
     del self.moduleTested
     del self.testClass
 
 ################################################################################
 
 class TransferQualityPolicy_Success( TransferQualityPolicy_TestCase ):
-  
+
   def test_instantiate( self ):
     ''' tests that we can instantiate one object of the tested class
-    '''  
-   
+    '''
+
     module = self.testClass()
-    self.assertEqual( 'TransferQualityPolicy', module.__class__.__name__ )  
+    self.assertEqual( 'TransferQualityPolicy', module.__class__.__name__ )
 
   def test_evaluate( self ):
     ''' tests the method _evaluate
@@ -52,21 +51,21 @@ class TransferQualityPolicy_Success( TransferQualityPolicy_TestCase ):
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Unknown', res[ 'Value' ][ 'Status' ] )
     self.assertEquals( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
-    
+
     res = module._evaluate( { 'OK' : True, 'Value' : [] } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Unknown', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )    
+    self.assertEquals( 'No values to take a decision', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : { 'A' : 1 } } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Error', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( 'Missing "Name" key', res[ 'Value' ][ 'Reason' ] )               
+    self.assertEquals( 'Missing "Name" key', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : { 'Name' : '1' } } )
     self.assertEquals( True, res[ 'OK' ] )
     self.assertEquals( 'Error', res[ 'Value' ][ 'Status' ] )
-    self.assertEquals( 'Missing "Mean" key', res[ 'Value' ][ 'Reason' ] )        
+    self.assertEquals( 'Missing "Mean" key', res[ 'Value' ][ 'Reason' ] )
 
     res = module._evaluate( { 'OK' : True, 'Value' : { 'Name' : '1', 'Mean' : None } } )
     self.assertEquals( True, res[ 'OK' ] )
