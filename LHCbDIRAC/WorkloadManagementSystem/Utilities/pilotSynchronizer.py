@@ -55,7 +55,12 @@ class pilotSynchronizer( object ):
     if not setups['OK']:
       gLogger.error( setups['Message'] )
       return setups
-    setups['Value'].remove( 'SoftwareDistribution' )
+
+    try:
+      setups['Value'].remove( 'SoftwareDistribution' )
+    except:
+      pass
+
     for setup in setups['Value']:
       options = gConfig.getOptionsDict( '/Operations/%s/Pilot' % setup )
       if not options['OK']:
@@ -69,8 +74,8 @@ class pilotSynchronizer( object ):
         pilotDict['Setups'][setup]['Commands'] = {}        
         for ceType in ceTypesCommands['Value']:
           pilotDict['Setups'][setup]['Commands'][ceType] = ceTypesCommands['Value'][ceType].split(', ')
-      if 'Extensions' in pilotDict['Setups'][setup]:
-        pilotDict['Setups'][setup]['Extensions'] = pilotDict['Setups'][setup]['Extensions'].split(', ')
+      if 'CommandExtensions' in pilotDict['Setups'][setup]:
+        pilotDict['Setups'][setup]['CommandExtensions'] = pilotDict['Setups'][setup]['CommandExtensions'].split(', ')
 
     sitesSection = gConfig.getSections( '/Resources/Sites/' )
     if not sitesSection['OK']:
@@ -113,7 +118,7 @@ class pilotSynchronizer( object ):
     gLogger.info( "Synchronizing the content of the pilot file" )
     params = urllib.urlencode( {'filename':self.pilotFileName, 'data':json.dumps( pilotDict ) } )
     headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-    con = HTTPDISETConnection( self.pilotFileServer, '8443' )
+    con = HTTPDISETConnection( self.pilotFileServer, '443' )
     con.request( "POST", "/DIRAC/upload", params, headers )
     resp = con.getresponse()
     if resp.status != 200:
