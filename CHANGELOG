@@ -1,3 +1,10 @@
+[v8r4-pre6]
+use DIRAC v6r16-pre11
+
+* added missing agents
+* Removed dependencies from SAM
+* adding Monitoring to Jenkins
+
 [v8r4-pre5]
 use DIRAC v6r16-pre10
 
