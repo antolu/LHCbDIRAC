@@ -39,6 +39,7 @@ class EmailAgent( DiracEmAgent ):
     elogPassword = self.am_getOption( 'Elog_Password' )
 
     if not elogUsername or not elogPassword:
+      super( EmailAgent, self ).execute()
       return S_ERROR(DErrno.ECONF, "Elog credentials not provided")
 
     try:
@@ -66,6 +67,7 @@ class EmailAgent( DiracEmAgent ):
 
             if DryRun:
              self.log.info("Running in DryRun mode...")
+             super( EmailAgent, self ).execute()
              return S_OK()
             else:
               elements = ""
