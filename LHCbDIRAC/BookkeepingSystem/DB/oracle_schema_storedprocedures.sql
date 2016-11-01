@@ -152,7 +152,7 @@ procedure getSizeOfFiles(prodId number, a_Cursor out udt_RefCursor);
 procedure getNumberOfEvents(prodId number, a_Cursor out udt_RefCursor);
 procedure getJobsNb(prodId number, a_Cursor out udt_RefCursor);
 procedure insertStepsContainer(v_prod number, v_stepid number, v_step number);
-procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number);
+procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number, cName varchar2, cVersion varchar2);
 procedure getEventTypes(cName varchar2, cVersion varchar2, a_Cursor out udt_RefCursor);
 function  getRunNumber(lfn varchar2) return number;
 procedure insertRunquality(run number, qid number,procid number);
@@ -1466,9 +1466,20 @@ EXCEPTION
 raise_application_error(-20005, 'The production already exists in the steps container table!');
 end;
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number) is
-begin
-insert into productionscontainer(production,processingid,simid,daqperiodid)values(v_prod, v_processingid, v_simid, v_daqperiodid);
+procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number, cName varchar2, cVersion varchar2) is
+configId number;
+existInDB number;
+BEGIN
+configId := 0;
+select count(*) into existInDB from configurations where ConfigName=v_ConfigName and ConfigVersion=v_ConfigVersion;
+if existInDB=0 then
+  select configurationId_seq.nextval into configId from dual;
+  insert into configurations(ConfigurationId,ConfigName,ConfigVersion)values(configId, v_ConfigName, v_ConfigVersion);
+  commit;
+else
+ select configurationid into configId from configurations where ConfigName=v_ConfigName and ConfigVersion=v_ConfigVersion;
+end if;
+insert into productionscontainer(production,processingid,simid,daqperiodid, configurationid)values(v_prod, v_processingid, v_simid, v_daqperiodid, configId);
 commit;
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
