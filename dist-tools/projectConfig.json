@@ -1,38 +1,38 @@
 {
   "name": "LHCbDirac",
-  "version": "v0r118", 
+  "version": "v0r119",
   "used_projects": {
     "project": [
-      [ "Dirac", "v6r16-pre11", 
+      [ "Dirac", "v6r16-pre11",
         [ "bin", "python", "lib" ]
-      ], 
-      [ "LHCbGrid", "v0r9", 
+      ],
+      [ "LHCbGrid", "v0r10",
         [ "bin", "python", "lib" ]
       ]
     ]
-  }, 
+  },
   "heptools": {
-    "binary_tag": "$CMTCONFIG", 
-    "version": "85a", 
+    "binary_tag": "$CMTCONFIG",
+    "version": "85b",
     "packages": [
-      [ "Python", "2.7.10", 
+      [ "Python", "2.7.10",
         [ "bin" ]
-      ], 
-      [ "pygraphics", "1.5_python2.7", 
+      ],
+      [ "pygraphics", "2.0",
         [ "bin", "python", "lib" ]
-      ], 
-      [ "qt", "4.8.4", 
+      ],
+      [ "qt", "4.8.7",
         [ "bin", "python", "lib" ]
-      ], 
-      [ "gcc", "4.9.3", 
+      ],
+      [ "gcc", "4.9.3",
         [ "bin", "python", "lib" ]
-      ], 
-      [ "mysql", "5.5.27", 
+      ],
+      [ "mysql", "5.5.27",
         [ "bin", "python", "lib" ]
-      ], 
-      [ "pytools", "1.9_python2.7", 
+      ],
+      [ "pytools", "2.0",
         [ "bin", "python" ]
       ]
     ]
-  } 
+  }
 }
