@@ -111,3 +111,6 @@ create or replace  type jobMetadata is object(lfn varchar2(256),
   WNMJFHS06                   FLOAT);
  drop type bulk_collect_jobMetadata;
 create or replace type bulk_collect_jobMetadata is table of jobMetadata;
+
+ALTER TABLE productionscontainer ADD configurationid number;
+ALTER TABLE productionscontainer ADD FOREIGN KEY (CONFIGURATIONID) REFERENCES configurations(CONFIGURATIONID);

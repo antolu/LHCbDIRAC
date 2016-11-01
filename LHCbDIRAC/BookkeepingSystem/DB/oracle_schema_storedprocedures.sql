@@ -1471,13 +1471,13 @@ configId number;
 existInDB number;
 BEGIN
 configId := 0;
-select count(*) into existInDB from configurations where ConfigName=v_ConfigName and ConfigVersion=v_ConfigVersion;
+select count(*) into existInDB from configurations where ConfigName=cName and ConfigVersion=cVersion;
 if existInDB=0 then
   select configurationId_seq.nextval into configId from dual;
-  insert into configurations(ConfigurationId,ConfigName,ConfigVersion)values(configId, v_ConfigName, v_ConfigVersion);
+  insert into configurations(ConfigurationId,ConfigName,ConfigVersion)values(configId, cName, cVersion);
   commit;
 else
- select configurationid into configId from configurations where ConfigName=v_ConfigName and ConfigVersion=v_ConfigVersion;
+ select configurationid into configId from configurations where ConfigName=cName and ConfigVersion=cVersion;
 end if;
 insert into productionscontainer(production,processingid,simid,daqperiodid, configurationid)values(v_prod, v_processingid, v_simid, v_daqperiodid, configId);
 commit;
