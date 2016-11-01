@@ -14,6 +14,7 @@ import sqlite3
 import requests
 import errno
 from DIRAC                                              import S_OK, S_ERROR
+from DIRAC.Core.Utilities                               import DErrno
 from DIRAC.ResourceStatusSystem.Agent.EmailAgent        import EmailAgent as DiracEmAgent
 
 __RCSID__ = '$Id: $'
@@ -36,6 +37,10 @@ class EmailAgent( DiracEmAgent ):
 
     elogUsername = self.am_getOption( 'Elog_Username' )
     elogPassword = self.am_getOption( 'Elog_Password' )
+
+    if not elogUsername or not elogPassword:
+      super( EmailAgent, self ).execute()
+      return S_ERROR(DErrno.ECONF, "Elog credentials not provided")
 
     try:
       response = requests.post('https://lblogbook.cern.ch:5050/config/option',
@@ -62,6 +67,7 @@ class EmailAgent( DiracEmAgent ):
 
             if DryRun:
              self.log.info("Running in DryRun mode...")
+             super( EmailAgent, self ).execute()
              return S_OK()
             else:
               elements = ""
