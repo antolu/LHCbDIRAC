@@ -3973,7 +3973,7 @@ and files.qualityid= dataquality.qualityid'
   #############################################################################
   def insertproductionscontainer( self, prod, processingid, simid, daqperiodid, configName, configVersion ):
     """inserts a production to the productions container"""
-    return self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertproductionscontainer',
+    return self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertproductionscontainer_tmp',
                                             [ prod, processingid, simid, daqperiodid, configName, configVersion], False )
 
   #############################################################################
