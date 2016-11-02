@@ -170,15 +170,15 @@ class TestMethods( DataInsertTestCase ):
     make sure the step is created
     """
     retVal = self.bk.getAvailableSteps( {"ApplicationName":"Moore",
-                                        "ApplicationVersion":"v0r111",
-                                        "ProcessingPadd":"/Real Data"} )
+                                         "ApplicationVersion":"v0r111",
+                                         "ProcessingPadd":"/Real Data"} )
     
     self.assert_( retVal['OK'] )
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( sorted( retVal['Value']['ParameterNames'] ), sorted( ['StepId', 'StepName', 'ApplicationName', 'ApplicationVersion',
-                                                                        'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible',
-                                                                        'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat', 'isMulticore',
-                                                                        'SystemConfig', 'mcTCK', 'RuntimeProjects'] ) )
+                                                                            'OptionFiles', 'DDDB', 'CONDDB', 'ExtraPackages', 'Visible',
+                                                                            'ProcessingPass', 'Usable', 'DQTag', 'OptionsFormat', 'isMulticore',
+                                                                            'SystemConfig', 'mcTCK', 'RuntimeProjects'] ) )
   
   def test_getAvailableFileTypes( self ):
     """
