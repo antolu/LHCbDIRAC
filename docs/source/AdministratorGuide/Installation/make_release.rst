@@ -292,7 +292,7 @@ When the web portal machine is updated then you have to compile the WebApp::
 
     ssh lhcb-portal-dirac.cern.ch
     sudo su - dirac
-    dirac-install -r VERSIONTOBEINSTALLED -t server -e LHCb,LHCbWeb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg (for example: dirac-install -r v8r3 -t server -e LHCb,LHCbWeb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg)
+    dirac-install -r VERSIONTOBEINSTALLED -t server -l LHCb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg (for example: dirac-install -r v8r4p2 -t server -l LHCb -e LHCb,LHCbWeb,WebAppDIRAC /opt/dirac/etc/dirac.cfg)
     dirac-webapp-compile
 
 
