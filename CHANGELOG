@@ -1,3 +1,7 @@
+[v8r4p1]
+use DIRAC v6r16
+* Use LCgVersion 2016-11-03
+
 [v8r4]
 use DIRAC v6r16
 * change version for qt, pygraphics
