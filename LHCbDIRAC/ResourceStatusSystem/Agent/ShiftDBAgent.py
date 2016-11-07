@@ -7,7 +7,7 @@
 
 import datetime
 import os
-import suds
+import suds.client
 import urllib2
 
 from DIRAC                                           import gConfig, S_OK, S_ERROR
