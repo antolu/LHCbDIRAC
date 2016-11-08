@@ -35,6 +35,13 @@ class EmailAgent( DiracEmAgent ):
 
   def execute( self ):
 
+    DryRun = self.am_getOption( 'DryRun', True )
+
+    if DryRun:
+     self.log.info("Running in DryRun mode...")
+     super( EmailAgent, self ).execute()
+     return S_OK()
+
     elogUsername = self.am_getOption( 'Elog_Username' )
     elogPassword = self.am_getOption( 'Elog_Password' )
 
@@ -63,35 +70,28 @@ class EmailAgent( DiracEmAgent ):
           for site in result:
             cursor = conn.execute("SELECT StatusType, ResourceName, Status, Time, PreviousStatus from ResourceStatusCache WHERE SiteName='"+ site[0] +"';")
 
-            DryRun = self.am_getOption( 'DryRun', True )
+            elements = ""
+            substring = site[0].split('.', 1)[0]
 
-            if DryRun:
-             self.log.info("Running in DryRun mode...")
-             super( EmailAgent, self ).execute()
-             return S_OK()
-            else:
-              elements = ""
-              substring = site[0].split('.', 1)[0]
+            if substring in sites:
+              for StatusType, ResourceName, Status, Time, PreviousStatus in cursor:
+                elements += StatusType + " of " + ResourceName + " has been " + Status + " since " + \
+                            Time + " (Previous status: " + PreviousStatus + ")\n"
 
-              if substring in sites:
-                for StatusType, ResourceName, Status, Time, PreviousStatus in cursor:
-                  elements += StatusType + " of " + ResourceName + " has been " + Status + " since " + \
-                              Time + " (Previous status: " + PreviousStatus + ")\n"
+              try:
+                response = requests.post('https://lblogbook.cern.ch:5050/log',
+                                          json = {
+                                            "user": elogUsername,
+                                            "password": elogPassword,
+                                            "logbook": "Operations",
+                                            "system": "Site Downtime",
+                                            "text": elements,
+                                            "subject": "RSS Actions Taken for " + site[0]
+                                          }).json()
 
-                try:
-                  response = requests.post('https://lblogbook.cern.ch:5050/log',
-                                            json = {
-                                              "user": elogUsername,
-                                              "password": elogPassword,
-                                              "logbook": "Operations",
-                                              "system": "Site Downtime",
-                                              "text": elements,
-                                              "subject": "RSS Actions Taken for " + site[0]
-                                            }).json()
-
-                  response.raise_for_status()
-                except requests.exceptions.RequestException as e:
-                  return S_ERROR(errno.ECONNABORTED, "Error %s" % e)
+                response.raise_for_status()
+              except requests.exceptions.RequestException as e:
+                return S_ERROR(errno.ECONNABORTED, "Error %s" % e)
 
       super( EmailAgent, self ).execute()
 
