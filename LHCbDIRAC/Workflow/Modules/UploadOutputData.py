@@ -160,6 +160,7 @@ class UploadOutputData( ModuleBase ):
         else:
           self.log.error( "Found descendants!!! Outputs won't be uploaded" )
           self.log.info( "Files with descendants: %s" ', '.join( result ) )
+	  self.fileReport.setFileStatus( int( self.production_id ), self.inputDataList, 'Processed' ) # FIXME: Setting all to 'Processed' may not be correct!!!
           return S_ERROR( "Input Data Already Processed" )
 
 
