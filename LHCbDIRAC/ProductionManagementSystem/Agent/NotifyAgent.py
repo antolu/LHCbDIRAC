@@ -50,7 +50,8 @@ class NotifyAgent( AgentModule ):
                       reqName VARCHAR(64) NOT NULL DEFAULT "",
                       SimCondition VARCHAR(64) NOT NULL DEFAULT "",
                       ProPath VARCHAR(64) NOT NULL DEFAULT "",
-                      thegroup VARCHAR(64) NOT NULL DEFAULT ""
+                      thegroup VARCHAR(64) NOT NULL DEFAULT "",
+                      reqInform VARCHAR(64) NOT NULL DEFAULT ""
                      );''')
 
       except sqlite3.OperationalError:
@@ -86,7 +87,7 @@ class NotifyAgent( AgentModule ):
         self.log.error( 'No ProductionRequest section in configuration' )
         return S_OK()
 
-      result = conn.execute("SELECT DISTINCT thegroup, reqName, reqWG from ProductionManagementCache;")
+      result = conn.execute("SELECT DISTINCT thegroup, reqName, reqWG, reqInform from ProductionManagementCache;")
 
       html_header = """\
             <!DOCTYPE html>
@@ -158,7 +159,15 @@ class NotifyAgent( AgentModule ):
           """.format(header=header, html_elements=html_elements)
 
           aggregated_body = html_header + html_body
-
+          
+          informPeople = None
+          if group[3]:
+            informPeople = group[3].split( ',' )
+          if informPeople:
+            for emailaddress in informPeople:
+              res = self.diracAdmin.sendMail( emailaddress, "Notifications for production requests - Group %s; %s; %s" % ( group[0], group[2], group[1] ),
+                                              aggregated_body, self.fromAddress, html = True )
+                
           for people in _getMemberMails( group[0] ):
 
             res = self.diracAdmin.sendMail( people, "Notifications for production requests - Group %s; %s; %s" % ( group[0], group[2], group[1] ),
