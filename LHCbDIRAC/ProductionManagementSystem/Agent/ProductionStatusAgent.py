@@ -747,21 +747,21 @@ class ProductionStatusAgent( AgentModule ):
     self.log.info( "Updating production requests progress..." )
 
     # Using 10 threads, and waiting for the results before continuing
-    threadPool = ThreadPoolExecutor( 10 )
-    futures = []
-    for tID, prID in self.prProds.iteritems():
-      futures.append( threadPool.submit( self._getProducedEvents, tID, prID ) )
-    wait( futures )
+    futureThreads = []
+    with ThreadPoolExecutor( 10 ) as threadPool:
+      for tID, prID in self.prProds.iteritems():
+        futureThreads.append( threadPool.submit( self._getProducedEvents, tID, prID ) )
+      wait( futureThreads )
 
     if self.toUpdate:
       if gDoRealTracking:
-	result = self.prClient.updateTrackedProductions( self.toUpdate )
+        result = self.prClient.updateTrackedProductions( self.toUpdate )
       else:
         result = S_OK()
       if not result['OK']:
         self.log.error( 'Could not send update to the Production Request System', result['Message'] )  # that is not critical
       else:
-	self.log.verbose( 'The progress of %s Production Requests is updated' % len( self.toUpdate ) )
+        self.log.verbose( 'The progress of %s Production Requests is updated' % len( self.toUpdate ) )
     self.log.info( "Production requests progress update is finished" )
     return S_OK()
 
@@ -771,10 +771,9 @@ class ProductionStatusAgent( AgentModule ):
     if result['OK']:
       nEvents = result['Value']
       if nEvents and nEvents != tInfo['Events'] :
-	self.log.verbose( "Updating production %d, with BkEvents %d" % ( int( tID ), \
-								       int( nEvents ) ) )
-	self.toUpdate.append( { 'ProductionID': tID, 'BkEvents': nEvents } )
-	tInfo['Events'] = nEvents
+        self.log.verbose( "Updating production %d, with BkEvents %d" % ( int( tID ), int( nEvents ) ) )
+        self.toUpdate.append( { 'ProductionID': tID, 'BkEvents': nEvents } )
+        tInfo['Events'] = nEvents
     else:
       self.log.error( "Progress is not updated", "%s : %s" % ( tID, result['Message'] ) )
       return S_ERROR( "Too dangerous to continue" )
