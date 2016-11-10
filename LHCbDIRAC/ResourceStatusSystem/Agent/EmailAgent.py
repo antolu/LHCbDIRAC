@@ -93,6 +93,8 @@ class EmailAgent( DiracEmAgent ):
               except requests.exceptions.RequestException as e:
                 return S_ERROR(errno.ECONNABORTED, "Error %s" % e)
 
-      super( EmailAgent, self ).execute()
+        conn.close()
 
-      return S_OK()
+    super( EmailAgent, self ).execute()
+
+    return S_OK()
