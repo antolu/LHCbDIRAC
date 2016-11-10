@@ -1,6 +1,6 @@
 {
   "name": "LHCbDirac",
-  "version": "v8r4p3",
+  "version": "v8r4p4",
   "used_projects": {
     "project": [
       [ "Dirac", "v6r16p1",
@@ -13,7 +13,7 @@
   },
   "heptools": {
     "binary_tag": "$CMTCONFIG",
-    "version": "85b",
+    "version": "86",
     "packages": [
       [ "Python", "2.7.10",
         [ "bin" ]
@@ -27,11 +27,32 @@
       [ "gcc", "4.9.3",
         [ "bin", "python", "lib" ]
       ],
-      [ "mysql", "5.5.27",
+      [ "mysql", "5.7.11",
         [ "bin", "python", "lib" ]
       ],
       [ "pytools", "2.0",
         [ "bin", "python" ]
+      ],
+      [ "simplegeneric", "0.8.1",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "prompt_toolkit", "1.0.3",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pickleshare", "0.7.2",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pathlib2", "2.1.0",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "backports", "1.0.0",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "pexpect", "4.2.0",
+        [ "bin", "python", "lib" ]
+      ],
+      [ "ipython_genutils", "0.1.0",
+        [ "bin", "python", "lib" ]
       ]
     ]
   }
