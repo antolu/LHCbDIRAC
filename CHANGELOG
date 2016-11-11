@@ -1,3 +1,13 @@
+[v8r4p4]
+use DIRAC v6r16p1
+
+* minor fixes
+* add temporary fix for pytools dependencies
+* send a separate mail to the person who is in the request inform list
+* Using 10 threads for performing BKK queries
+* NTA fix
+* Fixed database lock issue
+
 [v8r4p3]
 use DIRAC v6r16p1
 * Change the import for suds module
