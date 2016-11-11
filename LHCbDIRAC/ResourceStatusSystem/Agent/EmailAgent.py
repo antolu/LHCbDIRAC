@@ -33,6 +33,15 @@ class EmailAgent( DiracEmAgent ):
     else:
       self.cacheFile = os.path.realpath('cache.db')
 
+  def getName( self, name ):
+    # Method that is used to get the site's name
+      try:
+          start = name.index( '.' ) + len( '.' )
+          end = name.index( '.', start )
+          return name[start:end]
+      except ValueError:
+          return S_ERROR('Site name %s can not be parsed' % name)
+
   def execute( self ):
 
     DryRun = self.am_getOption( 'DryRun', True )
@@ -61,19 +70,23 @@ class EmailAgent( DiracEmAgent ):
     except requests.exceptions.RequestException as e:
       return S_ERROR(errno.ECONNABORTED, "Error %s" % e)
 
-    for sites in response['Result'].replace(" ", "").split(","):
+    sites = set()
 
-      if os.path.isfile(self.cacheFile):
-        with sqlite3.connect(self.cacheFile) as conn:
+    for sitesName in response['Result'].replace(" ", "").split(","):
+      sites.add(sitesName)
 
-          result = conn.execute("SELECT DISTINCT SiteName from ResourceStatusCache;")
-          for site in result:
-            cursor = conn.execute("SELECT StatusType, ResourceName, Status, Time, PreviousStatus from ResourceStatusCache WHERE SiteName='"+ site[0] +"';")
+    if os.path.isfile(self.cacheFile):
+      with sqlite3.connect(self.cacheFile) as conn:
 
-            elements = ""
-            substring = site[0].split('.', 1)[0]
+        result = conn.execute("SELECT DISTINCT SiteName from ResourceStatusCache;")
+        for site in result:
+          cursor = conn.execute("SELECT StatusType, ResourceName, Status, Time, PreviousStatus from ResourceStatusCache WHERE SiteName='"+ site[0] +"';")
 
-            if substring in sites:
+          elements = ""
+          if site[0] != 'Unassigned Resources':
+            name = self.getName( site[0] )
+
+            if name in sites:
               for StatusType, ResourceName, Status, Time, PreviousStatus in cursor:
                 elements += StatusType + " of " + ResourceName + " has been " + Status + " since " + \
                             Time + " (Previous status: " + PreviousStatus + ")\n"
