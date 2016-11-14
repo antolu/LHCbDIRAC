@@ -68,6 +68,7 @@ class EmailAgent( DiracEmAgent ):
                                 }).json()
 
     except requests.exceptions.RequestException as e:
+      super( EmailAgent, self ).execute()
       return S_ERROR(errno.ECONNABORTED, "Error %s" % e)
 
     sites = set()
@@ -104,6 +105,7 @@ class EmailAgent( DiracEmAgent ):
 
                 response.raise_for_status()
               except requests.exceptions.RequestException as e:
+                super( EmailAgent, self ).execute()
                 return S_ERROR(errno.ECONNABORTED, "Error %s" % e)
 
         conn.close()
