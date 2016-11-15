@@ -88,27 +88,26 @@ class EmailAgent( DiracEmAgent ):
             name = self.getName( site[0] )
 
             if name in sites:
-              for StatusType, ResourceName, Status, Time, PreviousStatus in cursor:
+              for StatusType,ResourceName, Status, Time, PreviousStatus in cursor:
                 elements += StatusType + " of " + ResourceName + " has been " + Status + " since " + \
                             Time + " (Previous status: " + PreviousStatus + ")\n"
 
               try:
-                response = requests.post('https://lblogbook.cern.ch:5050/log',
-                                          json = {
-                                            "user": elogUsername,
-                                            "password": elogPassword,
-                                            "logbook": "Operations",
-                                            "system": "Site Downtime",
-                                            "text": elements,
-                                            "subject": "RSS Actions Taken for " + site[0]
-                                          }).json()
+                requests.post('https://lblogbook.cern.ch:5050/log',
+                              json = {
+                                "user": elogUsername,
+                                "password": elogPassword,
+                                "logbook": "Operations",
+                                "system": "Site Downtime",
+                                "text": elements,
+                                "subject": "RSS Actions Taken for " + site[0]
+                              }).json()
 
-                response.raise_for_status()
               except requests.exceptions.RequestException as e:
                 super( EmailAgent, self ).execute()
                 return S_ERROR(errno.ECONNABORTED, "Error %s" % e)
 
-        conn.close()
+      conn.close()
 
     super( EmailAgent, self ).execute()
 
