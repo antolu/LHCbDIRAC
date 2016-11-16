@@ -166,13 +166,13 @@ def informPeople( rec, oldstate, state, author, inform ):
     groups = [ 'lhcb_bk' ]
 
     _aggregate( reqId, rec.get( 'RequestType', '' ), rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ),
-               rec['SimCondition'], rec['ProPath'], groups, rec['reqInform'] )
+                rec['SimCondition'], rec['ProPath'], groups, rec.get( 'reqInform', inform ) )
 
   elif state == 'Submitted':
 
     groups = [ 'lhcb_ppg', 'lhcb_tech' ]
     _aggregate( reqId, rec.get( 'RequestType', '' ), rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ),
-               rec['SimCondition'], rec['ProPath'], groups, rec['reqInform'] )
+                rec['SimCondition'], rec['ProPath'], groups, rec.get( 'reqInform', inform ) )
 
   else:
     return
