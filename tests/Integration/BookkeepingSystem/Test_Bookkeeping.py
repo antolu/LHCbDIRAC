@@ -309,6 +309,39 @@ class TestMethods( DataInsertTestCase ):
     retVal = self.bk.getAvailableConfigNames()
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) > 0 )
+  
+  def test_getConfigVersions( self ):
+    """
+    The bookkeeping view is isued, we can not use the newly inserted configuration name: Test
+    """
+    retVal = self.bk.getConfigVersions( {"ConfigName":"MC"} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertEqual( retVal['Value']['TotalRecords'], 11 )
+  
+  def test_getConditions( self ):
+    """
+    
+    Get the available configurations for a given bk dict
+    
+    """
+    retVal = self.bk.getConditions( {"ConfigName":"MC", "ConfigVersion":"2012"} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertEqual( len( retVal['Value'] ), 2 )
+    self.assertEqual( retVal['Value']['TotalRecords'], 11 )
+  
+  def test_getProcessingPass(self):
+    """
+    
+    Check the available processing passes for a given bk path. Again bkk view...
+    
+    """
+    
+    retVal = self.bk.getProcessingPass( {"ConfigName":"MC","ConfigVersion":"2012",} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    
     
 class TestRemoveFiles( DataInsertTestCase ):
   
