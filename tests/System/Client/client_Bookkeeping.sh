@@ -23,13 +23,16 @@ Options:
 #Default values
 numberOfFiles=10
 filesName="random_content_"
-if [ $DIRAC ]
-then
-  diracDir=$DIRAC
-else
-  diracDir=$PWD
-fi
-
+stime=$(date +"%H%M%S")
+extra=$PWD
+bkpath=$extra/BKReportsSamples/
+# if [ $DIRAC ]
+# then
+#   diracDir=$DIRAC
+# else
+diracDir=$PWD
+# fi
+echo $diracDir
 # Parsing arguments
 if [ $# -gt 0 ]
 then
@@ -51,7 +54,7 @@ then
         filesName="${i#*=}"
         shift # past argument=value
         ;;
- 
+
         -p=*|--Path=*)
         temporaryPath="${i#*=}"
         if [ ! -d "$temporaryPath" ]
@@ -81,16 +84,16 @@ cd $temporaryPath
 if [ $? -ne 0 ]
   then
   echo $(tput setaf 1)"ERROR: cannot change to directory: " $temporaryPath$(tput sgr 0)
-    exit $?
+  exit $?
 fi
 
 
-if [ $DIRAC ]
-then
-  diracDir=$DIRAC
-else
-  diracDir=$PWD
-fi
+# if [ $DIRAC ]
+# then
+#   diracDir=$DIRAC
+# else
+#   diracDir=$PWD
+# fi
 
 # Move to a tmp directory
 # tmpDir=$(mktemp -d)
@@ -107,7 +110,7 @@ fi
 # The names will be "random_content_X" and be between 1 and 10 Mb
 
 # array of fileNames
-./random_files_creator.sh --Files=$numberOfFiles --Name=$filesName --Path=$temporaryPath
+$extra/random_files_creator.sh --Files=$numberOfFiles --Name=$filesName --Path=$temporaryPath
 
 # fileNames=()
 # for n in {1..10}
@@ -122,47 +125,58 @@ fi
 # done
 
 # Making sure the file types can be sent
-python $diracDir/tests/System/Client/dirac-add-bkk-ft.py INIT "just a desc for a test file type (INIT)" 1
-python $diracDir/tests/System/Client/dirac-add-bkk-ft.py FOO "just a desc for a test file type (FOO)" 1
-python $diracDir/tests/System/Client/dirac-add-bkk-ft.py BAR "just a desc for a test file type (BAR)" 1
+# python $diracDir/tests/System/Client/dirac-add-bkk-ft.py INIT "just a desc for a test file type (INIT)" 1
+# python $diracDir/tests/System/Client/dirac-add-bkk-ft.py FOO "just a desc for a test file type (FOO)" 1
+# python $diracDir/tests/System/Client/dirac-add-bkk-ft.py BAR "just a desc for a test file type (BAR)" 1
 
+# python $extra/dirac-add-bkk-ft.py INIT "just a desc for a test file type (INIT)" 1
+# python $extra/dirac-add-bkk-ft.py FOO "just a desc for a test file type (FOO)" 1
+# python $extra/dirac-add-bkk-ft.py BAR "just a desc for a test file type (BAR)" 1
+#touch LFNlist.txt
+files=$(ls $temporaryPath)
 # Copy initXMLReport.xml template in tmpDir
-cp $diracDir/tests/System/Client/BKReportsSamples/InitXMLReport.xml .
-
+# cp $diracDir/tests/System/Client/BKReportsSamples/InitXMLReport.xml .
+#cp $diracDir/BKReportsSamples/InitXMLReport.xml
 # For each random_content_X files, create a BK report, then send it
-for n in {1..10}
+#for n in $(eval echo "{1..$numberOfFiles}")
+
+version=$(echo $PYTHONPATH | tr ":" "\n" | grep \/DIRAC_v | sed 's/.*DIRAC_//') # dirac-version script broken
+tdate=$(date +"20%y-%m-%d")
+ttime=$(date +"%R")
+
+for file in $files
 do
   # Names of files
-  fileName=random_content_${fileNames[$n-1]}.init
-  xmlName=bookkeping_${fileNames[$n-1]}.xml
+  
+#  files=$filesName${fileNames[$n-1]}.init
+  xmlName=bookkeeping_${file%.*}.xml
 
   # Create the specific BK report
-  cp InitXMLReport.xml $xmlName
-
+  cp $extra/BKReportsSamples/InitXMLReport.xml $extra/BKReportsSamples/$xmlName
+  chmod 777 $extra/BKReportsSamples/$xmlName
   # Getting the info
-  size=$(stat --printf="%s" $fileName)
-  guid=$(python $diracDir/tests/System/Client/dirac-get-guid.py $tmpDir/$fileName -o LogLevel=FATAL)
+  size=$(stat --printf="%s" $file)
+  # guid=$(python $diracDir/tests/System/Client/dirac-get-guid.py $tmpDir/$fileName -o LogLevel=FATAL)
+  guid=$(python $extra/dirac-get-guid.py $temporaryPath/$file -o LogLevel=FATAL)  
   location=$HOSTNAME
-  version=$(dirac-version)
-  tdate=$(date +"20%y-%m-%d")
-  ttime=$(date +"%R")
-  stime=$(date +"%H%M%S")
   start=$(date -u +"20%y-%m-%d %R")
   end=$(date +"20%y-%m-%d %R")
 
   # Applying the info
-  sed -i s/VAR_Name/${fileNames[$n-1]}/g $xmlName
-  sed -i s/VAR_Location/$location/g $xmlName
-  sed -i s/VAR_ProgramVersion/$version/g $xmlName
-  sed -i s/VAR_FileName/$fileName/g $xmlName
-  sed -i s/VAR_FileSize/$size/g $xmlName
-  sed -i "s/VAR_JobStart/$start/g" $xmlName
-  sed -i "s/VAR_JobEnd/$end/g" $xmlName
-  sed -i s/VAR_Date/$tdate/g $xmlName
-  sed -i s/VAR_Time/$ttime/g $xmlName
-  sed -i s/VAR_ShortenTime/$stime/g $xmlName
-  sed -i s/VAR_Guid/$guid/g $xmlName
+  sed -i s/VAR_Name/${file%.*}/g $bkpath$xmlName
+  sed -i s/VAR_Location/$location/g $bkpath$xmlName
+  sed -i s/VAR_ProgramVersion/$version/g $bkpath$xmlName
+  sed -i s/VAR_FileName/$file/g $bkpath$xmlName
+  sed -i s/VAR_FileSize/$size/g $bkpath$xmlName
+  sed -i "s/VAR_JobStart/$start/g" $bkpath$xmlName
+  sed -i "s/VAR_JobEnd/$end/g" $bkpath$xmlName
+  sed -i s/VAR_Date/$tdate/g $bkpath$xmlName
+  sed -i s/VAR_Time/$ttime/g $bkpath$xmlName
+  sed -i s/VAR_ShortenTime/$stime/g $bkpath$xmlName
+  sed -i s/VAR_Guid/$guid/g $bkpath$xmlName
 
-  python $diracDir/tests/System/Client/dirac-send-bk-report.py $xmlName -ddd
-
+  echo "/lhcb/Certification/Test/INIT/$version/$tdate/$stime/$file \
+  .$temporaryPath$file" >> $extra/LFNlist.txt
+#  python $diracDir/tests/System/Client/dirac-send-bk-report.py $xmlName -ddd
+  python $extra/dirac-send-bk-report.py $bkpath$xmlName -ddd
 done
