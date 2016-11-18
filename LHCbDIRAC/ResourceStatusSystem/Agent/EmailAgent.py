@@ -22,6 +22,15 @@ __RCSID__ = '$Id: $'
 AGENT_NAME = 'ResourceStatus/EmailAgent'
 
 
+def getName( name ):
+  # Method that is used to get the site's name
+    try:
+        start = name.index( '.' ) + len( '.' )
+        end = name.index( '.', start )
+        return name[start:end]
+    except ValueError:
+        return S_ERROR('Site name %s can not be parsed' % name)
+
 class EmailAgent( DiracEmAgent ):
 
   def __init__( self, *args, **kwargs ):
@@ -32,15 +41,6 @@ class EmailAgent( DiracEmAgent ):
       self.cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ResourceStatus/cache.db' )
     else:
       self.cacheFile = os.path.realpath('cache.db')
-
-  def getName( self, name ):
-    # Method that is used to get the site's name
-      try:
-          start = name.index( '.' ) + len( '.' )
-          end = name.index( '.', start )
-          return name[start:end]
-      except ValueError:
-          return S_ERROR('Site name %s can not be parsed' % name)
 
   def execute( self ):
 
@@ -85,7 +85,7 @@ class EmailAgent( DiracEmAgent ):
 
           elements = ""
           if site[0] != 'Unassigned Resources':
-            name = self.getName( site[0] )
+            name = getName( site[0] )
 
             if name in sites:
               for StatusType,ResourceName, Status, Time, PreviousStatus in cursor:
