@@ -33,14 +33,14 @@ def _aggregate( reqId, reqType, reqWG, reqName, SimCondition, ProPath, groups, i
 
     try:
       conn.execute('''CREATE TABLE IF NOT EXISTS ProductionManagementCache(
-                    reqId VARCHAR(64) NOT NULL DEFAULT "",
-                    reqType VARCHAR(64) NOT NULL DEFAULT "",
-                    reqWG VARCHAR(64) NOT NULL DEFAULT "",
-                    reqName VARCHAR(64) NOT NULL DEFAULT "",
-                    SimCondition VARCHAR(64) NOT NULL DEFAULT "",
-                    ProPath VARCHAR(64) NOT NULL DEFAULT "",
-                    thegroup VARCHAR(64) NOT NULL DEFAULT "",
-                    reqInform VARCHAR(64) NOT NULL DEFAULT ""
+                    reqId VARCHAR(64) NOT NULL,
+                    reqType VARCHAR(64) NOT NULL,
+                    reqWG VARCHAR(64) DEFAULT "",
+                    reqName VARCHAR(64) NOT NULL,
+                    SimCondition VARCHAR(64) DEFAULT "",
+                    ProPath VARCHAR(64) DEFAULT "",
+                    thegroup VARCHAR(64) DEFAULT "",
+                    reqInform VARCHAR(64) DEFAULT ""
                    );''')
 
     except sqlite3.OperationalError:
