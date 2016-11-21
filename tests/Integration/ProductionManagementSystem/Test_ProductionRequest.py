@@ -42,7 +42,7 @@ class TestProductionRequestTestCaseChain( TestProductionRequestTestCase ):
                                                    'Inform':'', 'RealNumberOfEvents':'', 'IsModel':0, 'Extra':''} )
     self.assert_( res['OK'] )
     firstReq = res['Value']
-  
+
     res = self.reqClient.createProductionRequest( {'ParentID':'', 'MasterID':'', 'RequestAuthor': 'adminusername',
                                                    'RequestName': 'RequestName - new', 'RequestType': 'RequestType',
                                                    'RequestState': 'New', 'RequestPriority': '2b', 'RequestPDG':'',

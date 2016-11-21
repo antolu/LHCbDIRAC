@@ -45,15 +45,11 @@ class ProductionRequestDB( DB ):
                     'ProPath', 'ProID', 'ProDetail',
                     'EventType', 'NumberOfEvents', 'Description', 'Comments',
                     'Inform', 'RealNumberOfEvents', 'IsModel', 'Extra',
-                    'TestState', 'TestActual', # from Test
                     'HasSubrequest', 'bk', 'bkSrTotal', 'bkTotal', # runtime
                     'rqTotal', 'crTime', 'upTime' ] # runtime
 
   historyFields = [ 'RequestID', 'RequestState', 'RequestUser', 'TimeStamp' ]
 
-
-  testFields = [ 'RequestID', 'State', 'Actual', 'Link', 'Time', 'Input',
-                 'Params', 'Script', 'Template' ]
 
 # !!! current _escapeValues is buggy !!! None and not using connection...
 # _insert use it, so I can't...
@@ -144,7 +140,7 @@ class ProductionRequestDB( DB ):
         TODO: Complete check of content
     '''
 
-    rec = dict.fromkeys( self.requestFields[1:-9], None )
+    rec = dict.fromkeys( self.requestFields[1:-7], None )
     for x in requestDict:
       if x in rec and str( requestDict[x] ) != '':
         rec[x] = requestDict[x] # set only known not empty fields
@@ -178,7 +174,7 @@ class ProductionRequestDB( DB ):
     rec['IsModel'] = 0
 
 
-    recl = [ rec[x] for x in self.requestFields[1:-9] ]
+    recl = [ rec[x] for x in self.requestFields[1:-7] ]
     result = self._fixedEscapeValues( recl )
     if not result['OK']:
       return result
@@ -228,7 +224,7 @@ class ProductionRequestDB( DB ):
       if not result['OK']:
         return result
 
-    req = "INSERT INTO ProductionRequests ( " + ','.join( self.requestFields[1:-9] )
+    req = "INSERT INTO ProductionRequests ( " + ','.join( self.requestFields[1:-7] )
     req += " ) VALUES ( %s );" % ','.join( recls )
     result = self._update( req, connection )
     if not result['OK']:
@@ -290,9 +286,8 @@ class ProductionRequestDB( DB ):
                             sortBy = '', sortOrder = 'ASC',
                             offset = 0, limit = 0, filterIn = {} ):
     ''' Get the Production Request(s) details.
-        If requestIDList is not empty, only productions
-        from the list are retured. Otherwise
-        master requests are returned (without subrequests) or
+        If requestIDList is not empty, only productions from the list are returned.
+        Otherwise master requests are returned (without subrequests) or
         all subrequests of 'subrequestsFor' (when specified).
         Parameters with explicit types are assumed checked by service.
     '''
@@ -305,7 +300,7 @@ class ProductionRequestDB( DB ):
     try: # test filters
       sfilter = []
       for x in filterIn:
-        if not x in self.requestFields[:-9]:
+        if not x in self.requestFields[:-7]:
           return S_ERROR( "bad field in filterIn" )
         val = str( filterIn[x] )
         if val:
@@ -333,17 +328,17 @@ class ProductionRequestDB( DB ):
       return S_ERROR( "Bad filter content " + str( e ) )
 
     if sortBy:
-      if not sortBy in self.requestFields[:-9]:
+      if not sortBy in self.requestFields[:-7]:
         return S_ERROR( "sortBy field does not exist" )
       if sortOrder != 'ASC':
         sortOrder = 'DESC'
 
-    fields = ','.join( ['t.' + x for x in self.requestFields[:-9]] )
-    req = "SELECT %s,rt.State AS TestState,rt.Actual AS TestActual,COUNT(sr.RequestID) AS HasSubrequest " % fields
+    fields = ','.join( ['t.' + x for x in self.requestFields[:-7]] )
+    req = "SELECT %s ,COUNT(sr.RequestID) AS HasSubrequest " % fields
     req += "FROM ProductionRequests as t "
     req += "LEFT JOIN ProductionRequests AS sr ON t.RequestID=sr.ParentID "
-    req += "LEFT JOIN RequestTest AS rt ON t.RequestID=rt.RequestID "
     req += "WHERE "
+
     if requestIDList:
       idlist = ','.join( [str( x ) for x in requestIDList] )
       where = "t.RequestID IN (%s)" % idlist
@@ -373,8 +368,7 @@ class ProductionRequestDB( DB ):
     rows = [dict( zip( self.requestFields, row ) ) for row in result['Value']]
     total = len( rows )
     if limit:
-      result = self._query( "SELECT COUNT(*) FROM ProductionRequests AS t" +
-                            " WHERE %s" % where )
+      result = self._query( "SELECT COUNT(*) FROM ProductionRequests AS t WHERE %s" % where )
       if not result['OK']:
         return result
       total = result['Value'][0][0]
@@ -628,7 +622,7 @@ class ProductionRequestDB( DB ):
         TODO: RequestPDG change in ??? state
               Protect fields in subrequests
     '''
-    fdict = dict.fromkeys( self.requestFields[4:-9], None )
+    fdict = dict.fromkeys( self.requestFields[4:-7], None )
     rec = {}
     for x in requestDict:
       if x in fdict:
@@ -645,7 +639,7 @@ class ProductionRequestDB( DB ):
     connection = result['Value']
 
 
-    fields = ','.join( ['t.' + x for x in self.requestFields[:-9]] )
+    fields = ','.join( ['t.' + x for x in self.requestFields[:-7]] )
     req = "SELECT %s " % fields
     req += "FROM ProductionRequests as t "
     req += "WHERE t.RequestID=%s" % requestID
@@ -657,7 +651,7 @@ class ProductionRequestDB( DB ):
       self.lock.release()
       return S_ERROR( 'The request is no longer exist' )
 
-    old = dict( zip( self.requestFields[:-9], result['Value'][0] ) )
+    old = dict( zip( self.requestFields[:-7], result['Value'][0] ) )
 
     update = {}     # Decide what to update (and if that is required)
     for x in rec:
@@ -727,8 +721,6 @@ class ProductionRequestDB( DB ):
 
     result = S_OK()
     gLogger.info( str( update ) )
-    if 'EventType' in update or 'ProPath' in update or 'ProDetail' in update:
-      result = self.__invalidateTests( requestID, connection )
 
     if result['OK']:
       self.lock.release()
@@ -861,7 +853,7 @@ class ProductionRequestDB( DB ):
     ''' retrive complete request record.
         NOTE: unlock in case of errors
     '''
-    fields = ','.join( ['t.' + x for x in self.requestFields[:-9]] )
+    fields = ','.join( ['t.' + x for x in self.requestFields[:-7]] )
     req = "SELECT %s " % fields
     req += "FROM ProductionRequests as t "
     req += "WHERE t.RequestID=%s" % requestID
@@ -872,7 +864,7 @@ class ProductionRequestDB( DB ):
     if not result['Value']:
       self.lock.release()
       return S_ERROR( 'The request is no longer exist' )
-    rec = dict( zip( self.requestFields[:-9], result['Value'][0] ) )
+    rec = dict( zip( self.requestFields[:-7], result['Value'][0] ) )
     return S_OK( rec )
 
   @staticmethod
@@ -922,14 +914,14 @@ class ProductionRequestDB( DB ):
       gLogger.warn( "NumberOfEvents is not defined for %s" % requestID )
     rec['RealNumberOfEvents'] = str( num )
 
-    recl = [ rec[x] for x in self.requestFields[1:-9] ]
+    recl = [ rec[x] for x in self.requestFields[1:-7] ]
     result = self._fixedEscapeValues( recl )
     if not result['OK']:
       self.lock.release()
       return result
     recls = result['Value']
 
-    req = "INSERT INTO ProductionRequests ( " + ','.join( self.requestFields[1:-9] )
+    req = "INSERT INTO ProductionRequests ( " + ','.join( self.requestFields[1:-7] )
     req += " ) VALUES ( %s );" % ','.join( recls )
     result = self._update( req, connection )
     if not result['OK']:
@@ -1118,13 +1110,13 @@ class ProductionRequestDB( DB ):
       return S_ERROR( 'You have to keep at least one subrequest' )
 
     # Now copy the master
-    recl = [ rec[x] for x in self.requestFields[1:-9] ]
+    recl = [ rec[x] for x in self.requestFields[1:-7] ]
     result = self._fixedEscapeValues( recl )
     if not result['OK']:
       self.lock.release()
       return result
     recls = result['Value']
-    req = "INSERT INTO ProductionRequests ( " + ','.join( self.requestFields[1:-9] )
+    req = "INSERT INTO ProductionRequests ( " + ','.join( self.requestFields[1:-7] )
     req += " ) VALUES ( %s );" % ','.join( recls )
     result = self._update( req, connection )
     if not result['OK']:
@@ -1306,13 +1298,13 @@ class ProductionRequestDB( DB ):
         in 'Active' or 'Completed' states
     '''
 
-    fields = ','.join( ['t.' + x for x in self.requestFields[:-9]] )
+    fields = ','.join( ['t.' + x for x in self.requestFields[:-7]] )
     result = self.__trackedInputSQL( fields )
     if not result['OK']:
       return result
     rec = []
     for x in result['Value']:
-      res = dict( zip( self.requestFields[:-9], x ) )
+      res = dict( zip( self.requestFields[:-7], x ) )
       if res['SimCondDetail']:
         res.update( cPickle.loads( res['SimCondDetail'] ) )
       else:
@@ -1432,214 +1424,3 @@ class ProductionRequestDB( DB ):
         return res
       opts[key] = [row[0] for row in res['Value']]
     return S_OK( opts )
-
-  def __getTestIDs( self, iD, connection ):
-    result = self.__getSubrequestsList( iD, iD, connection )
-    if not result['OK']:
-      return result
-    allid = result['Value']
-    if not allid: # we either have subrequest tests or one test
-      allid = [ iD ]
-    allid = [str( x ) for x in allid]
-    return S_OK( allid )
-
-  def getTestList( self, iD ):
-    ''' Return list of all tests for this request and its subrequests
-    '''
-    self.lock.acquire() # transaction begin ?? may be after connection ??
-    result = self._getConnection()
-    if not result['OK']:
-      self.lock.release()
-      return S_ERROR( 'Failed to get connection to MySQL: ' + result['Message'] )
-    connection = result['Value']
-    result = self.__getTestIDs( iD, connection )
-    if not result['OK']:
-      return result
-    allid = result['Value']
-    fields = ','.join( ['rt.' + x for x in self.testFields[1:]] )
-    req = "SELECT t.RequestID,%s " % fields
-    req += "FROM ProductionRequests as t "
-    req += "LEFT JOIN RequestTest AS rt ON t.RequestID=rt.RequestID "
-    req += "WHERE t.RequestID IN %s" % "( " + ','.join( allid ) + ") "
-    req += "ORDER BY t.RequestID"
-    result = self._query( req )
-    if not result['OK']:
-      self.lock.release()
-      return result
-    rows = [dict( zip( self.testFields, row ) ) for row in result['Value']]
-    #total = len(rows)
-    self.lock.release()
-    return S_OK( rows )
-
-  def __invalidateTests( self, requestID, connection ):
-    ''' Invalidate tests for this request '''
-    result = self.__getTestIDs( requestID, connection )
-    if not result['OK']:
-      return result
-    allid = result['Value']
-    req = "UPDATE RequestTest "
-    req += "SET Actual=0 "
-    req += "WHERE RequestID IN %s" % "( " + ','.join( allid ) + ") "
-    result = self._update( req, connection )
-    if not result['OK']:
-      gLogger.error( result['Message'] )
-      self.lock.release()
-      return result
-    return S_OK()
-
-  def getTests( self, state ):
-    ''' Return the list of tests in specified state
-    '''
-    self.lock.acquire() # transaction begin ?? may be after connection ??
-    result = self._getConnection()
-    if not result['OK']:
-      self.lock.release()
-      return S_ERROR( 'Failed to get connection to MySQL: ' + result['Message'] )
-    #connection = result['Value']
-
-    req = "SELECT * "
-    req += "FROM RequestTest "
-    req += 'WHERE State="' + state + '" '
-    req += "ORDER BY RequestID"
-    result = self._query( req )
-    if not result['OK']:
-      self.lock.release()
-      return result
-    rows = [dict( zip( self.testFields, row ) ) for row in result['Value']]
-    self.lock.release()
-    return S_OK( rows )
-
-  def __checkTest( self, iD, creds, connection ):
-    ''' Check that test submission is authorized.
-        NOTE: unlock in case of errors
-    '''
-    result = self.__getStateAndAuthor( iD, connection )
-    if not result['OK']:
-      return result
-    requestState, requestAuthor, _requestInform, isModel = result['Value']
-
-    if creds['Group'] in ['diracAdmin', 'lhcb_admin']:
-      return S_OK()
-
-    # Check that a person can update in general (that also means he can
-    # change at least comments)
-    if requestState in ['New', 'BK OK', 'Rejected']:
-      if requestAuthor != creds['User'] and not (isModel and creds['Group'] == 'lhcb_tech'):
-        self.lock.release()
-        return S_ERROR( "Only author is allowed to test unsubmitted request" )
-    elif requestState == 'BK Check':
-      if creds['Group'] != 'lhcb_bk':
-        self.lock.release()
-        return S_ERROR( "Only BK expert can manage new Simulation Conditions" )
-    elif requestState == 'Submitted':
-      if creds['Group'] != 'lhcb_ppg' and creds['Group'] != 'lhcb_tech':
-        self.lock.release()
-        return S_ERROR( "Only PPG members or Tech. experts are allowed to operate submitted request" )
-    elif requestState == 'PPG OK':
-      if creds['Group'] != 'lhcb_tech':
-        self.lock.release()
-        return S_ERROR( "Only Tech. experts are allowed to operate with this request" )
-    elif requestState == 'On-hold':
-      if creds['Group'] != 'lhcb_tech':
-        self.lock.release()
-        return S_ERROR( "Only Tech. experts are allowed to operate with this request" )
-    elif requestState == 'Tech OK':
-      if creds['Group'] != 'lhcb_ppg':
-        self.lock.release()
-        return S_ERROR( "Only PPG members are allowed to operate with this request" )
-    elif requestState == 'Accepted':
-      if creds['Group'] != 'lhcb_prmgr':
-        self.lock.release()
-        return S_ERROR( "Only Production manager is allowed to manage accepted request" )
-    elif requestState in ['Active', 'Completed']:
-      if not creds['Group'] in ['lhcb_prmgr', 'lhcb_prod']:
-        self.lock.release()
-        return S_ERROR( "Only experts are allowed to manage active request" )
-    else:
-      self.lock.release()
-      return S_ERROR( "The request is in unknown state '%s'" % requestState )
-
-    return S_OK()
-
-
-  def submitTest( self, creds, tInput, params, script, tpl ):
-    ''' Save new test request into DB
-    '''
-    try:
-      iD = long( tInput['ID'] )
-    except ValueError, e:
-      return S_ERROR( str( e ) )
-
-    self.lock.acquire() # transaction begin ?? may be after connection ??
-    result = self._getConnection()
-    if not result['OK']:
-      self.lock.release()
-      return S_ERROR( 'Failed to get connection to MySQL: ' + result['Message'] )
-    connection = result['Value']
-
-    result = self.__checkTest( iD, creds, connection )
-    if not result['OK']:
-      return result
-
-    rec = {'RequestID' : iD,
-           'State' : 'Waiting',
-           'Actual' : 1,
-           'Link' : '',
-           'Input' : cPickle.dumps( tInput ),
-           'Params' : cPickle.dumps( params ),
-           'Script' : cPickle.dumps( script ),
-           'Template' : cPickle.dumps( tpl )}
-
-    reck = rec.keys()
-    recl = rec.values()
-    result = self._fixedEscapeValues( recl )
-    if not result['OK']:
-      return result
-    recls = result['Value']
-
-    reck.append( "Time" )
-    recls.append( "NOW()" )
-
-    req = "SELECT * FROM RequestTest "
-    req += "WHERE RequestID = %s" % str( iD )
-    res = self._query( req )
-    if not res['OK']:
-      return res
-
-    if res['Value']: # Update
-      updates = ','.join( [x + '=' + y for x, y in zip( reck, recls )] )
-      req = "UPDATE RequestTest "
-      req += "SET %s " % updates
-      req += "WHERE RequestID=%s" % str( iD )
-    else: # Insert
-      req = "INSERT INTO RequestTest ( " + ','.join( reck )
-      req += " ) VALUES ( %s );" % ','.join( recls )
-
-    result = self._update( req, connection )
-    if not result['OK']:
-      self.lock.release()
-      return result
-
-    self.lock.release()
-    return S_OK()
-
-  def setTestResult( self, requestID, state, link ):
-    ''' Set test result. NOTE: no security check!
-    '''
-    self.lock.acquire() # transaction begin ?? may be after connection ??
-    result = self._getConnection()
-    if not result['OK']:
-      self.lock.release()
-      return S_ERROR( 'Failed to get connection to MySQL: ' + result['Message'] )
-    connection = result['Value']
-
-    req = "UPDATE RequestTest "
-    req += 'SET state="%s",link="%s",time=NOW() ' % ( state, link )
-    req += "WHERE RequestID=%s" % requestID
-    result = self._update( req, connection )
-    if not result['OK']:
-      self.lock.release()
-      return result
-
-    self.lock.release()
-    return S_OK()

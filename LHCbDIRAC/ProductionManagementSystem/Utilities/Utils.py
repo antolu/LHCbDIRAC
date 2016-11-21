@@ -22,7 +22,7 @@ def _getMemberMails( group ):
         emails.append( email )
     return emails
 
-def _aggregate( reqId, reqType, reqWG, reqName, SimCondition, ProPath, groups ):
+def _aggregate( reqId, reqType, reqWG, reqName, SimCondition, ProPath, groups, informPeoples ):
 
   if 'DIRAC' in os.environ:
     cacheFile = os.path.join( os.getenv('DIRAC'), 'work/ProductionManagement/cache.db' )
@@ -39,15 +39,16 @@ def _aggregate( reqId, reqType, reqWG, reqName, SimCondition, ProPath, groups ):
                     reqName VARCHAR(64) NOT NULL DEFAULT "",
                     SimCondition VARCHAR(64) NOT NULL DEFAULT "",
                     ProPath VARCHAR(64) NOT NULL DEFAULT "",
-                    thegroup VARCHAR(64) NOT NULL DEFAULT ""
+                    thegroup VARCHAR(64) NOT NULL DEFAULT "",
+                    reqInform VARCHAR(64) NOT NULL DEFAULT ""
                    );''')
 
     except sqlite3.OperationalError:
       gLogger.error('Email cache database is locked')
 
     for group in groups:
-      conn.execute("INSERT INTO ProductionManagementCache (reqId, reqType, reqWG, reqName, SimCondition, ProPath, thegroup)"
-                   " VALUES (?, ?, ?, ?, ?, ?, ?)", (reqId, reqType, reqWG, reqName, SimCondition, ProPath, group)
+      conn.execute("INSERT INTO ProductionManagementCache (reqId, reqType, reqWG, reqName, SimCondition, ProPath, thegroup, reqInform)"
+                   " VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (reqId, reqType, reqWG, reqName, SimCondition, ProPath, group, informPeoples)
                   )
 
       conn.commit()
@@ -164,14 +165,14 @@ def informPeople( rec, oldstate, state, author, inform ):
 
     groups = [ 'lhcb_bk' ]
 
-    _aggregate(reqId, rec.get( 'RequestType', '' ), rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ),
-               rec['SimCondition'], rec['ProPath'], groups)
+    _aggregate( reqId, rec.get( 'RequestType', '' ), rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ),
+               rec['SimCondition'], rec['ProPath'], groups, rec['reqInform'] )
 
   elif state == 'Submitted':
 
     groups = [ 'lhcb_ppg', 'lhcb_tech' ]
-    _aggregate(reqId, rec.get( 'RequestType', '' ), rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ),
-               rec['SimCondition'], rec['ProPath'], groups)
+    _aggregate( reqId, rec.get( 'RequestType', '' ), rec.get( 'RequestWG', '' ), rec.get( 'RequestName', '' ),
+               rec['SimCondition'], rec['ProPath'], groups, rec['reqInform'] )
 
   else:
     return

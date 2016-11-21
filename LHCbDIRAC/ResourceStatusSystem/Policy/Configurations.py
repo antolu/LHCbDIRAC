@@ -254,25 +254,6 @@ policies = { 'DTScheduled' : {'description' : 'Ongoing and scheduled down-times'
 #                                                   'Source', {'OperationType':'putAndRegister'} )}},
 #                                  ]
 #      },
-  'VOBOX-SLS' :
-    {
-      'description' : 'How the VO-Box is behaving in the SLS',
-      'module'      : 'SLSPolicy',
-      'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
-      'args'        : ( 'VO-BOX', ),
-
-      'Service_VO-BOX_Panel' : [ {'WebLink' : {'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
-                                               'args'      : ( 'VO-BOX', )}     }, ]
-     },
-  'VOMS-SLS' :
-    {
-      'description' : 'How the VOMS service is behaving in the SLS',
-      'module'      : 'SLSPolicy',
-      'command'     : ( 'SLSCommand', 'SLSStatusCommand' ),
-      'args'        : ( 'VOMS', ),
-
-      'Service_VOMS_Panel': [ {'WebLink': {'CommandIn' : ( 'SLSCommand', 'SLSLinkCommand' ),
-                                           'args'   : ( 'VOMS', )}}, ]},
   'OnStorageElementPropagation': {'description' : 'How the storage element\'s nodes are behaving in the RSS',
                                    'module'      : 'DownHillPropagationPolicy',
                                    'command'     : ( 'RSCommand', 'MonitoredStatusCommand' ),

@@ -63,16 +63,16 @@ class RequestTrackingAgent( AgentModule ):
                  'ConfigName'      : str( request['configName'] ).replace( ' ', '' ),
                  'ConfigVersion'   : str( request['configVersion'] ).replace( ' ', '' ),
                  'DataQualityFlag' : str( request['inDataQualityFlag'] ).replace( ' ', '' )}
-    if request['condType'] == 'Run':
+    if 'condType' in request and request['condType'] == 'Run':
       condition['DataTakingConditions'] = str( request['SimCondition'] )
     else:
       condition['SimulationConditions'] = str( request['SimCondition'] )
-    if str( request['inProductionID'] ) != '0':
+    if str( request['inProductionID'] ) not in ('0', 'ALL'):
       condition['Production'] = [int( x ) for x in str( request['inProductionID'] ).split( ',' )]
     if 'inTCKs' in request and str( request['inTCKs'] ) != '':
       condition['TCK'] = [str( x ) for x in str( request['inTCKs'] ).split( ',' )]
     condition['NbOfEvents'] = True
-    
+
     gLogger.debug( "Requesting: ", str( condition ) )
     result = self.bkClient.getFiles( condition )
     if not result['OK']:
@@ -81,7 +81,7 @@ class RequestTrackingAgent( AgentModule ):
       return S_OK( 0 )
     try:
       sum_nr = long( result['Value'][0] )
-    except Exception as e:
+    except ValueError as e:
       return S_ERROR( "Can not convert result from BK call: %s" % str( e ) )
     return S_OK( sum_nr )
 

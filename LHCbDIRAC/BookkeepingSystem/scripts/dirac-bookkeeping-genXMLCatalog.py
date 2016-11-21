@@ -83,7 +83,7 @@ def execute():
       catalog = a
       ext = os.path.splitext( catalog )
       if len( ext[1] ) == 0 and '/dev/' not in catalog:
-	catalog += os.path.extsep + "xml"
+        catalog += os.path.extsep + "xml"
     elif o in ( "Depth" ):
       try:
         depth = int( a )
@@ -97,7 +97,7 @@ def execute():
       newOptFile = a
       ext = os.path.splitext( newOptFile )
       if len( ext[1] ) == 0:
-	newOptFile += os.path.extsep + "py"
+        newOptFile += os.path.extsep + "py"
     elif o in ( "Ignore" ):
       ignore = True
     elif o in ( "GaudiVerbose" ):

@@ -239,7 +239,7 @@ class NagiosTopologyAgent( AgentModule ):
       se_RAW = None if not storage_element_name_RAW else StorageElement(storage_element_name_RAW)
   
       # Use case - Storage Element exists but it's removed from Resources/StorageElementGroups 
-      if not (se_DST and se_RAW):
+      if not (se_DST or se_RAW):
         gLogger.error( 'Storage Element for site ' + site + 
                        ' was found in Resources/Sites but not in the Storage Element Groups' )
         return False 
@@ -265,7 +265,7 @@ class NagiosTopologyAgent( AgentModule ):
         else:
           if not site_se_opts_RAW['OK']:
             gLogger.error( site_se_opts_RAW['Message'] )
-            return False
+            return has_grid_elem
           site_se_opts_RAW = site_se_opts_RAW[ 'Value' ]                
           # This tests if the DST and RAW StorageElements have the same endpoint. 
           # If so it only uses the one already added.

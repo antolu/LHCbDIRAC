@@ -17,13 +17,13 @@ file_skel = os.path.join( HOME_DIR, 'skel_vobox_update' )
 file_T1 = os.path.join( HOME_DIR, 'vobox_update_T1' )
 T1_list = ['voboxlhcb.gridpp.rl.ac.uk', 'voboxlhcb.pic.es', 'voboxlhcb.nikhef.nl', 'voboxlhcb.cr.cnaf.infn.it', 'voboxlhcb.in2p3.fr', 'voboxlhcb.gridka.de']
 file_A = os.path.join( HOME_DIR, 'vobox_update_A' )
-A_list = ['lbvobox12.cern.ch', 'lbvobox13.cern.ch', 'lbvobox15.cern.ch', 'lbvobox16.cern.ch', 'lbvobox18.cern.ch']
+A_list = ['lbvobox15.cern.ch', 'lbvobox18.cern.ch']
 file_B = os.path.join( HOME_DIR, 'vobox_update_B' )
-B_list = ['lbvobox22.cern.ch', 'lbvobox23.cern.ch', 'lbvobox24.cern.ch', 'lbvobox25.cern.ch', 'lbvobox27.cern.ch', 'lbvobox28.cern.ch']
+B_list = ['lbvobox27.cern.ch', 'lbvobox28.cern.ch']
 file_C = os.path.join( HOME_DIR, 'vobox_update_C' )
-C_list = ['lbvobox30.cern.ch', 'lbvobox32.cern.ch', 'lbvobox33.cern.ch','lbvobox100.cern.ch','lbvobox101.cern.ch','lbvobox102.cern.ch','lbvobox103.cern.ch']
+C_list = ['lbvobox30.cern.ch', 'lbvobox100.cern.ch','lbvobox101.cern.ch','lbvobox102.cern.ch','lbvobox103.cern.ch']
 file_D = os.path.join( HOME_DIR, 'vobox_update_D' )
-D_list = ['lbvobox06.cern.ch', 'lbvobox07.cern.ch', 'lbvobox08.cern.ch','lbvobox104.cern.ch','lbvobox105.cern.ch','lbvobox106.cern.ch','lbvobox107.cern.ch','lbvobox108.cern.ch']
+D_list = ['lbvobox06.cern.ch', 'lbvobox104.cern.ch','lbvobox105.cern.ch','lbvobox106.cern.ch','lbvobox107.cern.ch','lbvobox108.cern.ch']
 file_E = os.path.join( HOME_DIR, 'vobox_update_E' )
 E_list = ['lbvobox43.cern.ch', 'lbvobox46.cern.ch', 'lbvobox47.cern.ch', 'lbvobox49.cern.ch', 'volhcb04.cern.ch', 'volhcb05.cern.ch']
 

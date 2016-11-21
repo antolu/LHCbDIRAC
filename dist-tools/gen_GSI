@@ -44,3 +44,9 @@ if ! [ -e $fullname ]; then
   mv $fullname $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}
 fi
 #
+#  fullpath=`dirname $fullname`
+#  tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz $fullpath
+#  mv $fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/pyparsing
+#  echo "from pyparsing import infixNotation, opAssoc, Word, printables, Literal, Suppress" >> $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/pyparsing/__init__.py
+#fi
+#

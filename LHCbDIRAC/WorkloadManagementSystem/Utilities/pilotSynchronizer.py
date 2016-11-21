@@ -89,7 +89,7 @@ class pilotSynchronizer( object ):
       ceTypesCommands = gConfig.getOptionsDict( '/Operations/%s/Pilot/Commands' % setup )
       if ceTypesCommands['OK']:
         # It's ok if the Pilot section doesn't list any Commands too
-        pilotDict['Setups'][setup]['Commands'] = {}        
+        pilotDict['Setups'][setup]['Commands'] = {}
         for ceType in ceTypesCommands['Value']:
           pilotDict['Setups'][setup]['Commands'][ceType] = ceTypesCommands['Value'][ceType].split(', ')
       if 'CommandExtensions' in pilotDict['Setups'][setup]:
@@ -110,8 +110,8 @@ class pilotSynchronizer( object ):
         ceList = gConfig.getSections( '/Resources/Sites/' + grid + '/' + site + '/CEs/' )
         if not ceList['OK']:
           gLogger.error( ceList['Message'] )
-          return ceListSection
-        
+          return ceList
+
         for ce in ceList['Value']:
           ceType = gConfig.getValue( '/Resources/Sites/' + grid + '/' + site + '/CEs/' + ce + '/CEType')
 
