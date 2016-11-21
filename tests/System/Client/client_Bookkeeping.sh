@@ -75,14 +75,14 @@ fi
 
 # Default temporary path
 if [ -z "$temporaryPath" ]
-  then
+then
   temporaryPath=$(mktemp -d)
 fi
 
 # Move to a tmp directory
 cd $temporaryPath
 if [ $? -ne 0 ]
-  then
+then
   echo $(tput setaf 1)"ERROR: cannot change to directory: " $temporaryPath$(tput sgr 0)
   exit $?
 fi
