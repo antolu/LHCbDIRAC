@@ -7,7 +7,11 @@
 """
 
 import json
-import urllib
+import urllib 
+import shutil
+import os
+from git import Repo
+
 
 from DIRAC                                    import gLogger, S_OK, gConfig, S_ERROR
 from DIRAC.Core.DISET.HTTPDISETConnection     import HTTPDISETConnection
@@ -22,7 +26,7 @@ class pilotSynchronizer( object ):
 
   '''
 
-  def __init__( self ):
+  def __init__( self, pilotScriptsLocation ):
     ''' c'tor
 
         Just setting defaults
@@ -30,6 +34,14 @@ class pilotSynchronizer( object ):
     # pilotFileName/Server contain the default filename and domain name of the web server where we will upload the pilot json file
     self.pilotFileName = 'pilot.json'
     self.pilotFileServer = 'lhcb-portal-dirac.cern.ch'
+    self.pilotScriptsLocation = 'https://github.com/DIRACGrid/Pilot.git'
+    self.pilotVOScriptsLocation = 'https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git'
+
+    self.pilotLocalRepo = pilotRepo
+    self.pilotVOLocalRepo = pilotVORepo
+    self.pilotVersion = ''
+    self.pilotVOVersion =''
+    self.pilotSetup='LHCb-Production'
 
   def sync( self, _eventName, _params ):
     ''' Main synchronizer method.
@@ -37,6 +49,10 @@ class pilotSynchronizer( object ):
     gLogger.notice( '-- Synchronizing the content of the pilot file %s with the content of the CS --' % self.pilotFileName  )
 
     pilotDict = self._syncFile()
+
+    gLogger.notice( '-- Synchronizing the pilot scripts %s with the content of the repository --' % self.pilotScriptsLocation )
+
+    self._syncScripts()
 
     result = self._upload( pilotDict )
     if not result['OK']:
@@ -67,6 +83,8 @@ class pilotSynchronizer( object ):
         gLogger.error( options['Message'] )
         return options
       # We include everything that's in the Pilot section for this setup
+      if setup == pilotSetup:
+        self.pilotVOVersion = options['Value']['Version']
       pilotDict['Setups'][setup] = options['Value']
       ceTypesCommands = gConfig.getOptionsDict( '/Operations/%s/Pilot/Commands' % setup )
       if ceTypesCommands['OK']:
@@ -110,6 +128,33 @@ class pilotSynchronizer( object ):
 
     gLogger.verbose( "Got %s"  %str(pilotDict) )
     return pilotDict
+
+  def _syncScripts(self):
+    """Clone the pilot scripts from the repository and upload them to the web server
+    """
+    if os.path.isdir( self.pilotLocalRepo ):
+      shutil.rmtree( self.pilotLocalRepo )
+
+    os.mkdir( self.pilotLocalRepo )
+    repo = Repo.init( self.pilotLocalRepo )
+    upstream = repo.create_remote( 'upstream', self.pilotScriptsLocation )
+    upstream.fetch()
+    upstream.pull( upstream.refs[0].remote_head )
+    if repo.tags:
+      releasescfg = open(os.path.join(self.pilotVOLocalRepo,'LHCbDIRAC/releases.cfg'))
+      if self.pilotVOVersion in releasescfg.read():
+        repo.git.checkout( repo.tags[self.pilotVersion], b = 'pilotScripts' )
+    else:
+      repo.git.checkout( 'master', b = 'pilotScripts' )
+    if self.pilotVOScriptsLocation:
+      os.mkdir( self.pilotVOLocalRepo )
+      repo_VO = Repo.init( self.pilotVOLocalRepo )
+      releases = repo_VO.create_remote( 'releases', self.pilotVOScriptsLocation )
+      upstream.fetch()
+      upstream.pull( upstream.refs[0].remote_head )
+      repo.git.checkout( repo.tags[self.pilotVOVersion], b = 'pilotScripts' )
+    
+
 
   def _upload ( self, pilotDict ):
     """ Method to upload the pilot file to the server.

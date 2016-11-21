@@ -15,8 +15,8 @@ def initializeUpdateRemotePilotFileHandler( _serviceInfo ):
   '''
     Handler initialization, where we set the ResourceManagementDB as global db.
   '''
-
-  syncObject = pilotSynchronizer.pilotSynchronizer()
+  pilotScriptsLocation = self.getCSOption( "pilotFilesLocation", '' )
+  syncObject = pilotSynchronizer.pilotSynchronizer( pilotScripsLocation )
   gConfig.addListenerToNewVersionEvent( syncObject.sync )
   return S_OK()
 
