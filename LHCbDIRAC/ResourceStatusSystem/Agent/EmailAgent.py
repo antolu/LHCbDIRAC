@@ -24,12 +24,12 @@ AGENT_NAME = 'ResourceStatus/EmailAgent'
 
 def getName( name ):
   # Method that is used to get the site's name
-    try:
-        start = name.index( '.' ) + len( '.' )
-        end = name.index( '.', start )
-        return name[start:end]
-    except ValueError:
-        return S_ERROR('Site name %s can not be parsed' % name)
+  try:
+      start = name.index( '.' ) + len( '.' )
+      end = name.index( '.', start )
+      return name[start:end]
+  except ValueError:
+      return S_ERROR('Site name %s can not be parsed' % name)
 
 class EmailAgent( DiracEmAgent ):
 
