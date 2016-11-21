@@ -7,7 +7,6 @@ import json
 import os
 from types import IntType, LongType, DictType, StringTypes, ListType, FloatType
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Interfaces.API.Dirac  import Dirac
 from DIRAC.Core.Security import Properties, CS, Locations
 from DIRAC.Core.Utilities.Subprocess import pythonCall
 from DIRAC.Core.Utilities.File import mkDir
