@@ -22,6 +22,15 @@ __RCSID__ = '$Id: $'
 AGENT_NAME = 'ResourceStatus/EmailAgent'
 
 
+def getName( name ):
+  # Method that is used to get the site's name
+  try:
+      start = name.index( '.' ) + len( '.' )
+      end = name.index( '.', start )
+      return name[start:end]
+  except ValueError:
+      return S_ERROR('Site name %s can not be parsed' % name)
+
 class EmailAgent( DiracEmAgent ):
 
   def __init__( self, *args, **kwargs ):
@@ -59,41 +68,46 @@ class EmailAgent( DiracEmAgent ):
                                 }).json()
 
     except requests.exceptions.RequestException as e:
+      super( EmailAgent, self ).execute()
       return S_ERROR(errno.ECONNABORTED, "Error %s" % e)
 
-    for sites in response['Result'].replace(" ", "").split(","):
+    sites = set()
 
-      if os.path.isfile(self.cacheFile):
-        with sqlite3.connect(self.cacheFile) as conn:
+    for sitesName in response['Result'].replace(" ", "").split(","):
+      sites.add(sitesName)
 
-          result = conn.execute("SELECT DISTINCT SiteName from ResourceStatusCache;")
-          for site in result:
-            cursor = conn.execute("SELECT StatusType, ResourceName, Status, Time, PreviousStatus from ResourceStatusCache WHERE SiteName='"+ site[0] +"';")
+    if os.path.isfile(self.cacheFile):
+      with sqlite3.connect(self.cacheFile) as conn:
 
-            elements = ""
-            substring = site[0].split('.', 1)[0]
+        result = conn.execute("SELECT DISTINCT SiteName from ResourceStatusCache;")
+        for site in result:
+          cursor = conn.execute("SELECT StatusType, ResourceName, Status, Time, PreviousStatus from ResourceStatusCache WHERE SiteName='"+ site[0] +"';")
 
-            if substring in sites:
-              for StatusType, ResourceName, Status, Time, PreviousStatus in cursor:
+          elements = ""
+          if site[0] != 'Unassigned Resources':
+            name = getName( site[0] )
+
+            if name in sites:
+              for StatusType,ResourceName, Status, Time, PreviousStatus in cursor:
                 elements += StatusType + " of " + ResourceName + " has been " + Status + " since " + \
                             Time + " (Previous status: " + PreviousStatus + ")\n"
 
               try:
-                response = requests.post('https://lblogbook.cern.ch:5050/log',
-                                          json = {
-                                            "user": elogUsername,
-                                            "password": elogPassword,
-                                            "logbook": "Operations",
-                                            "system": "Site Downtime",
-                                            "text": elements,
-                                            "subject": "RSS Actions Taken for " + site[0]
-                                          }).json()
+                requests.post('https://lblogbook.cern.ch:5050/log',
+                              json = {
+                                "user": elogUsername,
+                                "password": elogPassword,
+                                "logbook": "Operations",
+                                "system": "Site Downtime",
+                                "text": elements,
+                                "subject": "RSS Actions Taken for " + site[0]
+                              }).json()
 
-                response.raise_for_status()
               except requests.exceptions.RequestException as e:
+                super( EmailAgent, self ).execute()
                 return S_ERROR(errno.ECONNABORTED, "Error %s" % e)
 
-        conn.close()
+      conn.close()
 
     super( EmailAgent, self ).execute()
 
