@@ -24,6 +24,7 @@ from DIRAC.Resources.Storage.StorageElement import StorageElement
 from DIRAC.Core.Utilities.ReturnValues import returnSingleResult
 
 
+
 __RCSID__ = "$Id: $"
 
 #pylint: disable=no-self-use
@@ -213,7 +214,10 @@ class WMSSecureGWHandler( RequestHandler ):
     """
     Always return the Boinc proxy.
     """
-    return self.__getProxy( requestPem, requiredLifetime )
+    userDN, userGroup, userName = self.__getOwnerGroupDN( 'BoincUser' )
+    rpcClient = RPCClient( "Framework/BoincProxyManager", timeout = 120 )
+    retVal = rpcClient.getProxy( userDN, userGroup, requestPem, requiredLifetime )
+    return retVal
 
 
   ##############################################################################
@@ -221,30 +225,12 @@ class WMSSecureGWHandler( RequestHandler ):
   def export_getProxy( self, userDN, userGroup, requestPem, requiredLifetime ): #pylint: disable=unused-argument
     """Get the Boinc User proxy
     """
-    return self.__getProxy( requestPem, requiredLifetime )
+    userDN, userGroup, userName = self.__getOwnerGroupDN( 'BoincUser' )
+    rpcClient = RPCClient( "Framework/BoincProxyManager", timeout = 120 )
+    retVal = rpcClient.getProxy( userDN, userGroup, requestPem, requiredLifetime )
+    return retVal
 
-
-  def __getProxy ( self, requestPem, requiredLifetime ):
-    """Get the Boinc User proxy
-    """
-    userDN, userGroup, userName = self.__getOwnerGroupDN( 'BoincUser' )  #pylint: disable=unused-variable
-    result = self.__checkProperties( userDN, userGroup )
-    if not result[ 'OK' ]:
-      return result
-    forceLimited = result[ 'Value' ]
-    chain = X509Chain()
-    proxyFile = Locations.getProxyLocation()
-    retVal = chain.loadProxyFromFile( proxyFile )
-    if not retVal[ 'OK' ]:
-      return retVal
-    retVal = chain.generateChainFromRequestString( requestPem,
-                                                   lifetime = requiredLifetime,
-                                                   requireLimited = forceLimited )
-    gLogger.debug( "Got the proxy" )
-    return S_OK( retVal[ 'Value' ] )
-
-
-
+  ##############################################################################
   def __checkProperties( self, requestedUserDN, requestedUserGroup ):
     """
     Check the properties and return if they can only download limited proxies if authorized
