@@ -1,3 +1,17 @@
+[v8r4p5]
+use DIRAC v6r16p2
+
+* Indentation fixed
+* remove import
+* WMSSecureGW to use ProxyManager
+* Changed getName into a function
+* correct the table schema
+* Client tests upgrade
+* if reqInfo does not exists in the requet, we have to use inform instead
+* Removed raise_for_status()
+* Continue to the execution of base class after error
+* Fixed site name parsing
+
 [v8r4p4]
 use DIRAC v6r16p1
 
