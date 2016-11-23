@@ -325,23 +325,32 @@ class TestMethods( DataInsertTestCase ):
     Get the available configurations for a given bk dict
     
     """
+    simParams = ['SimId', 'Description', 'BeamCondition', 'BeamEnergy', 'Generator', 'MagneticField', 'DetectorCondition', 'Luminosity', 'G4settings']
+    dataParams = ['DaqperiodId', 'Description', 'BeamCondition', 'BeanEnergy', 'MagneticField', 'VELO', 'IT', 'TT', 'OT', 'RICH1', 'RICH2', 'SPD_PRS', 'ECAL', 'HCAL',
+                  'MUON', 'L0', 'HLT', 'VeloPosition']
+    
     retVal = self.bk.getConditions( {"ConfigName":"MC", "ConfigVersion":"2012"} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) > 0 )
     self.assertEqual( len( retVal['Value'] ), 2 )
-    self.assertEqual( retVal['Value']['TotalRecords'], 11 )
-  
-  def test_getProcessingPass(self):
+    self.assertEqual( retVal['Value'][1]['TotalRecords'], 0 )
+    self.assertEqual( retVal['Value'][1]['ParameterNames'], dataParams )
+    self.assert_( retVal['Value'][0]['TotalRecords'] > 0 )
+    self.assertEqual( retVal['Value'][0]['ParameterNames'], simParams )
+    
+    
+  def test_getProcessingPass( self ):
     """
     
     Check the available processing passes for a given bk path. Again bkk view...
     
     """
     
-    retVal = self.bk.getProcessingPass( {"ConfigName":"MC","ConfigVersion":"2012",} )
+    retVal = self.bk.getProcessingPass( {"ConfigName":"MC", "ConfigVersion":"2012", } )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) > 0 )
-    
+    self.assertEqual( len( retVal['Value'] ), 2 )
+    self.assert_( retVal['Value'][0]['TotalRecords'] > 0 )
     
 class TestRemoveFiles( DataInsertTestCase ):
   

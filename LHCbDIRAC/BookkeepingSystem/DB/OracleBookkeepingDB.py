@@ -641,6 +641,7 @@ class OracleBookkeepingDB( object ):
     if ok:
       stepid = in_dict.get( 'StepId', default )
       if stepid != default:
+        in_dict.pop( 'StepId' )
         condition = " where stepid=%s" % ( str( stepid ) )
         command = 'update steps set '
         for i in in_dict:
