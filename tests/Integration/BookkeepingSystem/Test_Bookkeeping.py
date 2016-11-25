@@ -449,6 +449,164 @@ class TestMethods( DataInsertTestCase ):
     self.assert_( retVal['OK'] )
     self.assertEqual( len( retVal['Value'] ), 10 )
     
+    retVal = self.bk.getFiles( {"ConfigName":"MC",
+                                "ConfigVersion":"2012",
+                                "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
+                                "ProcessingPass":"/Sim08a/Digi13/Trig0x409f0045/Reco14a/Stripping20NoPrescalingFlagged",
+                                "FileType":"ALLSTREAMS.DST",
+                                "EventType":12442001,
+                                "Visible": "N"} )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 0 )
+    
+    retVal = self.bk.getFiles( {"ConfigName":"MC",
+                                "ConfigVersion":"2012",
+                                "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
+                                "ProcessingPass":"/Sim08a/Digi13/Trig0x409f0045/Reco14a/Stripping20NoPrescalingFlagged",
+                                "FileType":"ALLSTREAMS.DST",
+                                "EventType":12442001,
+                                "Visible": "All"} )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 10 )
+  
+  def test_getFiles1( self ):
+    """
+    This is used to test the getFiles method.
+    """  
+    bkQuery = {'ConfigName': 'MC',
+               'ConditionDescription': 'Beam3500GeV-May2010-MagOff-Fix1',
+               'EventType': '30000000',
+               'FileType': 'DST',
+               'ProcessingPass': '/Sim01/Reco08',
+               'Visible': 'Y',
+               'ConfigVersion': 'MC10',
+               'Quality': []}
+    
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 301 )
+    
+    bkQuery = {'ConfigName': 'MC',
+               'ConditionDescription': 'Beam3500GeV-May2010-MagOff-Fix1',
+               'EventType': '30000000',
+               'FileType': 'DST',
+               'ProcessingPass': '/Sim01/Reco08',
+               'Visible': 'Y',
+               'ConfigVersion': 'MC10',
+               'Quality': "ALL"}
+    
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 301 )
+  
+  def test_getFiles2( self ):
+    """
+    It is used to test the getFiles method
+    """
+    bkQuery = {'Production': 10917,
+               'EventType': '30000000',
+               'FileType': 'DST',
+               'Visible': 'Y',
+               'Quality': 'OK'}
+    
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 301 )
+    
+    bkQuery.pop( 'Visible' )
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 301 )
+    
+    
+  def test_getFiles3( self ):
+    """
+    It is used to test the getFiles method
+    """
+    bkQuery = {'ConfigName': 'MC',
+               'ConditionDescription': 'Beam3500GeV-Oct2010-MagUp-Nu2.5',
+               'EventType': 28144012,
+               'FileType': 'XGEN',
+               'ProcessingPass': '/MC10Gen01',
+               'Visible': 'Y',
+               'ConfigVersion': 'MC10',
+               'Quality': []}
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 200 )
+    
+  def test_getFiles4( self ):
+    
+    bkQuery = {'ConfigName': 'MC',
+               'ConditionDescription': 'Beam3500GeV-May2010-MagDown-Fix1',
+               'ProcessingPass': '/Sim01/Trig0x002e002aFlagged/Reco08-MINBIAS',
+               'Visible': 'N',
+               'ConfigVersion': 'MC10'}
+    
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 605 )
+    
+    bkQuery['Visible'] = 'Y'
+    retVal = self.bk.getFileTypes( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( retVal['Value']['TotalRecords'], 1 )
+    self.assertEqual( retVal['Value']['Records'][0][0], 'DST' )
+  
+               
+  def test_getProductions2( self ):
+    bkQuery = {'ConfigName': 'MC',
+               'ConditionDescription': 'Beam3500GeV-May2010-MagDown-Fix1',
+               'ProcessingPass': '/Sim01/Trig0x002e002aFlagged/Reco08-MINBIAS',
+               'Visible': 'N',
+               'ConfigVersion': 'MC10'}
+    
+    retVal = self.bk.getProductions( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( retVal['Value']['TotalRecords'], 1 )
+    self.assertEqual( retVal['Value']['Records'][0][0], 10713 )
+    
+    bkQuery['Visible'] = 'Y'
+    self.assert_( retVal['OK'] )
+    self.assertEqual( retVal['Value']['TotalRecords'], 1 )
+    self.assertEqual( retVal['Value']['Records'][0][0], 10713 )
+    
+    
+  def test_getFile5( self ):
+    """
+    Get list of file types
+    """
+    bkQuery = {'ConfigName': 'MC',
+               'ConditionDescription': 'Beam3500GeV-Oct2010-MagUp-Nu2.5',
+               'EventType': 28144012,
+               'ProcessingPass': '/MC10Gen01',
+               'Visible': 'Y',
+               'ConfigVersion': 'MC10',
+               'Quality': []}
+    
+    
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 200 )
+  
+  def test_getProductions1( self ):
+    """
+    This is used to test the getFiles method.
+    """  
+    bkQuery = {'ConfigName': 'MC',
+               'ConditionDescription': 'Beam3500GeV-May2010-MagOff-Fix1',
+               'EventType': '30000000',
+               'FileType': 'DST',
+               'ProcessingPass': '/Sim01/Reco08',
+               'Visible': 'Y',
+               'ConfigVersion': 'MC10',
+               'Quality': []}
+    
+    retVal = self.bk.getProductions( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( retVal['Value']['TotalRecords'], 1 )
+    self.assertEqual( retVal['Value']['Records'][0][0], 10917 )
+  
     
 class TestRemoveFiles( DataInsertTestCase ):
   
@@ -471,9 +629,7 @@ class TestRemoveFiles( DataInsertTestCase ):
 if __name__ == '__main__':
 
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
-  # suite = unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods )
-  
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
-  # suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
   
