@@ -153,14 +153,15 @@ class UploadOutputData( ModuleBase ):
         if fileDescendants != None:
           result = fileDescendants
         else:
-          result = getFileDescendants( self.production_id, self.inputDataList,
-                                       dm = self.dataManager, bkClient = self.bkClient )
-        if not result:
+          lfnsWithDescendants = getFileDescendants( self.production_id, self.inputDataList,
+                                                    dm = self.dataManager, bkClient = self.bkClient )
+        if not lfnsWithDescendants:
           self.log.info( "No descendants found, outputs can be uploaded" )
         else:
           self.log.error( "Found descendants!!! Outputs won't be uploaded" )
-          self.log.info( "Files with descendants: %s" ', '.join( result ) )
-          self.fileReport.setFileStatus( int( self.production_id ), self.inputDataList, 'Processed' ) # FIXME: Setting all to 'Processed' may not be correct!!!
+          self.log.info( "Files with descendants: %s" ', '.join( lfnsWithDescendants.keys() ) )
+          self.log.info( "The files above will be set as 'Processed', other lfns in input will be later reset as Unused" )
+          self.fileReport.setFileStatus( int( self.production_id ), lfnsWithDescendants.keys(), 'Processed' )
           return S_ERROR( "Input Data Already Processed" )
 
 

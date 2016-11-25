@@ -37,6 +37,14 @@ def getFileDescendants( transID, lfns, transClient = None, dm = None, bkClient =
       lfns (str, list, dict): a string for a single lfn, a list of strings, or a dict with lfns as keys
 
   Returns:
+      dict: a dictionary of files with descendants (lfn as key)
+
+  Examples:
+      >>> getFileDescendants(55032, ['/lhcb/LHCb/anLFN_1.dst', '/lhcb/LHCb/anLFN_2.dst', '/lhcb/LHCb/anLFN_3_NODESCENDANTS.dst'])
+      {'/lhcb/LHCb/anLFN_1.dst': ['/lhcb/validation/desc_1.PIDCALIB.mdst',
+                                  '/lhcb/validation/desc_1.pidcalib.root'],
+      {'/lhcb/LHCb/anLFN_2.dst': ['/lhcb/validation/desc_2.PIDCALIB.mdst',
+                                  '/lhcb/validation/desc_2.pidcalib.root'],
 
   """
   cc = ConsistencyChecks( interactive = False, transClient = transClient, dm = dm, bkClient = bkClient )
