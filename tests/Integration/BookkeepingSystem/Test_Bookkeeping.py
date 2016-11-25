@@ -302,7 +302,7 @@ class TestMethods( DataInsertTestCase ):
     retVal = self.bk.deleteStep( stepid1 )
     self.assert_( retVal['OK'] )
     
-  def test_getAvailableConfigNames(self):
+  def test_getAvailableConfigNames( self ):
     """
     Must have one configuration name
     """
@@ -351,6 +351,104 @@ class TestMethods( DataInsertTestCase ):
     self.assert_( len( retVal['Value'] ) > 0 )
     self.assertEqual( len( retVal['Value'] ), 2 )
     self.assert_( retVal['Value'][0]['TotalRecords'] > 0 )
+  
+  def test_bookkeepingtree( self ):
+    """
+    Browse the bookkeeping database
+    """
+    bkQuery = {"ConfigName":"MC"}
+    retVal = self.bk.getAvailableConfigNames()
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assert_( bkQuery['ConfigName'] in [cName[0] for cName in retVal['Value']['Records']] ) 
+    
+    retVal = self.bk.getConfigVersions( {"ConfigName":"MC"} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertEqual( retVal['Value']['TotalRecords'], 11 )
+    
+    retVal = self.bk.getConditions( {"ConfigName":"MC",
+                                     "ConfigVersion":"2012"} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertEqual( retVal['Value'][0]['TotalRecords'], 2 )
+    
+    retVal = self.bk.getProcessingPass( {"ConfigName":"MC",
+                                         "ConfigVersion":"2012",
+                                         "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8"} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertEqual( retVal['Value'][0]['Records'][0][0], "Sim08a" )
+    
+    retVal = self.bk.getProcessingPass( {"ConfigName":"MC",
+                                         "ConfigVersion":"2012",
+                                         "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8"},
+                                        "/Sim08a" )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertEqual( retVal['Value'][0]['Records'][0][0], "Digi13" )
+    
+    retVal = self.bk.getProcessingPass( {"ConfigName":"MC",
+                                         "ConfigVersion":"2012",
+                                         "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8"},
+                                        "/Sim08a/Digi13" )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertEqual( retVal['Value'][0]['Records'][0][0], "Trig0x409f0045" )
+    
+    retVal = self.bk.getProcessingPass( {"ConfigName":"MC",
+                                         "ConfigVersion":"2012",
+                                         "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8"},
+                                        "/Sim08a/Digi13/Trig0x409f0045" )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertEqual( retVal['Value'][0]['Records'][0][0], "Reco14a" )
+    
+    retVal = self.bk.getProcessingPass( {"ConfigName":"MC",
+                                         "ConfigVersion":"2012",
+                                         "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8"},
+                                        "/Sim08a/Digi13/Trig0x409f0045/Reco14a" )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertEqual( retVal['Value'][0]['Records'][0][0], "Stripping20NoPrescalingFlagged" )
+    
+    retVal = self.bk.getProcessingPass( {"ConfigName":"MC",
+                                         "ConfigVersion":"2012",
+                                         "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8"},
+                                        "/Sim08a/Digi13/Trig0x409f0045/Reco14a/Stripping20NoPrescalingFlagged" )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertEqual( retVal['Value'][1]['Records'][0][0], 12442001 )
+    
+    retVal = self.bk.getFileTypes( {"ConfigName":"MC",
+                                    "ConfigVersion":"2012",
+                                    "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
+                                    "ProcessingPass":"/Sim08a/Digi13/Trig0x409f0045/Reco14a/Stripping20NoPrescalingFlagged"} )
+    
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value'] ) > 0 )
+    self.assertEqual( retVal['Value']['TotalRecords'], 1 )
+    self.assertEqual( retVal['Value']['Records'][0][0], 'ALLSTREAMS.DST' )
+    
+    retVal = self.bk.getFiles( {"ConfigName":"MC",
+                                "ConfigVersion":"2012",
+                                "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
+                                "ProcessingPass":"/Sim08a/Digi13/Trig0x409f0045/Reco14a/Stripping20NoPrescalingFlagged",
+                                "FileType":"ALLSTREAMS.DST"} )
+    
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 10 )
+    
+    retVal = self.bk.getFiles( {"ConfigName":"MC",
+                                "ConfigVersion":"2012",
+                                "ConditionDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
+                                "ProcessingPass":"/Sim08a/Digi13/Trig0x409f0045/Reco14a/Stripping20NoPrescalingFlagged",
+                                "FileType":"ALLSTREAMS.DST",
+                                "EventType":12442001} )
+    
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 10 )
+    
     
 class TestRemoveFiles( DataInsertTestCase ):
   
@@ -372,10 +470,10 @@ class TestRemoveFiles( DataInsertTestCase ):
 
 if __name__ == '__main__':
 
-  # suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods )
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
+  # suite = unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods )
   
-  # suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
   # suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
   
