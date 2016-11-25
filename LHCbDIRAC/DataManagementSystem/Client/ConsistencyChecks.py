@@ -1,6 +1,8 @@
 """
     LHCb class for doing consistency checks, between files in:
     - Bookkeeping
+    - Transformation
+    - File Catalog
 """
 
 import time
@@ -21,14 +23,13 @@ from DIRAC.Core.Utilities.Adler import compareAdler
 
 from LHCbDIRAC.BookkeepingSystem.Client.BKQuery import BKQuery
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient import BookkeepingClient
-from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar, \
-  printDMResult
+from LHCbDIRAC.DataManagementSystem.Client.DMScript import ProgressBar
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient import TransformationClient
 
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction' )
 
 
-def getFileDescendants( transID, lfns, transClient = None, dm = None, bkClient = None, verbose = True, descendantsDepth = None ):
+def getFileDescendants( transID, lfns, transClient = None, dm = None, bkClient = None, descendantsDepth = None ):
   cc = ConsistencyChecks( interactive = False, transClient = transClient, dm = dm, bkClient = bkClient )
   if descendantsDepth is not None:
     cc.descendantsDepth = descendantsDepth
@@ -567,7 +568,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
     daughtersBKInfo = self.__getDaughtersInfo( lfns, status, filesWithDescendants,
                                                filesWithoutDescendants, filesWithMultipleDescendants )
-    for daughter in daughtersBKInfo.keys():
+    for daughter in daughtersBKInfo.keys(): #pylint: disable=consider-iterating-dictionary
       # Ignore the daughters that have a type to ignore
       if daughtersBKInfo[daughter][1] in fileTypesExcluded:
         daughtersBKInfo.pop( daughter )
@@ -615,8 +616,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
               notPresentDescendants.update( res['Value']['WithMetadata'] )
               break
             else:
-              progressBar.comment( "Error getting descendants for %d files, retry"
-                             % len( lfnChunk ), res['Message'] )
+              progressBar.comment( "Error getting descendants for %d files, retry" % len( lfnChunk ), res['Message'] )
         uniqueDescendants = set( lfn for desc in notPresentDescendants.itervalues() for lfn in desc )
         progressBar.endLoop( message = 'found %d descendants' % len( uniqueDescendants ) )
         # Check if descendants have a replica in the FC
@@ -625,7 +625,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
           _, notPresent = self.getReplicasPresence( uniqueDescendants )
           inBKNotInFC += notPresent
           # Remove descendants that are not in FC, and if no descendants remove ancestor as well
-          for anc in notPresentDescendants.keys():
+          for anc in notPresentDescendants.keys(): #pylint: disable=consider-iterating-dictionary
             for desc in notPresentDescendants[anc].keys():
               if desc in notPresent:
                 notPresentDescendants[anc].pop( desc )
@@ -975,7 +975,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
                                title = "Get FC metadata for %d files to be checked: " % len( replicas ),
                                chunk = chunkSize, interactive = self.interactive )
     metadata = {}
-    for lfnChunk in breakListIntoChunks( replicas.keys(), chunkSize ):
+    for lfnChunk in breakListIntoChunks( replicas.keys(), chunkSize ): #pylint: disable=consider-iterating-dictionary
       progressBar.loop()
       res = self.fc.getFileMetadata( lfnChunk )
       if not res['OK']:
