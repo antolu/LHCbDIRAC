@@ -30,6 +30,15 @@ prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming
 
 
 def getFileDescendants( transID, lfns, transClient = None, dm = None, bkClient = None, descendantsDepth = None ):
+  """ Function that returns the list of descendants from BKK
+
+  Args:
+      transID (str, int): transformationID
+      lfns (str, list, dict): a string for a single lfn, a list of strings, or a dict with lfns as keys
+
+  Returns:
+
+  """
   cc = ConsistencyChecks( interactive = False, transClient = transClient, dm = dm, bkClient = bkClient )
   if descendantsDepth is not None:
     cc.descendantsDepth = descendantsDepth
@@ -48,7 +57,7 @@ def getFileDescendants( transID, lfns, transClient = None, dm = None, bkClient =
 prodsWithMerge = ( 'MCSimulation', 'DataStripping', 'MCStripping', 'DataSwimming', 'WGProduction' )
 
 class ConsistencyChecks( DiracConsistencyChecks ):
-  """ LHCb extension to ConsistencyChecks
+  """ LHCb extension to ConsistencyInspector
   """
 
   def __init__( self, interactive = True, transClient = None, dm = None, bkClient = None, fc = None ):
@@ -548,6 +557,9 @@ class ConsistencyChecks( DiracConsistencyChecks ):
 
   def getDescendants( self, lfns, status = '' ):
     """ get the descendants of a list of LFN (for the production)
+
+    Args:
+        lfns (str, list, dict): a string for a single lfn, a list of strings, or a dict with lfns as keys
     """
     if isinstance( lfns, basestring ):
       lfns = [lfns]
