@@ -150,8 +150,8 @@ class UploadOutputData( ModuleBase ):
       # ##
 
       if self.inputDataList:
-        if fileDescendants != None:
-          result = fileDescendants
+        if fileDescendants is not None:
+          lfnsWithDescendants = fileDescendants
         else:
           lfnsWithDescendants = getFileDescendants( self.production_id, self.inputDataList,
                                                     dm = self.dataManager, bkClient = self.bkClient )
