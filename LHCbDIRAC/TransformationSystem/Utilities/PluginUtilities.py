@@ -502,7 +502,7 @@ class PluginUtilities( DIRACPluginUtilities ):
     Check which files have been processed by a given production, i.e. have a meaningful descendant
     """
     from LHCbDIRAC.DataManagementSystem.Client.ConsistencyChecks import getFileDescendants
-    return getFileDescendants( self.transID, lfns, transClient = self.transClient, dm = self.dm, bkClient = self.bkClient, verbose = self.debug )
+    return getFileDescendants( self.transID, lfns, transClient = self.transClient, dm = self.dm, bkClient = self.bkClient )
 
   # @timeThis
   def getRAWAncestorsForRun( self, runID, param = None, paramValue = None, getFiles = False ):
