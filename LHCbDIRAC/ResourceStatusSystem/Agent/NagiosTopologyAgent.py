@@ -67,23 +67,21 @@ class NagiosTopologyAgent( AgentModule ):
 ##################################################################################################################
 #New code to include VAC and VCYCLE
 
-    middlewareTypes = []
+    gridTypes = []
     ret = gConfig.getSections('Resources/Sites') 
     if not ret[ 'OK' ] : 
       gLogger.error( ret[ 'Message' ] )
       return ret
     
-    middlewareTypes = ret['Value']
+    gridTypes = ret['Value']
 
     all_sites = {}
 
-    for middleware in middlewareTypes:
-      sites = gConfig.getSections( 'Resources/Sites/%s' % middleware )
+    for grid in gridTypes:
+      sites = gConfig.getSections( 'Resources/Sites/%s' % grid )
       for site in sites['Value']:
-        real_site_name = site.split(".")[1]
-        middleware = site.split(".")[0]
-        country = site.split(".")[2]
-        site_opts = gConfig.getOptionsDict( 'Resources/Sites/%s/%s' % ( middleware, site ) )
+        grid, real_site_name, country = site.split( "." )
+        site_opts = gConfig.getOptionsDict( 'Resources/Sites/%s/%s' % ( grid, site ) )
         if not site_opts[ 'OK' ]:
           gLogger.error( site_opts[ 'Message' ] )
           return site_opts
@@ -93,12 +91,12 @@ class NagiosTopologyAgent( AgentModule ):
         if site_tier != 'None':
           site_subtier = site_opts.get( 'SubTier', 'None' )
           dict_opts = { 'SiteOptions' : site_opts , 
-                        'DiracName': ( 'LCG.' + real_site_name + "." + country), 'Middlewares' : [middleware] }
+                        'DiracName': ( 'LCG.' + real_site_name + "." + country), 'Grid' : [grid] }
           dict1 = {real_site_name:dict_opts}
           if all_sites.has_key(real_site_name):
             all_sites[ real_site_name ][ 'SiteOptions' ][ 'CE' ] = all_sites[ real_site_name ][ 'SiteOptions' ][ 'CE' ] + 
                                                                    "," + dict_opts['SiteOptions']['CE']
-            all_sites[real_site_name]['Middlewares'].append(middleware)                                                      
+            all_sites[real_site_name]['Grid'].append(grid)                                                      
           else:
             all_sites.update(dict1)
 
@@ -109,13 +107,13 @@ class NagiosTopologyAgent( AgentModule ):
         site_name = key['SiteOptions'].get( 'Name' )
         xml_site = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
 
-        for middleware in key['Middlewares']:
+        for grid in key['Grid']:
 
-          site = middleware + "." + key['DiracName'].split(".")[1] + "." + key['DiracName'].split(".")[2]
+          site = grid + "." + key['DiracName'].split(".")[1] + "." + key['DiracName'].split(".")[2]
           # CE info
-          ces = gConfig.getSections( 'Resources/Sites/%s/%s/CEs' % ( middleware, site ) )
+          ces = gConfig.getSections( 'Resources/Sites/%s/%s/CEs' % ( grid, site ) )
           if ces[ 'OK' ]:
-            res = self.__writeCEInfo( xml_doc, middleware, xml_site, site, ces[ 'Value' ] )
+            res = self.__writeCEInfo( xml_doc, grid, xml_site, site, ces[ 'Value' ] )
             # Update has_grid_elem
             has_grid_elem = res or has_grid_elem
 
@@ -188,7 +186,7 @@ class NagiosTopologyAgent( AgentModule ):
     xml_append( xml_doc, xml_root, 'vo', 'lhcb' )
 
   @staticmethod
-  def __writeCEInfo( xml_doc, middleware, xml_site, site, ces ):
+  def __writeCEInfo( xml_doc, grid, xml_site, site, ces ):
     """ Writes CE information in the XML Document
     """
 
@@ -199,7 +197,7 @@ class NagiosTopologyAgent( AgentModule ):
 
       has_grid_elem = True
 
-      site_ce_opts = gConfig.getOptionsDict( 'Resources/Sites/%s/%s/CEs/%s' % ( middleware, site, site_ce_name ) )
+      site_ce_opts = gConfig.getOptionsDict( 'Resources/Sites/%s/%s/CEs/%s' % ( grid, site, site_ce_name ) )
       if not site_ce_opts['OK']:
         gLogger.error( site_ce_opts['Message'] )
         continue
