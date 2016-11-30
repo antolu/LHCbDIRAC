@@ -607,6 +607,169 @@ class TestMethods( DataInsertTestCase ):
     self.assertEqual( retVal['Value']['TotalRecords'], 1 )
     self.assertEqual( retVal['Value']['Records'][0][0], 10917 )
   
+  def test_getVisibleFilesWithMetadata1( self ):
+    """
+    This si used to test the ganga queries
+    """
+    
+    bkQuery = {'ConfigName':'LHCb',
+               'ConfigVesrion':'Collision12',
+               'ProcessingPass':'/Real Data/Reco13a/Stripping19a',
+               'FileType':'BHADRON.MDST',
+               'Visible':'Y',
+               'EventType':90000000,
+               'ConditionDescription':'Beam4000GeV-VeloClosed-MagDown',
+               'DataQuality':'OK'}
+    
+    summary = {'EventInputStat': 56223169,
+               'FileSize': 783.777593157,
+               'InstLuminosity': 0,
+               'Luminosity': 156438151.738,
+               'Number Of Files': 439,
+               'Number of Events': 68170375,
+               'TotalLuminosity': 0}
+    
+    paramNames = ['TotalLuminosity', 'Luminosity', 'Fillnumber', 'EventInputStat', 'FileSize', 'EventStat', 'Runnumber', 'InstLuminosity', 'TCK']
+    
+    retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assert_( retVal['Value']['Summary'] )
+    self.assert_( retVal['Value']['LFNs'] )
+    
+    self.assertEqual( retVal['Value']['Summary'], summary )
+    self.assertEqual( len( retVal['Value']['LFNs'] ), 439 )
+    self.assertEqual( retVal['Value']['LFNs'][retVal['Value']['LFNs'].keys()[0]].keys(), paramNames )
+                     
+    # now test the data takingcondition
+    bkQuery.pop( 'ConditionDescription' )
+    bkQuery['DataTakingConditions'] = 'Beam4000GeV-VeloClosed-MagDown'
+    retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assert_( retVal['Value']['Summary'] )
+    self.assert_( retVal['Value']['LFNs'] )
+    
+    self.assertEqual( retVal['Value']['Summary'], summary )
+    self.assertEqual( len( retVal['Value']['LFNs'] ), 439 )
+    
+    bkQuery['RunNumber'] = [115055],
+    retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assert_( retVal['Value']['Summary'] )
+    self.assert_( retVal['Value']['LFNs'] )
+    
+    self.assertEqual( retVal['Value']['Summary'], summary )
+    self.assertEqual( len( retVal['Value']['LFNs'] ), 439 )
+    
+    bkQuery['TCK'] = ['0x95003d']
+    self.assert_( retVal['OK'] )
+    self.assert_( retVal['Value']['Summary'] )
+    self.assert_( retVal['Value']['LFNs'] )
+    
+    self.assertEqual( retVal['Value']['Summary'], summary )
+    self.assertEqual( len( retVal['Value']['LFNs'] ), 439 )
+    
+    
+  def test_getVisibleFilesWithMetadata2( self ):
+    """
+    This si used to test the ganga queries
+    Now test the run numbers
+    """
+    
+    bkQuery = {'ConfigName': 'LHCb',
+               'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
+               'EventType': 90000000,
+               'FileType': 'EW.DST',
+               'ProcessingPass': '/Real Data/Reco10/Stripping13b',
+               'Visible': 'Y',
+               'ConfigVersion': 'Collision11',
+               'Quality': ['OK']}
+    
+    summary = {'EventInputStat': 2673532842,
+               'FileSize': 7551.21445591,
+               'InstLuminosity': 0,
+               'Luminosity': 212911143.681,
+               'Number Of Files': 3223,
+               'Number of Events': 78548304,
+               'TotalLuminosity': 0}
+    
+    paramNames = ['TotalLuminosity', 'Luminosity', 'Fillnumber', 'EventInputStat', 'FileSize', 'EventStat', 'Runnumber', 'InstLuminosity', 'TCK']
+    
+    retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assert_( retVal['Value']['Summary'] )
+    self.assert_( retVal['Value']['LFNs'] )
+    
+    self.assertEqual( retVal['Value']['Summary'], summary )
+    self.assertEqual( len( retVal['Value']['LFNs'] ), 3223 )
+    self.assertEqual( retVal['Value']['LFNs'][retVal['Value']['LFNs'].keys()[0]].keys(), paramNames )
+    
+    bkQuery['RunNumber'] = [90104, 92048, 87851]
+    summary = {'EventInputStat': 1214023,
+              'FileSize': 3.028363003,
+              'InstLuminosity': 0,
+              'Luminosity': 78038.8082125,
+              'Number Of Files': 3,
+              'Number of Events': 24213,
+              'TotalLuminosity': 0}
+    
+    retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assert_( retVal['Value']['Summary'] )
+    self.assert_( retVal['Value']['LFNs'] )
+    
+    self.assertEqual( retVal['Value']['Summary'], summary )
+    self.assertEqual( len( retVal['Value']['LFNs'] ), 3 )
+    
+    bkQuery.pop( 'RunNumber' )
+    bkQuery['StartRun'] = 93102
+    bkQuery['EndRun'] = 93407
+    summary = {'TotalLuminosity': 0, 
+               'Number Of Files': 187, 
+               'Luminosity': 20677680.1721, 
+               'Number of Events': 9210890, 
+               'EventInputStat': 235554627, 
+               'FileSize': 783.770696193, 
+               'InstLuminosity': 0}
+    
+    retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assert_( retVal['Value']['Summary'] )
+    self.assert_( retVal['Value']['LFNs'] )
+    self.assertEqual( retVal['Value']['Summary'], summary )
+    self.assertEqual( len( retVal['Value']['LFNs'] ), 187 )
+    
+    bkQuery.pop( 'StartRun' )
+    bkQuery.pop( 'EndRun' )
+    bkQuery['StartDate'] = "2011-06-15 19:15:25"
+    summary = {'EventInputStat': 138749890,
+               'FileSize': 459.354464625,
+               'InstLuminosity': 0,
+               'Luminosity': 12092594.3009,
+               'Number Of Files': 135,
+               'Number of Events': 5340551,
+               'TotalLuminosity': 0}
+    
+    retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assert_( retVal['Value']['Summary'] )
+    self.assert_( retVal['Value']['LFNs'] )
+    self.assertEqual( retVal['Value']['Summary'], summary )
+    self.assertEqual( len( retVal['Value']['LFNs'] ), 135 )
+    
+    bkQuery['EndDate'] = "2011-06-16 19:15:25"
+    summary = {'EventInputStat': 138232621,
+               'FileSize': 458.469704932,
+               'InstLuminosity': 0,
+               'Luminosity': 12076709.4593,
+               'Number Of Files': 127,
+               'Number of Events': 5334368,
+               'TotalLuminosity': 0}
+    retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assert_( retVal['Value']['Summary'] )
+    self.assert_( retVal['Value']['LFNs'] )
+    self.assertEqual( retVal['Value']['Summary'], summary )
+    self.assertEqual( len( retVal['Value']['LFNs'] ), 127 )
     
 class TestRemoveFiles( DataInsertTestCase ):
   
