@@ -497,9 +497,9 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().getStepIdandName(programName, programVersion)
 
   #############################################################################
-  def addProduction(self, production, simcond, daq, steps, inputproc):
+  def addProduction( self, production, simcond, daq, steps, inputproc, configName, configVersion ):
     "more info in the BookkeepingClient.py"
-    return self.getManager().addProduction(production, simcond, daq, steps, inputproc)
+    return self.getManager().addProduction( production, simcond, daq, steps, inputproc, configName, configVersion )
 
   #############################################################################
   def checkProcessingPassAndSimCond(self, production):

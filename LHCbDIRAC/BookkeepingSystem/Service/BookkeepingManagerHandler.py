@@ -1619,7 +1619,15 @@ class BookkeepingManagerHandler( RequestHandler ):
       inputProdTotalProcessingPass = ''
       production = infos['Production']
       inputProdTotalProcessingPass = infos.get( 'InputProductionTotalProcessingPass', '' )
-      result = dataMGMT_.addProduction( production, simcond, daqdesc, steps, inputProdTotalProcessingPass )
+      configName = infos.get("ConfigName")
+      configVersion = infos.get("ConfigVersion")
+      result = dataMGMT_.addProduction( production = production,
+                                        simcond = simcond,
+                                        daq = daqdesc,
+                                        steps = steps,
+                                        inputproc = inputProdTotalProcessingPass,
+                                        configName = configName,
+                                        configVersion = configVersion )
     return result
 
   #############################################################################
