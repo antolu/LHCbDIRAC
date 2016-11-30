@@ -114,7 +114,7 @@ class RAWDataInsert( DataInsertTestCase ):
   
 class TestMethods( DataInsertTestCase ):
   
-
+  
   def test_addFiles( self ):
     """
     add replica flag 
@@ -661,10 +661,10 @@ class TestMethods( DataInsertTestCase ):
     self.assertEqual( len( retVal['Value']['LFNs'] ), 439 )
     
     bkQuery['TCK'] = ['0x95003d']
+    retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
     self.assert_( retVal['OK'] )
     self.assert_( retVal['Value']['Summary'] )
     self.assert_( retVal['Value']['LFNs'] )
-    
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 439 )
     
@@ -723,12 +723,12 @@ class TestMethods( DataInsertTestCase ):
     bkQuery.pop( 'RunNumber' )
     bkQuery['StartRun'] = 93102
     bkQuery['EndRun'] = 93407
-    summary = {'TotalLuminosity': 0, 
-               'Number Of Files': 187, 
-               'Luminosity': 20677680.1721, 
-               'Number of Events': 9210890, 
-               'EventInputStat': 235554627, 
-               'FileSize': 783.770696193, 
+    summary = {'TotalLuminosity': 0,
+               'Number Of Files': 187,
+               'Luminosity': 20677680.1721,
+               'Number of Events': 9210890,
+               'EventInputStat': 235554627,
+               'FileSize': 783.770696193,
                'InstLuminosity': 0}
     
     retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
@@ -798,7 +798,104 @@ class TestMethods( DataInsertTestCase ):
     self.assert_( retVal['Value']['LFNs'] )
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 301 )
+  
+  def test_getFiles6( self ):
     
+    """
+    This is used to test the getFiles
+    """
+    bkQuery = {'ConfigName':'LHCb',
+               'ConfigVesrion':'Collision12',
+               'ProcessingPass':'/Real Data/Reco13a/Stripping19a',
+               'FileType':'BHADRON.MDST',
+               'Visible':'Y',
+               'EventType':90000000,
+               'ConditionDescription':'Beam4000GeV-VeloClosed-MagDown',
+               'DataQuality':'OK'}
+    
+    
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 439 )
+                         
+    # now test the data datakingcondition
+    bkQuery.pop( 'ConditionDescription' )
+    bkQuery['DataTakingConditions'] = 'Beam4000GeV-VeloClosed-MagDown'
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 439 )
+    
+    bkQuery['RunNumber'] = [115055]
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 439 )
+    
+    bkQuery['TCK'] = ['0x95003d']
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 439 )
+   
+  def test_getFiles7( self ):
+    """
+    This si used to test the ganga queries
+    Now test the run numbers
+    """
+    
+    bkQuery = {'ConfigName': 'LHCb',
+               'ConditionDescription': 'Beam3500GeV-VeloClosed-MagDown',
+               'EventType': 90000000,
+               'FileType': 'EW.DST',
+               'ProcessingPass': '/Real Data/Reco10/Stripping13b',
+               'Visible': 'Y',
+               'ConfigVersion': 'Collision11',
+               'Quality': ['OK']}
+    
+    retVal = self.bk.getFiles( bkQuery )
+    self.assertEqual( len( retVal['Value'] ), 3223 )
+    
+    bkQuery['RunNumber'] = [90104, 92048, 87851]
+    retVal = self.bk.getFiles( bkQuery )
+    self.assertEqual( len( retVal['Value'] ), 3 )
+    
+    bkQuery.pop( 'RunNumber' )
+    bkQuery['StartRun'] = 93102
+    bkQuery['EndRun'] = 93407
+    
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 187 )
+    
+    bkQuery.pop( 'StartRun' )
+    bkQuery.pop( 'EndRun' )
+    bkQuery['StartDate'] = "2011-06-15 19:15:25"
+    
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 135 )
+    
+    bkQuery['EndDate'] = "2011-06-16 19:15:25"
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 127 )
+  
+  def test_getFiles8( self ):
+    """
+    This is used to test the ganga queries
+    Now test the MC datasets
+    """
+    bkQuery = {'ConfigName': 'MC',
+                'ConditionDescription': 'Beam3500GeV-May2010-MagOff-Fix1',
+                'EventType': '30000000',
+                'FileType': 'DST',
+                'ProcessingPass': '/Sim01/Reco08',
+                'Visible': 'Y',
+                'ConfigVersion': 'MC10',
+                'Quality': ['OK']}
+    
+   
+    retVal = self.bk.getFiles( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assertEqual( len( retVal['Value'] ), 301 )
+     
 class TestRemoveFiles( DataInsertTestCase ):
   
   def test_removeFiles( self ):
