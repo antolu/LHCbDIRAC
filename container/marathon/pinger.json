@@ -1,0 +1,69 @@
+{
+  "id": "/pinger",
+  "cmd": null,
+  "cpus": 0.1,
+  "mem": 100,
+  "disk": 0,
+  "instances": 1,
+  "constraints": [
+    [
+      "hostname",
+      "UNIQUE"
+    ]
+  ],
+  "container": {
+    "type": "DOCKER",
+    "volumes": [
+      {
+        "containerPath": "/opt/dirac/etc/grid-security",
+        "hostPath": "/etc/grid-security",
+        "mode": "RO"
+      },
+      {
+        "containerPath": "/etc/dirac/Mesos-Test.cfg",
+        "hostPath": "/etc/dirac/dirac_mesos.cfg",
+        "mode": "RO"
+      }
+    ],
+    "docker": {
+      "image": "gitlab-registry.cern.ch/lhcb-dirac/lhcbdirac:pinger_v0r3",
+      "network": "BRIDGE",
+      "portMappings": [
+        {
+          "containerPort": 1234,
+          "hostPort": 0,
+          "servicePort": 10001,
+          "protocol": "tcp",
+          "labels": {}
+        }
+      ],
+      "privileged": false,
+      "parameters": [],
+      "forcePullImage": true
+    }
+  },
+  "healthChecks": [
+    {
+      "path": "/self",
+      "protocol": "HTTP",
+      "portIndex": 0,
+      "gracePeriodSeconds": 300,
+      "intervalSeconds": 10,
+      "timeoutSeconds": 10,
+      "maxConsecutiveFailures": 1,
+      "ignoreHttp1xx": false
+    }
+  ],
+  "labels": {
+    "check_http": "http://{host}:{port}/self",
+    "check_interval": "10s",
+    "system": "prod"
+  },
+  "portDefinitions": [
+    {
+      "port": 10001,
+      "protocol": "tcp",
+      "labels": {}
+    }
+  ]
+}
