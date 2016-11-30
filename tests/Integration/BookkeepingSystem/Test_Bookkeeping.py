@@ -770,6 +770,34 @@ class TestMethods( DataInsertTestCase ):
     self.assert_( retVal['Value']['LFNs'] )
     self.assertEqual( retVal['Value']['Summary'], summary )
     self.assertEqual( len( retVal['Value']['LFNs'] ), 127 )
+  
+  def test_getVisibleFilesWithMetadata3( self ):
+    """
+    This si used to test the ganga queries
+    Now test the MC datasets
+    """
+    bkQuery = {'ConfigName': 'MC',
+                'ConditionDescription': 'Beam3500GeV-May2010-MagOff-Fix1',
+                'EventType': '30000000',
+                'FileType': 'DST',
+                'ProcessingPass': '/Sim01/Reco08',
+                'Visible': 'Y',
+                'ConfigVersion': 'MC10',
+                'Quality': ['OK']}
+    
+    summary = {'EventInputStat': 6020000,
+               'FileSize': 468.227136723,
+               'InstLuminosity': 0,
+               'Luminosity': 0,
+               'Number Of Files': 301,
+               'Number of Events': 6020000,
+               'TotalLuminosity': 0}
+    retVal = self.bk.getVisibleFilesWithMetadata( bkQuery )
+    self.assert_( retVal['OK'] )
+    self.assert_( retVal['Value']['Summary'] )
+    self.assert_( retVal['Value']['LFNs'] )
+    self.assertEqual( retVal['Value']['Summary'], summary )
+    self.assertEqual( len( retVal['Value']['LFNs'] ), 301 )
     
 class TestRemoveFiles( DataInsertTestCase ):
   
