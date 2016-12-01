@@ -72,7 +72,7 @@ class UploadOutputData( ModuleBase ):
     if self.workflow_commons.has_key( 'ProductionOutputData' ):
       self.prodOutputLFNs = self.workflow_commons['ProductionOutputData']
       if isinstance( self.prodOutputLFNs, basestring ):
-        self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )] #pylint: disable=no-member
+        self.prodOutputLFNs = [i.strip() for i in self.prodOutputLFNs.split( ';' )]  # pylint: disable=no-member
     else:
       self.log.info( "ProductionOutputData parameter not found, creating on the fly" )
       result = constructProductionLFNs( self.workflow_commons, self.bkClient )
@@ -159,7 +159,7 @@ class UploadOutputData( ModuleBase ):
           self.log.info( "No descendants found, outputs can be uploaded" )
         else:
           self.log.error( "Found descendants!!! Outputs won't be uploaded" )
-          self.log.info( "Files with descendants: %s" ', '.join( lfnsWithDescendants.keys() ) )
+          self.log.info( "Files with descendants: %s" ' % '.join( lfnsWithDescendants ) )
           self.log.info( "The files above will be set as 'Processed', other lfns in input will be later reset as Unused" )
           self.fileReport.setFileStatus( int( self.production_id ), lfnsWithDescendants.keys(), 'Processed' )
           return S_ERROR( "Input Data Already Processed" )
@@ -311,10 +311,10 @@ class UploadOutputData( ModuleBase ):
 
       return S_OK( "Output data uploaded" )
 
-    except Exception as e: #pylint:disable=broad-except
+    except Exception as e:  # pylint:disable=broad-except
       self.log.exception( 'Exception in UploadOutputData', lException = e )
-      self.setApplicationStatus( repr(e) )
-      return S_ERROR( str(e) )
+      self.setApplicationStatus( repr( e ) )
+      return S_ERROR( str( e ) )
 
     finally:
       super( UploadOutputData, self ).finalize( self.version )

@@ -21,12 +21,18 @@ Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
                                      'Arguments:',
                                      '  Run:      Run Number' ] ) )
 Script.parseCommandLine( ignoreErrors = True )
-args = Script.getPositionalArgs()
+runRanges = []
+for arg in Script.getPositionalArgs():
+  runRanges += arg.split( ',' )
 
 runSet = set()
-for arg in args:
+for run in runRanges:
   try:
-    runSet.update( [int( run ) for run in arg.split( ',' )] )
+    if ':' in arg:
+      run1, run2 = run.split( ':' )
+      runSet.update( range( int( run1 ), int( run2 ) + 1 ) )
+    else:
+      runSet.add( int( run ) )
   except ( ValueError, IndexError ) as e:
     gLogger.exception( "Invalid run number", arg, lException = e )
     DIRAC.exit( 1 )
@@ -68,6 +74,13 @@ if production:
     DIRAC.exit( 2 )
   gLogger.notice( "Found %d runs" % len( runSet ) )
 
+# Use this call to get information but also the actual list of existing runs
+res = bk.getRunStatus( list( runSet ) )
+if not res['OK']:
+  gLogger.fatal( "Error getting the run info", res['Message'] )
+  DIRAC.exit( 2 )
+runStatus = res['Value']['Successful']
+
 sep = ''
 if item:
   result = {"Successful":{}, "Failed":{}}
@@ -75,64 +88,48 @@ if item:
   failed = result['Failed']
   if item == 'Finished':
     # We can get it in a single call
-    res = bk.getRunStatus( list( runSet ) )
-    failed.update( res['Value']['Failed'] )
-    for run in res['Value']['Successful']:
-      finished = {'N':'No', 'Y':'Yes'}.get( res['Value']['Successful'].get( run, {} ).get( 'Finished' ), 'Unknown' )
+    for run in runStatus:
+      finished = {'N':'No', 'Y':'Yes'}.get( runStatus.get( run, {} ).get( 'Finished' ), 'Unknown' )
       if byValue:
         success.setdefault( finished, [] ).append( run )
       else:
         success[run] = finished
   else:
-    progressBar = ProgressBar( len( runSet ), title = "Getting %s for %d runs" % ( item, len( runSet ) ), step = 10 )
+    progressBar = ProgressBar( len( runStatus ), title = "Getting %s for %d runs" % ( item, len( runStatus ) ), step = 10 )
 
 if item != 'Finished':
-  for run in sorted( runSet ):
+  for run in sorted( runStatus ):
     if item:
       progressBar.loop()
-    res = bk.getRunStatus( [run] )
-    if res['OK']:
-      finished = {'N':'No', 'Y':'Yes'}.get( res['Value']['Successful'].get( run, {} ).get( 'Finished' ), 'Unknown' )
-      if item == 'Finished':
-        if byValue:
-          success.setdefault( finished, [] ).append( run )
-        else:
-          success[run] = finished
-        continue
-    elif item == 'Finished':
-      result['Failed'][run] = res['Message']
-      continue
-    else:
-      finished = 'Unknown'
+    finished = {'N':'No', 'Y':'Yes'}.get( runStatus[run].get( 'Finished' ), 'Unknown' )
 
     res = bk.getRunInformations( run )
-
     if res['OK']:
-      val = res['Value']
+      info = res['Value']
       if item:
-        if item not in val:
-          gLogger.error( "Item not found", "\n Valid items: %s" % str( sorted( val ) ) )
+        if item not in info:
+          gLogger.error( "Item not found", "\n Valid items: %s" % str( sorted( info ) ) )
           DIRAC.exit( 3 )
-        itemValue = val.get( item, "Unknown" )
+        itemValue = info.get( item, "Unknown" )
         if byValue:
           success.setdefault( itemValue, [] ).append( run )
         else:
           result['Successful'][run] = itemValue
         continue
-      runstart = val.get( 'RunStart', 'Unknown' )
-      runend = val.get( 'RunEnd', 'Unknown' )
-      configname = val.get( 'Configuration Name', 'Unknown' )
-      configversion = val.get( 'Configuration Version', 'Unknown' )
-      fillnb = val.get( 'FillNumber', 'Unknown' )
-      datataking = val.get( 'DataTakingDescription', 'Unknown' )
-      processing = val.get( 'ProcessingPass', 'Unknown' )
-      stream = val.get( 'Stream', 'Unknown' )
-      fullstat = val.get( 'FullStat', 'Unknown' )
-      nbofe = val.get( 'Number of events', 'Unknown' )
-      nboff = val.get( 'Number of file', 'Unknown' )
-      fsize = val.get( 'File size', 'Unknown' )
-      totalLuminosity = val.get( "TotalLuminosity", 'Unknown' )
-      tck = val.get( 'Tck', 'Unknown' )
+      runstart = info.get( 'RunStart', 'Unknown' )
+      runend = info.get( 'RunEnd', 'Unknown' )
+      configname = info.get( 'Configuration Name', 'Unknown' )
+      configversion = info.get( 'Configuration Version', 'Unknown' )
+      fillnb = info.get( 'FillNumber', 'Unknown' )
+      datataking = info.get( 'DataTakingDescription', 'Unknown' )
+      processing = info.get( 'ProcessingPass', 'Unknown' )
+      stream = info.get( 'Stream', 'Unknown' )
+      fullstat = info.get( 'FullStat', 'Unknown' )
+      nbofe = info.get( 'Number of events', 'Unknown' )
+      nboff = info.get( 'Number of file', 'Unknown' )
+      fsize = info.get( 'File size', 'Unknown' )
+      totalLuminosity = info.get( "TotalLuminosity", 'Unknown' )
+      tck = info.get( 'Tck', 'Unknown' )
 
       if sep:
         print sep
@@ -154,16 +151,14 @@ if item != 'Finished':
       print "  Number of files:".ljust( 30 ), str( nboff ).ljust( just ), " Total: ".ljust( 10 ) + str( sum( nboff ) )
       print "  File size:".ljust( 30 ), str( fsize ).ljust( just ), " Total: ".ljust( 10 ) + str( sum( fsize ) )
       sep = 20 * '='
-    else:
-      if item:
-        result['Failed'][run] = res['Message']
-        continue
-      DIRAC.gLogger.fatal( "ERROR for run %s:" % run, res['Message'] )
-      DIRAC.exit( 1 )
-    if item:
-      progressBar.endLoop()
+    elif item:
+        failed[run] = res['Message']
+  if item:
+    progressBar.endLoop()
 
 if item:
+  if not failed:
+    del failed
   if byValue:
     for val in success:
       success[val] = ( '(%d runs) - ' % len( success[val] ) ) + ( ','.join( sorted( str( run ) for run in success[val] ) ) )

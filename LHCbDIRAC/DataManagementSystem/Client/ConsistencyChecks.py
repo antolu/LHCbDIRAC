@@ -847,7 +847,7 @@ class ConsistencyChecks( DiracConsistencyChecks ):
     try:
       bkQuery = self.__getBKQuery()
     except ValueError, _e:
-      pass
+      bkQuery = None
     if bkQuery and set( bkQuery.getQueryDict() ) - {'Visible', 'Production', 'FileType'}:
       return bkQuery.getDirs()
     if self.prod:
