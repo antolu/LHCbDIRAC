@@ -176,7 +176,7 @@ class LHCbDockerMgmt(object):
     localTag = 'lhcbdirac:%s'%self.version
     resp = self.dockerClient.build(path = '.', tag = localTag)
     for line in resp:
-      print line
+      logging.info( line )
       if 'errorDetail' in line:
         raise Exception("Could not build the image")
      
@@ -199,14 +199,14 @@ class LHCbDockerMgmt(object):
     resp =  self.dockerClient.push(repository = self.dockerRepository, tag = self.version, auth_config = credentials) 
     # For some reasons, resp is sometimes a generator, sometimes a string...
     if isinstance(resp, basestring):
-      print resp
+      logging.info( resp )
     else:
       for line in resp:
         if 'progressDetail' in line:
           sys.stdout.write("%s\r" % line )
           sys.stdout.flush()
         else:
-          print line
+          logging.info( line )
     
      
 
