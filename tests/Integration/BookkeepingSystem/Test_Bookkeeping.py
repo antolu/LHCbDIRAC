@@ -774,7 +774,7 @@ class TestMethods( DataInsertTestCase ):
     Now test the MC datasets
     """
     bkQuery = {'ConfigName': 'MC',
-                'DataTakingConditions': 'Beam3500GeV-May2010-MagOff-Fix1',
+                'SimulationConditions': 'Beam3500GeV-May2010-MagOff-Fix1',
                 'EventType': '30000000',
                 'FileType': 'DST',
                 'ProcessingPass': '/Sim01/Reco08',
