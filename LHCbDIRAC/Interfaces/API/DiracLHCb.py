@@ -754,7 +754,7 @@ class DiracLHCb( Dirac ):
   def lhcbProxyInit( self, *args ):
     """ just calling the dirac-proxy-init script
     """
-    os.system( "dirac-proxy-init -o LogLevel=NOTICE -t %s" % "' '".join( args ) )
+    os.system( "dirac-proxy-init -o LogLevel=NOTICE -t --rfc %s" % "' '".join( args ) )
 
   #############################################################################
 
