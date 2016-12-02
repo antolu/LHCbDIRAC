@@ -679,16 +679,13 @@ def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = Fal
       res = S_OK( value )
   return printDMResult( res, empty = "No %sreplica found" % ( 'active disk ' if diskOnly else 'allowed ' if active else '' ), script = "dirac-dms-lfn-replicas" )
 
-def executePfnMetadata( dmScript ):
+def executePfnMetadata( dmScript, check = False, exists = False, summary = False ):
   """
   get options for pfn-metadata
   """
 
   lfnList, seList = parseArguments( dmScript )
 
-  check = False
-  exists = False
-  summary = False
   for opt, _val in Script.getUnprocessedSwitches():
     if opt == 'Check':
       check = True
