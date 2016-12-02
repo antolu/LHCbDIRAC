@@ -118,7 +118,5 @@ ALTER TABLE productionscontainer ADD FOREIGN KEY (CONFIGURATIONID) REFERENCES co
 alter table jobs ADD CONSTRAINT FK_Prodcont_prod FOREIGN KEY(production) REFERENCES productionscontainer(production);
 
 
-create table viewupdate(viewname varchar2(256), lastUpdate TIMESTAMP DEFAULT TO_TIMESTAMP ('2008-01-01 00:00:00','YYYY-MM-DD HH24:MI:SS') );
-
 
 
