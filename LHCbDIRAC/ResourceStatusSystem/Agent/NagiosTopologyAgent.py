@@ -87,7 +87,6 @@ class NagiosTopologyAgent( AgentModule ):
           return site_opts
         site_opts = site_opts['Value']
         site_tier = site_opts.get( 'MoUTierLevel', 'None' )
-        # site_name = site_opts.get( 'Name' )
         if site_tier != 'None':
           site_subtier = site_opts.get( 'SubTier', 'None' )
           dict_opts = { 'SiteOptions' : site_opts , 
@@ -106,7 +105,8 @@ class NagiosTopologyAgent( AgentModule ):
         site_subtier = key['SiteOptions'].get('SubTier')
         site_name = key['SiteOptions'].get( 'Name' )
         xml_site = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
-
+        has_grid_elem = False
+        
         for grid in key['Grid']:
 
           site = grid + "." + key['DiracName'].split(".")[1] + "." + key['DiracName'].split(".")[2]
@@ -238,16 +238,11 @@ class NagiosTopologyAgent( AgentModule ):
     real_site_name = site.split( "." )[ 1 ]
     dmsHelper = DMSHelpers()
 
-    se_DST = None
-    se_RAW = None
-    dst = {}
-    raw = {}
-
     if int(site_tier) in ( 0, 1 ):
       dst = dmsHelper.getSEInGroupAtSite( 'Tier1-DST', real_site_name )
       raw = dmsHelper.getSEInGroupAtSite( 'Tier1-RAW', real_site_name )
       if not raw[ 'OK' ]:
-        gLogger.error( storage_element_name_RAW['Message'] )
+        gLogger.error( raw['Message'] )
         return False
       raw = raw[ 'Value' ]
       se_RAW = StorageElement( raw )
