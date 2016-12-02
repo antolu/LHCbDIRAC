@@ -35,6 +35,8 @@ class NagiosTopologyAgent( AgentModule ):
 
     self.xmlPath = None
 
+    self.dryRun = False
+
   def initialize( self ):
     """ Initialize the agent.
     """
@@ -52,8 +54,6 @@ class NagiosTopologyAgent( AgentModule ):
     """ Let's generate the xml file with the topology.
     """
 
-    self.dryRun = False
-
     # instantiate xml doc
     xml_impl = xml.dom.minidom.getDOMImplementation()
     xml_doc = xml_impl.createDocument( None, 'root', None )
@@ -67,7 +67,6 @@ class NagiosTopologyAgent( AgentModule ):
 ##################################################################################################################
 #New code to include VAC and VCYCLE
 
-    gridTypes = []
     ret = gConfig.getSections('Resources/Sites') 
     if not ret[ 'OK' ] : 
       gLogger.error( ret[ 'Message' ] )
