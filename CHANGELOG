@@ -1,3 +1,8 @@
+[v8r4p7]
+use DIRAC v6r16p3
+
+* Pylint fix
+
 [v8r4p6]
 use DIRAC v6r16p3
 
