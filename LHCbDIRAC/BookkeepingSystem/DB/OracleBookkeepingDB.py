@@ -641,6 +641,7 @@ class OracleBookkeepingDB( object ):
     if ok:
       stepid = in_dict.get( 'StepId', default )
       if stepid != default:
+        in_dict.pop( 'StepId' )
         condition = " where stepid=%s" % ( str( stepid ) )
         command = 'update steps set '
         for i in in_dict:
@@ -3971,10 +3972,10 @@ and files.qualityid= dataquality.qualityid'
     return self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertStepsContainer', [prod, stepid, step], False )
 
   #############################################################################
-  def insertproductionscontainer( self, prod, processingid, simid, daqperiodid ):
+  def insertproductionscontainer( self, prod, processingid, simid, daqperiodid, configName, configVersion ):
     """inserts a production to the productions container"""
-    return self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertproductionscontainer',
-                                            [ prod, processingid, simid, daqperiodid], False )
+    return self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertproductionscontainer_tmp',
+                                            [ prod, processingid, simid, daqperiodid, configName, configVersion], False )
 
   #############################################################################
   def addProductionSteps( self, steps, prod ):
@@ -3995,7 +3996,7 @@ and files.qualityid= dataquality.qualityid'
     return res
 
   #############################################################################
-  def addProduction( self, production, simcond = None, daq = None, steps = default, inputproc = '' ):
+  def addProduction( self, production, simcond = None, daq = None, steps = default, inputproc = '', configName = None, configVersion = None ):
     """adds a production"""
     path = []
     if inputproc != '':
@@ -4042,7 +4043,7 @@ and files.qualityid= dataquality.qualityid'
           sim = retVal['Value']
         else:
           return S_ERROR( 'Data taking condition is missing!!' )
-      return self.insertproductionscontainer( production, processingid, sim, did )
+      return self.insertproductionscontainer( production, processingid, sim, did, configName, configVersion )
     else:
       return retVal
     return S_OK( 'The production processing pass is entered to the bkk' )

@@ -501,8 +501,14 @@ class XMLFilesReaderManager( object ):
       conddb = None
       dddb = None
       found = False
+      configName = None
+      configVersion = None
       for param in job.getJobParams():
-        if param.getName() == 'ProgramName':
+        if param.getName() == 'ConfigName':
+          configName = param.getValue()
+        elif param.getName() == 'ConfigVersion':
+          configVersion = param.getValue()
+        elif param.getName() == 'ProgramName':
           programName = param.getValue()
         elif param.getName() == 'ProgramVersion':
           programVersion = param.getValue()
@@ -550,7 +556,9 @@ class XMLFilesReaderManager( object ):
                                           simcond = None,
                                           daq = dataTackingPeriodDesc,
                                           steps = steps['Steps'],
-                                          inputproc = '' )
+                                          inputproc = '',
+                                          configName = configName,
+                                          configVersion = configVersion )
 
       if res['OK']:
         gLogger.info( "New processing pass has been created!" )

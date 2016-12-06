@@ -251,8 +251,12 @@ class MCExtensionAgentTestCase( unittest.TestCase ):
     eventsNeeded = 1000000
 
     productionIDExp = 24614L
-    numberOfTasksExp = 25
+    numberOfTasksExp = 30
 
     ret = self.agent._extendProduction( production, extensionFactor, eventsNeeded )
     self.assertTrue( ret['OK'] )
     self.agent.transClient.extendTransformation.assert_called_once_with( productionIDExp, numberOfTasksExp )
+
+if __name__ == '__main__':
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( MCExtensionAgentTestCase)
+  testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )

@@ -1,3 +1,49 @@
+[v8r4p7]
+use DIRAC v6r16p3
+
+* Pylint fix
+
+[v8r4p6]
+use DIRAC v6r16p3
+
+* no longer necessary to add "/" at the end of the direcotry name
+* change to simulation conditions
+* add a BK update latency
+* new script to just check file existence and availability
+* fix doc string
+* randomize list of targetSEs
+* fix missing definition of bkQuery
+* Allow run ranges (run1:run2)
+* fix misleading logging
+* correct tests
+* add ganag tests LHCBDIRAC-453
+* NagiosTopologyAgent upgrades for VAC and VCYCLE plus fixes in SE function (no more useles ERROR or WARN messages)
+* Artificially boosting the number of events created for MC
+* add more tests
+* only files with descendants will be set as processed
+* Setting files with descendants as processed
+* add more integration tests: #LHCBDIRAC-453
+* Setting files with descendants as processed
+* add missing port
+* add integration tests
+* fix the stored procedures
+* The configname and configversion of the run is also inserted to the productionscontainer table
+* add configuration to the productions container
+
+[v8r4p5]
+use DIRAC v6r16p2
+
+* Indentation fixed
+* remove import
+* WMSSecureGW to use ProxyManager
+* Changed getName into a function
+* correct the table schema
+* Client tests upgrade
+* if reqInfo does not exists in the requet, we have to use inform instead
+* Removed raise_for_status()
+* Continue to the execution of base class after error
+* Fixed site name parsing
+
 [v8r4p4]
 use DIRAC v6r16p1
 

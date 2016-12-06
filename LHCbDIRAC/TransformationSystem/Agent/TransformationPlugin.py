@@ -1177,7 +1177,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
               self.util.logVerbose( "Target SEs, 2nd level: %s" % targetSEs )
           elif fromSEs:
             # Here the fromSEs are only a preference (we want to keep only exactly minKeep replicas)
-            targetSEs = list( existingSet & fromSet ) + randomize( list( existingSet - fromSet ) )
+            targetSEs = randomize( list( existingSet & fromSet ) ) + randomize( list( existingSet - fromSet ) )
             targetSEs = targetSEs[0:-minKeep]
           else:
             # remove all replicas and keep only minKeep

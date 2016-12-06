@@ -42,6 +42,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     self.bkQueriesInCheck = []
 
     self.fullUpdatePeriod = 86400
+    self.bkUpdateLatency = 7200
     self.debug = False
 
     self.transInThread = {}
@@ -65,7 +66,8 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
         The ThreadPool is created here, the _execute() method is what each thread will execute.
     """
 
-    self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', self.fullUpdatePeriod)
+    self.fullUpdatePeriod = self.am_getOption( 'FullUpdatePeriod', self.fullUpdatePeriod )
+    self.bkUpdateLatency = self.am_getOption( 'BKUpdateLatency', self.bkUpdateLatency )
     self.debug = self.am_getOption( 'verbose', self.debug )
 
     self.pickleFile = os.path.join( self.am_getWorkDirectory(), self.pickleFile )
@@ -73,6 +75,9 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
     self.pluginsWithNoRunInfo = self.am_getOption( 'PluginsWithNoRunInfo', self.pluginsWithNoRunInfo )
 
+    self._logInfo( 'Full Update Period: %d seconds' % self.fullUpdatePeriod )
+    self._logInfo( 'BK update latency : %d seconds' % self.bkUpdateLatency )
+    self._logInfo( 'Plugins with no run info: %s' % ','.join( self.pluginsWithNoRunInfo ) )
 
     self.transClient = TransformationClient()
     self.bkClient = BookkeepingClient()
@@ -239,7 +244,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
               self._logError( "Failure adding runs metadata: %s" % e, "", "__addRunsMetadata", transID )
               continue
 
-      except Exception as x: #pylint: disable=broad-except
+      except Exception as x:  # pylint: disable=broad-except
         gLogger.exception( '[%s] %s._execute' % ( str( transID ), AGENT_NAME ), lException = x )
       finally:
         self._logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID = transID )
@@ -257,15 +262,14 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     fullTimeLog = self.fullTimeLog.setdefault( transID, now )
     bkQueryLog = self.bkQueries.setdefault( transID, {} )
 
-    if 'StartDate' in bkQueryLog:
-      bkQueryLog.pop( 'StartDate' )
+    bkQueryLog.pop( 'StartDate', None )
     self.bkQueries[transID] = bkQuery.copy()
     if transID in self.timeLog \
     and bkQueryLog == bkQuery \
     and  ( now - fullTimeLog ) < datetime.timedelta( seconds = self.fullUpdatePeriod ):
       # If it is more than a day since the last reduced query, make a full query just in case
       timeStamp = self.timeLog[transID]
-      bkQuery['StartDate'] = ( timeStamp - datetime.timedelta( seconds = 10 ) ).strftime( '%Y-%m-%d %H:%M:%S' )
+      bkQuery['StartDate'] = ( timeStamp - datetime.timedelta( seconds = self.bkUpdateLatency ) ).strftime( '%Y-%m-%d %H:%M:%S' )
     if 'StartDate' not in bkQuery:
       self.fullTimeLog[transID] = now
 

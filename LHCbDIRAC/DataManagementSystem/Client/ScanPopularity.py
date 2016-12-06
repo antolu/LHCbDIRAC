@@ -288,7 +288,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb', csvFile = Non
   if getAllDatasets:
     # Get list of directories
     startTime = time.time()
-    res = FileCatalog().listDirectory( topDirectory if topDirectory[-1] == '/' else topDirectory + '/' )
+    res = FileCatalog().listDirectory( topDirectory )
     if not res['OK']:
       gLogger.fatal( "Cannot get list of directories", res['Message'] )
       DIRAC.exit( 1 )
