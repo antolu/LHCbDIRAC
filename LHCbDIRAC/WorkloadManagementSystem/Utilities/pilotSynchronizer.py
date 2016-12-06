@@ -3,6 +3,7 @@
   Module that keeps the pilot parameters file synchronized with the information
   in the Operations/Pilot section of the CS. If there are additions in the CS, these are incorporated
   to the file.
+  The module uploads to a web server the latest version of the pilot scripts.
 
 """
 
@@ -11,7 +12,6 @@ import urllib
 import shutil
 import os
 from git import Repo
-
 
 from DIRAC                                    import gLogger, S_OK, gConfig, S_ERROR
 from DIRAC.Core.DISET.HTTPDISETConnection     import HTTPDISETConnection
@@ -26,22 +26,24 @@ class pilotSynchronizer( object ):
 
   '''
 
-  def __init__( self, pilotScriptsLocation ):
+  def __init__( self, paramDict ):
     ''' c'tor
 
         Just setting defaults
     '''
-    # pilotFileName/Server contain the default filename and domain name of the web server where we will upload the pilot json file
-    self.pilotFileName = 'pilot.json'
-    self.pilotFileServer = 'lhcb-portal-dirac.cern.ch'
-    self.pilotScriptsLocation = 'https://github.com/DIRACGrid/Pilot.git'
-    self.pilotVOScriptsLocation = 'https://:@gitlab.cern.ch:8443/lhcb-dirac/LHCbDIRAC.git'
-
-    self.pilotLocalRepo = pilotRepo
-    self.pilotVOLocalRepo = pilotVORepo
+    self.pilotFileName = 'pilot.json'  # default filename of the pilot json file
+    self.pilotFileServer = paramDict['pilotFileServer']  # domain name of the web server used to upload the pilot json file and the pilot scripts
+    self.pilotRepo = paramDict['pilotRepo']  # repository of the pilot
+    self.pilotVORepo = paramDict['pilotVORepo']  # repository of the VO that can contain a pilot extension
+    self.pilotLocalRepo = 'pilotLocalRepo'  # local repository to be created
+    self.pilotVOLocalRepo = 'pilotVOLocalRepo'  # local VO repository to be created
+    self.pilotSetup = gConfig.getValue( '/DIRAC/Setup', '' )
+    self.projectDir = paramDict['projectDir']
+    self.pilotVOScriptPath = paramDict['pilotVOScriptPath']  # where the find the pilot scripts in the VO pilot repository
+    self.pilotVOScript = paramDict['pilotVOScript']  # filename of the VO pilot script extension
+    self.pilotScriptsPath = paramDict['pilotScriptsPath']  # where the find the pilot scripts in the pilot repository
     self.pilotVersion = ''
     self.pilotVOVersion =''
-    self.pilotSetup='LHCb-Production'
 
   def sync( self, _eventName, _params ):
     ''' Main synchronizer method.
@@ -50,14 +52,9 @@ class pilotSynchronizer( object ):
 
     pilotDict = self._syncFile()
 
-    gLogger.notice( '-- Synchronizing the pilot scripts %s with the content of the repository --' % self.pilotScriptsLocation )
+    gLogger.notice( '-- Synchronizing the pilot scripts %s with the content of the repository --' % self.pilotRepo )
 
     self._syncScripts()
-
-    result = self._upload( pilotDict )
-    if not result['OK']:
-      gLogger.error( "Error uploading the pilot file: %s" %result['Message'] )
-      return result
 
     return S_OK()
 
@@ -83,7 +80,7 @@ class pilotSynchronizer( object ):
         gLogger.error( options['Message'] )
         return options
       # We include everything that's in the Pilot section for this setup
-      if setup == pilotSetup:
+      if setup == self.pilotSetup:
         self.pilotVOVersion = options['Value']['Version']
       pilotDict['Setups'][setup] = options['Value']
       ceTypesCommands = gConfig.getOptionsDict( '/Operations/%s/Pilot/Commands' % setup )
@@ -127,45 +124,72 @@ class pilotSynchronizer( object ):
       pilotDict['DefaultSetup'] = defaultSetup
 
     gLogger.verbose( "Got %s"  %str(pilotDict) )
-    return pilotDict
+    result = self._upload( pilotDict = pilotDict )
+    if not result['OK']:
+      gLogger.error( "Error uploading the pilot file: %s" %result['Message'] )
+      return result
+    return S_OK()
 
   def _syncScripts(self):
     """Clone the pilot scripts from the repository and upload them to the web server
     """
-    if os.path.isdir( self.pilotLocalRepo ):
-      shutil.rmtree( self.pilotLocalRepo )
-
-    os.mkdir( self.pilotLocalRepo )
-    repo = Repo.init( self.pilotLocalRepo )
-    upstream = repo.create_remote( 'upstream', self.pilotScriptsLocation )
+    gLogger.info( '-- Uploading the pilot scripts --' )
+    if os.path.isdir( self.pilotVOLocalRepo ):
+      shutil.rmtree( self.pilotVOLocalRepo )
+    os.mkdir( self.pilotVOLocalRepo )
+    repo_VO = Repo.init( self.pilotVOLocalRepo )
+    upstream = repo_VO.create_remote( 'upstream', self.pilotVORepo )
     upstream.fetch()
     upstream.pull( upstream.refs[0].remote_head )
-    if repo.tags:
-      releasescfg = open(os.path.join(self.pilotVOLocalRepo,'LHCbDIRAC/releases.cfg'))
-      if self.pilotVOVersion in releasescfg.read():
-        repo.git.checkout( repo.tags[self.pilotVersion], b = 'pilotScripts' )
+    if repo_VO.tags:
+      repo_VO.git.checkout( repo_VO.tags[self.pilotVOVersion], b = 'pilotScripts' )
     else:
-      repo.git.checkout( 'master', b = 'pilotScripts' )
-    if self.pilotVOScriptsLocation:
-      os.mkdir( self.pilotVOLocalRepo )
-      repo_VO = Repo.init( self.pilotVOLocalRepo )
-      releases = repo_VO.create_remote( 'releases', self.pilotVOScriptsLocation )
-      upstream.fetch()
-      upstream.pull( upstream.refs[0].remote_head )
-      repo.git.checkout( repo.tags[self.pilotVOVersion], b = 'pilotScripts' )
-    
+      repo_VO.git.checkout( 'master', b = 'pilotVOScripts' )
+    self._upload( filename = self.pilotVOScript, pilotScript = os.path.join( self.pilotVOLocalRepo, self.projectDir,
+                                                                             self.pilotVOScriptPath, self.pilotVOScript ) )
+    if os.path.isdir( self.pilotLocalRepo ):
+      shutil.rmtree( self.pilotLocalRepo )
+    os.mkdir( self.pilotLocalRepo )
+    repo = Repo.init( self.pilotLocalRepo )
+    releases = repo.create_remote( 'releases', self.pilotRepo )
+    releases.fetch()
+    releases.pull( releases.refs[0].remote_head )
+    if repo.tags:
+      with open( os.path.join( self.pilotVOLocalRepo, self.projectDir, 'releases.cfg' ), 'r' ) as releases_file:
+        lines = [line.rstrip( '\n' ) for line in releases_file]
+        lines = [s.strip() for s in lines]
+        if self.pilotVOVersion in lines:
+          self.pilotVersion = lines[( lines.index( self.pilotVOVersion ) ) + 3].split( ':' )[1]
+      repo.git.checkout( repo.tags[self.pilotVersion], b = 'pilotScripts' )
+    else:
+      repo.git.checkout( 'master', b = 'pilotVOScripts' )
+    try:
+      result = self._upload( filename = 'dirac-pilot.py', pilotScript = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath,
+                                                                                      'dirac-pilot.py' ) )
+      result = self._upload( filename = 'PilotCommands.py', pilotScript = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath,
+                                                                                        'PilotCommands.py' ) )
+      result = self._upload( filename = 'PilotTools.py', pilotScript = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath,
+                                                                                     'PilotTools.py' ) )
+    except ValueError:
+      gLogger.error( "Error uploading the pilot scripts: %s" % result['Message'] )
 
 
-  def _upload ( self, pilotDict ):
-    """ Method to upload the pilot file to the server.
+  def _upload ( self, pilotDict = None, filename = '', pilotScript = '' ):
+    """ Method to upload the pilot json file and the pilot scripts to the server.
     """
 
-    gLogger.info( "Synchronizing the content of the pilot file" )
-    params = urllib.urlencode( {'filename':self.pilotFileName, 'data':json.dumps( pilotDict ) } )
+    if pilotDict:
+      params = urllib.urlencode( {'filename':self.pilotFileName, 'data':json.dumps( pilotDict ) } )
+    else:
+      with open( pilotScript, "rb" ) as f:
+        script = f.read()
+      params = urllib.urlencode( {'filename':filename, 'data':script} )
     headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
     con = HTTPDISETConnection( self.pilotFileServer, '443' )
     con.request( "POST", "/DIRAC/upload", params, headers )
     resp = con.getresponse()
     if resp.status != 200:
       return S_ERROR( resp.status )
+    else:
+      gLogger.info( '-- File and scripts upload done --' )
     return S_OK()
