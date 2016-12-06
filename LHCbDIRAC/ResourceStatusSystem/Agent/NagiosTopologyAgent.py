@@ -92,7 +92,7 @@ class NagiosTopologyAgent( AgentModule ):
                         'DiracName': ( 'LCG.' + real_site_name + "." + country), 'Grid' : [grid] }
           dict1 = {real_site_name:dict_opts}
           if all_sites.has_key(real_site_name):
-            all_sites[ real_site_name ][ 'SiteOptions' ][ 'CE' ] = all_sites[ real_site_name ][ 'SiteOptions' ][ 'CE' ] + 
+            all_sites[ real_site_name ][ 'SiteOptions' ][ 'CE' ] = all_sites[ real_site_name ][ 'SiteOptions' ][ 'CE' ] + \
                                                                    "," + dict_opts['SiteOptions']['CE']
             all_sites[real_site_name]['Grid'].append(grid)                                                      
           else:
