@@ -11,6 +11,7 @@ import json
 import urllib 
 import shutil
 import os
+import glob
 from git import Repo
 
 from DIRAC                                    import gLogger, S_OK, gConfig, S_ERROR
@@ -40,7 +41,6 @@ class pilotSynchronizer( object ):
     self.pilotSetup = gConfig.getValue( '/DIRAC/Setup', '' )
     self.projectDir = paramDict['projectDir']
     self.pilotVOScriptPath = paramDict['pilotVOScriptPath']  # where the find the pilot scripts in the VO pilot repository
-    self.pilotVOScript = paramDict['pilotVOScript']  # filename of the VO pilot script extension
     self.pilotScriptsPath = paramDict['pilotScriptsPath']  # where the find the pilot scripts in the pilot repository
     self.pilotVersion = ''
     self.pilotVOVersion =''
@@ -145,8 +145,9 @@ class pilotSynchronizer( object ):
       repo_VO.git.checkout( repo_VO.tags[self.pilotVOVersion], b = 'pilotScripts' )
     else:
       repo_VO.git.checkout( 'master', b = 'pilotVOScripts' )
-    result = self._upload( filename = self.pilotVOScript, pilotScript = os.path.join( self.pilotVOLocalRepo, self.projectDir,
-                                                                             self.pilotVOScriptPath, self.pilotVOScript ) )
+    scriptDir = ( os.path.join( self.pilotVOLocalRepo, self.projectDir, self.pilotVOScriptPath, "*.py" ) )
+    for fileVO in glob.glob( scriptDir ):
+      result = self._upload( filename = fileVO.rsplit( '/', 1 )[-1], pilotScript = fileVO )
     if not result['OK']:
       gLogger.error( "Error uploading the VO pilot script: %s" % result['Message'] )
       return result
@@ -167,12 +168,11 @@ class pilotSynchronizer( object ):
     else:
       repo.git.checkout( 'master', b = 'pilotVOScripts' )
     try:
-      result = self._upload( filename = 'dirac-pilot.py', pilotScript = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath,
-                                                                                      'dirac-pilot.py' ) )
-      result = self._upload( filename = 'PilotCommands.py', pilotScript = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath,
-                                                                                        'PilotCommands.py' ) )
-      result = self._upload( filename = 'PilotTools.py', pilotScript = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath,
-                                                                                     'PilotTools.py' ) )
+      scriptDir = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "*.py" )
+      for file in glob.glob( scriptDir ):
+        result = self._upload( filename = file.rsplit( '/', 1 )[-1], pilotScript = file )
+      if not os.path.isfile( os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "dirac-install.py" ) ):
+        result = self._upload( filename = 'dirac-install.py', pilotScript = os.path.join( self.pilotLocalRepo, "/Core/scripts/'dirac-install.py'" ) )
     except ValueError:
       gLogger.error( "Error uploading the pilot scripts: %s" % result['Message'] )
       return result

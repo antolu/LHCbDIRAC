@@ -23,7 +23,6 @@ def initializeUpdateRemotePilotFileHandler( _serviceInfo ):
   paramDict['pilotVORepo'] = getServiceOption( _serviceInfo, "pilotVORepo", '' )
   paramDict['projectDir'] = getServiceOption( _serviceInfo, "projectDir", '' )
   paramDict['pilotVOScriptPath'] = getServiceOption( _serviceInfo, "pilotVOScriptPath", '' )
-  paramDict['pilotVOScript'] = getServiceOption( _serviceInfo, "pilotVOScript", '' )
   paramDict['pilotScriptsPath'] = getServiceOption( _serviceInfo, "pilotScriptsPath", '' )
   syncObject = pilotSynchronizer.pilotSynchronizer( paramDict )
   gConfig.addListenerToNewVersionEvent( syncObject.sync )
