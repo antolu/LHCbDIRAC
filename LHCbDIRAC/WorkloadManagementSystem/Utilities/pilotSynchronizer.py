@@ -50,7 +50,7 @@ class pilotSynchronizer( object ):
     '''
     gLogger.notice( '-- Synchronizing the content of the pilot file %s with the content of the CS --' % self.pilotFileName  )
 
-    pilotDict = self._syncFile()
+    self._syncFile()
 
     gLogger.notice( '-- Synchronizing the pilot scripts %s with the content of the repository --' % self.pilotRepo )
 
@@ -145,8 +145,11 @@ class pilotSynchronizer( object ):
       repo_VO.git.checkout( repo_VO.tags[self.pilotVOVersion], b = 'pilotScripts' )
     else:
       repo_VO.git.checkout( 'master', b = 'pilotVOScripts' )
-    self._upload( filename = self.pilotVOScript, pilotScript = os.path.join( self.pilotVOLocalRepo, self.projectDir,
+    result = self._upload( filename = self.pilotVOScript, pilotScript = os.path.join( self.pilotVOLocalRepo, self.projectDir,
                                                                              self.pilotVOScriptPath, self.pilotVOScript ) )
+    if not result['OK']:
+      gLogger.error( "Error uploading the VO pilot script: %s" % result['Message'] )
+      return result
     if os.path.isdir( self.pilotLocalRepo ):
       shutil.rmtree( self.pilotLocalRepo )
     os.mkdir( self.pilotLocalRepo )
@@ -172,6 +175,8 @@ class pilotSynchronizer( object ):
                                                                                      'PilotTools.py' ) )
     except ValueError:
       gLogger.error( "Error uploading the pilot scripts: %s" % result['Message'] )
+      return result
+    return S_OK()
 
 
   def _upload ( self, pilotDict = None, filename = '', pilotScript = '' ):
