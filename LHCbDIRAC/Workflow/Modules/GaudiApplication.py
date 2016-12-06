@@ -233,7 +233,7 @@ class GaudiApplication( ModuleBase ):
         os.remove( self.applicationLog )
 
       self.log.info( 'Running %s %s step %s' % ( self.applicationName, self.applicationVersion, self.step_number ) )
-      self.setApplicationStatus( '%s %s step %s' % ( self.applicationName, self.applicationVersion, self.step_number ) )
+      self.setApplicationStatus( '%s step %s' % ( self.applicationName, self.step_number ) )
       result = shellCall( 0, finalCommand,
                           env = projectEnvironment,
                           callbackFunction = self.redirectLogOutput,
