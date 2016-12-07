@@ -11,7 +11,7 @@ import time
 import xml.dom.minidom
 from DIRAC                                               import S_OK, rootPath, gLogger, gConfig
 from DIRAC.Core.Base.AgentModule                         import AgentModule
-from DIRAC.DataManagementSystem.Utilities.DMSHelpers     import DMSHelpers  
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers     import DMSHelpers
 from DIRAC.Resources.Storage.StorageElement              import StorageElement
 
 
@@ -67,11 +67,11 @@ class NagiosTopologyAgent( AgentModule ):
 ##################################################################################################################
 #New code to include VAC and VCYCLE
 
-    ret = gConfig.getSections('Resources/Sites') 
-    if not ret[ 'OK' ] : 
+    ret = gConfig.getSections('Resources/Sites')
+    if not ret[ 'OK' ] :
       gLogger.error( ret[ 'Message' ] )
       return ret
-    
+
     gridTypes = ret['Value']
 
     all_sites = {}
@@ -88,13 +88,12 @@ class NagiosTopologyAgent( AgentModule ):
         site_tier = site_opts.get( 'MoUTierLevel', 'None' )
         if site_tier != 'None':
           site_subtier = site_opts.get( 'SubTier', 'None' )
-          dict_opts = { 'SiteOptions' : site_opts , 
+          dict_opts = { 'SiteOptions' : site_opts ,
                         'DiracName': ( 'LCG.' + real_site_name + "." + country), 'Grid' : [grid] }
           dict1 = {real_site_name:dict_opts}
           if all_sites.has_key(real_site_name):
-            all_sites[ real_site_name ][ 'SiteOptions' ][ 'CE' ] = all_sites[ real_site_name ][ 'SiteOptions' ][ 'CE' ] + 
-                                                                   "," + dict_opts['SiteOptions']['CE']
-            all_sites[real_site_name]['Grid'].append(grid)                                                      
+            all_sites[ real_site_name ][ 'SiteOptions' ][ 'CE' ] = all_sites[ real_site_name ][ 'SiteOptions' ][ 'CE' ] + "," + dict_opts['SiteOptions']['CE']
+            all_sites[real_site_name]['Grid'].append(grid)
           else:
             all_sites.update(dict1)
 
@@ -105,7 +104,7 @@ class NagiosTopologyAgent( AgentModule ):
         site_name = key['SiteOptions'].get( 'Name' )
         xml_site = xml_append( xml_doc, xml_root, 'atp_site', name = site_name )
         has_grid_elem = False
-        
+
         for grid in key['Grid']:
 
           site = grid + "." + key['DiracName'].split(".")[1] + "." + key['DiracName'].split(".")[2]
@@ -176,12 +175,12 @@ class NagiosTopologyAgent( AgentModule ):
 
     xml_append( xml_doc, xml_root, 'title', 'LHCb Topology Information for ATP' )
     xml_append( xml_doc, xml_root, 'description',
-                     'List of LHCb site names for monitoring and mapping to the SAM/WLCG site names' )
+                'List of LHCb site names for monitoring and mapping to the SAM/WLCG site names' )
     xml_append( xml_doc, xml_root, 'feed_responsible',
-                     dn = '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=roiser/CN=564059/CN=Stefan Roiser',
-                     name = 'Stefan Roiser' )
+                dn = '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=roiser/CN=564059/CN=Stefan Roiser',
+                name = 'Stefan Roiser' )
     xml_append( xml_doc, xml_root, 'last_update',
-                     time.strftime( '%Y-%m-%dT%H:%M:%SZ', time.gmtime() ) )
+                time.strftime( '%Y-%m-%dT%H:%M:%SZ', time.gmtime() ) )
     xml_append( xml_doc, xml_root, 'vo', 'lhcb' )
 
   @staticmethod
@@ -203,16 +202,16 @@ class NagiosTopologyAgent( AgentModule ):
       site_ce_opts = site_ce_opts['Value']
 
       site_ce_type = site_ce_opts.get( 'CEType' )
-      mappingCEType = { 'LCG':'CE', 'CREAM':'CREAM-CE', 
-                       'ARC':'ARC-CE', 'HTCondorCE':'HTCONDOR-CE', 
-                       'Vac':'VAC', 'Cloud':'CLOUD', 'Boinc':'BOINC', 'Vcycle':'VCYCLE' }
+      mappingCEType = { 'LCG':'CE', 'CREAM':'CREAM-CE',
+                        'ARC':'ARC-CE', 'HTCondorCE':'HTCONDOR-CE',
+                        'Vac':'VAC', 'Cloud':'CLOUD', 'Boinc':'BOINC', 'Vcycle':'VCYCLE' }
 
       xml_append( xml_doc, xml_site, 'service', hostname = site_ce_name,
-                       flavour = mappingCEType.get( site_ce_type, 'UNDEFINED' ) )
+                  flavour = mappingCEType.get( site_ce_type, 'UNDEFINED' ) )
 
     return has_grid_elem
 
-  
+
   @staticmethod
   def __writeSEInfo( xml_doc, xml_site, site, site_tier, site_subtier ):
     """ Writes SE information in the XML Document
@@ -220,14 +219,14 @@ class NagiosTopologyAgent( AgentModule ):
     def __write_SE_XML(site_se_opts):
       """
       Sub-function just to populate the XML with the SE values
-      """  
+      """
       site_se_name = site_se_opts.get( 'Host' )
       site_se_flavour = site_se_opts.get( 'Protocol' )
       site_se_path = site_se_opts.get( 'Path', 'UNDEFINED' )
-      mappingSEFlavour = { 'srm' : 'SRMv2', 
-                          'root' : 'XROOTD', 'http' : 'HTTPS' } 
-   
-      xml_append( xml_doc, xml_site, 'service', 
+      mappingSEFlavour = { 'srm' : 'SRMv2',
+                           'root' : 'XROOTD', 'http' : 'HTTPS' }
+
+      xml_append( xml_doc, xml_site, 'service',
                   hostname = site_se_name,
                   flavour = mappingSEFlavour.get( site_se_flavour, 'UNDEFINED' ),
                   path = site_se_path )
@@ -253,14 +252,14 @@ class NagiosTopologyAgent( AgentModule ):
     if not dst[ 'OK' ]:
       gLogger.error( dst[ 'Message' ] )
       return False
-    
+
     dst = dst[ 'Value' ]
     se_DST = StorageElement( dst )
-    se_plugins_DST = se_DST.getPlugins( )   
+    se_plugins_DST = se_DST.getPlugins( )
     if not se_plugins_DST[ 'OK' ]:
       gLogger.error( se_plugins_DST[ 'Message' ] )
       return False
-      
+
     for protocol in se_plugins_DST[ 'Value' ]:
       site_se_opts_DST = se_DST.getStorageParameters( protocol )
       if not site_se_opts_DST['OK']:
@@ -275,13 +274,13 @@ class NagiosTopologyAgent( AgentModule ):
           if not site_se_opts_RAW[ 'OK' ]:
             gLogger.error( site_se_opts_RAW[ 'Message'] )
             return has_grid_elem
-          site_se_opts_RAW = site_se_opts_RAW[ 'Value' ]                
-          # This tests if the DST and RAW StorageElements have the same endpoint. 
+          site_se_opts_RAW = site_se_opts_RAW[ 'Value' ]
+          # This tests if the DST and RAW StorageElements have the same endpoint.
           # If so it only uses the one already added.
           if site_se_opts_RAW[ 'Host' ] != site_se_opts_DST[ 'Host' ]:
             __write_SE_XML( site_se_opts_RAW )
-  
-      
+
+
     return has_grid_elem
 
 ################################################################################
@@ -290,7 +289,7 @@ def xml_append( doc, base, elem, cdata = None, **attrs ):
   """
     Given a Document, we append to it an element.
   """
-  
+
   new_elem = doc.createElement( elem )
   for attr in attrs:
     new_elem.setAttribute( attr, attrs[ attr ] )

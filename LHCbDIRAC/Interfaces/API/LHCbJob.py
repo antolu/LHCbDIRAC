@@ -92,7 +92,7 @@
 
 import os
 import re
-from distutils.version import LooseVersion
+from distutils.version import LooseVersion #pylint: disable=import-error,no-name-in-module
 
 from DIRAC                                                import S_OK, S_ERROR, gConfig
 from DIRAC.Interfaces.API.Job                             import Job
