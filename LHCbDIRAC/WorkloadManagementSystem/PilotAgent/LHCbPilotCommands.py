@@ -205,7 +205,7 @@ class LHCbConfigureBasics( LHCbCommandBase, ConfigureBasics ):
 
     super( LHCbConfigureBasics, self )._getSecurityCFG()
 
-class LHCbCleanPilotEnv ( LHCbConfigureBasics ):
+class LHCbCleanPilotEnv( LHCbConfigureBasics ):
   """Delete the pilot.cfg and the pilot.json, needed for VMs.
      Force the use of the CS given by command line. The command avoids the use of the CS server address (lhcb-conf2)
      which would not work for some resources, e.g. BOINC.

@@ -16,8 +16,8 @@ HOME_DIR = os.path.join( os.environ['HOME'], 'DiracAdmin' )
 file_skel = os.path.join( HOME_DIR, 'skel_vobox_update' )
 file_T1 = os.path.join( HOME_DIR, 'vobox_update_T1' )
 T1_list = ['voboxlhcb.gridpp.rl.ac.uk', 'voboxlhcb.pic.es', 'voboxlhcb.nikhef.nl', 'voboxlhcb.cr.cnaf.infn.it', 'voboxlhcb.in2p3.fr', 'voboxlhcb.gridka.de']
-file_B = os.path.join( HOME_DIR, 'vobox_update_B' )
-B_list = ['lbvobox27.cern.ch', 'lbvobox28.cern.ch','lbvobox18.cern.ch']
+#file_B = os.path.join( HOME_DIR, 'vobox_update_B' )
+#B_list = ['lbvobox27.cern.ch', 'lbvobox28.cern.ch','lbvobox18.cern.ch']
 file_C = os.path.join( HOME_DIR, 'vobox_update_C' )
 C_list = ['lbvobox30.cern.ch', 'lbvobox100.cern.ch','lbvobox101.cern.ch','lbvobox102.cern.ch','lbvobox103.cern.ch','lbvobox109.cern.ch','lbvobox200.cern.ch']
 file_D = os.path.join( HOME_DIR, 'vobox_update_D' )
@@ -49,4 +49,3 @@ if __name__ == '__main__':
   generateTemplate(C_list, file_C)
   generateTemplate(D_list, file_D)
   generateTemplate(E_list, file_E)
-
