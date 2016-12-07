@@ -1,6 +1,9 @@
 """  TransformationPlugin is a class wrapping the supported LHCb transformation plugins
 """
 
+# pylint: disable=too-many-lines
+# pylint: disable=missing-docstring
+
 import time
 import os
 import random
@@ -21,8 +24,6 @@ from LHCbDIRAC.TransformationSystem.Utilities.PluginUtilities import PluginUtili
 
 __RCSID__ = "$Id$"
 
-# pylint: disable=missing-docstring
-
 class TransformationPlugin( DIRACTransformationPlugin ):
   """ Extension of DIRAC TransformationPlugin - instantiated by the TransformationAgent
   """
@@ -33,7 +34,10 @@ class TransformationPlugin( DIRACTransformationPlugin ):
                 debug = False, transInThread = None ):
     """ The clients can be passed in.
     """
-    super( TransformationPlugin, self ).__init__( plugin, transClient = transClient, dataManager = dataManager )
+    super( TransformationPlugin, self ).__init__( plugin,
+                                                  transClient = transClient,
+                                                  dataManager = dataManager,
+                                                  fc = fc )
 
     if not bkClient:
       self.bkClient = BookkeepingClient()
@@ -62,7 +66,6 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       self.transClient = TransformationClient()
     else:
       self.transClient = transClient
-
     self.util = PluginUtilities( plugin = plugin,
                                  transClient = transClient, dataManager = dataManager,
                                  bkClient = self.bkClient, rmClient = self.rmClient,
