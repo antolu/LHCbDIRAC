@@ -36,6 +36,9 @@
       [ "simplegeneric", "0.8.1",
         [ "bin", "python", "lib" ]
       ],
+      [ "wcwidth", "0.1.7",
+        [ "bin", "python", "lib" ]
+      ],
       [ "prompt_toolkit", "1.0.3",
         [ "bin", "python", "lib" ]
       ],
