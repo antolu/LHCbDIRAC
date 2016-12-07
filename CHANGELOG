@@ -1,3 +1,18 @@
+[v8r5-pre1]
+use DIRAC v6r17-pre5
+
+* minor fixes
+* remove not used development
+* use timestamp when the dq is changed
+* improve the materialized view performance
+* add constraint to not delete a production from the productionscontainer table if the production has a corresponding job
+* Use logging instead of print
+* first commit for mesos tools
+* First docker files
+* rfc proxies by default
+* remove lbvobox15 and lbvobox49
+* Add lbvobox109 and lbvobox200
+
 [v8r4p7]
 use DIRAC v6r16p3
 
