@@ -172,7 +172,7 @@ class pilotSynchronizer( object ):
       for file in glob.glob( scriptDir ):
         result = self._upload( filename = file.rsplit( '/', 1 )[-1], pilotScript = file )
       if not os.path.isfile( os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "dirac-install.py" ) ):
-        result = self._upload( filename = 'dirac-install.py', pilotScript = os.path.join( self.pilotLocalRepo, "/Core/scripts/'dirac-install.py'" ) )
+        result = self._upload( filename = 'dirac-install.py', pilotScript = os.path.join( self.pilotLocalRepo, "Core/scripts/dirac-install.py" ) )
     except ValueError:
       gLogger.error( "Error uploading the pilot scripts: %s" % result['Message'] )
       return result
