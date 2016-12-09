@@ -1,3 +1,23 @@
+[v8r5-pre2]
+use DIRAC v6r17-pre6
+
+* Fixes for CE-less sites, and general robustness
+* Use LCGBundles 2016-12-09
+* use LHCbGrid v11r2
+* using alias
+* minor fixes for rss system test
+* voboxes update
+* bugs and pylints
+* test fix
+* fix dirac-install.py path
+* using glob to copy all files.
+* Prepare to get site names from CS and remove dependency on explicit list of Tier1s
+* break the line correctly
+* use the correct configuration name and configuration version for the runs
+* UpdateRemotePilotFile service will upload the latest version of the pilot scripts on the web server.
+* add wcwidth
+* pilotSynchronizer to update pilot scripts
+
 [v8r5-pre1]
 use DIRAC v6r17-pre5
 
