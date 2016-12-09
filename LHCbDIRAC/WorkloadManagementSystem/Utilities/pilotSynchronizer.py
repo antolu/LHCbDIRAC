@@ -115,7 +115,7 @@ class pilotSynchronizer( object ):
         if not ceList['OK']:
           # Skip but log it
           gLogger.error( 'Site ' + site + ' has no CEs! - skipping' )
-          continiue
+          continue
 
         for ce in ceList['Value']:
           ceType = gConfig.getValue( '/Resources/Sites/' + grid + '/' + site + '/CEs/' + ce + '/CEType')
@@ -154,7 +154,7 @@ class pilotSynchronizer( object ):
       repo_VO.git.checkout( 'master', b = 'pilotVOScripts' )
     scriptDir = ( os.path.join( self.pilotVOLocalRepo, self.projectDir, self.pilotVOScriptPath, "*.py" ) )
     for fileVO in glob.glob( scriptDir ):
-      result = self._upload( filename = fileVO.rsplit( '/', 1 )[-1], pilotScript = fileVO )
+      result = self._upload( filename = os.path.basename( fileVO ), pilotScript = fileVO )
     if not result['OK']:
       gLogger.error( "Error uploading the VO pilot script: %s" % result['Message'] )
       return result
@@ -176,8 +176,8 @@ class pilotSynchronizer( object ):
       repo.git.checkout( 'master', b = 'pilotVOScripts' )
     try:
       scriptDir = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "*.py" )
-      for file in glob.glob( scriptDir ):
-        result = self._upload( filename = file.rsplit( '/', 1 )[-1], pilotScript = file )
+      for filename in glob.glob( scriptDir ):
+        result = self._upload( filename = os.path.basename( filename ), pilotScript = filename )
       if not os.path.isfile( os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "dirac-install.py" ) ):
         result = self._upload( filename = 'dirac-install.py', pilotScript = os.path.join( self.pilotLocalRepo, "Core/scripts/dirac-install.py" ) )
     except ValueError:
