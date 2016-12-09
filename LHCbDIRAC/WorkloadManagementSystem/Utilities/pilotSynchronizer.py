@@ -50,7 +50,10 @@ class pilotSynchronizer( object ):
     '''
     gLogger.notice( '-- Synchronizing the content of the pilot file %s with the content of the CS --' % self.pilotFileName  )
 
-    self._syncFile()
+    result = self._syncFile()
+    if not result['OK']:
+      gLogger.error( "Error uploading the pilot file: %s" % result['Message'] )
+      return result
 
     gLogger.notice( '-- Synchronizing the pilot scripts %s with the content of the repository --' % self.pilotRepo )
 
@@ -88,9 +91,13 @@ class pilotSynchronizer( object ):
         # It's ok if the Pilot section doesn't list any Commands too
         pilotDict['Setups'][setup]['Commands'] = {}
         for ceType in ceTypesCommands['Value']:
+          # FIXME: inconsistent that we break Commands down into a proper list but other things are comma-list strings
           pilotDict['Setups'][setup]['Commands'][ceType] = ceTypesCommands['Value'][ceType].split(', ')
+          # pilotDict['Setups'][setup]['Commands'][ceType] = ceTypesCommands['Value'][ceType]
       if 'CommandExtensions' in pilotDict['Setups'][setup]:
+        # FIXME: inconsistent that we break CommandExtensionss down into a proper list but other things are comma-list strings
         pilotDict['Setups'][setup]['CommandExtensions'] = pilotDict['Setups'][setup]['CommandExtensions'].split(', ')
+        # pilotDict['Setups'][setup]['CommandExtensions'] = pilotDict['Setups'][setup]['CommandExtensions']
 
     sitesSection = gConfig.getSections( '/Resources/Sites/' )
     if not sitesSection['OK']:
@@ -106,8 +113,9 @@ class pilotSynchronizer( object ):
       for site in gridSection['Value']:
         ceList = gConfig.getSections( '/Resources/Sites/' + grid + '/' + site + '/CEs/' )
         if not ceList['OK']:
-          gLogger.error( ceList['Message'] )
-          return ceList
+          # Skip but log it
+          gLogger.error( 'Site ' + site + ' has no CEs! - skipping' )
+          continiue
 
         for ce in ceList['Value']:
           ceType = gConfig.getValue( '/Resources/Sites/' + grid + '/' + site + '/CEs/' + ce + '/CEType')
@@ -117,7 +125,6 @@ class pilotSynchronizer( object ):
             gLogger.error( 'CE ' + ce + ' at ' + site + ' has no option CEType! - skipping' )
           else:
             pilotDict['CEs'][ce] = { 'Site' : site, 'GridCEType' : ceType }
-
 
     defaultSetup = gConfig.getValue( '/DIRAC/DefaultSetup' )
     if defaultSetup:
