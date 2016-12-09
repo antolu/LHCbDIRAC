@@ -1722,9 +1722,8 @@ def registerBK2FC( lfnList, seList, printResult = False ):
 
   if lfnList:
 
-    from DIRAC.ConfigurationSystem.Client.Helpers.Resources     import getRegistrationProtocols
     fc = FileCatalog()
-    registrationProtocol = getRegistrationProtocols()
+    registrationProtocol = DMSHelpers().getRegistrationProtocols()
     seListString = ','.join( seList )
     level = gLogger.getLevel()
     for se in seList:

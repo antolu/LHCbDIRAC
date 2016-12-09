@@ -115,7 +115,7 @@ class pilotSynchronizer( object ):
         if not ceList['OK']:
           # Skip but log it
           gLogger.error( 'Site ' + site + ' has no CEs! - skipping' )
-          continiue
+          continue
 
         for ce in ceList['Value']:
           ceType = gConfig.getValue( '/Resources/Sites/' + grid + '/' + site + '/CEs/' + ce + '/CEType')
@@ -176,8 +176,8 @@ class pilotSynchronizer( object ):
       repo.git.checkout( 'master', b = 'pilotVOScripts' )
     try:
       scriptDir = os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "*.py" )
-      for file in glob.glob( scriptDir ):
-        result = self._upload( filename = file.rsplit( '/', 1 )[-1], pilotScript = file )
+      for filename in glob.glob( scriptDir ):
+        result = self._upload( filename = filename.rsplit( '/', 1 )[-1], pilotScript = filename )
       if not os.path.isfile( os.path.join( self.pilotLocalRepo, self.pilotScriptsPath, "dirac-install.py" ) ):
         result = self._upload( filename = 'dirac-install.py', pilotScript = os.path.join( self.pilotLocalRepo, "Core/scripts/dirac-install.py" ) )
     except ValueError:
