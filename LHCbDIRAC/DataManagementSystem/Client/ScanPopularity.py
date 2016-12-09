@@ -265,7 +265,11 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb', csvFile = Non
   # set of used directories
   usedDirectories = set()
   storageTypes = ( 'Disk', 'Tape', 'Archived', 'All', 'LFN' )
-  storageSites = ( 'LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.RRCKI.ru', 'LCG.SARA.nl' )
+  from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+  try:
+    storageSites = DMSHelpers().getTiers( tier = ( 0, 1 ) )
+  except AttributeError:
+    storageSites = ( 'LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.RRCKI.ru', 'LCG.SARA.nl' )
   cachedSESites = {}
   datasetStorage = {}
   for infoType in storageTypes:
