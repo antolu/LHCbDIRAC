@@ -1,3 +1,10 @@
+[v8r5-pre3]
+use DIRAC v6r17-pre6
+
+* does not throw an error when the production is exists
+* use os to get the filename from a path
+* various fixies
+
 [v8r5-pre2]
 use DIRAC v6r17-pre6
 
