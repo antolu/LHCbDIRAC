@@ -200,7 +200,7 @@ class LHCbDockerMgmt(object):
 
     credentials = self.__dockerLogin()
     resp = self.dockerClient.push(
-        repository=self.dockerRepository, tag=self.version, auth_config=credentials)
+        repository=self.dockerRepository, tag=self.version)
     # For some reasons, resp is sometimes a generator, sometimes a string...
     if isinstance(resp, basestring):
       logging.info(resp)
