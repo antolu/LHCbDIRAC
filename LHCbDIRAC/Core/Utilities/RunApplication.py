@@ -4,7 +4,7 @@
 import sys
 import re
 import multiprocessing
-from distutils.version import LooseVersion
+from distutils.version import LooseVersion #pylint: disable=import-error,no-name-in-module
 
 from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations

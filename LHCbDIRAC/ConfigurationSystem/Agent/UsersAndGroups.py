@@ -370,7 +370,7 @@ class UsersAndGroups( AgentModule ):
           self.__adminMsgs[ 'Info' ].append( "      DN = %s" % DN )
           self.__adminMsgs[ 'Info' ].append( "      CA = %s" % usersData[newUser]['CA'] )
         self.__adminMsgs[ 'Info' ].append( "    + EMail: %s" % usersData[newUser][ 'Email' ] )
-        self.addEntryDFC( newUser, proxyUserName = 'joel', proxyUserGroup = 'lhcb_admin' )
+        self.addEntryDFC( newUser )
 
 
     if usersWithMoreThanOneDN:

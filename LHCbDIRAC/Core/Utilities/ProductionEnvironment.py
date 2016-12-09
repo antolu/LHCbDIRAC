@@ -7,7 +7,7 @@
 import os
 import shutil
 import stat
-from distutils.version import LooseVersion
+from distutils.version import LooseVersion #pylint: disable=import-error,no-name-in-module
 
 import DIRAC
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig

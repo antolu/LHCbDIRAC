@@ -117,7 +117,7 @@ def __configurePilot(basepath):
   Configures the pilot.
 
   """
-  out = os.system("python " + basepath + "dirac-pilot.py -S LHCb-Production -l LHCb -C dips://lbvobox18.cern.ch:9135/Configuration/Server -N ce.debug.ch -Q default -n DIRAC.JobDebugger.ch -M 1 -E LHCbPilot -X LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements -dd")
+  out = os.system("python " + basepath + "dirac-pilot.py -S LHCb-Production -l LHCb -C dips://lhcb-conf-dirac.cern.ch:9135/Configuration/Server -N ce.debug.ch -Q default -n DIRAC.JobDebugger.ch -M 1 -E LHCbPilot -X LHCbConfigureBasics,LHCbConfigureSite,LHCbConfigureArchitecture,LHCbConfigureCPURequirements -dd")
   if not out:
     directory = os.path.expanduser('~') + os.path.sep
     os.rename(directory + '.dirac.cfg', directory + '.dirac.cfg.old')
