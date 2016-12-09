@@ -1464,7 +1464,6 @@ commit;
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
    dbms_output.put_line(v_prod || 'already in the steps container table');
-raise_application_error(-20005, 'The production already exists in the steps container table!');
 end;
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure insertproductionscontainer_tmp(v_prod number, v_processingid number, v_simid number, v_daqperiodid number, cName varchar2, cVersion varchar2) is
@@ -1485,7 +1484,6 @@ commit;
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
    dbms_output.put_line(v_prod || 'already in the steps container table');
-   raise_application_error(-20005, 'The production already exists in the productionscontainer table!');
 end;
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number) is
