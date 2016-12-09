@@ -1,12 +1,11 @@
 """ Collection of user jobs for testing purposes
 """
 
-#pylint: disable=missing-docstring
+# pylint: disable=missing-docstring
 
 # imports
 
-from DIRAC import S_ERROR, S_OK
-from DIRAC.tests.Utilities.utils import find_all
+from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
 from DIRAC.tests.Utilities.testJobDefinitions import *
 import time
 import os
@@ -22,9 +21,11 @@ from DIRAC.Core.Utilities.Proxy import executeWithUserProxy
 jobClass = LHCbJob
 diracClass = DiracLHCb
 
-tier1s = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.NIKHEF.nl',
-          'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.SARA.nl', 'LCG.RRCKI.ru']
-
+try:
+  tier1s = DMSHelpers().getTiers( tier = ( 0, 1 ) )
+except AttributeError:
+  tier1s = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr',
+            'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.RRCKI.ru', 'LCG.SARA.nl']
 
 # List of jobs
 wdir = os.getcwd()
@@ -138,17 +139,17 @@ def helloWorldTestSLC5():
 @executeWithUserProxy
 def jobWithOutput():
 
-  timenow = time.strftime("%s")
-  with open( os.path.join( wdir,timenow+"testFileUpload.txt" ), "w" ) as f:
+  timenow = time.strftime( "%s" )
+  with open( os.path.join( wdir, timenow + "testFileUpload.txt" ), "w" ) as f:
     f.write( timenow )
   J = baseToAllJobs( 'jobWithOutput', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUpload.txt', wdir, 'GridTestSubmission' )[0]] + \
+  J.setInputSandbox( [find_all( timenow + 'testFileUpload.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setOutputData( [timenow+'testFileUpload.txt'] )
+  J.setOutputData( [timenow + 'testFileUpload.txt'] )
   res = endOfAllJobs( J )
   try:
-    os.remove( os.path.join( wdir,timenow+"testFileUpload.txt" ) )
+    os.remove( os.path.join( wdir, timenow + "testFileUpload.txt" ) )
   except OSError as e:
     return e.errno == errno.ENOENT
   return res
@@ -156,17 +157,17 @@ def jobWithOutput():
 @executeWithUserProxy
 def jobWithOutputAndPrepend():
 
-  timenow = time.strftime("%s")
-  with open( os.path.join( wdir,timenow+"testFileUploadNewPath.txt" ), "w" ) as f:
+  timenow = time.strftime( "%s" )
+  with open( os.path.join( wdir, timenow + "testFileUploadNewPath.txt" ), "w" ) as f:
     f.write( timenow )
   J = baseToAllJobs( 'jobWithOutputAndPrepend', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUploadNewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
+  J.setInputSandbox( [find_all( timenow + 'testFileUploadNewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setOutputData( [timenow+'testFileUploadNewPath.txt'], filePrepend = 'testFilePrepend' )
+  J.setOutputData( [timenow + 'testFileUploadNewPath.txt'], filePrepend = 'testFilePrepend' )
   res = endOfAllJobs( J )
   try:
-    os.remove( os.path.join( wdir,timenow+"testFileUploadNewPath.txt" ) )
+    os.remove( os.path.join( wdir, timenow + "testFileUploadNewPath.txt" ) )
   except OSError as e:
     return e.errno == errno.ENOENT
   return res
@@ -174,19 +175,19 @@ def jobWithOutputAndPrepend():
 @executeWithUserProxy
 def jobWithOutputAndPrependWithUnderscore():
 
-  timenow = time.strftime("%s")
-  with open( os.path.join( wdir,timenow+"testFileUpload_NewPath.txt" ), "w")  as f:
+  timenow = time.strftime( "%s" )
+  with open( os.path.join( wdir, timenow + "testFileUpload_NewPath.txt" ), "w" )  as f:
     f.write( timenow )
   J = baseToAllJobs( 'jobWithOutputAndPrependWithUnderscore', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUpload_NewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
+  J.setInputSandbox( [find_all( timenow + 'testFileUpload_NewPath.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  res = J.setOutputData( [timenow+'testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
+  res = J.setOutputData( [timenow + 'testFileUpload_NewPath.txt'], filePrepend = 'testFilePrepend' )
   if not res['OK']:
     return 0
   res = endOfAllJobs( J )
   try:
-    os.remove( os.path.join( wdir,timenow+'testFileUpload_NewPath.txt' ) )
+    os.remove( os.path.join( wdir, timenow + 'testFileUpload_NewPath.txt' ) )
   except OSError as e:
     return e.errno == errno.ENOENT
   return res
@@ -194,17 +195,17 @@ def jobWithOutputAndPrependWithUnderscore():
 @executeWithUserProxy
 def jobWithOutputAndReplication():
 
-  timenow = time.strftime("%s")
-  with open( os.path.join( wdir,timenow+"testFileReplication.txt" ), "w" ) as f:
+  timenow = time.strftime( "%s" )
+  with open( os.path.join( wdir, timenow + "testFileReplication.txt" ), "w" ) as f:
     f.write( timenow )
   J = baseToAllJobs( 'jobWithOutputAndReplication', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileReplication.txt', wdir, 'GridTestSubmission' )[0]] + \
+  J.setInputSandbox( [find_all( timenow + 'testFileReplication.txt', wdir, 'GridTestSubmission' )[0]] + \
                      [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
-  J.setOutputData( [timenow+'testFileReplication.txt'], replicate = 'True' )
+  J.setOutputData( [timenow + 'testFileReplication.txt'], replicate = 'True' )
   res = endOfAllJobs( J )
   try:
-    os.remove( os.path.join( wdir,timenow+'testFileReplication.txt' ) )
+    os.remove( os.path.join( wdir, timenow + 'testFileReplication.txt' ) )
   except OSError as e:
     return e.errno == errno.ENOENT
   return res
@@ -212,27 +213,27 @@ def jobWithOutputAndReplication():
 @executeWithUserProxy
 def jobWith2OutputsToBannedSE():
 
-  timenow = time.strftime("%s")
-  with open( os.path.join( wdir,timenow+"testFileUploadBanned-1.txt" ), "w" ) as f:
-    f.write( timenow ) 
-  with open( os.path.join( wdir,timenow+"testFileUploadBanned-2.txt" ), "w" ) as f:
+  timenow = time.strftime( "%s" )
+  with open( os.path.join( wdir, timenow + "testFileUploadBanned-1.txt" ), "w" ) as f:
+    f.write( timenow )
+  with open( os.path.join( wdir, timenow + "testFileUploadBanned-2.txt" ), "w" ) as f:
     f.write( timenow )
   J = baseToAllJobs( 'jobWith2OutputsToBannedSE', jobClass )
-  J.setInputSandbox( [find_all( timenow+'testFileUploadBanned-1.txt', wdir, 'GridTestSubmission' )[0]] \
-                     + [find_all( timenow+'testFileUploadBanned-2.txt', wdir, 'GridTestSubmission' )[0]] \
+  J.setInputSandbox( [find_all( timenow + 'testFileUploadBanned-1.txt', wdir, 'GridTestSubmission' )[0]] \
+                     + [find_all( timenow + 'testFileUploadBanned-2.txt', wdir, 'GridTestSubmission' )[0]] \
                      + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] \
                      + [find_all( 'partialConfig.cfg', '.', 'GridTestSubmission' )[0] ] )
   J.setExecutable( "exe-script.py", "", "helloWorld.log" )
   J.setConfigArgs( 'partialConfig.cfg' )
   J.setDestination( 'LCG.PIC.es' )
-  J.setOutputData( [timenow+'testFileUploadBanned-1.txt', timenow+'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
+  J.setOutputData( [timenow + 'testFileUploadBanned-1.txt', timenow + 'testFileUploadBanned-2.txt'], OutputSE = ['PIC-USER'] )
   res = endOfAllJobs( J )
   try:
-    os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-1.txt' ) )
+    os.remove( os.path.join( wdir, timenow + 'testFileUploadBanned-1.txt' ) )
   except OSError as e:
     return e.errno == errno.ENOENT
   try:
-    os.remove( os.path.join( wdir,timenow+'testFileUploadBanned-2.txt' ) )
+    os.remove( os.path.join( wdir, timenow + 'testFileUploadBanned-2.txt' ) )
   except OSError as e:
     return e.errno == errno.ENOENT
   return res
@@ -268,7 +269,7 @@ def jobWithInputDataAndAncestor():
   # WARNING: Collision10!!
   J.setInputData( '/lhcb/data/2010/SDST/00008375/0005/00008375_00053941_1.sdst' )  # this file should be at SARA-RDST
   # the ancestor should be /lhcb/data/2010/RAW/FULL/LHCb/COLLISION10/81616/081616_0000000213.raw (CERN and SARA)
-  J.setAncestorDepth( 1 )  #pylint: disable=no-member
+  J.setAncestorDepth( 1 )  # pylint: disable=no-member
   J.setInputDataPolicy( 'download' )
   res = endOfAllJobs( J )
   return res
@@ -287,10 +288,10 @@ def gaussJob():
   optCompr = "$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;"
   optPConf = "prodConf_Gauss_00012345_00067890_1.py"
   options = optGauss + optDec + optPythia + optOpts + optCompr + optPConf
-  J.setApplication( 'Gauss', 'v45r5', options, #pylint: disable=no-member
+  J.setApplication( 'Gauss', 'v45r5', options,  # pylint: disable=no-member
                     extraPackages = 'AppConfig.v3r179;DecFiles.v27r14p1;ProdConf.v1r9',
                     systemConfig = 'x86_64-slc5-gcc43-opt' )
-  J.setDIRACPlatform()  #pylint: disable=no-member
+  J.setDIRACPlatform()  # pylint: disable=no-member
   J.setCPUTime( 172800 )
   res = endOfAllJobs( J )
   return res
@@ -310,12 +311,12 @@ def booleJob():
   optPConf = "prodConf_Boole_00012345_00067890_1.py"
   options = opts + optDT + optTCK + optComp + optPConf
 
-  J.setApplication( 'Boole', 'v26r3', options, #pylint: disable=no-member
+  J.setApplication( 'Boole', 'v26r3', options,  # pylint: disable=no-member
                     inputData = '/lhcb/user/f/fstagni/test/12345/12345678/00012345_00067890_1.sim',
                     extraPackages = 'AppConfig.v3r171;ProdConf.v1r9',
                     systemConfig = 'x86_64-slc5-gcc43-opt' )
 
-  J.setDIRACPlatform() #pylint: disable=no-member
+  J.setDIRACPlatform()  # pylint: disable=no-member
   J.setCPUTime( 172800 )
   res = endOfAllJobs( J )
   return res

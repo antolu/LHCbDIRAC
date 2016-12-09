@@ -50,7 +50,11 @@ def __getLfnsFromFile( optFiles, gaudiVerbose ):
 def execute():
 
   catalog = 'pool_xml_catalog.xml'
-  site = 'LCG.CERN.ch'
+  from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
+  try:
+    site = DMSHelpers().getShortSiteNames()['CERN']
+  except AttributeError, KeyError:
+    site = 'LCG.CERN.ch'
   depth = 1
   optFiles = []
   newOptFile = ''
