@@ -1493,7 +1493,6 @@ commit;
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
    dbms_output.put_line(v_prod || 'already in the steps container table');
-   raise_application_error(-20005, 'The production already exists in the productionscontainer table!');
 end;
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  procedure getEventTypes(
