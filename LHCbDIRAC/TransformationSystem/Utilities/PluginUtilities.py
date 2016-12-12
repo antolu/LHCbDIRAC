@@ -1001,6 +1001,7 @@ class PluginUtilities( DIRACPluginUtilities ):
 
 def getRemovalPlugins():
   return ( "DestroyDataset", 'DestroyDatasetWhenProcessed' ,
+           'RemoveReplicasKeepDestination', "ReduceReplicasKeepDestination",
            "RemoveDataset", "RemoveReplicas", 'RemoveReplicasWhenProcessed', 'ReduceReplicas' )
 def getReplicationPlugins():
   return ( "LHCbDSTBroadcast", "LHCbMCDSTBroadcastRandom",
