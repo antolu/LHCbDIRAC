@@ -142,7 +142,7 @@ Creating the release tarball, add uploading it to the LHCb web service
 ``````````````````````````````````````````````````````````````````````
 Login on lxplus, run ::
 
-  lb-run LHCbDirac/latest bash -norc
+  lb-run LHCbDirac/prod bash -norc
 
   git archive --remote ssh://git@gitlab.cern.ch:7999/lhcb-dirac/LHCbDIRAC.git devel LHCbDIRAC/releases.cfg  | tar -x -v -f - --transform 's|^LHCbDIRAC/||' LHCbDIRAC/releases.cfg
 
@@ -251,7 +251,7 @@ The recommended way is the following::
 This command will create 6 files called "vobox_update_MyLetter" then you can run in 6 windows the recipe for one single machine like that::
 
 	    ssh lxplus
-	    cd  DiracInstall ; lb-run LHCbDIRAC/latest bash -norc ; lhcb-proxy-init -g lhcb_admin; dirac-admin-sysadmin-cli
+	    cd  DiracInstall ; lb-run LHCbDIRAC/prod bash -norc ; lhcb-proxy-init -g lhcb_admin; dirac-admin-sysadmin-cli
             and from the prompt ::
                [host] : execfile vobox_update_MyLetter
                [host] : quit
