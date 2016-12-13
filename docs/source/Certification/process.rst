@@ -190,7 +190,7 @@ Set the LHCbDirac environment, get a proxy with admin rights and launch the sysa
 
 ::
 
-  lb-run LHCbDirac/latest bash
+  lb-run LHCbDirac/prod bash
   lhcb-proxy-init -g diracAdmin
   dirac-admin-sysadmin-cli
 
