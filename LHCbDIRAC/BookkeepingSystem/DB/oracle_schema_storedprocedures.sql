@@ -1458,12 +1458,17 @@ end;
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure insertStepsContainer(v_prod number, v_stepid number, v_step number)is
+alreadyExists number;
 begin
 insert into stepscontainer(production,stepid,step)values(v_prod, v_stepid, v_step);
 commit;
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
    dbms_output.put_line(v_prod || 'already in the steps container table');
+   SELECT count(*) INTO alreadyExists FROM stepscontainer WHERE production=v_prod AND stepid=v_stepid AND step=v_step;
+   IF alreadyExists > 0 then
+   	raise_application_error(-20005, 'The production already exists in the steps container table!');
+   END IF;
 end;
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure insertproductionscontainer_tmp(v_prod number, v_processingid number, v_simid number, v_daqperiodid number, cName varchar2, cVersion varchar2) is
@@ -1483,16 +1488,27 @@ insert into productionscontainer(production,processingid,simid,daqperiodid, conf
 commit;
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
+   existInDB := 0;
    dbms_output.put_line(v_prod || 'already in the steps container table');
+   SELECT count(*) INTO existInDB FROM productionscontainer WHERE production=v_prod and processingid=v_processingid AND  simid=v_simid AND daqperiodid=v_daqperiodid and configurationid=configId;
+   IF existInDB > 0 then
+    raise_application_error(-20005, 'The production already exists in the productionscontainer table!');
+   END IF;
 end;
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 procedure insertproductionscontainer(v_prod number, v_processingid number, v_simid number, v_daqperiodid number) is
+existInDB number;
 begin
 insert into productionscontainer(production,processingid,simid,daqperiodid)values(v_prod, v_processingid, v_simid, v_daqperiodid);
 commit;
 EXCEPTION
   WHEN DUP_VAL_ON_INDEX THEN
    dbms_output.put_line(v_prod || 'already in the steps container table');
+   existInDB := 0;
+   SELECT count(*) INTO existInDB FROM productionscontainer WHERE production=v_prod and processingid=v_processingid AND  simid=v_simid AND daqperiodid=v_daqperiodid;
+   IF existInDB > 0 then
+    raise_application_error(-20005, 'The production already exists in the productionscontainer table!');
+   END IF;
 end;
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  procedure getEventTypes(
