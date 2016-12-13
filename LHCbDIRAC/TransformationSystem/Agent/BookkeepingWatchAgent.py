@@ -18,7 +18,6 @@ from DIRAC.Core.Utilities.ThreadSafe                                      import
 from DIRAC.Core.Utilities.List                                            import breakListIntoChunks
 from DIRAC.FrameworkSystem.Client.MonitoringClient                        import gMonitor
 from DIRAC.TransformationSystem.Agent.TransformationAgentsUtilities       import TransformationAgentsUtilities
-from DIRAC.Core.Utilities.List                                            import breakListIntoChunks
 from LHCbDIRAC.BookkeepingSystem.Client.BookkeepingClient                 import BookkeepingClient
 from LHCbDIRAC.TransformationSystem.Client.TransformationClient           import TransformationClient
 
@@ -52,6 +51,9 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
 
     self.pluginsWithNoRunInfo = ( 'LHCbStandard', 'ReplicateDataset', 'ArchiveDataset',
                                   'LHCbMCDSTBroadcastRandom', 'ReplicateToLocalSE',
+                                  'RemoveReplicas', 'RemoveReplicasWhenProcessed', 'ReduceReplicas',
+                                  'DestroyDataset', 'DestroyDatasetWhenProcessed',
+                                  'RemoveDataset',
                                   'BySize', 'Standard' )
 
     self.timeLog = {}
@@ -174,7 +176,6 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
         if not res['OK']:
           self._logError( "Failed to get transformation", res['Message'], transID = transID )
           continue
-        transType = res['Value']['Type']
         transPlugin = res['Value']['Plugin']
 
         res = self.transClient.getBookkeepingQuery( transID )
@@ -213,7 +214,7 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
             " % lfn, error, transID = transID ) for ( lfn, error ) in result['Value']['Failed'].iteritems()]
             addedLfns = [lfn for ( lfn, status ) in result['Value']['Successful'].iteritems() if status == 'Added']
             # There is no need to add the run information for a removal transformation
-            if addedLfns and transType != 'Removal' and transPlugin not in self.pluginsWithNoRunInfo:
+            if addedLfns and transPlugin not in self.pluginsWithNoRunInfo:
               self._logInfo( "Added %d files to transformation, now including run information"
                              % len( addedLfns ) , transID = transID )
               res = self.bkClient.getFileMetadata( addedLfns )
