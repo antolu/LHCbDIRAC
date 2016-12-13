@@ -1,16 +1,17 @@
-[v8r5-pre4]
-use DIRAC v6r17-pre8
+[v8r5]
+use DIRAC v6r17
 
-[v8r5-pre3]
-use DIRAC v6r17-pre6
-
+* Added basic imports test
+* make smaller chunks for getting metadata
+* New plugin for removing replicas but keep run destination SEs
+* only throw an error when the production metadata has changed
+* For production, lb-run should beused with "lb-run LHCbDirac/prod MyCmd". Latest is for the latest version which is not necessary th eproduction version
+* minor fixes
+* Fix login
+* add monitoring
 * does not throw an error when the production is exists
 * use os to get the filename from a path
 * various fixies
-
-[v8r5-pre2]
-use DIRAC v6r17-pre6
-
 * Fixes for CE-less sites, and general robustness
 * Use LCGBundles 2016-12-09
 * use LHCbGrid v11r2
@@ -27,10 +28,6 @@ use DIRAC v6r17-pre6
 * UpdateRemotePilotFile service will upload the latest version of the pilot scripts on the web server.
 * add wcwidth
 * pilotSynchronizer to update pilot scripts
-
-[v8r5-pre1]
-use DIRAC v6r17-pre5
-
 * minor fixes
 * remove not used development
 * use timestamp when the dq is changed
