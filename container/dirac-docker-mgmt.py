@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import argparse
 import errno
@@ -26,7 +26,7 @@ class LHCbDockerMgmt(object):
     self.gitRepositoryURL = 'https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/'
     self.dockerRegistry = 'gitlab-registry.cern.ch'
     self.dockerRepository = 'gitlab-registry.cern.ch/lhcb-dirac/lhcbdirac'
-    self.dockerClient = docker.Client(version='1.23')
+    self.dockerClient = docker.APIClient(version='auto')
     self.version = version
 
   def __chooseMarathonMaster(self):
@@ -180,7 +180,11 @@ class LHCbDockerMgmt(object):
     localTag = 'lhcbdirac:%s' % self.version
     resp = self.dockerClient.build(path='.', tag=localTag)
     for line in resp:
-      logging.info(line)
+      if 'progressDetail' in line:
+        sys.stdout.write("%s\r" % line)
+        sys.stdout.flush()
+      else:
+        logging.info(line)
       if 'errorDetail' in line:
         raise Exception("Could not build the image")
 
