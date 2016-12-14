@@ -98,8 +98,8 @@ class WMSSecureGWHandler( RequestHandler ):
     result = matcher.requestJob( resourceDescription )
     return result
 
-  ##########################################################################################
-  types_setJobStatus = [list( StringTypes ) + [ IntType, LongType], StringTypes, StringTypes, StringTypes]
+   ###########################################################################
+  types_setJobStatus = [[basestring, int, long], basestring, basestring, basestring]
   def export_setJobStatus( self, jobID, status, minorStatus, source = 'Unknown', datetime = None ):
     """ Set the major and minor status for job specified by its JobId.
         Set optionally the status date and source component which sends the
@@ -110,7 +110,7 @@ class WMSSecureGWHandler( RequestHandler ):
     return jobStatus
 
   ###########################################################################
-  types_setJobSite = [list( StringTypes ) + [ IntType, LongType], StringTypes]
+  types_setJobSite = [[basestring, int, long], basestring]
   def export_setJobSite( self, jobID, site ):
     """Allows the site attribute to be set for a job specified by its jobID.
     """
@@ -119,17 +119,17 @@ class WMSSecureGWHandler( RequestHandler ):
     return jobSite
 
   ###########################################################################
-  types_setJobParameter = [list( StringTypes ) + [IntType, LongType], StringTypes, StringTypes]
+  types_setJobParameter = [[basestring, int, long], basestring, basestring]
   def export_setJobParameter( self, jobID, name, value ):
     """ Set arbitrary parameter specified by name/value pair
         for job specified by its JobId
     """
     jobReport = RPCClient( 'WorkloadManagement/JobStateUpdate' )
-    jobParam = jobReport.setJobParameter( jobID, name, value )
+    jobParam = jobReport.setJobParameter( int( jobID ), name, value )
     return jobParam
 
   ###########################################################################
-  types_setJobStatusBulk = [list( StringTypes ) + [ IntType, LongType], DictType]
+  types_setJobStatusBulk = [[basestring, int, long], dict]
   def export_setJobStatusBulk( self, jobID, statusDict ):
     """ Set various status fields for job specified by its JobId.
         Set only the last status in the JobDB, updating all the status
@@ -140,8 +140,8 @@ class WMSSecureGWHandler( RequestHandler ):
     jobStatus = jobReport.setJobStatusBulk( jobID, statusDict )
     return jobStatus
 
-    ###########################################################################
-  types_setJobParameters = [list( StringTypes ) + [ IntType, LongType], ListType]
+  ###########################################################################
+  types_setJobParameters = [[basestring, int, long], list]
   def export_setJobParameters( self, jobID, parameters ):
     """ Set arbitrary parameters specified by a list of name/value pairs
         for job specified by its JobId
@@ -150,16 +150,14 @@ class WMSSecureGWHandler( RequestHandler ):
     jobParams = jobReport.setJobParameters( jobID, parameters )
     return jobParams
 
-
   ###########################################################################
-  types_sendHeartBeat = [list( StringTypes ) + [ IntType, LongType], DictType, DictType]
+  types_sendHeartBeat = [[basestring, int, long], dict, dict]
   def export_sendHeartBeat( self, jobID, dynamicData, staticData ):
     """ Send a heart beat sign of life for a job jobID
     """
     jobReport = RPCClient( 'WorkloadManagement/JobStateUpdate', timeout = 120 )
     result = jobReport.sendHeartBeat( jobID, dynamicData, staticData )
     return result
-
 
   ##########################################################################################
   types_rescheduleJob = [ ]
