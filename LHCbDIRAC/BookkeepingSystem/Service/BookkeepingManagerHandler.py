@@ -414,6 +414,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     if retVal['OK']:
       gLogger.info( 'Sent file %s of size %d' % ( str( in_dict ), len( fileString ) ) )
     else:
+      gLogger.info( "Failed to send files %s" % in_dict )
       result = retVal
     return result
 
