@@ -414,6 +414,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     if retVal['OK']:
       gLogger.info( 'Sent file %s of size %d' % ( str( in_dict ), len( fileString ) ) )
     else:
+      gLogger.error( "Failed to send files %s" % in_dict )
       result = retVal
     return result
 
@@ -1354,6 +1355,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   @staticmethod
   def export_getProductionProcessedEvents( prodid ):
     """more info in the BookkeepingClient.py"""
+    gLogger.info( 'getProductionProcessedEvents->Production: %d ' % prodid )
     return dataMGMT_.getProductionProcessedEvents( prodid )
 
   #############################################################################
@@ -1542,6 +1544,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     if 'RunNumbers' in in_dict:
       gLogger.verbose( 'RunNumbers will be removed. It will changed to RunNumbers' )
 
+    gLogger.info( "getVisibleFilesWithMetadata->%s", in_dict )
     result = {}
     retVal = dataMGMT_.getFilesWithMetadata( configName = configname,
                                              configVersion = configversion,
