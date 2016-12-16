@@ -1354,6 +1354,7 @@ class BookkeepingManagerHandler( RequestHandler ):
   @staticmethod
   def export_getProductionProcessedEvents( prodid ):
     """more info in the BookkeepingClient.py"""
+    gLogger.info( 'getProductionProcessedEvents->Production: %d ' % prodid )
     return dataMGMT_.getProductionProcessedEvents( prodid )
 
   #############################################################################
