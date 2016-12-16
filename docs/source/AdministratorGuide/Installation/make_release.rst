@@ -338,3 +338,66 @@ merging please create a new branch based on master using the web interface of Gi
     git checkout -b newMaster upstream/master
     git merge upstream/devel
     git push upstream newMaster:master
+
+
+5. Mesos cluster
+========================
+
+Mesos is currently only used for the certification.
+In order to push a new version on the Mesos cluster, 3 steps are needed:
+
+- Build the new image
+- Push it the lhcbdirac gitlab repository
+- Update the version of the running containers
+
+All these functionalities have been wrapped up in a script.
+
+For the time being, it can be run on any machine on which:
+
+- You can become root
+- docker is installed and running
+- pip is installed
+- git is installed
+- virtualenv is installed
+
+In case you want to set it up on one of your private CERN virtual machine:
+```
+
+  yum install python-pip docker git
+  sudo pip install virtualenv
+  systemctl start docker
+
+```
+
+The next steps are the following:
+
+```
+
+    # become root
+    sudo su -
+
+    # create a python virtualenv and enable it
+    virtualenv toto
+    source toto/bin/activate
+
+    # install the release script
+    pip install git+https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC.git@devel#subdirectory=container
+
+    # build the new image
+    # this will download the necessary files, and build
+    # the image localy
+    dirac-docker-mgmt.py -v v8r5 --build
+
+    # Push it to the remote lhcbdirac registry
+    # Your credentials for gitlab will be asked
+    dirac-docker-mgmt.py -v v8r5 --release
+
+    # Update the version of the running containers
+    # The services and number of instances running
+    # will be preserved
+    dirac-docker-mgmt.py -v v8r5 --deploy
+
+    # exit from the virtualenv
+    deactivate
+
+```
