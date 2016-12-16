@@ -369,7 +369,7 @@ In case you want to set it up on one of your private CERN virtual machine:
 
 ```
 
-The next step are the following:
+The next steps are the following:
 
 ```
 
