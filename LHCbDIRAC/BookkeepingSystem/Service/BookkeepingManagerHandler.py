@@ -1544,6 +1544,7 @@ class BookkeepingManagerHandler( RequestHandler ):
     if 'RunNumbers' in in_dict:
       gLogger.verbose( 'RunNumbers will be removed. It will changed to RunNumbers' )
 
+    gLogger.info( "getVisibleFilesWithMetadata->%s", in_dict )
     result = {}
     retVal = dataMGMT_.getFilesWithMetadata( configName = configname,
                                              configVersion = configversion,
