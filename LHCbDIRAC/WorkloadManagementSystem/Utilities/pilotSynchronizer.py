@@ -151,7 +151,7 @@ class pilotSynchronizer( object ):
     if repo_VO.tags:
       repo_VO.git.checkout( repo_VO.tags[self.pilotVOVersion], b = 'pilotScripts' )
     else:
-      repo_VO.git.checkout( 'master', b = 'pilotVOScripts' )
+      repo_VO.git.checkout( 'upstream/master', b = 'pilotVOScripts' )
     scriptDir = ( os.path.join( self.pilotVOLocalRepo, self.projectDir, self.pilotVOScriptPath, "*.py" ) )
     for fileVO in glob.glob( scriptDir ):
       result = self._upload( filename = os.path.basename( fileVO ), pilotScript = fileVO )
