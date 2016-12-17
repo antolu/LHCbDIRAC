@@ -1130,7 +1130,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     if not res['OK']:
       self.util.logError( "Error when getting transformation runs for runs %s" % str( runFileDict.keys() ), res['Message'] )
       return res
-    runSites = dict( ( run['RunNumber'], set( run['SelectedSite'].split( ',' ) ) ) for run in res['Value'] )
+    runSites = dict( ( run['RunNumber'], set( run['SelectedSite'].split( ',' ) ) ) for run in res['Value'] if run['SelectedSite'] )
 
     # Consider all runs in turn
     tasks = []
