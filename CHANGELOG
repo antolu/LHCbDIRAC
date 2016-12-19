@@ -1,3 +1,16 @@
+[v8r5p1]
+use DIRAC v6r17p2
+
+* fix selected site == None
+* log the bkk query
+* change the log level
+* Do git checkouts of upstream/master instead of just master
+* log the dataset in case of failure
+* keep track of a specific production
+* clear replica cache at the end of RemoveReplicasWhenProcessed
+* Update JobStateUpdate methods types
+* do not use the view when we ask for RAW data
+
 [v8r5]
 use DIRAC v6r17
 
