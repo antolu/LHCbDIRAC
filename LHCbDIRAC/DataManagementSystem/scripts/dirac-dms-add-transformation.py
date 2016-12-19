@@ -336,7 +336,7 @@ if __name__ == "__main__":
 
     # If the transformation uses the RemoveDataset plugin, set the files invisible in the BK...
     setInvisiblePlugins = ( "RemoveDataset", )
-    # Try and let them visible such
+    # Try and let them visible such that users can see they are archived
     # setInvisiblePlugins = tuple()
     if invisible or plugin in setInvisiblePlugins:
       res = bk.setFilesInvisible( lfns )
