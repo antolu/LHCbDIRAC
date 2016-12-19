@@ -274,7 +274,6 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     if 'StartDate' not in bkQuery:
       self.fullTimeLog[transID] = now
 
-  @gSynchro
   def __getFiles( self, transID, bkQuery, now ):
     """ Perform the query to the Bookkeeping
     """
