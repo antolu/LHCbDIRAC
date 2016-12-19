@@ -1126,6 +1126,12 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       # No files, no tasks!
       return S_OK( [] )
 
+    res = self.util.getTransformationRuns( runFileDict )
+    if not res['OK']:
+      self.util.logError( "Error when getting transformation runs for runs %s" % str( runFileDict.keys() ), res['Message'] )
+      return res
+    runSites = dict( ( run['RunNumber'], set( run['SelectedSite'].split( ',' ) ) ) for run in res['Value'] if run['SelectedSite'] )
+
     # Consider all runs in turn
     tasks = []
     for runID in runFileDict.keys():
@@ -1142,6 +1148,16 @@ class TransformationPlugin( DIRACTransformationPlugin ):
         self.util.logError( "Error creating tasks", res['Message'] )
       else:
         tasks += res['Value']
+        targetSEs = set( se for targets, _lfns in res['Value'] for se in targets.split( ',' ) )
+        runTargets = runSites.get( runID, set() )
+        if targetSEs - runTargets:
+          # Set destination sites for that run
+          runTargets = ','.join( sorted( targetSEs | runTargets ) )
+          self.util.logVerbose( "Setting destination for run %d to %s" % ( runID, runTargets ) )
+          res = self.transClient.setTransformationRunsSite( self.transID, runID, runTargets )
+          if not res['OK']:
+            self.util.logError( "Failed to set target SEs to run %d as %s" %
+                                ( runID, runTargets ), res['Message'] )
     return S_OK( tasks )
 
   def _RemoveDataset( self ):
@@ -1406,7 +1422,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
       return S_ERROR( e )
     finally:
       self.util.writeCacheFile()
-      if not skip and onlyAtList and self.pluginCallback:
+      if self.pluginCallback:
         self.pluginCallback( self.transID, invalidateCache = True )
     return S_OK( self.util.createTasks( storageElementGroups ) )
 

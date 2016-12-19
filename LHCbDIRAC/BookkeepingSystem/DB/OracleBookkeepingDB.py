@@ -1050,6 +1050,8 @@ class OracleBookkeepingDB( object ):
     condition = ''
 
     tables = 'files f, jobs j, dataquality d '
+    useView = filetype not in ( default, 'RAW' )
+    
     retVal = self.__buildStartenddate( startDate, endDate, condition, tables )
     if not retVal['OK']:
       return retVal
@@ -1075,12 +1077,12 @@ class OracleBookkeepingDB( object ):
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( default, conddescription, condition, tables, visible )
+    retVal = self.__buildConditions( default, conddescription, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables, visible )
+    retVal = self.__buildProduction( production, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -1095,19 +1097,19 @@ class OracleBookkeepingDB( object ):
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass( processing, condition, tables, visible )
+    retVal = self.__buildProcessingPass( processing, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildEventType(evt, condition, tables, visible)
+    retVal = self.__buildEventType( evt, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
 
     tables += ',filetypes ft'
-    retVal = self.__buildFileTypes(filetype, condition, tables, visible)
+    retVal = self.__buildFileTypes( filetype, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3017,13 +3019,15 @@ and files.qualityid= dataquality.qualityid'
     """returns a list of lfns"""
     condition = ''
     tables = ' files f,jobs j '
-
+    
+    useView = ftype not in ( default, 'RAW' )
+    
     retVal = self.__buildConfiguration( configName, configVersion, condition, tables )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProduction( production, condition, tables, visible )
+    retVal = self.__buildProduction( production, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3033,12 +3037,12 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildProcessingPass( procPass, condition, tables, visible )
+    retVal = self.__buildProcessingPass( procPass, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildFileTypes( ftype, condition, tables, visible )
+    retVal = self.__buildFileTypes( ftype, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3048,7 +3052,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildEventType( evt, condition, tables, visible )
+    retVal = self.__buildEventType( evt, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
@@ -3073,7 +3077,7 @@ and files.qualityid= dataquality.qualityid'
       return retVal
     condition, tables = retVal['Value']
 
-    retVal = self.__buildConditions( simdesc, datataking, condition, tables, visible )
+    retVal = self.__buildConditions( simdesc, datataking, condition, tables, visible, useView = useView )
     if not retVal['OK']:
       return retVal
     condition, tables = retVal['Value']
