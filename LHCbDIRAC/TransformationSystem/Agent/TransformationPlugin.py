@@ -141,7 +141,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     sourceSE = 'CERN-RAW'
     rawTargets = self.util.getPluginParam( 'RAWStorageElements', ['Tier1-RAW'] )
     rawTargets = set( resolveSEGroup( rawTargets ) ) - set( [sourceSE] )
-    bufferTargets = self.util.getPluginParam( 'ProcessingStorageElements', ['Tier1-BUFFER'] )
+    bufferTargets = self.util.getPluginParam( 'ProcessingStorageElements', ['Tier1-Buffer'] )
     bufferTargets = set( resolveSEGroup( bufferTargets ) )
     useRunDestination = self.util.getPluginParam( 'UseRunDestination', False )
     preStageShares = self.util.getPluginParam( 'PrestageShares', 'CPUforRAW' )
@@ -1107,7 +1107,7 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     """ Plugin used to remove all replicas from a set of SEs except at run destination
     """
     fromSEs = set( resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) ) )
-    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-ARCHIVE'] ) )
+    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-Archive'] ) )
     # this is the number of replicas to be kept in addition to keepSEs and mandatorySEs
     # Remove 1 as we keep the run destination as well...
     if minKeep is None:
@@ -1163,14 +1163,14 @@ class TransformationPlugin( DIRACTransformationPlugin ):
   def _RemoveDataset( self ):
     """ Plugin used to remove disk replicas, keeping some (e.g. archives)
     """
-    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-ARCHIVE'] ) )
+    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-Archive'] ) )
     return self._removeReplicas( keepSEs = keepSEs, minKeep = 0 )
 
   def _RemoveReplicas( self, minKeep = None ):
     """ Plugin for removing replicas from specific SEs specified in FromSEs
     """
     fromSEs = resolveSEGroup( self.util.getPluginParam( 'FromSEs', [] ) )
-    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-ARCHIVE'] ) )
+    keepSEs = resolveSEGroup( self.util.getPluginParam( 'KeepSEs', ['Tier1-Archive'] ) )
     mandatorySEs = resolveSEGroup( self.util.getPluginParam( 'MandatorySEs', [] ) )
     # Allow removing explicitly from SEs in mandatorySEs
     mandatorySEs = [se for se in mandatorySEs if se not in fromSEs]
