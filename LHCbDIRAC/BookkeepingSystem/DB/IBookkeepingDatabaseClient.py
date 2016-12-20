@@ -99,16 +99,16 @@ class IBookkeepingDatabaseClient(object):
 
   #############################################################################
   def getFilesWithMetadata( self, configName, configVersion, conddescription,
-                           processing, evt, production, filetype, quality, visible,
-                           replicaflag, startDate, endDate,
-                           runnumbers, startRunID, endRunID, tcks ):
+                            processing, evt, production, filetype, quality, visible,
+                            replicaflag, startDate, endDate,
+                            runnumbers, startRunID, endRunID, tcks ):
     "more info in the BookkeepingClient.py"
     return self.getManager().getFilesWithMetadata( configName, configVersion,
-                                                  conddescription, processing,
-                                                  evt, production, filetype,
-                                                  quality, visible, replicaflag,
-                                                  startDate, endDate,
-                                                  runnumbers , startRunID, endRunID, tcks )
+                                                   conddescription, processing,
+                                                   evt, production, filetype,
+                                                   quality, visible, replicaflag,
+                                                   startDate, endDate,
+                                                   runnumbers , startRunID, endRunID, tcks )
 
   #############################################################################
   def getFilesSummary( self, configName, configVersion, conditionDescription, processingPass, eventType,
@@ -116,8 +116,8 @@ class IBookkeepingDatabaseClient(object):
                        endDate, runNumbers, replicaFlag, tcks ):
     "more info in the BookkeepingClient.py"
     return self.getManager().getFilesSummary( configName, configVersion, conditionDescription, processingPass, eventType,
-                       production, fileType, dataQuality, startRun, endRun, visible, startDate,
-                       endDate, runNumbers, replicaFlag, tcks )
+                                              production, fileType, dataQuality, startRun, endRun, visible, startDate,
+                                              endDate, runNumbers, replicaFlag, tcks )
 
   #############################################################################
   def getLimitedFiles(self, configName, configVersion, conddescription,
@@ -617,8 +617,8 @@ class IBookkeepingDatabaseClient(object):
     return self.getManager().removeRuntimeProject(stepid)
 
   #############################################################################
-  def getTCKs(self, configName, configVersion, conddescription, processing,
-              evt, production, filetype, quality, runnb):
+  def getTCKs( self, configName, configVersion, conddescription, processing,
+               evt, production, filetype, quality, runnb):
     "more info in the BookkeepingClient.py"
     return self.getManager().getTCKs(configName, configVersion,
                                      conddescription, processing,
@@ -626,7 +626,7 @@ class IBookkeepingDatabaseClient(object):
                                      quality, runnb)
 
   #############################################################################
-  def getStepsMetadata(self, configName, configVersion, cond, procpass, evt,
+  def getStepsMetadata( self, configName, configVersion, cond, procpass, evt,
                         production, filetype, runnb):
     "more info in the BookkeepingClient.py"
     return self.getManager().getStepsMetadata(configName, configVersion,
@@ -697,37 +697,37 @@ class IBookkeepingDatabaseClient(object):
   def getJobInputOutputFiles(self, diracjobids):
     "more info in the BookkeepingClient.py"
     return self.getManager().getJobInputOutputFiles(diracjobids)
-  
+
   #############################################################################
   def insertRunStatus( self, runnumber, jobId, isFinished ):
     "more info in the BookkeepingClient.py"
     return self.getManager().insertRunStatus( runnumber, jobId, isFinished )
-  
+
   #############################################################################
   def setRunStatusFinished( self, runnumber, isFinished ):
     "more info in the BookkeepingClient.py"
     return self.getManager().setRunStatusFinished( runnumber, isFinished )
-  
+
   #############################################################################
   def getRunStatus( self, runnumbers ):
     "more info in the BookkeepingClient.py"
     return self.getManager().getRunStatus( runnumbers )
-  
+
   #############################################################################
   def bulkupdateFileMetaData( self, lfnswithmeta ):
     "more info in the BookkeepingClient.py"
     return self.getManager().bulkupdateFileMetaData( lfnswithmeta )
-  
+
   #############################################################################
   def fixRunLuminosity( self, runnumbers ):
     "more info in the BookkeepingClient.py"
     return self.getManager().fixRunLuminosity( runnumbers )
-  
+
   #############################################################################
   def getProductionProducedEvents( self, prodid ):
     "more info in the BookkeepingClient.py"
     return self.getManager().getProductionProducedEvents( prodid )
-  
+
   #############################################################################
   def bulkinsertEventType( self, eventtypes ):
     """more info in the BookkeepingClient.py"""
@@ -737,9 +737,8 @@ class IBookkeepingDatabaseClient(object):
   def bulkupdateEventType( self, eventtypes ):
     """more info in the BookkeepingClient.py"""
     return self.getManager().bulkupdateEventType( eventtypes )
-  
+
   #############################################################################
   def getRunConfigurationsAndDataTakingCondition( self, runnumber ):
     """more info in the BookkeepingClient.py"""
     return self.getManager().getRunConfigurationsAndDataTakingCondition( runnumber )
-  
