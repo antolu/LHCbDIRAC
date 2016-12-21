@@ -2032,3 +2032,8 @@ class BookkeepingManagerHandler( RequestHandler ):
   def export_getRunConfigurationsAndDataTakingCondition( runnumber ):
     """more info in the BookkeepingClient.py"""
     return dataMGMT_.getRunConfigurationsAndDataTakingCondition( runnumber )
+  
+  types_deleteCertificationData = []
+  def export_deleteCertificationData( self ):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.deleteCertificationData()

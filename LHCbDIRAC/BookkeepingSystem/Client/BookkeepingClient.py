@@ -1115,8 +1115,13 @@ class BookkeepingClient( object ):
     """
     server = self.__getServer()
     return server.getRunConfigurationsAndDataTakingCondition( int( runnumber ) )
-
   
+  #############################################################################
+  def deleteCertificationData( self ):
+    """It destroy the data used by the integration test"""
+    server = self.__getServer()
+    return server.deleteCertificationData()
+    
 class BKClientWithRetry():
   """
   Utility class wrapping BKClient with retries

@@ -5067,3 +5067,9 @@ and files.qualityid= dataquality.qualityid'
     result['ConditionDescription'] = retVal['Value'][0][0]
 
     return S_OK( result )
+  
+  def deleteCertificationData( self ):
+    """
+    It destroy the data used by the integration test.
+    """
+    return self.dbR_.executeStoredProcedure( 'BKUTILITIES.destroyDatasets', [], False )

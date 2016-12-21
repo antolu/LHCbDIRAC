@@ -81,7 +81,8 @@ class DataInsertTestCase( unittest.TestCase ):
   <Parameter Name="VeloPosition"          Value="Open"/>
 </DataTakingConditions>
 </Job>"""
-
+  
+    
 class RAWDataInsert( DataInsertTestCase ):
   
   def test_echo( self ):
@@ -1048,6 +1049,17 @@ class TestRemoveFiles( DataInsertTestCase ):
     self.assertEqual( retVal['Value']['Successful'], [] )
     self.assertEqual( retVal['Value']['Failed'], ['test.txt'] )
 
+class TestDestoryDataset( DataInsertTestCase ):
+  """
+  clean the db contetnt
+  """ 
+  def test_destroyDataset( self ):
+    """
+    after the test the data will be destroyed
+    """
+    retVal = self.bk.deleteCertificationData()
+    self.assert_( retVal['OK'] )
+
 class MCInsertTestCase( unittest.TestCase ):
   """ Tests for the DB part of the RAWIntegrity system
   """
@@ -1055,6 +1067,8 @@ class MCInsertTestCase( unittest.TestCase ):
   def setUp( self ):
     super( MCInsertTestCase, self ).setUp()
     self.bk = BookkeepingClient()
+    self.production = 2
+
     self.simCondDict = {"SimDescription":"Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
                         "BeamCond": "beta*~3m, zpv=25.7mm, xAngle=0.236mrad and yAngle=0.100mrad",
                         "BeamEnergy": "4000 GeV",
@@ -1067,7 +1081,7 @@ class MCInsertTestCase( unittest.TestCase ):
     self.productionSteps = {"SimulationConditions" : "Beam4000GeV-2012-MagUp-Nu2.5-Pythia8",
                             "ConfigName" : "MC",
                             "ConfigVersion" :"2012",
-                            "Production" : 56438,
+                            "Production" : self.production,
                             "Steps":[]}
     
     self.xmlStep1 = """<?xml version="1.0" encoding="ISO-8859-1"?>
@@ -1081,7 +1095,7 @@ class MCInsertTestCase( unittest.TestCase ):
                       <TypedParameter Name="WorkerNode" Type="Info" Value="b6bd1ec9ae.cern.ch"/>
                       <TypedParameter Name="WNMEMORY" Type="Info" Value="1667656.0"/>
                       <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
-                      <TypedParameter Name="Production" Type="Info" Value="00056438"/>
+                      <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                       <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
                       <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_1"/>
                       <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
@@ -1093,7 +1107,7 @@ class MCInsertTestCase( unittest.TestCase ):
                       <TypedParameter Name="DiracVersion" Type="Info" Value="v6r15p9"/>
                       <TypedParameter Name="FirstEventNumber" Type="Info" Value="1"/>
                       <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
-                      <TypedParameter Name="StepID" Type="Info" Value="130277"/>
+                      <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                       <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
                       <OutputFile Name="/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_1.sim" TypeName="SIM" TypeVersion="ROOT">
                               <Parameter Name="EventTypeId" Value="11104131"/>
@@ -1125,7 +1139,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WorkerNode" Type="Info" Value="b6bd1ec9ae.cern.ch"/>
                     <TypedParameter Name="WNMEMORY" Type="Info" Value="1297688.0"/>
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
-                    <TypedParameter Name="Production" Type="Info" Value="00056438"/>
+                    <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
                     <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_2"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
@@ -1137,7 +1151,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="DiracVersion" Type="Info" Value="v6r15p9"/>
                     <TypedParameter Name="FirstEventNumber" Type="Info" Value="1"/>
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
-                    <TypedParameter Name="StepID" Type="Info" Value="129462"/>
+                    <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
                     <InputFile Name="/lhcb/MC/2012/SIM/00056438/0000/00056438_00001025_1.sim"/>
                     <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_2.digi" TypeName="DIGI" TypeVersion="ROOT">
@@ -1166,7 +1180,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WorkerNode" Type="Info" Value="b6bd1ec9ae.cern.ch"/>
                     <TypedParameter Name="WNMEMORY" Type="Info" Value="899072.0"/>
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
-                    <TypedParameter Name="Production" Type="Info" Value="00056438"/>
+                    <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
                     <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_3"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
@@ -1178,7 +1192,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="DiracVersion" Type="Info" Value="v6r15p9"/>
                     <TypedParameter Name="FirstEventNumber" Type="Info" Value="1"/>
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
-                    <TypedParameter Name="StepID" Type="Info" Value="125877"/>
+                    <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
                     <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_2.digi"/>
                     <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_3.digi" TypeName="DIGI" TypeVersion="ROOT">
@@ -1208,7 +1222,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WorkerNode" Type="Info" Value="b6bd1ec9ae.cern.ch"/>
                     <TypedParameter Name="WNMEMORY" Type="Info" Value="1918032.0"/>
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
-                    <TypedParameter Name="Production" Type="Info" Value="00056438"/>
+                    <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
                     <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_4"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
@@ -1220,7 +1234,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="DiracVersion" Type="Info" Value="v6r15p9"/>
                     <TypedParameter Name="FirstEventNumber" Type="Info" Value="1"/>
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
-                    <TypedParameter Name="StepID" Type="Info" Value="129905"/>
+                    <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
                     <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_3.digi"/>
                     <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_4.digi" TypeName="DIGI" TypeVersion="ROOT">
@@ -1249,7 +1263,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WorkerNode" Type="Info" Value="b6bd1ec9ae.cern.ch"/>
                     <TypedParameter Name="WNMEMORY" Type="Info" Value="692064.0"/>
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
-                    <TypedParameter Name="Production" Type="Info" Value="00056438"/>
+                    <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
                     <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_5"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
@@ -1261,7 +1275,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="DiracVersion" Type="Info" Value="v6r15p9"/>
                     <TypedParameter Name="FirstEventNumber" Type="Info" Value="1"/>
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
-                    <TypedParameter Name="StepID" Type="Info" Value="125881"/>
+                    <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
                     <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_4.digi"/>
                     <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_5.digi" TypeName="DIGI" TypeVersion="ROOT">
@@ -1290,7 +1304,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WorkerNode" Type="Info" Value="b6bd1ec9ae.cern.ch"/>
                     <TypedParameter Name="WNMEMORY" Type="Info" Value="899044.0"/>
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
-                    <TypedParameter Name="Production" Type="Info" Value="00056438"/>
+                    <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
                     <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_6"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
@@ -1302,7 +1316,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="DiracVersion" Type="Info" Value="v6r15p9"/>
                     <TypedParameter Name="FirstEventNumber" Type="Info" Value="1"/>
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
-                    <TypedParameter Name="StepID" Type="Info" Value="125878"/>
+                    <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
                     <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_5.digi"/>
                     <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_6.digi" TypeName="DIGI" TypeVersion="ROOT">
@@ -1331,7 +1345,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WorkerNode" Type="Info" Value="b6bd1ec9ae.cern.ch"/>
                     <TypedParameter Name="WNMEMORY" Type="Info" Value="2001584.0"/>
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
-                    <TypedParameter Name="Production" Type="Info" Value="00056438"/>
+                    <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
                     <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_7"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
@@ -1343,7 +1357,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="DiracVersion" Type="Info" Value="v6r15p9"/>
                     <TypedParameter Name="FirstEventNumber" Type="Info" Value="1"/>
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
-                    <TypedParameter Name="StepID" Type="Info" Value="130192"/>
+                    <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
                     <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_6.digi"/>
                     <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi" TypeName="DIGI" TypeVersion="ROOT">
@@ -1372,7 +1386,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="WorkerNode" Type="Info" Value="b6bd1ec9ae.cern.ch"/>
                     <TypedParameter Name="WNMEMORY" Type="Info" Value="700256.0"/>
                     <TypedParameter Name="WNCPUHS06" Type="Info" Value="11.4"/>
-                    <TypedParameter Name="Production" Type="Info" Value="00056438"/>
+                    <TypedParameter Name="Production" Type="Info" Value="%jProduction%"/>
                     <TypedParameter Name="DiracJobId" Type="Info" Value="147844677"/>
                     <TypedParameter Name="Name" Type="Info" Value="00056438_00001025_8"/>
                     <TypedParameter Name="JobStart" Type="Info" Value="%jStart%"/>
@@ -1384,7 +1398,7 @@ class MCInsertTestCase( unittest.TestCase ):
                     <TypedParameter Name="DiracVersion" Type="Info" Value="v6r15p9"/>
                     <TypedParameter Name="FirstEventNumber" Type="Info" Value="1"/>
                     <TypedParameter Name="StatisticsRequested" Type="Info" Value="-1"/>
-                    <TypedParameter Name="StepID" Type="Info" Value="126908"/>
+                    <TypedParameter Name="StepID" Type="Info" Value="%jStepid%"/>
                     <TypedParameter Name="NumberOfEvents" Type="Info" Value="411"/>
                     <InputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi"/>
                     <OutputFile Name="/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_8.digi" TypeName="DIGI" TypeVersion="ROOT">
@@ -1440,7 +1454,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                            'StepId': '',
                                            'ApplicationVersion': 'v49r5',
                                            'ExtraPackages': 'AppConfig.v3r277;DecFiles.v29r10',
-                                           'StepName': 'Sim09b - 2012 - MU - Pythia8',
+                                           'StepName': 'Cert-Sim09b - 2012 - MU - Pythia8',
                                            'ProcessingPass': 'Sim09b',
                                            'isMulticore' : 'N',
                                            'Visible': 'Y',
@@ -1459,7 +1473,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                            'StepId': '',
                                            'ApplicationVersion': 'v30r1',
                                            'ExtraPackages': 'AppConfig.v3r266',
-                                           'StepName': 'Digi14a for 2012 (to use w Sim09)',
+                                           'StepName': 'Cert-Digi14a for 2012 (to use w Sim09)',
                                            'ProcessingPass': 'Digi14a',
                                            'isMulticore' : 'N',
                                            'Visible': 'N',
@@ -1479,7 +1493,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                            'StepId': '',
                                            'ApplicationVersion': 'v20r4',
                                            'ExtraPackages': 'AppConfig.v3r200',
-                                           'StepName': 'L0 emulation - TCK 003d',
+                                           'StepName': 'Cert-L0 emulation - TCK 003d',
                                            'ProcessingPass': 'L0Trig0x003d',
                                            'OptionsFormat':'l0app',
                                            'isMulticore' : 'N',
@@ -1500,7 +1514,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                            'StepId': '',
                                            'ApplicationVersion': 'v14r2p1',
                                            'ExtraPackages': 'AppConfig.v3r288',
-                                           'StepName': 'TCK-0x4097003d Flagged MC - 2012 - to be used in multipleTCKs',
+                                           'StepName': 'Cert-TCK-0x4097003d Flagged MC - 2012 - to be used in multipleTCKs',
                                            'ProcessingPass': 'Trig0x4097003d',
                                            'isMulticore' : 'N',
                                            'Visible': 'N',
@@ -1519,7 +1533,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                            'StepId': '',
                                            'ApplicationVersion': 'v1r4',
                                            'ExtraPackages': 'AppConfig.v3r200',
-                                           'StepName': 'Move TCK-0x4097003d from default location',
+                                           'StepName': 'Cert-Move TCK-0x4097003d from default location',
                                            'ProcessingPass': 'MoveTCK0x4097003d',
                                            'isMulticore' : 'N',
                                            'Visible': 'N',
@@ -1538,7 +1552,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                            'StepId': '',
                                            'ApplicationVersion': 'v20r4',
                                            'ExtraPackages': 'AppConfig.v3r200',
-                                           'StepName': 'L0 emulation - TCK 0042',
+                                           'StepName': 'Cert-L0 emulation - TCK 0042',
                                            'ProcessingPass': 'L0Trig0x0042',
                                            'OptionsFormat':'l0a',
                                            'isMulticore' : 'N',
@@ -1558,7 +1572,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                            'StepId': '',
                                            'ApplicationVersion': 'v14r6',
                                            'ExtraPackages': 'AppConfig.v3r300',
-                                           'StepName': 'TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs',
+                                           'StepName': 'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs',
                                            'ProcessingPass': 'Trig0x40990042',
                                            'OptionsFormat':'l0a',
                                            'isMulticore' : 'N',
@@ -1578,7 +1592,7 @@ class MCProductionRegistration ( MCInsertTestCase ):
                                            'StepId': '',
                                            'ApplicationVersion': 'v1r4',
                                            'ExtraPackages': 'AppConfig.v3r200',
-                                           'StepName': 'Move TCK-0x40990042 from default location',
+                                           'StepName': 'Cert-Move TCK-0x40990042 from default location',
                                            'ProcessingPass': 'MoveTCK0x40990042',
                                            'OptionsFormat':'l0a',
                                            'isMulticore' : 'N',
@@ -1617,6 +1631,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step1 = step1.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
     step1 = step1.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
     step1 = step1.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step1 = step1.replace( "%jProduction%", str( self.production ) )
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    step1 = step1.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step1 )
     self.assert_( retVal['OK'] )
     
@@ -1625,6 +1644,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step2 = step2.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
     step2 = step2.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
     step2 = step2.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step2 = step2.replace( "%jProduction%", str( self.production ) )
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Digi14a for 2012 (to use w Sim09)'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    step2 = step2.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step2 )
     self.assert_( retVal['OK'] )
     
@@ -1633,6 +1657,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step3 = step3.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
     step3 = step3.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
     step3 = step3.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step3 = step3.replace( "%jProduction%", str( self.production ) )
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-L0 emulation - TCK 003d'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    step3 = step3.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step3 )
     self.assert_( retVal['OK'] )
     
@@ -1641,6 +1670,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step4 = step4.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
     step4 = step4.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
     step4 = step4.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step4 = step4.replace( "%jProduction%", str( self.production ) )
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x4097003d Flagged MC - 2012 - to be used in multipleTCKs'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    step4 = step4.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step4 )
     self.assert_( retVal['OK'] )
     
@@ -1649,6 +1683,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step5 = step5.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
     step5 = step5.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
     step5 = step5.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step5 = step5.replace( "%jProduction%", str( self.production ) )
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Move TCK-0x4097003d from default location'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    step5 = step5.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step5 )
     self.assert_( retVal['OK'] )
     
@@ -1657,6 +1696,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step6 = step6.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
     step6 = step6.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
     step6 = step6.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step6 = step6.replace( "%jProduction%", str( self.production ) )
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-L0 emulation - TCK 0042'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    step6 = step6.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step6 )
     self.assert_( retVal['OK'] )
     
@@ -1665,6 +1709,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step7 = step7.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
     step7 = step7.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
     step7 = step7.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step7 = step7.replace( "%jProduction%", str( self.production ) )
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    step7 = step7.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step7 )
     self.assert_( retVal['OK'] )
     
@@ -1673,6 +1722,11 @@ class MCXMLReportInsert( MCInsertTestCase ):
     step8 = step8.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
     step8 = step8.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
     step8 = step8.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step8 = step8.replace( "%jProduction%", str( self.production ) )
+    retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Move TCK-0x40990042 from default location'} )
+    self.assert_( retVal['OK'] )
+    self.assert_( len( retVal['Value']['Records'] ) > 0 )
+    step8 = step8.replace( "%jStepid%", str( retVal['Value']['Records'][0][0] ) )
     retVal = self.bk.sendXMLBookkeepingReport( step8 )
     self.assert_( retVal['OK'] )
     
@@ -1696,10 +1750,11 @@ if __name__ == '__main__':
   
   mcTestSuite = unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionRegistration )
   mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionTest ) )
-  # mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCXMLReportInsert ) )
+  mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCXMLReportInsert ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( mcTestSuite )
-  # suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
-  # suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
-  # suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
-  # unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
+  unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
   
