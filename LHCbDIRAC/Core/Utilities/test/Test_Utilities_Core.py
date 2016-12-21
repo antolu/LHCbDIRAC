@@ -1,18 +1,27 @@
-__RCSID__ = "$Id$"
+""" Unit tests for LHCbDIRAC utilities
+"""
 
-import unittest, itertools, os, datetime
+#pylint: disable=protected-access,missing-docstring,invalid-name
+
+import unittest
+import itertools
+import os
+import datetime
 
 from mock import MagicMock
 
 from DIRAC import gLogger
 
-from LHCbDIRAC.Core.Utilities.ProductionData import _makeProductionLFN, constructProductionLFNs, _getLFNRoot, _applyMask, getLogPath, constructUserLFNs
+from LHCbDIRAC.Core.Utilities.ProductionData import _makeProductionLFN, constructProductionLFNs, \
+                                                    _getLFNRoot, _applyMask, getLogPath, constructUserLFNs
 from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
 from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectCommand
 from LHCbDIRAC.Core.Utilities.GangaDataFile import GangaDataFile
 from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
 from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
+
+__RCSID__ = "$Id$"
 
 
 class UtilitiesTestCase( unittest.TestCase ):
@@ -52,15 +61,14 @@ class UtilitiesTestCase( unittest.TestCase ):
 class ProductionEnvironmentSuccess( UtilitiesTestCase ):
 
   def test_getProjectCommand( self ):
-    expected = [
-                [ ['AppConfig.v110'], '/buf/setupProject.sh --debug --use="AppConfig v110"  Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
+    expected = [[ ['AppConfig.v110'], '/buf/setupProject.sh --debug --use="AppConfig v110"  Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
                 [ ['AppConfig.v110', 'pippo.v1'], '/buf/setupProject.sh --debug --use="AppConfig v110"  --use="pippo v1"  Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
                 [ ['AppConfig.v110', 'pippo.v1', 'ProdConf'], '/buf/setupProject.sh --debug --use="AppConfig v110"  --use="pippo v1"  --use="ProdConf"  Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
-                ]
+               ]
 
     for ep in expected:
       ret = getProjectCommand( '/buf/setupProject.sh', 'Gauss', 'v40r0', ep[0],
-                              'DIRAC.Test.ch', 'Brunel', 'v2r1', 'bof' )
+                               'DIRAC.Test.ch', 'Brunel', 'v2r1', 'bof' )
       self.assertEqual( ret['Value'], ep[1] )
 
 
@@ -70,13 +78,13 @@ class RunApplicationSuccess( UtilitiesTestCase ):
 
   def test_gaudiRunCommand( self ):
 
-    res = self.ra.gaudirunCommand()
-    self.assert_( 'gaudirun.py optFile.py otherOptFile.py gaudi_extra_options.py' in res )
+    res = str(self.ra.gaudirunCommand())
+    self.assertTrue( 'gaudirun.py optFile.py otherOptFile.py gaudi_extra_options.py' in res )
 
     self.ra.prodConf = True
     self.ra.prodConfFileName = 'prodConf.py'
-    res = self.ra.gaudirunCommand()
-    self.assert_( 'gaudirun.py optFile.py otherOptFile.py prodConf.py' in res )
+    res = str(self.ra.gaudirunCommand())
+    self.assertTrue( 'gaudirun.py optFile.py otherOptFile.py prodConf.py' in res )
 
 #################################################
 
@@ -300,18 +308,18 @@ class ProductionDataSuccess( UtilitiesTestCase ):
                   'outputList':[  {'outputDataType': 'sim', 'outputDataSE': 'Tier1-RDST', 'outputDataName': '00012345_00012345_1.sim'},
                                   {'outputDataType': 'digi', 'outputDataSE': 'Tier1-RDST', 'outputDataName': '00012345_00012345_2.digi'},
                                   {'outputDataType': 'dst', 'outputDataSE': 'Tier1_MC_M-DST', 'outputDataName': '00012345_00012345_4.dst'},
-                                  {'outputDataType': 'ALLSTREAMS.DST', 'outputBKType': 'ALLSTREAMS.DST', 'outputDataSE': 'Tier1_MC_M-DST', 'outputDataName': '00012345_00012345_5.AllStreams.dst'}],
-#                  'outputDataFileMask': ''
-                 }
+                                  {'outputDataType': 'ALLSTREAMS.DST', 'outputBKType': 'ALLSTREAMS.DST',
+                                   'outputDataSE': 'Tier1_MC_M-DST', 'outputDataName': '00012345_00012345_5.AllStreams.dst'}],
+ #                 'outputDataFileMask': ''
+                }
 
-    reslist = [
-                { 'LogTargetPath': ['/lhcb/certification/test/LOG/00012345/0005/00012345_00054321.tar'],
+    reslist = [ { 'LogTargetPath': ['/lhcb/certification/test/LOG/00012345/0005/00012345_00054321.tar'],
                   'LogFilePath': ['/lhcb/certification/test/LOG/00012345/0005/00054321'],
                   'DebugLFNs': ['/lhcb/debug/test/SIM/00012345/0005/00012345_00054321_1.sim',
-                               '/lhcb/debug/test/DIGI/00012345/0005/00012345_00054321_2.digi',
-                               '/lhcb/debug/test/DST/00012345/0005/00012345_00054321_4.dst',
-                               '/lhcb/debug/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst',
-                               '/lhcb/debug/test/CORE/00012345/0005/00054321_core'],
+                                '/lhcb/debug/test/DIGI/00012345/0005/00012345_00054321_2.digi',
+                                '/lhcb/debug/test/DST/00012345/0005/00012345_00054321_4.dst',
+                                '/lhcb/debug/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst',
+                                '/lhcb/debug/test/CORE/00012345/0005/00054321_core'],
                   'BookkeepingLFNs': ['/lhcb/certification/test/SIM/00012345/0005/00012345_00054321_1.sim',
                                       '/lhcb/certification/test/DIGI/00012345/0005/00012345_00054321_2.digi',
                                       '/lhcb/certification/test/DST/00012345/0005/00012345_00054321_4.dst',
@@ -323,10 +331,10 @@ class ProductionDataSuccess( UtilitiesTestCase ):
                 { 'LogTargetPath': ['/lhcb/certification/test/LOG/00012345/0005/00012345_00054321.tar'],
                   'LogFilePath': ['/lhcb/certification/test/LOG/00012345/0005/00054321'],
                   'DebugLFNs': ['/lhcb/debug/test/SIM/00012345/0005/00012345_00054321_1.sim',
-                               '/lhcb/debug/test/DIGI/00012345/0005/00012345_00054321_2.digi',
-                               '/lhcb/debug/test/DST/00012345/0005/00012345_00054321_4.dst',
-                               '/lhcb/debug/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst',
-                               '/lhcb/debug/test/CORE/00012345/0005/00054321_core'],
+                                '/lhcb/debug/test/DIGI/00012345/0005/00012345_00054321_2.digi',
+                                '/lhcb/debug/test/DST/00012345/0005/00012345_00054321_4.dst',
+                                '/lhcb/debug/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst',
+                                '/lhcb/debug/test/CORE/00012345/0005/00054321_core'],
                   'BookkeepingLFNs': ['/lhcb/certification/test/SIM/00012345/0005/00012345_00054321_1.sim',
                                       '/lhcb/certification/test/DIGI/00012345/0005/00012345_00054321_2.digi',
                                       '/lhcb/certification/test/DST/00012345/0005/00012345_00054321_4.dst',
@@ -335,10 +343,10 @@ class ProductionDataSuccess( UtilitiesTestCase ):
                 { 'LogTargetPath': ['/lhcb/certification/test/LOG/00012345/0005/00012345_00054321.tar'],
                   'LogFilePath': ['/lhcb/certification/test/LOG/00012345/0005/00054321'],
                   'DebugLFNs': ['/lhcb/debug/test/SIM/00012345/0005/00012345_00054321_1.sim',
-                               '/lhcb/debug/test/DIGI/00012345/0005/00012345_00054321_2.digi',
-                               '/lhcb/debug/test/DST/00012345/0005/00012345_00054321_4.dst',
-                               '/lhcb/debug/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst',
-                               '/lhcb/debug/test/CORE/00012345/0005/00054321_core'],
+                                '/lhcb/debug/test/DIGI/00012345/0005/00012345_00054321_2.digi',
+                                '/lhcb/debug/test/DST/00012345/0005/00012345_00054321_4.dst',
+                                '/lhcb/debug/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst',
+                                '/lhcb/debug/test/CORE/00012345/0005/00054321_core'],
                   'BookkeepingLFNs': ['/lhcb/certification/test/SIM/00012345/0005/00012345_00054321_1.sim',
                                       '/lhcb/certification/test/DIGI/00012345/0005/00012345_00054321_2.digi',
                                       '/lhcb/certification/test/DST/00012345/0005/00012345_00054321_4.dst',
@@ -347,10 +355,10 @@ class ProductionDataSuccess( UtilitiesTestCase ):
                 { 'LogTargetPath': ['/lhcb/certification/test/LOG/00012345/0005/00012345_00054321.tar'],
                   'LogFilePath': ['/lhcb/certification/test/LOG/00012345/0005/00054321'],
                   'DebugLFNs': ['/lhcb/debug/test/SIM/00012345/0005/00012345_00054321_1.sim',
-                               '/lhcb/debug/test/DIGI/00012345/0005/00012345_00054321_2.digi',
-                               '/lhcb/debug/test/DST/00012345/0005/00012345_00054321_4.dst',
-                               '/lhcb/debug/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst',
-                               '/lhcb/debug/test/CORE/00012345/0005/00054321_core'],
+                                '/lhcb/debug/test/DIGI/00012345/0005/00012345_00054321_2.digi',
+                                '/lhcb/debug/test/DST/00012345/0005/00012345_00054321_4.dst',
+                                '/lhcb/debug/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst',
+                                '/lhcb/debug/test/CORE/00012345/0005/00054321_core'],
                   'BookkeepingLFNs': ['/lhcb/certification/test/SIM/00012345/0005/00012345_00054321_1.sim',
                                       '/lhcb/certification/test/DIGI/00012345/0005/00012345_00054321_2.digi',
                                       '/lhcb/certification/test/DST/00012345/0005/00012345_00054321_4.dst',
@@ -360,10 +368,10 @@ class ProductionDataSuccess( UtilitiesTestCase ):
                 { 'LogTargetPath': ['/lhcb/certification/test/LOG/00012345/0005/00012345_00054321.tar'],
                   'LogFilePath': ['/lhcb/certification/test/LOG/00012345/0005/00054321'],
                   'DebugLFNs': ['/lhcb/debug/test/SIM/00012345/0005/00012345_00054321_1.sim',
-                               '/lhcb/debug/test/DIGI/00012345/0005/00012345_00054321_2.digi',
-                               '/lhcb/debug/test/DST/00012345/0005/00012345_00054321_4.dst',
-                               '/lhcb/debug/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst',
-                               '/lhcb/debug/test/CORE/00012345/0005/00054321_core'],
+                                '/lhcb/debug/test/DIGI/00012345/0005/00012345_00054321_2.digi',
+                                '/lhcb/debug/test/DST/00012345/0005/00012345_00054321_4.dst',
+                                '/lhcb/debug/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst',
+                                '/lhcb/debug/test/CORE/00012345/0005/00054321_core'],
                   'BookkeepingLFNs': ['/lhcb/certification/test/SIM/00012345/0005/00012345_00054321_1.sim',
                                       '/lhcb/certification/test/DIGI/00012345/0005/00012345_00054321_2.digi',
                                       '/lhcb/certification/test/DST/00012345/0005/00012345_00054321_4.dst',
@@ -372,17 +380,17 @@ class ProductionDataSuccess( UtilitiesTestCase ):
                 { 'LogTargetPath': ['/lhcb/certification/test/LOG/00012345/0005/00012345_00054321.tar'],
                   'LogFilePath': ['/lhcb/certification/test/LOG/00012345/0005/00054321'],
                   'DebugLFNs': ['/lhcb/debug/test/SIM/00012345/0005/00012345_00054321_1.sim',
-                               '/lhcb/debug/test/DIGI/00012345/0005/00012345_00054321_2.digi',
-                               '/lhcb/debug/test/DST/00012345/0005/00012345_00054321_4.dst',
-                               '/lhcb/debug/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst',
-                               '/lhcb/debug/test/CORE/00012345/0005/00054321_core'],
+                                '/lhcb/debug/test/DIGI/00012345/0005/00012345_00054321_2.digi',
+                                '/lhcb/debug/test/DST/00012345/0005/00012345_00054321_4.dst',
+                                '/lhcb/debug/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst',
+                                '/lhcb/debug/test/CORE/00012345/0005/00054321_core'],
                   'BookkeepingLFNs': ['/lhcb/certification/test/SIM/00012345/0005/00012345_00054321_1.sim',
                                       '/lhcb/certification/test/DIGI/00012345/0005/00012345_00054321_2.digi',
                                       '/lhcb/certification/test/DST/00012345/0005/00012345_00054321_4.dst',
                                       '/lhcb/certification/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst'],
                   'ProductionOutputData': ['/lhcb/certification/test/DST/00012345/0005/00012345_00054321_4.dst',
                                            '/lhcb/certification/test/ALLSTREAMS.DST/00012345/0005/00012345_00054321_5.AllStreams.dst']},
-                ]
+              ]
 
     outputDataFileMasks = ( '', 'dst', 'DST', ['digi', 'dst'], 'ALLSTREAMS.DST', ['dst', 'allstreams.dst'] )
 
@@ -424,31 +432,26 @@ class ProductionDataSuccess( UtilitiesTestCase ):
 
     wfMask = ( '', 'dst', 'ALLSTREAMS.DST', ['dst', 'digi'], ['DIGI', 'allstreams.dst'], 'hist', ['dst', 'hist'] )
 
-    dtlM = ( [
-               ( '00012345_00054321_1.sim', 'sim' ),
+    dtlM = ( [ ( '00012345_00054321_1.sim', 'sim' ),
                ( '00012345_00054321_4.dst', 'dst' ),
                ( '00012345_00054321_2.digi', 'digi' ),
                ( 'Brunel_00012345_00012345_1_Hist.root', 'hist' ),
                ( '00012345_00054321_5.AllStreams.dst', 'ALLSTREAMS.DST' )
-              ],
-              [( '00012345_00054321_4.dst', 'dst' )],
-              [( '00012345_00054321_5.AllStreams.dst', 'ALLSTREAMS.DST' )],
-              [
-               ( '00012345_00054321_4.dst', 'dst' ),
+             ],
+             [( '00012345_00054321_4.dst', 'dst' )],
+             [( '00012345_00054321_5.AllStreams.dst', 'ALLSTREAMS.DST' )],
+             [ ( '00012345_00054321_4.dst', 'dst' ),
                ( '00012345_00054321_2.digi', 'digi' )
-              ],
-              [
-               ( '00012345_00054321_2.digi', 'digi' ),
+             ],
+             [ ( '00012345_00054321_2.digi', 'digi' ),
                ( '00012345_00054321_5.AllStreams.dst', 'ALLSTREAMS.DST' )
-              ],
-              [
+             ],
+             [ ( 'Brunel_00012345_00012345_1_Hist.root', 'hist' )
+             ],
+             [ ( '00012345_00054321_4.dst', 'dst' ),
                ( 'Brunel_00012345_00012345_1_Hist.root', 'hist' )
-              ],
-              [
-               ( '00012345_00054321_4.dst', 'dst' ),
-               ( 'Brunel_00012345_00012345_1_Hist.root', 'hist' )
-              ]
-            )
+             ]
+           )
 
     for mask, res in itertools.izip( wfMask, dtlM ):
       r = _applyMask( mask, dtl )
@@ -467,14 +470,14 @@ class ProductionDataSuccess( UtilitiesTestCase ):
     resWithBkk = getLogPath( wkf_commons, self.bkClientMock, quick = False )
 
     self.assertEqual( resWithBkk, {'OK': True,
-                           'Value': {'LogTargetPath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00012345_00000001.tar'],
-                                     'LogFilePath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00000001']}} )
+                                   'Value': { 'LogTargetPath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00012345_00000001.tar'],
+                                              'LogFilePath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00000001']}} )
 
     res = getLogPath( wkf_commons, self.bkClientMock )
 
     self.assertEqual( res, {'OK': True,
-                           'Value': {'LogTargetPath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00012345_00000001.tar'],
-                                     'LogFilePath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00000001']}} )
+                            'Value': {'LogTargetPath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00012345_00000001.tar'],
+                                      'LogFilePath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00000001']}} )
 
 
   def test__getLFNRoot( self ):
@@ -510,11 +513,11 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
 
     res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'},
                                  'lfn2': {'mdata':'mdata2'}
-                                 } )
+                                } )
     self.assertEqual( res, {'OK': True,
                             'Value': { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'},
-                                      'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'} }
-                            } )
+                                       'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'} }
+                           } )
 
     self.bkClientMock.getFileTypeVersion.return_value = {'OK': True,
                                                          'Value': {}}
@@ -523,11 +526,11 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
                                  'lfn2': {'mdata':'mdata2'}} )
     self.assertEqual( res, {'OK': True,
                             'Value': { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'},
-                                      'lfn2':{'pfntype':'ROOT', 'mdata':'mdata2'} }
-                            } )
+                                       'lfn2':{'pfntype':'ROOT', 'mdata':'mdata2'} }
+                           } )
 
     self.bkClientMock.getFileTypeVersion.return_value = {'OK': True,
-                                                          'Value': {'lfn1': 'ROOT'}}
+                                                         'Value': {'lfn1': 'ROOT'}}
 
     res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'},
                                  'lfn2': {'mdata':'mdata2'},
@@ -536,7 +539,7 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
                             'Value': { 'lfn1':{'pfntype':'ROOT', 'mdata':'mdata1'},
                                        'lfn2':{'pfntype':'ROOT', 'mdata':'mdata2'},
                                        'lfn3':{'pfntype':'ROOT', 'mdata':'mdata3'} }
-                            } )
+                           } )
 
 class NagiosConnectorSuccess( UtilitiesTestCase ):
 
