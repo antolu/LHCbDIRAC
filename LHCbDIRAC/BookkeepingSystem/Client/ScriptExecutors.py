@@ -140,6 +140,11 @@ def executeFilePath( dmScript ):
   dirMetadata = ( 'Production', 'ConfigName', 'ConditionDescription', 'EventType',
                  'FileType', 'ConfigVersion', 'ProcessingPass', 'Path' )
   fileMetadata = ( 'EventType', 'FileType', 'RunNumber', 'JobId', 'DataqualityFlag', 'GotReplica', 'VisibilityFlag' )
+  if groupBy and groupBy not in dirMetadata and groupBy not in fileMetadata:
+    for meta in dirMetadata + fileMetadata:
+      if groupBy.lower() == meta.lower():
+        groupBy = meta
+        break
   if groupBy and groupBy not in dirMetadata:
     if groupBy not in fileMetadata:
       gLogger.notice( 'Invalid metata item', groupBy )
