@@ -26,7 +26,7 @@ def initializeResourceManagementHandler( _serviceInfo ):
   db = ResourceManagementDB()
 
   # Regenerates DB tables if needed
-  db._checkTable()
+  # db.createTables()
 
   syncObject = Synchronizer.Synchronizer()
   gConfig.addListenerToNewVersionEvent( syncObject.sync )
