@@ -1829,7 +1829,8 @@ class OracleBookkeepingDB( object ):
                  'TotalLuminosity':0, \
                  'Tck':'None',\
                  'StepID': None,\
-                 'WNMJFHS06' : 0}
+                 'WNMJFHS06' : 0,\
+                 'HLT2Tck': 'None'}
 
     for param in job:
       if not attrList.__contains__( param ):
@@ -1888,7 +1889,8 @@ class OracleBookkeepingDB( object ):
                                                                attrList['TotalLuminosity'],
                                                                attrList['Tck'],
                                                                attrList['StepID'],
-                                                               attrList['WNMJFHS06'] ] )
+                                                               attrList['WNMJFHS06'],
+                                                               attrList['HLT2Tck'] ] )
     return result
 
   #############################################################################
