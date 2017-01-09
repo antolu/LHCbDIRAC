@@ -1,7 +1,10 @@
-from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
+""" Test jobs to JobDebugger
+"""
 
 import unittest
+
+from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
 
 from DIRAC import gLogger
 from DIRAC.Core.Security.ProxyInfo import getProxyInfo
@@ -37,7 +40,7 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
 
     print "**********************************************************************************************************"
 
-    gLogger.info( "\n Submitting hello world job targeting LCG.CERN.ch" )
+    gLogger.info( "\n Submitting hello world job targeting DIRAC.JobDebugger.ch" )
 
     helloJ = LHCbJob()
 
@@ -83,7 +86,8 @@ class LHCbsubmitSuccess( GridSubmissionTestCase, DIRACGridSubmissionTestCase ):
     helloJ = LHCbJob()
 
     helloJ.setName( "upload-Output-test" )
-    helloJ.setInputSandbox( [find_all( 'testFileUpload.txt', '.', 'GridTestSubmission' )[0]] + [find_all( 'exe-script.py', '.', 'GridTestSubmission' )[0]] )
+    helloJ.setInputSandbox( [find_all( 'testFileUpload.txt', '.', 'GridTestSubmission' )[0]] + [find_all( 'exe-script.py',
+                                                                                                          '.', 'GridTestSubmission' )[0]] )
     helloJ.setExecutable( "exe-script.py", "", "helloWorld.log" )
 
     helloJ.setCPUTime( 17800 )

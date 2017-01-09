@@ -274,7 +274,7 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb', csvFile = Non
   try:
     storageSites = DMSHelpers().getTiers( tier = ( 0, 1 ) )
   except AttributeError:
-    storageSites = ( 'LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.RRCKI.ru', 'LCG.SARA.nl' )
+    storageSites = ( 'LCG.CERN.cern', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.RRCKI.ru', 'LCG.SARA.nl' )
   cachedSESites = {}
   datasetStorage = {}
   for infoType in storageTypes:
@@ -499,4 +499,3 @@ def scanPopularity( since, getAllDatasets, topDirectory = '/lhcb', csvFile = Non
     f.write( row + '\n' )
   f.close()
   gLogger.always( '\nSuccessfully wrote CSV file %s' % csvFile )
-
