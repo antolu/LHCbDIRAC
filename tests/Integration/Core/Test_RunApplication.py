@@ -327,6 +327,38 @@ class DaVinciSuccess( RunApplicationTestCase ):
     self.assertEqual(res['Value'], (0, '', ''))
 
 
+  def test_DaVinci_new( self ):
+    """ Using ProdConf (production style)
+
+        This is taken from step 130339
+    """
+    gLogger.always("**** DAVINCI v42r1")
+
+    ra = RunApplication()
+    ra.applicationName = 'DaVinci'
+    ra.applicationVersion = 'v42r1'
+    ra.commandOptions = ['$APPCONFIGOPTS/DaVinci/DV-Stripping27-Stripping.py',
+                         '$APPCONFIGOPTS/DaVinci/DataType-2016.py',
+                         '$APPCONFIGOPTS/DaVinci/InputType-RDST.py',
+                         '$APPCONFIGOPTS/DaVinci/DV-RawEventJuggler-0_3-to-4_2.py',
+                         '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
+    ra.extraPackages = [('AppConfig', 'v3r308'),
+                        ('SQLDDDB', 'v7r10'),
+                        ('ProdConf', '')
+                       ]
+    ra.step_Number = 1
+    ra.systemConfig = 'x86_64-slc6-gcc49-opt'
+    ra.prodConfFileName = 'test_prodConf_davinci_v42r1.py'
+    ra.applicationLog = '0daVinci_000v42r1_1_log.txt'
+    ra.stdError = '0daVinci_000v42r1_1_err.txt'
+
+    res = ra.run()
+    self.assertTrue(res['OK'])
+    self.assertEqual(res['Value'], (1, '', '')) #This will fail as there's no input file
+
+
+
+
 #############################################################################
 # Test Suite run
 #############################################################################
