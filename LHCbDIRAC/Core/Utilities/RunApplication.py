@@ -39,12 +39,11 @@ class RunApplication(object):
     self.runTimeProjectVersion = ''
 
     self.prodConf = False
-    self.prodConfFileName = ''
+    self.prodConfFileName = 'prodConf.py'
     self.step_number = 0
     self.site = ''
     self.optFile = ''
     self.extraOptionsLine = ''
-    self.prodConfFileName = ''
     self.multicore = False
 
     self.applicationLog = 'applicationLog.txt'
@@ -58,30 +57,31 @@ class RunApplication(object):
   def run( self ):
     """ Invoke lb-run
     """
-    self.log.info( "Executing application %s %s for CMT configuration %s" % ( self.applicationName,
-                                                                              self.applicationVersion,
-                                                                              self.systemConfig ) )
+    self.log.info( "Executing application %s %s for CMT configuration '%s'" % ( self.applicationName,
+                                                                                self.applicationVersion,
+                                                                                self.systemConfig ) )
 
 
     # First, getting lbLogin location
     result = getScriptsLocation()
     if not result['OK']:
       return result
-
     lbLogin = result['Value'][self.groupLogin]
 
     # FIXME: need to use or not?
   #   mySiteRoot = result['Value']['MYSITEROOT']
 
+    # Then, running lbLogin
     lbLoginEnv = runEnvironmentScripts( [lbLogin] )
     if not lbLoginEnv['OK']:
       raise RuntimeError( lbLoginEnv['Message'] )
-
     lbLoginEnv = lbLoginEnv['Value']
 
-    # extra packages (for setup phase)
+    # extra packages (for setup phase) (added using '--use')
     extraPackagesString = ''
     for epName, epVer in self.extraPackages:
+      if epName.lower() == 'prodconf':
+        self.prodConf = True
       if epVer:
         extraPackagesString = extraPackagesString + ' --use="%s %s" ' % ( epName, epVer )
       else:
@@ -91,20 +91,26 @@ class RunApplication(object):
     runtimeProjectString = ''
     if self.runTimeProject:
       self.log.verbose( 'Requested run time project: %s' % ( self.runTimeProject ) )
-      runtimeProjectString = '--runtime-project %s %s' % ( self.runTimeProject , self.runTimeProjectVersion )
+      runtimeProjectString = '--runtime-project %s/%s' % ( self.runTimeProject , self.runTimeProjectVersion )
 
-    externals = ''
+    externalsString = ''
 
-    if self.opsH.getValue( 'ExternalsPolicy/%s' % ( self.site ) ):
+    externals = []
+    if self.site:
       externals = self.opsH.getValue( 'ExternalsPolicy/%s' % ( self.site ), [] )
-      externals = ' '.join( externals )
-      self.log.info( 'Found externals policy for %s = %s' % ( self.site, externals ) )
-    else:
-      externals = self.opsH.getValue( 'ExternalsPolicy/Default', [] )
-      externals = ' '.join( externals )
-      self.log.info( 'Using default externals policy for %s = %s' % ( self.site, externals ) )
+      if externals:
+        self.log.info( 'Found externals policy for %s = %s' % ( self.site, externals ) )
+        for external in externals:
+          externalsString = externalsString + ' --ext=%s' % external
 
-    # Config
+    if not externalsString:
+      externals = self.opsH.getValue( 'ExternalsPolicy/Default', [] )
+      if externals:
+        self.log.info( 'Using default externals policy for %s = %s' % ( self.site, externals ) )
+        for external in externals:
+          externalsString = externalsString + ' --ext=%s' % external
+
+    # "CMT" Configs
     compatibleCMTConfigs = getCMTConfig( self.systemConfig )
     if not compatibleCMTConfigs['OK']:
       return compatibleCMTConfigs
@@ -121,8 +127,8 @@ class RunApplication(object):
       self.log.verbose( "Using %s for setup" % compatibleCMTConfig )
       configString = "-c %s" % compatibleCMTConfig
 
-      finalCommandAsList = [self.runApp, self.applicationName, self.applicationVersion, extraPackagesString, configString,
-                            command, runtimeProjectString, externals]
+      app = self.applicationName + '/' + self.applicationVersion
+      finalCommandAsList = [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command]
       finalCommand = ' '.join( finalCommandAsList )
 
       runResult = self._runApp( finalCommand, compatibleCMTConfig, lbLoginEnv )
@@ -143,6 +149,15 @@ class RunApplication(object):
     """
     gaudiRunFlags = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
 
+    # multicore?
+    if self.multicore:
+      cpus = multiprocessing.cpu_count()
+      if cpus > 1:
+        if _multicoreWN():
+          gaudiRunFlags = gaudiRunFlags + ' --ncpus -1 '
+        else:
+          self.log.info( "Would have run with option '--ncpus -1', but it is not allowed here" )
+
     # if self.optionsLine or self.jobType.lower() == 'user':
     if not self.prodConf:
       command = '%s %s %s' % ( gaudiRunFlags, self.optFile, 'gaudi_extra_options.py' )
@@ -156,32 +171,25 @@ class RunApplication(object):
         command = '%s %s %s' % ( gaudiRunFlags, self.optFile, self.prodConfFileName )
     self.log.always( 'Command = %s' % command )
 
-    # multicore?
-    if self.multicore:
-      cpus = multiprocessing.cpu_count()
-      if cpus > 1:
-        if _multicoreWN():
-          gaudiRunFlags = gaudiRunFlags + ' --ncpus -1 '
-        else:
-          self.log.info( "Would have run with option '--ncpus -1', but it is not allowed here" )
+    return command
 
-
+    # FIXME: check if this is still needed
     # Set some parameter names
-    dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName,
-                                                          self.applicationVersion,
-                                                          self.step_number )
-    scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName,
-                                       self.applicationVersion,
-                                       self.step_number )
-    coreDumpName = '%s_Step%s' % ( self.applicationName,
-                                   self.step_number )
-
-    # Wrap final execution command with defaults
-    finalCommand = addCommandDefaults( command,
-                                       envDump = dumpEnvName,
-                                       coreDumpLog = coreDumpName )['Value']  # should always be S_OK()
-
-    return finalCommand
+    # dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName,
+    #                                                       self.applicationVersion,
+    #                                                       self.step_number )
+    # scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName,
+    #                                    self.applicationVersion,
+    #                                    self.step_number )
+    # coreDumpName = '%s_Step%s' % ( self.applicationName,
+    #                                self.step_number )
+    #
+    # # Wrap final execution command with defaults
+    # finalCommand = addCommandDefaults( command,
+    #                                    envDump = dumpEnvName,
+    #                                    coreDumpLog = coreDumpName )['Value']  # should always be S_OK()
+    #
+    # return finalCommand
 
 
 
