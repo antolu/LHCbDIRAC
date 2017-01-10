@@ -1305,6 +1305,8 @@ class OracleBookkeepingDB( object ):
     production = params.get( 'Production', default )
     lfn = params.get( 'LFN', default )
     condition = ''
+    diracJobids = params.get( 'DiracJobId', default )
+    
     tables = ' jobs j, files f'
     result = None
     if production != default:
@@ -1321,7 +1323,14 @@ class OracleBookkeepingDB( object ):
         condition += ' and (' + ' or '.join( ["f.filename='%s'" % l for l in lfn] ) + ')'
       else:
         result = S_ERROR( "You must provide an LFN or a list of LFNs!" )
-
+    elif diracJobids != default: 
+      if isinstance( diracJobids, ( basestring, long, int ) ) :
+        condition += " and j.DIRACJOBID=%d " % ( int( diracJobids ) )
+      elif isinstance( diracJobids, list ):
+        condition += ' and j.DIRACJOBID in ( ' + ','.join( [str( djobid ) for djobid in diracJobids] ) + ')'
+      else:
+        result = S_ERROR( "Please provide a correct DIRAC jobid!" )
+        
     if not result:
       command = " select  distinct j.DIRACJOBID, j.DIRACVERSION, j.EVENTINPUTSTAT, j.EXECTIME,\
       j.FIRSTEVENTNUMBER,j.LOCATION,  j.NAME, j.NUMBEROFEVENTS, \
