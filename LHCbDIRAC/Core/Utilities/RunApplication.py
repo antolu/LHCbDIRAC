@@ -131,7 +131,7 @@ class RunApplication(object):
       finalCommandAsList = [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command]
       finalCommand = ' '.join( finalCommandAsList )
 
-      runResult = self._runApp( finalCommand, compatibleCMTConfig, lbLoginEnv )
+      runResult = self._runApp( finalCommand, lbLoginEnv )
       if not runResult['OK']:
         self.log.warn( "Problem executing lb-run: %s" % runResult['Message'] )
         self.log.warn( "Can't call lb-run using %s, trying the next, if any\n\n" % compatibleCMTConfig )
@@ -141,6 +141,8 @@ class RunApplication(object):
       raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
 
     self.log.info( "Status after the application execution is %s" % str( runResult ) )
+
+    return runResult
 
 
 
@@ -193,7 +195,7 @@ class RunApplication(object):
 
 
 
-  def _runApp( self, finalCommand, compatibleCMTConfig, env = None ):
+  def _runApp( self, finalCommand, env = None ):
     """ Actual call of a command
     """
     self.log.verbose( "Calling %s" % finalCommand )
