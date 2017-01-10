@@ -239,7 +239,7 @@ class BrunelSuccess( RunApplicationTestCase ):
 
   gLogger.always("\n ***************** Trying out BRUNEL")
 
-  def test_Moore_Production_PR33857( self ):
+  def test_Brunel_Production_PR33857( self ):
     """ Using ProdConf (production style)
 
         This is taken from PR 33857
@@ -267,6 +267,64 @@ class BrunelSuccess( RunApplicationTestCase ):
     self.assertEqual(res['Value'], (0, '', ''))
 
 
+class DaVinciSuccess( RunApplicationTestCase ):
+  """ DaVinci cases
+  """
+
+  gLogger.always("\n ***************** Trying out DAVINCI")
+
+  def test_DaVinci_Production_PR33857( self ):
+    """ Using ProdConf (production style)
+
+        This is taken from PR 33857
+    """
+    gLogger.always("**** DAVINCI v32r2p1")
+
+    ra = RunApplication()
+    ra.applicationName = 'DaVinci'
+    ra.applicationVersion = 'v32r2p1'
+    ra.commandOptions = ['$CHARMCONFIGOPTS/MCFiltering/D02K3PiFromB2DstmunuXStripTrigFiltering_2012.py',
+                         '$APPCONFIGOPTS/DaVinci/DataType-2012.py',
+                         '$APPCONFIGOPTS/DaVinci/InputType-DST.py',
+                         '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
+    ra.extraPackages = [('AppConfig', 'v3r305'),
+                        ('ProdConf', '')
+                       ]
+    ra.step_Number = 1
+    ra.prodConfFileName = 'test_prodConf_davinci_v32r2p1.py'
+    ra.applicationLog = '00033857_00000006_6_log.txt'
+    ra.stdError = '00033857_00000006_6_err.txt'
+
+    res = ra.run()
+    self.assertTrue(res['OK'])
+    self.assertEqual(res['Value'], (0, '', ''))
+
+
+  def test_DaVinci_Production_PR33857_2( self ):
+    """ Using ProdConf (production style)
+
+        This is taken from PR 33857
+    """
+    gLogger.always("**** DAVINCI v41r3")
+
+    ra = RunApplication()
+    ra.applicationName = 'DaVinci'
+    ra.applicationVersion = 'v41r3'
+    ra.commandOptions = ['$APPCONFIGOPTS/Merging/DVMergeDST.py',
+                         '$APPCONFIGOPTS/DaVinci/DataType-2012.py',
+                         '$APPCONFIGOPTS/Merging/WriteFSR.py',
+                         '$APPCONFIGOPTS/Merging/MergeFSR.py']
+    ra.extraPackages = [('AppConfig', 'v3r305'),
+                        ('ProdConf', '')
+                       ]
+    ra.step_Number = 1
+    ra.prodConfFileName = 'test_prodConf_davinci_v41r3.py'
+    ra.applicationLog = '00033857_00000007_7_log.txt'
+    ra.stdError = '00033857_00000007_7_err.txt'
+
+    res = ra.run()
+    self.assertTrue(res['OK'])
+    self.assertEqual(res['Value'], (0, '', ''))
 
 
 #############################################################################
@@ -277,6 +335,9 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RunApplicationTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaussSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BooleSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MooreSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BrunelSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( DaVinciSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 #try multicore
