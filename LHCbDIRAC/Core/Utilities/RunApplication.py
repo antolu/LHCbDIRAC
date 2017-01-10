@@ -133,12 +133,12 @@ class RunApplication(object):
 
       runResult = self._runApp( finalCommand, lbLoginEnv )
       if not runResult['OK']:
-        self.log.warn( "Problem executing lb-run: %s" % runResult['Message'] )
+        self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
+        raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
+
+      if runResult['Value'][0]:
         self.log.warn( "Can't call lb-run using %s, trying the next, if any\n\n" % compatibleCMTConfig )
         continue
-
-    if not runResult['OK']:
-      raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
 
     self.log.info( "Status after the application execution is %s" % str( runResult ) )
 
