@@ -68,7 +68,7 @@ class GaussSuccess( RunApplicationTestCase ):
   def test_Gauss_Production_step133294( self ):
     """ Using ProdConf (production style)
 
-        This is taken from step 133294
+        This is taken from step 133294 (and would fall back to SetupProject)
     """
 
     gLogger.always("**** GAUSS v50r0")
@@ -99,7 +99,7 @@ class GaussSuccess( RunApplicationTestCase ):
   def test_Gauss_User_step133294( self ):
     """ Not using ProdConf (users style)
 
-        This is taken from step 133294
+        This is taken from step 133294 (and would fall back to SetupProject)
     """
     gLogger.always("**** GAUSS v50r0")
 
@@ -143,6 +143,61 @@ class GaussSuccess( RunApplicationTestCase ):
     self.assertEqual(res['Value'], (0, '', ''))
 
 
+class BooleSuccess( RunApplicationTestCase ):
+  """ Boole cases
+  """
+
+  gLogger.always("\n ***************** Trying out BOOLE")
+
+  def test_Boole_Production_PR33857( self ):
+    """ Using ProdConf (production style)
+
+        This is taken from PR 33857 (and would fall back to SetupProject)
+    """
+    gLogger.always("**** Boole v30r1")
+
+    ra = RunApplication()
+    ra.applicationName = 'Boole'
+    ra.applicationVersion = 'v30r1'
+    ra.systemConfig = 'x86_64-slc6-gcc48-opt'
+    ra.commandOptions = ['$APPCONFIGOPTS/Boole/Default.py',
+                         '$APPCONFIGOPTS/Boole/DataType-2012.py',
+                         '$APPCONFIGOPTS/Boole/NoPacking.py',
+                         '$APPCONFIGOPTS/Boole/Boole-SetOdinRndTrigger.py',
+                         '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
+    ra.extraPackages = [('AppConfig', 'v3r266'),
+                        ('ProdConf', '')
+                       ]
+    ra.step_Number = 1
+    ra.prodConfFileName = 'test_prodConf_boole_v30r1.py'
+    ra.applicationLog = '00033857_00000002_2_log.txt'
+    ra.stdError = '00033857_00000002_2_err.txt'
+
+    res = ra.run()
+    self.assertTrue(res['OK'])
+    self.assertEqual(res['Value'], (0, '', ''))
+
+# class MooreSuccess( RunApplicationTestCase ):
+#   """ Moore cases
+#   """
+#
+#   gLogger.always("\n ***************** Trying out MOORE")
+#
+#   def test_Moore_Production_PR33857( self ):
+#     """ Using ProdConf (production style)
+#
+#         This is taken from PR 33857 (and would fall back to SetupProject)
+#     """
+#     gLogger.always("**** MOORE v49r5")
+#
+#     ra = RunApplication()
+#
+#     res = ra.run()
+#     self.assertTrue(res['OK'])
+#     self.assertEqual(res['Value'], (0, '', ''))
+
+
+
 #############################################################################
 # Test Suite run
 #############################################################################
@@ -150,6 +205,7 @@ class GaussSuccess( RunApplicationTestCase ):
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RunApplicationTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaussSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BooleSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 #

@@ -5,7 +5,7 @@ from ProdConf import ProdConf
 ProdConf(
   NOfEvents=1,
   DDDBTag='dddb-20150928',
-  AppVersion='v49r5',
+  AppVersion='v50r0',
   XMLSummaryFile='summaryGauss_00000001_00000001_1.xml',
   Application='Gauss',
   OutputFilePrefix='00000001_00000001_1',
