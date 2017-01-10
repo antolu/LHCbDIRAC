@@ -1305,9 +1305,9 @@ class OracleBookkeepingDB( object ):
     production = params.get( 'Production', default )
     lfn = params.get( 'LFN', default )
     condition = ''
-    diracJobids = params.get( 'DiracJobId', default )
+    diracJobids = params.get( 'DiracJobID', default )
     
-    tables = ' jobs j, files f'
+    tables = ' jobs j, files f, configurations c'
     result = None
     if production != default:
       if isinstance( production, ( basestring, long, int ) ) :
@@ -1335,15 +1335,18 @@ class OracleBookkeepingDB( object ):
       command = " select  distinct j.DIRACJOBID, j.DIRACVERSION, j.EVENTINPUTSTAT, j.EXECTIME,\
       j.FIRSTEVENTNUMBER,j.LOCATION,  j.NAME, j.NUMBEROFEVENTS, \
                  j.STATISTICSREQUESTED, j.WNCPUPOWER, j.CPUTIME, j.WNCACHE, j.WNMEMORY, j.WNMODEL, \
-                 j.WORKERNODE, j.WNCPUHS06, j.jobid, j.totalluminosity, j.production, j.WNMJFHS06\
-                 from %s where f.jobid=j.jobid %s" % ( tables, condition )
+                 j.WORKERNODE, j.WNCPUHS06, j.jobid, j.totalluminosity, j.production, j.WNMJFHS06,\
+                 c.ConfigName,c.ConfigVersion, j.JobEnd, j.JobStart, j.RunNumber, j.FillNumber, j.Tck, j.stepid \
+                 from %s where f.jobid=j.jobid and c.configurationid=j.configurationid %s" % ( tables, condition )
       retVal = self.dbR_.query( command )
       if retVal['OK']:
         records = []
+                 
         parameters = ['DiracJobID', 'DiracVersion', 'EventInputStat', 'Exectime', 'FirstEventNumber',
                       'Location', 'JobName', 'NumberOfEvents', 'StatisticsRequested', 'WNCPUPower',
                       'CPUTime', 'WNCache', 'WNMemory', 'WNModel', 'WorkerNode', 'WNCPUHS06',
-                      'JobId', 'TotalLuminosity', 'Production','WNMJFHS06']
+                      'JobId', 'TotalLuminosity', 'Production', 'WNMJFHS06', 'ConfigName',
+                      'ConfigVersion', 'JobEnd', 'JobStart', 'RunNumber', 'FillNumber', 'Tck', 'StepId']
         for i in retVal['Value']:
           records += [dict( zip( parameters, i ) )]
         result = S_OK( records )

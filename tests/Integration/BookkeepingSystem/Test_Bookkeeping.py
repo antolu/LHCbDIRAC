@@ -1753,38 +1753,26 @@ class MCProductionTest ( MCInsertTestCase ):
     retVal = self.bk.getJobInformation( {'LFN':['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_8.digi', '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi']} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 2 )
-    self.assertEquals( retVal['Value'], [{'CPUTime': 641.7,
-                                          'DiracJobID': 147844677,
-                                          'DiracVersion': 'v6r15p9',
-                                          'EventInputStat': 411,
-                                          'Exectime': 709.81375289,
-                                          'FirstEventNumber': 1,
-                                          'JobId': 63579813,
-                                          'JobName': '00056438_00001025_7',
-                                          'Location': 'LCG.CERN.ch',
-                                          'NumberOfEvents': 411,
-                                          'Production': 2,
-                                          'StatisticsRequested':-1,
-                                          'TotalLuminosity': 0,
-                                          'WNCPUHS06': 11.4,
-                                          'WNCPUPower': '1',
-                                          'WNCache': '2593.748',
-                                          'WNMJFHS06': 0.0,
-                                          'WNMemory': '2001584.0',
-                                          'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz',
-                                          'WorkerNode': 'b6bd1ec9ae.cern.ch'},
-                                         {'CPUTime': 472.93,
+    self.assertEquals( retVal['Value'], [{'CPUTime': 472.93,
+                                          'ConfigName': 'MC',
+                                          'ConfigVersion': '2012',
                                           'DiracJobID': 147844677,
                                           'DiracVersion': 'v6r15p9',
                                           'EventInputStat': 411,
                                           'Exectime': 493.59373498,
+                                          'FillNumber': None,
                                           'FirstEventNumber': 1,
+                                          'JobEnd': datetime.datetime( 2017, 1, 10, 16, 51 ),
                                           'JobId': 63579814,
                                           'JobName': '00056438_00001025_8',
+                                          'JobStart': datetime.datetime( 2017, 1, 10, 16, 51 ),
                                           'Location': 'LCG.CERN.ch',
                                           'NumberOfEvents': 411,
                                           'Production': 2,
+                                          'RunNumber': None,
                                           'StatisticsRequested':-1,
+                                          'StepId': 16001,
+                                          'Tck': 'None',
                                           'TotalLuminosity': 0,
                                           'WNCPUHS06': 11.4,
                                           'WNCPUPower': '1',
@@ -1792,21 +1780,49 @@ class MCProductionTest ( MCInsertTestCase ):
                                           'WNMJFHS06': 0.0,
                                           'WNMemory': '700256.0',
                                           'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz',
+                                          'WorkerNode': 'b6bd1ec9ae.cern.ch'},
+                                         {'CPUTime': 641.7,
+                                          'ConfigName': 'MC',
+                                          'ConfigVersion': '2012',
+                                          'DiracJobID': 147844677,
+                                          'DiracVersion': 'v6r15p9',
+                                          'EventInputStat': 411,
+                                          'Exectime': 709.81375289,
+                                          'FillNumber': None,
+                                          'FirstEventNumber': 1,
+                                          'JobEnd': datetime.datetime( 2017, 1, 10, 16, 51 ),
+                                          'JobId': 63579813,
+                                          'JobName': '00056438_00001025_7',
+                                          'JobStart': datetime.datetime( 2017, 1, 10, 16, 51 ),
+                                          'Location': 'LCG.CERN.ch',
+                                          'NumberOfEvents': 411,
+                                          'Production': 2,
+                                          'RunNumber': None,
+                                          'StatisticsRequested':-1,
+                                          'StepId': 16000,
+                                          'Tck': 'None',
+                                          'TotalLuminosity': 0,
+                                          'WNCPUHS06': 11.4,
+                                          'WNCPUPower': '1',
+                                          'WNCache': '2593.748',
+                                          'WNMJFHS06': 0.0,
+                                          'WNMemory': '2001584.0',
+                                          'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz',
                                           'WorkerNode': 'b6bd1ec9ae.cern.ch'}] )
     
     retVal = self.bk.getJobInformation( {'Production':2} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 8 )
     
-    retVal = self.bk.getJobInformation( {'DiracJobId':147844677} )
+    retVal = self.bk.getJobInformation( {'DiracJobID':147844677} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 8 )
     
-    retVal = self.bk.getJobInformation( {'DiracJobId':[147844677]} )
+    retVal = self.bk.getJobInformation( {'DiracJobID':[147844677]} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 8 )
     
-    retVal = self.bk.getJobInformation( {'DiracJobId':[147844677, 147844677]} )
+    retVal = self.bk.getJobInformation( {'DiracJobID':[147844677, 147844677]} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 8 )
     
@@ -1819,6 +1835,6 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
   
