@@ -360,18 +360,13 @@ For the time being, it can be run on any machine on which:
 - git is installed
 - virtualenv is installed
 
-In case you want to set it up on one of your private CERN virtual machine:
-```
+In case you want to set it up on one of your private CERN virtual machine::
 
   yum install python-pip docker git
   sudo pip install virtualenv
   systemctl start docker
 
-```
-
-The next steps are the following:
-
-```
+The next steps are the following::
 
     # become root
     sudo su -
@@ -399,5 +394,3 @@ The next steps are the following:
 
     # exit from the virtualenv
     deactivate
-
-```
