@@ -1756,6 +1756,6 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
   
