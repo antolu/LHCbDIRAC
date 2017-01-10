@@ -1305,7 +1305,7 @@ class OracleBookkeepingDB( object ):
     production = params.get( 'Production', default )
     lfn = params.get( 'LFN', default )
     condition = ''
-    diracJobids = params.get( 'DiracJobID', default )
+    diracJobids = params.get( 'DiracJobId', default )
     
     tables = ' jobs j, files f, configurations c'
     result = None
@@ -1342,7 +1342,7 @@ class OracleBookkeepingDB( object ):
       if retVal['OK']:
         records = []
                  
-        parameters = ['DiracJobID', 'DiracVersion', 'EventInputStat', 'Exectime', 'FirstEventNumber',
+        parameters = ['DiracJobId', 'DiracVersion', 'EventInputStat', 'Exectime', 'FirstEventNumber',
                       'Location', 'JobName', 'NumberOfEvents', 'StatisticsRequested', 'WNCPUPower',
                       'CPUTime', 'WNCache', 'WNMemory', 'WNModel', 'WorkerNode', 'WNCPUHS06',
                       'JobId', 'TotalLuminosity', 'Production', 'WNMJFHS06', 'ConfigName',

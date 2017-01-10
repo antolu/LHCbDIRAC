@@ -1756,7 +1756,7 @@ class MCProductionTest ( MCInsertTestCase ):
     self.assertEquals( retVal['Value'], [{'CPUTime': 472.93,
                                           'ConfigName': 'MC',
                                           'ConfigVersion': '2012',
-                                          'DiracJobID': 147844677,
+                                          'DiracJobId': 147844677,
                                           'DiracVersion': 'v6r15p9',
                                           'EventInputStat': 411,
                                           'Exectime': 493.59373498,
@@ -1784,7 +1784,7 @@ class MCProductionTest ( MCInsertTestCase ):
                                          {'CPUTime': 641.7,
                                           'ConfigName': 'MC',
                                           'ConfigVersion': '2012',
-                                          'DiracJobID': 147844677,
+                                          'DiracJobId': 147844677,
                                           'DiracVersion': 'v6r15p9',
                                           'EventInputStat': 411,
                                           'Exectime': 709.81375289,
@@ -1814,15 +1814,15 @@ class MCProductionTest ( MCInsertTestCase ):
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 8 )
     
-    retVal = self.bk.getJobInformation( {'DiracJobID':147844677} )
+    retVal = self.bk.getJobInformation( {'DiracJobId':147844677} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 8 )
     
-    retVal = self.bk.getJobInformation( {'DiracJobID':[147844677]} )
+    retVal = self.bk.getJobInformation( {'DiracJobId':[147844677]} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 8 )
     
-    retVal = self.bk.getJobInformation( {'DiracJobID':[147844677, 147844677]} )
+    retVal = self.bk.getJobInformation( {'DiracJobId':[147844677, 147844677]} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 8 )
     
