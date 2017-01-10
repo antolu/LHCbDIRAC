@@ -138,7 +138,7 @@ class GaussSuccess( RunApplicationTestCase ):
     ra.applicationLog = 'user_133294_log.txt'
     ra.stdError = 'user_133294_err.txt'
 
-    res = ra.run()
+    res = ra.run() #this won't really do anything but it doesn't matters
     self.assertTrue(res['OK'])
     self.assertEqual(res['Value'], (0, '', ''))
 
@@ -152,7 +152,7 @@ class BooleSuccess( RunApplicationTestCase ):
   def test_Boole_Production_PR33857( self ):
     """ Using ProdConf (production style)
 
-        This is taken from PR 33857 (and would fall back to SetupProject)
+        This is taken from PR 33857
     """
     gLogger.always("**** Boole v30r1")
 
@@ -177,24 +177,95 @@ class BooleSuccess( RunApplicationTestCase ):
     self.assertTrue(res['OK'])
     self.assertEqual(res['Value'], (0, '', ''))
 
-# class MooreSuccess( RunApplicationTestCase ):
-#   """ Moore cases
-#   """
-#
-#   gLogger.always("\n ***************** Trying out MOORE")
-#
-#   def test_Moore_Production_PR33857( self ):
-#     """ Using ProdConf (production style)
-#
-#         This is taken from PR 33857 (and would fall back to SetupProject)
-#     """
-#     gLogger.always("**** MOORE v49r5")
-#
-#     ra = RunApplication()
-#
-#     res = ra.run()
-#     self.assertTrue(res['OK'])
-#     self.assertEqual(res['Value'], (0, '', ''))
+class MooreSuccess( RunApplicationTestCase ):
+  """ Moore cases
+  """
+
+  gLogger.always("\n ***************** Trying out MOORE")
+
+  def test_Moore_Production_PR33857( self ):
+    """ Using ProdConf (production style)
+
+        This is taken from PR 33857
+    """
+    gLogger.always("**** MOORE v20r4")
+
+    ra = RunApplication()
+    ra.applicationName = 'Moore'
+    ra.applicationVersion = 'v20r4'
+    ra.commandOptions = ['$APPCONFIGOPTS/L0App/L0AppSimProduction.py',
+                         '$APPCONFIGOPTS/L0App/L0AppTCK-0x0045.py',
+                         '$APPCONFIGOPTS/L0App/DataType-2012.py']
+    ra.extraPackages = [('AppConfig', 'v3r200'),
+                        ('ProdConf', '')
+                       ]
+    ra.step_Number = 1
+    ra.prodConfFileName = 'test_prodConf_moore_v20r4.py'
+    ra.applicationLog = '00033857_00000003_3_log.txt'
+    ra.stdError = '00033857_00000003_3_err.txt'
+
+    res = ra.run()
+    self.assertTrue(res['OK'])
+    self.assertEqual(res['Value'], (0, '', ''))
+
+  def test_Moore_Production_PR33857_2( self ):
+    """ Using ProdConf (production style)
+
+        This is taken from PR 33857
+    """
+    gLogger.always("**** MOORE v14r8p1")
+
+    ra = RunApplication()
+    ra.applicationName = 'Moore'
+    ra.applicationVersion = 'v14r8p1'
+    ra.commandOptions = ['$APPCONFIGOPTS/Moore/MooreSimProductionForSeparateL0AppStep.py',
+                         '$APPCONFIGOPTS/Conditions/TCK-0x409f0045.py',
+                         '$APPCONFIGOPTS/Moore/DataType-2012.py']
+    ra.extraPackages = [('AppConfig', 'v3r241'),
+                        ('ProdConf', '')
+                       ]
+    ra.step_Number = 1
+    ra.prodConfFileName = 'test_prodConf_moore_v14r8p1.py'
+    ra.applicationLog = '00033857_00000004_4_log.txt'
+    ra.stdError = '00033857_00000004_4_err.txt'
+
+    res = ra.run()
+    self.assertTrue(res['OK'])
+    self.assertEqual(res['Value'], (0, '', ''))
+
+class BrunelSuccess( RunApplicationTestCase ):
+  """ Brunel cases
+  """
+
+  gLogger.always("\n ***************** Trying out BRUNEL")
+
+  def test_Moore_Production_PR33857( self ):
+    """ Using ProdConf (production style)
+
+        This is taken from PR 33857
+    """
+    gLogger.always("**** BRUNEL v43r2p11")
+
+    ra = RunApplication()
+    ra.applicationName = 'Brunel'
+    ra.applicationVersion = 'v42r2p11'
+    ra.commandOptions = ['$APPCONFIGOPTS/Brunel/DataType-2012.py',
+                         '$APPCONFIGOPTS/Brunel/MC-WithTruth.py',
+                         '$APPCONFIGOPTS/Brunel/Sim09-Run1.py',
+                         '$APPCONFIGOPTS/Persistency/DST-multipleTCK-2012.py',
+                         '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
+    ra.extraPackages = [('AppConfig', 'v3r302'),
+                        ('ProdConf', '')
+                       ]
+    ra.step_Number = 1
+    ra.prodConfFileName = 'test_prodConf_brunel_v43r2p11.py'
+    ra.applicationLog = '00033857_00000005_5_log.txt'
+    ra.stdError = '00033857_00000005_5_err.txt'
+
+    res = ra.run()
+    self.assertTrue(res['OK'])
+    self.assertEqual(res['Value'], (0, '', ''))
+
 
 
 
@@ -207,14 +278,5 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaussSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BooleSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
-
-#
-#
-#
-#
-#
-# ### Moore
-# gLogger.always("\n ***************** Trying out Moore \n")
-
 
 #try multicore
