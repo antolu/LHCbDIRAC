@@ -43,6 +43,7 @@ class DataInsertTestCase( unittest.TestCase ):
   <TypedParameter Name="JobType"         Value="Merge" Type="Info"/>
   <TypedParameter Name="TotalLuminosity"         Value="121222.33" Type="Info"/>
   <TypedParameter Name="Tck"             Value="-2137784319" Type="Info"/>
+  <TypedParameter Name="HLT2Tck" Type="Info" Value="0xaa10c"/>
   <TypedParameter Name="CondDB"             Value="xy" Type="Info"/>
  <TypedParameter Name="DDDB"             Value="xyz" Type="Info"/>
 """
@@ -1755,6 +1756,6 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
   

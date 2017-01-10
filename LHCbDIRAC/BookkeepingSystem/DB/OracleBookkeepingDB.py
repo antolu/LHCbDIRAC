@@ -1860,7 +1860,7 @@ class OracleBookkeepingDB( object ):
       pass  # it is already defined
 
 
-    result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertJobsRow',
+    result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertJobsRow_tmp',
                                               types.LongType, [attrList['ConfigName'],
                                                                attrList['ConfigVersion'],
                                                                attrList['DiracJobId'],
