@@ -161,7 +161,7 @@ class RunApplication(object):
           self.log.info( "Would have run with option '--ncpus -1', but it is not allowed here" )
 
     # if self.optionsLine or self.jobType.lower() == 'user':
-    if not self.prodConf:
+    if not self.prodConf: # user jobs
       command = '%s %s %s' % ( gaudiRunFlags, self.optFile, 'gaudi_extra_options.py' )
     else:  # everything but user jobs
       if self.extraOptionsLine:
