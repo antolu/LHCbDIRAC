@@ -14,6 +14,12 @@ This contains the necessary files to build an LHCbDIRAC image.
 * dockerEntrypoint.sh: entry point of docker to setup the DIRAC environment before executing the command
 * dirac_self_ping.py: Marathon monitors containers by executing a command inside them. This script perform a DIPS ping on the service running inside the container
 
+The host should mount into the container:
+* the dirac.cfg in `/opt/dirac/etc/dirac.cfg`
+* the certificates as `/opt/dirac/etc/grid-security`
+
+If running a service, it is necessary to expose a port.
+
 ## monitoring folder
 
 This contains all the necessary scripts to monitor the containers. They are deployed on all mesos slave with puppet.
