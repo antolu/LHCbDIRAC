@@ -232,7 +232,7 @@ class Production( object ):
       gLogger.debug("Determining the modules of the steps (modulesList = %s)" % modulesList)
       if modulesList is None: # we assume it's a standard list of modules for Gaudi steps
         gaudiPath = 'Productions/GaudiStep_Modules'
-        modulesList = self.opsHelper.getValue( gaudiPath, ['GaudiApplication', 'AnalyseLogFile', 'AnalyseXMLSummary',
+        modulesList = self.opsHelper.getValue( gaudiPath, ['GaudiApplication', 'AnalyseXMLSummary',
                                                            'ErrorLogging', 'BookkeepingReport', 'StepAccounting'] )
 
       # pName, pType, pValue, pDesc
@@ -676,10 +676,10 @@ class Production( object ):
 
     # This is the last component necessary for the BK publishing (post reorganisation)
     bkDictStep['Steps'] = stepList
-    
+
     bkDictStep['ConfigName'] = self.LHCbJob.workflow.findParameter( 'configName' ).getValue()
     bkDictStep['ConfigVersion'] = self.LHCbJob.workflow.findParameter( 'configVersion' ).getValue()
-    
+
     if publish:
       gLogger.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
       result = self.bkkClient.addProduction( bkDictStep )
