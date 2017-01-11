@@ -248,7 +248,7 @@ class BrunelSuccess( RunApplicationTestCase ):
 
     ra = RunApplication()
     ra.applicationName = 'Brunel'
-    ra.applicationVersion = 'v42r2p11'
+    ra.applicationVersion = 'v43r2p11'
     ra.commandOptions = ['$APPCONFIGOPTS/Brunel/DataType-2012.py',
                          '$APPCONFIGOPTS/Brunel/MC-WithTruth.py',
                          '$APPCONFIGOPTS/Brunel/Sim09-Run1.py',
@@ -288,6 +288,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
                          '$APPCONFIGOPTS/DaVinci/InputType-DST.py',
                          '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
     ra.extraPackages = [('AppConfig', 'v3r305'),
+                        ('CharmConfig', 'v3r30'),
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
