@@ -1,6 +1,8 @@
 """ Analyse log file(s) module
 """
 
+### This module is now not used anywhere
+
 import os
 import re
 import glob
