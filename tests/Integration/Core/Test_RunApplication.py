@@ -43,7 +43,7 @@ class GaussSuccess( RunApplicationTestCase ):
     ra.applicationName = 'Gauss'
     ra.applicationVersion = 'v49r5'
     ra.systemConfig = 'x86_64-slc6-gcc48-opt'
-    ra.commandOptions = ['$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.pyi',
+    ra.commandOptions = ['$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py',
                          '$APPCONFIGOPTS/Gauss/DataType-2012.py',
                          '$APPCONFIGOPTS/Gauss/RICHRandomHits.py',
                          '$APPCONFIGOPTS/Gauss/NoPacking.py',
