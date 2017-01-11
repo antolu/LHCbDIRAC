@@ -503,8 +503,8 @@ class TransformationPlugin( DIRACTransformationPlugin ):
     runEvtType = {}
     # Restart where we finished last time
     lastRun = self.util.getCachedLastRun()
-    runNumbers = [run['RunNumber'] for run in transRuns if run['RunNumber'] > lastRun] + \
-                 [run['RunNumber'] for run in transRuns if run['RunNumber'] <= lastRun]
+    runNumbers = sorted( [run['RunNumber'] for run in transRuns if run['RunNumber'] > lastRun] ) + \
+                 sorted( [run['RunNumber'] for run in transRuns if run['RunNumber'] <= lastRun] )
     # If none left, restart from the beginning
     if not runNumbers:
       runNumbers = [run['RunNumber'] for run in transRuns]
