@@ -1121,7 +1121,15 @@ class BookkeepingClient( object ):
     """It destroy the data used by the integration test"""
     server = self.__getServer()
     return server.deleteCertificationData()
-    
+  
+  #############################################################################
+  def getAvailableTagsFromSteps( self ):
+    """
+    It returns the all used datatbase tags: DDDB, CondDB, DQTag
+    """
+    server = self.__getServer()
+    return server.getAvailableTagsFromSteps()
+  
 class BKClientWithRetry():
   """
   Utility class wrapping BKClient with retries

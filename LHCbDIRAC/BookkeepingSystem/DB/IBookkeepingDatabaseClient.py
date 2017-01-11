@@ -747,3 +747,8 @@ class IBookkeepingDatabaseClient(object):
   def deleteCertificationData( self ):
     """more info in the BookkeepingClient.py"""
     return self.getManager().deleteCertificationData()
+  
+  #############################################################################
+  def getAvailableTagsFromSteps( self ):
+    """more info in the BookkeepingClient.py"""
+    return self.getManager().getAvailableTagsFromSteps()

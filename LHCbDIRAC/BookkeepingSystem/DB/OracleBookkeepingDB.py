@@ -5087,3 +5087,25 @@ and files.qualityid= dataquality.qualityid'
     It destroy the data used by the integration test.
     """
     return self.dbR_.executeStoredProcedure( 'BKUTILITIES.destroyDatasets', [], False )
+  
+  #############################################################################
+  def getAvailableTagsFromSteps( self ):
+    """
+    :return S_OK/S_ERROR a list of db tags
+    """
+    
+    command = "select distinct DDDB,CONDDB,DQTAG from steps where Usable='Yes'"
+    retVal = self.dbR_.query( command )
+    if not retVal['OK']:
+      return retVal
+    
+    records = []
+    for record in retVal['Value']:
+      if record[0]!=None:
+        records.append( [ 'DDDB', record[0]] )
+      if record[1]!=None:
+        records.append( [ 'CONDDB', record[1]] )
+      if record[2]!=None:
+        records.append( [ 'DQTAG', record[2]] )
+    
+    return S_OK( {'ParameterNames': ['TagName', 'TagValue'], 'Records':records} )

@@ -2037,3 +2037,9 @@ class BookkeepingManagerHandler( RequestHandler ):
   def export_deleteCertificationData( self ):
     """more info in the BookkeepingClient.py"""
     return dataMGMT_.deleteCertificationData()
+
+  #############################################################################
+  types_getAvailableTagsFromSteps = []
+  def export_getAvailableTagsFromSteps( self ):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.getAvailableTagsFromSteps()
