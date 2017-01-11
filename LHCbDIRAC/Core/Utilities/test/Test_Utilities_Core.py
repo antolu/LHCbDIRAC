@@ -41,10 +41,6 @@ class UtilitiesTestCase( unittest.TestCase ):
     self.IDR = InputDataResolution( {}, self.bkClientMock )
 
     self.pc = ProdConf()
-    self.ra = RunApplication()
-    self.ra.opsH = MagicMock()
-    self.ra.opsH.getValue.return_value = 'gaudirun.py'
-    self.ra.optFile = 'optFile.py otherOptFile.py'
 
     gLogger.setLevel( 'DEBUG' )
 
@@ -76,15 +72,70 @@ class ProductionEnvironmentSuccess( UtilitiesTestCase ):
 
 class RunApplicationSuccess( UtilitiesTestCase ):
 
+  def test_lbRunCommand( self ):
+    """ Testing lb-run command (for setting the environment)
+    """
+    ra = RunApplication()
+    ra.extraPackages = [('package1', 'v1r0'), ('package2', 'v2r0'), ('package3', '')]
+    ra.runTimeProject = 'aRunTimeProject'
+    ra.runTimeProjectVersion = 'v1r1'
+    ra.opsH = MagicMock()
+    ra.opsH.getValue.return_value = ['lcg1', 'lcg2']
+    ra.prodConf = True
+    extraPackagesString, runtimeProjectString, externalsString = ra.lbRunCommandOptions()
+    self.assertEqual(extraPackagesString, ' --use="package1 v1r0"  --use="package2 v2r0"  --use="package3"')
+    self.assertEqual(runtimeProjectString, ' --runtime-project aRunTimeProject/v1r1')
+    self.assertEqual(externalsString, ' --ext=lcg1 --ext=lcg2')
+
+    ra.site = 'Site1'
+    extraPackagesString, runtimeProjectString, externalsString = ra.lbRunCommandOptions()
+    self.assertEqual(extraPackagesString, ' --use="package1 v1r0"  --use="package2 v2r0"  --use="package3"')
+    self.assertEqual(runtimeProjectString, ' --runtime-project aRunTimeProject/v1r1')
+    self.assertEqual(externalsString, ' --ext=lcg1 --ext=lcg2')
+
   def test_gaudiRunCommand( self ):
+    """ Testing what is run (the gaudirun command, for example)
+    """
+    ra = RunApplication()
+    ra.opsH = MagicMock()
+    ra.opsH.getValue.return_value = 'gaudirun.py'
 
-    res = str(self.ra.gaudirunCommand())
-    self.assertTrue( 'gaudirun.py optFile.py otherOptFile.py gaudi_extra_options.py' in res )
+    #simplest
+    res = str(ra.gaudirunCommand())
+    self.assertEqual( res, 'gaudirun.py' )
 
-    self.ra.prodConf = True
-    self.ra.prodConfFileName = 'prodConf.py'
-    res = str(self.ra.gaudirunCommand())
-    self.assertTrue( 'gaudirun.py optFile.py otherOptFile.py prodConf.py' in res )
+    #simplest with extra opts
+    ra.extraOptionsLine = 'bla bla'
+    res = str(ra.gaudirunCommand())
+    self.assertEqual( res, 'gaudirun.py gaudi_extra_options.py' )
+
+
+    # productions style /1
+    ra.prodConf = True
+    ra.extraOptionsLine = ''
+    ra.prodConfFileName = 'prodConf.py'
+    res = str(ra.gaudirunCommand())
+    self.assertEqual( res, 'gaudirun.py prodConf.py' )
+
+    # productions style /2 (multicore)
+    ra.optFile = ''
+    ra.multicore = True
+    res = str(ra.gaudirunCommand())
+    self.assertEqual( res, 'gaudirun.py prodConf.py' ) #it won't be allowed on this "CE"
+
+    # productions style /3 (multicore and opts)
+    ra.optFile = ''
+    ra.extraOptionsLine = 'bla bla'
+    res = str(ra.gaudirunCommand())
+    self.assertEqual( res, 'gaudirun.py prodConf.py gaudi_extra_options.py' ) #it won't be allowed on this "CE"
+
+    # productions style /4
+    ra.extraOptionsLine = ''
+    ra.commandOptions = ['$APP/1.py',
+                         '$APP/2.py']
+    res = str(ra.gaudirunCommand())
+    self.assertEqual( res, 'gaudirun.py $APP/1.py $APP/2.py prodConf.py' )
+
 
 #################################################
 

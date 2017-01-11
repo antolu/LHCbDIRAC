@@ -31,18 +31,19 @@ class RunApplication(object):
     self.applicationName = 'Gauss'
     self.applicationVersion = 'v1r0'
 
-    # How to run it
-    self.command = 'gaudirun.py'
+    # Define the environment
     self.extraPackages = []
     self.systemConfig = 'Any'
     self.runTimeProject = ''
     self.runTimeProjectVersion = ''
+    self.site = ''
 
+    # What to run
+    self.command = 'gaudirun.py'
+    self.commandOptions = []
     self.prodConf = False
     self.prodConfFileName = 'prodConf.py'
     self.step_number = 0
-    self.site = ''
-    self.optFile = ''
     self.extraOptionsLine = ''
     self.multicore = False
 
@@ -77,38 +78,7 @@ class RunApplication(object):
       raise RuntimeError( lbLoginEnv['Message'] )
     lbLoginEnv = lbLoginEnv['Value']
 
-    # extra packages (for setup phase) (added using '--use')
-    extraPackagesString = ''
-    for epName, epVer in self.extraPackages:
-      if epName.lower() == 'prodconf':
-        self.prodConf = True
-      if epVer:
-        extraPackagesString = extraPackagesString + ' --use="%s %s" ' % ( epName, epVer )
-      else:
-        extraPackagesString = extraPackagesString + ' --use="%s"' % epName
-
-    # run time project
-    runtimeProjectString = ''
-    if self.runTimeProject:
-      self.log.verbose( 'Requested run time project: %s' % ( self.runTimeProject ) )
-      runtimeProjectString = '--runtime-project %s/%s' % ( self.runTimeProject , self.runTimeProjectVersion )
-
-    externalsString = ''
-
-    externals = []
-    if self.site:
-      externals = self.opsH.getValue( 'ExternalsPolicy/%s' % ( self.site ), [] )
-      if externals:
-        self.log.info( 'Found externals policy for %s = %s' % ( self.site, externals ) )
-        for external in externals:
-          externalsString = externalsString + ' --ext=%s' % external
-
-    if not externalsString:
-      externals = self.opsH.getValue( 'ExternalsPolicy/Default', [] )
-      if externals:
-        self.log.info( 'Using default externals policy for %s = %s' % ( self.site, externals ) )
-        for external in externals:
-          externalsString = externalsString + ' --ext=%s' % external
+    extraPackagesString, runtimeProjectString, externalsString = self.lbRunCommandOptions()
 
     # "CMT" Configs
     compatibleCMTConfigs = getCMTConfig( self.systemConfig )
@@ -121,7 +91,7 @@ class RunApplication(object):
     if self.command == 'gaudirun.py':
       command = self.gaudirunCommand()
 
-    # Trying all the CMT configs available
+    # FIXME: this is not the way to do: should call --list-configs and then try only the first (waiting for "-c BEST")
     runResult = ''
     for compatibleCMTConfig in compatibleCMTConfigs:
       self.log.verbose( "Using %s for setup" % compatibleCMTConfig )
@@ -145,34 +115,77 @@ class RunApplication(object):
     return runResult
 
 
+  def lbRunCommandOptions( self ):
+    """ Return lb-run command options
+    """
+
+    # extra packages (for setup phase) (added using '--use')
+    extraPackagesString = ''
+    for epName, epVer in self.extraPackages:
+      if epName.lower() == 'prodconf':
+        self.prodConf = True
+      if epVer:
+        extraPackagesString += ' --use="%s %s" ' % ( epName, epVer )
+      else:
+        extraPackagesString += ' --use="%s"' % epName
+
+    # run time project
+    runtimeProjectString = ''
+    if self.runTimeProject:
+      self.log.verbose( 'Requested run time project: %s' % ( self.runTimeProject ) )
+      runtimeProjectString = ' --runtime-project %s/%s' % ( self.runTimeProject , self.runTimeProjectVersion )
+
+    externalsString = ''
+
+    externals = []
+    if self.site:
+      externals = self.opsH.getValue( 'ExternalsPolicy/%s' % ( self.site ), [] )
+      if externals:
+        self.log.info( 'Found externals policy for %s = %s' % ( self.site, externals ) )
+        for external in externals:
+          externalsString += ' --ext=%s' % external
+
+    if not externalsString:
+      externals = self.opsH.getValue( 'ExternalsPolicy/Default', [] )
+      if externals:
+        self.log.info( 'Using default externals policy for %s = %s' % ( self.site, externals ) )
+        for external in externals:
+          externalsString += ' --ext=%s' % external
+
+    return extraPackagesString, runtimeProjectString, externalsString
+
+
 
   def gaudirunCommand( self ):
     """ construct a gaudirun command
     """
-    gaudiRunFlags = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
+    command = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
 
     # multicore?
     if self.multicore:
       cpus = multiprocessing.cpu_count()
       if cpus > 1:
         if _multicoreWN():
-          gaudiRunFlags = gaudiRunFlags + ' --ncpus -1 '
+          command += ' --ncpus -1 '
         else:
           self.log.info( "Would have run with option '--ncpus -1', but it is not allowed here" )
 
-    # if self.optionsLine or self.jobType.lower() == 'user':
-    if not self.prodConf: # user jobs
-      command = '%s %s %s' % ( gaudiRunFlags, self.optFile, 'gaudi_extra_options.py' )
-    else:  # everything but user jobs
-      if self.extraOptionsLine:
-        fopen = open( 'gaudi_extra_options.py', 'w' )
-        fopen.write( self.extraOptionsLine )
-        fopen.close()
-        command = '%s %s %s %s' % ( gaudiRunFlags, self.optFile, self.prodConfFileName, 'gaudi_extra_options.py' )
-      else:
-        command = '%s %s %s' % ( gaudiRunFlags, self.optFile, self.prodConfFileName )
-    self.log.always( 'Command = %s' % command )
+    if self.commandOptions:
+      command += ' '
+      command += ' '.join(self.commandOptions)
 
+    if self.prodConf:
+      command += ' '
+      command += self.prodConfFileName
+
+    if self.extraOptionsLine:
+      command += ' '
+      fopen = open( 'gaudi_extra_options.py', 'w' )
+      fopen.write( self.extraOptionsLine )
+      fopen.close()
+      command += 'gaudi_extra_options.py'
+
+    self.log.always( 'Command = %s' % command )
     return command
 
     # FIXME: check if this is still needed
@@ -198,15 +211,12 @@ class RunApplication(object):
   def _runApp( self, finalCommand, env = None ):
     """ Actual call of a command
     """
-    self.log.verbose( "Calling %s" % finalCommand )
+    self.log.always( "Calling %s" % finalCommand )
 
     res = shellCall( 0, finalCommand,
                      env = env,
                      callbackFunction = self.__redirectLogOutput,
                      bufferLimit = 20971520 )
-
-    print res
-
     return res
 
 
