@@ -185,6 +185,9 @@ class RunApplication(object):
       fopen.close()
       command += 'gaudi_extra_options.py'
 
+    # this is for avoiding env variable to be interpreted by the current shell
+    command = command.replace('$', '\$')
+
     self.log.always( 'Command = %s' % command )
     return command
 
@@ -213,10 +216,10 @@ class RunApplication(object):
     """
     self.log.always( "Calling %s" % finalCommand )
 
-    res = shellCall( 0, finalCommand,
-                     env = env,
-                     callbackFunction = self.__redirectLogOutput,
-                     bufferLimit = 20971520 )
+    res = shellCall( timeout = 0,
+                     cmdSeq = finalCommand,
+                     env = env, #this is in practice the LbLogin env
+                     callbackFunction = self.__redirectLogOutput )
     return res
 
 
