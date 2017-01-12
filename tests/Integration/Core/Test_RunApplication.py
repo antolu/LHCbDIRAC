@@ -47,7 +47,7 @@ class GaussSuccess( RunApplicationTestCase ):
                          '$APPCONFIGOPTS/Gauss/DataType-2012.py',
                          '$APPCONFIGOPTS/Gauss/RICHRandomHits.py',
                          '$APPCONFIGOPTS/Gauss/NoPacking.py',
-                         '$DECFILESROOT/options/@{eventType}.py',
+                         '$DECFILESROOT/options/12877041.py',
                          '$LBPYTHIA8ROOT/options/Pythia8.py',
                          '$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py',
                          '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
@@ -77,7 +77,7 @@ class GaussSuccess( RunApplicationTestCase ):
     ra.applicationName = 'Gauss'
     ra.applicationVersion = 'v50r0'
     ra.commandOptions = ['$APPCONFIGOPTS/Gauss/Beam7000GeV-md100-nu7.6-HorExtAngle.py',
-                         '$DECFILESROOT/options/@{eventType}.py',
+                         '$DECFILESROOT/options/12877041.py',
                          '$LBPYTHIA8ROOT/options/Pythia8.py',
                          '$APPCONFIGOPTS/Gauss/Gauss-Upgrade-Baseline-20150522.py',
                          '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
@@ -106,7 +106,7 @@ class GaussSuccess( RunApplicationTestCase ):
     ra = RunApplication()
     ra.applicationVersion = 'v50r0'
     ra.commandOptions = ['$APPCONFIGOPTS/Gauss/Beam7000GeV-md100-nu7.6-HorExtAngle.py',
-                         '$DECFILESROOT/options/@{eventType}.py',
+                         '$DECFILESROOT/options/12877041.py',
                          '$LBPYTHIA8ROOT/options/Pythia8.py',
                          '$APPCONFIGOPTS/Gauss/Gauss-Upgrade-Baseline-20150522.py',
                          '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
