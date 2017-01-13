@@ -274,7 +274,6 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     if 'StartDate' not in bkQuery:
       self.fullTimeLog[transID] = now
 
-  @gSynchro
   def __getFiles( self, transID, bkQuery, now ):
     """ Perform the query to the Bookkeeping
     """
@@ -285,11 +284,14 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
     if not result['OK']:
       raise RuntimeError( result['Message'] )
     else:
-      self.timeLog[transID] = now
+      self.__updateTimeStamp( transID, now )
       if result['Value']:
         self._logInfo( "Obtained %d files from BK" % len( result['Value'] ), transID = transID )
       return result['Value']
 
+  @gSynchro
+  def __updateTimeStamp( self, transID, now ):
+    self.timeLog[transID] = now
 
   def __addRunsMetadata( self, transID, runsList ):
     """ Add the run metadata
