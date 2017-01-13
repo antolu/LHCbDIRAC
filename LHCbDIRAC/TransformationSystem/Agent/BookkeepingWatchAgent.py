@@ -197,58 +197,67 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
           self._logError( "Failed to get response from the Bookkeeping: %s" % e, "", "__getFiles", transID )
           continue
 
-        # Add any new files to the transformation
-        for lfnList in breakListIntoChunks( files, self.chunkSize ):
+        runDict = {}
+        # There is no need to add the run information for a removal transformation
+        if transPlugin not in self.pluginsWithNoRunInfo:
+          # get the run number in order to sort the files
+          for lfnChunk in breakListIntoChunks( files, self.chunkSize ):
+            start = time.time()
+            res = self.bkClient.getFileMetadata( lfnChunk )
+            self._logVerbose( "Got metadata from BK for %d files" % len( lfnChunk ), transID = transID, reftime = start )
+            if not res['OK']:
+              self._logError( "Failed to get BK metadata for %d files" % len( lfnChunk ),
+                              res['Message'], transID = transID )
+            else:
+              for lfn, metadata in res['Value']['Successful'].iteritems():
+                runID = metadata.get( 'RunNumber', None )
+                if isinstance( runID, ( basestring, int, long ) ):
+                  runDict.setdefault( int( runID ), [] ).append( lfn )
+          try:
+            self.__addRunsMetadata( transID, runDict.keys() )
+          except RuntimeError as e:
+            self._logException( "Failure adding runs metadata", method = "__addRunsMetadata", lException = e, transID = transID )
+        else:
+          runDict[None] = files
 
-          # Add the RunNumber to the newly inserted files
-          start = time.time()
-          # Add the files to the transformation
-          self._logVerbose( 'Adding %d lfns for transformation' % len( lfnList ), transID = transID )
-          result = self.transClient.addFilesToTransformation( transID, sorted( lfnList ) )
-          runDict = {}
-          if not result['OK']:
-            self._logWarn( "Failed to add %d lfns to transformation" % len( lfnList ), result['Message'],
-                           transID = transID )
-          else:
-            _printFailed = [self._logWarn( "Failed to add %s to transformation\
-            " % lfn, error, transID = transID ) for ( lfn, error ) in result['Value']['Failed'].iteritems()]
-            addedLfns = [lfn for ( lfn, status ) in result['Value']['Successful'].iteritems() if status == 'Added']
-            # There is no need to add the run information for a removal transformation
-            if addedLfns and transPlugin not in self.pluginsWithNoRunInfo:
-              self._logInfo( "Added %d files to transformation, now including run information"
-                             % len( addedLfns ) , transID = transID )
-              res = self.bkClient.getFileMetadata( addedLfns )
-              self._logVerbose( "BK query time for metadata: %.2f seconds." % ( time.time() - start ),
-                                transID = transID )
-              if not res['OK']:
-                self._logError( "Failed to get BK metadata for %d files" % len( addedLfns ),
-                                res['Message'],
-                                transID = transID )
-              else:
-                for lfn, metadata in res['Value']['Successful'].iteritems():
-                  runID = metadata.get( 'RunNumber', None )
-                  if runID:
-                    runDict.setdefault( int( runID ), [] ).append( lfn )
-              for runID, lfns in runDict.iteritems():
-                lfns = [lfn for lfn in lfns if lfn in addedLfns]
-                if lfns:
-                  self._logVerbose( "Associating %d files to run %d" % ( len( lfns ), runID ), transID = transID )
-                  res = self.transClient.addTransformationRunFiles( transID, runID, lfns )
+        # Add all new files to the transformation
+        for runID in sorted( runDict ):
+          lfnList = sorted( runDict[runID] )
+          lfnChunks = [lfnList] if runID else breakListIntoChunks( lfnList, self.chunkSize )
+          for lfnChunk in lfnChunks:
+            # Add the files to the transformation
+            self._logVerbose( 'Adding %d lfns for transformation' % len( lfnChunk ), transID = transID )
+            result = self.transClient.addFilesToTransformation( transID, lfnChunk )
+            runDict = {}
+            if not result['OK']:
+              self._logWarn( "Failed to add %d lfns to transformation" % len( lfnChunk ), result['Message'],
+                             transID = transID )
+            else:
+              # Handle errors
+              errors = {}
+              for lfn, error in result['Value']['Failed'].iteritems():
+                errors.setdefault( error, [] ).append( lfn )
+              for error, lfns in errors.iteritems():
+                self._logWarn( "Failed to add files to transformation", error, transID = transID )
+                self._logVerbose( "\n\t".join( [''] + lfns ) )
+              # Add the RunNumber to the newly inserted files
+              addedLfns = [lfn for ( lfn, status ) in result['Value']['Successful'].iteritems() if status == 'Added']
+              if addedLfns:
+                if runID:
+                  self._logInfo( "Added %d files to transformation for run %d, now including run information"
+                                 % ( len( addedLfns ), runID ) , transID = transID )
+                  self._logVerbose( "Associating %d files to run %d" % ( len( addedLfns ), runID ), transID = transID )
+                  res = self.transClient.addTransformationRunFiles( transID, runID, addedLfns )
                   if not res['OK']:
-                    self._logWarn( "Failed to associate %d files \
-                    to run %d" % ( len( lfns ), runID ), res['Message'], transID = transID )
-
-
-            try:
-              self.__addRunsMetadata( transID, runDict.keys() )
-            except RuntimeError as e:
-              self._logError( "Failure adding runs metadata: %s" % e, "", "__addRunsMetadata", transID )
-              continue
+                    self._logWarn( "Failed to associate %d files to run %d" % ( len( addedLfns ), runID ),
+                                   res['Message'], transID = transID )
+                else:
+                  self._logInfo( "Added %d files to transformation" % len( addedLfns ) , transID = transID )
 
       except Exception as x:  # pylint: disable=broad-except
-        gLogger.exception( '[%s] %s._execute' % ( str( transID ), AGENT_NAME ), lException = x )
+        self._logException( 'Exception while adding files to transformation', lException = x, method = '_execute', transID = transID )
       finally:
-        self._logInfo( "Processed transformation in %.1f seconds" % ( time.time() - startTime ), transID = transID )
+        self._logInfo( "Processed transformation", transID = transID, reftime = startTime )
         if transID in self.bkQueriesInCheck:
           self.bkQueriesInCheck.remove( transID )
         self.transInThread.pop( transID, None )
