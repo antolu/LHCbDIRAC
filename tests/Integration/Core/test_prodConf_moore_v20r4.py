@@ -10,7 +10,7 @@ ProdConf(
   OptionFormat='l0app',
   XMLSummaryFile='summaryMoore_00033857_00000003_3.xml',
   Application='Moore',
-  OutputFilePrefix='00033857_00000003',
+  OutputFilePrefix='00033857_00000003_3',
   XMLFileCatalog='pool_xml_catalog.xml',
   InputFiles=['LFN:00033857_00000002_2.digi'],
   OutputFileTypes=['digi'],

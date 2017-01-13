@@ -10,7 +10,7 @@ ProdConf(
   XMLSummaryFile='summaryDaVinci_00033857_00000007_7.xml',
   OptionFormat='merge',
   Application='DaVinci',
-  OutputFilePrefix='00033857_00000007',
+  OutputFilePrefix='00033857_00000007_7',
   XMLFileCatalog='pool_xml_catalog.xml',
   InputFiles=['LFN:00033857_00000006_6.B2DSTMUNUX_D02K3PI.STRIPTRIG.DST'],
   OutputFileTypes=['B2DSTMUNUX_D02K3PI.STRIPTRIG.DST'],

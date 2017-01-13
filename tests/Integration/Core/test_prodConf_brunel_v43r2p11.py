@@ -9,7 +9,7 @@ ProdConf(
   AppVersion='v43r2p11',
   XMLSummaryFile='summaryBrunel_00033857_00000005_5.xml',
   Application='Brunel',
-  OutputFilePrefix='00033857_00000005',
+  OutputFilePrefix='00033857_00000005_5',
   XMLFileCatalog='pool_xml_catalog.xml',
   InputFiles=['LFN:00033857_00000004_4.digi'],
   OutputFileTypes=['dst'],
