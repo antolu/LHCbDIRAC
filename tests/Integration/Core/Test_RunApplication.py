@@ -55,7 +55,6 @@ class GaussSuccess( RunApplicationTestCase ):
                         ('DecFiles', 'v29r10'),
                         ('ProdConf', '')
                        ]
-    ra.step_Number = 1
     ra.prodConfFileName = 'test_prodConf_gauss_v49r5.py'
     ra.applicationLog = '00033857_00000001_1_log.txt'
     ra.stdError = '00033857_00000001_1_err.txt'
@@ -65,56 +64,28 @@ class GaussSuccess( RunApplicationTestCase ):
     self.assertEqual(res['Value'], (0, '', ''))
 
 
-  def test_Gauss_Production_step133294( self ):
-    """ Using ProdConf (production style)
-
-        This is taken from step 133294 (and would fall back to SetupProject)
-    """
-
-    gLogger.always("**** GAUSS v50r0")
-
-    ra = RunApplication()
-    ra.applicationName = 'Gauss'
-    ra.applicationVersion = 'v50r0'
-    ra.commandOptions = ['$APPCONFIGOPTS/Gauss/Beam7000GeV-md100-nu7.6-HorExtAngle.py',
-                         '$DECFILESROOT/options/12877041.py',
-                         '$LBPYTHIA8ROOT/options/Pythia8.py',
-                         '$APPCONFIGOPTS/Gauss/Gauss-Upgrade-Baseline-20150522.py',
-                         '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
-    ra.extraPackages = [('AppConfig', 'v3r304'),
-                        ('DecFiles', 'v29r9'),
-                        ('ProdConf', '')
-                       ]
-    ra.systemConfig = 'x86_64-slc6-gcc48-opt'
-    ra.step_Number = 1
-    ra.prodConfFileName = 'test_prodConf_gauss_v50r0.py'
-    ra.applicationLog = '00000001_00000001_1_log.txt'
-    ra.stdError = '00000001_00000001_1_err.txt'
-
-    res = ra.run()
-    self.assertTrue(res['OK'])
-    self.assertEqual(res['Value'], (0, '', ''))
-
-
   def test_Gauss_User_step133294( self ):
     """ Not using ProdConf (users style)
 
-        This is taken from step 133294 (and would fall back to SetupProject)
+        This is taken from PR 33857 (and would fall back to SetupProject)
     """
-    gLogger.always("**** GAUSS v50r0")
+    gLogger.always("**** GAUSS v49r5")
 
     ra = RunApplication()
-    ra.applicationVersion = 'v50r0'
-    ra.commandOptions = ['$APPCONFIGOPTS/Gauss/Beam7000GeV-md100-nu7.6-HorExtAngle.py',
-                         '$DECFILESROOT/options/12877041.py',
-                         '$LBPYTHIA8ROOT/options/Pythia8.py',
-                         '$APPCONFIGOPTS/Gauss/Gauss-Upgrade-Baseline-20150522.py',
-                         '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
-    ra.extraPackages = [('AppConfig', 'v3r304'),
-                        ('DecFiles', 'v29r9')
-                       ]
+    ra.applicationVersion = 'v49r5'
     ra.systemConfig = 'x86_64-slc6-gcc48-opt'
-    ra.step_Number = 1
+    # ra.commandOptions = ['$APPCONFIGOPTS/Gauss/Sim08-Beam4000GeV-mu100-2012-nu2.5.py',
+    #                      '$APPCONFIGOPTS/Gauss/DataType-2012.py',
+    #                      '$APPCONFIGOPTS/Gauss/RICHRandomHits.py',
+    #                      '$APPCONFIGOPTS/Gauss/NoPacking.py',
+    #                      '$DECFILESROOT/options/12877041.py',
+    #                      '$LBPYTHIA8ROOT/options/Pythia8.py',
+    #                      '$APPCONFIGOPTS/Gauss/G4PL_FTFP_BERT_EmNoCuts.py',
+    #                      '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
+    ra.extraPackages = [('AppConfig', 'v3r277'),
+                        ('DecFiles', 'v29r10'),
+                        ('ProdConf', '')
+                       ]
 
     generatedOpts = 'gaudi_extra_options.py'
     if os.path.exists( generatedOpts ):
@@ -130,7 +101,6 @@ class GaussSuccess( RunApplicationTestCase ):
                                     5732353,
                                     4340993,
                                     'User' )['Value']  # always OK
-    print projectOpts
     options = open( generatedOpts, 'w' )
     options.write( projectOpts )
     options.close()
@@ -193,13 +163,13 @@ class MooreSuccess( RunApplicationTestCase ):
     ra = RunApplication()
     ra.applicationName = 'Moore'
     ra.applicationVersion = 'v20r4'
+    ra.systemConfig = 'x86_64-slc6-gcc48-opt'
     ra.commandOptions = ['$APPCONFIGOPTS/L0App/L0AppSimProduction.py',
                          '$APPCONFIGOPTS/L0App/L0AppTCK-0x0045.py',
                          '$APPCONFIGOPTS/L0App/DataType-2012.py']
     ra.extraPackages = [('AppConfig', 'v3r200'),
                         ('ProdConf', '')
                        ]
-    ra.step_Number = 1
     ra.prodConfFileName = 'test_prodConf_moore_v20r4.py'
     ra.applicationLog = '00033857_00000003_3_log.txt'
     ra.stdError = '00033857_00000003_3_err.txt'
@@ -218,13 +188,13 @@ class MooreSuccess( RunApplicationTestCase ):
     ra = RunApplication()
     ra.applicationName = 'Moore'
     ra.applicationVersion = 'v14r8p1'
+    ra.systemConfig = 'x86_64-slc5-gcc46-opt'
     ra.commandOptions = ['$APPCONFIGOPTS/Moore/MooreSimProductionForSeparateL0AppStep.py',
                          '$APPCONFIGOPTS/Conditions/TCK-0x409f0045.py',
                          '$APPCONFIGOPTS/Moore/DataType-2012.py']
     ra.extraPackages = [('AppConfig', 'v3r241'),
                         ('ProdConf', '')
                        ]
-    ra.step_Number = 1
     ra.prodConfFileName = 'test_prodConf_moore_v14r8p1.py'
     ra.applicationLog = '00033857_00000004_4_log.txt'
     ra.stdError = '00033857_00000004_4_err.txt'
@@ -249,6 +219,7 @@ class BrunelSuccess( RunApplicationTestCase ):
     ra = RunApplication()
     ra.applicationName = 'Brunel'
     ra.applicationVersion = 'v43r2p11'
+    ra.systemConfig = 'x86_64-slc5-gcc46-opt'
     ra.commandOptions = ['$APPCONFIGOPTS/Brunel/DataType-2012.py',
                          '$APPCONFIGOPTS/Brunel/MC-WithTruth.py',
                          '$APPCONFIGOPTS/Brunel/Sim09-Run1.py',
@@ -257,7 +228,6 @@ class BrunelSuccess( RunApplicationTestCase ):
     ra.extraPackages = [('AppConfig', 'v3r302'),
                         ('ProdConf', '')
                        ]
-    ra.step_Number = 1
     ra.prodConfFileName = 'test_prodConf_brunel_v43r2p11.py'
     ra.applicationLog = '00033857_00000005_5_log.txt'
     ra.stdError = '00033857_00000005_5_err.txt'
@@ -283,6 +253,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
     ra = RunApplication()
     ra.applicationName = 'DaVinci'
     ra.applicationVersion = 'v32r2p1'
+    ra.systemConfig = 'x86_64-slc5-gcc46-opt'
     ra.commandOptions = ['$CHARMCONFIGOPTS/MCFiltering/D02K3PiFromB2DstmunuXStripTrigFiltering_2012.py',
                          '$APPCONFIGOPTS/DaVinci/DataType-2012.py',
                          '$APPCONFIGOPTS/DaVinci/InputType-DST.py',
@@ -311,6 +282,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
     ra = RunApplication()
     ra.applicationName = 'DaVinci'
     ra.applicationVersion = 'v41r3'
+    ra.systemConfig = 'x86_64-slc6-gcc49-opt'
     ra.commandOptions = ['$APPCONFIGOPTS/Merging/DVMergeDST.py',
                          '$APPCONFIGOPTS/DaVinci/DataType-2012.py',
                          '$APPCONFIGOPTS/Merging/WriteFSR.py',
@@ -328,7 +300,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
     self.assertEqual(res['Value'], (0, '', ''))
 
 
-  def test_DaVinci_new( self ):
+  def test_DaVinci_new_gcc49( self ):
     """ Using ProdConf (production style)
 
         This is taken from step 130339
@@ -338,6 +310,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
     ra = RunApplication()
     ra.applicationName = 'DaVinci'
     ra.applicationVersion = 'v42r1'
+    ra.systemConfig = 'x86_64-slc6-gcc49-opt'
     ra.commandOptions = ['$APPCONFIGOPTS/DaVinci/DV-Stripping27-Stripping.py',
                          '$APPCONFIGOPTS/DaVinci/DataType-2016.py',
                          '$APPCONFIGOPTS/DaVinci/InputType-RDST.py',
@@ -348,10 +321,39 @@ class DaVinciSuccess( RunApplicationTestCase ):
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
-    ra.systemConfig = 'x86_64-slc6-gcc49-opt'
     ra.prodConfFileName = 'test_prodConf_davinci_v42r1.py'
-    ra.applicationLog = '0daVinci_000v42r1_1_log.txt'
-    ra.stdError = '0daVinci_000v42r1_1_err.txt'
+    ra.applicationLog = '0daVinci_000v42r1_49_log.txt'
+    ra.stdError = '0daVinci_000v42r1_49_err.txt'
+
+    res = ra.run()
+    self.assertTrue(res['OK'])
+    self.assertEqual(res['Value'], (1, '', '')) #This will fail as there's no input file
+
+
+  def test_DaVinci_new_gcc62( self ):
+    """ Using ProdConf (production style)
+
+        This is taken from step 130339
+    """
+    gLogger.always("**** DAVINCI v42r1")
+
+    ra = RunApplication()
+    ra.applicationName = 'DaVinci'
+    ra.applicationVersion = 'v42r1'
+    ra.systemConfig = 'x86_64-slc6-gcc62-opt'
+    ra.commandOptions = ['$APPCONFIGOPTS/DaVinci/DV-Stripping27-Stripping.py',
+                         '$APPCONFIGOPTS/DaVinci/DataType-2016.py',
+                         '$APPCONFIGOPTS/DaVinci/InputType-RDST.py',
+                         '$APPCONFIGOPTS/DaVinci/DV-RawEventJuggler-0_3-to-4_2.py',
+                         '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
+    ra.extraPackages = [('AppConfig', 'v3r308'),
+                        ('SQLDDDB', 'v7r10'),
+                        ('ProdConf', '')
+                       ]
+    ra.step_Number = 1
+    ra.prodConfFileName = 'test_prodConf_davinci_v42r1.py'
+    ra.applicationLog = '0daVinci_000v42r1_62_log.txt'
+    ra.stdError = '0daVinci_000v42r1_62_err.txt'
 
     res = ra.run()
     self.assertTrue(res['OK'])

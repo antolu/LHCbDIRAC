@@ -81,6 +81,11 @@ class RunApplication(object):
     extraPackagesString, runtimeProjectString, externalsString = self.lbRunCommandOptions()
 
     # "CMT" Configs
+    # FIXME: this is not the way to do:
+    # if a CMTConfig is provided, then only that should be called (this should be safeguarded with the following method)
+    # if not, we should call --list-configs (waiting for "-c BEST") and then:
+    #   - try only the first that is compatible with the current setup
+    #     (what's in LocalSite/Archicture, and this should be already checked by the method below)
     compatibleCMTConfigs = getCMTConfig( self.systemConfig )
     if not compatibleCMTConfigs['OK']:
       return compatibleCMTConfigs
@@ -90,10 +95,11 @@ class RunApplication(object):
 
     if self.command == 'gaudirun.py':
       command = self.gaudirunCommand()
+    else:
+      raise RuntimeError( "No Gaudirun?" )
 
-    # FIXME: this is not the way to do: should call --list-configs and then try only the first (waiting for "-c BEST")
     runResult = ''
-    for compatibleCMTConfig in compatibleCMTConfigs:
+    for compatibleCMTConfig in compatibleCMTConfigs: #FIXME: this loop should desappear
       self.log.verbose( "Using %s for setup" % compatibleCMTConfig )
       configString = "-c %s" % compatibleCMTConfig
 
