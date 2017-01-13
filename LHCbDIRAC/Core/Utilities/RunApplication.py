@@ -112,8 +112,8 @@ class RunApplication(object):
         self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
         raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
 
-      if runResult['Value'][0]:
-        self.log.warn( "Can't call lb-run using %s, trying the next, if any\n\n" % compatibleCMTConfig )
+      if runResult['Value'][0]: # if exit status != 0
+        self.log.error( "lb-run exited with status %d" % runResult['Value'][0] )
         continue
 
     self.log.info( "Status after the application execution is %s" % str( runResult ) )

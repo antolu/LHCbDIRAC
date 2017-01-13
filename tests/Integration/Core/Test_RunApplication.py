@@ -84,7 +84,6 @@ class GaussSuccess( RunApplicationTestCase ):
     #                      '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
     ra.extraPackages = [('AppConfig', 'v3r277'),
                         ('DecFiles', 'v29r10'),
-                        ('ProdConf', '')
                        ]
 
     generatedOpts = 'gaudi_extra_options.py'
