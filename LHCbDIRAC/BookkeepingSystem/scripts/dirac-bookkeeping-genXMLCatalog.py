@@ -54,7 +54,7 @@ def execute():
   try:
     site = DMSHelpers().getShortSiteNames()['CERN']
   except AttributeError, KeyError:
-    site = 'LCG.CERN.ch'
+    site = 'LCG.CERN.cern'
   depth = 1
   optFiles = []
   newOptFile = ''

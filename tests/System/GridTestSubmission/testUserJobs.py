@@ -32,7 +32,7 @@ helloJ.setCPUTime( 17800 )
 try:
   tier1s = DMSHelpers().getTiers( tier = ( 0, 1 ) )
 except AttributeError:
-  tier1s = ['LCG.CERN.ch', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr',
+  tier1s = ['LCG.CERN.cern', 'LCG.CNAF.it', 'LCG.GRIDKA.de', 'LCG.IN2P3.fr',
             'LCG.NIKHEF.nl', 'LCG.PIC.es', 'LCG.RAL.uk', 'LCG.RRCKI.ru', 'LCG.SARA.nl']
 cernSite = [s for s in tier1s if '.CERN.' in s][0]
 helloJ.setBannedSites( tier1s )
