@@ -1325,7 +1325,7 @@ class OracleBookkeepingDB( object ):
         result = S_ERROR( "You must provide an LFN or a list of LFNs!" )
     elif diracJobids != default: 
       if isinstance( diracJobids, ( basestring, long, int ) ) :
-        condition += " and j.DIRACJOBID=%d " % ( int( diracJobids ) )
+        condition += " and j.DIRACJOBID=%s " % diracJobids
       elif isinstance( diracJobids, list ):
         condition += ' and j.DIRACJOBID in ( ' + ','.join( [str( djobid ) for djobid in diracJobids] ) + ')'
       else:
