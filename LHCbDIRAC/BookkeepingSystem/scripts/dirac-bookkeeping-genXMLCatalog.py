@@ -76,7 +76,7 @@ def execute():
   from DIRAC.DataManagementSystem.Utilities.DMSHelpers import DMSHelpers
   try:
     site = DMSHelpers().getShortSiteNames()['CERN']
-  except AttributeError, KeyError:
+  except ( AttributeError, KeyError ):
     site = 'LCG.CERN.cern'
 
   t0 = time.time()
