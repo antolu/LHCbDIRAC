@@ -228,7 +228,6 @@ class BookkeepingWatchAgent( AgentModule, TransformationAgentsUtilities ):
             # Add the files to the transformation
             self._logVerbose( 'Adding %d lfns for transformation' % len( lfnChunk ), transID = transID )
             result = self.transClient.addFilesToTransformation( transID, lfnChunk )
-            runDict = {}
             if not result['OK']:
               self._logWarn( "Failed to add %d lfns to transformation" % len( lfnChunk ), result['Message'],
                              transID = transID )
