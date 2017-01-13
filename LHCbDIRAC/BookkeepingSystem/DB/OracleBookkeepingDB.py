@@ -524,7 +524,7 @@ class OracleBookkeepingDB( object ):
         values += "ftype('%s', '%s')," % ( ( i.get( 'FileType', None ).strip() if i.get( 'FileType', None )
                                              else i.get( 'FileType', None ) ),
                                            ( i.get( 'Visible', None ).strip() if i.get( 'Visible', None )
-                                            else i.get( 'Visible', None ) ) )
+                                             else i.get( 'Visible', None ) ) )
       values = values[:-1]
       values += ')'
 
@@ -1051,7 +1051,7 @@ class OracleBookkeepingDB( object ):
 
     tables = 'files f, jobs j, dataquality d '
     useView = filetype not in ( default, 'RAW' )
-    
+
     retVal = self.__buildStartenddate( startDate, endDate, condition, tables )
     if not retVal['OK']:
       return retVal
@@ -1240,22 +1240,22 @@ class OracleBookkeepingDB( object ):
     if 'lfn' in in_dict:
       data = in_dict['lfn']
       retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfo',
-                                                parameters = [],
-                                                output = True,
-                                                array = data )
+                                                 parameters = [],
+                                                 output = True,
+                                                 array = data )
     elif 'jobId' in in_dict:
       data = in_dict['jobId']
       retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfoForJobId',
-                                                parameters = [],
-                                                output = True,
-                                                array = data )
+                                                 parameters = [],
+                                                 output = True,
+                                                 array = data )
 
     elif 'jobName' in in_dict:
       data = in_dict['jobName']
       retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkJobInfoForJobName',
-                                                parameters = [],
-                                                output = True,
-                                                array = data )
+                                                 parameters = [],
+                                                 output = True,
+                                                 array = data )
     else:
       return S_ERROR( "Wrong input parameters. You can use a dictionary with the following keys: lfn,jobId, jobName" )
 
@@ -1399,7 +1399,7 @@ class OracleBookkeepingDB( object ):
                             'InstLuminosity':record[5],
                             'EventStat':record[6],
                             'FullStat':record[7]
-                            }
+                           }
       result = S_OK( value )
     else:
       result = res
@@ -1487,9 +1487,9 @@ class OracleBookkeepingDB( object ):
       failed = []
       succ = []
       retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.updateDataQualityFlag',
-                                                parameters = [qid],
-                                                output = False,
-                                                array = lfns )
+                                                 parameters = [qid],
+                                                 output = False,
+                                                 array = lfns )
       if not retVal['OK']:
         failed = lfns
         gLogger.error( retVal['Message'] )
@@ -1527,7 +1527,7 @@ class OracleBookkeepingDB( object ):
       if retVal['OK']:
         flag = retVal['Value']
         result = self.dbW_.executeStoredProcedure( 'BOOKKEEPINGORACLEDB.insertRunquality',
-                                                  [runNB, flag, processingid], False )
+                                                   [runNB, flag, processingid], False )
       else:
         result = retVal
     else:
@@ -1994,9 +1994,9 @@ class OracleBookkeepingDB( object ):
     g4settings = in_dict.get( 'G4settings', None )
     visible = in_dict.get( 'Visible', 'Y' )
     return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertSimConditions',
-                                            types.LongType, [simdesc, beamCond, beamEnergy,
-                                                       generator, magneticField,
-                                                       detectorCond, luminosity, g4settings, visible] )
+                                             types.LongType, [simdesc, beamCond, beamEnergy,
+                                                              generator, magneticField,
+                                                              detectorCond, luminosity, g4settings, visible] )
 
   #############################################################################
   def getSimConditions( self ):
@@ -2056,9 +2056,9 @@ class OracleBookkeepingDB( object ):
     """removes the replica flag of a file"""
     result = S_ERROR()
     retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkcheckfiles',
-                                                parameters = [],
-                                                output = True,
-                                                array = fileNames )
+                                               parameters = [],
+                                               output = True,
+                                               array = fileNames )
     failed = {}
 
     if not retVal['OK']:
@@ -2069,9 +2069,9 @@ class OracleBookkeepingDB( object ):
         fileNames.remove( i[0] )
       if len( fileNames ) > 0:
         retVal = self.dbW_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkupdateReplicaRow',
-                                                  parameters = ['No'],
-                                                  output = False,
-                                                  array = fileNames )
+                                                   parameters = ['No'],
+                                                   output = False,
+                                                   array = fileNames )
         if not retVal['OK']:
           result = retVal
         else:
@@ -2302,7 +2302,7 @@ class OracleBookkeepingDB( object ):
       result = S_OK( {'TotalRecords':totalrecords,
                       'ParameterNames':parametersNames,
                       'Records':records,
-                     'Extras': {'GlobalStatistics':
+                      'Extras': {'GlobalStatistics':
                                   {'Number of Events':nbOfEvents,
                                    'Files Size':filesSize }}} )
     else:
@@ -2328,9 +2328,9 @@ class OracleBookkeepingDB( object ):
     """adds the replica flag to a file"""
     result = S_ERROR()
     retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkcheckfiles',
-                                                parameters = [],
-                                                output = True,
-                                                array = fileNames )
+                                               parameters = [],
+                                               output = True,
+                                               array = fileNames )
     failed = {}
     if not retVal['OK']:
       result = retVal
@@ -2966,7 +2966,7 @@ and files.qualityid= dataquality.qualityid'
   def getRunAndProcessingPassDataQuality( self, runnb, processing ):
     """returns the data qaulity for a given run and processing pass"""
     return self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.getQFlagByRunAndProcId',
-                                            types.StringType, [runnb, processing] )
+                                             types.StringType, [runnb, processing] )
 
   #############################################################################
   def getRunWithProcessingPassAndDataQuality( self, procpass, flag = default ):
@@ -3010,18 +3010,18 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getFiles( self, simdesc, datataking, procPass, ftype, evt,
-               configName = default, configVersion = default,
-               production = default, flag = default,
-               startDate = None, endDate = None,
-               nbofEvents = False, startRunID = None,
-               endRunID = None, runnumbers = list(),
-               replicaFlag = default, visible = default, filesize = False, tcks = list() ):
+                configName = default, configVersion = default,
+                production = default, flag = default,
+                startDate = None, endDate = None,
+                nbofEvents = False, startRunID = None,
+                endRunID = None, runnumbers = list(),
+                replicaFlag = default, visible = default, filesize = False, tcks = list() ):
     """returns a list of lfns"""
     condition = ''
     tables = ' files f,jobs j '
-    
+
     useView = ftype not in ( default, 'RAW' )
-    
+
     retVal = self.__buildConfiguration( configName, configVersion, condition, tables )
     if not retVal['OK']:
       return retVal
@@ -3412,12 +3412,12 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getVisibleFilesWithMetadata( self, simdesc, datataking,
-                                  procPass, ftype, evt,
-                                  configName = default, configVersion = default,
-                                  production = default, flag = default,
-                                  startDate = None, endDate = None,
-                                  nbofEvents = False, startRunID = None,
-                                  endRunID = None, runnumbers = list(), replicaFlag = 'Yes', tcks = list() ):
+                                   procPass, ftype, evt,
+                                   configName = default, configVersion = default,
+                                   production = default, flag = default,
+                                   startDate = None, endDate = None,
+                                   nbofEvents = False, startRunID = None,
+                                   endRunID = None, runnumbers = list(), replicaFlag = 'Yes', tcks = list() ):
     """returns the visible files"""
     condition = ''
 
@@ -3839,7 +3839,7 @@ and files.qualityid= dataquality.qualityid'
       condition += " and CondDB='%s' " % ( conddb )
       dataset['Step']['CONDDB'] = conddb
 
-    if dddb == None or dddb == '':
+    if dddb is None or dddb == '':
       condition += " and DDDB is NULL "
       dataset['Step'].pop( 'DDDB' )
     else:
@@ -4123,14 +4123,14 @@ and files.qualityid= dataquality.qualityid'
       for i in retVal['Value']:
         # records = [[i[0],i[1],i[2],i[3],i[4],i[5],i[6], i[7], i[8]]]
         records = [ ['StepId', i[0]],
-                   ['StepName', i[1]],
-                   ['ApplicationName', i[2]],
-                   ['ApplicationVersion', i[3]],
-                   ['OptionFiles', i[4]],
-                   ['DDDB', i[5]],
-                   ['CONDDB', i[6]],
-                   ['ExtraPackages', i[7]],
-                   ['Visible', i[8]]]
+                    ['StepName', i[1]],
+                    ['ApplicationName', i[2]],
+                    ['ApplicationVersion', i[3]],
+                    ['OptionFiles', i[4]],
+                    ['DDDB', i[5]],
+                    ['CONDDB', i[6]],
+                    ['ExtraPackages', i[7]],
+                    ['Visible', i[8]]]
         step = 'Step-%s' % ( i[0] )
         processing[step] = records
         nb += 1
@@ -4606,8 +4606,8 @@ and files.qualityid= dataquality.qualityid'
 
   #############################################################################
   def getListOfFills( self, configName = default,
-                     configVersion = default,
-                     conddescription = default ):
+                      configVersion = default,
+                      conddescription = default ):
     """
     It returns a list of fills for a given condition.
     """
