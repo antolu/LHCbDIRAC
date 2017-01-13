@@ -742,3 +742,13 @@ class IBookkeepingDatabaseClient(object):
   def getRunConfigurationsAndDataTakingCondition( self, runnumber ):
     """more info in the BookkeepingClient.py"""
     return self.getManager().getRunConfigurationsAndDataTakingCondition( runnumber )
+  
+  #############################################################################
+  def deleteCertificationData( self ):
+    """more info in the BookkeepingClient.py"""
+    return self.getManager().deleteCertificationData()
+  
+  #############################################################################
+  def getAvailableTagsFromSteps( self ):
+    """more info in the BookkeepingClient.py"""
+    return self.getManager().getAvailableTagsFromSteps()

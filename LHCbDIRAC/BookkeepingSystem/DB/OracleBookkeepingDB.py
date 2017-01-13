@@ -1305,7 +1305,9 @@ class OracleBookkeepingDB( object ):
     production = params.get( 'Production', default )
     lfn = params.get( 'LFN', default )
     condition = ''
-    tables = ' jobs j, files f'
+    diracJobids = params.get( 'DiracJobId', default )
+    
+    tables = ' jobs j, files f, configurations c'
     result = None
     if production != default:
       if isinstance( production, ( basestring, long, int ) ) :
@@ -1321,20 +1323,30 @@ class OracleBookkeepingDB( object ):
         condition += ' and (' + ' or '.join( ["f.filename='%s'" % l for l in lfn] ) + ')'
       else:
         result = S_ERROR( "You must provide an LFN or a list of LFNs!" )
-
+    elif diracJobids != default: 
+      if isinstance( diracJobids, ( basestring, long, int ) ) :
+        condition += " and j.DIRACJOBID=%s " % diracJobids
+      elif isinstance( diracJobids, list ):
+        condition += ' and j.DIRACJOBID in ( ' + ','.join( [str( djobid ) for djobid in diracJobids] ) + ')'
+      else:
+        result = S_ERROR( "Please provide a correct DIRAC jobid!" )
+        
     if not result:
       command = " select  distinct j.DIRACJOBID, j.DIRACVERSION, j.EVENTINPUTSTAT, j.EXECTIME,\
       j.FIRSTEVENTNUMBER,j.LOCATION,  j.NAME, j.NUMBEROFEVENTS, \
                  j.STATISTICSREQUESTED, j.WNCPUPOWER, j.CPUTIME, j.WNCACHE, j.WNMEMORY, j.WNMODEL, \
-                 j.WORKERNODE, j.WNCPUHS06, j.jobid, j.totalluminosity, j.production, j.WNMJFHS06\
-                 from %s where f.jobid=j.jobid %s" % ( tables, condition )
+                 j.WORKERNODE, j.WNCPUHS06, j.jobid, j.totalluminosity, j.production, j.WNMJFHS06,\
+                 c.ConfigName,c.ConfigVersion, j.JobEnd, j.JobStart, j.RunNumber, j.FillNumber, j.Tck, j.stepid \
+                 from %s where f.jobid=j.jobid and c.configurationid=j.configurationid %s" % ( tables, condition )
       retVal = self.dbR_.query( command )
       if retVal['OK']:
         records = []
-        parameters = ['DiracJobID', 'DiracVersion', 'EventInputStat', 'Exectime', 'FirstEventNumber',
+                 
+        parameters = ['DiracJobId', 'DiracVersion', 'EventInputStat', 'Exectime', 'FirstEventNumber',
                       'Location', 'JobName', 'NumberOfEvents', 'StatisticsRequested', 'WNCPUPower',
                       'CPUTime', 'WNCache', 'WNMemory', 'WNModel', 'WorkerNode', 'WNCPUHS06',
-                      'JobId', 'TotalLuminosity', 'Production','WNMJFHS06']
+                      'JobId', 'TotalLuminosity', 'Production', 'WNMJFHS06', 'ConfigName',
+                      'ConfigVersion', 'JobEnd', 'JobStart', 'RunNumber', 'FillNumber', 'Tck', 'StepId']
         for i in retVal['Value']:
           records += [dict( zip( parameters, i ) )]
         result = S_OK( records )
@@ -1829,7 +1841,8 @@ class OracleBookkeepingDB( object ):
                  'TotalLuminosity':0, \
                  'Tck':'None',\
                  'StepID': None,\
-                 'WNMJFHS06' : 0}
+                 'WNMJFHS06' : 0,\
+                 'HLT2Tck': 'None'}
 
     for param in job:
       if not attrList.__contains__( param ):
@@ -1859,7 +1872,7 @@ class OracleBookkeepingDB( object ):
       pass  # it is already defined
 
 
-    result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertJobsRow',
+    result = self.dbW_.executeStoredFunctions( 'BOOKKEEPINGORACLEDB.insertJobsRow_tmp',
                                               types.LongType, [attrList['ConfigName'],
                                                                attrList['ConfigVersion'],
                                                                attrList['DiracJobId'],
@@ -1888,7 +1901,8 @@ class OracleBookkeepingDB( object ):
                                                                attrList['TotalLuminosity'],
                                                                attrList['Tck'],
                                                                attrList['StepID'],
-                                                               attrList['WNMJFHS06'] ] )
+                                                               attrList['WNMJFHS06'],
+                                                               attrList['HLT2Tck'] ] )
     return result
 
   #############################################################################
@@ -5067,3 +5081,31 @@ and files.qualityid= dataquality.qualityid'
     result['ConditionDescription'] = retVal['Value'][0][0]
 
     return S_OK( result )
+  
+  def deleteCertificationData( self ):
+    """
+    It destroy the data used by the integration test.
+    """
+    return self.dbR_.executeStoredProcedure( 'BKUTILITIES.destroyDatasets', [], False )
+  
+  #############################################################################
+  def getAvailableTagsFromSteps( self ):
+    """
+    :return S_OK/S_ERROR a list of db tags
+    """
+    
+    command = "select distinct DDDB,CONDDB,DQTAG from steps where Usable='Yes'"
+    retVal = self.dbR_.query( command )
+    if not retVal['OK']:
+      return retVal
+    
+    records = []
+    for record in retVal['Value']:
+      if record[0]!=None:
+        records.append( [ 'DDDB', record[0]] )
+      if record[1]!=None:
+        records.append( [ 'CONDDB', record[1]] )
+      if record[2]!=None:
+        records.append( [ 'DQTAG', record[2]] )
+    
+    return S_OK( {'ParameterNames': ['TagName', 'TagValue'], 'Records':records} )
