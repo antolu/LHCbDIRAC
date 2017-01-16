@@ -1,6 +1,9 @@
 __RCSID__ = "$Id$"
 
-import unittest, itertools, os, datetime
+import unittest
+import itertools
+import os
+import datetime
 
 from mock import MagicMock
 

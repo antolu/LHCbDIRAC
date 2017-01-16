@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#pylint: disable=protected-access
-
-from DIRAC.Core.Base.Script import parseCommandLine
-parseCommandLine()
+#pylint: disable=protected-access, wrong-import-position, invalid-name, missing-docstring
 
 import unittest
 import os
+
+from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
 
 from DIRAC.Core.Utilities.Shifter import setupShifterProxyInEnv
 
