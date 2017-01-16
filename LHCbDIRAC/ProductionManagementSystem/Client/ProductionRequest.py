@@ -45,6 +45,8 @@ class ProductionRequest( object ):
 
     self.logger = gLogger.getSubLogger( 'ProductionRequest' )
 
+    self.opsH = Operations()
+
     # parameters of the request
     self.requestID = 0
     self.parentRequestID = 0
@@ -296,7 +298,6 @@ class ProductionRequest( object ):
 
     prodID = self._modifyAndLaunchMCXML( prod, prodDict )
 
-
     # load a production from the original xml to save the priority and processing type
     workflowToSave = fromXMLString( prodXML )
     prod.LHCbJob.workflow = workflowToSave
@@ -320,10 +321,9 @@ class ProductionRequest( object ):
     """ needed modifications
     """
     # set the destination and number of events for testing
-    op = Operations()
-    destination = op.getValue( "Productions/MCTesting/MCTestingDestination", 'DIRAC.Test.ch' )
-    numberOfEvents = op.getValue( "Productions/MCTesting/numberOfEvents", '500' )
-    extendBy = op.getValue( "Productions/MCTesting/extendBy", 20 )
+    destination = self.opsH.getValue( "Productions/MCTesting/MCTestingDestination", 'DIRAC.Test.ch' )
+    numberOfEvents = self.opsH.getValue( "Productions/MCTesting/numberOfEvents", '500' )
+    extendBy = self.opsH.getValue( "Productions/MCTesting/extendBy", 20 )
 
     prod.setJobParameters( {'Destination': destination} )
     prod.LHCbJob.workflow.removeParameter( 'BannedSites' )
@@ -349,6 +349,7 @@ class ProductionRequest( object ):
 
     # increase the priority to 10
     prod.priority = 10
+
 
     # launch the test production
     res = self.diracProduction.launchProduction( prod = prod,
