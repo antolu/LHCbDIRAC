@@ -20,7 +20,8 @@ Also, remembers to update the $PYTHONPATH with the (LHCb)DIRAC directory. It is 
 The Configuration Service (CS)
 ``````````````````````````````
 
-At this point, the key becomes understanding how the DIRAC `Configuration Service (CS) <http://diracgrid.org/files/docs/AdministratorGuide/Configuration/ConfigurationStructure/index.html>`_ works. I'll explain here briefly.
+At this point, the key becomes understanding how the DIRAC `Configuration Service (CS) <http://dirac.readthedocs.io/en/latest/AdministratorGuide/Configuration/index.html>`_ works.
+I'll explain here briefly.
 
 The CS is a layered structure: whenever you access a CS information (e.g. using a "gConfig" object, see later), DIRAC will first check into your local "dirac.cfg" file (it can be in your home as .dirac.cfg, or in etc/ directory, see the link above).
 If this will not be found, it will look for such info in the CS servers available.
