@@ -72,7 +72,7 @@ class TransformationDebug( object ):
     runs = []
     if status and byRuns and not runList:
       files = self.__getFilesForRun( status = status, taskList = taskList )
-      runList = set( fileDict['RunNumber'] for fileDict in files )
+      runList = set( str( fileDict['RunNumber'] ) for fileDict in files )
 
     if runList:
       for runRange in runList:
@@ -1289,7 +1289,17 @@ class TransformationDebug( object ):
             prString = 'No run'
           if runStatus:
             prString += " (%s)" % runStatus
-          prString += " - %d files (SelectedSite: %s), %d processed, status: %s" % ( files, SEs, processed, runStatus )
+          tasks = set()
+          nFilesNoTask = 0
+          for fileDict in transFilesList:
+            if fileDict['TaskID']:
+              tasks.add( fileDict['TaskID'] )
+            else:
+              nFilesNoTask += 1
+          prString += " - %d files (" % files
+          if nFilesNoTask:
+            prString += "%d files in no task, " % nFilesNoTask
+          prString += "%d tasks, SelectedSite: %s), %d processed, status: %s" % ( len( tasks ), SEs, processed, runStatus )
           gLogger.notice( prString )
 
         if checkFlush or ( ( byRuns and runID ) and status == 'Unused' and 'WithFlush' in self.transPlugin ) :

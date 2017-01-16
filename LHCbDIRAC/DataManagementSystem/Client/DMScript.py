@@ -348,7 +348,7 @@ class DMScript( object ):
     try:
       siteShortNames = DMSHelpers().getShortSiteNames( withStorage = False, tier = ( 0, 1 ) )
     except AttributeError:
-      siteShortNames = { 'CERN':'LCG.CERN.ch', 'CNAF':'LCG.CNAF.it', 'GRIDKA':'LCG.GRIDKA.de',
+      siteShortNames = { 'CERN':'LCG.CERN.cern', 'CNAF':'LCG.CNAF.it', 'GRIDKA':'LCG.GRIDKA.de',
                          'NIKHEF':'LCG.NIKHEF.nl', 'SARA':'LCG.SARA.nl', 'PIC':'LCG.PIC.es',
                          'RAL':'LCG.RAL.uk', 'IN2P3':'LCG.IN2P3.fr', 'RRCKI':'LCG.RRCKI.ru' }
     sites = arg.split( ',' )

@@ -83,7 +83,9 @@ class GaudiApplication( ModuleBase ):
     """
 
     try:
-
+      site = gConfig.getValue( '/LocalSite/Site' )
+      if 'BOINC' in site:
+         self._disableWatchdogCPUCheck()
       super( GaudiApplication, self ).execute( self.version, production_id, prod_job_id, wms_job_id,
                                                workflowStatus, stepStatus,
                                                wf_commons, step_commons, step_number, step_id )

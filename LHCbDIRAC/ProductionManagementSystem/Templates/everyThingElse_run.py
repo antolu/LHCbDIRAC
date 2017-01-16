@@ -70,7 +70,7 @@ validationFlag = ast.literal_eval( '{{validationFlag#GENERAL: Set True for valid
 pr.startRun = int( '{{startRun#GENERAL: run start, to set the start run#0}}' )
 pr.endRun = int( '{{endRun#GENERAL: run end, to set the end of the range#0}}' )
 pr.runsList = '{{runsList#GENERAL: discrete list of run numbers (do not mix with start/endrun)#}}'
-pr.targets = ['{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.ch#}}'] * len( pr.prodsTypeList )
+pr.targets = ['{{WorkflowDestination#GENERAL: Workflow destination site e.g. LCG.CERN.cern#}}'] * len( pr.prodsTypeList )
 extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepNumber:options#}}'
 if extraOptions:
   pr.extraOptions = ast.literal_eval( extraOptions )

@@ -24,7 +24,7 @@ class ControlerAdvancedSave( ControlerAbstract ):
     try:
       shortSiteNames = DMSHelpers().getShortSiteNames( withStorage = False, tier = ( 0, 1 ) )
     except AttributeError:
-      shortSiteNames = {"CERN":"LCG.CERN.ch",
+      shortSiteNames = {"CERN":"LCG.CERN.cern",
                         "RAL":"LCG.RAL.uk",
                         "IN2P3":"LCG.IN2P3.fr",
                         "GRIDKA":"LCG.GRIDKA.de",

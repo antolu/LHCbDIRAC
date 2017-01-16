@@ -1,11 +1,10 @@
-""" BookkeepingManaher service is the front-end to the Bookkeeping database
+""" BookkeepingManager service is the front-end to the Bookkeeping database
 """
 
 import cPickle
 
 from DIRAC import gLogger, S_OK, S_ERROR
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
-from DIRAC.ConfigurationSystem.Client import PathFinder
 from DIRAC.ConfigurationSystem.Client.PathFinder import getServiceSection
 from DIRAC.ConfigurationSystem.Client.Helpers import cfgPath
 from DIRAC.ConfigurationSystem.Client.Config import gConfig
@@ -46,8 +45,7 @@ class BookkeepingManagerHandler( RequestHandler ):
 
   @classmethod
   def initializeHandler( cls, serviceInfoDict ):
-    """
-      initialize the variables used to identify queries, which are not containing enough conditions.
+    """ Initializes the variables used to identify queries, which are not containing enough conditions.
     """
 
     bkkSection = getServiceSection( "Bookkeeping/BookkeepingManager" )
@@ -1561,10 +1559,10 @@ class BookkeepingManagerHandler( RequestHandler ):
                                              runnumbers = runNbs,
                                              startRunID = startRunID,
                                              endRunID = endRunID,
-                                             tcks = tck ) 
-                                            
+                                             tcks = tck )
+
     summary = 0
-    
+
     parameters = ['FileName', 'EventStat', 'FileSize',
                   'CreationDate', 'JobStart', 'JobEnd',
                   'WorkerNode', 'FileType', 'RunNumber',
@@ -1572,7 +1570,7 @@ class BookkeepingManagerHandler( RequestHandler ):
                   'EventInputStat', 'TotalLuminosity', 'Luminosity',
                   'InstLuminosity', 'TCK', 'GUID', 'ADLER32', 'EventType', 'MD5SUM',
                   'VisibilityFlag', 'JobId', 'GotReplica', 'InsertTimeStamp']
-     
+
     if not retVal['OK']:
       return retVal
     else:
@@ -1630,8 +1628,8 @@ class BookkeepingManagerHandler( RequestHandler ):
     daqdesc = infos.get( 'DataTakingConditions', None )
     production = None
 
-    if simcond == None and daqdesc == None:
-      result = S_ERROR( 'SimulationConditions or DataTakingConditins is missing!' )
+    if simcond is None and daqdesc is None:
+      result = S_ERROR( 'SimulationConditions and DataTakingConditions are both missing!' )
 
     if 'Steps' not in infos:
       result = S_ERROR( "Missing Steps!" )
@@ -2027,10 +2025,21 @@ class BookkeepingManagerHandler( RequestHandler ):
   def export_bulkupdateEventType( eventtypes ):
     """more info in the BookkeepingClient.py"""
     return dataMGMT_.bulkupdateEventType( eventtypes )
-  
+
   #############################################################################
   types_getRunConfigurationsAndDataTakingCondition = [int]
   @staticmethod
   def export_getRunConfigurationsAndDataTakingCondition( runnumber ):
     """more info in the BookkeepingClient.py"""
     return dataMGMT_.getRunConfigurationsAndDataTakingCondition( runnumber )
+  
+  types_deleteCertificationData = []
+  def export_deleteCertificationData( self ):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.deleteCertificationData()
+
+  #############################################################################
+  types_getAvailableTagsFromSteps = []
+  def export_getAvailableTagsFromSteps( self ):
+    """more info in the BookkeepingClient.py"""
+    return dataMGMT_.getAvailableTagsFromSteps()
