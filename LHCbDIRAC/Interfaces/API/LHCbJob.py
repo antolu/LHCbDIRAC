@@ -829,7 +829,7 @@ class LHCbJob( Job ):
 
     if not modulesNameList:
       modulesNameList = ['CreateDataFile',
-                         'Script',
+                         'LHCbScript',
                          'FileUsage',
                          'UserJobFinalization']
     if not parametersList:

@@ -303,6 +303,10 @@ class ModulesTestCase( unittest.TestCase ):
     from LHCbDIRAC.Workflow.Modules.CreateDataFile import CreateDataFile
     self.cdf = CreateDataFile( bkClient = self.bkc_mock, dm = self.dm_mock )
 
+    from LHCbDIRAC.Workflow.Modules.LHCbScript import LHCbScript
+    self.lhcbScript = LHCbScript()
+
+
   def tearDown( self ):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst', 'bar.py', 'aLongLog.log', 'aLongLog.log.gz'
                      'ccc.charm.mdst', 'ccc.charm.mdst', 'prova.txt', 'aLog.log',
@@ -389,8 +393,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
   def test__checkSanity( self ):
 
     candidateFiles = {'00012345_00012345_4.dst':
-                        {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
-                         'type': 'dst'},
+                      {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
+                       'type': 'dst'},
                       '00012345_00012345_2.digi': {'type': 'digi'},
                       '00012345_00012345_3.digi': {'type': 'digi'},
                       '00012345_00012345_5.AllStreams.dst':
@@ -1652,6 +1656,83 @@ class CreateDataFileSuccess( ModulesTestCase ):
                                            wf_commons, step_commons,
                                            self.step_number, self.step_id )['OK'] )
 
+
+#############################################################################
+# LHCbScripy.py
+#############################################################################
+
+def mock_getScriptsLocation():
+  return S_OK( { 'LbLogin.sh':'/this/is/a/path/groupLoginPath',
+                 'projectEnv':'/this/is/a/path/projectScriptPath',
+                 'MYSITEROOT':'softwareArea'} )
+
+def mock_runEnvironmentScripts( _var ):
+  return S_OK({'a':'aa', 'b':'bb'})
+
+class LHCbScriptSuccess( ModulesTestCase ):
+
+#################################################
+
+  @patch( 'LHCbDIRAC.Workflow.Modules.LHCbScript.getScriptsLocation', side_effect = mock_getScriptsLocation )
+  @patch( 'LHCbDIRAC.Workflow.Modules.LHCbScript.runEnvironmentScripts', side_effect = mock_runEnvironmentScripts )
+  def test_execute( self, _mockScriptsLocation, _mockrunEnvironmentScripts ):
+
+    self.lhcbScript.jobType = 'merge'
+    self.lhcbScript.stepInputData = ['foo', 'bar']
+
+    self.lhcbScript.production_id = self.prod_id
+    self.lhcbScript.prod_job_id = self.prod_job_id
+    self.lhcbScript.jobID = self.wms_job_id
+    self.lhcbScript.workflowStatus = self.workflowStatus
+    self.lhcbScript.stepStatus = self.stepStatus
+    self.lhcbScript.workflow_commons = self.wf_commons
+    self.lhcbScript.step_commons = self.step_commons[0]
+    self.lhcbScript.step_number = self.step_number
+    self.lhcbScript.step_id = self.step_id
+    self.lhcbScript.executable = 'ls'
+    self.lhcbScript.applicationLog = 'applicationLog.txt'
+
+    # no errors, no input data
+    for wf_commons in copy.deepcopy( self.wf_commons ):
+      for step_commons in self.step_commons:
+        self.lhcbScript.workflow_commons = wf_commons
+        self.lhcbScript.step_commons = step_commons
+        self.lhcbScript._setCommand()
+        res = self.lhcbScript._executeCommand()
+        self.assertIsNone( res )
+
+
+class LHCbScriptFailure( ModulesTestCase ):
+
+#################################################
+
+
+  @patch( 'LHCbDIRAC.Workflow.Modules.LHCbScript.getScriptsLocation', side_effect = mock_getScriptsLocation )
+  @patch( 'LHCbDIRAC.Workflow.Modules.LHCbScript.runEnvironmentScripts', side_effect = mock_runEnvironmentScripts )
+  def test_execute( self, _mockScriptsLocation, _mockrunEnvironmentScripts ):
+
+    self.lhcbScript.jobType = 'merge'
+    self.lhcbScript.stepInputData = ['foo', 'bar']
+
+    self.lhcbScript.production_id = self.prod_id
+    self.lhcbScript.prod_job_id = self.prod_job_id
+    self.lhcbScript.jobID = self.wms_job_id
+    self.lhcbScript.workflowStatus = self.workflowStatus
+    self.lhcbScript.stepStatus = self.stepStatus
+    self.lhcbScript.workflow_commons = self.wf_commons
+    self.lhcbScript.step_commons = self.step_commons[0]
+    self.lhcbScript.step_number = self.step_number
+    self.lhcbScript.step_id = self.step_id
+
+    # no errors, no input data
+    for wf_commons in copy.deepcopy( self.wf_commons ):
+      for step_commons in self.step_commons:
+        self.lhcbScript.workflow_commons = wf_commons
+        self.lhcbScript.step_commons = step_commons
+        res = self.lhcbScript.execute()
+        self.assertFalse( res['OK'] )
+
+
 #############################################################################
 # Test Suite run
 #############################################################################
@@ -1679,6 +1760,8 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( UserJobFinalizationSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FileUsageSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( CreateDataFileSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( LHCbScriptSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( LHCbScriptFailure ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 # EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#EOF#
