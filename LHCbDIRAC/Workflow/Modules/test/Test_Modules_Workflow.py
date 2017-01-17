@@ -1,4 +1,4 @@
-""" Unit tests for Workflo Modules
+""" Unit tests for Workflow Modules
 """
 
 import unittest
@@ -8,23 +8,18 @@ import copy
 import shutil
 import importlib
 
-from mock import MagicMock, patch
+from mock import MagicMock
 
-from DIRAC import gConfig, gLogger, S_OK, S_ERROR
-from DIRAC.ConfigurationSystem.Client.Helpers import Resources
+from DIRAC import gLogger
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.File import File
-
-from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce, getCPUNormalizationFactorAvg, getProductionParameterValue
 
 # from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
 
 __RCSID__ = "$Id$"
 
-#pylint: disable=protected-access
-#pylint: disable=missing-docstring
-#pylint: disable=invalid-name
+#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 class ModulesTestCase( unittest.TestCase ):
   """ Base class for the Modules test cases
@@ -32,9 +27,6 @@ class ModulesTestCase( unittest.TestCase ):
   def setUp( self ):
 
     gLogger.setLevel( 'DEBUG' )
-#    import sys
-#    sys.modules["DIRAC"] = DIRAC.ResourceStatusSystem.test.fake_Logger
-#    sys.modules["DIRAC.ResourceStatusSystem.Utilities.CS"] = DIRAC.ResourceStatusSystem.test.fake_Logger
     self.maxDiff = None
 
     self.jr_mock = MagicMock()
@@ -389,8 +381,8 @@ class ModuleBaseSuccess( ModulesTestCase ):
   def test__checkSanity( self ):
 
     candidateFiles = {'00012345_00012345_4.dst':
-                        {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
-                         'type': 'dst'},
+                      {'lfn': '/lhcb/MC/2010/DST/00012345/0001/00012345_00012345_4.dst',
+                       'type': 'dst'},
                       '00012345_00012345_2.digi': {'type': 'digi'},
                       '00012345_00012345_3.digi': {'type': 'digi'},
                       '00012345_00012345_5.AllStreams.dst':
@@ -728,158 +720,6 @@ class GaudiApplicationSuccess( ModulesTestCase ):
 #                                        ['aa', 'bb'] )['OK'] )
   pass
 
-
-#############################################################################
-# ModulesUtilities.py
-#############################################################################
-
-class ModulesUtilitiesSuccess( ModulesTestCase ):
-
-  #################################################
-
-  def test_lowerExtension( self ):
-
-    open( 'foo.tXt', 'w' ).close()
-    open( 'BAR.txt', 'w' ).close()
-    open( 'FooBAR.eXT.TXT', 'w' ).close()
-
-    lowerExtension()
-
-    self.assert_( 'foo.txt' in os.listdir( '.' ) )
-    self.assert_( 'BAR.txt' in os.listdir( '.' ) )
-    self.assert_( 'FooBAR.ext.txt' in os.listdir( '.' ) )
-
-  #################################################
-
-  def test_getEventsToProduce( self ):
-
-    CPUe = 2.0
-    CPUTime = 1000000.0
-    CPUNormalizationFactor = 0.5
-
-    out = getEventsToProduce( CPUe, CPUTime, CPUNormalizationFactor )
-    outExp = 200000
-    self.assertEqual( out, outExp )
-
-    out = getEventsToProduce( CPUe, CPUTime, CPUNormalizationFactor, maxNumberOfEvents = 1000 )
-    outExp = 1000
-    self.assertEqual( out, outExp )
-
-    out = getEventsToProduce( CPUe, CPUTime, CPUNormalizationFactor, jobMaxCPUTime = 100000 )
-    outExp = 20000
-    self.assertEqual( out, outExp )
-
-    out = getEventsToProduce( CPUe, CPUTime, CPUNormalizationFactor, maxNumberOfEvents = 1000, jobMaxCPUTime = 100000 )
-    outExp = 1000
-    self.assertEqual( out, outExp )
-
-  #################################################
-
-  def test_getCPUNormalizationFactorAvg( self ):
-
-    with patch.object( gConfig, 'getSections' ) as mockGetSections:  # @UndefinedVariable
-      with patch.object( Resources, 'getQueues' ) as mockGetQueues:  # @UndefinedVariable
-
-        # gConfig.getSection error
-        mockGetSections.return_value = S_ERROR()
-        self.assertRaises( RuntimeError, getCPUNormalizationFactorAvg )
-
-        # Resources.getQueues error
-        mockGetSections.return_value = S_OK( ['LCG.CERN.ch'] )
-        mockGetQueues.return_value = S_ERROR()
-        self.assertRaises( RuntimeError, getCPUNormalizationFactorAvg )
-
-        # no queues
-        mockGetQueues.return_value = S_OK( {'LCG.CERN.ch' : {}} )
-        self.assertRaises( RuntimeError, getCPUNormalizationFactorAvg )
-
-        # success
-        mockGetQueues.return_value = S_OK( {'LCG.CERN.ch': {'ce201.cern.ch': {'CEType': 'CREAM',
-                                                                              'OS': 'ScientificCERNSLC_Boron_5.5',
-                                                                              'Pilot': 'True',
-                                                                              'Queues': {'cream-lsf-grid_2nh_lhcb': {'MaxTotalJobs': '1000',
-                                                                                                                     'MaxWaitingJobs': '20',
-                                                                                                                     'SI00': '1000',
-                                                                                                                     'maxCPUTime': '120'
-                                                                                                                    },
-                                                                                         'cream-lsf-grid_lhcb': {'MaxTotalJobs': '1000',
-                                                                                                                 'MaxWaitingJobs': '100',
-                                                                                                                 'SI00': '1000',
-                                                                                                                 'WaitingToRunningRatio': '0.2',
-                                                                                                                 'maxCPUTime': '10080'
-                                                                                                                }
-                                                                                        },
-                                                                              'SI00': '5242',
-                                                                              'SubmissionMode': 'Direct',
-                                                                              'architecture': 'x86_64',
-                                                                              'wnTmpDir': '.'
-                                                                             },
-                                                            'ce202.cern.ch': {'CEType': 'CREAM',
-                                                                              'OS': 'ScientificCERNSLC_Boron_5.8',
-                                                                              'Pilot': 'True',
-                                                                              'Queues': {'cream-lsf-grid_2nh_lhcb': { 'MaxTotalJobs': '1000',
-                                                                                                                      'MaxWaitingJobs': '20',
-                                                                                                                      'SI00': '1000',
-                                                                                                                      'maxCPUTime': '120'
-                                                                                                                    },
-                                                                                         'cream-lsf-grid_lhcb': { 'MaxTotalJobs': '1000',
-                                                                                                                  'MaxWaitingJobs': '100',
-                                                                                                                  'SI00': '1000',
-                                                                                                                  'WaitingToRunningRatio': '0.2',
-                                                                                                                  'maxCPUTime': '10080'
-                                                                                                                }
-                                                                                        },
-                                                                              'SI00': '5242',
-                                                                              'SubmissionMode': 'Direct',
-                                                                              'architecture': 'x86_64',
-                                                                              'wnTmpDir': '.'}}} )
-        out = getCPUNormalizationFactorAvg()
-        self.assertEqual( out, 4.0 )
-
-  #################################################
-
-  def test_getProductionParameterValue( self ):
-
-    emptyXML = '<Workflow></Workflow>'
-    noValueProductionXML = '''
-      <Workflow>
-        <origin></origin>
-        <description><![CDATA[prodDescription]]></description>
-        <descr_short></descr_short>
-        <version>0.0</version>
-        <type></type>
-        <name>Request_12416_MCSimulation_Sim08a/Digi13/Trig0x40760037/Reco14a/Stripping20r1NoPrescalingFlagged_EventType_13296003__1</name>
-        <Parameter name="JobType" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified type">
-          <value></value>
-        </Parameter>
-      </Workflow>
-    '''
-    productionXML = '''
-      <Workflow>
-        <origin></origin>
-        <description><![CDATA[prodDescription]]></description>
-        <descr_short></descr_short>
-        <version>0.0</version>
-        <type></type>
-        <name>Request_12416_MCSimulation_Sim08a/Digi13/Trig0x40760037/Reco14a/Stripping20r1NoPrescalingFlagged_EventType_13296003__1</name>
-        <Parameter name="JobType" type="JDL" linked_module="" linked_parameter="" in="True" out="False" description="User specified type">
-          <value><![CDATA[MCSimulation]]></value>
-        </Parameter>
-      </Workflow>
-    '''
-
-    parameterName = 'JobType'
-
-    valueExp = 'MCSimulation'
-
-    value = getProductionParameterValue( emptyXML, parameterName )
-    self.assertEqual( value, None )
-
-    value = getProductionParameterValue( noValueProductionXML, parameterName )
-    self.assertEqual( value, None )
-
-    value = getProductionParameterValue( productionXML, parameterName )
-    self.assertEqual( value, valueExp )
 
 #############################################################################
 # AnalyseXMLSummary.py
@@ -1664,7 +1504,6 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseLogFileSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationScriptSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModulesUtilitiesSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportFailure ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ErrorLoggingSuccess ) )
