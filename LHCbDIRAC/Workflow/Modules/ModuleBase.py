@@ -370,9 +370,13 @@ class ModuleBase( object ):
 
     if 'extraPackages' in self.step_commons:
       self.extraPackages = self.step_commons['extraPackages']
-      if not self.extraPackages == '':
-        if not isinstance( self.extraPackages, list ):
-          self.extraPackages = self.extraPackages.split( ';' )
+      if self.extraPackages:
+        if isinstance( self.extraPackages, basestring ):
+          eps = self.extraPackages.split( ';' )
+          epList = []
+          for ep in eps:
+            epList.append(tuple(ep.split('.')))
+          self.extraPackages = epList
 
     stepInputData = []
     if 'inputData' in self.step_commons:

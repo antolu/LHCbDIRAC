@@ -96,7 +96,7 @@ class RunApplication(object):
     if self.command == 'gaudirun.py':
       command = self.gaudirunCommand()
     else:
-      raise RuntimeError( "No Gaudirun?" )
+      command = self.command
 
     runResult = ''
     for compatibleCMTConfig in compatibleCMTConfigs: #FIXME: this loop should desappear
@@ -113,10 +113,10 @@ class RunApplication(object):
         raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
 
       if runResult['Value'][0]: # if exit status != 0
-        self.log.error( "lb-run exited with status %d" % runResult['Value'][0] )
-        continue
+        self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
+        raise RuntimeError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
 
-    self.log.info( "Status after the application execution is %s" % str( runResult ) )
+    self.log.info( "%s execution completed successfully" % self.applicationName )
 
     return runResult
 
@@ -168,7 +168,7 @@ class RunApplication(object):
     command = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
 
     # multicore?
-    if self.multicore:
+    if self.multicore or self.multicore == 'True':
       cpus = multiprocessing.cpu_count()
       if cpus > 1:
         if _multicoreWN():
