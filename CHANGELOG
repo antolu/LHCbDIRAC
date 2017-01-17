@@ -1,3 +1,37 @@
+[v8r5p2]
+use DIRAC v6r17p3
+
+* runDict was redefined
+* Update README.md
+* do not convert to number
+* tuple as exceptions
+* sort files by RunNumber before adding them to transformation
+* get CERN site name after CS init
+* implement new method which returns the available db tags. For request: LHCBDIRAC-273
+* use the same name convention
+* add the job metadata: LHCBDIRAC-557
+* add DiracJobId to the getJobInformation: LHCBDIRAC-558
+* hlt2tck is implemented: LHCBDIRAC-544
+* Add more bookkeeping integration tests: LHCBDIRAC-453
+* Added missing group in the notification link
+* Disable watchdog in case of BOINC sites.
+* even more info on runs
+* add runs <= lastRun to the list of runs to process
+* add nb of tasks to run info
+* removed old stuff
+* DIRAC.JobDebugger.ch -> DIRAC.JobDebugger.cern
+* CLOUD.CERN.ch -> CLOUD.CERN.cern
+* LCG.CERN.ch -> LCG.CERN.cern
+* allow wrong case
+* improve BK path wildcard
+* Change Tier1-SEs to capitalised names where appropriate
+* refine the selection of SEs, not accepting all existing SEs
+* removed RequiredExternals (now in DIRAC externals)
+* removed useless parameters
+* nop
+* still protect the update of the shared variable timeLog
+* _getFiles doesn't need @gSynchro which is a disaster in case of timeout
+
 [v8r5p1]
 use DIRAC v6r17p2
 

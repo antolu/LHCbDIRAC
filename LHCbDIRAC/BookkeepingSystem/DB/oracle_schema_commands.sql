@@ -117,6 +117,6 @@ ALTER TABLE productionscontainer ADD FOREIGN KEY (CONFIGURATIONID) REFERENCES co
 
 alter table jobs ADD CONSTRAINT FK_Prodcont_prod FOREIGN KEY(production) REFERENCES productionscontainer(production);
 
-
+ALTER TABLE jobs ADD HLT2TCK varchar2(20);
 
 

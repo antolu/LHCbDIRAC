@@ -103,7 +103,7 @@ class LHCbDockerMgmt(object):
 
     # Update each app configuration
     for app in runningDiracApps:
-      # bug in marathon..
+      # bug in marathon.. We need to remove these two fields
       app.pop('uris')
       app.pop('version')
 

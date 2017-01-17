@@ -439,11 +439,14 @@ class PluginUtilities( DIRACPluginUtilities ):
       return None
     targetSEs += ses
 
-    # Now select the secondary copies
-    # Missing secondary copies, make a list of candidates
+    # Now select the disk replicas
+    # 1. add mandatory SEs
     candidateSEs = [se for se in mandatorySEs if not self.isSameSEInList( se, existingSEs )]
-    candidateSEs += [se for se in existingSEs if not self.isSameSEInList( se, targetSEs + candidateSEs ) and not isArchive( se )]
-    candidateSEs += [se for se in self.rankSEs( secondaryActiveSEs ) if not self.isSameSEInList( se, candidateSEs )]
+    # 2. add existing disk SEs that are either mandatory or secondary
+    candidateSEs += [se for se in existingSEs if se in ( mandatorySEs + secondarySEs ) and not self.isSameSEInList( se, targetSEs + candidateSEs ) and not isArchive( se )]
+    # 3. add ranked list of secondary SEs
+    candidateSEs += [se for se in self.rankSEs( secondaryActiveSEs ) if not self.isSameSEInList( se, targetSEs + candidateSEs + existingSEs )]
+    # 4. Select the proper number of SEs in the candidate ordered list
     ses = self.selectSEs( candidateSEs, numberOfCopies, existingSEs )
     self.logVerbose( "SecondarySEs: %s" % ses )
     if len( ses ) < numberOfCopies:
