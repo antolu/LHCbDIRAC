@@ -1,6 +1,8 @@
 """ Unit tests for Workflow Modules
 """
 
+#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
+
 import unittest
 import itertools
 import os
@@ -18,8 +20,6 @@ from DIRAC.RequestManagementSystem.Client.File import File
 # from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
 
 __RCSID__ = "$Id$"
-
-#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 class ModulesTestCase( unittest.TestCase ):
   """ Base class for the Modules test cases
@@ -242,12 +242,6 @@ class ModulesTestCase( unittest.TestCase ):
     from LHCbDIRAC.Workflow.Modules.AnalyseXMLSummary import AnalyseXMLSummary
     self.axlf = AnalyseXMLSummary( bkClient = self.bkc_mock, dm = self.dm_mock )
 
-    from LHCbDIRAC.Workflow.Modules.GaudiApplication import GaudiApplication
-    self.ga = GaudiApplication( bkClient = self.bkc_mock, dm = self.dm_mock )
-
-    from LHCbDIRAC.Workflow.Modules.GaudiApplicationScript import GaudiApplicationScript
-    self.gas = GaudiApplicationScript( bkClient = self.bkc_mock, dm = self.dm_mock )
-
     from LHCbDIRAC.Workflow.Modules.BookkeepingReport import BookkeepingReport
     self.bkr = BookkeepingReport( bkClient = self.bkc_mock, dm = self.dm_mock )
 
@@ -259,9 +253,6 @@ class ModulesTestCase( unittest.TestCase ):
 
     from LHCbDIRAC.Workflow.Modules.MergeMDF import MergeMDF
     self.mm = MergeMDF( bkClient = self.bkc_mock, dm = self.dm_mock )
-
-    from LHCbDIRAC.Workflow.Modules.ProtocolAccessTest import ProtocolAccessTest
-    self.pat = ProtocolAccessTest( bkClient = self.bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.RemoveInputData import RemoveInputData
     self.rid = RemoveInputData( bkClient = self.bkc_mock, dm = self.dm_mock )
@@ -680,47 +671,6 @@ class ModuleBaseFailure( ModulesTestCase ):
 
     self.assertRaises( ValueError, self.mb.getCandidateFiles, outputList, outputLFNs, fileMask, stepMask )
 
-
-#############################################################################
-# GaudiApplication.py
-#############################################################################
-
-class GaudiApplicationSuccess( ModulesTestCase ):
-  #################################################
-
-#  def test_execute( self ):
-# FIXME: difficult to mock
-#
-#    #no errors, no input data
-#    for wf_commons in copy.deepcopy( self.wf_commons ):
-#      self.assertTrue( self.ga.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-#                                        self.workflowStatus, self.stepStatus,
-#                                        wf_commons, self.step_commons,
-#                                        self.step_number, self.step_id,
-#                                        MagicMock() )['OK'] )
-
-#############################################################################
-# GaudiApplicationScript.py
-#############################################################################
-
-# class GaudiApplicationScriptSuccess( ModulesTestCase ):
-#
-#  #################################################
-#
-#  def test_execute( self ):
-# #FIXME: difficult to mock
-#
-#    self.step_commons['script'] = 'cat'
-#    #no errors, no input data
-#    for wf_commons in copy.deepcopy( self.wf_commons ):
-#      self.assertTrue( self.gas.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-#                                        self.workflowStatus, self.stepStatus,
-#                                        wf_commons, self.step_commons,
-#                                        self.step_number, self.step_id,
-#                                        ['aa', 'bb'] )['OK'] )
-  pass
-
-
 #############################################################################
 # AnalyseXMLSummary.py
 #############################################################################
@@ -1037,38 +987,6 @@ class FailoverRequestSuccess( ModulesTestCase ):
 #                                        wf_commons, self.step_commons,
 #                                        self.step_number, self.step_id,
 #                                        self.dm_mock )['OK'] )
-
-##############################################################################
-# # ProtocolAccessTest.py
-##############################################################################
-
-# class ProtocolAccessTestSuccess( ModulesTestCase ):
-#
-#   ################################################
-#
-#   def test_execute( self ):
-#
-#     step_commons = copy.deepcopy( self.step_commons )
-#      no errors, no input data
-#     for wf_commons in copy.deepcopy( self.wf_commons ):
-#       for step_commons_1 in step_commons:
-#         self.assertFalse( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-#                                           self.workflowStatus, self.stepStatus,
-#                                           wf_commons, step_commons_1,
-#                                           self.step_number, self.step_id )['OK'] )
-#       step_commons_1['protocols'] = ['pr1', 'pr2']
-#       self.assertFalse( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-#                                           self.workflowStatus, self.stepStatus,
-#                                           wf_commons, step_commons_1,
-#                                           self.step_number, self.step_id )['OK'] )
-#       step_commons_1['applicationVersion'] = 'v1'
-#      wf_commons['InputData'] = ['lfn1', 'lfn2']
-#      self.assertTrue( self.pat.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-#                                          self.workflowStatus, self.stepStatus,
-#                                          wf_commons, step_commons,
-#                                          self.step_number, self.step_id )['OK'] )
-
-    # TODO: make others cases tests!
 
 ##############################################################################
 # # RemoveInputData.py
@@ -1502,14 +1420,11 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ModuleBaseFailure ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseXMLSummarySuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseLogFileSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationSuccess ) )
-#  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationScriptSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportFailure ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ErrorLoggingSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FailoverRequestSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
-#   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProtocolAccessTestSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RemoveInputDataSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( SendBookkeepingSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( StepAccountingSuccess ) )

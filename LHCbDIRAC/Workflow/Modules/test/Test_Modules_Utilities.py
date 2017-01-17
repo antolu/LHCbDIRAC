@@ -1,5 +1,7 @@
-""" Unit tests for Workflow Modules
+""" Unit tests for Workflow Modules utilities
 """
+
+#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
 import os
@@ -10,8 +12,6 @@ from DIRAC import gConfig, gLogger, S_OK, S_ERROR
 from DIRAC.ConfigurationSystem.Client.Helpers import Resources
 
 from LHCbDIRAC.Workflow.Modules.ModulesUtilities import lowerExtension, getEventsToProduce, getCPUNormalizationFactorAvg, getProductionParameterValue
-
-#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 class ModulesUtilitiesTestCase( unittest.TestCase ):
   """ Base class for the ModulesUtilities test cases
