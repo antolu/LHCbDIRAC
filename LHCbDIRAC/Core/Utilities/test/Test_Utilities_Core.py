@@ -12,6 +12,8 @@ from mock import MagicMock
 
 from DIRAC import gLogger
 
+from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import bkc_mock
+
 from LHCbDIRAC.Core.Utilities.ProductionData import _makeProductionLFN, constructProductionLFNs, \
                                                     _getLFNRoot, _applyMask, getLogPath, constructUserLFNs
 from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
@@ -29,16 +31,7 @@ class UtilitiesTestCase( unittest.TestCase ):
   """
   def setUp( self ):
 
-    self.bkClientMock = MagicMock()
-    self.bkClientMock.getFileTypes.return_value = {'OK': True,
-                                                   'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
-                                                             'Records': [['SDST'], ['PID.MDST'], ['GEN'], ['DST'],
-                                                                         ['LEPTONIC.MDST'], ['EW.DST'], ['CHARM.DST']]}}
-    self.bkClientMock.getFileTypeVersion.return_value = {'OK': True,
-                                                         'Value': {'lfn1': 'ROOT',
-                                                                   'lfn2': 'MDF'}}
-
-    self.IDR = InputDataResolution( {}, self.bkClientMock )
+    self.IDR = InputDataResolution( {}, bkc_mock )
 
     self.pc = ProdConf()
 
@@ -448,12 +441,12 @@ class ProductionDataSuccess( UtilitiesTestCase ):
     for outputDataFileMask, resL in itertools.izip( outputDataFileMasks, reslist ):
       paramDict['outputDataFileMask'] = outputDataFileMask
 
-      res = constructProductionLFNs( paramDict, self.bkClientMock )
+      res = constructProductionLFNs( paramDict, bkc_mock )
 
       self.assert_( res['OK'] )
       self.assertEqual( res['Value'], resL )
 
-      resWithBkk = constructProductionLFNs( paramDict, self.bkClientMock, quick = False )
+      resWithBkk = constructProductionLFNs( paramDict, bkc_mock, quick = False )
 
       self.assert_( resWithBkk['OK'] )
       self.assertEqual( resWithBkk['Value'], resL )
@@ -518,13 +511,13 @@ class ProductionDataSuccess( UtilitiesTestCase ):
                    'configVersion':'Collision11',
                    'JobType':'MCSimulation'}
 
-    resWithBkk = getLogPath( wkf_commons, self.bkClientMock, quick = False )
+    resWithBkk = getLogPath( wkf_commons, bkc_mock, quick = False )
 
     self.assertEqual( resWithBkk, {'OK': True,
                                    'Value': { 'LogTargetPath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00012345_00000001.tar'],
                                               'LogFilePath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00000001']}} )
 
-    res = getLogPath( wkf_commons, self.bkClientMock )
+    res = getLogPath( wkf_commons, bkc_mock )
 
     self.assertEqual( res, {'OK': True,
                             'Value': {'LogTargetPath': ['/lhcb/LHCb/Collision11/LOG/00012345/0000/00012345_00000001.tar'],
@@ -532,10 +525,10 @@ class ProductionDataSuccess( UtilitiesTestCase ):
 
 
   def test__getLFNRoot( self ):
-    res = _getLFNRoot( '/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst', 'MC12', bkClient = self.bkClientMock )
-    self.assertEqual( res, '/lhcb/data/CCRC08/00009909' )
+    res = _getLFNRoot( '/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst', 'MC12', bkClient = bkc_mock )
+    self.assertEqual( res, '/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst' )
 
-    res = _getLFNRoot( '/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst', 'MC12', bkClient = self.bkClientMock, quick = True )
+    res = _getLFNRoot( '/lhcb/data/CCRC08/00009909/DST/0000/00009909_00003456_2.dst', 'MC12', bkClient = bkc_mock, quick = True )
     self.assertEqual( res, '/lhcb/data/CCRC08/00009909' )
 
   def test_constructUserLFNs( self ):
@@ -570,8 +563,7 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
                                        'lfn2':{'pfntype':'MDF', 'mdata':'mdata2'} }
                            } )
 
-    self.bkClientMock.getFileTypeVersion.return_value = {'OK': True,
-                                                         'Value': {}}
+    bkc_mock.getFileTypeVersion.return_value = {'OK': True, 'Value': {}}
 
     res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'},
                                  'lfn2': {'mdata':'mdata2'}} )
@@ -580,8 +572,7 @@ class InputDataResolutionSuccess( UtilitiesTestCase ):
                                        'lfn2':{'pfntype':'ROOT', 'mdata':'mdata2'} }
                            } )
 
-    self.bkClientMock.getFileTypeVersion.return_value = {'OK': True,
-                                                         'Value': {'lfn1': 'ROOT'}}
+    bkc_mock.getFileTypeVersion.return_value = {'OK': True, 'Value': {'lfn1': 'ROOT'}}
 
     res = self.IDR._addPfnType( {'lfn1':{'mdata':'mdata1'},
                                  'lfn2': {'mdata':'mdata2'},

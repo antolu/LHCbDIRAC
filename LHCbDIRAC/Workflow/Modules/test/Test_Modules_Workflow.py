@@ -17,7 +17,7 @@ from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.File import File
 
-# from LHCbDIRAC.Workflow.Modules.UserJobFinalization import UserJobFinalization
+from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import bkc_mock
 
 __RCSID__ = "$Id$"
 
@@ -78,30 +78,6 @@ class ModulesTestCase( unittest.TestCase ):
     self.ft_mock.transferAndRegisterFileFailover.return_value = {'OK': True, 'Value': {}}
     self.ft_mock.request = rc_mock
     self.ft_mock.FileCatalog = MagicMock()
-
-    self.bkc_mock = MagicMock()
-    self.bkc_mock.sendBookkeeping.return_value = {'OK': True, 'Value': ''}
-    self.bkc_mock.getFileTypes.return_value = {'OK': True,
-                                               'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
-                                                              {'skipCACheck': False, 'delegatedGroup': 'diracAdmin',
-                                                               'timeout': 3600} ), 'getFileTypes', ( {}, ) ),
-                                               'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
-                                                         'Records': [['DAVINCIHIST'], ['DIELECTRON.DST'], ['BU2JPSIK.MDST'],
-                                                                     ['SIM'], ['BD2JPSIKS.MDST'],
-                                                                     ['BU2JPSIK.DST'], ['BUBDBSSELECTION.DST'],
-                                                                     ['LAMBDA.DST'], ['BSMUMUBLIND.DST'], ['HADRONIC.DST']]}}
-    self.bkc_mock.getFileMetadata.return_value = {'OK': True,
-                                                  'Value': {'Successful':{'foo': {'ADLER32': None,
-                                                                                  'FileType': 'SDST',
-                                                                                  'FullStat': None,
-                                                                                  'GotReplica': 'Yes',
-                                                                                  'RunNumber': 93718},
-                                                                          'bar': {'ADLER32': None,
-                                                                                  'FileType': 'SDST',
-                                                                                  'FullStat': None,
-                                                                                  'GotReplica': 'Yes',
-                                                                                  'RunNumber': 93720}}},
-                                                  'rpcStub': ( ( 'Bookkeeping/BookkeepingManager', ) )}
 
     self.nc_mock = MagicMock()
     self.nc_mock.sendMail.return_value = {'OK': True, 'Value': ''}
@@ -232,59 +208,57 @@ class ModulesTestCase( unittest.TestCase ):
     self.RequestValidatorMock = MagicMock()
     self.RequestValidatorMock.return_value = []
     sut.RequestValidator = self.RequestValidatorMock
-    self.mb = sut.ModuleBase( bkClientIn = self.bkc_mock, dm = self.dm_mock )
-#     from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
-#     self.mb = ModuleBase( bkClientIn = self.bkc_mock, dm = self.dm_mock )
+    self.mb = sut.ModuleBase( bkClientIn = bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.AnalyseLogFile import AnalyseLogFile
-    self.alf = AnalyseLogFile( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.alf = AnalyseLogFile( bkClient = bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.AnalyseXMLSummary import AnalyseXMLSummary
-    self.axlf = AnalyseXMLSummary( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.axlf = AnalyseXMLSummary( bkClient = bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.BookkeepingReport import BookkeepingReport
-    self.bkr = BookkeepingReport( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.bkr = BookkeepingReport( bkClient = bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.ErrorLogging import ErrorLogging
-    self.el = ErrorLogging( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.el = ErrorLogging( bkClient = bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.FailoverRequest import FailoverRequest
-    self.fr = FailoverRequest( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.fr = FailoverRequest( bkClient = bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.MergeMDF import MergeMDF
-    self.mm = MergeMDF( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.mm = MergeMDF( bkClient = bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.RemoveInputData import RemoveInputData
-    self.rid = RemoveInputData( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.rid = RemoveInputData( bkClient = bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.SendBookkeeping import SendBookkeeping
-    self.sb = SendBookkeeping( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.sb = SendBookkeeping( bkClient = bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.UploadOutputData import UploadOutputData
-    self.uod = UploadOutputData( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.uod = UploadOutputData( bkClient = bkc_mock, dm = self.dm_mock )
     self.uod.failoverTransfer = self.ft_mock
 
     sut = importlib.import_module( "LHCbDIRAC.Workflow.Modules.UserJobFinalization" )
     self.getDestinationSEListMock = MagicMock()
     self.getDestinationSEListMock.return_value = []
     sut.getDestinationSEList = self.getDestinationSEListMock
-    self.ujf = sut.UserJobFinalization( bkClient = self.bkc_mock, dm = self.dm_mock )
-    self.ujf.bkClient = self.bkc_mock
+    self.ujf = sut.UserJobFinalization( bkClient = bkc_mock, dm = self.dm_mock )
+    self.ujf.bkClient = bkc_mock
     self.ujf.failoverTransfer = self.ft_mock
 
     from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
-    self.sa = StepAccounting( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.sa = StepAccounting( bkClient = bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
-    self.ulf = UploadLogFile( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.ulf = UploadLogFile( bkClient = bkc_mock, dm = self.dm_mock )
     self.ulf.failoverTransfer = self.ft_mock
     self.ulf.request = Request()
 
     from LHCbDIRAC.Workflow.Modules.FileUsage import FileUsage
-    self.fu = FileUsage( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.fu = FileUsage( bkClient = bkc_mock, dm = self.dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.CreateDataFile import CreateDataFile
-    self.cdf = CreateDataFile( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.cdf = CreateDataFile( bkClient = bkc_mock, dm = self.dm_mock )
 
   def tearDown( self ):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst', 'bar.py', 'aLongLog.log', 'aLongLog.log.gz'
@@ -738,7 +712,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
     from DIRAC.TransformationSystem.Client.FileReport import FileReport
 
-    axlf = AnalyseXMLSummary( bkClient = self.bkc_mock, dm = self.dm_mock )
+    axlf = AnalyseXMLSummary( bkClient = bkc_mock, dm = self.dm_mock )
 
     f = open( 'XMLSummaryFile', 'w' )
     f.write( """<?xml version="1.0" encoding="UTF-8"?>
@@ -1078,7 +1052,7 @@ class UploadLogFileSuccess( ModulesTestCase ):
 #                                           wf_commons, step_commons,
 #                                           self.step_number, self.step_id,
 #                                           self.dm_mock, self.ft_mock,
-#                                           self.bkc_mock )['OK'] )
+#                                           bkc_mock )['OK'] )
 
     # putStorageDirectory returns False
 
@@ -1197,7 +1171,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                      ]
           wf_commons['ProductionOutputData'] = ['/lhcb/MC/2010/DST/00012345/0001/foo.txt',
                                                 '/lhcb/MC/2010/DST/00012345/0001/bar.txt' ]
-#          self.bkc_mock.getFileDescendants.return_value = {'OK': False,
+#          bkc_mock.getFileDescendants.return_value = {'OK': False,
 #                                                           'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
 #                                                                        {'skipCACheck': False,
 #                                                                         'timeout': 3600} ),
@@ -1212,7 +1186,7 @@ class UploadOutputDataSuccess( ModulesTestCase ):
                                               self.step_number, self.step_id,
                                               SEs = ['SomeSE'],
                                               fileDescendants = fileDescendants )['OK'] )
-#          self.bkc_mock.getFileDescendants.return_value = {'OK': True,
+#          bkc_mock.getFileDescendants.return_value = {'OK': True,
 #                                                           'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
 #                                                                        {'skipCACheck': False,
 #                                                                         'timeout': 3600} ),
