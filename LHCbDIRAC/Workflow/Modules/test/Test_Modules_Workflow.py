@@ -10,7 +10,10 @@ import copy
 import shutil
 import importlib
 
-from mock import MagicMock
+from mock import MagicMock, patch
+
+from DIRAC.DataManagementSystem.Client.test.mock_DM import dm_mock
+from DIRAC.Resources.Catalog.test.mock_FC import fc_mock
 
 from DIRAC import gLogger
 from DIRAC.RequestManagementSystem.Client.Request import Request
@@ -56,17 +59,6 @@ class ModulesTestCase( unittest.TestCase ):
     ar_mock = MagicMock()
     ar_mock.commit.return_value = {'OK': True, 'Value': ''}
 
-    self.dm_mock = MagicMock()
-    self.dm_mock.getReplicas.return_value = {'OK': True, 'Value':{'Successful':{'pippo':'metadataPippo'},
-                                                                  'Failed':None}}
-    self.dm_mock.getCatalogFileMetadata.return_value = {'OK': True, 'Value':{'Successful':{'pippo':'metadataPippo'},
-                                                                             'Failed':None}}
-    self.dm_mock.removeFile.return_value = {'OK': True, 'Value': {'Failed':False}}
-    self.dm_mock.putStorageDirectory.return_value = {'OK': True, 'Value': {'Failed':False}}
-    self.dm_mock.addCatalogFile.return_value = {'OK': True, 'Value': {'Failed':False}}
-    self.dm_mock.putAndRegister.return_value = {'OK': True, 'Value': {'Failed':False}}
-    self.dm_mock.getFile.return_value = {'OK': True, 'Value': {'Failed':False}}
-
     self.jsu_mock = MagicMock()
     self.jsu_mock.setJobApplicationStatus.return_value = {'OK': True, 'Value': ''}
 
@@ -77,7 +69,7 @@ class ModulesTestCase( unittest.TestCase ):
     self.ft_mock.transferAndRegisterFile.return_value = {'OK': True, 'Value': {'uploadedSE':''}}
     self.ft_mock.transferAndRegisterFileFailover.return_value = {'OK': True, 'Value': {}}
     self.ft_mock.request = rc_mock
-    self.ft_mock.FileCatalog = MagicMock()
+    self.ft_mock.FileCatalog = fc_mock
 
     self.nc_mock = MagicMock()
     self.nc_mock.sendMail.return_value = {'OK': True, 'Value': ''}
@@ -208,57 +200,57 @@ class ModulesTestCase( unittest.TestCase ):
     self.RequestValidatorMock = MagicMock()
     self.RequestValidatorMock.return_value = []
     sut.RequestValidator = self.RequestValidatorMock
-    self.mb = sut.ModuleBase( bkClientIn = bkc_mock, dm = self.dm_mock )
+    self.mb = sut.ModuleBase( bkClientIn = bkc_mock, dm = dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.AnalyseLogFile import AnalyseLogFile
-    self.alf = AnalyseLogFile( bkClient = bkc_mock, dm = self.dm_mock )
+    self.alf = AnalyseLogFile( bkClient = bkc_mock, dm = dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.AnalyseXMLSummary import AnalyseXMLSummary
-    self.axlf = AnalyseXMLSummary( bkClient = bkc_mock, dm = self.dm_mock )
+    self.axlf = AnalyseXMLSummary( bkClient = bkc_mock, dm = dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.BookkeepingReport import BookkeepingReport
-    self.bkr = BookkeepingReport( bkClient = bkc_mock, dm = self.dm_mock )
+    self.bkr = BookkeepingReport( bkClient = bkc_mock, dm = dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.ErrorLogging import ErrorLogging
-    self.el = ErrorLogging( bkClient = bkc_mock, dm = self.dm_mock )
+    self.el = ErrorLogging( bkClient = bkc_mock, dm = dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.FailoverRequest import FailoverRequest
-    self.fr = FailoverRequest( bkClient = bkc_mock, dm = self.dm_mock )
+    self.fr = FailoverRequest( bkClient = bkc_mock, dm = dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.MergeMDF import MergeMDF
-    self.mm = MergeMDF( bkClient = bkc_mock, dm = self.dm_mock )
+    self.mm = MergeMDF( bkClient = bkc_mock, dm = dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.RemoveInputData import RemoveInputData
-    self.rid = RemoveInputData( bkClient = bkc_mock, dm = self.dm_mock )
+    self.rid = RemoveInputData( bkClient = bkc_mock, dm = dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.SendBookkeeping import SendBookkeeping
-    self.sb = SendBookkeeping( bkClient = bkc_mock, dm = self.dm_mock )
+    self.sb = SendBookkeeping( bkClient = bkc_mock, dm = dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.UploadOutputData import UploadOutputData
-    self.uod = UploadOutputData( bkClient = bkc_mock, dm = self.dm_mock )
+    self.uod = UploadOutputData( bkClient = bkc_mock, dm = dm_mock )
     self.uod.failoverTransfer = self.ft_mock
 
     sut = importlib.import_module( "LHCbDIRAC.Workflow.Modules.UserJobFinalization" )
     self.getDestinationSEListMock = MagicMock()
     self.getDestinationSEListMock.return_value = []
     sut.getDestinationSEList = self.getDestinationSEListMock
-    self.ujf = sut.UserJobFinalization( bkClient = bkc_mock, dm = self.dm_mock )
+    self.ujf = sut.UserJobFinalization( bkClient = bkc_mock, dm = dm_mock )
     self.ujf.bkClient = bkc_mock
     self.ujf.failoverTransfer = self.ft_mock
 
     from LHCbDIRAC.Workflow.Modules.StepAccounting import StepAccounting
-    self.sa = StepAccounting( bkClient = bkc_mock, dm = self.dm_mock )
+    self.sa = StepAccounting( bkClient = bkc_mock, dm = dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.UploadLogFile import UploadLogFile
-    self.ulf = UploadLogFile( bkClient = bkc_mock, dm = self.dm_mock )
+    self.ulf = UploadLogFile( bkClient = bkc_mock, dm = dm_mock )
     self.ulf.failoverTransfer = self.ft_mock
     self.ulf.request = Request()
 
     from LHCbDIRAC.Workflow.Modules.FileUsage import FileUsage
-    self.fu = FileUsage( bkClient = bkc_mock, dm = self.dm_mock )
+    self.fu = FileUsage( bkClient = bkc_mock, dm = dm_mock )
 
     from LHCbDIRAC.Workflow.Modules.CreateDataFile import CreateDataFile
-    self.cdf = CreateDataFile( bkClient = bkc_mock, dm = self.dm_mock )
+    self.cdf = CreateDataFile( bkClient = bkc_mock, dm = dm_mock )
 
   def tearDown( self ):
     for fileProd in ['appLog', 'foo.txt', 'aaa.Bhadron.dst', 'bbb.Calibration.dst', 'bar.py', 'aLongLog.log', 'aLongLog.log.gz'
@@ -712,7 +704,7 @@ class AnalyseXMLSummarySuccess( ModulesTestCase ):
     from LHCbDIRAC.Core.Utilities.XMLSummaries import XMLSummary
     from DIRAC.TransformationSystem.Client.FileReport import FileReport
 
-    axlf = AnalyseXMLSummary( bkClient = bkc_mock, dm = self.dm_mock )
+    axlf = AnalyseXMLSummary( bkClient = bkc_mock, dm = dm_mock )
 
     f = open( 'XMLSummaryFile', 'w' )
     f.write( """<?xml version="1.0" encoding="UTF-8"?>
@@ -952,7 +944,7 @@ class FailoverRequestSuccess( ModulesTestCase ):
 #                                        self.workflowStatus, self.stepStatus,
 #                                        wf_commons, self.step_commons,
 #                                        self.step_number, self.step_id,
-#                                        self.dm_mock )['OK'] )
+#                                        dm_mock )['OK'] )
 #      wf_commons['InputData'] = ['lfn1', 'lfn2']
 #      open( 'lfn1', 'w' ).close()
 #      open( 'lfn2', 'w' ).close()
@@ -960,7 +952,7 @@ class FailoverRequestSuccess( ModulesTestCase ):
 #                                        self.workflowStatus, self.stepStatus,
 #                                        wf_commons, self.step_commons,
 #                                        self.step_number, self.step_id,
-#                                        self.dm_mock )['OK'] )
+#                                        dm_mock )['OK'] )
 
 ##############################################################################
 # # RemoveInputData.py
@@ -1051,12 +1043,12 @@ class UploadLogFileSuccess( ModulesTestCase ):
 #                                           self.workflowStatus, self.stepStatus,
 #                                           wf_commons, step_commons,
 #                                           self.step_number, self.step_id,
-#                                           self.dm_mock, self.ft_mock,
+#                                           dm_mock, self.ft_mock,
 #                                           bkc_mock )['OK'] )
 
     # putStorageDirectory returns False
 
-    rm_mock = copy.deepcopy( self.dm_mock )
+    rm_mock = copy.deepcopy( dm_mock )
     rm_mock.putStorageDirectory.return_value = {'OK':False, 'Message':'bih'}
     ft_mock = copy.deepcopy( self.ft_mock )
     self.ulf.failoverTransfer = ft_mock
@@ -1130,12 +1122,8 @@ class UploadOutputDataSuccess( ModulesTestCase ):
 
   #################################################
 
-  def test_execute( self ):
-
-    sut = importlib.import_module( "LHCbDIRAC.Workflow.Modules.UploadOutputData" )
-    fcMock = MagicMock()
-    fcMock._getCatalogs.return_value = ''
-    sut.FileCatalog = fcMock
+  @patch( "LHCbDIRAC.Workflow.Modules.UploadOutputData.FileCatalog", side_effect = fc_mock )
+  def test_execute( self, _patch ):
 
     self.uod.siteName = 'DIRAC.Test.ch'
 

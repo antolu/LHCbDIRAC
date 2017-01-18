@@ -7,9 +7,12 @@ import unittest
 
 from mock import patch
 
-from DIRAC import gLogger
-from LHCbDIRAC.Workflow.Modules.GaudiApplication import GaudiApplication
+from DIRAC.DataManagementSystem.Client.test.mock_DM import dm_mock
+from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import bkc_mock
 
+from DIRAC import gLogger
+
+from LHCbDIRAC.Workflow.Modules.GaudiApplication import GaudiApplication
 from LHCbDIRAC.Workflow.Modules.GaudiApplicationScript import GaudiApplicationScript
 
 
@@ -21,8 +24,8 @@ class ModulesApplicationsTestCase( unittest.TestCase ):
 
     gLogger.setLevel( 'DEBUG' )
     self.maxDiff = None
-    self.ga = GaudiApplication( bkClient = self.bkc_mock, dm = self.dm_mock )
-    self.gas = GaudiApplicationScript( bkClient = self.bkc_mock, dm = self.dm_mock )
+    self.ga = GaudiApplication( bkClient = bkc_mock, dm = dm_mock )
+    self.gas = GaudiApplicationScript( bkClient = bkc_mock, dm = dm_mock )
 
 
 #############################################################################
