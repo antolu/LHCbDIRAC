@@ -62,7 +62,6 @@ class BookkeepingReport( ModuleBase ):
                step_number = None, step_id = None, saveOnFile = True ):
     """ Usual executor
     """
-
     try:
 
       super( BookkeepingReport, self ).execute( self.version, production_id, prod_job_id, wms_job_id,

@@ -367,27 +367,27 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
 
     self.transClientMock = MagicMock()
     self.transClientMock.getTransformations.return_value = {'OK' : True,
-                                                            'Value' : [{'Body': '',
-                                                                       'LastUpdate': datetime.datetime( 2014, 7, 29, 13, 6, 8 ),
-                                                                       'Status': 'New',
-                                                                       'TransformationID': 1L,
-                                                                       'Description': 'description',
-                                                                       'TransformationFamily': 0,
-                                                                       'Plugin': 'Standard',
-                                                                       'Type': 'MCSimulation',
-                                                                       'AgentType': 'Manual',
-                                                                       'GroupSize': 1L,
-                                                                       'LongDescription': 'longDescription',
-                                                                       'MaxNumberOfTasks': 0L,
-                                                                       'Hot': 0,
-                                                                       'AuthorDN': '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=sbidwell/CN=758039/CN=Simon Bidwell',
-                                                                       'TransformationName': 'transName',
-                                                                       'TransformationGroup': 'General',
-                                                                       'InheritedFrom': 0L,
-                                                                       'CreationDate': datetime.datetime( 2014, 7, 29, 13, 6, 8 ),
-                                                                       'FileMask': '',
-                                                                       'EventsPerTask': 0L,
-                                                                       'AuthorGroup': 'devGroup'}]}
+                                                            'Value' : [{ 'Body': '',
+                                                                         'LastUpdate': datetime.datetime( 2014, 7, 29, 13, 6, 8 ),
+                                                                         'Status': 'New',
+                                                                         'TransformationID': 1L,
+                                                                         'Description': 'description',
+                                                                         'TransformationFamily': 0,
+                                                                         'Plugin': 'Standard',
+                                                                         'Type': 'MCSimulation',
+                                                                         'AgentType': 'Manual',
+                                                                         'GroupSize': 1L,
+                                                                         'LongDescription': 'longDescription',
+                                                                         'MaxNumberOfTasks': 0L,
+                                                                         'Hot': 0,
+                                                                         'AuthorDN': '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=sbidwell/CN=758039/CN=Simon Bidwell',
+                                                                         'TransformationName': 'transName',
+                                                                         'TransformationGroup': 'General',
+                                                                         'InheritedFrom': 0L,
+                                                                         'CreationDate': datetime.datetime( 2014, 7, 29, 13, 6, 8 ),
+                                                                         'FileMask': '',
+                                                                         'EventsPerTask': 0L,
+                                                                         'AuthorGroup': 'devGroup'}]}
     self.transClientMock.getStoredJobDescription.return_value = {'OK' : True, 'Value' : ( ( 1L, storedJobDescription ), )}
     self.transClientMock.setTransformationParameter.return_value = {'OK' : True}
     self.transClientMock.extendTransformation.return_value = {'OK' : True, 'Value' : [3L, 4L, 5L]}
@@ -485,8 +485,8 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
                                                                   'keepAliveLapse': 150,
                                                                   'skipCACheck': False,
                                                                   'timeout': 3600} ),
-                                                              'bulkJobInfo',
-                                                              ( [123, 456], ) )}
+                                                               'bulkJobInfo',
+                                                               ( [123, 456], ) )}
 
     self.notifyClientMock = MagicMock()
     self.notifyClientMock.sendMail.return_value = {'OK' : True, 'Value': "The mail was succesfully sent"}

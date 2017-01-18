@@ -4,6 +4,7 @@
 #pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
 
 import unittest
+import copy
 
 from mock import patch
 
@@ -27,6 +28,12 @@ class ModulesApplicationsTestCase( unittest.TestCase ):
     self.ga = GaudiApplication( bkClient = bkc_mock, dm = dm_mock )
     self.gas = GaudiApplicationScript( bkClient = bkc_mock, dm = dm_mock )
 
+    self.prod_id = '123'
+    self.prod_job_id = '00000456'
+    self.wms_job_id = 12345
+    self.workflowStatus = {'OK':True}
+    self.stepStatus = {'OK':True}
+
 
 #############################################################################
 # GaudiApplication.py
@@ -35,16 +42,15 @@ class ModulesApplicationsTestCase( unittest.TestCase ):
 class GaudiApplicationSuccess( ModulesApplicationsTestCase ):
   #################################################
 
-#  def test_execute( self ):
-# FIXME: difficult to mock
-#
-#    #no errors, no input data
-#    for wf_commons in copy.deepcopy( self.wf_commons ):
-#      self.assertTrue( self.ga.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
-#                                        self.workflowStatus, self.stepStatus,
-#                                        wf_commons, self.step_commons,
-#                                        self.step_number, self.step_id,
-#                                        MagicMock() )['OK'] )
+  def test_execute( self ):
+
+    #no errors, no input data
+    for wf_commons in copy.deepcopy( self.wf_commons ):
+      self.assertTrue( self.ga.execute( self.prod_id, self.prod_job_id, self.wms_job_id,
+                                        self.workflowStatus, self.stepStatus,
+                                        wf_commons, self.step_commons,
+                                        self.step_number, self.step_id,
+                                        MagicMock() )['OK'] )
 
 #############################################################################
 # GaudiApplicationScript.py
