@@ -177,7 +177,7 @@ class GaudiApplication( ModuleBase ):
       return S_OK( "%s %s Successful" % ( self.applicationName, self.applicationVersion ) )
 
     except Exception as e: #pylint:disable=broad-except
-      self.log.exception( "Failure in GaudiApplication execute module", lException = e )
+      self.log.exception( "Failure in GaudiApplication execute module", lException = e, lExcInfo = True )
       self.setApplicationStatus( repr(e) )
       return S_ERROR( str(e) )
 
