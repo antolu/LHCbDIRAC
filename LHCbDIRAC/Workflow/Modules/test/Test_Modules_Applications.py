@@ -7,7 +7,7 @@ import unittest
 import copy
 import os
 
-from mock import patch
+from mock import MagicMock, patch
 
 from DIRAC import gLogger
 
@@ -35,7 +35,7 @@ class ModulesApplicationsTestCase( unittest.TestCase ):
 
   def tearDown( self ):
 
-    for fileProd in ['prodConf_someApp_123_00000456_123_00000456_321.py']:
+    for fileProd in ['prodConf_someApp_123_00000456_123_00000456_321.py', 'appLog', 'gaudi_extra_options.py']:
       try:
         os.remove( fileProd )
       except OSError:
@@ -47,7 +47,9 @@ class ModulesApplicationsTestCase( unittest.TestCase ):
 
 class GaudiApplicationSuccess( ModulesApplicationsTestCase ):
 
-  def test_execute( self ):
+  @patch( "LHCbDIRAC.Workflow.Modules.GaudiApplication.RunApplication", side_effect = MagicMock() )
+  @patch( "LHCbDIRAC.Workflow.Modules.GaudiApplication.ModuleBase._manageAppOutput", side_effect = MagicMock() )
+  def test_execute( self, _patch, _patched ):
 
     #no errors, no input data
     for wf_cs in copy.deepcopy( wf_commons ):

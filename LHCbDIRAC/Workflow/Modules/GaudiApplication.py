@@ -117,6 +117,7 @@ class GaudiApplication( ModuleBase ):
       else:
         self.log.debug( "Getting the step outputs" )
         stepOutputs, stepOutputTypes, histogram = self._determineOutputs()
+        self.log.debug( "stepOutputs, stepOutputTypes, histogram  ==>  %s, %s, %s" % (stepOutputs, stepOutputTypes, histogram) )
 
 
       if self.optionsLine or self.jobType.lower() == 'user':

@@ -24,8 +24,8 @@ class RunApplication(object):
     """ c'tor - holds common variables
     """
     # Standard LHCb scripts
-    self.groupLogin = 'LbLogin.sh'
     self.runApp = 'lb-run'
+    self.lhcbEnvironment = {} # This may be added (the result of LbLogin), but by default it won't be
 
     # What to run
     self.applicationName = 'Gauss'
@@ -63,21 +63,6 @@ class RunApplication(object):
                                                                                 self.systemConfig ) )
 
 
-    # First, getting lbLogin location
-    result = getScriptsLocation()
-    if not result['OK']:
-      return result
-    lbLogin = result['Value'][self.groupLogin]
-
-    # FIXME: need to use or not?
-  #   mySiteRoot = result['Value']['MYSITEROOT']
-
-    # Then, running lbLogin
-    lbLoginEnv = runEnvironmentScripts( [lbLogin] )
-    if not lbLoginEnv['OK']:
-      raise RuntimeError( lbLoginEnv['Message'] )
-    lbLoginEnv = lbLoginEnv['Value']
-
     extraPackagesString, runtimeProjectString, externalsString = self.lbRunCommandOptions()
 
     # "CMT" Configs
@@ -107,7 +92,7 @@ class RunApplication(object):
       finalCommandAsList = [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command]
       finalCommand = ' '.join( finalCommandAsList )
 
-      runResult = self._runApp( finalCommand, lbLoginEnv )
+      runResult = self._runApp( finalCommand, self.lhcbEnvironment )
       if not runResult['OK']:
         self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
         raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
@@ -192,7 +177,7 @@ class RunApplication(object):
       command += 'gaudi_extra_options.py'
 
     # this is for avoiding env variable to be interpreted by the current shell
-    command = command.replace('$', '\$')
+    command = command.replace('$', r'\$')
 
     self.log.always( 'Command = %s' % command )
     return command
@@ -224,7 +209,7 @@ class RunApplication(object):
 
     res = shellCall( timeout = 0,
                      cmdSeq = finalCommand,
-                     env = env, #this is in practice the LbLogin env
+                     env = env, #this may be the LbLogin env
                      callbackFunction = self.__redirectLogOutput )
     return res
 
