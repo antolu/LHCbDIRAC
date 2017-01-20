@@ -18,7 +18,6 @@ from LHCbDIRAC.Core.Utilities.ProductionData import _makeProductionLFN, construc
                                                     _getLFNRoot, _applyMask, getLogPath, constructUserLFNs
 from LHCbDIRAC.Core.Utilities.InputDataResolution import InputDataResolution
 from LHCbDIRAC.Core.Utilities.ProdConf import ProdConf
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectCommand
 from LHCbDIRAC.Core.Utilities.GangaDataFile import GangaDataFile
 from LHCbDIRAC.Core.Utilities.NagiosConnector import NagiosConnector
 from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
@@ -47,22 +46,6 @@ class UtilitiesTestCase( unittest.TestCase ):
 
 #################################################
 
-class ProductionEnvironmentSuccess( UtilitiesTestCase ):
-
-  def test_getProjectCommand( self ):
-    expected = [[ ['AppConfig.v110'], '/buf/setupProject.sh --debug --use="AppConfig v110"  Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
-                [ ['AppConfig.v110', 'pippo.v1'], '/buf/setupProject.sh --debug --use="AppConfig v110"  --use="pippo v1"  Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
-                [ ['AppConfig.v110', 'pippo.v1', 'ProdConf'], '/buf/setupProject.sh --debug --use="AppConfig v110"  --use="pippo v1"  --use="ProdConf"  Gauss v40r0 --runtime-project Brunel v2r1  bof' ],
-               ]
-
-    for ep in expected:
-      ret = getProjectCommand( '/buf/setupProject.sh', 'Gauss', 'v40r0', ep[0],
-                               'DIRAC.Test.ch', 'Brunel', 'v2r1', 'bof' )
-      self.assertEqual( ret['Value'], ep[1] )
-
-
-#################################################
-
 class RunApplicationSuccess( UtilitiesTestCase ):
 
   def test_lbRunCommand( self ):
@@ -75,18 +58,18 @@ class RunApplicationSuccess( UtilitiesTestCase ):
     ra.opsH = MagicMock()
     ra.opsH.getValue.return_value = ['lcg1', 'lcg2']
     ra.prodConf = True
-    extraPackagesString, runtimeProjectString, externalsString = ra.lbRunCommandOptions()
+    extraPackagesString, runtimeProjectString, externalsString = ra._lbRunCommandOptions()
     self.assertEqual(extraPackagesString, ' --use="package1 v1r0"  --use="package2 v2r0"  --use="package3"')
     self.assertEqual(runtimeProjectString, ' --runtime-project aRunTimeProject/v1r1')
     self.assertEqual(externalsString, ' --ext=lcg1 --ext=lcg2')
 
     ra.site = 'Site1'
-    extraPackagesString, runtimeProjectString, externalsString = ra.lbRunCommandOptions()
+    extraPackagesString, runtimeProjectString, externalsString = ra._lbRunCommandOptions()
     self.assertEqual(extraPackagesString, ' --use="package1 v1r0"  --use="package2 v2r0"  --use="package3"')
     self.assertEqual(runtimeProjectString, ' --runtime-project aRunTimeProject/v1r1')
     self.assertEqual(externalsString, ' --ext=lcg1 --ext=lcg2')
 
-  def test_gaudiRunCommand( self ):
+  def test__gaudirunCommand( self ):
     """ Testing what is run (the gaudirun command, for example)
     """
     ra = RunApplication()
@@ -94,12 +77,12 @@ class RunApplicationSuccess( UtilitiesTestCase ):
     ra.opsH.getValue.return_value = 'gaudirun.py'
 
     #simplest
-    res = str(ra.gaudirunCommand())
+    res = str(ra._gaudirunCommand())
     self.assertEqual( res, 'gaudirun.py' )
 
     #simplest with extra opts
     ra.extraOptionsLine = 'bla bla'
-    res = str(ra.gaudirunCommand())
+    res = str(ra._gaudirunCommand())
     self.assertEqual( res, 'gaudirun.py gaudi_extra_options.py' )
 
 
@@ -107,27 +90,27 @@ class RunApplicationSuccess( UtilitiesTestCase ):
     ra.prodConf = True
     ra.extraOptionsLine = ''
     ra.prodConfFileName = 'prodConf.py'
-    res = str(ra.gaudirunCommand())
+    res = str(ra._gaudirunCommand())
     self.assertEqual( res, 'gaudirun.py prodConf.py' )
 
     # productions style /2 (multicore)
     ra.optFile = ''
     ra.multicore = True
-    res = str(ra.gaudirunCommand())
+    res = str(ra._gaudirunCommand())
     self.assertEqual( res, 'gaudirun.py prodConf.py' ) #it won't be allowed on this "CE"
 
     # productions style /3 (multicore and opts)
     ra.optFile = ''
     ra.extraOptionsLine = 'bla bla'
-    res = str(ra.gaudirunCommand())
+    res = str(ra._gaudirunCommand())
     self.assertEqual( res, 'gaudirun.py prodConf.py gaudi_extra_options.py' ) #it won't be allowed on this "CE"
 
     # productions style /4
     ra.extraOptionsLine = ''
     ra.commandOptions = ['$APP/1.py',
                          '$APP/2.py']
-    res = str(ra.gaudirunCommand())
-    self.assertEqual( res, 'gaudirun.py \$APP/1.py \$APP/2.py prodConf.py' )
+    res = str(ra._gaudirunCommand())
+    self.assertEqual( res, r'gaudirun.py \$APP/1.py \$APP/2.py prodConf.py' )
 
 
 #################################################
@@ -615,7 +598,6 @@ if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( UtilitiesTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionDataSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProdConfSuccess ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ProductionEnvironmentSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RunApplicationSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( InputDataResolutionSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( NagiosConnectorSuccess ) )

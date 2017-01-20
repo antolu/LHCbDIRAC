@@ -52,60 +52,70 @@ class RunApplication(object):
     self.log = gLogger.getSubLogger( "RunApplication" )
     self.opsH = Operations()
 
-
   def run( self ):
-    """ Invoke lb-run
+    """ Invoke lb-run (what you call after having setup the object)
     """
     self.log.info( "Executing application %s %s for CMT configuration '%s'" % ( self.applicationName,
                                                                                 self.applicationVersion,
                                                                                 self.systemConfig ) )
 
 
-    extraPackagesString, runtimeProjectString, externalsString = self.lbRunCommandOptions()
+    extraPackagesString, runtimeProjectString, externalsString = self._lbRunCommandOptions()
 
-    # "CMT" Configs
-    # FIXME: this is not the way to do:
+    # "CMT" Config
     # if a CMTConfig is provided, then only that should be called (this should be safeguarded with the following method)
-    # if not, we should call --list-configs (waiting for "-c BEST") and then:
+    # if not, we call --list-configs (waiting for "-c BEST") and then:
     #   - try only the first that is compatible with the current setup
-    #     (what's in LocalSite/Archicture, and this should be already checked by the method below)
-    if not compatibleCMTConfigs['OK']:
-      return compatibleCMTConfigs
-    compatibleCMTConfigs = compatibleCMTConfigs['Value']
-    compatibleCMTConfigs.sort( key = LooseVersion, reverse = True )
-    self.log.verbose( "Compatible ordered CMT Configs list: %s" % ','.join( compatibleCMTConfigs ) )
+    #     (what's in LocalSite/Architecture, and this should be already checked by the method below)
+    if self.systemConfig.lower() == 'any':
+      self.systemConfig = self._findSystemConfig()
+    configString = "-c %s" % self.systemConfig
 
+    # App
+    app = self.applicationName
+    if self.applicationVersion:
+      app += '/' + self.applicationVersion
+
+    # Command
     if self.command == 'gaudirun.py':
-      command = self.gaudirunCommand()
+      command = self._gaudirunCommand()
     else:
       command = self.command
+    finalCommandAsList = [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command]
+    finalCommand = ' '.join( finalCommandAsList )
 
-    runResult = ''
-    for compatibleCMTConfig in compatibleCMTConfigs: #FIXME: this loop should desappear
-      self.log.verbose( "Using %s for setup" % compatibleCMTConfig )
-      configString = "-c %s" % compatibleCMTConfig
+    # Run it!
+    runResult = self._runApp( finalCommand, self.lhcbEnvironment )
+    if not runResult['OK']:
+      self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
+      raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
 
-      app = self.applicationName
-      if self.applicationVersion:
-        app += '/' + self.applicationVersion
-      finalCommandAsList = [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command]
-      finalCommand = ' '.join( finalCommandAsList )
-
-      runResult = self._runApp( finalCommand, self.lhcbEnvironment )
-      if not runResult['OK']:
-        self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
-        raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
-
-      if runResult['Value'][0]: # if exit status != 0
-        self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
-        raise RuntimeError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
+    if runResult['Value'][0]: # if exit status != 0
+      self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
+      raise RuntimeError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
 
     self.log.info( "%s execution completed successfully" % self.applicationName )
 
     return runResult
 
+  def _findSystemConfig( self ):
+    """ Invokes lb-run --list-platform to find the "best" CMT config available
+    """
+    lbRunListConfigs = "lb-run --list-platforms %s/%s" % (self.applicationName, self.applicationVersion)
+    self.log.always( "Calling %s" % lbRunListConfigs )
 
-  def lbRunCommandOptions( self ):
+    res = shellCall( timeout = 0,
+                     cmdSeq = lbRunListConfigs )
+    if not res['OK']:
+      raise RuntimeError( "Problem executing lb-run" )
+    platforms = res['Value']
+    if platforms[0]:
+      raise RuntimeError( "Problem executing lb-run (returned %s)" %platforms )
+    platformsAvailable = platforms[1].split('\n')
+    platformsAvailable = [ plat for plat in platformsAvailable if plat and 'dbg' not in plat ]
+    return platformsAvailable.sort( key = LooseVersion, reverse = True )[0]
+
+  def _lbRunCommandOptions( self ):
     """ Return lb-run command options
     """
 
@@ -146,7 +156,7 @@ class RunApplication(object):
 
 
 
-  def gaudirunCommand( self ):
+  def _gaudirunCommand( self ):
     """ construct a gaudirun command
     """
     command = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
