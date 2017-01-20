@@ -145,7 +145,7 @@ class DiracLHCb( Dirac ):
           return self._errorReport( "Location of .root should be 'Sandbox' or 'OutputFiles'." )
 
     # Perform the root merger
-    res = mergeRootFiles( outputFileName, inputFiles, daVinciVersion = '' )
+    res = mergeRootFiles( outputFileName, inputFiles )
     if not res['OK']:
       return self._errorReport( res['Message'], "Failed to perform final ROOT merger" )
     return S_OK()

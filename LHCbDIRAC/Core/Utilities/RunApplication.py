@@ -11,8 +11,6 @@ from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.List import fromChar
 from DIRAC.Core.Utilities.Subprocess import shellCall
 
-from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getCMTConfig, getScriptsLocation, runEnvironmentScripts, addCommandDefaults
-
 __RCSID__ = "$Id$"
 
 
@@ -28,8 +26,8 @@ class RunApplication(object):
     self.lhcbEnvironment = {} # This may be added (the result of LbLogin), but by default it won't be
 
     # What to run
-    self.applicationName = 'Gauss'
-    self.applicationVersion = 'v1r0'
+    self.applicationName = ''
+    self.applicationVersion = ''
 
     # Define the environment
     self.extraPackages = []
@@ -71,7 +69,6 @@ class RunApplication(object):
     # if not, we should call --list-configs (waiting for "-c BEST") and then:
     #   - try only the first that is compatible with the current setup
     #     (what's in LocalSite/Archicture, and this should be already checked by the method below)
-    compatibleCMTConfigs = getCMTConfig( self.systemConfig )
     if not compatibleCMTConfigs['OK']:
       return compatibleCMTConfigs
     compatibleCMTConfigs = compatibleCMTConfigs['Value']
@@ -88,7 +85,9 @@ class RunApplication(object):
       self.log.verbose( "Using %s for setup" % compatibleCMTConfig )
       configString = "-c %s" % compatibleCMTConfig
 
-      app = self.applicationName + '/' + self.applicationVersion
+      app = self.applicationName
+      if self.applicationVersion:
+        app += '/' + self.applicationVersion
       finalCommandAsList = [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command]
       finalCommand = ' '.join( finalCommandAsList )
 

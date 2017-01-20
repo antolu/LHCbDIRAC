@@ -23,15 +23,6 @@ from LHCbDIRAC.Workflow.Modules.RootApplication import RootApplication
 from LHCbDIRAC.Workflow.Modules.LHCbScript import LHCbScript
 from LHCbDIRAC.Workflow.Modules.ErrorLogging import ErrorLogging
 
-def mock_getScriptsLocation():
-  return S_OK( { 'LbLogin.sh':'/this/is/a/path/groupLoginPath',
-                 'projectEnv':'/this/is/a/path/projectScriptPath',
-                 'MYSITEROOT':'softwareArea'} )
-
-def mock_runEnvironmentScripts( _var ):
-  return S_OK({'a':'aa', 'b':'bb'})
-
-
 
 class ModulesApplicationsTestCase( unittest.TestCase ):
   """ Base class for the Modules Applications test cases
@@ -107,9 +98,7 @@ class GaudiApplicationScriptSuccess( ModulesApplicationsTestCase ):
 
 class LHCbScriptSuccess( ModulesApplicationsTestCase ):
 
-  @patch( 'LHCbDIRAC.Workflow.Modules.LHCbScript.getScriptsLocation', side_effect = mock_getScriptsLocation )
-  @patch( 'LHCbDIRAC.Workflow.Modules.LHCbScript.runEnvironmentScripts', side_effect = mock_runEnvironmentScripts )
-  def test_execute( self, _mockScriptsLocation, _mockrunEnvironmentScripts ):
+  def test_execute( self ):
 
     self.lhcbScript.jobType = 'merge'
     self.lhcbScript.stepInputData = ['foo', 'bar']
@@ -138,9 +127,7 @@ class LHCbScriptSuccess( ModulesApplicationsTestCase ):
 
 class LHCbScriptFailure( ModulesApplicationsTestCase ):
 
-  @patch( 'LHCbDIRAC.Workflow.Modules.LHCbScript.getScriptsLocation', side_effect = mock_getScriptsLocation )
-  @patch( 'LHCbDIRAC.Workflow.Modules.LHCbScript.runEnvironmentScripts', side_effect = mock_runEnvironmentScripts )
-  def test_execute( self, _mockScriptsLocation, _mockrunEnvironmentScripts ):
+  def test_execute( self ):
 
     self.lhcbScript.jobType = 'merge'
     self.lhcbScript.stepInputData = ['foo', 'bar']

@@ -73,21 +73,6 @@
      jobID = dirac.submitJob(j,mode='local')
      print 'Submission Result: ',jobID
 
-   To execute a protocol access test (for experts) the following example script should suffice:
-
-     from LHCbDIRAC.Interfaces.API.DiracLHCb import DiracLHCb
-     from LHCbDIRAC.Interfaces.API.LHCbJob import LHCbJob
-
-     j = LHCbJob()
-     j.setCPUTime(50000)
-     j.setProtocolAccessTest(['xroot','root','rfio'],'5.22.00a',
-     inputData='/lhcb/data/2009/DST/00005727/0000/00005727_00000001_1.dst')
-     j.setLogLevel('verbose')
-
-     dirac = DiracLHCb()
-     jobID = dirac.submitJob(j,mode='wms')
-     print 'Submission Result: ',jobID
-
 """
 
 import os
@@ -886,113 +871,6 @@ class LHCbJob( Job ):
         self.log.warn( error )
         platform = 'ANY'
       return super( LHCbJob, self ).setPlatform( platform )
-
-  #############################################################################
-
-  def setProtocolAccessTest( self, protocols, rootVersion, inputData = None, logFile = None,
-                             modulesNameList = None, parametersList = None ):
-    """Performs a protocol access test at an optional site with the input data specified.
-
-       Example usage:
-
-       >>> job = Job()
-       >>> job.setProtocolAccessTest(['xroot','root','rfio'],'5.22.00a',
-                                      inputData='/lhcb/data/2009/DST/00005727/0000/00005727_00000001_1.dst')
-
-       :param protocols: data access protocols
-       :type protocols: string or list of protocols
-       :param rootVersion: ROOT version to use
-       :type rootVersion: string
-       :param inputData: Input data for application
-       :type inputData: single LFN string or list of LFNs
-       :param logFile: log file name
-       :type logFile: string
-       :param modulesList: Optional list of modules (to be used mostly when extending this method
-       :type modulesList: list
-       :param parameters: Optional list of parameters (to be used mostly when extending this method
-       :type parameters: list
-    """
-    kwargs = {'protocols':protocols, 'inputData':inputData, 'logFile':logFile, 'rootVersion':rootVersion}
-    self.stepCount += 1
-
-    if not protocols:
-      return self._reportError( 'A list of protocols is required for this test', __name__, **kwargs )
-
-    if not isinstance( rootVersion, str ):
-      return self._reportError( 'Expected strings for input parameters', __name__, **kwargs )
-
-    if logFile:
-      if not isinstance( logFile, str ):
-        return self._reportError( 'Expected string for log file name', __name__, **kwargs )
-      logPrefix = 'Step%s_' % ( self.stepCount )
-      logFile = '%s%s' % ( logPrefix, logFile )
-    self.addToOutputSandbox.append( '*.log' )
-    self.addToOutputSandbox.append( '*.output' )
-    self.addToOutputSandbox.append( '*.error' )
-    self.addToOutputSandbox.append( '*.readtimes' )
-
-    if inputData:
-      if isinstance( inputData, str ):
-        inputData = [inputData]
-      if not isinstance( inputData, list ):
-        return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
-      for i in xrange( len( inputData ) ):
-        inputData[i] = inputData[i].replace( 'LFN:', '' )
-      inputData = ['LFN:' + x for x in inputData ]
-      inputDataStr = ';'.join( inputData )
-      self.addToInputData.append( inputDataStr )
-
-    if isinstance( protocols, str ):
-      protocols = [protocols]
-    protocols = ';'.join( protocols )
-
-    # Must check if ROOT version in available versions and define appName appVersion...
-    rootVersions = gConfig.getOptionsDict( 'Operations/' + self.rootSection )
-    # rootVersions = self.opsHelper.getOptions( self.rootSection, [] )
-    if not rootVersions['OK']:
-      return self._reportError( 'Could not contact DIRAC Configuration Service for supported ROOT version list',
-                                __name__, **kwargs )
-
-    rootList = rootVersions['Value']
-    if not rootVersion in rootList:
-      return self._reportError( 'Requested ROOT version %s \
-      is not in supported list: %s' % ( rootVersion, ', '.join( rootList ) ), __name__, **kwargs )
-
-    stepName = 'ProtocolTestStep%s' % ( self.stepCount )
-
-    if not modulesNameList:
-      modulesNameList = ['ProtocolAccessTest'],
-    if not parametersList:
-      parametersList = [( 'protocols', 'string', '', 'List of Protocols' ),
-                        ( 'applicationLog', 'string', '', 'Log file name' ),
-                        ( 'applicationVersion', 'string', '', 'DaVinci version' ),
-                        ( 'rootVersion', 'string', '', 'ROOT version' ),
-                        ( 'inputData', 'string', '', 'Input Data' )]
-    step = getStepDefinition( stepName, modulesNameList = modulesNameList, parametersList = parametersList )
-
-    stepName = 'RunProtocolTestStep%s' % ( self.stepCount )
-
-    stepInstance = addStepToWorkflow( self.workflow, step, stepName )
-
-    stepInstance.setValue( "protocols", protocols )
-    if logFile:
-      stepInstance.setValue( "applicationLog", logFile )
-    if inputData:
-      stepInstance.setValue( "inputData", ';'.join( inputData ) )
-
-    # now we have to tell DIRAC to install the necessary software
-    appRoot = '%s/%s' % ( self.rootSection, rootVersion )
-    # currentApp = gConfig.getValue( appRoot, '' )
-    currentApp = self.opsHelper.getValue( appRoot, '' )
-    if not currentApp:
-      return self._reportError( 'Could not get value from DIRAC Configuration Service for option %s' % appRoot,
-                                __name__, **kwargs )
-
-    appVersion = currentApp.split( '.' )[1]
-    stepInstance.setValue( "applicationVersion", appVersion )
-    stepInstance.setValue( "rootVersion", rootVersion )
-
-    return S_OK()
 
   #############################################################################
 

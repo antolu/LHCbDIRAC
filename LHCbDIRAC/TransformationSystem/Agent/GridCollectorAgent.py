@@ -7,6 +7,7 @@ import json
 from DIRAC import S_OK, S_ERROR
 from DIRAC import gLogger
 from DIRAC.Core.Base.AgentModule import AgentModule
+#TO-DO: use lb-run (RunApplication module)
 from LHCbDIRAC.Core.Utilities.ProductionEnvironment import getProjectEnvironment
 
 from grid_collector.status_db import StatusDB #pylint: disable=F0401
