@@ -146,6 +146,32 @@ class BooleSuccess( RunApplicationTestCase ):
     self.assertTrue(res['OK'])
     self.assertEqual(res['Value'], (0, '', ''))
 
+  def test_Boole_Production_PR33857_2( self ):
+    """ Same as before but using "ANY" as CMT config
+    """
+    gLogger.always("**** Boole v30r1")
+
+    ra = RunApplication()
+    ra.applicationName = 'Boole'
+    ra.applicationVersion = 'v30r1'
+    ra.commandOptions = ['$APPCONFIGOPTS/Boole/Default.py',
+                         '$APPCONFIGOPTS/Boole/DataType-2012.py',
+                         '$APPCONFIGOPTS/Boole/NoPacking.py',
+                         '$APPCONFIGOPTS/Boole/Boole-SetOdinRndTrigger.py',
+                         '$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py']
+    ra.extraPackages = [('AppConfig', 'v3r266'),
+                        ('ProdConf', '')
+                       ]
+    ra.step_Number = 1
+    ra.prodConfFileName = 'test_prodConf_boole_v30r1_2.py'
+    ra.applicationLog = '00033857_00000002_3_log.txt'
+    ra.stdError = '00033857_00000002_3_err.txt'
+
+    res = ra.run()
+    self.assertTrue(res['OK'])
+    self.assertEqual(res['Value'], (0, '', ''))
+
+
 class MooreSuccess( RunApplicationTestCase ):
   """ Moore cases
   """
