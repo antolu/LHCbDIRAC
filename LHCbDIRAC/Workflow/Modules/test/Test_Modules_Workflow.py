@@ -15,7 +15,7 @@ from mock import MagicMock, patch
 from DIRAC.DataManagementSystem.Client.test.mock_DM import dm_mock
 from DIRAC.Resources.Catalog.test.mock_FC import fc_mock
 
-from DIRAC import gLogger
+from DIRAC import S_OK, gLogger
 from DIRAC.RequestManagementSystem.Client.Request import Request
 from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.File import File
@@ -755,27 +755,6 @@ class BookkeepingReportFailure( ModulesTestCase ):
                                           wf_cs, step_commons_1,
                                           step_number, step_id, False )['OK'] )
 
-
-##############################################################################
-# # ErrorLogging.py
-##############################################################################
-
-class ErrorLoggingSuccess( ModulesTestCase ):
-
-  #################################################
-
-  def test_execute( self ):
-
-    # no errors, no input data
-    for wf_cs in copy.deepcopy( wf_commons ):
-      for s_cs in step_commons:
-        self.el.execute( prod_id, prod_job_id, wms_job_id,
-                         workflowStatus, stepStatus,
-                         wf_cs, s_cs,
-                         step_number, step_id )
-
-    # TODO: make a real test (this one always exits with "Application log file from previous module not found locally")
-
 #############################################################################
 # FailoverRequest.py
 #############################################################################
@@ -1267,23 +1246,23 @@ class LHCbScriptSuccess( ModulesTestCase ):
     self.lhcbScript.jobType = 'merge'
     self.lhcbScript.stepInputData = ['foo', 'bar']
 
-    self.lhcbScript.production_id = self.prod_id
-    self.lhcbScript.prod_job_id = self.prod_job_id
-    self.lhcbScript.jobID = self.wms_job_id
-    self.lhcbScript.workflowStatus = self.workflowStatus
-    self.lhcbScript.stepStatus = self.stepStatus
-    self.lhcbScript.workflow_commons = self.wf_commons
-    self.lhcbScript.step_commons = self.step_commons[0]
-    self.lhcbScript.step_number = self.step_number
-    self.lhcbScript.step_id = self.step_id
+    self.lhcbScript.production_id = prod_id
+    self.lhcbScript.prod_job_id = prod_job_id
+    self.lhcbScript.jobID = wms_job_id
+    self.lhcbScript.workflowStatus = workflowStatus
+    self.lhcbScript.stepStatus = stepStatus
+    self.lhcbScript.workflow_commons = wf_commons
+    self.lhcbScript.step_commons = step_commons[0]
+    self.lhcbScript.step_number = step_number
+    self.lhcbScript.step_id = step_id
     self.lhcbScript.executable = 'ls'
     self.lhcbScript.applicationLog = 'applicationLog.txt'
 
     # no errors, no input data
-    for wf_commons in copy.deepcopy( self.wf_commons ):
-      for step_commons in self.step_commons:
-        self.lhcbScript.workflow_commons = wf_commons
-        self.lhcbScript.step_commons = step_commons
+    for wf_cs in copy.deepcopy( wf_commons ):
+      for s_cs in step_commons:
+        self.lhcbScript.workflow_commons = wf_cs
+        self.lhcbScript.step_commons = s_cs
         self.lhcbScript._setCommand()
         res = self.lhcbScript._executeCommand()
         self.assertIsNone( res )
@@ -1301,21 +1280,21 @@ class LHCbScriptFailure( ModulesTestCase ):
     self.lhcbScript.jobType = 'merge'
     self.lhcbScript.stepInputData = ['foo', 'bar']
 
-    self.lhcbScript.production_id = self.prod_id
-    self.lhcbScript.prod_job_id = self.prod_job_id
-    self.lhcbScript.jobID = self.wms_job_id
-    self.lhcbScript.workflowStatus = self.workflowStatus
-    self.lhcbScript.stepStatus = self.stepStatus
-    self.lhcbScript.workflow_commons = self.wf_commons
-    self.lhcbScript.step_commons = self.step_commons[0]
-    self.lhcbScript.step_number = self.step_number
-    self.lhcbScript.step_id = self.step_id
+    self.lhcbScript.production_id = prod_id
+    self.lhcbScript.prod_job_id = prod_job_id
+    self.lhcbScript.jobID = wms_job_id
+    self.lhcbScript.workflowStatus = workflowStatus
+    self.lhcbScript.stepStatus = stepStatus
+    self.lhcbScript.workflow_commons = wf_commons
+    self.lhcbScript.step_commons = step_commons[0]
+    self.lhcbScript.step_number = step_number
+    self.lhcbScript.step_id = step_id
 
     # no errors, no input data
-    for wf_commons in copy.deepcopy( self.wf_commons ):
-      for step_commons in self.step_commons:
-        self.lhcbScript.workflow_commons = wf_commons
-        self.lhcbScript.step_commons = step_commons
+    for wf_cs in copy.deepcopy( wf_commons ):
+      for s_cs in copy.deepcopy( step_commons ):
+        self.lhcbScript.workflow_commons = wf_cs
+        self.lhcbScript.step_commons = s_cs
         res = self.lhcbScript.execute()
         self.assertFalse( res['OK'] )
 
@@ -1332,7 +1311,6 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( AnalyseLogFileSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( BookkeepingReportFailure ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ErrorLoggingSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( FailoverRequestSuccess ) )
 #  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MergeMDFSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RemoveInputDataSuccess ) )
