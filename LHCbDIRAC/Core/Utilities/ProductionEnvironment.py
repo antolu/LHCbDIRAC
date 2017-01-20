@@ -359,7 +359,7 @@ def getScriptsLocation():
       returns an error. Otherwise the location of the environment scripts is returned
       in a dictionary with the name as the key.
   """
-  softwareArea = gConfig.getValue( '/LocalSite/SharedArea' )
+  softwareArea = gConfig.getValue( '/LocalSite/SharedArea', '' )
 
   gLogger.verbose( 'MYSITEROOT = %s' % softwareArea )
   if os.path.exists( os.path.join( softwareArea, groupLogin ) ):
