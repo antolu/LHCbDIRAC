@@ -8,8 +8,8 @@ import os
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
-from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
+from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 __RCSID__ = "$Id$"
 
@@ -63,8 +63,6 @@ class GaudiApplication( ModuleBase ):
     """
 
     try:
-      if 'BOINC' in self.siteName:
-        self._disableWatchdogCPUCheck()
       super( GaudiApplication, self ).execute( __RCSID__, production_id, prod_job_id, wms_job_id,
                                                workflowStatus, stepStatus,
                                                wf_commons, step_commons, step_number, step_id )
@@ -80,7 +78,7 @@ class GaudiApplication( ModuleBase ):
       self.log.verbose( "/LocalSite/Root directory for job is %s" % ( gConfig.getValue( '/LocalSite/Root',
                                                                                         os.getcwd() ) ) )
 
-      if self.jobType.lower() == 'merge':
+      if self.jobType.lower() == 'merge' or 'BOINC' in self.siteName:
         self._disableWatchdogCPUCheck()
 
       # Resolve options files

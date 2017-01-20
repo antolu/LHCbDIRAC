@@ -214,9 +214,12 @@ class LHCbJob( Job ):
     tmpList = optionsFile.split( ';' )
     optionsFile = ';'.join( list( set( tmpList ) ) )
     self.log.verbose( 'Final options list is: %s' % optionsFile )
+
     if inputData:
       if isinstance( inputData, str ):
         inputData = [inputData]
+      if not isinstance( inputData, list ):
+        return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
       if inputData != ['previousStep']:
         for i in xrange( len( inputData ) ):
           inputData[i] = inputData[i].replace( 'LFN:', '' )
@@ -351,11 +354,12 @@ class LHCbJob( Job ):
         inputData = [inputData]
       if not isinstance( inputData, list ):
         return self._reportError( 'Expected single LFN string or list of LFN(s) for inputData', __name__, **kwargs )
-      for i in xrange( len( inputData ) ):
-        inputData[i] = inputData[i].replace( 'LFN:', '' )
-      inputData = ['LFN:' + x for x in inputData ]
-      inputDataStr = ';'.join( inputData )
-      self.addToInputData.append( inputDataStr )
+      if inputData != ['previousStep']:
+        for i in xrange( len( inputData ) ):
+          inputData[i] = inputData[i].replace( 'LFN:', '' )
+        inputData = ['LFN:' + x for x in inputData ]
+        inputDataStr = ';'.join( inputData )
+        self.addToInputData.append( inputDataStr )
 
     self.stepCount += 1
 

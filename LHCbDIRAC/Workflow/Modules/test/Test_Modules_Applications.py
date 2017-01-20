@@ -35,7 +35,7 @@ class ModulesApplicationsTestCase( unittest.TestCase ):
 
   def tearDown( self ):
 
-    for fileProd in ['prodConf_someApp_123_00000456_123_00000456_321.py', 'appLog', 'gaudi_extra_options.py']:
+    for fileProd in ['prodConf_someApp_123_00000456_123_00000456_321.py', 'appLog', 'gaudi_extra_options.py', 'applicationError.txt']:
       try:
         os.remove( fileProd )
       except OSError:
@@ -64,22 +64,24 @@ class GaudiApplicationSuccess( ModulesApplicationsTestCase ):
 # GaudiApplicationScript.py
 #############################################################################
 
-# class GaudiApplicationScriptSuccess( ModulesTestCase ):
-#
-#  #################################################
-#
-#  def test_execute( self ):
-#
-#    step_commons['script'] = 'cat'
-#    #no errors, no input data
-#    for wf_commons in copy.deepcopy( wf_commons ):
-#      self.assertTrue( self.gas.execute( prod_id, prod_job_id, wms_job_id,
-#                                        workflowStatus, stepStatus,
-#                                        wf_commons, step_commons,
-#                                        step_number, step_id,
-#                                        ['aa', 'bb'] )['OK'] )
+class GaudiApplicationScriptSuccess( ModulesApplicationsTestCase ):
+
+ #################################################
+
+  @patch( "LHCbDIRAC.Workflow.Modules.GaudiApplicationScript.RunApplication", side_effect = MagicMock() )
+  def test_execute( self, _patch ):
+
+    #no errors, no input data
+    for wf_cs in copy.deepcopy( wf_commons ):
+      for s_cs in copy.deepcopy( step_commons ):
+        s_cs['script'] = 'cat'
+        self.assertTrue( self.gas.execute( prod_id, prod_job_id, wms_job_id,
+                                           workflowStatus, stepStatus,
+                                           wf_cs, s_cs,
+                                           step_number, step_id )['OK'] )
 
 if __name__ == '__main__':
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( ModulesApplicationsTestCase )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( GaudiApplicationScriptSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
