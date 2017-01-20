@@ -21,6 +21,7 @@ from LHCbDIRAC.Workflow.Modules.GaudiApplication import GaudiApplication
 from LHCbDIRAC.Workflow.Modules.GaudiApplicationScript import GaudiApplicationScript
 from LHCbDIRAC.Workflow.Modules.RootApplication import RootApplication
 from LHCbDIRAC.Workflow.Modules.LHCbScript import LHCbScript
+from LHCbDIRAC.Workflow.Modules.ErrorLogging import ErrorLogging
 
 def mock_getScriptsLocation():
   return S_OK( { 'LbLogin.sh':'/this/is/a/path/groupLoginPath',
@@ -41,13 +42,18 @@ class ModulesApplicationsTestCase( unittest.TestCase ):
     gLogger.setLevel( 'DEBUG' )
     self.maxDiff = None
     self.ga = GaudiApplication( bkClient = bkc_mock, dm = dm_mock )
+
     self.gas = GaudiApplicationScript( bkClient = bkc_mock, dm = dm_mock )
     self.ga.siteName = 'LCG.PIPPO.org'
+
     self.ra = RootApplication( bkClient = bkc_mock, dm = dm_mock )
     self.ra.applicationName = 'aRoot.py'
     self.ra.applicationVersion = 'v1r1'
     self.ra.rootType = 'py'
+
     self.lhcbScript = LHCbScript()
+
+    self.er = ErrorLogging( bkClient = bkc_mock, dm = dm_mock )
 
   def tearDown( self ):
 
@@ -178,7 +184,22 @@ class RootApplicationSuccess( ModulesApplicationsTestCase ):
                                           step_number, step_id )['OK'] )
 
 
+#############################################################################
+# ErrorLogging.py
+#############################################################################
 
+class ErrorLoggingSuccess( ModulesApplicationsTestCase ):
+
+  @patch( "LHCbDIRAC.Workflow.Modules.ErrorLogging.RunApplication", side_effect = MagicMock() )
+  def test_execute( self, _patch ):
+
+    #no errors, no input data
+    for wf_cs in copy.deepcopy( wf_commons ):
+      for s_cs in copy.deepcopy( step_commons ):
+        self.assertTrue( self.er.execute( prod_id, prod_job_id, wms_job_id,
+                                          workflowStatus, stepStatus,
+                                          wf_cs, s_cs,
+                                          step_number, step_id )['OK'] )
 
 
 
@@ -189,4 +210,5 @@ if __name__ == '__main__':
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( LHCbScriptSuccess ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( LHCbScriptFailure ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( RootApplicationSuccess ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( ErrorLoggingSuccess ) )
   testResult = unittest.TextTestRunner( verbosity = 2 ).run( suite )
