@@ -13,7 +13,7 @@ from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
 __RCSID__ = "$Id$"
 
 def _errorReport( error, message = None ):
-  """Internal function to return errors and exit with an S_ERROR()
+  """ Internal function to return errors and exit with an S_ERROR()
   """
   if not message:
     message = error
@@ -22,7 +22,15 @@ def _errorReport( error, message = None ):
   return S_ERROR( message )
 
 def mergeRootFiles( outputFile, inputFiles, cleanUp = True ):
-  """ merge several ROOT files """
+  """ Merge several ROOT files
+
+  Args:
+      outputFile (str): output file name
+      inputFiles (list): list of input files
+      cleanUp (bool): remove input files after merge, or not
+  """
+  if not isinstance( inputFiles, list ):
+    return _errorReport( "please provide a list of input files" )
 
   # Performs the merging
   chunkSize = 20
