@@ -5,6 +5,8 @@
     in this way.
 
     To make use of this module the LHCbJob method setApplicationScript can be called by users.
+
+    This is usually the main module run by user jobs.
 """
 
 import re
@@ -60,7 +62,8 @@ class GaudiApplicationScript( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_number = None, step_id = None ):
-    """The main execution method of the module.
+    """The main execution method of the module. It runs a gaudi script app using RunApplication module.
+        This is usually the main module run by user jobs.
     """
 
     try:

@@ -31,7 +31,7 @@ class RunApplication(object):
 
     # Define the environment
     self.extraPackages = []
-    self.systemConfig = 'Any'
+    self.systemConfig = 'ANY'
     self.runTimeProject = ''
     self.runTimeProjectVersion = ''
     self.site = ''
@@ -107,12 +107,15 @@ class RunApplication(object):
     res = shellCall( timeout = 0,
                      cmdSeq = lbRunListConfigs )
     if not res['OK']:
-      raise RuntimeError( "Problem executing lb-run" )
+      self.log.error( "Problem executing lb-run --list-platforms: %s" % res['Message'] )
+      raise RuntimeError( "Problem executing lb-run --list-platforms" )
     platforms = res['Value']
     if platforms[0]:
       raise RuntimeError( "Problem executing lb-run (returned %s)" %platforms )
     platformsAvailable = platforms[1].split('\n')
-    platformsAvailable = [ plat for plat in platformsAvailable if plat and 'dbg' not in plat ]
+    platformsAvailable = [ plat for plat in platformsAvailable if plat and 'dbg' not in plat ] #ignoring "debug" platforms
+
+    # FIXME: this won't work with centos7, but we should get a solution from the core software before
     return platformsAvailable.sort( key = LooseVersion, reverse = True )[0]
 
   def _lbRunCommandOptions( self ):
@@ -162,7 +165,7 @@ class RunApplication(object):
     command = self.opsH.getValue( '/GaudiExecution/gaudirunFlags', 'gaudirun.py' )
 
     # multicore?
-    if self.multicore or self.multicore == 'True':
+    if self.multicore:
       cpus = multiprocessing.cpu_count()
       if cpus > 1:
         if _multicoreWN():
@@ -180,9 +183,8 @@ class RunApplication(object):
 
     if self.extraOptionsLine:
       command += ' '
-      fopen = open( 'gaudi_extra_options.py', 'w' )
-      fopen.write( self.extraOptionsLine )
-      fopen.close()
+      with open( 'gaudi_extra_options.py', 'w' ) as fopen:
+        fopen.write( self.extraOptionsLine )
       command += 'gaudi_extra_options.py'
 
     # this is for avoiding env variable to be interpreted by the current shell

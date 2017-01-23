@@ -1,5 +1,7 @@
 """ Gaudi Application module - main module: creates the environment,
     executes gaudirun with the right options
+
+    This is the module used for each and every job of productions. It can also be used by users.
 """
 
 import re
@@ -59,7 +61,8 @@ class GaudiApplication( ModuleBase ):
                workflowStatus = None, stepStatus = None,
                wf_commons = None, step_commons = None,
                step_id = None, step_number = None ):
-    """ The main execution method of GaudiApplication.
+    """ The main execution method of GaudiApplication. It runs a gaudirun app using RunApplication module.
+        This is the module used for each and every job of productions. It can also be used by users.
     """
 
     try:

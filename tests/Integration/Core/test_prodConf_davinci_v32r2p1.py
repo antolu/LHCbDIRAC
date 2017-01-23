@@ -1,4 +1,5 @@
 #pylint: skip-file
+# Used by Test_RunApplication.py (for integration test)
 
 from ProdConf import ProdConf
 
