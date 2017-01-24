@@ -124,7 +124,13 @@ class RunApplication(object):
 
     # extra packages (for setup phase) (added using '--use')
     extraPackagesString = ''
-    for epName, epVer in self.extraPackages:
+    for ep in self.extraPackages:
+      if len(ep) == 1:
+        epName = ep[0]
+        epVer = ''
+      elif len(ep) == 2:
+        epName, epVer = ep
+
       if epName.lower() == 'prodconf':
         self.prodConf = True
       if epVer:
