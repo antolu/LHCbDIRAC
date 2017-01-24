@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
-#pylint: disable=protected-access, invalid-name, wrong-import-position, missing-docstring
+#pylint: disable=protected-access, wrong-import-position, invalid-name, missing-docstring
 
 import unittest
 import os
 import copy
+
+from DIRAC.Core.Base.Script import parseCommandLine
+parseCommandLine()
 
 from DIRAC.Core.Base.Script import parseCommandLine
 parseCommandLine()

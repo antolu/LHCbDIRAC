@@ -1,24 +1,27 @@
 The certification process
 =========================
 
-Certifying a release is a process. There are a number of steps to make to reach the point in which we can finally say that a release is at production level.
-Within LHCbDirac, we are trying to streamline and automatize this process as much as possible. Even with that, some tests still require manual intervention.
-
-We can split the process in a series of incremental tests, following what has been sketched in :ref:`develop`
+Certifying a release is a process. There are a number of steps to make to reach the point in which
+we can finally say that a release is at production level.
+Within LHCbDirac, we are trying to streamline and automatize this process as much as possible.
+Even with that, some tests still require manual intervention. We can split the process in a series of incremental tests.
 
 Within the following sections we describe, step by step, all the actions needed.
+
+The whole certification process varies from release to release. The list of things to do is maintained in trello boards.
 
 
 Unit test
 ---------
 
-When a new release candidate is created from the devel branch, we first run pylint on the whole codebase, and all the unit tests. Jenkins automizes this for us.
+When a new release candidate is created from the devel branch, we first run pylint on the whole codebase, and all the unit tests.
+Jenkins automizes this for us.
 
 
 Integration and Regression tests
 ---------------------------------
 
-Run by Jenkins
+Run by Jenkins.
 
 
 
@@ -36,28 +39,6 @@ Nonetheless, we have created a tool to easily identify all new exceptions and er
 	cd /tmp/logTest
 	wget -r -np -nH --cut-dirs=7 $codeLocation
 	/bin/bash logParser.sh
-
-
-In addition to the server side tests, at least 2 test files have been create that can be run on the client side. You can get them via:
-::
-
-   wget https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/tests/System/Client/client_test.csh
-   wget https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/raw/devel/tests/System/GridTestSubmission/testUserJobs.py
-
-and again simply run them (csh and python)
-
-For testing the SAM jobs, you can either run the SAMAgent (only for a short period), or better use the script
-::
-
-   dirac-lhcb-sam-submit
-
-
-Testing the Bookkeeping: many of the tests that follow will test also that the bookkeeping works properly.
-Anyway, the first thing to do is to visit the bookkeeping `web page <https://volhcb30.cern.ch/DIRAC/LHCb-Certification/lhcb_prmgr/Data/BK/display>`_.
-
-A second base test is simply to use the following command:
-::
-   dirac-bookkeeping-GUI
 
 
 For testing that the RMS works, there is an ad-hoc test:

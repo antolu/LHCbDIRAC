@@ -129,8 +129,7 @@ class ClientTestCase( unittest.TestCase ):
 class ProductionRequestSuccess( ClientTestCase ):
 
   def test__mcSpecialCase( self ):
-    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
-    pr.tc = MagicMock()
+
     # prepare the test case
     prod = Production()
     prod.setParameter( 'ProcessingType', 'JDL', 'Test', 'ProductionGroupOrType' )
@@ -142,13 +141,24 @@ class ProductionRequestSuccess( ClientTestCase ):
     prod.priority = '1'
     prod.addFinalizationStep()
     prod.setFileMask( '', '4' )
+    for par in prod.LHCbJob.workflow.parameters:
+      if par.getName() == 'Site':
+        self.assertEqual( par.value, 'ANY' )
+      if par.getName() == 'outputDataFileMask':
+        self.assertEqual( par.value, '' )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.tc = MagicMock()
+    pr.opsH = MagicMock()
+    pr.opsH.getValue.return_value = 'testValue'
+    prod.LHCbJob._siteSet = {'testValue'}
 
     pr._modifyAndLaunchMCXML( prod, {'tracking':0} )
     for par in prod.LHCbJob.workflow.parameters:
       if par.getName() == 'Site':
-        self.assertEqual( par.value, 'DIRAC.Test.ch' )
-      if par.getName() == 'Numberofevents':
-        self.assertEqual( par.value, '500' )
+        self.assertEqual( par.value, 'testValue' )
+      if par.getName() == 'numberOfEvents':
+        self.assertEqual( par.value, 'testValue' )
       if par.getName() == 'listoutput':
         self.assert_( 'gausshist' in dict( par.value ).values() )
       if par.getName() == 'outputDataStep':
@@ -156,7 +166,9 @@ class ProductionRequestSuccess( ClientTestCase ):
       if par.getName() == 'outputDataFileMask':
         self.assertEqual( par.value, 'GAUSSHIST;DST' )
 
-    # re-prepare the test case
+
+
+    # # re-prepare the test case
     prod = Production()
     prod.setParameter( 'ProcessingType', 'JDL', 'Test', 'ProductionGroupOrType' )
     prod.addApplicationStep( stepDict = step1Dict,
@@ -165,6 +177,13 @@ class ProductionRequestSuccess( ClientTestCase ):
     prod.addFinalizationStep()
     prod.setFileMask( '', ['4'] )
 
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.tc = MagicMock()
+    pr.opsH = MagicMock()
+    pr.opsH.getValue.return_value = 'testValue'
+    prod.LHCbJob._siteSet = {'testValue'}
+
+    # # re-run
     pr._mcSpecialCase( prod, {'tracking':0} )
     for par in prod.LHCbJob.workflow.parameters:
       if par.getName() == 'Site':
@@ -186,6 +205,13 @@ class ProductionRequestSuccess( ClientTestCase ):
                              modulesList = ['GaudiApplication', 'AnalyseLogFile'] )
     prod.addFinalizationStep()
     prod.setFileMask( '' )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.tc = MagicMock()
+    pr.opsH = MagicMock()
+    pr.opsH.getValue.return_value = 'testValue'
+    prod.LHCbJob._siteSet = {'testValue'}
+
 
     pr._mcSpecialCase( prod, {'tracking':0} )
     for par in prod.LHCbJob.workflow.parameters:

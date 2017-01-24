@@ -1,46 +1,4 @@
-=====================================
-WARNING!WARNING!WARNING!WARNING!
-=====================================
-=====================================
-TO-CHECK!TO-CHECK!TO-CHECK!TO-CHECK!
-=====================================
-
-
-
-==============================
-Renewal of machine certificate
-==============================
-
-For Quattor managed machines it may be sufficient to run the following
-commands from lxvoadm.cern.ch:
-
-* generate new certificate and upload it to Sindes
-
-::
-
-   host-certificate-manager --username=<your_username> volhcbXX
-
-
-* download it onto the machine
-
-::
-
-   wassh root@volhcbXX "ncm-ncd --configure sindes"
-
-
-- check the result
-
-::
-
-   wassh root@volhcbXX "/usr/bin/openssl x509 -in /etc/grid-security/hostcert.pem -noout -enddate"
-
-
-* update the VOBOX installation
-
-::
-
-   wash root@volhcbXX "spma_ncm_wrapper.sh"
-
+.. _certificate_renewal:
 
 ==========================================
  Renewal of certificate for ONLINE machine
@@ -72,5 +30,3 @@ If you want to test that the new host certificate is valid without any password,
 ::
 
   dirac-proxy-init -C <cert> -K <key>
-
-
