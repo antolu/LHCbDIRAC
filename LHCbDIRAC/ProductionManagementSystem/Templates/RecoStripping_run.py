@@ -110,7 +110,7 @@ except SyntaxError:
 mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access (download or protocol)#download}}'
 mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data flag True/False#True}}'
 mergeMulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
-mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3: compression level#LZMA-4}}'
+mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3: compression level#$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py}}'
 
 # indexing params
 indexingPriority = int( '{{IndexingPriority#PROD-4:indexing: priority#5}}' )
