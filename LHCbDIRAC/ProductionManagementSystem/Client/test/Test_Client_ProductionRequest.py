@@ -292,17 +292,25 @@ class ProductionRequestSuccess( ClientTestCase ):
     pr.compressionLvl = ['$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py']
     pr.stepsList = ['999']
     pr.resolveSteps()
-    #p = re.compile('Compression-[A-Z]{4}-[1-9]')
-    #if not p.search(pr.stepsListDict[0]['OptionFiles']):
-    #    pr.stepsListDict[0]['OptionFiles'] += ';$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py'
-    #else:
-    #    pr.stepsListDict[0]['OptionFiles'] = p.sub('Compression-LZMA-4', pr.stepsListDict[0]['OptionFiles'])
     self.assertEqual( pr.stepsListDict, [{'StepId': 999, 'StepName':'Stripping28',
                                           'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
                                           #'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
                                           'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
                                           'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
                                           'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"999['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+    
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = ['$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py']
+    pr.stepsList = ['998']
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [{'StepId': 998, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          #'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"998['SDST']",
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
