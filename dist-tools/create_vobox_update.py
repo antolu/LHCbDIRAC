@@ -45,7 +45,7 @@ def generateTemplate(hosts, filename):
 
 if __name__ == '__main__':
   generateTemplate(T1_list, file_T1)
-  generateTemplate(B_list, file_B)
+  #generateTemplate(B_list, file_B)
   generateTemplate(C_list, file_C)
   generateTemplate(D_list, file_D)
   generateTemplate(E_list, file_E)
