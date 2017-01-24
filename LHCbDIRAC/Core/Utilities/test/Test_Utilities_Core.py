@@ -8,7 +8,7 @@ import itertools
 import os
 import datetime
 
-from mock import MagicMock
+from mock import MagicMock, patch
 
 from DIRAC import gLogger
 
@@ -24,6 +24,9 @@ from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
 
 __RCSID__ = "$Id$"
 
+gConfigMock = MagicMock()
+gConfigMock.getValue.return_value = 'aValue'
+
 
 class UtilitiesTestCase( unittest.TestCase ):
   """ Base class for the Utilities test cases
@@ -31,13 +34,12 @@ class UtilitiesTestCase( unittest.TestCase ):
   def setUp( self ):
 
     self.IDR = InputDataResolution( {}, bkc_mock )
-
     self.pc = ProdConf()
 
     gLogger.setLevel( 'DEBUG' )
 
   def tearDown( self ):
-    for fileProd in ['prodConf.py', 'data.py']:
+    for fileProd in ['prodConf.py', 'data.py', 'gaudi_extra_options.py']:
       try:
         os.remove( fileProd )
       except OSError:
@@ -69,7 +71,8 @@ class RunApplicationSuccess( UtilitiesTestCase ):
     self.assertEqual(runtimeProjectString, ' --runtime-project aRunTimeProject/v1r1')
     self.assertEqual(externalsString, ' --ext=lcg1 --ext=lcg2')
 
-  def test__gaudirunCommand( self ):
+  @patch( "LHCbDIRAC.Core.Utilities.RunApplication.gConfig", side_effect = gConfigMock )
+  def test__gaudirunCommand( self, _patch ):
     """ Testing what is run (the gaudirun command, for example)
     """
     ra = RunApplication()
