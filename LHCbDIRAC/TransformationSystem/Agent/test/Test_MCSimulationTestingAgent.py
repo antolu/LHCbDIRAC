@@ -1,7 +1,9 @@
 '''Test class for the MCSimulationTestingAgent
 '''
 
-import unittest, datetime, importlib
+import datetime
+import importlib
+import unittest
 from mock import MagicMock, patch
 
 from LHCbDIRAC.TransformationSystem.Agent.MCSimulationTestingAgent import MCSimulationTestingAgent
@@ -365,27 +367,27 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
 
     self.transClientMock = MagicMock()
     self.transClientMock.getTransformations.return_value = {'OK' : True,
-                                                            'Value' : [{'Body': '',
-                                                                       'LastUpdate': datetime.datetime( 2014, 7, 29, 13, 6, 8 ),
-                                                                       'Status': 'New',
-                                                                       'TransformationID': 1L,
-                                                                       'Description': 'description',
-                                                                       'TransformationFamily': 0,
-                                                                       'Plugin': 'Standard',
-                                                                       'Type': 'MCSimulation',
-                                                                       'AgentType': 'Manual',
-                                                                       'GroupSize': 1L,
-                                                                       'LongDescription': 'longDescription',
-                                                                       'MaxNumberOfTasks': 0L,
-                                                                       'Hot': 0,
-                                                                       'AuthorDN': '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=sbidwell/CN=758039/CN=Simon Bidwell',
-                                                                       'TransformationName': 'transName',
-                                                                       'TransformationGroup': 'General',
-                                                                       'InheritedFrom': 0L,
-                                                                       'CreationDate': datetime.datetime( 2014, 7, 29, 13, 6, 8 ),
-                                                                       'FileMask': '',
-                                                                       'EventsPerTask': 0L,
-                                                                       'AuthorGroup': 'devGroup'}]}
+                                                            'Value' : [{ 'Body': '',
+                                                                         'LastUpdate': datetime.datetime( 2014, 7, 29, 13, 6, 8 ),
+                                                                         'Status': 'New',
+                                                                         'TransformationID': 1L,
+                                                                         'Description': 'description',
+                                                                         'TransformationFamily': 0,
+                                                                         'Plugin': 'Standard',
+                                                                         'Type': 'MCSimulation',
+                                                                         'AgentType': 'Manual',
+                                                                         'GroupSize': 1L,
+                                                                         'LongDescription': 'longDescription',
+                                                                         'MaxNumberOfTasks': 0L,
+                                                                         'Hot': 0,
+                                                                         'AuthorDN': '/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=sbidwell/CN=758039/CN=Simon Bidwell',
+                                                                         'TransformationName': 'transName',
+                                                                         'TransformationGroup': 'General',
+                                                                         'InheritedFrom': 0L,
+                                                                         'CreationDate': datetime.datetime( 2014, 7, 29, 13, 6, 8 ),
+                                                                         'FileMask': '',
+                                                                         'EventsPerTask': 0L,
+                                                                         'AuthorGroup': 'devGroup'}]}
     self.transClientMock.getStoredJobDescription.return_value = {'OK' : True, 'Value' : ( ( 1L, storedJobDescription ), )}
     self.transClientMock.setTransformationParameter.return_value = {'OK' : True}
     self.transClientMock.extendTransformation.return_value = {'OK' : True, 'Value' : [3L, 4L, 5L]}
@@ -483,8 +485,8 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
                                                                   'keepAliveLapse': 150,
                                                                   'skipCACheck': False,
                                                                   'timeout': 3600} ),
-                                                              'bulkJobInfo',
-                                                              ( [123, 456], ) )}
+                                                               'bulkJobInfo',
+                                                               ( [123, 456], ) )}
 
     self.notifyClientMock = MagicMock()
     self.notifyClientMock.sendMail.return_value = {'OK' : True, 'Value': "The mail was succesfully sent"}
@@ -500,7 +502,7 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
 
   def tearDown(self):
     pass
-  
+
   def test_send_report( self ):
     res = self.agent._sendReport( self.report )
     self.assertEqual( res, None )
@@ -520,7 +522,7 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
     self.assertEqual( max_e_xml, max_e_param.toXML() )
 
   @patch( "LHCbDIRAC.TransformationSystem.Agent.MCSimulationTestingAgent.getEventsToProduce" )
-  def test_calculate_parameters( self, patch_mock ):
+  def test_calculate_parameters( self, _patch_mock ):
 #     expected_max_e = 100
     # mock to make getEventsToProduce to return 100
 #     patch_mock.return_value = expected_max_e
@@ -530,5 +532,5 @@ class MCSimulationTestingAgentTestCase( unittest.TestCase ):
 #     self.assertEqual( res['Value']['max_e'], expected_max_e )
 
 if __name__ == '__main__':
-  suite = unittest.defaultTestLoader.loadTestsFromTestCase( MCSimulationTestingAgentTestCase)
-  testResult = unittest.TextTestResult(verbosity = 2).run(suite)
+  suite = unittest.defaultTestLoader.loadTestsFromTestCase( MCSimulationTestingAgentTestCase )
+  testResult = unittest.TextTestRunner( verbosity = 2 ).run(suite)

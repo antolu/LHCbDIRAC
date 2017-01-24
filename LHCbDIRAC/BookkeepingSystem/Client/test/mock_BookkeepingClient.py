@@ -1,6 +1,51 @@
 """ A mock of the BookkeepingClient, used for testing purposes
 """
 
+#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
+
+from mock import MagicMock
+
+bkc_mock = MagicMock()
+bkc_mock.sendBookkeeping.return_value = {'OK': True, 'Value': ''}
+bkc_mock.getFileTypes.return_value = {'OK': True,
+                                      'rpcStub': ( ( 'Bookkeeping/BookkeepingManager',
+                                                     {'skipCACheck': False, 'delegatedGroup': 'diracAdmin',
+                                                      'timeout': 3600} ), 'getFileTypes', ( {}, ) ),
+                                      'Value': {'TotalRecords': 48, 'ParameterNames': ['FileTypes'],
+                                                'Records': [['DAVINCIHIST'], ['DIELECTRON.DST'], ['BU2JPSIK.MDST'],
+                                                            ['SIM'], ['BD2JPSIKS.MDST'],
+                                                            ['BU2JPSIK.DST'], ['BUBDBSSELECTION.DST'],
+                                                            ['LAMBDA.DST'], ['BSMUMUBLIND.DST'], ['HADRONIC.DST']]}}
+bkc_mock.getFileMetadata.return_value = {'OK': True,
+                                         'Value': {'Successful':{'foo': {'ADLER32': None,
+                                                                         'FileType': 'SDST',
+                                                                         'FullStat': None,
+                                                                         'GotReplica': 'Yes',
+                                                                         'RunNumber': 93718},
+                                                                 'bar': {'ADLER32': None,
+                                                                         'FileType': 'SDST',
+                                                                         'FullStat': None,
+                                                                         'GotReplica': 'Yes',
+                                                                         'RunNumber': 93720}}},
+                                         'rpcStub': ( ( 'Bookkeeping/BookkeepingManager', ) )}
+bkc_mock.getFileTypeVersion.return_value = {'OK': True,
+                                            'Value': {'lfn1': 'ROOT',
+                                                      'lfn2': 'MDF'}}
+bkc_mock.getFileDescendants.return_value = { 'OK': True,
+                                             'Value': {'Failed': [],
+                                                       'NotProcessed': [],
+                                                       'Successful': {'aa.raw': ['bb.raw', 'bb.log']},
+                                                       'WithMetadata': {'aa.raw': {'bb.raw': {'FileType': 'RAW',
+                                                                                              'RunNumber': 97019,
+                                                                                              'GotReplica':'Yes'},
+                                                                                   'bb.log': {'FileType': 'LOG',
+                                                                                              'GotReplica':'Yes'}
+                                                                                  }
+                                                                       }
+                                                      }
+                                           }
+
+
 class BookkeepingClientFake(object):
   """ a fake BookkeepingClient - replicating some of the methods
   """

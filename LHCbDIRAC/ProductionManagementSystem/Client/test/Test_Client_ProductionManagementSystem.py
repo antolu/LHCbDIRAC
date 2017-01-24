@@ -1,13 +1,13 @@
 """ Test of the ProductionRequest and Production modules
 """
 
+#pylint: disable=protected-access, missing-docstring, invalid-name, line-too-long
+
 import unittest
 from mock import Mock, MagicMock
 
 from LHCbDIRAC.ProductionManagementSystem.Client.ProductionRequest import ProductionRequest, _splitIntoProductionSteps
 from LHCbDIRAC.ProductionManagementSystem.Client.Production import Production
-
-#pylint: disable=protected-access
 
 class bkClientFake(object):
   def getAvailableSteps( self, stepID ):
