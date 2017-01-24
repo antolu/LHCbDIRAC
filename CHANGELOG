@@ -1,3 +1,10 @@
+[v8r5p3]
+use DIRAC v6r17p5
+
+* just pylint
+* docs update
+* fixed a test
+
 [v8r5p2]
 use DIRAC v6r17p3
 
