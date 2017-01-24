@@ -1,3 +1,42 @@
+[v8r6-pre0]
+Use DIRAC v6r17p5
+
+* comment the line which is not used...
+* using safe function
+* added a test using ANY CMT Config
+* using lb-run --list-configs
+* moving to lb-run, semplifying
+* running ErrorLogging with lb-run
+* converted RootApplication to lb-run
+* fixed test
+* removed old test
+* lb-run for GaudiApplicationScript
+* unit test for gaudiapplication
+* setting up the test
+* added mock_commons file for workflows commons
+* re-using mocks
+* split test file further
+* split test file in 2 parts
+* removed unwanted file
+* added test for setExecutable
+* added LHCbScript module, made default for LHCbJob
+* corrected file names
+* added systemConfig everywhere
+* fix event type
+* escaping env variables
+* reshaped, corrected use of option
+* removed AnalyseLogFile
+* DaVinci
+* added brunel
+* More documentation and tools
+* Added prod style boole
+* Added user style Gauss job test
+* converted to real unit test, added second Gauss
+* added some tests
+* added first stub of integration test for LbRun module
+* pylints
+* Add documentation for deployment on Mesos
+
 [v8r5p3]
 use DIRAC v6r17p5
 
