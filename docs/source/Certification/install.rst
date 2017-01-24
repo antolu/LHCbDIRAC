@@ -172,7 +172,7 @@ release for client
 Please refer to this `TWIKI page <https://twiki.cern.ch/twiki/bin/view/LHCb/ProjectRelease#LHCbDirac>`_
 a quick test to validate the installation is to run the SHELL script $LHCBRELEASE/LHCBDIRAC/LHCBDIRAC_vXrY/LHCbDiracSys/test/client_test.csh
 
-go to this `web page < https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-builds/job/release/build>`_ for asking to install the client release in AFS and CVMFS:
+go to https://jenkins-lhcb-nightlies.web.cern.ch/job/nightly-builds/job/release/build page for asking to install the client release in AFS and CVMFS:
 
 * in the field "Project list" put : "Dirac vNrMpK LHCbDirac vArBpC LHCbGrid vArB" (LHCbGrid version can be found: https://gitlab.cern.ch/lhcb-dirac/LHCbDIRAC/blob/devel/dist-tools/projectConfig.json)
 * in the field "platforms" put : "x86_64-slc6-gcc49-opt x86_64-slc6-gcc62-opt x86_64-centos7-gcc62-opt"
