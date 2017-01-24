@@ -97,6 +97,7 @@ p1multicoreFlag = '{{P1MulticoreFLag#PROD-P1: multicore flag#True}}'
 p1outputMode = '{{P1OutputMode#PROD-P1: output mode#Local}}'
 p1eventsRequested = '{{P1EventsRequested#PROD-P1: events requested (-1 = ALL)#-1}}'
 p1ancestorDepth = int( '{{P1AncestorDepth#PROD-P1: ancestor depth#0}}' )
+p1compressionLvl = '{{P1CompressionLevel#PROD-P1: Compression Level#}}'
 
 # p2 params
 p2Plugin = '{{p2PluginType#PROD-P2: production plugin name#LHCbStandard}}'
@@ -115,6 +116,7 @@ p2multicoreFlag = '{{P2MulticoreFLag#PROD-P2: multicore flag#True}}'
 p2outputMode = '{{P2OutputMode#PROD-P2: output mode#Local}}'
 p2eventsRequested = '{{P2EventsRequested#PROD-P2: events requested (-1 = ALL)#-1}}'
 p2ancestorDepth = int( '{{P2AncestorDepth#PROD-P2: ancestor depth#0}}' )
+p2compressionLvl = '{{P2CompressionLevel#PROD-P2: Compression Level#}}'
 
 # p3 params
 p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
@@ -133,6 +135,7 @@ p3multicoreFlag = '{{P3MulticoreFLag#PROD-P3: multicore flag#True}}'
 p3outputMode = '{{P3OutputMode#PROD-P3: output mode#Any}}'
 p3eventsRequested = '{{P3EventsRequested#PROD-P3: events requested (-1 = ALL)#-1}}'
 p3ancestorDepth = int( '{{P3AncestorDepth#PROD-P3: ancestor depth#0}}' )
+p3compressionLvl = '{{P3CompressionLevel#PROD-P3: Compression Level#}}'
 
 parentReq = '{{_parent}}'
 if not parentReq:
@@ -231,5 +234,6 @@ pr.multicore = [p1multicoreFlag, p2multicoreFlag, p3multicoreFlag]
 pr.outputModes = [p1outputMode, p2outputMode, p3outputMode]
 pr.events = [p1eventsRequested, p2eventsRequested, p3eventsRequested]
 pr.ancestorDepths = [p1ancestorDepth, p2ancestorDepth, p3ancestorDepth]
+pr.compressionLvl = [p1compressionLvl, p2compressionLvl, p3compressionLvl]
 
 pr.buildAndLaunchRequest()
