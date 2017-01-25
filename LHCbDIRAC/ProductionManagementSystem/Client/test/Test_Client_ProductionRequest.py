@@ -314,6 +314,18 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.stepsList = ['999']
+    pr.compressionLvl = ['' for i in range(0,4)]
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [{'StepId': 999, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          #'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          'OptionFiles':'',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"999['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
 
   def test__determineOutputSEs( self ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )

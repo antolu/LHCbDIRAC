@@ -114,7 +114,6 @@ class BookkeepingClientFake(object):
                           'Records': [[ 998, '', '', 'x86_64-slc6-gcc49-opt', '', 'N',
                           'Stripping28', 'DaVinci', 'v41r3', 'Yes', 'Yes', 'Stripping28', 'AppConfig.v3r306', 'dddb-20150724', 'cond-20161011', '']]}}
 
-
   def getStepInputFiles( self, stepID ):
     if stepID == 123:
       return {'OK': True,

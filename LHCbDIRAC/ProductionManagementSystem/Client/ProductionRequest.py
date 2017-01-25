@@ -128,12 +128,24 @@ class ProductionRequest( object ):
         if parameter.lower() in ['conddb', 'dddb', 'dqtag'] and value:
           if value.lower() == 'frompreviousstep':
             value = self.stepsListDict[-1][parameter]
+        #
+        # If the prod manager sets a compression level for a particular step, either we append the option file
+        # or we overwrite the existing one inherited with the step
+        #
         if parameter == 'OptionFiles' and self.compressionLvl[count] != '':
             p = re.compile('Compression-[A-Z]{4}-[1-9]')
             if not p.search(value):
                 value += self.compressionLvl[count]
             else:
-                value = p.sub('Compression-LZMA-4', value)
+                value = p.sub(p.search(self.compressionLvl[count]).group(), value)
+        #
+        # If instead the prod manager doesn't declare a compression level, e.g. for intermediate steps,
+        # we check if there is one in the options and in case we delete it
+        #
+        elif parameter == 'OptionFiles' and self.compressionLvl[count] == '':
+            p = re.compile('\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py')
+            if p.search(value):
+                value = p.sub('', value)
         stepsListDictItem[parameter] = value
 
       s_in = self.bkkClient.getStepInputFiles( stepID )
