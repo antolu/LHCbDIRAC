@@ -6,7 +6,7 @@
 environment = {}
 fp = open( 'environmentLbLogin', 'r' )
 for line in fp:
-  if line[0] == '#':
+  if line[0] == '#' or 'SSH' in line:
     continue
   try:
     var = line.split( '=' )[0].strip()
@@ -63,6 +63,6 @@ for key, value in environment.iteritems():
     fp.write(line)
 # then functs
 for key, value in functsBahsrc.iteritems():
-  line = "%s export %s" %(key, value)
+  line = "%s export %s\n" %(key, value)
   fp.write(line)
 fp.close()
