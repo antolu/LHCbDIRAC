@@ -24,7 +24,7 @@ functsBahsrc = {}
 diracFunct = {}
 fp = open( 'bashrc', 'r' )
 for line in fp:
-  if line[0] == '#' or 'DIRACPLAT' in line:
+  if line[0] == '#' or 'DIRACPLAT' in line or 'mysql' in line:
     continue
   if '(' in line or '[' in line:
     try:
