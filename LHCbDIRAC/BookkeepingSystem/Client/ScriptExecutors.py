@@ -835,8 +835,10 @@ def _getCollidingBunches( fills ):
       runDbUrl = 'https://lbrundb.cern.ch/api/fill/%d/' % fill
       fillInfo = json.load( urllib2.urlopen( runDbUrl ) )
       result[fill] = int( fillInfo['nCollidingBunches'] )
-    except ( urllib2.HTTPError, KeyError, ValueError ) as e:
+    except ( KeyError, ValueError ) as e:
       gLogger.exception( "Exception getting info for fill", str( fill ), lException = e )
+      pass
+    except urllib2.HTTPError as e:
       pass
   return result
 
@@ -1116,7 +1118,7 @@ def executeGetStats( dmScript ):
         collBunches = 0.
         for fill in fillDuration:
           if fill not in result:
-            gLogger.notice( "Error: no number of colliding bunches for fill %d" % fillDuration )
+            gLogger.notice( "Error: no number of colliding bunches for fill %d" % fill )
           else:
             collBunches += result[fill] * fillDuration[fill]
         if fullDuration:
@@ -1128,7 +1130,7 @@ def executeGetStats( dmScript ):
           gLogger.notice( 'List of fills: ', ','.join( "%d (%d runs, %.1f hours)" % ( fill, len( fills[fill] ), fillDuration[fill] ) for fill in sorted( fills ) ) )
         if listRuns:
           for fill in sorted( fills ):
-            gLogger.notice( 'Fill %d (%4d bunches, %.1f hours):' % ( fill, result[fill], fillDuration[fill] ), ','.join( fills[fill] ) )
+            gLogger.notice( 'Fill %d (%s, %.1f hours):' % ( fill, '%4d bunches' % result[fill] if fill in result else 'Unknown bunches', fillDuration[fill] ), ','.join( fills[fill] ) )
     gLogger.notice( "" )
 
 def executeRunInfo( item ):
