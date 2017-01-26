@@ -631,52 +631,50 @@ def executeLfnReplicas( dmScript ):
   active = True
   preferDisk = False
   diskOnly = False
+  forJobs = False
   switches = Script.getUnprocessedSwitches()
   for switch in switches:
     if switch[0] in ( "a", "All" ):
       active = False
-    if switch[0] == 'DiskOnly':
+    elif switch[0] == 'DiskOnly':
       diskOnly = True
-    if switch[0] == 'PreferDisk':
+    elif switch[0] == 'PreferDisk':
       preferDisk = True
+    elif switch[0] == 'ForJobs':
+      forJobs = True
 
   if not lfnList:
     gLogger.fatal( "No LFNs supplies" )
     Script.showHelp()
     return 1
-  return printLfnReplicas( lfnList, active, diskOnly, preferDisk )
+  return printLfnReplicas( lfnList, active = active, diskOnly = diskOnly, preferDisk = preferDisk, forJobs = forJobs )
 
-def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = False ):
+def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = False, forJobs = False ):
   """
   get the replica list for a list of LFNs and print them depending on options
   """
   dm = DataManager()
   fc = FileCatalog()
   while True:
-    dmMethod = dm.getActiveReplicas if active else dm.getReplicas
-    res = dmMethod( lfnList, diskOnly = diskOnly, preferDisk = preferDisk )
+    res = dm.getReplicas( lfnList, active = active, diskOnly = diskOnly, preferDisk = preferDisk, forJobs = forJobs )
     if not res['OK']:
       break
     if active and not res['Value']['Successful'] and not res['Value']['Failed']:
       active = False
     else:
       break
-  if res['OK']:
-    if active:
-      res = dm.checkActiveReplicas( res['Value'] )
-      value = res['Value']
-    else:
-      replicas = res['Value']['Successful']
-      value = {'Failed': res['Value']['Failed'], 'Successful' : {}}
-      for lfn in sorted( replicas ):
-        value['Successful'].setdefault( lfn, {} )
-        for se in sorted( replicas[lfn] ):
-          res = fc.getReplicaStatus( {lfn:se} )
-          if not res['OK']:
-            value['Failed'][lfn] = "Can't get replica status"
-          else:
-            value['Successful'][lfn][se] = "(%s) %s" % ( res['Value']['Successful'][lfn], replicas[lfn][se] )
-      res = S_OK( value )
+  if res['OK'] and not active:
+    replicas = res['Value']['Successful']
+    value = {'Failed': res['Value']['Failed'], 'Successful' : {}}
+    for lfn in sorted( replicas ):
+      value['Successful'].setdefault( lfn, {} )
+      for se in sorted( replicas[lfn] ):
+        res = fc.getReplicaStatus( {lfn:se} )
+        if not res['OK']:
+          value['Failed'][lfn] = "Can't get replica status"
+        else:
+          value['Successful'][lfn][se] = "(%s) %s" % ( res['Value']['Successful'][lfn], replicas[lfn][se] )
+    res = S_OK( value )
   return printDMResult( res, empty = "No %sreplica found" % ( 'active disk ' if diskOnly else 'allowed ' if active else '' ), script = "dirac-dms-lfn-replicas" )
 
 def executePfnMetadata( dmScript, check = False, exists = False, summary = False ):
