@@ -656,10 +656,13 @@ def printLfnReplicas( lfnList, active = True, diskOnly = False, preferDisk = Fal
   dm = DataManager()
   fc = FileCatalog()
   while True:
-    res = dm.getReplicas( lfnList, active = active, diskOnly = diskOnly, preferDisk = preferDisk, forJobs = forJobs )
+    if forJobs:
+      res = dm.getReplicasForJobs( lfnList, diskOnly = diskOnly )
+    else:
+      res = dm.getReplicas( lfnList, active = active, diskOnly = diskOnly, preferDisk = preferDisk )
     if not res['OK']:
       break
-    if active and not res['Value']['Successful'] and not res['Value']['Failed']:
+    if active and not forJobs and not res['Value']['Successful'] and not res['Value']['Failed']:
       active = False
     else:
       break
