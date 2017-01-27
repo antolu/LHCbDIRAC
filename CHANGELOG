@@ -1,3 +1,12 @@
+[v8r5p6]
+use DIRAC v6r17p6
+
+* hacking for testing LbLoginDev.sh
+* use getReplicasForJobs rather than getReplicas(forJobs=TTrue)
+* fix the fact that ancestor RAW files are returning only the basename
+* add option --ForJobs in dirac-dms-lfn-replicas to get only replicas usable for jobs
+* fix exception when runDB not available
+
 [v8r5p3]
 use DIRAC v6r17p5
 
