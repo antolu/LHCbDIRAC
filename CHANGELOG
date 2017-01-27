@@ -1,3 +1,18 @@
+[v8r6-pre1]
+Use DIRAC v6r17p6
+
+* devs doc update
+* fixes
+* update info about LHCbGrid
+* sourcing all envs
+* fix unboundLocalError
+* fixed case for ProdConf
+* tests fixes
+* correct the link!
+* Change cmtconfig and URL for building the client
+* uniform tests
+* pylint
+
 [v8r6-pre0]
 Use DIRAC v6r17p5
 
