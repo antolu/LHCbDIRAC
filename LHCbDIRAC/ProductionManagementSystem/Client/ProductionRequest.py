@@ -107,6 +107,7 @@ class ProductionRequest( object ):
     self.outputSEsPerFileType = []  # a list of dictionaries - filled later
     self.ancestorDepths = []
     self.compressionLvl = []
+    self.appConfig = '$APPCONFIGOPTS/Persistency/' # Default location of the compression level configuration files
 
   #############################################################################
 
@@ -133,19 +134,25 @@ class ProductionRequest( object ):
         # or we overwrite the existing one inherited with the step
         #
         if parameter == 'OptionFiles' and self.compressionLvl[count] != '':
-            p = re.compile('Compression-[A-Z]{4}-[1-9]')
-            if not p.search(value):
-                value += self.compressionLvl[count]
+          p = re.compile('Compression-[A-Z]{4}-[1-9]')
+          self.compressionLvl[count] = self.appConfig + self.compressionLvl[count] + '.py'
+          if not p.search(value):
+            if value == '':
+              value = self.compressionLvl[count]
             else:
-                value = p.sub(p.search(self.compressionLvl[count]).group(), value)
+              value = ";".join((value, self.compressionLvl[count]))
+            #value += self.compressionLvl[count]
+          else:
+            value = p.sub(p.search(self.compressionLvl[count]).group(), value)
         #
         # If instead the prod manager doesn't declare a compression level, e.g. for intermediate steps,
-        # we check if there is one in the options and in case we delete it
+        # we check if there is one in the options and in case we delete it. This leaves the default zip level
+        # defined inside Gaudi
         #
         elif parameter == 'OptionFiles' and self.compressionLvl[count] == '':
-            p = re.compile('\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py')
-            if p.search(value):
-                value = p.sub('', value)
+          p = re.compile('\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+          if p.search(value):
+            value = p.sub('', value)
         stepsListDictItem[parameter] = value
 
       s_in = self.bkkClient.getStepInputFiles( stepID )

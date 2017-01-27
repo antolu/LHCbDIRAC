@@ -116,7 +116,7 @@ p2multicoreFlag = '{{P2MulticoreFLag#PROD-P2: multicore flag#True}}'
 p2outputMode = '{{P2OutputMode#PROD-P2: output mode#Local}}'
 p2eventsRequested = '{{P2EventsRequested#PROD-P2: events requested (-1 = ALL)#-1}}'
 p2ancestorDepth = int( '{{P2AncestorDepth#PROD-P2: ancestor depth#0}}' )
-p2compressionLvl = '{{P2CompressionLevel#PROD-P2: Compression Level#}}'
+p2compressionLvl = '{{P2CompressionLevel#PROD-P2: Compression Level#Compression-LZMA-4}}'
 
 # p3 params
 p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
