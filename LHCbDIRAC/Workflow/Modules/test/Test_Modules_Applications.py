@@ -9,7 +9,7 @@ import os
 
 from mock import MagicMock, patch
 
-from DIRAC import S_OK, gLogger
+from DIRAC import gLogger
 
 from DIRAC.DataManagementSystem.Client.test.mock_DM import dm_mock
 from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import bkc_mock
@@ -32,19 +32,6 @@ class ModulesApplicationsTestCase( unittest.TestCase ):
 
     gLogger.setLevel( 'DEBUG' )
     self.maxDiff = None
-    self.ga = GaudiApplication( bkClient = bkc_mock, dm = dm_mock )
-
-    self.gas = GaudiApplicationScript( bkClient = bkc_mock, dm = dm_mock )
-    self.ga.siteName = 'LCG.PIPPO.org'
-
-    self.ra = RootApplication( bkClient = bkc_mock, dm = dm_mock )
-    self.ra.applicationName = 'aRoot.py'
-    self.ra.applicationVersion = 'v1r1'
-    self.ra.rootType = 'py'
-
-    self.lhcbScript = LHCbScript()
-
-    self.er = ErrorLogging( bkClient = bkc_mock, dm = dm_mock )
 
   def tearDown( self ):
 
@@ -63,15 +50,19 @@ class GaudiApplicationSuccess( ModulesApplicationsTestCase ):
 
   @patch( "LHCbDIRAC.Workflow.Modules.GaudiApplication.RunApplication", side_effect = MagicMock() )
   @patch( "LHCbDIRAC.Workflow.Modules.GaudiApplication.ModuleBase._manageAppOutput", side_effect = MagicMock() )
-  def test_execute( self, _patch, _patched ):
+  @patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
+  def test_execute( self, _patch, _patched, _ppatched ):
+
+    ga = GaudiApplication( bkClient = bkc_mock, dm = dm_mock )
+    ga.siteName = 'LCG.PIPPO.org'
 
     #no errors, no input data
     for wf_cs in copy.deepcopy( wf_commons ):
       for s_cs in copy.deepcopy( step_commons ):
-        self.assertTrue( self.ga.execute( prod_id, prod_job_id, wms_job_id,
-                                          workflowStatus, stepStatus,
-                                          wf_cs, s_cs,
-                                          step_number, step_id )['OK'] )
+        self.assertTrue( ga.execute( prod_id, prod_job_id, wms_job_id,
+                                     workflowStatus, stepStatus,
+                                     wf_cs, s_cs,
+                                     step_number, step_id )['OK'] )
 
 
 #############################################################################
@@ -81,16 +72,19 @@ class GaudiApplicationSuccess( ModulesApplicationsTestCase ):
 class GaudiApplicationScriptSuccess( ModulesApplicationsTestCase ):
 
   @patch( "LHCbDIRAC.Workflow.Modules.GaudiApplicationScript.RunApplication", side_effect = MagicMock() )
-  def test_execute( self, _patch ):
+  @patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
+  def test_execute( self, _patch, _patched ):
+
+    gas = GaudiApplicationScript( bkClient = bkc_mock, dm = dm_mock )
 
     #no errors, no input data
     for wf_cs in copy.deepcopy( wf_commons ):
       for s_cs in copy.deepcopy( step_commons ):
         s_cs['script'] = 'cat'
-        self.assertTrue( self.gas.execute( prod_id, prod_job_id, wms_job_id,
-                                           workflowStatus, stepStatus,
-                                           wf_cs, s_cs,
-                                           step_number, step_id )['OK'] )
+        self.assertTrue( gas.execute( prod_id, prod_job_id, wms_job_id,
+                                      workflowStatus, stepStatus,
+                                      wf_cs, s_cs,
+                                      step_number, step_id )['OK'] )
 
 #############################################################################
 # LHCbScript.py
@@ -100,28 +94,30 @@ class LHCbScriptSuccess( ModulesApplicationsTestCase ):
 
   def test_execute( self ):
 
-    self.lhcbScript.jobType = 'merge'
-    self.lhcbScript.stepInputData = ['foo', 'bar']
+    lhcbScript = LHCbScript()
 
-    self.lhcbScript.production_id = prod_id
-    self.lhcbScript.prod_job_id = prod_job_id
-    self.lhcbScript.jobID = wms_job_id
-    self.lhcbScript.workflowStatus = workflowStatus
-    self.lhcbScript.stepStatus = stepStatus
-    self.lhcbScript.workflow_commons = wf_commons
-    self.lhcbScript.step_commons = step_commons[0]
-    self.lhcbScript.step_number = step_number
-    self.lhcbScript.step_id = step_id
-    self.lhcbScript.executable = 'ls'
-    self.lhcbScript.applicationLog = 'applicationLog.txt'
+    lhcbScript.jobType = 'merge'
+    lhcbScript.stepInputData = ['foo', 'bar']
+
+    lhcbScript.production_id = prod_id
+    lhcbScript.prod_job_id = prod_job_id
+    lhcbScript.jobID = wms_job_id
+    lhcbScript.workflowStatus = workflowStatus
+    lhcbScript.stepStatus = stepStatus
+    lhcbScript.workflow_commons = wf_commons
+    lhcbScript.step_commons = step_commons[0]
+    lhcbScript.step_number = step_number
+    lhcbScript.step_id = step_id
+    lhcbScript.executable = 'ls'
+    lhcbScript.applicationLog = 'applicationLog.txt'
 
     # no errors, no input data
     for wf_cs in copy.deepcopy( wf_commons ):
       for s_cs in step_commons:
-        self.lhcbScript.workflow_commons = wf_cs
-        self.lhcbScript.step_commons = s_cs
-        self.lhcbScript._setCommand()
-        res = self.lhcbScript._executeCommand()
+        lhcbScript.workflow_commons = wf_cs
+        lhcbScript.step_commons = s_cs
+        lhcbScript._setCommand()
+        res = lhcbScript._executeCommand()
         self.assertIsNone( res )
 
 
@@ -129,25 +125,27 @@ class LHCbScriptFailure( ModulesApplicationsTestCase ):
 
   def test_execute( self ):
 
-    self.lhcbScript.jobType = 'merge'
-    self.lhcbScript.stepInputData = ['foo', 'bar']
+    lhcbScript = LHCbScript()
 
-    self.lhcbScript.production_id = prod_id
-    self.lhcbScript.prod_job_id = prod_job_id
-    self.lhcbScript.jobID = wms_job_id
-    self.lhcbScript.workflowStatus = workflowStatus
-    self.lhcbScript.stepStatus = stepStatus
-    self.lhcbScript.workflow_commons = wf_commons
-    self.lhcbScript.step_commons = step_commons[0]
-    self.lhcbScript.step_number = step_number
-    self.lhcbScript.step_id = step_id
+    lhcbScript.jobType = 'merge'
+    lhcbScript.stepInputData = ['foo', 'bar']
+
+    lhcbScript.production_id = prod_id
+    lhcbScript.prod_job_id = prod_job_id
+    lhcbScript.jobID = wms_job_id
+    lhcbScript.workflowStatus = workflowStatus
+    lhcbScript.stepStatus = stepStatus
+    lhcbScript.workflow_commons = wf_commons
+    lhcbScript.step_commons = step_commons[0]
+    lhcbScript.step_number = step_number
+    lhcbScript.step_id = step_id
 
     # no errors, no input data
     for wf_cs in copy.deepcopy( wf_commons ):
       for s_cs in copy.deepcopy( step_commons ):
-        self.lhcbScript.workflow_commons = wf_cs
-        self.lhcbScript.step_commons = s_cs
-        res = self.lhcbScript.execute()
+        lhcbScript.workflow_commons = wf_cs
+        lhcbScript.step_commons = s_cs
+        res = lhcbScript.execute()
         self.assertFalse( res['OK'] )
 
 #############################################################################
@@ -157,18 +155,24 @@ class LHCbScriptFailure( ModulesApplicationsTestCase ):
 class RootApplicationSuccess( ModulesApplicationsTestCase ):
 
   @patch( "LHCbDIRAC.Workflow.Modules.RootApplication.RunApplication", side_effect = MagicMock() )
-  def test_execute( self, _patch ):
+  @patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
+  def test_execute( self, _patch, _patched ):
 
     with open('someApp', 'w') as fd:
       fd.write('pippo')
 
+    ra = RootApplication( bkClient = bkc_mock, dm = dm_mock )
+    ra.applicationName = 'aRoot.py'
+    ra.applicationVersion = 'v1r1'
+    ra.rootType = 'py'
+
     #no errors, no input data
     for wf_cs in copy.deepcopy( wf_commons ):
       for s_cs in copy.deepcopy( step_commons ):
-        self.assertTrue( self.ra.execute( prod_id, prod_job_id, wms_job_id,
-                                          workflowStatus, stepStatus,
-                                          wf_cs, s_cs,
-                                          step_number, step_id )['OK'] )
+        self.assertTrue( ra.execute( prod_id, prod_job_id, wms_job_id,
+                                     workflowStatus, stepStatus,
+                                     wf_cs, s_cs,
+                                     step_number, step_id )['OK'] )
 
 
 #############################################################################
@@ -178,15 +182,18 @@ class RootApplicationSuccess( ModulesApplicationsTestCase ):
 class ErrorLoggingSuccess( ModulesApplicationsTestCase ):
 
   @patch( "LHCbDIRAC.Workflow.Modules.ErrorLogging.RunApplication", side_effect = MagicMock() )
-  def test_execute( self, _patch ):
+  @patch( "LHCbDIRAC.Workflow.Modules.ModuleBase.RequestValidator", side_effect = MagicMock() )
+  def test_execute( self, _patch, _patched ):
+
+    er = ErrorLogging( bkClient = bkc_mock, dm = dm_mock )
 
     #no errors, no input data
     for wf_cs in copy.deepcopy( wf_commons ):
       for s_cs in copy.deepcopy( step_commons ):
-        self.assertTrue( self.er.execute( prod_id, prod_job_id, wms_job_id,
-                                          workflowStatus, stepStatus,
-                                          wf_cs, s_cs,
-                                          step_number, step_id )['OK'] )
+        self.assertTrue( er.execute( prod_id, prod_job_id, wms_job_id,
+                                     workflowStatus, stepStatus,
+                                     wf_cs, s_cs,
+                                     step_number, step_id )['OK'] )
 
 
 

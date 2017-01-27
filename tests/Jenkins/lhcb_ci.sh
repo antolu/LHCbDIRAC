@@ -355,6 +355,15 @@ function submitJob(){
 }
 
 
+function sourcingEnv(){
+
+  echo -e "==> Sourcing the environment (inlcuding LbLogin env)"
+
+  cp $TESTCODE/LHCbDIRAC/tests/Jenkins/sourcingEnv.py .
+  python sourcingEnv.py
+  source environmentLbLoginbashrc
+}
+
 
 #-------------------------------------------------------------------------------
 #EOF

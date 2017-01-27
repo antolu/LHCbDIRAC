@@ -120,7 +120,7 @@ class GaudiApplication( ModuleBase ):
         stepOutputs, stepOutputTypes, histogram = self._determineOutputs()
         self.log.debug( "stepOutputs, stepOutputTypes, histogram  ==>  %s, %s, %s" % (stepOutputs, stepOutputTypes, histogram) )
 
-
+      prodConfFileName = ''
       if self.optionsLine or self.jobType.lower() == 'user':
         # Prepare standard project run time options
         generatedOpts = 'gaudi_extra_options.py'

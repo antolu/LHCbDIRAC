@@ -124,7 +124,13 @@ class RunApplication(object):
 
     # extra packages (for setup phase) (added using '--use')
     extraPackagesString = ''
-    for epName, epVer in self.extraPackages:
+    for ep in self.extraPackages:
+      if len(ep) == 1:
+        epName = ep[0]
+        epVer = ''
+      elif len(ep) == 2:
+        epName, epVer = ep
+
       if epName.lower() == 'prodconf':
         self.prodConf = True
       if epVer:
@@ -265,7 +271,7 @@ def _multicoreWN():
   tags = fromChar( gConfig.getValue( '/Resources/Sites/%s/%s/CEs/%s/Queues/%s/Tag' % ( siteName.split( '.' )[0], queue,
                                                                                        siteName, gridCE ), '' ) )
 
-  if 'MultiProcessor' in tags:
+  if tags and 'MultiProcessor' in tags:
     return True
   else:
     return False
