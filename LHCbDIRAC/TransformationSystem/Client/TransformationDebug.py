@@ -1027,10 +1027,11 @@ class TransformationDebug( object ):
           # print len( runRAWFiles ), 'RAW files'
           allAncestors = set()
           for paramValue in paramValues:
+            # This call returns only the base name of LFNs as they are unique
             ancFiles = self.pluginUtil.getRAWAncestorsForRun( runID, param, paramValue, getFiles = True )
-            # print paramValue, len( ancFiles )
             allAncestors.update( ancFiles )
-          missingFiles = runRAWFiles - allAncestors
+          # Remove ancestors from their basename in a list of LFNs
+          missingFiles = set( lfn for lfn in runRAWFiles if os.path.basename( lfn ) not in allAncestors )
           if missingFiles:
             gLogger.notice( "Missing RAW files:\n\t%s" % '\n\t'.join( sorted( missingFiles ) ) )
           else:
