@@ -81,8 +81,14 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
     # when we reach here we expect to know the release version to install
 
-    self.__invokeCmd( '. $LHCb_release_area/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
-                      environment )
+    # FIXME: this is a quick and dirty hack!
+    if self.pp.setup == 'LHCb-Certification':
+      self.__invokeCmd( '. $LHCb_release_area/LBSCRIPTS/dev/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
+                        environment )
+    else:
+      self.__invokeCmd( '. $LHCb_release_area/LBSCRIPTS/prod/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
+                        environment )
+
     environment = __parseEnvironmentFile( 'environmentLbLogin' )
 
     self.__invokeCmd( 'lb-run LHCbDirac/%s > environmentLHCbDirac' % self.pp.releaseVersion, environment )
