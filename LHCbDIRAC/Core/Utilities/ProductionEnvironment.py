@@ -19,7 +19,13 @@ from DIRAC.Core.Utilities.Os import sourceEnv
 __RCSID__ = "$Id$"
 
 gLogger = gLogger.getSubLogger( 'ProductionEnvironment' )
+
 groupLogin = 'LbLogin.sh'
+# FIXME: hack stuff for testing dev LbLogin in certification (this file will not exist in LHCbDIRAC v8r6)
+setup = gConfig.getValue( '/DIRAC/Setup' )
+if setup == 'LHCb-Certification':
+  groupLogin = 'LbLoginDev.sh'
+
 projectEnv = 'SetupProject.sh'
 defaultCatalogName = 'pool_xml_catalog.xml'
 opsH = Operations()
@@ -370,6 +376,7 @@ def getScriptsLocation():
 
   gLogger.verbose( 'Using scripts from software area at %s' % softwareArea )
   groupLoginPath = os.path.join( softwareArea, groupLogin )
+
   projectScriptPath = os.path.join( os.path.dirname( os.path.realpath( os.path.join( softwareArea, groupLogin ) ) ),
                                     projectEnv )
 
