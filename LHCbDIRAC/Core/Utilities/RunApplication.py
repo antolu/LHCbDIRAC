@@ -62,6 +62,12 @@ class RunApplication(object):
 
 
     extraPackagesString, runtimeProjectString, externalsString = self._lbRunCommandOptions()
+    # extraPackagesString = extraPackagesString.split(' ')
+    # extraPackagesString = [x for x in extraPackagesString if x]
+    # runtimeProjectString = runtimeProjectString.split(' ')
+    # runtimeProjectString = [x for x in runtimeProjectString if x]
+    # externalsString = externalsString.split(' ')
+    # externalsString = [x for x in externalsString if x]
 
     # "CMT" Config
     # if a CMTConfig is provided, then only that should be called (this should be safeguarded with the following method)
@@ -91,9 +97,18 @@ class RunApplication(object):
       self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
       raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
 
-    if runResult['Value'][0]: # if exit status != 0
-      self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
-      raise RuntimeError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
+    finalCommand = self.runApp + configString + extraPackagesString + runtimeProjectString + externalsString + app + command
+    #finalCommand = ' '.join( finalCommandAsList )
+
+    # Run it!
+    runResult = self._runApp( shlex.split(finalCommand), self.lhcbEnvironment )
+    # if not runResult['OK']:
+    #   self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
+    #   raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
+    #
+    # if runResult['Value'][0]: # if exit status != 0
+    #   self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
+    #   raise RuntimeError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
 
     self.log.info( "%s execution completed successfully" % self.applicationName )
 
@@ -230,7 +245,6 @@ class RunApplication(object):
                       env = env, #this may be the LbLogin env
                       callbackFunction = self.__redirectLogOutput )
     return res
-
 
   def __redirectLogOutput( self, fd, message ):
     """ Callback function for the Subprocess.shellcall
