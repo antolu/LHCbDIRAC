@@ -4,12 +4,13 @@
 import sys
 import re
 import multiprocessing
+import shlex
 from distutils.version import LooseVersion #pylint: disable=import-error,no-name-in-module
 
 from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.List import fromChar
-from DIRAC.Core.Utilities.Subprocess import shellCall
+from DIRAC.Core.Utilities.Subprocess import systemCall
 
 __RCSID__ = "$Id$"
 
@@ -26,8 +27,8 @@ class RunApplication(object):
     self.lhcbEnvironment = {} # This may be added (the result of LbLogin), but by default it won't be
 
     # What to run
-    self.applicationName = ''
-    self.applicationVersion = ''
+    self.applicationName = '' # e.g. Gauss
+    self.applicationVersion = '' # e.g v42r1
 
     # Define the environment
     self.extraPackages = []
@@ -81,11 +82,11 @@ class RunApplication(object):
       command = self._gaudirunCommand()
     else:
       command = self.command
-    finalCommandAsList = [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command]
-    finalCommand = ' '.join( finalCommandAsList )
+
+    finalCommand = ' '.join( [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command] )
 
     # Run it!
-    runResult = self._runApp( finalCommand, self.lhcbEnvironment )
+    runResult = self._runApp( shlex.split(finalCommand), self.lhcbEnvironment )
     if not runResult['OK']:
       self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
       raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
@@ -104,8 +105,8 @@ class RunApplication(object):
     lbRunListConfigs = "lb-run --list-platforms %s/%s" % (self.applicationName, self.applicationVersion)
     self.log.always( "Calling %s" % lbRunListConfigs )
 
-    res = shellCall( timeout = 0,
-                     cmdSeq = lbRunListConfigs )
+    res = systemCall( timeout = 0,
+                      cmdSeq = shlex.split( lbRunListConfigs ) )
     if not res['OK']:
       self.log.error( "Problem executing lb-run --list-platforms: %s" % res['Message'] )
       raise RuntimeError( "Problem executing lb-run --list-platforms" )
@@ -219,15 +220,15 @@ class RunApplication(object):
 
 
 
-  def _runApp( self, finalCommand, env = None ):
+  def _runApp( self, finalCommandAsList, env = None ):
     """ Actual call of a command
     """
-    self.log.always( "Calling %s" % finalCommand )
+    self.log.always( "Calling %s" % ' '.join( finalCommandAsList ) )
 
-    res = shellCall( timeout = 0,
-                     cmdSeq = finalCommand,
-                     env = env, #this may be the LbLogin env
-                     callbackFunction = self.__redirectLogOutput )
+    res = systemCall( timeout = 0,
+                      cmdSeq = finalCommandAsList,
+                      env = env, #this may be the LbLogin env
+                      callbackFunction = self.__redirectLogOutput )
     return res
 
 
