@@ -82,10 +82,10 @@ class RunApplication(object):
     else:
       command = self.command
     finalCommandAsList = [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command]
-    finalCommand = ' '.join( finalCommandAsList )
+    #finalCommand = ' '.join( finalCommandAsList )
 
     # Run it!
-    runResult = self._runApp( finalCommand, self.lhcbEnvironment )
+    runResult = self._runApp( finalCommandAsList, self.lhcbEnvironment )
     if not runResult['OK']:
       self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
       raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
@@ -219,13 +219,13 @@ class RunApplication(object):
 
 
 
-  def _runApp( self, finalCommand, env = None ):
+  def _runApp( self, finalCommandAsList, env = None ):
     """ Actual call of a command
     """
-    self.log.always( "Calling %s" % finalCommand )
+    self.log.always( "Calling %s" % finalCommandAsList.join( ' ' ) )
 
     res = shellCall( timeout = 0,
-                     cmdSeq = finalCommand,
+                     cmdSeq = finalCommandAsList,
                      env = env, #this may be the LbLogin env
                      callbackFunction = self.__redirectLogOutput )
     return res
