@@ -4,6 +4,7 @@
 import sys
 import re
 import multiprocessing
+import subprocess
 from distutils.version import LooseVersion #pylint: disable=import-error,no-name-in-module
 
 from DIRAC import gConfig, gLogger
@@ -61,6 +62,12 @@ class RunApplication(object):
 
 
     extraPackagesString, runtimeProjectString, externalsString = self._lbRunCommandOptions()
+    extraPackagesString = extraPackagesString.split(' ')
+    extraPackagesString = [x for x in extraPackagesString if x]
+    runtimeProjectString = runtimeProjectString.split(' ')
+    runtimeProjectString = [x for x in runtimeProjectString if x]
+    externalsString = externalsString.split(' ')
+    externalsString = [x for x in externalsString if x]
 
     # "CMT" Config
     # if a CMTConfig is provided, then only that should be called (this should be safeguarded with the following method)
@@ -81,18 +88,22 @@ class RunApplication(object):
       command = self._gaudirunCommand()
     else:
       command = self.command
-    finalCommandAsList = [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command]
+
+    command = command.split(' ')
+    command = [x for x in command if x]
+
+    finalCommandAsList = [self.runApp] + configString.split(' ') + extraPackagesString + runtimeProjectString + externalsString + [app] + command
     #finalCommand = ' '.join( finalCommandAsList )
 
     # Run it!
     runResult = self._runApp( finalCommandAsList, self.lhcbEnvironment )
-    if not runResult['OK']:
-      self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
-      raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
-
-    if runResult['Value'][0]: # if exit status != 0
-      self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
-      raise RuntimeError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
+    # if not runResult['OK']:
+    #   self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
+    #   raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
+    #
+    # if runResult['Value'][0]: # if exit status != 0
+    #   self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
+    #   raise RuntimeError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
 
     self.log.info( "%s execution completed successfully" % self.applicationName )
 
@@ -222,13 +233,15 @@ class RunApplication(object):
   def _runApp( self, finalCommandAsList, env = None ):
     """ Actual call of a command
     """
-    self.log.always( "Calling %s" % finalCommandAsList.join( ' ' ) )
+    self.log.always( "Calling %s" % ' '.join( finalCommandAsList ) )
 
-    res = shellCall( timeout = 0,
-                     cmdSeq = finalCommandAsList,
-                     env = env, #this may be the LbLogin env
-                     callbackFunction = self.__redirectLogOutput )
-    return res
+    subprocess.call(finalCommandAsList)
+
+    # res = shellCall( timeout = 0,
+    #                  cmdSeq = finalCommandAsList,
+    #                  env = env, #this may be the LbLogin env
+    #                  callbackFunction = self.__redirectLogOutput )
+    # return res
 
 
   def __redirectLogOutput( self, fd, message ):
