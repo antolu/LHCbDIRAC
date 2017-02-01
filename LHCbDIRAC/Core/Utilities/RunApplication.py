@@ -62,12 +62,6 @@ class RunApplication(object):
 
 
     extraPackagesString, runtimeProjectString, externalsString = self._lbRunCommandOptions()
-    # extraPackagesString = extraPackagesString.split(' ')
-    # extraPackagesString = [x for x in extraPackagesString if x]
-    # runtimeProjectString = runtimeProjectString.split(' ')
-    # runtimeProjectString = [x for x in runtimeProjectString if x]
-    # externalsString = externalsString.split(' ')
-    # externalsString = [x for x in externalsString if x]
 
     # "CMT" Config
     # if a CMTConfig is provided, then only that should be called (this should be safeguarded with the following method)
@@ -92,23 +86,14 @@ class RunApplication(object):
     finalCommand = ' '.join( [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command] )
 
     # Run it!
-    runResult = self._runApp( shlex.split(finalCommand), self.lhcbEnvironment )
+    runResult = self._runApp( finalCommand, self.lhcbEnvironment )
     if not runResult['OK']:
       self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
       raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
 
-    finalCommand = self.runApp + configString + extraPackagesString + runtimeProjectString + externalsString + app + command
-    #finalCommand = ' '.join( finalCommandAsList )
-
-    # Run it!
-    runResult = self._runApp( shlex.split(finalCommand), self.lhcbEnvironment )
-    # if not runResult['OK']:
-    #   self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
-    #   raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
-    #
-    # if runResult['Value'][0]: # if exit status != 0
-    #   self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
-    #   raise RuntimeError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
+    if runResult['Value'][0]: # if exit status != 0
+      self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
+      raise RuntimeError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
 
     self.log.info( "%s execution completed successfully" % self.applicationName )
 
@@ -209,9 +194,6 @@ class RunApplication(object):
         fopen.write( self.extraOptionsLine )
       command += 'gaudi_extra_options.py'
 
-    # this is for avoiding env variable to be interpreted by the current shell
-    command = command.replace('$', r'\$')
-
     self.log.always( 'Command = %s' % command )
     return command
 
@@ -235,13 +217,13 @@ class RunApplication(object):
 
 
 
-  def _runApp( self, finalCommandAsList, env = None ):
+  def _runApp( self, command, env = None ):
     """ Actual call of a command
     """
-    self.log.always( "Calling %s" % ' '.join( finalCommandAsList ) )
+    self.log.always( "Calling %s" % command )
 
     res = systemCall( timeout = 0,
-                      cmdSeq = finalCommandAsList,
+                      cmdSeq = shlex.split(command),
                       env = env, #this may be the LbLogin env
                       callbackFunction = self.__redirectLogOutput )
     return res
