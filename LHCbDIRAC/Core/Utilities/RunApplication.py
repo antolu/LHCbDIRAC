@@ -24,7 +24,7 @@ class RunApplication(object):
     """
     # Standard LHCb scripts
     self.runApp = 'lb-run'
-    self.lhcbEnvironment = {} # This may be added (the result of LbLogin), but by default it won't be
+    self.lhcbEnvironment = None # This may be added (the result of LbLogin), but by default it won't be
 
     # What to run
     self.applicationName = '' # e.g. Gauss
@@ -229,7 +229,7 @@ class RunApplication(object):
     return res
 
   def __redirectLogOutput( self, fd, message ):
-    """ Callback function for the Subprocess.shellcall
+    """ Callback function for the Subprocess calls
         Manages log files
 
         fd is stdin/stderr

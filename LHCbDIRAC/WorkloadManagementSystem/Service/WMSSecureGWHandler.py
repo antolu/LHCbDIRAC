@@ -7,7 +7,7 @@ import json
 import os
 from types import IntType, LongType, DictType, StringTypes, ListType, FloatType
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.Security import Properties, CS, Locations
+from DIRAC.Core.Security import Properties, CS
 from DIRAC.Core.Utilities.Subprocess import pythonCall
 from DIRAC.Core.Utilities.File import mkDir
 from DIRAC.Core.DISET.RequestHandler import RequestHandler
@@ -16,7 +16,6 @@ from DIRAC.RequestManagementSystem.Client.Operation import Operation
 from DIRAC.RequestManagementSystem.Client.ReqClient import ReqClient
 from DIRAC.ConfigurationSystem.Client.Helpers import Registry
 from DIRAC.FrameworkSystem.Client.ProxyManagerClient  import gProxyManager
-from DIRAC.Core.Security.X509Chain import X509Chain
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.ConfigurationSystem.Client.Helpers import cfgPath
 from DIRAC.Core.DISET.RPCClient import RPCClient
@@ -84,7 +83,7 @@ class WMSSecureGWHandler( RequestHandler ):
     if ReqManagerHandler.types_putRequest != cls.types_putRequest:
       raise Exception( "ReqManagerHandler putRequest types has been changed." )
 
-    
+
 
     return S_OK()
 

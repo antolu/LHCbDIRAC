@@ -71,7 +71,7 @@ class ProductionRequestHandler( RequestHandler ):
     return S_OK( rows )
 
   types_getProductionRequestList = [ [int, long], basestring, basestring,
-                                    [int, long], [int, long], dict ]
+                                     [int, long], [int, long], dict ]
   def export_getProductionRequestList( self, subrequestFor, sortBy, sortOrder, offset, limit, rFilter ):
     """ Get production requests in list format (for portal grid)
     """
