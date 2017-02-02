@@ -114,10 +114,11 @@ class RunApplication(object):
     if platforms[0]:
       raise RuntimeError( "Problem executing lb-run (returned %s)" %platforms )
     platformsAvailable = platforms[1].split('\n')
-    platformsAvailable = [ plat for plat in platformsAvailable if plat and 'dbg' not in plat ] #ignoring "debug" platforms
+    platformsAvailable = [ plat for plat in platformsAvailable if plat and '-opt' in plat ] #ignoring "debug" platforms
 
     # FIXME: this won't work with centos7, but we should get a solution from the core software before
-    return platformsAvailable.sort( key = LooseVersion, reverse = True )[0]
+    platformsAvailable.sort( key = LooseVersion, reverse = True )
+    return platformsAvailable[0]
 
   def _lbRunCommandOptions( self ):
     """ Return lb-run command options
