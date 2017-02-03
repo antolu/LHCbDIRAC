@@ -433,6 +433,12 @@ def executeAccessURL( dmScript ):
         protocol.insert( protocol.index( 'root' ), 'xroot' )
       elif 'xroot' in protocol and 'root' not in protocol:
         protocol.insert( protocol.index( 'xroot' ) + 1, 'root' )
+      elif 'xroot' in protocol and 'root' in protocol:
+        indexOfRoot = protocol.index( 'root' )
+        indexOfXRoot = protocol.index( 'xroot' )
+        if indexOfXRoot > indexOfRoot:
+          protocol[indexOfRoot], protocol[indexOfXRoot] = protocol[indexOfXRoot], protocol[indexOfRoot]
+
   lfnList, seList = parseArguments( dmScript )
   if not lfnList:
     gLogger.notice( "No list of LFNs provided" )
