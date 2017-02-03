@@ -113,7 +113,7 @@ class RunApplicationSuccess( UtilitiesTestCase ):
     ra.commandOptions = ['$APP/1.py',
                          '$APP/2.py']
     res = str(ra._gaudirunCommand())
-    self.assertEqual( res, r'gaudirun.py \$APP/1.py \$APP/2.py prodConf.py' )
+    self.assertEqual( res, r'gaudirun.py $APP/1.py $APP/2.py prodConf.py' )
 
 
 #################################################

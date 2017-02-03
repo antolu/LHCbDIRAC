@@ -4,12 +4,13 @@
 import sys
 import re
 import multiprocessing
+import shlex
 from distutils.version import LooseVersion #pylint: disable=import-error,no-name-in-module
 
 from DIRAC import gConfig, gLogger
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 from DIRAC.Core.Utilities.List import fromChar
-from DIRAC.Core.Utilities.Subprocess import shellCall
+from DIRAC.Core.Utilities.Subprocess import systemCall
 
 __RCSID__ = "$Id$"
 
@@ -23,11 +24,11 @@ class RunApplication(object):
     """
     # Standard LHCb scripts
     self.runApp = 'lb-run'
-    self.lhcbEnvironment = {} # This may be added (the result of LbLogin), but by default it won't be
+    self.lhcbEnvironment = None # This may be added (the result of LbLogin), but by default it won't be
 
     # What to run
-    self.applicationName = ''
-    self.applicationVersion = ''
+    self.applicationName = '' # e.g. Gauss
+    self.applicationVersion = '' # e.g v42r1
 
     # Define the environment
     self.extraPackages = []
@@ -81,8 +82,8 @@ class RunApplication(object):
       command = self._gaudirunCommand()
     else:
       command = self.command
-    finalCommandAsList = [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command]
-    finalCommand = ' '.join( finalCommandAsList )
+
+    finalCommand = ' '.join( [self.runApp, configString, extraPackagesString, runtimeProjectString, externalsString, app, command] )
 
     # Run it!
     runResult = self._runApp( finalCommand, self.lhcbEnvironment )
@@ -104,8 +105,8 @@ class RunApplication(object):
     lbRunListConfigs = "lb-run --list-platforms %s/%s" % (self.applicationName, self.applicationVersion)
     self.log.always( "Calling %s" % lbRunListConfigs )
 
-    res = shellCall( timeout = 0,
-                     cmdSeq = lbRunListConfigs )
+    res = systemCall( timeout = 0,
+                      cmdSeq = shlex.split( lbRunListConfigs ) )
     if not res['OK']:
       self.log.error( "Problem executing lb-run --list-platforms: %s" % res['Message'] )
       raise RuntimeError( "Problem executing lb-run --list-platforms" )
@@ -113,10 +114,11 @@ class RunApplication(object):
     if platforms[0]:
       raise RuntimeError( "Problem executing lb-run (returned %s)" %platforms )
     platformsAvailable = platforms[1].split('\n')
-    platformsAvailable = [ plat for plat in platformsAvailable if plat and 'dbg' not in plat ] #ignoring "debug" platforms
+    platformsAvailable = [ plat for plat in platformsAvailable if plat and '-opt' in plat ] #ignoring "debug" platforms
 
     # FIXME: this won't work with centos7, but we should get a solution from the core software before
-    return platformsAvailable.sort( key = LooseVersion, reverse = True )[0]
+    platformsAvailable.sort( key = LooseVersion, reverse = True )
+    return platformsAvailable[0]
 
   def _lbRunCommandOptions( self ):
     """ Return lb-run command options
@@ -193,9 +195,6 @@ class RunApplication(object):
         fopen.write( self.extraOptionsLine )
       command += 'gaudi_extra_options.py'
 
-    # this is for avoiding env variable to be interpreted by the current shell
-    command = command.replace('$', r'\$')
-
     self.log.always( 'Command = %s' % command )
     return command
 
@@ -219,20 +218,19 @@ class RunApplication(object):
 
 
 
-  def _runApp( self, finalCommand, env = None ):
+  def _runApp( self, command, env = None ):
     """ Actual call of a command
     """
-    self.log.always( "Calling %s" % finalCommand )
+    self.log.always( "Calling %s" % command )
 
-    res = shellCall( timeout = 0,
-                     cmdSeq = finalCommand,
-                     env = env, #this may be the LbLogin env
-                     callbackFunction = self.__redirectLogOutput )
+    res = systemCall( timeout = 0,
+                      cmdSeq = shlex.split(command),
+                      env = env, #this may be the LbLogin env
+                      callbackFunction = self.__redirectLogOutput )
     return res
 
-
   def __redirectLogOutput( self, fd, message ):
-    """ Callback function for the Subprocess.shellcall
+    """ Callback function for the Subprocess calls
         Manages log files
 
         fd is stdin/stderr

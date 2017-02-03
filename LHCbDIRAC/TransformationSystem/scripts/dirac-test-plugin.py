@@ -180,7 +180,7 @@ class fakeClient:
       if type.lower() in ( "replication", "removal" ):
         res = self.dm.getReplicas( lfnChunk )
       else:
-        res = self.dm.getActiveReplicas( lfnChunk )
+        res = self.dm.getReplicasForJobs( lfnChunk )
       # print res
       if res['OK']:
         for lfn, ses in res['Value']['Successful'].iteritems():
