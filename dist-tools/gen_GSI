@@ -15,7 +15,7 @@ PYTHON_VERSION_TWODIGIT=$2
 PYTHON_CONFIG_VERSION=$3
 
 TMP_DIR=`mktemp -d -p /tmp/$USER`
-
+#new dir
 cd $basedir
 
 if ! [ -r $basedir/InstallArea/$CMTCONFIG/lib ]; then
