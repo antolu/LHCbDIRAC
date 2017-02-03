@@ -8,12 +8,13 @@ function canonicalize
 basedir=`canonicalize $0`
 basedir=`dirname $basedir`
 basedir=`canonicalize $basedir/..`
-ext_ver="v6r4p2"
+ext_ver="v6r5p4"
 
 DIRACPLAT=$1
 PYTHON_VERSION_TWODIGIT=$2
 PYTHON_CONFIG_VERSION=$3
 
+TMP_DIR=`mktemp -d -p /tmp/$USER`
 
 cd $basedir
 
@@ -21,15 +22,18 @@ if ! [ -r $basedir/InstallArea/$CMTCONFIG/lib ]; then
   mkdir $basedir/InstallArea/$CMTCONFIG/lib
 fi
 
+tarnamehttp=http://cern.ch/lhcbproject/dist/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz
+tarname=${TMP_DIR}/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz
+
+wget --no-check-certificate -O $tarname $tarnamehttp
+
 # Get GSI
 
-fullname=`tar ztvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz | grep GSI | grep '__init__.py' | tail -1 | awk '{print $6}'`
+fullname=`tar ztvf $tarname | grep GSI | grep '__init__.py' | tail -1 | awk '{print $6}'`
 fullpath=`dirname $fullname`
 
-tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz $fullpath
-tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz -C $basedir/InstallArea/$CMTCONFIG/lib --strip-components 2 ${DIRACPLAT}/lib/libssl*
-tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz -C $basedir/InstallArea/$CMTCONFIG/lib --strip-components 2 ${DIRACPLAT}/lib/libcrypto*
-
+tar zxvf $tarname $fullpath
+tar zxvf $tarname -C $basedir/InstallArea/$CMTCONFIG/lib --strip-components 2 ${DIRACPLAT}/lib/libssl* --strip-components 2 ${DIRACPLAT}/lib/libcrypto*
 
 if ! [ -r $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION} ]; then
   mkdir $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}
@@ -38,9 +42,9 @@ fi
 mv $fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/
 
 # get pyparsing
-fullname=`tar ztvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz | grep pyparsing | grep egg | tail -1 | awk '{print $6}'`
+fullname=`tar ztvf $tarname | grep pyparsing | grep egg | tail -1 | awk '{print $6}'`
 if ! [ -e $fullname ]; then
-  tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz $fullname
+  tar zxvf $tarname $fullname
   mv $fullname $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}
 fi
 #

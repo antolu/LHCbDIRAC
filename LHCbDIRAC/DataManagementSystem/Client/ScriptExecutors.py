@@ -433,6 +433,12 @@ def executeAccessURL( dmScript ):
         protocol.insert( protocol.index( 'root' ), 'xroot' )
       elif 'xroot' in protocol and 'root' not in protocol:
         protocol.insert( protocol.index( 'xroot' ) + 1, 'root' )
+      elif 'xroot' in protocol and 'root' in protocol:
+        indexOfRoot = protocol.index( 'root' )
+        indexOfXRoot = protocol.index( 'xroot' )
+        if indexOfXRoot > indexOfRoot:
+          protocol[indexOfRoot], protocol[indexOfXRoot] = protocol[indexOfXRoot], protocol[indexOfRoot]
+
   lfnList, seList = parseArguments( dmScript )
   if not lfnList:
     gLogger.notice( "No list of LFNs provided" )
@@ -1001,9 +1007,11 @@ def printReplicaStats( directories, lfnList, getSize = False, prNoReplicas = Fal
       gLogger.notice( "   ...but all of them are also somewhere else" )
   if maxArch:
     for nrep in range( 1, maxArch + 1 ):
-      gLogger.notice( "%d archives: %d files" % ( nrep - 1, repStats.setdefault( -nrep, 0 ) ) )
+      gLogger.notice( "%3d archive replicas: %d files" % ( nrep - 1, repStats.setdefault( -nrep, 0 ) ) )
+    gLogger.notice( "---------------------" )
   for nrep in range( maxRep + 1 ):
-    gLogger.notice( "%d replicas: %d files" % ( nrep, repStats.setdefault( nrep, 0 ) ) )
+    gLogger.notice( "%3d  other  replicas: %d files" % ( nrep, repStats.setdefault( nrep, 0 ) ) )
+  gLogger.notice( "---------------------" )
 
   gLogger.notice( "\nSE statistics:" )
   for se in orderSEs( repSEs ):
