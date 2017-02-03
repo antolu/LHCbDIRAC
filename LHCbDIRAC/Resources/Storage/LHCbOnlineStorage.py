@@ -1,13 +1,17 @@
 """ This is the LHCb Online storage """
 
 import xmlrpclib
+import os
 
 from DIRAC                                      import gLogger, S_OK, S_ERROR
 from DIRAC.Resources.Storage.StorageBase        import StorageBase
 
+from DIRAC.Resources.Storage.Utilities import checkArgumentFormat
 __RCSID__ = "$Id$"
 
 class LHCbOnlineStorage( StorageBase ):
+  """ Plugin to talk to the xmlrpc of the datamover
+  """
 
   def __init__( self, storageName, parameterDict ):
     self.isok = True
@@ -16,31 +20,18 @@ class LHCbOnlineStorage( StorageBase ):
     self.pluginName = 'LHCbOnline'
     self.name = storageName
     self.timeout = 100
-    
+
     serverString = "%s://%s:%s" % ( self.protocolParameters['Protocol'],
                                     self.protocolParameters['Host'],
                                     self.protocolParameters['Port'] )
     self.server  = xmlrpclib.Server( serverString )
 
 
-  def getProtocolPfn( self, pfnDict, withPort ):
-    #FIXME: What the hell is this method doing ??
-    """ From the pfn dict construct the SURL to be used
-    """
-#    pfnDict['Path'] = ''
-#    res = pfnunparse(pfnDict)
-#    pfn = res['Value'].replace('/','')
-    return S_OK( pfnDict['FileName'] )
-
-  def getFileSize( self, path ):
+  def getFileSize( self, urls ):
     #FIXME: What the hell is this method doing ??
     """ Get a fake file size
     """
-    res = self.__checkArgumentFormat( path )
-    if not res['OK']:
-      return res
-    urls = res['Value']
-    if not len( path ) > 0:
+    if not len( urls ) > 0:
       return S_ERROR( "LHCbOnline.getFileSize: No surls supplied." )
     successful = {}
     failed = {}
@@ -49,13 +40,10 @@ class LHCbOnlineStorage( StorageBase ):
     resDict = {'Failed':failed, 'Successful':successful}
     return S_OK( resDict )
 
-  def retransferOnlineFile( self, path ):
+  def retransferOnlineFile( self, urls ):
     """ Tell the Online system that the migration failed and we want to get the request again
     """
-    res = self.__checkArgumentFormat( path )
-    if not res['OK']:
-      return res
-    urls = res['Value']
+
     if not len( urls ) > 0:
       return S_ERROR( "LHCbOnline.requestRetransfer: No surls supplied." )
     successful = {}
@@ -70,49 +58,45 @@ class LHCbOnlineStorage( StorageBase ):
           errStr = "LHCbOnline.requestRetransfer: Failed to request file from RunDB: %s" % error
           failed[pfn] = errStr
           gLogger.error( errStr, pfn )
-      except Exception as x:
+      except Exception as x:#pylint: disable=broad-except
         errStr = "LHCbOnline.requestRetransfer: Exception while requesting file from RunDB."
         gLogger.exception( errStr, lException = x )
         failed[pfn] = errStr
     resDict = {'Failed':failed, 'Successful':successful}
     return S_OK( resDict )
 
-  def removeFile( self, path ):
+
+  def removeFile( self, urls ):
     """Remove physically the file specified by its path
     """
-    res = self.__checkArgumentFormat( path )
-    if not res['OK']:
-      return res
-    urls = res['Value']
     if not len( urls ) > 0:
       return S_ERROR( "LHCbOnline.removeFile: No surls supplied." )
     successful = {}
     failed = {}
-    for pfn in urls:
-      try:
-        success, error = self.server.endMigratingFile( pfn )
-        if success:
-          successful[pfn] = True
-          gLogger.info( "LHCbOnline.getFile: Successfully issued removal to RunDB." )
-        else:
-          errStr = "LHCbOnline.getFile: Failed to issue removal to RunDB: %s" % error
-          failed[pfn] = errStr
-          gLogger.error( errStr, pfn )
-      except Exception as x:
-        errStr = "LHCbOnline.getFile: Exception while issuing removal to RunDB."
-        gLogger.exception( errStr, lException = x )
-        failed[pfn] = errStr
-        #FIXME: this should return S_ERROR !! 
+    # Here we are sure of the unicity of the basename since it is for raw data only
+    filesToUrls = dict( ( os.path.basename( f ), f ) for f in urls )
+    filenames = filesToUrls.keys()
+    try:
+      success, errorOrFailed = self.server.endMigratingFileBulk( filenames )
+      if success:
+        # in case of success, errorOrFailed contains the files for which it failed
+        failedFiles = set( errorOrFailed )
+        for fn in filenames:
+          fullUrl = filesToUrls[fn]
+          if fn in failedFiles:
+            failed[fullUrl] = "Failed to remove, check datamover logs"
+          else:
+            successful[fullUrl] = True
+        gLogger.info( "LHCbOnline.getFile: Successfully issued removal to RunDB." )
+      else:
+        errStr = "LHCbOnline.removeFile: Failed to issue removal to RunDB %s" % errorOrFailed
+        for url in urls:
+          failed[url] = errStr
+        gLogger.error( errStr, urls )
+    except Exception as x:#pylint: disable=broad-except
+      errStr = "LHCbOnline.getFile: Exception while issuing removal to RunDB."
+      gLogger.exception( errStr, lException = x )
+      for url in urls:
+        failed[url] = errStr
     resDict = {'Failed':failed, 'Successful':successful}
     return S_OK( resDict )
-
-  def __checkArgumentFormat( self, path ):
-    if isinstance( path, basestring ):
-      urls = [path]
-    elif isinstance( path, list ):
-      urls = path
-    elif isinstance( path, dict ):
-      urls = path.keys()
-    else:
-      return S_ERROR( "LHCbOnline.__checkArgumentFormat: Supplied path is not of the correct format." )
-    return S_OK( urls )
