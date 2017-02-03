@@ -1,3 +1,13 @@
+[v8r6-pre2]
+Use DIRAC v6r17p7
+
+* change Jenkins url
+*  bug fixes
+*  from shellCall to systemCall
+*  fixed bad merge
+* using list
+* test
+
 [v8r6-pre1]
 Use DIRAC v6r17p6
 
