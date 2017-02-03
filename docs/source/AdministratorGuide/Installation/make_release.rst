@@ -166,7 +166,7 @@ if the release has been correctly created.
 At this `link <https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/>`_ you'll find some Jenkins Jobs ready to be started.
 Please start the following Jenkins jobs and come back in about an hour to see the results for all of them.
 
-1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__pylint_unit/
+1. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__pylint_unit/ the !RELEASE! is the actual relase for exampel: https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/v8r5__pylint_unit/  
 
 This job will: run pylint (errors only), run all the unit tests found in the system, assess the coverage.
 The job should be considered successful if:
@@ -176,12 +176,12 @@ The job should be considered successful if:
 - the coverage didn't drop from the previous job run
 
 
-2. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__pilot/
+2. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__pilot/
 
 This job will simply install the pilot. Please just check if the result does not show in an "unstable" status
 
 
-3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/RELEASE__/
+3. https://lhcb-jenkins.cern.ch/jenkins/view/LHCbDIRAC/job/!RELEASE!__/
 
    TODO
 
