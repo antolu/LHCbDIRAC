@@ -6,12 +6,13 @@ import os
 import time
 import re
 import socket
+import shlex
 from xml.dom.minidom import Document, DocumentType
 
 import DIRAC
 
 from DIRAC import gLogger, S_OK, S_ERROR, gConfig
-from DIRAC.Core.Utilities.Subprocess import shellCall
+from DIRAC.Core.Utilities.Subprocess import systemCall
 from DIRAC.Resources.Catalog.PoolXMLFile import getGUID
 from DIRAC.Workflow.Utilities.Utils import getStepCPUTimes
 
@@ -444,7 +445,7 @@ class BookkeepingReport( ModuleBase ):
 
       if not self.step_commons.has_key( 'md5' ) or output not in self.step_commons[ 'md5' ]:
         comm = 'md5sum ' + str( output )
-        resultTuple = shellCall( 0, comm )
+        resultTuple = systemCall( 0, shlex.split( comm ) )
         status = resultTuple[ 'Value' ][ 0 ]
         out = resultTuple[ 'Value' ][ 1 ]
       else:

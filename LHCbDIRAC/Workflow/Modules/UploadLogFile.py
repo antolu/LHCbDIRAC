@@ -7,9 +7,10 @@ import shutil
 import glob
 import random
 import stat
+import shlex
 
 from DIRAC                                              import S_OK, S_ERROR, gLogger, gConfig
-from DIRAC.Core.Utilities.Subprocess                    import shellCall
+from DIRAC.Core.Utilities.Subprocess                    import systemCall
 from DIRAC.Core.Utilities.File                          import mkDir
 from DIRAC.DataManagementSystem.Client.FailoverTransfer import FailoverTransfer
 from DIRAC.RequestManagementSystem.Client.Operation     import Operation
@@ -89,7 +90,7 @@ class UploadLogFile( ModuleBase ):
       self.request.JobID = self.jobID
       self.request.SourceComponent = "Job_%d" % self.jobID
 
-      res = shellCall( 0, 'ls -al' )
+      res = systemCall( 0, shlex.split('ls -al') )
       if res['OK'] and res['Value'][0] == 0:
         self.log.info( 'The contents of the working directory...' )
         self.log.info( str( res['Value'][1] ) )
