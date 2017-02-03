@@ -64,6 +64,8 @@ w2 = '{{w2#-WORKFLOW2: Simulation(up to Moore)+Selection+Merge#False}}'
 w3 = '{{w3#-WORKFLOW3: Simulation(up to Moore)+Selection(-->avoid merge)#False}}'
 w4 = '{{w4#-WORKFLOW4: Simulation+MCMerge#False}}'
 w5 = '{{w5#-WORKFLOW5: Simulation#False}}'
+w6 = '{{w6#-WORKFLOW6: Simulation(Gauss) + AllOthers#False}}'
+w7 = '{{w7#-WORKFLOW7: Simulation(Gauss) + AllOthers + Merge#False}}'
 
 localTestFlag = '{{localTestFlag#GENERAL: Set True for local test#False}}'
 validationFlag = '{{validationFlag#GENERAL: Set True for validation prod - will create histograms#False}}'
@@ -130,8 +132,10 @@ w2 = ast.literal_eval( w2 )
 w3 = ast.literal_eval( w3 )
 w4 = ast.literal_eval( w4 )
 w5 = ast.literal_eval( w5 )
+w6 = ast.literal_eval( w6 )
+w7 = ast.literal_eval( w7 )
 
-if not w1 and not w2 and not w3 and not w4 and not w5:
+if not w1 and not w2 and not w3 and not w4 and not w5 and not w6 and not w7:
   gLogger.error( 'Vladimir, I told you to select at least one workflow!' )
   DIRACexit( 2 )
 
@@ -242,6 +246,46 @@ elif w5:
   pr.inputDataPolicies = ['']
   pr.bkQueries = ['']
   pr.multicore = [MCmulticoreFlag]
+
+elif w6:
+  pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
+  pr.outputSEs = ['Tier1-BUFFER', 'Tier1_MC-DST']
+
+  if pr.stepsListDict[-1]['ApplicationName'].lower() == 'lhcb':
+    gLogger.error( "This request contains a merge step, I can't submit it with this workflow" )
+    DIRACexit( 2 )
+
+  pr.stepsInProds = [[1,] , xrange( 2, len( pr.stepsListDict ) + 1 )]
+  pr.outputFileSteps = [str( len( pr.stepsInProds[0] ) ),
+                        str( len( pr.stepsInProds[1] ) )]
+
+  pr.removeInputsFlags = [False, removeInputSelection]
+  pr.priorities = [MCPriority, selectionPriority]
+  pr.cpus = [100000, selectionCPU]
+  pr.targets = [targets, '']
+  pr.groupSizes = [1, selectionGroupSize]
+  pr.plugins = ['', selectionPlugin]
+  pr.inputDataPolicies = ['', 'download']
+  pr.bkQueries = ['', 'fromPreviousProd']
+  pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
+
+
+elif w7:
+  pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
+  pr.outputSEs = ['Tier1-BUFFER', 'Tier1-BUFFER', 'Tier1_MC-DST']
+
+  pr.stepsInProds = [ [1,], xrange( 2, len( pr.stepsListDict ) ), [len( pr.stepsListDict )]]
+  pr.outputFileSteps = [ '1', str( len( pr.stepsInProds[1] ) ), '1']
+
+  pr.removeInputsFlags = [False, removeInputSelection, removeInputMerge]
+  pr.priorities = [MCPriority, selectionPriority, mergingPriority]
+  pr.cpus = [100000, selectionCPU, mergingCPU]
+  pr.targets = [targets, '', '']
+  pr.groupSizes = [1, selectionGroupSize, mergingGroupSize]
+  pr.plugins = ['', selectionPlugin, mergingPlugin]
+  pr.inputDataPolicies = ['', 'download', 'download']
+  pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
+  pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
 
 # In case we want just to test, we publish in the certification/test part of the BKK
 if currentSetup == 'LHCb-Certification' or pr.testFlag:
