@@ -1,4 +1,13 @@
-[v8r5p6]
+[v8r5p5]
+use DIRAC v6r17p7
+* Change order of root and xroot in case both are in protocol: 'xroot' should be before 'root'
+* try and remove empty directories with the shifter proxy first
+* Temporal addition to template workflows with single Gauss step in production
+* Change external version to v6r5p4 and get the tar with wget
+* fix printout
+* use getReplicasForJobs()
+
+[v8r5p4]
 use DIRAC v6r17p6
 
 * hacking for testing LbLoginDev.sh
