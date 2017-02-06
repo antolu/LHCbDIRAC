@@ -26,6 +26,8 @@ reader_ = None
 global default
 default = 'ALL'
 
+__eventTypeCache = None
+
 def initializeBookkeepingManagerHandler( serviceInfo ):
   """ Put here necessary initializations needed at the service start
   """
@@ -34,6 +36,10 @@ def initializeBookkeepingManagerHandler( serviceInfo ):
 
   global reader_
   reader_ = XMLFilesReaderManager()
+  
+  global __eventTypeCache
+  __eventTypeCache = {}
+  
   return S_OK()
 
 
@@ -950,7 +956,15 @@ class BookkeepingManagerHandler( RequestHandler ):
   @staticmethod
   def export_checkEventType( eventTypeId ):
     """more info in the BookkeepingClient.py"""
-    return dataMGMT_.checkEventType( eventTypeId )
+    if eventTypeId in __eventTypeCache:
+      return __eventTypeCache[eventTypeId]
+    else:
+      retVal = dataMGMT_.checkEventType( eventTypeId )
+      if retVal['OK']:
+        __eventTypeCache[eventTypeId] = retVal
+      else:
+        return retVal
+    return __eventTypeCache[eventTypeId]
 
   #############################################################################
   types_insertSimConditions = [dict]
