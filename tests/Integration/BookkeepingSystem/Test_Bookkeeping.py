@@ -1614,6 +1614,9 @@ class MCProductionRegistration ( MCInsertTestCase ):
     
 class MCXMLReportInsert( MCInsertTestCase ):
   
+  __jobStart = None 
+  __jobEnd = None
+  
   def test_echo( self ):
     
     """make sure we are able to use the bkk"
@@ -1628,10 +1631,12 @@ class MCXMLReportInsert( MCInsertTestCase ):
     insert a run to the db
     """
     currentTime = datetime.datetime.now()
+    self.__jobEnd = currentTime.strftime( '%Y-%m-%d %H:%M' )
+    self.__jobStart = currentTime.strftime( '%Y-%m-%d %H:%M' )
     step1 = self.xmlStep1.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step1 = step1.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step1 = step1.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
-    step1 = step1.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step1 = step1.replace( "%jStart%", self.__jobStart )
+    step1 = step1.replace( "%jEnd%", self.__jobEnd )
     step1 = step1.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )
     self.assert_( retVal['OK'] )
@@ -1643,8 +1648,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step2 = self.xmlStep2.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step2 = step2.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step2 = step2.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
-    step2 = step2.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step2 = step2.replace( "%jStart%", self.__jobStart )
+    step2 = step2.replace( "%jEnd%", self.__jobEnd )
     step2 = step2.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Digi14a for 2012 (to use w Sim09)'} )
     self.assert_( retVal['OK'] )
@@ -1656,8 +1661,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step3 = self.xmlStep3.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step3 = step3.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step3 = step3.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
-    step3 = step3.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step3 = step3.replace( "%jStart%", self.__jobStart )
+    step3 = step3.replace( "%jEnd%", self.__jobEnd )
     step3 = step3.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-L0 emulation - TCK 003d'} )
     self.assert_( retVal['OK'] )
@@ -1669,8 +1674,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step4 = self.xmlStep4.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step4 = step4.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step4 = step4.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
-    step4 = step4.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step4 = step4.replace( "%jStart%", self.__jobStart )
+    step4 = step4.replace( "%jEnd%", self.__jobEnd )
     step4 = step4.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x4097003d Flagged MC - 2012 - to be used in multipleTCKs'} )
     self.assert_( retVal['OK'] )
@@ -1682,8 +1687,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step5 = self.xmlStep5.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step5 = step5.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step5 = step5.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
-    step5 = step5.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step5 = step5.replace( "%jStart%", self.__jobStart )
+    step5 = step5.replace( "%jEnd%", self.__jobEnd )
     step5 = step5.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Move TCK-0x4097003d from default location'} )
     self.assert_( retVal['OK'] )
@@ -1695,8 +1700,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step6 = self.xmlStep6.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step6 = step6.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step6 = step6.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
-    step6 = step6.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step6 = step6.replace( "%jStart%", self.__jobStart )
+    step6 = step6.replace( "%jEnd%", self.__jobEnd )
     step6 = step6.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-L0 emulation - TCK 0042'} )
     self.assert_( retVal['OK'] )
@@ -1708,8 +1713,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step7 = self.xmlStep7.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step7 = step7.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step7 = step7.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
-    step7 = step7.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step7 = step7.replace( "%jStart%", self.__jobStart )
+    step7 = step7.replace( "%jEnd%", self.__jobEnd )
     step7 = step7.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs'} )
     self.assert_( retVal['OK'] )
@@ -1721,8 +1726,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step8 = self.xmlStep8.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step8 = step8.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step8 = step8.replace( "%jStart%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
-    step8 = step8.replace( "%jEnd%", currentTime.strftime( '%Y-%m-%d %H:%M' ) )
+    step8 = step8.replace( "%jStart%", self.__jobStart )
+    step8 = step8.replace( "%jEnd%", self.__jobEnd )
     step8 = step8.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Move TCK-0x40990042 from default location'} )
     self.assert_( retVal['OK'] )
@@ -1731,7 +1736,7 @@ class MCXMLReportInsert( MCInsertTestCase ):
     retVal = self.bk.sendXMLBookkeepingReport( step8 )
     self.assert_( retVal['OK'] )
     
-class MCProductionTest ( MCInsertTestCase ):
+class MCProductionTest ( MCXMLReportInsert ):
   
   """
   Test the existence of the inserted data. 
@@ -1762,10 +1767,10 @@ class MCProductionTest ( MCInsertTestCase ):
                                           'Exectime': 493.59373498,
                                           'FillNumber': None,
                                           'FirstEventNumber': 1,
-                                          'JobEnd': datetime.datetime( 2017, 1, 10, 16, 51 ),
+                                          'JobEnd': self.__jobEnd,
                                           'JobId': 63579814,
                                           'JobName': '00056438_00001025_8',
-                                          'JobStart': datetime.datetime( 2017, 1, 10, 16, 51 ),
+                                          'JobStart': self.__jobStart,
                                           'Location': 'LCG.CERN.ch',
                                           'NumberOfEvents': 411,
                                           'Production': 2,
@@ -1790,10 +1795,10 @@ class MCProductionTest ( MCInsertTestCase ):
                                           'Exectime': 709.81375289,
                                           'FillNumber': None,
                                           'FirstEventNumber': 1,
-                                          'JobEnd': datetime.datetime( 2017, 1, 10, 16, 51 ),
+                                          'JobEnd': self.__jobEnd,
                                           'JobId': 63579813,
                                           'JobName': '00056438_00001025_7',
-                                          'JobStart': datetime.datetime( 2017, 1, 10, 16, 51 ),
+                                          'JobStart': self.__jobStart,
                                           'Location': 'LCG.CERN.ch',
                                           'NumberOfEvents': 411,
                                           'Production': 2,
