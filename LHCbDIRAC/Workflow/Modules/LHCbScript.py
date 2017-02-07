@@ -31,7 +31,7 @@ class LHCbScript( Script ):
 
 
   def _executeCommand( self ):
-    """ Executes the self.command (uses shellCall) with CMT Config requested (if not 'ANY')
+    """ Executes the self.command (uses systemCall) with CMT Config requested (if not 'ANY')
     """
 
     if self.systemConfig != 'ANY':
