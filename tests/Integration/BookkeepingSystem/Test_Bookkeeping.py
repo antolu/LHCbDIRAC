@@ -1614,9 +1614,10 @@ class MCProductionRegistration ( MCInsertTestCase ):
     
 class MCXMLReportInsert( MCInsertTestCase ):
   
-  __jobStart = None 
-  __jobEnd = None
+  jobStart = jobEnd = datetime.datetime.now()
+  jobStart = jobEnd = jobStart.replace( second = 0, microsecond = 0 )
   
+    
   def test_echo( self ):
     
     """make sure we are able to use the bkk"
@@ -1631,12 +1632,12 @@ class MCXMLReportInsert( MCInsertTestCase ):
     insert a run to the db
     """
     currentTime = datetime.datetime.now()
-    self.__jobEnd = currentTime.strftime( '%Y-%m-%d %H:%M' )
-    self.__jobStart = currentTime.strftime( '%Y-%m-%d %H:%M' )
+    #self.jobEnd = currentTime.strftime( '%Y-%m-%d %H:%M' )
+    #self.jobStart = currentTime.strftime( '%Y-%m-%d %H:%M' )
     step1 = self.xmlStep1.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step1 = step1.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step1 = step1.replace( "%jStart%", self.__jobStart )
-    step1 = step1.replace( "%jEnd%", self.__jobEnd )
+    step1 = step1.replace( "%jStart%", self.jobStart.strftime( '%Y-%m-%d %H:%M' ) )
+    step1 = step1.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step1 = step1.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Sim09b - 2012 - MU - Pythia8'} )
     self.assert_( retVal['OK'] )
@@ -1648,8 +1649,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step2 = self.xmlStep2.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step2 = step2.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step2 = step2.replace( "%jStart%", self.__jobStart )
-    step2 = step2.replace( "%jEnd%", self.__jobEnd )
+    step2 = step2.replace( "%jStart%", self.jobStart.strftime( '%Y-%m-%d %H:%M' ) )
+    step2 = step2.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step2 = step2.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Digi14a for 2012 (to use w Sim09)'} )
     self.assert_( retVal['OK'] )
@@ -1661,8 +1662,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step3 = self.xmlStep3.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step3 = step3.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step3 = step3.replace( "%jStart%", self.__jobStart )
-    step3 = step3.replace( "%jEnd%", self.__jobEnd )
+    step3 = step3.replace( "%jStart%", self.jobStart.strftime( '%Y-%m-%d %H:%M' ) )
+    step3 = step3.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step3 = step3.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-L0 emulation - TCK 003d'} )
     self.assert_( retVal['OK'] )
@@ -1674,8 +1675,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step4 = self.xmlStep4.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step4 = step4.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step4 = step4.replace( "%jStart%", self.__jobStart )
-    step4 = step4.replace( "%jEnd%", self.__jobEnd )
+    step4 = step4.replace( "%jStart%", self.jobStart.strftime( '%Y-%m-%d %H:%M' ) )
+    step4 = step4.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step4 = step4.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x4097003d Flagged MC - 2012 - to be used in multipleTCKs'} )
     self.assert_( retVal['OK'] )
@@ -1687,8 +1688,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step5 = self.xmlStep5.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step5 = step5.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step5 = step5.replace( "%jStart%", self.__jobStart )
-    step5 = step5.replace( "%jEnd%", self.__jobEnd )
+    step5 = step5.replace( "%jStart%", self.jobStart.strftime( '%Y-%m-%d %H:%M' ) )
+    step5 = step5.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step5 = step5.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Move TCK-0x4097003d from default location'} )
     self.assert_( retVal['OK'] )
@@ -1700,8 +1701,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step6 = self.xmlStep6.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step6 = step6.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step6 = step6.replace( "%jStart%", self.__jobStart )
-    step6 = step6.replace( "%jEnd%", self.__jobEnd )
+    step6 = step6.replace( "%jStart%", self.jobStart.strftime( '%Y-%m-%d %H:%M' ) )
+    step6 = step6.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step6 = step6.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-L0 emulation - TCK 0042'} )
     self.assert_( retVal['OK'] )
@@ -1713,8 +1714,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step7 = self.xmlStep7.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step7 = step7.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step7 = step7.replace( "%jStart%", self.__jobStart )
-    step7 = step7.replace( "%jEnd%", self.__jobEnd )
+    step7 = step7.replace( "%jStart%", self.jobStart.strftime( '%Y-%m-%d %H:%M' ) )
+    step7 = step7.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step7 = step7.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-TCK-0x40990042 Flagged MC - 2012 - to be used in multipleTCKs'} )
     self.assert_( retVal['OK'] )
@@ -1726,8 +1727,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     currentTime = datetime.datetime.now()
     step8 = self.xmlStep8.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step8 = step8.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
-    step8 = step8.replace( "%jStart%", self.__jobStart )
-    step8 = step8.replace( "%jEnd%", self.__jobEnd )
+    step8 = step8.replace( "%jStart%", self.jobStart.strftime( '%Y-%m-%d %H:%M' ) )
+    step8 = step8.replace( "%jEnd%", self.jobEnd.strftime( '%Y-%m-%d %H:%M' ) )
     step8 = step8.replace( "%jProduction%", str( self.production ) )
     retVal = self.bk.getAvailableSteps( {'StepName':'Cert-Move TCK-0x40990042 from default location'} )
     self.assert_( retVal['OK'] )
@@ -1756,65 +1757,80 @@ class MCProductionTest ( MCXMLReportInsert ):
     test the job information method
     """
     retVal = self.bk.getJobInformation( {'LFN':['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_8.digi', '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi']} )
-    self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 2 )
-    self.assertEquals( retVal['Value'], [{'CPUTime': 472.93,
-                                          'ConfigName': 'MC',
-                                          'ConfigVersion': '2012',
-                                          'DiracJobId': 147844677,
-                                          'DiracVersion': 'v6r15p9',
-                                          'EventInputStat': 411,
-                                          'Exectime': 493.59373498,
-                                          'FillNumber': None,
-                                          'FirstEventNumber': 1,
-                                          'JobEnd': self.__jobEnd,
-                                          'JobId': 63579814,
-                                          'JobName': '00056438_00001025_8',
-                                          'JobStart': self.__jobStart,
-                                          'Location': 'LCG.CERN.ch',
-                                          'NumberOfEvents': 411,
-                                          'Production': 2,
-                                          'RunNumber': None,
-                                          'StatisticsRequested':-1,
-                                          'StepId': 16001,
-                                          'Tck': 'None',
-                                          'TotalLuminosity': 0,
-                                          'WNCPUHS06': 11.4,
-                                          'WNCPUPower': '1',
-                                          'WNCache': '2593.748',
-                                          'WNMJFHS06': 0.0,
-                                          'WNMemory': '700256.0',
-                                          'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz',
-                                          'WorkerNode': 'b6bd1ec9ae.cern.ch'},
-                                         {'CPUTime': 641.7,
-                                          'ConfigName': 'MC',
-                                          'ConfigVersion': '2012',
-                                          'DiracJobId': 147844677,
-                                          'DiracVersion': 'v6r15p9',
-                                          'EventInputStat': 411,
-                                          'Exectime': 709.81375289,
-                                          'FillNumber': None,
-                                          'FirstEventNumber': 1,
-                                          'JobEnd': self.__jobEnd,
-                                          'JobId': 63579813,
-                                          'JobName': '00056438_00001025_7',
-                                          'JobStart': self.__jobStart,
-                                          'Location': 'LCG.CERN.ch',
-                                          'NumberOfEvents': 411,
-                                          'Production': 2,
-                                          'RunNumber': None,
-                                          'StatisticsRequested':-1,
-                                          'StepId': 16000,
-                                          'Tck': 'None',
-                                          'TotalLuminosity': 0,
-                                          'WNCPUHS06': 11.4,
-                                          'WNCPUPower': '1',
-                                          'WNCache': '2593.748',
-                                          'WNMJFHS06': 0.0,
-                                          'WNMemory': '2001584.0',
-                                          'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz',
-                                          'WorkerNode': 'b6bd1ec9ae.cern.ch'}] )
+    params = ['WNMJFHS06', 'WNCPUPower', 'JobName', 'Production', 'EventInputStat', 'Location', 'TotalLuminosity', 'WNCPUHS06', 'StatisticsRequested', 'Exectime', 'JobId', 
+              'DiracVersion', 'WNCache', 'WNModel', 'NumberOfEvents', 'ConfigName', 'WNMemory', 'RunNumber', 
+              'FirstEventNumber', 'CPUTime', 'FillNumber', 'WorkerNode', 'ConfigVersion', 'JobStart', 'StepId', 'JobEnd', 'Tck', 'DiracJobId']
+    print '@@@@', retVal['Value'][0]
+    print '@@@@1', retVal['Value'][1]
+    print '!!!!', type(self.jobEnd), self.jobStart, self.jobEnd
     
+    for i in retVal['Value']:
+      self.assertEqual( i.keys(), params )
+    
+    d1 = {'WNMJFHS06': 0.0, 
+          'WNCPUPower': '1', 
+          'JobName': '00056438_00001025_8', 
+          'Production': 2, 
+          'EventInputStat': 411, 
+          'Location': 'LCG.CERN.ch', 
+          'TotalLuminosity': 0, 
+          'WNCPUHS06': 11.4, 
+          'StatisticsRequested': -1, 
+          'Exectime': 493.59373498, 
+          'JobId': 63579890, 
+          'DiracVersion': 'v6r15p9', 
+          'WNCache': '2593.748', 
+          'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz', 
+          'NumberOfEvents': 411, 
+          'ConfigName': 'MC', 
+          'WNMemory': '700256.0', 
+          'RunNumber': None, 
+          'FirstEventNumber': 1, 
+          'CPUTime': 472.93, 
+          'FillNumber': None, 
+          'WorkerNode': 'b6bd1ec9ae.cern.ch', 
+          'ConfigVersion': '2012', 
+          'JobStart': self.jobStart, 
+          'StepId': 16341, 
+          'JobEnd': self.jobEnd, 
+          'Tck': 'None', 
+          'DiracJobId': 147844677}
+    print 'dd', d1
+    if retVal['Value'][0]['CPUTime'] == 472.93:
+      self.assertEqual( sorted( retVal['Value'][0].iteritems() ), sorted( d1.iteritems() ) )
+    else:
+      d2 = {'WNMJFHS06': 0.0, 
+            'WNCPUPower': '1', 
+            'JobName': '00056438_00001025_7', 
+            'Production': 2, 
+            'EventInputStat': 411, 
+            'Location': 'LCG.CERN.ch', 
+            'TotalLuminosity': 0, 
+            'WNCPUHS06': 11.4, 
+            'StatisticsRequested': -1, 
+            'Exectime': 709.81375289, 
+            'JobId': 63579889, 
+            'DiracVersion': 'v6r15p9', 
+            'WNCache': '2593.748', 
+            'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz', 
+            'NumberOfEvents': 411, 
+            'ConfigName': 'MC', 
+            'WNMemory': '2001584.0', 
+            'RunNumber': None, 
+            'FirstEventNumber': 1, 
+            'CPUTime': 641.7, 
+            'FillNumber': None, 
+            'WorkerNode': 'b6bd1ec9ae.cern.ch', 
+            'ConfigVersion': '2012', 
+            'JobStart': self.jobStart, 
+            'StepId': 16348, 
+            'JobEnd': self.jobEnd, 
+            'Tck': 'None', 
+            'DiracJobId': 147844677} 
+            
+      self.assertEqual( sorted( retVal['Value'][1].items() ), sorted( d2.items() ) )
+   
     retVal = self.bk.getJobInformation( {'Production':2} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 8 )
@@ -1834,12 +1850,12 @@ class MCProductionTest ( MCXMLReportInsert ):
 if __name__ == '__main__':
   
   mcTestSuite = unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionRegistration )
-  mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionTest ) )
   mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCXMLReportInsert ) )
+  mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionTest ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( mcTestSuite )
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
-  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
+  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
   
