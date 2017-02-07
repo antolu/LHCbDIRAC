@@ -13,6 +13,8 @@ parseCommandLine()
 from DIRAC import gLogger
 gLogger.setLevel('DEBUG')
 
+from DIRAC.tests.Utilities.utils import find_all
+
 from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
 
@@ -55,7 +57,7 @@ class GaussSuccess( RunApplicationTestCase ):
                         ('DecFiles', 'v29r10'),
                         ('ProdConf', '')
                        ]
-    ra.prodConfFileName = 'test_prodConf_gauss_v49r5.py'
+    ra.prodConfFileName = find_all('test_prodConf_gauss_v49r5.py', '..')
     ra.applicationLog = '00033857_00000001_1_log.txt'
     ra.stdError = '00033857_00000001_1_err.txt'
 
