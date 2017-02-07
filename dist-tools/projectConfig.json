@@ -1,6 +1,6 @@
 {
   "name": "LHCbDirac",
-  "version": "v8r6-pre2",
+  "version": "v8r6-pre3",
   "used_projects": {
     "project": [
       [ "Dirac", "v6r17p7",
@@ -29,6 +29,9 @@
       ],
       [ "mysql", "5.7.11",
         [ "bin", "python", "lib" ]
+      ],
+      [ "pyparsing", "2.1.8",
+        [ "bin", "python" ]
       ],
       [ "pytools", "2.0",
         [ "bin", "python" ]

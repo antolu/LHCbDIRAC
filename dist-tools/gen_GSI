@@ -14,8 +14,6 @@ DIRACPLAT=$1
 PYTHON_VERSION_TWODIGIT=$2
 PYTHON_CONFIG_VERSION=$3
 
-TMP_DIR=`mktemp -d -p /tmp/$USER`
-#new dir
 cd $basedir
 
 if ! [ -r $basedir/InstallArea/$CMTCONFIG/lib ]; then
@@ -23,9 +21,9 @@ if ! [ -r $basedir/InstallArea/$CMTCONFIG/lib ]; then
 fi
 
 tarnamehttp=http://cern.ch/lhcbproject/dist/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz
-tarname=${TMP_DIR}/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz
+tarname=${TMPDIR}/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz
 
-wget --no-check-certificate -O $tarname $tarnamehttp
+curl -k -L -o $tarname $tarnamehttp
 
 # Get GSI
 
@@ -47,10 +45,3 @@ if ! [ -e $fullname ]; then
   tar zxvf $tarname $fullname
   mv $fullname $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}
 fi
-#
-#  fullpath=`dirname $fullname`
-#  tar zxvf $LHCBTAR/DIRAC3/installSource/Externals-client-${ext_ver}-${DIRACPLAT}-python${PYTHON_VERSION_TWODIGIT}.tar.gz $fullpath
-#  mv $fullpath $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/pyparsing
-#  echo "from pyparsing import infixNotation, opAssoc, Word, printables, Literal, Suppress" >> $basedir/InstallArea/$CMTCONFIG/python${PYTHON_CONFIG_VERSION}/pyparsing/__init__.py
-#fi
-#
