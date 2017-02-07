@@ -1632,8 +1632,8 @@ class MCXMLReportInsert( MCInsertTestCase ):
     insert a run to the db
     """
     currentTime = datetime.datetime.now()
-    #self.jobEnd = currentTime.strftime( '%Y-%m-%d %H:%M' )
-    #self.jobStart = currentTime.strftime( '%Y-%m-%d %H:%M' )
+    # self.jobEnd = currentTime.strftime( '%Y-%m-%d %H:%M' )
+    # self.jobStart = currentTime.strftime( '%Y-%m-%d %H:%M' )
     step1 = self.xmlStep1.replace( "%jDate%", currentTime.strftime( '%Y-%m-%d' ) )
     step1 = step1.replace( "%jTime%", currentTime.strftime( '%H:%M' ) )
     step1 = step1.replace( "%jStart%", self.jobStart.strftime( '%Y-%m-%d %H:%M' ) )
@@ -1758,78 +1758,76 @@ class MCProductionTest ( MCXMLReportInsert ):
     """
     retVal = self.bk.getJobInformation( {'LFN':['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_8.digi', '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi']} )
     self.assert_( len( retVal['Value'] ) == 2 )
-    params = ['WNMJFHS06', 'WNCPUPower', 'JobName', 'Production', 'EventInputStat', 'Location', 'TotalLuminosity', 'WNCPUHS06', 'StatisticsRequested', 'Exectime', 'JobId', 
-              'DiracVersion', 'WNCache', 'WNModel', 'NumberOfEvents', 'ConfigName', 'WNMemory', 'RunNumber', 
+    params = ['WNMJFHS06', 'WNCPUPower', 'JobName', 'Production', 'EventInputStat', 'Location', 'TotalLuminosity', 'WNCPUHS06', 'StatisticsRequested', 'Exectime', 'JobId',
+              'DiracVersion', 'WNCache', 'WNModel', 'NumberOfEvents', 'ConfigName', 'WNMemory', 'RunNumber',
               'FirstEventNumber', 'CPUTime', 'FillNumber', 'WorkerNode', 'ConfigVersion', 'JobStart', 'StepId', 'JobEnd', 'Tck', 'DiracJobId']
-    print '@@@@', retVal['Value'][0]
-    print '@@@@1', retVal['Value'][1]
-    print '!!!!', type(self.jobEnd), self.jobStart, self.jobEnd
     
-    for i in retVal['Value']:
-      self.assertEqual( i.keys(), params )
     
-    d1 = {'WNMJFHS06': 0.0, 
-          'WNCPUPower': '1', 
-          'JobName': '00056438_00001025_8', 
-          'Production': 2, 
-          'EventInputStat': 411, 
-          'Location': 'LCG.CERN.ch', 
-          'TotalLuminosity': 0, 
-          'WNCPUHS06': 11.4, 
-          'StatisticsRequested': -1, 
-          'Exectime': 493.59373498, 
-          'JobId': 63579890, 
-          'DiracVersion': 'v6r15p9', 
-          'WNCache': '2593.748', 
-          'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz', 
-          'NumberOfEvents': 411, 
-          'ConfigName': 'MC', 
-          'WNMemory': '700256.0', 
-          'RunNumber': None, 
-          'FirstEventNumber': 1, 
-          'CPUTime': 472.93, 
-          'FillNumber': None, 
-          'WorkerNode': 'b6bd1ec9ae.cern.ch', 
-          'ConfigVersion': '2012', 
-          'JobStart': self.jobStart, 
-          'StepId': 16341, 
-          'JobEnd': self.jobEnd, 
-          'Tck': 'None', 
+        
+    d1 = {'WNMJFHS06': 0.0,
+          'WNCPUPower': '1',
+          'JobName': '00056438_00001025_8',
+          'Production': 2,
+          'EventInputStat': 411,
+          'Location': 'LCG.CERN.ch',
+          'TotalLuminosity': 0,
+          'WNCPUHS06': 11.4,
+          'StatisticsRequested':-1,
+          'Exectime': 493.59373498,
+          'DiracVersion': 'v6r15p9',
+          'WNCache': '2593.748',
+          'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz',
+          'NumberOfEvents': 411,
+          'ConfigName': 'MC',
+          'WNMemory': '700256.0',
+          'RunNumber': None,
+          'FirstEventNumber': 1,
+          'CPUTime': 472.93,
+          'FillNumber': None,
+          'WorkerNode': 'b6bd1ec9ae.cern.ch',
+          'ConfigVersion': '2012',
+          'JobStart': self.jobStart,
+          'JobEnd': self.jobEnd,
+          'Tck': 'None',
           'DiracJobId': 147844677}
-    print 'dd', d1
-    if retVal['Value'][0]['CPUTime'] == 472.93:
-      self.assertEqual( sorted( retVal['Value'][0].iteritems() ), sorted( d1.iteritems() ) )
-    else:
-      d2 = {'WNMJFHS06': 0.0, 
-            'WNCPUPower': '1', 
-            'JobName': '00056438_00001025_7', 
-            'Production': 2, 
-            'EventInputStat': 411, 
-            'Location': 'LCG.CERN.ch', 
-            'TotalLuminosity': 0, 
-            'WNCPUHS06': 11.4, 
-            'StatisticsRequested': -1, 
-            'Exectime': 709.81375289, 
-            'JobId': 63579889, 
-            'DiracVersion': 'v6r15p9', 
-            'WNCache': '2593.748', 
-            'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz', 
-            'NumberOfEvents': 411, 
-            'ConfigName': 'MC', 
-            'WNMemory': '2001584.0', 
-            'RunNumber': None, 
-            'FirstEventNumber': 1, 
-            'CPUTime': 641.7, 
-            'FillNumber': None, 
-            'WorkerNode': 'b6bd1ec9ae.cern.ch', 
-            'ConfigVersion': '2012', 
-            'JobStart': self.jobStart, 
-            'StepId': 16348, 
-            'JobEnd': self.jobEnd, 
-            'Tck': 'None', 
+    
+    d2 = {'WNMJFHS06': 0.0,
+            'WNCPUPower': '1',
+            'JobName': '00056438_00001025_7',
+            'Production': 2,
+            'EventInputStat': 411,
+            'Location': 'LCG.CERN.ch',
+            'TotalLuminosity': 0,
+            'WNCPUHS06': 11.4,
+            'StatisticsRequested':-1,
+            'Exectime': 709.81375289,
+            'DiracVersion': 'v6r15p9',
+            'WNCache': '2593.748',
+            'WNModel': 'Intel(R)Xeon(R)CPUE5-2650v2@2.60GHz',
+            'NumberOfEvents': 411,
+            'ConfigName': 'MC',
+            'WNMemory': '2001584.0',
+            'RunNumber': None,
+            'FirstEventNumber': 1,
+            'CPUTime': 641.7,
+            'FillNumber': None,
+            'WorkerNode': 'b6bd1ec9ae.cern.ch',
+            'ConfigVersion': '2012',
+            'JobStart': self.jobStart,
+            'JobEnd': self.jobEnd,
+            'Tck': 'None',
             'DiracJobId': 147844677} 
-            
-      self.assertEqual( sorted( retVal['Value'][1].items() ), sorted( d2.items() ) )
+     
+    for record in retVal['Value']:
+      self.assertEqual( sorted( params ), sorted( record.keys() ) )
+      record.pop( 'JobId' )
+      record.pop( 'StepId' )
+      if record['CPUTime'] == d1['CPUTime']:
+        self.assertEqual( sorted( record.iteritems() ), sorted( d1.iteritems() ) )
+      elif record['CPUTime'] == d2['CPUTime']:
+        self.assertEqual( sorted( record.iteritems() ), sorted( d2.items() ) )
+      else:
+        self.assert_( False, "The XML report has not registered correctly" )
    
     retVal = self.bk.getJobInformation( {'Production':2} )
     self.assert_( retVal['OK'] )
@@ -1854,8 +1852,8 @@ if __name__ == '__main__':
   mcTestSuite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( MCProductionTest ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( mcTestSuite )
   suite = unittest.defaultTestLoader.loadTestsFromTestCase( RAWDataInsert )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
-  #suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestMethods ) )
+  suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestRemoveFiles ) )
   suite.addTest( unittest.defaultTestLoader.loadTestsFromTestCase( TestDestoryDataset ) )
   unittest.TextTestRunner( verbosity = 2, failfast = True ).run( suite )
   
