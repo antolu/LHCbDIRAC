@@ -57,7 +57,7 @@ class GaussSuccess( RunApplicationTestCase ):
                         ('DecFiles', 'v29r10'),
                         ('ProdConf', '')
                        ]
-    ra.prodConfFileName = find_all('test_prodConf_gauss_v49r5.py', '..')
+    ra.prodConfFileName = find_all('test_prodConf_gauss_v49r5.py', '..')[0]
     ra.applicationLog = '00033857_00000001_1_log.txt'
     ra.stdError = '00033857_00000001_1_err.txt'
 
@@ -141,7 +141,7 @@ class BooleSuccess( RunApplicationTestCase ):
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
-    ra.prodConfFileName = find_all('test_prodConf_boole_v30r1.py', '..')
+    ra.prodConfFileName = find_all('test_prodConf_boole_v30r1.py', '..')[0]
     ra.applicationLog = '00033857_00000002_2_log.txt'
     ra.stdError = '00033857_00000002_2_err.txt'
 
@@ -166,7 +166,7 @@ class BooleSuccess( RunApplicationTestCase ):
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
-    ra.prodConfFileName = find_all('test_prodConf_boole_v30r1_2.py', ',,')
+    ra.prodConfFileName = find_all('test_prodConf_boole_v30r1_2.py', ',,')[0]
     ra.applicationLog = '00033857_00000002_3_log.txt'
     ra.stdError = '00033857_00000002_3_err.txt'
 
@@ -198,7 +198,7 @@ class MooreSuccess( RunApplicationTestCase ):
     ra.extraPackages = [('AppConfig', 'v3r200'),
                         ('ProdConf', '')
                        ]
-    ra.prodConfFileName = find_all('test_prodConf_moore_v20r4.py', '..')
+    ra.prodConfFileName = find_all('test_prodConf_moore_v20r4.py', '..')[0]
     ra.applicationLog = '00033857_00000003_3_log.txt'
     ra.stdError = '00033857_00000003_3_err.txt'
 
@@ -223,7 +223,7 @@ class MooreSuccess( RunApplicationTestCase ):
     ra.extraPackages = [('AppConfig', 'v3r241'),
                         ('ProdConf', '')
                        ]
-    ra.prodConfFileName = find_all('test_prodConf_moore_v14r8p1.py', '..')
+    ra.prodConfFileName = find_all('test_prodConf_moore_v14r8p1.py', '..')[0]
     ra.applicationLog = '00033857_00000004_4_log.txt'
     ra.stdError = '00033857_00000004_4_err.txt'
 
@@ -256,7 +256,7 @@ class BrunelSuccess( RunApplicationTestCase ):
     ra.extraPackages = [('AppConfig', 'v3r302'),
                         ('ProdConf', '')
                        ]
-    ra.prodConfFileName = find_all('test_prodConf_brunel_v43r2p11.py', '..')
+    ra.prodConfFileName = find_all('test_prodConf_brunel_v43r2p11.py', '..')[0]
     ra.applicationLog = '00033857_00000005_5_log.txt'
     ra.stdError = '00033857_00000005_5_err.txt'
 
@@ -291,7 +291,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
-    ra.prodConfFileName = find_all('test_prodConf_davinci_v32r2p1.py', '..')
+    ra.prodConfFileName = find_all('test_prodConf_davinci_v32r2p1.py', '..')[0]
     ra.applicationLog = '00033857_00000006_6_log.txt'
     ra.stdError = '00033857_00000006_6_err.txt'
 
@@ -319,7 +319,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
-    ra.prodConfFileName = find_all('test_prodConf_davinci_v41r3.py', '..')
+    ra.prodConfFileName = find_all('test_prodConf_davinci_v41r3.py', '..')[0]
     ra.applicationLog = '00033857_00000007_7_log.txt'
     ra.stdError = '00033857_00000007_7_err.txt'
 
@@ -349,7 +349,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
-    ra.prodConfFileName = find_all('test_prodConf_davinci_v42r1.py', '..')
+    ra.prodConfFileName = find_all('test_prodConf_davinci_v42r1.py', '..')[0]
     ra.applicationLog = '0daVinci_000v42r1_49_log.txt'
     ra.stdError = '0daVinci_000v42r1_49_err.txt'
 
@@ -379,7 +379,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
-    ra.prodConfFileName = find_all('test_prodConf_davinci_v42r1.py', '..')
+    ra.prodConfFileName = find_all('test_prodConf_davinci_v42r1.py', '..')[0]
     ra.applicationLog = '0daVinci_000v42r1_62_log.txt'
     ra.stdError = '0daVinci_000v42r1_62_err.txt'
 
