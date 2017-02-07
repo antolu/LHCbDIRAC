@@ -166,7 +166,7 @@ class BooleSuccess( RunApplicationTestCase ):
                         ('ProdConf', '')
                        ]
     ra.step_Number = 1
-    ra.prodConfFileName = find_all('test_prodConf_boole_v30r1_2.py', ',,')[0]
+    ra.prodConfFileName = find_all('test_prodConf_boole_v30r1_2.py', '..')[0]
     ra.applicationLog = '00033857_00000002_3_log.txt'
     ra.stdError = '00033857_00000002_3_err.txt'
 
@@ -354,8 +354,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
     ra.stdError = '0daVinci_000v42r1_49_err.txt'
 
     res = ra.run()
-    self.assertTrue(res['OK'])
-    self.assertEqual(res['Value'], (1, '', '')) #This will fail as there's no input file
+    self.assertFalse(res['OK']) #This will fail as there's no input file
 
 
   def test_DaVinci_new_gcc62( self ):
@@ -384,10 +383,7 @@ class DaVinciSuccess( RunApplicationTestCase ):
     ra.stdError = '0daVinci_000v42r1_62_err.txt'
 
     res = ra.run()
-    self.assertTrue(res['OK'])
-    self.assertEqual(res['Value'], (1, '', '')) #This will fail as there's no input file
-
-
+    self.assertFalse(res['OK']) #This will fail as there's no input file
 
 
 #############################################################################

@@ -7,7 +7,7 @@ from DIRAC import gLogger
 from DIRAC.Workflow.Modules.Script import Script
 
 class LHCbScript( Script ):
-  """ A dimple extension to DIRAC script module
+  """ A simple extension to the DIRAC script module
   """
 
   #############################################################################
