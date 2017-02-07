@@ -89,7 +89,7 @@ class ErrorLogging( ModuleBase ):
         self.log.info( 'Application log file from previous module not found locally: %s' % self.applicationLog )
         return S_OK()
 
-      command = 'python %s %s %s %s' % ( self.applicationLog, self.executable, self.applicationName, self.applicationVersion )
+      command = 'python %s %s %s %s' % ( self.executable, self.applicationLog, self.applicationName, self.applicationVersion )
 
       # Set some parameter names
       scriptName = 'Error_Log_%s_%s_Run_%s.sh' % ( self.applicationName,
