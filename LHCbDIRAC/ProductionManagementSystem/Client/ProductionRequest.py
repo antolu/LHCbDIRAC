@@ -106,7 +106,7 @@ class ProductionRequest( object ):
     self.specialOutputSEs = []  # a list of dictionaries - might be empty
     self.outputSEsPerFileType = []  # a list of dictionaries - filled later
     self.ancestorDepths = []
-    self.compressionLvl = []
+    self.compressionLvl = [['']] # List of lists to cope with multisteps productions which can have more than one compression level (one per step)
     self.appConfig = '$APPCONFIGOPTS/Persistency/' # Default location of the compression level configuration files
 
   #############################################################################
@@ -116,6 +116,7 @@ class ProductionRequest( object ):
         resolve it into a list of dictionary of steps
     """
     count = 0 # Needed to add correctly the optionFiles to the list of dictonaries of steps
+    self.compressionLvl = [item for sublist in self.compressionLvl for item in sublist] # Flatten list of lists with compression levels
     for stepID in self.stepsList:
       stepDict = self.bkkClient.getAvailableSteps( {'StepId':stepID} )
       if not stepDict['OK']:

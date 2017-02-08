@@ -97,7 +97,10 @@ p1multicoreFlag = '{{P1MulticoreFLag#PROD-P1: multicore flag#True}}'
 p1outputMode = '{{P1OutputMode#PROD-P1: output mode#Local}}'
 p1eventsRequested = '{{P1EventsRequested#PROD-P1: events requested (-1 = ALL)#-1}}'
 p1ancestorDepth = int( '{{P1AncestorDepth#PROD-P1: ancestor depth#0}}' )
-p1compressionLvl = '{{P1CompressionLevel#PROD-P1: Compression Level#}}'
+try:
+  p1compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
+except SyntaxError:
+  p1compressionLvl = []
 
 # p2 params
 p2Plugin = '{{p2PluginType#PROD-P2: production plugin name#LHCbStandard}}'
@@ -116,7 +119,10 @@ p2multicoreFlag = '{{P2MulticoreFLag#PROD-P2: multicore flag#True}}'
 p2outputMode = '{{P2OutputMode#PROD-P2: output mode#Local}}'
 p2eventsRequested = '{{P2EventsRequested#PROD-P2: events requested (-1 = ALL)#-1}}'
 p2ancestorDepth = int( '{{P2AncestorDepth#PROD-P2: ancestor depth#0}}' )
-p2compressionLvl = '{{P2CompressionLevel#PROD-P2: Compression Level#Compression-LZMA-4}}'
+try:
+  p2compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
+except SyntaxError:
+  p2compressionLvl = []
 
 # p3 params
 p3Plugin = '{{p3PluginType#PROD-P3: production plugin name#LHCbStandard}}'
@@ -135,7 +141,10 @@ p3multicoreFlag = '{{P3MulticoreFLag#PROD-P3: multicore flag#True}}'
 p3outputMode = '{{P3OutputMode#PROD-P3: output mode#Any}}'
 p3eventsRequested = '{{P3EventsRequested#PROD-P3: events requested (-1 = ALL)#-1}}'
 p3ancestorDepth = int( '{{P3AncestorDepth#PROD-P3: ancestor depth#0}}' )
-p3compressionLvl = '{{P3CompressionLevel#PROD-P3: Compression Level#}}'
+try:
+  p3compressionLvl = ast.literal_eval( '{{P1CompressionLevel#PROD-P1: Compression Level per step, e.g. ["Compression-ZLIB-1","Compression-LZMA-4"]#}}' )
+except SyntaxError:
+  p3compressionLvl = []
 
 parentReq = '{{_parent}}'
 if not parentReq:
