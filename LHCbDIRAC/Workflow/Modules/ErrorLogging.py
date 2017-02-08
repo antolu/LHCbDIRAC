@@ -11,7 +11,7 @@ import shutil
 
 from DIRAC import S_OK, S_ERROR, gLogger
 
-from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
+from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 __RCSID__ = "$Id$"
@@ -130,9 +130,12 @@ class ErrorLogging( ModuleBase ):
 
       return S_OK()
 
+    except (LHCbApplicationError, LbRunError) as e: # This is the case for real application errors
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in ErrorLogging execute module", lException = e )
-      return S_ERROR( str(e) )
+      return S_ERROR( "Error in ErrorLogging module" )
 
     finally:
       super( ErrorLogging, self ).finalize( self.version )

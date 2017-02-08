@@ -4,7 +4,7 @@ import os
 
 from DIRAC import S_OK, S_ERROR, gLogger
 
-from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
+from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 __RCSID__ = "$Id$"
@@ -146,9 +146,12 @@ class RootApplication( ModuleBase ):
       self.setApplicationStatus( '%s (Root) Successful' % self.applicationName )
       return S_OK()
 
+    except (LHCbApplicationError, LbRunError) as e: # This is the case for real application errors
+      self.setApplicationStatus( repr(e) )
+      return S_ERROR( str(e) )
     except Exception as e: #pylint:disable=broad-except
       self.log.exception( "Failure in RootApplication execute module", lException = e )
-      return S_ERROR( str(e) )
+      return S_ERROR( "Error in RootApplication module" )
 
     finally:
       super( RootApplication, self ).finalize( self.version )

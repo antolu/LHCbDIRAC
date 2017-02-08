@@ -14,6 +14,15 @@ from DIRAC.Core.Utilities.Subprocess import systemCall
 
 __RCSID__ = "$Id$"
 
+class LbRunError(RuntimeError):
+  """ Exception for command errors
+  """
+  pass
+
+class LHCbApplicationError(RuntimeError):
+  """ Exception for application errors
+  """
+  pass
 
 class RunApplication(object):
   """ Encapsulate logic for running an LHCb application
@@ -89,11 +98,11 @@ class RunApplication(object):
     runResult = self._runApp( finalCommand, self.lhcbEnvironment )
     if not runResult['OK']:
       self.log.error( "Problem executing lb-run: %s" % runResult['Message'] )
-      raise RuntimeError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
+      raise LbRunError( "Can't start %s %s" % ( self.applicationName, self.applicationVersion ) )
 
     if runResult['Value'][0]: # if exit status != 0
       self.log.error( "lb-run or its application exited with status %d" % runResult['Value'][0] )
-      raise RuntimeError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
+      raise LHCbApplicationError( "%s %s exited with status %d" % ( self.applicationName, self.applicationVersion, runResult['Value'][0] ) )
 
     self.log.info( "%s execution completed successfully" % self.applicationName )
 
@@ -109,10 +118,10 @@ class RunApplication(object):
                       cmdSeq = shlex.split( lbRunListConfigs ) )
     if not res['OK']:
       self.log.error( "Problem executing lb-run --list-platforms: %s" % res['Message'] )
-      raise RuntimeError( "Problem executing lb-run --list-platforms" )
+      raise LbRunError( "Problem executing lb-run --list-platforms" )
     platforms = res['Value']
     if platforms[0]:
-      raise RuntimeError( "Problem executing lb-run (returned %s)" %platforms )
+      raise LbRunError( "Problem executing lb-run (returned %s)" %platforms )
     platformsAvailable = platforms[1].split('\n')
     platformsAvailable = [ plat for plat in platformsAvailable if plat and '-opt' in plat ] #ignoring "debug" platforms
 
@@ -195,11 +204,7 @@ class RunApplication(object):
         fopen.write( self.extraOptionsLine )
       command += 'gaudi_extra_options.py'
 
-    # Wrap final execution command with defaults
-    finalCommand = addCommandDefaults( command, coreDumpLog = '%s_Step%s' % ( self.applicationName, self.step_number ) )
-
-    print 'Command called: \n%s' % finalCommand # Really printing here as we want to see and maybe cut/paste
-    return finalCommand
+    return command
 
 
 
@@ -258,29 +263,3 @@ def _multicoreWN():
     return True
   else:
     return False
-
-def addCommandDefaults( command, coreDumpLog = 'Step' ):
-  """ Wrap the actual execution command with some defaults that are useful for debugging.
-  """
-  # First some preamble
-  cmdList = []
-  cmdSep = 'echo "%s"' % ( '=' * 50 )
-  cmdList.append( cmdSep )
-  cmdList.append( 'echo "Log file from execution of: %s"' % ( command ) )
-  for variable in ['LD_LIBRARY_PATH', 'PYTHONPATH', 'PATH']:
-    cmdList.append( cmdSep )
-    cmdList.append( 'echo "%s is:"' % ( variable ) )
-    cmdList.append( 'echo $%s | tr ":" "\n"' % ( variable ) )
-
-  cmdList.append( cmdSep )
-  # Now do what is requested
-  cmdList.append( command )
-  cmdList.append( 'declare -x appstatus=$?' )
-  # Now add some standard post execution commands
-  cmdList.append( 'if [ -e core.* ] ; then  gdb python core.* >> %s_coredump.log << EOF' % ( coreDumpLog ) )
-  cmdList.append( 'where' )
-  cmdList.append( 'quit' )
-  cmdList.append( 'EOF' )
-  cmdList.append( 'fi' )
-  cmdList.append( 'exit $appstatus' )
-  return  ';'.join( cmdList )

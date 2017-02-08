@@ -6,11 +6,12 @@
 
 import re
 import os
+import subprocess
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
 
 from LHCbDIRAC.Core.Utilities.ProductionOptions import getDataOptions, getModuleOptions
-from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
+from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 __RCSID__ = "$Id$"
@@ -167,8 +168,15 @@ class GaudiApplication( ModuleBase ):
       ra.stdError = self.stdError
 
       # Now really running
-      self.setApplicationStatus( '%s step %s' % ( self.applicationName, self.step_number ) )
-      ra.run() # This would trigger an exception in case of failure, or application status != 0
+      try:
+        self.setApplicationStatus( '%s step %s' % ( self.applicationName, self.step_number ) )
+        ra.run() # This would trigger an exception in case of failure, or application status != 0
+      except LHCbApplicationError as appError:
+        # Running gdb in case of core dump
+        if 'core' in [fileProduced.split('.')[0] for fileProduced in os.listdir('.')]:
+          command = "gdb python core.* >> %s_Step%s_coredump.log" % ( self.applicationName, self.step_number )
+          subprocess.check_call( command, shell = True )
+        raise appError
 
       self.log.info( "Going to manage %s output" % self.applicationName )
       self._manageAppOutput( stepOutputs )
@@ -178,11 +186,13 @@ class GaudiApplication( ModuleBase ):
 
       return S_OK( "%s %s Successful" % ( self.applicationName, self.applicationVersion ) )
 
-    except Exception as e: #pylint:disable=broad-except
-      self.log.exception( "Failure in GaudiApplication execute module", lException = e, lExcInfo = True )
+    except (LHCbApplicationError, LbRunError) as e: # This is the case for real application errors
       self.setApplicationStatus( repr(e) )
       return S_ERROR( str(e) )
-
+    except Exception as e: #pylint:disable=broad-except
+      self.log.exception( "Failure in GaudiApplication execute module", lException = e, lExcInfo = True )
+      self.setApplicationStatus( "Error in GaudiApplication module" )
+      return S_ERROR( str(e) )
     finally:
       super( GaudiApplication, self ).finalize( __RCSID__ )
 
