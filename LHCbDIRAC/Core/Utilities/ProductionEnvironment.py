@@ -6,7 +6,6 @@
 
 import os
 import shutil
-import stat
 from distutils.version import LooseVersion #pylint: disable=import-error,no-name-in-module
 
 import DIRAC
@@ -95,73 +94,6 @@ def getProjectEnvironment( systemConfiguration, applicationName, applicationVers
   # Have to repeat this with the resulting environment since LbLogin / SetupProject overwrite any changes...
   return setDefaultEnvironment( applicationName, applicationVersion, mySiteRoot,
                                 directory, poolXMLCatalogName, environment )
-
-#############################################################################
-def addCommandDefaults( command, postExecution = '', envDump = 'localEnv.log', coreDumpLog = 'Step' ):
-  """ Wrap the actual execution command with some defaults that are useful for debugging.
-      This is always executed by a shellCall so can use standard commands.
-  """
-  # First some preamble
-  cmdList = []
-  cmdSep = 'echo "%s"' % ( '=' * 50 )
-  cmdList.append( cmdSep )
-  cmdList.append( 'echo "Log file from execution of: %s"' % ( command ) )
-  for variable in ['LD_LIBRARY_PATH', 'PYTHONPATH', 'PATH']:
-    cmdList.append( cmdSep )
-    cmdList.append( 'echo "%s is:"' % ( variable ) )
-    cmdList.append( 'echo $%s | tr ":" "\n"' % ( variable ) )
-
-  cmdList.append( cmdSep )
-  cmdList.append( 'env | sort >> %s' % ( envDump ) )
-  # Now do what is requested
-  cmdList.append( command )
-  cmdList.append( 'declare -x appstatus=$?' )
-  # Add any requested postExecution commands
-  if postExecution:
-    cmdList.append( postExecution )
-  # Now add some standard post execution commands
-  cmdList.append( 'if [ -e core.* ] ; then  gdb python core.* >> %s_coredump.log << EOF' % ( coreDumpLog ) )
-  cmdList.append( 'where' )
-  cmdList.append( 'quit' )
-  cmdList.append( 'EOF' )
-  cmdList.append( 'fi' )
-  cmdList.append( 'exit $appstatus' )
-  return S_OK( ';'.join( cmdList ) )
-
-#############################################################################
-def createDebugScript( name, command, env = None, postExecution = '',
-                       envLogFile = 'localEnv.log', coreDumpLog = 'Step' ):
-  """ Create a shell script for the specified commands to be executed. If no
-      environment is passed it defaults to os.environ.
-  """
-  if not env:
-    env = dict( os.environ )
-
-  version = "$Id$"
-  if os.path.exists( name ):
-    os.remove( name )
-
-  script = []
-  msg = '# Dynamically generated script to reproduce execution environment.'
-  script.append( '#!/bin/sh' )
-  script.append( '#' * len( msg ) )
-  script.append( msg )
-  script.append( '#' * len( msg ) )
-  script.append( '# %s' % ( version ) )
-  script.append( '#' * len( msg ) + '\n' )
-
-  for var in env:
-    script.append( 'export %s="%s"' % ( var, env[var] ) )
-
-  command = addCommandDefaults( command, postExecution, envLogFile, coreDumpLog )['Value']
-  for cmd in command.split( ';' ):
-    script.append( '%s' % ( cmd ) )
-
-  fopen = open( name, 'w' )
-  fopen.write( '%s\n' % ( '\n'.join( script ) ) )
-  fopen.close()
-  os.chmod( name, stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH + stat.S_IXOTH )
-  return S_OK( name )
 
 #############################################################################
 def runEnvironmentScripts( commandsList, env = None ):

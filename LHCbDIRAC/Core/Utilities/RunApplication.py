@@ -37,7 +37,7 @@ class RunApplication(object):
     self.runTimeProjectVersion = ''
     self.site = ''
 
-    # What to run
+    # What to run and how
     self.command = 'gaudirun.py'
     self.commandOptions = []
     self.prodConf = False
@@ -195,33 +195,18 @@ class RunApplication(object):
         fopen.write( self.extraOptionsLine )
       command += 'gaudi_extra_options.py'
 
-    self.log.always( 'Command = %s' % command )
-    return command
+    # Wrap final execution command with defaults
+    finalCommand = addCommandDefaults( command, coreDumpLog = '%s_Step%s' % ( self.applicationName, self.step_number ) )
 
-    # FIXME: check if this is still needed
-    # Set some parameter names
-    # dumpEnvName = 'Environment_Dump_%s_%s_Step%s.log' % ( self.applicationName,
-    #                                                       self.applicationVersion,
-    #                                                       self.step_number )
-    # scriptName = '%s_%s_Run_%s.sh' % ( self.applicationName,
-    #                                    self.applicationVersion,
-    #                                    self.step_number )
-    # coreDumpName = '%s_Step%s' % ( self.applicationName,
-    #                                self.step_number )
-    #
-    # # Wrap final execution command with defaults
-    # finalCommand = addCommandDefaults( command,
-    #                                    envDump = dumpEnvName,
-    #                                    coreDumpLog = coreDumpName )['Value']  # should always be S_OK()
-    #
-    # return finalCommand
+    print 'Command called: \n%s' % finalCommand # Really printing here as we want to see and maybe cut/paste
+    return finalCommand
 
 
 
   def _runApp( self, command, env = None ):
     """ Actual call of a command
     """
-    self.log.always( "Calling %s" % command )
+    print 'Command called: \n%s' % command # Really printing here as we want to see and maybe cut/paste
 
     res = systemCall( timeout = 0,
                       cmdSeq = shlex.split(command),
@@ -273,3 +258,29 @@ def _multicoreWN():
     return True
   else:
     return False
+
+def addCommandDefaults( command, coreDumpLog = 'Step' ):
+  """ Wrap the actual execution command with some defaults that are useful for debugging.
+  """
+  # First some preamble
+  cmdList = []
+  cmdSep = 'echo "%s"' % ( '=' * 50 )
+  cmdList.append( cmdSep )
+  cmdList.append( 'echo "Log file from execution of: %s"' % ( command ) )
+  for variable in ['LD_LIBRARY_PATH', 'PYTHONPATH', 'PATH']:
+    cmdList.append( cmdSep )
+    cmdList.append( 'echo "%s is:"' % ( variable ) )
+    cmdList.append( 'echo $%s | tr ":" "\n"' % ( variable ) )
+
+  cmdList.append( cmdSep )
+  # Now do what is requested
+  cmdList.append( command )
+  cmdList.append( 'declare -x appstatus=$?' )
+  # Now add some standard post execution commands
+  cmdList.append( 'if [ -e core.* ] ; then  gdb python core.* >> %s_coredump.log << EOF' % ( coreDumpLog ) )
+  cmdList.append( 'where' )
+  cmdList.append( 'quit' )
+  cmdList.append( 'EOF' )
+  cmdList.append( 'fi' )
+  cmdList.append( 'exit $appstatus' )
+  return  ';'.join( cmdList )

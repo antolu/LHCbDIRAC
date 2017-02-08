@@ -75,45 +75,56 @@ class RunApplicationSuccess( UtilitiesTestCase ):
   def test__gaudirunCommand( self, _patch ):
     """ Testing what is run (the gaudirun command, for example)
     """
+
+    expectedPre = 'echo "==================================================";echo "Log file from execution of: '
+    expectedPost = '";echo "=================================================="'
+
     ra = RunApplication()
     ra.opsH = MagicMock()
     ra.opsH.getValue.return_value = 'gaudirun.py'
 
     #simplest
     res = str(ra._gaudirunCommand())
-    self.assertEqual( res, 'gaudirun.py' )
+    expected = "%s" % (expectedPre + 'gaudirun.py' + expectedPost )
+    self.assert_( expected in res )
 
     #simplest with extra opts
     ra.extraOptionsLine = 'bla bla'
     res = str(ra._gaudirunCommand())
-    self.assertEqual( res, 'gaudirun.py gaudi_extra_options.py' )
-
+    expected = "%s" % (expectedPre + 'gaudirun.py gaudi_extra_options.py' + expectedPost )
+    self.assert_( expected in res )
+    with open('gaudi_extra_options.py', 'r') as fd:
+      geo = fd.read()
+      self.assertEqual(geo, ra.extraOptionsLine)
 
     # productions style /1
     ra.prodConf = True
     ra.extraOptionsLine = ''
     ra.prodConfFileName = 'prodConf.py'
     res = str(ra._gaudirunCommand())
-    self.assertEqual( res, 'gaudirun.py prodConf.py' )
+    expected = "%s" % (expectedPre + 'gaudirun.py prodConf.py' + expectedPost )
+    self.assert_( expected in res )
 
     # productions style /2 (multicore)
     ra.optFile = ''
     ra.multicore = True
     res = str(ra._gaudirunCommand())
-    self.assertEqual( res, 'gaudirun.py prodConf.py' ) #it won't be allowed on this "CE"
+    self.assert_( expected in res ) #it won't be allowed on this "CE"
 
     # productions style /3 (multicore and opts)
     ra.optFile = ''
     ra.extraOptionsLine = 'bla bla'
     res = str(ra._gaudirunCommand())
-    self.assertEqual( res, 'gaudirun.py prodConf.py gaudi_extra_options.py' ) #it won't be allowed on this "CE"
+    expected = "%s" % (expectedPre + 'gaudirun.py prodConf.py gaudi_extra_options.py' + expectedPost )
+    self.assert_( expected in res ) #it won't be allowed on this "CE"
 
     # productions style /4
     ra.extraOptionsLine = ''
     ra.commandOptions = ['$APP/1.py',
                          '$APP/2.py']
     res = str(ra._gaudirunCommand())
-    self.assertEqual( res, r'gaudirun.py $APP/1.py $APP/2.py prodConf.py' )
+    expected = "%s" % (expectedPre + r'gaudirun.py $APP/1.py $APP/2.py prodConf.py' + expectedPost )
+    self.assert_( expected in res )
 
 
 #################################################
