@@ -107,8 +107,8 @@ class XMLFilesReaderManager( object ):
     
       for inputFile in job.getJobInputFiles():
         lfn = inputFile.getFileName()
-        fileID = long( result['Successful'][lfn]['FileId'] )
-        lfn.setFileID( fileID )
+        fileID = long( result['Value']['Successful'][lfn]['FileId'] )
+        inputFile.setFileID( fileID )
       
     outputFiles = job.getJobOutputFiles()
     dqvalue = None
