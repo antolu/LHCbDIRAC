@@ -5123,7 +5123,7 @@ and files.qualityid= dataquality.qualityid'
     if not retVal['OK']:
       return retVal
     
-    fileParams = ['FileName', 'JobId', 'FileId', 'FileTypeId']
+    fileParams = ['JobId', 'FileId', 'FileTypeId']
     result = {}
     for record in retVal['Value']:
       result[record[0]] = dict( zip( fileParams, record[1:] ) )
