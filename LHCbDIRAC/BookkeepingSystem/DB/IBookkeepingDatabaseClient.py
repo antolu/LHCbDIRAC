@@ -752,3 +752,9 @@ class IBookkeepingDatabaseClient(object):
   def getAvailableTagsFromSteps( self ):
     """more info in the BookkeepingClient.py"""
     return self.getManager().getAvailableTagsFromSteps()
+  
+  #############################################################################
+  def bulkgetIDsFromFilesTable( self, lfns ):
+    """more info in the BookkeepingClient.py"""
+    return self.getManager().bulkgetIDsFromFilesTable( lfns )
+  

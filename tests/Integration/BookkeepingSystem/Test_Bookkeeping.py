@@ -1030,8 +1030,7 @@ class TestMethods( DataInsertTestCase ):
     self.assertEqual( retVal['Value']['TotalRecords'], 301 )
     self.assertEqual( len( retVal['Value']['Records'] ), 301 )
     self.assertEqual( retVal['Value']['ParameterNames'], paramNames )
-    
-    
+        
 class TestRemoveFiles( DataInsertTestCase ):
   
   def test_removeFiles( self ):
@@ -1844,6 +1843,18 @@ class MCProductionTest ( MCXMLReportInsert ):
     retVal = self.bk.getJobInformation( {'DiracJobId':[147844677, 147844677]} )
     self.assert_( retVal['OK'] )
     self.assert_( len( retVal['Value'] ) == 8 )
+    
+  def test_getFileTypeVersion( self ):
+    """
+    test the file type version
+    """
+    retVal = self.bk.getFileTypeVersion( ['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_8.digi', '/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi'] )
+    self.assert_( retVal['OK'] )
+    self.assert_( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_8.digi'] )
+    self.assertEqual( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_8.digi'], 'ROOT' )
+    
+    self.assert_( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi'] )
+    self.assertEqual( retVal['Value']['/lhcb/MC/2012/DIGI/00056438/0000/00056438_00001025_7.digi'], 'ROOT' )
     
 if __name__ == '__main__':
   
