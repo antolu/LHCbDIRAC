@@ -92,7 +92,6 @@ mergingPriority = '{{MergingPriority#PROD-3:Merging: Job Priority e.g. 8 by defu
 mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
-simulationCompressionLvl = '{{simulationCompressionLvl#PROD-2: Compression level#Compression-LZMA-4}}'
 mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3: Compression level#Compression-LZMA-4}}'
 
 pr.configVersion = '{{mcConfigVersion}}'
