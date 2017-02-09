@@ -219,7 +219,7 @@ if w1:
   pr.multicore = [recoMulticoreFlag]
   pr.outputModes = ['Run']
   pr.ancestorDepths = [recoAncestorDepth]
-  pr.compressionLvl = [recoCompressionLvl]
+  pr.compressionLvl = [[recoCompressionLvl]]
 
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -239,7 +239,7 @@ elif w2:
   pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Run', 'Run']
   pr.ancestorDepths = [strippAncestorDepth, 0]
-  pr.compressionLvl = [strippCompressionLvl, mergeCompressionLvl]
+  pr.compressionLvl = [[strippCompressionLvl], [mergeCompressionLvl]]
 
 elif w3:
   pr.prodsTypeList = [recoType, 'Merge']
@@ -259,7 +259,7 @@ elif w3:
   pr.multicore = [recoMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Run', 'Run']
   pr.ancestorDepths = [recoAncestorDepth, 0]
-  pr.compressionLvl = [recoCompressionLvl, mergeCompressionLvl]
+  pr.compressionLvl = [[recoCompressionLvl], [mergeCompressionLvl]]
 
 elif w4:
   pr.prodsTypeList = [recoType, 'DataStripping', 'Merge']
@@ -280,7 +280,7 @@ elif w4:
   pr.multicore = [recoMulticoreFlag, strippMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Run', 'Run', 'Run']
   pr.ancestorDepths = [recoAncestorDepth, strippAncestorDepth, 0]
-  pr.compressionLvl = [recoCompressionLvl, strippCompressionLvl, mergeCompressionLvl]
+  pr.compressionLvl = [[recoCompressionLvl], [strippCompressionLvl], [mergeCompressionLvl]]
 
 elif w5:
   pr.prodsTypeList = ['DataStripping', 'Merge', 'WGProduction']
@@ -301,7 +301,7 @@ elif w5:
   pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag, False]
   pr.outputModes = ['Run', 'Run', 'Any']
   pr.ancestorDepths = [strippAncestorDepth, 0, 0]
-  pr.compressionLvl = [strippCompressionLvl, mergeCompressionLvl, '']
+  pr.compressionLvl = [[strippCompressionLvl], [mergeCompressionLvl], ['']]
 
 
 pr.buildAndLaunchRequest()

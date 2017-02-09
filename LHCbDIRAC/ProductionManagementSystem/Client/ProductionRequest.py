@@ -134,7 +134,7 @@ class ProductionRequest( object ):
         # If the prod manager sets a compression level for a particular step, either we append the option file
         # or we overwrite the existing one inherited with the step
         #
-        if parameter == 'OptionFiles' and self.compressionLvl[count] != '':
+        if parameter == 'OptionFiles' and (len(self.compressionLvl) > count and self.compressionLvl[count] != ''):
           p = re.compile('Compression-[A-Z]{4}-[1-9]')
           self.compressionLvl[count] = self.appConfig + self.compressionLvl[count] + '.py'
           if not p.search(value):
@@ -150,7 +150,7 @@ class ProductionRequest( object ):
         # we check if there is one in the options and in case we delete it. This leaves the default zip level
         # defined inside Gaudi
         #
-        elif parameter == 'OptionFiles' and self.compressionLvl[count] == '':
+        elif parameter == 'OptionFiles' and (len(self.compressionLvl) > count and self.compressionLvl[count] == ''):
           p = re.compile('\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
           if p.search(value):
             value = p.sub('', value)
