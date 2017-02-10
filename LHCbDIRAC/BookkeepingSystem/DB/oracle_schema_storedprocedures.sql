@@ -223,7 +223,8 @@ procedure updateDesLuminosity(v_fileid number);
 procedure getFileDesJobId(v_Filename varchar2, a_Cursor out udt_RefCursor);
 procedure getAllMetadata(v_jobid NUMBER, v_prod number, a_Cursor  out udt_RefCursor);
 function getProducedEvents(v_prodid number) return number;
- 
+procedure bulkgetIdsFromFiles(lfns varchararray,  a_Cursor out udt_RefCursor);
+
 end;
 /
 
@@ -1472,7 +1473,7 @@ FOR j in iftypes.FIRST .. iftypes.LAST LOOP
          jobs.jobid=files.jobid and
          files.filetypeid=filetypes.filetypeid and
          files.QUALITYID=DataQuality.qualityID) LOOP
-        pipe row(metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity, cur.VISIBILITYFLAG));
+        pipe row(metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity, cur.VISIBILITYFLAG, NULL, NULL));
   END LOOP;
 END LOOP;
 END;
@@ -1492,7 +1493,7 @@ FOR j in iftypes.FIRST .. iftypes.LAST LOOP
          files.QUALITYID=DataQuality.qualityID) LOOP
  lfnmeta.extend;
  n:=n+1;
- lfnmeta (n):=metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity, cur.VISIBILITYFLAG);
+ lfnmeta (n):=metadata0bj(cur.FILENAME, cur.ADLER32,cur.CREATIONDATE,cur.EVENTSTAT, cur.EVENTTYPEID, cur.Name, cur.GOTREPLICA, cur.GUID, cur.MD5SUM, cur.FILESIZE, cur.FullStat, cur.DATAQUALITYFLAG, cur.jobid, cur.runnumber, cur.inserttimestamp, cur.luminosity, cur.instluminosity, cur.VISIBILITYFLAG, NULL, NULL);
   END LOOP;
 END LOOP;
 open a_Cursor for select * from table(lfnmeta);
@@ -2036,7 +2037,7 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
   IF found = 0 THEN
     lfnmeta.extend;
     n:=n+1;
-    lfnmeta (n):=metadata0bj(lfns(i), NULL,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    lfnmeta (n):=metadata0bj(lfns(i), NULL,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
   END IF;
 END LOOP;
 open a_Cursor for select filename from table(lfnmeta);
@@ -2065,7 +2066,7 @@ FOR i in lfns.FIRST .. lfns.LAST LOOP
     select ftype.version into ftype from files f, filetypes ftype where f.filetypeid=ftype.filetypeid and f.filename=lfns(i);
     lfnmeta.extend;
     n:=n+1;
-    lfnmeta (n):=metadata0bj(lfns(i), ftype ,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    lfnmeta (n):=metadata0bj(lfns(i), ftype ,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,NULL);
   END IF;
 END LOOP;
 open a_Cursor for select * from table(lfnmeta);
@@ -2273,5 +2274,26 @@ EXCEPTION
   WHEN OTHERS THEN
     raise_application_error(-20005, 'error found during the event number calculation');
 end;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+procedure bulkgetIdsFromFiles(lfns varchararray,  a_Cursor out udt_RefCursor)
+is
+lfnmeta metadata_table := metadata_table();
+n integer := 0;
+fileid number := 0;
+filetypeid number := 0;
+jobid number := 0;
+BEGIN
+FOR i in lfns.FIRST .. lfns.LAST LOOP
+  BEGIN 
+    select fileid, jobid, filetypeid INTO fileid, jobid, filetypeid from files where filename=lfns(i);
+    lfnmeta.extend;
+    n:=n+1;
+    lfnmeta(n):=metadata0bj(lfns(i), NULL,NULL,NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, jobid,NULL, NULL, NULL, NULL, NULL, fileid,filetypeid);
+  EXCEPTION WHEN NO_DATA_FOUND THEN
+         NULL;
+  END;
+ END LOOP;
+open a_Cursor for select FILENAME, jobid, fileid, filetypeid from table(lfnmeta);
+END;
 END;
 /

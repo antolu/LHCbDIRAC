@@ -5109,3 +5109,24 @@ and files.qualityid= dataquality.qualityid'
         records.append( [ 'DQTAG', record[2]] )
     
     return S_OK( {'ParameterNames': ['TagName', 'TagValue'], 'Records':records} )
+  
+  #############################################################################
+  def bulkgetIDsFromFilesTable( self, lfns ):
+    """
+    This method used to retreive the JobId, FileId and FiletypeId for a given list of lfns
+    :return S_OK/S_ERROR {"FileId:1","JobId":22, "FileTypeId":3}
+    """
+    retVal = self.dbR_.executeStoredProcedure( packageName = 'BOOKKEEPINGORACLEDB.bulkgetIdsFromFiles',
+                                               parameters = [],
+                                               output = True,
+                                               array = lfns )
+    if not retVal['OK']:
+      return retVal
+    
+    fileParams = ['JobId', 'FileId', 'FileTypeId']
+    result = {}
+    for record in retVal['Value']:
+      result[record[0]] = dict( zip( fileParams, record[1:] ) )
+    
+    failed = list( set ( lfns ) - set( result.keys() ) )
+    return S_OK( {'Successful':result, 'Failed':failed} )

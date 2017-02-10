@@ -73,6 +73,19 @@ Use DIRAC v6r17p5
 * pylints
 * Add documentation for deployment on Mesos
 
+[v8r5p6]
+use DIRAC v6r17p8
+
+* propagate back the modifications from level to master for client release
+* improve the bookkeeping integration tests
+* do not use the file name
+* some minor fixes
+* use bulk queries
+* do not take into account the jobid and stepid
+* fix unit test
+* JobStart and JobEnd can not hardcoded
+* reduce the number of calls
+
 [v8r5p5]
 use DIRAC v6r17p7
 * Change order of root and xroot in case both are in protocol: 'xroot' should be before 'root'
