@@ -67,7 +67,7 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
         try:
           var = line.split( '=' )[0].strip()
           value = line.split( '=' )[1].strip()
-          # FIXME: horrible hack... (there's a function that ends in the next line...)
+          # Horrible hack... (there's a function that ends in the next line...)
           if '{' in value:
             value = value + '\n}'
           environment[var] = value
@@ -81,8 +81,8 @@ class LHCbInstallDIRAC( LHCbCommandBase, InstallDIRAC ):
       environment['LHCb_release_area'] = '/cvmfs/lhcb.cern.ch/lib/lhcb/'
     # when we reach here we expect to know the release version to install
 
-    # FIXME: this is a quick and dirty hack!
-    if self.pp.setup == 'LHCb-Certification':
+    # check for need of devLbLogin
+    if 'devLbLogin' in self.pp.genericOption:
       self.__invokeCmd( '. $LHCb_release_area/LBSCRIPTS/dev/InstallArea/scripts/LbLogin.sh && printenv > environmentLbLogin',
                         environment )
     else:
