@@ -7,7 +7,7 @@ from DIRAC import gLogger
 from DIRAC.Workflow.Modules.Script import Script
 
 class LHCbScript( Script ):
-  """ A dimple extension to DIRAC script module
+  """ A simple extension to the DIRAC script module
   """
 
   #############################################################################
@@ -31,7 +31,7 @@ class LHCbScript( Script ):
 
 
   def _executeCommand( self ):
-    """ Executes the self.command (uses shellCall) with CMT Config requested (if not 'ANY')
+    """ Executes the self.command (uses systemCall) with CMT Config requested (if not 'ANY')
     """
 
     if self.systemConfig != 'ANY':

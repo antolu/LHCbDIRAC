@@ -886,10 +886,6 @@ class TransformationDebug( object ):
             elif line == lastLine:
               jobs.append( job )
               continue
-            for xx in ( 'LbLogin.sh', 'SetupProject.sh' ):
-              if xx in lastLine:
-                lastLine = lastLine.split()[0] + ' Executing %s' % xx + lastLine.split( xx )[1].split( '&&' )[0]
-                break
             gLogger.notice( '\t%3d jobs stalled with last line: %s' % ( len( jobs ), lastLine ) )
             lastLine = line
             jobs = [job1]

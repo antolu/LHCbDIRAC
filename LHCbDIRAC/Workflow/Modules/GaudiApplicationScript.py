@@ -13,7 +13,7 @@ import re
 import os
 
 from DIRAC import S_OK, S_ERROR, gLogger, gConfig
-from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication
+from LHCbDIRAC.Core.Utilities.RunApplication import RunApplication, LbRunError, LHCbApplicationError
 from LHCbDIRAC.Workflow.Modules.ModuleBase import ModuleBase
 
 __RCSID__ = "$Id$"
@@ -99,9 +99,7 @@ class GaudiApplicationScript( ModuleBase ):
       else:
         gaudiCmd.append( os.path.basename( self.script ) )
         gaudiCmd.append( self.arguments )
-
       command = ' '.join( gaudiCmd )
-      print 'Command = %s' % ( command )  #Really print here as this is useful to see
 
       # How to run the application
       ra = RunApplication()
@@ -114,18 +112,19 @@ class GaudiApplicationScript( ModuleBase ):
       ra.applicationLog = self.applicationLog
 
       # Now really running
+      self.setApplicationStatus( self.applicationName )
       ra.run() # This would trigger an exception in case of failure, or application status != 0
 
-      #Above can't be removed as it is the last notification for user jobs
       self.setApplicationStatus( '%s Successful' % os.path.basename( self.script ) )
-
       return S_OK( '%s Successful' % os.path.basename( self.script ) )
 
-    except Exception as e: #pylint:disable=broad-except
-      self.log.exception( "Failure in GaudiApplicationScript execute module", lException = e )
+    except (LHCbApplicationError, LbRunError) as e: # This is the case for real application errors
       self.setApplicationStatus( repr(e) )
       return S_ERROR( str(e) )
-
+    except Exception as e: #pylint:disable=broad-except
+      self.log.exception( "Failure in GaudiApplicationScript execute module", lException = e )
+      self.setApplicationStatus( "Error in GaudiApplicationScript module" )
+      return S_ERROR( str(e) )
     finally:
       super( GaudiApplicationScript, self ).finalize( self.version )
 
