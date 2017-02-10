@@ -76,6 +76,7 @@ extraOptions = '{{extraOptions#GENERAL: extra options as python dict stepID:opti
 targets = '{{Target#PROD-1:MC: Target for MC (e.g. Tier2, ALL, LCG.CERN.cern#Tier2}}'
 MCPriority = '{{MCPriority#PROD-1:MC: Production priority#0}}'
 MCmulticoreFlag = '{{MCMulticoreFLag#PROD-1: multicore flag#True}}'
+simulationCompressionLvl = '{{simulationCompressionLvl#PROD-1: Compression level#Compression-ZLIB-1}}'
 
 selectionPlugin = '{{selectionPlugin#PROD-2:Selection: plugin e.g. Standard, BySize#BySize}}'
 selectionGroupSize = '{{selectionGroupSize#PROD-2:Selection: input files total size (we\'ll download)#20}}'
@@ -83,6 +84,7 @@ selectionPriority = '{{selectionPriority#PROD-2:Selection: Job Priority e.g. 8 b
 selectionCPU = '{{selectionCPU#PROD-2:Selection: Max CPU time in secs#100000}}'
 removeInputSelection = '{{removeInputSelection#PROD-2:Selection: remove inputs#True}}'
 selmulticoreFlag = '{{selMulticoreFLag#PROD-2: multicore flag#True}}'
+selectionCompressionLvl = '{{selectionCompressionLvl#PROD-2: Compression level#Compression-ZLIB-1}}'
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'
@@ -90,6 +92,7 @@ mergingPriority = '{{MergingPriority#PROD-3:Merging: Job Priority e.g. 8 by defa
 mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
+mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3: Compression level#Compression-LZMA-4}}'
 
 pr.configVersion = '{{mcConfigVersion}}'
 pr.eventType = '{{eventType}}'
@@ -155,6 +158,7 @@ if w1:
   pr.inputDataPolicies = ['', 'download', 'download']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl],[mergeCompressionLvl]]
 
 elif w2:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
@@ -182,6 +186,7 @@ elif w2:
   pr.inputDataPolicies = ['', 'download', 'download']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl],[mergeCompressionLvl]]
 
 elif w3:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
@@ -211,6 +216,7 @@ elif w3:
   pr.inputDataPolicies = ['', 'download']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl]]
 
 elif w4:
   pr.prodsTypeList = ['MCSimulation', 'MCMerge']
@@ -227,6 +233,7 @@ elif w4:
   pr.inputDataPolicies = ['', 'download']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, mergemulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl],[mergeCompressionLvl]]
 
 elif w5:
   pr.prodsTypeList = ['MCSimulation']
@@ -246,6 +253,7 @@ elif w5:
   pr.inputDataPolicies = ['']
   pr.bkQueries = ['']
   pr.multicore = [MCmulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl]]
 
 elif w6:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction']
@@ -268,7 +276,7 @@ elif w6:
   pr.inputDataPolicies = ['', 'download']
   pr.bkQueries = ['', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
-
+  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl]]
 
 elif w7:
   pr.prodsTypeList = ['MCSimulation', 'MCReconstruction', 'MCMerge']
@@ -286,6 +294,7 @@ elif w7:
   pr.inputDataPolicies = ['', 'download', 'download']
   pr.bkQueries = ['', 'fromPreviousProd', 'fromPreviousProd']
   pr.multicore = [MCmulticoreFlag, selmulticoreFlag, mergemulticoreFlag]
+  pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl],[mergeCompressionLvl]]
 
 # In case we want just to test, we publish in the certification/test part of the BKK
 if currentSetup == 'LHCb-Certification' or pr.testFlag:

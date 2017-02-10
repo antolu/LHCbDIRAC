@@ -80,6 +80,7 @@ recoType = '{{RecoType#PROD-1:RECO(Stripp): DataReconstruction or DataReprocessi
 recoIDPolicy = '{{recoIDPolicy#PROD-1:RECO(Stripp): policy for input data access (download or protocol)#download}}'
 recoMulticoreFlag = '{{recoMulticoreFLag#PROD-1: multicore flag#True}}'
 recoAncestorDepth = int( '{{recoAncestorDepth#PROD-1: Ancestor Depth#0}}' )
+recoCompressionLvl = '{{recoCompressionLvl#PROD-3: compression level#Compression-ZLIB-1}}'
 
 # stripp params
 strippPriority = int( '{{priority#PROD-2:Stripping: priority#5}}' )
@@ -94,6 +95,7 @@ except SyntaxError:
 strippIDPolicy = '{{strippIDPolicy#PROD-2:Stripping: policy for input data access (download or protocol)#download}}'
 strippMulticoreFlag = '{{strippMulticoreFLag#PROD-2: multicore flag#True}}'
 strippAncestorDepth = int( '{{strippAncestorDepth#PROD-2: Ancestor Depth#0}}' )
+strippCompressionLvl = '{{strippCompressionLvl#PROD-3: compression level#Compression-ZLIB-1}}'
 
 # merging params
 mergingPriority = int( '{{MergePriority#PROD-3:Merging: priority#8}}' )
@@ -108,6 +110,7 @@ except SyntaxError:
 mergingIDPolicy = '{{MergeIDPolicy#PROD-3:Merging: policy for input data access (download or protocol)#download}}'
 mergingRemoveInputsFlag = '{{MergeRemoveFlag#PROD-3:Merging: remove input data flag True/False#True}}'
 mergeMulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
+mergeCompressionLvl = '{{mergeCompressionLvl#PROD-3: compression level#Compression-LZMA-4}}'
 
 # indexing params
 indexingPriority = int( '{{IndexingPriority#PROD-4:indexing: priority#5}}' )
@@ -216,6 +219,7 @@ if w1:
   pr.multicore = [recoMulticoreFlag]
   pr.outputModes = ['Run']
   pr.ancestorDepths = [recoAncestorDepth]
+  pr.compressionLvl = [[recoCompressionLvl]]
 
 elif w2:
   pr.prodsTypeList = ['DataStripping', 'Merge']
@@ -235,6 +239,7 @@ elif w2:
   pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Run', 'Run']
   pr.ancestorDepths = [strippAncestorDepth, 0]
+  pr.compressionLvl = [[strippCompressionLvl], [mergeCompressionLvl]]
 
 elif w3:
   pr.prodsTypeList = [recoType, 'Merge']
@@ -254,6 +259,7 @@ elif w3:
   pr.multicore = [recoMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Run', 'Run']
   pr.ancestorDepths = [recoAncestorDepth, 0]
+  pr.compressionLvl = [[recoCompressionLvl], [mergeCompressionLvl]]
 
 elif w4:
   pr.prodsTypeList = [recoType, 'DataStripping', 'Merge']
@@ -274,6 +280,7 @@ elif w4:
   pr.multicore = [recoMulticoreFlag, strippMulticoreFlag, mergeMulticoreFlag]
   pr.outputModes = ['Run', 'Run', 'Run']
   pr.ancestorDepths = [recoAncestorDepth, strippAncestorDepth, 0]
+  pr.compressionLvl = [[recoCompressionLvl], [strippCompressionLvl], [mergeCompressionLvl]]
 
 elif w5:
   pr.prodsTypeList = ['DataStripping', 'Merge', 'WGProduction']
@@ -294,5 +301,7 @@ elif w5:
   pr.multicore = [strippMulticoreFlag, mergeMulticoreFlag, False]
   pr.outputModes = ['Run', 'Run', 'Any']
   pr.ancestorDepths = [strippAncestorDepth, 0, 0]
+  pr.compressionLvl = [[strippCompressionLvl], [mergeCompressionLvl], ['']]
+
 
 pr.buildAndLaunchRequest()

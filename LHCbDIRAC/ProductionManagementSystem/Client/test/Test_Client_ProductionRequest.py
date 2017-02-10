@@ -2,6 +2,7 @@
 """
 
 import unittest
+import re
 from mock import Mock, MagicMock
 
 from LHCbDIRAC.BookkeepingSystem.Client.test.mock_BookkeepingClient import BookkeepingClientFake, \
@@ -226,20 +227,24 @@ class ProductionRequestSuccess( ClientTestCase ):
 
 
   def test_resolveStepsSuccess( self ):
-
+    
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [[''] for i in range(0,4)]
     pr.stepsList = ['123']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [step1Dict] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [[''] for i in range(0,4)]
     pr.stepsList = ['123', '456']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [step1Dict, step2Dict] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [[''] for i in range(0,4)]
     pr.stepsList = ['123', '456', '789']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [step1Dict, step2Dict, stepHistoMergingDict] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [[''] for i in range(0,4)]
     pr.stepsList = ['123', '456', '', '']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
@@ -260,6 +265,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
                                         ] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [[''] for i in range(0,4)]
     pr.stepsList = ['123']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
@@ -271,6 +277,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'fileTypesIn':['SDST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [[''] for i in range(0,4)]
     pr.stepsList = ['123']
     pr.resolveSteps()
     self.assertEqual( pr.stepsListDict, [{'StepId': 123, 'StepName':'Stripping14-Stripping',
@@ -281,9 +288,150 @@ class ProductionRequestSuccess( ClientTestCase ):
                                           'DDDB':'', 'CONDDB':'123456', 'DQTag':'', 'isMulticore': 'N',
                                           'fileTypesIn':['SDST'],
                                           'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [['Compression-LZMA-4']]
+    pr.stepsList = ['999']
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [{'StepId': 999, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          #'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"999['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+    
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [['Compression-LZMA-4']]
+    pr.stepsList = ['998']
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [{'StepId': 998, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          #'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"998['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.stepsList = ['999']
+    pr.compressionLvl = [[''] for i in range(0,4)]
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [{'StepId': 999, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          #'OptionFiles':'$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          'OptionFiles':'',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"999['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [['Compression-LZMA-4']]
+    pr.stepsList = ['997']
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [{'StepId': 997, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          'OptionFiles':'$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Brunel/PbPb-GECs.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"997['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+    
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [['Compression-LZMA-4']]
+    pr.stepsList = ['996']
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [{'StepId': 996, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          'OptionFiles':'$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py;$APPCONFIGOPTS/Brunel/PbPb-GECs.py',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"996['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [[''] for i in range(0,4)]
+    pr.stepsList = ['1098']
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [{'StepId': 1098, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          'OptionFiles':'$APPCONFIGOPTS/Brunel/DataType-2016.py;',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"1098['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [['Compression-LZMA-4']]
+    pr.stepsList = ['1098']
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [{'StepId': 1098, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          'OptionFiles':'$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"1098['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}] )
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [['','Compression-LZMA-4'],['Compression-ZLIB-1']]
+    pr.stepsList = ['1098','996','997']
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [{'StepId': 1098, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          'OptionFiles':'$APPCONFIGOPTS/Brunel/DataType-2016.py;',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"1098['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
+                                         {'StepId': 996, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          'OptionFiles':'$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py;$APPCONFIGOPTS/Brunel/PbPb-GECs.py',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"996['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
+                                         {'StepId': 997, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          'OptionFiles':'$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Brunel/PbPb-GECs.py;$APPCONFIGOPTS/Persistency/Compression-ZLIB-1.py',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"997['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
+                                        ] )
+    
+    pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [['','Compression-LZMA-4']]
+    pr.stepsList = ['1098','996','997']
+    pr.resolveSteps()
+    self.assertEqual( pr.stepsListDict, [{'StepId': 1098, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          'OptionFiles':'$APPCONFIGOPTS/Brunel/DataType-2016.py;',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"1098['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
+                                         {'StepId': 996, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          'OptionFiles':'$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Persistency/Compression-LZMA-4.py;$APPCONFIGOPTS/Brunel/PbPb-GECs.py',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"996['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']},
+                                         {'StepId': 997, 'StepName':'Stripping28',
+                                          'ApplicationName':'DaVinci', 'ApplicationVersion':'v41r3', 'ExtraOptions': '',
+                                          'OptionFiles':'$APPCONFIGOPTS/Brunel/DataType-2016.py;$APPCONFIGOPTS/Brunel/PbPb-GECs.py',
+                                          'Visible':'Yes', 'Usable':'Yes', 'ProcessingPass':'Stripping28', 'SystemConfig':'x86_64-slc6-gcc49-opt',
+                                          'ExtraPackages':'AppConfig.v3r306', 'mcTCK':'', 'prodStepID':"997['SDST']",
+                                          'DDDB':'dddb-20150724', 'CONDDB':'cond-20161011', 'DQTag':'', 'isMulticore': 'N', 'fileTypesIn':['SDST'],
+                                          'fileTypesOut':['BHADRON.DST', 'CALIBRATION.DST']}
+                                        ] )
+
 
   def test__determineOutputSEs( self ):
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [[''] for i in range(0,4)]
     pr.stepsList = ['123', '456']
     pr.resolveSteps()
     pr.outputSEs = ['SE1', 'SE2']
@@ -293,6 +441,7 @@ class ProductionRequestSuccess( ClientTestCase ):
                                                 {'CALIBRATION.DST': 'SE2', 'BHADRON.DST': 'SE2'}] )
 
     pr = ProductionRequest( self.bkClientFake, self.diracProdIn )
+    pr.compressionLvl = [[''] for i in range(0,4)]
     pr.stepsList = ['123', '456']
     pr.resolveSteps()
     pr.outputSEs = ['SE1', 'SE2']
@@ -1304,6 +1453,7 @@ class ProductionRequestFullChain( ClientTestCase ):
     stepsList.append( '' )
     stepsList.append( '' )
     pr.stepsList = stepsList
+    pr.compressionLvl = [[''] for i in range(4)]
     pr.resolveSteps()
 
     pr.appendName = '1'
