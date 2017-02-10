@@ -96,18 +96,20 @@ class XMLFilesReaderManager( object ):
     """interprets the xml content"""
     gLogger.info( "Start Processing" )
 
-    # #checking
-    inputFiles = job.getJobInputFiles()
-    for lfn in inputFiles:
-      name = lfn.getFileName()
-      result = self.bkClient_.checkfile( name )
-      if result['OK']:
-        fileID = long( result['Value'][0][0] )
-        lfn.setFileID( fileID )
-      else:
-        errorMessage = "The file %s does not exist in the BKK database!!" % name
-        return S_ERROR( errorMessage )
-
+    # prepare for the insert, check the existence of the input files and retreive the fileid
+    inputFiles = [ inputFile.getFileName() for inputFile in job.getJobInputFiles()]
+    if inputFiles:
+      result = self.bkClient_.bulkgetIDsFromFilesTable( inputFiles )
+      if not result['OK']:
+        return result
+      if result['Value']['Failed']:
+        return S_ERROR( "The following files are not in the bkk: %s" % ( ",".join( result['Value']['Failed'] ) ) )
+    
+      for inputFile in job.getJobInputFiles():
+        lfn = inputFile.getFileName()
+        fileID = long( result['Value']['Successful'][lfn]['FileId'] )
+        inputFile.setFileID( fileID )
+      
     outputFiles = job.getJobOutputFiles()
     dqvalue = None
     for outputfile in outputFiles:

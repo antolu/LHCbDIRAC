@@ -49,7 +49,9 @@ create or replace type metadata0bj is object (
   inserttimestamp timestamp(6),
   luminosity number,
   instluminosity number ,
-  VISIBILITYFLAG CHAR(1)
+  VISIBILITYFLAG CHAR(1),
+  fileid number,
+  filetypeid number
  );
 /
 create or replace type metadata_table is table of metadata0bj;
