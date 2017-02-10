@@ -88,7 +88,7 @@ selectionCompressionLvl = '{{selectionCompressionLvl#PROD-2: Compression level#C
 
 mergingPlugin = '{{MergingPlugin#PROD-3:Merging: plugin e.g. Standard, BySize#BySize}}'
 mergingGroupSize = '{{MergingGroupSize#PROD-3:Merging: Group Size e.g. BySize = GB file size#5}}'
-mergingPriority = '{{MergingPriority#PROD-3:Merging: Job Priority e.g. 8 by defult#8}}'
+mergingPriority = '{{MergingPriority#PROD-3:Merging: Job Priority e.g. 8 by default#8}}'
 mergingCPU = '{{mergingCPU#PROD-3:Merging: Max CPU time in secs#100000}}'
 removeInputMerge = '{{removeInputMerge#PROD-3:Merging: remove inputs#True}}'
 mergemulticoreFlag = '{{mergeMulticoreFLag#PROD-3: multicore flag#True}}'
@@ -275,7 +275,7 @@ elif w6:
   pr.plugins = ['', selectionPlugin]
   pr.inputDataPolicies = ['', 'download']
   pr.bkQueries = ['', 'fromPreviousProd']
-  pr.multicore = [MCmulticoreFlag], [selmulticoreFlag]
+  pr.multicore = [MCmulticoreFlag, selmulticoreFlag]
   pr.compressionLvl = [[simulationCompressionLvl],[selectionCompressionLvl]]
 
 elif w7:
