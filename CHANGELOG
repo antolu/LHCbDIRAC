@@ -1,3 +1,30 @@
+[v8r6-pre5]
+Use DIRAC v6r17p8
+
+* Fixed a couple of typoes
+* Forgot to delete a duplicate line
+* Improved the logic of insertion of the compression levels
+* Fixed pr.compressionLvl as list of lists to comply with the step granularity
+* More tests, added compression defaults to MC template
+* Add the possibility to delete a compression level if present, but not needed, in the OptionFiles
+* Set default compression level in the template for Merging prodctions
+* Added another test to the test chain
+* Add the possibility to put the compression options at template level
+* Better error reporting
+* Fixed pr.compressionLvl as list of lists to comply with the step granularity
+* Added command wrapper
+* removing SetupProject
+* minor fixes
+* string not list
+* find prodConf
+* bug fix (exe in wrong position)
+* finding prodConf
+* More tests, added compression defaults to MC template
+* Add the possibility to delete a compression level if present, but not needed, in the OptionFiles
+* Set default compression level in the template for Merging prodctions
+* Added another test to the test chain
+* Add the possibility to put the compression options at template level
+
 [v8r6-pre4]
 Use DIRAC v6r17p7
 
