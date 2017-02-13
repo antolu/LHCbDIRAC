@@ -93,6 +93,7 @@ except SyntaxError:
 p1Policy = '{{p1Policy#PROD-P1: data policy (download or protocol)#download}}'
 p1RemoveInputs = ast.literal_eval( '{{p1RemoveInputs#PROD-P1: removeInputs flag#False}}' )
 p1StepMask = '{{P1StepMask#PROD-P1: step output to save, semicolon separated (default is last)#}}'
+p1FileMask = '{{P1FileMask#PROD-P1: file types in output to save, semicolon separated (default is all)#}}'
 p1multicoreFlag = '{{P1MulticoreFLag#PROD-P1: multicore flag#True}}'
 p1outputMode = '{{P1OutputMode#PROD-P1: output mode#Local}}'
 p1eventsRequested = '{{P1EventsRequested#PROD-P1: events requested (-1 = ALL)#-1}}'
@@ -115,6 +116,7 @@ except SyntaxError:
 p2Policy = '{{p2Policy#PROD-P2: data policy (download or protocol)#download}}'
 p2RemoveInputs = ast.literal_eval( '{{p2RemoveInputs#PROD-P2: removeInputs flag#False}}' )
 p2StepMask = '{{P2StepMask#PROD-P2: step output to save, semicolon separated (default is last#}}'
+p2FileMask = '{{P2FileMask#PROD-P2: file types in output to save, semicolon separated (default is all)#}}'
 p2multicoreFlag = '{{P2MulticoreFLag#PROD-P2: multicore flag#True}}'
 p2outputMode = '{{P2OutputMode#PROD-P2: output mode#Local}}'
 p2eventsRequested = '{{P2EventsRequested#PROD-P2: events requested (-1 = ALL)#-1}}'
@@ -137,6 +139,7 @@ except SyntaxError:
 p3Policy = '{{p3Policy#PROD-P3: data policy (download or protocol)#download}}'
 p3RemoveInputs = ast.literal_eval( '{{p3RemoveInputs#PROD-P3: removeInputs flag#False}}' )
 p3StepMask = '{{P3StepMask#PROD-P3: step output to save, semicolon separated (default is last#}}'
+p3FileMask = '{{P3FileMask#PROD-P3: file types in output to save, semicolon separated (default is all)#}}'
 p3multicoreFlag = '{{P3MulticoreFLag#PROD-P3: multicore flag#True}}'
 p3outputMode = '{{P3OutputMode#PROD-P3: output mode#Any}}'
 p3eventsRequested = '{{P3EventsRequested#PROD-P3: events requested (-1 = ALL)#-1}}'
@@ -239,6 +242,7 @@ pr.plugins = [p1Plugin, p2Plugin, p3Plugin][0:len( pr.prodsTypeList )]
 pr.inputs = [inputDataList, [], []][0:len( pr.prodsTypeList )]
 pr.inputDataPolicies = [p1Policy, p2Policy, p3Policy][0:len( pr.prodsTypeList )]
 pr.outputFileSteps = [p1StepMask, p2StepMask, p3StepMask]
+pr.outputFileMasks = [p1FileMask, p2FileMask, p3FileMask]
 pr.multicore = [p1multicoreFlag, p2multicoreFlag, p3multicoreFlag]
 pr.outputModes = [p1outputMode, p2outputMode, p3outputMode]
 pr.events = [p1eventsRequested, p2eventsRequested, p3eventsRequested]

@@ -2,7 +2,8 @@
 """
 
 import itertools
-import copy, re
+import copy
+import re
 
 from DIRAC import gLogger, S_OK
 
@@ -151,7 +152,7 @@ class ProductionRequest( object ):
         # defined inside Gaudi
         #
         elif parameter == 'OptionFiles' and (len(self.compressionLvl) > count and self.compressionLvl[count] == ''):
-          p = re.compile('\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
+          p = re.compile(r'\$\w+/Persistency/Compression-[A-Z]{4}-[1-9].py;?')
           if p.search(value):
             value = p.sub('', value)
         stepsListDictItem[parameter] = value
@@ -188,7 +189,6 @@ class ProductionRequest( object ):
         stepsListDictItem['mcTCK'] = ''
       self.stepsListDict.append( stepsListDictItem )
       count += 1
-    
 
   #############################################################################
 
