@@ -1110,7 +1110,7 @@ def executeGetStats( dmScript ):
           rate = 'Run duration not available'
         totalLumi, lumiUnit = _scaleLumi( totalLumi )
         gLogger.notice( '%s: %.3f %s' % ( 'Total Luminosity'.ljust( tab ), totalLumi, lumiUnit ) )
-        gLogger.notice( '%s: %.1f hours (%d runs)' % ( 'Run duration'.ljust( tab ), fullDuration, len( runs ) ) )
+        gLogger.notice( '%s: %.2f hours (%d runs)' % ( 'Run duration'.ljust( tab ), fullDuration, len( runs ) ) )
         gLogger.notice( '%s: %s' % ( 'Trigger rate'.ljust( tab ), rate ) )
         rate = ( '%.1f MB/second' % ( size / 1000000. / fullDuration / 3600. ) ) if fullDuration else 'Run duration not available'
         gLogger.notice( '%s: %s' % ( 'Throughput'.ljust( tab ), rate ) )
@@ -1214,3 +1214,62 @@ def executeRunInfo( item ):
   else:
     for itemValue, ranges in itemDict.iteritems():
       gLogger.notice( '%s :' % itemValue, ', '.join( ranges ) )
+
+def executeRejectionStats( dmScript ):
+  """
+  Extract statistics for a BK query
+  """
+  lfns = dmScript.getOption( 'LFNs', [] )
+  bkQuery = dmScript.getBKQuery()
+  if not bkQuery and not lfns:
+    gLogger.notice( "No BK query given..." )
+    diracExit( 1 )
+
+  if bkQuery:
+    bkQuery.setVisible( 'All' )
+    bkQuery.setOption( 'ReplicaFlag', 'All' )
+    gLogger.notice( "Using BK query", str( bkQuery ) )
+    lfns += bkQuery.getLFNs( printSEUsage = False, printOutput = False )
+
+  if not lfns:
+    gLogger.notice ( "No files found" )
+    diracExit( 0 )
+
+  chunkSize = 100
+  progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d files " % len( lfns ), chunk = chunkSize )
+  eventStat = 0
+  uniqueJobs = {}
+  for lfnChunk in breakListIntoChunks( lfns, chunkSize ):
+    progressBar.loop()
+    for lfn in lfnChunk:
+      uniqueJobs.setdefault( os.path.basename( lfn ).split( '.' )[0], lfn )
+    res = bkClient.getFileMetadata( lfnChunk )
+    if not res['OK']:
+      gLogger.fatal( "Error getting files metadata", res['Message'] )
+      diracExit( 1 )
+    eventStat += sum( meta['EventStat'] for meta in res['Value']['Successful'].itervalues() )
+  progressBar.endLoop()
+
+  jobLfns = uniqueJobs.values()
+  eventInputStat = 0
+  jobSet = set()
+  progressBar = ProgressBar( len( lfns ), title = "Getting metadata for %d jobs" % len( jobLfns ), chunk = chunkSize )
+  for lfnChunk in breakListIntoChunks( jobLfns, chunkSize ):
+    res = bkClient.bulkJobInfo( lfnChunk )
+    if not res['OK']:
+      gLogger.fatal( "Error getting job information", res['Message'] )
+      diracExit( 1 )
+    success = res['Value']['Successful']
+    for lfn in success:
+      if isinstance( success[lfn], list ) and len( success[lfn] ) == 1:
+        success[lfn] = success[lfn][0]
+      jobID = success[lfn]['DIRACJobId']
+      # Consider each job only once in case there is more than one output per job
+      if jobID not in jobSet:
+        eventInputStat += success[lfn]['EventInputStat']
+      jobSet.add( jobID )
+  progressBar.endLoop()
+
+  gLogger.notice( "Event stat: %d on %d files" % ( eventStat, len( lfns ) ) )
+  gLogger.notice( "EventInputStat: %d from %d jobs" % ( eventInputStat, len( jobSet ) ) )
+  gLogger.notice( "Retention: %.2f %%" % ( 100.* eventStat / eventInputStat ) )
