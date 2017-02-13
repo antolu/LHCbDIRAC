@@ -1,3 +1,11 @@
+[v8r6-pre6]
+Use DIRAC v6r17p9
+
+* removing outdated code
+* added fileMask in template
+* LBLOGINDEV in Jenkins
+* lbLoginDev in pilot
+
 [v8r6-pre5]
 Use DIRAC v6r17p8
 
