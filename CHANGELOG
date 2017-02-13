@@ -1,3 +1,10 @@
+[v8r5p7]
+use DIRAC v6r17p9
+
+* no need to get the keys() for setting file status (dict is OK)
+* fix when asking for specific jobs
+* New script dirac-bookkeeping-rejection-stats
+
 [v8r5p6]
 use DIRAC v6r17p8
 
