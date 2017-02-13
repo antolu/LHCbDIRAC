@@ -161,7 +161,7 @@ class UploadOutputData( ModuleBase ):
           self.log.error( "Found descendants!!! Outputs won't be uploaded" )
           self.log.info( "Files with descendants: %s" ' % '.join( lfnsWithDescendants ) )
           self.log.info( "The files above will be set as 'Processed', other lfns in input will be later reset as Unused" )
-          self.fileReport.setFileStatus( int( self.production_id ), lfnsWithDescendants.keys(), 'Processed' )
+          self.fileReport.setFileStatus( int( self.production_id ), lfnsWithDescendants, 'Processed' )
           return S_ERROR( "Input Data Already Processed" )
 
 
