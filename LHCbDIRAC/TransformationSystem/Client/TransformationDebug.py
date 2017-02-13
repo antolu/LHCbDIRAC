@@ -40,7 +40,7 @@ class TransformationDebug( object ):
 
   def __getFilesForRun( self, runID = None, status = None, lfnList = None, seList = None, taskList = None ):
     # print transID, runID, status, lfnList
-    selectDict = {}
+    selectDict = {'TransformationID': self.transID}
     if runID is not None:
       if runID:
         selectDict["RunNumber"] = runID
@@ -53,13 +53,19 @@ class TransformationDebug( object ):
     if seList:
       selectDict['UsedSE'] = seList
     if taskList:
-      selectDict['TaskID'] = taskList
-    selectDict['TransformationID'] = self.transID
+      # First get fileID per task as the task may no longer be in the TransformationFiles table
+      res = self.transClient.getTableDistinctAttributeValues( 'TransformationFileTasks', ['FileID'],
+                                                              {'TransformationID': self.transID, 'TaskID':taskList} )
+      if res['OK']:
+        selectDict['FileID'] = res['Value']['FileID']
+      else:
+        gLogger.error( "Error getting Transformation tasks:", res['Message'] )
+        return []
     res = self.transClient.getTransformationFiles( selectDict )
     if res['OK']:
       return res['Value']
     else:
-      gLogger.error( "Error getting TransformationFiles:", res['Message'] )
+      gLogger.error( "Error getting Transformation files:", res['Message'] )
       return []
 
   def __filesProcessed( self, runID ):
