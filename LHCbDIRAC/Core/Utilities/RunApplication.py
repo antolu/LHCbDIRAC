@@ -228,21 +228,19 @@ class RunApplication(object):
     """
     sys.stdout.flush()
     if message:
-      if re.search( 'INFO Evt', message ):
-        print message
-      if re.search( 'Reading Event record', message ):
+      if 'INFO Evt' in message or 'Reading Event record' in message: # These ones will appear in the std.out log too
         print message
       if self.applicationLog:
-        log = open( self.applicationLog, 'a' )
-        log.write( message + '\n' )
-        log.close()
+        with open( self.applicationLog, 'a' ) as log:
+          log.write( message + '\n' )
+          log.flush()
       else:
         log.error( "Application Log file not defined" )
       if fd == 1:
         if self.stdError:
-          error = open( self.stdError, 'a' )
-          error.write( message + '\n' )
-          error.close()
+          with open( self.stdError, 'a' ) as error:
+            error.write( message + '\n' )
+            log.flush()
 
 
 def _multicoreWN():
