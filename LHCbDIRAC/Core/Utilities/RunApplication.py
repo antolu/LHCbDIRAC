@@ -240,7 +240,7 @@ class RunApplication(object):
         if self.stdError:
           with open( self.stdError, 'a' ) as error:
             error.write( message + '\n' )
-            log.flush()
+            error.flush()
 
 
 def _multicoreWN():
