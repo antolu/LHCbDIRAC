@@ -476,7 +476,7 @@ class Production( object ):
     outputLFNs = result['Value']
     parameters['OutputLFNs'] = outputLFNs
 
-    outputDirectories = []
+    outputDirectories = [] # the list of output directories is later used for consistency check and for removing output data
     del outputLFNs['BookkeepingLFNs']  # since ProductionOutputData uses the file mask
     for i in outputLFNs.values():
       for j in i:
@@ -676,10 +676,10 @@ class Production( object ):
 
     # This is the last component necessary for the BK publishing (post reorganisation)
     bkDictStep['Steps'] = stepList
-    
+
     bkDictStep['ConfigName'] = self.LHCbJob.workflow.findParameter( 'configName' ).getValue()
     bkDictStep['ConfigVersion'] = self.LHCbJob.workflow.findParameter( 'configVersion' ).getValue()
-    
+
     if publish:
       gLogger.verbose( 'Attempting to publish production %s to the BK' % ( prodID ) )
       result = self.bkkClient.addProduction( bkDictStep )
