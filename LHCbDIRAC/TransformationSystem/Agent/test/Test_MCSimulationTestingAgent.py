@@ -77,18 +77,6 @@ executes gaudirun with the right options
 </ModuleDefinition>
 <ModuleDefinition>
 <body><![CDATA[
-from LHCbDIRAC.Workflow.Modules.AnalyseLogFile import AnalyseLogFile
-]]></body>
-<origin></origin>
-<description><![CDATA[ Analyse log file(s) module
-]]></description>
-<descr_short></descr_short>
-<required></required>
-<version>0.0</version>
-<type>AnalyseLogFile</type>
-</ModuleDefinition>
-<ModuleDefinition>
-<body><![CDATA[
 from LHCbDIRAC.Workflow.Modules.ErrorLogging import ErrorLogging
 ]]></body>
 <origin></origin>
@@ -207,11 +195,6 @@ data
 <ModuleInstance>
 <type>GaudiApplication</type>
 <name>GaudiApplication</name>
-<descr_short></descr_short>
-</ModuleInstance>
-<ModuleInstance>
-<type>AnalyseLogFile</type>
-<name>AnalyseLogFile</name>
 <descr_short></descr_short>
 </ModuleInstance>
 <ModuleInstance>
