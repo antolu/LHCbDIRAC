@@ -1,10 +1,11 @@
-import datetime
-import copy
+""" Minimal test for TransformationCleaningAgent
+"""
+
 import importlib
 import unittest
 
 from mock import MagicMock
-from DIRAC import S_OK, S_ERROR, gLogger
+from DIRAC import S_OK, gLogger
 
 from LHCbDIRAC.TransformationSystem.Agent.TransformationCleaningAgent import TransformationCleaningAgent
 
